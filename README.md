@@ -11,6 +11,6 @@ iii) A couple of other highly compatible vectors that address the issue of unnec
 
 iv) replacements for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
 
-Tested with msvc2013, msvc2010 and g++4.8 (as of Dec 2015).
+Tested with msvc2013 and g++4.8 (as of Dec 2015) and msvc2010 (as of Jan 2015).
 
 See the file msetl_blurb.pdf for more info. Or just have a look at msetl_example.cpp to see the library in action.
