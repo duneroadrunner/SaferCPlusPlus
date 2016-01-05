@@ -62,10 +62,10 @@ namespace mse {
 		TRegisteredObjForLegacy& operator=(TRegisteredObjForLegacy&& _X) { _Ty::operator=(std::move(_X)); return (*this); }
 		TRegisteredObjForLegacy& operator=(const TRegisteredObjForLegacy& _X) { _Ty::operator=(_X); return (*this); }
 		TRegisteredPointerForLegacy<_Ty> operator&() {
-			return TRegisteredPointerForLegacy<_Ty>(this);
+			return this;
 		}
 		TRegisteredPointerForLegacy<const _Ty> operator&() const {
-			return TRegisteredPointerForLegacy<const _Ty>(this);
+			return this;
 		}
 	};
 

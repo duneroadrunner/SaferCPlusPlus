@@ -937,10 +937,10 @@ namespace mse {
 		TRegisteredObj& operator=(TRegisteredObj&& _X) { _Ty::operator=(std::move(_X)); return (*this); }
 		TRegisteredObj& operator=(const TRegisteredObj& _X) { _Ty::operator=(_X); return (*this); }
 		TRegisteredPointer<_Ty> operator&() {
-			return TRegisteredPointer<_Ty>(this);
+			return this;
 		}
 		TRegisteredPointer<const _Ty> operator&() const {
-			return TRegisteredPointer<const _Ty>(this);
+			return this;
 		}
 		CRPTracker& mseRPManager() { return m_mseRPManager; }
 
