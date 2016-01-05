@@ -278,6 +278,8 @@ int main(int argc, char* argv[])
 			mse::registered_delete_for_legacy<D>(d_ptr);
 		}
 
+		mse::s_regptr_test1();
+
 	}
 
 	return 0;
