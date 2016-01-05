@@ -64,8 +64,8 @@ namespace mse {
 		TRegisteredPointerForLegacy<_Ty> operator&() {
 			return TRegisteredPointerForLegacy<_Ty>(this);
 		}
-		TRegisteredPointer<const _Ty> operator&() const {
-			return TRegisteredPointer<const _Ty>(this);
+		TRegisteredPointerForLegacy<const _Ty> operator&() const {
+			return TRegisteredPointerForLegacy<const _Ty>(this);
 		}
 	};
 
