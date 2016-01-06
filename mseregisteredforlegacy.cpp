@@ -3,13 +3,13 @@
 
 
 namespace mse {
-	bool CSPManager::registerPointer(const CSaferPtrBase& sp_ref, void *obj_ptr) {
+	bool CSPTracker::registerPointer(const CSaferPtrBase& sp_ref, void *obj_ptr) {
 		if (nullptr == obj_ptr) { return true; }
 		std::unordered_multimap<void*, const CSaferPtrBase&>::value_type item(obj_ptr, sp_ref);
 		m_obj_pointer_map.insert(item);
 		return true;
 	}
-	bool CSPManager::unregisterPointer(const CSaferPtrBase& sp_ref, void *obj_ptr) {
+	bool CSPTracker::unregisterPointer(const CSaferPtrBase& sp_ref, void *obj_ptr) {
 		if (nullptr == obj_ptr) { return true; }
 		bool retval = false;
 		auto lower_bound = m_obj_pointer_map.lower_bound(obj_ptr);
@@ -22,7 +22,7 @@ namespace mse {
 		}
 		return retval;
 	}
-	void CSPManager::onObjectDestruction(void *obj_ptr) {
+	void CSPTracker::onObjectDestruction(void *obj_ptr) {
 		if (nullptr == obj_ptr) { assert(false); return; }
 		auto range = m_obj_pointer_map.equal_range(obj_ptr);
 		for (auto it = range.first; range.second != it; it++) {
@@ -31,5 +31,5 @@ namespace mse {
 		m_obj_pointer_map.erase(obj_ptr);
 	}
 
-	CSPManager gSPManager;
+	CSPTracker gSPTracker;
 }

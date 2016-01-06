@@ -741,7 +741,7 @@ namespace mse {
 		}
 		CRPTracker(CRPTracker&& src) { /* see above */ }
 		~CRPTracker() {
-			if (!m_fast_mode1) {
+			if (!fast_mode1()) {
 				delete m_ptr_to_regptr_set_ptr;
 			}
 		}
@@ -759,7 +759,7 @@ namespace mse {
 		bool operator!=(const CRPTracker& _Right_cref) const { /* see above */ return false; }
 
 		void registerPointer(const CSaferPtrBase& sp_ref) {
-			if (!m_fast_mode1) {
+			if (!fast_mode1()) {
 				std::unordered_set<const CSaferPtrBase*>::value_type item(&sp_ref);
 				(*m_ptr_to_regptr_set_ptr).insert(item);
 			}
@@ -767,7 +767,6 @@ namespace mse {
 				/* We're gonna use a bunch of (ugly) hard coded cases to try to make fast mode fast. */
 				if (sc_fm1_max_pointers == m_fm1_num_pointers) {
 					/* Too many pointers. Initiate and switch to slow mode. */
-					m_fast_mode1 = false;
 					/* Initialize slow storage. */
 					m_ptr_to_regptr_set_ptr = new std::unordered_set<const CSaferPtrBase*>();
 					/* First copy the pointers from fast storage to slow storage. */
@@ -803,7 +802,7 @@ namespace mse {
 			}
 		}
 		void unregisterPointer(const CSaferPtrBase& sp_ref) {
-			if (!m_fast_mode1) {
+			if (!fast_mode1()) {
 				auto res = (*m_ptr_to_regptr_set_ptr).erase(&sp_ref);
 				assert(0 != res);
 			}
@@ -851,7 +850,7 @@ namespace mse {
 			}
 		}
 		void onObjectDestruction() {
-			if (!m_fast_mode1) {
+			if (!fast_mode1()) {
 				for (auto sp_ref_ptr : (*m_ptr_to_regptr_set_ptr)) {
 					(*sp_ref_ptr).setToNull();
 				}
@@ -889,12 +888,68 @@ namespace mse {
 			}
 		}
 
-		bool m_fast_mode1 = true;
+		bool fast_mode1() const { return (nullptr == m_ptr_to_regptr_set_ptr); }
 		int m_fm1_num_pointers = 0;
 		static const int sc_fm1_max_pointers = 2/*arbitrary*/;
 		const CSaferPtrBase* m_fm1_ptr_to_regptr_array[sc_fm1_max_pointers];
 
-		std::unordered_set<const CSaferPtrBase*> *m_ptr_to_regptr_set_ptr;
+		std::unordered_set<const CSaferPtrBase*> *m_ptr_to_regptr_set_ptr = nullptr;
+	};
+
+	/* CSORPTracker is a "size optimized" (smaller and slower) version of CSPTracker used by TRegisteredPointer. (Because, you
+	know, pointers to pointers are fairly rare.) */
+	class CSORPTracker {
+	public:
+		CSORPTracker() {}
+		CSORPTracker(const CSORPTracker& src_cref) {
+			/* This is a special type of class. The state (i.e. member values) of an object of this class is specific to (and only
+			valid for) the particular instance of the object (or the object of which it is a member). So the correct state of a new
+			copy of this type of object) is not a copy of the state, but rather the state of a new object (which is just the default
+			initialization state). */
+		}
+		CSORPTracker(CSORPTracker&& src) { /* see above */ }
+		~CSORPTracker() {
+			delete m_ptr_to_regptr_set_ptr;
+		}
+		CSORPTracker& operator=(const CSORPTracker& src_cref) {
+			/* This is a special type of class. The state (i.e. member values) of an object of this class is specific to (and only
+			valid for) the particular instance of the object (or the object of which it is a member). So the correct state of a new
+			copy of this type of object is not a copy of the state, but rather the state of a new object (which is just the default
+			initialization state). */
+			return (*this);
+		}
+		CSORPTracker& operator=(CSORPTracker&& src) { /* see above */ return (*this); }
+		bool operator==(const CSORPTracker& _Right_cref) const {
+			/* At the moment the "non-instance-specific" state of all objects of this type is the same (namely the null set). */
+			return true;
+		}
+		bool operator!=(const CSORPTracker& _Right_cref) const { /* see above */ return false; }
+
+		void registerPointer(const CSaferPtrBase& sp_ref) {
+			if (!m_ptr_to_regptr_set_ptr) {
+				m_ptr_to_regptr_set_ptr = new std::unordered_set<const CSaferPtrBase*>();
+			}
+			std::unordered_set<const CSaferPtrBase*>::value_type item(&sp_ref);
+			(*m_ptr_to_regptr_set_ptr).insert(item);
+		}
+		void unregisterPointer(const CSaferPtrBase& sp_ref) {
+			if (!m_ptr_to_regptr_set_ptr) {
+				assert(false);
+			}
+			else {
+				auto res = (*m_ptr_to_regptr_set_ptr).erase(&sp_ref);
+				assert(0 != res);
+			}
+		}
+		void onObjectDestruction() {
+			if (m_ptr_to_regptr_set_ptr) {
+				for (auto sp_ref_ptr : (*m_ptr_to_regptr_set_ptr)) {
+					(*sp_ref_ptr).setToNull();
+				}
+			}
+		}
+
+		std::unordered_set<const CSaferPtrBase*> *m_ptr_to_regptr_set_ptr = nullptr;
 	};
 
 	template<typename _Ty>
@@ -916,9 +971,9 @@ namespace mse {
 		TRegisteredPointer<_Ty>& operator=(const TRegisteredPointer<_Ty>& _Right_cref);
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const;
-		CRPTracker& mseRPManager() { return m_mseRPManager; }
+		CSORPTracker& mseRPManager() { return m_mseRPManager; }
 
-		mutable CRPTracker m_mseRPManager;
+		mutable CSORPTracker m_mseRPManager;
 	};
 
 	/* TRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
@@ -992,7 +1047,7 @@ namespace mse {
 		return (*this).m_ptr;
 	}
 
-	/* registered_new is intended to be analogous to std:make_shared */
+	/* registered_new is intended to be analogous to std::make_shared */
 	template <class _Ty, class... Args>
 	TRegisteredPointer<_Ty> registered_new(Args&&... args) {
 		return new TRegisteredObj<_Ty>(args...);
