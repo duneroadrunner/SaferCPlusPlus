@@ -49,6 +49,18 @@ namespace mse {
 			}
 			return (*this).m_ptr;
 		}
+		/*Ideally these "address of" operators shouldn't be used. If you want a pointer to a TRegisteredPointerForLegacy<_Ty>,
+		declare the TRegisteredPointerForLegacy<_Ty> as a TRegisteredObjForLegacy<TRegisteredPointerForLegacy<_Ty>> instead. So
+		for example:
+		auto reg_ptr = TRegisteredObjForLegacy<TRegisteredPointerForLegacy<_Ty>>(mse::registered_new_for_legacy<_Ty>());
+		auto reg_ptr_to_reg_ptr = &reg_ptr;
+		*/
+		TRegisteredPointerForLegacy<TRegisteredPointerForLegacy<_Ty>> operator&() {
+			return this;
+		}
+		TRegisteredPointerForLegacy<const TRegisteredPointerForLegacy<_Ty>> operator&() const {
+			return this;
+		}
 	};
 
 	/* See TRegisteredObj. */

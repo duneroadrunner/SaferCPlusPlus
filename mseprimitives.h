@@ -896,8 +896,7 @@ namespace mse {
 		std::unordered_set<const CSaferPtrBase*> *m_ptr_to_regptr_set_ptr = nullptr;
 	};
 
-	/* CSORPTracker is a "size optimized" (smaller and slower) version of CSPTracker used by TRegisteredPointer. (Because, you
-	know, pointers to pointers are fairly rare.) */
+	/* CSORPTracker is a "size optimized" (smaller and slower) version of CSPTracker. Currently not used. */
 	class CSORPTracker {
 	public:
 		CSORPTracker() {}
@@ -971,9 +970,19 @@ namespace mse {
 		TRegisteredPointer<_Ty>& operator=(const TRegisteredPointer<_Ty>& _Right_cref);
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const;
-		CSORPTracker& mseRPManager() { return m_mseRPManager; }
 
-		mutable CSORPTracker m_mseRPManager;
+	private:
+		/* If you want a pointer to a TRegisteredPointer<_Ty>, declare the TRegisteredPointer<_Ty> as a
+		TRegisteredObj<TRegisteredPointer<_Ty>> instead. So for example:
+		auto reg_ptr = TRegisteredObj<TRegisteredPointer<_Ty>>(mse::registered_new<_Ty>());
+		auto reg_ptr_to_reg_ptr = &reg_ptr;
+		*/
+		TRegisteredPointer<_Ty>* operator&() {
+			return this;
+		}
+		(const TRegisteredPointer<_Ty>)* operator&() const {
+			return this;
+		}
 	};
 
 	/* TRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
@@ -1021,7 +1030,6 @@ namespace mse {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
 		}
-		mseRPManager().onObjectDestruction(); /* Just in case there are pointers to this pointer out there. */
 	}
 	template<typename _Ty>
 	TRegisteredPointer<_Ty>& TRegisteredPointer<_Ty>::operator=(TRegisteredObj<_Ty>* ptr) {
