@@ -9,6 +9,7 @@
 #include "msemstdvector.h"
 #include "mseivector.h"
 #include "msevector_test.h"
+#include "mseregistered.h"
 #include "mseregisteredforlegacy.h"
 #include <iostream>
 
