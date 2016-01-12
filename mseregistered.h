@@ -261,7 +261,7 @@ namespace mse {
 		TRegisteredPointer<_Ty>* operator&() {
 			return this;
 		}
-		(const TRegisteredPointer<_Ty>)* operator&() const {
+		const TRegisteredPointer<_Ty>* operator&() const {
 			return this;
 		}
 	};
