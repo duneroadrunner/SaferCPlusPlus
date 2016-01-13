@@ -3,6 +3,7 @@
 
 #include "mseprimitives.h"
 #include <unordered_map>
+#include <mutex>
 
 namespace mse {
 
@@ -15,7 +16,8 @@ namespace mse {
 		bool registerPointer(const CSaferPtrBase& sp_ref, void *obj_ptr);
 		bool unregisterPointer(const CSaferPtrBase& sp_ref, void *obj_ptr);
 		void onObjectDestruction(void *obj_ptr);
-		std::unordered_multimap<void*, const CSaferPtrBase&> m_obj_pointer_map;
+		std::unordered_multimap<void*, const CSaferPtrBase*> m_obj_pointer_map;
+		std::mutex m_mutex;
 	};
 
 	extern CSPTracker gSPTracker;
