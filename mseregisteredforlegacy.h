@@ -22,6 +22,9 @@ namespace mse {
 
 	extern CSPTracker gSPTracker;
 
+	template<typename _Ty>
+	class TRegisteredObjForLegacy;
+
 	/* TRegisteredPointerForLegacy is similar to TRegisteredPointer, but more readily converts to a native pointer implicitly. So
 	when replacing native pointers with "registered" pointers in legacy code, it may be the case that fewer code changes
 	(explicit casts) will be required when using this template. */
@@ -50,6 +53,16 @@ namespace mse {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
 			return (*this).m_ptr;
+		}
+		/* This cast operator, if possible, should not be used. It is meant to be used exclusively by registered_delete_for_legacy<>(). */
+		explicit operator TRegisteredObjForLegacy<_Ty>*() const {
+			if (nullptr == (*this).m_ptr) {
+				int q = 5; /* just a line of code for putting a debugger break point */
+			}
+			/* It should be ok to hard cast to (TRegisteredObjForLegacy<_Ty>*) even if (*this).m_ptr points to a _Ty and not a
+			TRegisteredObjForLegacy<_Ty>, because TRegisteredObjForLegacy<_Ty> doesn't have any extra data members that _Ty
+			doesn't. */
+			return (TRegisteredObjForLegacy<_Ty>*)((*this).m_ptr);
 		}
 		/*Ideally these "address of" operators shouldn't be used. If you want a pointer to a TRegisteredPointerForLegacy<_Ty>,
 		declare the TRegisteredPointerForLegacy<_Ty> as a TRegisteredObjForLegacy<TRegisteredPointerForLegacy<_Ty>> instead. So
@@ -93,7 +106,8 @@ namespace mse {
 	}
 	template <class _Ty>
 	void registered_delete_for_legacy(const TRegisteredPointerForLegacy<_Ty>& regPtrRef) {
-		auto a = dynamic_cast<TRegisteredObjForLegacy<_Ty> *>((_Ty *)regPtrRef);
+		//auto a = dynamic_cast<TRegisteredObjForLegacy<_Ty> *>((_Ty*)regPtrRef);
+		auto a = (TRegisteredObjForLegacy<_Ty>*)regPtrRef;
 		delete a;
 	}
 }

@@ -251,6 +251,7 @@ namespace mse {
 		TRegisteredPointer<_Ty>& operator=(const TRegisteredPointer<_Ty>& _Right_cref);
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const;
+		explicit operator TRegisteredObj<_Ty>*() const;
 
 	private:
 		/* If you want a pointer to a TRegisteredPointer<_Ty>, declare the TRegisteredPointer<_Ty> as a
@@ -335,6 +336,14 @@ namespace mse {
 		}
 		return (*this).m_ptr;
 	}
+	/* This cast operator, if possible, should not be used. It is meant to be used exclusively by registered_delete<>(). */
+	template<typename _Ty>
+	TRegisteredPointer<_Ty>::operator TRegisteredObj<_Ty>*() const {
+		if (nullptr == (*this).m_ptr) {
+			int q = 5; /* just a line of code for putting a debugger break point */
+		}
+		return (*this).m_ptr;
+	}
 
 	/* registered_new is intended to be analogous to std::make_shared */
 	template <class _Ty, class... Args>
@@ -343,7 +352,8 @@ namespace mse {
 	}
 	template <class _Ty>
 	void registered_delete(const TRegisteredPointer<_Ty>& regPtrRef) {
-		auto a = dynamic_cast<TRegisteredObj<_Ty> *>((_Ty *)regPtrRef);
+		//auto a = dynamic_cast<TRegisteredObj<_Ty> *>((_Ty*)regPtrRef);
+		auto a = (TRegisteredObj<_Ty>*)regPtrRef;
 		delete a;
 	}
 
