@@ -18,17 +18,7 @@ namespace mse {
 		{
 			std::lock_guard<std::mutex> lock(m_mutex);
 			auto range = m_obj_pointer_map.equal_range(obj_ptr);
-			if (false) {
-				/* This branch could be theoretically faster when range.first is a random access iterator. In practice though,
-				it seems to be only a bidirectional iterator. */
-				std::unordered_multimap<void*, const CSaferPtrBase*>::value_type item(obj_ptr, &sp_ref);
-				auto found_it = std::find(range.first, range.second, item);
-				if (range.second != found_it) {
-					m_obj_pointer_map.erase(found_it);
-					retval = true;
-				}
-			}
-			else {
+			if (true) {
 				for (auto& it = range.first; range.second != it; it++) {
 					if (((*it).second) == &sp_ref)/*we're comparing pointers here*/ {
 						m_obj_pointer_map.erase(it);
