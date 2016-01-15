@@ -12,6 +12,9 @@
 #include "mseregistered.h"
 #include "mseregisteredforlegacy.h"
 #include <iostream>
+#include <ctime>
+#include <ratio>
+#include <chrono>
 
 
 int main(int argc, char* argv[])
@@ -280,6 +283,116 @@ int main(int argc, char* argv[])
 		}
 
 		mse::s_regptr_test1();
+
+		{
+			/* Just some simple speed tests. */
+			class CE {
+			public:
+				CE() {}
+				CE(int& count_ref) : m_count_ptr(&count_ref) { (*m_count_ptr) += 1; }
+				virtual ~CE() { (*m_count_ptr) -= 1; }
+				int m_x;
+				int *m_count_ptr;
+			};
+			static const int number_of_loops = 1000000/*arbitrary*/;
+			{
+				int count = 0;
+				auto item_ptr2 = new CE(count);
+				delete item_ptr2; item_ptr2 = nullptr;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					auto item_ptr = new CE(count);
+					item_ptr2 = item_ptr;
+					delete item_ptr;
+					item_ptr = nullptr;
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "native pointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto item_ptr2 = mse::registered_new<CE>(count);
+				mse::registered_delete<CE>(item_ptr2);
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					auto item_ptr = mse::registered_new<CE>(count);
+					item_ptr2 = item_ptr;
+					mse::registered_delete<CE>(item_ptr);
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRegisteredPointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto item_ptr2 = mse::registered_new_for_legacy<CE>(count);
+				mse::registered_delete_for_legacy<CE>(item_ptr2);
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					auto item_ptr = mse::registered_new_for_legacy<CE>(count);
+					item_ptr2 = item_ptr;
+					mse::registered_delete_for_legacy<CE>(item_ptr);
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRegisteredPointerForLegacy: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto item_ptr2 = std::make_shared<CE>(count);
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					auto item_ptr = std::make_shared<CE>(count);
+					item_ptr2 = item_ptr;
+					item_ptr = nullptr;
+				}
+				item_ptr2 = nullptr;
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "std::shared_ptr: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto item_ptr2 = &(mse::TRegisteredObj<CE>(count));
+				auto t1 = std::chrono::high_resolution_clock::now();
+				{
+					for (int i = 0; i < number_of_loops; i += 1) {
+						mse::TRegisteredObj<CE> object(count);
+						auto item_ptr = &object;
+						item_ptr2 = item_ptr;
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRegisteredPointer targeting the stack: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+		}
 
 	}
 
