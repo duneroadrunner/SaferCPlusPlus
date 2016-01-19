@@ -6,37 +6,38 @@
 
 namespace mse {
 
-	/* CRPTracker is intended to keep track of all the pointers pointing to an object. CRPTracker objects are intended to be always
+	/* TRPTracker is intended to keep track of all the pointers pointing to an object. TRPTracker objects are intended to be always
 	associated with (infact, a member of) the one object that is the target of the pointers it tracks. Though at the moment, it
 	doesn't need to actually know which object it is associated with. */
-	class CRPTracker {
+	template<int _Tn = 3/* 1 + (the maximum number of pointers expected to target the object at one time) */>
+	class TRPTracker {
 	public:
-		CRPTracker() {}
-		CRPTracker(const CRPTracker& src_cref) {
+		TRPTracker() {}
+		TRPTracker(const TRPTracker& src_cref) {
 			/* This is a special type of class. The state (i.e. member values) of an object of this class is specific to (and only
 			valid for) the particular instance of the object (or the object of which it is a member). So the correct state of a new
 			copy of this type of object) is not a copy of the state, but rather the state of a new object (which is just the default
 			initialization state). */
 		}
-		CRPTracker(CRPTracker&& src) { /* see above */ }
-		~CRPTracker() {
+		TRPTracker(TRPTracker&& src) { /* see above */ }
+		~TRPTracker() {
 			if (!fast_mode1()) {
 				delete m_ptr_to_regptr_set_ptr;
 			}
 		}
-		CRPTracker& operator=(const CRPTracker& src_cref) {
+		TRPTracker& operator=(const TRPTracker& src_cref) {
 			/* This is a special type of class. The state (i.e. member values) of an object of this class is specific to (and only
 			valid for) the particular instance of the object (or the object of which it is a member). So the correct state of a new
 			copy of this type of object is not a copy of the state, but rather the state of a new object (which is just the default
 			initialization state). */
 			return (*this);
 		}
-		CRPTracker& operator=(CRPTracker&& src) { /* see above */ return (*this); }
-		bool operator==(const CRPTracker& _Right_cref) const {
+		TRPTracker& operator=(TRPTracker&& src) { /* see above */ return (*this); }
+		bool operator==(const TRPTracker& _Right_cref) const {
 			/* At the moment the "non-instance-specific" state of all objects of this type is the same (namely the null set). */
 			return true;
 		}
-		bool operator!=(const CRPTracker& _Right_cref) const { /* see above */ return false; }
+		bool operator!=(const TRPTracker& _Right_cref) const { /* see above */ return false; }
 
 		void registerPointer(const CSaferPtrBase& sp_ref) {
 			if (!fast_mode1()) {
@@ -171,7 +172,7 @@ namespace mse {
 
 		bool fast_mode1() const { return (nullptr == m_ptr_to_regptr_set_ptr); }
 		int m_fm1_num_pointers = 0;
-		static const int sc_fm1_max_pointers = 2/*arbitrary*/;
+		static const int sc_fm1_max_pointers = _Tn;
 		const CSaferPtrBase* m_fm1_ptr_to_regptr_array[sc_fm1_max_pointers];
 
 		std::unordered_set<const CSaferPtrBase*> *m_ptr_to_regptr_set_ptr = nullptr;
@@ -232,7 +233,7 @@ namespace mse {
 		std::unordered_set<const CSaferPtrBase*> *m_ptr_to_regptr_set_ptr = nullptr;
 	};
 
-	template<typename _Ty>
+	template<typename _Ty, int _Tn = 3/* 1 + (the maximum number of pointers expected to target the object at one time) */>
 	class TRegisteredObj;
 
 	/* TRegisteredPointer behaves similar to (and is largely compatible with) native pointers. It inherits the safety features of
@@ -270,7 +271,7 @@ namespace mse {
 	/* TRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
 	destruction so that TRegisteredPointers will avoid referencing destroyed objects. Note that TRegisteredObj can be used with
 	objects allocated on the stack. */
-	template<typename _Ty>
+	template<typename _Ty, int _Tn>
 	class TRegisteredObj : public _Ty {
 	public:
 		//using _Ty::_Ty;
@@ -288,9 +289,9 @@ namespace mse {
 		TRegisteredPointer<const _Ty> operator&() const {
 			return this;
 		}
-		CRPTracker& mseRPManager() { return m_mseRPManager; }
+		TRPTracker<_Tn>& mseRPManager() { return m_mseRPManager; }
 
-		mutable CRPTracker m_mseRPManager;
+		mutable TRPTracker<_Tn> m_mseRPManager;
 	};
 
 	template<typename _Ty>
@@ -346,14 +347,15 @@ namespace mse {
 	}
 
 	/* registered_new is intended to be analogous to std::make_shared */
-	template <class _Ty, class... Args>
+	template <class _Ty, int _Tn = 3/* 1 + (the maximum number of pointers expected to target the object at one time) */
+		, class... Args>
 	TRegisteredPointer<_Ty> registered_new(Args&&... args) {
-		return new TRegisteredObj<_Ty>(args...);
+		return new TRegisteredObj<_Ty, _Tn>(args...);
 	}
-	template <class _Ty>
+	template <class _Ty, int _Tn = 3/* 1 + (the maximum number of pointers expected to target the object at one time) */>
 	void registered_delete(const TRegisteredPointer<_Ty>& regPtrRef) {
-		//auto a = dynamic_cast<TRegisteredObj<_Ty> *>((_Ty*)regPtrRef);
-		auto a = (TRegisteredObj<_Ty>*)regPtrRef;
+		//auto a = dynamic_cast<TRegisteredObj<_Ty, _Tn> *>((_Ty*)regPtrRef);
+		auto a = (TRegisteredObj<_Ty, _Tn>*)regPtrRef;
 		delete a;
 	}
 
