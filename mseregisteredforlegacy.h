@@ -16,7 +16,25 @@ namespace mse {
 		bool registerPointer(const CSaferPtrBase& sp_ref, void *obj_ptr);
 		bool unregisterPointer(const CSaferPtrBase& sp_ref, void *obj_ptr);
 		void onObjectDestruction(void *obj_ptr);
+
+		/* So this tracker stores the object-pointer mappings in either "fast storage1" or "slow storage". The code for
+		"fast storage1" is ugly. The code for "slow storage" is more readable. */
+		void removeObjectFromFastStorage1(int fs1_obj_index);
+		void moveObjectFromFastStorage1ToSlowStorage(int fs1_obj_index);
+		static const int sc_fs1_max_pointers = 3/* must be at least 1 */;
+		class CFS1Object {
+		public:
+			void* m_object_ptr;
+			const CSaferPtrBase* m_pointer_ptrs[sc_fs1_max_pointers];
+			int m_num_pointers = 0;
+		};
+		static const int sc_fs1_max_objects = 3/*aritrary*/;
+		CFS1Object m_fs1_objects[sc_fs1_max_objects];
+		int m_num_fs1_objects = 0;
+
+		/* "slow storage" */
 		std::unordered_multimap<void*, const CSaferPtrBase*> m_obj_pointer_map;
+
 		std::mutex m_mutex;
 	};
 
