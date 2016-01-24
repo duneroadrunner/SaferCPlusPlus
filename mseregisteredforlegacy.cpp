@@ -1,13 +1,17 @@
 
 #include "mseregisteredforlegacy.h"
 
+#ifdef _MSC_VER
+#include "windows.h"
+#endif /*_MSC_VER*/
+
 
 namespace mse {
 
 	bool CSPTracker::registerPointer(const CSaferPtrBase& sp_ref, void *obj_ptr) {
 		if (nullptr == obj_ptr) { return true; }
 		{
-			std::lock_guard<std::mutex> lock(m_mutex);
+			//std::lock_guard<std::mutex> lock(m_mutex);
 
 			/* check if the object is in "fast storage 1" first */
 			for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
@@ -65,7 +69,7 @@ namespace mse {
 		if (nullptr == obj_ptr) { return true; }
 		bool retval = false;
 		{
-			std::lock_guard<std::mutex> lock(m_mutex);
+			//std::lock_guard<std::mutex> lock(m_mutex);
 
 			/* check if the object is in "fast storage 1" first */
 			for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
@@ -125,7 +129,7 @@ namespace mse {
 	void CSPTracker::onObjectDestruction(void *obj_ptr) {
 		if (nullptr == obj_ptr) { assert(false); return; }
 		{
-			std::lock_guard<std::mutex> lock(m_mutex);
+			//std::lock_guard<std::mutex> lock(m_mutex);
 
 			/* check if the object is in "fast storage 1" first */
 			for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
@@ -148,6 +152,22 @@ namespace mse {
 		}
 	}
 
+	void CSPTracker::onObjectConstruction(void *obj_ptr) {
+		if (nullptr == obj_ptr) { assert(false); return; }
+		if ((1 <= sc_fs1_max_objects) && (1 <= sc_fs1_max_pointers)) {
+			/* We'll add this object to fast storage. */
+			if (sc_fs1_max_objects == m_num_fs1_objects) {
+				/* Too many objects. We're gonna move the oldest object to slow storage. */
+				moveObjectFromFastStorage1ToSlowStorage(0);
+			}
+			auto& fs1_object_ref = m_fs1_objects[m_num_fs1_objects];
+			fs1_object_ref.m_object_ptr = obj_ptr;
+			fs1_object_ref.m_num_pointers = 0;
+			m_num_fs1_objects += 1;
+			return;
+		}
+	}
+
 	void CSPTracker::removeObjectFromFastStorage1(int fs1_obj_index) {
 		for (int j = fs1_obj_index; j < (m_num_fs1_objects - 1); j += 1) {
 			m_fs1_objects[j] = m_fs1_objects[j + 1];
@@ -166,5 +186,11 @@ namespace mse {
 		removeObjectFromFastStorage1(fs1_obj_index);
 	}
 
-	CSPTracker gSPTracker;
+#ifdef _MSC_VER
+	MSE_THREAD_ID_TYPE CSPTrackerMap::mseWindowsGetCurrentThreadId() {
+		return GetCurrentThreadId();
+	}
+#endif /*_MSC_VER*/
+
+	CSPTrackerMap gSPTrackerMap;
 }
