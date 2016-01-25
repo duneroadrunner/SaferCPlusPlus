@@ -9,11 +9,11 @@
 /* Jan 2016: For some reason std::this_thread::get_id() seems to be really slow in windows. So we're replacing it with the
 native GetCurrentThreadId(). */
 #define MSE_THREAD_ID_TYPE unsigned long /*DWORD*/
-#define MSE_GET_CURRENT_THREAD_ID CSPTrackerMap::mseWindowsGetCurrentThreadId
+#define MSE_GET_CURRENT_THREAD_ID CSPTrackerMap::mseWindowsGetCurrentThreadId()
 #else /*_MSC_VER*/
 #include <thread>         // std::thread, MSE_THREAD_ID_TYPE, MSE_GET_CURRENT_THREAD_ID
 #define MSE_THREAD_ID_TYPE std::thread::id
-#define MSE_GET_CURRENT_THREAD_ID std::this_thread::get_id
+#define MSE_GET_CURRENT_THREAD_ID std::this_thread::get_id()
 #endif /*_MSC_VER*/
 
 namespace mse {
@@ -54,7 +54,7 @@ namespace mse {
 	class CSPTrackerMap {
 	public:
 		CSPTrackerMap() {
-			m_first_thread_id = MSE_GET_CURRENT_THREAD_ID();
+			m_first_thread_id = MSE_GET_CURRENT_THREAD_ID;
 			m_first_sp_tracker_pointer = new CSPTracker();
 			//std::unordered_map<MSE_THREAD_ID_TYPE, CSPTracker*>::value_type item(m_first_thread_id, m_first_sp_tracker_pointer);
 			//auto insert_retval = m_tracker_map.insert(item);
@@ -124,10 +124,10 @@ namespace mse {
 	class TRegisteredPointerForLegacy : public TSaferPtrForLegacy<_Ty> {
 	public:
 		TRegisteredPointerForLegacy() : TSaferPtrForLegacy<_Ty>() {
-			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID()));
+			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
 		}
 		TRegisteredPointerForLegacy(_Ty* ptr) : TSaferPtrForLegacy<_Ty>(ptr) {
-			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID()));
+			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
 			m_might_not_point_to_a_TRegisteredObjForLegacy = true;
 			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
 		}
@@ -137,7 +137,7 @@ namespace mse {
 			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
 		}
 		TRegisteredPointerForLegacy(const TRegisteredPointerForLegacy& src_cref) : TSaferPtrForLegacy<_Ty>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID()));
+			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
 			m_might_not_point_to_a_TRegisteredObjForLegacy = src_cref.m_might_not_point_to_a_TRegisteredObjForLegacy;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
@@ -198,7 +198,7 @@ namespace mse {
 	class CTrackerNotifier {
 	public:
 		CTrackerNotifier() {
-			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID()));
+			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
 			(*m_sp_tracker_ptr).onObjectConstruction(this);
 		}
 		~CTrackerNotifier() {
@@ -218,7 +218,7 @@ namespace mse {
 		// for now
 		MSE_USING(TRegisteredObjForLegacy, _Ty);
 		virtual ~TRegisteredObjForLegacy() {
-			//gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID()).onObjectDestruction(this);
+			//gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(this);
 		}
 		TRegisteredObjForLegacy& operator=(TRegisteredObjForLegacy&& _X) { _Ty::operator=(std::move(_X)); return (*this); }
 		TRegisteredObjForLegacy& operator=(const TRegisteredObjForLegacy& _X) { _Ty::operator=(_X); return (*this); }
@@ -251,6 +251,7 @@ namespace mse {
 			situations it doesn't make sense that someone would be calling this delete function. */
 			//_Ty* a = &regPtrRef;
 			_Ty* a = regPtrRef.m_ptr;
+			gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(a);
 			delete a;
 		}
 		else {
