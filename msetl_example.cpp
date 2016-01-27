@@ -294,7 +294,11 @@ int main(int argc, char* argv[])
 				int m_x;
 				int *m_count_ptr;
 			};
+#ifdef _DEBUG
+			static const int number_of_loops = 10/*arbitrary*/;
+#else /*_DEBUG*/
 			static const int number_of_loops = 1000000/*arbitrary*/;
+#endif /*_DEBUG*/
 			{
 				int count = 0;
 				auto item_ptr2 = new CE(count);
@@ -389,6 +393,113 @@ int main(int argc, char* argv[])
 				std::cout << "mse::TRegisteredPointer targeting the stack: " << time_span.count() << " seconds.";
 				if (0 != count) {
 					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+
+			std::cout << std::endl;
+			static const int number_of_loops2 = (10/*arbitrary*/)*number_of_loops;
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					CF* m_next_item_ptr;
+					int m_a = 3;
+				};
+				CF item1(1);
+				CF item2(2);
+				CF item3(3);
+				item1.m_next_item_ptr = &item2;
+				item2.m_next_item_ptr = &item3;
+				item3.m_next_item_ptr = &item1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				CF* cf_ptr = item1.m_next_item_ptr;
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					cf_ptr = cf_ptr->m_next_item_ptr;
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "native pointer dereferencing: " << time_span.count() << " seconds.";
+				if (3 == cf_ptr->m_a) {
+					std::cout << " "; /* Using cf_ptr->m_a for (potential) output should prevent the optimizer from discarding too much. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					mse::TRegisteredPointerForLegacy<CF> m_next_item_ptr;
+					int m_a = 3;
+				};
+				mse::TRegisteredObjForLegacy<CF> item1(1);
+				mse::TRegisteredObjForLegacy<CF> item2(2);
+				mse::TRegisteredObjForLegacy<CF> item3(3);
+				item1.m_next_item_ptr = &item2;
+				item2.m_next_item_ptr = &item3;
+				item3.m_next_item_ptr = &item1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				mse::TRegisteredPointerForLegacy<CF>* rpfl_ptr = &(item1.m_next_item_ptr);
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					rpfl_ptr = &((*rpfl_ptr)->m_next_item_ptr);
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRegisteredObjForLegacy (checked) dereferencing: " << time_span.count() << " seconds.";
+				if (3 == (*rpfl_ptr)->m_a) {
+					std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					mse::TRegisteredPointerForLegacy<CF> m_next_item_ptr;
+					int m_a = 3;
+				};
+				mse::TRegisteredObjForLegacy<CF> item1(1);
+				mse::TRegisteredObjForLegacy<CF> item2(2);
+				mse::TRegisteredObjForLegacy<CF> item3(3);
+				item1.m_next_item_ptr = &item2;
+				item2.m_next_item_ptr = &item3;
+				item3.m_next_item_ptr = &item1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				CF* cf_ptr = (item1.m_next_item_ptr).raw_pointer();
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					cf_ptr = (cf_ptr->m_next_item_ptr).raw_pointer();
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRegisteredObjForLegacy unchecked dereferencing: " << time_span.count() << " seconds.";
+				if (3 == cf_ptr->m_a) {
+					std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					std::weak_ptr<CF> m_next_item_ptr;
+					int m_a = 3;
+				};
+				auto item1_ptr = std::make_shared<CF>(1);
+				auto item2_ptr = std::make_shared<CF>(2);
+				auto item3_ptr = std::make_shared<CF>(3);
+				item1_ptr->m_next_item_ptr = item2_ptr;
+				item2_ptr->m_next_item_ptr = item3_ptr;
+				item3_ptr->m_next_item_ptr = item1_ptr;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				std::weak_ptr<CF>* wp_ptr = &(item1_ptr->m_next_item_ptr);
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					wp_ptr = &((*wp_ptr).lock()->m_next_item_ptr);
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "std::weak_ptr dereferencing: " << time_span.count() << " seconds.";
+				if (3 == (*wp_ptr).lock()->m_a) {
+					std::cout << " "; /* Using wp_ref.lock()->m_a for (potential) output should prevent the optimizer from discarding too much. */
 				}
 				std::cout << std::endl;
 			}
