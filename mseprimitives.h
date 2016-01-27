@@ -648,14 +648,19 @@ namespace mse {
 
 		virtual void setToNull() const { m_ptr = nullptr; }
 
-		void pointer(_Ty* ptr) { m_ptr = ptr; }
-		_Ty* pointer() const { return m_ptr; }
+		void raw_pointer(_Ty* ptr) { m_ptr = ptr; }
+		_Ty* raw_pointer() const { return m_ptr; }
+		_Ty* get() const { return m_ptr; }
 		_Ty& operator*() const {
+#ifndef MSE_DISABLE_TSAFERPTR_CHECKS
 			if (nullptr == m_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr")); }
+#endif /*MSE_DISABLE_TSAFERPTR_CHECKS*/
 			return (*m_ptr);
 		}
 		_Ty* operator->() const {
+#ifndef MSE_DISABLE_TSAFERPTR_CHECKS
 			if (nullptr == m_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr")); }
+#endif /*MSE_DISABLE_TSAFERPTR_CHECKS*/
 			return m_ptr;
 		}
 		TSaferPtr<_Ty>& operator=(_Ty* ptr) {
@@ -698,14 +703,19 @@ namespace mse {
 
 		virtual void setToNull() const { m_ptr = nullptr; }
 
-		void pointer(_Ty* ptr) { m_ptr = ptr; }
-		_Ty* pointer() const { return m_ptr; }
+		void raw_pointer(_Ty* ptr) { m_ptr = ptr; }
+		_Ty* raw_pointer() const { return m_ptr; }
+		_Ty* get() const { return m_ptr; }
 		_Ty& operator*() const {
+#ifndef MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS
 			if (nullptr == m_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy")); }
+#endif /*MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS*/
 			return (*m_ptr);
 		}
 		_Ty* operator->() const {
+#ifndef MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS
 			if (nullptr == m_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy")); }
+#endif /*MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS*/
 			return m_ptr;
 		}
 		TSaferPtrForLegacy<_Ty>& operator=(_Ty* ptr) {
