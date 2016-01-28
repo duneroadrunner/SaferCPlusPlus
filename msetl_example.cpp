@@ -426,6 +426,7 @@ int main(int argc, char* argv[])
 				std::cout << std::endl;
 			}
 			{
+				/* Note that this benchmark may be pathologically bad for checked dereferencing. */
 				class CF {
 				public:
 					CF(int a = 0) : m_a(a) {}
@@ -439,9 +440,9 @@ int main(int argc, char* argv[])
 				item2.m_next_item_ptr = &item3;
 				item3.m_next_item_ptr = &item1;
 				auto t1 = std::chrono::high_resolution_clock::now();
-				mse::TRegisteredPointerForLegacy<CF>* rpfl_ptr = &(item1.m_next_item_ptr);
+				mse::TRegisteredPointerForLegacy<CF>* rpfl_ptr = item1.m_next_item_ptr.real_address();
 				for (int i = 0; i < number_of_loops2; i += 1) {
-					rpfl_ptr = &((*rpfl_ptr)->m_next_item_ptr);
+					rpfl_ptr = ((*rpfl_ptr)->m_next_item_ptr).real_address();
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

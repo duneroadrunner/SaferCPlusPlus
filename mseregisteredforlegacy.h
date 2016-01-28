@@ -190,6 +190,12 @@ namespace mse {
 		TRegisteredPointerForLegacy<const TRegisteredPointerForLegacy<_Ty>> operator&() const {
 			return this;
 		}
+		TRegisteredPointerForLegacy<_Ty>* real_address() {
+			return this;
+		}
+		const TRegisteredPointerForLegacy<_Ty>* real_address() const {
+			return this;
+		}
 
 		CSPTracker* m_sp_tracker_ptr = nullptr;
 		bool m_might_not_point_to_a_TRegisteredObjForLegacy = false;
