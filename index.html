@@ -46,18 +46,18 @@
 
 <p>usage example:</p>
 
-<p><code>#include "mseregistered.h"</code></p>
+<p>`#include "mseregistered.h"</p>
 
-<p><code>int main(int argc, char* argv[]) {</code>
-    <code>class CA {</code>
-    <code>public:</code>
-        <code>CA(int x) : m_x(x) {}</code>
-        <code>int m_x;</code>
-    <code>};</code></p>
+<p>int main(int argc, char* argv[]) {
+    class CA {
+    public:
+        CA(int x) : m_x(x) {}
+        int m_x;
+    };</p>
 
-<pre><code>`mse::TRegisteredPointer&lt;CA&gt; a_ptr;`
-`CA a2_obj(2);`
-`{`
+<pre><code>mse::TRegisteredPointer&lt;CA&gt; a_ptr;
+CA a2_obj(2);
+{`
     `// mse::TRegisteredObj&lt;CA&gt; is a class publicly derived from CA`
 
     `mse::TRegisteredObj&lt;CA&gt; a_obj(1); // a_obj is entirely on the stack`
