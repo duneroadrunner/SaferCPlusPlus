@@ -24,7 +24,7 @@
 <p>A collection of safe data types that are compatible with, and can substitute for, common unsafe native c++ types. Currently these include:</p>
 
 <ul>
-<li><p>A safe replacement for native pointers that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).</p></li>
+<li><p>A <a href="#registered-pointers">safe replacement for native pointers</a> that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).</p></li>
 <li><p>An almost completely safe implementation of std::vector&lt;&gt; - bounds checked, iterator checked and memory managed.</p></li>
 <li><p>A couple of other highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation</p></li>
 <li><p>replacements for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.</p></li>
@@ -81,7 +81,8 @@ int main(int argc, char* argv[]) {
 }
 </code></pre>
 
-<p>TRegisteredPointerForLegacy</p>
+<h3>
+<a id="tregisteredpointerforlegacy" class="anchor" href="#tregisteredpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredPointerForLegacy</h3>
 
 <p>usage example:</p>
 
