@@ -2,7 +2,7 @@
 <html lang="en-us">
   <head>
     <meta charset="UTF-8">
-    <title>Safercplusplus by duneroadrunner</title>
+    <title>SaferCPlusPlus by duneroadrunner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
@@ -11,7 +11,7 @@
   </head>
   <body>
     <section class="page-header">
-      <h1 class="project-name">Safercplusplus</h1>
+      <h1 class="project-name">SaferCPlusPlus</h1>
       <h2 class="project-tagline">A collection of safe data types that are compatible with, and can substitute for, common unsafe native c++ types.</h2>
       <a href="https://github.com/duneroadrunner/SaferCPlusPlus" class="btn">View on GitHub</a>
       <a href="https://github.com/duneroadrunner/SaferCPlusPlus/zipball/master" class="btn">Download .zip</a>
@@ -25,7 +25,7 @@
 
 <ul>
 <li><p>A safe replacement for native pointers that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).</p></li>
-<li><p>A safe implementation of std::vector&lt;&gt; - bounds checked and "invalid iterator dereference" checked.</p></li>
+<li><p>An almost completely safe implementation of std::vector&lt;&gt; - bounds checked, iterator checked and memory managed.</p></li>
 <li><p>A couple of other highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation</p></li>
 <li><p>replacements for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.</p></li>
 </ul>
@@ -34,8 +34,94 @@
 
 <p>See the file <a href="https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_blurb.pdf">msetl_blurb.pdf</a> for more info. Or just have a look at <a href="https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp">msetl_example.cpp</a> to see the library in action.</p>
 
+<h3>
+<a id="registered-pointers" class="anchor" href="#registered-pointers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Registered Pointers</h3>
+
+<p>"Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to null_ptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a null_ptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap. In most cases, they can be used as a compatible, direct substitute for native pointers, making it straightforward to update legacy code (to be safer).</p>
+
+<p>Registered pointers come in two flavors - TRegisteredPointer and TRegisteredPointerForLegacy. They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRegisteredPointerForLegacy emphasizes compatibility and flexibilty a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRegisteredPointerForLegacy may be more convenient.</p>
+
+<h3>
+<a id="tregisteredpointer" class="anchor" href="#tregisteredpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredPointer</h3>
+
+<p>usage example:</p>
+
+<p><code>#include "mseregistered.h"</code></p>
+
+<p><code>int main(int argc, char* argv[]) {</code>
+    <code>class CA {</code>
+    <code>public:</code>
+        <code>CA(int x) : m_x(x) {}</code>
+        <code>int m_x;</code>
+    <code>};</code></p>
+
+<pre><code>`mse::TRegisteredPointer&lt;CA&gt; a_ptr;`
+`CA a2_obj(2);`
+`{`
+    `// mse::TRegisteredObj&lt;CA&gt; is a class publicly derived from CA`
+
+    `mse::TRegisteredObj&lt;CA&gt; a_obj(1); // a_obj is entirely on the stack`
+
+    `a_ptr = &amp;a_obj;`
+    `a2_obj = (*a_ptr);`
+`}`
+`if (a_ptr) {`
+    `assert(false);`
+`} else {`
+    `try {`
+        `a2_obj = (*a_ptr);`
+    `}`
+    `catch (...) {`
+        `// expected exception`
+    `}`
+`}`
+
+`a_ptr = mse::registered_new&lt;CA&gt;(3); // heap allocation`
+`mse::registered_delete&lt;CA&gt;(a_ptr);`
+</code></pre>
+
+<p><code>}</code></p>
+
+<h3>
+<a id="tregisteredpointerforlegacy" class="anchor" href="#tregisteredpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredPointerForLegacy</h3>
+
+<p>usage example:</p>
+
+<p><code>#include "mseregisteredforlegacy.h"</code></p>
+
+<p><code>int main(int argc, char* argv[]) {</code></p>
+
+<pre><code>`/* One case where you may need to use mse::TRegisteredPointerForLegacy&lt;&gt; even when not dealing with legacy code is when`
+`you need a reference to a class before it is fully defined. For example, when you have two classes that mutually`
+`reference each other. mse::TRegisteredPointer&lt;&gt; does not support this.`
+`*/`
+
+`class C;`
+
+`class D {`
+`public:`
+    `virtual ~D() {}`
+    `mse::TRegisteredPointerForLegacy&lt;C&gt; m_c_ptr;`
+`};`
+
+`class C {`
+`public:`
+    `mse::TRegisteredPointerForLegacy&lt;D&gt; m_d_ptr;`
+`};`
+
+`mse::TRegisteredObjForLegacy&lt;C&gt; regobjfl_c;`
+`mse::TRegisteredPointerForLegacy&lt;D&gt; d_ptr = mse::registered_new_for_legacy&lt;D&gt;();`
+
+`regobjfl_c.m_d_ptr = d_ptr;`
+`d_ptr-&gt;m_c_ptr = &amp;regobjfl_c;`
+
+`mse::registered_delete_for_legacy&lt;D&gt;(d_ptr);`
+</code></pre>
+
+<p><code>}</code></p>
+
       <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/duneroadrunner/SaferCPlusPlus">Safercplusplus</a> is maintained by <a href="https://github.com/duneroadrunner">duneroadrunner</a>.</span>
+        <span class="site-footer-owner"><a href="https://github.com/duneroadrunner/SaferCPlusPlus">SaferCPlusPlus</a> is maintained by <a href="https://github.com/duneroadrunner">duneroadrunner</a>.</span>
 
         <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
