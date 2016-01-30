@@ -23,17 +23,16 @@
 
 <p>A collection of safe data types that are compatible with, and can substitute for, common unsafe native c++ types. Currently these include:</p>
 
-<p>i) A safe replacement for native pointers that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).</p>
-
-<p>ii) A safe implementation of std::vector&lt;&gt; - bounds checked and "invalid iterator dereference" checked.</p>
-
-<p>iii) A couple of other highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation</p>
-
-<p>iv) replacements for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.</p>
+<ul>
+<li><p>A safe replacement for native pointers that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).</p></li>
+<li><p>A safe implementation of std::vector&lt;&gt; - bounds checked and "invalid iterator dereference" checked.</p></li>
+<li><p>A couple of other highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation</p></li>
+<li><p>replacements for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.</p></li>
+</ul>
 
 <p>Tested with msvc2013 and g++4.8 (as of Dec 2015) and msvc2010 (as of Jan 2015).</p>
 
-<p>See the file <a href="https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_blurb.pdf">msetl_blurb.pdf</a> for more info. Or just have a look at msetl_example.cpp to see the library in action.</p>
+<p>See the file <a href="https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_blurb.pdf">msetl_blurb.pdf</a> for more info. Or just have a look at <a href="https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp">msetl_example.cpp</a> to see the library in action.</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/duneroadrunner/SaferCPlusPlus">Safercplusplus</a> is maintained by <a href="https://github.com/duneroadrunner">duneroadrunner</a>.</span>
