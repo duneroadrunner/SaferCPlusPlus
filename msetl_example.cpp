@@ -23,6 +23,9 @@ int main(int argc, char* argv[])
 	msevector_test.run_all();
 
 	{
+		/* mse::mstd::vector<> is meant to be "safe" (bounds checked, iterator checked and memory managed) version of
+		std::vector. Here we'll demonstate the safety of the insert() member function. */
+
 		double a1[3] = { 1.0, 2.0, 3.0 };
 		double *d_pointer1 = &(a1[0]);
 		double a2[3] = { 4.0, 5.0, 360 };
@@ -52,6 +55,8 @@ int main(int argc, char* argv[])
 	}
 
 	{
+		/* Here we're demonstrating mse::mstd::vector<>'s "java-like" safety due to it's "managed" lifespan.  */
+
 		typedef mse::mstd::vector<int> vint_type;
 		mse::mstd::vector<vint_type> vvi;
 		{
@@ -73,6 +78,11 @@ int main(int argc, char* argv[])
 	}
 
 	{
+		/* mse::msevector<> is another vector that is highly compatible with std::vector<>. But mse::msevector<> also
+		supports a new type of iterator called "ipointer". ipointers make more (intuitive) sense than standard vector
+		iterators. Upon insert or delete, ipointers continue to point to the same item, not (necessarily) the same
+		position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted. */
+
 #ifdef MSVC2010_COMPATIBILE
 		int a1[4] = { 1, 2, 3, 4 };
 		mse::msevector<int> v(a1, a1+4);
@@ -102,7 +112,7 @@ int main(int argc, char* argv[])
 			number_of_security_credits += 5;
 			int minimum_number_of_security_credits_required_for_access = 7;
 			bool access_granted = false;
-			if (0 <= number_of_security_credits - minimum_number_of_security_credits_required_for_access) {
+			if (number_of_security_credits - minimum_number_of_security_credits_required_for_access >= 0) {
 				/* You may not even get a compiler warning about the implicit conversion from (signed) int to (unsigned) size_t. */
 				access_granted = true; /*oops*/
 			}
@@ -117,7 +127,7 @@ int main(int argc, char* argv[])
 			number_of_security_credits += 5;
 			int minimum_number_of_security_credits_required_for_access = 7;
 			bool access_granted = false;
-			if (0 <= number_of_security_credits - minimum_number_of_security_credits_required_for_access) {
+			if (number_of_security_credits - minimum_number_of_security_credits_required_for_access >= 0) {
 				access_granted = true;
 				assert(false);
 			}
@@ -131,7 +141,7 @@ int main(int argc, char* argv[])
 			number_of_security_credits += 5;
 			mse::CInt minimum_number_of_security_credits_required_for_access = 7;
 			mse::CBool access_granted; /* initializes to false by default */
-			if (0 <= number_of_security_credits - minimum_number_of_security_credits_required_for_access) {
+			if (number_of_security_credits - minimum_number_of_security_credits_required_for_access >= 0) {
 				access_granted = true;
 				assert(false);
 			}
@@ -426,7 +436,6 @@ int main(int argc, char* argv[])
 				std::cout << std::endl;
 			}
 			{
-				/* Note that this benchmark may be pathologically bad for checked dereferencing. */
 				class CF {
 				public:
 					CF(int a = 0) : m_a(a) {}
