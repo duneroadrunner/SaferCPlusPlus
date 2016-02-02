@@ -17,6 +17,9 @@
 #if (1700 > _MSC_VER)
 #define MSVC2010_COMPATIBILE 1
 #endif /*(1700 > _MSC_VER)*/
+#if (1900 > _MSC_VER)
+#define MSVC2013_COMPATIBILE 1
+#endif /*(1900 > _MSC_VER)*/
 #else /*_MSC_VER*/
 #if (defined(__GNUC__) || defined(__GNUG__))
 #define GPP_COMPATIBILE 1
@@ -27,9 +30,8 @@
 
 namespace mse {
 
-	/* Some older compilers (i.e. msvc2013) do not yet support inherited constructors, so we provide this macro hack as a
-	substitute. So instead of writng "using CBaseClass::CBaseClass;" you can instead write
-	"MSE_USING(CDerivedClass, CBaseClass)" */
+	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
+	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
 #define MSE_USING(Derived, Base)                                 \
     template<typename ...Args,                               \
              typename = typename std::enable_if              \

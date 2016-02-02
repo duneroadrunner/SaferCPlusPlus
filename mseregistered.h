@@ -271,22 +271,21 @@ namespace mse {
 	/* TRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
 	destruction so that TRegisteredPointers will avoid referencing destroyed objects. Note that TRegisteredObj can be used with
 	objects allocated on the stack. */
-	template<typename _Ty, int _Tn>
-	class TRegisteredObj : public _Ty {
+	template<typename _TROy, int _Tn>
+	class TRegisteredObj : public _TROy {
 	public:
-		//using _Ty::_Ty;
-		// the version of the compiler (msvc 2013) being used does not yet support inherited constructors, so we use this macro hack
-		// for now
-		MSE_USING(TRegisteredObj, _Ty);
+		MSE_USING(TRegisteredObj, _TROy);
+		//TRegisteredObj(const TRegisteredObj& _X) : _TROy(_X) {}
+		//TRegisteredObj(TRegisteredObj&& _X) : _TROy(std::move(_X)) {}
 		virtual ~TRegisteredObj() {
 			mseRPManager().onObjectDestruction();
 		}
-		TRegisteredObj& operator=(TRegisteredObj&& _X) { _Ty::operator=(std::move(_X)); return (*this); }
-		TRegisteredObj& operator=(const TRegisteredObj& _X) { _Ty::operator=(_X); return (*this); }
-		TRegisteredPointer<_Ty> operator&() {
+		TRegisteredObj& operator=(TRegisteredObj&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
+		TRegisteredObj& operator=(const TRegisteredObj& _X) { _TROy::operator=(_X); return (*this); }
+		TRegisteredPointer<_TROy> operator&() {
 			return this;
 		}
-		TRegisteredPointer<const _Ty> operator&() const {
+		TRegisteredPointer<const _TROy> operator&() const {
 			return this;
 		}
 		TRPTracker<_Tn>& mseRPManager() { return m_mseRPManager; }
@@ -358,6 +357,35 @@ namespace mse {
 		auto a = (TRegisteredObj<_Ty, _Tn>*)regPtrRef;
 		delete a;
 	}
+
+
+	template <class _TRRWy>
+	class TRegisteredRefWrapper {
+	public:
+		// types
+		typedef TRegisteredObj<_TRRWy> type;
+
+		// construct/copy/destroy
+		TRegisteredRefWrapper(TRegisteredObj<_TRRWy>& ref) : _ptr(&ref) {}
+		TRegisteredRefWrapper(TRegisteredObj<_TRRWy>&&) = delete;
+		TRegisteredRefWrapper(const TRegisteredRefWrapper&) = default;
+
+		// assignment
+		TRegisteredRefWrapper& operator=(const TRegisteredRefWrapper& x) = default;
+
+		// access
+		operator TRegisteredObj<_TRRWy>& () const { return *_ptr; }
+		TRegisteredObj<_TRRWy>& get() const { return *_ptr; }
+
+		template< class... ArgTypes >
+		typename std::result_of<TRegisteredObj<_TRRWy>&(ArgTypes&&...)>::type
+			operator() (ArgTypes&&... args) const {
+			return std::invoke(get(), std::forward<ArgTypes>(args)...);
+		}
+
+	private:
+		TRegisteredPointer<_TRRWy> _ptr;
+	};
 
 	static void s_regptr_test1() {
 
@@ -458,7 +486,6 @@ namespace mse {
 			assert(expected_exception);
 		}
 	}
-
 }
 
 #endif // MSEREGISTERED_H_

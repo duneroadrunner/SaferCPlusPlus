@@ -16,6 +16,15 @@
 #include <ratio>
 #include <chrono>
 
+/* This block of includes is required for the mse::TRegisteredRefWrapper example */
+#include <algorithm>
+#include <list>
+#include <vector>
+#include <iostream>
+#include <numeric>
+#include <random>
+#include <functional>
+
 
 int main(int argc, char* argv[])
 {
@@ -23,8 +32,8 @@ int main(int argc, char* argv[])
 	msevector_test.run_all();
 
 	{
-		/* mse::mstd::vector<> is meant to be "safe" (bounds checked, iterator checked and memory managed) version of
-		std::vector. Here we'll demonstate the safety of the insert() member function. */
+		/* mse::mstd::vector<> is an almost "completely safe" (bounds checked, iterator checked and memory managed)
+		implementation of std::vector. Here we'll demonstate the safety of the insert() member function. */
 
 		double a1[3] = { 1.0, 2.0, 3.0 };
 		double *d_pointer1 = &(a1[0]);
@@ -309,6 +318,7 @@ int main(int argc, char* argv[])
 #else /*_DEBUG*/
 			static const int number_of_loops = 1000000/*arbitrary*/;
 #endif /*_DEBUG*/
+			std::cout << "Some simple benchmarks: \n";
 			{
 				int count = 0;
 				auto item_ptr2 = new CE(count);
@@ -449,9 +459,9 @@ int main(int argc, char* argv[])
 				item2.m_next_item_ptr = &item3;
 				item3.m_next_item_ptr = &item1;
 				auto t1 = std::chrono::high_resolution_clock::now();
-				mse::TRegisteredPointerForLegacy<CF>* rpfl_ptr = item1.m_next_item_ptr.real_address();
+				mse::TRegisteredPointerForLegacy<CF>* rpfl_ptr = std::addressof(item1.m_next_item_ptr);
 				for (int i = 0; i < number_of_loops2; i += 1) {
-					rpfl_ptr = ((*rpfl_ptr)->m_next_item_ptr).real_address();
+					rpfl_ptr = std::addressof((*rpfl_ptr)->m_next_item_ptr);
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
@@ -514,7 +524,48 @@ int main(int argc, char* argv[])
 				std::cout << std::endl;
 			}
 		}
+	}
 
+	{
+		/* Stl provides a copyable, assignable wrapper for C++ references called std::reference_wrapper. std::reference_wrapper,
+		like native C++ references, are not completely safe in the sense that the object they refer to can be deallocated while
+		a reference to it is still available. So we provide mse::TRegisteredRefWrapper, a safe implementation of
+		std::reference_wrapper that "knows" when the object being referenced has been deallocated and will throw an exception
+		on any attempt to access the object after it has been destroyed. */
+		{
+			/* This example originally comes from http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper. */
+			std::list<mse::TRegisteredObj<mse::CInt>> l(10);
+			std::iota(l.begin(), l.end(), -4);
+
+			std::vector<mse::TRegisteredRefWrapper<mse::CInt>> v(l.begin(), l.end());
+			// can't use shuffle on a list (requires random access), but can use it on a vector
+			std::shuffle(v.begin(), v.end(), std::mt19937{ std::random_device{}() });
+
+			std::cout << '\n';
+			std::cout << "TRegisteredRefWrapper test output: \n";
+			std::cout << "Contents of the list: ";
+			for (auto n : l) std::cout << n << ' '; std::cout << '\n';
+
+			std::cout << "Contents of the list, as seen through a shuffled vector: ";
+			for (auto i : v) {
+				mse::CInt i2 = i;
+				std::cout << i2 << ' ';
+			}
+			std::cout << '\n';
+
+			std::cout << "Doubling the values in the initial list...\n";
+			for (auto& i : l) {
+				i *= 2;
+			}
+
+			std::cout << "Contents of the list, as seen through a shuffled vector: ";
+			for (auto i : v) {
+				mse::CInt i2 = i;
+				std::cout << i2 << ' ';
+			}
+			std::cout << '\n';
+			std::cout << '\n';
+		}
 	}
 
 	return 0;
