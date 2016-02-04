@@ -224,8 +224,7 @@ int main(int argc, char* argv[])
 			A_registered_ptr1 = &registered_a;
 			assert(A_native_ptr->b == A_registered_ptr1->b);
 
-			auto A_registered_ptr2 = &registered_a;
-			/* A_registered_ptr2 is actually an mse::TRegisteredPointer<A>, not a native pointer. */
+			mse::TRegisteredPointer<A> A_registered_ptr2 = &registered_a;
 			A_registered_ptr2 = nullptr;
 			try {
 				int i = A_registered_ptr2->b; /* this is gonna throw an exception */
