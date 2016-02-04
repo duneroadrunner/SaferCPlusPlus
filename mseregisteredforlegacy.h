@@ -114,8 +114,9 @@ namespace mse {
 
 	extern CSPTrackerMap gSPTrackerMap;
 
-	template<typename _Ty>
-	class TRegisteredObjForLegacy;
+	template<typename _Ty> class TRegisteredObjForLegacy;
+	template<typename _Ty> class TRegisteredNotNullPointerForLegacy;
+	template<typename _Ty> class TRegisteredFixedPointerForLegacy;
 
 	/* TRegisteredPointerForLegacy is similar to TRegisteredPointer, but more readily converts to a native pointer implicitly. So
 	when replacing native pointers with "registered" pointers in legacy code, it may be the case that fewer code changes
@@ -201,6 +202,68 @@ namespace mse {
 		bool m_might_not_point_to_a_TRegisteredObjForLegacy = false;
 	};
 
+	template<typename _Ty>
+	class TRegisteredNotNullPointerForLegacy : public TRegisteredPointerForLegacy<_Ty> {
+	public:
+		TRegisteredNotNullPointerForLegacy(const TRegisteredNotNullPointerForLegacy& src_cref) : TRegisteredPointerForLegacy<_Ty>(src_cref) {}
+		virtual ~TRegisteredNotNullPointerForLegacy() {}
+		TRegisteredNotNullPointerForLegacy<_Ty>& operator=(const TRegisteredNotNullPointerForLegacy<_Ty>& _Right_cref) {
+			TRegisteredPointerForLegacy<_Ty>::operator=(_Right_cref);
+			return (*this);
+		}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator _Ty*() const { return TRegisteredPointerForLegacy<_Ty>::operator _Ty*(); }
+		explicit operator TRegisteredObjForLegacy<_Ty>*() const { return TRegisteredPointerForLegacy<_Ty>::operator TRegisteredObjForLegacy<_Ty>*(); }
+
+	private:
+		TRegisteredNotNullPointerForLegacy(TRegisteredObjForLegacy<_Ty>* ptr) : TRegisteredPointerForLegacy<_Ty>(ptr) {}
+		TRegisteredNotNullPointerForLegacy(CSPTracker* sp_tracker_ptr, TRegisteredObjForLegacy<_Ty>* ptr) : TRegisteredPointerForLegacy<_Ty>(sp_tracker_ptr, ptr) {}
+
+		/* If you want a pointer to a TRegisteredNotNullPointerForLegacy<_Ty>, declare the TRegisteredNotNullPointerForLegacy<_Ty> as a
+		TRegisteredObjForLegacy<TRegisteredNotNullPointerForLegacy<_Ty>> instead. So for example:
+		auto reg_ptr = TRegisteredObjForLegacy<TRegisteredNotNullPointerForLegacy<_Ty>>(mse::registered_new<_Ty>());
+		auto reg_ptr_to_reg_ptr = &reg_ptr;
+		*/
+		TRegisteredNotNullPointerForLegacy<_Ty>* operator&() {
+			return this;
+		}
+		const TRegisteredNotNullPointerForLegacy<_Ty>* operator&() const {
+			return this;
+		}
+
+		friend class TRegisteredFixedPointerForLegacy<_Ty>;
+	};
+
+	/* TRegisteredFixedPointerForLegacy cannot be retargeted or constructed without a target. This pointer is recommended for passing
+	parameters by reference. */
+	template<typename _Ty>
+	class TRegisteredFixedPointerForLegacy : public TRegisteredNotNullPointerForLegacy<_Ty> {
+	public:
+		TRegisteredFixedPointerForLegacy(const TRegisteredFixedPointerForLegacy& src_cref) : TRegisteredNotNullPointerForLegacy<_Ty>(src_cref) {}
+		virtual ~TRegisteredFixedPointerForLegacy() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator _Ty*() const { return TRegisteredNotNullPointerForLegacy<_Ty>::operator _Ty*(); }
+		explicit operator TRegisteredObjForLegacy<_Ty>*() const { return TRegisteredNotNullPointerForLegacy<_Ty>::operator TRegisteredObjForLegacy<_Ty>*(); }
+
+	private:
+		TRegisteredFixedPointerForLegacy(TRegisteredObjForLegacy<_Ty>* ptr) : TRegisteredNotNullPointerForLegacy<_Ty>(ptr) {}
+		TRegisteredFixedPointerForLegacy(CSPTracker* sp_tracker_ptr, TRegisteredObjForLegacy<_Ty>* ptr) : TRegisteredNotNullPointerForLegacy<_Ty>(sp_tracker_ptr, ptr) {}
+
+		/* If you want a pointer to a TRegisteredFixedPointerForLegacy<_Ty>, declare the TRegisteredFixedPointerForLegacy<_Ty> as a
+		TRegisteredObjForLegacy<TRegisteredFixedPointerForLegacy<_Ty>> instead. So for example:
+		auto reg_ptr = TRegisteredObjForLegacy<TRegisteredFixedPointerForLegacy<_Ty>>(mse::registered_new<_Ty>());
+		auto reg_ptr_to_reg_ptr = &reg_ptr;
+		*/
+		TRegisteredFixedPointerForLegacy<_Ty>* operator&() {
+			return this;
+		}
+		const TRegisteredFixedPointerForLegacy<_Ty>* operator&() const {
+			return this;
+		}
+
+		friend class TRegisteredObjForLegacy<_Ty>;
+	};
+
 	class CTrackerNotifier {
 	public:
 		CTrackerNotifier() {
@@ -215,25 +278,27 @@ namespace mse {
 		CSPTracker* m_sp_tracker_ptr = nullptr;
 	};
 
-	/* See TRegisteredObj. */
-	template<typename _Ty>
-	class TRegisteredObjForLegacy : public _Ty {
+	/* TRegisteredObjForLegacy is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
+	destruction so that TRegisteredPointerForLegacys will avoid referencing destroyed objects. Note that TRegisteredObjForLegacy can be used with
+	objects allocated on the stack. */
+	template<typename _TROFLy>
+	class TRegisteredObjForLegacy : public _TROFLy {
 	public:
-		//using _Ty::_Ty;
+		//using _TROFLy::_TROFLy;
 		// the version of the compiler (msvc 2013) being used does not yet support inherited constructors, so we use this macro hack
 		// for now
-		MSE_USING(TRegisteredObjForLegacy, _Ty);
+		MSE_USING(TRegisteredObjForLegacy, _TROFLy);
 		virtual ~TRegisteredObjForLegacy() {
 			//gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(this);
 		}
-		TRegisteredObjForLegacy& operator=(TRegisteredObjForLegacy&& _X) { _Ty::operator=(std::move(_X)); return (*this); }
-		TRegisteredObjForLegacy& operator=(const TRegisteredObjForLegacy& _X) { _Ty::operator=(_X); return (*this); }
-		TRegisteredPointerForLegacy<_Ty> operator&() {
-			return TRegisteredPointerForLegacy<_Ty>(trackerPtr(), this);
+		TRegisteredObjForLegacy& operator=(TRegisteredObjForLegacy&& _X) { _TROFLy::operator=(std::move(_X)); return (*this); }
+		TRegisteredObjForLegacy& operator=(const TRegisteredObjForLegacy& _X) { _TROFLy::operator=(_X); return (*this); }
+		TRegisteredFixedPointerForLegacy<_TROFLy> operator&() {
+			return TRegisteredFixedPointerForLegacy<_TROFLy>(trackerPtr(), this);
 			//return this;
 		}
-		TRegisteredPointerForLegacy<const _Ty> operator&() const {
-			return TRegisteredPointerForLegacy<_Ty>(trackerPtr(), this);
+		TRegisteredFixedPointerForLegacy<const _TROFLy> operator&() const {
+			return TRegisteredFixedPointerForLegacy<_TROFLy>(trackerPtr(), this);
 			//return this;
 		}
 		CSPTracker* trackerPtr() const { return m_tracker_notifier.trackerPtr(); }
