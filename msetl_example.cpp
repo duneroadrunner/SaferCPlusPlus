@@ -205,6 +205,8 @@ int main(int argc, char* argv[])
 		public:
 			static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
 			static int foo2(mse::TRegisteredPointer<A> A_registered_ptr) { return A_registered_ptr->b; }
+			/* mse::TRegisteredFixedConstPointer<A> is recommended where you might have used "const A&".*/
+			static int foo3(mse::TRegisteredFixedConstPointer<A> A_registered_fc_ptr) { return A_registered_fc_ptr->b; }
 		protected:
 			~B() {}
 		};
@@ -236,6 +238,12 @@ int main(int argc, char* argv[])
 
 			/* mse::TRegisteredPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
 			B::foo1((A*)A_registered_ptr1);
+
+			B::foo3(&registered_a);
+			/* mse::TRegisteredPointers don't convert directly into mse::TRegisteredFixedConstPointers because
+			mse::TRegisteredFixedConstPointers are never supposed to be null, where mse::TRegisteredPointers can be. But you
+			can easily obtain an mse::TRegisteredFixedPointer which does convert to an mse::TRegisteredFixedConstPointer. */
+			B::foo3(&*A_registered_ptr1);
 
 			if (A_registered_ptr2) {
 			}

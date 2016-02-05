@@ -237,7 +237,9 @@ namespace mse {
 
 	template<typename _Ty, int _Tn = sc_default_cache_size> class TRegisteredObj;
 	template<typename _Ty, int _Tn = sc_default_cache_size> class TRegisteredNotNullPointer;
+	template<typename _Ty, int _Tn = sc_default_cache_size> class TRegisteredNotNullConstPointer;
 	template<typename _Ty, int _Tn = sc_default_cache_size> class TRegisteredFixedPointer;
+	template<typename _Ty, int _Tn = sc_default_cache_size> class TRegisteredFixedConstPointer;
 
 	/* TRegisteredPointer behaves similar to (and is largely compatible with) native pointers. It inherits the safety features of
 	TSaferPtr (default nullptr initialization and check for null pointer dereference). In addition, when pointed at a
@@ -263,12 +265,31 @@ namespace mse {
 		auto reg_ptr = TRegisteredObj<TRegisteredPointer<_Ty, _Tn>>(mse::registered_new<_Ty, _Tn>());
 		auto reg_ptr_to_reg_ptr = &reg_ptr;
 		*/
-		TRegisteredPointer<_Ty, _Tn>* operator&() {
-			return this;
+		TRegisteredPointer<_Ty, _Tn>* operator&() { return this; }
+		const TRegisteredPointer<_Ty, _Tn>* operator&() const { return this; }
+	};
+
+	template<typename _Ty, int _Tn = sc_default_cache_size>
+	class TRegisteredConstPointer : public TRegisteredPointer<_Ty, _Tn> {
+	public:
+		TRegisteredConstPointer(const TRegisteredPointer& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {}
+		virtual ~TRegisteredConstPointer() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator const _Ty*() const { return TRegisteredPointer<_Ty, _Tn>::operator _Ty*(); }
+		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredPointer<_Ty, _Tn>::operator TRegisteredObj<_Ty, _Tn>*(); }
+
+		const _Ty& operator*() const {
+			return TRegisteredPointer::operator*();
 		}
-		const TRegisteredPointer<_Ty, _Tn>* operator&() const {
-			return this;
+		const _Ty* operator->() const {
+			return TRegisteredPointer::operator->();
 		}
+
+	private:
+		TRegisteredConstPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredPointer<_Ty, _Tn>(ptr) {}
+
+		TRegisteredConstPointer<_Ty, _Tn>* operator&() { return this; }
+		const TRegisteredConstPointer<_Ty, _Tn>* operator&() const { return this; }
 	};
 
 	template<typename _Ty, int _Tn>
@@ -287,21 +308,37 @@ namespace mse {
 	private:
 		TRegisteredNotNullPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredPointer<_Ty, _Tn>(ptr) {}
 
-		/* If you want a pointer to a TRegisteredNotNullPointer<_Ty, _Tn>, declare the TRegisteredNotNullPointer<_Ty, _Tn> as a
-		TRegisteredObj<TRegisteredNotNullPointer<_Ty, _Tn>> instead. So for example:
-		auto reg_ptr = TRegisteredObj<TRegisteredNotNullPointer<_Ty, _Tn>>(mse::registered_new<_Ty, _Tn>());
-		auto reg_ptr_to_reg_ptr = &reg_ptr;
-		*/
-		TRegisteredNotNullPointer<_Ty, _Tn>* operator&() {
-			return this;
-		}
-		const TRegisteredNotNullPointer<_Ty, _Tn>* operator&() const {
-			return this;
-		}
+		TRegisteredNotNullPointer<_Ty, _Tn>* operator&() { return this; }
+		const TRegisteredNotNullPointer<_Ty, _Tn>* operator&() const { return this; }
 
 		friend class TRegisteredFixedPointer<_Ty, _Tn>;
 	};
 
+	template<typename _Ty, int _Tn>
+	class TRegisteredNotNullConstPointer : public TRegisteredNotNullPointer<_Ty, _Tn> {
+	public:
+		TRegisteredNotNullConstPointer(const TRegisteredNotNullPointer& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
+		virtual ~TRegisteredNotNullConstPointer() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator const _Ty*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator _Ty*(); }
+		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator TRegisteredObj<_Ty, _Tn>*(); }
+
+		const _Ty& operator*() const {
+			return TRegisteredNotNullPointer::operator*();
+		}
+		const _Ty* operator->() const {
+			return TRegisteredNotNullPointer::operator->();
+		}
+
+	private:
+		TRegisteredNotNullConstPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredNotNullPointer<_Ty, _Tn>(ptr) {}
+
+		TRegisteredNotNullConstPointer<_Ty, _Tn>* operator&() { return this; }
+		const TRegisteredNotNullConstPointer<_Ty, _Tn>* operator&() const { return this; }
+	};
+
+	/* TRegisteredFixedPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
+	parameters by reference. */
 	template<typename _Ty, int _Tn>
 	class TRegisteredFixedPointer : public TRegisteredNotNullPointer<_Ty, _Tn> {
 	public:
@@ -314,19 +351,33 @@ namespace mse {
 	private:
 		TRegisteredFixedPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredNotNullPointer<_Ty, _Tn>(ptr) {}
 
-		/* If you want a pointer to a TRegisteredFixedPointer<_Ty, _Tn>, declare the TRegisteredFixedPointer<_Ty, _Tn> as a
-		TRegisteredObj<TRegisteredFixedPointer<_Ty, _Tn>> instead. So for example:
-		auto reg_ptr = TRegisteredObj<TRegisteredFixedPointer<_Ty, _Tn>>(mse::registered_new<_Ty, _Tn>());
-		auto reg_ptr_to_reg_ptr = &reg_ptr;
-		*/
-		TRegisteredFixedPointer<_Ty, _Tn>* operator&() {
-			return this;
-		}
-		const TRegisteredFixedPointer<_Ty, _Tn>* operator&() const {
-			return this;
-		}
+		TRegisteredFixedPointer<_Ty, _Tn>* operator&() { return this; }
+		const TRegisteredFixedPointer<_Ty, _Tn>* operator&() const { return this; }
 
 		friend class TRegisteredObj<_Ty, _Tn>;
+	};
+
+	template<typename _Ty, int _Tn>
+	class TRegisteredFixedConstPointer : public TRegisteredFixedPointer<_Ty, _Tn> {
+	public:
+		TRegisteredFixedConstPointer(const TRegisteredFixedPointer& src_cref) : TRegisteredFixedPointer<_Ty, _Tn>(src_cref) {}
+		virtual ~TRegisteredFixedConstPointer() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator const _Ty*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator _Ty*(); }
+		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator TRegisteredObj<_Ty, _Tn>*(); }
+
+		const _Ty& operator*() const {
+			return TRegisteredFixedPointer::operator*();
+		}
+		const _Ty* operator->() const {
+			return TRegisteredFixedPointer::operator->();
+		}
+
+	private:
+		TRegisteredFixedConstPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredFixedPointer<_Ty, _Tn>(ptr) {}
+
+		TRegisteredFixedConstPointer<_Ty, _Tn>* operator&() { return this; }
+		const TRegisteredFixedConstPointer<_Ty, _Tn>* operator&() const { return this; }
 	};
 
 	/* TRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
