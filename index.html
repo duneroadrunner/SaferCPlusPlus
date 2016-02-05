@@ -84,6 +84,16 @@ int main(int argc, char* argv[]) {
 </code></pre>
 
 <h3>
+<a id="tregisterednotnullpointer" class="anchor" href="#tregisterednotnullpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredNotNullPointer</h3>
+
+<p>Same as TRegisteredPointer, but cannot be constructed to a null_ptr value.</p>
+
+<h3>
+<a id="tregisteredfixedpointer" class="anchor" href="#tregisteredfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredFixedPointer</h3>
+
+<p>Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction. This is the recommended type to be used for safe parameter passing by reference.</p>
+
+<h3>
 <a id="tregisteredpointerforlegacy" class="anchor" href="#tregisteredpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredPointerForLegacy</h3>
 
 <p>usage example:</p>
@@ -120,6 +130,12 @@ int main(int argc, char* argv[]) {
 
 }
 </code></pre>
+
+<h3>
+<a id="tregisterednotnullpointerforlegacy" class="anchor" href="#tregisterednotnullpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredNotNullPointerForLegacy</h3>
+
+<h3>
+<a id="tregisteredfixedpointerforlegacy" class="anchor" href="#tregisteredfixedpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredFixedPointerForLegacy</h3>
 
 <h3>
 <a id="simple-benchmarks" class="anchor" href="#simple-benchmarks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Simple benchmarks</h3>
