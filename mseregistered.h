@@ -499,6 +499,41 @@ namespace mse {
 		TRegisteredPointer<_TRRWy, _TRRWn> _ptr;
 	};
 
+	// TEMPLATE FUNCTIONS ref AND cref
+	template<class _TRRy, int _TRRn = sc_default_cache_size> inline
+		TRegisteredRefWrapper<_TRRy, _TRRn>
+		registered_ref(TRegisteredObj<_TRRy, _TRRn>& _Val)
+	{	// create TRegisteredRefWrapper<_TRRy, _TRRn> object
+		return (TRegisteredRefWrapper<_TRRy, _TRRn>(_Val));
+	}
+
+	template<class _TRRy, int _TRRn = sc_default_cache_size>
+	void registered_ref(const TRegisteredObj<_TRRy, _TRRn>&&) = delete;
+
+	template<class _TRRy, int _TRRn = sc_default_cache_size> inline
+		TRegisteredRefWrapper<_TRRy, _TRRn>
+		registered_ref(TRegisteredRefWrapper<_TRRy, _TRRn> _Val)
+	{	// create TRegisteredRefWrapper<_TRRy, _TRRn> object
+		return (registered_ref(_Val.get()));
+	}
+
+	template<class _TRCRy, int _TRCRn = sc_default_cache_size> inline
+		TRegisteredRefWrapper<const _TRCRy, _TRCRn>
+		registered_cref(const TRegisteredObj<_TRCRy, _TRCRn>& _Val)
+	{	// create TRegisteredRefWrapper<const _TRCRy, _TRCRn> object
+		return (TRegisteredRefWrapper<const _TRCRy, _TRCRn>(_Val));
+	}
+
+	template<class _TRCRy, int _TRCRn = sc_default_cache_size>
+	void registered_cref(const TRegisteredObj<_TRCRy, _TRCRn>&&) = delete;
+
+	template<class _TRCRy, int _TRCRn = sc_default_cache_size> inline
+		TRegisteredRefWrapper<const _TRCRy, _TRCRn>
+		registered_cref(TRegisteredRefWrapper<_TRCRy, _TRCRn> _Val)
+	{	// create TRegisteredRefWrapper<const _TRCRy, _TRCRn> object
+		return (registered_cref(_Val.get()));
+	}
+
 	static void s_regptr_test1() {
 
 		class A {

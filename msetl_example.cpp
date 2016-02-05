@@ -32,6 +32,10 @@ int main(int argc, char* argv[])
 	msevector_test.run_all();
 
 	{
+		/**********************/
+		/*   mstd::vector<>   */
+		/**********************/
+
 		/* mse::mstd::vector<> is an almost "completely safe" (bounds checked, iterator checked and memory managed)
 		implementation of std::vector. Here we'll demonstate the safety of the insert() member function. */
 
@@ -87,6 +91,10 @@ int main(int argc, char* argv[])
 	}
 
 	{
+		/*****************************/
+		/*   msevector<>::ipointer   */
+		/*****************************/
+
 		/* mse::msevector<> is another vector that is highly compatible with std::vector<>. But mse::msevector<> also
 		supports a new type of iterator called "ipointer". ipointers make more (intuitive) sense than standard vector
 		iterators. Upon insert or delete, ipointers continue to point to the same item, not (necessarily) the same
@@ -110,6 +118,10 @@ int main(int argc, char* argv[])
 	}
 
 	{
+		/*******************************/
+		/*   CInt, CSize_t and CBool   */
+		/*******************************/
+
 		/* The unsigned types like size_t can cause insidious bugs due to the fact that they can cause signed integers to be
 		implicitly converted to unsigned. msetl provides substitutes for size_t and int that change the implicit conversion to
 		instead be from unsigned to signed. */
@@ -132,7 +144,7 @@ int main(int argc, char* argv[])
 		}
 
 		{
-			mse::CSize_t number_of_security_credits; /* initializes to 0 by default */
+			mse::CSize_t number_of_security_credits = 0;
 			number_of_security_credits += 5;
 			int minimum_number_of_security_credits_required_for_access = 7;
 			bool access_granted = false;
@@ -149,7 +161,7 @@ int main(int argc, char* argv[])
 			size_t number_of_security_credits = 0;
 			number_of_security_credits += 5;
 			mse::CInt minimum_number_of_security_credits_required_for_access = 7;
-			mse::CBool access_granted; /* initializes to false by default */
+			mse::CBool access_granted = false;
 			if (number_of_security_credits - minimum_number_of_security_credits_required_for_access >= 0) {
 				access_granted = true;
 				assert(false);
@@ -170,7 +182,7 @@ int main(int argc, char* argv[])
 #endif /*MSVC2010_COMPATIBILE*/
 
 		try {
-			mse::CSize_t mse_szt2;
+			mse::CSize_t mse_szt2 = 0;
 			mse_szt2 = -3;
 		}
 		catch (...) {
@@ -190,6 +202,10 @@ int main(int argc, char* argv[])
 	}
 
 	{
+		/**************************/
+		/*   TRegisteredPointer   */
+		/**************************/
+
 		/* For safety reasons we want to avoid using native pointers. "Managed" pointers like std:shared_ptr are an alternative, but
 		sometimes you don't want a pointer that takes ownership (of the object's lifespan). So we provide mse::TRegisteredPointer.
 		Because it doesn't take ownership, it can be used with objects allocated on the stack and is compatible with raii
@@ -277,6 +293,10 @@ int main(int argc, char* argv[])
 		}
 
 		{
+			/***********************************/
+			/*   TRegisteredPointerForLegacy   */
+			/***********************************/
+
 			/* mse::TRegisteredPointerForLegacy<> behaves very similar to mse::TRegisteredPointer<> but is even more "compatible"
 			with native pointers (i.e. less explicit casting is required when interacting with native pointers and native pointer
 			interfaces). So if you're updating existing or legacy code to be safer, replacing native pointers with
@@ -311,6 +331,10 @@ int main(int argc, char* argv[])
 		mse::s_regptr_test1();
 
 		{
+			/*************************/
+			/*   Simple Benchmarks   */
+			/*************************/
+
 			/* Just some simple speed tests. */
 			class CE {
 			public:
@@ -325,6 +349,7 @@ int main(int argc, char* argv[])
 #else /*_DEBUG*/
 			static const int number_of_loops = 1000000/*arbitrary*/;
 #endif /*_DEBUG*/
+			std::cout << std::endl;
 			std::cout << "Some simple benchmarks: \n";
 			{
 				int count = 0;
@@ -534,11 +559,18 @@ int main(int argc, char* argv[])
 	}
 
 	{
-		/* Stl provides a copyable, assignable wrapper for C++ references called std::reference_wrapper. std::reference_wrapper,
+		/*****************************/
+		/*   TRegisteredRefWrapper   */
+		/*****************************/
+
+		/* Stl provides a copyable, assignable wrapper for C++ references called std::reference_wrapper. std::reference_wrappers,
 		like native C++ references, are not completely safe in the sense that the object they refer to can be deallocated while
 		a reference to it is still available. So we provide mse::TRegisteredRefWrapper, a safe implementation of
 		std::reference_wrapper that "knows" when the object being referenced has been deallocated and will throw an exception
-		on any attempt to access the object after it has been destroyed. */
+		on any attempt to access the object after it has been destroyed.
+		In most cases it is probably preferable to just use mse::TRegisteredFixedPointer instead of
+		mse::TRegisteredRefWrapper. 
+		*/
 		{
 			/* This example originally comes from http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper. */
 			std::list<mse::TRegisteredObj<mse::CInt>> l(10);
@@ -551,14 +583,10 @@ int main(int argc, char* argv[])
 			std::cout << '\n';
 			std::cout << "TRegisteredRefWrapper test output: \n";
 			std::cout << "Contents of the list: ";
-			for (auto n : l) std::cout << n << ' '; std::cout << '\n';
+			for (auto n : l) { std::cout << n << ' '; } std::cout << '\n';
 
 			std::cout << "Contents of the list, as seen through a shuffled vector: ";
-			for (auto i : v) {
-				mse::CInt i2 = i;
-				std::cout << i2 << ' ';
-			}
-			std::cout << '\n';
+			for (auto i : v) { std::cout << (mse::CInt&)i << ' '; } std::cout << '\n';
 
 			std::cout << "Doubling the values in the initial list...\n";
 			for (auto& i : l) {
@@ -566,12 +594,24 @@ int main(int argc, char* argv[])
 			}
 
 			std::cout << "Contents of the list, as seen through a shuffled vector: ";
-			for (auto i : v) {
-				mse::CInt i2 = i;
-				std::cout << i2 << ' ';
-			}
+			for (auto i : v) { std::cout << (mse::CInt&)i << ' '; } std::cout << '\n';
 			std::cout << '\n';
+		}
+		{
+			/* This example originally comes from http://www.cplusplus.com/reference/functional/reference_wrapper/. */
+			mse::TRegisteredObj<mse::CInt> a(10), b(20), c(30);
+			// an array of "references":
+			mse::TRegisteredRefWrapper<mse::CInt> refs[] = { a,b,c };
+			std::cout << "refs:";
+			for (mse::CInt& x : refs) std::cout << ' ' << x;
 			std::cout << '\n';
+
+			mse::TRegisteredObj<mse::CInt> foo(10);
+			auto bar = mse::registered_ref(foo);
+			//++bar;
+			//++(mse::TRegisteredObj<mse::CInt>&)bar;
+			++(mse::CInt&)bar;
+			std::cout << foo << '\n';
 		}
 	}
 
