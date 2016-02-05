@@ -203,6 +203,29 @@ namespace mse {
 	};
 
 	template<typename _Ty>
+	class TRegisteredConstPointerForLegacy : public TRegisteredPointerForLegacy<_Ty> {
+	public:
+		TRegisteredConstPointerForLegacy(const TRegisteredPointerForLegacy& src_cref) : TRegisteredPointerForLegacy<_Ty>(src_cref) {}
+		virtual ~TRegisteredConstPointerForLegacy() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator const _Ty*() const { return TRegisteredPointerForLegacy<_Ty>::operator _Ty*(); }
+		explicit operator const TRegisteredObjForLegacy<_Ty>*() const { return TRegisteredPointerForLegacy<_Ty>::operator TRegisteredObjForLegacy<_Ty>*(); }
+
+		const _Ty& operator*() const {
+			return TRegisteredPointerForLegacy::operator*();
+		}
+		const _Ty* operator->() const {
+			return TRegisteredPointerForLegacy::operator->();
+		}
+
+	private:
+		TRegisteredConstPointerForLegacy(TRegisteredObjForLegacy<_Ty>* ptr) : TRegisteredPointerForLegacy<_Ty>(ptr) {}
+
+		TRegisteredConstPointerForLegacy<_Ty>* operator&() { return this; }
+		const TRegisteredConstPointerForLegacy<_Ty>* operator&() const { return this; }
+	};
+
+	template<typename _Ty>
 	class TRegisteredNotNullPointerForLegacy : public TRegisteredPointerForLegacy<_Ty> {
 	public:
 		TRegisteredNotNullPointerForLegacy(const TRegisteredNotNullPointerForLegacy& src_cref) : TRegisteredPointerForLegacy<_Ty>(src_cref) {}
@@ -234,6 +257,29 @@ namespace mse {
 		friend class TRegisteredFixedPointerForLegacy<_Ty>;
 	};
 
+	template<typename _Ty>
+	class TRegisteredNotNullConstPointerForLegacy : public TRegisteredNotNullPointerForLegacy<_Ty> {
+	public:
+		TRegisteredNotNullConstPointerForLegacy(const TRegisteredNotNullPointerForLegacy& src_cref) : TRegisteredNotNullPointerForLegacy<_Ty>(src_cref) {}
+		virtual ~TRegisteredNotNullConstPointerForLegacy() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator const _Ty*() const { return TRegisteredNotNullPointerForLegacy<_Ty>::operator _Ty*(); }
+		explicit operator const TRegisteredObjForLegacy<_Ty>*() const { return TRegisteredNotNullPointerForLegacy<_Ty>::operator TRegisteredObjForLegacy<_Ty>*(); }
+
+		const _Ty& operator*() const {
+			return TRegisteredNotNullPointerForLegacy::operator*();
+		}
+		const _Ty* operator->() const {
+			return TRegisteredNotNullPointerForLegacy::operator->();
+		}
+
+	private:
+		TRegisteredNotNullConstPointerForLegacy(TRegisteredObjForLegacy<_Ty>* ptr) : TRegisteredNotNullPointerForLegacy<_Ty>(ptr) {}
+
+		TRegisteredNotNullConstPointerForLegacy<_Ty>* operator&() { return this; }
+		const TRegisteredNotNullConstPointerForLegacy<_Ty>* operator&() const { return this; }
+	};
+
 	/* TRegisteredFixedPointerForLegacy cannot be retargeted or constructed without a target. This pointer is recommended for passing
 	parameters by reference. */
 	template<typename _Ty>
@@ -262,6 +308,29 @@ namespace mse {
 		}
 
 		friend class TRegisteredObjForLegacy<_Ty>;
+	};
+
+	template<typename _Ty>
+	class TRegisteredFixedConstPointerForLegacy : public TRegisteredFixedPointerForLegacy<_Ty> {
+	public:
+		TRegisteredFixedConstPointerForLegacy(const TRegisteredFixedPointerForLegacy& src_cref) : TRegisteredFixedPointerForLegacy<_Ty>(src_cref) {}
+		virtual ~TRegisteredFixedConstPointerForLegacy() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator const _Ty*() const { return TRegisteredFixedPointerForLegacy<_Ty>::operator _Ty*(); }
+		explicit operator const TRegisteredObjForLegacy<_Ty>*() const { return TRegisteredFixedPointerForLegacy<_Ty>::operator TRegisteredObjForLegacy<_Ty>*(); }
+
+		const _Ty& operator*() const {
+			return TRegisteredFixedPointerForLegacy::operator*();
+		}
+		const _Ty* operator->() const {
+			return TRegisteredFixedPointerForLegacy::operator->();
+		}
+
+	private:
+		TRegisteredFixedConstPointerForLegacy(TRegisteredObjForLegacy<_Ty>* ptr) : TRegisteredFixedPointerForLegacy<_Ty>(ptr) {}
+
+		TRegisteredFixedConstPointerForLegacy<_Ty>* operator&() { return this; }
+		const TRegisteredFixedConstPointerForLegacy<_Ty>* operator&() const { return this; }
 	};
 
 	class CTrackerNotifier {
