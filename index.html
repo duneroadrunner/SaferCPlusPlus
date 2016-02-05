@@ -93,6 +93,41 @@ int main(int argc, char* argv[]) {
 
 <p>Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction. This is the recommended type to be used for safe parameter passing by reference.</p>
 
+<p>usage example:</p>
+
+<pre><code>#include "mseregistered.h"
+
+int main(int argc, char* argv[]) {
+    class CA {
+    public:
+        CA(std::string str) : m_str(str) {}
+        std::string m_str;
+    };
+
+    class CB {
+    public:
+        static void foo(mse::TRegisteredFixedConstPointer&lt;CA&gt; input1_fc_ptr, mse::TRegisteredFixedConstPointer&lt;CA&gt; 
+            input2_fc_ptr, mse::TRegisteredFixedPointer&lt;CA&gt; output_f_ptr) {
+            output_f_ptr-&gt;m_str = "output from " + input1_fc_ptr-&gt;m_str + " and " + input2_fc_ptr-&gt;m_str;
+            return;
+        }
+    };
+
+    mse::TRegisteredObj&lt;CA&gt; in1_obj("input1");
+    mse::TRegisteredPointer&lt;CA&gt; in2_reg_ptr = mse::registered_new&lt;CA&gt;("input2");
+    mse::TRegisteredObj&lt;CA&gt; out_obj("");
+
+    CB::foo(&amp;in1_obj, &amp;(*in2_reg_ptr), &amp;out_obj);
+
+    mse::registered_delete&lt;CA&gt;(in2_reg_ptr);
+}
+</code></pre>
+
+<h3>
+<a id="tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer" class="anchor" href="#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer</h3>
+
+<p>Just the "const" version of the references.</p>
+
 <h3>
 <a id="tregisteredpointerforlegacy" class="anchor" href="#tregisteredpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredPointerForLegacy</h3>
 
@@ -136,6 +171,9 @@ int main(int argc, char* argv[]) {
 
 <h3>
 <a id="tregisteredfixedpointerforlegacy" class="anchor" href="#tregisteredfixedpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredFixedPointerForLegacy</h3>
+
+<h3>
+<a id="tregisteredconstpointerforlegacy-tregisterednotnullconstpointerforlegacy-tregisteredfixedconstpointerforlegacy" class="anchor" href="#tregisteredconstpointerforlegacy-tregisterednotnullconstpointerforlegacy-tregisteredfixedconstpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredConstPointerForLegacy, TRegisteredNotNullConstPointerForLegacy, TRegisteredFixedConstPointerForLegacy</h3>
 
 <h3>
 <a id="simple-benchmarks" class="anchor" href="#simple-benchmarks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Simple benchmarks</h3>
