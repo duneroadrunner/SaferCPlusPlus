@@ -8,7 +8,7 @@ A collection of safe data types that are compatible with, and can substitute for
 
 - A couple of other highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation
 
-- replacements for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
+- [replacements](#cint-csize_t-and-cbool) for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
 
 Tested with msvc2013 and g++4.8 (as of Dec 2015) and msvc2010 (as of Jan 2015).
 
@@ -166,4 +166,33 @@ std::weak_ptr: | 0.17701 seconds.
 
 platform: msvc2013/Windows7/Haswell  
 benchmark source code: [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp)
+
+### CInt CSize_t and CBool
+
+usage example:
+
+    #include "mseprimitives.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        mse::CInt i = 5;
+        i -= 12;
+        mse::CSize_t szt = 5;
+        szt += 3;
+        auto i2 = szt + i;
+        CBool b = false;
+        if (-4 == i2) {
+            b = true;
+        }
+        if (b) {
+            try {
+                szt -= 20; // out of range result - this is going to throw an exception
+            }
+            catch (...) {
+                // expected exception
+            }
+        }
+    }
+
+
 
