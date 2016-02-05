@@ -176,7 +176,7 @@ usage example:
     int main(int argc, char* argv[]) {
     
         mse::CInt i = 5;
-        i -= 12;
+        i -= 17;
         mse::CSize_t szt = 5;
         szt += 3;
         auto i2 = szt + i;
