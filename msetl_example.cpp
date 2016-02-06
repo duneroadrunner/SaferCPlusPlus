@@ -11,6 +11,7 @@
 #include "msevector_test.h"
 #include "mseregistered.h"
 #include "mseregisteredforlegacy.h"
+#include <algorithm>
 #include <iostream>
 #include <ctime>
 #include <ratio>
@@ -115,6 +116,23 @@ int main(int argc, char* argv[])
 		assert(3 == ip_vit1.item());
 		ip_vit1.set_to_previous();
 		assert(2 == ip_vit1.item());
+
+		/* Btw, ipointers are compatible with stl algorithms, like any other stl iterators. */
+		std::sort(v.ibegin(), v.iend());
+		ip_vit1 = v.ibegin();
+
+		/* And just to be clear, mse::msevector<> retains it's original (high performance) stl::vector iterators. */
+		std::sort(v.begin(), v.end());
+
+		/* mse::msevector<> also provides "safe" (bounds checked) versions of the original stl::vector iterators. */
+		std::sort(v.ss_begin(), v.ss_end());
+
+		/* mse::ivector<> is another vector for when safety and "correctness" are more of a priority than performance
+		or compatibility. It is completely safe like mse::mstd::vector<> but only supports the "ipointer" iterators.
+		It does not support the (problematic) standard vector iterator behavior. */
+		mse::ivector<int> iv = { 1, 2, 3, 4 };
+		std::sort(iv.begin(), iv.end());
+		mse::ivector<int>::ipointer ivip = iv.begin();
 	}
 
 	{
