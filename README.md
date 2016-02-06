@@ -6,7 +6,7 @@ A collection of safe data types that are compatible with, and can substitute for
 
 - An almost completely [safe implementation](#vector) of std::vector<> - bounds checked, iterator checked and memory managed.
 
-- A couple of other highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation
+- A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation
 
 - [replacements](#primitives) for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
 
@@ -20,7 +20,7 @@ See the file [msetl_blurb.pdf](https://github.com/duneroadrunner/SaferCPlusPlus/
 
 "Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap. In most cases, they can be used as a compatible, direct substitute for native pointers, making it straightforward to update legacy code (to be safer).
 
-Registered pointers come in two flavors - TRegisteredPointer and TRegisteredPointerForLegacy. They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRegisteredPointerForLegacy emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRegisteredPointerForLegacy may be more convenient.
+Registered pointers come in two flavors - [TRegisteredPointer](#tregisteredpointer) and [TRegisteredPointerForLegacy](#tregisteredpointerforlegacy). They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRegisteredPointerForLegacy emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRegisteredPointerForLegacy may be more convenient.
 
 Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. Fortunately, the library provides safer substitutes for int, bool and size_t that can act as base classes.
 
@@ -198,7 +198,13 @@ usage example:
 
 ### Vectors
 
-### Vector
+We provide three vectors - [mstd::vector<>](#vector), [msevector<>](#msevector) and [ivector<>](#ivector). mstd::vector<> is simply an almost completely safe implementation of std::vector<>.
+msevector<> is also quite safe. Not quite as safe as mstd::vector<>, but it requires less overhead. msevector<> also supports a new kind of iterator in addition to the standard vector iterator. This new iterator, called "ipointer", acts more like a list iterator. It's more intuitive, more useful, and isn't prone to being invalidated upon an insert or delete operation. If performance is of concern, msevector<> is probably the better choice of the three.
+ivector<> is just as safe as mstd::vector<>, but drops support for the (problematic) standard vector iterators and only supports the ipointer iterators.
+
+### vector
+
+mstd::vector<> is simply an almost completely safe implementation of std::vector<>.
 
 usage example:
 
@@ -211,5 +217,54 @@ usage example:
         std::vector<int> sv;
         /* These two vectors should be completely interchangeable. The difference being that mv should throw
         an exception on any attempt to access invalid memory. */
+    }
+
+### msevector
+
+If you're willing to forego a little theoretical safety, msevector<> is still very safe without the overhead of memory management.  
+In addition to the (high performance) standard vector iterator, msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. In fact, standard vector iterators are so prone to being invalidated that for algorithms involving insertion or deletion, they can be generously considered useless, and more prudently considered dangerous. ipointers, aside from being safe, just make sense. Algorithms that work when applied to list iterators will work when applied to ipointers. And that's important as Bjarne famously points out, for cache coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate.  
+msevector<> also provides a safe (bounds checked) version of the standard vector iterator.
+
+usage example:
+
+    #include "msemsevector.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        mse::msevector<int> v = { 1, 2, 3, 4 };
+        mse::msevector<int>::ipointer ip_vit1(v);
+        /*ip_vit1.set_to_beginning();*/ /* This would be redundant as ipointers are set to the beginning at initialization. */
+        ip_vit1.advance(2);
+        assert(3 == ip_vit1.item());
+        auto ip_vit2 = v.ibegin(); /* ibegin() returns an ipointer */
+        v.erase(ip_vit2); /* remove the first item */
+        assert(3 == ip_vit1.item());
+        ip_vit1.set_to_previous();
+        assert(2 == ip_vit1.item());
+        
+        /* Btw, ipointers are compatible with stl algorithms, like any other stl iterators. */
+        std::sort(v.ibegin(), v.iend());
+        ip_vit1 = v.ibegin();
+        
+        /* And just to be clear, mse::msevector<> retains it's original (high performance) stl::vector iterators. */
+        std::sort(v.begin(), v.end());
+        
+        /* mse::msevector<> also provides "safe" (bounds checked) versions of the original stl::vector iterators. */
+        std::sort(v.ss_begin(), v.ss_end());
+    }
+
+### ivector
+
+ivector is for cases when safety and correctness are higher priorities than compatibility and performance. ivector, like mstd::vector<>, is almost completely safe. ivector takes the further step of dropping support for the (problematic) standard vector iterator, and replacing it with ipointer.
+
+usage example:
+
+    #include "mseivector.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        mse::ivector<int> iv = { 1, 2, 3, 4 };
+        std::sort(iv.begin(), iv.end());
+        mse::ivector<int>::ipointer ivip = iv.begin();
     }
 
