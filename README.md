@@ -1,14 +1,14 @@
-Jan 2016
+Feb 2016
 
 A collection of safe data types that are compatible with, and can substitute for, common unsafe native c++ types. Currently these include:
 
 - A [fast](#simple-benchmarks), [safe replacement for native pointers](#registered-pointers) that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).
 
-- An almost completely safe implementation of std::vector<> - bounds checked, iterator checked and memory managed.
+- An almost completely [safe implementation](#vector) of std::vector<> - bounds checked, iterator checked and memory managed.
 
 - A couple of other highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation
 
-- replacements for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
+- [replacements](#primitives) for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
 
 Tested with msvc2013 and g++4.8 (as of Dec 2015) and msvc2010 (as of Jan 2015).
 
@@ -166,4 +166,50 @@ std::weak_ptr: | 0.17701 seconds.
 
 platform: msvc2013/Windows7/Haswell  
 benchmark source code: [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp)
+
+### Primitives
+### CInt, CSize_t and CBool
+
+usage example:
+
+    #include "mseprimitives.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        mse::CInt i = 5;
+        i -= 17;
+        mse::CSize_t szt = 5;
+        szt += 3;
+        auto i2 = szt + i;
+        CBool b = false;
+        if (-4 == i2) {
+            b = true;
+        }
+        if (b) {
+            try {
+                szt -= 20; // out of range result - this is going to throw an exception
+            }
+            catch (...) {
+                // expected exception
+            }
+        }
+    }
+
+
+### Vectors
+
+### Vector
+
+usage example:
+
+    #include "msemstdvector.h"
+    #include <vector>
+    
+    int main(int argc, char* argv[]) {
+    
+        mse::mstd::vector<int> mv;
+        std::vector<int> sv;
+        /* These two vectors should be completely interchangeable. The difference being that mv should throw
+        an exception on any attempt to access invalid memory. */
+    }
 
