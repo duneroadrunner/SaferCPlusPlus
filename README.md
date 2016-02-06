@@ -4,7 +4,7 @@ A collection of safe data types that are compatible with, and can substitute for
 
 - A [fast](#simple-benchmarks), [safe replacement for native pointers](#registered-pointers) that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).
 
-- An almost completely safe implementation of std::vector<> - bounds checked, iterator checked and memory managed.
+- An almost completely [safe implementation](#vector) of std::vector<> - bounds checked, iterator checked and memory managed.
 
 - A couple of other highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation
 
@@ -195,4 +195,20 @@ usage example:
     }
 
 
+### Vectors
+
+### Vector
+
+usage example:
+
+    #include "msemstdvector.h"
+    #include <vector>
+    
+    int main(int argc, char* argv[]) {
+    
+        mse::mstd::vector<int> mv;
+        std::vector<int> sv;
+        /* These two vectors should be completely interchangeable. The difference being that mv should throw an
+        exception on any attempt to access invalid memory. */
+    }
 
