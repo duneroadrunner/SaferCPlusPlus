@@ -25,9 +25,9 @@
 
 <ul>
 <li><p>A <a href="#simple-benchmarks">fast</a>, <a href="#registered-pointers">safe replacement for native pointers</a> that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).</p></li>
-<li><p>An almost completely safe implementation of std::vector&lt;&gt; - bounds checked, iterator checked and memory managed.</p></li>
+<li><p>An almost completely <a href="#vector">safe implementation</a> of std::vector&lt;&gt; - bounds checked, iterator checked and memory managed.</p></li>
 <li><p>A couple of other highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation</p></li>
-<li><p>replacements for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.</p></li>
+<li><p><a href="#cint-csize_t-and-cbool">replacements</a> for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.</p></li>
 </ul>
 
 <p>Tested with msvc2013 and g++4.8 (as of Dec 2015) and msvc2010 (as of Jan 2015).</p>
@@ -244,6 +244,55 @@ int main(int argc, char* argv[]) {
 
 <p>platform: msvc2013/Windows7/Haswell<br>
 benchmark source code: <a href="https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp">msetl_example.cpp</a></p>
+
+<h3>
+<a id="cint-csize_t-and-cbool" class="anchor" href="#cint-csize_t-and-cbool" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>CInt CSize_t and CBool</h3>
+
+<p>usage example:</p>
+
+<pre><code>#include "mseprimitives.h"
+
+int main(int argc, char* argv[]) {
+
+    mse::CInt i = 5;
+    i -= 17;
+    mse::CSize_t szt = 5;
+    szt += 3;
+    auto i2 = szt + i;
+    CBool b = false;
+    if (-4 == i2) {
+        b = true;
+    }
+    if (b) {
+        try {
+            szt -= 20; // out of range result - this is going to throw an exception
+        }
+        catch (...) {
+            // expected exception
+        }
+    }
+}
+</code></pre>
+
+<h3>
+<a id="vectors" class="anchor" href="#vectors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Vectors</h3>
+
+<h3>
+<a id="vector" class="anchor" href="#vector" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Vector</h3>
+
+<p>usage example:</p>
+
+<pre><code>#include "msemstdvector.h"
+#include &lt;vector&gt;
+
+int main(int argc, char* argv[]) {
+
+    mse::mstd::vector&lt;int&gt; mv;
+    std::vector&lt;int&gt; sv;
+    /* These two vectors should be completely interchangeable. The difference being that mv should throw an
+    exception on any attempt to access invalid memory. */
+}
+</code></pre>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/duneroadrunner/SaferCPlusPlus">SaferCPlusPlus</a> is maintained by <a href="https://github.com/duneroadrunner">duneroadrunner</a>.</span>
