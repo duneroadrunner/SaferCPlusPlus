@@ -3,6 +3,7 @@
 
 #include "mseprimitives.h"
 #include <unordered_set>
+#include <functional>
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_REGISTEREDPOINTER_DISABLED
