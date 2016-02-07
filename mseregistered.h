@@ -431,27 +431,27 @@ namespace mse {
 		mutable TRPTracker<_Tn> m_mseRPManager;
 	};
 
-	template<typename _Ty, int _Tn = sc_default_cache_size>
+	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer() : TSaferPtr<TRegisteredObj<_Ty, _Tn>>() {}
-	template<typename _Ty, int _Tn = sc_default_cache_size>
+	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TSaferPtr<TRegisteredObj<_Ty, _Tn>>(ptr) {
 		if (nullptr != ptr) {
 			(*ptr).mseRPManager().registerPointer(*this);
 		}
 	}
-	template<typename _Ty, int _Tn = sc_default_cache_size>
+	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer(const TRegisteredPointer& src_cref) : TSaferPtr<TRegisteredObj<_Ty, _Tn>>(src_cref.m_ptr) {
 		if (nullptr != src_cref.m_ptr) {
 			(*(src_cref.m_ptr)).mseRPManager().registerPointer(*this);
 		}
 	}
-	template<typename _Ty, int _Tn = sc_default_cache_size>
+	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>::~TRegisteredPointer() {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
 		}
 	}
-	template<typename _Ty, int _Tn = sc_default_cache_size>
+	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>& TRegisteredPointer<_Ty, _Tn>::operator=(TRegisteredObj<_Ty, _Tn>* ptr) {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
@@ -462,12 +462,12 @@ namespace mse {
 		}
 		return (*this);
 	}
-	template<typename _Ty, int _Tn = sc_default_cache_size>
+	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>& TRegisteredPointer<_Ty, _Tn>::operator=(const TRegisteredPointer<_Ty, _Tn>& _Right_cref) {
 		return operator=(_Right_cref.m_ptr);
 	}
 	/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-	template<typename _Ty, int _Tn = sc_default_cache_size>
+	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>::operator _Ty*() const {
 		if (nullptr == (*this).m_ptr) {
 			int q = 5; /* just a line of code for putting a debugger break point */
@@ -475,7 +475,7 @@ namespace mse {
 		return (*this).m_ptr;
 	}
 	/* This cast operator, if possible, should not be used. It is meant to be used exclusively by registered_delete<>(). */
-	template<typename _Ty, int _Tn = sc_default_cache_size>
+	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>::operator TRegisteredObj<_Ty, _Tn>*() const {
 		if (nullptr == (*this).m_ptr) {
 			int q = 5; /* just a line of code for putting a debugger break point */
