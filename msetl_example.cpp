@@ -584,6 +584,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
+#ifdef MSEREGISTEREDREFWRAPPER
 	{
 		/*****************************/
 		/*   TRegisteredRefWrapper   */
@@ -640,6 +641,7 @@ int main(int argc, char* argv[])
 			std::cout << foo << '\n';
 		}
 	}
+#endif // MSEREGISTEREDREFWRAPPER
 
 	return 0;
 }

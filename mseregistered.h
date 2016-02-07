@@ -496,7 +496,13 @@ namespace mse {
 		delete a;
 	}
 
+#ifdef _MSC_VER
+#if (1900 <= _MSC_VER)
+#define MSEREGISTEREDREFWRAPPER 1
+#endif // (1900 <= _MSC_VER)
+#endif /*_MSC_VER*/
 
+#ifdef MSEREGISTEREDREFWRAPPER
 	template <class _TRRWy, int _TRRWn = sc_default_cache_size>
 	class TRegisteredRefWrapper {
 	public:
@@ -524,8 +530,11 @@ namespace mse {
 	private:
 		TRegisteredPointer<_TRRWy, _TRRWn> _ptr;
 	};
+#endif // MSEREGISTEREDREFWRAPPER
+
 #endif /*MSE_REGISTEREDPOINTER_DISABLED*/
 
+#ifdef MSEREGISTEREDREFWRAPPER
 	// TEMPLATE FUNCTIONS ref AND cref
 	template<class _TRRy, int _TRRn = sc_default_cache_size> inline
 		TRegisteredRefWrapper<_TRRy, _TRRn>
@@ -560,6 +569,7 @@ namespace mse {
 	{	// create TRegisteredRefWrapper<const _TRCRy, _TRCRn> object
 		return (registered_cref(_Val.get()));
 	}
+#endif // MSEREGISTEREDREFWRAPPER
 
 	static void s_regptr_test1() {
 
