@@ -298,17 +298,17 @@ namespace mse {
 	template<typename _Ty, int _Tn = sc_default_cache_size>
 	class TRegisteredConstPointer : public TRegisteredPointer<_Ty, _Tn> {
 	public:
-		TRegisteredConstPointer(const TRegisteredPointer& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {}
+		TRegisteredConstPointer(const TRegisteredPointer<_Ty, _Tn>& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {}
 		virtual ~TRegisteredConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRegisteredPointer<_Ty, _Tn>::operator _Ty*(); }
 		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredPointer<_Ty, _Tn>::operator TRegisteredObj<_Ty, _Tn>*(); }
 
 		const _Ty& operator*() const {
-			return TRegisteredPointer::operator*();
+			return TRegisteredPointer<_Ty, _Tn>::operator*();
 		}
 		const _Ty* operator->() const {
-			return TRegisteredPointer::operator->();
+			return TRegisteredPointer<_Ty, _Tn>::operator->();
 		}
 
 	private:
@@ -343,17 +343,17 @@ namespace mse {
 	template<typename _Ty, int _Tn>
 	class TRegisteredNotNullConstPointer : public TRegisteredNotNullPointer<_Ty, _Tn> {
 	public:
-		TRegisteredNotNullConstPointer(const TRegisteredNotNullPointer& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
+		TRegisteredNotNullConstPointer(const TRegisteredNotNullPointer<_Ty, _Tn>& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
 		virtual ~TRegisteredNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator _Ty*(); }
 		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator TRegisteredObj<_Ty, _Tn>*(); }
 
 		const _Ty& operator*() const {
-			return TRegisteredNotNullPointer::operator*();
+			return TRegisteredNotNullPointer<_Ty, _Tn>::operator*();
 		}
 		const _Ty* operator->() const {
-			return TRegisteredNotNullPointer::operator->();
+			return TRegisteredNotNullPointer<_Ty, _Tn>::operator->();
 		}
 
 	private:
@@ -386,17 +386,17 @@ namespace mse {
 	template<typename _Ty, int _Tn>
 	class TRegisteredFixedConstPointer : public TRegisteredFixedPointer<_Ty, _Tn> {
 	public:
-		TRegisteredFixedConstPointer(const TRegisteredFixedPointer& src_cref) : TRegisteredFixedPointer<_Ty, _Tn>(src_cref) {}
+		TRegisteredFixedConstPointer(const TRegisteredFixedPointer<_Ty, _Tn>& src_cref) : TRegisteredFixedPointer<_Ty, _Tn>(src_cref) {}
 		virtual ~TRegisteredFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator _Ty*(); }
 		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator TRegisteredObj<_Ty, _Tn>*(); }
 
 		const _Ty& operator*() const {
-			return TRegisteredFixedPointer::operator*();
+			return TRegisteredFixedPointer<_Ty, _Tn>::operator*();
 		}
 		const _Ty* operator->() const {
-			return TRegisteredFixedPointer::operator->();
+			return TRegisteredFixedPointer<_Ty, _Tn>::operator->();
 		}
 
 	private:
