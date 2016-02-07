@@ -10,9 +10,18 @@
 
 #include "msemsevector.h"
 
+#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+#define MSE_MSTDVECTOR_DISABLED
+#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+
 namespace mse {
 
 	namespace mstd {
+
+#ifdef MSE_MSTDVECTOR_DISABLED
+		template<class _Ty, class _A = std::allocator<_Ty> > using vector = std::vector<_Ty>;
+
+#else /*MSE_MSTDVECTOR_DISABLED*/
 
 		template<class _Ty, class _A = std::allocator<_Ty> >
 		class vector {
@@ -393,6 +402,7 @@ namespace mse {
 			const vector<_Ty, _Alloc>& _Right) {	// test if _Left >= _Right for vectors
 			return (!(_Left < _Right));
 		}
+#endif /*MSE_MSTDVECTOR_DISABLED*/
 	}
 }
 #endif /*ndef MSEMSTDVECTOR_H*/

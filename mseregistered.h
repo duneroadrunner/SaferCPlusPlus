@@ -4,9 +4,35 @@
 #include "mseprimitives.h"
 #include <unordered_set>
 
+#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+#define MSE_REGISTEREDPOINTER_DISABLED
+#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+
 namespace mse {
 
 	static const int sc_default_cache_size = 3/* 1 + (the maximum number of pointers expected to target the object at one time) */;
+
+#ifdef MSE_REGISTEREDPOINTER_DISABLED
+	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredPointer = _Ty*;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredConstPointer = _Ty*;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredNotNullPointer = _Ty*;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredNotNullConstPointer = _Ty*;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredFixedPointer = _Ty*;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredFixedConstPointer = _Ty*;
+	template<typename _TROy, int _Tn = sc_default_cache_size> using TRegisteredObj = _TROy;
+	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
+	TRegisteredPointer<_Ty, _Tn> registered_new(Args&&... args) {
+		return new TRegisteredObj<_Ty, _Tn>(args...);
+	}
+	template <class _Ty, int _Tn = sc_default_cache_size>
+	void registered_delete(const TRegisteredPointer<_Ty, _Tn>& regPtrRef) {
+		//auto a = dynamic_cast<TRegisteredObj<_Ty, _Tn> *>((_Ty*)regPtrRef);
+		auto a = (TRegisteredObj<_Ty, _Tn>*)regPtrRef;
+		delete a;
+	}
+	template <class _TRRWy, int _TRRWn = sc_default_cache_size> using TRegisteredRefWrapper = std::reference_wrapper<_TRRWy>;
+
+#else /*MSE_REGISTEREDPOINTER_DISABLED*/
 
 	/* TRPTracker is intended to keep track of all the pointers pointing to an object. TRPTracker objects are intended to be always
 	associated with (infact, a member of) the one object that is the target of the pointers it tracks. Though at the moment, it
@@ -458,8 +484,7 @@ namespace mse {
 	}
 
 	/* registered_new is intended to be analogous to std::make_shared */
-	template <class _Ty, int _Tn = sc_default_cache_size
-		, class... Args>
+	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
 	TRegisteredPointer<_Ty, _Tn> registered_new(Args&&... args) {
 		return new TRegisteredObj<_Ty, _Tn>(args...);
 	}
@@ -498,6 +523,7 @@ namespace mse {
 	private:
 		TRegisteredPointer<_TRRWy, _TRRWn> _ptr;
 	};
+#endif /*MSE_REGISTEREDPOINTER_DISABLED*/
 
 	// TEMPLATE FUNCTIONS ref AND cref
 	template<class _TRRy, int _TRRn = sc_default_cache_size> inline

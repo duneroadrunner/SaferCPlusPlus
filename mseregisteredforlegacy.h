@@ -16,7 +16,31 @@ native GetCurrentThreadId(). */
 #define MSE_GET_CURRENT_THREAD_ID std::this_thread::get_id()
 #endif /*_MSC_VER*/
 
+#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+#define MSE_REGISTEREDPOINTER_DISABLED
+#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+
 namespace mse {
+
+#ifdef MSE_REGISTEREDPOINTER_DISABLED
+	template<typename _Ty> using TRegisteredPointerForLegacy = _Ty*;
+	template<typename _Ty> using TRegisteredConstPointerForLegacy = _Ty*;
+	template<typename _Ty> using TRegisteredNotNullPointerForLegacy = _Ty*;
+	template<typename _Ty> using TRegisteredNotNullConstPointerForLegacy = _Ty*;
+	template<typename _Ty> using TRegisteredFixedPointerForLegacy = _Ty*;
+	template<typename _Ty> using TRegisteredFixedConstPointerForLegacy = _Ty*;
+	template<typename _TROFLy> using TRegisteredObjForLegacy = _TROFLy;
+	template <class _Ty, class... Args>
+	TRegisteredPointerForLegacy<_Ty> registered_new_for_legacy(Args&&... args) {
+		return new TRegisteredObjForLegacy<_Ty>(args...);
+	}
+	template <class _Ty>
+	void registered_delete_for_legacy(const TRegisteredPointerForLegacy<_Ty>& regPtrRef) {
+		auto a = (TRegisteredObjForLegacy<_Ty>*)regPtrRef;
+		delete a;
+	}
+
+#else /*MSE_REGISTEREDPOINTER_DISABLED*/
 
 	/* CSPTracker is intended to keep track of all pointers, objects and their lifespans in order to ensure that pointers don't
 	end up pointing to deallocated objects. */
@@ -399,6 +423,7 @@ namespace mse {
 			delete a;
 		}
 	}
+#endif /*MSE_REGISTEREDPOINTER_DISABLED*/
 }
 
 

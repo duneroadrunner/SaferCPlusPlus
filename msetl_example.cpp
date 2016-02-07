@@ -4,6 +4,14 @@
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+//define MSE_SAFER_SUBSTITUTES_DISABLED /* This will replace all the classes with their native/standard counterparts. */
+
+/* Each of the following will replace a subset of the classes with their native/standard counterparts. */
+//define MSE_MSTDVECTOR_DISABLED
+//define MSE_REGISTEREDPOINTER_DISABLED
+//define MSE_SAFERPTR_DISABLED /* If you define MSE_SAFERPTR_DISABLED then you must also define MSE_REGISTEREDPOINTER_DISABLED. */
+//define MSE_PRIMITIVES_DISABLED
+
 //include "msetl.h"
 #include "msemsevector.h"
 #include "msemstdvector.h"
@@ -189,7 +197,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		mse::CSize_t mse_szt1;
+		mse::CSize_t mse_szt1 = 0;
 		/* size_t szt2 = mse_szt1; */ /* This wouldn't compile. */
 #ifdef MSVC2010_COMPATIBILE
 		size_t szt1 = mse::as_a_size_t(mse_szt1); /* We exclude automatic conversion from mse::CSize_t to size_t because we
@@ -535,9 +543,9 @@ int main(int argc, char* argv[])
 				item2.m_next_item_ptr = &item3;
 				item3.m_next_item_ptr = &item1;
 				auto t1 = std::chrono::high_resolution_clock::now();
-				CF* cf_ptr = (item1.m_next_item_ptr).raw_pointer();
+				CF* cf_ptr = (item1.m_next_item_ptr);
 				for (int i = 0; i < number_of_loops2; i += 1) {
-					cf_ptr = (cf_ptr->m_next_item_ptr).raw_pointer();
+					cf_ptr = (cf_ptr->m_next_item_ptr);
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

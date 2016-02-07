@@ -27,6 +27,10 @@
 #endif
 #endif /*_MSC_VER*/
 
+#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+#define MSE_PRIMITIVES_DISABLED
+#define MSE_SAFERPTR_DISABLED
+#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
 namespace mse {
 
@@ -578,6 +582,7 @@ namespace mse {
 	inline bool operator!=(long long lhs, const CInt &rhs) { return CInt(lhs) != rhs; }
 	inline bool operator!=(long long lhs, const CSize_t &rhs) { return CInt(lhs) != as_a_size_t(rhs); }
 	inline bool operator!=(const CInt &lhs, const CSize_t &rhs) { return lhs != as_a_size_t(rhs); }
+#endif /*MSE_PRIMITIVES_DISABLED*/
 
 	static void s_type_test1() {
 		CInt i1(3);
@@ -629,7 +634,14 @@ namespace mse {
 		b4 |= b1;
 		b4 &= b3;
 	}
-#endif /*MSE_PRIMITIVES_DISABLED*/
+
+#ifdef MSE_SAFERPTR_DISABLED
+	template<typename _Ty>
+	using TSaferPtr = _Ty*;
+
+	template<typename _Ty>
+	using TSaferPtrForLegacy = _Ty*;
+#else /*MSE_SAFERPTR_DISABLED*/
 
 	class CSaferPtrBase {
 	public:
@@ -737,6 +749,7 @@ namespace mse {
 		been deleted) even in cases when this smart pointer is const. */
 		mutable _Ty* m_ptr;
 	};
+#endif /*MSE_SAFERPTR_DISABLED*/
 
 }
 
