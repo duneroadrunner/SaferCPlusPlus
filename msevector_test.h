@@ -1363,7 +1363,7 @@ namespace mse {
 				mstd::vector<mstd::vector<int> > vect(10);
 				mstd::vector<mstd::vector<int> >::iterator it(vect.begin()), end(vect.end());
 				//mstd::vector<mstd::vector<int> >::cipointer it(vect);
-				for (; it.points_to_an_item(); it.set_to_next()) {
+				for (; vect.end() != it; it++) {
 					EXAM_CHECK((*it).empty());
 					EXAM_CHECK((*it).size() == 0);
 					EXAM_CHECK((*it).capacity() == 0);
