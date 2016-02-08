@@ -36,7 +36,7 @@ The beauty of the library is that it is so small and simple. Using the library g
 
 Registered pointers come in two flavors - [TRegisteredPointer](#tregisteredpointer) and [TRegisteredPointerForLegacy](#tregisteredpointerforlegacy). They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRegisteredPointerForLegacy emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRegisteredPointerForLegacy may be more convenient.
 
-Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer substitutes for int, bool and size_t that can act as base classes.
+Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer substitutes for int, bool and size_t that can act as base classes. Also note that pointers that can point to the stack are inherently not thread safe. While we do not encourage the casual sharing of objects between asynchronous threads, if you need to do so you might consider using something like std::share_ptr.
 
 
 ### TRegisteredPointer
