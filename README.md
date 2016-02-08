@@ -209,6 +209,9 @@ usage example:
         }
     }
 
+Note: Although these types have default initialization to ensure deterministic code, for variables of these types please continue to explicitly set their value before using them, as you would with their corresponding primitive types. If you would like a type that does not require explicit initialization before use, just publicly derive your own type from the appropriate class in this library.  
+Also see the section on "[compatibility considerations](#compatibility-considerations)".
+
 
 ### Vectors
 
