@@ -21,7 +21,7 @@ See the file [msetl_blurb.pdf](https://github.com/duneroadrunner/SaferCPlusPlus/
 
 This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else.  
 This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you a lot of the safety that you might get from, say Java, while retaining all of the power and most of the performance of C++.  
-While using the library may sometimes cost a modest performance penalty, because the library elements are largely compatible with their native counterparts it's easy to, for example, "enable" the library in debug mode to help catch bugs, and "disable" it in release mode, thereby incurring no performance penalty.  
+While using the library may sometimes cost a modest performance penalty, because the library elements are [largely compatible](#compatibility-considerations) with their native counterparts it's easy to, for example, "enable" the library in debug mode to help catch bugs, and "disable" it in release mode, thereby incurring no performance penalty.  
 So there is really no excuse for not using the library in pretty much any situation.
 
 
@@ -36,7 +36,7 @@ The beauty of the library is that it is so small and simple. Using the library g
 
 Registered pointers come in two flavors - [TRegisteredPointer](#tregisteredpointer) and [TRegisteredPointerForLegacy](#tregisteredpointerforlegacy). They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRegisteredPointerForLegacy emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRegisteredPointerForLegacy may be more convenient.
 
-Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. Fortunately, the library provides safer substitutes for int, bool and size_t that can act as base classes.
+Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer substitutes for int, bool and size_t that can act as base classes.
 
 
 ### TRegisteredPointer
@@ -281,4 +281,13 @@ usage example:
         std::sort(iv.begin(), iv.end());
         mse::ivector<int>::ipointer ivip = iv.begin();
     }
+
+
+### Compatibility considerations
+
+People have asked why the primitive C++ types can't be used as base classes - http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c. It turns out that really the only reason primitive types weren't made into full fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
+But while substitute classes cannot be 100% compatible substitutes for their corresponding primitives, they can still be mostly compatible. And if you're writing new code or maintaining existing code, it should be considered good coding practice to ensure that your code is compatible with C++'s conversion rules for classes and not dependent on the "chaotic" legacy conversion rules of primitive types.
+
+If you are using legacy code or libraries where it's not practical to update the code, it shouldn't be a problem to continue using primitive types there and the safer substitute classes elsewhere in the code. The safer substitute classes generally have no problem interacting with primitive types, although in some cases you may need to do some explicit type casting. Registered pointers can be cast to raw pointers, and, for example, CInt can participate in arithmetic operations with regular ints.
+
 
