@@ -57,7 +57,7 @@ So there is really no excuse for not using the library in pretty much any situat
 
 <p>Registered pointers come in two flavors - <a href="#tregisteredpointer">TRegisteredPointer</a> and <a href="#tregisteredpointerforlegacy">TRegisteredPointerForLegacy</a>. They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRegisteredPointerForLegacy emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRegisteredPointerForLegacy may be more convenient.</p>
 
-<p>Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. <a href="#compatibility-considerations">cannot act as base classes</a>. Fortunately, the library provides safer substitutes for int, bool and size_t that can act as base classes.</p>
+<p>Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. <a href="#compatibility-considerations">cannot act as base classes</a>. Fortunately, the library provides safer substitutes for int, bool and size_t that can act as base classes. Also note that pointers that can point to the stack are inherently not thread safe. While we do not encourage the casual sharing of objects between asynchronous threads, if you need to do so you might consider using something like std::share_ptr.</p>
 
 <h3>
 <a id="tregisteredpointer" class="anchor" href="#tregisteredpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredPointer</h3>
