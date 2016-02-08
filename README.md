@@ -1,5 +1,7 @@
 Feb 2016
 
+### Overview
+
 A collection of safe data types that are compatible with, and can substitute for, common unsafe native c++ types. Currently these include:
 
 - A [fast](#simple-benchmarks), [safe replacement for native pointers](#registered-pointers) that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).
@@ -15,8 +17,20 @@ Tested with msvc2013 and g++4.8 (as of Dec 2015) and msvc2010 (as of Jan 2015).
 See the file [msetl_blurb.pdf](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_blurb.pdf) for more info. Or just have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action.
 
 
+### Use cases
 
-### Registered Pointers
+This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else.  
+This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you a lot of the safety that you might get from, say Java, while retaining all of the power and most of the performance of C++.  
+While using the library may sometimes cost a modest performance penalty, because the library elements are largely compatible with their native counterparts it's easy to, for example, "enable" the library in debug mode to help catch bugs, and "disable" it in release mode, thereby incurring no performance penalty.  
+So there is really no excuse for not using the library in pretty much any situation.
+
+
+### Setup and dependencies
+
+The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Three header files - "mseprimitives.h", "mseregistered.h" and "msemstdvector.h" - will cover most use cases. Outside of the stl, there are no other dependencies.
+
+
+### Registered pointers
 
 "Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap. In most cases, they can be used as a compatible, direct substitute for native pointers, making it straightforward to update legacy code (to be safer).
 
@@ -222,7 +236,7 @@ usage example:
 ### msevector
 
 If you're willing to forego a little theoretical safety, msevector<> is still very safe without the overhead of memory management.  
-In addition to the (high performance) standard vector iterator, msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. In fact, standard vector iterators are so prone to being invalidated that for algorithms involving insertion or deletion, they can be generously considered useless, and more prudently considered dangerous. ipointers, aside from being safe, just make sense. Algorithms that work when applied to list iterators will work when applied to ipointers. And that's important as Bjarne famously points out, for cache coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate.  
+In addition to the (high performance) standard vector iterator, msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. In fact, standard vector iterators are so prone to being invalidated that for algorithms involving insertion or deletion, they can be generously considered not very useful, and more prudently considered dangerous. ipointers, aside from being safe, just make sense. Algorithms that work when applied to list iterators will work when applied to ipointers. And that's important as Bjarne famously points out, for cache coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate.  
 msevector<> also provides a safe (bounds checked) version of the standard vector iterator.
 
 usage example:
