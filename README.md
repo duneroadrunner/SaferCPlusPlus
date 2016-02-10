@@ -21,7 +21,7 @@ See the file [msetl_blurb.pdf](https://github.com/duneroadrunner/SaferCPlusPlus/
 
 This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else.  
 This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you a lot of the safety that you might get from, say Java, while retaining all of the power and most of the performance of C++.  
-While using the library may sometimes cost a modest performance penalty, because the library elements are [largely compatible](#compatibility-considerations) with their native counterparts it's easy to, for example, "enable" the library in debug mode to help catch bugs, and "disable" it in release mode, thereby incurring no performance penalty.  
+While using the library may sometimes cost a modest performance penalty, because the library elements are [largely compatible](#compatibility-considerations) with their native counterparts they can be easily "disabled" (automatically replaced with their raw pointer counterpart) with a compile-time directive, allowing them to be used (and incur overhead) in debug/test/beta modes only.  
 So there is really no excuse for not using the library in pretty much any situation.
 
 
