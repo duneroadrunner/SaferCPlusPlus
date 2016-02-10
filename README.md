@@ -2,7 +2,7 @@ Feb 2016
 
 ### Overview
 
-A collection of safe data types that are compatible with, and can substitute for, common unsafe native c++ types. Currently these include:
+A collection of safe data types that are compatible with, and can substitute for, common unsafe native C++ types. Currently these include:
 
 - A [fast](#simple-benchmarks), [safe replacement for native pointers](#registered-pointers) that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).
 
