@@ -179,7 +179,7 @@ mse::TRegisteredObjForLegacy unchecked: | 0.0130008 seconds.
 mse::TRegisteredObjForLegacy (checked): | 0.016001 seconds.
 std::weak_ptr: | 0.17701 seconds.
 
-platform: msvc2013/Windows7/Haswell  
+platform: msvc2013/Windows7/Haswell (Jan 2016)  
 benchmark source code: [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp)
 
 ### Primitives
