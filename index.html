@@ -194,6 +194,8 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="simple-benchmarks" class="anchor" href="#simple-benchmarks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Simple benchmarks</h3>
 
+<p>It would appear, from these simple benchmarks, that using mse::TRegisteredPointers with objects allocated on the stack is significantly faster than using a smart pointer, or even native pointer, that allocates it's target object on the heap. It also seems to be the case that the performance cost of doing a null_ptr check before each dereference is actually quite modest.</p>
+
 <h4>
 <a id="allocation-deallocation-pointer-copy-and-assignment" class="anchor" href="#allocation-deallocation-pointer-copy-and-assignment" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Allocation, deallocation, pointer copy and assignment:</h4>
 
