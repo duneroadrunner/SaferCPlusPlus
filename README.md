@@ -160,6 +160,7 @@ usage example:
 ### TRegisteredConstPointerForLegacy, TRegisteredNotNullConstPointerForLegacy, TRegisteredFixedConstPointerForLegacy
   
 ### Simple benchmarks
+It would appear, from these simple benchmarks, that using mse::TRegisteredPointers with objects allocated on the stack is significantly faster than using a smart pointer, or even native pointer, that allocates it's target object on the heap. It also seems to be the case that the performance cost of doing a null_ptr check before each dereference is actually quite modest.
 
 #### Allocation, deallocation, pointer copy and assignment:
 Pointer Type | Time
@@ -178,7 +179,7 @@ mse::TRegisteredObjForLegacy unchecked: | 0.0130008 seconds.
 mse::TRegisteredObjForLegacy (checked): | 0.016001 seconds.
 std::weak_ptr: | 0.17701 seconds.
 
-platform: msvc2013/Windows7/Haswell  
+platform: msvc2013/Windows7/Haswell (Jan 2016)  
 benchmark source code: [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp)
 
 ### Primitives
