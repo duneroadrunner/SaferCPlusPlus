@@ -188,8 +188,14 @@ namespace mse {
 		TRegisteredPointerForLegacy<_Ty>& operator=(const TRegisteredPointerForLegacy<_Ty>& _Right_cref) {
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
 			TSaferPtrForLegacy<_Ty>::operator=(_Right_cref);
+			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
+			if (m_sp_tracker_ptr != _Right_cref.m_sp_tracker_ptr) {
+				/* This indicates that the target object may have been created in a different thread than this pointer. If these
+				threads are asynchronous this can be unsafe. We'll allow it here because in many of these cases the threads are
+				not asynchoronous. Usually because (at least) one of the original threads is deceased. */
+				int q = 7;
+			}
 			(*m_sp_tracker_ptr).registerPointer((*this), _Right_cref);
-			assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
 			m_might_not_point_to_a_TRegisteredObjForLegacy = _Right_cref.m_might_not_point_to_a_TRegisteredObjForLegacy;
 			return (*this);
 		}
