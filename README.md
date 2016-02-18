@@ -82,7 +82,7 @@ usage example:
 Same as TRegisteredPointer, but cannot be constructed to a null_ptr value.
 
 ### TRegisteredFixedPointer
-Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction. This is the recommended type to be used for safe parameter passing by reference.
+Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction. It is essentially a functional equivalent of a C++ reference and is the recommended type to be used for safe parameter passing by reference. TRegisteredFixedPointer is basically equivalent to "const TRegisteredNotNullPointer". 
 
 usage example:
 
