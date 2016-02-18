@@ -107,9 +107,8 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="tregisteredfixedpointer" class="anchor" href="#tregisteredfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredFixedPointer</h3>
 
-<p>Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction. This is the recommended type to be used for safe parameter passing by reference.</p>
-
-<p>usage example:</p>
+<p>Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is the recommended type to be used for safe parameter passing by reference. 
+usage example:</p>
 
 <pre><code>#include "mseregistered.h"
 
