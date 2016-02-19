@@ -210,7 +210,7 @@ usage example:
         }
     }
 
-Note: Although these types have default initialization to ensure deterministic code, for variables of these types please continue to explicitly set their value before using them, as you would with their corresponding primitive types. If you would like a type that does not require explicit initialization before use, just publicly derive your own type from the appropriate class in this library.  
+Note: Although these types have default initialization to ensure deterministic code, for variables of these types please continue to explicitly set their value before using them, as you would with their corresponding primitive types. If you would like a type that does not require explicit initialization before use, you can just publicly derive your own type from the appropriate class in this library.  
 Also note: Numeric types with more comprehensive range checking can be found here: https://github.com/robertramey/safe_numerics.  
 Also see the section on "[compatibility considerations](#compatibility-considerations)".
 
