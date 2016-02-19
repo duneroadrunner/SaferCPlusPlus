@@ -183,6 +183,7 @@ benchmark source code: [msetl_example.cpp](https://github.com/duneroadrunner/Saf
 
 ### Primitives
 ### CInt, CSize_t and CBool
+These classes are meant to behave like, and be compatible with their native counterparts. They have default initialization values to help ensure deterministic behavior. Upon value assignment, CInt and CSize_t will check to ensure that the value fits within the type's range. CSize_t's `-=` operator checks that the operation evaluates to a positive value. And unlike its native counterpart, arithmetic operations involving CSize_t that could evaluate to a negative number are returned as a (signed) CInt.
 
 usage example:
 
@@ -195,7 +196,7 @@ usage example:
         mse::CSize_t szt = 5;
         szt += 3;
         auto i2 = szt + i;
-        CBool b = false;
+        mse::CBool b = false;
         if (-4 == i2) {
             b = true;
         }
@@ -210,6 +211,7 @@ usage example:
     }
 
 Note: Although these types have default initialization to ensure deterministic code, for variables of these types please continue to explicitly set their value before using them, as you would with their corresponding primitive types. If you would like a type that does not require explicit initialization before use, just publicly derive your own type from the appropriate class in this library.  
+Also note: Numeric types with more comprehensive range checking can be found here: https://github.com/robertramey/safe_numerics.  
 Also see the section on "[compatibility considerations](#compatibility-considerations)".
 
 
