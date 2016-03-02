@@ -174,8 +174,8 @@ mse::TRelaxedRegisteredPointer (heap): | 0.142008 seconds.
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0100006 seconds.
-mse::TRelaxedRegisteredObj unchecked: | 0.0130008 seconds.
-mse::TRelaxedRegisteredObj (checked): | 0.016001 seconds.
+mse::TRelaxedRegisteredPointer unchecked: | 0.0130008 seconds.
+mse::TRelaxedRegisteredPointer (checked): | 0.016001 seconds.
 std::weak_ptr: | 0.17701 seconds.
 
 platform: msvc2013/Windows7/Haswell (Jan 2016)  
