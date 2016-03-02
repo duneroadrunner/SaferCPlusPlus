@@ -18,7 +18,7 @@
 #include "mseivector.h"
 #include "msevector_test.h"
 #include "mseregistered.h"
-#include "mseregisteredforlegacy.h"
+#include "mserelaxedregistered.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -320,14 +320,14 @@ int main(int argc, char* argv[])
 
 		{
 			/***********************************/
-			/*   TRegisteredPointerForLegacy   */
+			/*   TRelaxedRegisteredPointer   */
 			/***********************************/
 
-			/* mse::TRegisteredPointerForLegacy<> behaves very similar to mse::TRegisteredPointer<> but is even more "compatible"
+			/* mse::TRelaxedRegisteredPointer<> behaves very similar to mse::TRegisteredPointer<> but is even more "compatible"
 			with native pointers (i.e. less explicit casting is required when interacting with native pointers and native pointer
 			interfaces). So if you're updating existing or legacy code to be safer, replacing native pointers with
-			mse::TRegisteredPointerForLegacy<> may be more convenient than mse::TRegisteredPointer<>.
-			One case where you may need to use mse::TRegisteredPointerForLegacy<> even when not dealing with legacy code is when
+			mse::TRelaxedRegisteredPointer<> may be more convenient than mse::TRegisteredPointer<>.
+			One case where you may need to use mse::TRelaxedRegisteredPointer<> even when not dealing with legacy code is when
 			you need a reference to a class before it is fully defined. For example, when you have two classes that mutually
 			reference each other. mse::TRegisteredPointer<> does not support this.
 			*/
@@ -337,21 +337,21 @@ int main(int argc, char* argv[])
 			class D {
 			public:
 				virtual ~D() {}
-				mse::TRegisteredPointerForLegacy<C> m_c_ptr;
+				mse::TRelaxedRegisteredPointer<C> m_c_ptr;
 			};
 
 			class C {
 			public:
-				mse::TRegisteredPointerForLegacy<D> m_d_ptr;
+				mse::TRelaxedRegisteredPointer<D> m_d_ptr;
 			};
 
-			mse::TRegisteredObjForLegacy<C> regobjfl_c;
-			mse::TRegisteredPointerForLegacy<D> d_ptr = mse::registered_new_for_legacy<D>();
+			mse::TRelaxedRegisteredObj<C> regobjfl_c;
+			mse::TRelaxedRegisteredPointer<D> d_ptr = mse::relaxed_registered_new<D>();
 
 			regobjfl_c.m_d_ptr = d_ptr;
 			d_ptr->m_c_ptr = &regobjfl_c;
 
-			mse::registered_delete_for_legacy<D>(d_ptr);
+			mse::relaxed_registered_delete<D>(d_ptr);
 		}
 
 		mse::s_regptr_test1();
@@ -418,18 +418,18 @@ int main(int argc, char* argv[])
 			}
 			{
 				int count = 0;
-				auto item_ptr2 = mse::registered_new_for_legacy<CE>(count);
-				mse::registered_delete_for_legacy<CE>(item_ptr2);
+				auto item_ptr2 = mse::relaxed_registered_new<CE>(count);
+				mse::relaxed_registered_delete<CE>(item_ptr2);
 				auto t1 = std::chrono::high_resolution_clock::now();
 				for (int i = 0; i < number_of_loops; i += 1) {
-					auto item_ptr = mse::registered_new_for_legacy<CE>(count);
+					auto item_ptr = mse::relaxed_registered_new<CE>(count);
 					item_ptr2 = item_ptr;
-					mse::registered_delete_for_legacy<CE>(item_ptr);
+					mse::relaxed_registered_delete<CE>(item_ptr);
 				}
 
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				std::cout << "mse::TRegisteredPointerForLegacy: " << time_span.count() << " seconds.";
+				std::cout << "mse::TRelaxedRegisteredPointer: " << time_span.count() << " seconds.";
 				if (0 != count) {
 					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
 				}
@@ -507,23 +507,23 @@ int main(int argc, char* argv[])
 				class CF {
 				public:
 					CF(int a = 0) : m_a(a) {}
-					mse::TRegisteredPointerForLegacy<CF> m_next_item_ptr;
+					mse::TRelaxedRegisteredPointer<CF> m_next_item_ptr;
 					int m_a = 3;
 				};
-				mse::TRegisteredObjForLegacy<CF> item1(1);
-				mse::TRegisteredObjForLegacy<CF> item2(2);
-				mse::TRegisteredObjForLegacy<CF> item3(3);
+				mse::TRelaxedRegisteredObj<CF> item1(1);
+				mse::TRelaxedRegisteredObj<CF> item2(2);
+				mse::TRelaxedRegisteredObj<CF> item3(3);
 				item1.m_next_item_ptr = &item2;
 				item2.m_next_item_ptr = &item3;
 				item3.m_next_item_ptr = &item1;
 				auto t1 = std::chrono::high_resolution_clock::now();
-				mse::TRegisteredPointerForLegacy<CF>* rpfl_ptr = std::addressof(item1.m_next_item_ptr);
+				mse::TRelaxedRegisteredPointer<CF>* rpfl_ptr = std::addressof(item1.m_next_item_ptr);
 				for (int i = 0; i < number_of_loops2; i += 1) {
 					rpfl_ptr = std::addressof((*rpfl_ptr)->m_next_item_ptr);
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				std::cout << "mse::TRegisteredObjForLegacy (checked) dereferencing: " << time_span.count() << " seconds.";
+				std::cout << "mse::TRelaxedRegisteredObj (checked) dereferencing: " << time_span.count() << " seconds.";
 				if (3 == (*rpfl_ptr)->m_a) {
 					std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
 				}
@@ -533,12 +533,12 @@ int main(int argc, char* argv[])
 				class CF {
 				public:
 					CF(int a = 0) : m_a(a) {}
-					mse::TRegisteredPointerForLegacy<CF> m_next_item_ptr;
+					mse::TRelaxedRegisteredPointer<CF> m_next_item_ptr;
 					int m_a = 3;
 				};
-				mse::TRegisteredObjForLegacy<CF> item1(1);
-				mse::TRegisteredObjForLegacy<CF> item2(2);
-				mse::TRegisteredObjForLegacy<CF> item3(3);
+				mse::TRelaxedRegisteredObj<CF> item1(1);
+				mse::TRelaxedRegisteredObj<CF> item2(2);
+				mse::TRelaxedRegisteredObj<CF> item3(3);
 				item1.m_next_item_ptr = &item2;
 				item2.m_next_item_ptr = &item3;
 				item3.m_next_item_ptr = &item1;
@@ -549,7 +549,7 @@ int main(int argc, char* argv[])
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				std::cout << "mse::TRegisteredObjForLegacy unchecked dereferencing: " << time_span.count() << " seconds.";
+				std::cout << "mse::TRelaxedRegisteredObj unchecked dereferencing: " << time_span.count() << " seconds.";
 				if (3 == cf_ptr->m_a) {
 					std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
 				}
