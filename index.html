@@ -55,7 +55,7 @@ So there is really no excuse for not using the library in pretty much any situat
 
 <p>"Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap. In most cases, they can be used as a compatible, direct substitute for native pointers, making it straightforward to update legacy code (to be safer).</p>
 
-<p>Registered pointers come in two flavors - <a href="#tregisteredpointer">TRegisteredPointer</a> and <a href="#tregisteredpointerforlegacy">TRegisteredPointerForLegacy</a>. They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRegisteredPointerForLegacy emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRegisteredPointerForLegacy may be more convenient.</p>
+<p>Registered pointers come in two flavors - <a href="#tregisteredpointer">TRegisteredPointer</a> and <a href="#trelaxedregisteredpointer">TRelaxedRegisteredPointer</a>. They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRelaxedRegisteredPointer emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRelaxedRegisteredPointer may be more convenient.</p>
 
 <p>Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. <a href="#compatibility-considerations">cannot act as base classes</a>. Fortunately, the library provides safer substitutes for int, bool and size_t that can act as base classes. Also note that pointers that can point to the stack are inherently not thread safe. While we do not encourage the casual sharing of objects between asynchronous threads, if you need to do so you might consider using something like std::share_ptr.</p>
 
@@ -144,15 +144,15 @@ int main(int argc, char* argv[]) {
 <p>Just the "const" version of the references.</p>
 
 <h3>
-<a id="tregisteredpointerforlegacy" class="anchor" href="#tregisteredpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredPointerForLegacy</h3>
+<a id="trelaxedregisteredpointer" class="anchor" href="#trelaxedregisteredpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRelaxedRegisteredPointer</h3>
 
 <p>usage example:</p>
 
-<pre><code>#include "mseregisteredforlegacy.h"
+<pre><code>#include "mserelaxedregistered.h"
 
 int main(int argc, char* argv[]) {
 
-    /* One case where you may need to use mse::TRegisteredPointerForLegacy&lt;&gt; even when not dealing with legacy code is when
+    /* One case where you may need to use mse::TRelaxedRegisteredPointer&lt;&gt; even when not dealing with legacy code is when
     you need a reference to a class before it is fully defined. For example, when you have two classes that mutually
     reference each other. mse::TRegisteredPointer&lt;&gt; does not support this.
     */
@@ -162,33 +162,33 @@ int main(int argc, char* argv[]) {
     class D {
     public:
         virtual ~D() {}
-        mse::TRegisteredPointerForLegacy&lt;C&gt; m_c_ptr;
+        mse::TRelaxedRegisteredPointer&lt;C&gt; m_c_ptr;
     };
 
     class C {
     public:
-        mse::TRegisteredPointerForLegacy&lt;D&gt; m_d_ptr;
+        mse::TRelaxedRegisteredPointer&lt;D&gt; m_d_ptr;
     };
 
-    mse::TRegisteredObjForLegacy&lt;C&gt; regobjfl_c;
-    mse::TRegisteredPointerForLegacy&lt;D&gt; d_ptr = mse::registered_new_for_legacy&lt;D&gt;();
+    mse::TRelaxedRegisteredObj&lt;C&gt; regobjfl_c;
+    mse::TRelaxedRegisteredPointer&lt;D&gt; d_ptr = mse::relaxed_registered_new&lt;D&gt;();
 
     regobjfl_c.m_d_ptr = d_ptr;
     d_ptr-&gt;m_c_ptr = &amp;regobjfl_c;
 
-    mse::registered_delete_for_legacy&lt;D&gt;(d_ptr);
+    mse::relaxed_registered_delete&lt;D&gt;(d_ptr);
 
 }
 </code></pre>
 
 <h3>
-<a id="tregisterednotnullpointerforlegacy" class="anchor" href="#tregisterednotnullpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredNotNullPointerForLegacy</h3>
+<a id="trelaxedregisterednotnullpointer" class="anchor" href="#trelaxedregisterednotnullpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRelaxedRegisteredNotNullPointer</h3>
 
 <h3>
-<a id="tregisteredfixedpointerforlegacy" class="anchor" href="#tregisteredfixedpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredFixedPointerForLegacy</h3>
+<a id="trelaxedregisteredfixedpointer" class="anchor" href="#trelaxedregisteredfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRelaxedRegisteredFixedPointer</h3>
 
 <h3>
-<a id="tregisteredconstpointerforlegacy-tregisterednotnullconstpointerforlegacy-tregisteredfixedconstpointerforlegacy" class="anchor" href="#tregisteredconstpointerforlegacy-tregisterednotnullconstpointerforlegacy-tregisteredfixedconstpointerforlegacy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredConstPointerForLegacy, TRegisteredNotNullConstPointerForLegacy, TRegisteredFixedConstPointerForLegacy</h3>
+<a id="trelaxedregisteredconstpointer-trelaxedregisterednotnullconstpointer-trelaxedregisteredfixedconstpointer" class="anchor" href="#trelaxedregisteredconstpointer-trelaxedregisterednotnullconstpointer-trelaxedregisteredfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRelaxedRegisteredConstPointer, TRelaxedRegisteredNotNullConstPointer, TRelaxedRegisteredFixedConstPointer</h3>
 
 <h3>
 <a id="simple-benchmarks" class="anchor" href="#simple-benchmarks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Simple benchmarks</h3>
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
 <td>0.087005 seconds.</td>
 </tr>
 <tr>
-<td>mse::TRegisteredPointerForLegacy (heap):</td>
+<td>mse::TRelaxedRegisteredPointer (heap):</td>
 <td>0.142008 seconds.</td>
 </tr>
 </tbody>
@@ -245,11 +245,11 @@ int main(int argc, char* argv[]) {
 <td>0.0100006 seconds.</td>
 </tr>
 <tr>
-<td>mse::TRegisteredObjForLegacy unchecked:</td>
+<td>mse::TRelaxedRegisteredObj unchecked:</td>
 <td>0.0130008 seconds.</td>
 </tr>
 <tr>
-<td>mse::TRegisteredObjForLegacy (checked):</td>
+<td>mse::TRelaxedRegisteredObj (checked):</td>
 <td>0.016001 seconds.</td>
 </tr>
 <tr>
