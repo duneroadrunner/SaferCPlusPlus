@@ -437,6 +437,19 @@ namespace mse {
 		}
 	}
 #endif /*MSE_REGISTEREDPOINTER_DISABLED*/
+
+	/* shorter aliases */
+	template<typename _Ty> using rrp = TRelaxedRegisteredPointer<_Ty>;
+	template<typename _Ty> using rrcp = TRelaxedRegisteredConstPointer<_Ty>;
+	template<typename _Ty> using rrnnp = TRelaxedRegisteredNotNullPointer<_Ty>;
+	template<typename _Ty> using rrnncp = TRelaxedRegisteredNotNullConstPointer<_Ty>;
+	template<typename _Ty> using rrfp = TRelaxedRegisteredFixedPointer<_Ty>;
+	template<typename _Ty> using rrfcp = TRelaxedRegisteredFixedConstPointer<_Ty>;
+	template<typename _TROFLy> using rro = TRelaxedRegisteredObj<_TROFLy>;
+	template <class _Ty, class... Args>
+	TRelaxedRegisteredPointer<_Ty> rrnew(Args&&... args) { return relaxed_registered_new<_Ty>(args...); }
+	template <class _Ty>
+	void rrdelete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) { relaxed_registered_delete<_Ty>(regPtrRef); }
 }
 
 

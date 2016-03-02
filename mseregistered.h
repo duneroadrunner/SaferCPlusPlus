@@ -541,7 +541,23 @@ namespace mse {
 
 #endif /*MSE_REGISTEREDPOINTER_DISABLED*/
 
+	/* shorter aliases */
+	template<typename _Ty, int _Tn = sc_default_cache_size> using rp = TRegisteredPointer<_Ty, _Tn>;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using rcp = TRegisteredConstPointer<_Ty, _Tn>;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using rnnp = TRegisteredNotNullPointer<_Ty, _Tn>;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using rnncp = TRegisteredNotNullConstPointer<_Ty, _Tn>;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using rfp = TRegisteredFixedPointer<_Ty, _Tn>;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using rfcp = TRegisteredFixedConstPointer<_Ty, _Tn>;
+	template<typename _TROy, int _Tn = sc_default_cache_size> using ro = TRegisteredObj<_TROy, _Tn>;
+	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
+	TRegisteredPointer<_Ty, _Tn> rnew(Args&&... args) { return registered_new<_Ty, _Tn>(args...); }
+	template <class _Ty, int _Tn = sc_default_cache_size>
+	void rdelete(const TRegisteredPointer<_Ty, _Tn>& regPtrRef) { registered_delete<_Ty, _Tn>(regPtrRef); }
+
+
 #ifdef MSEREGISTEREDREFWRAPPER
+	template <class _TRRWy, int _TRRWn = sc_default_cache_size> using rrw = TRegisteredRefWrapper<_TRRWy, _TRRWn>;
+
 	// TEMPLATE FUNCTIONS ref AND cref
 	template<class _TRRy, int _TRRn = sc_default_cache_size> inline
 		TRegisteredRefWrapper<_TRRy, _TRRn>
