@@ -523,7 +523,7 @@ int main(int argc, char* argv[])
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				std::cout << "mse::TRelaxedRegisteredObj (checked) dereferencing: " << time_span.count() << " seconds.";
+				std::cout << "mse::TRelaxedRegisteredPointer (checked) dereferencing: " << time_span.count() << " seconds.";
 				if (3 == (*rpfl_ptr)->m_a) {
 					std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
 				}
@@ -549,7 +549,7 @@ int main(int argc, char* argv[])
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				std::cout << "mse::TRelaxedRegisteredObj unchecked dereferencing: " << time_span.count() << " seconds.";
+				std::cout << "mse::TRelaxedRegisteredPointer unchecked dereferencing: " << time_span.count() << " seconds.";
 				if (3 == cf_ptr->m_a) {
 					std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
 				}
