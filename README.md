@@ -34,7 +34,7 @@ The beauty of the library is that it is so small and simple. Using the library g
 
 "Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap. In most cases, they can be used as a compatible, direct substitute for native pointers, making it straightforward to update legacy code (to be safer).
 
-Registered pointers come in two flavors - [TRegisteredPointer](#tregisteredpointer) and [TRegisteredPointerForLegacy](#tregisteredpointerforlegacy). They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRegisteredPointerForLegacy emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRegisteredPointerForLegacy may be more convenient.
+Registered pointers come in two flavors - [TRegisteredPointer](#tregisteredpointer) and [TRelaxedRegisteredPointer](#trelaxedregisteredpointer). They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRelaxedRegisteredPointer emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRelaxedRegisteredPointer may be more convenient.
 
 Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer substitutes for int, bool and size_t that can act as base classes. Also note that pointers that can point to the stack are inherently not thread safe. While we do not encourage the casual sharing of objects between asynchronous threads, if you need to do so you might consider using something like std::share_ptr.
 
@@ -115,15 +115,15 @@ usage example:
 ### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
 Just the "const" version of the references.
 
-### TRegisteredPointerForLegacy
+### TRelaxedRegisteredPointer
 
 usage example:
 
-    #include "mseregisteredforlegacy.h"
+    #include "mserelaxedregistered.h"
     
     int main(int argc, char* argv[]) {
     
-        /* One case where you may need to use mse::TRegisteredPointerForLegacy<> even when not dealing with legacy code is when
+        /* One case where you may need to use mse::TRelaxedRegisteredPointer<> even when not dealing with legacy code is when
         you need a reference to a class before it is fully defined. For example, when you have two classes that mutually
         reference each other. mse::TRegisteredPointer<> does not support this.
         */
@@ -133,30 +133,30 @@ usage example:
         class D {
         public:
             virtual ~D() {}
-            mse::TRegisteredPointerForLegacy<C> m_c_ptr;
+            mse::TRelaxedRegisteredPointer<C> m_c_ptr;
         };
     
         class C {
         public:
-            mse::TRegisteredPointerForLegacy<D> m_d_ptr;
+            mse::TRelaxedRegisteredPointer<D> m_d_ptr;
         };
     
-        mse::TRegisteredObjForLegacy<C> regobjfl_c;
-        mse::TRegisteredPointerForLegacy<D> d_ptr = mse::registered_new_for_legacy<D>();
+        mse::TRelaxedRegisteredObj<C> regobjfl_c;
+        mse::TRelaxedRegisteredPointer<D> d_ptr = mse::relaxed_registered_new<D>();
     
         regobjfl_c.m_d_ptr = d_ptr;
         d_ptr->m_c_ptr = &regobjfl_c;
     
-        mse::registered_delete_for_legacy<D>(d_ptr);
+        mse::relaxed_registered_delete<D>(d_ptr);
     
     }
 
 
-### TRegisteredNotNullPointerForLegacy
+### TRelaxedRegisteredNotNullPointer
 
-### TRegisteredFixedPointerForLegacy
+### TRelaxedRegisteredFixedPointer
 
-### TRegisteredConstPointerForLegacy, TRegisteredNotNullConstPointerForLegacy, TRegisteredFixedConstPointerForLegacy
+### TRelaxedRegisteredConstPointer, TRelaxedRegisteredNotNullConstPointer, TRelaxedRegisteredFixedConstPointer
   
 ### Simple benchmarks
 It would appear, from these simple benchmarks, that using mse::TRegisteredPointers with objects allocated on the stack is significantly faster than using a smart pointer, or even native pointer, that allocates it's target object on the heap. It also seems to be the case that the performance cost of doing a null_ptr check before each dereference is actually quite modest.
@@ -168,14 +168,14 @@ mse::TRegisteredPointer (stack): | 0.0270016 seconds.
 native pointer (heap): | 0.0490028 seconds.
 mse::TRegisteredPointer (heap): | 0.0740042 seconds.
 std::shared_ptr (heap): | 0.087005 seconds.
-mse::TRegisteredPointerForLegacy (heap): | 0.142008 seconds.
+mse::TRelaxedRegisteredPointer (heap): | 0.142008 seconds.
 
 #### Dereferencing:
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0100006 seconds.
-mse::TRegisteredObjForLegacy unchecked: | 0.0130008 seconds.
-mse::TRegisteredObjForLegacy (checked): | 0.016001 seconds.
+mse::TRelaxedRegisteredObj unchecked: | 0.0130008 seconds.
+mse::TRelaxedRegisteredObj (checked): | 0.016001 seconds.
 std::weak_ptr: | 0.17701 seconds.
 
 platform: msvc2013/Windows7/Haswell (Jan 2016)  
@@ -294,5 +294,4 @@ People have asked why the primitive C++ types can't be used as base classes - ht
 But while substitute classes cannot be 100% compatible substitutes for their corresponding primitives, they can still be mostly compatible. And if you're writing new code or maintaining existing code, it should be considered good coding practice to ensure that your code is compatible with C++'s conversion rules for classes and not dependent on the "chaotic" legacy conversion rules of primitive types.
 
 If you are using legacy code or libraries where it's not practical to update the code, it shouldn't be a problem to continue using primitive types there and the safer substitute classes elsewhere in the code. The safer substitute classes generally have no problem interacting with primitive types, although in some cases you may need to do some explicit type casting. Registered pointers can be cast to raw pointers, and, for example, CInt can participate in arithmetic operations with regular ints.
-
 
