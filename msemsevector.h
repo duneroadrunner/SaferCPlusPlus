@@ -1027,7 +1027,7 @@ namespace mse {
 			}
 			mse::CBool m_points_to_an_item;
 			mse::CSize_t m_index;
-			_Myt* m_owner_ptr = null_ptr;
+			_Myt* m_owner_ptr = nullptr;
 			friend class mm_iterator_set_type;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
@@ -1147,7 +1147,7 @@ namespace mse {
 			CMMIterators m_aux_mm_iterator_shptrs;
 			CHashKey1 m_next_available_key;
 
-			_Myt* m_owner_ptr = null_ptr;
+			_Myt* m_owner_ptr = nullptr;
 
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
@@ -1310,7 +1310,7 @@ namespace mse {
 			void set_to_item_pointer(const ipointer& _Right_cref) { item_pointer().set_to_item_pointer(_Right_cref.item_pointer()); }
 			CSize_t position() const { return item_pointer().position(); }
 		private:
-			_Myt* m_owner_ptr = null_ptr;
+			_Myt* m_owner_ptr = nullptr;
 			std::shared_ptr<mm_iterator_handle_type> m_handle_shptr;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
