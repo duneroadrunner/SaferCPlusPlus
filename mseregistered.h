@@ -304,26 +304,30 @@ namespace mse {
 	};
 
 	template<typename _Ty, int _Tn = sc_default_cache_size>
-	class TRegisteredConstPointer : public TRegisteredPointer<_Ty, _Tn> {
+	class TRegisteredConstPointer : public TSaferPtr<const TRegisteredObj<_Ty, _Tn>> {
 	public:
-		TRegisteredConstPointer(const TRegisteredPointer<_Ty, _Tn>& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {}
-		virtual ~TRegisteredConstPointer() {}
+		TRegisteredConstPointer();
+		TRegisteredConstPointer(const TRegisteredObj<_Ty, _Tn>* ptr);
+		TRegisteredConstPointer(const TRegisteredConstPointer& src_cref);
+		TRegisteredConstPointer(const TRegisteredPointer<_Ty, _Tn>& src_cref);
+		virtual ~TRegisteredConstPointer();
+		TRegisteredConstPointer<_Ty, _Tn>& operator=(const TRegisteredObj<_Ty, _Tn>* ptr);
+		TRegisteredConstPointer<_Ty, _Tn>& operator=(const TRegisteredConstPointer<_Ty, _Tn>& _Right_cref);
+		TRegisteredConstPointer<_Ty, _Tn>& operator=(const TRegisteredPointer<_Ty, _Tn>& _Right_cref) { return (*this).operator=(TRegisteredConstPointer(_Right_cref));  }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TRegisteredPointer<_Ty, _Tn>::operator _Ty*(); }
-		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredPointer<_Ty, _Tn>::operator TRegisteredObj<_Ty, _Tn>*(); }
-
-		const _Ty& operator*() const {
-			return TRegisteredPointer<_Ty, _Tn>::operator*();
-		}
-		const _Ty* operator->() const {
-			return TRegisteredPointer<_Ty, _Tn>::operator->();
-		}
+		explicit operator const _Ty*() const;
+		explicit operator const TRegisteredObj<_Ty, _Tn>*() const;
 
 	private:
-		TRegisteredConstPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredPointer<_Ty, _Tn>(ptr) {}
-
+		/* If you want a pointer to a TRegisteredConstPointer<_Ty, _Tn>, declare the TRegisteredConstPointer<_Ty, _Tn> as a
+		TRegisteredObj<TRegisteredConstPointer<_Ty, _Tn>> instead. So for example:
+		auto reg_ptr = TRegisteredObj<TRegisteredConstPointer<_Ty, _Tn>>(mse::registered_new<_Ty, _Tn>());
+		auto reg_ptr_to_reg_ptr = &reg_ptr;
+		*/
 		TRegisteredConstPointer<_Ty, _Tn>* operator&() { return this; }
 		const TRegisteredConstPointer<_Ty, _Tn>* operator&() const { return this; }
+
+		friend class TRegisteredNotNullConstPointer<_Ty, _Tn>;
 	};
 
 	template<typename _Ty, int _Tn>
@@ -349,26 +353,22 @@ namespace mse {
 	};
 
 	template<typename _Ty, int _Tn>
-	class TRegisteredNotNullConstPointer : public TRegisteredNotNullPointer<_Ty, _Tn> {
+	class TRegisteredNotNullConstPointer : public TRegisteredConstPointer<_Ty, _Tn> {
 	public:
-		TRegisteredNotNullConstPointer(const TRegisteredNotNullPointer<_Ty, _Tn>& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
+		TRegisteredNotNullConstPointer(const TRegisteredNotNullConstPointer<_Ty, _Tn>& src_cref) : TRegisteredConstPointer<_Ty, _Tn>(src_cref) {}
+		TRegisteredNotNullConstPointer(const TRegisteredNotNullPointer<_Ty, _Tn>& src_cref) : TRegisteredConstPointer<_Ty, _Tn>(src_cref) {}
 		virtual ~TRegisteredNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator _Ty*(); }
-		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator TRegisteredObj<_Ty, _Tn>*(); }
-
-		const _Ty& operator*() const {
-			return TRegisteredNotNullPointer<_Ty, _Tn>::operator*();
-		}
-		const _Ty* operator->() const {
-			return TRegisteredNotNullPointer<_Ty, _Tn>::operator->();
-		}
+		explicit operator const _Ty*() const { return TRegisteredConstPointer<_Ty, _Tn>::operator const _Ty*(); }
+		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredConstPointer<_Ty, _Tn>::operator const TRegisteredObj<_Ty, _Tn>*(); }
 
 	private:
-		TRegisteredNotNullConstPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredNotNullPointer<_Ty, _Tn>(ptr) {}
+		TRegisteredNotNullConstPointer(const TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredConstPointer<_Ty, _Tn>(ptr) {}
 
 		TRegisteredNotNullConstPointer<_Ty, _Tn>* operator&() { return this; }
 		const TRegisteredNotNullConstPointer<_Ty, _Tn>* operator&() const { return this; }
+
+		friend class TRegisteredFixedConstPointer<_Ty, _Tn>;
 	};
 
 	/* TRegisteredFixedPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
@@ -392,26 +392,28 @@ namespace mse {
 	};
 
 	template<typename _Ty, int _Tn>
-	class TRegisteredFixedConstPointer : public TRegisteredFixedPointer<_Ty, _Tn> {
+	class TRegisteredFixedConstPointer : public TRegisteredNotNullConstPointer<_Ty, _Tn> {
 	public:
-		TRegisteredFixedConstPointer(const TRegisteredFixedPointer<_Ty, _Tn>& src_cref) : TRegisteredFixedPointer<_Ty, _Tn>(src_cref) {}
+		TRegisteredFixedConstPointer(const TRegisteredFixedPointer<_Ty, _Tn>& src_cref) : TRegisteredNotNullConstPointer<_Ty, _Tn>(src_cref) {}
 		virtual ~TRegisteredFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator _Ty*(); }
-		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator TRegisteredObj<_Ty, _Tn>*(); }
+		explicit operator const _Ty*() const { return TRegisteredNotNullConstPointer<_Ty, _Tn>::operator const _Ty*(); }
+		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredNotNullConstPointer<_Ty, _Tn>::operator const TRegisteredObj<_Ty, _Tn>*(); }
 
 		const _Ty& operator*() const {
-			return TRegisteredFixedPointer<_Ty, _Tn>::operator*();
+			return TRegisteredNotNullConstPointer<_Ty, _Tn>::operator*();
 		}
 		const _Ty* operator->() const {
-			return TRegisteredFixedPointer<_Ty, _Tn>::operator->();
+			return TRegisteredNotNullConstPointer<_Ty, _Tn>::operator->();
 		}
 
 	private:
-		TRegisteredFixedConstPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredFixedPointer<_Ty, _Tn>(ptr) {}
+		TRegisteredFixedConstPointer(const TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredNotNullConstPointer<_Ty, _Tn>(ptr) {}
 
 		TRegisteredFixedConstPointer<_Ty, _Tn>* operator&() { return this; }
 		const TRegisteredFixedConstPointer<_Ty, _Tn>* operator&() const { return this; }
+
+		friend class TRegisteredObj<_Ty, _Tn>;
 	};
 
 	/* TRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
@@ -431,10 +433,10 @@ namespace mse {
 		TRegisteredFixedPointer<_TROy, _Tn> operator&() {
 			return this;
 		}
-		TRegisteredFixedPointer<const _TROy, _Tn> operator&() const {
+		TRegisteredFixedConstPointer<_TROy, _Tn> operator&() const {
 			return this;
 		}
-		TRPTracker<_Tn>& mseRPManager() { return m_mseRPManager; }
+		TRPTracker<_Tn>& mseRPManager() const { return m_mseRPManager; }
 
 		mutable TRPTracker<_Tn> m_mseRPManager;
 	};
@@ -491,6 +493,66 @@ namespace mse {
 		return (*this).m_ptr;
 	}
 
+
+	template<typename _Ty, int _Tn>
+	TRegisteredConstPointer<_Ty, _Tn>::TRegisteredConstPointer() : TSaferPtr<const TRegisteredObj<_Ty, _Tn>>() {}
+	template<typename _Ty, int _Tn>
+	TRegisteredConstPointer<_Ty, _Tn>::TRegisteredConstPointer(const TRegisteredObj<_Ty, _Tn>* ptr) : TSaferPtr<const TRegisteredObj<_Ty, _Tn>>(ptr) {
+		if (nullptr != ptr) {
+			(*ptr).mseRPManager().registerPointer(*this);
+		}
+	}
+	template<typename _Ty, int _Tn>
+	TRegisteredConstPointer<_Ty, _Tn>::TRegisteredConstPointer(const TRegisteredConstPointer& src_cref) : TSaferPtr<const TRegisteredObj<_Ty, _Tn>>(src_cref.m_ptr) {
+		if (nullptr != src_cref.m_ptr) {
+			(*(src_cref.m_ptr)).mseRPManager().registerPointer(*this);
+		}
+	}
+	template<typename _Ty, int _Tn>
+	TRegisteredConstPointer<_Ty, _Tn>::TRegisteredConstPointer(const TRegisteredPointer<_Ty, _Tn>& src_cref) : TSaferPtr<const TRegisteredObj<_Ty, _Tn>>(src_cref.m_ptr) {
+		if (nullptr != src_cref.m_ptr) {
+			(*(src_cref.m_ptr)).mseRPManager().registerPointer(*this);
+		}
+	}
+	template<typename _Ty, int _Tn>
+	TRegisteredConstPointer<_Ty, _Tn>::~TRegisteredConstPointer() {
+		if (nullptr != (*this).m_ptr) {
+			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
+		}
+	}
+	template<typename _Ty, int _Tn>
+	TRegisteredConstPointer<_Ty, _Tn>& TRegisteredConstPointer<_Ty, _Tn>::operator=(const TRegisteredObj<_Ty, _Tn>* ptr) {
+		if (nullptr != (*this).m_ptr) {
+			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
+		}
+		TSaferPtr<const TRegisteredObj<_Ty, _Tn>>::operator=(ptr);
+		if (nullptr != ptr) {
+			(*ptr).mseRPManager().registerPointer(*this);
+		}
+		return (*this);
+	}
+	template<typename _Ty, int _Tn>
+	TRegisteredConstPointer<_Ty, _Tn>& TRegisteredConstPointer<_Ty, _Tn>::operator=(const TRegisteredConstPointer<_Ty, _Tn>& _Right_cref) {
+		return operator=(_Right_cref.m_ptr);
+	}
+	/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+	template<typename _Ty, int _Tn>
+	TRegisteredConstPointer<_Ty, _Tn>::operator const _Ty*() const {
+		if (nullptr == (*this).m_ptr) {
+			int q = 5; /* just a line of code for putting a debugger break point */
+		}
+		return (*this).m_ptr;
+	}
+	/* This cast operator, if possible, should not be used. It is meant to be used exclusively by registered_delete<>(). */
+	template<typename _Ty, int _Tn>
+	TRegisteredConstPointer<_Ty, _Tn>::operator const TRegisteredObj<_Ty, _Tn>*() const {
+		if (nullptr == (*this).m_ptr) {
+			int q = 5; /* just a line of code for putting a debugger break point */
+		}
+		return (*this).m_ptr;
+	}
+
+
 	/* registered_new is intended to be analogous to std::make_shared */
 	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
 	TRegisteredPointer<_Ty, _Tn> registered_new(Args&&... args) {
@@ -500,6 +562,12 @@ namespace mse {
 	void registered_delete(const TRegisteredPointer<_Ty, _Tn>& regPtrRef) {
 		//auto a = dynamic_cast<TRegisteredObj<_Ty, _Tn> *>((_Ty*)regPtrRef);
 		auto a = (TRegisteredObj<_Ty, _Tn>*)regPtrRef;
+		delete a;
+	}
+	template <class _Ty, int _Tn = sc_default_cache_size>
+	void registered_delete(const TRegisteredConstPointer<_Ty, _Tn>& regPtrRef) {
+		//auto a = dynamic_cast<TRegisteredObj<_Ty, _Tn> *>((_Ty*)regPtrRef);
+		auto a = (const TRegisteredObj<_Ty, _Tn>*)regPtrRef;
 		delete a;
 	}
 

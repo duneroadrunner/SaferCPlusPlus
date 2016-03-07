@@ -59,6 +59,11 @@ namespace mse {
 		bool unregisterPointer(const CSaferPtrBase& sp_ref, void *obj_ptr);
 		void onObjectDestruction(void *obj_ptr);
 		void onObjectConstruction(void *obj_ptr);
+		bool registerPointer(const CSaferPtrBase& sp_ref, const void *obj_ptr) { return (*this).registerPointer(sp_ref, (void *)obj_ptr); }
+		bool unregisterPointer(const CSaferPtrBase& sp_ref, const void *obj_ptr) { return (*this).unregisterPointer(sp_ref, (void *)obj_ptr); }
+		void onObjectDestruction(const void *obj_ptr) { (*this).onObjectDestruction((void *)obj_ptr); }
+		void onObjectConstruction(const void *obj_ptr) { (*this).onObjectConstruction((void *)obj_ptr); }
+
 		bool isEmpty() const { return ((0 == m_num_fs1_objects) && (0 == m_obj_pointer_map.size())); }
 
 		/* So this tracker stores the object-pointer mappings in either "fast storage1" or "slow storage". The code for
@@ -147,7 +152,9 @@ namespace mse {
 
 	template<typename _Ty> class TRelaxedRegisteredObj;
 	template<typename _Ty> class TRelaxedRegisteredNotNullPointer;
+	template<typename _Ty> class TRelaxedRegisteredNotNullConstPointer;
 	template<typename _Ty> class TRelaxedRegisteredFixedPointer;
+	template<typename _Ty> class TRelaxedRegisteredFixedConstPointer;
 
 	/* TRelaxedRegisteredPointer is similar to TRegisteredPointer, but more readily converts to a native pointer implicitly. So
 	when replacing native pointers with "registered" pointers in legacy code, it may be the case that fewer code changes
@@ -240,26 +247,101 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TRelaxedRegisteredConstPointer : public TRelaxedRegisteredPointer<_Ty> {
+	class TRelaxedRegisteredConstPointer : public TSaferPtrForLegacy<const _Ty> {
 	public:
-		TRelaxedRegisteredConstPointer(const TRelaxedRegisteredPointer<_Ty>& src_cref) : TRelaxedRegisteredPointer<_Ty>(src_cref) {}
-		virtual ~TRelaxedRegisteredConstPointer() {}
+		TRelaxedRegisteredConstPointer() : TSaferPtrForLegacy<const _Ty>() {
+			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+		}
+		TRelaxedRegisteredConstPointer(const _Ty* ptr) : TSaferPtrForLegacy<const _Ty>(ptr) {
+			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			m_might_not_point_to_a_TRelaxedRegisteredObj = true;
+			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
+		}
+		/* The CSPTracker* parameter is actually kind of redundant. We include it to remove ambiguity in the overloads. */
+		TRelaxedRegisteredConstPointer(CSPTracker* sp_tracker_ptr, const TRelaxedRegisteredObj<_Ty>* ptr) : TSaferPtrForLegacy<const _Ty>(ptr) {
+			m_sp_tracker_ptr = sp_tracker_ptr;
+			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
+		}
+		TRelaxedRegisteredConstPointer(const TRelaxedRegisteredConstPointer& src_cref) : TSaferPtrForLegacy<const _Ty>(src_cref.m_ptr) {
+			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
+			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
+			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
+		}
+		TRelaxedRegisteredConstPointer(const TRelaxedRegisteredPointer<_Ty>& src_cref) : TSaferPtrForLegacy<const _Ty>(src_cref.m_ptr) {
+			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
+			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
+			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
+		}
+		virtual ~TRelaxedRegisteredConstPointer() {
+			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
+			(*m_sp_tracker_ptr).onObjectDestruction(this); /* Just in case there are pointers to this pointer out there. */
+		}
+		TRelaxedRegisteredConstPointer<_Ty>& operator=(const _Ty* ptr) {
+			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
+			TSaferPtrForLegacy<const _Ty>::operator=(ptr);
+			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
+			m_might_not_point_to_a_TRelaxedRegisteredObj = true;
+			return (*this);
+		}
+		TRelaxedRegisteredConstPointer<_Ty>& operator=(const TRelaxedRegisteredConstPointer<_Ty>& _Right_cref) {
+			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
+			TSaferPtrForLegacy<const _Ty>::operator=(_Right_cref);
+			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
+			if (m_sp_tracker_ptr != _Right_cref.m_sp_tracker_ptr) {
+				/* This indicates that the target object may have been created in a different thread than this pointer. If these
+				threads are asynchronous this can be unsafe. We'll allow it here because in many of these cases the threads are
+				not asynchoronous. Usually because (at least) one of the original threads is deceased. */
+				int q = 7;
+			}
+			(*m_sp_tracker_ptr).registerPointer((*this), _Right_cref);
+			m_might_not_point_to_a_TRelaxedRegisteredObj = _Right_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
+			return (*this);
+		}
+		TRelaxedRegisteredConstPointer<_Ty>& operator=(const TRelaxedRegisteredPointer<_Ty>& _Right_cref) {
+			return (*this).operator=(TRelaxedRegisteredConstPointer<_Ty>(_Right_cref));
+		}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TRelaxedRegisteredPointer<_Ty>::operator _Ty*(); }
-		explicit operator const TRelaxedRegisteredObj<_Ty>*() const { return TRelaxedRegisteredPointer<_Ty>::operator TRelaxedRegisteredObj<_Ty>*(); }
-
-		const _Ty& operator*() const {
-			return TRelaxedRegisteredPointer<_Ty>::operator*();
+		operator const _Ty*() const {
+			if (nullptr == (*this).m_ptr) {
+				int q = 5; /* just a line of code for putting a debugger break point */
+			}
+			return (*this).m_ptr;
 		}
-		const _Ty* operator->() const {
-			return TRelaxedRegisteredPointer<_Ty>::operator->();
+		/* This function, if possible, should not be used. It is meant to be used exclusively by relaxed_registered_delete<>(). */
+		const TRelaxedRegisteredObj<_Ty>* asANativePointerToTRelaxedRegisteredObj() const {
+			if (nullptr == (*this).m_ptr) {
+				int q = 5; /* just a line of code for putting a debugger break point */
+			}
+			/* It should be ok to hard cast to (TRelaxedRegisteredObj<_Ty>*) even if (*this).m_ptr points to a _Ty and not a
+			TRelaxedRegisteredObj<_Ty>, because TRelaxedRegisteredObj<_Ty> doesn't have any extra data members that _Ty
+			doesn't. */
+			return (const TRelaxedRegisteredObj<_Ty>*)((*this).m_ptr);
+		}
+		/*Ideally these "address of" operators shouldn't be used. If you want a pointer to a TRelaxedRegisteredConstPointer<_Ty>,
+		declare the TRelaxedRegisteredConstPointer<_Ty> as a TRelaxedRegisteredObj<TRelaxedRegisteredConstPointer<_Ty>> instead. So
+		for example:
+		auto reg_ptr = TRelaxedRegisteredObj<TRelaxedRegisteredConstPointer<_Ty>>(mse::relaxed_registered_new<_Ty>());
+		auto reg_ptr_to_reg_ptr = &reg_ptr;
+		*/
+		TRelaxedRegisteredPointer<TRelaxedRegisteredConstPointer<_Ty>> operator&() {
+			return this;
+		}
+		TRelaxedRegisteredPointer<const TRelaxedRegisteredConstPointer<_Ty>> operator&() const {
+			return this;
+		}
+		TRelaxedRegisteredConstPointer<_Ty>* real_address() {
+			return this;
+		}
+		const TRelaxedRegisteredConstPointer<_Ty>* real_address() const {
+			return this;
 		}
 
-	private:
-		TRelaxedRegisteredConstPointer(TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredPointer<_Ty>(ptr) {}
+		CSPTracker* m_sp_tracker_ptr = nullptr;
+		bool m_might_not_point_to_a_TRelaxedRegisteredObj = false;
 
-		TRelaxedRegisteredConstPointer<_Ty>* operator&() { return this; }
-		const TRelaxedRegisteredConstPointer<_Ty>* operator&() const { return this; }
+		friend class TRelaxedRegisteredNotNullConstPointer<_Ty>;
 	};
 
 	template<typename _Ty>
@@ -295,26 +377,29 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TRelaxedRegisteredNotNullConstPointer : public TRelaxedRegisteredNotNullPointer<_Ty> {
+	class TRelaxedRegisteredNotNullConstPointer : public TRelaxedRegisteredConstPointer<_Ty> {
 	public:
-		TRelaxedRegisteredNotNullConstPointer(const TRelaxedRegisteredNotNullPointer<_Ty>& src_cref) : TRelaxedRegisteredNotNullPointer<_Ty>(src_cref) {}
+		TRelaxedRegisteredNotNullConstPointer(const TRelaxedRegisteredNotNullPointer<_Ty>& src_cref) : TRelaxedRegisteredConstPointer<_Ty>(src_cref) {}
+		TRelaxedRegisteredNotNullConstPointer(const TRelaxedRegisteredNotNullConstPointer<_Ty>& src_cref) : TRelaxedRegisteredConstPointer<_Ty>(src_cref) {}
 		virtual ~TRelaxedRegisteredNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TRelaxedRegisteredNotNullPointer<_Ty>::operator _Ty*(); }
-		explicit operator const TRelaxedRegisteredObj<_Ty>*() const { return TRelaxedRegisteredNotNullPointer<_Ty>::operator TRelaxedRegisteredObj<_Ty>*(); }
+		explicit operator const _Ty*() const { return TRelaxedRegisteredConstPointer<_Ty>::operator const _Ty*(); }
+		explicit operator const TRelaxedRegisteredObj<_Ty>*() const { return TRelaxedRegisteredConstPointer<_Ty>::operator const TRelaxedRegisteredObj<_Ty>*(); }
 
 		const _Ty& operator*() const {
-			return TRelaxedRegisteredNotNullPointer<_Ty>::operator*();
+			return TRelaxedRegisteredConstPointer<_Ty>::operator*();
 		}
 		const _Ty* operator->() const {
-			return TRelaxedRegisteredNotNullPointer<_Ty>::operator->();
+			return TRelaxedRegisteredConstPointer<_Ty>::operator->();
 		}
 
 	private:
-		TRelaxedRegisteredNotNullConstPointer(TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredNotNullPointer<_Ty>(ptr) {}
+		TRelaxedRegisteredNotNullConstPointer(const TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredConstPointer<_Ty>(ptr) {}
 
 		TRelaxedRegisteredNotNullConstPointer<_Ty>* operator&() { return this; }
 		const TRelaxedRegisteredNotNullConstPointer<_Ty>* operator&() const { return this; }
+
+		friend class TRelaxedRegisteredFixedConstPointer<_Ty>;
 	};
 
 	/* TRelaxedRegisteredFixedPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
@@ -348,26 +433,29 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TRelaxedRegisteredFixedConstPointer : public TRelaxedRegisteredFixedPointer<_Ty> {
+	class TRelaxedRegisteredFixedConstPointer : public TRelaxedRegisteredNotNullConstPointer<_Ty> {
 	public:
-		TRelaxedRegisteredFixedConstPointer(const TRelaxedRegisteredFixedPointer<_Ty>& src_cref) : TRelaxedRegisteredFixedPointer<_Ty>(src_cref) {}
+		TRelaxedRegisteredFixedConstPointer(const TRelaxedRegisteredFixedPointer<_Ty>& src_cref) : TRelaxedRegisteredNotNullConstPointer<_Ty>(src_cref) {}
+		TRelaxedRegisteredFixedConstPointer(const TRelaxedRegisteredFixedConstPointer<_Ty>& src_cref) : TRelaxedRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 		virtual ~TRelaxedRegisteredFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TRelaxedRegisteredFixedPointer<_Ty>::operator _Ty*(); }
-		explicit operator const TRelaxedRegisteredObj<_Ty>*() const { return TRelaxedRegisteredFixedPointer<_Ty>::operator TRelaxedRegisteredObj<_Ty>*(); }
+		explicit operator const _Ty*() const { return TRelaxedRegisteredNotNullConstPointer<_Ty>::operator const _Ty*(); }
+		explicit operator const TRelaxedRegisteredObj<_Ty>*() const { return TRelaxedRegisteredNotNullConstPointer<_Ty>::operator const TRelaxedRegisteredObj<_Ty>*(); }
 
 		const _Ty& operator*() const {
-			return TRelaxedRegisteredFixedPointer<_Ty>::operator*();
+			return TRelaxedRegisteredNotNullConstPointer<_Ty>::operator*();
 		}
 		const _Ty* operator->() const {
-			return TRelaxedRegisteredFixedPointer<_Ty>::operator->();
+			return TRelaxedRegisteredNotNullConstPointer<_Ty>::operator->();
 		}
 
 	private:
-		TRelaxedRegisteredFixedConstPointer(TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredFixedPointer<_Ty>(ptr) {}
+		TRelaxedRegisteredFixedConstPointer(const TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredNotNullConstPointer<_Ty>(ptr) {}
 
 		TRelaxedRegisteredFixedConstPointer<_Ty>* operator&() { return this; }
 		const TRelaxedRegisteredFixedConstPointer<_Ty>* operator&() const { return this; }
+
+		friend class TRelaxedRegisteredObj<_Ty>;
 	};
 
 	class CTrackerNotifier {
@@ -400,11 +488,11 @@ namespace mse {
 		TRelaxedRegisteredObj& operator=(TRelaxedRegisteredObj&& _X) { _TROFLy::operator=(std::move(_X)); return (*this); }
 		TRelaxedRegisteredObj& operator=(const TRelaxedRegisteredObj& _X) { _TROFLy::operator=(_X); return (*this); }
 		TRelaxedRegisteredFixedPointer<_TROFLy> operator&() {
-			return TRelaxedRegisteredFixedPointer<_TROFLy>(trackerPtr(), this);
+			return TRelaxedRegisteredFixedPointer<_TROFLy>(this);
 			//return this;
 		}
-		TRelaxedRegisteredFixedPointer<const _TROFLy> operator&() const {
-			return TRelaxedRegisteredFixedPointer<_TROFLy>(trackerPtr(), this);
+		TRelaxedRegisteredFixedConstPointer<_TROFLy> operator&() const {
+			return TRelaxedRegisteredFixedConstPointer<_TROFLy>(this);
 			//return this;
 		}
 		CSPTracker* trackerPtr() const { return m_tracker_notifier.trackerPtr(); }
@@ -428,6 +516,24 @@ namespace mse {
 			situations it doesn't make sense that someone would be calling this delete function. */
 			//_Ty* a = &regPtrRef;
 			_Ty* a = regPtrRef.m_ptr;
+			gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(a);
+			delete a;
+		}
+		else {
+			auto a = regPtrRef.asANativePointerToTRelaxedRegisteredObj();
+			delete a;
+		}
+	}
+	template <class _Ty>
+	void relaxed_registered_delete(const TRelaxedRegisteredConstPointer<_Ty>& regPtrRef) {
+		//auto a = dynamic_cast<TRelaxedRegisteredObj<_Ty> *>((_Ty*)regPtrRef);
+		//auto a = (TRelaxedRegisteredObj<_Ty>*)regPtrRef;
+		if (regPtrRef.m_might_not_point_to_a_TRelaxedRegisteredObj) {
+			/* It would be a very strange case to arrive here. For (aggressive) compatibility reasons we allow
+			TRelaxedRegisteredPointer<_Ty> to point to a _Ty instead of a TRelaxedRegisteredObj<_Ty>. But in those
+			situations it doesn't make sense that someone would be calling this delete function. */
+			//const _Ty* a = &regPtrRef;
+			const _Ty* a = regPtrRef.m_ptr;
 			gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(a);
 			delete a;
 		}
