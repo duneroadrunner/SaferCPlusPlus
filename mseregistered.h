@@ -729,6 +729,14 @@ namespace mse {
 
 			A a3(std::move(a2));
 			mse::TRegisteredObj<A> registered_a3(std::move(registered_a2));
+
+			mse::TRegisteredConstPointer<A> rcp = A_registered_ptr1;
+			mse::TRegisteredConstPointer<A> rcp2 = rcp;
+			const mse::TRegisteredObj<A> cregistered_a;
+			rcp = &cregistered_a;
+			mse::TRegisteredFixedConstPointer<A> rfcp = &cregistered_a;
+			rcp = mse::registered_new<A>();
+			mse::registered_delete<A>(rcp);
 		}
 
 		bool expected_exception = false;

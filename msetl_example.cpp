@@ -355,6 +355,7 @@ int main(int argc, char* argv[])
 		}
 
 		mse::s_regptr_test1();
+		mse::s_relaxedregptr_test1();
 
 		{
 			/*************************/

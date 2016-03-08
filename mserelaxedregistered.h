@@ -556,6 +556,38 @@ namespace mse {
 	TRelaxedRegisteredPointer<_Ty> rrnew(Args&&... args) { return relaxed_registered_new<_Ty>(args...); }
 	template <class _Ty>
 	void rrdelete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) { relaxed_registered_delete<_Ty>(regPtrRef); }
+
+
+	static void s_relaxedregptr_test1() {
+		class C;
+
+		class D {
+		public:
+			virtual ~D() {}
+			mse::TRelaxedRegisteredPointer<C> m_c_ptr;
+		};
+
+		class C {
+		public:
+			mse::TRelaxedRegisteredPointer<D> m_d_ptr;
+		};
+
+		mse::TRelaxedRegisteredObj<C> regobjfl_c;
+		mse::TRelaxedRegisteredPointer<D> d_ptr = mse::relaxed_registered_new<D>();
+
+		regobjfl_c.m_d_ptr = d_ptr;
+		d_ptr->m_c_ptr = &regobjfl_c;
+
+		mse::TRelaxedRegisteredConstPointer<C> rrcp = d_ptr->m_c_ptr;
+		mse::TRelaxedRegisteredConstPointer<C> rrcp2 = rrcp;
+		const mse::TRelaxedRegisteredObj<C> regobjfl_e;
+		rrcp = &regobjfl_e;
+		mse::TRelaxedRegisteredFixedConstPointer<C> rrfcp = &regobjfl_e;
+		rrcp = mse::relaxed_registered_new<C>();
+		mse::relaxed_registered_delete<C>(rrcp);
+
+		mse::relaxed_registered_delete<D>(d_ptr);
+	}
 }
 
 
