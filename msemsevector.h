@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <memory>
 #include <unordered_map>
+#include <functional>
 
 namespace mse {
 
@@ -1058,38 +1059,40 @@ namespace mse {
 			class CMMConstIterators : public std::unordered_map<CHashKey1, std::shared_ptr<mm_const_iterator_type>> {};
 			class CMMIterators : public std::unordered_map<CHashKey1, std::shared_ptr<mm_iterator_type>> {};
 
+			void apply_to_all_mm_const_iterator_shptrs(const std::function<void(std::shared_ptr<mm_const_iterator_type>&)>& func_obj_ref) {
+				for (auto it = m_aux_mm_const_iterator_shptrs.begin(); m_aux_mm_const_iterator_shptrs.end() != it; it++) {
+					func_obj_ref((*it).second);
+				}
+			}
+			void apply_to_all_mm_iterator_shptrs(const std::function<void(std::shared_ptr<mm_iterator_type>&)>& func_obj_ref) {
+				for (auto it = m_aux_mm_iterator_shptrs.begin(); m_aux_mm_iterator_shptrs.end() != it; it++) {
+					func_obj_ref((*it).second);
+				}
+			}
 			mm_iterator_set_type(_Myt& owner_ref) : m_owner_ptr(&owner_ref), m_next_available_key(0) {}
 			void reset() {
-				for (auto it = m_aux_mm_const_iterator_shptrs.begin(); m_aux_mm_const_iterator_shptrs.end() != it; it++) {
-					(*it).second->reset();
-				}
-				for (auto it = m_aux_mm_iterator_shptrs.begin(); m_aux_mm_iterator_shptrs.end() != it; it++) {
-					(*it).second->reset();
-				}
+				static const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [](std::shared_ptr<mm_const_iterator_type>& a) { a->reset(); };
+				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
+				static const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [](std::shared_ptr<mm_iterator_type>& a) { a->reset(); };
+				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
 			void sync_iterators_to_index() {
-				for (auto it = m_aux_mm_const_iterator_shptrs.begin(); m_aux_mm_const_iterator_shptrs.end() != it; it++) {
-					(*it).second->sync_const_iterator_to_index();
-				}
-				for (auto it = m_aux_mm_iterator_shptrs.begin(); m_aux_mm_iterator_shptrs.end() != it; it++) {
-					(*it).second->sync_iterator_to_index();
-				}
+				static const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [](std::shared_ptr<mm_const_iterator_type>& a) { a->sync_const_iterator_to_index(); };
+				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
+				static const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [](std::shared_ptr<mm_iterator_type>& a) { a->sync_iterator_to_index(); };
+				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
 			void invalidate_inclusive_range(mse::CSize_t start_index, mse::CSize_t end_index) {
-				for (auto it = m_aux_mm_const_iterator_shptrs.begin(); m_aux_mm_const_iterator_shptrs.end() != it; it++) {
-					(*it).second->invalidate_inclusive_range(start_index, end_index);
-				}
-				for (auto it = m_aux_mm_iterator_shptrs.begin(); m_aux_mm_iterator_shptrs.end() != it; it++) {
-					(*it).second->invalidate_inclusive_range(start_index, end_index);
-				}
+				static const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [&start_index, &end_index](std::shared_ptr<mm_const_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
+				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
+				static const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [&start_index, &end_index](std::shared_ptr<mm_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
+				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
 			void shift_inclusive_range(mse::CSize_t start_index, mse::CSize_t end_index, mse::CInt shift) {
-				for (auto it = m_aux_mm_const_iterator_shptrs.begin(); m_aux_mm_const_iterator_shptrs.end() != it; it++) {
-					(*it).second->shift_inclusive_range(start_index, end_index, shift);
-				}
-				for (auto it = m_aux_mm_iterator_shptrs.begin(); m_aux_mm_iterator_shptrs.end() != it; it++) {
-					(*it).second->shift_inclusive_range(start_index, end_index, shift);
-				}
+				static const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [&start_index, &end_index, &shift](std::shared_ptr<mm_const_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
+				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
+				static const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [&start_index, &end_index, &shift](std::shared_ptr<mm_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
+				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
 
 			mm_const_iterator_handle_type allocate_new_const_item_pointer() {
