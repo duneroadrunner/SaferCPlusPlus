@@ -1082,14 +1082,6 @@ namespace mse {
 					delete m_aux_mm_iterator_shptrs_ptr;
 				}
 			}
-			mm_iterator_set_type& operator=(const mm_iterator_set_type& src_cref) {
-				/* This is a special type of class. The state (i.e. member values) of an object of this class is specific to (and only
-				valid for) the particular instance of the object (or the object of which it is a member). So the correct state of a new
-				copy of this type of object is not a copy of the state, but rather the state of a new object (which is just the default
-				initialization state). */
-				return (*this);
-			}
-			mm_iterator_set_type& operator=(mm_iterator_set_type&& src) { /* see above */ return (*this); }
 
 			void apply_to_all_mm_const_iterator_shptrs(const std::function<void(std::shared_ptr<mm_const_iterator_type>&)>& func_obj_ref) {
 				if (!mm_const_fast_mode1()) {
@@ -1291,6 +1283,19 @@ namespace mse {
 					m_fm1_num_mm_const_iterators = 0;
 				}
 			}
+
+			mm_iterator_set_type& operator=(const mm_iterator_set_type& src_cref) {
+				/* This is a special type of class. The state (i.e. member values) of an object of this class is specific to (and only
+				valid for) the particular instance of the object (or the object of which it is a member). So the correct state of a new
+				copy of this type of object is not a copy of the state, but rather the state of a new object (which is just the default
+				initialization state). */
+				(*this).reset();
+				return (*this);
+			}
+			mm_iterator_set_type& operator=(mm_iterator_set_type&& src) { /* see above */ (*this).reset(); return (*this); }
+			mm_iterator_set_type(const mm_iterator_set_type& src) { /* see above */ }
+			mm_iterator_set_type(const mm_iterator_set_type&& src) { /* see above */ }
+
 			CHashKey1 m_next_available_key;
 
 			static const int sc_fm1_max_mm_iterators = 8/*arbitrary*/;
