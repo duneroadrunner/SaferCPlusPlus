@@ -1059,39 +1059,87 @@ namespace mse {
 			class CMMConstIterators : public std::unordered_map<CHashKey1, std::shared_ptr<mm_const_iterator_type>> {};
 			class CMMIterators : public std::unordered_map<CHashKey1, std::shared_ptr<mm_iterator_type>> {};
 
+			class assignable_CMMConstIterators_value_type : public std::pair<CHashKey1, std::shared_ptr<mm_const_iterator_type>> {
+			public:
+				assignable_CMMConstIterators_value_type() {}
+				assignable_CMMConstIterators_value_type(const typename CMMConstIterators::value_type& src) : std::pair<CHashKey1, std::shared_ptr<mm_iterator_type>>(src.first, src.second) {}
+				assignable_CMMConstIterators_value_type& operator=(const typename CMMConstIterators::value_type& rhs) { (*this).first = rhs.first; (*this).second = rhs.second; return (*this); }
+				operator typename CMMConstIterators::value_type() const { return CMMConstIterators::value_type((*this).first, (*this).second); }
+			};
+			class assignable_CMMIterators_value_type : public std::pair<CHashKey1, std::shared_ptr<mm_iterator_type>> {
+			public:
+				assignable_CMMIterators_value_type() {}
+				assignable_CMMIterators_value_type(const typename CMMIterators::value_type& src) : std::pair<CHashKey1, std::shared_ptr<mm_iterator_type>>(src.first, src.second) {}
+				assignable_CMMIterators_value_type& operator=(const typename CMMIterators::value_type& rhs) { (*this).first = rhs.first; (*this).second = rhs.second; return (*this); }
+				operator typename CMMIterators::value_type() const { return CMMIterators::value_type((*this).first, (*this).second); }
+			};
+
+			~mm_iterator_set_type() {
+				if (!mm_const_fast_mode1()) {
+					delete m_aux_mm_const_iterator_shptrs_ptr;
+				}
+				if (!mm_fast_mode1()) {
+					delete m_aux_mm_iterator_shptrs_ptr;
+				}
+			}
+			mm_iterator_set_type& operator=(const mm_iterator_set_type& src_cref) {
+				/* This is a special type of class. The state (i.e. member values) of an object of this class is specific to (and only
+				valid for) the particular instance of the object (or the object of which it is a member). So the correct state of a new
+				copy of this type of object is not a copy of the state, but rather the state of a new object (which is just the default
+				initialization state). */
+				return (*this);
+			}
+			mm_iterator_set_type& operator=(mm_iterator_set_type&& src) { /* see above */ return (*this); }
+
 			void apply_to_all_mm_const_iterator_shptrs(const std::function<void(std::shared_ptr<mm_const_iterator_type>&)>& func_obj_ref) {
-				for (auto it = m_aux_mm_const_iterator_shptrs.begin(); m_aux_mm_const_iterator_shptrs.end() != it; it++) {
-					func_obj_ref((*it).second);
+				if (!mm_const_fast_mode1()) {
+					for (auto it = (*m_aux_mm_const_iterator_shptrs_ptr).begin(); (*m_aux_mm_const_iterator_shptrs_ptr).end() != it; it++) {
+						func_obj_ref((*it).second);
+					}
+				}
+				else {
+					for (int i = 0; i < m_fm1_num_mm_const_iterators; i += 1) {
+						func_obj_ref(m_fm1_key_mm_const_it_array[i].second);
+					}
 				}
 			}
 			void apply_to_all_mm_iterator_shptrs(const std::function<void(std::shared_ptr<mm_iterator_type>&)>& func_obj_ref) {
-				for (auto it = m_aux_mm_iterator_shptrs.begin(); m_aux_mm_iterator_shptrs.end() != it; it++) {
-					func_obj_ref((*it).second);
+				if (!mm_fast_mode1()) {
+					for (auto it = (*m_aux_mm_iterator_shptrs_ptr).begin(); (*m_aux_mm_iterator_shptrs_ptr).end() != it; it++) {
+						func_obj_ref((*it).second);
+					}
+				}
+				else {
+					for (int i = 0; i < m_fm1_num_mm_iterators; i += 1) {
+						func_obj_ref(m_fm1_key_mm_it_array[i].second);
+					}
 				}
 			}
 			mm_iterator_set_type(_Myt& owner_ref) : m_owner_ptr(&owner_ref), m_next_available_key(0) {}
 			void reset() {
+				/* We can use "static" here because the lambda function does not capture any parameters. */
 				static const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [](std::shared_ptr<mm_const_iterator_type>& a) { a->reset(); };
 				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
 				static const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [](std::shared_ptr<mm_iterator_type>& a) { a->reset(); };
 				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
 			void sync_iterators_to_index() {
+				/* We can use "static" here because the lambda function does not capture any parameters. */
 				static const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [](std::shared_ptr<mm_const_iterator_type>& a) { a->sync_const_iterator_to_index(); };
 				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
 				static const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [](std::shared_ptr<mm_iterator_type>& a) { a->sync_iterator_to_index(); };
 				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
 			void invalidate_inclusive_range(mse::CSize_t start_index, mse::CSize_t end_index) {
-				static const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [&start_index, &end_index](std::shared_ptr<mm_const_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
+				const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [&start_index, &end_index](std::shared_ptr<mm_const_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
 				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
-				static const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [&start_index, &end_index](std::shared_ptr<mm_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
+				const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [&start_index, &end_index](std::shared_ptr<mm_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
 				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
 			void shift_inclusive_range(mse::CSize_t start_index, mse::CSize_t end_index, mse::CInt shift) {
-				static const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [&start_index, &end_index, &shift](std::shared_ptr<mm_const_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
+				const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [&start_index, &end_index, &shift](std::shared_ptr<mm_const_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
 				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
-				static const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [&start_index, &end_index, &shift](std::shared_ptr<mm_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
+				const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [&start_index, &end_index, &shift](std::shared_ptr<mm_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
 				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
 
@@ -1100,17 +1148,57 @@ namespace mse {
 				auto key = m_next_available_key; m_next_available_key++;
 				mm_const_iterator_handle_type retval(key, shptr);
 				typename CMMConstIterators::value_type new_item(key, shptr);
-				m_aux_mm_const_iterator_shptrs.insert(new_item);
+				if (!mm_const_fast_mode1()) {
+					(*m_aux_mm_const_iterator_shptrs_ptr).insert(new_item);
+				} else {
+					if (sc_fm1_max_mm_iterators == m_fm1_num_mm_const_iterators) {
+						/* Too many items. Initiate and switch to slow mode. */
+						/* Initialize slow storage. */
+						m_aux_mm_const_iterator_shptrs_ptr = new CMMConstIterators();
+						/* First copy the items from fast storage to slow storage. */
+						for (int i = 0; i < sc_fm1_max_mm_iterators; i += 1) {
+							(*m_aux_mm_const_iterator_shptrs_ptr).insert(m_fm1_key_mm_const_it_array[i]);
+						}
+						/* Add the new items to slow storage. */
+						(*m_aux_mm_const_iterator_shptrs_ptr).insert(new_item);
+					}
+					else {
+						m_fm1_key_mm_const_it_array[m_fm1_num_mm_const_iterators] = new_item;
+						m_fm1_num_mm_const_iterators += 1;
+					}
+				}
 				return retval;
 			}
 			void release_const_item_pointer(mm_const_iterator_handle_type handle) {
-				auto it = m_aux_mm_const_iterator_shptrs.find(handle.m_key);
-				if (m_aux_mm_const_iterator_shptrs.end() != it) {
-					m_aux_mm_const_iterator_shptrs.erase(it);
+				if (!mm_const_fast_mode1()) {
+					auto it = (*m_aux_mm_const_iterator_shptrs_ptr).find(handle.m_key);
+					if ((*m_aux_mm_const_iterator_shptrs_ptr).end() != it) {
+						(*m_aux_mm_const_iterator_shptrs_ptr).erase(it);
+					}
+					else {
+						/* Do we need to throw here? */
+						throw(std::out_of_range("invalid handle - void release_aux_mm_const_iterator(mm_const_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
+					}
 				}
 				else {
-					/* Do we need to throw here? */
-					throw(std::out_of_range("invalid handle - void release_aux_mm_const_iterator(mm_const_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
+					int found_index = -1;
+					for (int i = 0; i < m_fm1_num_mm_const_iterators; i += 1) {
+						if (handle.m_key == m_fm1_key_mm_const_it_array[i].first) {
+							found_index = i;
+							break;
+						}
+					}
+					if (0 <= found_index) {
+						m_fm1_num_mm_const_iterators -= 1;
+						assert(0 <= m_fm1_num_mm_const_iterators);
+						for (int j = found_index; j < m_fm1_num_mm_const_iterators; j += 1) {
+							m_fm1_key_mm_const_it_array[j] = m_fm1_key_mm_const_it_array[j + 1];
+						}
+					}
+					else {
+						/* Do we need to throw here? */
+						throw(std::out_of_range("invalid handle - void release_aux_mm_const_iterator(mm_const_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
+					}
 				}
 			}
 
@@ -1119,21 +1207,70 @@ namespace mse {
 				auto key = m_next_available_key; m_next_available_key++;
 				mm_iterator_handle_type retval(key, shptr);
 				typename CMMIterators::value_type new_item(key, shptr);
-				m_aux_mm_iterator_shptrs.insert(new_item);
+				if (!mm_fast_mode1()) {
+					(*m_aux_mm_iterator_shptrs_ptr).insert(new_item);
+				}
+				else {
+					if (sc_fm1_max_mm_iterators == m_fm1_num_mm_iterators) {
+						/* Too many items. Initiate and switch to slow mode. */
+						/* Initialize slow storage. */
+						m_aux_mm_iterator_shptrs_ptr = new CMMIterators();
+						/* First copy the items from fast storage to slow storage. */
+						for (int i = 0; i < sc_fm1_max_mm_iterators; i += 1) {
+							(*m_aux_mm_iterator_shptrs_ptr).insert(m_fm1_key_mm_it_array[i]);
+						}
+						/* Add the new items to slow storage. */
+						(*m_aux_mm_iterator_shptrs_ptr).insert(new_item);
+					}
+					else {
+						m_fm1_key_mm_it_array[m_fm1_num_mm_iterators] = new_item;
+						m_fm1_num_mm_iterators += 1;
+					}
+				}
 				return retval;
 			}
 			void release_item_pointer(mm_iterator_handle_type handle) {
-				auto it = m_aux_mm_iterator_shptrs.find(handle.m_key);
-				if (m_aux_mm_iterator_shptrs.end() != it) {
-					m_aux_mm_iterator_shptrs.erase(it);
+				if (!mm_fast_mode1()) {
+					auto it = (*m_aux_mm_iterator_shptrs_ptr).find(handle.m_key);
+					if ((*m_aux_mm_iterator_shptrs_ptr).end() != it) {
+						(*m_aux_mm_iterator_shptrs_ptr).erase(it);
+					}
+					else {
+						/* Do we need to throw here? */
+						throw(std::out_of_range("invalid handle - void release_aux_mm_iterator(mm_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
+					}
 				}
 				else {
-					/* Do we need to throw here? */
-					throw(std::out_of_range("invalid handle - void release_aux_mm_iterator(mm_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
+					int found_index = -1;
+					for (int i = 0; i < m_fm1_num_mm_iterators; i += 1) {
+						if (handle.m_key == m_fm1_key_mm_it_array[i].first) {
+							found_index = i;
+							break;
+						}
+					}
+					if (0 <= found_index) {
+						m_fm1_num_mm_iterators -= 1;
+						assert(0 <= m_fm1_num_mm_iterators);
+						for (int j = found_index; j < m_fm1_num_mm_iterators; j += 1) {
+							m_fm1_key_mm_it_array[j] = m_fm1_key_mm_it_array[j + 1];
+						}
+					}
+					else {
+						/* Do we need to throw here? */
+						throw(std::out_of_range("invalid handle - void release_aux_mm_iterator(mm_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
+					}
 				}
 			}
 			void release_all_item_pointers() {
-				m_aux_mm_iterator_shptrs.clear();
+				if (!mm_fast_mode1()) {
+					(*m_aux_mm_iterator_shptrs_ptr).clear();
+				}
+				else {
+					for (int i = 0; i < m_fm1_num_mm_iterators; i += 1) {
+						m_fm1_key_mm_it_array[i] = assignable_CMMIterators_value_type();
+					}
+					m_fm1_num_mm_iterators = 0;
+				}
 			}
 			mm_const_iterator_type &const_item_pointer(mm_const_iterator_handle_type handle) const {
 				return (*(handle.m_shptr));
@@ -1144,11 +1281,29 @@ namespace mse {
 
 		private:
 			void release_all_const_item_pointers() {
-				m_aux_mm_const_iterator_shptrs.clear();
+				if (!mm_const_fast_mode1()) {
+					(*m_aux_mm_const_iterator_shptrs_ptr).clear();
+				}
+				else {
+					for (int i = 0; i < m_fm1_num_mm_const_iterators; i += 1) {
+						m_fm1_key_mm_const_it_array[i] = assignable_CMMConstIterators_value_type();
+					}
+					m_fm1_num_mm_const_iterators = 0;
+				}
 			}
-			CMMConstIterators m_aux_mm_const_iterator_shptrs;
-			CMMIterators m_aux_mm_iterator_shptrs;
 			CHashKey1 m_next_available_key;
+
+			static const int sc_fm1_max_mm_iterators = 8/*arbitrary*/;
+
+			bool mm_const_fast_mode1() const { return (nullptr == m_aux_mm_const_iterator_shptrs_ptr); }
+			int m_fm1_num_mm_const_iterators = 0;
+			assignable_CMMConstIterators_value_type m_fm1_key_mm_const_it_array[sc_fm1_max_mm_iterators];
+			CMMConstIterators* m_aux_mm_const_iterator_shptrs_ptr = nullptr;
+
+			bool mm_fast_mode1() const { return (nullptr == m_aux_mm_iterator_shptrs_ptr); }
+			int m_fm1_num_mm_iterators = 0;
+			assignable_CMMIterators_value_type m_fm1_key_mm_it_array[sc_fm1_max_mm_iterators];
+			CMMIterators* m_aux_mm_iterator_shptrs_ptr = nullptr;
 
 			_Myt* m_owner_ptr = nullptr;
 
