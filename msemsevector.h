@@ -800,8 +800,9 @@ namespace mse {
 			CSize_t position() const {
 				return m_index;
 			}
-		private:
+			/* We actually want to make this constructor private, but doing so seems to break std::make_shared<mm_const_iterator_type>.  */
 			mm_const_iterator_type(const _Myt& owner_cref) : m_owner_cref(owner_cref) { set_to_beginning(); }
+		private:
 			mm_const_iterator_type(const mm_const_iterator_type& src_cref) : m_owner_cref(src_cref.m_owner_cref) { (*this) = src_cref; }
 			void sync_const_iterator_to_index() {
 				assert(m_owner_cref.size() >= (*this).m_index);
@@ -1018,8 +1019,9 @@ namespace mse {
 				retval.advance(mse::CInt(m_index));
 				return retval;
 			}
-		private:
+			/* We actually want to make this constructor private, but doing so seems to break std::make_shared<mm_iterator_type>.  */
 			mm_iterator_type(_Myt& owner_ref) : m_owner_ptr(&owner_ref) { set_to_beginning(); }
+		private:
 			mm_iterator_type(const mm_iterator_type& src_cref) : m_owner_ptr(src_cref.m_owner_ptr) { (*this) = src_cref; }
 			void sync_iterator_to_index() {
 				assert(m_owner_ptr->size() >= (*this).m_index);
@@ -1037,7 +1039,7 @@ namespace mse {
 		typedef std::size_t CHashKey1;
 		class mm_const_iterator_handle_type {
 		public:
-			mm_const_iterator_handle_type(const CHashKey1& key_cref, std::shared_ptr<mm_const_iterator_type>& shptr_cref) : m_shptr(shptr_cref), m_key(key_cref) {}
+			mm_const_iterator_handle_type(const CHashKey1& key_cref, const std::shared_ptr<mm_const_iterator_type>& shptr_cref) : m_shptr(shptr_cref), m_key(key_cref) {}
 		private:
 			std::shared_ptr<mm_const_iterator_type> m_shptr;
 			CHashKey1 m_key;
@@ -1046,7 +1048,7 @@ namespace mse {
 		};
 		class mm_iterator_handle_type {
 		public:
-			mm_iterator_handle_type(const CHashKey1& key_cref, std::shared_ptr<mm_iterator_type>& shptr_ref) : m_shptr(shptr_ref), m_key(key_cref) {}
+			mm_iterator_handle_type(const CHashKey1& key_cref, const std::shared_ptr<mm_iterator_type>& shptr_ref) : m_shptr(shptr_ref), m_key(key_cref) {}
 		private:
 			std::shared_ptr<mm_iterator_type> m_shptr;
 			CHashKey1 m_key;
@@ -1123,20 +1125,21 @@ namespace mse {
 				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
 			void invalidate_inclusive_range(mse::CSize_t start_index, mse::CSize_t end_index) {
-				const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [&start_index, &end_index](std::shared_ptr<mm_const_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
+				const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [start_index, end_index](std::shared_ptr<mm_const_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
 				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
-				const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [&start_index, &end_index](std::shared_ptr<mm_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
+				const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [start_index, end_index](std::shared_ptr<mm_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
 				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
 			void shift_inclusive_range(mse::CSize_t start_index, mse::CSize_t end_index, mse::CInt shift) {
-				const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [&start_index, &end_index, &shift](std::shared_ptr<mm_const_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
+				const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [start_index, end_index, shift](std::shared_ptr<mm_const_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
 				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
-				const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [&start_index, &end_index, &shift](std::shared_ptr<mm_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
+				const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [start_index, end_index, shift](std::shared_ptr<mm_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
 				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
 
 			mm_const_iterator_handle_type allocate_new_const_item_pointer() {
-				auto shptr = std::shared_ptr<mm_const_iterator_type>(new mm_const_iterator_type(*m_owner_ptr));
+				//auto shptr = std::shared_ptr<mm_const_iterator_type>(new mm_const_iterator_type(*m_owner_ptr));
+				auto shptr = std::make_shared<mm_const_iterator_type>(*m_owner_ptr);
 				auto key = m_next_available_key; m_next_available_key++;
 				mm_const_iterator_handle_type retval(key, shptr);
 				typename CMMConstIterators::value_type new_item(key, shptr);
@@ -1195,7 +1198,8 @@ namespace mse {
 			}
 
 			mm_iterator_handle_type allocate_new_item_pointer() {
-				auto shptr = std::shared_ptr<mm_iterator_type>(new mm_iterator_type(*m_owner_ptr));
+				//auto shptr = std::shared_ptr<mm_iterator_type>(new mm_iterator_type(*m_owner_ptr));
+				auto shptr = std::make_shared<mm_iterator_type>(*m_owner_ptr);
 				auto key = m_next_available_key; m_next_available_key++;
 				mm_iterator_handle_type retval(key, shptr);
 				typename CMMIterators::value_type new_item(key, shptr);
@@ -1298,7 +1302,7 @@ namespace mse {
 
 			CHashKey1 m_next_available_key;
 
-			static const int sc_fm1_max_mm_iterators = 8/*arbitrary*/;
+			static const int sc_fm1_max_mm_iterators = 6/*arbitrary*/;
 
 			bool mm_const_fast_mode1() const { return (nullptr == m_aux_mm_const_iterator_shptrs_ptr); }
 			int m_fm1_num_mm_const_iterators = 0;
@@ -1346,11 +1350,11 @@ namespace mse {
 
 			cipointer(const _Myt& owner_cref) : m_owner_cref(owner_cref) {
 				mm_const_iterator_handle_type handle = m_owner_cref.allocate_new_const_item_pointer();
-				m_handle_shptr = std::shared_ptr<mm_const_iterator_handle_type>(new mm_const_iterator_handle_type(handle));
+				m_handle_shptr = std::make_shared<mm_const_iterator_handle_type>(handle);
 			}
 			cipointer(const cipointer& src_cref) : m_owner_cref(src_cref.m_owner_cref) {
 				mm_const_iterator_handle_type handle = m_owner_cref.allocate_new_const_item_pointer();
-				m_handle_shptr = std::shared_ptr<mm_const_iterator_handle_type>(new mm_const_iterator_handle_type(handle));
+				m_handle_shptr = std::make_shared<mm_const_iterator_handle_type>(handle);
 				const_item_pointer() = src_cref.const_item_pointer();
 			}
 			~cipointer() {
@@ -1414,11 +1418,11 @@ namespace mse {
 
 			ipointer(_Myt& owner_ref) : m_owner_ptr(&owner_ref) {
 				mm_iterator_handle_type handle = m_owner_ptr->allocate_new_item_pointer();
-				m_handle_shptr = std::shared_ptr<mm_iterator_handle_type>(new mm_iterator_handle_type(handle));
+				m_handle_shptr = std::make_shared<mm_iterator_handle_type>(handle);
 			}
 			ipointer(const ipointer& src_cref) : m_owner_ptr(src_cref.m_owner_ptr) {
 				mm_iterator_handle_type handle = m_owner_ptr->allocate_new_item_pointer();
-				m_handle_shptr = std::shared_ptr<mm_iterator_handle_type>(new mm_iterator_handle_type(handle));
+				m_handle_shptr = std::make_shared<mm_iterator_handle_type>(handle);
 				item_pointer() = src_cref.item_pointer();
 			}
 			~ipointer() {
