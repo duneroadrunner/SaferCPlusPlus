@@ -272,6 +272,27 @@ usage example:
         std::sort(v.ss_begin(), v.ss_end());
     }
 
+ipointers support all the standard iterator operators, but also have member functions with "friendlier" names including:
+
+    bool points_to_an_item() const;
+    bool points_to_end_marker() const;
+    bool points_to_beginning() const;
+    /* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+    bool has_next_item_or_end_marker() const;
+    /* has_next() is just an alias for points_to_an_item() that may be familiar to java programmers. */
+    bool has_next() const;
+    bool has_previous() const;
+    void set_to_beginning();
+    void set_to_end_marker();
+    void set_to_next();
+    void set_to_previous();
+    void advance(difference_type n);
+    void regress(difference_type n);
+    reference item() const { return operator*(); }
+    reference previous_item() const;
+    CSize_t position() const;
+    void reset();
+
 ### ivector
 
 ivector is for cases when safety and correctness are higher priorities than compatibility and performance. ivector, like mstd::vector<>, is almost completely safe. ivector takes the further step of dropping support for the (problematic) standard vector iterator, and replacing it with [ipointer](#msevector).
