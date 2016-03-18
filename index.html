@@ -362,6 +362,28 @@ int main(int argc, char* argv[]) {
 }
 </code></pre>
 
+<p>ipointers support all the standard iterator operators, but also have member functions with "friendlier" names including:</p>
+
+<pre><code>bool points_to_an_item() const;
+bool points_to_end_marker() const;
+bool points_to_beginning() const;
+/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+bool has_next_item_or_end_marker() const;
+/* has_next() is just an alias for points_to_an_item() that may be familiar to java programmers. */
+bool has_next() const;
+bool has_previous() const;
+void set_to_beginning();
+void set_to_end_marker();
+void set_to_next();
+void set_to_previous();
+void advance(difference_type n);
+void regress(difference_type n);
+reference item() const { return operator*(); }
+reference previous_item() const;
+CSize_t position() const;
+void reset();
+</code></pre>
+
 <h3>
 <a id="ivector" class="anchor" href="#ivector" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ivector</h3>
 
