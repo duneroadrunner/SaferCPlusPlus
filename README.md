@@ -1,4 +1,4 @@
-Feb 2016
+Mar 2016
 
 ### Overview
 
@@ -27,8 +27,8 @@ So there is really no excuse for not using the library in pretty much any situat
 
 ### Setup and dependencies
 
-The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Three header files - "mseprimitives.h", "mseregistered.h" and "msemstdvector.h" - will cover most use cases. Outside of the stl, there are no other dependencies.
-
+The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Three header files - "mseprimitives.h", "mseregistered.h" and "msemstdvector.h" - will cover most use cases. Outside of the stl, there are no other dependencies.  
+A couple of notes about compling: g++(4.8) requires the -fpermissive flag. And in some cases msvc may complain about something about too many “inline” items. The error code will direct you to instructions to resolve the issue.
 
 ### Registered pointers
 
@@ -271,6 +271,27 @@ usage example:
         /* mse::msevector<> also provides "safe" (bounds checked) versions of the original stl::vector iterators. */
         std::sort(v.ss_begin(), v.ss_end());
     }
+
+ipointers support all the standard iterator operators, but also have member functions with "friendlier" names including:
+
+    bool points_to_an_item() const;
+    bool points_to_end_marker() const;
+    bool points_to_beginning() const;
+    /* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+    bool has_next_item_or_end_marker() const;
+    /* has_next() is just an alias for points_to_an_item() that may be familiar to java programmers. */
+    bool has_next() const;
+    bool has_previous() const;
+    void set_to_beginning();
+    void set_to_end_marker();
+    void set_to_next();
+    void set_to_previous();
+    void advance(difference_type n);
+    void regress(difference_type n);
+    reference item() const { return operator*(); }
+    reference previous_item() const;
+    CSize_t position() const;
+    void reset();
 
 ### ivector
 
