@@ -19,7 +19,7 @@
     </section>
 
     <section class="main-content">
-      <p>Feb 2016</p>
+      <p>Mar 2016</p>
 
 <h3>
 <a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h3>
@@ -48,7 +48,8 @@ So there is really no excuse for not using the library in pretty much any situat
 <h3>
 <a id="setup-and-dependencies" class="anchor" href="#setup-and-dependencies" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Setup and dependencies</h3>
 
-<p>The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Three header files - "mseprimitives.h", "mseregistered.h" and "msemstdvector.h" - will cover most use cases. Outside of the stl, there are no other dependencies.</p>
+<p>The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Three header files - "mseprimitives.h", "mseregistered.h" and "msemstdvector.h" - will cover most use cases. Outside of the stl, there are no other dependencies.<br>
+A couple of notes about compling: g++(4.8) requires the -fpermissive flag. And in some cases msvc may complain about something about too many “inline” items. The error code will direct you to instructions to resolve the issue.</p>
 
 <h3>
 <a id="registered-pointers" class="anchor" href="#registered-pointers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Registered pointers</h3>
