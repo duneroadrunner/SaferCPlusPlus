@@ -1,4 +1,4 @@
-Feb 2016
+Mar 2016
 
 ### Overview
 
@@ -27,8 +27,8 @@ So there is really no excuse for not using the library in pretty much any situat
 
 ### Setup and dependencies
 
-The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Three header files - "mseprimitives.h", "mseregistered.h" and "msemstdvector.h" - will cover most use cases. Outside of the stl, there are no other dependencies.
-
+The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Three header files - "mseprimitives.h", "mseregistered.h" and "msemstdvector.h" - will cover most use cases. Outside of the stl, there are no other dependencies.  
+A couple of notes about compling: g++(4.8) requires the -fpermissive flag. And in some cases msvc may complain about something about too many “inline” items. The error code will direct you to instructions to resolve the issue.
 
 ### Registered pointers
 
