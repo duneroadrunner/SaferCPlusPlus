@@ -28,7 +28,7 @@ So there is really no excuse for not using the library in pretty much any situat
 ### Setup and dependencies
 
 The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Three header files - "mseprimitives.h", "mseregistered.h" and "msemstdvector.h" - will cover most use cases. Outside of the stl, there are no other dependencies.  
-A couple of notes about compling: g++(4.8) requires the -fpermissive flag. And in some cases msvc may complain about something about too many “inline” items. The error code will direct you to instructions to resolve the issue.
+A couple of notes about compling: g++(4.8) requires the -fpermissive flag. And in some cases msvc may complain about something about too many “inline” items. The error code will direct you to instructions to resolve the issue. For more help you can try the [questions and comments](#questions-and-comments) section.
 
 ### Registered pointers
 
@@ -241,7 +241,7 @@ usage example:
 ### msevector
 
 If you're willing to forego a little theoretical safety, msevector<> is still very safe without the overhead of memory management.  
-In addition to the (high performance) standard vector iterator, msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. In fact, standard vector iterators are so prone to being invalidated that for algorithms involving insertion or deletion, they can be generously considered not very useful, and more prudently considered dangerous. ipointers, aside from being safe, just make sense. Algorithms that work when applied to list iterators will work when applied to ipointers. And that's important as Bjarne famously points out, for cache coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate.  
+In addition to the (high performance) standard vector iterator, msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. In fact, standard vector iterators are so prone to being invalidated that for algorithms involving insertion or deletion, they can be generously considered not very useful, and more prudently considered dangerous. ipointers, aside from being safe, just make sense. Algorithms that work when applied to list iterators will work when applied to ipointers. And that's important as Bjarne famously [points out](https://www.youtube.com/watch?v=YQs6IC-vgmo), for cache coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate.  
 msevector<> also provides a safe (bounds checked) version of the standard vector iterator.
 
 usage example:
@@ -315,4 +315,9 @@ People have asked why the primitive C++ types can't be used as base classes - ht
 But while substitute classes cannot be 100% compatible substitutes for their corresponding primitives, they can still be mostly compatible. And if you're writing new code or maintaining existing code, it should be considered good coding practice to ensure that your code is compatible with C++'s conversion rules for classes and not dependent on the "chaotic" legacy conversion rules of primitive types.
 
 If you are using legacy code or libraries where it's not practical to update the code, it shouldn't be a problem to continue using primitive types there and the safer substitute classes elsewhere in the code. The safer substitute classes generally have no problem interacting with primitive types, although in some cases you may need to do some explicit type casting. Registered pointers can be cast to raw pointers, and, for example, CInt can participate in arithmetic operations with regular ints.
+
+
+### Questions and comments
+
+There's no proper system set up for questions or feedback yet. For now, how about if we use the comment section of [this article](http://www.codeproject.com/Articles/1084361/Registered-Pointers-High-Performance-Cplusplus-Sma) as a makeshift forum for this project. Signing up for a codeproject account seems to be relatively hassle free.
 
