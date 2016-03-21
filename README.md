@@ -12,7 +12,7 @@ A collection of safe data types that are compatible with, and can substitute for
 
 - [replacements](#primitives) for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
 
-Tested with msvc2013 and g++4.8 (as of Dec 2015) and msvc2010 (as of Jan 2015).
+Tested with msvc2015, g++5.3 and g++4.8 (as of Mar 2016), msvc2013 (as of Feb 2016), and msvc2010 (as of Jan 2015).
 
 See the file [msetl_blurb.pdf](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_blurb.pdf) for more info. Or just have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action.
 
