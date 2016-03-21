@@ -713,11 +713,11 @@ namespace mse {
 
 			void reset() { set_to_end_marker(); }
 			bool points_to_an_item() const {
-				if (m_points_to_an_item) { assert((1 <= m_owner_cref.size()) && (m_index < m_owner_cref.size())); return true; }
-				else { assert(!((1 <= m_owner_cref.size()) && (m_index < m_owner_cref.size()))); return false; }
+				if (m_points_to_an_item) { assert((1 <= m_owner_cptr->size()) && (m_index < m_owner_cptr->size())); return true; }
+				else { assert(!((1 <= m_owner_cptr->size()) && (m_index < m_owner_cptr->size()))); return false; }
 			}
 			bool points_to_end_marker() const {
-				if (false == points_to_an_item()) { assert(m_index == m_owner_cref.size()); return true; }
+				if (false == points_to_an_item()) { assert(m_index == m_owner_cptr->size()); return true; }
 				else { return false; }
 			}
 			bool points_to_beginning() const {
@@ -731,24 +731,24 @@ namespace mse {
 			bool has_previous() const { return (!points_to_beginning()); }
 			void set_to_beginning() {
 				m_index = 0;
-				base_class::const_iterator::operator=(m_owner_cref.cbegin());
-				if (1 <= m_owner_cref.size()) {
+				base_class::const_iterator::operator=(m_owner_cptr->cbegin());
+				if (1 <= m_owner_cptr->size()) {
 					m_points_to_an_item = true;
 				}
 				else { assert(false == m_points_to_an_item); }
 			}
 			void set_to_end_marker() {
-				m_index = m_owner_cref.size();
-				base_class::const_iterator::operator=(m_owner_cref.cend());
+				m_index = m_owner_cptr->size();
+				base_class::const_iterator::operator=(m_owner_cptr->cend());
 				m_points_to_an_item = false;
 			}
 			void set_to_next() {
 				if (points_to_an_item()) {
 					m_index += 1;
 					base_class::const_iterator::operator++();
-					if (m_owner_cref.size() <= m_index) {
+					if (m_owner_cptr->size() <= m_index) {
 						(*this).m_points_to_an_item = false;
-						if (m_owner_cref.size() < m_index) { assert(false); reset(); }
+						if (m_owner_cptr->size() < m_index) { assert(false); reset(); }
 					}
 				}
 				else {
@@ -771,13 +771,13 @@ namespace mse {
 			mm_const_iterator_type operator--(int) { mm_const_iterator_type _Tmp = *this; --*this; return (_Tmp); }
 			void advance(difference_type n) {
 				auto new_index = CInt(m_index) + n;
-				if ((0 > new_index) || (m_owner_cref.size() < new_index)) {
+				if ((0 > new_index) || (m_owner_cptr->size() < new_index)) {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - mm_const_iterator_type - msevector"));
 				}
 				else {
 					m_index = new_index;
 					base_class::const_iterator::operator+=(n);
-					if (m_owner_cref.size() <= m_index) {
+					if (m_owner_cptr->size() <= m_index) {
 						(*this).m_points_to_an_item = false;
 					}
 					else {
@@ -796,14 +796,14 @@ namespace mse {
 			}
 			mm_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const mm_const_iterator_type &rhs) const {
-				if ((&(rhs.m_owner_cref)) != (&((*this).m_owner_cref))) { throw(std::out_of_range("invalid argument - difference_type operator-(const mm_const_iterator_type &rhs) const - msevector::mm_const_iterator_type")); }
+				if ((rhs.m_owner_cptr) != ((*this).m_owner_cptr)) { throw(std::out_of_range("invalid argument - difference_type operator-(const mm_const_iterator_type &rhs) const - msevector::mm_const_iterator_type")); }
 				auto retval = (static_cast<const typename base_class::const_iterator&>(*this) - static_cast<const typename base_class::const_iterator&>(rhs));
-				assert((int)(m_owner_cref.size()) >= retval);
+				assert((int)(m_owner_cptr->size()) >= retval);
 				return retval;
 			}
 			const_reference operator*() const {
 				if (points_to_an_item()) {
-					return m_owner_cref.at(mse::as_a_size_t(m_index));
+					return m_owner_cptr->at(mse::as_a_size_t(m_index));
 				}
 				else {
 					throw(std::out_of_range("attempt to use invalid const_item_pointer - const_reference operator*() const - mm_const_iterator_type - msevector"));
@@ -812,7 +812,7 @@ namespace mse {
 			const_reference item() const { return operator*(); }
 			const_reference previous_item() const {
 				if ((*this).has_previous()) {
-					return m_owner_cref.at(m_index - 1);
+					return m_owner_cptr->at(m_index - 1);
 				}
 				else {
 					throw(std::out_of_range("attempt to use invalid const_item_pointer - const_reference previous_item() const - mm_const_iterator_type - msevector"));
@@ -832,10 +832,10 @@ namespace mse {
 			/*
 			mm_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref)
 			{
-			CInt d = std::distance<typename base_class::iterator>(m_owner_cref.cbegin(), _Right_cref);
-			if ((0 <= d) && (m_owner_cref.size() >= d)) {
-			if (m_owner_cref.size() == d) {
-			assert(m_owner_cref.cend() == _Right_cref);
+			CInt d = std::distance<typename base_class::iterator>(m_owner_cptr->cbegin(), _Right_cref);
+			if ((0 <= d) && (m_owner_cptr->size() >= d)) {
+			if (m_owner_cptr->size() == d) {
+			assert(m_owner_cptr->cend() == _Right_cref);
 			m_points_to_an_item = false;
 			} else {
 			m_points_to_an_item = true;
@@ -851,8 +851,8 @@ namespace mse {
 			*/
 			mm_const_iterator_type& operator=(const mm_const_iterator_type& _Right_cref)
 			{
-				if (&((*this).m_owner_cref) == &(_Right_cref.m_owner_cref)) {
-					assert((*this).m_owner_cref.size() >= _Right_cref.m_index);
+				if (((*this).m_owner_cptr) == (_Right_cref.m_owner_cptr)) {
+					assert((*this).m_owner_cptr->size() >= _Right_cref.m_index);
 					(*this).m_points_to_an_item = _Right_cref.m_points_to_an_item;
 					(*this).m_index = _Right_cref.m_index;
 					base_class::const_iterator::operator=(_Right_cref);
@@ -862,10 +862,10 @@ namespace mse {
 				}
 				return (*this);
 			}
-			bool operator==(const mm_const_iterator_type& _Right_cref) const { return (((&(_Right_cref.m_owner_cref)) == (&(m_owner_cref))) && (_Right_cref.m_index == m_index)); }
+			bool operator==(const mm_const_iterator_type& _Right_cref) const { return ((_Right_cref.m_index == m_index) && (_Right_cref.m_owner_cptr == m_owner_cptr)); }
 			bool operator!=(const mm_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const mm_const_iterator_type& _Right) const {
-				if (&((*this).m_owner_cref) != &(_Right.m_owner_cref)) { throw(std::out_of_range("invalid argument - mm_const_iterator_type& operator<(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
+				if (((*this).m_owner_cptr) != (_Right.m_owner_cptr)) { throw(std::out_of_range("invalid argument - mm_const_iterator_type& operator<(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
 				return (m_index < _Right.m_index);
 			}
 			bool operator<=(const mm_const_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
@@ -882,7 +882,7 @@ namespace mse {
 			void shift_inclusive_range(mse::CSize_t index_of_first, mse::CSize_t index_of_last, mse::CInt shift) {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					auto new_index = (*this).m_index + shift;
-					if ((0 > new_index) || (m_owner_cref.size() < new_index)) {
+					if ((0 > new_index) || (m_owner_cptr->size() < new_index)) {
 						throw(std::out_of_range("void shift_inclusive_range() - mm_const_iterator_type - msevector"));
 					}
 					else {
@@ -895,17 +895,17 @@ namespace mse {
 				return m_index;
 			}
 			/* We actually want to make this constructor private, but doing so seems to break std::make_shared<mm_const_iterator_type>.  */
-			mm_const_iterator_type(const _Myt& owner_cref) : m_owner_cref(owner_cref) { set_to_beginning(); }
+			mm_const_iterator_type(const _Myt& owner_cref) : m_owner_cptr(&owner_cref) { set_to_beginning(); }
 		private:
-			mm_const_iterator_type(const mm_const_iterator_type& src_cref) : m_owner_cref(src_cref.m_owner_cref) { (*this) = src_cref; }
+			mm_const_iterator_type(const mm_const_iterator_type& src_cref) : m_owner_cptr(src_cref.m_owner_cptr) { (*this) = src_cref; }
 			void sync_const_iterator_to_index() {
-				assert(m_owner_cref.size() >= (*this).m_index);
-				base_class::const_iterator::operator=(m_owner_cref.cbegin());
+				assert(m_owner_cptr->size() >= (*this).m_index);
+				base_class::const_iterator::operator=(m_owner_cptr->cbegin());
 				base_class::const_iterator::operator+=(mse::as_a_size_t(m_index));
 			}
 			mse::CBool m_points_to_an_item;
 			mse::CSize_t m_index;
-			const _Myt& m_owner_cref;
+			const _Myt* m_owner_cptr = nullptr;
 			friend class mm_iterator_set_type;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 			friend class mm_iterator_type;
@@ -1465,19 +1465,19 @@ namespace mse {
 			typedef typename mm_const_iterator_type::reference reference;
 			typedef typename mm_const_iterator_type::const_reference const_reference;
 
-			cipointer(const _Myt& owner_cref) : m_owner_cref(owner_cref) {
-				mm_const_iterator_handle_type handle = m_owner_cref.allocate_new_const_item_pointer();
+			cipointer(const _Myt& owner_cref) : m_owner_cptr(&owner_cref) {
+				mm_const_iterator_handle_type handle = m_owner_cptr->allocate_new_const_item_pointer();
 				m_handle_shptr = std::make_shared<mm_const_iterator_handle_type>(handle);
 			}
-			cipointer(const cipointer& src_cref) : m_owner_cref(src_cref.m_owner_cref) {
-				mm_const_iterator_handle_type handle = m_owner_cref.allocate_new_const_item_pointer();
+			cipointer(const cipointer& src_cref) : m_owner_cptr(src_cref.m_owner_cptr) {
+				mm_const_iterator_handle_type handle = m_owner_cptr->allocate_new_const_item_pointer();
 				m_handle_shptr = std::make_shared<mm_const_iterator_handle_type>(handle);
 				const_item_pointer() = src_cref.const_item_pointer();
 			}
 			~cipointer() {
-				m_owner_cref.release_const_item_pointer(*m_handle_shptr);
+				m_owner_cptr->release_const_item_pointer(*m_handle_shptr);
 			}
-			mm_const_iterator_type& const_item_pointer() const { return m_owner_cref.const_item_pointer(*m_handle_shptr); }
+			mm_const_iterator_type& const_item_pointer() const { return m_owner_cptr->const_item_pointer(*m_handle_shptr); }
 			mm_const_iterator_type& cip() const { return const_item_pointer(); }
 			//const mm_const_iterator_handle_type& handle() const { return (*m_handle_shptr); }
 
@@ -1520,7 +1520,7 @@ namespace mse {
 			void set_to_const_item_pointer(const cipointer& _Right_cref) { const_item_pointer().set_to_const_item_pointer(_Right_cref.const_item_pointer()); }
 			CSize_t position() const { return const_item_pointer().position(); }
 		private:
-			const _Myt& m_owner_cref;
+			const _Myt* m_owner_cptr = nullptr;
 			std::shared_ptr<mm_const_iterator_handle_type> m_handle_shptr;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
@@ -1635,13 +1635,13 @@ namespace mse {
 			/*m_debug_size = size();*/
 		}
 		void assign(const mm_const_iterator_type &start, const mm_const_iterator_type &end) {
-			if (start.m_owner_cref != end.m_owner_cref) { throw(std::out_of_range("invalid arguments - void assign(const mm_const_iterator_type &start, const mm_const_iterator_type &end) - msevector")); }
+			if (start.m_owner_cptr != end.m_owner_cptr) { throw(std::out_of_range("invalid arguments - void assign(const mm_const_iterator_type &start, const mm_const_iterator_type &end) - msevector")); }
 			typename base_class::const_iterator _F = start;
 			typename base_class::const_iterator _L = end;
 			(*this).assign(_F, _L);
 		}
 		void assign_inclusive(const mm_const_iterator_type &first, const mm_const_iterator_type &last) {
-			if (first.m_owner_cref != last.m_owner_cref) { throw(std::out_of_range("invalid arguments - void assign_inclusive(const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
+			if (first.m_owner_cptr != last.m_owner_cptr) { throw(std::out_of_range("invalid arguments - void assign_inclusive(const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
 			if (!(last.points_to_item())) { throw(std::out_of_range("invalid argument - void assign_inclusive(const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
 			typename base_class::const_iterator _F = first;
 			typename base_class::const_iterator _L = last;
@@ -1667,7 +1667,7 @@ namespace mse {
 		void insert_before(const mm_iterator_type &pos, const _Ty& _X = _Ty()) { (*this).insert(pos, 1, _X); }
 		void insert_before(const mm_iterator_type &pos, const mm_const_iterator_type &start, const mm_const_iterator_type &end) {
 			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
-			if (start.m_owner_cref != end.m_owner_cref) { throw(std::out_of_range("invalid arguments - void insert_before(const mm_const_iterator_type &pos, const mm_const_iterator_type &start, const mm_const_iterator_type &end) - msevector")); }
+			if (start.m_owner_cptr != end.m_owner_cptr) { throw(std::out_of_range("invalid arguments - void insert_before(const mm_const_iterator_type &pos, const mm_const_iterator_type &start, const mm_const_iterator_type &end) - msevector")); }
 			typename base_class::iterator _P = pos;
 			typename base_class::const_iterator _F = start;
 			typename base_class::const_iterator _L = end;
@@ -1675,7 +1675,7 @@ namespace mse {
 		}
 		void insert_before_inclusive(const mm_iterator_type &pos, const mm_const_iterator_type &first, const mm_const_iterator_type &last) {
 			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
-			if (first.m_owner_cref != last.m_owner_cref) { throw(std::out_of_range("invalid arguments - void insert_before_inclusive(const mm_iterator_type &pos, const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
+			if (first.m_owner_cptr != last.m_owner_cptr) { throw(std::out_of_range("invalid arguments - void insert_before_inclusive(const mm_iterator_type &pos, const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
 			if (!(last.points_to_item())) { throw(std::out_of_range("invalid argument - void insert_before_inclusive(const mm_iterator_type &pos, const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
 			typename base_class::iterator _P = pos;
 			typename base_class::const_iterator _F = first;
@@ -2280,7 +2280,7 @@ namespace mse {
 			(*this).assign(_F, _L);
 		}
 		void assign_inclusive(const ss_const_iterator_type &first, const ss_const_iterator_type &last) {
-			if (first.m_owner_cref != last.m_owner_cref) { throw(std::out_of_range("invalid arguments - void assign_inclusive(const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
+			if (first.m_owner_cptr != last.m_owner_cptr) { throw(std::out_of_range("invalid arguments - void assign_inclusive(const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
 			if (!(last.points_to_item())) { throw(std::out_of_range("invalid argument - void assign_inclusive(const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
 			typename base_class::const_iterator _F = first;
 			typename base_class::const_iterator _L = last;
@@ -2330,7 +2330,7 @@ namespace mse {
 		}
 		ss_iterator_type insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) {
 			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
-			if (first.m_owner_cref != last.m_owner_cref) { throw(std::out_of_range("invalid arguments - void insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
+			if (first.m_owner_cptr != last.m_owner_cptr) { throw(std::out_of_range("invalid arguments - void insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
 			if (!(last.points_to_item())) { throw(std::out_of_range("invalid argument - void insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
 			CSize_t original_pos = pos.position();
 			typename base_class::iterator _P = pos;
