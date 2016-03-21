@@ -903,8 +903,8 @@ namespace mse {
 				base_class::const_iterator::operator=(m_owner_cptr->cbegin());
 				base_class::const_iterator::operator+=(mse::as_a_size_t(m_index));
 			}
-			mse::CBool m_points_to_an_item;
-			mse::CSize_t m_index;
+			mse::CBool m_points_to_an_item = false;
+			mse::CSize_t m_index = 0;
 			const _Myt* m_owner_cptr = nullptr;
 			friend class mm_iterator_set_type;
 			friend class /*_Myt*/msevector<_Ty, _A>;
@@ -1122,8 +1122,8 @@ namespace mse {
 				base_class::iterator::operator=(m_owner_ptr->begin());
 				base_class::iterator::operator+=(mse::as_a_size_t(m_index));
 			}
-			mse::CBool m_points_to_an_item;
-			mse::CSize_t m_index;
+			mse::CBool m_points_to_an_item = false;
+			mse::CSize_t m_index = 0;
 			_Myt* m_owner_ptr = nullptr;
 			friend class mm_iterator_set_type;
 			friend class /*_Myt*/msevector<_Ty, _A>;
@@ -1417,7 +1417,7 @@ namespace mse {
 			mm_iterator_set_type(const mm_iterator_set_type& src) { /* see above */ }
 			mm_iterator_set_type(const mm_iterator_set_type&& src) { /* see above */ }
 
-			CHashKey1 m_next_available_key;
+			CHashKey1 m_next_available_key = 0;
 
 			static const int sc_fm1_max_mm_iterators = 6/*arbitrary*/;
 
@@ -1995,8 +1995,8 @@ namespace mse {
 				base_class::const_iterator::operator=(m_owner_cptr->cbegin());
 				base_class::const_iterator::operator+=(mse::as_a_size_t(m_index));
 			}
-			mse::CSize_t m_index;
-			TSaferPtrForLegacy<const _Myt> m_owner_cptr;
+			mse::CSize_t m_index = 0;
+			TSaferPtrForLegacy<const _Myt> m_owner_cptr = nullptr;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
 		/* Note that, at the moment, ss_iterator_type inherits publicly from base_class::iterator. This is not intended to be a permanent
@@ -2196,8 +2196,8 @@ namespace mse {
 				base_class::iterator::operator=(m_owner_ptr->begin());
 				base_class::iterator::operator+=(mse::as_a_size_t(m_index));
 			}
-			mse::CSize_t m_index;
-			TSaferPtrForLegacy<_Myt> m_owner_ptr;
+			mse::CSize_t m_index = 0;
+			TSaferPtrForLegacy<_Myt> m_owner_ptr = nullptr;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
 		typedef std::reverse_iterator<ss_iterator_type> ss_reverse_iterator_type;
