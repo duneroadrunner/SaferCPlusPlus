@@ -17,6 +17,9 @@
 
 namespace mse {
 
+	typedef size_t msev_size_t;
+	typedef int msev_int;
+
 #ifndef _NOEXCEPT
 #define _NOEXCEPT
 #endif /*_NOEXCEPT*/
@@ -114,40 +117,40 @@ namespace mse {
 		}
 		void reserve(size_t _Count)
 		{	// determine new minimum length of allocated storage
-			auto original_capacity = CSize_t((*this).capacity());
+			auto original_capacity = msev_size_t((*this).capacity());
 
 			base_class::reserve(_Count);
 
-			auto new_capacity = CSize_t((*this).capacity());
+			auto new_capacity = msev_size_t((*this).capacity());
 			bool realloc_occured = (new_capacity != original_capacity);
 			if (realloc_occured) {
 				m_mmitset.sync_iterators_to_index();
 			}
 		}
 		void shrink_to_fit() {	// reduce capacity
-			auto original_capacity = CSize_t((*this).capacity());
+			auto original_capacity = msev_size_t((*this).capacity());
 
 			base_class::shrink_to_fit();
 
-			auto new_capacity = CSize_t((*this).capacity());
+			auto new_capacity = msev_size_t((*this).capacity());
 			bool realloc_occured = (new_capacity != original_capacity);
 			if (realloc_occured) {
 				m_mmitset.sync_iterators_to_index();
 			}
 		}
 		void resize(size_t _N, const _Ty& _X = _Ty()) {
-			auto original_size = CSize_t((*this).size());
-			auto original_capacity = CSize_t((*this).capacity());
+			auto original_size = msev_size_t((*this).size());
+			auto original_capacity = msev_size_t((*this).capacity());
 			bool shrinking = (_N < original_size);
 
 			base_class::resize(_N, _X);
 			/*m_debug_size = size();*/
 
 			if (shrinking) {
-				m_mmitset.invalidate_inclusive_range(_N, CSize_t(original_size - 1));
+				m_mmitset.invalidate_inclusive_range(_N, msev_size_t(original_size - 1));
 			}
-			m_mmitset.shift_inclusive_range(original_size, original_size, CSize_t(_N) - original_size); /*shift the end markers*/
-			auto new_capacity = CSize_t((*this).capacity());
+			m_mmitset.shift_inclusive_range(original_size, original_size, msev_size_t(_N) - original_size); /*shift the end markers*/
+			auto new_capacity = msev_size_t((*this).capacity());
 			bool realloc_occured = (new_capacity != original_capacity);
 			if (realloc_occured) {
 				m_mmitset.sync_iterators_to_index();
@@ -180,15 +183,15 @@ namespace mse {
 				base_class::push_back(std::move(_X));
 			}
 			else {
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				base_class::push_back(std::move(_X));
 				/*m_debug_size = size();*/
 
-				assert((original_size + 1) == CSize_t((*this).size()));
+				assert((original_size + 1) == msev_size_t((*this).size()));
 				m_mmitset.shift_inclusive_range(original_size, original_size, 1); /*shift the end markers*/
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -200,15 +203,15 @@ namespace mse {
 				base_class::push_back(_X);
 			}
 			else {
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				base_class::push_back(_X);
 				/*m_debug_size = size();*/
 
-				assert((original_size + 1) == CSize_t((*this).size()));
+				assert((original_size + 1) == msev_size_t((*this).size()));
 				m_mmitset.shift_inclusive_range(original_size, original_size, 1); /*shift the end markers*/
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -220,17 +223,17 @@ namespace mse {
 				base_class::pop_back();
 			}
 			else {
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				if (0 == original_size) { throw(std::out_of_range("pop_back() on empty - void pop_back() - msevector")); }
 				base_class::pop_back();
 				/*m_debug_size = size();*/
 
-				assert((original_size - 1) == CSize_t((*this).size()));
-				m_mmitset.invalidate_inclusive_range(CSize_t(original_size - 1), CSize_t(original_size - 1));
+				assert((original_size - 1) == msev_size_t((*this).size()));
+				m_mmitset.invalidate_inclusive_range(msev_size_t(original_size - 1), msev_size_t(original_size - 1));
 				m_mmitset.shift_inclusive_range(original_size, original_size, -1); /*shift the end markers*/
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -263,20 +266,20 @@ namespace mse {
 				return retval;
 			}
 			else {
-				CInt di = std::distance(base_class::begin(), _P);
-				CSize_t d(di);
-				if ((0 > di) || (CSize_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				msev_int di = std::distance(base_class::begin(), _P);
+				msev_size_t d(di);
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				typename base_class::iterator retval = base_class::insert(_P, _X);
 				/*m_debug_size = size();*/
 
-				assert((original_size + 1) == CSize_t((*this).size()));
+				assert((original_size + 1) == msev_size_t((*this).size()));
 				assert(d == std::distance(base_class::begin(), retval));
 				m_mmitset.shift_inclusive_range(d, original_size, 1);
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -303,12 +306,12 @@ namespace mse {
 #endif /*MSVC2010_COMPATIBILE*/
 			}
 			else {
-				CInt di = std::distance(base_class::cbegin(), _P);
-				CSize_t d(di);
-				if ((0 > di) || (CSize_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				msev_int di = std::distance(base_class::cbegin(), _P);
+				msev_size_t d(di);
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 #ifndef MSVC2010_COMPATIBILE
 				typename base_class::iterator retval =
@@ -316,12 +319,12 @@ namespace mse {
 					base_class::insert(_P, _M, _X);
 				/*m_debug_size = size();*/
 
-				assert((original_size + _M) == CSize_t((*this).size()));
+				assert((original_size + _M) == msev_size_t((*this).size()));
 #ifndef MSVC2010_COMPATIBILE
 				assert(d == std::distance(base_class::begin(), retval));
 #endif /*MSVC2010_COMPATIBILE*/
 				m_mmitset.shift_inclusive_range(d, original_size, _M);
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -350,13 +353,13 @@ namespace mse {
 #endif /*MSVC2010_COMPATIBILE*/
 			}
 			else {
-				CInt di = std::distance(base_class::cbegin(), _Where);
-				CSize_t d(di);
-				if ((0 > di) || (CSize_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				msev_int di = std::distance(base_class::cbegin(), _Where);
+				msev_size_t d(di);
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
-				auto _M = CInt(std::distance(_First, _Last));
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto _M = msev_int(std::distance(_First, _Last));
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				//if (0 > _M) { throw(std::out_of_range("invalid argument - typename base_class::iterator insert() - msevector")); }
 #ifndef MSVC2010_COMPATIBILE
@@ -365,12 +368,12 @@ namespace mse {
 					base_class::insert(_Where, _First, _Last);
 				/*m_debug_size = size();*/
 
-				assert((original_size + _M) == CSize_t((*this).size()));
+				assert((original_size + _M) == msev_size_t((*this).size()));
 #ifndef MSVC2010_COMPATIBILE
 				assert(d == std::distance(base_class::begin(), retval));
 #endif /*MSVC2010_COMPATIBILE*/
 				m_mmitset.shift_inclusive_range(d, original_size, _M);
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -387,21 +390,21 @@ namespace mse {
 		void
 			/* g++4.8 seems to be using the c++98 version of this insert function instead of the c++11 version. */
 			insert(typename base_class::/*const_*/iterator _P, size_t _M, const _Ty& _X) {
-				CInt di = std::distance(base_class::/*c*/begin(), _P);
-				CSize_t d(di);
-				if ((0 > di) || (CSize_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				msev_int di = std::distance(base_class::/*c*/begin(), _P);
+				msev_size_t d(di);
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				/*typename base_class::iterator retval =*/
 					base_class::insert(_P, _M, _X);
 				/*m_debug_size = size();*/
 
-				assert((original_size + _M) == CSize_t((*this).size()));
+				assert((original_size + _M) == msev_size_t((*this).size()));
 				/*assert(d == std::distance(base_class::begin(), retval));*/
 				m_mmitset.shift_inclusive_range(d, original_size, _M);
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -412,23 +415,23 @@ namespace mse {
 			//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type
 			, class = _mse_RequireInputIter<_Iter> > void
 		insert(typename base_class::/*const_*/iterator _Where, _Iter _First, _Iter _Last) {	// insert [_First, _Last) at _Where
-				CInt di = std::distance(base_class::/*c*/begin(), _Where);
-				CSize_t d(di);
-				if ((0 > di) || (CSize_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				msev_int di = std::distance(base_class::/*c*/begin(), _Where);
+				msev_size_t d(di);
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
-				auto _M = CInt(std::distance(_First, _Last));
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto _M = msev_int(std::distance(_First, _Last));
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				//if (0 > _M) { throw(std::out_of_range("invalid argument - typename base_class::iterator insert() - msevector")); }
 				/*auto retval =*/
 					base_class::insert(_Where, _First, _Last);
 				/*m_debug_size = size();*/
 
-				assert((original_size + _M) == CSize_t((*this).size()));
+				assert((original_size + _M) == msev_size_t((*this).size()));
 				/*assert(d == std::distance(base_class::begin(), retval));*/
 				m_mmitset.shift_inclusive_range(d, original_size, _M);
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -457,8 +460,8 @@ namespace mse {
 				/*m_debug_size = size();*/
 			}
 			else {
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				base_class::emplace_back(std::forward<_Valty>(_Val)
 #ifndef MSVC2010_COMPATIBILE
@@ -467,9 +470,9 @@ namespace mse {
 					);
 				/*m_debug_size = size();*/
 
-				assert((original_size + 1) == CSize_t((*this).size()));
+				assert((original_size + 1) == msev_size_t((*this).size()));
 				m_mmitset.shift_inclusive_range(original_size, original_size, 1); /*shift the end markers*/
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -505,16 +508,16 @@ namespace mse {
 			else {
 
 #if !(defined(GPP4P8_COMPATIBILE))
-				CInt di = std::distance(base_class::cbegin(), _Where);
+				msev_int di = std::distance(base_class::cbegin(), _Where);
 #else /*!(defined(GPP4P8_COMPATIBILE))*/
-				CInt di = std::distance(base_class::/*c*/begin(), _Where);
+				msev_int di = std::distance(base_class::/*c*/begin(), _Where);
 #endif /*!(defined(GPP4P8_COMPATIBILE))*/
 
-				CSize_t d(di);
-				if ((0 > di) || (CSize_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator emplace() - msevector")); }
+				msev_size_t d(di);
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator emplace() - msevector")); }
 
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				auto retval = base_class::emplace(_Where, std::forward<_Valty>(_Val)
 #ifndef MSVC2010_COMPATIBILE
@@ -523,10 +526,10 @@ namespace mse {
 					);
 				/*m_debug_size = size();*/
 
-				assert((original_size + 1) == CSize_t((*this).size()));
+				assert((original_size + 1) == msev_size_t((*this).size()));
 				assert(d == std::distance(base_class::begin(), retval));
 				m_mmitset.shift_inclusive_range(d, original_size, 1);
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -541,24 +544,24 @@ namespace mse {
 				return retval;
 			}
 			else {
-				CInt di = std::distance(base_class::cbegin(), _P);
-				CSize_t d(di);
-				if ((0 > di) || (CSize_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
+				msev_int di = std::distance(base_class::cbegin(), _P);
+				msev_size_t d(di);
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
 
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				if (end() == _P) { throw(std::out_of_range("invalid argument - typename base_class::iterator erase(typename base_class::iterator _P) - msevector")); }
 				typename base_class::iterator retval = base_class::erase(_P);
 				/*m_debug_size = size();*/
 
-				assert((original_size - 1) == CSize_t((*this).size()));
+				assert((original_size - 1) == msev_size_t((*this).size()));
 				assert(d == std::distance(base_class::begin(), retval));
 				{
 					m_mmitset.invalidate_inclusive_range(d, d);
-					m_mmitset.shift_inclusive_range(CSize_t(d + 1), original_size, -1);
+					m_mmitset.shift_inclusive_range(msev_size_t(d + 1), original_size, -1);
 				}
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -573,30 +576,30 @@ namespace mse {
 				return retval;
 			}
 			else {
-				CInt di = std::distance(base_class::cbegin(), _F);
-				CSize_t d(di);
-				if ((0 > di) || (CSize_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
-				CInt di2 = std::distance(base_class::cbegin(), _L);
-				CSize_t d2(di2);
-				if ((0 > di2) || (CSize_t((*this).size()) < di2)) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
+				msev_int di = std::distance(base_class::cbegin(), _F);
+				msev_size_t d(di);
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
+				msev_int di2 = std::distance(base_class::cbegin(), _L);
+				msev_size_t d2(di2);
+				if ((0 > di2) || (msev_size_t((*this).size()) < di2)) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
 
-				auto _M = CInt(std::distance(_F, _L));
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto _M = msev_int(std::distance(_F, _L));
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				if ((end() == _F)/* || (0 > _M)*/) { throw(std::out_of_range("invalid argument - typename base_class::iterator erase(typename base_class::iterator _F, typename base_class::iterator _L) - msevector")); }
 				typename base_class::iterator retval = base_class::erase(_F, _L);
 				/*m_debug_size = size();*/
 
-				assert((original_size - _M) == CSize_t((*this).size()));
+				assert((original_size - _M) == msev_size_t((*this).size()));
 				assert(d == std::distance(base_class::begin(), retval));
 				{
 					if (1 <= _M) {
-						m_mmitset.invalidate_inclusive_range(d, CSize_t(d + _M - 1));
+						m_mmitset.invalidate_inclusive_range(d, msev_size_t(d + _M - 1));
 					}
-					m_mmitset.shift_inclusive_range(CSize_t(d + _M), original_size, -_M);
+					m_mmitset.shift_inclusive_range(msev_size_t(d + _M), original_size, -_M);
 				}
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -638,21 +641,21 @@ namespace mse {
 #if defined(GPP4P8_COMPATIBILE)
 		/* g++4.8 seems to be (incorrectly) using the c++98 version of this insert function instead of the c++11 version. */
 		/*typename base_class::iterator*/void insert(typename base_class::/*const_*/iterator _Where, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
-			CInt di = std::distance(base_class::/*c*/begin(), _Where);
-			CSize_t d(di);
-			if ((0 > di) || (CSize_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+			msev_int di = std::distance(base_class::/*c*/begin(), _Where);
+			msev_size_t d(di);
+			if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 			auto _M = _Ilist.size();
-			auto original_size = CSize_t((*this).size());
-			auto original_capacity = CSize_t((*this).capacity());
+			auto original_size = msev_size_t((*this).size());
+			auto original_capacity = msev_size_t((*this).capacity());
 
 			/*auto retval = */base_class::insert(_Where, _Ilist);
 			/*m_debug_size = size();*/
 
-			assert((original_size + _M) == CSize_t((*this).size()));
+			assert((original_size + _M) == msev_size_t((*this).size()));
 			/*assert(d == std::distance(base_class::begin(), retval));*/
 			m_mmitset.shift_inclusive_range(d, original_size, _M);
-			auto new_capacity = CSize_t((*this).capacity());
+			auto new_capacity = msev_size_t((*this).capacity());
 			bool realloc_occured = (new_capacity != original_capacity);
 			if (realloc_occured) {
 				m_mmitset.sync_iterators_to_index();
@@ -667,21 +670,21 @@ namespace mse {
 				return retval;
 			}
 			else {
-				CInt di = std::distance(base_class::cbegin(), _Where);
-				CSize_t d(di);
-				if ((0 > di) || (CSize_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				msev_int di = std::distance(base_class::cbegin(), _Where);
+				msev_size_t d(di);
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto _M = _Ilist.size();
-				auto original_size = CSize_t((*this).size());
-				auto original_capacity = CSize_t((*this).capacity());
+				auto original_size = msev_size_t((*this).size());
+				auto original_capacity = msev_size_t((*this).capacity());
 
 				auto retval = base_class::insert(_Where, _Ilist);
 				/*m_debug_size = size();*/
 
-				assert((original_size + _M) == CSize_t((*this).size()));
+				assert((original_size + _M) == msev_size_t((*this).size()));
 				assert(d == std::distance(base_class::begin(), retval));
 				m_mmitset.shift_inclusive_range(d, original_size, _M);
-				auto new_capacity = CSize_t((*this).capacity());
+				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
 					m_mmitset.sync_iterators_to_index();
@@ -770,7 +773,7 @@ namespace mse {
 			mm_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
 			mm_const_iterator_type operator--(int) { mm_const_iterator_type _Tmp = *this; --*this; return (_Tmp); }
 			void advance(difference_type n) {
-				auto new_index = CInt(m_index) + n;
+				auto new_index = msev_int(m_index) + n;
 				if ((0 > new_index) || (m_owner_cptr->size() < new_index)) {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - mm_const_iterator_type - msevector"));
 				}
@@ -832,7 +835,7 @@ namespace mse {
 			/*
 			mm_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref)
 			{
-			CInt d = std::distance<typename base_class::iterator>(m_owner_cptr->cbegin(), _Right_cref);
+			msev_int d = std::distance<typename base_class::iterator>(m_owner_cptr->cbegin(), _Right_cref);
 			if ((0 <= d) && (m_owner_cptr->size() >= d)) {
 			if (m_owner_cptr->size() == d) {
 			assert(m_owner_cptr->cend() == _Right_cref);
@@ -840,7 +843,7 @@ namespace mse {
 			} else {
 			m_points_to_an_item = true;
 			}
-			m_index = CSize_t(d);
+			m_index = msev_size_t(d);
 			base_class::const_iterator::operator=(_Right_cref);
 			}
 			else {
@@ -874,12 +877,12 @@ namespace mse {
 			void set_to_const_item_pointer(const mm_const_iterator_type& _Right_cref) {
 				(*this) = _Right_cref;
 			}
-			void invalidate_inclusive_range(mse::CSize_t index_of_first, mse::CSize_t index_of_last) {
+			void invalidate_inclusive_range(msev_size_t index_of_first, msev_size_t index_of_last) {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					(*this).reset();
 				}
 			}
-			void shift_inclusive_range(mse::CSize_t index_of_first, mse::CSize_t index_of_last, mse::CInt shift) {
+			void shift_inclusive_range(msev_size_t index_of_first, msev_size_t index_of_last, msev_int shift) {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					auto new_index = (*this).m_index + shift;
 					if ((0 > new_index) || (m_owner_cptr->size() < new_index)) {
@@ -891,7 +894,7 @@ namespace mse {
 					}
 				}
 			}
-			CSize_t position() const {
+			msev_size_t position() const {
 				return m_index;
 			}
 			/* We actually want to make this constructor private, but doing so seems to break std::make_shared<mm_const_iterator_type>.  */
@@ -904,7 +907,7 @@ namespace mse {
 				base_class::const_iterator::operator+=(mse::as_a_size_t(m_index));
 			}
 			mse::CBool m_points_to_an_item = false;
-			mse::CSize_t m_index = 0;
+			msev_size_t m_index = 0;
 			const _Myt* m_owner_cptr = nullptr;
 			friend class mm_iterator_set_type;
 			friend class /*_Myt*/msevector<_Ty, _A>;
@@ -984,7 +987,7 @@ namespace mse {
 			mm_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
 			mm_iterator_type operator--(int) { mm_iterator_type _Tmp = *this; --*this; return (_Tmp); }
 			void advance(difference_type n) {
-				auto new_index = CInt(m_index) + n;
+				auto new_index = msev_int(m_index) + n;
 				if ((0 > new_index) || (m_owner_ptr->size() < new_index)) {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - mm_iterator_type - msevector"));
 				}
@@ -1045,7 +1048,7 @@ namespace mse {
 			/*
 			mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref)
 			{
-			CInt d = std::distance<typename base_class::iterator>(m_owner_ptr->begin(), _Right_cref);
+			msev_int d = std::distance<typename base_class::iterator>(m_owner_ptr->begin(), _Right_cref);
 			if ((0 <= d) && (m_owner_ptr->size() >= d)) {
 			if (m_owner_ptr->size() == d) {
 			assert(m_owner_ptr->end() == _Right_cref);
@@ -1053,7 +1056,7 @@ namespace mse {
 			} else {
 			m_points_to_an_item = true;
 			}
-			m_index = CSize_t(d);
+			m_index = msev_size_t(d);
 			base_class::iterator::operator=(_Right_cref);
 			}
 			else {
@@ -1087,12 +1090,12 @@ namespace mse {
 			void set_to_item_pointer(const mm_iterator_type& _Right_cref) {
 				(*this) = _Right_cref;
 			}
-			void invalidate_inclusive_range(mse::CSize_t index_of_first, mse::CSize_t index_of_last) {
+			void invalidate_inclusive_range(msev_size_t index_of_first, msev_size_t index_of_last) {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					(*this).reset();
 				}
 			}
-			void shift_inclusive_range(mse::CSize_t index_of_first, mse::CSize_t index_of_last, mse::CInt shift) {
+			void shift_inclusive_range(msev_size_t index_of_first, msev_size_t index_of_last, msev_int shift) {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					auto new_index = (*this).m_index + shift;
 					if ((0 > new_index) || (m_owner_ptr->size() < new_index)) {
@@ -1104,13 +1107,13 @@ namespace mse {
 					}
 				}
 			}
-			CSize_t position() const {
+			msev_size_t position() const {
 				return m_index;
 			}
 			operator mm_const_iterator_type() const {
 				mm_const_iterator_type retval(*m_owner_ptr);
 				retval.set_to_beginning();
-				retval.advance(mse::CInt(m_index));
+				retval.advance(msev_int(m_index));
 				return retval;
 			}
 			/* We actually want to make this constructor private, but doing so seems to break std::make_shared<mm_iterator_type>.  */
@@ -1123,7 +1126,7 @@ namespace mse {
 				base_class::iterator::operator+=(mse::as_a_size_t(m_index));
 			}
 			mse::CBool m_points_to_an_item = false;
-			mse::CSize_t m_index = 0;
+			msev_size_t m_index = 0;
 			_Myt* m_owner_ptr = nullptr;
 			friend class mm_iterator_set_type;
 			friend class /*_Myt*/msevector<_Ty, _A>;
@@ -1218,13 +1221,13 @@ namespace mse {
 				static const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [](std::shared_ptr<mm_iterator_type>& a) { a->sync_iterator_to_index(); };
 				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
-			void invalidate_inclusive_range(mse::CSize_t start_index, mse::CSize_t end_index) {
+			void invalidate_inclusive_range(msev_size_t start_index, msev_size_t end_index) {
 				const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [start_index, end_index](std::shared_ptr<mm_const_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
 				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
 				const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [start_index, end_index](std::shared_ptr<mm_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
 				apply_to_all_mm_iterator_shptrs(it_func_obj);
 			}
-			void shift_inclusive_range(mse::CSize_t start_index, mse::CSize_t end_index, mse::CInt shift) {
+			void shift_inclusive_range(msev_size_t start_index, msev_size_t end_index, msev_int shift) {
 				const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [start_index, end_index, shift](std::shared_ptr<mm_const_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
 				apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
 				const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [start_index, end_index, shift](std::shared_ptr<mm_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
@@ -1518,7 +1521,7 @@ namespace mse {
 			bool operator>(const cipointer& _Right) const { return (const_item_pointer() > _Right.const_item_pointer()); }
 			bool operator>=(const cipointer& _Right) const { return (const_item_pointer() >= _Right.const_item_pointer()); }
 			void set_to_const_item_pointer(const cipointer& _Right_cref) { const_item_pointer().set_to_const_item_pointer(_Right_cref.const_item_pointer()); }
-			CSize_t position() const { return const_item_pointer().position(); }
+			msev_size_t position() const { return const_item_pointer().position(); }
 		private:
 			const _Myt* m_owner_cptr = nullptr;
 			std::shared_ptr<mm_const_iterator_handle_type> m_handle_shptr;
@@ -1551,7 +1554,7 @@ namespace mse {
 			operator cipointer() const {
 				cipointer retval(*m_owner_ptr);
 				retval.const_item_pointer().set_to_beginning();
-				retval.const_item_pointer().advance(mse::CInt(item_pointer().position()));
+				retval.const_item_pointer().advance(msev_int(item_pointer().position()));
 				return retval;
 			}
 
@@ -1592,7 +1595,7 @@ namespace mse {
 			bool operator>(const ipointer& _Right) const { return (item_pointer() > _Right.item_pointer()); }
 			bool operator>=(const ipointer& _Right) const { return (item_pointer() >= _Right.item_pointer()); }
 			void set_to_item_pointer(const ipointer& _Right_cref) { item_pointer().set_to_item_pointer(_Right_cref.item_pointer()); }
-			CSize_t position() const { return item_pointer().position(); }
+			msev_size_t position() const { return item_pointer().position(); }
 		private:
 			_Myt* m_owner_ptr = nullptr;
 			std::shared_ptr<mm_iterator_handle_type> m_handle_shptr;
@@ -1691,22 +1694,22 @@ namespace mse {
 		}
 #endif /*MSVC2010_COMPATIBILE*/
 		ipointer insert_before(const cipointer &pos, size_t _M, const _Ty& _X) {
-			CSize_t original_pos = pos.position();
+			msev_size_t original_pos = pos.position();
 			insert_before(pos.const_item_pointer(), _M, _X);
-			ipointer retval(*this); retval.advance((CInt)original_pos);
+			ipointer retval(*this); retval.advance((msev_int)original_pos);
 			return retval;
 		}
 		ipointer insert_before(const cipointer &pos, _Ty&& _X) {
-			CSize_t original_pos = pos.position();
+			msev_size_t original_pos = pos.position();
 			insert_before(pos.const_item_pointer(), std::move(_X));
-			ipointer retval(*this); retval.advance((CInt)original_pos);
+			ipointer retval(*this); retval.advance((msev_int)original_pos);
 			return retval;
 		}
 		ipointer insert_before(const cipointer &pos, const _Ty& _X = _Ty()) { return insert_before(pos, 1, _X); }
 		ipointer insert_before(const cipointer &pos, const cipointer &start, const cipointer &end) {
-			CSize_t original_pos = pos.position();
+			msev_size_t original_pos = pos.position();
 			insert_before(pos.const_item_pointer(), start.const_item_pointer(), end.const_item_pointer());
-			ipointer retval(*this); retval.advance((CInt)original_pos);
+			ipointer retval(*this); retval.advance((msev_int)original_pos);
 			return retval;
 		}
 		ipointer insert_before_inclusive(const cipointer &pos, const cipointer &first, const cipointer &last) {
@@ -1715,26 +1718,26 @@ namespace mse {
 		}
 #ifndef MSVC2010_COMPATIBILE
 		ipointer insert_before(const cipointer &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
-			CSize_t original_pos = pos.position();
+			msev_size_t original_pos = pos.position();
 			(*this).insert(pos.const_item_pointer(), _Ilist);
-			ipointer retval(*this); retval.advance((CInt)original_pos);
+			ipointer retval(*this); retval.advance((msev_int)original_pos);
 			return retval;
 		}
 #endif /*MSVC2010_COMPATIBILE*/
-		void insert_before(CSize_t pos, _Ty&& _X) {
+		void insert_before(msev_size_t pos, _Ty&& _X) {
 			typename base_class::const_iterator _P = (*this).begin() + mse::as_a_size_t(pos);
 			(*this).insert(_P, std::move(_X));
 		}
-		void insert_before(CSize_t pos, const _Ty& _X = _Ty()) {
+		void insert_before(msev_size_t pos, const _Ty& _X = _Ty()) {
 			typename base_class::const_iterator _P = (*this).begin() + mse::as_a_size_t(pos);
 			(*this).insert(_P, _X);
 		}
-		void insert_before(CSize_t pos, size_t _M, const _Ty& _X) {
+		void insert_before(msev_size_t pos, size_t _M, const _Ty& _X) {
 			typename base_class::const_iterator _P = (*this).begin() + mse::as_a_size_t(pos);
 			(*this).insert(_P, _M, _X);
 		}
 #ifndef MSVC2010_COMPATIBILE
-		void insert_before(CSize_t pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
+		void insert_before(msev_size_t pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
 			typename base_class::const_iterator _P = (*this).begin() + mse::as_a_size_t(pos);
 			(*this).insert(_P, _Ilist);
 		}
@@ -1773,7 +1776,7 @@ namespace mse {
 			retval_pos.set_to_next();
 			erase(pos.const_item_pointer());
 			ipointer retval = (*this).ibegin();
-			retval.advance(CInt(retval_pos.position()));
+			retval.advance(msev_int(retval_pos.position()));
 			return retval;
 		}
 		ipointer erase(const cipointer &start, const cipointer &end) {
@@ -1781,7 +1784,7 @@ namespace mse {
 			retval_pos.set_to_next();
 			erase(start.const_item_pointer(), end.const_item_pointer());
 			ipointer retval = (*this).ibegin();
-			retval.advance(CInt(retval_pos.position()));
+			retval.advance(msev_int(retval_pos.position()));
 			return retval;
 		}
 		ipointer erase_inclusive(const cipointer &first, const cipointer &last) {
@@ -1881,7 +1884,7 @@ namespace mse {
 			ss_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
 			ss_const_iterator_type operator--(int) { ss_const_iterator_type _Tmp = *this; --*this; return (_Tmp); }
 			void advance(difference_type n) {
-				auto new_index = CInt(m_index) + n;
+				auto new_index = msev_int(m_index) + n;
 				if ((0 > new_index) || (m_owner_cptr->size() < new_index)) {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - ss_const_iterator_type - msevector"));
 				}
@@ -1937,12 +1940,12 @@ namespace mse {
 			/*
 			ss_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref)
 			{
-			CInt d = std::distance<typename base_class::iterator>(m_owner_cptr->cbegin(), _Right_cref);
+			msev_int d = std::distance<typename base_class::iterator>(m_owner_cptr->cbegin(), _Right_cref);
 			if ((0 <= d) && (m_owner_cptr->size() >= d)) {
 			if (m_owner_cptr->size() == d) {
 			assert(m_owner_cptr->cend() == _Right_cref);
 			}
-			m_index = CSize_t(d);
+			m_index = msev_size_t(d);
 			base_class::const_iterator::operator=(_Right_cref);
 			}
 			else {
@@ -1969,12 +1972,12 @@ namespace mse {
 			void set_to_const_item_pointer(const ss_const_iterator_type& _Right_cref) {
 				(*this) = _Right_cref;
 			}
-			void invalidate_inclusive_range(mse::CSize_t index_of_first, mse::CSize_t index_of_last) {
+			void invalidate_inclusive_range(msev_size_t index_of_first, msev_size_t index_of_last) {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					(*this).reset();
 				}
 			}
-			void shift_inclusive_range(mse::CSize_t index_of_first, mse::CSize_t index_of_last, mse::CInt shift) {
+			void shift_inclusive_range(msev_size_t index_of_first, msev_size_t index_of_last, msev_int shift) {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					auto new_index = (*this).m_index + shift;
 					if ((0 > new_index) || (m_owner_cptr->size() < new_index)) {
@@ -1986,7 +1989,7 @@ namespace mse {
 					}
 				}
 			}
-			CSize_t position() const {
+			msev_size_t position() const {
 				return m_index;
 			}
 		private:
@@ -1995,7 +1998,7 @@ namespace mse {
 				base_class::const_iterator::operator=(m_owner_cptr->cbegin());
 				base_class::const_iterator::operator+=(mse::as_a_size_t(m_index));
 			}
-			mse::CSize_t m_index = 0;
+			msev_size_t m_index = 0;
 			TSaferPtrForLegacy<const _Myt> m_owner_cptr = nullptr;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
@@ -2075,7 +2078,7 @@ namespace mse {
 			ss_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
 			ss_iterator_type operator--(int) { ss_iterator_type _Tmp = *this; --*this; return (_Tmp); }
 			void advance(difference_type n) {
-				auto new_index = CInt(m_index) + n;
+				auto new_index = msev_int(m_index) + n;
 				if ((0 > new_index) || (m_owner_ptr->size() < new_index)) {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - ss_iterator_type - msevector"));
 				}
@@ -2130,12 +2133,12 @@ namespace mse {
 			/*
 			ss_iterator_type& operator=(const typename base_class::iterator& _Right_cref)
 			{
-			CInt d = std::distance<typename base_class::iterator>(m_owner_ptr->begin(), _Right_cref);
+			msev_int d = std::distance<typename base_class::iterator>(m_owner_ptr->begin(), _Right_cref);
 			if ((0 <= d) && (m_owner_ptr->size() >= d)) {
 			if (m_owner_ptr->size() == d) {
 			assert(m_owner_ptr->end() == _Right_cref);
 			}
-			m_index = CSize_t(d);
+			m_index = msev_size_t(d);
 			base_class::iterator::operator=(_Right_cref);
 			}
 			else {
@@ -2162,12 +2165,12 @@ namespace mse {
 			void set_to_item_pointer(const ss_iterator_type& _Right_cref) {
 				(*this) = _Right_cref;
 			}
-			void invalidate_inclusive_range(mse::CSize_t index_of_first, mse::CSize_t index_of_last) {
+			void invalidate_inclusive_range(msev_size_t index_of_first, msev_size_t index_of_last) {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					(*this).reset();
 				}
 			}
-			void shift_inclusive_range(mse::CSize_t index_of_first, mse::CSize_t index_of_last, mse::CInt shift) {
+			void shift_inclusive_range(msev_size_t index_of_first, msev_size_t index_of_last, msev_int shift) {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					auto new_index = (*this).m_index + shift;
 					if ((0 > new_index) || (m_owner_ptr->size() < new_index)) {
@@ -2179,14 +2182,14 @@ namespace mse {
 					}
 				}
 			}
-			CSize_t position() const {
+			msev_size_t position() const {
 				return m_index;
 			}
 			operator ss_const_iterator_type() const {
 				ss_const_iterator_type retval;
 				if (m_owner_ptr == nullptr) {
 					retval = m_owner_ptr->ss_cbegin();
-					retval.advance(mse::CInt(m_index));
+					retval.advance(msev_int(m_index));
 				}
 				return retval;
 			}
@@ -2196,7 +2199,7 @@ namespace mse {
 				base_class::iterator::operator=(m_owner_ptr->begin());
 				base_class::iterator::operator+=(mse::as_a_size_t(m_index));
 			}
-			mse::CSize_t m_index = 0;
+			msev_size_t m_index = 0;
 			TSaferPtrForLegacy<_Myt> m_owner_ptr = nullptr;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
@@ -2295,67 +2298,67 @@ namespace mse {
 		}
 		ss_iterator_type insert_before(const ss_iterator_type &pos, size_t _M, const _Ty& _X) {
 			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
-			CSize_t original_pos = pos.position();
+			msev_size_t original_pos = pos.position();
 			typename base_class::iterator _P = pos;
 			(*this).insert(_P, _M, _X);
 			ss_iterator_type retval = ss_begin();
-			retval.advance((CInt)original_pos);
+			retval.advance((msev_int)original_pos);
 			return retval;
 		}
 		ss_iterator_type insert_before(const ss_iterator_type &pos, _Ty&& _X) {
 			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
-			CSize_t original_pos = pos.position();
+			msev_size_t original_pos = pos.position();
 			typename base_class::iterator _P = pos;
 			(*this).insert(_P, std::move(_X));
 			ss_iterator_type retval = ss_begin();
-			retval.advance((CInt)original_pos);
+			retval.advance((msev_int)original_pos);
 			return retval;
 		}
 		ss_iterator_type insert_before(const ss_iterator_type &pos, const _Ty& _X = _Ty()) { return (*this).insert(pos, 1, _X); }
 		ss_iterator_type insert_before(const ss_iterator_type &pos, const ss_const_iterator_type &start, const ss_const_iterator_type &end) {
 			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
 			if (start.m_owner_cptr != end.m_owner_cptr) { throw(std::out_of_range("invalid arguments - void insert_before(const ss_const_iterator_type &pos, const ss_const_iterator_type &start, const ss_const_iterator_type &end) - msevector")); }
-			CSize_t original_pos = pos.position();
+			msev_size_t original_pos = pos.position();
 			typename base_class::iterator _P = pos;
 			typename base_class::const_iterator _F = start;
 			typename base_class::const_iterator _L = end;
 			(*this).insert(_P, _F, _L);
 			ss_iterator_type retval = ss_begin();
-			retval.advance((CInt)original_pos);
+			retval.advance((msev_int)original_pos);
 			return retval;
 		}
 		/* Note that safety cannot be guaranteed when using an insert() function that takes unsafe typename base_class::iterator and/or pointer parameters. */
 		ss_iterator_type insert_before(const ss_iterator_type &pos, const _Ty* start, const _Ty* &end) {
 			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
-			CSize_t original_pos = pos.position();
+			msev_size_t original_pos = pos.position();
 			typename base_class::iterator _P = pos;
 			(*this).insert(_P, start, end);
 			ss_iterator_type retval = ss_begin();
-			retval.advance((CInt)original_pos);
+			retval.advance((msev_int)original_pos);
 			return retval;
 		}
 		ss_iterator_type insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) {
 			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
 			if (first.m_owner_cptr != last.m_owner_cptr) { throw(std::out_of_range("invalid arguments - void insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
 			if (!(last.points_to_item())) { throw(std::out_of_range("invalid argument - void insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
-			CSize_t original_pos = pos.position();
+			msev_size_t original_pos = pos.position();
 			typename base_class::iterator _P = pos;
 			typename base_class::const_iterator _F = first;
 			typename base_class::const_iterator _L = last;
 			_L++;
 			(*this).insert(_P, _F, _L);
 			ss_iterator_type retval = ss_begin();
-			retval.advance((CInt)original_pos);
+			retval.advance((msev_int)original_pos);
 			return retval;
 		}
 #ifndef MSVC2010_COMPATIBILE
 		ss_iterator_type insert_before(const ss_iterator_type &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
 			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
-			CSize_t original_pos = pos.position();
+			msev_size_t original_pos = pos.position();
 			typename base_class::iterator _P = pos;
 			(*this).insert(_P, _Ilist);
 			ss_iterator_type retval = ss_begin();
-			retval.advance((CInt)original_pos);
+			retval.advance((msev_int)original_pos);
 			return retval;
 		}
 #endif /*MSVC2010_COMPATIBILE*/
