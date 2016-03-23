@@ -34,6 +34,16 @@
 #include <random>
 #include <functional>
 
+class H {
+public:
+	/* Just an example of a templated member function. In this case it's a static one, but it doesn't have to be.
+	You might consider templating pointer parameter types to give the caller some flexibility as to which kind of
+	(smart/safe) pointer they want to use. */
+	template<typename _Tpointer>
+	static int foo4(_Tpointer A_ptr) { return A_ptr->b; }
+protected:
+	~H() {}
+};
 
 int main(int argc, char* argv[])
 {
@@ -311,6 +321,12 @@ int main(int argc, char* argv[])
 			mse::TRegisteredFixedConstPointers are never supposed to be null, where mse::TRegisteredPointers can be. But you
 			can easily obtain an mse::TRegisteredFixedPointer which does convert to an mse::TRegisteredFixedConstPointer. */
 			B::foo3(&*A_registered_ptr1);
+
+			/* Functions can be templated to allow the caller to use the (smart/safe) pointer of their choice. */
+			H::foo4<mse::TRegisteredFixedConstPointer<A>>(&*A_registered_ptr1);
+			/* You can alias function template instances to more convenient names. */
+			const auto& hfoo4_rfcp = H::foo4<mse::TRegisteredFixedConstPointer<A>>;
+			hfoo4_rfcp(&*A_registered_ptr1);
 
 			if (A_registered_ptr2) {
 			}
