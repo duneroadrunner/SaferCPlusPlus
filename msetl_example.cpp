@@ -396,11 +396,11 @@ int main(int argc, char* argv[])
 				int m_x;
 				int *m_count_ptr;
 			};
-#ifdef _DEBUG
+#ifndef NDEBUG
 			static const int number_of_loops = 10/*arbitrary*/;
-#else /*_DEBUG*/
+#else // !NDEBUG
 			static const int number_of_loops = 1000000/*arbitrary*/;
-#endif /*_DEBUG*/
+#endif // !NDEBUG
 			std::cout << std::endl;
 			std::cout << "Some simple benchmarks: \n";
 			{

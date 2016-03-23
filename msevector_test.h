@@ -18,7 +18,7 @@ namespace mse {
 	class msevector_test {
 	public:
 		/* This is a unit test for mse::msevector. It was originally swiped from stlport (http://www.stlport.org/). */
-		CBool m_result1_is_valid;
+		CBool m_result1_is_valid = false;
 		CInt m_result1;
 		void m_initialize_m_result1_if_needed() {
 			if (!m_result1_is_valid) { m_result1 = 0; m_result1_is_valid = true; }

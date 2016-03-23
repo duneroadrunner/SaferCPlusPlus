@@ -54,6 +54,13 @@ namespace mse {
 	typedef size_t CSize_t;
 	static size_t as_a_size_t(CSize_t n) { return (n); }
 #else /*MSE_PRIMITIVES_DISABLED*/
+
+#ifndef NDEBUG
+#ifndef MSE_SUPPRESS_CHECK_USE_BEFORE_SET
+#define MSE_CHECK_USE_BEFORE_SET
+#endif // !MSE_SUPPRESS_CHECK_USE_BEFORE_SET
+#endif // !NDEBUG
+
 	/* This class is just meant to act like the "bool" type, except that it has a default intialization value (false). */
 	class CBool {
 	public:
@@ -61,22 +68,31 @@ namespace mse {
 		CBool() : m_val(false) {}
 
 		// Copy constructor
-		CBool(const CBool &x) : m_val(x.m_val) {};
+		CBool(const CBool &x) : m_val(x.m_val) { note_value_assignment(); };
 
 		// Assignment operator
-		CBool& operator=(const CBool &x) { m_val = x.m_val; return (*this); }
+		CBool& operator=(const CBool &x) { note_value_assignment(); m_val = x.m_val; return (*this); }
 
 		// Constructors from primitive boolean types
-		CBool(bool   x) { m_val = x; }
+		CBool(bool   x) { note_value_assignment(); m_val = x; }
 
 		// Casts to primitive boolean types
-		operator bool() const { return m_val; }
+		operator bool() const { assert_initialized(); return m_val; }
 
-		CBool& operator |=(const CBool &x) { m_val |= x.m_val; return (*this); }
-		CBool& operator &=(const CBool &x) { m_val &= x.m_val; return (*this); }
-		CBool& operator ^=(const CBool &x) { m_val ^= x.m_val; return (*this); }
+		CBool& operator |=(const CBool &x) { assert_initialized(); m_val |= x.m_val; return (*this); }
+		CBool& operator &=(const CBool &x) { assert_initialized(); m_val &= x.m_val; return (*this); }
+		CBool& operator ^=(const CBool &x) { assert_initialized(); m_val ^= x.m_val; return (*this); }
 
 		bool m_val;
+
+#ifdef MSE_CHECK_USE_BEFORE_SET
+		void note_value_assignment() { m_initialized = true; }
+		void assert_initialized() const { assert(m_initialized); }
+		bool m_initialized = false;
+#else // MSE_CHECK_USE_BEFORE_SET
+		void note_value_assignment() {}
+		void assert_initialized() const {}
+#endif // MSE_CHECK_USE_BEFORE_SET
 	};
 
 	/* The CInt and CSize_t classes are meant to substitute for standard "int" and "size_t" types. The differences between
@@ -92,13 +108,14 @@ namespace mse {
 		TIntBase1() : m_val(0) {}
 
 		// Copy constructor
-		TIntBase1(const TIntBase1 &x) : m_val(x.m_val) {};
+		TIntBase1(const TIntBase1 &x) : m_val(x.m_val) { note_value_assignment(); };
 
 		// Constructors from primitive integer types
-		explicit TIntBase1(_Ty   x) { m_val = x; }
+		explicit TIntBase1(_Ty   x) { note_value_assignment(); m_val = x; }
 
 		template<typename _Tz>
 		void assign_check_range(const _Tz &x) {
+			note_value_assignment();
 			/* Note that this function is going to cause "signed/unsigned mismatch" warnings during compile. But if you
 			carefully consider each case, the default conversion works for our purposes. */
 			/*constexpr*/ bool rhs_can_exceed_upper_bound = (std::numeric_limits<_Tz>::max() > std::numeric_limits<_Ty>::max());
@@ -135,6 +152,15 @@ namespace mse {
 		}
 
 		_Ty m_val;
+
+#ifdef MSE_CHECK_USE_BEFORE_SET
+		void note_value_assignment() { m_initialized = true; }
+		void assert_initialized() const { assert(m_initialized); }
+		bool m_initialized = false;
+#else // MSE_CHECK_USE_BEFORE_SET
+		void note_value_assignment() {}
+		void assert_initialized() const {}
+#endif // MSE_CHECK_USE_BEFORE_SET
 	};
 
 	class CInt : public TIntBase1<int> {
@@ -150,8 +176,8 @@ namespace mse {
 		CInt(const _Myt &x) : _Myt(x) {};
 
 		// Assignment operator
-		CInt& operator=(const CInt &x) { m_val = x.m_val; return (*this); }
-		//CInt& operator=(const _Ty &x) { m_val = x; return (*this); }
+		CInt& operator=(const CInt &x) { (*this).note_value_assignment(); m_val = x.m_val; return (*this); }
+		//CInt& operator=(const _Ty &x) { (*this).note_value_assignment(); m_val = x; return (*this); }
 
 		CInt& operator=(long long x) { assign_check_range<long long>(x); m_val = static_cast<_Ty>(x); return (*this); }
 		CInt& operator=(long x) { assign_check_range<long>(x); m_val = static_cast<_Ty>(x); return (*this); }
@@ -186,135 +212,135 @@ namespace mse {
 		//CInt(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<_Ty>(x); }
 
 		// Casts to primitive integer types
-		operator _Ty() const { return m_val; }
+		operator _Ty() const { (*this).assert_initialized(); return m_val; }
 
-		CInt operator ~() const { return CInt(~m_val); }
-		CInt& operator |=(const CInt &x) { m_val |= x.m_val; return (*this); }
-		CInt& operator &=(const CInt &x) { m_val &= x.m_val; return (*this); }
-		CInt& operator ^=(const CInt &x) { m_val ^= x.m_val; return (*this); }
+		CInt operator ~() const { (*this).assert_initialized(); return CInt(~m_val); }
+		CInt& operator |=(const CInt &x) { (*this).assert_initialized(); m_val |= x.m_val; return (*this); }
+		CInt& operator &=(const CInt &x) { (*this).assert_initialized(); m_val &= x.m_val; return (*this); }
+		CInt& operator ^=(const CInt &x) { (*this).assert_initialized(); m_val ^= x.m_val; return (*this); }
 
-		CInt operator -() const { return CInt(-m_val); }
-		CInt& operator +=(const CInt &x) { m_val += x.m_val; return (*this); }
-		CInt& operator -=(const CInt &x) {
-			if (0 <= std::numeric_limits<_Ty>::lowest()) {
-				if (x.m_val > m_val) { /*check this*/
+		CInt operator -() const { (*this).assert_initialized(); return CInt(-m_val); }
+		CInt& operator +=(const CInt &x) { (*this).assert_initialized(); m_val += x.m_val; return (*this); }
+		CInt& operator -=(const CInt &x) { (*this).assert_initialized();
+			if (0 <= std::numeric_limits<_Ty>::lowest()) { (*this).assert_initialized();
+				if (x.m_val > m_val) { (*this).assert_initialized(); /*check this*/
 					throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 				}
 			}
 			m_val -= x.m_val; return (*this);
 		}
-		CInt& operator *=(const CInt &x) { m_val *= x.m_val; return (*this); }
-		CInt& operator /=(const CInt &x) { m_val /= x.m_val; return (*this); }
-		CInt& operator %=(const CInt &x) { m_val %= x.m_val; return (*this); }
-		CInt& operator >>=(const CInt &x) { m_val >>= x.m_val; return (*this); }
-		CInt& operator <<=(const CInt &x) { m_val <<= x.m_val; return (*this); }
+		CInt& operator *=(const CInt &x) { (*this).assert_initialized(); m_val *= x.m_val; return (*this); }
+		CInt& operator /=(const CInt &x) { (*this).assert_initialized(); m_val /= x.m_val; return (*this); }
+		CInt& operator %=(const CInt &x) { (*this).assert_initialized(); m_val %= x.m_val; return (*this); }
+		CInt& operator >>=(const CInt &x) { (*this).assert_initialized(); m_val >>= x.m_val; return (*this); }
+		CInt& operator <<=(const CInt &x) { (*this).assert_initialized(); m_val <<= x.m_val; return (*this); }
 
-		CInt operator +(const CInt &x) const { return CInt(m_val + x.m_val); }
-		CInt operator +(long long x) const { return ((*this) + CInt(x)); }
-		CInt operator +(long x) const { return ((*this) + CInt(x)); }
-		CInt operator +(int x) const { return ((*this) + CInt(x)); }
-		CInt operator +(short x) const { return ((*this) + CInt(x)); }
-		CInt operator +(char x) const { return ((*this) + CInt(x)); }
-		CInt operator +(size_t x) const { return ((*this) + CInt(x)); }
-		//CInt operator +(CSize_t x) const { return ((*this) + CInt(x)); }
+		CInt operator +(const CInt &x) const { (*this).assert_initialized(); return CInt(m_val + x.m_val); }
+		CInt operator +(long long x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		CInt operator +(long x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		CInt operator +(int x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		CInt operator +(short x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		CInt operator +(char x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		CInt operator +(size_t x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		//CInt operator +(CSize_t x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
 
-		CInt operator -(const CInt &x) const { return CInt(m_val - x.m_val); }
-		CInt operator -(long long x) const { return ((*this) - CInt(x)); }
-		CInt operator -(long x) const { return ((*this) - CInt(x)); }
-		CInt operator -(int x) const { return ((*this) - CInt(x)); }
-		CInt operator -(short x) const { return ((*this) - CInt(x)); }
-		CInt operator -(char x) const { return ((*this) - CInt(x)); }
-		CInt operator -(size_t x) const { return ((*this) - CInt(x)); }
-		//CInt operator -(CSize_t x) const { return ((*this) - CInt(x)); }
+		CInt operator -(const CInt &x) const { (*this).assert_initialized(); return CInt(m_val - x.m_val); }
+		CInt operator -(long long x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		CInt operator -(long x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		CInt operator -(int x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		CInt operator -(short x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		CInt operator -(char x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		CInt operator -(size_t x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		//CInt operator -(CSize_t x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
 
-		CInt operator *(const CInt &x) const { return CInt(m_val * x.m_val); }
-		CInt operator *(long long x) const { return ((*this) * CInt(x)); }
-		CInt operator *(long x) const { return ((*this) * CInt(x)); }
-		CInt operator *(int x) const { return ((*this) * CInt(x)); }
-		CInt operator *(short x) const { return ((*this) * CInt(x)); }
-		CInt operator *(char x) const { return ((*this) * CInt(x)); }
-		CInt operator *(size_t x) const { return ((*this) * CInt(x)); }
-		//CInt operator *(CSize_t x) const { return ((*this) * CInt(x)); }
+		CInt operator *(const CInt &x) const { (*this).assert_initialized(); return CInt(m_val * x.m_val); }
+		CInt operator *(long long x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		CInt operator *(long x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		CInt operator *(int x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		CInt operator *(short x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		CInt operator *(char x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		CInt operator *(size_t x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		//CInt operator *(CSize_t x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
 
-		CInt operator /(const CInt &x) const { return CInt(m_val / x.m_val); }
-		CInt operator /(long long x) const { return ((*this) / CInt(x)); }
-		CInt operator /(long x) const { return ((*this) / CInt(x)); }
-		CInt operator /(int x) const { return ((*this) / CInt(x)); }
-		CInt operator /(short x) const { return ((*this) / CInt(x)); }
-		CInt operator /(char x) const { return ((*this) / CInt(x)); }
-		CInt operator /(size_t x) const { return ((*this) / CInt(x)); }
-		//CInt operator /(CSize_t x) const { return ((*this) / CInt(x)); }
+		CInt operator /(const CInt &x) const { (*this).assert_initialized(); return CInt(m_val / x.m_val); }
+		CInt operator /(long long x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		CInt operator /(long x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		CInt operator /(int x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		CInt operator /(short x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		CInt operator /(char x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		CInt operator /(size_t x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		//CInt operator /(CSize_t x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
 
-		bool operator <(const CInt &x) const { return (m_val < x.m_val); }
-		bool operator <(long long x) const { return ((*this) < CInt(x)); }
-		bool operator <(long x) const { return ((*this) < CInt(x)); }
-		bool operator <(int x) const { return ((*this) < CInt(x)); }
-		bool operator <(short x) const { return ((*this) < CInt(x)); }
-		bool operator <(char x) const { return ((*this) < CInt(x)); }
-		bool operator <(size_t x) const { return ((*this) < CInt(x)); }
-		//bool operator <(CSize_t x) const { return ((*this) < CInt(x)); }
+		bool operator <(const CInt &x) const { (*this).assert_initialized(); return (m_val < x.m_val); }
+		bool operator <(long long x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		bool operator <(long x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		bool operator <(int x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		bool operator <(short x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		bool operator <(char x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		bool operator <(size_t x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		//bool operator <(CSize_t x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
 
-		bool operator >(const CInt &x) const { return (m_val > x.m_val); }
-		bool operator >(long long x) const { return ((*this) > CInt(x)); }
-		bool operator >(long x) const { return ((*this) > CInt(x)); }
-		bool operator >(int x) const { return ((*this) > CInt(x)); }
-		bool operator >(short x) const { return ((*this) > CInt(x)); }
-		bool operator >(char x) const { return ((*this) > CInt(x)); }
-		bool operator >(size_t x) const { return ((*this) > CInt(x)); }
-		//bool operator >(CSize_t x) const { return ((*this) > CInt(x)); }
+		bool operator >(const CInt &x) const { (*this).assert_initialized(); return (m_val > x.m_val); }
+		bool operator >(long long x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		bool operator >(long x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		bool operator >(int x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		bool operator >(short x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		bool operator >(char x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		bool operator >(size_t x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		//bool operator >(CSize_t x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
 
-		bool operator <=(const CInt &x) const { return (m_val <= x.m_val); }
-		bool operator <=(long long x) const { return ((*this) <= CInt(x)); }
-		bool operator <=(long x) const { return ((*this) <= CInt(x)); }
-		bool operator <=(int x) const { return ((*this) <= CInt(x)); }
-		bool operator <=(short x) const { return ((*this) <= CInt(x)); }
-		bool operator <=(char x) const { return ((*this) <= CInt(x)); }
-		bool operator <=(size_t x) const { return ((*this) <= CInt(x)); }
-		//bool operator <=(CSize_t x) const { return ((*this) <= CInt(x)); }
+		bool operator <=(const CInt &x) const { (*this).assert_initialized(); return (m_val <= x.m_val); }
+		bool operator <=(long long x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		bool operator <=(long x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		bool operator <=(int x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		bool operator <=(short x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		bool operator <=(char x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		bool operator <=(size_t x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		//bool operator <=(CSize_t x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
 
-		bool operator >=(const CInt &x) const { return (m_val >= x.m_val); }
-		bool operator >=(long long x) const { return ((*this) >= CInt(x)); }
-		bool operator >=(long x) const { return ((*this) >= CInt(x)); }
-		bool operator >=(int x) const { return ((*this) >= CInt(x)); }
-		bool operator >=(short x) const { return ((*this) >= CInt(x)); }
-		bool operator >=(char x) const { return ((*this) >= CInt(x)); }
-		bool operator >=(size_t x) const { return ((*this) >= CInt(x)); }
-		//bool operator >=(CSize_t x) const { return ((*this) >= CInt(x)); }
+		bool operator >=(const CInt &x) const { (*this).assert_initialized(); return (m_val >= x.m_val); }
+		bool operator >=(long long x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
+		bool operator >=(long x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
+		bool operator >=(int x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
+		bool operator >=(short x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
+		bool operator >=(char x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
+		bool operator >=(size_t x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
+		//bool operator >=(CSize_t x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
 
-		bool operator ==(const CInt &x) const { return (m_val == x.m_val); }
-		bool operator ==(long long x) const { return ((*this) == CInt(x)); }
-		bool operator ==(long x) const { return ((*this) == CInt(x)); }
-		bool operator ==(int x) const { return ((*this) == CInt(x)); }
-		bool operator ==(short x) const { return ((*this) == CInt(x)); }
-		bool operator ==(char x) const { return ((*this) == CInt(x)); }
-		bool operator ==(size_t x) const { return ((*this) == CInt(x)); }
-		//bool operator ==(CSize_t x) const { return ((*this) == CInt(x)); }
+		bool operator ==(const CInt &x) const { (*this).assert_initialized(); return (m_val == x.m_val); }
+		bool operator ==(long long x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
+		bool operator ==(long x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
+		bool operator ==(int x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
+		bool operator ==(short x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
+		bool operator ==(char x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
+		bool operator ==(size_t x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
+		//bool operator ==(CSize_t x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
 
-		bool operator !=(const CInt &x) const { return (m_val != x.m_val); }
-		bool operator !=(long long x) const { return ((*this) != CInt(x)); }
-		bool operator !=(long x) const { return ((*this) != CInt(x)); }
-		bool operator !=(int x) const { return ((*this) != CInt(x)); }
-		bool operator !=(short x) const { return ((*this) != CInt(x)); }
-		bool operator !=(char x) const { return ((*this) != CInt(x)); }
-		bool operator !=(size_t x) const { return ((*this) != CInt(x)); }
-		//bool operator !=(CSize_t x) const { return ((*this) != CInt(x)); }
+		bool operator !=(const CInt &x) const { (*this).assert_initialized(); return (m_val != x.m_val); }
+		bool operator !=(long long x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		bool operator !=(long x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		bool operator !=(int x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		bool operator !=(short x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		bool operator !=(char x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		bool operator !=(size_t x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		//bool operator !=(CSize_t x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
 
 		// INCREMENT/DECREMENT OPERATORS
-		CInt& operator ++() { m_val++; return (*this); }
-		CInt operator ++(int) {
+		CInt& operator ++() { (*this).assert_initialized(); m_val++; return (*this); }
+		CInt operator ++(int) { (*this).assert_initialized();
 			CInt tmp(*this); // copy
 			operator++(); // pre-increment
 			return tmp;   // return old value
 		}
-		CInt& operator --() {
-			if (0 <= std::numeric_limits<_Ty>::lowest()) {
+		CInt& operator --() { (*this).assert_initialized();
+			if (0 <= std::numeric_limits<_Ty>::lowest()) { (*this).assert_initialized();
 				(*this) = (*this) - 1; return (*this);
 			}
-			else {
+			else { (*this).assert_initialized();
 				m_val--; return (*this);
 			}
 		}
-		CInt operator --(int) {
+		CInt operator --(int) { (*this).assert_initialized();
 			CInt tmp(*this); // copy
 			operator--(); // pre-decrement
 			return tmp;   // return old value
@@ -375,141 +401,141 @@ namespace mse {
 		//explicit CSize_t(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<_Ty>(x); }
 
 		// Casts to primitive integer types
-		operator CInt() const { return CInt(m_val); }
+		operator CInt() const { (*this).assert_initialized(); return CInt(m_val); }
 #ifndef MSVC2010_COMPATIBILE
-		explicit operator size_t() const { return (m_val); }
+		explicit operator size_t() const { (*this).assert_initialized(); return (m_val); }
 #endif /*MSVC2010_COMPATIBILE*/
-		//size_t as_a_size_t() const { return m_val; }
+		//size_t as_a_size_t() const { (*this).assert_initialized(); return m_val; }
 
-		CSize_t operator ~() const { return (~m_val); }
-		CSize_t& operator |=(const CSize_t &x) { m_val |= x.m_val; return (*this); }
-		CSize_t& operator &=(const CSize_t &x) { m_val &= x.m_val; return (*this); }
-		CSize_t& operator ^=(const CSize_t &x) { m_val ^= x.m_val; return (*this); }
+		CSize_t operator ~() const { (*this).assert_initialized(); return (~m_val); }
+		CSize_t& operator |=(const CSize_t &x) { (*this).assert_initialized(); m_val |= x.m_val; return (*this); }
+		CSize_t& operator &=(const CSize_t &x) { (*this).assert_initialized(); m_val &= x.m_val; return (*this); }
+		CSize_t& operator ^=(const CSize_t &x) { (*this).assert_initialized(); m_val ^= x.m_val; return (*this); }
 
-		CInt operator -() const { /* Should unsigned types even support this opperator? */
+		CInt operator -() const { (*this).assert_initialized(); /* Should unsigned types even support this opperator? */
 			return (-(CInt(m_val)));
 		}
-		CSize_t& operator +=(const CSize_t &x) { m_val += x.m_val; return (*this); }
-		CSize_t& operator -=(const CSize_t &x) {
-			if (0 <= std::numeric_limits<_Ty>::lowest()) {
-				if (x.m_val > m_val) { /*check this*/
+		CSize_t& operator +=(const CSize_t &x) { (*this).assert_initialized(); m_val += x.m_val; return (*this); }
+		CSize_t& operator -=(const CSize_t &x) { (*this).assert_initialized();
+			if (0 <= std::numeric_limits<_Ty>::lowest()) { (*this).assert_initialized();
+				if (x.m_val > m_val) { (*this).assert_initialized(); /*check this*/
 					throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 				}
 			}
 			m_val -= x.m_val; return (*this);
 		}
-		CSize_t& operator *=(const CSize_t &x) { m_val *= x.m_val; return (*this); }
-		CSize_t& operator /=(const CSize_t &x) { m_val /= x.m_val; return (*this); }
-		CSize_t& operator %=(const CSize_t &x) { m_val %= x.m_val; return (*this); }
-		CSize_t& operator >>=(const CSize_t &x) { m_val >>= x.m_val; return (*this); }
-		CSize_t& operator <<=(const CSize_t &x) { m_val <<= x.m_val; return (*this); }
+		CSize_t& operator *=(const CSize_t &x) { (*this).assert_initialized(); m_val *= x.m_val; return (*this); }
+		CSize_t& operator /=(const CSize_t &x) { (*this).assert_initialized(); m_val /= x.m_val; return (*this); }
+		CSize_t& operator %=(const CSize_t &x) { (*this).assert_initialized(); m_val %= x.m_val; return (*this); }
+		CSize_t& operator >>=(const CSize_t &x) { (*this).assert_initialized(); m_val >>= x.m_val; return (*this); }
+		CSize_t& operator <<=(const CSize_t &x) { (*this).assert_initialized(); m_val <<= x.m_val; return (*this); }
 
-		CSize_t operator +(const CSize_t &x) const { return (m_val + x.m_val); }
-		CInt operator +(const CInt &x) const { return (CInt(m_val) + x); }
-		CInt operator +(long long x) const { return ((*this) + CInt(x)); }
-		CInt operator +(long x) const { return ((*this) + CInt(x)); }
-		CInt operator +(int x) const { return ((*this) + CInt(x)); }
-		CInt operator +(short x) const { return ((*this) + CInt(x)); }
-		CInt operator +(char x) const { return ((*this) + CInt(x)); }
-		CSize_t operator +(size_t x) const { return ((*this) + CSize_t(x)); }
+		CSize_t operator +(const CSize_t &x) const { (*this).assert_initialized(); return (m_val + x.m_val); }
+		CInt operator +(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) + x); }
+		CInt operator +(long long x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		CInt operator +(long x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		CInt operator +(int x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		CInt operator +(short x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		CInt operator +(char x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		CSize_t operator +(size_t x) const { (*this).assert_initialized(); return ((*this) + CSize_t(x)); }
 
-		CInt operator -(const CSize_t &x) const { return (CInt(m_val) - CInt(x.m_val)); }
-		CInt operator -(const CInt &x) const { return (CInt(m_val) - x); }
-		CInt operator -(long long x) const { return ((*this) - CInt(x)); }
-		CInt operator -(long x) const { return ((*this) - CInt(x)); }
-		CInt operator -(int x) const { return ((*this) - CInt(x)); }
-		CInt operator -(short x) const { return ((*this) - CInt(x)); }
-		CInt operator -(char x) const { return ((*this) - CInt(x)); }
-		CInt operator -(size_t x) const { return ((*this) - CSize_t(x)); }
+		CInt operator -(const CSize_t &x) const { (*this).assert_initialized(); return (CInt(m_val) - CInt(x.m_val)); }
+		CInt operator -(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) - x); }
+		CInt operator -(long long x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		CInt operator -(long x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		CInt operator -(int x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		CInt operator -(short x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		CInt operator -(char x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		CInt operator -(size_t x) const { (*this).assert_initialized(); return ((*this) - CSize_t(x)); }
 
-		CSize_t operator *(const CSize_t &x) const { return (m_val * x.m_val); }
-		CInt operator *(const CInt &x) const { return (CInt(m_val) * x); }
-		CInt operator *(long long x) const { return ((*this) * CInt(x)); }
-		CInt operator *(long x) const { return ((*this) * CInt(x)); }
-		CInt operator *(int x) const { return ((*this) * CInt(x)); }
-		CInt operator *(short x) const { return ((*this) * CInt(x)); }
-		CInt operator *(char x) const { return ((*this) * CInt(x)); }
-		CSize_t operator *(size_t x) const { return ((*this) * CSize_t(x)); }
+		CSize_t operator *(const CSize_t &x) const { (*this).assert_initialized(); return (m_val * x.m_val); }
+		CInt operator *(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) * x); }
+		CInt operator *(long long x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		CInt operator *(long x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		CInt operator *(int x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		CInt operator *(short x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		CInt operator *(char x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		CSize_t operator *(size_t x) const { (*this).assert_initialized(); return ((*this) * CSize_t(x)); }
 
-		CSize_t operator /(const CSize_t &x) const { return (m_val / x.m_val); }
-		CInt operator /(const CInt &x) const { return (CInt(m_val) / x); }
-		CInt operator /(long long x) const { return ((*this) / CInt(x)); }
-		CInt operator /(long x) const { return ((*this) / CInt(x)); }
-		CInt operator /(int x) const { return ((*this) / CInt(x)); }
-		CInt operator /(short x) const { return ((*this) / CInt(x)); }
-		CInt operator /(char x) const { return ((*this) / CInt(x)); }
-		CSize_t operator /(size_t x) const { return ((*this) / CSize_t(x)); }
+		CSize_t operator /(const CSize_t &x) const { (*this).assert_initialized(); return (m_val / x.m_val); }
+		CInt operator /(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) / x); }
+		CInt operator /(long long x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		CInt operator /(long x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		CInt operator /(int x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		CInt operator /(short x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		CInt operator /(char x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		CSize_t operator /(size_t x) const { (*this).assert_initialized(); return ((*this) / CSize_t(x)); }
 
-		bool operator <(const CSize_t &x) const { return (m_val < x.m_val); }
-		bool operator <(const CInt &x) const { return (CInt(m_val) < x); }
-		bool operator <(long long x) const { return ((*this) < CInt(x)); }
-		bool operator <(long x) const { return ((*this) < CInt(x)); }
-		bool operator <(int x) const { return ((*this) < CInt(x)); }
-		bool operator <(short x) const { return ((*this) < CInt(x)); }
-		bool operator <(char x) const { return ((*this) < CInt(x)); }
-		bool operator <(size_t x) const { return ((*this) < CSize_t(x)); }
+		bool operator <(const CSize_t &x) const { (*this).assert_initialized(); return (m_val < x.m_val); }
+		bool operator <(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) < x); }
+		bool operator <(long long x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		bool operator <(long x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		bool operator <(int x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		bool operator <(short x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		bool operator <(char x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		bool operator <(size_t x) const { (*this).assert_initialized(); return ((*this) < CSize_t(x)); }
 
-		bool operator >(const CSize_t &x) const { return (m_val > x.m_val); }
-		bool operator >(const CInt &x) const { return (CInt(m_val) > x); }
-		bool operator >(long long x) const { return ((*this) > CInt(x)); }
-		bool operator >(long x) const { return ((*this) > CInt(x)); }
-		bool operator >(int x) const { return ((*this) > CInt(x)); }
-		bool operator >(short x) const { return ((*this) > CInt(x)); }
-		bool operator >(char x) const { return ((*this) > CInt(x)); }
-		bool operator >(size_t x) const { return ((*this) > CSize_t(x)); }
+		bool operator >(const CSize_t &x) const { (*this).assert_initialized(); return (m_val > x.m_val); }
+		bool operator >(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) > x); }
+		bool operator >(long long x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		bool operator >(long x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		bool operator >(int x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		bool operator >(short x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		bool operator >(char x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		bool operator >(size_t x) const { (*this).assert_initialized(); return ((*this) > CSize_t(x)); }
 
-		bool operator <=(const CSize_t &x) const { return (m_val <= x.m_val); }
-		bool operator <=(const CInt &x) const { return (CInt(m_val) <= x); }
-		bool operator <=(long long x) const { return ((*this) <= CInt(x)); }
-		bool operator <=(long x) const { return ((*this) <= CInt(x)); }
-		bool operator <=(int x) const { return ((*this) <= CInt(x)); }
-		bool operator <=(short x) const { return ((*this) <= CInt(x)); }
-		bool operator <=(char x) const { return ((*this) <= CInt(x)); }
-		bool operator <=(size_t x) const { return ((*this) <= CSize_t(x)); }
+		bool operator <=(const CSize_t &x) const { (*this).assert_initialized(); return (m_val <= x.m_val); }
+		bool operator <=(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) <= x); }
+		bool operator <=(long long x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		bool operator <=(long x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		bool operator <=(int x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		bool operator <=(short x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		bool operator <=(char x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		bool operator <=(size_t x) const { (*this).assert_initialized(); return ((*this) <= CSize_t(x)); }
 
-		bool operator >=(const CSize_t &x) const { return (m_val >= x.m_val); }
-		bool operator >=(const CInt &x) const { return (CInt(m_val) >= x); }
-		bool operator >=(long long x) const { return ((*this) >= CInt(x)); }
-		bool operator >=(long x) const { return ((*this) >= CInt(x)); }
-		bool operator >=(int x) const { return ((*this) >= CInt(x)); }
-		bool operator >=(short x) const { return ((*this) >= CInt(x)); }
-		bool operator >=(char x) const { return ((*this) >= CInt(x)); }
-		bool operator >=(size_t x) const { return ((*this) >= CSize_t(x)); }
+		bool operator >=(const CSize_t &x) const { (*this).assert_initialized(); return (m_val >= x.m_val); }
+		bool operator >=(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) >= x); }
+		bool operator >=(long long x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
+		bool operator >=(long x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
+		bool operator >=(int x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
+		bool operator >=(short x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
+		bool operator >=(char x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
+		bool operator >=(size_t x) const { (*this).assert_initialized(); return ((*this) >= CSize_t(x)); }
 
-		bool operator ==(const CSize_t &x) const { return (m_val == x.m_val); }
-		bool operator ==(const CInt &x) const { return (CInt(m_val) == x); }
-		bool operator ==(long long x) const { return ((*this) == CInt(x)); }
-		bool operator ==(long x) const { return ((*this) == CInt(x)); }
-		bool operator ==(int x) const { return ((*this) == CInt(x)); }
-		bool operator ==(short x) const { return ((*this) == CInt(x)); }
-		bool operator ==(char x) const { return ((*this) == CInt(x)); }
-		bool operator ==(size_t x) const { return ((*this) == CSize_t(x)); }
+		bool operator ==(const CSize_t &x) const { (*this).assert_initialized(); return (m_val == x.m_val); }
+		bool operator ==(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) == x); }
+		bool operator ==(long long x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
+		bool operator ==(long x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
+		bool operator ==(int x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
+		bool operator ==(short x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
+		bool operator ==(char x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
+		bool operator ==(size_t x) const { (*this).assert_initialized(); return ((*this) == CSize_t(x)); }
 
-		bool operator !=(const CSize_t &x) const { return (m_val != x.m_val); }
-		bool operator !=(const CInt &x) const { return (CInt(m_val) != x); }
-		bool operator !=(long long x) const { return ((*this) != CInt(x)); }
-		bool operator !=(long x) const { return ((*this) != CInt(x)); }
-		bool operator !=(int x) const { return ((*this) != CInt(x)); }
-		bool operator !=(short x) const { return ((*this) != CInt(x)); }
-		bool operator !=(char x) const { return ((*this) != CInt(x)); }
-		bool operator !=(size_t x) const { return ((*this) != CSize_t(x)); }
+		bool operator !=(const CSize_t &x) const { (*this).assert_initialized(); return (m_val != x.m_val); }
+		bool operator !=(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) != x); }
+		bool operator !=(long long x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		bool operator !=(long x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		bool operator !=(int x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		bool operator !=(short x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		bool operator !=(char x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		bool operator !=(size_t x) const { (*this).assert_initialized(); return ((*this) != CSize_t(x)); }
 
 		// INCREMENT/DECREMENT OPERATORS
-		CSize_t& operator ++() { m_val++; return (*this); }
-		CSize_t operator ++(int) {
+		CSize_t& operator ++() { (*this).assert_initialized(); m_val++; return (*this); }
+		CSize_t operator ++(int) { (*this).assert_initialized();
 			CSize_t tmp(*this); // copy
 			operator++(); // pre-increment
 			return tmp;   // return old value
 		}
-		CSize_t& operator --() {
-			if (0 <= std::numeric_limits<_Ty>::lowest()) {
+		CSize_t& operator --() { (*this).assert_initialized();
+			if (0 <= std::numeric_limits<_Ty>::lowest()) { (*this).assert_initialized();
 				(*this) = (*this) - 1; return (*this);
 			}
-			else {
+			else { (*this).assert_initialized();
 				m_val--; return (*this);
 			}
 		}
-		CSize_t operator --(int) {
+		CSize_t operator --(int) { (*this).assert_initialized();
 			CSize_t tmp(*this); // copy
 			operator--(); // pre-decrement
 			return tmp;   // return old value
@@ -517,71 +543,71 @@ namespace mse {
 
 		//_Ty m_val;
 	};
-	static size_t as_a_size_t(CSize_t n) { return CInt(n); }
+	static size_t as_a_size_t(CSize_t n) { n.assert_initialized(); return CInt(n); }
 
-	inline CInt operator+(size_t lhs, const CInt &rhs) { return CSize_t(lhs) + rhs; }
-	inline CSize_t operator+(size_t lhs, const CSize_t &rhs) { return CSize_t(lhs) + rhs; }
-	inline CInt operator+(int lhs, const CInt &rhs) { return CInt(lhs) + rhs; }
-	inline CInt operator+(int lhs, const CSize_t &rhs) { return CInt(lhs) + as_a_size_t(rhs); }
-	inline CInt operator+(const CInt &lhs, const CSize_t &rhs) { return lhs + as_a_size_t(rhs); }
-	inline CInt operator-(size_t lhs, const CInt &rhs) { return CSize_t(lhs) - rhs; }
-	inline CInt operator-(size_t lhs, const CSize_t &rhs) { return CSize_t(lhs) - rhs; }
-	inline CInt operator-(int lhs, const CInt &rhs) { return CInt(lhs) - rhs; }
-	inline CInt operator-(int lhs, const CSize_t &rhs) { return CInt(lhs) - as_a_size_t(rhs); }
-	inline CInt operator-(const CInt &lhs, const CSize_t &rhs) { return lhs - as_a_size_t(rhs); }
-	inline CInt operator*(size_t lhs, const CInt &rhs) { return CSize_t(lhs) * rhs; }
-	inline CSize_t operator*(size_t lhs, const CSize_t &rhs) { return CSize_t(lhs) * rhs; }
-	inline CInt operator*(int lhs, const CInt &rhs) { return CInt(lhs) * rhs; }
-	inline CInt operator*(int lhs, const CSize_t &rhs) { return CInt(lhs) * as_a_size_t(rhs); }
-	inline CInt operator*(const CInt &lhs, const CSize_t &rhs) { return lhs * as_a_size_t(rhs); }
-	inline CInt operator/(size_t lhs, const CInt &rhs) { return CSize_t(lhs) / rhs; }
-	inline CSize_t operator/(size_t lhs, const CSize_t &rhs) { return CSize_t(lhs) / rhs; }
-	inline CInt operator/(int lhs, const CInt &rhs) { return CInt(lhs) / rhs; }
-	inline CInt operator/(int lhs, const CSize_t &rhs) { return CInt(lhs) / as_a_size_t(rhs); }
-	inline CInt operator/(const CInt &lhs, const CSize_t &rhs) { return lhs / as_a_size_t(rhs); }
+	inline CInt operator+(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); rhs.assert_initialized(); return CSize_t(lhs) + rhs; }
+	inline CSize_t operator+(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) + rhs; }
+	inline CInt operator+(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) + rhs; }
+	inline CInt operator+(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) + as_a_size_t(rhs); }
+	inline CInt operator+(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs + as_a_size_t(rhs); }
+	inline CInt operator-(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) - rhs; }
+	inline CInt operator-(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) - rhs; }
+	inline CInt operator-(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) - rhs; }
+	inline CInt operator-(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) - as_a_size_t(rhs); }
+	inline CInt operator-(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs - as_a_size_t(rhs); }
+	inline CInt operator*(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) * rhs; }
+	inline CSize_t operator*(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) * rhs; }
+	inline CInt operator*(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) * rhs; }
+	inline CInt operator*(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) * as_a_size_t(rhs); }
+	inline CInt operator*(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs * as_a_size_t(rhs); }
+	inline CInt operator/(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) / rhs; }
+	inline CSize_t operator/(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) / rhs; }
+	inline CInt operator/(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) / rhs; }
+	inline CInt operator/(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) / as_a_size_t(rhs); }
+	inline CInt operator/(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs / as_a_size_t(rhs); }
 
-	inline bool operator<(size_t lhs, const CInt &rhs) { return CSize_t(lhs) < rhs; }
-	inline bool operator<(size_t lhs, const CSize_t &rhs) { return CSize_t(lhs) < rhs; }
-	inline bool operator<(int lhs, const CInt &rhs) { return CInt(lhs) < rhs; }
-	inline bool operator<(int lhs, const CSize_t &rhs) { return CInt(lhs) < as_a_size_t(rhs); }
-	inline bool operator<(long long lhs, const CInt &rhs) { return CInt(lhs) < rhs; }
-	inline bool operator<(long long lhs, const CSize_t &rhs) { return CInt(lhs) < as_a_size_t(rhs); }
-	inline bool operator<(const CInt &lhs, const CSize_t &rhs) { return lhs < as_a_size_t(rhs); }
-	inline bool operator>(size_t lhs, const CInt &rhs) { return CSize_t(lhs) > rhs; }
-	inline bool operator>(size_t lhs, const CSize_t &rhs) { return CSize_t(lhs) > rhs; }
-	inline bool operator>(int lhs, const CInt &rhs) { return CInt(lhs) > rhs; }
-	inline bool operator>(int lhs, const CSize_t &rhs) { return CInt(lhs) > as_a_size_t(rhs); }
-	inline bool operator>(long long lhs, const CInt &rhs) { return CInt(lhs) > rhs; }
-	inline bool operator>(long long lhs, const CSize_t &rhs) { return CInt(lhs) > as_a_size_t(rhs); }
-	inline bool operator>(const CInt &lhs, const CSize_t &rhs) { return lhs > as_a_size_t(rhs); }
-	inline bool operator<=(size_t lhs, const CInt &rhs) { return CSize_t(lhs) <= rhs; }
-	inline bool operator<=(size_t lhs, const CSize_t &rhs) { return CSize_t(lhs) <= rhs; }
-	inline bool operator<=(int lhs, const CInt &rhs) { return CInt(lhs) <= rhs; }
-	inline bool operator<=(int lhs, const CSize_t &rhs) { return CInt(lhs) <= as_a_size_t(rhs); }
-	inline bool operator<=(long long lhs, const CInt &rhs) { return CInt(lhs) <= rhs; }
-	inline bool operator<=(long long lhs, const CSize_t &rhs) { return CInt(lhs) <= as_a_size_t(rhs); }
-	inline bool operator<=(const CInt &lhs, const CSize_t &rhs) { return lhs <= as_a_size_t(rhs); }
-	inline bool operator>=(size_t lhs, const CInt &rhs) { return CSize_t(lhs) >= rhs; }
-	inline bool operator>=(size_t lhs, const CSize_t &rhs) { return CSize_t(lhs) >= rhs; }
-	inline bool operator>=(int lhs, const CInt &rhs) { return CInt(lhs) >= rhs; }
-	inline bool operator>=(int lhs, const CSize_t &rhs) { return CInt(lhs) >= as_a_size_t(rhs); }
-	inline bool operator>=(long long lhs, const CInt &rhs) { return CInt(lhs) >= rhs; }
-	inline bool operator>=(long long lhs, const CSize_t &rhs) { return CInt(lhs) >= as_a_size_t(rhs); }
-	inline bool operator>=(const CInt &lhs, const CSize_t &rhs) { return lhs >= as_a_size_t(rhs); }
-	inline bool operator==(size_t lhs, const CInt &rhs) { return CSize_t(lhs) == rhs; }
-	inline bool operator==(size_t lhs, const CSize_t &rhs) { return CSize_t(lhs) == rhs; }
-	inline bool operator==(int lhs, const CInt &rhs) { return CInt(lhs) == rhs; }
-	inline bool operator==(int lhs, const CSize_t &rhs) { return CInt(lhs) == as_a_size_t(rhs); }
-	inline bool operator==(long long lhs, const CInt &rhs) { return CInt(lhs) == rhs; }
-	inline bool operator==(long long lhs, const CSize_t &rhs) { return CInt(lhs) == as_a_size_t(rhs); }
-	inline bool operator==(const CInt &lhs, const CSize_t &rhs) { return lhs == as_a_size_t(rhs); }
-	inline bool operator!=(size_t lhs, const CInt &rhs) { return CSize_t(lhs) != rhs; }
-	inline bool operator!=(size_t lhs, const CSize_t &rhs) { return CSize_t(lhs) != rhs; }
-	inline bool operator!=(int lhs, const CInt &rhs) { return CInt(lhs) != rhs; }
-	inline bool operator!=(int lhs, const CSize_t &rhs) { return CInt(lhs) != as_a_size_t(rhs); }
-	inline bool operator!=(long long lhs, const CInt &rhs) { return CInt(lhs) != rhs; }
-	inline bool operator!=(long long lhs, const CSize_t &rhs) { return CInt(lhs) != as_a_size_t(rhs); }
-	inline bool operator!=(const CInt &lhs, const CSize_t &rhs) { return lhs != as_a_size_t(rhs); }
+	inline bool operator<(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) < rhs; }
+	inline bool operator<(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) < rhs; }
+	inline bool operator<(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) < rhs; }
+	inline bool operator<(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) < as_a_size_t(rhs); }
+	inline bool operator<(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) < rhs; }
+	inline bool operator<(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) < as_a_size_t(rhs); }
+	inline bool operator<(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs < as_a_size_t(rhs); }
+	inline bool operator>(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) > rhs; }
+	inline bool operator>(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) > rhs; }
+	inline bool operator>(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) > rhs; }
+	inline bool operator>(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) > as_a_size_t(rhs); }
+	inline bool operator>(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) > rhs; }
+	inline bool operator>(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) > as_a_size_t(rhs); }
+	inline bool operator>(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs > as_a_size_t(rhs); }
+	inline bool operator<=(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) <= rhs; }
+	inline bool operator<=(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) <= rhs; }
+	inline bool operator<=(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) <= rhs; }
+	inline bool operator<=(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) <= as_a_size_t(rhs); }
+	inline bool operator<=(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) <= rhs; }
+	inline bool operator<=(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) <= as_a_size_t(rhs); }
+	inline bool operator<=(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs <= as_a_size_t(rhs); }
+	inline bool operator>=(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) >= rhs; }
+	inline bool operator>=(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) >= rhs; }
+	inline bool operator>=(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) >= rhs; }
+	inline bool operator>=(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) >= as_a_size_t(rhs); }
+	inline bool operator>=(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) >= rhs; }
+	inline bool operator>=(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) >= as_a_size_t(rhs); }
+	inline bool operator>=(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs >= as_a_size_t(rhs); }
+	inline bool operator==(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) == rhs; }
+	inline bool operator==(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) == rhs; }
+	inline bool operator==(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) == rhs; }
+	inline bool operator==(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) == as_a_size_t(rhs); }
+	inline bool operator==(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) == rhs; }
+	inline bool operator==(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) == as_a_size_t(rhs); }
+	inline bool operator==(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs == as_a_size_t(rhs); }
+	inline bool operator!=(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) != rhs; }
+	inline bool operator!=(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) != rhs; }
+	inline bool operator!=(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) != rhs; }
+	inline bool operator!=(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) != as_a_size_t(rhs); }
+	inline bool operator!=(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) != rhs; }
+	inline bool operator!=(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) != as_a_size_t(rhs); }
+	inline bool operator!=(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs != as_a_size_t(rhs); }
 #endif /*MSE_PRIMITIVES_DISABLED*/
 
 	static void s_type_test1() {
