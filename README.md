@@ -249,25 +249,47 @@ usage example:
     #include "msemsevector.h"
     
     int main(int argc, char* argv[]) {
-    
-        mse::msevector<int> v = { 1, 2, 3, 4 };
-        mse::msevector<int>::ipointer ip_vit1(v);
-        /*ip_vit1.set_to_beginning();*/ /* This would be redundant as ipointers are set to the beginning at initialization. */
-        ip_vit1.advance(2);
-        assert(3 == ip_vit1.item());
-        auto ip_vit2 = v.ibegin(); /* ibegin() returns an ipointer */
-        v.erase(ip_vit2); /* remove the first item */
-        assert(3 == ip_vit1.item());
-        ip_vit1.set_to_previous();
-        assert(2 == ip_vit1.item());
         
+        mse::msevector<int> v1 = { 1, 2, 3, 4 };
+        mse::msevector<int> v = v1;
+        {
+            mse::msevector<int>::ipointer ip1 = v.ibegin();
+            ip1 += 2;
+            assert(3 == (*ip1));
+            auto ip2 = v.ibegin(); /* ibegin() returns an ipointer */
+            v.erase(ip2); /* remove the first item */
+            assert(3 == (*ip1)); /* ip1 continues to point to the same item, not the same position */
+            ip1--;
+            assert(2 == (*ip1));
+            for (mse::msevector<int>::cipointer cip = v.cibegin(); v.ciend() != cip; cip++) {
+                /* You might imagine what would happen if cip were a regular vector iterator. */
+                v.insert(v.ibegin(), (*cip));
+            }
+        }
+        v = v1;
+        {
+            /* This code block is equivalent to the previous code block, but uses ipointer's more "readable" interface
+            that might make the code a little more clear to those less familiar with C++ syntax. */
+            mse::msevector<int>::ipointer ip_vit1 = v.ibegin();
+            ip_vit1.advance(2);
+            assert(3 == ip_vit1.item());
+            auto ip_vit2 = v.ibegin();
+            v.erase(ip_vit2);
+            assert(3 == ip_vit1.item());
+            ip_vit1.set_to_previous();
+            assert(2 == ip_vit1.item());
+            mse::msevector<int>::cipointer cip(v);
+            for (cip.set_to_beginning(); cip.points_to_an_item(); cip.set_to_next()) {
+                v.insert_before(v.ibegin(), (*cip));
+            }
+        }
+    
         /* Btw, ipointers are compatible with stl algorithms, like any other stl iterators. */
         std::sort(v.ibegin(), v.iend());
-        ip_vit1 = v.ibegin();
-        
+    
         /* And just to be clear, mse::msevector<> retains it's original (high performance) stl::vector iterators. */
         std::sort(v.begin(), v.end());
-        
+    
         /* mse::msevector<> also provides "safe" (bounds checked) versions of the original stl::vector iterators. */
         std::sort(v.ss_begin(), v.ss_end());
     }
