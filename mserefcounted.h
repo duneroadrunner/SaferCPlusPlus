@@ -85,6 +85,12 @@ namespace mse {
 			return get() != r.get();
 		}
 
+#ifndef MSE_REFCOUNTEDPOINTER_DISABLE_MEMBER_TEMPLATES
+		/* Apparently msvc2015 requires that templated member functions come before regular ones.
+		From this webpage regarding compiler error C2668 - https://msdn.microsoft.com/en-us/library/da60x087.aspx:
+		"If, in the same class, you have a regular member function and a templated member function with the same
+		signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
+		*/
 		//  template <class Y> friend class TRefCountedPointer<Y>;
 		template <class Y> TRefCountedPointer(const TRefCountedPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
@@ -105,6 +111,7 @@ namespace mse {
 		template <class Y> bool operator!=(const TRefCountedPointer<Y>& r) const {
 			return get() != r.get();
 		}
+#endif // !MSE_REFCOUNTEDPOINTER_DISABLE_MEMBER_TEMPLATES
 
 		X& operator*()  const {
 			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
@@ -160,15 +167,73 @@ namespace mse {
 		}
 
 		TRefWithTargetObj<X>* m_ref_with_target_obj_ptr;
-
-		template <class... Args>
-		friend TRefCountedPointer<X> make_refcounted(Args&&... args);
 	};
 
 	template <class X, class... Args>
 	TRefCountedPointer<X> make_refcounted(Args&&... args) {
 		return TRefCountedPointer<X>::make_refcounted(args...);
 	}
+
+	template <class X>
+	class TRefCountedConstPointer {
+	public:
+		TRefCountedConstPointer() {}
+		TRefCountedConstPointer(nullptr_t) {}
+		//~TRefCountedConstPointer() {}
+		TRefCountedConstPointer(const TRefCountedConstPointer& r) = default;
+		TRefCountedConstPointer(const TRefCountedPointer<X>& r) : m_refcounted_ptr(r) {}
+		operator bool() const { return m_refcounted_ptr; }
+		void clear() { (*this) = TRefCountedConstPointer<X>(nullptr); }
+		TRefCountedConstPointer& operator=(const TRefCountedConstPointer& r) = default;
+		TRefCountedConstPointer& operator=(const TRefCountedPointer<X>& r) {
+			m_refcounted_ptr = r;
+		}
+		bool operator<(const TRefCountedConstPointer& r) const {
+			return m_refcounted_ptr < r.m_refcounted_ptr;
+		}
+		bool operator==(const TRefCountedConstPointer& r) const {
+			return m_refcounted_ptr == r.m_refcounted_ptr;
+		}
+		bool operator!=(const TRefCountedConstPointer& r) const {
+			return m_refcounted_ptr != r.m_refcounted_ptr;
+		}
+
+#ifndef MSE_REFCOUNTEDPOINTER_DISABLE_MEMBER_TEMPLATES
+		//  template <class Y> friend class TRefCountedConstPointer<Y>;
+		template <class Y> TRefCountedConstPointer(const TRefCountedConstPointer<Y>& r) {
+			m_refcounted_ptr = r.m_refcounted_ptr;
+		}
+		template <class Y> TRefCountedConstPointer& operator=(const TRefCountedConstPointer<Y>& r) {
+			m_refcounted_ptr = r.m_refcounted_ptr;
+			return *this;
+		}
+		template <class Y> bool operator<(const TRefCountedConstPointer<Y>& r) const {
+			return m_refcounted_ptr < r.m_refcounted_ptr;
+		}
+		template <class Y> bool operator==(const TRefCountedConstPointer<Y>& r) const {
+			return m_refcounted_ptr == r.m_refcounted_ptr;
+		}
+		template <class Y> bool operator!=(const TRefCountedConstPointer<Y>& r) const {
+			return m_refcounted_ptr != r.m_refcounted_ptr;
+		}
+#endif // !MSE_REFCOUNTEDPOINTER_DISABLE_MEMBER_TEMPLATES
+
+		const X& operator*()  const {
+			return (*m_refcounted_ptr);
+		}
+		const X* operator->() const {
+			return m_refcounted_ptr.operator->();
+		}
+		const X* get()        const { return m_refcounted_ptr.get(); }
+		bool unique()   const {
+			return m_refcounted_ptr.unique();
+		}
+
+	private:
+
+		TRefCountedPointer<X> m_refcounted_ptr;
+	};
+
 #endif /*MSE_REFCOUNTEDPOINTER_DISABLED*/
 
 	class TRefCountedPointer_test {
@@ -287,6 +352,14 @@ namespace mse {
 			MTXASSERT_EQ(ok, 2ul, destructions.size());
 
 			return ok;
+		}
+
+		void test1() {
+			mse::TRefCountedPointer<int> rfp1 = mse::make_refcounted<int>(7);
+			(*rfp1) = 11;
+			mse::TRefCountedConstPointer<int> rfcp1(rfp1);
+			mse::TRefCountedConstPointer<int> rfcp2;
+			rfcp2 = rfcp1;
 		}
 
 	};
