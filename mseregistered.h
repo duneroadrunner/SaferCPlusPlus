@@ -375,6 +375,7 @@ namespace mse {
 
 	private:
 		TRegisteredFixedPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredNotNullPointer<_Ty, _Tn>(ptr) {}
+		TRegisteredFixedPointer<_Ty, _Tn>& operator=(const TRegisteredFixedPointer<_Ty, _Tn>& _Right_cref) {}
 
 		TRegisteredFixedPointer<_Ty, _Tn>* operator&() { return this; }
 		const TRegisteredFixedPointer<_Ty, _Tn>* operator&() const { return this; }
@@ -400,6 +401,7 @@ namespace mse {
 
 	private:
 		TRegisteredFixedConstPointer(const TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredNotNullConstPointer<_Ty, _Tn>(ptr) {}
+		TRegisteredFixedConstPointer<_Ty, _Tn>& operator=(const TRegisteredFixedConstPointer<_Ty, _Tn>& _Right_cref) {}
 
 		TRegisteredFixedConstPointer<_Ty, _Tn>* operator&() { return this; }
 		const TRegisteredFixedConstPointer<_Ty, _Tn>* operator&() const { return this; }

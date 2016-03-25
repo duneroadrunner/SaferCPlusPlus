@@ -443,11 +443,11 @@ int main(int argc, char* argv[])
 			}
 			{
 				int count = 0;
-				auto item_ptr2 = mse::registered_new<CE>(count);
+				mse::TRegisteredPointer<CE> item_ptr2 = mse::registered_new<CE>(count);
 				mse::registered_delete<CE>(item_ptr2);
 				auto t1 = std::chrono::high_resolution_clock::now();
 				for (int i = 0; i < number_of_loops; i += 1) {
-					auto item_ptr = mse::registered_new<CE>(count);
+					mse::TRegisteredPointer<CE> item_ptr = mse::registered_new<CE>(count);
 					item_ptr2 = item_ptr;
 					mse::registered_delete<CE>(item_ptr);
 				}
@@ -462,11 +462,11 @@ int main(int argc, char* argv[])
 			}
 			{
 				int count = 0;
-				auto item_ptr2 = mse::relaxed_registered_new<CE>(count);
+				mse::TRelaxedRegisteredPointer<CE> item_ptr2 = mse::relaxed_registered_new<CE>(count);
 				mse::relaxed_registered_delete<CE>(item_ptr2);
 				auto t1 = std::chrono::high_resolution_clock::now();
 				for (int i = 0; i < number_of_loops; i += 1) {
-					auto item_ptr = mse::relaxed_registered_new<CE>(count);
+					mse::TRelaxedRegisteredPointer<CE> item_ptr = mse::relaxed_registered_new<CE>(count);
 					item_ptr2 = item_ptr;
 					mse::relaxed_registered_delete<CE>(item_ptr);
 				}
@@ -500,12 +500,12 @@ int main(int argc, char* argv[])
 			}
 			{
 				int count = 0;
-				auto item_ptr2 = &(mse::TRegisteredObj<CE>(count));
+				mse::TRegisteredPointer<CE> item_ptr2 = &(mse::TRegisteredObj<CE>(count));
 				auto t1 = std::chrono::high_resolution_clock::now();
 				{
 					for (int i = 0; i < number_of_loops; i += 1) {
 						mse::TRegisteredObj<CE> object(count);
-						auto item_ptr = &object;
+						mse::TRegisteredPointer<CE> item_ptr = &object;
 						item_ptr2 = item_ptr;
 					}
 				}
@@ -520,10 +520,10 @@ int main(int argc, char* argv[])
 			}
 			{
 				int count = 0;
-				auto item_ptr2 = mse::make_refcounted<CE>(count);
+				mse::TRefCountedPointer<CE> item_ptr2 = mse::make_refcounted<CE>(count);
 				auto t1 = std::chrono::high_resolution_clock::now();
 				for (int i = 0; i < number_of_loops; i += 1) {
-					auto item_ptr = mse::make_refcounted<CE>(count);
+					mse::TRefCountedPointer<CE> item_ptr = mse::make_refcounted<CE>(count);
 					item_ptr2 = item_ptr;
 					item_ptr = nullptr;
 				}
@@ -714,6 +714,7 @@ int main(int argc, char* argv[])
 		mse::TRefCountedPointer_test TRefCountedPointer_test1;
 		bool TRefCountedPointer_test1_res = TRefCountedPointer_test1.testBehaviour();
 		TRefCountedPointer_test1_res &= TRefCountedPointer_test1.testLinked();
+		TRefCountedPointer_test1.test1();
 	}
 
 	return 0;

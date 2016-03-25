@@ -24,12 +24,17 @@ namespace mse {
 
 #ifdef MSE_REFCOUNTEDPOINTER_DISABLED
 	template <class X> using TRefCountedPointer = std::shared_ptr<X>;
+	template <class X> using TRefCountedNotNullPointer = std::shared_ptr<X>;
+	template <class X> using TRefCountedFixedPointer = std::shared_ptr<X>;
 
 	template <class X, class... Args>
 	TRefCountedPointer<X> make_refcounted(Args&&... args) {
 		return std::make_shared<X>(args...);
 	}
 #else /*MSE_REFCOUNTEDPOINTER_DISABLED*/
+
+	template<typename _Ty> class TRefCountedNotNullPointer;
+	template<typename _Ty> class TRefCountedFixedPointer;
 
 	class CRefCounter {
 	private:
@@ -167,12 +172,71 @@ namespace mse {
 		}
 
 		TRefWithTargetObj<X>* m_ref_with_target_obj_ptr;
+
+		friend class TRefCountedNotNullPointer<X>;
+	};
+
+	template<typename _Ty>
+	class TRefCountedNotNullPointer : public TRefCountedPointer<_Ty> {
+	public:
+		TRefCountedNotNullPointer(const TRefCountedNotNullPointer& src_cref) : TRefCountedPointer<_Ty>(src_cref) {}
+		virtual ~TRefCountedNotNullPointer() {}
+		TRefCountedNotNullPointer<_Ty>& operator=(const TRefCountedNotNullPointer<_Ty>& _Right_cref) {
+			TRefCountedPointer<_Ty>::operator=(_Right_cref);
+			return (*this);
+		}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator _Ty*() const { return TRefCountedPointer<_Ty>::operator _Ty*(); }
+		//explicit operator TRegisteredObj<_Ty, _Tn>*() const { return TRefCountedPointer<_Ty>::operator TRegisteredObj<_Ty, _Tn>*(); }
+
+	private:
+		explicit TRefCountedNotNullPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountedPointer<_Ty>(p) {}
+
+		//TRefCountedNotNullPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRefCountedPointer<_Ty>(ptr) {}
+
+		TRefCountedNotNullPointer<_Ty>* operator&() { return this; }
+		const TRefCountedNotNullPointer<_Ty>* operator&() const { return this; }
+
+		friend class TRefCountedFixedPointer<_Ty>;
+	};
+
+	/* TRefCountedFixedPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
+	parameters by reference. */
+	template<typename _Ty>
+	class TRefCountedFixedPointer : public TRefCountedNotNullPointer<_Ty> {
+	public:
+		TRefCountedFixedPointer(const TRefCountedFixedPointer& src_cref) : TRefCountedNotNullPointer<_Ty>(src_cref) {}
+		virtual ~TRefCountedFixedPointer() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator _Ty*() const { return TRefCountedNotNullPointer<_Ty>::operator _Ty*(); }
+		//explicit operator TRegisteredObj<_Ty, _Tn>*() const { return TRefCountedNotNullPointer<_Ty>::operator TRegisteredObj<_Ty, _Tn>*(); }
+
+		template <class... Args>
+		static TRefCountedFixedPointer make_refcounted(Args&&... args) {
+			auto new_ptr = new TRefWithTargetObj<_Ty>(args...);
+			TRefCountedFixedPointer retval(new_ptr);
+			return retval;
+		}
+
+	private:
+		explicit TRefCountedFixedPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountedNotNullPointer<_Ty>(p) {}
+		TRefCountedFixedPointer<_Ty>& operator=(const TRefCountedFixedPointer<_Ty>& _Right_cref) {}
+
+		//TRefCountedFixedPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRefCountedNotNullPointer<_Ty>(ptr) {}
+
+		TRefCountedFixedPointer<_Ty>* operator&() { return this; }
+		const TRefCountedFixedPointer<_Ty>* operator&() const { return this; }
+
+		//friend class TRegisteredObj<_Ty, _Tn>;
 	};
 
 	template <class X, class... Args>
-	TRefCountedPointer<X> make_refcounted(Args&&... args) {
-		return TRefCountedPointer<X>::make_refcounted(args...);
+	TRefCountedFixedPointer<X> make_refcounted(Args&&... args) {
+		return TRefCountedFixedPointer<X>::make_refcounted(args...);
 	}
+
+#endif /*MSE_REFCOUNTEDPOINTER_DISABLED*/
+
 
 	template <class X>
 	class TRefCountedConstPointer {
@@ -233,8 +297,6 @@ namespace mse {
 
 		TRefCountedPointer<X> m_refcounted_ptr;
 	};
-
-#endif /*MSE_REFCOUNTEDPOINTER_DISABLED*/
 
 	class TRefCountedPointer_test {
 	public:
@@ -355,11 +417,12 @@ namespace mse {
 		}
 
 		void test1() {
-			mse::TRefCountedPointer<int> rfp1 = mse::make_refcounted<int>(7);
-			(*rfp1) = 11;
-			mse::TRefCountedConstPointer<int> rfcp1(rfp1);
-			mse::TRefCountedConstPointer<int> rfcp2;
-			rfcp2 = rfcp1;
+			mse::TRefCountedPointer<int> rcp1 = mse::make_refcounted<int>(7);
+			(*rcp1) = 11;
+			mse::TRefCountedConstPointer<int> rccp1(rcp1);
+			mse::TRefCountedConstPointer<int> rccp2;
+			rccp2 = rccp1;
+			mse::TRefCountedPointer<int> rccp3 = mse::make_refcounted<int>(17);
 		}
 
 	};
