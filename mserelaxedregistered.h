@@ -23,9 +23,9 @@ native GetCurrentThreadId(). */
 #define MSE_GET_CURRENT_THREAD_ID std::this_thread::get_id()
 #endif /*_MSC_VER*/
 
-#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+#if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_REGISTEREDPOINTER_DISABLED
-#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+#endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
 namespace mse {
 

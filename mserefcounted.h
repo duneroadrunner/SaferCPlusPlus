@@ -22,6 +22,9 @@
 
 namespace mse {
 
+	template<typename _Ty> class TRefCountedNotNullConstPointer;
+	template<typename _Ty> class TRefCountedFixedConstPointer;
+
 #ifdef MSE_REFCOUNTEDPOINTER_DISABLED
 	template <class X> using TRefCountedPointer = std::shared_ptr<X>;
 	template <class X> using TRefCountedNotNullPointer = std::shared_ptr<X>;
@@ -297,6 +300,68 @@ namespace mse {
 
 		TRefCountedPointer<X> m_refcounted_ptr;
 	};
+
+	template<typename _Ty>
+	class TRefCountedNotNullConstPointer : public TRefCountedConstPointer<_Ty> {
+	public:
+		TRefCountedNotNullConstPointer(const TRefCountedNotNullConstPointer& src_cref) : TRefCountedConstPointer<_Ty>(src_cref) {}
+		virtual ~TRefCountedNotNullConstPointer() {}
+		TRefCountedNotNullConstPointer<_Ty>& operator=(const TRefCountedNotNullConstPointer<_Ty>& _Right_cref) {
+			TRefCountedConstPointer<_Ty>::operator=(_Right_cref);
+			return (*this);
+		}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator const _Ty*() const { return TRefCountedConstPointer<_Ty>::operator _Ty*(); }
+		//explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRefCountedConstPointer<_Ty>::operator TRegisteredObj<_Ty, _Tn>*(); }
+
+		const _Ty& operator*() const {
+			return TRefCountedConstPointer<_Ty>::operator*();
+		}
+		const _Ty* operator->() const {
+			return TRefCountedConstPointer<_Ty>::operator->();
+		}
+
+	private:
+		//explicit TRefCountedNotNullConstPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountedConstPointer<_Ty>(p) {}
+
+		//TRefCountedNotNullConstPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRefCountedConstPointer<_Ty>(ptr) {}
+
+		TRefCountedNotNullConstPointer<_Ty>* operator&() { return this; }
+		const TRefCountedNotNullConstPointer<_Ty>* operator&() const { return this; }
+
+		friend class TRefCountedFixedConstPointer<_Ty>;
+	};
+
+	/* TRefCountedFixedConstPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
+	parameters by reference. */
+	template<typename _Ty>
+	class TRefCountedFixedConstPointer : public TRefCountedNotNullConstPointer<_Ty> {
+	public:
+		TRefCountedFixedConstPointer(const TRefCountedFixedConstPointer& src_cref) : TRefCountedNotNullConstPointer<_Ty>(src_cref) {}
+		virtual ~TRefCountedFixedConstPointer() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator const _Ty*() const { return TRefCountedNotNullConstPointer<_Ty>::operator _Ty*(); }
+		//explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRefCountedNotNullConstPointer<_Ty>::operator TRegisteredObj<_Ty, _Tn>*(); }
+
+		const _Ty& operator*() const {
+			return TRefCountedNotNullConstPointer<_Ty>::operator*();
+		}
+		const _Ty* operator->() const {
+			return TRefCountedNotNullConstPointer<_Ty>::operator->();
+		}
+
+	private:
+		//explicit TRefCountedFixedConstPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountedNotNullConstPointer<_Ty>(p) {}
+		TRefCountedFixedConstPointer<_Ty>& operator=(const TRefCountedFixedConstPointer<_Ty>& _Right_cref) {}
+
+		//TRefCountedFixedConstPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRefCountedNotNullConstPointer<_Ty>(ptr) {}
+
+		TRefCountedFixedConstPointer<_Ty>* operator&() { return this; }
+		const TRefCountedFixedConstPointer<_Ty>* operator&() const { return this; }
+
+		//friend class TRegisteredObj<_Ty, _Tn>;
+	};
+
 
 	class TRefCountedPointer_test {
 	public:
