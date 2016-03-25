@@ -12,9 +12,9 @@
 #include <unordered_set>
 #include <functional>
 
-#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+#ifdef MSE_SAFER_SUBSTITUTES_DISABLED || MSE_SAFERPTR_DISABLED
 #define MSE_REGISTEREDPOINTER_DISABLED
-#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+#endif /*MSE_SAFER_SUBSTITUTES_DISABLED || MSE_SAFERPTR_DISABLED*/
 
 namespace mse {
 
@@ -22,22 +22,13 @@ namespace mse {
 
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredPointer = _Ty*;
-	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredConstPointer = _Ty*;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredConstPointer = const _Ty*;
 	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredNotNullPointer = _Ty*;
-	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredNotNullConstPointer = _Ty*;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredNotNullConstPointer = const _Ty*;
 	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredFixedPointer = _Ty*;
-	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredFixedConstPointer = _Ty*;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredFixedConstPointer = const _Ty*;
 	template<typename _TROy, int _Tn = sc_default_cache_size> using TRegisteredObj = _TROy;
 	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
-	TRegisteredPointer<_Ty, _Tn> registered_new(Args&&... args) {
-		return new TRegisteredObj<_Ty, _Tn>(args...);
-	}
-	template <class _Ty, int _Tn = sc_default_cache_size>
-	void registered_delete(const TRegisteredPointer<_Ty, _Tn>& regPtrRef) {
-		//auto a = dynamic_cast<TRegisteredObj<_Ty, _Tn> *>((_Ty*)regPtrRef);
-		auto a = (TRegisteredObj<_Ty, _Tn>*)regPtrRef;
-		delete a;
-	}
 	template <class _TRRWy, int _TRRWn = sc_default_cache_size> using TRegisteredRefWrapper = std::reference_wrapper<_TRRWy>;
 
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
@@ -552,6 +543,7 @@ namespace mse {
 		return (*this).m_ptr;
 	}
 
+#endif /*MSE_REGISTEREDPOINTER_DISABLED*/
 
 	/* registered_new is intended to be analogous to std::make_shared */
 	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
@@ -570,6 +562,9 @@ namespace mse {
 		auto a = (const TRegisteredObj<_Ty, _Tn>*)regPtrRef;
 		delete a;
 	}
+
+#ifdef MSE_REGISTEREDPOINTER_DISABLED
+#else /*MSE_REGISTEREDPOINTER_DISABLED*/
 
 #ifdef _MSC_VER
 #if (1900 <= _MSC_VER)

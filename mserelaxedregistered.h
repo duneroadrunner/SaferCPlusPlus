@@ -31,11 +31,11 @@ namespace mse {
 
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 	template<typename _Ty> using TRelaxedRegisteredPointer = _Ty*;
-	template<typename _Ty> using TRelaxedRegisteredConstPointer = _Ty*;
+	template<typename _Ty> using TRelaxedRegisteredConstPointer = const _Ty*;
 	template<typename _Ty> using TRelaxedRegisteredNotNullPointer = _Ty*;
-	template<typename _Ty> using TRelaxedRegisteredNotNullConstPointer = _Ty*;
+	template<typename _Ty> using TRelaxedRegisteredNotNullConstPointer = const _Ty*;
 	template<typename _Ty> using TRelaxedRegisteredFixedPointer = _Ty*;
-	template<typename _Ty> using TRelaxedRegisteredFixedConstPointer = _Ty*;
+	template<typename _Ty> using TRelaxedRegisteredFixedConstPointer = const _Ty*;
 	template<typename _TROFLy> using TRelaxedRegisteredObj = _TROFLy;
 	template <class _Ty, class... Args>
 	TRelaxedRegisteredPointer<_Ty> relaxed_registered_new(Args&&... args) {
@@ -44,6 +44,11 @@ namespace mse {
 	template <class _Ty>
 	void relaxed_registered_delete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) {
 		auto a = (TRelaxedRegisteredObj<_Ty>*)regPtrRef;
+		delete a;
+	}
+	template <class _Ty>
+	void relaxed_registered_delete(const TRelaxedRegisteredConstPointer<_Ty>& regPtrRef) {
+		auto a = (const TRelaxedRegisteredObj<_Ty>*)regPtrRef;
 		delete a;
 	}
 
