@@ -9,8 +9,9 @@
 /* Each of the following will replace a subset of the classes with their native/standard counterparts. */
 //define MSE_MSTDVECTOR_DISABLED
 //define MSE_REGISTEREDPOINTER_DISABLED
-//define MSE_SAFERPTR_DISABLED /* If you define MSE_SAFERPTR_DISABLED then you must also define MSE_REGISTEREDPOINTER_DISABLED. */
+//define MSE_SAFERPTR_DISABLED /* MSE_SAFERPTR_DISABLED implies MSE_REGISTEREDPOINTER_DISABLED too. */
 //define MSE_PRIMITIVES_DISABLED
+//define MSE_REFCOUNTEDPOINTER_DISABLED
 
 //include "msetl.h"
 #include "msemsevector.h"
@@ -19,6 +20,7 @@
 #include "msevector_test.h"
 #include "mseregistered.h"
 #include "mserelaxedregistered.h"
+#include "mserefcounted.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -516,6 +518,25 @@ int main(int argc, char* argv[])
 				}
 				std::cout << std::endl;
 			}
+			{
+				int count = 0;
+				auto item_ptr2 = mse::make_refcounted<CE>(count);
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					auto item_ptr = mse::make_refcounted<CE>(count);
+					item_ptr2 = item_ptr;
+					item_ptr = nullptr;
+				}
+				item_ptr2 = nullptr;
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRefCountedPointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
 
 			std::cout << std::endl;
 			static const int number_of_loops2 = (10/*arbitrary*/)*number_of_loops;
@@ -684,6 +705,16 @@ int main(int argc, char* argv[])
 		}
 	}
 #endif // MSEREGISTEREDREFWRAPPER
+
+	{
+		/*****************************/
+		/*    TRefCountedPointer     */
+		/*****************************/
+
+		mse::TRefCountedPointer_test TRefCountedPointer_test1;
+		bool TRefCountedPointer_test1_res = TRefCountedPointer_test1.testBehaviour();
+		TRefCountedPointer_test1_res &= TRefCountedPointer_test1.testLinked();
+	}
 
 	return 0;
 }
