@@ -63,6 +63,9 @@ namespace mse {
 	/* Some code originally came from this stackoverflow post:
 	http://stackoverflow.com/questions/6593770/creating-a-non-thread-safe-shared-ptr */
 
+	/* TRefCountedPointer behaves similar to an std::shared_ptr. Some differences being that it foregoes any thread safety
+	mechanisms, it does not accept raw pointer assignment or construction (use make_refcounted<>() instead), and it will throw
+	an exception on attempted nullptr dereference. And it's faster. */
 	template <class X>
 	class TRefCountedPointer {
 	public:
@@ -200,12 +203,9 @@ namespace mse {
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TRefCountedPointer<_Ty>::operator _Ty*(); }
-		//explicit operator TRegisteredObj<_Ty, _Tn>*() const { return TRefCountedPointer<_Ty>::operator TRegisteredObj<_Ty, _Tn>*(); }
 
 	private:
 		explicit TRefCountedNotNullPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountedPointer<_Ty>(p) {}
-
-		//TRefCountedNotNullPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRefCountedPointer<_Ty>(ptr) {}
 
 		TRefCountedNotNullPointer<_Ty>* operator&() { return this; }
 		const TRefCountedNotNullPointer<_Ty>* operator&() const { return this; }
@@ -222,7 +222,6 @@ namespace mse {
 		virtual ~TRefCountedFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TRefCountedNotNullPointer<_Ty>::operator _Ty*(); }
-		//explicit operator TRegisteredObj<_Ty, _Tn>*() const { return TRefCountedNotNullPointer<_Ty>::operator TRegisteredObj<_Ty, _Tn>*(); }
 
 		template <class... Args>
 		static TRefCountedFixedPointer make_refcounted(Args&&... args) {
@@ -235,12 +234,8 @@ namespace mse {
 		explicit TRefCountedFixedPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountedNotNullPointer<_Ty>(p) {}
 		TRefCountedFixedPointer<_Ty>& operator=(const TRefCountedFixedPointer<_Ty>& _Right_cref) {}
 
-		//TRefCountedFixedPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRefCountedNotNullPointer<_Ty>(ptr) {}
-
 		TRefCountedFixedPointer<_Ty>* operator&() { return this; }
 		const TRefCountedFixedPointer<_Ty>* operator&() const { return this; }
-
-		//friend class TRegisteredObj<_Ty, _Tn>;
 	};
 
 	template <class X, class... Args>
@@ -336,13 +331,8 @@ namespace mse {
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRefCountedConstPointer<_Ty>::operator _Ty*(); }
-		//explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRefCountedConstPointer<_Ty>::operator TRegisteredObj<_Ty, _Tn>*(); }
 
 	private:
-		//explicit TRefCountedNotNullConstPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountedConstPointer<_Ty>(p) {}
-
-		//TRefCountedNotNullConstPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRefCountedConstPointer<_Ty>(ptr) {}
-
 		TRefCountedNotNullConstPointer<_Ty>* operator&() { return this; }
 		const TRefCountedNotNullConstPointer<_Ty>* operator&() const { return this; }
 
@@ -359,7 +349,6 @@ namespace mse {
 		virtual ~TRefCountedFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRefCountedNotNullConstPointer<_Ty>::operator _Ty*(); }
-		//explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRefCountedNotNullConstPointer<_Ty>::operator TRegisteredObj<_Ty, _Tn>*(); }
 
 		const _Ty& operator*() const {
 			return TRefCountedNotNullConstPointer<_Ty>::operator*();
@@ -369,15 +358,10 @@ namespace mse {
 		}
 
 	private:
-		//explicit TRefCountedFixedConstPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountedNotNullConstPointer<_Ty>(p) {}
 		TRefCountedFixedConstPointer<_Ty>& operator=(const TRefCountedFixedConstPointer<_Ty>& _Right_cref) {}
-
-		//TRefCountedFixedConstPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TRefCountedNotNullConstPointer<_Ty>(ptr) {}
 
 		TRefCountedFixedConstPointer<_Ty>* operator&() { return this; }
 		const TRefCountedFixedConstPointer<_Ty>* operator&() const { return this; }
-
-		//friend class TRegisteredObj<_Ty, _Tn>;
 	};
 
 
