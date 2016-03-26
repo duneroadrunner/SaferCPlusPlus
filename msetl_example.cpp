@@ -537,6 +537,26 @@ int main(int argc, char* argv[])
 				}
 				std::cout << std::endl;
 			}
+			{
+				int count = 0;
+				auto item_ptr2 = &CE(count);
+				auto t1 = std::chrono::high_resolution_clock::now();
+				{
+					for (int i = 0; i < number_of_loops; i += 1) {
+						CE object(count);
+						auto item_ptr = &object;
+						item_ptr2 = item_ptr;
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "native pointer targeting the stack: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
 
 			std::cout << std::endl;
 			static const int number_of_loops2 = (10/*arbitrary*/)*number_of_loops;
@@ -710,6 +730,73 @@ int main(int argc, char* argv[])
 		/*****************************/
 		/*    TRefCountedPointer     */
 		/*****************************/
+
+		/* TRefCountedPointer behaves similar to an std::shared_ptr. Some differences being that it foregoes any thread safety
+		mechanisms, it does not accept raw pointer assignment or construction (use make_refcounted<>() instead), and it will throw
+		an exception on attempted nullptr dereference. And it's faster. */
+
+		class A {
+		public:
+			A() {}
+			A(const A& _X) : b(_X.b) {}
+			A(A&& _X) : b(std::move(_X.b)) {}
+			virtual ~A() {}
+			A& operator=(A&& _X) { b = std::move(_X.b); return (*this); }
+			A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+			int b = 3;
+		};
+		class B {
+		public:
+			static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
+			static int foo2(mse::TRefCountedPointer<A> A_refcounted_ptr) { return A_refcounted_ptr->b; }
+		protected:
+			~B() {}
+		};
+
+		A* A_native_ptr = nullptr;
+		/* mse::TRefCountedPointer<> is basically a slightly "safer" version of std::shared_ptr. */
+		mse::TRefCountedPointer<A> A_refcounted_ptr1;
+
+		{
+			A a;
+
+			A_native_ptr = &a;
+			A_refcounted_ptr1 = mse::make_refcounted<A>();
+			assert(A_native_ptr->b == A_refcounted_ptr1->b);
+
+			mse::TRefCountedPointer<A> A_refcounted_ptr2 = A_refcounted_ptr1;
+			A_refcounted_ptr2 = nullptr;
+			bool expected_exception = false;
+			try {
+				int i = A_refcounted_ptr2->b; /* this is gonna throw an exception */
+			}
+			catch (...) {
+				//std::cerr << "expected exception" << std::endl;
+				expected_exception = true;
+				/* The exception is triggered by an attempt to dereference a null "refcounted pointer". */
+			}
+			assert(expected_exception);
+
+			B::foo1(&(*A_refcounted_ptr1));
+
+			if (A_refcounted_ptr2) {
+			}
+			else if (A_refcounted_ptr2 != A_refcounted_ptr1) {
+				A_refcounted_ptr2 = A_refcounted_ptr1;
+				assert(A_refcounted_ptr2 == A_refcounted_ptr1);
+			}
+
+			mse::TRefCountedConstPointer<A> rcp = A_refcounted_ptr1;
+			mse::TRefCountedConstPointer<A> rcp2 = rcp;
+			rcp = mse::make_refcounted<A>();
+			mse::TRefCountedFixedConstPointer<A> rfcp = mse::make_refcounted<A>();
+			{
+				int i = rfcp->b;
+			}
+		}
+
+		int i = A_refcounted_ptr1->b;
 
 		mse::TRefCountedPointer_test TRefCountedPointer_test1;
 		bool TRefCountedPointer_test1_res = TRefCountedPointer_test1.testBehaviour();
