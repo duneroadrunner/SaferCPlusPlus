@@ -188,6 +188,16 @@ namespace mse {
 			TRefCountedPointer<_Ty>::operator=(_Right_cref);
 			return (*this);
 		}
+
+		_Ty& operator*() const {
+			//if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
+			return (m_ref_with_target_obj_ptr->m_object);
+		}
+		_Ty* operator->() const {
+			//if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
+			return &(m_ref_with_target_obj_ptr->m_object);
+		}
+
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TRefCountedPointer<_Ty>::operator _Ty*(); }
 		//explicit operator TRegisteredObj<_Ty, _Tn>*() const { return TRefCountedPointer<_Ty>::operator TRegisteredObj<_Ty, _Tn>*(); }
@@ -254,6 +264,7 @@ namespace mse {
 		TRefCountedConstPointer& operator=(const TRefCountedConstPointer& r) = default;
 		TRefCountedConstPointer& operator=(const TRefCountedPointer<X>& r) {
 			m_refcounted_ptr = r;
+			return (*this);
 		}
 		bool operator<(const TRefCountedConstPointer& r) const {
 			return m_refcounted_ptr < r.m_refcounted_ptr;
@@ -305,21 +316,25 @@ namespace mse {
 	class TRefCountedNotNullConstPointer : public TRefCountedConstPointer<_Ty> {
 	public:
 		TRefCountedNotNullConstPointer(const TRefCountedNotNullConstPointer& src_cref) : TRefCountedConstPointer<_Ty>(src_cref) {}
+		TRefCountedNotNullConstPointer(const TRefCountedNotNullPointer<_Ty>& src_cref) : TRefCountedConstPointer<_Ty>(src_cref) {}
 		virtual ~TRefCountedNotNullConstPointer() {}
 		TRefCountedNotNullConstPointer<_Ty>& operator=(const TRefCountedNotNullConstPointer<_Ty>& _Right_cref) {
 			TRefCountedConstPointer<_Ty>::operator=(_Right_cref);
 			return (*this);
 		}
+
+		const _Ty& operator*() const {
+			//if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
+			return (m_ref_with_target_obj_ptr->m_object);
+		}
+		const _Ty* operator->() const {
+			//if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
+			return &(m_ref_with_target_obj_ptr->m_object);
+		}
+
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRefCountedConstPointer<_Ty>::operator _Ty*(); }
 		//explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRefCountedConstPointer<_Ty>::operator TRegisteredObj<_Ty, _Tn>*(); }
-
-		const _Ty& operator*() const {
-			return TRefCountedConstPointer<_Ty>::operator*();
-		}
-		const _Ty* operator->() const {
-			return TRefCountedConstPointer<_Ty>::operator->();
-		}
 
 	private:
 		//explicit TRefCountedNotNullConstPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountedConstPointer<_Ty>(p) {}
@@ -338,6 +353,7 @@ namespace mse {
 	class TRefCountedFixedConstPointer : public TRefCountedNotNullConstPointer<_Ty> {
 	public:
 		TRefCountedFixedConstPointer(const TRefCountedFixedConstPointer& src_cref) : TRefCountedNotNullConstPointer<_Ty>(src_cref) {}
+		TRefCountedFixedConstPointer(const TRefCountedFixedPointer<_Ty>& src_cref) : TRefCountedNotNullConstPointer<_Ty>(src_cref) {}
 		virtual ~TRefCountedFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRefCountedNotNullConstPointer<_Ty>::operator _Ty*(); }
@@ -482,12 +498,83 @@ namespace mse {
 		}
 
 		void test1() {
+			class A {
+			public:
+				A() {}
+				A(const A& _X) : b(_X.b) {}
+				A(A&& _X) : b(std::move(_X.b)) {}
+				virtual ~A() {}
+				A& operator=(A&& _X) { b = std::move(_X.b); return (*this); }
+				A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+				int b = 3;
+			};
+			class B {
+			public:
+				static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
+				static int foo2(mse::TRefCountedPointer<A> A_refcounted_ptr) { return A_refcounted_ptr->b; }
+			protected:
+				~B() {}
+			};
+
+			A* A_native_ptr = nullptr;
+			/* mse::TRefCountedPointer<> is basically a "safe" version of the native pointer. */
+			mse::TRefCountedPointer<A> A_refcounted_ptr1;
+
+			{
+				A a;
+
+				A_native_ptr = &a;
+				A_refcounted_ptr1 = mse::make_refcounted<A>();
+				assert(A_native_ptr->b == A_refcounted_ptr1->b);
+
+				mse::TRefCountedPointer<A> A_refcounted_ptr2 = A_refcounted_ptr1;
+				A_refcounted_ptr2 = nullptr;
+				bool expected_exception = false;
+				try {
+					int i = A_refcounted_ptr2->b; /* this is gonna throw an exception */
+				}
+				catch (...) {
+					//std::cerr << "expected exception" << std::endl;
+					expected_exception = true;
+					/* The exception is triggered by an attempt to dereference a null "refcounted pointer". */
+				}
+				assert(expected_exception);
+
+				/* mse::TRefCountedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
+				B::foo1(&(*A_refcounted_ptr1));
+
+				if (A_refcounted_ptr2) {
+				}
+				else if (A_refcounted_ptr2 != A_refcounted_ptr1) {
+					A_refcounted_ptr2 = A_refcounted_ptr1;
+					assert(A_refcounted_ptr2 == A_refcounted_ptr1);
+				}
+
+				mse::TRefCountedConstPointer<A> rcp = A_refcounted_ptr1;
+				mse::TRefCountedConstPointer<A> rcp2 = rcp;
+				rcp = mse::make_refcounted<A>();
+				mse::TRefCountedFixedConstPointer<A> rfcp = mse::make_refcounted<A>();
+			}
+
+			bool unexpected_exception = false;
+			try {
+				int i = A_refcounted_ptr1->b;
+			}
+			catch (...) {
+				std::cerr << "unexpected exception" << std::endl;
+				unexpected_exception = true;
+			}
+			assert(false == unexpected_exception);
+
 			mse::TRefCountedPointer<int> rcp1 = mse::make_refcounted<int>(7);
 			(*rcp1) = 11;
 			mse::TRefCountedConstPointer<int> rccp1(rcp1);
 			mse::TRefCountedConstPointer<int> rccp2;
 			rccp2 = rccp1;
-			mse::TRefCountedPointer<int> rccp3 = mse::make_refcounted<int>(17);
+			mse::TRefCountedFixedPointer<int> rcfp3 = mse::make_refcounted<int>(17);
+			int rcfp3val = *rcfp3;
+			int q = 21;
 		}
 
 	};
