@@ -310,6 +310,8 @@ namespace mse {
 	private:
 
 		TRefCountedPointer<X> m_refcounted_ptr;
+
+		friend class TRefCountedNotNullConstPointer<X>;
 	};
 
 	template<typename _Ty>
@@ -325,11 +327,11 @@ namespace mse {
 
 		const _Ty& operator*() const {
 			//if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
-			return (m_ref_with_target_obj_ptr->m_object);
+			return (*m_refcounted_ptr);
 		}
 		const _Ty* operator->() const {
 			//if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
-			return &(m_ref_with_target_obj_ptr->m_object);
+			return &(*m_refcounted_ptr);
 		}
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -518,7 +520,7 @@ namespace mse {
 			};
 
 			A* A_native_ptr = nullptr;
-			/* mse::TRefCountedPointer<> is basically a "safe" version of the native pointer. */
+			/* mse::TRefCountedPointer<> is basically a slightly "safer" version of std::shared_ptr. */
 			mse::TRefCountedPointer<A> A_refcounted_ptr1;
 
 			{
@@ -541,7 +543,6 @@ namespace mse {
 				}
 				assert(expected_exception);
 
-				/* mse::TRefCountedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
 				B::foo1(&(*A_refcounted_ptr1));
 
 				if (A_refcounted_ptr2) {
@@ -555,26 +556,12 @@ namespace mse {
 				mse::TRefCountedConstPointer<A> rcp2 = rcp;
 				rcp = mse::make_refcounted<A>();
 				mse::TRefCountedFixedConstPointer<A> rfcp = mse::make_refcounted<A>();
+				{
+					int i = rfcp->b;
+				}
 			}
 
-			bool unexpected_exception = false;
-			try {
-				int i = A_refcounted_ptr1->b;
-			}
-			catch (...) {
-				std::cerr << "unexpected exception" << std::endl;
-				unexpected_exception = true;
-			}
-			assert(false == unexpected_exception);
-
-			mse::TRefCountedPointer<int> rcp1 = mse::make_refcounted<int>(7);
-			(*rcp1) = 11;
-			mse::TRefCountedConstPointer<int> rccp1(rcp1);
-			mse::TRefCountedConstPointer<int> rccp2;
-			rccp2 = rccp1;
-			mse::TRefCountedFixedPointer<int> rcfp3 = mse::make_refcounted<int>(17);
-			int rcfp3val = *rcfp3;
-			int q = 21;
+			int i = A_refcounted_ptr1->b;
 		}
 
 	};
