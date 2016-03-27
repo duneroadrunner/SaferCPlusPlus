@@ -21,6 +21,7 @@
 #include "mseregistered.h"
 #include "mserelaxedregistered.h"
 #include "mserefcounted.h"
+#include "mserefcountedregistered.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -43,6 +44,19 @@ public:
 	(smart/safe) pointer they want to use. */
 	template<typename _Tpointer>
 	static int foo4(_Tpointer A_ptr) { return A_ptr->b; }
+	template<typename _Tpointer, typename _Tvector>
+	static int foo5(_Tpointer A_ptr, _Tvector& vector_ref) {
+		int tmp = A_ptr->b;
+		int retval = 0;
+		vector_ref.clear();
+		if (A_ptr) {
+			retval = A_ptr->b;
+		}
+		else {
+			retval = -1;
+		}
+		return retval;
+	}
 protected:
 	~H() {}
 };
@@ -273,7 +287,8 @@ int main(int argc, char* argv[])
 		sometimes you don't want a pointer that takes ownership (of the object's lifespan). So we provide mse::TRegisteredPointer.
 		Because it doesn't take ownership, it can be used with objects allocated on the stack and is compatible with raii
 		techniques. Also, in most cases, it can be used as a compatible, direct substitute for native pointers, making it
-		straightforward to update legacy code. */
+		straightforward to update legacy code. Proper "const", "not null" and "fixed" (non-retargetable) versions are provided as
+		well.*/
 
 		class A {
 		public:
@@ -326,9 +341,8 @@ int main(int argc, char* argv[])
 
 			/* Functions can be templated to allow the caller to use the (smart/safe) pointer of their choice. */
 			H::foo4<mse::TRegisteredFixedConstPointer<A>>(&*A_registered_ptr1);
-			/* You can alias function template instances to more convenient names. */
-			const auto& hfoo4_rfcp = H::foo4<mse::TRegisteredFixedConstPointer<A>>;
-			hfoo4_rfcp(&*A_registered_ptr1);
+			/* You don't actually need to explicitly specify the template type. */
+			H::foo4(&*A_registered_ptr1);
 
 			if (A_registered_ptr2) {
 			}
@@ -678,8 +692,7 @@ int main(int argc, char* argv[])
 		a reference to it is still available. So we provide mse::TRegisteredRefWrapper, a safe implementation of
 		std::reference_wrapper that "knows" when the object being referenced has been deallocated and will throw an exception
 		on any attempt to access the object after it has been destroyed.
-		In most cases it is probably preferable to just use mse::TRegisteredFixedPointer instead of
-		mse::TRegisteredRefWrapper. 
+		In most cases it is probably preferable to just use mse::TRegisteredFixedPointer instead of mse::TRegisteredRefWrapper. 
 		*/
 		{
 			/* This example originally comes from http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper. */
@@ -731,77 +744,99 @@ int main(int argc, char* argv[])
 		/*    TRefCountedPointer     */
 		/*****************************/
 
-		/* TRefCountedPointer behaves similar to an std::shared_ptr. Some differences being that it foregoes any thread safety
+		/* TRefCountedPointer behaves similar to std::shared_ptr. Some differences being that it foregoes any thread safety
 		mechanisms, it does not accept raw pointer assignment or construction (use make_refcounted<>() instead), and it will throw
-		an exception on attempted nullptr dereference. And it's faster. */
+		an exception on attempted nullptr dereference. And it's faster. And like TRegisteredPointer, proper "const", "not null"
+		and "fixed" (non-retargetable) versions are provided as well. */
 
 		class A {
 		public:
 			A() {}
 			A(const A& _X) : b(_X.b) {}
-			A(A&& _X) : b(std::move(_X.b)) {}
-			virtual ~A() {}
-			A& operator=(A&& _X) { b = std::move(_X.b); return (*this); }
+			virtual ~A() {
+				int q = 3; /* just so you can place a breakpoint if you want */
+			}
 			A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 			int b = 3;
 		};
+		typedef std::vector<mse::TRefCountedFixedPointer<A>> CRCFPVector;
 		class B {
 		public:
-			static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-			static int foo2(mse::TRefCountedPointer<A> A_refcounted_ptr) { return A_refcounted_ptr->b; }
+			static int foo1(mse::TRefCountedPointer<A> A_refcounted_ptr, CRCFPVector& rcfpvector_ref) {
+				rcfpvector_ref.clear();
+				int retval = A_refcounted_ptr->b;
+				A_refcounted_ptr = nullptr; /* Target object is destroyed here. */
+				return retval;
+			}
 		protected:
 			~B() {}
 		};
 
-		A* A_native_ptr = nullptr;
-		/* mse::TRefCountedPointer<> is basically a slightly "safer" version of std::shared_ptr. */
-		mse::TRefCountedPointer<A> A_refcounted_ptr1;
-
 		{
-			A a;
-
-			A_native_ptr = &a;
-			A_refcounted_ptr1 = mse::make_refcounted<A>();
-			assert(A_native_ptr->b == A_refcounted_ptr1->b);
-
-			mse::TRefCountedPointer<A> A_refcounted_ptr2 = A_refcounted_ptr1;
-			A_refcounted_ptr2 = nullptr;
-			bool expected_exception = false;
-			try {
-				int i = A_refcounted_ptr2->b; /* this is gonna throw an exception */
-			}
-			catch (...) {
-				//std::cerr << "expected exception" << std::endl;
-				expected_exception = true;
-				/* The exception is triggered by an attempt to dereference a null "refcounted pointer". */
-			}
-			assert(expected_exception);
-
-			B::foo1(&(*A_refcounted_ptr1));
-
-			if (A_refcounted_ptr2) {
-			}
-			else if (A_refcounted_ptr2 != A_refcounted_ptr1) {
-				A_refcounted_ptr2 = A_refcounted_ptr1;
-				assert(A_refcounted_ptr2 == A_refcounted_ptr1);
-			}
-
-			mse::TRefCountedConstPointer<A> rcp = A_refcounted_ptr1;
-			mse::TRefCountedConstPointer<A> rcp2 = rcp;
-			rcp = mse::make_refcounted<A>();
-			mse::TRefCountedFixedConstPointer<A> rfcp = mse::make_refcounted<A>();
+			CRCFPVector rcfpvector;
 			{
-				int i = rfcp->b;
-			}
-		}
+				mse::TRefCountedFixedPointer<A> A_refcountedfixed_ptr1 = mse::make_refcounted<A>();
+				rcfpvector.push_back(A_refcountedfixed_ptr1);
 
-		int i = A_refcounted_ptr1->b;
+				/* Just to demonstrate conversion between refcounted pointer types. */
+				mse::TRefCountedConstPointer<A> A_refcountedconst_ptr1 = A_refcountedfixed_ptr1;
+			}
+			B::foo1(rcfpvector.front(), rcfpvector);
+		}
 
 		mse::TRefCountedPointer_test TRefCountedPointer_test1;
 		bool TRefCountedPointer_test1_res = TRefCountedPointer_test1.testBehaviour();
 		TRefCountedPointer_test1_res &= TRefCountedPointer_test1.testLinked();
 		TRefCountedPointer_test1.test1();
+	}
+
+	{
+		/**********************************/
+		/*  TRefCountedRegisteredPointer  */
+		/**********************************/
+
+		/* TRefCountedRegisteredPointer is simply an alias for TRefCountedPointer<TRegisteredObj<_Ty>>. TRegisteredObj<_Ty> is
+		meant to behave much like, and be compatible with a _Ty. The reason why we might want to use it is because the &
+		("address of") operator of TRegisteredObj<_Ty> returns a TRegisteredFixedPointer<_Ty> rather than a raw pointer, and
+		TRegisteredPointers can serve as safe "weak pointers".
+		*/
+
+		class A {
+		public:
+			A() {}
+			A(const A& _X) : b(_X.b) {}
+			virtual ~A() {
+				int q = 3; /* just so you can place a breakpoint if you want */
+			}
+			A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+			int b = 3;
+		};
+		typedef std::vector<mse::TRefCountedRegisteredFixedPointer<A>> CRCRFPVector;
+
+		{
+			CRCRFPVector rcrfpvector;
+			{
+				mse::TRefCountedRegisteredFixedPointer<A> A_refcountedregisteredfixed_ptr1 = mse::make_refcountedregistered<A>();
+				rcrfpvector.push_back(A_refcountedregisteredfixed_ptr1);
+
+				/* Just to demonstrate conversion between refcountedregistered pointer types. */
+				mse::TRefCountedRegisteredConstPointer<A> A_refcountedregisteredconst_ptr1 = A_refcountedregisteredfixed_ptr1;
+			}
+			int res1 = H::foo5(rcrfpvector.front(), rcrfpvector);
+			assert(3 == res1);
+
+			rcrfpvector.push_back(mse::make_refcountedregistered<A>());
+			/* The first parameter in this case will be a TRegisteredFixedPointer<A>. */
+			int res2 = H::foo5(&(*rcrfpvector.front()), rcrfpvector);
+			assert(-1 == res2);
+		}
+
+		mse::TRefCountedRegisteredPointer_test TRefCountedRegisteredPointer_test1;
+		bool TRefCountedRegisteredPointer_test1_res = TRefCountedRegisteredPointer_test1.testBehaviour();
+		TRefCountedRegisteredPointer_test1_res &= TRefCountedRegisteredPointer_test1.testLinked();
+		TRefCountedRegisteredPointer_test1.test1();
 	}
 
 	return 0;
