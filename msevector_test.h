@@ -18,12 +18,12 @@ namespace mse {
 	class msevector_test {
 	public:
 		/* This is a unit test for mse::msevector. It was originally swiped from stlport (http://www.stlport.org/). */
-		CBool m_result1_is_valid = false;
-		CInt m_result1;
+		msev_bool m_result1_is_valid = false;
+		msev_int m_result1;
 		void m_initialize_m_result1_if_needed() {
 			if (!m_result1_is_valid) { m_result1 = 0; m_result1_is_valid = true; }
 		}
-		CInt m_terminate_m_result1() {
+		msev_int m_terminate_m_result1() {
 			if (!m_result1_is_valid) {
 				m_initialize_m_result1_if_needed();
 			}
@@ -37,54 +37,54 @@ namespace mse {
 		{
 			int q2 = 11;
 			mse::msevector_test msevector_test1;
-			mse::CInt res1 = msevector_test1.msevec_test_1();
-			mse::CInt res2 = msevector_test1.msevec_test_2();
-			mse::CInt res3 = msevector_test1.msevec_test_3();
-			mse::CInt res4 = msevector_test1.msevec_test_4();
-			mse::CInt res5 = msevector_test1.msevec_test_5();
-			mse::CInt res6 = msevector_test1.msevec_test_6();
-			mse::CInt res7 = msevector_test1.msevec_test_7();
-			mse::CInt res_cap = msevector_test1.capacity();
-			mse::CInt res_at = msevector_test1.at();
-			mse::CInt res_ptr = msevector_test1.pointer();
-			mse::CInt res_aref = msevector_test1.auto_ref();
-			mse::CInt res_oc = msevector_test1.optimizations_check();
-			mse::CInt res_asschk = msevector_test1.assign_check();
-			mse::CInt res_its = msevector_test1.iterators();
-			mse::CInt res_ebo = msevector_test1.ebo();
-			mse::CInt res_bvec1 = msevector_test1.bvec1();
-			mse::CInt resm1 = msevector_test1.msevec_test_m1();
-			mse::CInt resm2 = msevector_test1.msevec_test_m2();
-			mse::CInt resm3 = msevector_test1.msevec_test_m3();
-			mse::CInt resm4 = msevector_test1.msevec_test_m4();
-			mse::CInt resm5 = msevector_test1.msevec_test_m5();
-			mse::CInt resm6 = msevector_test1.msevec_test_m6();
-			mse::CInt resm7 = msevector_test1.msevec_test_m7();
-			mse::CInt resi1 = msevector_test1.msevec_test_i1();
-			mse::CInt resi2 = msevector_test1.msevec_test_i2();
-			mse::CInt resi3 = msevector_test1.msevec_test_i3();
-			mse::CInt resi4 = msevector_test1.msevec_test_i4();
-			mse::CInt resi5 = msevector_test1.msevec_test_i5();
-			mse::CInt resi6 = msevector_test1.msevec_test_i6();
-			mse::CInt resi7 = msevector_test1.msevec_test_i7();
-			mse::CInt ress1 = msevector_test1.msevec_test_s1();
-			mse::CInt ress2 = msevector_test1.msevec_test_s2();
-			mse::CInt ress3 = msevector_test1.msevec_test_s3();
-			mse::CInt ress4 = msevector_test1.msevec_test_s4();
-			mse::CInt ress5 = msevector_test1.msevec_test_s5();
-			mse::CInt ress6 = msevector_test1.msevec_test_s6();
-			mse::CInt ress7 = msevector_test1.msevec_test_s7();
-			mse::CInt res_mvec_as_stdvec = res1 + res2 + res3 + res4 + res5 + res6 + res7 + res_cap + res_at + res_ptr + res_aref
+			mse::msev_int res1 = msevector_test1.msevec_test_1();
+			mse::msev_int res2 = msevector_test1.msevec_test_2();
+			mse::msev_int res3 = msevector_test1.msevec_test_3();
+			mse::msev_int res4 = msevector_test1.msevec_test_4();
+			mse::msev_int res5 = msevector_test1.msevec_test_5();
+			mse::msev_int res6 = msevector_test1.msevec_test_6();
+			mse::msev_int res7 = msevector_test1.msevec_test_7();
+			mse::msev_int res_cap = msevector_test1.capacity();
+			mse::msev_int res_at = msevector_test1.at();
+			mse::msev_int res_ptr = msevector_test1.pointer();
+			mse::msev_int res_aref = msevector_test1.auto_ref();
+			mse::msev_int res_oc = msevector_test1.optimizations_check();
+			mse::msev_int res_asschk = msevector_test1.assign_check();
+			mse::msev_int res_its = msevector_test1.iterators();
+			mse::msev_int res_ebo = msevector_test1.ebo();
+			mse::msev_int res_bvec1 = msevector_test1.bvec1();
+			mse::msev_int resm1 = msevector_test1.msevec_test_m1();
+			mse::msev_int resm2 = msevector_test1.msevec_test_m2();
+			mse::msev_int resm3 = msevector_test1.msevec_test_m3();
+			mse::msev_int resm4 = msevector_test1.msevec_test_m4();
+			mse::msev_int resm5 = msevector_test1.msevec_test_m5();
+			mse::msev_int resm6 = msevector_test1.msevec_test_m6();
+			mse::msev_int resm7 = msevector_test1.msevec_test_m7();
+			mse::msev_int resi1 = msevector_test1.msevec_test_i1();
+			mse::msev_int resi2 = msevector_test1.msevec_test_i2();
+			mse::msev_int resi3 = msevector_test1.msevec_test_i3();
+			mse::msev_int resi4 = msevector_test1.msevec_test_i4();
+			mse::msev_int resi5 = msevector_test1.msevec_test_i5();
+			mse::msev_int resi6 = msevector_test1.msevec_test_i6();
+			mse::msev_int resi7 = msevector_test1.msevec_test_i7();
+			mse::msev_int ress1 = msevector_test1.msevec_test_s1();
+			mse::msev_int ress2 = msevector_test1.msevec_test_s2();
+			mse::msev_int ress3 = msevector_test1.msevec_test_s3();
+			mse::msev_int ress4 = msevector_test1.msevec_test_s4();
+			mse::msev_int ress5 = msevector_test1.msevec_test_s5();
+			mse::msev_int ress6 = msevector_test1.msevec_test_s6();
+			mse::msev_int ress7 = msevector_test1.msevec_test_s7();
+			mse::msev_int res_mvec_as_stdvec = res1 + res2 + res3 + res4 + res5 + res6 + res7 + res_cap + res_at + res_ptr + res_aref
 				/*+ res_oc */ + res_asschk + res_its + res_ebo + res_bvec1;
-			mse::CInt res_mvec = resm1 + resm2 + resm3 + resm4 + resm5 + resm6 + resm7;
-			mse::CInt res_ivec = resi1 + resi2 + resi3 + resi4 + resi5 + resi6 + resi7;
-			mse::CInt res_svec = ress1 + ress2 + ress3 + ress4 + ress5 + ress6 + ress7;
-			mse::CInt resall = res_mvec_as_stdvec + res_mvec + res_ivec + res_svec;
+			mse::msev_int res_mvec = resm1 + resm2 + resm3 + resm4 + resm5 + resm6 + resm7;
+			mse::msev_int res_ivec = resi1 + resi2 + resi3 + resi4 + resi5 + resi6 + resi7;
+			mse::msev_int res_svec = ress1 + ress2 + ress3 + ress4 + ress5 + ress6 + ress7;
+			mse::msev_int resall = res_mvec_as_stdvec + res_mvec + res_ivec + res_svec;
 			int q = 7;
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_1)
-		CInt msevec_test_1()
+		msev_int msevec_test_1()
 		{
 			msevector<int> v1; // Empty vector of integers.
 
@@ -114,7 +114,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_2)
-		CInt msevec_test_2()
+		msev_int msevec_test_2()
 		{
 			msevector<double> v1; // Empty vector of doubles.
 			v1.push_back(32.1);
@@ -151,7 +151,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_3)
-		CInt msevec_test_3()
+		msev_int msevec_test_3()
 		{
 			typedef msevector<char> vec_type;
 
@@ -178,7 +178,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_4)
-		CInt msevec_test_4()
+		msev_int msevec_test_4()
 		{
 			msevector<int> v(4);
 
@@ -204,7 +204,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_5)
-		CInt msevec_test_5()
+		msev_int msevec_test_5()
 		{
 			int array[] = { 1, 4, 9, 16 };
 
@@ -225,7 +225,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_6)
-		CInt msevec_test_6()
+		msev_int msevec_test_6()
 		{
 			int array[] = { 1, 4, 9, 16, 25, 36 };
 
@@ -274,7 +274,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_7)
-		CInt msevec_test_7()
+		msev_int msevec_test_7()
 		{
 			int array1[] = { 1, 4, 25 };
 			int array2[] = { 9, 16 };
@@ -344,7 +344,7 @@ namespace mse {
 		};
 
 		//int EXAM_IMPL(vector_test::capacity)
-		CInt capacity()
+		msev_int capacity()
 		{
 			{
 				msevector<int> v;
@@ -367,7 +367,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(msevector_test::at)
-		CInt at()
+		msev_int at()
 		{
 			msevector<int> v;
 			msevector<int> const& cv = v;
@@ -396,7 +396,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(msevector_test::pointer)
-		CInt pointer()
+		msev_int pointer()
 		{
 			msevector<int *> v1;
 			msevector<int *> v2 = v1;
@@ -408,7 +408,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(msevector_test::auto_ref)
-		CInt auto_ref()
+		msev_int auto_ref()
 		{
 			msevector<int> ref;
 			for (int i = 0; i < 5; ++i) {
@@ -441,7 +441,7 @@ namespace mse {
 
 #ifdef ALLOCATOR_WITH_STATE_TEST
 		//int EXAM_IMPL(msevector_test::allocator_with_state)
-		CInt allocator_with_state()
+		msev_int allocator_with_state()
 		{
 			char buf1[1024];
 			StackAllocator<int> stack1(buf1, buf1 + sizeof(buf1));
@@ -498,7 +498,7 @@ namespace mse {
 		//This test check that msevector implementation do not over optimize
 		//operation as PointEx copy constructor is trivial
 		//int EXAM_IMPL(msevector_test::optimizations_check)
-		CInt optimizations_check()
+		msev_int optimizations_check()
 		{
 			msevector<Point> v1(1);
 			EXAM_REQUIRE(v1.size() == 1);
@@ -551,7 +551,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(msevector_test::assign_check)
-		CInt assign_check()
+		msev_int assign_check()
 		{
 			int array[] = { 1, 2, 3, 4, 5 };
 			{
@@ -600,7 +600,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(msevector_test::iterators)
-		CInt iterators()
+		msev_int iterators()
 		{
 			msevector<int> vint(10, 0);
 			msevector<int> const& crvint = vint;
@@ -667,7 +667,7 @@ namespace mse {
 		* optimization. Some compilers (VC6) do not implement it
 		* correctly resulting ina wrong behavior. */
 		//int EXAM_IMPL(msevector_test::ebo)
-		CInt ebo()
+		msev_int ebo()
 		{
 			// We use heap memory as test failure can corrupt msevector internal
 			// representation making executable crash on msevector destructor invocation.
@@ -697,7 +697,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(bmsevector_test::bvec1)
-		CInt bvec1()
+		msev_int bvec1()
 		{
 #if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
 			bool ii[3] = { 1, 0, 1 };
@@ -745,7 +745,7 @@ namespace mse {
 
 
 		//int EXAM_IMPL(vector_test::vec_test_1)
-		CInt msevec_test_m1()
+		msev_int msevec_test_m1()
 		{
 			msevector<int> v1; // Empty vector of integers.
 
@@ -776,7 +776,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_2)
-		CInt msevec_test_m2()
+		msev_int msevec_test_m2()
 		{
 			msevector<double> v1; // Empty vector of doubles.
 			v1.push_back(32.1);
@@ -813,7 +813,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_3)
-		CInt msevec_test_m3()
+		msev_int msevec_test_m3()
 		{
 			typedef msevector<char> vec_type;
 
@@ -843,7 +843,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_4)
-		CInt msevec_test_m4()
+		msev_int msevec_test_m4()
 		{
 			msevector<int> v(4);
 
@@ -869,7 +869,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_5)
-		CInt msevec_test_m5()
+		msev_int msevec_test_m5()
 		{
 			int array[] = { 1, 4, 9, 16 };
 
@@ -890,7 +890,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_6)
-		CInt msevec_test_m6()
+		msev_int msevec_test_m6()
 		{
 			int array[] = { 1, 4, 9, 16, 25, 36 };
 
@@ -952,7 +952,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_7)
-		CInt msevec_test_m7()
+		msev_int msevec_test_m7()
 		{
 			int array1[] = { 1, 4, 25 };
 			int array2[] = { 9, 16 };
@@ -1033,7 +1033,7 @@ namespace mse {
 
 
 		//int EXAM_IMPL(vector_test::vec_test_1)
-		CInt msevec_test_i1()
+		msev_int msevec_test_i1()
 		{
 			ivector<int> v1; // Empty vector of integers.
 
@@ -1064,7 +1064,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_2)
-		CInt msevec_test_i2()
+		msev_int msevec_test_i2()
 		{
 			ivector<double> v1; // Empty vector of doubles.
 			v1.push_back(32.1);
@@ -1101,7 +1101,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_3)
-		CInt msevec_test_i3()
+		msev_int msevec_test_i3()
 		{
 			typedef ivector<char> vec_type;
 
@@ -1131,7 +1131,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_4)
-		CInt msevec_test_i4()
+		msev_int msevec_test_i4()
 		{
 			ivector<int> v(4);
 
@@ -1157,7 +1157,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_5)
-		CInt msevec_test_i5()
+		msev_int msevec_test_i5()
 		{
 			int array[] = { 1, 4, 9, 16 };
 
@@ -1178,7 +1178,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_6)
-		CInt msevec_test_i6()
+		msev_int msevec_test_i6()
 		{
 			int array[] = { 1, 4, 9, 16, 25, 36 };
 
@@ -1240,7 +1240,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_7)
-		CInt msevec_test_i7()
+		msev_int msevec_test_i7()
 		{
 			int array1[] = { 1, 4, 25 };
 			int array2[] = { 9, 16 };
@@ -1344,7 +1344,7 @@ namespace mse {
 #define STDVECTOR_IS_READY
 #ifdef STDVECTOR_IS_READY
 		//int EXAM_IMPL(vector_test::vec_test_1)
-		CInt msevec_test_s1()
+		msev_int msevec_test_s1()
 		{
 			mstd::vector<int> v1; // Empty vector of integers.
 
@@ -1375,7 +1375,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_2)
-		CInt msevec_test_s2()
+		msev_int msevec_test_s2()
 		{
 			mstd::vector<double> v1; // Empty vector of doubles.
 			v1.push_back(32.1);
@@ -1412,7 +1412,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_3)
-		CInt msevec_test_s3()
+		msev_int msevec_test_s3()
 		{
 			typedef mstd::vector<char> vec_type;
 
@@ -1439,7 +1439,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_4)
-		CInt msevec_test_s4()
+		msev_int msevec_test_s4()
 		{
 			mstd::vector<int> v(4);
 
@@ -1465,7 +1465,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_5)
-		CInt msevec_test_s5()
+		msev_int msevec_test_s5()
 		{
 			int array[] = { 1, 4, 9, 16 };
 
@@ -1483,7 +1483,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_6)
-		CInt msevec_test_s6()
+		msev_int msevec_test_s6()
 		{
 			int array[] = { 1, 4, 9, 16, 25, 36 };
 
@@ -1543,7 +1543,7 @@ namespace mse {
 		}
 
 		//int EXAM_IMPL(vector_test::vec_test_7)
-		CInt msevec_test_s7()
+		msev_int msevec_test_s7()
 		{
 			int array1[] = { 1, 4, 25 };
 			int array2[] = { 9, 16 };

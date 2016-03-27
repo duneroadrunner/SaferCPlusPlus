@@ -182,7 +182,7 @@ namespace mse {
 				bool operator>(const const_iterator& _Right) const { return (msevector_ss_const_iterator_type() > _Right.msevector_ss_const_iterator_type()); }
 				bool operator>=(const const_iterator& _Right) const { return (msevector_ss_const_iterator_type() >= _Right.msevector_ss_const_iterator_type()); }
 				void set_to_const_item_pointer(const const_iterator& _Right_cref) { msevector_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msevector_ss_const_iterator_type()); }
-				CSize_t position() const { return msevector_ss_const_iterator_type().position(); }
+				msev_size_t position() const { return msevector_ss_const_iterator_type().position(); }
 			private:
 				const_iterator(std::shared_ptr<_MV> msevector_shptr) : m_msevector_shptr(msevector_shptr), m_ss_const_iterator_shptr(new typename _MV::ss_const_iterator_type()) {
 					(*m_ss_const_iterator_shptr) = msevector_shptr->ss_cbegin();
@@ -254,7 +254,7 @@ namespace mse {
 				bool operator>(const iterator& _Right) const { return (msevector_ss_iterator_type() > _Right.msevector_ss_iterator_type()); }
 				bool operator>=(const iterator& _Right) const { return (msevector_ss_iterator_type() >= _Right.msevector_ss_iterator_type()); }
 				void set_to_item_pointer(const iterator& _Right_cref) { msevector_ss_iterator_type().set_to_item_pointer(_Right_cref.msevector_ss_iterator_type()); }
-				CSize_t position() const { return msevector_ss_iterator_type().position(); }
+				msev_size_t position() const { return msevector_ss_iterator_type().position(); }
 			private:
 				std::shared_ptr<_MV> m_msevector_shptr;
 				/* m_ss_iterator_shptr needs to be declared after m_msevector_shptr so that it's destructor will be called first. */
@@ -338,14 +338,14 @@ namespace mse {
 				return retval;
 			}
 #endif /*MSVC2010_COMPATIBILE*/
-			void insert_before(CSize_t pos, const _Ty& _X = _Ty()) {
+			void insert_before(msev_size_t pos, const _Ty& _X = _Ty()) {
 				m_shptr->insert_before(pos, _X);
 			}
-			void insert_before(CSize_t pos, size_t _M, const _Ty& _X) {
+			void insert_before(msev_size_t pos, size_t _M, const _Ty& _X) {
 				m_shptr->insert_before(pos, _M, _X);
 			}
 #ifndef MSVC2010_COMPATIBILE
-			void insert_before(CSize_t pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
+			void insert_before(msev_size_t pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
 				m_shptr->insert_before(pos, _Ilist);
 			}
 #endif /*MSVC2010_COMPATIBILE*/

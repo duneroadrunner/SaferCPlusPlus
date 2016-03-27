@@ -8,7 +8,7 @@
 #ifndef MSEMSEVECTOR_H
 #define MSEMSEVECTOR_H
 
-#include "mseprimitives.h"
+//include "mseprimitives.h"
 #include <vector>
 #include <assert.h>
 #include <memory>
@@ -19,6 +19,9 @@ namespace mse {
 
 	typedef size_t msev_size_t;
 	typedef int msev_int;
+	typedef bool msev_bool;
+	template<typename _Ty> using msev_pointer = _Ty*;
+	typedef size_t msev_as_a_size_t;
 
 #ifndef _NOEXCEPT
 #define _NOEXCEPT
@@ -806,7 +809,7 @@ namespace mse {
 			}
 			const_reference operator*() const {
 				if (points_to_an_item()) {
-					return m_owner_cptr->at(mse::as_a_size_t(m_index));
+					return m_owner_cptr->at(msev_as_a_size_t(m_index));
 				}
 				else {
 					throw(std::out_of_range("attempt to use invalid const_item_pointer - const_reference operator*() const - mm_const_iterator_type - msevector"));
@@ -904,9 +907,9 @@ namespace mse {
 			void sync_const_iterator_to_index() {
 				assert(m_owner_cptr->size() >= (*this).m_index);
 				base_class::const_iterator::operator=(m_owner_cptr->cbegin());
-				base_class::const_iterator::operator+=(mse::as_a_size_t(m_index));
+				base_class::const_iterator::operator+=(msev_as_a_size_t(m_index));
 			}
-			mse::CBool m_points_to_an_item = false;
+			msev_bool m_points_to_an_item = false;
 			msev_size_t m_index = 0;
 			const _Myt* m_owner_cptr = nullptr;
 			friend class mm_iterator_set_type;
@@ -1020,7 +1023,7 @@ namespace mse {
 			}
 			reference operator*() {
 				if (points_to_an_item()) {
-					return m_owner_ptr->at(mse::as_a_size_t(m_index));
+					return m_owner_ptr->at(msev_as_a_size_t(m_index));
 				}
 				else {
 					throw(std::out_of_range("attempt to use invalid item_pointer - reference operator*() - mm_iterator_type - msevector"));
@@ -1123,9 +1126,9 @@ namespace mse {
 			void sync_iterator_to_index() {
 				assert(m_owner_ptr->size() >= (*this).m_index);
 				base_class::iterator::operator=(m_owner_ptr->begin());
-				base_class::iterator::operator+=(mse::as_a_size_t(m_index));
+				base_class::iterator::operator+=(msev_as_a_size_t(m_index));
 			}
-			mse::CBool m_points_to_an_item = false;
+			msev_bool m_points_to_an_item = false;
 			msev_size_t m_index = 0;
 			_Myt* m_owner_ptr = nullptr;
 			friend class mm_iterator_set_type;
@@ -1725,20 +1728,20 @@ namespace mse {
 		}
 #endif /*MSVC2010_COMPATIBILE*/
 		void insert_before(msev_size_t pos, _Ty&& _X) {
-			typename base_class::const_iterator _P = (*this).begin() + mse::as_a_size_t(pos);
+			typename base_class::const_iterator _P = (*this).begin() + msev_as_a_size_t(pos);
 			(*this).insert(_P, std::move(_X));
 		}
 		void insert_before(msev_size_t pos, const _Ty& _X = _Ty()) {
-			typename base_class::const_iterator _P = (*this).begin() + mse::as_a_size_t(pos);
+			typename base_class::const_iterator _P = (*this).begin() + msev_as_a_size_t(pos);
 			(*this).insert(_P, _X);
 		}
 		void insert_before(msev_size_t pos, size_t _M, const _Ty& _X) {
-			typename base_class::const_iterator _P = (*this).begin() + mse::as_a_size_t(pos);
+			typename base_class::const_iterator _P = (*this).begin() + msev_as_a_size_t(pos);
 			(*this).insert(_P, _M, _X);
 		}
 #ifndef MSVC2010_COMPATIBILE
 		void insert_before(msev_size_t pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
-			typename base_class::const_iterator _P = (*this).begin() + mse::as_a_size_t(pos);
+			typename base_class::const_iterator _P = (*this).begin() + msev_as_a_size_t(pos);
 			(*this).insert(_P, _Ilist);
 		}
 #endif /*MSVC2010_COMPATIBILE*/
@@ -1911,7 +1914,7 @@ namespace mse {
 			}
 			const_reference operator*() const {
 				if (points_to_an_item()) {
-					return m_owner_cptr->at(mse::as_a_size_t(m_index));
+					return m_owner_cptr->at(msev_as_a_size_t(m_index));
 				}
 				else {
 					throw(std::out_of_range("attempt to use invalid const_item_pointer - const_reference operator*() const - ss_const_iterator_type - msevector"));
@@ -1996,10 +1999,10 @@ namespace mse {
 			void sync_const_iterator_to_index() {
 				assert(m_owner_cptr->size() >= (*this).m_index);
 				base_class::const_iterator::operator=(m_owner_cptr->cbegin());
-				base_class::const_iterator::operator+=(mse::as_a_size_t(m_index));
+				base_class::const_iterator::operator+=(msev_as_a_size_t(m_index));
 			}
 			msev_size_t m_index = 0;
-			TSaferPtrForLegacy<const _Myt> m_owner_cptr = nullptr;
+			msev_pointer<const _Myt> m_owner_cptr = nullptr;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
 		/* Note that, at the moment, ss_iterator_type inherits publicly from base_class::iterator. This is not intended to be a permanent
@@ -2105,7 +2108,7 @@ namespace mse {
 			}
 			reference operator*() {
 				if (points_to_an_item()) {
-					return m_owner_ptr->at(mse::as_a_size_t(m_index));
+					return m_owner_ptr->at(msev_as_a_size_t(m_index));
 				}
 				else {
 					throw(std::out_of_range("attempt to use invalid item_pointer - reference operator*() - ss_iterator_type - msevector"));
@@ -2197,10 +2200,10 @@ namespace mse {
 			void sync_iterator_to_index() {
 				assert(m_owner_ptr->size() >= (*this).m_index);
 				base_class::iterator::operator=(m_owner_ptr->begin());
-				base_class::iterator::operator+=(mse::as_a_size_t(m_index));
+				base_class::iterator::operator+=(msev_as_a_size_t(m_index));
 			}
 			msev_size_t m_index = 0;
-			TSaferPtrForLegacy<_Myt> m_owner_ptr = nullptr;
+			msev_pointer<_Myt> m_owner_ptr = nullptr;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
 		typedef std::reverse_iterator<ss_iterator_type> ss_reverse_iterator_type;

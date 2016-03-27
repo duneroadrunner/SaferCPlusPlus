@@ -163,7 +163,7 @@ namespace mse {
 			bool operator>(const cipointer& _Right) const { return (msevector_cipointer() > _Right.msevector_cipointer()); }
 			bool operator>=(const cipointer& _Right) const { return (msevector_cipointer() >= _Right.msevector_cipointer()); }
 			void set_to_const_item_pointer(const cipointer& _Right_cref) { msevector_cipointer().set_to_const_item_pointer(_Right_cref.msevector_cipointer()); }
-			CSize_t position() const { return msevector_cipointer().position(); }
+			msev_size_t position() const { return msevector_cipointer().position(); }
 		private:
 			cipointer(const std::shared_ptr<_MV>& msevector_shptr) : m_msevector_shptr(msevector_shptr), m_cipointer_shptr(new typename _MV::cipointer(*(msevector_shptr))) {}
 			std::shared_ptr<_MV> m_msevector_shptr;
@@ -233,7 +233,7 @@ namespace mse {
 			bool operator>(const ipointer& _Right) const { return (msevector_ipointer() > _Right.msevector_ipointer()); }
 			bool operator>=(const ipointer& _Right) const { return (msevector_ipointer() >= _Right.msevector_ipointer()); }
 			void set_to_item_pointer(const ipointer& _Right_cref) { msevector_ipointer().set_to_item_pointer(_Right_cref.msevector_ipointer()); }
-			CSize_t position() const { return msevector_ipointer().position(); }
+			msev_size_t position() const { return msevector_ipointer().position(); }
 		private:
 			std::shared_ptr<_MV> m_msevector_shptr;
 			/* m_ipointer_shptr needs to be declared after m_msevector_shptr so that it's destructor will be called first. */
@@ -309,17 +309,17 @@ namespace mse {
 			return retval;
 		}
 #endif /*MSVC2010_COMPATIBILE*/
-		void insert_before(CSize_t pos, _Ty&& _X) {
+		void insert_before(msev_size_t pos, _Ty&& _X) {
 			m_shptr->insert_before(pos, std::move(_X));
 		}
-		void insert_before(CSize_t pos, const _Ty& _X = _Ty()) {
+		void insert_before(msev_size_t pos, const _Ty& _X = _Ty()) {
 			m_shptr->insert_before(pos, _X);
 		}
-		void insert_before(CSize_t pos, size_t _M, const _Ty& _X) {
+		void insert_before(msev_size_t pos, size_t _M, const _Ty& _X) {
 			m_shptr->insert_before(pos, _M, _X);
 		}
 #ifndef MSVC2010_COMPATIBILE
-		void insert_before(CSize_t pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
+		void insert_before(msev_size_t pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
 			m_shptr->insert_before(pos, _Ilist);
 		}
 #endif /*MSVC2010_COMPATIBILE*/
