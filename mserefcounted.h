@@ -8,9 +8,11 @@
 #ifndef MSEREFCOUNTED_H_
 #define MSEREFCOUNTED_H_
 
-#include "mseprimitives.h"
+//include "mseprimitives.h"
 #include <memory>
 #include <iostream>
+#include <utility>
+#include <cassert>
 
 /* for the test functions */
 #include <map>

@@ -9,8 +9,11 @@
 #define MSEREGISTERED_H_
 
 #include "mseprimitives.h"
+#include <utility>
 #include <unordered_set>
 #include <functional>
+#include <cassert>
+
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_REGISTEREDPOINTER_DISABLED

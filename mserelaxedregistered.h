@@ -9,8 +9,11 @@
 #define MSERELAXEDREGISTERED_H_
 
 #include "mseprimitives.h"
+#include <utility>
 #include <unordered_map>
 #include <mutex>
+#include <cassert>
+
 
 #ifdef _MSC_VER
 /* Jan 2016: For some reason std::this_thread::get_id() seems to be really slow in windows. So we're replacing it with the
