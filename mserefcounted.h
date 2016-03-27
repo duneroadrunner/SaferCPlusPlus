@@ -132,9 +132,9 @@ namespace mse {
 		}
 		X* operator->() const {
 			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
-			return &(m_ref_with_target_obj_ptr->m_object);
+			return std::addressof(m_ref_with_target_obj_ptr->m_object);
 		}
-		X* get()        const { return m_ref_with_target_obj_ptr ? &(m_ref_with_target_obj_ptr->m_object) : nullptr; }
+		X* get()        const { return m_ref_with_target_obj_ptr ? std::addressof(m_ref_with_target_obj_ptr->m_object) : nullptr; }
 		bool unique()   const {
 			return (m_ref_with_target_obj_ptr ? (m_ref_with_target_obj_ptr->use_count() == 1) : true);
 		}
@@ -192,15 +192,6 @@ namespace mse {
 		TRefCountedNotNullPointer<_Ty>& operator=(const TRefCountedNotNullPointer<_Ty>& _Right_cref) {
 			TRefCountedPointer<_Ty>::operator=(_Right_cref);
 			return (*this);
-		}
-
-		_Ty& operator*() const {
-			//if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
-			return (m_ref_with_target_obj_ptr->m_object);
-		}
-		_Ty* operator->() const {
-			//if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
-			return &(m_ref_with_target_obj_ptr->m_object);
 		}
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -322,15 +313,6 @@ namespace mse {
 			return (*this);
 		}
 
-		const _Ty& operator*() const {
-			//if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
-			return (*m_refcounted_ptr);
-		}
-		const _Ty* operator->() const {
-			//if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountedPointer")); }
-			return &(*m_refcounted_ptr);
-		}
-
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRefCountedConstPointer<_Ty>::operator _Ty*(); }
 
@@ -351,13 +333,6 @@ namespace mse {
 		virtual ~TRefCountedFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRefCountedNotNullConstPointer<_Ty>::operator _Ty*(); }
-
-		const _Ty& operator*() const {
-			return TRefCountedNotNullConstPointer<_Ty>::operator*();
-		}
-		const _Ty* operator->() const {
-			return TRefCountedNotNullConstPointer<_Ty>::operator->();
-		}
 
 	private:
 		TRefCountedFixedConstPointer<_Ty>& operator=(const TRefCountedFixedConstPointer<_Ty>& _Right_cref) {}

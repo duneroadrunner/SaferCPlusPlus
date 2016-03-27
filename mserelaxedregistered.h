@@ -394,13 +394,6 @@ namespace mse {
 		explicit operator const _Ty*() const { return TRelaxedRegisteredConstPointer<_Ty>::operator const _Ty*(); }
 		explicit operator const TRelaxedRegisteredObj<_Ty>*() const { return TRelaxedRegisteredConstPointer<_Ty>::operator const TRelaxedRegisteredObj<_Ty>*(); }
 
-		const _Ty& operator*() const {
-			return TRelaxedRegisteredConstPointer<_Ty>::operator*();
-		}
-		const _Ty* operator->() const {
-			return TRelaxedRegisteredConstPointer<_Ty>::operator->();
-		}
-
 	private:
 		TRelaxedRegisteredNotNullConstPointer(const TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredConstPointer<_Ty>(ptr) {}
 
@@ -450,13 +443,6 @@ namespace mse {
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRelaxedRegisteredNotNullConstPointer<_Ty>::operator const _Ty*(); }
 		explicit operator const TRelaxedRegisteredObj<_Ty>*() const { return TRelaxedRegisteredNotNullConstPointer<_Ty>::operator const TRelaxedRegisteredObj<_Ty>*(); }
-
-		const _Ty& operator*() const {
-			return TRelaxedRegisteredNotNullConstPointer<_Ty>::operator*();
-		}
-		const _Ty* operator->() const {
-			return TRelaxedRegisteredNotNullConstPointer<_Ty>::operator->();
-		}
 
 	private:
 		TRelaxedRegisteredFixedConstPointer(const TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredNotNullConstPointer<_Ty>(ptr) {}

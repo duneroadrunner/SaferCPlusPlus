@@ -395,13 +395,6 @@ namespace mse {
 		explicit operator const _Ty*() const { return TRegisteredNotNullConstPointer<_Ty, _Tn>::operator const _Ty*(); }
 		explicit operator const TRegisteredObj<_Ty, _Tn>*() const { return TRegisteredNotNullConstPointer<_Ty, _Tn>::operator const TRegisteredObj<_Ty, _Tn>*(); }
 
-		const _Ty& operator*() const {
-			return TRegisteredNotNullConstPointer<_Ty, _Tn>::operator*();
-		}
-		const _Ty* operator->() const {
-			return TRegisteredNotNullConstPointer<_Ty, _Tn>::operator->();
-		}
-
 	private:
 		TRegisteredFixedConstPointer(const TRegisteredObj<_Ty, _Tn>* ptr) : TRegisteredNotNullConstPointer<_Ty, _Tn>(ptr) {}
 		TRegisteredFixedConstPointer<_Ty, _Tn>& operator=(const TRegisteredFixedConstPointer<_Ty, _Tn>& _Right_cref) {}
