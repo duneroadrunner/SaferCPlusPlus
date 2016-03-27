@@ -827,10 +827,14 @@ int main(int argc, char* argv[])
 			int res1 = H::foo5(rcrfpvector.front(), rcrfpvector);
 			assert(3 == res1);
 
+#if !defined(MSE_REGISTEREDPOINTER_DISABLED)
+
 			rcrfpvector.push_back(mse::make_refcountedregistered<A>());
 			/* The first parameter in this case will be a TRegisteredFixedPointer<A>. */
 			int res2 = H::foo5(&(*rcrfpvector.front()), rcrfpvector);
 			assert(-1 == res2);
+
+#endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 		}
 
 		mse::TRefCountedRegisteredPointer_test TRefCountedRegisteredPointer_test1;
