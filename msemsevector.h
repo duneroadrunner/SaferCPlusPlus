@@ -8,7 +8,23 @@
 #ifndef MSEMSEVECTOR_H
 #define MSEMSEVECTOR_H
 
+/*compiler specific defines*/
+#ifdef _MSC_VER
+#if (1700 > _MSC_VER)
+#define MSVC2010_COMPATIBILE 1
+#endif /*(1700 > _MSC_VER)*/
+#if (1900 > _MSC_VER)
+#define MSVC2013_COMPATIBILE 1
+#endif /*(1900 > _MSC_VER)*/
+#else /*_MSC_VER*/
+#if (defined(__GNUC__) || defined(__GNUG__))
+#define GPP_COMPATIBILE 1
+#define GPP4P8_COMPATIBILE 1
+#endif
+#endif /*_MSC_VER*/
+
 //include "mseprimitives.h"
+
 #include <vector>
 #include <assert.h>
 #include <memory>
