@@ -1684,7 +1684,7 @@ namespace mse {
 		void insert_before(const mm_const_iterator_type &pos, _Ty&& _X) {
 			if (pos.m_owner_cptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
 			typename base_class::const_iterator _P = pos;
-			(*this).insert(pos, 1, std::move(_X));
+			typename base_class::insert(_P, std::move(_X));
 		}
 		void insert_before(const mm_const_iterator_type &pos, const _Ty& _X = _Ty()) { (*this).insert(pos, 1, _X); }
 		void insert_before(const mm_const_iterator_type &pos, const mm_const_iterator_type &start, const mm_const_iterator_type &end) {
