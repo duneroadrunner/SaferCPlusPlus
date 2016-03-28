@@ -1679,7 +1679,7 @@ namespace mse {
 		void insert_before(const mm_const_iterator_type &pos, size_t _M, const _Ty& _X) {
 			if (pos.m_owner_cptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
 			typename base_class::const_iterator _P = pos;
-			(*this).insert(_P, _M, _X);
+			base_class::insert(_P, _M, _X);
 		}
 		void insert_before(const mm_const_iterator_type &pos, _Ty&& _X) {
 			if (pos.m_owner_cptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
@@ -1709,7 +1709,7 @@ namespace mse {
 		void insert_before(const mm_const_iterator_type &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
 			if (pos.m_owner_cptr != this) { throw(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
 			typename base_class::const_iterator _P = pos;
-			(*this).insert(_P, _Ilist);
+			base_class::insert(_P, _Ilist);
 		}
 #endif /*MSVC2010_COMPATIBILE*/
 		ipointer insert_before(const cipointer &pos, size_t _M, const _Ty& _X) {
