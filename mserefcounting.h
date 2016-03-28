@@ -72,7 +72,7 @@ namespace mse {
 	class TRefCountingPointer {
 	public:
 		TRefCountingPointer() : m_ref_with_target_obj_ptr(nullptr) {}
-		TRefCountingPointer(nullptr_t) : m_ref_with_target_obj_ptr(nullptr) {}
+		TRefCountingPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr) {}
 		~TRefCountingPointer() {
 			release();
 		}
@@ -243,7 +243,7 @@ namespace mse {
 	class TRefCountingConstPointer {
 	public:
 		TRefCountingConstPointer() {}
-		TRefCountingConstPointer(nullptr_t) {}
+		TRefCountingConstPointer(std::nullptr_t) {}
 		//~TRefCountingConstPointer() {}
 		TRefCountingConstPointer(const TRefCountingConstPointer& r) = default;
 		TRefCountingConstPointer(const TRefCountingPointer<X>& r) : m_refcounting_ptr(r) {}
