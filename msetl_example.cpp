@@ -4,6 +4,12 @@
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+/*
+This example file has become quite large and holds examples for many data types. Your best bet is probably to use a find/search to
+get to the data type your interested in.
+*/
+
+
 //define MSE_SAFER_SUBSTITUTES_DISABLED /* This will replace all the classes with their native/standard counterparts. */
 
 /* Each of the following will replace a subset of the classes with their native/standard counterparts. */
@@ -22,6 +28,7 @@
 #include "mserelaxedregistered.h"
 #include "mserefcounted.h"
 #include "mserefcountedregistered.h"
+#include "mserefcountedrelaxedregistered.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -841,6 +848,72 @@ int main(int argc, char* argv[])
 		bool TRefCountedRegisteredPointer_test1_res = TRefCountedRegisteredPointer_test1.testBehaviour();
 		TRefCountedRegisteredPointer_test1_res &= TRefCountedRegisteredPointer_test1.testLinked();
 		TRefCountedRegisteredPointer_test1.test1();
+	}
+
+	{
+		/*****************************************/
+		/*  TRefCountedRelaxedRegisteredPointer  */
+		/*****************************************/
+
+		/* TRefCountedRelaxedRegisteredPointer is simply an alias for TRefCountedPointer<TRelaxedRegisteredObj<_Ty>>. TRelaxedRegisteredObj<_Ty> is
+		meant to behave much like, and be compatible with a _Ty. The reason why we might want to use it is because the &
+		("address of") operator of TRelaxedRegisteredObj<_Ty> returns a TRelaxedRegisteredFixedPointer<_Ty> rather than a raw pointer, and
+		TRelaxedRegisteredPointers can serve as safe "weak pointers".
+		*/
+
+		/* Here we demonstrate using TRelaxedRegisteredFixedPointer<> as a safe "weak_ptr" to prevent "cyclic references" from
+		becoming memory leaks. */
+		class CRCNode {
+		public:
+			CRCNode(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr
+				, mse::TRelaxedRegisteredPointer<CRCNode> root_ptr) : m_node_count_ptr(node_count_ptr), m_root_ptr(root_ptr) {
+				(*node_count_ptr) += 1;
+			}
+			CRCNode(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr) : m_node_count_ptr(node_count_ptr) {
+				(*node_count_ptr) += 1;
+			}
+			virtual ~CRCNode() {
+				(*m_node_count_ptr) -= 1;
+			}
+			static mse::TRefCountedRelaxedRegisteredFixedPointer<CRCNode> MakeRoot(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr) {
+				auto retval = mse::make_refcountedrelaxedregistered<CRCNode>(node_count_ptr);
+				(*retval).m_root_ptr = &(*retval);
+				return retval;
+			}
+			mse::TRefCountedRelaxedRegisteredPointer<CRCNode> ChildPtr() const { return m_child_ptr; }
+			mse::TRefCountedRelaxedRegisteredFixedPointer<CRCNode> MakeChild() {
+				auto retval = mse::make_refcountedrelaxedregistered<CRCNode>(m_node_count_ptr, m_root_ptr);
+				m_child_ptr = retval;
+				return retval;
+			}
+			void DisposeOfChild() {
+				m_child_ptr = nullptr;
+			}
+
+		private:
+			mse::TRegisteredFixedPointer<mse::CInt> m_node_count_ptr;
+			mse::TRefCountedRelaxedRegisteredPointer<CRCNode> m_child_ptr;
+			mse::TRelaxedRegisteredPointer<CRCNode> m_root_ptr;
+		};
+
+		mse::TRegisteredObj<mse::CInt> node_counter = 0;
+		{
+			mse::TRefCountedRelaxedRegisteredPointer<CRCNode> root_ptr = CRCNode::MakeRoot(&node_counter);
+			auto kid1 = root_ptr->MakeChild();
+			{
+				auto kid2 = kid1->MakeChild();
+				auto kid3 = kid2->MakeChild();
+			}
+			assert(4 == node_counter);
+			kid1->DisposeOfChild();
+			assert(2 == node_counter);
+		}
+		assert(0 == node_counter);
+
+		mse::TRefCountedRelaxedRegisteredPointer_test TRefCountedRelaxedRegisteredPointer_test1;
+		bool TRefCountedRelaxedRegisteredPointer_test1_res = TRefCountedRelaxedRegisteredPointer_test1.testBehaviour();
+		TRefCountedRelaxedRegisteredPointer_test1_res &= TRefCountedRelaxedRegisteredPointer_test1.testLinked();
+		TRefCountedRelaxedRegisteredPointer_test1.test1();
 	}
 
 	return 0;
