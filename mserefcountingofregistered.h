@@ -5,11 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
-#ifndef MSEREFCOUNTEDREGISTERED_H_
-#define MSEREFCOUNTEDREGISTERED_H_
+#ifndef MSEREFCOUNTINGOFREGISTERED_H_
+#define MSEREFCOUNTINGOFREGISTERED_H_
 
 #include "mseregistered.h"
-#include "mserefcounted.h"
+#include "mserefcounting.h"
 #include <memory>
 #include <iostream>
 #include <utility>
@@ -20,30 +20,30 @@
 #include <string>
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
-#define MSE_REFCOUNTEDREGISTEREDPOINTER_DISABLED
+#define MSE_REFCOUNTINGOFREGISTEREDPOINTER_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
 namespace mse {
 
-#ifdef MSE_REFCOUNTEDREGISTEREDPOINTER_DISABLED
-#else /*MSE_REFCOUNTEDREGISTEREDPOINTER_DISABLED*/
-#endif /*MSE_REFCOUNTEDREGISTEREDPOINTER_DISABLED*/
+#ifdef MSE_REFCOUNTINGOFREGISTEREDPOINTER_DISABLED
+#else /*MSE_REFCOUNTINGOFREGISTEREDPOINTER_DISABLED*/
+#endif /*MSE_REFCOUNTINGOFREGISTEREDPOINTER_DISABLED*/
 
-	template<typename _Ty> using TRefCountedRegisteredPointer = TRefCountedPointer<TRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountedRegisteredNotNullPointer = TRefCountedNotNullPointer<TRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountedRegisteredFixedPointer = TRefCountedFixedPointer<TRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredPointer = TRefCountingPointer<TRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredNotNullPointer = TRefCountingNotNullPointer<TRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredFixedPointer = TRefCountingFixedPointer<TRegisteredObj<_Ty>>;
 
-	template<typename _Ty> using TRefCountedRegisteredConstPointer = TRefCountedConstPointer<TRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountedRegisteredNotNullConstPointer = TRefCountedNotNullConstPointer<TRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountedRegisteredFixedConstPointer = TRefCountedFixedConstPointer<TRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredConstPointer = TRefCountingConstPointer<TRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredNotNullConstPointer = TRefCountingNotNullConstPointer<TRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredFixedConstPointer = TRefCountingFixedConstPointer<TRegisteredObj<_Ty>>;
 
 	template <class _Ty, class... Args>
-	TRefCountedRegisteredFixedPointer<_Ty> make_refcountedregistered(Args&&... args) {
-		return TRefCountedFixedPointer<TRegisteredObj<_Ty>>::make_refcounted(args...);
+	TRefCountingOfRegisteredFixedPointer<_Ty> make_refcountingofregistered(Args&&... args) {
+		return TRefCountingFixedPointer<TRegisteredObj<_Ty>>::make_refcounting(args...);
 	}
 
 
-	class TRefCountedRegisteredPointer_test {
+	class TRefCountingOfRegisteredPointer_test {
 	public:
 		// sensed events
 		typedef std::map<std::string, int> Events;
@@ -51,22 +51,22 @@ namespace mse {
 
 		struct Trackable
 		{
-			Trackable(TRefCountedRegisteredPointer_test* state_ptr, const std::string& id) : m_state_ptr(state_ptr), _id(id) {
+			Trackable(TRefCountingOfRegisteredPointer_test* state_ptr, const std::string& id) : m_state_ptr(state_ptr), _id(id) {
 				state_ptr->constructions[_id]++;
 			}
 			~Trackable() { m_state_ptr->destructions[_id]++; }
 			const std::string _id;
-			TRefCountedRegisteredPointer_test* m_state_ptr;
+			TRefCountingOfRegisteredPointer_test* m_state_ptr;
 		};
 
-		typedef TRefCountedPointer<Trackable> target_t;
+		typedef TRefCountingPointer<Trackable> target_t;
 
 
 #define MTXASSERT_EQ(a, b, c) a &= (b==c)
 #define MTXASSERT(a, b) a &= (bool)(b)
 		bool testBehaviour()
 		{
-			static const TRefCountedPointer<Trackable> Nil = target_t(nullptr);
+			static const TRefCountingPointer<Trackable> Nil = target_t(nullptr);
 			bool ok = true;
 
 			constructions.clear();
@@ -75,7 +75,7 @@ namespace mse {
 			MTXASSERT_EQ(ok, 0ul, constructions.size());
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
 
-			target_t a = make_refcounted<Trackable>(this, "aap");
+			target_t a = make_refcounting<Trackable>(this, "aap");
 
 			MTXASSERT_EQ(ok, 1ul, constructions.size());
 			MTXASSERT_EQ(ok, 1, constructions["aap"]);
@@ -87,8 +87,8 @@ namespace mse {
 
 			target_t hold;
 			{
-				target_t b = make_refcounted<Trackable>(this, "noot"),
-					c = make_refcounted<Trackable>(this, "mies"),
+				target_t b = make_refcounting<Trackable>(this, "noot"),
+					c = make_refcounting<Trackable>(this, "mies"),
 					nil = Nil,
 					a2 = a;
 
@@ -126,8 +126,8 @@ namespace mse {
 
 		struct Linked : Trackable
 		{
-			Linked(TRefCountedRegisteredPointer_test* state_ptr, const std::string&t) :Trackable(state_ptr, t) {}
-			TRefCountedPointer<Linked> next;
+			Linked(TRefCountingOfRegisteredPointer_test* state_ptr, const std::string&t) :Trackable(state_ptr, t) {}
+			TRefCountingPointer<Linked> next;
 		};
 
 		bool testLinked()
@@ -139,9 +139,9 @@ namespace mse {
 			MTXASSERT_EQ(ok, 0ul, constructions.size());
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
 
-			TRefCountedPointer<Linked> node = make_refcounted<Linked>(this, "parent");
+			TRefCountingPointer<Linked> node = make_refcounting<Linked>(this, "parent");
 			MTXASSERT(ok, node.get());
-			node->next = make_refcounted<Linked>(this, "child");
+			node->next = make_refcounting<Linked>(this, "child");
 
 			MTXASSERT_EQ(ok, 2ul, constructions.size());
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
@@ -176,58 +176,58 @@ namespace mse {
 			class B {
 			public:
 				static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-				static int foo2(mse::TRefCountedRegisteredPointer<A> A_refcountedregistered_ptr) { return A_refcountedregistered_ptr->b; }
+				static int foo2(mse::TRefCountingOfRegisteredPointer<A> A_refcountingofregistered_ptr) { return A_refcountingofregistered_ptr->b; }
 			protected:
 				~B() {}
 			};
 
 			A* A_native_ptr = nullptr;
-			/* mse::TRefCountedRegisteredPointer<> is basically a slightly "safer" version of std::shared_ptr. */
-			mse::TRefCountedRegisteredPointer<A> A_refcountedregistered_ptr1;
+			/* mse::TRefCountingOfRegisteredPointer<> is basically a slightly "safer" version of std::shared_ptr. */
+			mse::TRefCountingOfRegisteredPointer<A> A_refcountingofregistered_ptr1;
 
 			{
 				A a;
 
 				A_native_ptr = &a;
-				A_refcountedregistered_ptr1 = mse::make_refcountedregistered<A>();
-				assert(A_native_ptr->b == A_refcountedregistered_ptr1->b);
+				A_refcountingofregistered_ptr1 = mse::make_refcountingofregistered<A>();
+				assert(A_native_ptr->b == A_refcountingofregistered_ptr1->b);
 
-				mse::TRefCountedRegisteredPointer<A> A_refcountedregistered_ptr2 = A_refcountedregistered_ptr1;
-				A_refcountedregistered_ptr2 = nullptr;
+				mse::TRefCountingOfRegisteredPointer<A> A_refcountingofregistered_ptr2 = A_refcountingofregistered_ptr1;
+				A_refcountingofregistered_ptr2 = nullptr;
 				bool expected_exception = false;
 				try {
-					int i = A_refcountedregistered_ptr2->b; /* this is gonna throw an exception */
+					int i = A_refcountingofregistered_ptr2->b; /* this is gonna throw an exception */
 				}
 				catch (...) {
 					//std::cerr << "expected exception" << std::endl;
 					expected_exception = true;
-					/* The exception is triggered by an attempt to dereference a null "refcountedregistered pointer". */
+					/* The exception is triggered by an attempt to dereference a null "refcountingofregistered pointer". */
 				}
 				assert(expected_exception);
 
-				auto registeredfixedpointer1 = (&(*A_refcountedregistered_ptr1));
+				auto registeredfixedpointer1 = (&(*A_refcountingofregistered_ptr1));
 				B::foo1((A*)registeredfixedpointer1);
 
-				if (A_refcountedregistered_ptr2) {
+				if (A_refcountingofregistered_ptr2) {
 				}
-				else if (A_refcountedregistered_ptr2 != A_refcountedregistered_ptr1) {
-					A_refcountedregistered_ptr2 = A_refcountedregistered_ptr1;
-					assert(A_refcountedregistered_ptr2 == A_refcountedregistered_ptr1);
+				else if (A_refcountingofregistered_ptr2 != A_refcountingofregistered_ptr1) {
+					A_refcountingofregistered_ptr2 = A_refcountingofregistered_ptr1;
+					assert(A_refcountingofregistered_ptr2 == A_refcountingofregistered_ptr1);
 				}
 
-				mse::TRefCountedRegisteredConstPointer<A> rcp = A_refcountedregistered_ptr1;
-				mse::TRefCountedRegisteredConstPointer<A> rcp2 = rcp;
-				rcp = mse::make_refcountedregistered<A>();
-				mse::TRefCountedRegisteredFixedConstPointer<A> rfcp = mse::make_refcountedregistered<A>();
+				mse::TRefCountingOfRegisteredConstPointer<A> rcp = A_refcountingofregistered_ptr1;
+				mse::TRefCountingOfRegisteredConstPointer<A> rcp2 = rcp;
+				rcp = mse::make_refcountingofregistered<A>();
+				mse::TRefCountingOfRegisteredFixedConstPointer<A> rfcp = mse::make_refcountingofregistered<A>();
 				{
 					int i = rfcp->b;
 				}
 			}
 
-			int i = A_refcountedregistered_ptr1->b;
+			int i = A_refcountingofregistered_ptr1->b;
 		}
 
 	};
 }
 
-#endif // MSEREFCOUNTEDREGISTERED_H_
+#endif // MSEREFCOUNTINGOFREGISTERED_H_

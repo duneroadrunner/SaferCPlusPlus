@@ -17,7 +17,7 @@ get to the data type your interested in.
 //define MSE_REGISTEREDPOINTER_DISABLED
 //define MSE_SAFERPTR_DISABLED /* MSE_SAFERPTR_DISABLED implies MSE_REGISTEREDPOINTER_DISABLED too. */
 //define MSE_PRIMITIVES_DISABLED
-//define MSE_REFCOUNTEDPOINTER_DISABLED
+//define MSE_REFCOUNTINGPOINTER_DISABLED
 
 //include "msetl.h"
 #include "msemsevector.h"
@@ -26,9 +26,9 @@ get to the data type your interested in.
 #include "msevector_test.h"
 #include "mseregistered.h"
 #include "mserelaxedregistered.h"
-#include "mserefcounted.h"
-#include "mserefcountedregistered.h"
-#include "mserefcountedrelaxedregistered.h"
+#include "mserefcounting.h"
+#include "mserefcountingofregistered.h"
+#include "mserefcountingofrelaxedregistered.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -541,10 +541,10 @@ int main(int argc, char* argv[])
 			}
 			{
 				int count = 0;
-				mse::TRefCountedPointer<CE> item_ptr2 = mse::make_refcounted<CE>(count);
+				mse::TRefCountingPointer<CE> item_ptr2 = mse::make_refcounting<CE>(count);
 				auto t1 = std::chrono::high_resolution_clock::now();
 				for (int i = 0; i < number_of_loops; i += 1) {
-					mse::TRefCountedPointer<CE> item_ptr = mse::make_refcounted<CE>(count);
+					mse::TRefCountingPointer<CE> item_ptr = mse::make_refcounting<CE>(count);
 					item_ptr2 = item_ptr;
 					item_ptr = nullptr;
 				}
@@ -552,7 +552,7 @@ int main(int argc, char* argv[])
 
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				std::cout << "mse::TRefCountedPointer: " << time_span.count() << " seconds.";
+				std::cout << "mse::TRefCountingPointer: " << time_span.count() << " seconds.";
 				if (0 != count) {
 					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
 				}
@@ -669,23 +669,23 @@ int main(int argc, char* argv[])
 				class CF {
 				public:
 					CF(int a = 0) : m_a(a) {}
-					mse::TRefCountedPointer<CF> m_next_item_ptr;
+					mse::TRefCountingPointer<CF> m_next_item_ptr;
 					int m_a = 3;
 				};
-				auto item1_ptr = mse::make_refcounted<CF>(1);
-				auto item2_ptr = mse::make_refcounted<CF>(2);
-				auto item3_ptr = mse::make_refcounted<CF>(3);
+				auto item1_ptr = mse::make_refcounting<CF>(1);
+				auto item2_ptr = mse::make_refcounting<CF>(2);
+				auto item3_ptr = mse::make_refcounting<CF>(3);
 				item1_ptr->m_next_item_ptr = item2_ptr;
 				item2_ptr->m_next_item_ptr = item3_ptr;
 				item3_ptr->m_next_item_ptr = item1_ptr;
 				auto t1 = std::chrono::high_resolution_clock::now();
-				mse::TRefCountedPointer<CF>* refc_ptr = &(item1_ptr->m_next_item_ptr);
+				mse::TRefCountingPointer<CF>* refc_ptr = &(item1_ptr->m_next_item_ptr);
 				for (int i = 0; i < number_of_loops2; i += 1) {
 					refc_ptr = &((*refc_ptr)->m_next_item_ptr);
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				std::cout << "mse::TRefCountedPointer (checked) dereferencing: " << time_span.count() << " seconds.";
+				std::cout << "mse::TRefCountingPointer (checked) dereferencing: " << time_span.count() << " seconds.";
 				item1_ptr->m_next_item_ptr = nullptr; /* to break the reference cycle */
 				if (3 == (*refc_ptr)->m_a) {
 					std::cout << " "; /* Using refc_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
@@ -755,11 +755,11 @@ int main(int argc, char* argv[])
 
 	{
 		/*****************************/
-		/*    TRefCountedPointer     */
+		/*    TRefCountingPointer    */
 		/*****************************/
 
-		/* TRefCountedPointer behaves similar to std::shared_ptr. Some differences being that it foregoes any thread safety
-		mechanisms, it does not accept raw pointer assignment or construction (use make_refcounted<>() instead), and it will throw
+		/* TRefCountingPointer behaves similar to std::shared_ptr. Some differences being that it foregoes any thread safety
+		mechanisms, it does not accept raw pointer assignment or construction (use make_refcounting<>() instead), and it will throw
 		an exception on attempted nullptr dereference. And it's faster. And like TRegisteredPointer, proper "const", "not null"
 		and "fixed" (non-retargetable) versions are provided as well. */
 
@@ -774,13 +774,13 @@ int main(int argc, char* argv[])
 
 			int b = 3;
 		};
-		typedef std::vector<mse::TRefCountedFixedPointer<A>> CRCFPVector;
+		typedef std::vector<mse::TRefCountingFixedPointer<A>> CRCFPVector;
 		class B {
 		public:
-			static int foo1(mse::TRefCountedPointer<A> A_refcounted_ptr, CRCFPVector& rcfpvector_ref) {
+			static int foo1(mse::TRefCountingPointer<A> A_refcounting_ptr, CRCFPVector& rcfpvector_ref) {
 				rcfpvector_ref.clear();
-				int retval = A_refcounted_ptr->b;
-				A_refcounted_ptr = nullptr; /* Target object is destroyed here. */
+				int retval = A_refcounting_ptr->b;
+				A_refcounting_ptr = nullptr; /* Target object is destroyed here. */
 				return retval;
 			}
 		protected:
@@ -790,27 +790,27 @@ int main(int argc, char* argv[])
 		{
 			CRCFPVector rcfpvector;
 			{
-				mse::TRefCountedFixedPointer<A> A_refcountedfixed_ptr1 = mse::make_refcounted<A>();
-				rcfpvector.push_back(A_refcountedfixed_ptr1);
+				mse::TRefCountingFixedPointer<A> A_refcountingfixed_ptr1 = mse::make_refcounting<A>();
+				rcfpvector.push_back(A_refcountingfixed_ptr1);
 
-				/* Just to demonstrate conversion between refcounted pointer types. */
-				mse::TRefCountedConstPointer<A> A_refcountedconst_ptr1 = A_refcountedfixed_ptr1;
+				/* Just to demonstrate conversion between refcounting pointer types. */
+				mse::TRefCountingConstPointer<A> A_refcountingconst_ptr1 = A_refcountingfixed_ptr1;
 			}
 			B::foo1(rcfpvector.front(), rcfpvector);
 		}
 
-		mse::TRefCountedPointer_test TRefCountedPointer_test1;
-		bool TRefCountedPointer_test1_res = TRefCountedPointer_test1.testBehaviour();
-		TRefCountedPointer_test1_res &= TRefCountedPointer_test1.testLinked();
-		TRefCountedPointer_test1.test1();
+		mse::TRefCountingPointer_test TRefCountingPointer_test1;
+		bool TRefCountingPointer_test1_res = TRefCountingPointer_test1.testBehaviour();
+		TRefCountingPointer_test1_res &= TRefCountingPointer_test1.testLinked();
+		TRefCountingPointer_test1.test1();
 	}
 
 	{
-		/**********************************/
-		/*  TRefCountedRegisteredPointer  */
-		/**********************************/
+		/*************************************/
+		/*  TRefCountingOfRegisteredPointer  */
+		/*************************************/
 
-		/* TRefCountedRegisteredPointer is simply an alias for TRefCountedPointer<TRegisteredObj<_Ty>>. TRegisteredObj<_Ty> is
+		/* TRefCountingOfRegisteredPointer is simply an alias for TRefCountingPointer<TRegisteredObj<_Ty>>. TRegisteredObj<_Ty> is
 		meant to behave much like, and be compatible with a _Ty. The reason why we might want to use it is because the &
 		("address of") operator of TRegisteredObj<_Ty> returns a TRegisteredFixedPointer<_Ty> rather than a raw pointer, and
 		TRegisteredPointers can serve as safe "weak pointers".
@@ -827,23 +827,23 @@ int main(int argc, char* argv[])
 
 			int b = 3;
 		};
-		typedef std::vector<mse::TRefCountedRegisteredFixedPointer<A>> CRCRFPVector;
+		typedef std::vector<mse::TRefCountingOfRegisteredFixedPointer<A>> CRCRFPVector;
 
 		{
 			CRCRFPVector rcrfpvector;
 			{
-				mse::TRefCountedRegisteredFixedPointer<A> A_refcountedregisteredfixed_ptr1 = mse::make_refcountedregistered<A>();
-				rcrfpvector.push_back(A_refcountedregisteredfixed_ptr1);
+				mse::TRefCountingOfRegisteredFixedPointer<A> A_refcountingofregisteredfixed_ptr1 = mse::make_refcountingofregistered<A>();
+				rcrfpvector.push_back(A_refcountingofregisteredfixed_ptr1);
 
-				/* Just to demonstrate conversion between refcountedregistered pointer types. */
-				mse::TRefCountedRegisteredConstPointer<A> A_refcountedregisteredconst_ptr1 = A_refcountedregisteredfixed_ptr1;
+				/* Just to demonstrate conversion between refcountingofregistered pointer types. */
+				mse::TRefCountingOfRegisteredConstPointer<A> A_refcountingofregisteredconst_ptr1 = A_refcountingofregisteredfixed_ptr1;
 			}
 			int res1 = H::foo5(rcrfpvector.front(), rcrfpvector);
 			assert(3 == res1);
 
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 
-			rcrfpvector.push_back(mse::make_refcountedregistered<A>());
+			rcrfpvector.push_back(mse::make_refcountingofregistered<A>());
 			/* The first parameter in this case will be a TRegisteredFixedPointer<A>. */
 			int res2 = H::foo5(&(*rcrfpvector.front()), rcrfpvector);
 			assert(-1 == res2);
@@ -851,18 +851,18 @@ int main(int argc, char* argv[])
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 		}
 
-		mse::TRefCountedRegisteredPointer_test TRefCountedRegisteredPointer_test1;
-		bool TRefCountedRegisteredPointer_test1_res = TRefCountedRegisteredPointer_test1.testBehaviour();
-		TRefCountedRegisteredPointer_test1_res &= TRefCountedRegisteredPointer_test1.testLinked();
-		TRefCountedRegisteredPointer_test1.test1();
+		mse::TRefCountingOfRegisteredPointer_test TRefCountingOfRegisteredPointer_test1;
+		bool TRefCountingOfRegisteredPointer_test1_res = TRefCountingOfRegisteredPointer_test1.testBehaviour();
+		TRefCountingOfRegisteredPointer_test1_res &= TRefCountingOfRegisteredPointer_test1.testLinked();
+		TRefCountingOfRegisteredPointer_test1.test1();
 	}
 
 	{
-		/*****************************************/
-		/*  TRefCountedRelaxedRegisteredPointer  */
-		/*****************************************/
+		/********************************************/
+		/*  TRefCountingOfRelaxedRegisteredPointer  */
+		/********************************************/
 
-		/* TRefCountedRelaxedRegisteredPointer is simply an alias for TRefCountedPointer<TRelaxedRegisteredObj<_Ty>>. TRelaxedRegisteredObj<_Ty> is
+		/* TRefCountingOfRelaxedRegisteredPointer is simply an alias for TRefCountingPointer<TRelaxedRegisteredObj<_Ty>>. TRelaxedRegisteredObj<_Ty> is
 		meant to behave much like, and be compatible with a _Ty. The reason why we might want to use it is because the &
 		("address of") operator of TRelaxedRegisteredObj<_Ty> returns a TRelaxedRegisteredFixedPointer<_Ty> rather than a raw pointer, and
 		TRelaxedRegisteredPointers can serve as safe "weak pointers".
@@ -882,14 +882,14 @@ int main(int argc, char* argv[])
 			virtual ~CRCNode() {
 				(*m_node_count_ptr) -= 1;
 			}
-			static mse::TRefCountedRelaxedRegisteredFixedPointer<CRCNode> MakeRoot(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr) {
-				auto retval = mse::make_refcountedrelaxedregistered<CRCNode>(node_count_ptr);
+			static mse::TRefCountingOfRelaxedRegisteredFixedPointer<CRCNode> MakeRoot(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr) {
+				auto retval = mse::make_refcountingofrelaxedregistered<CRCNode>(node_count_ptr);
 				(*retval).m_root_ptr = &(*retval);
 				return retval;
 			}
-			mse::TRefCountedRelaxedRegisteredPointer<CRCNode> ChildPtr() const { return m_child_ptr; }
-			mse::TRefCountedRelaxedRegisteredFixedPointer<CRCNode> MakeChild() {
-				auto retval = mse::make_refcountedrelaxedregistered<CRCNode>(m_node_count_ptr, m_root_ptr);
+			mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> ChildPtr() const { return m_child_ptr; }
+			mse::TRefCountingOfRelaxedRegisteredFixedPointer<CRCNode> MakeChild() {
+				auto retval = mse::make_refcountingofrelaxedregistered<CRCNode>(m_node_count_ptr, m_root_ptr);
 				m_child_ptr = retval;
 				return retval;
 			}
@@ -899,13 +899,13 @@ int main(int argc, char* argv[])
 
 		private:
 			mse::TRegisteredFixedPointer<mse::CInt> m_node_count_ptr;
-			mse::TRefCountedRelaxedRegisteredPointer<CRCNode> m_child_ptr;
+			mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> m_child_ptr;
 			mse::TRelaxedRegisteredPointer<CRCNode> m_root_ptr;
 		};
 
 		mse::TRegisteredObj<mse::CInt> node_counter = 0;
 		{
-			mse::TRefCountedRelaxedRegisteredPointer<CRCNode> root_ptr = CRCNode::MakeRoot(&node_counter);
+			mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> root_ptr = CRCNode::MakeRoot(&node_counter);
 			auto kid1 = root_ptr->MakeChild();
 			{
 				auto kid2 = kid1->MakeChild();
@@ -917,10 +917,10 @@ int main(int argc, char* argv[])
 		}
 		assert(0 == node_counter);
 
-		mse::TRefCountedRelaxedRegisteredPointer_test TRefCountedRelaxedRegisteredPointer_test1;
-		bool TRefCountedRelaxedRegisteredPointer_test1_res = TRefCountedRelaxedRegisteredPointer_test1.testBehaviour();
-		TRefCountedRelaxedRegisteredPointer_test1_res &= TRefCountedRelaxedRegisteredPointer_test1.testLinked();
-		TRefCountedRelaxedRegisteredPointer_test1.test1();
+		mse::TRefCountingOfRelaxedRegisteredPointer_test TRefCountingOfRelaxedRegisteredPointer_test1;
+		bool TRefCountingOfRelaxedRegisteredPointer_test1_res = TRefCountingOfRelaxedRegisteredPointer_test1.testBehaviour();
+		TRefCountingOfRelaxedRegisteredPointer_test1_res &= TRefCountingOfRelaxedRegisteredPointer_test1.testLinked();
+		TRefCountingOfRelaxedRegisteredPointer_test1.test1();
 	}
 
 	return 0;
