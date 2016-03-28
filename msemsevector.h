@@ -1738,7 +1738,7 @@ namespace mse {
 #ifndef MSVC2010_COMPATIBILE
 		ipointer insert_before(const cipointer &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
 			msev_size_t original_pos = pos.position();
-			(*this).insert(pos.const_item_pointer(), _Ilist);
+			(*this).insert_before(pos.const_item_pointer(), _Ilist);
 			ipointer retval(*this); retval.advance((msev_int)original_pos);
 			return retval;
 		}
