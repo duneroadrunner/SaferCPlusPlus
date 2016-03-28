@@ -59,14 +59,14 @@ namespace mse {
 			TRefCountingOfRelaxedRegisteredPointer_test* m_state_ptr;
 		};
 
-		typedef TRefCountingPointer<Trackable> target_t;
+		typedef TRefCountingOfRelaxedRegisteredPointer<Trackable> target_t;
 
 
 #define MTXASSERT_EQ(a, b, c) a &= (b==c)
 #define MTXASSERT(a, b) a &= (bool)(b)
 		bool testBehaviour()
 		{
-			static const TRefCountingPointer<Trackable> Nil = target_t(nullptr);
+			static const TRefCountingOfRelaxedRegisteredPointer<Trackable> Nil = target_t(nullptr);
 			bool ok = true;
 
 			constructions.clear();
@@ -75,7 +75,7 @@ namespace mse {
 			MTXASSERT_EQ(ok, 0ul, constructions.size());
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
 
-			target_t a = make_refcounting<Trackable>(this, "aap");
+			target_t a = make_refcountingofrelaxedregistered<Trackable>(this, "aap");
 
 			MTXASSERT_EQ(ok, 1ul, constructions.size());
 			MTXASSERT_EQ(ok, 1, constructions["aap"]);
@@ -87,8 +87,8 @@ namespace mse {
 
 			target_t hold;
 			{
-				target_t b = make_refcounting<Trackable>(this, "noot"),
-					c = make_refcounting<Trackable>(this, "mies"),
+				target_t b = make_refcountingofrelaxedregistered<Trackable>(this, "noot"),
+					c = make_refcountingofrelaxedregistered<Trackable>(this, "mies"),
 					nil = Nil,
 					a2 = a;
 
@@ -127,7 +127,7 @@ namespace mse {
 		struct Linked : Trackable
 		{
 			Linked(TRefCountingOfRelaxedRegisteredPointer_test* state_ptr, const std::string&t) :Trackable(state_ptr, t) {}
-			TRefCountingPointer<Linked> next;
+			TRefCountingOfRelaxedRegisteredPointer<Linked> next;
 		};
 
 		bool testLinked()
@@ -139,9 +139,9 @@ namespace mse {
 			MTXASSERT_EQ(ok, 0ul, constructions.size());
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
 
-			TRefCountingPointer<Linked> node = make_refcounting<Linked>(this, "parent");
+			TRefCountingOfRelaxedRegisteredPointer<Linked> node = make_refcountingofrelaxedregistered<Linked>(this, "parent");
 			MTXASSERT(ok, node.get());
-			node->next = make_refcounting<Linked>(this, "child");
+			node->next = make_refcountingofrelaxedregistered<Linked>(this, "child");
 
 			MTXASSERT_EQ(ok, 2ul, constructions.size());
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
