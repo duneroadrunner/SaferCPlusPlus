@@ -214,6 +214,7 @@ namespace mse {
 			m_might_not_point_to_a_TRelaxedRegisteredObj = _Right_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			return (*this);
 		}
+		operator bool() const { return (*this).m_ptr; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		operator _Ty*() const {
 			if (nullptr == (*this).m_ptr) {
@@ -310,6 +311,7 @@ namespace mse {
 		TRelaxedRegisteredConstPointer<_Ty>& operator=(const TRelaxedRegisteredPointer<_Ty>& _Right_cref) {
 			return (*this).operator=(TRelaxedRegisteredConstPointer<_Ty>(_Right_cref));
 		}
+		operator bool() const { return (*this).m_ptr; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		operator const _Ty*() const {
 			if (nullptr == (*this).m_ptr) {
