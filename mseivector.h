@@ -192,7 +192,7 @@ namespace mse {
 			operator cipointer() const {
 				cipointer retval(m_msevector_shptr);
 				retval.set_to_beginning();
-				retval.advance(mse::CInt(msevector_ipointer().position()));
+				retval.advance(msev_int(msevector_ipointer().position()));
 				return retval;
 			}
 

@@ -213,7 +213,7 @@ namespace mse {
 				operator const_iterator() const {
 					const_iterator retval(m_msevector_shptr);
 					retval.msevector_ss_const_iterator_type().set_to_beginning();
-					retval.msevector_ss_const_iterator_type().advance(CInt(msevector_ss_iterator_type().position()));
+					retval.msevector_ss_const_iterator_type().advance(msev_int(msevector_ss_iterator_type().position()));
 					return retval;
 				}
 
