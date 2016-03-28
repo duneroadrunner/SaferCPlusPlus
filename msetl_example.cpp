@@ -558,26 +558,6 @@ int main(int argc, char* argv[])
 				}
 				std::cout << std::endl;
 			}
-			{
-				int count = 0;
-				auto item_ptr2 = &CE(count);
-				auto t1 = std::chrono::high_resolution_clock::now();
-				{
-					for (int i = 0; i < number_of_loops; i += 1) {
-						CE object(count);
-						auto item_ptr = &object;
-						item_ptr2 = item_ptr;
-					}
-				}
-
-				auto t2 = std::chrono::high_resolution_clock::now();
-				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				std::cout << "native pointer targeting the stack: " << time_span.count() << " seconds.";
-				if (0 != count) {
-					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
-				}
-				std::cout << std::endl;
-			}
 
 			std::cout << std::endl;
 			static const int number_of_loops2 = (10/*arbitrary*/)*number_of_loops;
@@ -682,6 +662,33 @@ int main(int argc, char* argv[])
 				std::cout << "std::weak_ptr dereferencing: " << time_span.count() << " seconds.";
 				if (3 == (*wp_ptr).lock()->m_a) {
 					std::cout << " "; /* Using wp_ref.lock()->m_a for (potential) output should prevent the optimizer from discarding too much. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					mse::TRefCountedPointer<CF> m_next_item_ptr;
+					int m_a = 3;
+				};
+				auto item1_ptr = mse::make_refcounted<CF>(1);
+				auto item2_ptr = mse::make_refcounted<CF>(2);
+				auto item3_ptr = mse::make_refcounted<CF>(3);
+				item1_ptr->m_next_item_ptr = item2_ptr;
+				item2_ptr->m_next_item_ptr = item3_ptr;
+				item3_ptr->m_next_item_ptr = item1_ptr;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				mse::TRefCountedPointer<CF>* refc_ptr = &(item1_ptr->m_next_item_ptr);
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					refc_ptr = &((*refc_ptr)->m_next_item_ptr);
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRefCountedPointer (checked) dereferencing: " << time_span.count() << " seconds.";
+				item1_ptr->m_next_item_ptr = nullptr; /* to break the reference cycle */
+				if (3 == (*refc_ptr)->m_a) {
+					std::cout << " "; /* Using refc_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
 				}
 				std::cout << std::endl;
 			}
