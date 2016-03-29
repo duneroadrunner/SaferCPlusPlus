@@ -232,7 +232,7 @@ usage example:
 
 ### TRefCountingNotNullPointer
 
-Same as TRefCountingPointer, but cannot be constructed to a null_ptr value.
+Same as TRefCountingPointer, but cannot be constructed to or assigned a null_ptr value. Because TRefCountingNotNullPointer controls the lifetime of it's target it should be always safe to assume that it points to a validly allocated object.
 
 ### TRefCountingFixedPointer
 
