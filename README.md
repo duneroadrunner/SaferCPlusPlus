@@ -82,7 +82,7 @@ usage example:
 Same as TRegisteredPointer, but cannot be constructed to a null_ptr value.
 
 ### TRegisteredFixedPointer
-Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is the recommended type to be used for safe parameter passing by reference. 
+Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference. 
 usage example:
 
     #include "mseregistered.h"
@@ -113,7 +113,7 @@ usage example:
     }
 
 ### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
-Just the "const" version of the references.
+Just the "const" versions. At the moment TRegisteredPointer&lt;X&gt; does not convert to TRegisteredPointer&lt;const X&gt;. It does convert to a TRegisteredConstPointer&lt;X&gt;.
 
 ### TRelaxedRegisteredPointer
 
@@ -180,6 +180,68 @@ std::weak_ptr: | 0.17701 seconds.
 
 platform: msvc2013/Windows7/Haswell (Jan 2016)  
 benchmark source code: [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp)
+
+###Reference Counting Pointers
+
+If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is std::shared_ptr, which is notable for its thread-safe reference counting that's rather handy when you're sharing an object among asynchronous threads, but unnecessarily costly when you aren't. So we provide fast reference counting pointers that forego any thread safety mechanisms. In addition to being substantially faster (and smaller) than std::shared_ptr, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use mse::make_refcounting&lt;&gt;() instead.) "Const", "not null" and "fixed" (non retargetable) flavors are also provided with proper conversions between them.
+
+###TRefCountingPointer
+
+usage example:
+
+	#include "mserefcounting.h"
+	
+	int main(int argc, char* argv[]) {
+		class A {
+		public:
+			A() {}
+			A(const A& _X) : b(_X.b) {}
+			virtual ~A() {
+				int q = 3; /* just so you can place a breakpoint if you want */
+			}
+			A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+			int b = 3;
+		};
+		typedef std::vector<mse::TRefCountingFixedPointer<A>> CRCFPVector;
+		class B {
+		public:
+			static int foo1(mse::TRefCountingPointer<A> A_refcounting_ptr, CRCFPVector& rcfpvector_ref) {
+				rcfpvector_ref.clear();
+				int retval = A_refcounting_ptr->b;
+				A_refcounting_ptr = nullptr; /* Target object is destroyed here. */
+				return retval;
+			}
+		protected:
+			~B() {}
+		};
+
+		{
+			CRCFPVector rcfpvector;
+			{
+				mse::TRefCountingFixedPointer<A> A_refcountingfixed_ptr1 = mse::make_refcounting<A>();
+				rcfpvector.push_back(A_refcountingfixed_ptr1);
+
+				/* Just to demonstrate conversion between refcounting pointer types. */
+				mse::TRefCountingConstPointer<A> A_refcountingconst_ptr1 = A_refcountingfixed_ptr1;
+			}
+			B::foo1(rcfpvector.front(), rcfpvector);
+		}
+	}
+
+
+### TRefCountingNotNullPointer
+
+Same as TRefCountingPointer, but cannot be constructed to a null_ptr value.
+
+### TRefCountingFixedPointer
+
+Same as TRefCountingNotNullPointer, but cannot be re-targeted after construction (basically a "const TRefCountingNotNullPointer"). It is a recommended type to be used for safe parameter passing by reference.
+
+### TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer
+
+Just the "const" versions. At the moment TRefCountingPointer&lt;X&gt; does not convert to TRefCountingPointer&lt;const X&gt;. It does convert to a TRefCountingConstPointer&lt;X&gt;.
+
 
 ### Primitives
 ### CInt, CSize_t and CBool
