@@ -273,9 +273,16 @@ usage example:
     }
 
 Note: Although these types have default initialization to ensure deterministic code, for variables of these types please continue to explicitly set their value before using them, as you would with their corresponding primitive types. If you would like a type that does not require explicit initialization before use, you can just publicly derive your own type from the appropriate class in this library.  
-Also note: Numeric types with more comprehensive range checking can be found here: https://github.com/robertramey/safe_numerics.  
 Also see the section on "[compatibility considerations](#compatibility-considerations)".
 
+### Quarantined Types
+
+Quarantined types are meant to hold values that are obtained from user input or some other untrusted source (like a media file for example). These are not yet available in the library, but are an important concept with respect to safe programming. Values obtained from untrusted sources are the main attack vector of malicious actors and should be handled with special care. For example, the so-called "stagefright" vulnerability in the Android OS is the result of a specially crafted media file causing the sum of integers to overflow.
+It is usually the case that untrusted values are obtained through intrinsically slow communication mediums (i.e. file system, internet, UI, etc.), so it usually makes no perceptible difference whether the code that processes those untrusted values into "trusted" internal values is optimized for performance or not. So don't hesitate to use whatever safety methods are called for. In particular, integer types with more comprehensive range checking can be found here: https://github.com/robertramey/safe_numerics.
+
+### CQuarantinedInt, CQuarantinedSize_t, CQuarantinedVector, CQuarantinedString
+
+Not yet available.
 
 ### Vectors
 
