@@ -248,7 +248,7 @@ TRefCountingOfRegisteredPointer is simply an alias for TRefCountingPointer&lt;TR
 
 usage example:  
 
-    #include mserefcountingofregistered.h"
+    #include "mserefcountingofregistered.h"
     
     class H {
     public:
@@ -304,6 +304,67 @@ usage example:
             int res2 = H::foo5(&(*rcrfpvector.front()), rcrfpvector);
             assert(-1 == res2);
         }
+    }
+
+### TRefCountingOfRelaxedRegisteredPointer
+
+TRefCountingOfRelaxedRegisteredPointer is simply an alias for TRefCountingPointer&lt;TRelaxedRegisteredObj&lt;_Ty&gt;&gt;. Generally you should prefer to just use TRefCountingOfRegisteredPointer, but if you need a "weak pointer" to refer to a type before it's fully defined then you can use this type. An example of such a situation is when you have so-called "cyclic references".  
+
+usage example:  
+
+    #include "mserefcountingofrelaxedregistered.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        /* Here we demonstrate using TRelaxedRegisteredFixedPointer<> as a safe "weak_ptr" to prevent "cyclic references" from
+        becoming memory leaks. */
+    
+        class CRCNode {
+        public:
+            CRCNode(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr
+                , mse::TRelaxedRegisteredPointer<CRCNode> root_ptr) : m_node_count_ptr(node_count_ptr), m_root_ptr(root_ptr) {
+                (*node_count_ptr) += 1;
+            }
+            CRCNode(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr) : m_node_count_ptr(node_count_ptr) {
+                (*node_count_ptr) += 1;
+            }
+            virtual ~CRCNode() {
+                (*m_node_count_ptr) -= 1;
+            }
+            static mse::TRefCountingOfRelaxedRegisteredFixedPointer<CRCNode> MakeRoot(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr) {
+                auto retval = mse::make_refcountingofrelaxedregistered<CRCNode>(node_count_ptr);
+                (*retval).m_root_ptr = &(*retval);
+                return retval;
+            }
+            mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> ChildPtr() const { return m_child_ptr; }
+            mse::TRefCountingOfRelaxedRegisteredFixedPointer<CRCNode> MakeChild() {
+                auto retval = mse::make_refcountingofrelaxedregistered<CRCNode>(m_node_count_ptr, m_root_ptr);
+                m_child_ptr = retval;
+                return retval;
+            }
+            void DisposeOfChild() {
+                m_child_ptr = nullptr;
+            }
+    
+        private:
+            mse::TRegisteredFixedPointer<mse::CInt> m_node_count_ptr;
+            mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> m_child_ptr;
+            mse::TRelaxedRegisteredPointer<CRCNode> m_root_ptr;
+        };
+    
+        mse::TRegisteredObj<mse::CInt> node_counter = 0;
+        {
+            mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> root_ptr = CRCNode::MakeRoot(&node_counter);
+            auto kid1 = root_ptr->MakeChild();
+            {
+                auto kid2 = kid1->MakeChild();
+                auto kid3 = kid2->MakeChild();
+            }
+            assert(4 == node_counter);
+            kid1->DisposeOfChild();
+            assert(2 == node_counter);
+        }
+        assert(0 == node_counter);
     }
 
 
