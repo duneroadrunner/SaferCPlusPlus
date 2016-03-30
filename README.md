@@ -373,6 +373,9 @@ usage example:
 ### TRefCountingOfRelaxedRegisteredNotNullPointer, TRefCountingOfRelaxedRegisteredFixedPointer
 ### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
 
+### Safely passing parameters by reference
+As has been shown, you can use TRegisteredPointers or TRefCountingPointers to safely pass parameters by reference. If you're writing a function for more general use, and for some reason you can only support one parameter type, we would probaly recommend TRegisteredPointers over TRefCountingPointers, just because of their support for stack allocated targets. But much more preferable might be to "templatize" your function so that it can accept any type of pointer. This is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example.
+
 
 ### Primitives
 ### CInt, CSize_t and CBool
