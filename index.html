@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="tregisteredfixedpointer" class="anchor" href="#tregisteredfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredFixedPointer</h3>
 
-<p>Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference. 
+<p>Same as TRegisteredNotNullPointer, but cannot be retargeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference. 
 usage example:</p>
 
 <pre><code>#include "mseregistered.h"
@@ -266,7 +266,7 @@ benchmark source code: <a href="https://github.com/duneroadrunner/SaferCPlusPlus
 <h3>
 <a id="reference-counting-pointers" class="anchor" href="#reference-counting-pointers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Reference Counting Pointers</h3>
 
-<p>If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is std::shared_ptr, which is notable for its thread-safe reference counting that's rather handy when you're sharing an object among asynchronous threads, but unnecessarily costly when you aren't. So we provide fast reference counting pointers that forego any thread safety mechanisms. In addition to being substantially faster (and smaller) than std::shared_ptr, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use mse::make_refcounting&lt;&gt;() instead.) "Const", "not null" and "fixed" (non retargetable) flavors are also provided with proper conversions between them.</p>
+<p>If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is std::shared_ptr, which is notable for its thread-safe reference counting that's rather handy when you're sharing an object among asynchronous threads, but unnecessarily costly when you aren't. So we provide fast reference counting pointers that forego any thread safety mechanisms. In addition to being substantially faster (and smaller) than std::shared_ptr, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use mse::make_refcounting&lt;&gt;() instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them.</p>
 
 <h3>
 <a id="trefcountingpointer" class="anchor" href="#trefcountingpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingPointer</h3>
@@ -322,7 +322,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="trefcountingfixedpointer" class="anchor" href="#trefcountingfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingFixedPointer</h3>
 
-<p>Same as TRefCountingNotNullPointer, but cannot be re-targeted after construction (basically a "const TRefCountingNotNullPointer"). It is a recommended type to be used for safe parameter passing by reference.</p>
+<p>Same as TRefCountingNotNullPointer, but cannot be retargeted after construction (basically a "const TRefCountingNotNullPointer"). It is a recommended type to be used for safe parameter passing by reference.</p>
 
 <h3>
 <a id="trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer" class="anchor" href="#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer</h3>
@@ -396,6 +396,12 @@ int main(int argc, char* argv[]) {
 </code></pre>
 
 <h3>
+<a id="trefcountingofregisterednotnullpointer-trefcountingofregisteredfixedpointer" class="anchor" href="#trefcountingofregisterednotnullpointer-trefcountingofregisteredfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingOfRegisteredNotNullPointer, TRefCountingOfRegisteredFixedPointer</h3>
+
+<h3>
+<a id="trefcountingofregisteredconstpointer-trefcountingofregisterednotnullconstpointer-trefcountingofregisteredfixedconstpointer" class="anchor" href="#trefcountingofregisteredconstpointer-trefcountingofregisterednotnullconstpointer-trefcountingofregisteredfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingOfRegisteredConstPointer, TRefCountingOfRegisteredNotNullConstPointer, TRefCountingOfRegisteredFixedConstPointer</h3>
+
+<h3>
 <a id="trefcountingofrelaxedregisteredpointer" class="anchor" href="#trefcountingofrelaxedregisteredpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingOfRelaxedRegisteredPointer</h3>
 
 <p>TRefCountingOfRelaxedRegisteredPointer is simply an alias for TRefCountingPointer&lt;TRelaxedRegisteredObj&lt;_Ty&gt;&gt;. Generally you should prefer to just use TRefCountingOfRegisteredPointer, but if you need a "weak pointer" to refer to a type before it's fully defined then you can use this type. An example of such a situation is when you have so-called "cyclic references".  </p>
@@ -457,6 +463,12 @@ int main(int argc, char* argv[]) {
     assert(0 == node_counter);
 }
 </code></pre>
+
+<h3>
+<a id="trefcountingofrelaxedregisterednotnullpointer-trefcountingofrelaxedregisteredfixedpointer" class="anchor" href="#trefcountingofrelaxedregisterednotnullpointer-trefcountingofrelaxedregisteredfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingOfRelaxedRegisteredNotNullPointer, TRefCountingOfRelaxedRegisteredFixedPointer</h3>
+
+<h3>
+<a id="trefcountingofrelaxedregisteredconstpointer-trefcountingofrelaxedregisterednotnullconstpointer-trefcountingofrelaxedregisteredfixedconstpointer" class="anchor" href="#trefcountingofrelaxedregisteredconstpointer-trefcountingofrelaxedregisterednotnullconstpointer-trefcountingofrelaxedregisteredfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer</h3>
 
 <h3>
 <a id="primitives" class="anchor" href="#primitives" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Primitives</h3>
