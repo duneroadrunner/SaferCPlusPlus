@@ -242,6 +242,70 @@ Same as TRefCountingNotNullPointer, but cannot be re-targeted after construction
 
 Just the "const" versions. At the moment TRefCountingPointer&lt;X&gt; does not convert to TRefCountingPointer&lt;const X&gt;. It does convert to a TRefCountingConstPointer&lt;X&gt;.
 
+### TRefCountingOfRegisteredPointer
+
+TRefCountingOfRegisteredPointer is simply an alias for TRefCountingPointer&lt;TRegisteredObj&lt;_Ty&gt;&gt;. TRegisteredObj&lt;_Ty&gt; is meant to behave much like, and be compatible with a _Ty. The reason why we might want to use it is because the &amp; ("address of") operator of TRegisteredObj&lt;_Ty&gt; returns a [TRegisteredFixedPointer&lt;_Ty&gt;](#tregisteredfixedpointer) rather than a raw pointer, and TRegisteredPointers can serve as safe "weak pointers".  
+
+usage example:  
+
+    #include mserefcountingofregistered.h"
+    
+    class H {
+    public:
+        /* An example of a templated member function. In this case it's a static one, but it doesn't have to be.
+        You might consider templating pointer parameter types to give the caller some flexibility as to which kind of
+        (smart/safe) pointer they want to use. */
+    
+        template<typename _Tpointer, typename _Tvector>
+        static int foo5(_Tpointer A_ptr, _Tvector& vector_ref) {
+            int tmp = A_ptr->b;
+            int retval = 0;
+            vector_ref.clear();
+            if (A_ptr) {
+                retval = A_ptr->b;
+            }
+            else {
+                retval = -1;
+            }
+            return retval;
+        }
+    protected:
+        ~H() {}
+    };
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A() {}
+            A(const A& _X) : b(_X.b) {}
+            virtual ~A() {
+                int q = 3; /* just so you can place a breakpoint if you want */
+            }
+            A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+            int b = 3;
+        };
+        typedef std::vector<mse::TRefCountingOfRegisteredFixedPointer<A>> CRCRFPVector;
+    
+        {
+            CRCRFPVector rcrfpvector;
+            {
+                mse::TRefCountingOfRegisteredFixedPointer<A> A_refcountingofregisteredfixed_ptr1 = mse::make_refcountingofregistered<A>();
+                rcrfpvector.push_back(A_refcountingofregisteredfixed_ptr1);
+    
+                /* Just to demonstrate conversion between refcountingofregistered pointer types. */
+                mse::TRefCountingOfRegisteredConstPointer<A> A_refcountingofregisteredconst_ptr1 = A_refcountingofregisteredfixed_ptr1;
+            }
+            int res1 = H::foo5(rcrfpvector.front(), rcrfpvector);
+            assert(3 == res1);
+    
+            rcrfpvector.push_back(mse::make_refcountingofregistered<A>());
+            /* The first parameter in this case will be a TRegisteredFixedPointer<A>. */
+            int res2 = H::foo5(&(*rcrfpvector.front()), rcrfpvector);
+            assert(-1 == res2);
+        }
+    }
+
 
 ### Primitives
 ### CInt, CSize_t and CBool
