@@ -79,7 +79,7 @@ usage example:
 
 
 ### TRegisteredNotNullPointer
-Same as TRegisteredPointer, but cannot be constructed to a null_ptr value.
+Same as TRegisteredPointer, but cannot be constructed to a null value.
 
 ### TRegisteredFixedPointer
 Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference. 
@@ -232,7 +232,7 @@ usage example:
 
 ### TRefCountingNotNullPointer
 
-Same as TRefCountingPointer, but cannot be constructed to or assigned a null_ptr value. Because TRefCountingNotNullPointer controls the lifetime of it's target it should be always safe to assume that it points to a validly allocated object.
+Same as TRefCountingPointer, but cannot be constructed to or assigned a null value. Because TRefCountingNotNullPointer controls the lifetime of it's target it, should be always safe to assume that it points to a validly allocated object.
 
 ### TRefCountingFixedPointer
 
@@ -277,7 +277,7 @@ Also see the section on "[compatibility considerations](#compatibility-considera
 
 ### Quarantined Types
 
-Quarantined types are meant to hold values that are obtained from user input or some other untrusted source (like a media file for example). These are not yet available in the library, but are an important concept with respect to safe programming. Values obtained from untrusted sources are the main attack vector of malicious actors and should be handled with special care. For example, the so-called "stagefright" vulnerability in the Android OS is the result of a specially crafted media file causing the sum of integers to overflow.
+Quarantined types are meant to hold values that are obtained from user input or some other untrusted source (like a media file for example). These are not yet available in the library, but are an important concept with respect to safe programming. Values obtained from untrusted sources are the main attack vector of malicious actors and should be handled with special care. For example, the so-called "stagefright" vulnerability in the Android OS is the result of a specially crafted media file causing the sum of integers to overflow.  
 It is usually the case that untrusted values are obtained through intrinsically slow communication mediums (i.e. file system, internet, UI, etc.), so it usually makes no perceptible difference whether the code that processes those untrusted values into "trusted" internal values is optimized for performance or not. So don't hesitate to use whatever safety methods are called for. In particular, integer types with more comprehensive range checking can be found here: https://github.com/robertramey/safe_numerics.
 
 ### CQuarantinedInt, CQuarantinedSize_t, CQuarantinedVector, CQuarantinedString
