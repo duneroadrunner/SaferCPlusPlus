@@ -82,7 +82,7 @@ usage example:
 Same as TRegisteredPointer, but cannot be constructed to a null value.
 
 ### TRegisteredFixedPointer
-Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference. 
+Same as TRegisteredNotNullPointer, but cannot be retargeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference. 
 usage example:
 
     #include "mseregistered.h"
@@ -183,7 +183,7 @@ benchmark source code: [msetl_example.cpp](https://github.com/duneroadrunner/Saf
 
 ###Reference Counting Pointers
 
-If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is std::shared_ptr, which is notable for its thread-safe reference counting that's rather handy when you're sharing an object among asynchronous threads, but unnecessarily costly when you aren't. So we provide fast reference counting pointers that forego any thread safety mechanisms. In addition to being substantially faster (and smaller) than std::shared_ptr, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use mse::make_refcounting&lt;&gt;() instead.) "Const", "not null" and "fixed" (non retargetable) flavors are also provided with proper conversions between them.
+If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is std::shared_ptr, which is notable for its thread-safe reference counting that's rather handy when you're sharing an object among asynchronous threads, but unnecessarily costly when you aren't. So we provide fast reference counting pointers that forego any thread safety mechanisms. In addition to being substantially faster (and smaller) than std::shared_ptr, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use mse::make_refcounting&lt;&gt;() instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them.
 
 ###TRefCountingPointer
 
@@ -236,7 +236,7 @@ Same as TRefCountingPointer, but cannot be constructed to or assigned a null val
 
 ### TRefCountingFixedPointer
 
-Same as TRefCountingNotNullPointer, but cannot be re-targeted after construction (basically a "const TRefCountingNotNullPointer"). It is a recommended type to be used for safe parameter passing by reference.
+Same as TRefCountingNotNullPointer, but cannot be retargeted after construction (basically a "const TRefCountingNotNullPointer"). It is a recommended type to be used for safe parameter passing by reference.
 
 ### TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer
 
@@ -306,6 +306,9 @@ usage example:
         }
     }
 
+### TRefCountingOfRegisteredNotNullPointer, TRefCountingOfRegisteredFixedPointer
+### TRefCountingOfRegisteredConstPointer, TRefCountingOfRegisteredNotNullConstPointer, TRefCountingOfRegisteredFixedConstPointer
+
 ### TRefCountingOfRelaxedRegisteredPointer
 
 TRefCountingOfRelaxedRegisteredPointer is simply an alias for TRefCountingPointer&lt;TRelaxedRegisteredObj&lt;_Ty&gt;&gt;. Generally you should prefer to just use TRefCountingOfRegisteredPointer, but if you need a "weak pointer" to refer to a type before it's fully defined then you can use this type. An example of such a situation is when you have so-called "cyclic references".  
@@ -366,6 +369,9 @@ usage example:
         }
         assert(0 == node_counter);
     }
+
+### TRefCountingOfRelaxedRegisteredNotNullPointer, TRefCountingOfRelaxedRegisteredFixedPointer
+### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
 
 
 ### Primitives
