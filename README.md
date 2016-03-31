@@ -6,6 +6,8 @@ A collection of safe data types that are compatible with, and can substitute for
 
 - A [fast](#simple-benchmarks), [safe replacement for native pointers](#registered-pointers) that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).
 
+- A fast [reference counting pointer](#reference-counting-pointers) for all those situations when you, just for a moment, contemplated using an std::shared_ptr for something other than sharing an object between asynchronous threads. Including [safe parameter passing](#safely-passing-parameters-by-reference) by reference.
+
 - An almost completely [safe implementation](#vector) of std::vector<> - bounds checked, iterator checked and memory managed.
 
 - A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation
