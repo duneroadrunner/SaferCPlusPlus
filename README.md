@@ -159,9 +159,21 @@ usage example:
 ### TRelaxedRegisteredConstPointer, TRelaxedRegisteredNotNullConstPointer, TRelaxedRegisteredFixedConstPointer
   
 ### Simple benchmarks
-It would appear, from these simple benchmarks, that using mse::TRegisteredPointers with objects allocated on the stack is significantly faster than using a smart pointer, or even native pointer, that allocates it's target object on the heap. It also seems to be the case that the performance cost of doing a null_ptr check before each dereference is actually quite modest.
+
+Just some simple microbenchmarks. We show the results for msvc2015 and msvc2013, since there are some interesting differences. The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp).
 
 #### Allocation, deallocation, pointer copy and assignment:
+##### platform: msvc2015/x64/Windows7/Haswell (Mar 2016):
+Pointer Type | Time
+------------ | ----
+mse::TRegisteredPointer (stack): | 0.0317188 seconds.
+native pointer (heap): | 0.0394826 seconds.
+mse::TRefCountedPointer (heap): | 0.0493629 seconds.
+mse::TRegisteredPointer (heap): | 0.0573699 seconds.
+std::shared_ptr (heap): | 0.0692405 seconds.
+mse::TRelaxedRegisteredPointer (heap): | 0.14475 seconds.
+
+##### platform: msvc2013/x64/Windows7/Haswell (Jan 2016):
 Pointer Type | Time
 ------------ | ----
 mse::TRegisteredPointer (stack): | 0.0270016 seconds.
@@ -170,7 +182,19 @@ mse::TRegisteredPointer (heap): | 0.0740042 seconds.
 std::shared_ptr (heap): | 0.087005 seconds.
 mse::TRelaxedRegisteredPointer (heap): | 0.142008 seconds.
 
+So take these results with a grain of salt. The benchmarks were executed on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. It appears that using mse::TRegisteredPointers with objects allocated on the stack is significantly faster than using smart pointers, or even native pointers, that allocate their target object on the heap. Interestingly, four of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.
+
 #### Dereferencing:
+##### platform: msvc2015/x64/Windows7/Haswell (Mar 2016):
+Pointer Type | Time
+------------ | ----
+native pointer: | 0.0105804 seconds.
+mse::TRelaxedRegisteredPointer unchecked: | 0.0136354 seconds.
+mse::TRefCountedPointer (checked): | 0.0258107 seconds.
+mse::TRelaxedRegisteredPointer (checked): | 0.0308289 seconds.
+std::weak_ptr: | 0.179833 seconds.
+
+##### platform: msvc2013/x64/Windows7/Haswell (Jan 2016):
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0100006 seconds.
@@ -178,8 +202,7 @@ mse::TRelaxedRegisteredPointer unchecked: | 0.0130008 seconds.
 mse::TRelaxedRegisteredPointer (checked): | 0.016001 seconds.
 std::weak_ptr: | 0.17701 seconds.
 
-platform: msvc2013/Windows7/Haswell (Jan 2016)  
-benchmark source code: [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp)
+The interesting thing here is that checking for nullptr seems to have gotten a lot slower between msvc2013 and msvc2015. But anyway, my guess is that pointer dereferencing is such a fast operation (std::weak_ptr aside) that outside of critical inner loops, the overhead of checking for nullptr would generally be probably pretty modest. Also note that mse::TRefCountedNotNullPointer and mse::TRefCountedFixedPointer always point to a validly allocated object, so their dereferences don't need to be checked.
 
 ###Reference counting pointers
 
