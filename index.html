@@ -28,6 +28,7 @@
 
 <ul>
 <li><p>A <a href="#simple-benchmarks">fast</a>, <a href="#registered-pointers">safe replacement for native pointers</a> that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).</p></li>
+<li><p>A fast <a href="#reference-counting-pointers">reference counting pointer</a> for all those situations when you, just for a moment, contemplated using an std::shared_ptr for something other than sharing an object between asynchronous threads. Including <a href="#safely-passing-parameters-by-reference">safe parameter passing</a> by reference.</p></li>
 <li><p>An almost completely <a href="#vector">safe implementation</a> of std::vector&lt;&gt; - bounds checked, iterator checked and memory managed.</p></li>
 <li><p>A couple of <a href="#vectors">other</a> highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation</p></li>
 <li><p><a href="#primitives">replacements</a> for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.</p></li>
@@ -271,7 +272,8 @@ int main(int argc, char* argv[]) {
 </tbody>
 </table>
 
-<p>So take these results with a grain of salt. The benchmarks were executed on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. It appears that using mse::TRegisteredPointers with objects allocated on the stack is significantly faster than using smart pointers, or even native pointers, that allocate their target object on the heap. Interestingly, four of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.</p>
+<p>So take these results with a grain of salt. The benchmarks were executed on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. It appears that using mse::TRegisteredPointers with objects allocated on the stack is significantly faster than using smart pointers, or even native pointers, that allocate their target object on the heap. Interestingly, four of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.<br>
+I'm speculating here, but it might be the case that the successive heap operations that occur in this benchmark may be more "cache friendly" than heap operations in real world code would be, making the "heap" results look artificially good (relative to the "stack" result).</p>
 
 <h4>
 <a id="dereferencing" class="anchor" href="#dereferencing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Dereferencing:</h4>
