@@ -84,7 +84,7 @@ usage example:
 Same as TRegisteredPointer, but cannot be constructed to a null value.
 
 ### TRegisteredFixedPointer
-Same as TRegisteredNotNullPointer, but cannot be retargeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference. 
+Same as TRegisteredNotNullPointer, but cannot be retargeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.   
 usage example:
 
     #include "mseregistered.h"
