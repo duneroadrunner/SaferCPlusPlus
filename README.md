@@ -170,7 +170,7 @@ Pointer Type | Time
 ------------ | ----
 mse::TRegisteredPointer (stack): | 0.0317188 seconds.
 native pointer (heap): | 0.0394826 seconds.
-mse::TRefCountedPointer (heap): | 0.0493629 seconds.
+mse::TRefCountingPointer (heap): | 0.0493629 seconds.
 mse::TRegisteredPointer (heap): | 0.0573699 seconds.
 std::shared_ptr (heap): | 0.0692405 seconds.
 mse::TRelaxedRegisteredPointer (heap): | 0.14475 seconds.
@@ -193,7 +193,7 @@ Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0105804 seconds.
 mse::TRelaxedRegisteredPointer unchecked: | 0.0136354 seconds.
-mse::TRefCountedPointer (checked): | 0.0258107 seconds.
+mse::TRefCountingPointer (checked): | 0.0258107 seconds.
 mse::TRelaxedRegisteredPointer (checked): | 0.0308289 seconds.
 std::weak_ptr: | 0.179833 seconds.
 
@@ -205,7 +205,7 @@ mse::TRelaxedRegisteredPointer unchecked: | 0.0130008 seconds.
 mse::TRelaxedRegisteredPointer (checked): | 0.016001 seconds.
 std::weak_ptr: | 0.17701 seconds.
 
-The interesting thing here is that checking for nullptr seems to have gotten a lot slower between msvc2013 and msvc2015. But anyway, my guess is that pointer dereferencing is such a fast operation (std::weak_ptr aside) that outside of critical inner loops, the overhead of checking for nullptr would generally be probably pretty modest. Also note that mse::TRefCountedNotNullPointer and mse::TRefCountedFixedPointer always point to a validly allocated object, so their dereferences don't need to be checked.
+The interesting thing here is that checking for nullptr seems to have gotten a lot slower between msvc2013 and msvc2015. But anyway, my guess is that pointer dereferencing is such a fast operation (std::weak_ptr aside) that outside of critical inner loops, the overhead of checking for nullptr would generally be probably pretty modest. Also note that [mse::TRefCountingNotNullPointer](#trefcountingnotnullpointer) and [mse::TRefCountingFixedPointer](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked.
 
 ###Reference counting pointers
 
