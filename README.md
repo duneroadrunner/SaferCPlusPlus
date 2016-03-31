@@ -162,7 +162,7 @@ usage example:
   
 ### Simple benchmarks
 
-Just some simple microbenchmarks. We show the results for msvc2015 and msvc2013, since there are some interesting differences. The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp).
+Just some simple microbenchmarks. We show the results for msvc2015 and msvc2013 (run on the same machine), since there are some interesting differences. The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp).
 
 #### Allocation, deallocation, pointer copy and assignment:
 ##### platform: msvc2015/x64/Windows7/Haswell (Mar 2016):
@@ -184,9 +184,8 @@ mse::TRegisteredPointer (heap): | 0.0740042 seconds.
 std::shared_ptr (heap): | 0.087005 seconds.
 mse::TRelaxedRegisteredPointer (heap): | 0.142008 seconds.
 
-So take these results with a grain of salt. The benchmarks were executed on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. It appears that using mse::TRegisteredPointers with objects allocated on the stack is significantly faster than using smart pointers, or even native pointers, that allocate their target object on the heap. Interestingly, three of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.  
-I'm speculating here, but it might be the case that the successive heap operations that occur in this benchmark may be more "cache friendly" than heap operations in real world code would be, making the "heap" results look artificially good (relative to the "stack" result).
-
+Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. Interestingly, three of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.  
+I'm speculating here, but it might be the case that the heap operations that occur in this benchmark may be more "cache friendly" than heap operations in real world code would be, making the "heap" results look artificially good (relative to the "stack" result).
 
 #### Dereferencing:
 ##### platform: msvc2015/x64/Windows7/Haswell (Mar 2016):
