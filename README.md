@@ -182,7 +182,9 @@ mse::TRegisteredPointer (heap): | 0.0740042 seconds.
 std::shared_ptr (heap): | 0.087005 seconds.
 mse::TRelaxedRegisteredPointer (heap): | 0.142008 seconds.
 
-So take these results with a grain of salt. The benchmarks were executed on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. It appears that using mse::TRegisteredPointers with objects allocated on the stack is significantly faster than using smart pointers, or even native pointers, that allocate their target object on the heap. Interestingly, four of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.
+So take these results with a grain of salt. The benchmarks were executed on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. It appears that using mse::TRegisteredPointers with objects allocated on the stack is significantly faster than using smart pointers, or even native pointers, that allocate their target object on the heap. Interestingly, four of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.  
+I'm speculating here, but it might be the case that the successive heap operations that occur in this benchmark may be more "cache friendly" than heap operations in real world code would be, making the "heap" results look artificially good (relative to the "stack" result).
+
 
 #### Dereferencing:
 ##### platform: msvc2015/x64/Windows7/Haswell (Mar 2016):
