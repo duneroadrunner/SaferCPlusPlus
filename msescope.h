@@ -36,6 +36,12 @@ namespace mse {
 	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using TScopeFixedPointer = _Ty*;
 	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using TScopeFixedConstPointer = const _Ty*;
 	template<typename _TROy, int _Tn = sc_scp_default_cache_size> using TScopeObj = _TROy;
+	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using TScopeOwnerPointer = std::unique_ptr<TScopeObj<_Ty, _Tn>>;
+
+	template <class X, class... Args>
+	TScopeOwnerPointer<X> make_scope(Args&&... args) {
+		return std::make_unique<TScopeObj<X>>(args...);
+	}
 
 #else /*MSE_SCOPEPOINTER_DISABLED*/
 
@@ -489,6 +495,40 @@ namespace mse {
 		return (*this).m_ptr;
 	}
 
+	template<typename _Ty, int _Tn = sc_scp_default_cache_size>
+	class TScopeOwnerPointer {
+	public:
+		virtual ~TScopeOwnerPointer() {
+			assert(m_ptr);
+			delete m_ptr;
+		}
+
+		TScopeObj<_Ty, _Tn>& operator*() const {
+			return (*m_ptr);
+		}
+		TScopeObj<_Ty, _Tn>* operator->() const {
+			return m_ptr;
+		}
+
+		template <class... Args>
+		static TScopeOwnerPointer make_scope(Args&&... args) {
+			auto new_ptr = new TScopeObj<_Ty, _Tn>(args...);
+			TScopeOwnerPointer retval(new_ptr);
+			return retval;
+		}
+
+	private:
+		TScopeOwnerPointer(TScopeObj<_Ty, _Tn>* ptr) : m_ptr(ptr) {}
+		TScopeOwnerPointer<_Ty, _Tn>& operator=(const TScopeOwnerPointer<_Ty, _Tn>& _Right_cref) = delete;
+
+		TScopeObj<_Ty, _Tn>* m_ptr = nullptr;
+	};
+
+	template <class X, class... Args>
+	TScopeOwnerPointer<X> make_scope(Args&&... args) {
+		return TScopeOwnerPointer<X>::make_scope(args...);
+	}
+
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
 	/* shorter aliases */
@@ -552,6 +592,11 @@ namespace mse {
 			mse::TScopeFixedConstPointer<A> rcp2 = rcp;
 			const mse::TScopeObj<A> cscope_a;
 			mse::TScopeFixedConstPointer<A> rfcp = &cscope_a;
+
+			auto A_scpoptr = mse::make_scope<A>();
+			B::foo2(&*A_scpoptr);
+			if (A_scpoptr->b == (&*A_scpoptr)->b) {
+			}
 		}
 	}
 }
