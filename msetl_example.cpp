@@ -29,6 +29,7 @@ get to the data type your interested in.
 #include "mserefcounting.h"
 #include "mserefcountingofregistered.h"
 #include "mserefcountingofrelaxedregistered.h"
+#include "msescope.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -921,6 +922,45 @@ int main(int argc, char* argv[])
 		bool TRefCountingOfRelaxedRegisteredPointer_test1_res = TRefCountingOfRelaxedRegisteredPointer_test1.testBehaviour();
 		TRefCountingOfRelaxedRegisteredPointer_test1_res &= TRefCountingOfRelaxedRegisteredPointer_test1.testLinked();
 		TRefCountingOfRelaxedRegisteredPointer_test1.test1();
+	}
+
+	{
+		/************************/
+		/*  TScopeFixedPointer  */
+		/************************/
+
+		/* The "scope" templates basically just allow the programmer to indicate that the target object has "scope
+		lifetime". That is, the object is either allocated on the stack, or it's "owner" pointer is allocated on
+		the stack. Unfortunately there's really no way to enforce this, which makes this data type less intrinsically
+		safe than say, "reference counting" pointers. Because of this, in debug mode, "scope" pointers employ the
+		same comprehensive safety mechanisms that "registered pointers" use. */
+
+		class A {
+		public:
+			A(int x) : b(x) {}
+			A(const A& _X) : b(_X.b) {}
+			virtual ~A() {}
+			A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+			int b = 3;
+		};
+		class B {
+		public:
+			static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
+			static int foo2(mse::TScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+			static int foo3(mse::TScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+		protected:
+			~B() {}
+		};
+
+		mse::TScopeObj<A> a_scpobj(5);
+		int res1 = (&a_scpobj)->b;
+		int res2 = B::foo2(&a_scpobj);
+		int res3 = B::foo3(&a_scpobj);
+		mse::TScopeOwnerPointer<A> a_scpoptr(7);
+		int res4 = B::foo2(&(*a_scpoptr));
+
+		mse::s_scpptr_test1();
 	}
 
 	return 0;

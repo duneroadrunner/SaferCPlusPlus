@@ -501,7 +501,7 @@ namespace mse {
 	/* TScopeOwnerPointer is meant to be much like boost::scoped_ptr<>. Instead of taking a native pointer,
 	TScopeOwnerPointer just forwards it's constructor arguments to the constructor of the TScopeObj<_Ty>.
 	TScopeOwnerPointers are meant to be allocated on the stack only. Unfortunately there's really no way to
-	enforce this, which makes this data type less intrinsicly safe than say, "reference counting" pointers.
+	enforce this, which makes this data type less intrinsically safe than say, "reference counting" pointers.
 	Because of this, in debug mode, we employ the same comprehensive safety mechanisms that "registered
 	pointers" use. */
 	template<typename _Ty>
