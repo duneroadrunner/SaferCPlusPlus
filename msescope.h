@@ -29,14 +29,14 @@ namespace mse {
 	static const int sc_scp_default_cache_size = 3/* 1 + (the maximum number of pointers expected to target the object at one time) */;
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using TScopePointer = _Ty*;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using TScopeConstPointer = const _Ty*;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using TScopeNotNullPointer = _Ty*;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using TScopeNotNullConstPointer = const _Ty*;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using TScopeFixedPointer = _Ty*;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using TScopeFixedConstPointer = const _Ty*;
-	template<typename _TROy, int _Tn = sc_scp_default_cache_size> using TScopeObj = _TROy;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using TScopeOwnerPointer = std::unique_ptr<TScopeObj<_Ty, _Tn>>;
+	template<typename _Ty> using TScopePointer = _Ty*;
+	template<typename _Ty> using TScopeConstPointer = const _Ty*;
+	template<typename _Ty> using TScopeNotNullPointer = _Ty*;
+	template<typename _Ty> using TScopeNotNullConstPointer = const _Ty*;
+	template<typename _Ty> using TScopeFixedPointer = _Ty*;
+	template<typename _Ty> using TScopeFixedConstPointer = const _Ty*;
+	template<typename _TROy> using TScopeObj = _TROy;
+	template<typename _Ty> using TScopeOwnerPointer = std::unique_ptr<TScopeObj<_Ty>>;
 
 	template <class X, class... Args>
 	TScopeOwnerPointer<X> make_scope(Args&&... args) {
@@ -217,135 +217,135 @@ namespace mse {
 		std::unordered_set<const CSaferPtrBase*> *m_ptr_to_regptr_set_ptr = nullptr;
 	};
 
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> class TScopeObj;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> class TScopeNotNullPointer;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> class TScopeNotNullConstPointer;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> class TScopeFixedPointer;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> class TScopeFixedConstPointer;
+	template<typename _Ty> class TScopeObj;
+	template<typename _Ty> class TScopeNotNullPointer;
+	template<typename _Ty> class TScopeNotNullConstPointer;
+	template<typename _Ty> class TScopeFixedPointer;
+	template<typename _Ty> class TScopeFixedConstPointer;
 
 	/* Use TScopeFixedPointer instead. */
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size>
-	class TScopePointer : public TSaferPtr<TScopeObj<_Ty, _Tn>> {
+	template<typename _Ty>
+	class TScopePointer : public TSaferPtr<TScopeObj<_Ty>> {
 	public:
 	private:
 		TScopePointer();
-		TScopePointer(TScopeObj<_Ty, _Tn>* ptr);
+		TScopePointer(TScopeObj<_Ty>* ptr);
 		TScopePointer(const TScopePointer& src_cref);
 		virtual ~TScopePointer();
-		TScopePointer<_Ty, _Tn>& operator=(TScopeObj<_Ty, _Tn>* ptr);
-		TScopePointer<_Ty, _Tn>& operator=(const TScopePointer<_Ty, _Tn>& _Right_cref);
+		TScopePointer<_Ty>& operator=(TScopeObj<_Ty>* ptr);
+		TScopePointer<_Ty>& operator=(const TScopePointer<_Ty>& _Right_cref);
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const;
-		explicit operator TScopeObj<_Ty, _Tn>*() const;
+		explicit operator TScopeObj<_Ty>*() const;
 
-		TScopePointer<_Ty, _Tn>* operator&() { return this; }
-		const TScopePointer<_Ty, _Tn>* operator&() const { return this; }
+		TScopePointer<_Ty>* operator&() { return this; }
+		const TScopePointer<_Ty>* operator&() const { return this; }
 
-		friend class TScopeNotNullPointer<_Ty, _Tn>;
+		friend class TScopeNotNullPointer<_Ty>;
 	};
 
 	/* Use TScopeFixedConstPointer instead. */
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size>
-	class TScopeConstPointer : public TSaferPtr<const TScopeObj<_Ty, _Tn>> {
+	template<typename _Ty>
+	class TScopeConstPointer : public TSaferPtr<const TScopeObj<_Ty>> {
 	public:
 	private:
 		TScopeConstPointer();
-		TScopeConstPointer(const TScopeObj<_Ty, _Tn>* ptr);
+		TScopeConstPointer(const TScopeObj<_Ty>* ptr);
 		TScopeConstPointer(const TScopeConstPointer& src_cref);
-		TScopeConstPointer(const TScopePointer<_Ty, _Tn>& src_cref);
+		TScopeConstPointer(const TScopePointer<_Ty>& src_cref);
 		virtual ~TScopeConstPointer();
-		TScopeConstPointer<_Ty, _Tn>& operator=(const TScopeObj<_Ty, _Tn>* ptr);
-		TScopeConstPointer<_Ty, _Tn>& operator=(const TScopeConstPointer<_Ty, _Tn>& _Right_cref);
-		TScopeConstPointer<_Ty, _Tn>& operator=(const TScopePointer<_Ty, _Tn>& _Right_cref) { return (*this).operator=(TScopeConstPointer(_Right_cref)); }
+		TScopeConstPointer<_Ty>& operator=(const TScopeObj<_Ty>* ptr);
+		TScopeConstPointer<_Ty>& operator=(const TScopeConstPointer<_Ty>& _Right_cref);
+		TScopeConstPointer<_Ty>& operator=(const TScopePointer<_Ty>& _Right_cref) { return (*this).operator=(TScopeConstPointer(_Right_cref)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const;
-		explicit operator const TScopeObj<_Ty, _Tn>*() const;
+		explicit operator const TScopeObj<_Ty>*() const;
 
-		TScopeConstPointer<_Ty, _Tn>* operator&() { return this; }
-		const TScopeConstPointer<_Ty, _Tn>* operator&() const { return this; }
+		TScopeConstPointer<_Ty>* operator&() { return this; }
+		const TScopeConstPointer<_Ty>* operator&() const { return this; }
 
-		friend class TScopeNotNullConstPointer<_Ty, _Tn>;
+		friend class TScopeNotNullConstPointer<_Ty>;
 	};
 
 	/* Use TScopeFixedPointer instead. */
-	template<typename _Ty, int _Tn>
-	class TScopeNotNullPointer : public TScopePointer<_Ty, _Tn> {
+	template<typename _Ty>
+	class TScopeNotNullPointer : public TScopePointer<_Ty> {
 	public:
 	private:
-		TScopeNotNullPointer(TScopeObj<_Ty, _Tn>* ptr) : TScopePointer<_Ty, _Tn>(ptr) {}
-		TScopeNotNullPointer(const TScopeNotNullPointer& src_cref) : TScopePointer<_Ty, _Tn>(src_cref) {}
+		TScopeNotNullPointer(TScopeObj<_Ty>* ptr) : TScopePointer<_Ty>(ptr) {}
+		TScopeNotNullPointer(const TScopeNotNullPointer& src_cref) : TScopePointer<_Ty>(src_cref) {}
 		virtual ~TScopeNotNullPointer() {}
-		TScopeNotNullPointer<_Ty, _Tn>& operator=(const TScopeNotNullPointer<_Ty, _Tn>& _Right_cref) {
-			TScopePointer<_Ty, _Tn>::operator=(_Right_cref);
+		TScopeNotNullPointer<_Ty>& operator=(const TScopeNotNullPointer<_Ty>& _Right_cref) {
+			TScopePointer<_Ty>::operator=(_Right_cref);
 			return (*this);
 		}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TScopePointer<_Ty, _Tn>::operator _Ty*(); }
-		explicit operator TScopeObj<_Ty, _Tn>*() const { return TScopePointer<_Ty, _Tn>::operator TScopeObj<_Ty, _Tn>*(); }
+		explicit operator _Ty*() const { return TScopePointer<_Ty>::operator _Ty*(); }
+		explicit operator TScopeObj<_Ty>*() const { return TScopePointer<_Ty>::operator TScopeObj<_Ty>*(); }
 
-		TScopeNotNullPointer<_Ty, _Tn>* operator&() { return this; }
-		const TScopeNotNullPointer<_Ty, _Tn>* operator&() const { return this; }
+		TScopeNotNullPointer<_Ty>* operator&() { return this; }
+		const TScopeNotNullPointer<_Ty>* operator&() const { return this; }
 
-		friend class TScopeFixedPointer<_Ty, _Tn>;
+		friend class TScopeFixedPointer<_Ty>;
 	};
 
 	/* Use TScopeFixedConstPointer instead. */
-	template<typename _Ty, int _Tn>
-	class TScopeNotNullConstPointer : public TScopeConstPointer<_Ty, _Tn> {
+	template<typename _Ty>
+	class TScopeNotNullConstPointer : public TScopeConstPointer<_Ty> {
 	public:
 	private:
-		TScopeNotNullConstPointer(const TScopeNotNullConstPointer<_Ty, _Tn>& src_cref) : TScopeConstPointer<_Ty, _Tn>(src_cref) {}
-		TScopeNotNullConstPointer(const TScopeNotNullPointer<_Ty, _Tn>& src_cref) : TScopeConstPointer<_Ty, _Tn>(src_cref) {}
+		TScopeNotNullConstPointer(const TScopeNotNullConstPointer<_Ty>& src_cref) : TScopeConstPointer<_Ty>(src_cref) {}
+		TScopeNotNullConstPointer(const TScopeNotNullPointer<_Ty>& src_cref) : TScopeConstPointer<_Ty>(src_cref) {}
 		virtual ~TScopeNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TScopeConstPointer<_Ty, _Tn>::operator const _Ty*(); }
-		explicit operator const TScopeObj<_Ty, _Tn>*() const { return TScopeConstPointer<_Ty, _Tn>::operator const TScopeObj<_Ty, _Tn>*(); }
-		TScopeNotNullConstPointer(const TScopeObj<_Ty, _Tn>* ptr) : TScopeConstPointer<_Ty, _Tn>(ptr) {}
+		explicit operator const _Ty*() const { return TScopeConstPointer<_Ty>::operator const _Ty*(); }
+		explicit operator const TScopeObj<_Ty>*() const { return TScopeConstPointer<_Ty>::operator const TScopeObj<_Ty>*(); }
+		TScopeNotNullConstPointer(const TScopeObj<_Ty>* ptr) : TScopeConstPointer<_Ty>(ptr) {}
 
-		TScopeNotNullConstPointer<_Ty, _Tn>* operator&() { return this; }
-		const TScopeNotNullConstPointer<_Ty, _Tn>* operator&() const { return this; }
+		TScopeNotNullConstPointer<_Ty>* operator&() { return this; }
+		const TScopeNotNullConstPointer<_Ty>* operator&() const { return this; }
 
-		friend class TScopeFixedConstPointer<_Ty, _Tn>;
+		friend class TScopeFixedConstPointer<_Ty>;
 	};
 
 	/* A TScopeFixedPointer points to a TScopeObj. Its intended for very limited use. Basically just to pass a TScopeObj
 	by reference as a function parameter. TScopeFixedPointers are be obtained from TScopeObj's "&" (address of) operator. */
-	template<typename _Ty, int _Tn>
-	class TScopeFixedPointer : public TScopeNotNullPointer<_Ty, _Tn> {
+	template<typename _Ty>
+	class TScopeFixedPointer : public TScopeNotNullPointer<_Ty> {
 	public:
-		TScopeFixedPointer(const TScopeFixedPointer& src_cref) : TScopeNotNullPointer<_Ty, _Tn>(src_cref) {}
+		TScopeFixedPointer(const TScopeFixedPointer& src_cref) : TScopeNotNullPointer<_Ty>(src_cref) {}
 		virtual ~TScopeFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TScopeNotNullPointer<_Ty, _Tn>::operator _Ty*(); }
-		explicit operator TScopeObj<_Ty, _Tn>*() const { return TScopeNotNullPointer<_Ty, _Tn>::operator TScopeObj<_Ty, _Tn>*(); }
+		explicit operator _Ty*() const { return TScopeNotNullPointer<_Ty>::operator _Ty*(); }
+		explicit operator TScopeObj<_Ty>*() const { return TScopeNotNullPointer<_Ty>::operator TScopeObj<_Ty>*(); }
 
 	private:
-		TScopeFixedPointer(TScopeObj<_Ty, _Tn>* ptr) : TScopeNotNullPointer<_Ty, _Tn>(ptr) {}
-		TScopeFixedPointer<_Ty, _Tn>& operator=(const TScopeFixedPointer<_Ty, _Tn>& _Right_cref) = delete;
+		TScopeFixedPointer(TScopeObj<_Ty>* ptr) : TScopeNotNullPointer<_Ty>(ptr) {}
+		TScopeFixedPointer<_Ty>& operator=(const TScopeFixedPointer<_Ty>& _Right_cref) = delete;
 
-		TScopeFixedPointer<_Ty, _Tn>* operator&() { return this; }
-		const TScopeFixedPointer<_Ty, _Tn>* operator&() const { return this; }
+		TScopeFixedPointer<_Ty>* operator&() { return this; }
+		const TScopeFixedPointer<_Ty>* operator&() const { return this; }
 
-		friend class TScopeObj<_Ty, _Tn>;
+		friend class TScopeObj<_Ty>;
 	};
 
-	template<typename _Ty, int _Tn>
-	class TScopeFixedConstPointer : public TScopeNotNullConstPointer<_Ty, _Tn> {
+	template<typename _Ty>
+	class TScopeFixedConstPointer : public TScopeNotNullConstPointer<_Ty> {
 	public:
-		TScopeFixedConstPointer(const TScopeFixedPointer<_Ty, _Tn>& src_cref) : TScopeNotNullConstPointer<_Ty, _Tn>(src_cref) {}
+		TScopeFixedConstPointer(const TScopeFixedPointer<_Ty>& src_cref) : TScopeNotNullConstPointer<_Ty>(src_cref) {}
 		virtual ~TScopeFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TScopeNotNullConstPointer<_Ty, _Tn>::operator const _Ty*(); }
-		explicit operator const TScopeObj<_Ty, _Tn>*() const { return TScopeNotNullConstPointer<_Ty, _Tn>::operator const TScopeObj<_Ty, _Tn>*(); }
+		explicit operator const _Ty*() const { return TScopeNotNullConstPointer<_Ty>::operator const _Ty*(); }
+		explicit operator const TScopeObj<_Ty>*() const { return TScopeNotNullConstPointer<_Ty>::operator const TScopeObj<_Ty>*(); }
 
 	private:
-		TScopeFixedConstPointer(const TScopeObj<_Ty, _Tn>* ptr) : TScopeNotNullConstPointer<_Ty, _Tn>(ptr) {}
-		TScopeFixedConstPointer<_Ty, _Tn>& operator=(const TScopeFixedConstPointer<_Ty, _Tn>& _Right_cref) = delete;
+		TScopeFixedConstPointer(const TScopeObj<_Ty>* ptr) : TScopeNotNullConstPointer<_Ty>(ptr) {}
+		TScopeFixedConstPointer<_Ty>& operator=(const TScopeFixedConstPointer<_Ty>& _Right_cref) = delete;
 
-		TScopeFixedConstPointer<_Ty, _Tn>* operator&() { return this; }
-		const TScopeFixedConstPointer<_Ty, _Tn>* operator&() const { return this; }
+		TScopeFixedConstPointer<_Ty>* operator&() { return this; }
+		const TScopeFixedConstPointer<_Ty>* operator&() const { return this; }
 
-		friend class TScopeObj<_Ty, _Tn>;
+		friend class TScopeObj<_Ty>;
 	};
 
 	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
@@ -361,7 +361,7 @@ namespace mse {
 
 	/* TScopeObj is intended as a transparent wrapper for other classes/objects with "scope lifespans". That is, objects
 	that are either allocated on the stack, or constructed using mse::make_scope(). */
-	template<typename _TROy, int _Tn>
+	template<typename _TROy>
 	class TScopeObj : public _TROy {
 	public:
 		MSE_SCOPE_USING(TScopeObj, _TROy);
@@ -371,65 +371,65 @@ namespace mse {
 			mseRPManager().onObjectDestruction();
 		}
 		TScopeObj& operator=(const TScopeObj& _X) { _TROy::operator=(_X); return (*this); }
-		TScopeFixedPointer<_TROy, _Tn> operator&() {
+		TScopeFixedPointer<_TROy> operator&() {
 			return this;
 		}
-		TScopeFixedConstPointer<_TROy, _Tn> operator&() const {
+		TScopeFixedConstPointer<_TROy> operator&() const {
 			return this;
 		}
-		TScpPTracker<_Tn>& mseRPManager() const { return m_mseRPManager; }
+		TScpPTracker<>& mseRPManager() const { return m_mseRPManager; }
 
 	private:
 		TScopeObj& operator=(TScopeObj&& _X) = delete;
-		mutable TScpPTracker<_Tn> m_mseRPManager;
+		mutable TScpPTracker<> m_mseRPManager;
 	};
 
-	template<typename _Ty, int _Tn>
-	TScopePointer<_Ty, _Tn>::TScopePointer() : TSaferPtr<TScopeObj<_Ty, _Tn>>() {}
-	template<typename _Ty, int _Tn>
-	TScopePointer<_Ty, _Tn>::TScopePointer(TScopeObj<_Ty, _Tn>* ptr) : TSaferPtr<TScopeObj<_Ty, _Tn>>(ptr) {
+	template<typename _Ty>
+	TScopePointer<_Ty>::TScopePointer() : TSaferPtr<TScopeObj<_Ty>>() {}
+	template<typename _Ty>
+	TScopePointer<_Ty>::TScopePointer(TScopeObj<_Ty>* ptr) : TSaferPtr<TScopeObj<_Ty>>(ptr) {
 		if (nullptr != ptr) {
 			(*ptr).mseRPManager().registerPointer(*this);
 		}
 	}
-	template<typename _Ty, int _Tn>
-	TScopePointer<_Ty, _Tn>::TScopePointer(const TScopePointer& src_cref) : TSaferPtr<TScopeObj<_Ty, _Tn>>(src_cref.m_ptr) {
+	template<typename _Ty>
+	TScopePointer<_Ty>::TScopePointer(const TScopePointer& src_cref) : TSaferPtr<TScopeObj<_Ty>>(src_cref.m_ptr) {
 		if (nullptr != src_cref.m_ptr) {
 			(*(src_cref.m_ptr)).mseRPManager().registerPointer(*this);
 		}
 	}
-	template<typename _Ty, int _Tn>
-	TScopePointer<_Ty, _Tn>::~TScopePointer() {
+	template<typename _Ty>
+	TScopePointer<_Ty>::~TScopePointer() {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
 		}
 	}
-	template<typename _Ty, int _Tn>
-	TScopePointer<_Ty, _Tn>& TScopePointer<_Ty, _Tn>::operator=(TScopeObj<_Ty, _Tn>* ptr) {
+	template<typename _Ty>
+	TScopePointer<_Ty>& TScopePointer<_Ty>::operator=(TScopeObj<_Ty>* ptr) {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
 		}
-		TSaferPtr<TScopeObj<_Ty, _Tn>>::operator=(ptr);
+		TSaferPtr<TScopeObj<_Ty>>::operator=(ptr);
 		if (nullptr != ptr) {
 			(*ptr).mseRPManager().registerPointer(*this);
 		}
 		return (*this);
 	}
-	template<typename _Ty, int _Tn>
-	TScopePointer<_Ty, _Tn>& TScopePointer<_Ty, _Tn>::operator=(const TScopePointer<_Ty, _Tn>& _Right_cref) {
+	template<typename _Ty>
+	TScopePointer<_Ty>& TScopePointer<_Ty>::operator=(const TScopePointer<_Ty>& _Right_cref) {
 		return operator=(_Right_cref.m_ptr);
 	}
 	/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-	template<typename _Ty, int _Tn>
-	TScopePointer<_Ty, _Tn>::operator _Ty*() const {
+	template<typename _Ty>
+	TScopePointer<_Ty>::operator _Ty*() const {
 		if (nullptr == (*this).m_ptr) {
 			int q = 5; /* just a line of code for putting a debugger break point */
 		}
 		return (*this).m_ptr;
 	}
 	/* This cast operator, if possible, should not be used. It is meant to be used exclusively by scope_delete<>(). */
-	template<typename _Ty, int _Tn>
-	TScopePointer<_Ty, _Tn>::operator TScopeObj<_Ty, _Tn>*() const {
+	template<typename _Ty>
+	TScopePointer<_Ty>::operator TScopeObj<_Ty>*() const {
 		if (nullptr == (*this).m_ptr) {
 			int q = 5; /* just a line of code for putting a debugger break point */
 		}
@@ -437,65 +437,65 @@ namespace mse {
 	}
 
 
-	template<typename _Ty, int _Tn>
-	TScopeConstPointer<_Ty, _Tn>::TScopeConstPointer() : TSaferPtr<const TScopeObj<_Ty, _Tn>>() {}
-	template<typename _Ty, int _Tn>
-	TScopeConstPointer<_Ty, _Tn>::TScopeConstPointer(const TScopeObj<_Ty, _Tn>* ptr) : TSaferPtr<const TScopeObj<_Ty, _Tn>>(ptr) {
+	template<typename _Ty>
+	TScopeConstPointer<_Ty>::TScopeConstPointer() : TSaferPtr<const TScopeObj<_Ty>>() {}
+	template<typename _Ty>
+	TScopeConstPointer<_Ty>::TScopeConstPointer(const TScopeObj<_Ty>* ptr) : TSaferPtr<const TScopeObj<_Ty>>(ptr) {
 		if (nullptr != ptr) {
 			(*ptr).mseRPManager().registerPointer(*this);
 		}
 	}
-	template<typename _Ty, int _Tn>
-	TScopeConstPointer<_Ty, _Tn>::TScopeConstPointer(const TScopeConstPointer& src_cref) : TSaferPtr<const TScopeObj<_Ty, _Tn>>(src_cref.m_ptr) {
+	template<typename _Ty>
+	TScopeConstPointer<_Ty>::TScopeConstPointer(const TScopeConstPointer& src_cref) : TSaferPtr<const TScopeObj<_Ty>>(src_cref.m_ptr) {
 		if (nullptr != src_cref.m_ptr) {
 			(*(src_cref.m_ptr)).mseRPManager().registerPointer(*this);
 		}
 	}
-	template<typename _Ty, int _Tn>
-	TScopeConstPointer<_Ty, _Tn>::TScopeConstPointer(const TScopePointer<_Ty, _Tn>& src_cref) : TSaferPtr<const TScopeObj<_Ty, _Tn>>(src_cref.m_ptr) {
+	template<typename _Ty>
+	TScopeConstPointer<_Ty>::TScopeConstPointer(const TScopePointer<_Ty>& src_cref) : TSaferPtr<const TScopeObj<_Ty>>(src_cref.m_ptr) {
 		if (nullptr != src_cref.m_ptr) {
 			(*(src_cref.m_ptr)).mseRPManager().registerPointer(*this);
 		}
 	}
-	template<typename _Ty, int _Tn>
-	TScopeConstPointer<_Ty, _Tn>::~TScopeConstPointer() {
+	template<typename _Ty>
+	TScopeConstPointer<_Ty>::~TScopeConstPointer() {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
 		}
 	}
-	template<typename _Ty, int _Tn>
-	TScopeConstPointer<_Ty, _Tn>& TScopeConstPointer<_Ty, _Tn>::operator=(const TScopeObj<_Ty, _Tn>* ptr) {
+	template<typename _Ty>
+	TScopeConstPointer<_Ty>& TScopeConstPointer<_Ty>::operator=(const TScopeObj<_Ty>* ptr) {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
 		}
-		TSaferPtr<const TScopeObj<_Ty, _Tn>>::operator=(ptr);
+		TSaferPtr<const TScopeObj<_Ty>>::operator=(ptr);
 		if (nullptr != ptr) {
 			(*ptr).mseRPManager().registerPointer(*this);
 		}
 		return (*this);
 	}
-	template<typename _Ty, int _Tn>
-	TScopeConstPointer<_Ty, _Tn>& TScopeConstPointer<_Ty, _Tn>::operator=(const TScopeConstPointer<_Ty, _Tn>& _Right_cref) {
+	template<typename _Ty>
+	TScopeConstPointer<_Ty>& TScopeConstPointer<_Ty>::operator=(const TScopeConstPointer<_Ty>& _Right_cref) {
 		return operator=(_Right_cref.m_ptr);
 	}
 	/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-	template<typename _Ty, int _Tn>
-	TScopeConstPointer<_Ty, _Tn>::operator const _Ty*() const {
+	template<typename _Ty>
+	TScopeConstPointer<_Ty>::operator const _Ty*() const {
 		if (nullptr == (*this).m_ptr) {
 			int q = 5; /* just a line of code for putting a debugger break point */
 		}
 		return (*this).m_ptr;
 	}
 	/* This cast operator, if possible, should not be used. It is meant to be used exclusively by scope_delete<>(). */
-	template<typename _Ty, int _Tn>
-	TScopeConstPointer<_Ty, _Tn>::operator const TScopeObj<_Ty, _Tn>*() const {
+	template<typename _Ty>
+	TScopeConstPointer<_Ty>::operator const TScopeObj<_Ty>*() const {
 		if (nullptr == (*this).m_ptr) {
 			int q = 5; /* just a line of code for putting a debugger break point */
 		}
 		return (*this).m_ptr;
 	}
 
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size>
+	template<typename _Ty>
 	class TScopeOwnerPointer {
 	public:
 		virtual ~TScopeOwnerPointer() {
@@ -503,25 +503,25 @@ namespace mse {
 			delete m_ptr;
 		}
 
-		TScopeObj<_Ty, _Tn>& operator*() const {
+		TScopeObj<_Ty>& operator*() const {
 			return (*m_ptr);
 		}
-		TScopeObj<_Ty, _Tn>* operator->() const {
+		TScopeObj<_Ty>* operator->() const {
 			return m_ptr;
 		}
 
 		template <class... Args>
 		static TScopeOwnerPointer make_scope(Args&&... args) {
-			auto new_ptr = new TScopeObj<_Ty, _Tn>(args...);
+			auto new_ptr = new TScopeObj<_Ty>(args...);
 			TScopeOwnerPointer retval(new_ptr);
 			return retval;
 		}
 
 	private:
-		TScopeOwnerPointer(TScopeObj<_Ty, _Tn>* ptr) : m_ptr(ptr) {}
-		TScopeOwnerPointer<_Ty, _Tn>& operator=(const TScopeOwnerPointer<_Ty, _Tn>& _Right_cref) = delete;
+		TScopeOwnerPointer(TScopeObj<_Ty>* ptr) : m_ptr(ptr) {}
+		TScopeOwnerPointer<_Ty>& operator=(const TScopeOwnerPointer<_Ty>& _Right_cref) = delete;
 
-		TScopeObj<_Ty, _Tn>* m_ptr = nullptr;
+		TScopeObj<_Ty>* m_ptr = nullptr;
 	};
 
 	template <class X, class... Args>
@@ -532,13 +532,13 @@ namespace mse {
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
 	/* shorter aliases */
-	//template<typename _Ty, int _Tn = sc_scp_default_cache_size> using scpp = TScopePointer<_Ty, _Tn>;
-	//template<typename _Ty, int _Tn = sc_scp_default_cache_size> using scpcp = TScopeConstPointer<_Ty, _Tn>;
-	//template<typename _Ty, int _Tn = sc_scp_default_cache_size> using scpnnp = TScopeNotNullPointer<_Ty, _Tn>;
-	//template<typename _Ty, int _Tn = sc_scp_default_cache_size> using scpnncp = TScopeNotNullConstPointer<_Ty, _Tn>;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using scpfp = TScopeFixedPointer<_Ty, _Tn>;
-	template<typename _Ty, int _Tn = sc_scp_default_cache_size> using scpfcp = TScopeFixedConstPointer<_Ty, _Tn>;
-	template<typename _TROy, int _Tn = sc_scp_default_cache_size> using scpo = TScopeObj<_TROy, _Tn>;
+	//template<typename _Ty> using scpp = TScopePointer<_Ty>;
+	//template<typename _Ty> using scpcp = TScopeConstPointer<_Ty>;
+	//template<typename _Ty> using scpnnp = TScopeNotNullPointer<_Ty>;
+	//template<typename _Ty> using scpnncp = TScopeNotNullConstPointer<_Ty>;
+	template<typename _Ty> using scpfp = TScopeFixedPointer<_Ty>;
+	template<typename _Ty> using scpfcp = TScopeFixedConstPointer<_Ty>;
+	template<typename _TROy> using scpo = TScopeObj<_TROy>;
 
 
 	static void s_scpptr_test1() {
