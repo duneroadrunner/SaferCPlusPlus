@@ -6,13 +6,15 @@ A collection of safe data types that are compatible with, and can substitute for
 
 - A [fast](#simple-benchmarks), [safe replacement for native pointers](#registered-pointers) that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).
 
+- A fast, safe [reference counting pointer](#reference-counting-pointers) for all those situations when you, just for a moment, contemplated using an std::shared_ptr for something other than an object shared between asynchronous threads. Including [safe parameter passing](#safely-passing-parameters-by-reference) by reference.
+
 - An almost completely [safe implementation](#vector) of std::vector<> - bounds checked, iterator checked and memory managed.
 
 - A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation
 
 - [replacements](#primitives) for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
 
-Tested with msvc2015, g++5.3 and g++4.8 (as of Mar 2016), msvc2013 (as of Feb 2016), and msvc2010 (as of Jan 2015).
+Tested with msvc2015 and g++5.3 (as of Mar 2016) and msvc2013 (as of Feb 2016). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. The last build known to work with msvc2010 was from Jan 2015.
 
 See the file [msetl_blurb.pdf](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_blurb.pdf) for more info. Or just have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action.
 
@@ -79,10 +81,10 @@ usage example:
 
 
 ### TRegisteredNotNullPointer
-Same as TRegisteredPointer, but cannot be constructed to a null_ptr value.
+Same as TRegisteredPointer, but cannot be constructed to a null value.
 
 ### TRegisteredFixedPointer
-Same as TRegisteredNotNullPointer, but cannot be re-targeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is the recommended type to be used for safe parameter passing by reference. 
+Same as TRegisteredNotNullPointer, but cannot be retargeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.   
 usage example:
 
     #include "mseregistered.h"
@@ -113,7 +115,7 @@ usage example:
     }
 
 ### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
-Just the "const" version of the references.
+Just the "const" versions. At the moment TRegisteredPointer&lt;X&gt; does not convert to TRegisteredPointer&lt;const X&gt;. It does convert to a TRegisteredConstPointer&lt;X&gt;.
 
 ### TRelaxedRegisteredPointer
 
@@ -159,9 +161,21 @@ usage example:
 ### TRelaxedRegisteredConstPointer, TRelaxedRegisteredNotNullConstPointer, TRelaxedRegisteredFixedConstPointer
   
 ### Simple benchmarks
-It would appear, from these simple benchmarks, that using mse::TRegisteredPointers with objects allocated on the stack is significantly faster than using a smart pointer, or even native pointer, that allocates it's target object on the heap. It also seems to be the case that the performance cost of doing a null_ptr check before each dereference is actually quite modest.
+
+Just some simple microbenchmarks. We show the results for msvc2015 and msvc2013 (run on the same machine), since there are some interesting differences. The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp).
 
 #### Allocation, deallocation, pointer copy and assignment:
+##### platform: msvc2015/x64/Windows7/Haswell (Mar 2016):
+Pointer Type | Time
+------------ | ----
+mse::TRegisteredPointer (stack): | 0.0317188 seconds.
+native pointer (heap): | 0.0394826 seconds.
+mse::TRefCountingPointer (heap): | 0.0493629 seconds.
+mse::TRegisteredPointer (heap): | 0.0573699 seconds.
+std::shared_ptr (heap): | 0.0692405 seconds.
+mse::TRelaxedRegisteredPointer (heap): | 0.14475 seconds.
+
+##### platform: msvc2013/x64/Windows7/Haswell (Jan 2016):
 Pointer Type | Time
 ------------ | ----
 mse::TRegisteredPointer (stack): | 0.0270016 seconds.
@@ -170,7 +184,20 @@ mse::TRegisteredPointer (heap): | 0.0740042 seconds.
 std::shared_ptr (heap): | 0.087005 seconds.
 mse::TRelaxedRegisteredPointer (heap): | 0.142008 seconds.
 
+Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. Interestingly, three of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.  
+I'm speculating here, but it might be the case that the heap operations that occur in this benchmark may be more "cache friendly" than heap operations in real world code would be, making the "heap" results look artificially good (relative to the "stack" result).
+
 #### Dereferencing:
+##### platform: msvc2015/x64/Windows7/Haswell (Mar 2016):
+Pointer Type | Time
+------------ | ----
+native pointer: | 0.0105804 seconds.
+mse::TRelaxedRegisteredPointer unchecked: | 0.0136354 seconds.
+mse::TRefCountingPointer (checked): | 0.0258107 seconds.
+mse::TRelaxedRegisteredPointer (checked): | 0.0308289 seconds.
+std::weak_ptr: | 0.179833 seconds.
+
+##### platform: msvc2013/x64/Windows7/Haswell (Jan 2016):
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0100006 seconds.
@@ -178,8 +205,203 @@ mse::TRelaxedRegisteredPointer unchecked: | 0.0130008 seconds.
 mse::TRelaxedRegisteredPointer (checked): | 0.016001 seconds.
 std::weak_ptr: | 0.17701 seconds.
 
-platform: msvc2013/Windows7/Haswell (Jan 2016)  
-benchmark source code: [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp)
+The interesting thing here is that checking for nullptr seems to have gotten a lot slower between msvc2013 and msvc2015. But anyway, my guess is that pointer dereferencing is such a fast operation (std::weak_ptr aside) that outside of critical inner loops, the overhead of checking for nullptr would generally be probably pretty modest. Also note that [mse::TRefCountingNotNullPointer](#trefcountingnotnullpointer) and [mse::TRefCountingFixedPointer](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked.
+
+###Reference counting pointers
+
+If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is std::shared_ptr, which is notable for its thread-safe reference counting that's rather handy when you're sharing an object among asynchronous threads, but unnecessarily costly when you aren't. So we provide fast reference counting pointers that forego any thread safety mechanisms. In addition to being substantially faster (and smaller) than std::shared_ptr, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use mse::make_refcounting&lt;&gt;() instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them.
+
+###TRefCountingPointer
+
+usage example:
+
+	#include "mserefcounting.h"
+	
+	int main(int argc, char* argv[]) {
+		class A {
+		public:
+			A() {}
+			A(const A& _X) : b(_X.b) {}
+			virtual ~A() {
+				int q = 3; /* just so you can place a breakpoint if you want */
+			}
+			A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+			int b = 3;
+		};
+		typedef std::vector<mse::TRefCountingFixedPointer<A>> CRCFPVector;
+		class B {
+		public:
+			static int foo1(mse::TRefCountingPointer<A> A_refcounting_ptr, CRCFPVector& rcfpvector_ref) {
+				rcfpvector_ref.clear();
+				int retval = A_refcounting_ptr->b;
+				A_refcounting_ptr = nullptr; /* Target object is destroyed here. */
+				return retval;
+			}
+		protected:
+			~B() {}
+		};
+
+		{
+			CRCFPVector rcfpvector;
+			{
+				mse::TRefCountingFixedPointer<A> A_refcountingfixed_ptr1 = mse::make_refcounting<A>();
+				rcfpvector.push_back(A_refcountingfixed_ptr1);
+
+				/* Just to demonstrate conversion between refcounting pointer types. */
+				mse::TRefCountingConstPointer<A> A_refcountingconst_ptr1 = A_refcountingfixed_ptr1;
+			}
+			B::foo1(rcfpvector.front(), rcfpvector);
+		}
+	}
+
+
+### TRefCountingNotNullPointer
+
+Same as TRefCountingPointer, but cannot be constructed to or assigned a null value. Because TRefCountingNotNullPointer controls the lifetime of it's target it, should be always safe to assume that it points to a validly allocated object.
+
+### TRefCountingFixedPointer
+
+Same as TRefCountingNotNullPointer, but cannot be retargeted after construction (basically a "const TRefCountingNotNullPointer"). It is a recommended type to be used for safe parameter passing by reference.
+
+### TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer
+
+Just the "const" versions. At the moment TRefCountingPointer&lt;X&gt; does not convert to TRefCountingPointer&lt;const X&gt;. It does convert to a TRefCountingConstPointer&lt;X&gt;.
+
+### TRefCountingOfRegisteredPointer
+
+TRefCountingOfRegisteredPointer is simply an alias for TRefCountingPointer&lt;TRegisteredObj&lt;_Ty&gt;&gt;. TRegisteredObj&lt;_Ty&gt; is meant to behave much like, and be compatible with a _Ty. The reason why we might want to use it is because the &amp; ("address of") operator of TRegisteredObj&lt;_Ty&gt; returns a [TRegisteredFixedPointer&lt;_Ty&gt;](#tregisteredfixedpointer) rather than a raw pointer, and TRegisteredPointers can serve as safe "weak pointers".  
+
+usage example:  
+
+    #include "mserefcountingofregistered.h"
+    
+    class H {
+    public:
+        /* An example of a templated member function. In this case it's a static one, but it doesn't have to be.
+        You might consider templating pointer parameter types to give the caller some flexibility as to which kind of
+        (smart/safe) pointer they want to use. */
+    
+        template<typename _Tpointer, typename _Tvector>
+        static int foo5(_Tpointer A_ptr, _Tvector& vector_ref) {
+            int tmp = A_ptr->b;
+            int retval = 0;
+            vector_ref.clear();
+            if (A_ptr) {
+                retval = A_ptr->b;
+            }
+            else {
+                retval = -1;
+            }
+            return retval;
+        }
+    protected:
+        ~H() {}
+    };
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A() {}
+            A(const A& _X) : b(_X.b) {}
+            virtual ~A() {
+                int q = 3; /* just so you can place a breakpoint if you want */
+            }
+            A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+            int b = 3;
+        };
+        typedef std::vector<mse::TRefCountingOfRegisteredFixedPointer<A>> CRCRFPVector;
+    
+        {
+            CRCRFPVector rcrfpvector;
+            {
+                mse::TRefCountingOfRegisteredFixedPointer<A> A_refcountingofregisteredfixed_ptr1 = mse::make_refcountingofregistered<A>();
+                rcrfpvector.push_back(A_refcountingofregisteredfixed_ptr1);
+    
+                /* Just to demonstrate conversion between refcountingofregistered pointer types. */
+                mse::TRefCountingOfRegisteredConstPointer<A> A_refcountingofregisteredconst_ptr1 = A_refcountingofregisteredfixed_ptr1;
+            }
+            int res1 = H::foo5(rcrfpvector.front(), rcrfpvector);
+            assert(3 == res1);
+    
+            rcrfpvector.push_back(mse::make_refcountingofregistered<A>());
+            /* The first parameter in this case will be a TRegisteredFixedPointer<A>. */
+            int res2 = H::foo5(&(*rcrfpvector.front()), rcrfpvector);
+            assert(-1 == res2);
+        }
+    }
+
+### TRefCountingOfRegisteredNotNullPointer, TRefCountingOfRegisteredFixedPointer
+### TRefCountingOfRegisteredConstPointer, TRefCountingOfRegisteredNotNullConstPointer, TRefCountingOfRegisteredFixedConstPointer
+
+### TRefCountingOfRelaxedRegisteredPointer
+
+TRefCountingOfRelaxedRegisteredPointer is simply an alias for TRefCountingPointer&lt;TRelaxedRegisteredObj&lt;_Ty&gt;&gt;. Generally you should prefer to just use TRefCountingOfRegisteredPointer, but if you need a "weak pointer" to refer to a type before it's fully defined then you can use this type. An example of such a situation is when you have so-called "cyclic references".  
+
+usage example:  
+
+    #include "mserefcountingofrelaxedregistered.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        /* Here we demonstrate using TRelaxedRegisteredFixedPointer<> as a safe "weak_ptr" to prevent "cyclic references" from
+        becoming memory leaks. */
+    
+        class CRCNode {
+        public:
+            CRCNode(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr
+                , mse::TRelaxedRegisteredPointer<CRCNode> root_ptr) : m_node_count_ptr(node_count_ptr), m_root_ptr(root_ptr) {
+                (*node_count_ptr) += 1;
+            }
+            CRCNode(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr) : m_node_count_ptr(node_count_ptr) {
+                (*node_count_ptr) += 1;
+            }
+            virtual ~CRCNode() {
+                (*m_node_count_ptr) -= 1;
+            }
+            static mse::TRefCountingOfRelaxedRegisteredFixedPointer<CRCNode> MakeRoot(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr) {
+                auto retval = mse::make_refcountingofrelaxedregistered<CRCNode>(node_count_ptr);
+                (*retval).m_root_ptr = &(*retval);
+                return retval;
+            }
+            mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> ChildPtr() const { return m_child_ptr; }
+            mse::TRefCountingOfRelaxedRegisteredFixedPointer<CRCNode> MakeChild() {
+                auto retval = mse::make_refcountingofrelaxedregistered<CRCNode>(m_node_count_ptr, m_root_ptr);
+                m_child_ptr = retval;
+                return retval;
+            }
+            void DisposeOfChild() {
+                m_child_ptr = nullptr;
+            }
+    
+        private:
+            mse::TRegisteredFixedPointer<mse::CInt> m_node_count_ptr;
+            mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> m_child_ptr;
+            mse::TRelaxedRegisteredPointer<CRCNode> m_root_ptr;
+        };
+    
+        mse::TRegisteredObj<mse::CInt> node_counter = 0;
+        {
+            mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> root_ptr = CRCNode::MakeRoot(&node_counter);
+            auto kid1 = root_ptr->MakeChild();
+            {
+                auto kid2 = kid1->MakeChild();
+                auto kid3 = kid2->MakeChild();
+            }
+            assert(4 == node_counter);
+            kid1->DisposeOfChild();
+            assert(2 == node_counter);
+        }
+        assert(0 == node_counter);
+    }
+
+### TRefCountingOfRelaxedRegisteredNotNullPointer, TRefCountingOfRelaxedRegisteredFixedPointer
+### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
+
+### Safely passing parameters by reference
+As has been shown, you can use TRegisteredPointers or TRefCountingPointers to safely pass parameters by reference. If you're writing a function for more general use, and for some reason you can only support one parameter type, we would probably recommend TRegisteredPointers over TRefCountingPointers, just because of their support for stack allocated targets. But much more preferable might be to "templatize" your function so that it can accept any type of pointer. This is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example.
+
 
 ### Primitives
 ### CInt, CSize_t and CBool
@@ -211,9 +433,16 @@ usage example:
     }
 
 Note: Although these types have default initialization to ensure deterministic code, for variables of these types please continue to explicitly set their value before using them, as you would with their corresponding primitive types. If you would like a type that does not require explicit initialization before use, you can just publicly derive your own type from the appropriate class in this library.  
-Also note: Numeric types with more comprehensive range checking can be found here: https://github.com/robertramey/safe_numerics.  
 Also see the section on "[compatibility considerations](#compatibility-considerations)".
 
+### Quarantined types
+
+Quarantined types are meant to hold values that are obtained from user input or some other untrusted source (like a media file for example). These are not yet available in the library, but are an important concept with respect to safe programming. Values obtained from untrusted sources are the main attack vector of malicious actors and should be handled with special care. For example, the so-called "stagefright" vulnerability in the Android OS is the result of a specially crafted media file causing the sum of integers to overflow.  
+It is often the case that untrusted values are obtained through intrinsically slow communication mediums (i.e. file system, internet, UI, etc.), so it often makes no perceptible difference whether the code that processes those untrusted values into "trusted" internal values is optimized for performance or not. So don't hesitate to use whatever safety methods are called for. In particular, integer types with more comprehensive range checking can be found here: https://github.com/robertramey/safe_numerics.
+
+### CQuarantinedInt, CQuarantinedSize_t, CQuarantinedVector, CQuarantinedString
+
+Not yet available.
 
 ### Vectors
 
