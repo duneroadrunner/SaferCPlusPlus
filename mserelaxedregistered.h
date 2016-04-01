@@ -419,7 +419,7 @@ namespace mse {
 	private:
 		TRelaxedRegisteredFixedPointer(TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredNotNullPointer<_Ty>(ptr) {}
 		TRelaxedRegisteredFixedPointer(CSPTracker* sp_tracker_ptr, TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredNotNullPointer<_Ty>(sp_tracker_ptr, ptr) {}
-		TRelaxedRegisteredFixedPointer<_Ty>& operator=(const TRelaxedRegisteredFixedPointer<_Ty>& _Right_cref) {}
+		TRelaxedRegisteredFixedPointer<_Ty>& operator=(const TRelaxedRegisteredFixedPointer<_Ty>& _Right_cref) = delete;
 
 		/* If you want a pointer to a TRelaxedRegisteredFixedPointer<_Ty>, declare the TRelaxedRegisteredFixedPointer<_Ty> as a
 		TRelaxedRegisteredObj<TRelaxedRegisteredFixedPointer<_Ty>> instead. So for example:
@@ -448,7 +448,7 @@ namespace mse {
 
 	private:
 		TRelaxedRegisteredFixedConstPointer(const TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredNotNullConstPointer<_Ty>(ptr) {}
-		TRelaxedRegisteredFixedConstPointer<_Ty>& operator=(const TRelaxedRegisteredFixedConstPointer<_Ty>& _Right_cref) {}
+		TRelaxedRegisteredFixedConstPointer<_Ty>& operator=(const TRelaxedRegisteredFixedConstPointer<_Ty>& _Right_cref) = delete;
 
 		TRelaxedRegisteredFixedConstPointer<_Ty>* operator&() { return this; }
 		const TRelaxedRegisteredFixedConstPointer<_Ty>* operator&() const { return this; }

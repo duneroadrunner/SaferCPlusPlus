@@ -225,7 +225,7 @@ namespace mse {
 
 	private:
 		explicit TRefCountingFixedPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountingNotNullPointer<_Ty>(p) {}
-		TRefCountingFixedPointer<_Ty>& operator=(const TRefCountingFixedPointer<_Ty>& _Right_cref) {}
+		TRefCountingFixedPointer<_Ty>& operator=(const TRefCountingFixedPointer<_Ty>& _Right_cref) = delete;
 
 		TRefCountingFixedPointer<_Ty>* operator&() { return this; }
 		const TRefCountingFixedPointer<_Ty>* operator&() const { return this; }
@@ -335,7 +335,7 @@ namespace mse {
 		explicit operator const _Ty*() const { return TRefCountingNotNullConstPointer<_Ty>::operator _Ty*(); }
 
 	private:
-		TRefCountingFixedConstPointer<_Ty>& operator=(const TRefCountingFixedConstPointer<_Ty>& _Right_cref) {}
+		TRefCountingFixedConstPointer<_Ty>& operator=(const TRefCountingFixedConstPointer<_Ty>& _Right_cref) = delete;
 
 		TRefCountingFixedConstPointer<_Ty>* operator&() { return this; }
 		const TRefCountingFixedConstPointer<_Ty>* operator&() const { return this; }
