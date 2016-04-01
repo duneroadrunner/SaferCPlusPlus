@@ -309,7 +309,7 @@ namespace mse {
 	};
 
 	/* A TScopeFixedPointer points to a TScopeObj. Its intended for very limited use. Basically just to pass a TScopeObj
-	by reference as a function parameter. TScopeFixedPointers are be obtained from TScopeObj's "&" (address of) operator. */
+	by reference as a function parameter. TScopeFixedPointers can be obtained from TScopeObj's "&" (address of) operator. */
 	template<typename _Ty>
 	class TScopeFixedPointer : public TScopeNotNullPointer<_Ty> {
 	public:
@@ -356,11 +356,14 @@ namespace mse {
              <                                               \
                 std::is_constructible<Base, Args...>::value  \
 			 			 			 			              >::type>                                        \
-    Derived(Args &...args)                                  \
+    Derived(Args &&...args)                                  \
         : Base(std::forward<Args>(args)...) { }              \
 
 	/* TScopeObj is intended as a transparent wrapper for other classes/objects with "scope lifespans". That is, objects
-	that are either allocated on the stack, or constructed using mse::make_scope(). */
+	that are either allocated on the stack, or whose "owning" pointer is allocated on the stack. Unfortunately it's not
+	really possible to prevent misuse. For example, auto x = new TScopeObj<mse::CInt> is an improper, and dangerous, use
+	of TScopeObj<>. So, in debug mode, we employ the same comprehensive safety mechanisms that "registered pointers" use.
+	In release mode, by default, all runtime safety mechanisms are disabled. */
 	template<typename _TROy>
 	class TScopeObj : public _TROy {
 	public:
@@ -495,9 +498,20 @@ namespace mse {
 		return (*this).m_ptr;
 	}
 
+	/* TScopeOwnerPointer is meant to be much like boost::scoped_ptr<>. Instead of taking a native pointer,
+	TScopeOwnerPointer just forwards it's constructor arguments to the constructor of the TScopeObj<_Ty>.
+	TScopeOwnerPointers are meant to be allocated on the stack only. Unfortunately there's really no way to
+	enforce this, which makes this data type less intrinsicly safe than say, "reference counting" pointers.
+	Because of this, in debug mode, we employ the same comprehensive safety mechanisms that "registered
+	pointers" use. */
 	template<typename _Ty>
 	class TScopeOwnerPointer {
 	public:
+		template <class... Args>
+		TScopeOwnerPointer(Args&&... args) {
+			TScopeObj<_Ty>* new_ptr = new TScopeObj<_Ty>(args...);
+			m_ptr = new_ptr;
+		}
 		virtual ~TScopeOwnerPointer() {
 			assert(m_ptr);
 			delete m_ptr;
@@ -510,24 +524,12 @@ namespace mse {
 			return m_ptr;
 		}
 
-		template <class... Args>
-		static TScopeOwnerPointer make_scope(Args&&... args) {
-			auto new_ptr = new TScopeObj<_Ty>(args...);
-			TScopeOwnerPointer retval(new_ptr);
-			return retval;
-		}
-
 	private:
-		TScopeOwnerPointer(TScopeObj<_Ty>* ptr) : m_ptr(ptr) {}
+		TScopeOwnerPointer(TScopeOwnerPointer<_Ty>& src_cref) = delete;
 		TScopeOwnerPointer<_Ty>& operator=(const TScopeOwnerPointer<_Ty>& _Right_cref) = delete;
 
 		TScopeObj<_Ty>* m_ptr = nullptr;
 	};
-
-	template <class X, class... Args>
-	TScopeOwnerPointer<X> make_scope(Args&&... args) {
-		return TScopeOwnerPointer<X>::make_scope(args...);
-	}
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
@@ -544,7 +546,7 @@ namespace mse {
 	static void s_scpptr_test1() {
 		class A {
 		public:
-			A() {}
+			A(int x) : b(x) {}
 			A(const A& _X) : b(_X.b) {}
 			A(A&& _X) : b(std::move(_X.b)) {}
 			virtual ~A() {}
@@ -564,8 +566,8 @@ namespace mse {
 		A* A_native_ptr = nullptr;
 
 		{
-			A a;
-			mse::TScopeObj<A> scope_a;
+			A a(7);
+			mse::TScopeObj<A> scope_a(7);
 			/* mse::TScopeObj<A> is a class that is publicly derived from A, and so should be a compatible substitute for A
 			in almost all cases. */
 
@@ -590,10 +592,10 @@ namespace mse {
 
 			mse::TScopeFixedConstPointer<A> rcp = A_scope_ptr1;
 			mse::TScopeFixedConstPointer<A> rcp2 = rcp;
-			const mse::TScopeObj<A> cscope_a;
+			const mse::TScopeObj<A> cscope_a(11);
 			mse::TScopeFixedConstPointer<A> rfcp = &cscope_a;
 
-			auto A_scpoptr = mse::make_scope<A>();
+			mse::TScopeOwnerPointer<A> A_scpoptr(11);
 			B::foo2(&*A_scpoptr);
 			if (A_scpoptr->b == (&*A_scpoptr)->b) {
 			}
