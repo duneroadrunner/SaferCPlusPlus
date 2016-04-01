@@ -36,12 +36,6 @@ namespace mse {
 	template<typename _Ty> using TScopeFixedPointer = _Ty*;
 	template<typename _Ty> using TScopeFixedConstPointer = const _Ty*;
 	template<typename _TROy> using TScopeObj = _TROy;
-	template<typename _Ty> using TScopeOwnerPointer = std::unique_ptr<TScopeObj<_Ty>>;
-
-	template <class X, class... Args>
-	TScopeOwnerPointer<X> make_scope(Args&&... args) {
-		return std::make_unique<TScopeObj<X>>(args...);
-	}
 
 #else /*MSE_SCOPEPOINTER_DISABLED*/
 
@@ -498,6 +492,8 @@ namespace mse {
 		return (*this).m_ptr;
 	}
 
+#endif /*MSE_SCOPEPOINTER_DISABLED*/
+
 	/* TScopeOwnerPointer is meant to be much like boost::scoped_ptr<>. Instead of taking a native pointer,
 	TScopeOwnerPointer just forwards it's constructor arguments to the constructor of the TScopeObj<_Ty>.
 	TScopeOwnerPointers are meant to be allocated on the stack only. Unfortunately there's really no way to
@@ -530,8 +526,6 @@ namespace mse {
 
 		TScopeObj<_Ty>* m_ptr = nullptr;
 	};
-
-#endif /*MSE_SCOPEPOINTER_DISABLED*/
 
 	/* shorter aliases */
 	//template<typename _Ty> using scpp = TScopePointer<_Ty>;
