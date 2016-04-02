@@ -28,7 +28,8 @@
 
 <ul>
 <li><p>A <a href="#simple-benchmarks">fast</a>, <a href="#registered-pointers">safe replacement for native pointers</a> that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).</p></li>
-<li><p>A fast <a href="#reference-counting-pointers">reference counting pointer</a> for all those situations when you, just for a moment, contemplated using an std::shared_ptr for something other than sharing an object between asynchronous threads. Including <a href="#safely-passing-parameters-by-reference">safe parameter passing</a> by reference.</p></li>
+<li><p>A fast, safe <a href="#reference-counting-pointers">reference counting pointer</a> for all those situations when you, just for a moment, contemplated using an std::shared_ptr for something other than an object shared between asynchronous threads. Including <a href="#safely-passing-parameters-by-reference">safe parameter passing</a> by reference.</p></li>
+<li><p>A "<a href="#scope-pointers">scope pointer</a>" for target objects allocated on the stack, or whose "owning" pointer is allocated on the stack. By default, not as safe as the other smart pointers in this library, but with zero runtime overhead.</p></li>
 <li><p>An almost completely <a href="#vector">safe implementation</a> of std::vector&lt;&gt; - bounds checked, iterator checked and memory managed.</p></li>
 <li><p>A couple of <a href="#vectors">other</a> highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation</p></li>
 <li><p><a href="#primitives">replacements</a> for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.</p></li>
@@ -109,7 +110,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="tregisteredfixedpointer" class="anchor" href="#tregisteredfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredFixedPointer</h3>
 
-<p>Same as TRegisteredNotNullPointer, but cannot be retargeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference. 
+<p>Same as TRegisteredNotNullPointer, but cannot be retargeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.<br>
 usage example:</p>
 
 <pre><code>#include "mseregistered.h"
@@ -552,9 +553,78 @@ int main(int argc, char* argv[]) {
 <a id="trefcountingofrelaxedregisteredconstpointer-trefcountingofrelaxedregisterednotnullconstpointer-trefcountingofrelaxedregisteredfixedconstpointer" class="anchor" href="#trefcountingofrelaxedregisteredconstpointer-trefcountingofrelaxedregisterednotnullconstpointer-trefcountingofrelaxedregisteredfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer</h3>
 
 <h3>
+<a id="scope-pointers" class="anchor" href="#scope-pointers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Scope pointers</h3>
+
+<p>Scope pointers are different from other smart pointers in the library in that, by default, they have no runtime safety enforcement mechanism, and the compile-time safety mechanisms aren't (yet) quite sufficient to ensure that they will be used in an intrinsically safe manner. Scope pointers point to scope objects. Scope objects are objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So basically the object is destroyed when it, or it's owner, goes out of scope. The purpose of scope pointers and objects is to identify a class of situations that are simple and deterministic enough that no (runtime) safety mechanisms are necessary. In theory, a tool could be constructed to verify that scope pointers are used in a safe manner at compile-time. But in the mean time, scope pointers use essentially the same mechanism as "registered" pointers to raise an exception on any attempt to access invalid memory in debug mode. You can optionally enable the safety mechanisms in non-debug modes by defining the MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED preprocessor variable.<br>
+There are two types of scope pointers, <a href="#tscopefixedpointer">TScopeFixedPointer</a> and <a href="#tscopeownerpointer">TScopeOwnerPointer</a>. TScopeOwnerPointer is similar to boost::scoped_ptr. It creates an instance of a given class on the heap and destroys that instance in its destructor. TScopeFixedPointer is a "non-owning" (or "weak") pointer to a scope object. It is (intentionally) limited in it's functionality, and is intended pretty much for the sole purpose of passing scope objects by reference as function arguments. </p>
+
+<h3>
+<a id="tscopefixedpointer" class="anchor" href="#tscopefixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TScopeFixedPointer</h3>
+
+<p>usage example:</p>
+
+<pre><code>#include "msescope.h"
+
+int main(int argc, char* argv[]) {
+    class A {
+    public:
+        A(int x) : b(x) {}
+        A(const A&amp; _X) : b(_X.b) {}
+        virtual ~A() {}
+        A&amp; operator=(const A&amp; _X) { b = _X.b; return (*this); }
+
+        int b = 3;
+    };
+    class B {
+    public:
+        static int foo2(mse::TScopeFixedPointer&lt;A&gt; A_scpfptr) { return A_scpfptr-&gt;b; }
+        static int foo3(mse::TScopeFixedConstPointer&lt;A&gt; A_scpfcptr) { return A_scpfcptr-&gt;b; }
+    protected:
+        ~B() {}
+    };
+
+    mse::TScopeObj&lt;A&gt; a_scpobj(5);
+    int res1 = (&amp;a_scpobj)-&gt;b;
+    int res2 = B::foo2(&amp;a_scpobj);
+    int res3 = B::foo3(&amp;a_scpobj);
+}
+</code></pre>
+
+<h3>
+<a id="tscopeownerpointer" class="anchor" href="#tscopeownerpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TScopeOwnerPointer</h3>
+
+<p>While TScopeOwnerPointer is similar to boost::scoped_ptr, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.<br>
+usage example:</p>
+
+<pre><code>#include "msescope.h"
+
+int main(int argc, char* argv[]) {
+    class A {
+    public:
+        A(int x) : b(x) {}
+        A(const A&amp; _X) : b(_X.b) {}
+        virtual ~A() {}
+        A&amp; operator=(const A&amp; _X) { b = _X.b; return (*this); }
+
+        int b = 3;
+    };
+    class B {
+    public:
+        static int foo2(mse::TScopeFixedPointer&lt;A&gt; A_scpfptr) { return A_scpfptr-&gt;b; }
+        static int foo3(mse::TScopeFixedConstPointer&lt;A&gt; A_scpfcptr) { return A_scpfcptr-&gt;b; }
+    protected:
+        ~B() {}
+    };
+
+    mse::TScopeOwnerPointer&lt;A&gt; a_scpoptr(7);
+    int res4 = B::foo2(&amp;(*a_scpoptr));
+}
+</code></pre>
+
+<h3>
 <a id="safely-passing-parameters-by-reference" class="anchor" href="#safely-passing-parameters-by-reference" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Safely passing parameters by reference</h3>
 
-<p>As has been shown, you can use TRegisteredPointers or TRefCountingPointers to safely pass parameters by reference. If you're writing a function for more general use, and for some reason you can only support one parameter type, we would probaly recommend TRegisteredPointers over TRefCountingPointers, just because of their support for stack allocated targets. But much more preferable might be to "templatize" your function so that it can accept any type of pointer. This is demonstrated in the <a href="#trefcountingofregisteredpointer">TRefCountingOfRegisteredPointer</a> usage example.</p>
+<p>As has been shown, you can use TRegisteredPointers or TRefCountingPointers to safely pass parameters by reference. If you're writing a function for more general use, and for some reason you can only support one parameter type, we would probably recommend TRegisteredPointers over TRefCountingPointers, just because of their support for stack allocated targets. But much more preferable might be to "templatize" your function so that it can accept any type of pointer. This is demonstrated in the <a href="#trefcountingofregisteredpointer">TRefCountingOfRegisteredPointer</a> usage example.</p>
 
 <h3>
 <a id="primitives" class="anchor" href="#primitives" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Primitives</h3>
