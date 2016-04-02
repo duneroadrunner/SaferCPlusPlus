@@ -8,15 +8,17 @@ A collection of safe data types that are compatible with, and can substitute for
 
 - A fast, safe [reference counting pointer](#reference-counting-pointers) for all those situations when you, just for a moment, contemplated using an std::shared_ptr for something other than an object shared between asynchronous threads. Including [safe parameter passing](#safely-passing-parameters-by-reference) by reference.
 
+- A "[scope pointer](#scope-pointers)" for target objects allocated on the stack, or whose "owning" pointer is allocated on the stack. By default, not as safe as the other smart pointers in this library, but with zero runtime overhead.
+
 - An almost completely [safe implementation](#vector) of std::vector<> - bounds checked, iterator checked and memory managed.
 
 - A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation
 
 - [replacements](#primitives) for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
 
-Tested with msvc2015 and g++5.3 (as of Mar 2016) and msvc2013 (as of Feb 2016). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. The last build known to work with msvc2010 was from Jan 2015.
+Tested with msvc2015 and g++5.3 (as of Mar 2016) and msvc2013 (as of Feb 2016). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
-See the file [msetl_blurb.pdf](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_blurb.pdf) for more info. Or just have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action.
+You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action.
 
 
 ### Use cases
@@ -38,7 +40,7 @@ A couple of notes about compling: g++(4.8) requires the -fpermissive flag. And i
 
 Registered pointers come in two flavors - [TRegisteredPointer](#tregisteredpointer) and [TRelaxedRegisteredPointer](#trelaxedregisteredpointer). They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRelaxedRegisteredPointer emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRelaxedRegisteredPointer may be more convenient.
 
-Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer [substitutes](#primitives) for int, bool and size_t that can act as base classes. Also note that pointers that can point to the stack are inherently not thread safe. While we do not encourage the casual sharing of objects between asynchronous threads, if you need to do so you might consider using something like std::share_ptr.
+Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer [substitutes](#primitives) for int, bool and size_t that can act as base classes. Also note that pointers that can point to the stack are inherently not thread safe. While we do not encourage the casual sharing of objects between asynchronous threads, if you need to do so you might consider using something like std::share_ptr. Also, don't forget to consider [reference counting pointers](#reference-counting-pointers) and [scope pointers](#scope-pointers). Depending on your usage, they may be more efficient.
 
 
 ### TRegisteredPointer
@@ -398,6 +400,67 @@ usage example:
 
 ### TRefCountingOfRelaxedRegisteredNotNullPointer, TRefCountingOfRelaxedRegisteredFixedPointer
 ### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
+
+### Scope pointers
+Scope pointers are different from other smart pointers in the library in that, by default, they have no runtime safety enforcement mechanism, and the compile-time safety mechanisms aren't (yet) quite sufficient to ensure that they will be used in an intrinsically safe manner. Scope pointers point to scope objects. Scope objects are objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So basically the object is destroyed when it, or it's owner, goes out of scope. The purpose of scope pointers and objects is to identify a class of situations that are simple and deterministic enough that no (runtime) safety mechanisms are necessary. In theory, a tool could be constructed to verify that scope pointers are used in a safe manner at compile-time. But in the mean time, scope pointers use essentially the same mechanism as "registered" pointers to raise an exception on any attempt to access invalid memory in debug mode. You can optionally enable the safety mechanisms in non-debug modes by defining the MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED preprocessor variable.  
+There are two types of scope pointers, [TScopeFixedPointer](#tscopefixedpointer) and [TScopeOwnerPointer](#tscopeownerpointer). TScopeOwnerPointer is similar to boost::scoped_ptr. It creates an instance of a given class on the heap and destroys that instance in its destructor. TScopeFixedPointer is a "non-owning" (or "weak") pointer to a scope object. It is (intentionally) limited in it's functionality, and is intended pretty much for the sole purpose of passing scope objects by reference as function arguments. 
+
+### TScopeFixedPointer
+usage example:
+
+    #include "msescope.h"
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A(int x) : b(x) {}
+            A(const A& _X) : b(_X.b) {}
+            virtual ~A() {}
+            A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+            int b = 3;
+        };
+        class B {
+        public:
+            static int foo2(mse::TScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+            static int foo3(mse::TScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+        protected:
+            ~B() {}
+        };
+    
+        mse::TScopeObj<A> a_scpobj(5);
+        int res1 = (&a_scpobj)->b;
+        int res2 = B::foo2(&a_scpobj);
+        int res3 = B::foo3(&a_scpobj);
+    }
+
+### TScopeOwnerPointer
+While TScopeOwnerPointer is similar to boost::scoped_ptr, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
+usage example:
+
+    #include "msescope.h"
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A(int x) : b(x) {}
+            A(const A& _X) : b(_X.b) {}
+            virtual ~A() {}
+            A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+            int b = 3;
+        };
+        class B {
+        public:
+            static int foo2(mse::TScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+            static int foo3(mse::TScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+        protected:
+            ~B() {}
+        };
+    
+        mse::TScopeOwnerPointer<A> a_scpoptr(7);
+        int res4 = B::foo2(&(*a_scpoptr));
+    }
 
 ### Safely passing parameters by reference
 As has been shown, you can use TRegisteredPointers or TRefCountingPointers to safely pass parameters by reference. If you're writing a function for more general use, and for some reason you can only support one parameter type, we would probably recommend TRegisteredPointers over TRefCountingPointers, just because of their support for stack allocated targets. But much more preferable might be to "templatize" your function so that it can accept any type of pointer. This is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example.
