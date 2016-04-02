@@ -399,6 +399,67 @@ usage example:
 ### TRefCountingOfRelaxedRegisteredNotNullPointer, TRefCountingOfRelaxedRegisteredFixedPointer
 ### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
 
+### Scope pointers
+Scope pointers are different from other smart pointers in the library in that, by default, they have no runtime safety enforcement mechanism, and the compile-time safety mechanisms aren't (yet) quite sufficient to ensure that they will be used in an intrinsically safe manner. Scope pointers point to scope objects. Scope objects are objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So basically the object is destroyed when it, or it's owner, goes out of scope. The purpose of scope pointers and objects is to identify a class of situations that are simple and deterministic enough that no (runtime) safety mechanisms are necessary. In theory, a tool could be constructed to verify that scope pointers are used in a safe manner at compile-time. But in the mean time, scope pointers use essentially the same mechanism as "registered" pointers to raise an exception on any attempt to access invalid memory in debug mode. You can optionally enable the safety mechanisms in non-debug modes by defining the MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED preprocessor variable.  
+There are two types of scope pointers, [TScopeFixedPointer](#tscopefixedpointer) and [TScopeOwnerPointer](#tscopeownerpointer). TScopeOwnerPointer is similar to boost::scoped_ptr. It creates an instance of a given class on the heap and destroys that instance in its destructor. TScopeFixedPointer is a "non-owning" (or "weak") pointer to a scope object. It is (intentionally) limited in it's functionality, and is intended pretty much for the sole purpose of passing scope objects by reference as function arguments. 
+
+### TScopeFixedPointer
+usage example:
+
+    #include "msescope.h"
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A(int x) : b(x) {}
+            A(const A& _X) : b(_X.b) {}
+            virtual ~A() {}
+            A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+            int b = 3;
+        };
+        class B {
+        public:
+            static int foo2(mse::TScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+            static int foo3(mse::TScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+        protected:
+            ~B() {}
+        };
+    
+        mse::TScopeObj<A> a_scpobj(5);
+        int res1 = (&a_scpobj)->b;
+        int res2 = B::foo2(&a_scpobj);
+        int res3 = B::foo3(&a_scpobj);
+    }
+
+### TScopeOwnerPointer
+While TScopeOwnerPointer is similar to boost::scoped_ptr, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
+usage example:
+
+    #include "msescope.h"
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A(int x) : b(x) {}
+            A(const A& _X) : b(_X.b) {}
+            virtual ~A() {}
+            A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+            int b = 3;
+        };
+        class B {
+        public:
+            static int foo2(mse::TScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+            static int foo3(mse::TScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+        protected:
+            ~B() {}
+        };
+    
+        mse::TScopeOwnerPointer<A> a_scpoptr(7);
+        int res4 = B::foo2(&(*a_scpoptr));
+    }
+
 ### Safely passing parameters by reference
 As has been shown, you can use TRegisteredPointers or TRefCountingPointers to safely pass parameters by reference. If you're writing a function for more general use, and for some reason you can only support one parameter type, we would probably recommend TRegisteredPointers over TRefCountingPointers, just because of their support for stack allocated targets. But much more preferable might be to "templatize" your function so that it can accept any type of pointer. This is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example.
 
