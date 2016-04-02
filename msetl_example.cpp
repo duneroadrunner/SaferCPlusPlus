@@ -443,6 +443,7 @@ int main(int argc, char* argv[])
 #endif // !NDEBUG
 			std::cout << std::endl;
 			std::cout << "Some simple benchmarks: \n";
+			std::cout << "number of loops: " << number_of_loops << " \n" << " \n";
 			{
 				int count = 0;
 				auto item_ptr2 = new CE(count);
