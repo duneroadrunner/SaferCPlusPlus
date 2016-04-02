@@ -18,7 +18,7 @@ A collection of safe data types that are compatible with, and can substitute for
 
 Tested with msvc2015 and g++5.3 (as of Mar 2016) and msvc2013 (as of Feb 2016). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. The last build known to work with msvc2010 was from Jan 2015.
 
-See the file [msetl_blurb.pdf](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_blurb.pdf) for more info. Or just have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action.
+You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action.
 
 
 ### Use cases
