@@ -227,6 +227,8 @@ namespace mse {
 		TScopePointer();
 		TScopePointer(TScopeObj<_Ty>* ptr);
 		TScopePointer(const TScopePointer& src_cref);
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		TScopePointer(const TScopePointer<_Ty2>& src_cref);
 		virtual ~TScopePointer();
 		TScopePointer<_Ty>& operator=(TScopeObj<_Ty>* ptr);
 		TScopePointer<_Ty>& operator=(const TScopePointer<_Ty>& _Right_cref);
@@ -248,7 +250,11 @@ namespace mse {
 		TScopeConstPointer();
 		TScopeConstPointer(const TScopeObj<_Ty>* ptr);
 		TScopeConstPointer(const TScopeConstPointer& src_cref);
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		TScopeConstPointer(const TScopeConstPointer<_Ty2>& src_cref);
 		TScopeConstPointer(const TScopePointer<_Ty>& src_cref);
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		TScopeConstPointer(const TScopePointer<_Ty2>& src_cref);
 		virtual ~TScopeConstPointer();
 		TScopeConstPointer<_Ty>& operator=(const TScopeObj<_Ty>* ptr);
 		TScopeConstPointer<_Ty>& operator=(const TScopeConstPointer<_Ty>& _Right_cref);
@@ -270,6 +276,8 @@ namespace mse {
 	private:
 		TScopeNotNullPointer(TScopeObj<_Ty>* ptr) : TScopePointer<_Ty>(ptr) {}
 		TScopeNotNullPointer(const TScopeNotNullPointer& src_cref) : TScopePointer<_Ty>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		TScopeNotNullPointer(const TScopeNotNullPointer<_Ty2>& src_cref) : TScopePointer<_Ty>(src_cref) {}
 		virtual ~TScopeNotNullPointer() {}
 		TScopeNotNullPointer<_Ty>& operator=(const TScopeNotNullPointer<_Ty>& _Right_cref) {
 			TScopePointer<_Ty>::operator=(_Right_cref);
@@ -291,7 +299,11 @@ namespace mse {
 	public:
 	private:
 		TScopeNotNullConstPointer(const TScopeNotNullConstPointer<_Ty>& src_cref) : TScopeConstPointer<_Ty>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		TScopeNotNullConstPointer(const TScopeNotNullConstPointer<_Ty2>& src_cref) : TScopeConstPointer<_Ty>(src_cref) {}
 		TScopeNotNullConstPointer(const TScopeNotNullPointer<_Ty>& src_cref) : TScopeConstPointer<_Ty>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		TScopeNotNullConstPointer(const TScopeNotNullPointer<_Ty2>& src_cref) : TScopeConstPointer<_Ty>(src_cref) {}
 		virtual ~TScopeNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TScopeConstPointer<_Ty>::operator const _Ty*(); }
@@ -310,6 +322,8 @@ namespace mse {
 	class TScopeFixedPointer : public TScopeNotNullPointer<_Ty> {
 	public:
 		TScopeFixedPointer(const TScopeFixedPointer& src_cref) : TScopeNotNullPointer<_Ty>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		TScopeFixedPointer(const TScopeFixedPointer<_Ty2>& src_cref) : TScopeNotNullPointer<_Ty>(src_cref) {}
 		virtual ~TScopeFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TScopeNotNullPointer<_Ty>::operator _Ty*(); }
@@ -328,7 +342,12 @@ namespace mse {
 	template<typename _Ty>
 	class TScopeFixedConstPointer : public TScopeNotNullConstPointer<_Ty> {
 	public:
+		TScopeFixedConstPointer(const TScopeFixedConstPointer<_Ty>& src_cref) : TScopeNotNullConstPointer<_Ty>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		TScopeFixedConstPointer(const TScopeFixedConstPointer<_Ty2>& src_cref) : TScopeNotNullConstPointer<_Ty>(src_cref) {}
 		TScopeFixedConstPointer(const TScopeFixedPointer<_Ty>& src_cref) : TScopeNotNullConstPointer<_Ty>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		TScopeFixedConstPointer(const TScopeFixedPointer<_Ty2>& src_cref) : TScopeNotNullConstPointer<_Ty>(src_cref) {}
 		virtual ~TScopeFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TScopeNotNullConstPointer<_Ty>::operator const _Ty*(); }
@@ -398,6 +417,13 @@ namespace mse {
 		}
 	}
 	template<typename _Ty>
+	template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+	TScopePointer<_Ty>::TScopePointer(const TScopePointer<_Ty2>& src_cref) : TSaferPtr<TScopeObj<_Ty>>(src_cref.m_ptr) {
+		if (nullptr != (*this).m_ptr) {
+			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
+		}
+	}
+	template<typename _Ty>
 	TScopePointer<_Ty>::~TScopePointer() {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
@@ -451,9 +477,23 @@ namespace mse {
 		}
 	}
 	template<typename _Ty>
+	template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+	TScopeConstPointer<_Ty>::TScopeConstPointer(const TScopeConstPointer<_Ty2>& src_cref) : TSaferPtr<TScopeObj<_Ty>>(src_cref.m_ptr) {
+		if (nullptr != (*this).m_ptr) {
+			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
+		}
+	}
+	template<typename _Ty>
 	TScopeConstPointer<_Ty>::TScopeConstPointer(const TScopePointer<_Ty>& src_cref) : TSaferPtr<const TScopeObj<_Ty>>(src_cref.m_ptr) {
 		if (nullptr != src_cref.m_ptr) {
 			(*(src_cref.m_ptr)).mseRPManager().registerPointer(*this);
+		}
+	}
+	template<typename _Ty>
+	template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+	TScopeConstPointer<_Ty>::TScopeConstPointer(const TScopePointer<_Ty2>& src_cref) : TSaferPtr<const TScopeObj<_Ty>>(src_cref.m_ptr) {
+		if (nullptr != (*this).m_ptr) {
+			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
 		}
 	}
 	template<typename _Ty>
@@ -595,6 +635,19 @@ namespace mse {
 			B::foo2(&*A_scpoptr);
 			if (A_scpoptr->b == (&*A_scpoptr)->b) {
 			}
+		}
+
+		{
+			/* Remember that scope pointers can only point to scope objects. So, for example, if you want
+			a scope pointer to an object's base class object, that base class object has to be a scope
+			object. */
+			class DA : public mse::TScopeObj<A> {
+			public:
+				DA(int x) : mse::TScopeObj<A>(x) {}
+			};
+			mse::TScopeObj<DA> scope_da(23);
+			mse::TScopeFixedPointer<DA> DA_scope_ptr1 = &scope_da;
+			mse::TScopeFixedPointer<A> A_scope_ptr4 = DA_scope_ptr1;
 		}
 	}
 }
