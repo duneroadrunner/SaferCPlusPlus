@@ -384,6 +384,24 @@ int main(int argc, char* argv[])
 		}
 
 		{
+			/* Remember that registered pointers can only point to registered objects. So, for example, if you want
+			a registered pointer to an object's base class object, that base class object has to be a registered
+			object. */
+			class DA : public mse::TRegisteredObj<A> {};
+			mse::TRegisteredObj<DA> registered_da;
+			mse::TRegisteredPointer<DA> DA_registered_ptr1 = &registered_da;
+			mse::TRegisteredPointer<A> A_registered_ptr4 = DA_registered_ptr1;
+			A_registered_ptr4 = &registered_da;
+
+			class D : public A {};
+			mse::TRegisteredObj<D> registered_d;
+			mse::TRegisteredPointer<D> D_registered_ptr1 = &registered_d;
+			/* The next commented out line of code is not going to work because D's base class object is not a
+			registered object. */
+			//mse::TRegisteredPointer<A> A_registered_ptr5 = D_registered_ptr1;
+		}
+
+		{
 			/***********************************/
 			/*   TRelaxedRegisteredPointer   */
 			/***********************************/
