@@ -51,6 +51,7 @@ namespace mse {
 		void increment() { m_counter++; }
 		void decrement() { assert(0 <= m_counter); m_counter--; }
 		int use_count() const { return m_counter; }
+		virtual void* target_obj_address() = 0;
 	};
 
 	template<class Y>
@@ -60,6 +61,10 @@ namespace mse {
 
 		template<class ... Args>
 		TRefWithTargetObj(Args && ...args) : m_object(args...) {}
+
+		void* target_obj_address() {
+			return std::addressof(m_object);
+		}
 	};
 
 	/* Some code originally came from this stackoverflow post:
@@ -73,14 +78,13 @@ namespace mse {
 	template <class X>
 	class TRefCountingPointer {
 	public:
-		TRefCountingPointer() : m_ref_with_target_obj_ptr(nullptr), m_target_ptr(nullptr) {}
-		TRefCountingPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr), m_target_ptr(nullptr) {}
+		TRefCountingPointer() : m_ref_with_target_obj_ptr(nullptr) {}
+		TRefCountingPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr) {}
 		~TRefCountingPointer() {
 			release();
 		}
 		TRefCountingPointer(const TRefCountingPointer& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
-			m_target_ptr = r.m_target_ptr;
 		}
 		operator bool() const { return nullptr != get(); }
 		void clear() { (*this) = TRefCountingPointer<X>(nullptr); }
@@ -88,7 +92,6 @@ namespace mse {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
-				m_target_ptr = r.m_target_ptr;
 			}
 			return *this;
 		}
@@ -112,13 +115,11 @@ namespace mse {
 		template <class Y> friend class TRefCountingPointer;
 		template <class Y> TRefCountingPointer(const TRefCountingPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
-			m_target_ptr = r.m_target_ptr;
 		}
 		template <class Y> TRefCountingPointer& operator=(const TRefCountingPointer<Y>& r) {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
-				m_target_ptr = r.m_target_ptr;
 			}
 			return *this;
 		}
@@ -134,14 +135,24 @@ namespace mse {
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
 		X& operator*() const {
-			if (!m_target_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
-			return (*m_target_ptr);
+			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
+			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
+			return (*x_ptr);
 		}
 		X* operator->() const {
-			if (!m_target_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
-			return m_target_ptr;
+			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
+			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
+			return x_ptr;
 		}
-		X* get() const { return m_target_ptr; }
+		X* get() const {
+			if (!m_ref_with_target_obj_ptr) {
+				return nullptr;
+			}
+			else {
+				X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
+				return x_ptr;
+			}
+		}
 		bool unique() const {
 			return (m_ref_with_target_obj_ptr ? (m_ref_with_target_obj_ptr->use_count() == 1) : true);
 		}
@@ -154,14 +165,8 @@ namespace mse {
 		}
 
 	private:
-		explicit TRefCountingPointer(TRefWithTargetObj<X>* p/* = nullptr*/) : m_ref_with_target_obj_ptr(nullptr) {
+		explicit TRefCountingPointer(TRefWithTargetObj<X>* p/* = nullptr*/) {
 			m_ref_with_target_obj_ptr = p;
-			if (p) {
-				m_target_ptr = std::addressof(p->m_object);
-			}
-			else {
-				m_target_ptr = nullptr;
-			}
 		}
 
 		void acquire(CRefCounter* c) {
@@ -192,7 +197,6 @@ namespace mse {
 			}
 		}
 
-		X* m_target_ptr;
 		CRefCounter* m_ref_with_target_obj_ptr;
 
 		friend class TRefCountingNotNullPointer<X>;
@@ -259,18 +263,16 @@ namespace mse {
 	template <class X>
 	class TRefCountingConstPointer {
 	public:
-		TRefCountingConstPointer() : m_ref_with_target_obj_ptr(nullptr), m_target_ptr(nullptr) {}
-		TRefCountingConstPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr), m_target_ptr(nullptr) {}
+		TRefCountingConstPointer() : m_ref_with_target_obj_ptr(nullptr) {}
+		TRefCountingConstPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr) {}
 		~TRefCountingConstPointer() {
 			release();
 		}
 		TRefCountingConstPointer(const TRefCountingConstPointer& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
-			m_target_ptr = r.m_target_ptr;
 		}
 		TRefCountingConstPointer(const TRefCountingPointer<X>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
-			m_target_ptr = r.m_target_ptr;
 		}
 		operator bool() const { return nullptr != get(); }
 		void clear() { (*this) = TRefCountingConstPointer<X>(nullptr); }
@@ -278,7 +280,6 @@ namespace mse {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
-				m_target_ptr = r.m_target_ptr;
 			}
 			return *this;
 		}
@@ -286,7 +287,6 @@ namespace mse {
 			/*if (this != &r) */{
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
-				m_target_ptr = r.m_target_ptr;
 			}
 			return *this;
 		}
@@ -310,13 +310,11 @@ namespace mse {
 		template <class Y> friend class TRefCountingConstPointer;
 		template <class Y> TRefCountingConstPointer(const TRefCountingConstPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
-			m_target_ptr = r.m_target_ptr;
 		}
 		template <class Y> TRefCountingConstPointer& operator=(const TRefCountingConstPointer<Y>& r) {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
-				m_target_ptr = r.m_target_ptr;
 			}
 			return *this;
 		}
@@ -332,27 +330,31 @@ namespace mse {
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
 		const X& operator*() const {
-			if (!m_target_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
-			return (*m_target_ptr);
+			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
+			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
+			return (*x_ptr);
 		}
 		const X* operator->() const {
-			if (!m_target_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
-			return m_target_ptr;
+			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
+			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
+			return x_ptr;
 		}
-		const X* get() const { return m_target_ptr; }
+		const X* get() const {
+			if (!m_ref_with_target_obj_ptr) {
+				return nullptr;
+			}
+			else {
+				X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
+				return x_ptr;
+			}
+		}
 		bool unique() const {
 			return (m_ref_with_target_obj_ptr ? (m_ref_with_target_obj_ptr->use_count() == 1) : true);
 		}
 
 	private:
-		explicit TRefCountingConstPointer(TRefWithTargetObj<X>* p/* = nullptr*/) : m_ref_with_target_obj_ptr(nullptr) {
+		explicit TRefCountingConstPointer(TRefWithTargetObj<X>* p/* = nullptr*/) {
 			m_ref_with_target_obj_ptr = p;
-			if (p) {
-				m_target_ptr = std::addressof(p->m_object);
-			}
-			else {
-				m_target_ptr = nullptr;
-			}
 		}
 
 		void acquire(CRefCounter* c) {
@@ -383,7 +385,6 @@ namespace mse {
 			}
 		}
 
-		X* m_target_ptr;
 		CRefCounter* m_ref_with_target_obj_ptr;
 
 		friend class TRefCountingNotNullConstPointer<X>;
@@ -616,6 +617,8 @@ namespace mse {
 				mse::TRefCountingFixedPointer<D> D_refcountingfixed_ptr1 = mse::make_refcounting<D>();
 				//mse::TRefCountingFixedPointer<const D> constD_refcountingfixed_ptr1 = D_refcountingfixed_ptr1;
 				mse::TRefCountingPointer<A> A_refcountingfixed_ptr2 = D_refcountingfixed_ptr1;
+				int j = A_refcountingfixed_ptr2->b;
+				int k = D_refcountingfixed_ptr1->b;
 			}
 		}
 
