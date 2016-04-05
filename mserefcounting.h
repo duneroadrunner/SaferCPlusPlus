@@ -47,7 +47,7 @@ namespace mse {
 
 	public:
 		CRefCounter() : m_counter(1) {}
-		//virtual ~CRefCounter() {}
+		virtual ~CRefCounter() {}
 		void increment() { m_counter++; }
 		void decrement() { assert(0 <= m_counter); m_counter--; }
 		int use_count() const { return m_counter; }
@@ -65,19 +65,22 @@ namespace mse {
 	/* Some code originally came from this stackoverflow post:
 	http://stackoverflow.com/questions/6593770/creating-a-non-thread-safe-shared-ptr */
 
+	template <class X> class TRefCountingConstPointer;
+
 	/* TRefCountingPointer behaves similar to an std::shared_ptr. Some differences being that it foregoes any thread safety
 	mechanisms, it does not accept raw pointer assignment or construction (use make_refcounting<>() instead), and it will throw
 	an exception on attempted nullptr dereference. And it's faster. */
 	template <class X>
 	class TRefCountingPointer {
 	public:
-		TRefCountingPointer() : m_ref_with_target_obj_ptr(nullptr) {}
-		TRefCountingPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr) {}
+		TRefCountingPointer() : m_ref_with_target_obj_ptr(nullptr), m_target_ptr(nullptr) {}
+		TRefCountingPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr), m_target_ptr(nullptr) {}
 		~TRefCountingPointer() {
 			release();
 		}
 		TRefCountingPointer(const TRefCountingPointer& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
+			m_target_ptr = r.m_target_ptr;
 		}
 		operator bool() const { return nullptr != get(); }
 		void clear() { (*this) = TRefCountingPointer<X>(nullptr); }
@@ -85,6 +88,7 @@ namespace mse {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
+				m_target_ptr = r.m_target_ptr;
 			}
 			return *this;
 		}
@@ -105,13 +109,16 @@ namespace mse {
 		signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
 		*/
 		//  template <class Y> friend class TRefCountingPointer<Y>;
+		template <class Y> friend class TRefCountingPointer;
 		template <class Y> TRefCountingPointer(const TRefCountingPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
+			m_target_ptr = r.m_target_ptr;
 		}
 		template <class Y> TRefCountingPointer& operator=(const TRefCountingPointer<Y>& r) {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
+				m_target_ptr = r.m_target_ptr;
 			}
 			return *this;
 		}
@@ -126,32 +133,38 @@ namespace mse {
 		}
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
-		X& operator*()  const {
-			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
-			return (m_ref_with_target_obj_ptr->m_object);
+		X& operator*() const {
+			if (!m_target_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
+			return (*m_target_ptr);
 		}
 		X* operator->() const {
-			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
-			return std::addressof(m_ref_with_target_obj_ptr->m_object);
+			if (!m_target_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
+			return m_target_ptr;
 		}
-		X* get()        const { return m_ref_with_target_obj_ptr ? std::addressof(m_ref_with_target_obj_ptr->m_object) : nullptr; }
-		bool unique()   const {
+		X* get() const { return m_target_ptr; }
+		bool unique() const {
 			return (m_ref_with_target_obj_ptr ? (m_ref_with_target_obj_ptr->use_count() == 1) : true);
 		}
 
 		template <class... Args>
 		static TRefCountingPointer make_refcounting(Args&&... args) {
-			auto new_ptr = new TRefWithTargetObj<X>(args...);
+			auto new_ptr = new CRefCounter(args...);
 			TRefCountingPointer retval(new_ptr);
 			return retval;
 		}
 
 	private:
 		explicit TRefCountingPointer(TRefWithTargetObj<X>* p/* = nullptr*/) : m_ref_with_target_obj_ptr(nullptr) {
-			if (p) { m_ref_with_target_obj_ptr = p; }
+			m_ref_with_target_obj_ptr = p;
+			if (p) {
+				m_target_ptr = std::addressof(p->m_object);
+			}
+			else {
+				m_target_ptr = nullptr;
+			}
 		}
 
-		void acquire(TRefWithTargetObj<X>* c) {
+		void acquire(CRefCounter* c) {
 			m_ref_with_target_obj_ptr = c;
 			if (c) { c->increment(); }
 		}
@@ -161,12 +174,12 @@ namespace mse {
 		}
 
 		struct auto_release {
-			auto_release(TRefWithTargetObj<X>* c) : m_ref_with_target_obj_ptr(c) {}
+			auto_release(CRefCounter* c) : m_ref_with_target_obj_ptr(c) {}
 			~auto_release() { dorelease(m_ref_with_target_obj_ptr); }
-			TRefWithTargetObj<X>* m_ref_with_target_obj_ptr;
+			CRefCounter* m_ref_with_target_obj_ptr;
 		};
 
-		void static dorelease(TRefWithTargetObj<X>* ref_with_target_obj_ptr) {
+		void static dorelease(CRefCounter* ref_with_target_obj_ptr) {
 			// decrement the count, delete if it is nullptr
 			if (ref_with_target_obj_ptr) {
 				if (1 == ref_with_target_obj_ptr->use_count()) {
@@ -179,9 +192,11 @@ namespace mse {
 			}
 		}
 
-		TRefWithTargetObj<X>* m_ref_with_target_obj_ptr;
+		X* m_target_ptr;
+		CRefCounter* m_ref_with_target_obj_ptr;
 
 		friend class TRefCountingNotNullPointer<X>;
+		friend class TRefCountingConstPointer<X>;
 	};
 
 	template<typename _Ty>
@@ -200,8 +215,8 @@ namespace mse {
 	private:
 		explicit TRefCountingNotNullPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountingPointer<_Ty>(p) {}
 
-		TRefCountingNotNullPointer<_Ty>* operator&() { return this; }
-		const TRefCountingNotNullPointer<_Ty>* operator&() const { return this; }
+		//TRefCountingNotNullPointer<_Ty>* operator&() { return this; }
+		//const TRefCountingNotNullPointer<_Ty>* operator&() const { return this; }
 
 		friend class TRefCountingFixedPointer<_Ty>;
 	};
@@ -227,8 +242,10 @@ namespace mse {
 		explicit TRefCountingFixedPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountingNotNullPointer<_Ty>(p) {}
 		TRefCountingFixedPointer<_Ty>& operator=(const TRefCountingFixedPointer<_Ty>& _Right_cref) = delete;
 
-		TRefCountingFixedPointer<_Ty>* operator&() { return this; }
-		const TRefCountingFixedPointer<_Ty>* operator&() const { return this; }
+		//TRefCountingFixedPointer<_Ty>* operator&() { return this; }
+		//const TRefCountingFixedPointer<_Ty>* operator&() const { return this; }
+
+		friend class TRefCountingConstPointer<_Ty>;
 	};
 
 	template <class X, class... Args>
@@ -242,62 +259,132 @@ namespace mse {
 	template <class X>
 	class TRefCountingConstPointer {
 	public:
-		TRefCountingConstPointer() {}
-		TRefCountingConstPointer(std::nullptr_t) {}
-		//~TRefCountingConstPointer() {}
-		TRefCountingConstPointer(const TRefCountingConstPointer& r) = default;
-		TRefCountingConstPointer(const TRefCountingPointer<X>& r) : m_refcounting_ptr(r) {}
-		operator bool() const { return m_refcounting_ptr; }
+		TRefCountingConstPointer() : m_ref_with_target_obj_ptr(nullptr), m_target_ptr(nullptr) {}
+		TRefCountingConstPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr), m_target_ptr(nullptr) {}
+		~TRefCountingConstPointer() {
+			release();
+		}
+		TRefCountingConstPointer(const TRefCountingConstPointer& r) {
+			acquire(r.m_ref_with_target_obj_ptr);
+			m_target_ptr = r.m_target_ptr;
+		}
+		TRefCountingConstPointer(const TRefCountingPointer<X>& r) {
+			acquire(r.m_ref_with_target_obj_ptr);
+			m_target_ptr = r.m_target_ptr;
+		}
+		operator bool() const { return nullptr != get(); }
 		void clear() { (*this) = TRefCountingConstPointer<X>(nullptr); }
-		TRefCountingConstPointer& operator=(const TRefCountingConstPointer& r) = default;
+		TRefCountingConstPointer& operator=(const TRefCountingConstPointer& r) {
+			if (this != &r) {
+				auto_release keep(m_ref_with_target_obj_ptr);
+				acquire(r.m_ref_with_target_obj_ptr);
+				m_target_ptr = r.m_target_ptr;
+			}
+			return *this;
+		}
 		TRefCountingConstPointer& operator=(const TRefCountingPointer<X>& r) {
-			m_refcounting_ptr = r;
-			return (*this);
+			/*if (this != &r) */{
+				auto_release keep(m_ref_with_target_obj_ptr);
+				acquire(r.m_ref_with_target_obj_ptr);
+				m_target_ptr = r.m_target_ptr;
+			}
+			return *this;
 		}
 		bool operator<(const TRefCountingConstPointer& r) const {
-			return m_refcounting_ptr < r.m_refcounting_ptr;
+			return get() < r.get();
 		}
 		bool operator==(const TRefCountingConstPointer& r) const {
-			return m_refcounting_ptr == r.m_refcounting_ptr;
+			return get() == r.get();
 		}
 		bool operator!=(const TRefCountingConstPointer& r) const {
-			return m_refcounting_ptr != r.m_refcounting_ptr;
+			return get() != r.get();
 		}
 
 #ifndef MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
+		/* Apparently msvc2015 requires that templated member functions come before regular ones.
+		From this webpage regarding compiler error C2668 - https://msdn.microsoft.com/en-us/library/da60x087.aspx:
+		"If, in the same class, you have a regular member function and a templated member function with the same
+		signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
+		*/
 		//  template <class Y> friend class TRefCountingConstPointer<Y>;
+		template <class Y> friend class TRefCountingConstPointer;
 		template <class Y> TRefCountingConstPointer(const TRefCountingConstPointer<Y>& r) {
-			m_refcounting_ptr = r.m_refcounting_ptr;
+			acquire(r.m_ref_with_target_obj_ptr);
+			m_target_ptr = r.m_target_ptr;
 		}
 		template <class Y> TRefCountingConstPointer& operator=(const TRefCountingConstPointer<Y>& r) {
-			m_refcounting_ptr = r.m_refcounting_ptr;
+			if (this != &r) {
+				auto_release keep(m_ref_with_target_obj_ptr);
+				acquire(r.m_ref_with_target_obj_ptr);
+				m_target_ptr = r.m_target_ptr;
+			}
 			return *this;
 		}
 		template <class Y> bool operator<(const TRefCountingConstPointer<Y>& r) const {
-			return m_refcounting_ptr < r.m_refcounting_ptr;
+			return get() < r.get();
 		}
 		template <class Y> bool operator==(const TRefCountingConstPointer<Y>& r) const {
-			return m_refcounting_ptr == r.m_refcounting_ptr;
+			return get() == r.get();
 		}
 		template <class Y> bool operator!=(const TRefCountingConstPointer<Y>& r) const {
-			return m_refcounting_ptr != r.m_refcounting_ptr;
+			return get() != r.get();
 		}
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
-		const X& operator*()  const {
-			return (*m_refcounting_ptr);
+		const X& operator*() const {
+			if (!m_target_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
+			return (*m_target_ptr);
 		}
 		const X* operator->() const {
-			return m_refcounting_ptr.operator->();
+			if (!m_target_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
+			return m_target_ptr;
 		}
-		const X* get()        const { return m_refcounting_ptr.get(); }
-		bool unique()   const {
-			return m_refcounting_ptr.unique();
+		const X* get() const { return m_target_ptr; }
+		bool unique() const {
+			return (m_ref_with_target_obj_ptr ? (m_ref_with_target_obj_ptr->use_count() == 1) : true);
 		}
 
 	private:
+		explicit TRefCountingConstPointer(TRefWithTargetObj<X>* p/* = nullptr*/) : m_ref_with_target_obj_ptr(nullptr) {
+			m_ref_with_target_obj_ptr = p;
+			if (p) {
+				m_target_ptr = std::addressof(p->m_object);
+			}
+			else {
+				m_target_ptr = nullptr;
+			}
+		}
 
-		TRefCountingPointer<X> m_refcounting_ptr;
+		void acquire(CRefCounter* c) {
+			m_ref_with_target_obj_ptr = c;
+			if (c) { c->increment(); }
+		}
+
+		void release() {
+			dorelease(m_ref_with_target_obj_ptr);
+		}
+
+		struct auto_release {
+			auto_release(CRefCounter* c) : m_ref_with_target_obj_ptr(c) {}
+			~auto_release() { dorelease(m_ref_with_target_obj_ptr); }
+			CRefCounter* m_ref_with_target_obj_ptr;
+		};
+
+		void static dorelease(CRefCounter* ref_with_target_obj_ptr) {
+			// decrement the count, delete if it is nullptr
+			if (ref_with_target_obj_ptr) {
+				if (1 == ref_with_target_obj_ptr->use_count()) {
+					delete ref_with_target_obj_ptr;
+				}
+				else {
+					ref_with_target_obj_ptr->decrement();
+				}
+				ref_with_target_obj_ptr = nullptr;
+			}
+		}
+
+		X* m_target_ptr;
+		CRefCounter* m_ref_with_target_obj_ptr;
 
 		friend class TRefCountingNotNullConstPointer<X>;
 	};
@@ -317,8 +404,8 @@ namespace mse {
 		explicit operator const _Ty*() const { return TRefCountingConstPointer<_Ty>::operator _Ty*(); }
 
 	private:
-		TRefCountingNotNullConstPointer<_Ty>* operator&() { return this; }
-		const TRefCountingNotNullConstPointer<_Ty>* operator&() const { return this; }
+		//TRefCountingNotNullConstPointer<_Ty>* operator&() { return this; }
+		//const TRefCountingNotNullConstPointer<_Ty>* operator&() const { return this; }
 
 		friend class TRefCountingFixedConstPointer<_Ty>;
 	};
@@ -337,8 +424,8 @@ namespace mse {
 	private:
 		TRefCountingFixedConstPointer<_Ty>& operator=(const TRefCountingFixedConstPointer<_Ty>& _Right_cref) = delete;
 
-		TRefCountingFixedConstPointer<_Ty>* operator&() { return this; }
-		const TRefCountingFixedConstPointer<_Ty>* operator&() const { return this; }
+		//TRefCountingFixedConstPointer<_Ty>* operator&() { return this; }
+		//const TRefCountingFixedConstPointer<_Ty>* operator&() const { return this; }
 	};
 
 
@@ -523,6 +610,13 @@ namespace mse {
 			}
 
 			int i = A_refcounting_ptr1->b;
+
+			{
+				class D : public A {};
+				mse::TRefCountingFixedPointer<D> D_refcountingfixed_ptr1 = mse::make_refcounting<D>();
+				//mse::TRefCountingFixedPointer<const D> constD_refcountingfixed_ptr1 = D_refcountingfixed_ptr1;
+				mse::TRefCountingPointer<A> A_refcountingfixed_ptr2 = D_refcountingfixed_ptr1;
+			}
 		}
 
 	};
