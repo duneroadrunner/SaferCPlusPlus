@@ -399,6 +399,9 @@ int main(int argc, char* argv[])
 			/* The next commented out line of code is not going to work because D's base class object is not a
 			registered object. */
 			//mse::TRegisteredPointer<A> A_registered_ptr5 = D_registered_ptr1;
+
+			/* Note that unlike registered pointers, relaxed registered pointers can point to base class objects
+			that are not relaxed registered objects. */
 		}
 
 		{
@@ -435,6 +438,28 @@ int main(int argc, char* argv[])
 			d_ptr->m_c_ptr = &regobjfl_c;
 
 			mse::relaxed_registered_delete<D>(d_ptr);
+
+			{
+				/* Polymorphic conversions. */
+				class FD : public mse::TRelaxedRegisteredObj<D> {};
+				mse::TRelaxedRegisteredObj<FD> relaxedregistered_fd;
+				mse::TRelaxedRegisteredPointer<FD> FD_relaxedregistered_ptr1 = &relaxedregistered_fd;
+				mse::TRelaxedRegisteredPointer<D> D_relaxedregistered_ptr4 = FD_relaxedregistered_ptr1;
+				D_relaxedregistered_ptr4 = &relaxedregistered_fd;
+				mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr1 = &relaxedregistered_fd;
+				mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr1 = &relaxedregistered_fd;
+
+				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
+				class GD : public D {};
+				mse::TRelaxedRegisteredObj<GD> relaxedregistered_gd;
+				mse::TRelaxedRegisteredPointer<GD> GD_relaxedregistered_ptr1 = &relaxedregistered_gd;
+				mse::TRelaxedRegisteredPointer<D> D_relaxedregistered_ptr5 = GD_relaxedregistered_ptr1;
+				D_relaxedregistered_ptr5 = GD_relaxedregistered_ptr1;
+				mse::TRelaxedRegisteredFixedPointer<GD> GD_relaxedregistered_fptr1 = &relaxedregistered_gd;
+				D_relaxedregistered_ptr5 = &relaxedregistered_gd;
+				mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr2 = &relaxedregistered_gd;
+				mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr2 = &relaxedregistered_gd;
+			}
 		}
 
 		mse::s_regptr_test1();
