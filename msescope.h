@@ -14,6 +14,9 @@
 #include <functional>
 #include <cassert>
 
+/* Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause relaxed registered pointers to be used to help catch
+misuse of scope pointers in debug mode. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause
+mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 #ifdef MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
 #include "mserelaxedregistered.h"
 #endif // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
@@ -64,8 +67,6 @@ namespace mse {
 
 	template<typename _Ty> using TScopePointerBase = TSaferPtrForLegacy<_Ty>;
 	template<typename _Ty> using TScopeConstPointerBase = TSaferPtrForLegacy<const _Ty>;
-	//template<typename _TROz> using TScopeObjBase = _TROz;
-	//template<typename _TROy> using TScopeObjBase = std::reference_wrapper<_TROy>;
 
 	template<typename _TROz>
 	class TScopeObjBase : public _TROz {
@@ -260,8 +261,10 @@ namespace mse {
 	/* TScopeObj is intended as a transparent wrapper for other classes/objects with "scope lifespans". That is, objects
 	that are either allocated on the stack, or whose "owning" pointer is allocated on the stack. Unfortunately it's not
 	really possible to prevent misuse. For example, auto x = new TScopeObj<mse::CInt> is an improper, and dangerous, use
-	of TScopeObj<>. So, in debug mode, we employ the same comprehensive safety mechanisms that "registered pointers" use.
-	In release mode, by default, all runtime safety mechanisms are disabled. */
+	of TScopeObj<>. So we provide the option of using an mse::TRelaxedRegisteredObj as TScopeObj's base class for
+	enhanced safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause
+	mse::TRelaxedRegisteredObj to be used in debug mode. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+	will cause mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 	template<typename _TROy>
 	class TScopeObj : public TScopeObjBase<_TROy> {
 	public:
