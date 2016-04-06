@@ -4,6 +4,18 @@
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+/* Relaxed registered pointers and objects is a set of data types serving dual purposes and should probably, at some point,
+be split into to separate sets of data types. One purpose is to simply act as a set of registered pointers that can target
+classes before they are fully defined (possibly at the expense of some speed and/or safety). Regular registered pointers
+don't support this.
+The other (and the original) purpose is to be very compatible with legacy code and interfaces that use native pointers. To
+that end relaxed registered pointers support construction/assignment from native pointers which may, or may not point to a
+relaxed registered object. In order to determine whether or not the native pointer does indeed point to a relaxed
+registered object, we need the assistance of a global registry.
+This use of this global registry enhances the fulfillment of the latter purpose and is not necessary for the former. The
+former purpose could be satisfied with a faster, safer, "header file only" set of data types. 
+*/
+
 #pragma once
 #ifndef MSERELAXEDREGISTERED_H_
 #define MSERELAXEDREGISTERED_H_
@@ -634,6 +646,7 @@ namespace mse {
 		mse::relaxed_registered_delete<D>(d_ptr);
 
 		{
+			/* Polymorphic conversions. */
 			class FD : public mse::TRelaxedRegisteredObj<D> {};
 			mse::TRelaxedRegisteredObj<FD> relaxedregistered_fd;
 			mse::TRelaxedRegisteredPointer<FD> FD_relaxedregistered_ptr1 = &relaxedregistered_fd;
@@ -642,6 +655,7 @@ namespace mse {
 			mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr1 = &relaxedregistered_fd;
 			mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr1 = &relaxedregistered_fd;
 
+			/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
 			class GD : public D {};
 			mse::TRelaxedRegisteredObj<GD> relaxedregistered_gd;
 			mse::TRelaxedRegisteredPointer<GD> GD_relaxedregistered_ptr1 = &relaxedregistered_gd;
