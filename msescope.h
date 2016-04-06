@@ -28,8 +28,6 @@
 
 namespace mse {
 
-	static const int sc_scp_default_cache_size = 3/* 1 + (the maximum number of pointers expected to target the object at one time) */;
-
 #ifdef MSE_SCOPEPOINTER_DISABLED
 	template<typename _Ty> using TScopePointer = _Ty*;
 	template<typename _Ty> using TScopeConstPointer = const _Ty*;
@@ -41,176 +39,26 @@ namespace mse {
 
 #else /*MSE_SCOPEPOINTER_DISABLED*/
 
-	/* TScpPTracker is intended to keep track of all the pointers pointing to an object. TScpPTracker objects are intended to be always
-	associated with (infact, a member of) the one object that is the target of the pointers it tracks. Though at the moment, it
-	doesn't need to actually know which object it is associated with. */
-	template<int _Tn = sc_scp_default_cache_size>
-	class TScpPTracker {
+	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
+	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
+#define MSE_SCOPE_USING(Derived, Base)                                 \
+    template<typename ...Args,                               \
+             typename = typename std::enable_if              \
+             <                                               \
+                std::is_constructible<Base, Args...>::value  \
+			 			 			 			              >::type>                                        \
+    Derived(Args &&...args)                                  \
+        : Base(std::forward<Args>(args)...) { }              \
+
+	template<typename _Ty> using TScopePointerBase = TSaferPtrForLegacy<_Ty>;
+	template<typename _Ty> using TScopeConstPointerBase = TSaferPtrForLegacy<const _Ty>;
+	//template<typename _TROz> using TScopeObjBase = _TROz;
+	//template<typename _TROy> using TScopeObjBase = std::reference_wrapper<_TROy>;
+
+	template<typename _TROz>
+	class TScopeObjBase : public _TROz {
 	public:
-		TScpPTracker() {}
-		TScpPTracker(const TScpPTracker& src_cref) {
-			/* This is a special type of class. The state (i.e. member values) of an object of this class is specific to (and only
-			valid for) the particular instance of the object (or the object of which it is a member). So the correct state of a new
-			copy of this type of object) is not a copy of the state, but rather the state of a new object (which is just the default
-			initialization state). */
-		}
-		TScpPTracker(TScpPTracker&& src) { /* see above */ }
-		~TScpPTracker() {
-			if (!fast_mode1()) {
-				delete m_ptr_to_regptr_set_ptr;
-			}
-		}
-		TScpPTracker& operator=(const TScpPTracker& src_cref) {
-			/* This is a special type of class. The state (i.e. member values) of an object of this class is specific to (and only
-			valid for) the particular instance of the object (or the object of which it is a member). So the correct state of a new
-			copy of this type of object is not a copy of the state, but rather the state of a new object (which is just the default
-			initialization state). */
-			return (*this);
-		}
-		TScpPTracker& operator=(TScpPTracker&& src) { /* see above */ return (*this); }
-		bool operator==(const TScpPTracker& _Right_cref) const {
-			/* At the moment the "non-instance-specific" state of all objects of this type is the same (namely the null set). */
-			return true;
-		}
-		bool operator!=(const TScpPTracker& _Right_cref) const { /* see above */ return false; }
-
-		void registerPointer(const CSaferPtrBase& sp_ref) {
-			if (!fast_mode1()) {
-				std::unordered_set<const CSaferPtrBase*>::value_type item(&sp_ref);
-				(*m_ptr_to_regptr_set_ptr).insert(item);
-			}
-			else {
-				/* We're gonna use a bunch of (ugly) hard coded cases to try to make fast mode fast. */
-				if (sc_fm1_max_pointers == m_fm1_num_pointers) {
-					/* Too many pointers. Initiate and switch to slow mode. */
-					/* Initialize slow storage. */
-					m_ptr_to_regptr_set_ptr = new std::unordered_set<const CSaferPtrBase*>();
-					/* First copy the pointers from fast storage to slow storage. */
-					for (int i = 0; i < sc_fm1_max_pointers; i += 1) {
-						std::unordered_set<const CSaferPtrBase*>::value_type item(m_fm1_ptr_to_regptr_array[i]);
-						(*m_ptr_to_regptr_set_ptr).insert(item);
-					}
-					/* Add the new pointer to slow storage. */
-					std::unordered_set<const CSaferPtrBase*>::value_type item(&sp_ref);
-					(*m_ptr_to_regptr_set_ptr).insert(item);
-				}
-				else {
-					if (1 == sc_fm1_max_pointers) {
-						m_fm1_ptr_to_regptr_array[0] = (&sp_ref);
-						m_fm1_num_pointers = 1;
-					}
-					else if (2 == sc_fm1_max_pointers) {
-						if (1 == m_fm1_num_pointers) {
-							m_fm1_ptr_to_regptr_array[1] = (&sp_ref);
-							m_fm1_num_pointers = 2;
-						}
-						else {
-							assert(0 == m_fm1_num_pointers);
-							m_fm1_ptr_to_regptr_array[0] = (&sp_ref);
-							m_fm1_num_pointers = 1;
-						}
-					}
-					else {
-						m_fm1_ptr_to_regptr_array[m_fm1_num_pointers] = (&sp_ref);
-						m_fm1_num_pointers += 1;
-					}
-				}
-			}
-		}
-		void unregisterPointer(const CSaferPtrBase& sp_ref) {
-			if (!fast_mode1()) {
-				auto res = (*m_ptr_to_regptr_set_ptr).erase(&sp_ref);
-				assert(0 != res);
-			}
-			else {
-				/* We're gonna use a bunch of (ugly) hard coded cases to try to make fast mode fast. */
-				if (1 == sc_fm1_max_pointers) {
-					if (1 == m_fm1_num_pointers) {
-						m_fm1_num_pointers = 0;
-					}
-					else { /* There are no scope pointers to be unscope. */ assert(false); }
-				}
-				else if (2 == sc_fm1_max_pointers){
-					if (1 == m_fm1_num_pointers) {
-						m_fm1_num_pointers = 0;
-					}
-					else if (2 == m_fm1_num_pointers) {
-						if ((&sp_ref) == m_fm1_ptr_to_regptr_array[1]) {
-							m_fm1_num_pointers = 1;
-						}
-						else {
-							assert((&sp_ref) == m_fm1_ptr_to_regptr_array[0]);
-							m_fm1_ptr_to_regptr_array[0] = m_fm1_ptr_to_regptr_array[1];
-							m_fm1_num_pointers = 1;
-						}
-					}
-					else { /* There are no scope pointers to be unscope. */ assert(false); }
-				}
-				else {
-					int found_index = -1;
-					for (int i = 0; i < m_fm1_num_pointers; i += 1) {
-						if ((&sp_ref) == m_fm1_ptr_to_regptr_array[i]) {
-							found_index = i;
-							break;
-						}
-					}
-					if (0 <= found_index) {
-						m_fm1_num_pointers -= 1;
-						assert(0 <= m_fm1_num_pointers);
-						for (int j = found_index; j < m_fm1_num_pointers; j += 1) {
-							m_fm1_ptr_to_regptr_array[j] = m_fm1_ptr_to_regptr_array[j + 1];
-						}
-					}
-					else { assert(false); }
-				}
-			}
-		}
-		void onObjectDestruction() {
-			if (!fast_mode1()) {
-				for (auto sp_ref_ptr : (*m_ptr_to_regptr_set_ptr)) {
-					(*sp_ref_ptr).setToNull();
-				}
-			}
-			else {
-				/* We're gonna use a bunch of (ugly) hard coded cases to try to make fast mode fast. */
-				if (1 == sc_fm1_max_pointers) {
-					if (0 == m_fm1_num_pointers) {
-					}
-					else {
-						assert(1 == m_fm1_num_pointers);
-						(*(m_fm1_ptr_to_regptr_array[0])).setToNull();
-						m_fm1_num_pointers = 0;
-					}
-				}
-				else if (2 == sc_fm1_max_pointers) {
-					if (0 == m_fm1_num_pointers) {
-					}
-					else if (1 == m_fm1_num_pointers) {
-						(*(m_fm1_ptr_to_regptr_array[0])).setToNull();
-						m_fm1_num_pointers = 0;
-					}
-					else {
-						assert(2 == m_fm1_num_pointers);
-						(*(m_fm1_ptr_to_regptr_array[0])).setToNull();
-						(*(m_fm1_ptr_to_regptr_array[1])).setToNull();
-						m_fm1_num_pointers = 0;
-					}
-				}
-				else {
-					for (int i = 0; i < m_fm1_num_pointers; i += 1) {
-						(*(m_fm1_ptr_to_regptr_array[i])).setToNull();
-					}
-					m_fm1_num_pointers = 0;
-				}
-			}
-		}
-
-		bool fast_mode1() const { return (nullptr == m_ptr_to_regptr_set_ptr); }
-		int m_fm1_num_pointers = 0;
-		static const int sc_fm1_max_pointers = _Tn;
-		const CSaferPtrBase* m_fm1_ptr_to_regptr_array[sc_fm1_max_pointers];
-
-		std::unordered_set<const CSaferPtrBase*> *m_ptr_to_regptr_set_ptr = nullptr;
+		MSE_SCOPE_USING(TScopeObjBase, _TROz);
 	};
 
 	template<typename _Ty> class TScopeObj;
@@ -221,20 +69,34 @@ namespace mse {
 
 	/* Use TScopeFixedPointer instead. */
 	template<typename _Ty>
-	class TScopePointer : public TSaferPtr<TScopeObj<_Ty>> {
+	class TScopePointer : public TScopePointerBase<_Ty> {
 	public:
 	private:
-		TScopePointer();
-		TScopePointer(TScopeObj<_Ty>* ptr);
-		TScopePointer(const TScopePointer& src_cref);
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
-		TScopePointer(const TScopePointer<_Ty2>& src_cref);
-		virtual ~TScopePointer();
-		TScopePointer<_Ty>& operator=(TScopeObj<_Ty>* ptr);
-		TScopePointer<_Ty>& operator=(const TScopePointer<_Ty>& _Right_cref);
+		TScopePointer() : TScopePointerBase<_Ty>() {}
+		TScopePointer(TScopeObj<_Ty>* ptr) : TScopePointerBase<_Ty>(ptr) {}
+		TScopePointer(const TScopePointer& src_cref) : TScopePointerBase<_Ty>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TScopePointer(const TScopePointer<_Ty2>& src_cref) : TScopePointerBase<_Ty>(src_cref) {}
+		virtual ~TScopePointer() {}
+		TScopePointer<_Ty>& operator=(TScopeObj<_Ty>* ptr) {
+			return TScopePointerBase<_Ty>::operator=(ptr);
+		}
+		TScopePointer<_Ty>& operator=(const TScopePointer<_Ty>& _Right_cref) {
+			return TScopePointerBase<_Ty>::operator=(_Right_cref);
+		}
+		operator bool() const {
+			bool retval = (*static_cast<const TScopePointerBase<_Ty>*>(this));
+			return retval;
+		}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const;
-		explicit operator TScopeObj<_Ty>*() const;
+		explicit operator _Ty*() const {
+			_Ty* retval = (*static_cast<const TScopePointerBase<_Ty>*>(this));
+			return retval;
+		}
+		explicit operator TScopeObj<_Ty>*() const {
+			TScopeObj<_Ty>* retval = (*static_cast<const TScopePointerBase<_Ty>*>(this));
+			return retval;
+		}
 
 		TScopePointer<_Ty>* operator&() { return this; }
 		const TScopePointer<_Ty>* operator&() const { return this; }
@@ -244,24 +106,38 @@ namespace mse {
 
 	/* Use TScopeFixedConstPointer instead. */
 	template<typename _Ty>
-	class TScopeConstPointer : public TSaferPtr<const TScopeObj<_Ty>> {
+	class TScopeConstPointer : public TScopeConstPointerBase<const _Ty> {
 	public:
 	private:
-		TScopeConstPointer();
-		TScopeConstPointer(const TScopeObj<_Ty>* ptr);
-		TScopeConstPointer(const TScopeConstPointer& src_cref);
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
-		TScopeConstPointer(const TScopeConstPointer<_Ty2>& src_cref);
-		TScopeConstPointer(const TScopePointer<_Ty>& src_cref);
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
-		TScopeConstPointer(const TScopePointer<_Ty2>& src_cref);
-		virtual ~TScopeConstPointer();
-		TScopeConstPointer<_Ty>& operator=(const TScopeObj<_Ty>* ptr);
-		TScopeConstPointer<_Ty>& operator=(const TScopeConstPointer<_Ty>& _Right_cref);
+		TScopeConstPointer() : TScopeConstPointerBase<const _Ty>() {}
+		TScopeConstPointer(const TScopeObj<_Ty>* ptr) : TScopeConstPointerBase<const _Ty>(ptr) {}
+		TScopeConstPointer(const TScopeConstPointer& src_cref) : TScopeConstPointerBase<const _Ty>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TScopeConstPointer(const TScopeConstPointer<_Ty2>& src_cref) : TScopeConstPointerBase<const _Ty>(src_cref) {}
+		TScopeConstPointer(const TScopePointer<_Ty>& src_cref) : TScopeConstPointerBase<const _Ty>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TScopeConstPointer(const TScopePointer<_Ty2>& src_cref) : TScopeConstPointerBase<const _Ty>(src_cref) {}
+		virtual ~TScopeConstPointer() {}
+		TScopeConstPointer<_Ty>& operator=(const TScopeObj<_Ty>* ptr) {
+			return TScopeConstPointerBase<_Ty>::operator=(ptr);
+		}
+		TScopeConstPointer<_Ty>& operator=(const TScopeConstPointer<_Ty>& _Right_cref) {
+			return TScopeConstPointerBase<_Ty>::operator=(_Right_cref);
+		}
 		TScopeConstPointer<_Ty>& operator=(const TScopePointer<_Ty>& _Right_cref) { return (*this).operator=(TScopeConstPointer(_Right_cref)); }
+		operator bool() const {
+			bool retval = (*static_cast<const TScopeConstPointerBase<_Ty>*>(this));
+			return retval;
+		}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const;
-		explicit operator const TScopeObj<_Ty>*() const;
+		explicit operator const _Ty*() const {
+			const _Ty* retval = (*static_cast<const TScopeConstPointerBase<const _Ty>*>(this));
+			return retval;
+		}
+		explicit operator const TScopeObj<_Ty>*() const {
+			const TScopeObj<_Ty>* retval = (*static_cast<const TScopeConstPointerBase<const _Ty>*>(this));
+			return retval;
+		}
 
 		TScopeConstPointer<_Ty>* operator&() { return this; }
 		const TScopeConstPointer<_Ty>* operator&() const { return this; }
@@ -276,13 +152,14 @@ namespace mse {
 	private:
 		TScopeNotNullPointer(TScopeObj<_Ty>* ptr) : TScopePointer<_Ty>(ptr) {}
 		TScopeNotNullPointer(const TScopeNotNullPointer& src_cref) : TScopePointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TScopeNotNullPointer(const TScopeNotNullPointer<_Ty2>& src_cref) : TScopePointer<_Ty>(src_cref) {}
 		virtual ~TScopeNotNullPointer() {}
-		TScopeNotNullPointer<_Ty>& operator=(const TScopeNotNullPointer<_Ty>& _Right_cref) {
+		TScopeNotNullPointer<_Ty>& operator=(const TScopePointer<_Ty>& _Right_cref) {
 			TScopePointer<_Ty>::operator=(_Right_cref);
 			return (*this);
 		}
+		operator bool() const { return (*static_cast<const TScopePointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TScopePointer<_Ty>::operator _Ty*(); }
 		explicit operator TScopeObj<_Ty>*() const { return TScopePointer<_Ty>::operator TScopeObj<_Ty>*(); }
@@ -299,12 +176,13 @@ namespace mse {
 	public:
 	private:
 		TScopeNotNullConstPointer(const TScopeNotNullConstPointer<_Ty>& src_cref) : TScopeConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TScopeNotNullConstPointer(const TScopeNotNullConstPointer<_Ty2>& src_cref) : TScopeConstPointer<_Ty>(src_cref) {}
 		TScopeNotNullConstPointer(const TScopeNotNullPointer<_Ty>& src_cref) : TScopeConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TScopeNotNullConstPointer(const TScopeNotNullPointer<_Ty2>& src_cref) : TScopeConstPointer<_Ty>(src_cref) {}
 		virtual ~TScopeNotNullConstPointer() {}
+		operator bool() const { return (*static_cast<const TScopeConstPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TScopeConstPointer<_Ty>::operator const _Ty*(); }
 		explicit operator const TScopeObj<_Ty>*() const { return TScopeConstPointer<_Ty>::operator const TScopeObj<_Ty>*(); }
@@ -322,9 +200,10 @@ namespace mse {
 	class TScopeFixedPointer : public TScopeNotNullPointer<_Ty> {
 	public:
 		TScopeFixedPointer(const TScopeFixedPointer& src_cref) : TScopeNotNullPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TScopeFixedPointer(const TScopeFixedPointer<_Ty2>& src_cref) : TScopeNotNullPointer<_Ty>(src_cref) {}
 		virtual ~TScopeFixedPointer() {}
+		operator bool() const { return (*static_cast<const TScopeNotNullPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TScopeNotNullPointer<_Ty>::operator _Ty*(); }
 		explicit operator TScopeObj<_Ty>*() const { return TScopeNotNullPointer<_Ty>::operator TScopeObj<_Ty>*(); }
@@ -343,12 +222,13 @@ namespace mse {
 	class TScopeFixedConstPointer : public TScopeNotNullConstPointer<_Ty> {
 	public:
 		TScopeFixedConstPointer(const TScopeFixedConstPointer<_Ty>& src_cref) : TScopeNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TScopeFixedConstPointer(const TScopeFixedConstPointer<_Ty2>& src_cref) : TScopeNotNullConstPointer<_Ty>(src_cref) {}
 		TScopeFixedConstPointer(const TScopeFixedPointer<_Ty>& src_cref) : TScopeNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TScopeFixedConstPointer(const TScopeFixedPointer<_Ty2>& src_cref) : TScopeNotNullConstPointer<_Ty>(src_cref) {}
 		virtual ~TScopeFixedConstPointer() {}
+		operator bool() const { return (*static_cast<const TScopeNotNullConstPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TScopeNotNullConstPointer<_Ty>::operator const _Ty*(); }
 		explicit operator const TScopeObj<_Ty>*() const { return TScopeNotNullConstPointer<_Ty>::operator const TScopeObj<_Ty>*(); }
@@ -363,176 +243,31 @@ namespace mse {
 		friend class TScopeObj<_Ty>;
 	};
 
-	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
-	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
-#define MSE_SCOPE_USING(Derived, Base)                                 \
-    template<typename ...Args,                               \
-             typename = typename std::enable_if              \
-             <                                               \
-                std::is_constructible<Base, Args...>::value  \
-			 			 			 			              >::type>                                        \
-    Derived(Args &&...args)                                  \
-        : Base(std::forward<Args>(args)...) { }              \
-
 	/* TScopeObj is intended as a transparent wrapper for other classes/objects with "scope lifespans". That is, objects
 	that are either allocated on the stack, or whose "owning" pointer is allocated on the stack. Unfortunately it's not
 	really possible to prevent misuse. For example, auto x = new TScopeObj<mse::CInt> is an improper, and dangerous, use
 	of TScopeObj<>. So, in debug mode, we employ the same comprehensive safety mechanisms that "registered pointers" use.
 	In release mode, by default, all runtime safety mechanisms are disabled. */
 	template<typename _TROy>
-	class TScopeObj : public _TROy {
+	class TScopeObj : public TScopeObjBase<_TROy> {
 	public:
-		MSE_SCOPE_USING(TScopeObj, _TROy);
-		//TScopeObj(const TScopeObj& _X) : _TROy(_X) {}
-		//TScopeObj(TScopeObj&& _X) : _TROy(std::move(_X)) {}
-		virtual ~TScopeObj() {
-			mseRPManager().onObjectDestruction();
-		}
-		TScopeObj& operator=(const TScopeObj& _X) { _TROy::operator=(_X); return (*this); }
+		MSE_SCOPE_USING(TScopeObj, TScopeObjBase<_TROy>);
+		//TScopeObj(const TScopeObj& _X) : TScopeObjBase<_TROy>(_X) {}
+		//TScopeObj(TScopeObj&& _X) : TScopeObjBase<_TROy>(std::move(_X)) {}
+		virtual ~TScopeObj() {}
+		TScopeObj& operator=(const TScopeObj& _X) { TScopeObjBase<_TROy>::operator=(_X); return (*this); }
 		TScopeFixedPointer<_TROy> operator&() {
 			return this;
 		}
 		TScopeFixedConstPointer<_TROy> operator&() const {
 			return this;
 		}
-		TScpPTracker<>& mseRPManager() const { return m_mseRPManager; }
+		//TScpPTracker<>& mseRPManager() const { return m_mseRPManager; }
 
 	private:
 		TScopeObj& operator=(TScopeObj&& _X) = delete;
-		mutable TScpPTracker<> m_mseRPManager;
+		//mutable TScpPTracker<> m_mseRPManager;
 	};
-
-	template<typename _Ty>
-	TScopePointer<_Ty>::TScopePointer() : TSaferPtr<TScopeObj<_Ty>>() {}
-	template<typename _Ty>
-	TScopePointer<_Ty>::TScopePointer(TScopeObj<_Ty>* ptr) : TSaferPtr<TScopeObj<_Ty>>(ptr) {
-		if (nullptr != ptr) {
-			(*ptr).mseRPManager().registerPointer(*this);
-		}
-	}
-	template<typename _Ty>
-	TScopePointer<_Ty>::TScopePointer(const TScopePointer& src_cref) : TSaferPtr<TScopeObj<_Ty>>(src_cref.m_ptr) {
-		if (nullptr != src_cref.m_ptr) {
-			(*(src_cref.m_ptr)).mseRPManager().registerPointer(*this);
-		}
-	}
-	template<typename _Ty>
-	template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
-	TScopePointer<_Ty>::TScopePointer(const TScopePointer<_Ty2>& src_cref) : TSaferPtr<TScopeObj<_Ty>>(src_cref.m_ptr) {
-		if (nullptr != (*this).m_ptr) {
-			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
-		}
-	}
-	template<typename _Ty>
-	TScopePointer<_Ty>::~TScopePointer() {
-		if (nullptr != (*this).m_ptr) {
-			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
-		}
-	}
-	template<typename _Ty>
-	TScopePointer<_Ty>& TScopePointer<_Ty>::operator=(TScopeObj<_Ty>* ptr) {
-		if (nullptr != (*this).m_ptr) {
-			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
-		}
-		TSaferPtr<TScopeObj<_Ty>>::operator=(ptr);
-		if (nullptr != ptr) {
-			(*ptr).mseRPManager().registerPointer(*this);
-		}
-		return (*this);
-	}
-	template<typename _Ty>
-	TScopePointer<_Ty>& TScopePointer<_Ty>::operator=(const TScopePointer<_Ty>& _Right_cref) {
-		return operator=(_Right_cref.m_ptr);
-	}
-	/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-	template<typename _Ty>
-	TScopePointer<_Ty>::operator _Ty*() const {
-		if (nullptr == (*this).m_ptr) {
-			int q = 5; /* just a line of code for putting a debugger break point */
-		}
-		return (*this).m_ptr;
-	}
-	/* This cast operator, if possible, should not be used. It is meant to be used exclusively by scope_delete<>(). */
-	template<typename _Ty>
-	TScopePointer<_Ty>::operator TScopeObj<_Ty>*() const {
-		if (nullptr == (*this).m_ptr) {
-			int q = 5; /* just a line of code for putting a debugger break point */
-		}
-		return (*this).m_ptr;
-	}
-
-
-	template<typename _Ty>
-	TScopeConstPointer<_Ty>::TScopeConstPointer() : TSaferPtr<const TScopeObj<_Ty>>() {}
-	template<typename _Ty>
-	TScopeConstPointer<_Ty>::TScopeConstPointer(const TScopeObj<_Ty>* ptr) : TSaferPtr<const TScopeObj<_Ty>>(ptr) {
-		if (nullptr != ptr) {
-			(*ptr).mseRPManager().registerPointer(*this);
-		}
-	}
-	template<typename _Ty>
-	TScopeConstPointer<_Ty>::TScopeConstPointer(const TScopeConstPointer& src_cref) : TSaferPtr<const TScopeObj<_Ty>>(src_cref.m_ptr) {
-		if (nullptr != src_cref.m_ptr) {
-			(*(src_cref.m_ptr)).mseRPManager().registerPointer(*this);
-		}
-	}
-	template<typename _Ty>
-	template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
-	TScopeConstPointer<_Ty>::TScopeConstPointer(const TScopeConstPointer<_Ty2>& src_cref) : TSaferPtr<TScopeObj<_Ty>>(src_cref.m_ptr) {
-		if (nullptr != (*this).m_ptr) {
-			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
-		}
-	}
-	template<typename _Ty>
-	TScopeConstPointer<_Ty>::TScopeConstPointer(const TScopePointer<_Ty>& src_cref) : TSaferPtr<const TScopeObj<_Ty>>(src_cref.m_ptr) {
-		if (nullptr != src_cref.m_ptr) {
-			(*(src_cref.m_ptr)).mseRPManager().registerPointer(*this);
-		}
-	}
-	template<typename _Ty>
-	template<class _Ty2, class = typename std::enable_if<std::is_convertible<TScopeObj<_Ty2> *, TScopeObj<_Ty> *>::value, void>::type>
-	TScopeConstPointer<_Ty>::TScopeConstPointer(const TScopePointer<_Ty2>& src_cref) : TSaferPtr<const TScopeObj<_Ty>>(src_cref.m_ptr) {
-		if (nullptr != (*this).m_ptr) {
-			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
-		}
-	}
-	template<typename _Ty>
-	TScopeConstPointer<_Ty>::~TScopeConstPointer() {
-		if (nullptr != (*this).m_ptr) {
-			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
-		}
-	}
-	template<typename _Ty>
-	TScopeConstPointer<_Ty>& TScopeConstPointer<_Ty>::operator=(const TScopeObj<_Ty>* ptr) {
-		if (nullptr != (*this).m_ptr) {
-			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
-		}
-		TSaferPtr<const TScopeObj<_Ty>>::operator=(ptr);
-		if (nullptr != ptr) {
-			(*ptr).mseRPManager().registerPointer(*this);
-		}
-		return (*this);
-	}
-	template<typename _Ty>
-	TScopeConstPointer<_Ty>& TScopeConstPointer<_Ty>::operator=(const TScopeConstPointer<_Ty>& _Right_cref) {
-		return operator=(_Right_cref.m_ptr);
-	}
-	/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-	template<typename _Ty>
-	TScopeConstPointer<_Ty>::operator const _Ty*() const {
-		if (nullptr == (*this).m_ptr) {
-			int q = 5; /* just a line of code for putting a debugger break point */
-		}
-		return (*this).m_ptr;
-	}
-	/* This cast operator, if possible, should not be used. It is meant to be used exclusively by scope_delete<>(). */
-	template<typename _Ty>
-	TScopeConstPointer<_Ty>::operator const TScopeObj<_Ty>*() const {
-		if (nullptr == (*this).m_ptr) {
-			int q = 5; /* just a line of code for putting a debugger break point */
-		}
-		return (*this).m_ptr;
-	}
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
@@ -638,16 +373,25 @@ namespace mse {
 		}
 
 		{
-			/* Remember that scope pointers can only point to scope objects. So, for example, if you want
-			a scope pointer to an object's base class object, that base class object has to be a scope
-			object. */
-			class DA : public mse::TScopeObj<A> {
+			/* Polymorphic conversions. */
+			class E {
 			public:
-				DA(int x) : mse::TScopeObj<A>(x) {}
+				int m_b = 5;
 			};
-			mse::TScopeObj<DA> scope_da(23);
-			mse::TScopeFixedPointer<DA> DA_scope_ptr1 = &scope_da;
-			mse::TScopeFixedPointer<A> A_scope_ptr4 = DA_scope_ptr1;
+			class FE : public mse::TScopeObj<E> {};
+			mse::TScopeObj<FE> scope_fd;
+			mse::TScopeFixedPointer<FE> FE_scope_fptr1 = &scope_fd;
+			mse::TScopeFixedPointer<E> E_scope_ptr4 = FE_scope_fptr1;
+			mse::TScopeFixedPointer<E> E_scope_fptr1 = &scope_fd;
+			mse::TScopeFixedConstPointer<E> E_scope_fcptr1 = &scope_fd;
+
+			/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
+			class GE : public E {};
+			mse::TScopeObj<GE> scope_gd;
+			mse::TScopeFixedPointer<GE> GE_scope_fptr1 = &scope_gd;
+			mse::TScopeFixedPointer<E> E_scope_ptr5 = GE_scope_fptr1;
+			mse::TScopeFixedPointer<E> E_scope_fptr2 = &scope_gd;
+			mse::TScopeFixedConstPointer<E> E_scope_fcptr2 = &scope_gd;
 		}
 	}
 }

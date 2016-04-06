@@ -18,6 +18,7 @@ get to the data type your interested in.
 //define MSE_SAFERPTR_DISABLED /* MSE_SAFERPTR_DISABLED implies MSE_REGISTEREDPOINTER_DISABLED too. */
 //define MSE_PRIMITIVES_DISABLED
 //define MSE_REFCOUNTINGPOINTER_DISABLED
+//define MSE_SCOPEPOINTER_DISABLED
 
 //include "msetl.h"
 #include "msemsevector.h"

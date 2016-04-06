@@ -684,6 +684,8 @@ namespace mse {
 		TSaferPtr() : m_ptr(nullptr) {}
 		TSaferPtr(_Ty* ptr) : m_ptr(ptr) {}
 		TSaferPtr(const TSaferPtr<_Ty>& src) : m_ptr(src.m_ptr) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TSaferPtr(const TSaferPtr<_Ty2>& src_cref) : m_ptr(src_cref.m_ptr) {}
 		virtual ~TSaferPtr() {}
 
 		virtual void setToNull() const { m_ptr = nullptr; }
@@ -739,6 +741,8 @@ namespace mse {
 	public:
 		TSaferPtrForLegacy() : m_ptr(nullptr) {}
 		TSaferPtrForLegacy(_Ty* ptr) : m_ptr(ptr) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TSaferPtrForLegacy(const TSaferPtrForLegacy<_Ty2>& src_cref) : m_ptr(src_cref.m_ptr) {}
 		virtual ~TSaferPtrForLegacy() {}
 
 		virtual void setToNull() const { m_ptr = nullptr; }
