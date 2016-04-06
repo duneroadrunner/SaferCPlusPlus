@@ -189,7 +189,7 @@ namespace mse {
 			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRelaxedRegisteredObj<_Ty2> *, TRelaxedRegisteredObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredPointer(const TRelaxedRegisteredPointer<_Ty2>& src_cref) : TSaferPtrForLegacy<_Ty>(src_cref.m_ptr) {
 			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
@@ -220,6 +220,10 @@ namespace mse {
 			(*m_sp_tracker_ptr).registerPointer((*this), _Right_cref);
 			m_might_not_point_to_a_TRelaxedRegisteredObj = _Right_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			return (*this);
+		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TRelaxedRegisteredPointer<_Ty>& operator=(const TRelaxedRegisteredPointer<_Ty2>& _Right_cref) {
+			return (*this).operator=(TRelaxedRegisteredPointer(_Right_cref));
 		}
 		operator bool() const { return (*this).m_ptr; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -284,7 +288,7 @@ namespace mse {
 			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRelaxedRegisteredObj<_Ty2> *, TRelaxedRegisteredObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredConstPointer(const TRelaxedRegisteredConstPointer<_Ty2>& src_cref) : TSaferPtrForLegacy<const _Ty>(src_cref.m_ptr) {
 			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
@@ -297,7 +301,7 @@ namespace mse {
 			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRelaxedRegisteredObj<_Ty2> *, TRelaxedRegisteredObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredConstPointer(const TRelaxedRegisteredPointer<_Ty2>& src_cref) : TSaferPtrForLegacy<const _Ty>(src_cref.m_ptr) {
 			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
@@ -329,8 +333,16 @@ namespace mse {
 			m_might_not_point_to_a_TRelaxedRegisteredObj = _Right_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			return (*this);
 		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TRelaxedRegisteredConstPointer<_Ty>& operator=(const TRelaxedRegisteredConstPointer<_Ty2>& _Right_cref) {
+			return (*this).operator=(TRelaxedRegisteredConstPointer(_Right_cref));
+		}
 		TRelaxedRegisteredConstPointer<_Ty>& operator=(const TRelaxedRegisteredPointer<_Ty>& _Right_cref) {
 			return (*this).operator=(TRelaxedRegisteredConstPointer<_Ty>(_Right_cref));
+		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TRelaxedRegisteredConstPointer<_Ty>& operator=(const TRelaxedRegisteredPointer<_Ty2>& _Right_cref) {
+			return (*this).operator=(TRelaxedRegisteredPointer<_Ty>(_Right_cref));
 		}
 		operator bool() const { return (*this).m_ptr; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -379,7 +391,7 @@ namespace mse {
 	class TRelaxedRegisteredNotNullPointer : public TRelaxedRegisteredPointer<_Ty> {
 	public:
 		TRelaxedRegisteredNotNullPointer(const TRelaxedRegisteredNotNullPointer& src_cref) : TRelaxedRegisteredPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRelaxedRegisteredObj<_Ty2> *, TRelaxedRegisteredObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredNotNullPointer(const TRelaxedRegisteredNotNullPointer<_Ty2>& src_cref) : TRelaxedRegisteredPointer<_Ty>(src_cref) {}
 		virtual ~TRelaxedRegisteredNotNullPointer() {}
 		/*
@@ -415,10 +427,10 @@ namespace mse {
 	class TRelaxedRegisteredNotNullConstPointer : public TRelaxedRegisteredConstPointer<_Ty> {
 	public:
 		TRelaxedRegisteredNotNullConstPointer(const TRelaxedRegisteredNotNullPointer<_Ty>& src_cref) : TRelaxedRegisteredConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRelaxedRegisteredObj<_Ty2> *, TRelaxedRegisteredObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredNotNullConstPointer(const TRelaxedRegisteredNotNullPointer<_Ty2>& src_cref) : TRelaxedRegisteredConstPointer<_Ty>(src_cref) {}
 		TRelaxedRegisteredNotNullConstPointer(const TRelaxedRegisteredNotNullConstPointer<_Ty>& src_cref) : TRelaxedRegisteredConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRelaxedRegisteredObj<_Ty2> *, TRelaxedRegisteredObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredNotNullConstPointer(const TRelaxedRegisteredNotNullConstPointer<_Ty2>& src_cref) : TRelaxedRegisteredConstPointer<_Ty>(src_cref) {}
 		virtual ~TRelaxedRegisteredNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -440,7 +452,7 @@ namespace mse {
 	class TRelaxedRegisteredFixedPointer : public TRelaxedRegisteredNotNullPointer<_Ty> {
 	public:
 		TRelaxedRegisteredFixedPointer(const TRelaxedRegisteredFixedPointer& src_cref) : TRelaxedRegisteredNotNullPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRelaxedRegisteredObj<_Ty2> *, TRelaxedRegisteredObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredFixedPointer(const TRelaxedRegisteredFixedPointer<_Ty2>& src_cref) : TRelaxedRegisteredNotNullPointer<_Ty>(src_cref) {}
 		virtual ~TRelaxedRegisteredFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -471,10 +483,10 @@ namespace mse {
 	class TRelaxedRegisteredFixedConstPointer : public TRelaxedRegisteredNotNullConstPointer<_Ty> {
 	public:
 		TRelaxedRegisteredFixedConstPointer(const TRelaxedRegisteredFixedPointer<_Ty>& src_cref) : TRelaxedRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRelaxedRegisteredObj<_Ty2> *, TRelaxedRegisteredObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredFixedConstPointer(const TRelaxedRegisteredFixedPointer<_Ty2>& src_cref) : TRelaxedRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 		TRelaxedRegisteredFixedConstPointer(const TRelaxedRegisteredFixedConstPointer<_Ty>& src_cref) : TRelaxedRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRelaxedRegisteredObj<_Ty2> *, TRelaxedRegisteredObj<_Ty> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredFixedConstPointer(const TRelaxedRegisteredFixedConstPointer<_Ty2>& src_cref) : TRelaxedRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 		virtual ~TRelaxedRegisteredFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -634,11 +646,11 @@ namespace mse {
 			mse::TRelaxedRegisteredObj<GD> relaxedregistered_gd;
 			mse::TRelaxedRegisteredPointer<GD> GD_relaxedregistered_ptr1 = &relaxedregistered_gd;
 			mse::TRelaxedRegisteredPointer<D> D_relaxedregistered_ptr5 = GD_relaxedregistered_ptr1;
-			/*
+			D_relaxedregistered_ptr5 = GD_relaxedregistered_ptr1;
+			mse::TRelaxedRegisteredFixedPointer<GD> GD_relaxedregistered_fptr1 = &relaxedregistered_gd;
 			D_relaxedregistered_ptr5 = &relaxedregistered_gd;
 			mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr2 = &relaxedregistered_gd;
 			mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr2 = &relaxedregistered_gd;
-			*/
 		}
 	}
 }
