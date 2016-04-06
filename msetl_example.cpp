@@ -19,6 +19,7 @@ get to the data type your interested in.
 //define MSE_PRIMITIVES_DISABLED
 //define MSE_REFCOUNTINGPOINTER_DISABLED
 //define MSE_SCOPEPOINTER_DISABLED
+//define MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
 
 //include "msetl.h"
 #include "msemsevector.h"

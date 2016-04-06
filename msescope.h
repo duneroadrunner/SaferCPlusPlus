@@ -14,6 +14,10 @@
 #include <functional>
 #include <cassert>
 
+#ifdef MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
+#include "mserelaxedregistered.h"
+#endif // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
+
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_SCOPEPOINTER_DISABLED
@@ -50,6 +54,14 @@ namespace mse {
     Derived(Args &&...args)                                  \
         : Base(std::forward<Args>(args)...) { }              \
 
+#ifdef MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
+
+	template<typename _Ty> using TScopePointerBase = mse::TRelaxedRegisteredPointer<_Ty>;
+	template<typename _Ty> using TScopeConstPointerBase = mse::TRelaxedRegisteredConstPointer<_Ty>;
+	template<typename _TROz> using TScopeObjBase = mse::TRelaxedRegisteredObj<_TROz>;
+
+#else // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
+
 	template<typename _Ty> using TScopePointerBase = TSaferPtrForLegacy<_Ty>;
 	template<typename _Ty> using TScopeConstPointerBase = TSaferPtrForLegacy<const _Ty>;
 	//template<typename _TROz> using TScopeObjBase = _TROz;
@@ -60,6 +72,8 @@ namespace mse {
 	public:
 		MSE_SCOPE_USING(TScopeObjBase, _TROz);
 	};
+
+#endif // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
 
 	template<typename _Ty> class TScopeObj;
 	template<typename _Ty> class TScopeNotNullPointer;
