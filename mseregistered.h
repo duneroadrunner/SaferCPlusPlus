@@ -464,7 +464,7 @@ namespace mse {
 		}
 	}
 	template<typename _Ty, int _Tn>
-	template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+	template<class _Ty2, class>
 	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer(const TRegisteredPointer<_Ty2, _Tn>& src_cref) : TSaferPtr<TRegisteredObj<_Ty, _Tn>>(src_cref.m_ptr) {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
@@ -524,7 +524,7 @@ namespace mse {
 		}
 	}
 	template<typename _Ty, int _Tn>
-	template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+	template<class _Ty2, class>
 	TRegisteredConstPointer<_Ty, _Tn>::TRegisteredConstPointer(const TRegisteredConstPointer<_Ty2, _Tn>& src_cref) : TSaferPtr<TRegisteredObj<_Ty, _Tn>>(src_cref.m_ptr) {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
@@ -537,7 +537,7 @@ namespace mse {
 		}
 	}
 	template<typename _Ty, int _Tn>
-	template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+	template<class _Ty2, class>
 	TRegisteredConstPointer<_Ty, _Tn>::TRegisteredConstPointer(const TRegisteredPointer<_Ty2, _Tn>& src_cref) : TSaferPtr<const TRegisteredObj<_Ty, _Tn>>(src_cref.m_ptr) {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
