@@ -429,6 +429,14 @@ namespace mse {
 		//const TRefCountingFixedConstPointer<_Ty>* operator&() const { return this; }
 	};
 
+	/* shorter aliases */
+	template<typename _Ty> using refcp = TRefCountingPointer<_Ty>;
+	template<typename _Ty> using refccp = TRefCountingConstPointer<_Ty>;
+	template<typename _Ty> using refcnnp = TRefCountingNotNullPointer<_Ty>;
+	template<typename _Ty> using refcnncp = TRefCountingNotNullConstPointer<_Ty>;
+	template<typename _Ty> using refcfp = TRefCountingFixedPointer<_Ty>;
+	template<typename _Ty> using refcfcp = TRefCountingFixedConstPointer<_Ty>;
+
 
 	class TRefCountingPointer_test {
 	public:
