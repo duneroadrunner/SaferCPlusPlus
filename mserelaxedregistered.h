@@ -207,7 +207,8 @@ namespace mse {
 		TRelaxedRegisteredPointer(const TRelaxedRegisteredPointer<_Ty2>& src_cref) : TSaferPtrForLegacy<_Ty>(src_cref.m_ptr) {
 			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
-			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
+			//m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
+			m_might_not_point_to_a_TRelaxedRegisteredObj = true;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
 		virtual ~TRelaxedRegisteredPointer() {
@@ -325,7 +326,8 @@ namespace mse {
 		TRelaxedRegisteredConstPointer(const TRelaxedRegisteredConstPointer<_Ty2>& src_cref) : TSaferPtrForLegacy<const _Ty>(src_cref.m_ptr) {
 			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
-			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
+			//m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
+			m_might_not_point_to_a_TRelaxedRegisteredObj = true;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
 		TRelaxedRegisteredConstPointer(const TRelaxedRegisteredPointer<_Ty>& src_cref) : TSaferPtrForLegacy<const _Ty>(src_cref.m_ptr) {
