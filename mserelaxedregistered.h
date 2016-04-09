@@ -25,6 +25,7 @@ former purpose could be satisfied with a faster, safer, "header file only" set o
 #include <unordered_map>
 #include <mutex>
 #include <cassert>
+#include <typeinfo>      // std::bad_cast
 
 
 #ifdef _MSC_VER
@@ -171,6 +172,7 @@ namespace mse {
 	extern CSPTrackerMap gSPTrackerMap;
 
 	template<typename _Ty> class TRelaxedRegisteredObj;
+	template<typename _Ty> class TRelaxedRegisteredConstPointer;
 	template<typename _Ty> class TRelaxedRegisteredNotNullPointer;
 	template<typename _Ty> class TRelaxedRegisteredNotNullConstPointer;
 	template<typename _Ty> class TRelaxedRegisteredFixedPointer;
@@ -245,16 +247,6 @@ namespace mse {
 			}
 			return (*this).m_ptr;
 		}
-		/* This function, if possible, should not be used. It is meant to be used exclusively by relaxed_registered_delete<>(). */
-		TRelaxedRegisteredObj<_Ty>* asANativePointerToTRelaxedRegisteredObj() const {
-			if (nullptr == (*this).m_ptr) {
-				int q = 5; /* just a line of code for putting a debugger break point */
-			}
-			/* It should be ok to hard cast to (TRelaxedRegisteredObj<_Ty>*) even if (*this).m_ptr points to a _Ty and not a
-			TRelaxedRegisteredObj<_Ty>, because TRelaxedRegisteredObj<_Ty> doesn't have any extra data members that _Ty
-			doesn't. */
-			return (TRelaxedRegisteredObj<_Ty>*)((*this).m_ptr);
-		}
 		/*Ideally these "address of" operators shouldn't be used. If you want a pointer to a TRelaxedRegisteredPointer<_Ty>,
 		declare the TRelaxedRegisteredPointer<_Ty> as a TRelaxedRegisteredObj<TRelaxedRegisteredPointer<_Ty>> instead. So
 		for example:
@@ -274,8 +266,37 @@ namespace mse {
 			return this;
 		}
 
+		void relaxed_registered_delete() const {
+			if (m_might_not_point_to_a_TRelaxedRegisteredObj) {
+				/* It would be a very strange case to arrive here. For (aggressive) compatibility reasons we allow
+				TRelaxedRegisteredPointer<_Ty> to point to a _Ty instead of a TRelaxedRegisteredObj<_Ty>. But in those
+				situations it doesn't make sense that someone would be calling this delete function. */
+				//_Ty* a = this;
+				_Ty* a = m_ptr;
+				(*m_sp_tracker_ptr).onObjectDestruction(a);
+				delete a;
+			}
+			else {
+				auto a = asANativePointerToTRelaxedRegisteredObj();
+				delete a;
+			}
+		}
+
+	private:
+		/* This function, if possible, should not be used. It is meant to be used exclusively by relaxed_registered_delete<>(). */
+		TRelaxedRegisteredObj<_Ty>* asANativePointerToTRelaxedRegisteredObj() const {
+			if (nullptr == (*this).m_ptr) {
+				int q = 5; /* just a line of code for putting a debugger break point */
+			}
+			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { throw(std::bad_cast(/*"cannot verify cast validity - mse::TRelaxedRegisteredPointer"*/)); }
+			return (TRelaxedRegisteredObj<_Ty>*)((*this).m_ptr);
+		}
+
 		CSPTracker* m_sp_tracker_ptr = nullptr;
 		bool m_might_not_point_to_a_TRelaxedRegisteredObj = false;
+
+		template <class Y> friend class TRelaxedRegisteredPointer;
+		template <class Y> friend class TRelaxedRegisteredConstPointer;
 	};
 
 	template<typename _Ty>
@@ -364,16 +385,6 @@ namespace mse {
 			}
 			return (*this).m_ptr;
 		}
-		/* This function, if possible, should not be used. It is meant to be used exclusively by relaxed_registered_delete<>(). */
-		const TRelaxedRegisteredObj<_Ty>* asANativePointerToTRelaxedRegisteredObj() const {
-			if (nullptr == (*this).m_ptr) {
-				int q = 5; /* just a line of code for putting a debugger break point */
-			}
-			/* It should be ok to hard cast to (TRelaxedRegisteredObj<_Ty>*) even if (*this).m_ptr points to a _Ty and not a
-			TRelaxedRegisteredObj<_Ty>, because TRelaxedRegisteredObj<_Ty> doesn't have any extra data members that _Ty
-			doesn't. */
-			return (const TRelaxedRegisteredObj<_Ty>*)((*this).m_ptr);
-		}
 		/*Ideally these "address of" operators shouldn't be used. If you want a pointer to a TRelaxedRegisteredConstPointer<_Ty>,
 		declare the TRelaxedRegisteredConstPointer<_Ty> as a TRelaxedRegisteredObj<TRelaxedRegisteredConstPointer<_Ty>> instead. So
 		for example:
@@ -393,9 +404,36 @@ namespace mse {
 			return this;
 		}
 
+		void relaxed_registered_delete() const {
+			if (m_might_not_point_to_a_TRelaxedRegisteredObj) {
+				/* It would be a very strange case to arrive here. For (aggressive) compatibility reasons we allow
+				TRelaxedRegisteredPointer<_Ty> to point to a _Ty instead of a TRelaxedRegisteredObj<_Ty>. But in those
+				situations it doesn't make sense that someone would be calling this delete function. */
+				//const _Ty* a = this;
+				const _Ty* a = m_ptr;
+				(*m_sp_tracker_ptr).onObjectDestruction(a);
+				delete a;
+			}
+			else {
+				auto a = asANativePointerToTRelaxedRegisteredObj();
+				delete a;
+			}
+		}
+
+	private:
+		/* This function, if possible, should not be used. It is meant to be used exclusively by relaxed_registered_delete<>(). */
+		const TRelaxedRegisteredObj<_Ty>* asANativePointerToTRelaxedRegisteredObj() const {
+			if (nullptr == (*this).m_ptr) {
+				int q = 5; /* just a line of code for putting a debugger break point */
+			}
+			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { throw(std::bad_cast(/*"cannot verify cast validity - mse::TRelaxedRegisteredConstPointer"*/)); }
+			return (const TRelaxedRegisteredObj<_Ty>*)((*this).m_ptr);
+		}
+
 		CSPTracker* m_sp_tracker_ptr = nullptr;
 		bool m_might_not_point_to_a_TRelaxedRegisteredObj = false;
 
+		template <class Y> friend class TRelaxedRegisteredConstPointer;
 		friend class TRelaxedRegisteredNotNullConstPointer<_Ty>;
 	};
 
@@ -565,39 +603,11 @@ namespace mse {
 	}
 	template <class _Ty>
 	void relaxed_registered_delete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) {
-		//auto a = dynamic_cast<TRelaxedRegisteredObj<_Ty> *>((_Ty*)regPtrRef);
-		//auto a = (TRelaxedRegisteredObj<_Ty>*)regPtrRef;
-		if (regPtrRef.m_might_not_point_to_a_TRelaxedRegisteredObj) {
-			/* It would be a very strange case to arrive here. For (aggressive) compatibility reasons we allow
-			TRelaxedRegisteredPointer<_Ty> to point to a _Ty instead of a TRelaxedRegisteredObj<_Ty>. But in those
-			situations it doesn't make sense that someone would be calling this delete function. */
-			//_Ty* a = &regPtrRef;
-			_Ty* a = regPtrRef.m_ptr;
-			gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(a);
-			delete a;
-		}
-		else {
-			auto a = regPtrRef.asANativePointerToTRelaxedRegisteredObj();
-			delete a;
-		}
+		regPtrRef.relaxed_registered_delete();
 	}
 	template <class _Ty>
 	void relaxed_registered_delete(const TRelaxedRegisteredConstPointer<_Ty>& regPtrRef) {
-		//auto a = dynamic_cast<TRelaxedRegisteredObj<_Ty> *>((_Ty*)regPtrRef);
-		//auto a = (TRelaxedRegisteredObj<_Ty>*)regPtrRef;
-		if (regPtrRef.m_might_not_point_to_a_TRelaxedRegisteredObj) {
-			/* It would be a very strange case to arrive here. For (aggressive) compatibility reasons we allow
-			TRelaxedRegisteredPointer<_Ty> to point to a _Ty instead of a TRelaxedRegisteredObj<_Ty>. But in those
-			situations it doesn't make sense that someone would be calling this delete function. */
-			//const _Ty* a = &regPtrRef;
-			const _Ty* a = regPtrRef.m_ptr;
-			gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(a);
-			delete a;
-		}
-		else {
-			auto a = regPtrRef.asANativePointerToTRelaxedRegisteredObj();
-			delete a;
-		}
+		regPtrRef.relaxed_registered_delete();
 	}
 #endif /*MSE_REGISTEREDPOINTER_DISABLED*/
 
