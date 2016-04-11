@@ -272,7 +272,9 @@ namespace mse {
 		//TScopeObj(const TScopeObj& _X) : TScopeObjBase<_TROy>(_X) {}
 		//TScopeObj(TScopeObj&& _X) : TScopeObjBase<_TROy>(std::move(_X)) {}
 		virtual ~TScopeObj() {}
-		TScopeObj& operator=(const TScopeObj& _X) { TScopeObjBase<_TROy>::operator=(_X); return (*this); }
+		using _TROy::operator=;
+		//TScopeObj& operator=(const TScopeObj&& _X) = delete;
+		//TScopeObj& operator=(const TScopeObj& _X) { TScopeObjBase<_TROy>::operator=(_X); return (*this); }
 		TScopeFixedPointer<_TROy> operator&() {
 			return this;
 		}

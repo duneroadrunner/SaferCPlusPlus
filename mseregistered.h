@@ -436,8 +436,7 @@ namespace mse {
 		virtual ~TRegisteredObj() {
 			mseRPManager().onObjectDestruction();
 		}
-		TRegisteredObj& operator=(TRegisteredObj&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
-		TRegisteredObj& operator=(const TRegisteredObj& _X) { _TROy::operator=(_X); return (*this); }
+		using _TROy::operator=;
 		TRegisteredFixedPointer<_TROy, _Tn> operator&() {
 			return this;
 		}

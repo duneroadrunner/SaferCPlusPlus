@@ -582,8 +582,7 @@ namespace mse {
 		virtual ~TRelaxedRegisteredObj() {
 			//gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(this);
 		}
-		TRelaxedRegisteredObj& operator=(TRelaxedRegisteredObj&& _X) { _TROFLy::operator=(std::move(_X)); return (*this); }
-		TRelaxedRegisteredObj& operator=(const TRelaxedRegisteredObj& _X) { _TROFLy::operator=(_X); return (*this); }
+		using _TROFLy::operator=;
 		TRelaxedRegisteredFixedPointer<_TROFLy> operator&() {
 			return TRelaxedRegisteredFixedPointer<_TROFLy>(this);
 			//return this;
