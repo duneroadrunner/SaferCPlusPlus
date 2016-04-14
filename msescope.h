@@ -48,14 +48,9 @@ namespace mse {
 
 	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
 	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
-#define MSE_SCOPE_USING(Derived, Base)                                 \
-    template<typename ...Args,                               \
-             typename = typename std::enable_if              \
-             <                                               \
-                std::is_constructible<Base, Args...>::value  \
-			 			 			 			              >::type>                                        \
-    Derived(Args &&...args)                                  \
-        : Base(std::forward<Args>(args)...) { }              \
+#define MSE_SCOPE_USING(Derived, Base) \
+    template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
+    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
 #ifdef MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
 
@@ -269,23 +264,20 @@ namespace mse {
 	class TScopeObj : public TScopeObjBase<_TROy> {
 	public:
 		MSE_SCOPE_USING(TScopeObj, TScopeObjBase<_TROy>);
-		//TScopeObj(const TScopeObj& _X) : TScopeObjBase<_TROy>(_X) {}
-		//TScopeObj(TScopeObj&& _X) : TScopeObjBase<_TROy>(std::move(_X)) {}
+		TScopeObj(const TScopeObj& _X) : TScopeObjBase<_TROy>(_X) {}
 		virtual ~TScopeObj() {}
 		using _TROy::operator=;
-		//TScopeObj& operator=(const TScopeObj&& _X) = delete;
-		//TScopeObj& operator=(const TScopeObj& _X) { TScopeObjBase<_TROy>::operator=(_X); return (*this); }
+		TScopeObj& operator=(const TScopeObj& _X) { TScopeObjBase<_TROy>::operator=(_X); return (*this); }
 		TScopeFixedPointer<_TROy> operator&() {
 			return this;
 		}
 		TScopeFixedConstPointer<_TROy> operator&() const {
 			return this;
 		}
-		//TScpPTracker<>& mseRPManager() const { return m_mseRPManager; }
 
 	private:
+		TScopeObj(TScopeObj&& _X) = delete;
 		TScopeObj& operator=(TScopeObj&& _X) = delete;
-		//mutable TScpPTracker<> m_mseRPManager;
 	};
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
@@ -379,6 +371,8 @@ namespace mse {
 
 			A a2 = a;
 			mse::TScopeObj<A> scope_a2 = scope_a;
+			scope_a2 = a;
+			scope_a2 = scope_a;
 
 			mse::TScopeFixedConstPointer<A> rcp = A_scope_ptr1;
 			mse::TScopeFixedConstPointer<A> rcp2 = rcp;
