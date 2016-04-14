@@ -431,12 +431,14 @@ namespace mse {
 	class TRegisteredObj : public _TROy {
 	public:
 		MSE_USING(TRegisteredObj, _TROy);
-		//TRegisteredObj(const TRegisteredObj& _X) : _TROy(_X) {}
-		//TRegisteredObj(TRegisteredObj&& _X) : _TROy(std::move(_X)) {}
+		TRegisteredObj(const TRegisteredObj& _X) : _TROy(_X) {}
+		TRegisteredObj(TRegisteredObj&& _X) : _TROy(std::move(_X)) {}
 		virtual ~TRegisteredObj() {
 			mseRPManager().onObjectDestruction();
 		}
 		using _TROy::operator=;
+		TRegisteredObj& operator=(TRegisteredObj&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
+		TRegisteredObj& operator=(const TRegisteredObj& _X) { _TROy::operator=(_X); return (*this); }
 		TRegisteredFixedPointer<_TROy, _Tn> operator&() {
 			return this;
 		}

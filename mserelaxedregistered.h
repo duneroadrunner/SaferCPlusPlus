@@ -273,7 +273,7 @@ namespace mse {
 				TRelaxedRegisteredPointer<_Ty> to point to a _Ty instead of a TRelaxedRegisteredObj<_Ty>. But in those
 				situations it doesn't make sense that someone would be calling this delete function. */
 				//_Ty* a = this;
-				_Ty* a = m_ptr;
+				_Ty* a = (*this).m_ptr;
 				(*m_sp_tracker_ptr).onObjectDestruction(a);
 				delete a;
 			}
@@ -412,7 +412,7 @@ namespace mse {
 				TRelaxedRegisteredPointer<_Ty> to point to a _Ty instead of a TRelaxedRegisteredObj<_Ty>. But in those
 				situations it doesn't make sense that someone would be calling this delete function. */
 				//const _Ty* a = this;
-				const _Ty* a = m_ptr;
+				const _Ty* a = (*this).m_ptr;
 				(*m_sp_tracker_ptr).onObjectDestruction(a);
 				delete a;
 			}
@@ -575,14 +575,15 @@ namespace mse {
 	template<typename _TROFLy>
 	class TRelaxedRegisteredObj : public _TROFLy {
 	public:
-		//using _TROFLy::_TROFLy;
-		// the version of the compiler (msvc 2013) being used does not yet support inherited constructors, so we use this macro hack
-		// for now
 		MSE_USING(TRelaxedRegisteredObj, _TROFLy);
+		TRelaxedRegisteredObj(const TRelaxedRegisteredObj& _X) : _TROFLy(_X) {}
+		TRelaxedRegisteredObj(TRelaxedRegisteredObj&& _X) : _TROFLy(std::move(_X)) {}
 		virtual ~TRelaxedRegisteredObj() {
 			//gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(this);
 		}
 		using _TROFLy::operator=;
+		TRelaxedRegisteredObj& operator=(TRelaxedRegisteredObj&& _X) { _TROFLy::operator=(std::move(_X)); return (*this); }
+		TRelaxedRegisteredObj& operator=(const TRelaxedRegisteredObj& _X) { _TROFLy::operator=(_X); return (*this); }
 		TRelaxedRegisteredFixedPointer<_TROFLy> operator&() {
 			return TRelaxedRegisteredFixedPointer<_TROFLy>(this);
 			//return this;
