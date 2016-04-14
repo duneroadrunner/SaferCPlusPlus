@@ -36,14 +36,9 @@ namespace mse {
 
 	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
 	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
-#define MSE_USING(Derived, Base)                                 \
-    template<typename ...Args,                               \
-             typename = typename std::enable_if              \
-             <                                               \
-                std::is_constructible<Base, Args...>::value  \
-			 			 			 			              >::type>                                        \
-    Derived(Args &&...args)                                  \
-        : Base(std::forward<Args>(args)...) { }              \
+#define MSE_USING(Derived, Base) \
+    template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
+    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
 
 	/* When the mse primitive replacements are "disabled" they lose their default initialization and may cause problems for
