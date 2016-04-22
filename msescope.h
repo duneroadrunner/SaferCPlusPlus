@@ -76,6 +76,7 @@ namespace mse {
 	template<typename _Ty> class TScopeNotNullConstPointer;
 	template<typename _Ty> class TScopeFixedPointer;
 	template<typename _Ty> class TScopeFixedConstPointer;
+	template<typename _Ty> class TScopeOwnerPointer;
 
 	/* Use TScopeFixedPointer instead. */
 	template<typename _Ty>
@@ -221,6 +222,7 @@ namespace mse {
 	private:
 		TScopeFixedPointer(TScopeObj<_Ty>* ptr) : TScopeNotNullPointer<_Ty>(ptr) {}
 		TScopeFixedPointer<_Ty>& operator=(const TScopeFixedPointer<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
 
 		TScopeFixedPointer<_Ty>* operator&() { return this; }
 		const TScopeFixedPointer<_Ty>* operator&() const { return this; }
@@ -246,6 +248,8 @@ namespace mse {
 	private:
 		TScopeFixedConstPointer(const TScopeObj<_Ty>* ptr) : TScopeNotNullConstPointer<_Ty>(ptr) {}
 		TScopeFixedConstPointer<_Ty>& operator=(const TScopeFixedConstPointer<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
 
 		TScopeFixedConstPointer<_Ty>* operator&() { return this; }
 		const TScopeFixedConstPointer<_Ty>* operator&() const { return this; }
@@ -278,6 +282,9 @@ namespace mse {
 	private:
 		TScopeObj(TScopeObj&& _X) = delete;
 		TScopeObj& operator=(TScopeObj&& _X) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		friend class TScopeOwnerPointer<_TROy>;
 	};
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
@@ -311,6 +318,7 @@ namespace mse {
 	private:
 		TScopeOwnerPointer(TScopeOwnerPointer<_Ty>& src_cref) = delete;
 		TScopeOwnerPointer<_Ty>& operator=(const TScopeOwnerPointer<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
 
 		TScopeObj<_Ty>* m_ptr = nullptr;
 	};
