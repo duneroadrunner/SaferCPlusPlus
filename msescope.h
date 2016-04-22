@@ -259,7 +259,7 @@ namespace mse {
 
 	/* TScopeObj is intended as a transparent wrapper for other classes/objects with "scope lifespans". That is, objects
 	that are either allocated on the stack, or whose "owning" pointer is allocated on the stack. Unfortunately it's not
-	really possible to prevent misuse. For example, auto x = new TScopeObj<mse::CInt> is an improper, and dangerous, use
+	really possible to prevent misuse. For example, std::list<TScopeObj<mse::CInt>> is an improper, and dangerous, use
 	of TScopeObj<>. So we provide the option of using an mse::TRelaxedRegisteredObj as TScopeObj's base class for
 	enhanced safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause
 	mse::TRelaxedRegisteredObj to be used in debug mode. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
@@ -293,8 +293,7 @@ namespace mse {
 	TScopeOwnerPointer just forwards it's constructor arguments to the constructor of the TScopeObj<_Ty>.
 	TScopeOwnerPointers are meant to be allocated on the stack only. Unfortunately there's really no way to
 	enforce this, which makes this data type less intrinsically safe than say, "reference counting" pointers.
-	Because of this, in debug mode, we employ the same comprehensive safety mechanisms that "registered
-	pointers" use. */
+	*/
 	template<typename _Ty>
 	class TScopeOwnerPointer {
 	public:

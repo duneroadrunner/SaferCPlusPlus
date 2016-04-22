@@ -978,8 +978,8 @@ int main(int argc, char* argv[])
 		/* The "scope" templates basically just allow the programmer to indicate that the target object has "scope
 		lifetime". That is, the object is either allocated on the stack, or it's "owner" pointer is allocated on
 		the stack. Unfortunately there's really no way to enforce this, which makes this data type less intrinsically
-		safe than say, "reference counting" pointers. Because of this, in debug mode, "scope" pointers employ the
-		same comprehensive safety mechanisms that "registered pointers" use. */
+		safe than say, "reference counting" pointers. Because of this, "scope" pointers can optionally use relaxed
+		registered pointers as their base class, thereby inheriting their safety features. */
 
 		class A {
 		public:
