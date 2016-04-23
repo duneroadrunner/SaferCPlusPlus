@@ -596,7 +596,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="tscopeownerpointer" class="anchor" href="#tscopeownerpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TScopeOwnerPointer</h3>
 
-<p>TScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, TScopeOwnerPointer is not intended to be used as a member of any class or struct. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.<br>
+<p>TScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, TScopeOwnerPointer is not intended to be used as a member of any class or struct. Use it when, for example, you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.<br>
 usage example:</p>
 
 <pre><code>#include "msescope.h"
