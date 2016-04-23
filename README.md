@@ -440,7 +440,7 @@ usage example:
     }
 
 ### TScopeOwnerPointer
-TScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, TScopeOwnerPointer is not intended to be used as a member of any class or struct. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
+TScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, TScopeOwnerPointer is not intended to be used as a member of any class or struct. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
 usage example:
 
     #include "msescope.h"
