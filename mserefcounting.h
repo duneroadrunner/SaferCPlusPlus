@@ -450,8 +450,8 @@ namespace mse {
 				state_ptr->constructions[_id]++;
 			}
 			~Trackable() { m_state_ptr->destructions[_id]++; }
-			const std::string _id;
 			TRefCountingPointer_test* m_state_ptr;
+			const std::string _id;
 		};
 
 		typedef TRefCountingPointer<Trackable> target_t;

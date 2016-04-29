@@ -298,7 +298,7 @@ namespace mse {
 				/*m_debug_size = size();*/
 
 				assert((original_size + 1) == msev_size_t((*this).size()));
-				assert(d == std::distance(base_class::begin(), retval));
+				assert(di == std::distance(base_class::begin(), retval));
 				m_mmitset.shift_inclusive_range(d, original_size, 1);
 				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
@@ -342,7 +342,7 @@ namespace mse {
 
 				assert((original_size + _M) == msev_size_t((*this).size()));
 #ifndef MSVC2010_COMPATIBILE
-				assert(d == std::distance(base_class::begin(), retval));
+				assert(di == std::distance(base_class::begin(), retval));
 #endif /*MSVC2010_COMPATIBILE*/
 				m_mmitset.shift_inclusive_range(d, original_size, msev_int(_M));
 				auto new_capacity = msev_size_t((*this).capacity());
@@ -391,7 +391,7 @@ namespace mse {
 
 				assert((original_size + _M) == msev_size_t((*this).size()));
 #ifndef MSVC2010_COMPATIBILE
-				assert(d == std::distance(base_class::begin(), retval));
+				assert(di == std::distance(base_class::begin(), retval));
 #endif /*MSVC2010_COMPATIBILE*/
 				m_mmitset.shift_inclusive_range(d, original_size, _M);
 				auto new_capacity = msev_size_t((*this).capacity());
@@ -423,7 +423,7 @@ namespace mse {
 				/*m_debug_size = size();*/
 
 				assert((original_size + _M) == msev_size_t((*this).size()));
-				/*assert(d == std::distance(base_class::begin(), retval));*/
+				/*assert(di == std::distance(base_class::begin(), retval));*/
 				m_mmitset.shift_inclusive_range(d, original_size, _M);
 				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
@@ -450,7 +450,7 @@ namespace mse {
 				/*m_debug_size = size();*/
 
 				assert((original_size + _M) == msev_size_t((*this).size()));
-				/*assert(d == std::distance(base_class::begin(), retval));*/
+				/*assert(di == std::distance(base_class::begin(), retval));*/
 				m_mmitset.shift_inclusive_range(d, original_size, _M);
 				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
@@ -548,7 +548,7 @@ namespace mse {
 				/*m_debug_size = size();*/
 
 				assert((original_size + 1) == msev_size_t((*this).size()));
-				assert(d == std::distance(base_class::begin(), retval));
+				assert(di == std::distance(base_class::begin(), retval));
 				m_mmitset.shift_inclusive_range(d, original_size, 1);
 				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
@@ -577,7 +577,7 @@ namespace mse {
 				/*m_debug_size = size();*/
 
 				assert((original_size - 1) == msev_size_t((*this).size()));
-				assert(d == std::distance(base_class::begin(), retval));
+				assert(di == std::distance(base_class::begin(), retval));
 				{
 					m_mmitset.invalidate_inclusive_range(d, d);
 					m_mmitset.shift_inclusive_range(msev_size_t(d + 1), original_size, -1);
@@ -613,7 +613,7 @@ namespace mse {
 				/*m_debug_size = size();*/
 
 				assert((original_size - _M) == msev_size_t((*this).size()));
-				assert(d == std::distance(base_class::begin(), retval));
+				assert(di == std::distance(base_class::begin(), retval));
 				{
 					if (1 <= _M) {
 						m_mmitset.invalidate_inclusive_range(d, msev_size_t(d + _M - 1));
@@ -674,7 +674,7 @@ namespace mse {
 			/*m_debug_size = size();*/
 
 			assert((original_size + _M) == msev_size_t((*this).size()));
-			/*assert(d == std::distance(base_class::begin(), retval));*/
+			/*assert(di == std::distance(base_class::begin(), retval));*/
 			m_mmitset.shift_inclusive_range(d, original_size, _M);
 			auto new_capacity = msev_size_t((*this).capacity());
 			bool realloc_occured = (new_capacity != original_capacity);
@@ -703,7 +703,7 @@ namespace mse {
 				/*m_debug_size = size();*/
 
 				assert((original_size + _M) == msev_size_t((*this).size()));
-				assert(d == std::distance(base_class::begin(), retval));
+				assert(di == std::distance(base_class::begin(), retval));
 				m_mmitset.shift_inclusive_range(d, original_size, msev_int(_M));
 				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
