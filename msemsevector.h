@@ -178,25 +178,25 @@ namespace mse {
 			}
 		}
 		typename base_class::const_reference operator[](size_t _P) const {
-			return at(_P);
+			return (*this).at(_P);
 		}
 		typename base_class::reference operator[](size_t _P) {
-			return at(_P);
+			return (*this).at(_P);
 		}
 		typename base_class::reference front() {	// return first element of mutable sequence
-			if (0 == size()) { throw(std::out_of_range("front() on empty - typename base_class::reference front() - msevector")); }
+			if (0 == (*this).size()) { throw(std::out_of_range("front() on empty - typename base_class::reference front() - msevector")); }
 			return base_class::front();
 		}
 		typename base_class::const_reference front() const {	// return first element of nonmutable sequence
-			if (0 == size()) { throw(std::out_of_range("front() on empty - typename base_class::const_reference front() - msevector")); }
+			if (0 == (*this).size()) { throw(std::out_of_range("front() on empty - typename base_class::const_reference front() - msevector")); }
 			return base_class::front();
 		}
 		typename base_class::reference back() {	// return last element of mutable sequence
-			if (0 == size()) { throw(std::out_of_range("back() on empty - typename base_class::reference back() - msevector")); }
+			if (0 == (*this).size()) { throw(std::out_of_range("back() on empty - typename base_class::reference back() - msevector")); }
 			return base_class::back();
 		}
 		typename base_class::const_reference back() const {	// return last element of nonmutable sequence
-			if (0 == size()) { throw(std::out_of_range("back() on empty - typename base_class::const_reference back() - msevector")); }
+			if (0 == (*this).size()) { throw(std::out_of_range("back() on empty - typename base_class::const_reference back() - msevector")); }
 			return base_class::back();
 		}
 		void push_back(_Ty&& _X) {
@@ -572,7 +572,7 @@ namespace mse {
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
 
-				if (end() == _P) { throw(std::out_of_range("invalid argument - typename base_class::iterator erase(typename base_class::iterator _P) - msevector")); }
+				if (base_class::end() == _P) { throw(std::out_of_range("invalid argument - typename base_class::iterator erase(typename base_class::iterator _P) - msevector")); }
 				typename base_class::iterator retval = base_class::erase(_P);
 				/*m_debug_size = size();*/
 
@@ -608,7 +608,7 @@ namespace mse {
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
 
-				if ((end() == _F)/* || (0 > _M)*/) { throw(std::out_of_range("invalid argument - typename base_class::iterator erase(typename base_class::iterator _F, typename base_class::iterator _L) - msevector")); }
+				if ((base_class::end() == _F)/* || (0 > _M)*/) { throw(std::out_of_range("invalid argument - typename base_class::iterator erase(typename base_class::iterator _F, typename base_class::iterator _L) - msevector")); }
 				typename base_class::iterator retval = base_class::erase(_F, _L);
 				/*m_debug_size = size();*/
 
