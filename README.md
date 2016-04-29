@@ -32,7 +32,7 @@ For more information on how the safe smart pointers in this library are intended
 ### Setup and dependencies
 
 The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Three header files - "mseprimitives.h", "mseregistered.h" and "msemstdvector.h" - will cover most use cases. Outside of the stl, there are no other dependencies.  
-A couple of notes about compling: g++(4.8) requires the -fpermissive flag. With msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
+A couple of notes about compling: You may want to use the -Wno-unused flag with g++. With msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
 
 ### Registered pointers
 
