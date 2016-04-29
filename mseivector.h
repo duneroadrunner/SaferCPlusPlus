@@ -15,10 +15,10 @@ namespace mse {
 	template<class _Ty, class _A = std::allocator<_Ty> >
 	class ivector {
 	public:
-		typedef ivector<_Ty, _A> _Myt;
-		typedef msevector<_Ty, _A> _MV;
+		typedef mse::ivector<_Ty, _A> _Myt;
+		typedef mse::msevector<_Ty, _A> _MV;
 
-		msevector<_Ty, _A>& msevector() const { return (*m_shptr); }
+		_MV& msevector() const { return (*m_shptr); }
 		operator _MV() { return msevector(); }
 
 		explicit ivector(const _A& _Al = _A()) : m_shptr(new _MV(_Al)) {}
