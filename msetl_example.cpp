@@ -355,6 +355,7 @@ int main(int argc, char* argv[])
 			H::foo4(&*A_registered_ptr1);
 
 			if (A_registered_ptr2) {
+				assert(false);
 			}
 			else if (A_registered_ptr2 != A_registered_ptr1) {
 				A_registered_ptr2 = A_registered_ptr1;

@@ -36,7 +36,7 @@
 namespace mse {
 
 	typedef size_t msev_size_t;
-	typedef int msev_int;
+	typedef long long int msev_int;
 	typedef bool msev_bool;
 	template<typename _Ty> using msev_pointer = _Ty*;
 	typedef size_t msev_as_a_size_t;
@@ -329,7 +329,7 @@ namespace mse {
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _P);
 				msev_size_t d(di);
-				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
@@ -344,7 +344,7 @@ namespace mse {
 #ifndef MSVC2010_COMPATIBILE
 				assert(d == std::distance(base_class::begin(), retval));
 #endif /*MSVC2010_COMPATIBILE*/
-				m_mmitset.shift_inclusive_range(d, original_size, _M);
+				m_mmitset.shift_inclusive_range(d, original_size, msev_int(_M));
 				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
@@ -376,7 +376,7 @@ namespace mse {
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _Where);
 				msev_size_t d(di);
-				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto _M = msev_int(std::distance(_First, _Last));
 				auto original_size = msev_size_t((*this).size());
@@ -535,7 +535,7 @@ namespace mse {
 #endif /*!(defined(GPP4P8_COMPATIBILE))*/
 
 				msev_size_t d(di);
-				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator emplace() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator emplace() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
@@ -567,7 +567,7 @@ namespace mse {
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _P);
 				msev_size_t d(di);
-				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
@@ -599,10 +599,10 @@ namespace mse {
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _F);
 				msev_size_t d(di);
-				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
 				msev_int di2 = std::distance(base_class::cbegin(), _L);
 				msev_size_t d2(di2);
-				if ((0 > di2) || (msev_size_t((*this).size()) < di2)) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
+				if ((0 > di2) || ((*this).size() < msev_size_t(di2))) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
 
 				auto _M = msev_int(std::distance(_F, _L));
 				auto original_size = msev_size_t((*this).size());
@@ -693,7 +693,7 @@ namespace mse {
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _Where);
 				msev_size_t d(di);
-				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto _M = _Ilist.size();
 				auto original_size = msev_size_t((*this).size());
@@ -704,7 +704,7 @@ namespace mse {
 
 				assert((original_size + _M) == msev_size_t((*this).size()));
 				assert(d == std::distance(base_class::begin(), retval));
-				m_mmitset.shift_inclusive_range(d, original_size, _M);
+				m_mmitset.shift_inclusive_range(d, original_size, msev_int(_M));
 				auto new_capacity = msev_size_t((*this).capacity());
 				bool realloc_occured = (new_capacity != original_capacity);
 				if (realloc_occured) {
@@ -795,7 +795,7 @@ namespace mse {
 			mm_const_iterator_type operator--(int) { mm_const_iterator_type _Tmp = *this; --*this; return (_Tmp); }
 			void advance(difference_type n) {
 				auto new_index = msev_int(m_index) + n;
-				if ((0 > new_index) || (m_owner_cptr->size() < new_index)) {
+				if ((0 > new_index) || (m_owner_cptr->size() < msev_size_t(new_index))) {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - mm_const_iterator_type - msevector"));
 				}
 				else {
@@ -1009,7 +1009,7 @@ namespace mse {
 			mm_iterator_type operator--(int) { mm_iterator_type _Tmp = *this; --*this; return (_Tmp); }
 			void advance(difference_type n) {
 				auto new_index = msev_int(m_index) + n;
-				if ((0 > new_index) || (m_owner_ptr->size() < new_index)) {
+				if ((0 > new_index) || (m_owner_ptr->size() < msev_size_t(new_index))) {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - mm_iterator_type - msevector"));
 				}
 				else {
@@ -1024,8 +1024,8 @@ namespace mse {
 				}
 			}
 			void regress(int n) { advance(-n); }
-			mm_iterator_type& operator +=(int n) { (*this).advance(n); return (*this); }
-			mm_iterator_type& operator -=(int n) { (*this).regress(n); return (*this); }
+			mm_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
+			mm_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
 			mm_iterator_type operator+(difference_type n) const {
 				mm_iterator_type retval(*this);
 				retval = (*this);
@@ -1524,10 +1524,10 @@ namespace mse {
 			cipointer operator--(int) { cipointer _Tmp = *this; --*this; return (_Tmp); }
 			void advance(difference_type n) { const_item_pointer().advance(n); }
 			void regress(difference_type n) { const_item_pointer().regress(n); }
-			cipointer& operator +=(int n) { const_item_pointer().operator +=(n); return (*this); }
-			cipointer& operator -=(int n) { const_item_pointer().operator -=(n); return (*this); }
-			cipointer operator+(int n) const { auto retval = (*this); retval += n; return retval; }
-			cipointer operator-(int n) const { return ((*this) + (-n)); }
+			cipointer& operator +=(difference_type n) { const_item_pointer().operator +=(n); return (*this); }
+			cipointer& operator -=(difference_type n) { const_item_pointer().operator -=(n); return (*this); }
+			cipointer operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			cipointer operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const cipointer& _Right_cref) const { return const_item_pointer() - (_Right_cref.const_item_pointer()); }
 			const_reference operator*() const { return const_item_pointer().operator*(); }
 			const_reference item() const { return operator*(); }
@@ -1598,10 +1598,10 @@ namespace mse {
 			ipointer operator--(int) { ipointer _Tmp = *this; --*this; return (_Tmp); }
 			void advance(difference_type n) { item_pointer().advance(n); }
 			void regress(difference_type n) { item_pointer().regress(n); }
-			ipointer& operator +=(int n) { item_pointer().operator +=(n); return (*this); }
-			ipointer& operator -=(int n) { item_pointer().operator -=(n); return (*this); }
-			ipointer operator+(int n) const { auto retval = (*this); retval += n; return retval; }
-			ipointer operator-(int n) const { return ((*this) + (-n)); }
+			ipointer& operator +=(difference_type n) { item_pointer().operator +=(n); return (*this); }
+			ipointer& operator -=(difference_type n) { item_pointer().operator -=(n); return (*this); }
+			ipointer operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			ipointer operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const ipointer& _Right_cref) const { return item_pointer() - (_Right_cref.item_pointer()); }
 			reference operator*() const { return item_pointer().operator*(); }
 			reference item() const { return operator*(); }
@@ -1906,7 +1906,7 @@ namespace mse {
 			ss_const_iterator_type operator--(int) { ss_const_iterator_type _Tmp = *this; --*this; return (_Tmp); }
 			void advance(difference_type n) {
 				auto new_index = msev_int(m_index) + n;
-				if ((0 > new_index) || (m_owner_cptr->size() < new_index)) {
+				if ((0 > new_index) || (m_owner_cptr->size() < msev_size_t(new_index))) {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - ss_const_iterator_type - msevector"));
 				}
 				else {
@@ -2100,7 +2100,7 @@ namespace mse {
 			ss_iterator_type operator--(int) { ss_iterator_type _Tmp = *this; --*this; return (_Tmp); }
 			void advance(difference_type n) {
 				auto new_index = msev_int(m_index) + n;
-				if ((0 > new_index) || (m_owner_ptr->size() < new_index)) {
+				if ((0 > new_index) || (m_owner_ptr->size() < msev_size_t(new_index))) {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - ss_iterator_type - msevector"));
 				}
 				else {

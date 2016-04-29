@@ -164,10 +164,10 @@ namespace mse {
 				const_iterator operator--(int) { const_iterator _Tmp = *this; --*this; return (_Tmp); }
 				void advance(typename _MV::difference_type n) { msevector_ss_const_iterator_type().advance(n); }
 				void regress(typename _MV::difference_type n) { msevector_ss_const_iterator_type().regress(n); }
-				const_iterator& operator +=(int n) { msevector_ss_const_iterator_type().operator +=(n); return (*this); }
-				const_iterator& operator -=(int n) { msevector_ss_const_iterator_type().operator -=(n); return (*this); }
-				const_iterator operator+(int n) const { auto retval = (*this); retval += n; return retval; }
-				const_iterator operator-(int n) const { return ((*this) + (-n)); }
+				const_iterator& operator +=(difference_type n) { msevector_ss_const_iterator_type().operator +=(n); return (*this); }
+				const_iterator& operator -=(difference_type n) { msevector_ss_const_iterator_type().operator -=(n); return (*this); }
+				const_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				const_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
 				typename _MV::difference_type operator-(const const_iterator& _Right_cref) const { return msevector_ss_const_iterator_type() - (_Right_cref.msevector_ss_const_iterator_type()); }
 				typename _MV::const_reference operator*() const { return msevector_ss_const_iterator_type().operator*(); }
 				typename _MV::const_reference item() const { return operator*(); }
@@ -236,10 +236,10 @@ namespace mse {
 				iterator operator--(int) { iterator _Tmp = *this; --*this; return (_Tmp); }
 				void advance(typename _MV::difference_type n) { msevector_ss_iterator_type().advance(n); }
 				void regress(typename _MV::difference_type n) { msevector_ss_iterator_type().regress(n); }
-				iterator& operator +=(int n) { msevector_ss_iterator_type().operator +=(n); return (*this); }
-				iterator& operator -=(int n) { msevector_ss_iterator_type().operator -=(n); return (*this); }
-				iterator operator+(int n) const { auto retval = (*this); retval += n; return retval; }
-				iterator operator-(int n) const { return ((*this) + (-n)); }
+				iterator& operator +=(difference_type n) { msevector_ss_iterator_type().operator +=(n); return (*this); }
+				iterator& operator -=(difference_type n) { msevector_ss_iterator_type().operator -=(n); return (*this); }
+				iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				iterator operator-(difference_type n) const { return ((*this) + (-n)); }
 				typename _MV::difference_type operator-(const iterator& _Right_cref) const { return msevector_ss_iterator_type() - (_Right_cref.msevector_ss_iterator_type()); }
 				typename _MV::reference operator*() const { return msevector_ss_iterator_type().operator*(); }
 				typename _MV::reference item() const { return operator*(); }

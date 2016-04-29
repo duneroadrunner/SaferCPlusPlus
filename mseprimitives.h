@@ -111,20 +111,33 @@ namespace mse {
 		template<typename _Tz>
 		void assign_check_range(const _Tz &x) {
 			note_value_assignment();
-			/* Note that this function is going to cause "signed/unsigned mismatch" warnings during compile. But if you
-			carefully consider each case, the default conversion works for our purposes. */
-			/*constexpr*/ bool rhs_can_exceed_upper_bound = (std::numeric_limits<_Tz>::max() > std::numeric_limits<_Ty>::max());
-			bool rhs_can_exceed_lower_bound = false;
-			/* We're assuming that std::numeric_limits<>::lowest() will never be greater than zero. */
-			if ((0 != std::numeric_limits<_Tz>::lowest()) && (0 == std::numeric_limits<_Ty>::lowest())) {
-				rhs_can_exceed_lower_bound = true;
+			/* This probably needs to be cleaned up. But at the moment it this should be mostly compile time complexity. And
+			as is it avoids "signed/unsigned" mismatch warnings. */
+			/*constexpr*/ bool rhs_can_exceed_upper_bound = ((std::numeric_limits<_Tz>::is_signed == std::numeric_limits<_Ty>::is_signed)
+				&& (std::numeric_limits<_Tz>::digits > std::numeric_limits<_Ty>::digits));
+			if (!rhs_can_exceed_upper_bound) {
+				if (std::numeric_limits<_Tz>::is_signed != std::numeric_limits<_Ty>::is_signed) {
+					if (std::numeric_limits<_Tz>::is_signed) {
+						if (std::numeric_limits<_Tz>::digits > (1 + std::numeric_limits<_Ty>::digits)) {
+							rhs_can_exceed_upper_bound = true;
+						}
+					}
+					else {
+						if ((1 + std::numeric_limits<_Tz>::digits) > std::numeric_limits<_Ty>::digits) {
+							rhs_can_exceed_upper_bound = true;
+						}
+					}
+				}
 			}
-			else if ((0 != std::numeric_limits<_Tz>::lowest()) && (0 != std::numeric_limits<_Ty>::lowest())) {
-				rhs_can_exceed_lower_bound = (std::numeric_limits<_Tz>::lowest() < std::numeric_limits<_Ty>::lowest());
+			bool rhs_can_exceed_lower_bound = (std::numeric_limits<_Tz>::is_signed && (!std::numeric_limits<_Ty>::is_signed));
+			if (!rhs_can_exceed_lower_bound) {
+				if (std::numeric_limits<_Tz>::is_signed && (std::numeric_limits<_Tz>::digits > std::numeric_limits<_Ty>::digits)) {
+					rhs_can_exceed_lower_bound = true;
+				}
 			}
 			if (rhs_can_exceed_upper_bound || rhs_can_exceed_lower_bound) {
 				if (rhs_can_exceed_upper_bound) {
-					if (x > std::numeric_limits<_Ty>::max()) {
+					if (x > _Tz(std::numeric_limits<_Ty>::max())) {
 						throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 					}
 				}
@@ -136,7 +149,7 @@ namespace mse {
 							lb_exceeded = true;
 						}
 						else {
-							lb_exceeded = (x < std::numeric_limits<_Ty>::lowest());
+							lb_exceeded = (x < _Tz(std::numeric_limits<_Ty>::lowest()));
 						}
 					}
 					if (lb_exceeded) {
@@ -714,7 +727,9 @@ namespace mse {
 		bool operator!=(const TSaferPtr<_Ty> &_Right_cref) const { return (!((*this) == _Right_cref)); }
 
 		bool operator!() const { return (!m_ptr); }
-		operator bool() const { return m_ptr; }
+		operator bool() const {
+			return (m_ptr != nullptr);
+		}
 
 		explicit operator _Ty*() const {
 			if (nullptr == m_ptr) {

@@ -140,20 +140,20 @@ namespace mse {
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
 
 			TRefCountingOfRelaxedRegisteredPointer<Linked> node = make_refcountingofrelaxedregistered<Linked>(this, "parent");
-			MTXASSERT(ok, node.get());
+			MTXASSERT(ok, (node.get() != nullptr));
 			node->next = make_refcountingofrelaxedregistered<Linked>(this, "child");
 
 			MTXASSERT_EQ(ok, 2ul, constructions.size());
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
 
 			node = node->next;
-			MTXASSERT(ok, node.get());
+			MTXASSERT(ok, (node.get() != nullptr));
 
 			MTXASSERT_EQ(ok, 2ul, constructions.size());
 			MTXASSERT_EQ(ok, 1ul, destructions.size());
 
 			node = node->next;
-			MTXASSERT(ok, !node.get());
+			MTXASSERT(ok, (node.get() == nullptr));
 
 			MTXASSERT_EQ(ok, 2ul, constructions.size());
 			MTXASSERT_EQ(ok, 2ul, destructions.size());

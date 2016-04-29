@@ -145,10 +145,10 @@ namespace mse {
 			cipointer operator--(int) { cipointer _Tmp = *this; --*this; return (_Tmp); }
 			void advance(typename _MV::difference_type n) { msevector_cipointer().advance(n); }
 			void regress(typename _MV::difference_type n) { msevector_cipointer().regress(n); }
-			cipointer& operator +=(int n) { msevector_cipointer().operator +=(n); return (*this); }
-			cipointer& operator -=(int n) { msevector_cipointer().operator -=(n); return (*this); }
-			cipointer operator+(int n) const { auto retval = (*this); retval += n; return retval; }
-			cipointer operator-(int n) const { return ((*this) + (-n)); }
+			cipointer& operator +=(typename _MV::difference_type n) { msevector_cipointer().operator +=(n); return (*this); }
+			cipointer& operator -=(typename _MV::difference_type n) { msevector_cipointer().operator -=(n); return (*this); }
+			cipointer operator+(typename _MV::difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			cipointer operator-(typename _MV::difference_type n) const { return ((*this) + (-n)); }
 			typename _MV::difference_type operator-(const cipointer& _Right_cref) const { return msevector_cipointer() - (_Right_cref.msevector_cipointer()); }
 			typename _MV::const_reference operator*() const { return msevector_cipointer().operator*(); }
 			typename _MV::const_reference item() const { return operator*(); }
@@ -215,10 +215,10 @@ namespace mse {
 			ipointer operator--(int) { ipointer _Tmp = *this; --*this; return (_Tmp); }
 			void advance(typename _MV::difference_type n) { msevector_ipointer().advance(n); }
 			void regress(typename _MV::difference_type n) { msevector_ipointer().regress(n); }
-			ipointer& operator +=(int n) { msevector_ipointer().operator +=(n); return (*this); }
-			ipointer& operator -=(int n) { msevector_ipointer().operator -=(n); return (*this); }
-			ipointer operator+(int n) const { auto retval = (*this); retval += n; return retval; }
-			ipointer operator-(int n) const { return ((*this) + (-n)); }
+			ipointer& operator +=(typename _MV::difference_type n) { msevector_ipointer().operator +=(n); return (*this); }
+			ipointer& operator -=(typename _MV::difference_type n) { msevector_ipointer().operator -=(n); return (*this); }
+			ipointer operator+(typename _MV::difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			ipointer operator-(typename _MV::difference_type n) const { return ((*this) + (-n)); }
 			typename _MV::difference_type operator-(const ipointer& _Right_cref) const { return msevector_ipointer() - (_Right_cref.msevector_ipointer()); }
 			typename _MV::reference operator*() const { return msevector_ipointer().operator*(); }
 			typename _MV::reference item() const { return operator*(); }

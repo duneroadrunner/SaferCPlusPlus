@@ -96,7 +96,7 @@ namespace mse {
 			return TScopePointerBase<_Ty>::operator=(_Right_cref);
 		}
 		operator bool() const {
-			bool retval = (*static_cast<const TScopePointerBase<_Ty>*>(this));
+			bool retval = ((*static_cast<const TScopePointerBase<_Ty>*>(this)) != nullptr);
 			return retval;
 		}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
