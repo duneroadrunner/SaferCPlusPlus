@@ -32,6 +32,13 @@
 #define MSE_SAFERPTR_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
+#if defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
+#define MSE_CONSTEXPR
+#else // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
+#define MSE_CONSTEXPR constexpr
+#endif // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
+
+
 namespace mse {
 
 	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
@@ -109,51 +116,48 @@ namespace mse {
 		explicit TIntBase1(_Ty   x) { note_value_assignment(); m_val = x; }
 
 		template<typename _Tz>
+		MSE_CONSTEXPR static bool can_exceed_upper_bound() {
+			return (
+				((std::numeric_limits<_Tz>::is_signed == std::numeric_limits<_Ty>::is_signed)
+					&& (std::numeric_limits<_Tz>::digits > std::numeric_limits<_Ty>::digits))
+				|| ((std::numeric_limits<_Tz>::is_signed != std::numeric_limits<_Ty>::is_signed)
+					&& ((std::numeric_limits<_Tz>::is_signed && (std::numeric_limits<_Tz>::digits > (1 + std::numeric_limits<_Ty>::digits)))
+						|| ((!std::numeric_limits<_Tz>::is_signed) && ((1 + std::numeric_limits<_Tz>::digits) > std::numeric_limits<_Ty>::digits))
+						)
+					)
+				);
+		}
+		template<typename _Tz>
+		MSE_CONSTEXPR static bool can_exceed_lower_bound() {
+			return (
+				(std::numeric_limits<_Tz>::is_signed && (!std::numeric_limits<_Ty>::is_signed))
+				|| (std::numeric_limits<_Tz>::is_signed && (std::numeric_limits<_Tz>::digits > std::numeric_limits<_Ty>::digits))
+				);
+		}
+
+		template<typename _Tz>
 		void assign_check_range(const _Tz &x) {
 			note_value_assignment();
 			/* This probably needs to be cleaned up. But at the moment it this should be mostly compile time complexity. And
 			as is it avoids "signed/unsigned" mismatch warnings. */
-			/*constexpr*/ bool rhs_can_exceed_upper_bound = ((std::numeric_limits<_Tz>::is_signed == std::numeric_limits<_Ty>::is_signed)
-				&& (std::numeric_limits<_Tz>::digits > std::numeric_limits<_Ty>::digits));
-			if (!rhs_can_exceed_upper_bound) {
-				if (std::numeric_limits<_Tz>::is_signed != std::numeric_limits<_Ty>::is_signed) {
-					if (std::numeric_limits<_Tz>::is_signed) {
-						if (std::numeric_limits<_Tz>::digits > (1 + std::numeric_limits<_Ty>::digits)) {
-							rhs_can_exceed_upper_bound = true;
-						}
-					}
-					else {
-						if ((1 + std::numeric_limits<_Tz>::digits) > std::numeric_limits<_Ty>::digits) {
-							rhs_can_exceed_upper_bound = true;
-						}
-					}
-				}
-			}
-			bool rhs_can_exceed_lower_bound = (std::numeric_limits<_Tz>::is_signed && (!std::numeric_limits<_Ty>::is_signed));
-			if (!rhs_can_exceed_lower_bound) {
-				if (std::numeric_limits<_Tz>::is_signed && (std::numeric_limits<_Tz>::digits > std::numeric_limits<_Ty>::digits)) {
-					rhs_can_exceed_lower_bound = true;
-				}
-			}
-			if (rhs_can_exceed_upper_bound || rhs_can_exceed_lower_bound) {
+			MSE_CONSTEXPR const bool rhs_can_exceed_upper_bound = can_exceed_upper_bound<_Tz>();
+			MSE_CONSTEXPR const bool rhs_can_exceed_lower_bound = can_exceed_lower_bound<_Tz>();
+			MSE_CONSTEXPR const bool can_exceed_bounds = rhs_can_exceed_upper_bound || rhs_can_exceed_lower_bound;
+			if (can_exceed_bounds) {
 				if (rhs_can_exceed_upper_bound) {
 					if (x > _Tz(std::numeric_limits<_Ty>::max())) {
 						throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 					}
 				}
 				if (rhs_can_exceed_lower_bound) {
-					bool lb_exceeded = false;
 					/* We're assuming that std::numeric_limits<>::lowest() will never be greater than zero. */
 					if (0 > x) {
 						if (0 == std::numeric_limits<_Ty>::lowest()) {
-							lb_exceeded = true;
+							throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 						}
-						else {
-							lb_exceeded = (x < _Tz(std::numeric_limits<_Ty>::lowest()));
+						else if (x < _Tz(std::numeric_limits<_Ty>::lowest())) {
+							throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 						}
-					}
-					if (lb_exceeded) {
-						throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 					}
 				}
 			}
