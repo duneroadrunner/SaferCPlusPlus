@@ -1227,7 +1227,7 @@ namespace mse {
 					}
 				}
 			}
-			mm_iterator_set_type(_Myt& owner_ref) : m_owner_ptr(&owner_ref), m_next_available_key(0) {}
+			mm_iterator_set_type(_Myt& owner_ref) : m_next_available_key(0), m_owner_ptr(&owner_ref) {}
 			void reset() {
 				/* We can use "static" here because the lambda function does not capture any parameters. */
 				static const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [](std::shared_ptr<mm_const_iterator_type>& a) { a->reset(); };
