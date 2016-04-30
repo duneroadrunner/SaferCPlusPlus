@@ -910,7 +910,7 @@ namespace mse {
 						throw(std::out_of_range("void shift_inclusive_range() - mm_const_iterator_type - msevector"));
 					}
 					else {
-						(*this).m_index = new_index;
+						(*this).m_index = msev_size_t(new_index);
 						(*this).sync_const_iterator_to_index();
 					}
 				}
@@ -1123,7 +1123,7 @@ namespace mse {
 						throw(std::out_of_range("void shift_inclusive_range() - mm_iterator_type - msevector"));
 					}
 					else {
-						(*this).m_index = new_index;
+						(*this).m_index = msev_size_t(new_index);
 						(*this).sync_iterator_to_index();
 					}
 				}
