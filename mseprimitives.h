@@ -23,8 +23,10 @@
 #else /*_MSC_VER*/
 #if (defined(__GNUC__) || defined(__GNUG__))
 #define GPP_COMPATIBILE 1
+#if (5 > __GNUC__)
 #define GPP4P8_COMPATIBILE 1
-#endif
+#endif /*(5 > __GNUC__)*/
+#endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
@@ -175,9 +177,13 @@ namespace mse {
 #endif // MSE_CHECK_USE_BEFORE_SET
 	};
 
-	class CInt : public TIntBase1<int> {
+#ifndef MSE_CINT_BASE_INTEGER_TYPE
+#define MSE_CINT_BASE_INTEGER_TYPE long long int
+#endif // !MSE_CINT_BASE_INTEGER_TYPE
+
+	class CInt : public TIntBase1<MSE_CINT_BASE_INTEGER_TYPE> {
 	public:
-		typedef int _Ty;
+		typedef MSE_CINT_BASE_INTEGER_TYPE _Ty;
 		typedef TIntBase1<_Ty> _Myt;
 
 		// Constructs zero.
@@ -386,7 +392,7 @@ namespace mse {
 		CSize_t& operator=(short x) { assign_check_range<short>(x); m_val = static_cast<_Ty>(x); return (*this); }
 		CSize_t& operator=(char x) { assign_check_range<char>(x); m_val = static_cast<_Ty>(x); return (*this); }
 		CSize_t& operator=(size_t x) { assign_check_range<size_t>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CSize_t& operator=(CInt x) { assign_check_range<int>(x); m_val = static_cast<_Ty>(x); return (*this); }
+		CSize_t& operator=(CInt x) { assign_check_range<MSE_CINT_BASE_INTEGER_TYPE>(x); m_val = static_cast<_Ty>(x); return (*this); }
 		/* We would have liked to have assignment operators for the unsigned primitive integer types, but one of them could
 		potentially clash with the size_t assignment operator. */
 		//CSize_t& operator=(unsigned long long x) { assign_check_range<unsigned long long>(x); m_val = static_cast<_Ty>(x); return (*this); }
@@ -403,7 +409,7 @@ namespace mse {
 		explicit CSize_t(short x) { assign_check_range<short>(x); m_val = static_cast<_Ty>(x); }
 		explicit CSize_t(char x) { assign_check_range<char>(x); m_val = static_cast<_Ty>(x); }
 		CSize_t(size_t   x) { assign_check_range<size_t>(x); m_val = static_cast<_Ty>(x); }
-		/*explicit */CSize_t(CInt   x) { assign_check_range<int>(x); m_val = static_cast<_Ty>(x); }
+		/*explicit */CSize_t(CInt   x) { assign_check_range<MSE_CINT_BASE_INTEGER_TYPE>(x); m_val = static_cast<_Ty>(x); }
 		/* We would have liked to have constructors for the unsigned primitive integer types, but one of them could
 		potentially clash with the size_t constructor. */
 		//explicit CSize_t(unsigned long long  x) { assign_check_range<unsigned long long>(x); m_val = static_cast<_Ty>(x); }
