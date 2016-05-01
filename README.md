@@ -186,6 +186,7 @@ usage example:
 ### TRelaxedRegisteredFixedPointer
 
 ### TRelaxedRegisteredConstPointer, TRelaxedRegisteredNotNullConstPointer, TRelaxedRegisteredFixedConstPointer
+TRelaxedRegisteredPointer&lt;X&gt; actually does implicitly convert to TRelaxedRegisteredPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
   
 ### Simple benchmarks
 
@@ -295,7 +296,7 @@ Same as TRefCountingNotNullPointer, but cannot be retargeted after construction 
 
 ### TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer
 
-Just the "const" versions. At the moment TRefCountingPointer&lt;X&gt; does not convert to TRefCountingPointer&lt;const X&gt;. It does convert to a TRefCountingConstPointer&lt;X&gt;.
+Just the "const" versions. TRefCountingPointer&lt;X&gt; actually does implicitly convert to TRefCountingPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
 ### TRefCountingOfRegisteredPointer
 
@@ -462,6 +463,9 @@ usage example:
         int res2 = B::foo2(&a_scpobj);
         int res3 = B::foo3(&a_scpobj);
     }
+
+### TScopeFixedConstPointer
+TScopeFixedPointer&lt;X&gt; actually does implicitly convert to TScopeFixedPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
 ### TScopeOwnerPointer
 TScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, TScopeOwnerPointer is not intended to be used as a member of any class or struct. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
