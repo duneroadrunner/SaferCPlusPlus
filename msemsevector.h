@@ -25,7 +25,10 @@
 #endif
 #endif /*_MSC_VER*/
 
-//include "mseprimitives.h"
+//define MSE_MSEVECTOR_USE_MSE_PRIMITIVES 1
+#ifdef MSE_MSEVECTOR_USE_MSE_PRIMITIVES
+#include "mseprimitives.h"
+#endif // MSE_MSEVECTOR_USE_MSE_PRIMITIVES
 
 #include <vector>
 #include <assert.h>
@@ -35,11 +38,19 @@
 
 namespace mse {
 
+#ifdef MSE_MSEVECTOR_USE_MSE_PRIMITIVES
+	typedef mse::CSize_t msev_size_t;
+	typedef mse::CInt msev_int;
+	typedef bool msev_bool; // no added safety benefit to using mse::CBool in this case
+	template<typename _Ty> using msev_pointer = _Ty*; // no added safety benefit to using mse::TSaferPtr in this case
+	typedef size_t msev_as_a_size_t;
+#else // MSE_MSEVECTOR_USE_MSE_PRIMITIVES
 	typedef size_t msev_size_t;
 	typedef long long int msev_int;
 	typedef bool msev_bool;
 	template<typename _Ty> using msev_pointer = _Ty*;
 	typedef size_t msev_as_a_size_t;
+#endif // MSE_MSEVECTOR_USE_MSE_PRIMITIVES
 
 #ifndef _NOEXCEPT
 #define _NOEXCEPT
