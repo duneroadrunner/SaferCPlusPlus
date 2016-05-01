@@ -87,7 +87,8 @@ usage example:
 Same as TRegisteredPointer, but cannot be constructed to a null value.
 
 ### TRegisteredFixedPointer
-Same as TRegisteredNotNullPointer, but cannot be retargeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.   
+Same as TRegisteredNotNullPointer, but cannot be retargeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.  
+
 usage example:
 
     #include "mseregistered.h"
@@ -119,6 +120,29 @@ usage example:
 
 ### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
 Just the "const" versions. At the moment TRegisteredPointer&lt;X&gt; does not convert to TRegisteredPointer&lt;const X&gt;. It does convert to a TRegisteredConstPointer&lt;X&gt;.
+
+### TRegisteredRefWrapper
+Just a registered version of [std::reference_wrapper](http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).  
+
+usage example:
+
+    #include "mseprimitives.h"
+    #include "mseregistered.h"
+
+    int main(int argc, char* argv[]) {
+        /* This example originally comes from http://www.cplusplus.com/reference/functional/reference_wrapper/. */
+        mse::TRegisteredObj<mse::CInt> a(10), b(20), c(30);
+        // an array of "references":
+        mse::TRegisteredRefWrapper<mse::CInt> refs[] = { a,b,c };
+        std::cout << "refs:";
+        for (mse::CInt& x : refs) std::cout << ' ' << x;
+        std::cout << '\n';
+    
+        mse::TRegisteredObj<mse::CInt> foo(10);
+        auto bar = mse::registered_ref(foo);
+        ++(mse::CInt&)bar;
+        std::cout << foo << '\n';
+    }
 
 ### TRelaxedRegisteredPointer
 
@@ -162,6 +186,7 @@ usage example:
 ### TRelaxedRegisteredFixedPointer
 
 ### TRelaxedRegisteredConstPointer, TRelaxedRegisteredNotNullConstPointer, TRelaxedRegisteredFixedConstPointer
+TRelaxedRegisteredPointer&lt;X&gt; actually does implicitly convert to TRelaxedRegisteredPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
   
 ### Simple benchmarks
 
@@ -271,7 +296,7 @@ Same as TRefCountingNotNullPointer, but cannot be retargeted after construction 
 
 ### TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer
 
-Just the "const" versions. At the moment TRefCountingPointer&lt;X&gt; does not convert to TRefCountingPointer&lt;const X&gt;. It does convert to a TRefCountingConstPointer&lt;X&gt;.
+Just the "const" versions. TRefCountingPointer&lt;X&gt; actually does implicitly convert to TRefCountingPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
 ### TRefCountingOfRegisteredPointer
 
@@ -439,8 +464,12 @@ usage example:
         int res3 = B::foo3(&a_scpobj);
     }
 
+### TScopeFixedConstPointer
+TScopeFixedPointer&lt;X&gt; actually does implicitly convert to TScopeFixedPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
+
 ### TScopeOwnerPointer
 TScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, TScopeOwnerPointer is not intended to be used as a member of any class or struct. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
+
 usage example:
 
     #include "msescope.h"
