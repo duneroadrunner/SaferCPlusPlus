@@ -269,6 +269,9 @@ namespace mse {
 	template<typename _Ty, int _Tn = sc_default_cache_size> class TRegisteredFixedPointer;
 	template<typename _Ty, int _Tn = sc_default_cache_size> class TRegisteredFixedConstPointer;
 
+#pragma warning( push )
+#pragma warning( disable : 4521 )
+
 	/* TRegisteredPointer behaves similar to (and is largely compatible with) native pointers. It inherits the safety features of
 	TSaferPtr (default nullptr initialization and check for null pointer dereference). In addition, when pointed at a
 	TRegisteredObj, it will be checked for attempted access after destruction. It's essentially intended to be a safe pointer like
@@ -282,6 +285,9 @@ namespace mse {
 		TRegisteredPointer(const TRegisteredPointer& src_cref);
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
 		TRegisteredPointer(const TRegisteredPointer<_Ty2, _Tn>& src_cref);
+		/* Next two lines would cause warning C4521 in msvc2015. */
+		template<class = typename std::enable_if<std::is_const<_Ty>::value, void>::type>
+		TRegisteredPointer(const TRegisteredPointer<typename std::remove_const<_Ty>::type, _Tn>& src_cref);
 		virtual ~TRegisteredPointer();
 		TRegisteredPointer<_Ty, _Tn>& operator=(TRegisteredObj<_Ty, _Tn>* ptr);
 		TRegisteredPointer<_Ty, _Tn>& operator=(const TRegisteredPointer<_Ty, _Tn>& _Right_cref);
@@ -336,6 +342,9 @@ namespace mse {
 		TRegisteredNotNullPointer(const TRegisteredNotNullPointer& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
 		TRegisteredNotNullPointer(const TRegisteredNotNullPointer<_Ty2, _Tn>& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {}
+		/* Next two lines would cause warning C4521 in msvc2015. */
+		template<class = typename std::enable_if<std::is_const<_Ty>::value, void>::type>
+		TRegisteredNotNullPointer(const TRegisteredNotNullPointer<typename std::remove_const<_Ty>::type, _Tn>& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {}
 		virtual ~TRegisteredNotNullPointer() {}
 		TRegisteredNotNullPointer<_Ty, _Tn>& operator=(const TRegisteredNotNullPointer<_Ty, _Tn>& _Right_cref) {
 			TRegisteredPointer<_Ty, _Tn>::operator=(_Right_cref);
@@ -385,6 +394,9 @@ namespace mse {
 		TRegisteredFixedPointer(const TRegisteredFixedPointer& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
 		TRegisteredFixedPointer(const TRegisteredFixedPointer<_Ty2, _Tn>& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
+		/* Next two lines would cause warning C4521 in msvc2015. */
+		template<class = typename std::enable_if<std::is_const<_Ty>::value, void>::type>
+		TRegisteredFixedPointer(const TRegisteredFixedPointer<typename std::remove_const<_Ty>::type, _Tn>& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
 		virtual ~TRegisteredFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator _Ty*(); }
@@ -424,6 +436,8 @@ namespace mse {
 		friend class TRegisteredObj<_Ty, _Tn>;
 	};
 
+#pragma warning( pop ) 
+
 	/* TRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
 	destruction so that TRegisteredPointers will avoid referencing destroyed objects. Note that TRegisteredObj can be used with
 	objects allocated on the stack. */
@@ -445,6 +459,7 @@ namespace mse {
 		TRegisteredFixedConstPointer<_TROy, _Tn> operator&() const {
 			return this;
 		}
+
 		TRPTracker<_Tn>& mseRPManager() const { return m_mseRPManager; }
 
 		mutable TRPTracker<_Tn> m_mseRPManager;
@@ -467,6 +482,14 @@ namespace mse {
 	template<typename _Ty, int _Tn>
 	template<class _Ty2, class>
 	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer(const TRegisteredPointer<_Ty2, _Tn>& src_cref) : TSaferPtr<TRegisteredObj<_Ty, _Tn>>(src_cref.m_ptr) {
+		if (nullptr != (*this).m_ptr) {
+			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
+		}
+	}
+	template<typename _Ty, int _Tn>
+	template<class>
+	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer(const TRegisteredPointer<typename std::remove_const<_Ty>::type, _Tn>& src_cref)
+		: TSaferPtr<TRegisteredObj<_Ty, _Tn>>(reinterpret_cast<TRegisteredObj<_Ty, _Tn> *>(src_cref.m_ptr)) {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
 		}
