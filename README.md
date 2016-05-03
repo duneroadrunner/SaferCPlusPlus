@@ -119,7 +119,7 @@ usage example:
     }
 
 ### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
-Just the "const" versions. At the moment TRegisteredPointer&lt;X&gt; does not convert to TRegisteredPointer&lt;const X&gt;. It does convert to a TRegisteredConstPointer&lt;X&gt;.
+Just the "const" versions. TRegisteredPointer&lt;X&gt; actually does implicitly convert to TRegisteredPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
 ### TRegisteredRefWrapper
 Just a registered version of [std::reference_wrapper](http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).  
