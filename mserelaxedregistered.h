@@ -91,14 +91,14 @@ namespace mse {
 		"fast storage1" is ugly. The code for "slow storage" is more readable. */
 		void removeObjectFromFastStorage1(int fs1_obj_index);
 		void moveObjectFromFastStorage1ToSlowStorage(int fs1_obj_index);
-		static const int sc_fs1_max_pointers = 3/* must be at least 1 */;
+		MSE_CONSTEXPR static const int sc_fs1_max_pointers = 3/* must be at least 1 */;
 		class CFS1Object {
 		public:
 			void* m_object_ptr;
 			const CSaferPtrBase* m_pointer_ptrs[sc_fs1_max_pointers];
 			int m_num_pointers = 0;
 		};
-		static const int sc_fs1_max_objects = 8/* Arbitrary. The optimal number depends on how slow "slow storage" is. */;
+		MSE_CONSTEXPR static const int sc_fs1_max_objects = 8/* Arbitrary. The optimal number depends on how slow "slow storage" is. */;
 		CFS1Object m_fs1_objects[sc_fs1_max_objects];
 		int m_num_fs1_objects = 0;
 

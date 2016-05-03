@@ -21,7 +21,7 @@
 
 namespace mse {
 
-	static const int sc_default_cache_size = 3/* 1 + (the maximum number of pointers expected to target the object at one time) */;
+	MSE_CONSTEXPR static const int sc_default_cache_size = 3/* 1 + (the maximum number of pointers expected to target the object at one time) */;
 
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredPointer = _Ty*;
@@ -202,7 +202,7 @@ namespace mse {
 
 		bool fast_mode1() const { return (nullptr == m_ptr_to_regptr_set_ptr); }
 		int m_fm1_num_pointers = 0;
-		static const int sc_fm1_max_pointers = _Tn;
+		MSE_CONSTEXPR static const int sc_fm1_max_pointers = _Tn;
 		const CSaferPtrBase* m_fm1_ptr_to_regptr_array[sc_fm1_max_pointers];
 
 		std::unordered_set<const CSaferPtrBase*> *m_ptr_to_regptr_set_ptr = nullptr;
