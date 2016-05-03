@@ -279,6 +279,7 @@ namespace mse {
 	public:
 		TRegisteredPointer();
 		TRegisteredPointer(TRegisteredObj<_Ty, _Tn>* ptr);
+		TRegisteredPointer(const TRegisteredPointer& src_cref);
 		/* The templated copy constructor accepts other TRegisteredPointer types if type of their target is "convertible"
 		to the target type if this TRegisteredPointer. Additionally, it accepts TRegisteredPointer types if their target's
 		base class is the "non-const" version of this TRegisteredPointer's target's base class. */
@@ -465,6 +466,12 @@ namespace mse {
 	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer(TRegisteredObj<_Ty, _Tn>* ptr) : TSaferPtr<TRegisteredObj<_Ty, _Tn>>(ptr) {
 		if (nullptr != ptr) {
 			(*ptr).mseRPManager().registerPointer(*this);
+		}
+	}
+	template<typename _Ty, int _Tn>
+	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer(const TRegisteredPointer& src_cref) : TSaferPtr<TRegisteredObj<_Ty, _Tn>>(src_cref.m_ptr) {
+		if (nullptr != (*this).m_ptr) {
+			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
 		}
 	}
 	template<typename _Ty, int _Tn>
