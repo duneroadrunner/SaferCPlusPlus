@@ -446,13 +446,13 @@ namespace mse {
 			return m_target_pointer;
 		}
 
-		template <class _Ty, class _Tx>
-		static TStrongFixedPointer make_strong(_Ty& target, const _Tx& lease) {
+		template <class _Tw, class _Tv>
+		static TStrongFixedPointer make_strong(_Tw& target, const _Tv& lease) {
 			return TStrongFixedPointer(target, lease);
 		}
 
-		_Tx m_lease;
 		_Ty* m_target_pointer;
+		_Tx m_lease;
 		friend class TStrongFixedConstPointer<_Ty, _Tx>;
 	};
 
@@ -475,8 +475,8 @@ namespace mse {
 			return m_target_pointer;
 		}
 
-		_Tx m_lease;
 		const _Ty* m_target_pointer;
+		_Tx m_lease;
 	};
 
 	/* shorter aliases */
