@@ -429,6 +429,56 @@ namespace mse {
 		//const TRefCountingFixedConstPointer<_Ty>* operator&() const { return this; }
 	};
 
+	template <class _Ty, class _Tx> class TStrongFixedConstPointer;
+
+	/* If, for example, you want an "owning" pointer to a member of a refcounting pointer target, you can use a
+	TStrongFixedPointer to store a copy of the owning (refcounting) pointer along with the pointer targeting the
+	member. */
+	template <class _Ty, class _Tx>
+	class TStrongFixedPointer {
+	public:
+		TStrongFixedPointer(_Ty& target/* often a struct member */, _Tx lease/* usually a reference counting pointer */)
+			: m_target_pointer(&target), m_lease(lease) {}
+		_Ty& operator*() const {
+			return (*m_target_pointer);
+		}
+		_Ty* operator->() const {
+			return m_target_pointer;
+		}
+
+		template <class _Ty, class _Tx>
+		static TStrongFixedPointer make_strong(_Ty& target, const _Tx& lease) {
+			return TStrongFixedPointer(target, lease);
+		}
+
+		_Tx m_lease;
+		_Ty* m_target_pointer;
+		friend class TStrongFixedConstPointer<_Ty, _Tx>;
+	};
+
+	template <class _Ty, class _Tx>
+	TStrongFixedPointer<_Ty, _Tx> make_strong(_Ty& target, const _Tx& lease) {
+		return TStrongFixedPointer<_Ty, _Tx>::make_strong(target, lease);
+	}
+
+	template <class _Ty, class _Tx>
+	class TStrongFixedConstPointer {
+	public:
+		TStrongFixedConstPointer(const _Ty& target/* often a struct member */, _Tx lease/* usually a reference counting pointer */)
+			: m_target_pointer(&target), m_lease(lease) {}
+		TStrongFixedConstPointer(const TStrongFixedConstPointer&) = default;
+		TStrongFixedConstPointer(const TStrongFixedPointer<_Ty, _Tx>&src) : m_target_pointer(src.m_target_pointer), m_lease(src.m_lease) {}
+		const _Ty& operator*() const {
+			return (*m_target_pointer);
+		}
+		const _Ty* operator->() const {
+			return m_target_pointer;
+		}
+
+		_Tx m_lease;
+		const _Ty* m_target_pointer;
+	};
+
 	/* shorter aliases */
 	template<typename _Ty> using refcp = TRefCountingPointer<_Ty>;
 	template<typename _Ty> using refccp = TRefCountingConstPointer<_Ty>;

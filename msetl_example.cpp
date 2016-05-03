@@ -67,6 +67,10 @@ public:
 		}
 		return retval;
 	}
+	template<class _TString1Pointer, class _TString2Pointer>
+	static std::string concat(_TString1Pointer i1ptr, _TString2Pointer i2ptr) {
+		return (*i1ptr) + (*i2ptr);
+	}
 protected:
 	~H() {}
 };
@@ -821,6 +825,7 @@ int main(int argc, char* argv[])
 			A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 			int b = 3;
+			std::string s = "some text ";
 		};
 		typedef std::vector<mse::TRefCountingFixedPointer<A>> CRCFPVector;
 		class B {
@@ -829,6 +834,11 @@ int main(int argc, char* argv[])
 				rcfpvector_ref.clear();
 				int retval = A_refcounting_ptr->b;
 				A_refcounting_ptr = nullptr; /* Target object is destroyed here. */
+				return retval;
+			}
+			static std::string foo2(mse::TStrongFixedPointer<std::string, mse::TRefCountingFixedPointer<A>> strong_string_ptr, CRCFPVector& rcfpvector_ref) {
+				rcfpvector_ref.clear();
+				std::string retval = (*strong_string_ptr);
 				return retval;
 			}
 		protected:
@@ -845,6 +855,23 @@ int main(int argc, char* argv[])
 				mse::TRefCountingConstPointer<A> A_refcountingconst_ptr1 = A_refcountingfixed_ptr1;
 			}
 			B::foo1(rcfpvector.front(), rcfpvector);
+		}
+		{
+			CRCFPVector rcfpvector;
+			{
+				mse::TRefCountingFixedPointer<A> A_refcountingfixed_ptr1 = mse::make_refcounting<A>();
+				rcfpvector.push_back(A_refcountingfixed_ptr1);
+			}
+
+			/* strong_string_ptr1 here is essentially a pointer to "A.s" (the string member of class A) welded
+			to a refcounting pointer to A to make sure that the object is not deallocated while strong_string_ptr1
+			is still around. */
+			auto strong_string_ptr1 = mse::make_strong(rcfpvector.front()->s, rcfpvector.front());
+			B::foo2(strong_string_ptr1, rcfpvector);
+
+			/* In practice, rather than declaring a specific mse::TStrongFixedPointer parameter, we expect
+			functions to be "templatized" so that they can accept any type of pointer. */
+			std::string res1 = H::concat(strong_string_ptr1, strong_string_ptr1);
 		}
 
 		mse::TRefCountingPointer_test TRefCountingPointer_test1;
