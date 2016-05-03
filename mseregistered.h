@@ -279,8 +279,12 @@ namespace mse {
 	public:
 		TRegisteredPointer();
 		TRegisteredPointer(TRegisteredObj<_Ty, _Tn>* ptr);
-		TRegisteredPointer(const TRegisteredPointer& src_cref);
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+		/* The templated copy constructor accepts other TRegisteredPointer types if type of their target is "convertible"
+		to the target type if this TRegisteredPointer. Additionally, it accepts TRegisteredPointer types if their target's
+		base class is the "non-const" version of this TRegisteredPointer's target's base class. */
+		template<class _Ty2, class = typename std::enable_if<
+			std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value
+			, void>::type>
 		TRegisteredPointer(const TRegisteredPointer<_Ty2, _Tn>& src_cref);
 		virtual ~TRegisteredPointer();
 		TRegisteredPointer<_Ty, _Tn>& operator=(TRegisteredObj<_Ty, _Tn>* ptr);
@@ -334,7 +338,9 @@ namespace mse {
 	class TRegisteredNotNullPointer : public TRegisteredPointer<_Ty, _Tn> {
 	public:
 		TRegisteredNotNullPointer(const TRegisteredNotNullPointer& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<
+			std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value
+			, void>::type>
 		TRegisteredNotNullPointer(const TRegisteredNotNullPointer<_Ty2, _Tn>& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {}
 		virtual ~TRegisteredNotNullPointer() {}
 		TRegisteredNotNullPointer<_Ty, _Tn>& operator=(const TRegisteredNotNullPointer<_Ty, _Tn>& _Right_cref) {
@@ -383,7 +389,9 @@ namespace mse {
 	class TRegisteredFixedPointer : public TRegisteredNotNullPointer<_Ty, _Tn> {
 	public:
 		TRegisteredFixedPointer(const TRegisteredFixedPointer& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<
+			std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value
+			, void>::type>
 		TRegisteredFixedPointer(const TRegisteredFixedPointer<_Ty2, _Tn>& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
 		virtual ~TRegisteredFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -460,14 +468,12 @@ namespace mse {
 		}
 	}
 	template<typename _Ty, int _Tn>
-	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer(const TRegisteredPointer& src_cref) : TSaferPtr<TRegisteredObj<_Ty, _Tn>>(src_cref.m_ptr) {
-		if (nullptr != src_cref.m_ptr) {
-			(*(src_cref.m_ptr)).mseRPManager().registerPointer(*this);
-		}
-	}
-	template<typename _Ty, int _Tn>
 	template<class _Ty2, class>
-	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer(const TRegisteredPointer<_Ty2, _Tn>& src_cref) : TSaferPtr<TRegisteredObj<_Ty, _Tn>>(src_cref.m_ptr) {
+	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer(const TRegisteredPointer<_Ty2, _Tn>& src_cref)
+		/* We need to use a reinterpret_cast for the cases when this TRegisteredPointer's target's base class is
+		a "const" type, and src_cref's target's base class is just the "non-const" version. Should be cool to use
+		a reinterpret_cast when you're just adding a const qualifier to a member or base class, right? */
+		: TSaferPtr<TRegisteredObj<_Ty, _Tn>>(reinterpret_cast<TRegisteredObj<_Ty, _Tn> *>(src_cref.m_ptr)) {
 		if (nullptr != (*this).m_ptr) {
 			(*((*this).m_ptr)).mseRPManager().registerPointer(*this);
 		}
