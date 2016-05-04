@@ -301,7 +301,7 @@ Just the "const" versions. TRefCountingPointer&lt;X&gt; actually does implicitly
 
 ###TStrongFixedPointer
 
-TStrongFixedPointer is primarily intended to be used as a safe pointer to a member of a class/struct owned by a reference counting pointer. TStrongFixedPointer essentially acts as a pointer to the member (or whatever object you specify), while keeping a copy of the reference counting pointer (or whatever owner you specify) to ensure that the object is not deallocated while you're still using it.  
+TStrongFixedPointer is primarily intended to be used as a safe pointer to a member of a class/struct owned by a reference counting pointer. TStrongFixedPointer essentially acts as a pointer to the member (or whatever object you specify), while keeping a copy of the reference counting pointer (or whatever owner you specify) to ensure that the object is not deallocated while you're still using it. Use mse::make_strong() to construct a TStrongFixedPointer.  
 
 usage example:
 
