@@ -452,7 +452,7 @@ namespace mse {
 	private:
 		TStrongFixedPointer(_TTargetType& target/* often a struct member */, _TLeaseType lease/* usually a reference counting pointer */)
 			: m_target_pointer(&target), m_lease(lease) {}
-		TStrongFixedPointer<_TTargetType>& operator=(const TStrongFixedPointer<_TTargetType>& _Right_cref) = delete;
+		TStrongFixedPointer& operator=(const TStrongFixedPointer& _Right_cref) = delete;
 
 		_TTargetType* m_target_pointer;
 		_TLeaseType m_lease;
@@ -479,7 +479,7 @@ namespace mse {
 	private:
 		TStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeaseType lease/* usually a reference counting pointer */)
 			: m_target_pointer(&target), m_lease(lease) {}
-		TStrongFixedConstPointer<_TTargetType>& operator=(const TStrongFixedConstPointer<_TTargetType>& _Right_cref) = delete;
+		TStrongFixedConstPointer& operator=(const TStrongFixedConstPointer& _Right_cref) = delete;
 
 		const _TTargetType* m_target_pointer;
 		_TLeaseType m_lease;
