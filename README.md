@@ -298,6 +298,65 @@ Same as TRefCountingNotNullPointer, but cannot be retargeted after construction 
 
 Just the "const" versions. TRefCountingPointer&lt;X&gt; actually does implicitly convert to TRefCountingPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
+
+###TStrongFixedPointer
+
+TStrongFixedPointer is primarily intended to be used as a safe pointer to a member of a class/struct owned by a reference counting pointer. TStrongFixedPointer essentially acts as a pointer to the member (or whatever object you specify), while keeping a copy of the reference counting pointer (or whatever owner you specify) to ensure that the object is not deallocated while you're still using it.  
+
+usage example:
+
+    #include "mserefcounting.h"
+    
+    class H {
+    public:
+        static std::string foo2(mse::TStrongFixedPointer<std::string, mse::TRefCountingFixedPointer<A>> strong_string_ptr, CRCFPVector& rcfpvector_ref) {
+            rcfpvector_ref.clear();
+            std::string retval = (*strong_string_ptr);
+            return retval;
+        }
+    
+        template<class _TString1Pointer, class _TString2Pointer>
+        static std::string foo6(_TString1Pointer i1ptr, _TString2Pointer i2ptr) {
+            return (*i1ptr) + (*i2ptr);
+        }
+    protected:
+        ~H() {}
+    };
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A() {}
+            A(const A& _X) : b(_X.b) {}
+            virtual ~A() {
+                int q = 3; /* just so you can place a breakpoint if you want */
+            }
+            A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+            int b = 3;
+            std::string s = "some text ";
+        };
+        typedef std::vector<mse::TRefCountingFixedPointer<A>> CRCFPVector;
+
+        {
+            CRCFPVector rcfpvector;
+            {
+                mse::TRefCountingFixedPointer<A> A_refcountingfixed_ptr1 = mse::make_refcounting<A>();
+                rcfpvector.push_back(A_refcountingfixed_ptr1);
+            }
+
+            /* strong_string_ptr1 here is essentially a pointer to "A.s" (the string member of class A) welded
+            to a refcounting pointer to A to make sure that the object is not deallocated while strong_string_ptr1
+            is still around. */
+            auto strong_string_ptr1 = mse::make_strong(rcfpvector.front()->s, rcfpvector.front());
+            H::foo2(strong_string_ptr1, rcfpvector);
+
+            /* In practice, rather than declaring a specific mse::TStrongFixedPointer parameter, we expect
+            functions to be "templatized" so that they can accept any type of pointer. */
+            std::string res1 = H::foo6(strong_string_ptr1, strong_string_ptr1);
+        }
+    }
+
 ### TRefCountingOfRegisteredPointer
 
 TRefCountingOfRegisteredPointer is simply an alias for TRefCountingPointer&lt;TRegisteredObj&lt;_Ty&gt;&gt;. TRegisteredObj&lt;_Ty&gt; is meant to behave much like, and be compatible with a _Ty. The reason why we might want to use it is because the &amp; ("address of") operator of TRegisteredObj&lt;_Ty&gt; returns a [TRegisteredFixedPointer&lt;_Ty&gt;](#tregisteredfixedpointer) rather than a raw pointer, and TRegisteredPointers can serve as safe "weak pointers".  
