@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer" class="anchor" href="#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer</h3>
 
-<p>Just the "const" versions. At the moment TRegisteredPointer&lt;X&gt; does not convert to TRegisteredPointer&lt;const X&gt;. It does convert to a TRegisteredConstPointer&lt;X&gt;.</p>
+<p>Just the "const" versions. TRegisteredPointer&lt;X&gt; actually does implicitly convert to TRegisteredPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".</p>
 
 <h3>
 <a id="tregisteredrefwrapper" class="anchor" href="#tregisteredrefwrapper" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredRefWrapper</h3>
@@ -441,6 +441,66 @@ int main(int argc, char* argv[]) {
 <a id="trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer" class="anchor" href="#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer</h3>
 
 <p>Just the "const" versions. TRefCountingPointer&lt;X&gt; actually does implicitly convert to TRefCountingPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".</p>
+
+<h3>
+<a id="tstrongfixedpointer" class="anchor" href="#tstrongfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TStrongFixedPointer</h3>
+
+<p>TStrongFixedPointer is primarily intended to be used as a safe pointer to a member of a class/struct owned by a reference counting pointer. TStrongFixedPointer essentially acts as a pointer to the member (or whatever object you specify), while keeping a copy of the reference counting pointer (or whatever owner you specify) to ensure that the object is not deallocated while you're still using it.  </p>
+
+<p>usage example:</p>
+
+<pre><code>#include "mserefcounting.h"
+
+class H {
+public:
+    static std::string foo2(mse::TStrongFixedPointer&lt;std::string, mse::TRefCountingFixedPointer&lt;A&gt;&gt; strong_string_ptr, CRCFPVector&amp; rcfpvector_ref) {
+        rcfpvector_ref.clear();
+        std::string retval = (*strong_string_ptr);
+        return retval;
+    }
+
+    template&lt;class _TString1Pointer, class _TString2Pointer&gt;
+    static std::string foo6(_TString1Pointer i1ptr, _TString2Pointer i2ptr) {
+        return (*i1ptr) + (*i2ptr);
+    }
+protected:
+    ~H() {}
+};
+
+int main(int argc, char* argv[]) {
+    class A {
+    public:
+        A() {}
+        A(const A&amp; _X) : b(_X.b) {}
+        virtual ~A() {
+            int q = 3; /* just so you can place a breakpoint if you want */
+        }
+        A&amp; operator=(const A&amp; _X) { b = _X.b; return (*this); }
+
+        int b = 3;
+        std::string s = "some text ";
+    };
+    typedef std::vector&lt;mse::TRefCountingFixedPointer&lt;A&gt;&gt; CRCFPVector;
+
+    {
+        CRCFPVector rcfpvector;
+        {
+            mse::TRefCountingFixedPointer&lt;A&gt; A_refcountingfixed_ptr1 = mse::make_refcounting&lt;A&gt;();
+            rcfpvector.push_back(A_refcountingfixed_ptr1);
+        }
+
+        /* strong_string_ptr1 here is essentially a pointer to "A.s" (the string member of class A) welded
+        to a refcounting pointer to A to make sure that the object is not deallocated while strong_string_ptr1
+        is still around. */
+        auto strong_string_ptr1 = mse::make_strong(rcfpvector.front()-&gt;s, rcfpvector.front());
+        H::foo2(strong_string_ptr1, rcfpvector);
+
+        /* In practice, rather than declaring a specific mse::TStrongFixedPointer parameter, we expect
+        functions to be "templatized" so that they can accept any type of pointer. */
+        std::string res1 = H::foo6(strong_string_ptr1, strong_string_ptr1);
+    }
+}
+</code></pre>
 
 <h3>
 <a id="trefcountingofregisteredpointer" class="anchor" href="#trefcountingofregisteredpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingOfRegisteredPointer</h3>
