@@ -68,7 +68,7 @@ public:
 		return retval;
 	}
 	template<class _TString1Pointer, class _TString2Pointer>
-	static std::string concat(_TString1Pointer i1ptr, _TString2Pointer i2ptr) {
+	static std::string foo6(_TString1Pointer i1ptr, _TString2Pointer i2ptr) {
 		return (*i1ptr) + (*i2ptr);
 	}
 protected:
@@ -871,7 +871,7 @@ int main(int argc, char* argv[])
 
 			/* In practice, rather than declaring a specific mse::TStrongFixedPointer parameter, we expect
 			functions to be "templatized" so that they can accept any type of pointer. */
-			std::string res1 = H::concat(strong_string_ptr1, strong_string_ptr1);
+			std::string res1 = H::foo6(strong_string_ptr1, strong_string_ptr1);
 		}
 
 		mse::TRefCountingPointer_test TRefCountingPointer_test1;

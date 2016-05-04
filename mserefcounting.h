@@ -429,54 +429,60 @@ namespace mse {
 		//const TRefCountingFixedConstPointer<_Ty>* operator&() const { return this; }
 	};
 
-	template <class _Ty, class _Tx> class TStrongFixedConstPointer;
+	template <class _TTargetType, class _TLeaseType> class TStrongFixedConstPointer;
 
 	/* If, for example, you want an "owning" pointer to a member of a refcounting pointer target, you can use a
 	TStrongFixedPointer to store a copy of the owning (refcounting) pointer along with the pointer targeting the
 	member. */
-	template <class _Ty, class _Tx>
+	template <class _TTargetType, class _TLeaseType>
 	class TStrongFixedPointer {
 	public:
-		TStrongFixedPointer(_Ty& target/* often a struct member */, _Tx lease/* usually a reference counting pointer */)
-			: m_target_pointer(&target), m_lease(lease) {}
-		_Ty& operator*() const {
+		_TTargetType& operator*() const {
 			return (*m_target_pointer);
 		}
-		_Ty* operator->() const {
+		_TTargetType* operator->() const {
 			return m_target_pointer;
 		}
 
-		template <class _Tw, class _Tv>
-		static TStrongFixedPointer make_strong(_Tw& target, const _Tv& lease) {
+		template <class _TTargetType2, class _TLeaseType2>
+		static TStrongFixedPointer make_strong(_TTargetType2& target, const _TLeaseType2& lease) {
 			return TStrongFixedPointer(target, lease);
 		}
 
-		_Ty* m_target_pointer;
-		_Tx m_lease;
-		friend class TStrongFixedConstPointer<_Ty, _Tx>;
+	private:
+		TStrongFixedPointer(_TTargetType& target/* often a struct member */, _TLeaseType lease/* usually a reference counting pointer */)
+			: m_target_pointer(&target), m_lease(lease) {}
+		TStrongFixedPointer<_TTargetType>& operator=(const TStrongFixedPointer<_TTargetType>& _Right_cref) = delete;
+
+		_TTargetType* m_target_pointer;
+		_TLeaseType m_lease;
+		friend class TStrongFixedConstPointer<_TTargetType, _TLeaseType>;
 	};
 
-	template <class _Ty, class _Tx>
-	TStrongFixedPointer<_Ty, _Tx> make_strong(_Ty& target, const _Tx& lease) {
-		return TStrongFixedPointer<_Ty, _Tx>::make_strong(target, lease);
+	template <class _TTargetType, class _TLeaseType>
+	TStrongFixedPointer<_TTargetType, _TLeaseType> make_strong(_TTargetType& target, const _TLeaseType& lease) {
+		return TStrongFixedPointer<_TTargetType, _TLeaseType>::make_strong(target, lease);
 	}
 
-	template <class _Ty, class _Tx>
+	template <class _TTargetType, class _TLeaseType>
 	class TStrongFixedConstPointer {
 	public:
-		TStrongFixedConstPointer(const _Ty& target/* often a struct member */, _Tx lease/* usually a reference counting pointer */)
-			: m_target_pointer(&target), m_lease(lease) {}
 		TStrongFixedConstPointer(const TStrongFixedConstPointer&) = default;
-		TStrongFixedConstPointer(const TStrongFixedPointer<_Ty, _Tx>&src) : m_target_pointer(src.m_target_pointer), m_lease(src.m_lease) {}
-		const _Ty& operator*() const {
+		TStrongFixedConstPointer(const TStrongFixedPointer<_TTargetType, _TLeaseType>&src) : m_target_pointer(src.m_target_pointer), m_lease(src.m_lease) {}
+		const _TTargetType& operator*() const {
 			return (*m_target_pointer);
 		}
-		const _Ty* operator->() const {
+		const _TTargetType* operator->() const {
 			return m_target_pointer;
 		}
 
-		const _Ty* m_target_pointer;
-		_Tx m_lease;
+	private:
+		TStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeaseType lease/* usually a reference counting pointer */)
+			: m_target_pointer(&target), m_lease(lease) {}
+		TStrongFixedConstPointer<_TTargetType>& operator=(const TStrongFixedConstPointer<_TTargetType>& _Right_cref) = delete;
+
+		const _TTargetType* m_target_pointer;
+		_TLeaseType m_lease;
 	};
 
 	/* shorter aliases */
