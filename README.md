@@ -726,5 +726,5 @@ The choice to not include any thread safety mechanisms in the types in this libr
 To be clear, we are not discouraging asynchronous programming, or even inter-thread communication in general. Just the "casual" sharing of objects between asynchronous threads.
 
 ### Questions and comments
-There's no proper system set up for questions or feedback yet. For now, how about if we use the comment section of [this article](http://www.codeproject.com/Articles/1084361/Registered-Pointers-High-Performance-Cplusplus-Sma) as a makeshift forum for this project. Signing up for a codeproject account seems to be relatively hassle free.
+Create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues) I guess.
 
