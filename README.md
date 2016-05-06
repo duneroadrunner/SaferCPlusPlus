@@ -119,7 +119,7 @@ usage example:
     }
 
 ### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
-TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;const X&gt;, but TRegisteredPointer&lt;const X&gt; doesn't actually enforce "const"ness. TRegisteredConstPointer&lt;X&gt; does.
+TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;const X&gt;, but TRegisteredPointer&lt;const X&gt; doesn't actually enforce "const"ness at the moment. TRegisteredConstPointer&lt;X&gt; does.
 
 ### TRegisteredRefWrapper
 Just a registered version of [std::reference_wrapper](http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).  
