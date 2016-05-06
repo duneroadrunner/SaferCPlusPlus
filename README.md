@@ -126,7 +126,7 @@ TSyncWeakFixedPointer is primarily intended to be used as a safe pointer to a me
 
 usage example:
 
-    #include "mserefcounting.h"
+    #include "mseregistered.h"
     
     class H {
     public:
