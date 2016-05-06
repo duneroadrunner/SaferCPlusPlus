@@ -331,7 +331,7 @@ namespace mse {
 	template<typename _Ty> using scpfcp = TXScopeFixedConstPointer<_Ty>;
 	template<typename _TROy> using scpo = TXScopeObj<_TROy>;
 
-	/* depricated aliases */
+	/* deprecated aliases */
 	template<typename _Ty> using TScopeFixedPointer = TXScopeFixedPointer<_Ty>;
 	template<typename _Ty> using TScopeFixedConstPointer = TXScopeFixedConstPointer<_Ty>;
 	template<typename _TROy> using TScopeObj = TXScopeObj<_TROy>;
