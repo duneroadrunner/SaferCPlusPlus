@@ -121,6 +121,50 @@ usage example:
 ### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
 TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;const X&gt;, but TRegisteredPointer&lt;const X&gt; doesn't actually enforce "const"ness at the moment. TRegisteredConstPointer&lt;X&gt; does.
 
+###TSyncWeakFixedPointer
+TSyncWeakFixedPointer is primarily intended to be used as a safe pointer to a member of a registered object in cases where for some reason you can't, or don't want to, make the member itself a registered object. TSyncWeakFixedPointer essentially acts as a pointer to the member (or whatever object you specify), while keeping a copy of a registered pointer to the object. It uses the registered pointer to ensure that it is safe to access the object. Use mse::make_syncweak() to construct a TSyncWeakFixedPointer.  
+
+usage example:
+
+    #include "mserefcounting.h"
+    
+    class H {
+    public:
+        template<class _TString1Pointer, class _TString2Pointer>
+        static std::string foo6(_TString1Pointer i1ptr, _TString2Pointer i2ptr) {
+            return (*i1ptr) + (*i2ptr);
+        }
+
+    protected:
+        ~H() {}
+    };
+    
+    int main(int argc, char* argv[]) {
+        /* Obtaining safe pointers to members of registered objects: */
+        class E {
+        public:
+            virtual ~E() {}
+            mse::TRegisteredObj<std::string> reg_s = "some text ";
+            std::string s2 = "some other text ";
+        };
+        
+        mse::TRegisteredObj<E> registered_e;
+        mse::TRegisteredPointer<E> E_registered_ptr1 = &registered_e;
+        
+        /* The easiest way is to obtain a safe pointer to a member of a registered object is to make the
+        member itself a registered object. */
+        mse::TRegisteredPointer<std::string> string_registered_ptr1 = &(E_registered_ptr1->reg_s);
+        
+        /* Another option is to make a TSyncWeakFixedPointer. syncweak_string_ptr1 here is essentially
+        a pointer to "E.s2" (string member of class E) with a registered pointer to E to in its pocket.
+        It uses the registered pointer to ensure that it is safe to access the object. */
+        auto syncweak_string_ptr1 = mse::make_syncweak(E_registered_ptr1->s2, E_registered_ptr1);
+        
+        /* In practice, rather than declaring a specific mse::TSyncWeakFixedPointer parameter, we expect
+        functions to be "templatized" so that they can accept any type of pointer. */
+        std::string res1 = H::foo6(syncweak_string_ptr1, syncweak_string_ptr1);
+    }
+
 ### TRegisteredRefWrapper
 Just a registered version of [std::reference_wrapper](http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).  
 
