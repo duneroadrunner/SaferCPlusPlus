@@ -410,6 +410,31 @@ int main(int argc, char* argv[])
 			/* Note that unlike registered pointers, relaxed registered pointers can point to base class objects
 			that are not relaxed registered objects. */
 		}
+		{
+			/* Obtaining safe pointers to members of registered objects: */
+			class E {
+			public:
+				virtual ~E() {}
+				mse::TRegisteredObj<std::string> reg_s = "some text ";
+				std::string s2 = "some other text ";
+			};
+
+			mse::TRegisteredObj<E> registered_e;
+			mse::TRegisteredPointer<E> E_registered_ptr1 = &registered_e;
+
+			/* The easiest way is to obtain a safe pointer to a member of a registered object is to make the
+			member itself a registered object. */
+			mse::TRegisteredPointer<std::string> string_registered_ptr1 = &(E_registered_ptr1->reg_s);
+
+			/* Another option is to make a TSyncWeakFixedPointer. syncweak_string_ptr1 here is essentially
+			a pointer to "E.s2" (string member of class E) with a registered pointer to E to in its pocket.
+			It uses the registered pointer to ensure that it is safe to access the object. */
+			auto syncweak_string_ptr1 = mse::make_syncweak(E_registered_ptr1->s2, E_registered_ptr1);
+
+			/* In practice, rather than declaring a specific mse::TStrongFixedPointer parameter, we expect
+			functions to be "templatized" so that they can accept any type of pointer. */
+			std::string res1 = H::foo6(syncweak_string_ptr1, syncweak_string_ptr1);
+		}
 
 		{
 			/***********************************/
@@ -857,15 +882,16 @@ int main(int argc, char* argv[])
 			B::foo1(rcfpvector.front(), rcfpvector);
 		}
 		{
+			/* Obtaining a safe pointer to a member of an object owned by a reference counting pointer: */
 			CRCFPVector rcfpvector;
 			{
 				mse::TRefCountingFixedPointer<A> A_refcountingfixed_ptr1 = mse::make_refcounting<A>();
 				rcfpvector.push_back(A_refcountingfixed_ptr1);
 			}
 
-			/* strong_string_ptr1 here is essentially a pointer to "A.s" (the string member of class A) welded
-			to a refcounting pointer to A to make sure that the object is not deallocated while strong_string_ptr1
-			is still around. */
+			/* strong_string_ptr1 here is essentially a pointer to "A.s" (the string member of class A) with
+			a refcounting pointer to A welded to it to make sure that the object is not deallocated while
+			strong_string_ptr1 is still around. */
 			auto strong_string_ptr1 = mse::make_strong(rcfpvector.front()->s, rcfpvector.front());
 			B::foo2(strong_string_ptr1, rcfpvector);
 

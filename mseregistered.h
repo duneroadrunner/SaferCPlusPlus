@@ -616,6 +616,66 @@ namespace mse {
 		delete a;
 	}
 
+	template <class _TTargetType, class _TLeasePointerType> class TSyncWeakFixedConstPointer;
+
+	/* If, for example, you want a safe pointer to a member of a registered pointer target, you can use a
+	TSyncWeakFixedPointer to store a copy of the registered pointer along with the pointer targeting the
+	member. */
+	template <class _TTargetType, class _TLeasePointerType>
+	class TSyncWeakFixedPointer {
+	public:
+		_TTargetType& operator*() const {
+			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
+			return (*m_target_pointer);
+		}
+		_TTargetType* operator->() const {
+			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
+			return m_target_pointer;
+		}
+
+		template <class _TTargetType2, class _TLeasePointerType2>
+		static TSyncWeakFixedPointer make_syncweak(_TTargetType2& target, const _TLeasePointerType2& lease_pointer) {
+			return TSyncWeakFixedPointer(target, lease_pointer);
+		}
+
+	private:
+		TSyncWeakFixedPointer(_TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a reference counting pointer */)
+			: m_target_pointer(&target), m_lease_pointer(lease_pointer) {}
+		TSyncWeakFixedPointer& operator=(const TSyncWeakFixedPointer& _Right_cref) = delete;
+
+		_TTargetType* m_target_pointer;
+		_TLeasePointerType m_lease_pointer;
+		friend class TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;
+	};
+
+	template <class _TTargetType, class _TLeasePointerType>
+	TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType> make_syncweak(_TTargetType& target, const _TLeasePointerType& lease_pointer) {
+		return TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>::make_syncweak(target, lease_pointer);
+	}
+
+	template <class _TTargetType, class _TLeasePointerType>
+	class TSyncWeakFixedConstPointer {
+	public:
+		TSyncWeakFixedConstPointer(const TSyncWeakFixedConstPointer&) = default;
+		TSyncWeakFixedConstPointer(const TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>&src) : m_target_pointer(src.m_target_pointer), m_lease_pointer(src.m_lease_pointer) {}
+		const _TTargetType& operator*() const {
+			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
+			return (*m_target_pointer);
+		}
+		const _TTargetType* operator->() const {
+			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
+			return m_target_pointer;
+		}
+
+	private:
+		TSyncWeakFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a reference counting pointer */)
+			: m_target_pointer(&target), m_lease_pointer(lease_pointer) {}
+		TSyncWeakFixedConstPointer& operator=(const TSyncWeakFixedConstPointer& _Right_cref) = delete;
+
+		const _TTargetType* m_target_pointer;
+		_TLeasePointerType m_lease_pointer;
+	};
+
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
 
