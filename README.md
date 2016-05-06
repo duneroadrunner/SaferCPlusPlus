@@ -165,6 +165,8 @@ usage example:
         std::string res1 = H::foo6(syncweak_string_ptr1, syncweak_string_ptr1);
     }
 
+###TSyncWeakFixedConstPointer
+
 ### TRegisteredRefWrapper
 Just a registered version of [std::reference_wrapper](http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).  
 
@@ -399,6 +401,8 @@ usage example:
             std::string res1 = H::foo6(strong_string_ptr1, strong_string_ptr1);
         }
     }
+
+###TStrongFixedConstPointer
 
 ### TRefCountingOfRegisteredPointer
 
