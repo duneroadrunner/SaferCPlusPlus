@@ -119,7 +119,7 @@ usage example:
     }
 
 ### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
-Just the "const" versions. TRegisteredPointer&lt;X&gt; actually does implicitly convert to TRegisteredPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
+TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;const X&gt;, but TRegisteredPointer&lt;const X&gt; doesn't actually enforce "const"ness. TRegisteredConstPointer&lt;X&gt; does.
 
 ### TRegisteredRefWrapper
 Just a registered version of [std::reference_wrapper](http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).  
@@ -186,8 +186,7 @@ usage example:
 ### TRelaxedRegisteredFixedPointer
 
 ### TRelaxedRegisteredConstPointer, TRelaxedRegisteredNotNullConstPointer, TRelaxedRegisteredFixedConstPointer
-TRelaxedRegisteredPointer&lt;X&gt; actually does implicitly convert to TRelaxedRegisteredPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
-  
+
 ### Simple benchmarks
 
 Just some simple microbenchmarks. We show the results for msvc2015 and msvc2013 (run on the same machine), since there are some interesting differences. The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp).
@@ -296,7 +295,7 @@ Same as TRefCountingNotNullPointer, but cannot be retargeted after construction 
 
 ### TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer
 
-Just the "const" versions. TRefCountingPointer&lt;X&gt; actually does implicitly convert to TRefCountingPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
+TRefCountingPointer&lt;X&gt; actually does implicitly convert to TRefCountingPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
 
 ###TStrongFixedPointer
@@ -524,7 +523,6 @@ usage example:
     }
 
 ### TXScopeFixedConstPointer
-TXScopeFixedPointer&lt;X&gt; actually does implicitly convert to TXScopeFixedPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
 ### TXScopeOwnerPointer
 TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, TXScopeOwnerPointer is not intended to be used as a member of any class or struct. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
