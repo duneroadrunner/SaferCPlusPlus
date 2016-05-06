@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer" class="anchor" href="#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer</h3>
 
-<p>Just the "const" versions. TRegisteredPointer&lt;X&gt; actually does implicitly convert to TRegisteredPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".</p>
+<p>TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;const X&gt;, but TRegisteredPointer&lt;const X&gt; doesn't actually enforce "const"ness. TRegisteredConstPointer&lt;X&gt; does.</p>
 
 <h3>
 <a id="tregisteredrefwrapper" class="anchor" href="#tregisteredrefwrapper" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredRefWrapper</h3>
@@ -220,8 +220,6 @@ int main(int argc, char* argv[]) {
 
 <h3>
 <a id="trelaxedregisteredconstpointer-trelaxedregisterednotnullconstpointer-trelaxedregisteredfixedconstpointer" class="anchor" href="#trelaxedregisteredconstpointer-trelaxedregisterednotnullconstpointer-trelaxedregisteredfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRelaxedRegisteredConstPointer, TRelaxedRegisteredNotNullConstPointer, TRelaxedRegisteredFixedConstPointer</h3>
-
-<p>TRelaxedRegisteredPointer&lt;X&gt; actually does implicitly convert to TRelaxedRegisteredPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".</p>
 
 <h3>
 <a id="simple-benchmarks" class="anchor" href="#simple-benchmarks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Simple benchmarks</h3>
@@ -440,7 +438,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer" class="anchor" href="#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer</h3>
 
-<p>Just the "const" versions. TRefCountingPointer&lt;X&gt; actually does implicitly convert to TRefCountingPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".</p>
+<p>TRefCountingPointer&lt;X&gt; actually does implicitly convert to TRefCountingPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".</p>
 
 <h3>
 <a id="tstrongfixedpointer" class="anchor" href="#tstrongfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TStrongFixedPointer</h3>
@@ -684,8 +682,6 @@ int main(int argc, char* argv[]) {
 
 <h3>
 <a id="txscopefixedconstpointer" class="anchor" href="#txscopefixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TXScopeFixedConstPointer</h3>
-
-<p>TXScopeFixedPointer&lt;X&gt; actually does implicitly convert to TXScopeFixedPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".</p>
 
 <h3>
 <a id="txscopeownerpointer" class="anchor" href="#txscopeownerpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TXScopeOwnerPointer</h3>
