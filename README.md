@@ -491,10 +491,10 @@ usage example:
 ### Scope pointers
 Scope pointers are different from other smart pointers in the library in that, by default, they have no runtime safety enforcement mechanism, and the compile-time safety mechanisms aren't (yet) quite sufficient to ensure that they will be used in an intrinsically safe manner. Scope pointers point to scope objects. Scope objects are objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So basically the object is destroyed when it, or it's owner, goes out of scope. The purpose of scope pointers and objects is to identify a class of situations that are simple and deterministic enough that no (runtime) safety mechanisms are necessary. In theory, a tool could be constructed to verify that scope pointers are used in a safe manner at compile-time. But in the mean time we provide the option of using a relaxed registered pointer as the scope pointer's base class for enhanced safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause relaxed registered pointers to be used in debug mode. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For int, bool and size_t use the safer [substitutes](#primitives) that can act as base classes.
 
-There are two types of scope pointers, [TScopeFixedPointer](#tscopefixedpointer) and [TScopeOwnerPointer](#tscopeownerpointer). TScopeOwnerPointer is similar to boost::scoped_ptr in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to refer to "declaration scope".) TScopeFixedPointer is a "non-owning" (or "weak") pointer to a scope object. It is (intentionally) limited in it's functionality, and is intended pretty much for the sole purpose of passing scope objects by reference as function arguments. For more information on how the safe smart pointers in this library are intended to be used, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+There are two types of scope pointers, [TXScopeFixedPointer](#txscopefixedpointer) and [TXScopeOwnerPointer](#txscopeownerpointer). TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to refer to "declaration scope".) TXScopeFixedPointer is a "non-owning" (or "weak") pointer to a scope object. It is (intentionally) limited in it's functionality, and is intended pretty much for the sole purpose of passing scope objects by reference as function arguments. For more information on how the safe smart pointers in this library are intended to be used, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 
-### TScopeFixedPointer
+### TXScopeFixedPointer
 usage example:
 
     #include "msescope.h"
@@ -511,23 +511,23 @@ usage example:
         };
         class B {
         public:
-            static int foo2(mse::TScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-            static int foo3(mse::TScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+            static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+            static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
         protected:
             ~B() {}
         };
     
-        mse::TScopeObj<A> a_scpobj(5);
+        mse::TXScopeObj<A> a_scpobj(5);
         int res1 = (&a_scpobj)->b;
         int res2 = B::foo2(&a_scpobj);
         int res3 = B::foo3(&a_scpobj);
     }
 
-### TScopeFixedConstPointer
-TScopeFixedPointer&lt;X&gt; actually does implicitly convert to TScopeFixedPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
+### TXScopeFixedConstPointer
+TXScopeFixedPointer&lt;X&gt; actually does implicitly convert to TXScopeFixedPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
-### TScopeOwnerPointer
-TScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, TScopeOwnerPointer is not intended to be used as a member of any class or struct. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
+### TXScopeOwnerPointer
+TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, TXScopeOwnerPointer is not intended to be used as a member of any class or struct. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
 
 usage example:
 
@@ -545,13 +545,13 @@ usage example:
         };
         class B {
         public:
-            static int foo2(mse::TScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-            static int foo3(mse::TScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+            static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+            static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
         protected:
             ~B() {}
         };
     
-        mse::TScopeOwnerPointer<A> a_scpoptr(7);
+        mse::TXScopeOwnerPointer<A> a_scpoptr(7);
         int res4 = B::foo2(&(*a_scpoptr));
     }
 
