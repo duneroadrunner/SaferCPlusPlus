@@ -123,6 +123,7 @@ TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;con
 
 ###TSyncWeakFixedPointer
 TSyncWeakFixedPointer is primarily intended to be used as a safe pointer to a member of a registered object in cases where for some reason you can't, or don't want to, make the member itself a registered object. TSyncWeakFixedPointer essentially acts as a pointer to the member (or whatever object you specify), while keeping a copy of a registered pointer to the object. It uses the registered pointer to ensure that it is safe to access the object. Use mse::make_syncweak() to construct a TSyncWeakFixedPointer.  
+What's with the name? "SyncWeak" is short for "sychronous weak", as opposed to "asynchronous weak". "Non-owning" pointers that support objects shared between asynchronous threads, like std::weak_ptr, cannot be used to access the object directly. If, on the other hand, asynchronous sharing is not supported, then a non-owning pointer (with the appropriate safety mechanisms), like TRegisteredPointer, can be used to access the object directly. There is a corresponding [TStrongFixedPointer](#tstrongfixedpointer).  
 
 usage example:
 
@@ -600,6 +601,45 @@ usage example:
         mse::TXScopeOwnerPointer<A> a_scpoptr(7);
         int res4 = B::foo2(&(*a_scpoptr));
     }
+
+###TXScopeWeakFixedPointer
+Use TXScopeWeakFixedPointer to obtain an xscope pointer to a member of an xscope object. TXScopeWeakFixedPointer is basically the xscope equivalent of [TSyncWeakFixedPointer](#tsyncweakfixedpointer). Use mse::make_xscopeweak() to construct a TXScopeWeakFixedPointer.  
+
+usage example:
+
+    #include "msescope.h"
+    
+    class H {
+    public:
+        template<class _TString1Pointer, class _TString2Pointer>
+        static std::string foo6(_TString1Pointer i1ptr, _TString2Pointer i2ptr) {
+            return (*i1ptr) + (*i2ptr);
+        }
+
+    protected:
+        ~H() {}
+    };
+    
+    int main(int argc, char* argv[]) {
+        /* Obtaining a "safe" pointer to a member of an xscope object: */
+        class E {
+        public:
+            virtual ~E() {}
+            std::string s = "some text ";
+        };
+        
+        mse::TXScopeObj<E> xscope_e;
+        mse::TXScopePointer<E> E_xscope_ptr1 = &xscope_e;
+        
+        auto xscopeweak_string_ptr1 = mse::make_xscopeweak(E_xscope_ptr1->s, E_xscope_ptr1);
+        
+        /* In practice, rather than declaring a specific mse::TXScopeWeakFixedPointer parameter, we expect
+        functions to be "templatized" so that they can accept any type of pointer. */
+        std::string res1 = H::foo6(xscopeweak_string_ptr1, xscopeweak_string_ptr1);
+    }
+
+###TXScopeWeakFixedConstPointer
+
 
 ### Safely passing parameters by reference
 As has been shown, you can use TRegisteredPointers or TRefCountingPointers to safely pass parameters by reference. If you're writing a function for more general use, and for some reason you can only support one parameter type, we would probably recommend TRegisteredPointers over TRefCountingPointers, just because of their support for stack allocated targets. But much more preferable might be to "templatize" your function so that it can accept any type of pointer. This is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example. Or you can read an article about it [here](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
