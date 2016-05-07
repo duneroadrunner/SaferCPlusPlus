@@ -639,7 +639,7 @@ namespace mse {
 		}
 
 	private:
-		TSyncWeakFixedPointer(_TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a reference counting pointer */)
+		TSyncWeakFixedPointer(_TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a registered pointer */)
 			: m_target_pointer(&target), m_lease_pointer(lease_pointer) {}
 		TSyncWeakFixedPointer& operator=(const TSyncWeakFixedPointer& _Right_cref) = delete;
 
@@ -668,7 +668,7 @@ namespace mse {
 		}
 
 	private:
-		TSyncWeakFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a reference counting pointer */)
+		TSyncWeakFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a registered pointer */)
 			: m_target_pointer(&target), m_lease_pointer(lease_pointer) {}
 		TSyncWeakFixedConstPointer& operator=(const TSyncWeakFixedConstPointer& _Right_cref) = delete;
 
