@@ -431,7 +431,7 @@ int main(int argc, char* argv[])
 			It uses the registered pointer to ensure that it is safe to access the object. */
 			auto syncweak_string_ptr1 = mse::make_syncweak(E_registered_ptr1->s2, E_registered_ptr1);
 
-			/* In practice, rather than declaring a specific mse::TStrongFixedPointer parameter, we expect
+			/* In practice, rather than declaring a specific mse::TSyncWeakFixedPointer parameter, we expect
 			functions to be "templatized" so that they can accept any type of pointer. */
 			std::string res1 = H::foo6(syncweak_string_ptr1, syncweak_string_ptr1);
 		}
