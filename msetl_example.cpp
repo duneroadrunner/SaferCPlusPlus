@@ -1025,14 +1025,14 @@ int main(int argc, char* argv[])
 	}
 
 	{
-		/************************/
-		/*  TScopeFixedPointer  */
-		/************************/
+		/*************************/
+		/*  TXScopeFixedPointer  */
+		/*************************/
 
-		/* The "scope" templates basically just allow the programmer to indicate that the target object has "scope
+		/* The "xscope" templates basically just allow the programmer to indicate that the target object has "scope
 		lifetime". That is, the object is either allocated on the stack, or it's "owner" pointer is allocated on
 		the stack. Unfortunately there's really no way to enforce this, which makes this data type less intrinsically
-		safe than say, "reference counting" pointers. Because of this, "scope" pointers can optionally use relaxed
+		safe than say, "reference counting" pointers. Because of this, "xscope" pointers can optionally use relaxed
 		registered pointers as their base class, thereby inheriting their safety features. */
 
 		class A {
@@ -1043,22 +1043,26 @@ int main(int argc, char* argv[])
 			A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 			int b = 3;
+			std::string s = "some text ";
 		};
 		class B {
 		public:
 			static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-			static int foo2(mse::TScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-			static int foo3(mse::TScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+			static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+			static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
 		protected:
 			~B() {}
 		};
 
-		mse::TScopeObj<A> a_scpobj(5);
+		mse::TXScopeObj<A> a_scpobj(5);
 		int res1 = (&a_scpobj)->b;
 		int res2 = B::foo2(&a_scpobj);
 		int res3 = B::foo3(&a_scpobj);
-		mse::TScopeOwnerPointer<A> a_scpoptr(7);
+		mse::TXScopeOwnerPointer<A> a_scpoptr(7);
 		int res4 = B::foo2(&(*a_scpoptr));
+
+		auto xscopeweak_string_ptr1 = mse::make_xscopeweak((a_scpobj.s), (&a_scpobj));
+		auto res5 = H::foo6(xscopeweak_string_ptr1, xscopeweak_string_ptr1);
 
 		mse::s_scpptr_test1();
 	}

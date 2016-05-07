@@ -322,6 +322,70 @@ namespace mse {
 		TXScopeObj<_Ty>* m_ptr = nullptr;
 	};
 
+	template <class _TTargetType, class _TXScopePointerType = void*> class TXScopeWeakFixedConstPointer;
+
+	/* If, for example, you want a safe pointer to a member of a registered pointer target, you can use a
+	TXScopeWeakFixedPointer to store a copy of the registered pointer along with the pointer targeting the
+	member. */
+	template <class _TTargetType, class _TXScopePointerType = void*>
+	class TXScopeWeakFixedPointer {
+	public:
+		_TTargetType& operator*() const {
+			return (*m_target_pointer);
+		}
+		_TTargetType* operator->() const {
+			return m_target_pointer;
+		}
+
+		template <class _TTargetType2, class _TXScopePointerType2>
+		static TXScopeWeakFixedPointer make_xscopeweak(_TTargetType2& target, const _TXScopePointerType2& /*xscope_pointer*/) {
+			return TXScopeWeakFixedPointer(target/*, xscope_pointer*/);
+		}
+		template <class _TTargetType2>
+		static TXScopeWeakFixedPointer make_xscopeweak(_TTargetType2& target) {
+			return TXScopeWeakFixedPointer(target/*, xscope_pointer*/);
+		}
+
+	private:
+		TXScopeWeakFixedPointer(_TTargetType& target/* often a struct member */, _TXScopePointerType xscope_pointer/* an xscope pointer */)
+			: m_target_pointer(&target) {}
+		TXScopeWeakFixedPointer(_TTargetType& target/* often a struct member */) : m_target_pointer(&target) {}
+		TXScopeWeakFixedPointer& operator=(const TXScopeWeakFixedPointer& _Right_cref) = delete;
+
+		_TTargetType* m_target_pointer;
+		friend class TXScopeWeakFixedConstPointer<_TTargetType, _TXScopePointerType>;
+	};
+
+	template <class _TTargetType, class _TXScopePointerType>
+	TXScopeWeakFixedPointer<_TTargetType, _TXScopePointerType> make_xscopeweak(_TTargetType& target, const _TXScopePointerType& /*xscope_pointer*/) {
+		return TXScopeWeakFixedPointer<_TTargetType, _TXScopePointerType>::make_xscopeweak(target/*, xscope_pointer*/);
+	}
+	template <class _TTargetType>
+	TXScopeWeakFixedPointer<_TTargetType> make_xscopeweak(_TTargetType& target) {
+		return TXScopeWeakFixedPointer<_TTargetType>::make_xscopeweak(target/*, xscope_pointer*/);
+	}
+
+	template <class _TTargetType, class _TXScopePointerType>
+	class TXScopeWeakFixedConstPointer {
+	public:
+		TXScopeWeakFixedConstPointer(const TXScopeWeakFixedConstPointer&) = default;
+		TXScopeWeakFixedConstPointer(const TXScopeWeakFixedPointer<_TTargetType, _TXScopePointerType>&src) : m_target_pointer(src.m_target_pointer) {}
+		const _TTargetType& operator*() const {
+			return (*m_target_pointer);
+		}
+		const _TTargetType* operator->() const {
+			return m_target_pointer;
+		}
+
+	private:
+		TXScopeWeakFixedConstPointer(const _TTargetType& target/* often a struct member */, _TXScopePointerType xscope_pointer/* an xscope pointer */)
+			: m_target_pointer(&target) {}
+		TXScopeWeakFixedConstPointer(const _TTargetType& target/* often a struct member */) : m_target_pointer(&target) {}
+		TXScopeWeakFixedConstPointer& operator=(const TXScopeWeakFixedConstPointer& _Right_cref) = delete;
+
+		const _TTargetType* m_target_pointer;
+	};
+
 	/* shorter aliases */
 	//template<typename _Ty> using scpp = TXScopePointer<_Ty>;
 	//template<typename _Ty> using scpcp = TXScopeConstPointer<_Ty>;
@@ -330,6 +394,8 @@ namespace mse {
 	template<typename _Ty> using scpfp = TXScopeFixedPointer<_Ty>;
 	template<typename _Ty> using scpfcp = TXScopeFixedConstPointer<_Ty>;
 	template<typename _TROy> using scpo = TXScopeObj<_TROy>;
+	template<class _TTargetType, class _TXScopePointerType> using scpwkfp = TSyncWeakFixedPointer<_TTargetType, _TXScopePointerType>;
+	template<class _TTargetType, class _TXScopePointerType> using scpwkfcp = TSyncWeakFixedConstPointer<_TTargetType, _TXScopePointerType>;
 
 	/* deprecated aliases */
 	template<typename _Ty> using TScopeFixedPointer = TXScopeFixedPointer<_Ty>;
