@@ -123,6 +123,7 @@ TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;con
 
 ###TSyncWeakFixedPointer
 TSyncWeakFixedPointer is primarily intended to be used as a safe pointer to a member of a registered object in cases where for some reason you can't, or don't want to, make the member itself a registered object. TSyncWeakFixedPointer essentially acts as a pointer to the member (or whatever object you specify), while keeping a copy of a registered pointer to the object. It uses the registered pointer to ensure that it is safe to access the object. Use mse::make_syncweak() to construct a TSyncWeakFixedPointer.  
+What's with the name? "SyncWeak" is short for "sychronous weak", as opposed to "asynchronous weak". "Non-owning" pointers that support objects shared between asynchronous threads, like std::weak_ptr, cannot be used to access the object directly. If, on the other hand, asynchronous sharing is not supported, then a non-owning pointer (with the appropriate safety mechanisms), like TRegisteredPointer, can be used to access the object directly. There is a corresponding [TStrongFixedPointer](#tstrongfixedpointer).  
 
 usage example:
 
