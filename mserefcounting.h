@@ -34,7 +34,7 @@ namespace mse {
 
 	template <class X, class... Args>
 	TRefCountingPointer<X> make_refcounting(Args&&... args) {
-		return std::make_shared<X>(args...);
+		return std::make_shared<X>(std::forward<Args>(args)...);
 	}
 #else /*MSE_REFCOUNTINGPOINTER_DISABLED*/
 
@@ -159,7 +159,7 @@ namespace mse {
 
 		template <class... Args>
 		static TRefCountingPointer make_refcounting(Args&&... args) {
-			auto new_ptr = new CRefCounter(args...);
+			auto new_ptr = new CRefCounter(std::forward<Args>(args)...);
 			TRefCountingPointer retval(new_ptr);
 			return retval;
 		}
@@ -237,7 +237,7 @@ namespace mse {
 
 		template <class... Args>
 		static TRefCountingFixedPointer make_refcounting(Args&&... args) {
-			auto new_ptr = new TRefWithTargetObj<_Ty>(args...);
+			auto new_ptr = new TRefWithTargetObj<_Ty>(std::forward<Args>(args)...);
 			TRefCountingFixedPointer retval(new_ptr);
 			return retval;
 		}
@@ -254,7 +254,7 @@ namespace mse {
 
 	template <class X, class... Args>
 	TRefCountingFixedPointer<X> make_refcounting(Args&&... args) {
-		return TRefCountingFixedPointer<X>::make_refcounting(args...);
+		return TRefCountingFixedPointer<X>::make_refcounting(std::forward<Args>(args)...);
 	}
 
 #endif /*MSE_REFCOUNTINGPOINTER_DISABLED*/

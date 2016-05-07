@@ -39,7 +39,7 @@ namespace mse {
 
 	template <class _Ty, class... Args>
 	TRefCountingOfRelaxedRegisteredFixedPointer<_Ty> make_refcountingofrelaxedregistered(Args&&... args) {
-		return make_refcounting<TRelaxedRegisteredObj<_Ty>>(args...);
+		return make_refcounting<TRelaxedRegisteredObj<_Ty>>(std::forward<Args>(args)...);
 	}
 
 

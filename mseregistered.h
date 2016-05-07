@@ -601,7 +601,7 @@ namespace mse {
 	/* registered_new is intended to be analogous to std::make_shared */
 	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
 	TRegisteredPointer<_Ty, _Tn> registered_new(Args&&... args) {
-		return new TRegisteredObj<_Ty, _Tn>(args...);
+		return new TRegisteredObj<_Ty, _Tn>(std::forward<Args>(args)...);
 	}
 	template <class _Ty, int _Tn = sc_default_cache_size>
 	void registered_delete(const TRegisteredPointer<_Ty, _Tn>& regPtrRef) {
@@ -739,7 +739,7 @@ namespace mse {
 	template<typename _Ty, int _Tn = sc_default_cache_size> using rfcp = TRegisteredFixedConstPointer<_Ty, _Tn>;
 	template<typename _TROy, int _Tn = sc_default_cache_size> using ro = TRegisteredObj<_TROy, _Tn>;
 	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
-	TRegisteredPointer<_Ty, _Tn> rnew(Args&&... args) { return registered_new<_Ty, _Tn>(args...); }
+	TRegisteredPointer<_Ty, _Tn> rnew(Args&&... args) { return registered_new<_Ty, _Tn>(std::forward<Args>(args)...); }
 	template <class _Ty, int _Tn = sc_default_cache_size>
 	void rdelete(const TRegisteredPointer<_Ty, _Tn>& regPtrRef) { registered_delete<_Ty, _Tn>(regPtrRef); }
 	template<class _TTargetType, class _TLeasePointerType> using swkfp = TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>;

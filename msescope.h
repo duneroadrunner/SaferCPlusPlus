@@ -299,7 +299,7 @@ namespace mse {
 	public:
 		template <class... Args>
 		TXScopeOwnerPointer(Args&&... args) {
-			TXScopeObj<_Ty>* new_ptr = new TXScopeObj<_Ty>(args...);
+			TXScopeObj<_Ty>* new_ptr = new TXScopeObj<_Ty>(std::forward<Args>(args)...);
 			m_ptr = new_ptr;
 		}
 		virtual ~TXScopeOwnerPointer() {

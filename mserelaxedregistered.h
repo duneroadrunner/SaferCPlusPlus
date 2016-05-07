@@ -55,7 +55,7 @@ namespace mse {
 	template<typename _TROFLy> using TRelaxedRegisteredObj = _TROFLy;
 	template <class _Ty, class... Args>
 	TRelaxedRegisteredPointer<_Ty> relaxed_registered_new(Args&&... args) {
-		return new TRelaxedRegisteredObj<_Ty>(args...);
+		return new TRelaxedRegisteredObj<_Ty>(std::forward<Args>(args)...);
 	}
 	template <class _Ty>
 	void relaxed_registered_delete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) {
@@ -600,7 +600,7 @@ namespace mse {
 	/* See registered_new(). */
 	template <class _Ty, class... Args>
 	TRelaxedRegisteredPointer<_Ty> relaxed_registered_new(Args&&... args) {
-		auto a = new TRelaxedRegisteredObj<_Ty>(args...);
+		auto a = new TRelaxedRegisteredObj<_Ty>(std::forward<Args>(args)...);
 		return TRelaxedRegisteredPointer<_Ty>((*a).trackerPtr(), a);
 	}
 	template <class _Ty>
@@ -622,7 +622,7 @@ namespace mse {
 	template<typename _Ty> using rrfcp = TRelaxedRegisteredFixedConstPointer<_Ty>;
 	template<typename _TROFLy> using rro = TRelaxedRegisteredObj<_TROFLy>;
 	template <class _Ty, class... Args>
-	TRelaxedRegisteredPointer<_Ty> rrnew(Args&&... args) { return relaxed_registered_new<_Ty>(args...); }
+	TRelaxedRegisteredPointer<_Ty> rrnew(Args&&... args) { return relaxed_registered_new<_Ty>(std::forward<Args>(args)...); }
 	template <class _Ty>
 	void rrdelete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) { relaxed_registered_delete<_Ty>(regPtrRef); }
 

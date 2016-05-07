@@ -39,7 +39,7 @@ namespace mse {
 
 	template <class _Ty, class... Args>
 	TRefCountingOfRegisteredFixedPointer<_Ty> make_refcountingofregistered(Args&&... args) {
-		return make_refcounting<TRegisteredObj<_Ty>>(args...);
+		return make_refcounting<TRegisteredObj<_Ty>>(std::forward<Args>(args)...);
 	}
 
 
