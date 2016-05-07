@@ -151,7 +151,8 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="tsyncweakfixedpointer" class="anchor" href="#tsyncweakfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TSyncWeakFixedPointer</h3>
 
-<p>TSyncWeakFixedPointer is primarily intended to be used as a safe pointer to a member of a registered object in cases where for some reason you can't, or don't want to, make the member itself a registered object. TSyncWeakFixedPointer essentially acts as a pointer to the member (or whatever object you specify), while keeping a copy of a registered pointer to the object. It uses the registered pointer to ensure that it is safe to access the object. Use mse::make_syncweak() to construct a TSyncWeakFixedPointer.  </p>
+<p>TSyncWeakFixedPointer is primarily intended to be used as a safe pointer to a member of a registered object in cases where for some reason you can't, or don't want to, make the member itself a registered object. TSyncWeakFixedPointer essentially acts as a pointer to the member (or whatever object you specify), while keeping a copy of a registered pointer to the object. It uses the registered pointer to ensure that it is safe to access the object. Use mse::make_syncweak() to construct a TSyncWeakFixedPointer.<br>
+What's with the name? "SyncWeak" is short for "sychronous weak", as opposed to "asynchronous weak". "Non-owning" pointers that support objects shared between asynchronous threads, like std::weak_ptr, cannot be used to access the object directly. If, on the other hand, asynchronous sharing is not supported, then a non-owning pointer (with the appropriate safety mechanisms), like TRegisteredPointer, can be used to access the object directly. There is a corresponding <a href="#tstrongfixedpointer">TStrongFixedPointer</a>.  </p>
 
 <p>usage example:</p>
 
@@ -194,6 +195,9 @@ int main(int argc, char* argv[]) {
     std::string res1 = H::foo6(syncweak_string_ptr1, syncweak_string_ptr1);
 }
 </code></pre>
+
+<h3>
+<a id="tsyncweakfixedconstpointer" class="anchor" href="#tsyncweakfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TSyncWeakFixedConstPointer</h3>
 
 <h3>
 <a id="tregisteredrefwrapper" class="anchor" href="#tregisteredrefwrapper" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredRefWrapper</h3>
@@ -548,6 +552,9 @@ int main(int argc, char* argv[]) {
 </code></pre>
 
 <h3>
+<a id="tstrongfixedconstpointer" class="anchor" href="#tstrongfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TStrongFixedConstPointer</h3>
+
+<h3>
 <a id="trefcountingofregisteredpointer" class="anchor" href="#trefcountingofregisteredpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRefCountingOfRegisteredPointer</h3>
 
 <p>TRefCountingOfRegisteredPointer is simply an alias for TRefCountingPointer&lt;TRegisteredObj&lt;_Ty&gt;&gt;. TRegisteredObj&lt;_Ty&gt; is meant to behave much like, and be compatible with a _Ty. The reason why we might want to use it is because the &amp; ("address of") operator of TRegisteredObj&lt;_Ty&gt; returns a <a href="#tregisteredfixedpointer">TRegisteredFixedPointer&lt;_Ty&gt;</a> rather than a raw pointer, and TRegisteredPointers can serve as safe "weak pointers".  </p>
@@ -761,6 +768,48 @@ int main(int argc, char* argv[]) {
     int res4 = B::foo2(&amp;(*a_scpoptr));
 }
 </code></pre>
+
+<h3>
+<a id="txscopeweakfixedpointer" class="anchor" href="#txscopeweakfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TXScopeWeakFixedPointer</h3>
+
+<p>Use TXScopeWeakFixedPointer to obtain an xscope pointer to a member of an xscope object. TXScopeWeakFixedPointer is basically the xscope equivalent of <a href="#tsyncweakfixedpointer">TSyncWeakFixedPointer</a>. Use mse::make_xscopeweak() to construct a TXScopeWeakFixedPointer.  </p>
+
+<p>usage example:</p>
+
+<pre><code>#include "msescope.h"
+
+class H {
+public:
+    template&lt;class _TString1Pointer, class _TString2Pointer&gt;
+    static std::string foo6(_TString1Pointer i1ptr, _TString2Pointer i2ptr) {
+        return (*i1ptr) + (*i2ptr);
+    }
+
+protected:
+    ~H() {}
+};
+
+int main(int argc, char* argv[]) {
+    /* Obtaining a "safe" pointer to a member of an xscope object: */
+    class E {
+    public:
+        virtual ~E() {}
+        std::string s = "some text ";
+    };
+
+    mse::TXScopeObj&lt;E&gt; xscope_e;
+    mse::TXScopePointer&lt;E&gt; E_xscope_ptr1 = &amp;xscope_e;
+
+    auto xscopeweak_string_ptr1 = mse::make_xscopeweak(E_xscope_ptr1-&gt;s, E_xscope_ptr1);
+
+    /* In practice, rather than declaring a specific mse::TXScopeWeakFixedPointer parameter, we expect
+    functions to be "templatized" so that they can accept any type of pointer. */
+    std::string res1 = H::foo6(xscopeweak_string_ptr1, xscopeweak_string_ptr1);
+}
+</code></pre>
+
+<h3>
+<a id="txscopeweakfixedconstpointer" class="anchor" href="#txscopeweakfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TXScopeWeakFixedConstPointer</h3>
 
 <h3>
 <a id="safely-passing-parameters-by-reference" class="anchor" href="#safely-passing-parameters-by-reference" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Safely passing parameters by reference</h3>
