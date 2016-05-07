@@ -51,7 +51,7 @@ namespace mse {
 		void increment() { m_counter++; }
 		void decrement() { assert(0 <= m_counter); m_counter--; }
 		int use_count() const { return m_counter; }
-		virtual void* target_obj_address() = 0;
+		virtual void* target_obj_address() const = 0;
 	};
 
 	template<class Y>
@@ -62,8 +62,8 @@ namespace mse {
 		template<class ... Args>
 		TRefWithTargetObj(Args && ...args) : m_object(args...) {}
 
-		void* target_obj_address() {
-			return std::addressof(m_object);
+		void* target_obj_address() const {
+			return const_cast<void *>(static_cast<const void *>(std::addressof(m_object)));
 		}
 	};
 
