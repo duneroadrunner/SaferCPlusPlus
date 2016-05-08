@@ -24,22 +24,24 @@
 
 namespace mse {
 
-	template<typename _Ty> class TRefCountingNotNullConstPointer;
-	template<typename _Ty> class TRefCountingFixedConstPointer;
-
 #ifdef MSE_REFCOUNTINGPOINTER_DISABLED
 	template <class X> using TRefCountingPointer = std::shared_ptr<X>;
 	template <class X> using TRefCountingNotNullPointer = std::shared_ptr<X>;
 	template <class X> using TRefCountingFixedPointer = std::shared_ptr<X>;
+	template <class X> using TRefCountingConstPointer = std::shared_ptr<X>;
+	template <class X> using TRefCountingNotNullConstPointer = std::shared_ptr<X>;
+	template <class X> using TRefCountingFixedConstPointer = std::shared_ptr<X>;
 
 	template <class X, class... Args>
-	TRefCountingPointer<X> make_refcounting(Args&&... args) {
+	TRefCountingFixedPointer<X> make_refcounting(Args&&... args) {
 		return std::make_shared<X>(std::forward<Args>(args)...);
 	}
 #else /*MSE_REFCOUNTINGPOINTER_DISABLED*/
 
 	template<typename _Ty> class TRefCountingNotNullPointer;
 	template<typename _Ty> class TRefCountingFixedPointer;
+	template<typename _Ty> class TRefCountingNotNullConstPointer;
+	template<typename _Ty> class TRefCountingFixedConstPointer;
 
 	class CRefCounter {
 	private:
@@ -257,8 +259,6 @@ namespace mse {
 		return TRefCountingFixedPointer<X>::make_refcounting(std::forward<Args>(args)...);
 	}
 
-#endif /*MSE_REFCOUNTINGPOINTER_DISABLED*/
-
 
 	template <class X>
 	class TRefCountingConstPointer {
@@ -428,6 +428,8 @@ namespace mse {
 		//TRefCountingFixedConstPointer<_Ty>* operator&() { return this; }
 		//const TRefCountingFixedConstPointer<_Ty>* operator&() const { return this; }
 	};
+
+#endif /*MSE_REFCOUNTINGPOINTER_DISABLED*/
 
 	template <class _TTargetType, class _TLeaseType> class TStrongFixedConstPointer;
 
@@ -647,6 +649,7 @@ namespace mse {
 
 				mse::TRefCountingPointer<A> A_refcounting_ptr2 = A_refcounting_ptr1;
 				A_refcounting_ptr2 = nullptr;
+#ifndef MSE_REFCOUNTINGPOINTER_DISABLED
 				bool expected_exception = false;
 				try {
 					int i = A_refcounting_ptr2->b; /* this is gonna throw an exception */
@@ -657,6 +660,7 @@ namespace mse {
 					/* The exception is triggered by an attempt to dereference a null "refcounting pointer". */
 				}
 				assert(expected_exception);
+#endif // !MSE_REFCOUNTINGPOINTER_DISABLED
 
 				B::foo1(&(*A_refcounting_ptr1));
 

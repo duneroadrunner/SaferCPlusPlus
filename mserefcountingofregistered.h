@@ -194,6 +194,7 @@ namespace mse {
 
 				mse::TRefCountingOfRegisteredPointer<A> A_refcountingofregistered_ptr2 = A_refcountingofregistered_ptr1;
 				A_refcountingofregistered_ptr2 = nullptr;
+#ifndef MSE_REFCOUNTINGPOINTER_DISABLED
 				bool expected_exception = false;
 				try {
 					int i = A_refcountingofregistered_ptr2->b; /* this is gonna throw an exception */
@@ -204,6 +205,7 @@ namespace mse {
 					/* The exception is triggered by an attempt to dereference a null "refcountingofregistered pointer". */
 				}
 				assert(expected_exception);
+#endif // !MSE_REFCOUNTINGPOINTER_DISABLED
 
 				auto registeredfixedpointer1 = (&(*A_refcountingofregistered_ptr1));
 				B::foo1((A*)registeredfixedpointer1);

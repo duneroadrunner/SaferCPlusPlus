@@ -194,6 +194,7 @@ namespace mse {
 
 				mse::TRefCountingOfRelaxedRegisteredPointer<A> A_refcountingofrelaxedregistered_ptr2 = A_refcountingofrelaxedregistered_ptr1;
 				A_refcountingofrelaxedregistered_ptr2 = nullptr;
+#ifndef MSE_REFCOUNTINGPOINTER_DISABLED
 				bool expected_exception = false;
 				try {
 					int i = A_refcountingofrelaxedregistered_ptr2->b; /* this is gonna throw an exception */
@@ -204,6 +205,7 @@ namespace mse {
 					/* The exception is triggered by an attempt to dereference a null "refcountingofrelaxedregistered pointer". */
 				}
 				assert(expected_exception);
+#endif // !MSE_REFCOUNTINGPOINTER_DISABLED
 
 				auto relaxedregisteredfixedpointer1 = (&(*A_refcountingofrelaxedregistered_ptr1));
 				B::foo1((A*)relaxedregisteredfixedpointer1);
