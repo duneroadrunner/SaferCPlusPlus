@@ -823,6 +823,7 @@ namespace mse {
 
 			mse::TRegisteredPointer<A> A_registered_ptr2 = &registered_a;
 			A_registered_ptr2 = nullptr;
+#ifndef MSE_REGISTEREDPOINTER_DISABLED
 			bool expected_exception = false;
 			try {
 				int i = A_registered_ptr2->b; /* this is gonna throw an exception */
@@ -833,6 +834,7 @@ namespace mse {
 				/* The exception is triggered by an attempt to dereference a null "registered pointer". */
 			}
 			assert(expected_exception);
+#endif // !MSE_REGISTEREDPOINTER_DISABLED
 
 			/* mse::TRegisteredPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
 			B::foo1((A*)A_registered_ptr1);
@@ -863,6 +865,7 @@ namespace mse {
 		}
 
 		bool expected_exception = false;
+#ifndef MSE_REGISTEREDPOINTER_DISABLED
 		try {
 			/* A_registered_ptr1 "knows" that the (registered) object it was pointing to has now been deallocated. */
 			int i = A_registered_ptr1->b; /* So this is gonna throw an exception */
@@ -872,6 +875,7 @@ namespace mse {
 			expected_exception = true;
 		}
 		assert(expected_exception);
+#endif // !MSE_REGISTEREDPOINTER_DISABLED
 
 		{
 			/* For heap allocations mse::registered_new is kind of analagous to std::make_shared, but again,
@@ -880,6 +884,7 @@ namespace mse {
 			assert(3 == A_registered_ptr3->b);
 			mse::registered_delete<A>(A_registered_ptr3);
 			bool expected_exception = false;
+#ifndef MSE_REGISTEREDPOINTER_DISABLED
 			try {
 				/* A_registered_ptr3 "knows" that the (registered) object it was pointing to has now been deallocated. */
 				int i = A_registered_ptr3->b; /* So this is gonna throw an exception */
@@ -889,6 +894,7 @@ namespace mse {
 				expected_exception = true;
 			}
 			assert(expected_exception);
+#endif // !MSE_REGISTEREDPOINTER_DISABLED
 		}
 
 		{

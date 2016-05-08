@@ -54,7 +54,7 @@ namespace mse {
 	code that relies on it. */
 #ifdef MSE_PRIMITIVES_DISABLED
 	typedef bool CBool;
-	typedef int CInt;
+	typedef long long int CInt;
 	typedef size_t CSize_t;
 	static size_t as_a_size_t(CSize_t n) { return (n); }
 #else /*MSE_PRIMITIVES_DISABLED*/

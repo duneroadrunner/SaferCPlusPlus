@@ -633,12 +633,12 @@ namespace mse {
 		class D {
 		public:
 			virtual ~D() {}
-			mse::TRelaxedRegisteredPointer<C> m_c_ptr;
+			mse::TRelaxedRegisteredPointer<C> m_c_ptr = nullptr;
 		};
 
 		class C {
 		public:
-			mse::TRelaxedRegisteredPointer<D> m_d_ptr;
+			mse::TRelaxedRegisteredPointer<D> m_d_ptr = nullptr;
 		};
 
 		mse::TRelaxedRegisteredObj<C> regobjfl_c;

@@ -80,6 +80,7 @@ int main(int argc, char* argv[])
 	mse::msevector_test msevector_test;
 	msevector_test.run_all();
 
+#ifndef MSE_MSTDVECTOR_DISABLED
 	{
 		/**********************/
 		/*   mstd::vector<>   */
@@ -138,6 +139,7 @@ int main(int argc, char* argv[])
 		/* The vint_type object that vi_it was originally pointing to is now deallocated/destructed, because vi_it no longer
 		references it. */
 	}
+#endif // !MSE_MSTDVECTOR_DISABLED
 
 	{
 		/*****************************/
@@ -219,6 +221,7 @@ int main(int argc, char* argv[])
 
 		mse::s_type_test1();
 
+#ifndef MSE_PRIMITIVES_DISABLED
 		{
 			size_t number_of_security_credits = 0;
 			number_of_security_credits += 5;
@@ -261,6 +264,7 @@ int main(int argc, char* argv[])
 				access_granted = false; /* this works too */
 			}
 		}
+#endif // !MSE_PRIMITIVES_DISABLED
 
 		mse::CSize_t mse_szt1 = 0;
 		/* size_t szt2 = mse_szt1; */ /* This wouldn't compile. */
@@ -336,6 +340,7 @@ int main(int argc, char* argv[])
 
 			mse::TRegisteredPointer<A> A_registered_ptr2 = &registered_a;
 			A_registered_ptr2 = nullptr;
+#ifndef MSE_REGISTEREDPOINTER_DISABLED
 			try {
 				int i = A_registered_ptr2->b; /* this is gonna throw an exception */
 			}
@@ -343,6 +348,7 @@ int main(int argc, char* argv[])
 				std::cerr << "expected exception" << std::endl;
 				/* The exception is triggered by an attempt to dereference a null "registered pointer". */
 			}
+#endif // !MSE_REGISTEREDPOINTER_DISABLED
 
 			/* mse::TRegisteredPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
 			B::foo1((A*)A_registered_ptr1);
@@ -367,6 +373,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
+#ifndef MSE_REGISTEREDPOINTER_DISABLED
 		try {
 			/* A_registered_ptr1 "knows" that the (registered) object it was pointing to has now been deallocated. */
 			int i = A_registered_ptr1->b; /* So this is gonna throw an exception */
@@ -374,6 +381,7 @@ int main(int argc, char* argv[])
 		catch (...) {
 			std::cerr << "expected exception" << std::endl;
 		}
+#endif // !MSE_REGISTEREDPOINTER_DISABLED
 
 		{
 			/* For heap allocations mse::registered_new is kind of analagous to std::make_shared, but again,
@@ -381,6 +389,7 @@ int main(int argc, char* argv[])
 			auto A_registered_ptr3 = mse::registered_new<A>();
 			assert(3 == A_registered_ptr3->b);
 			mse::registered_delete<A>(A_registered_ptr3);
+#ifndef MSE_REGISTEREDPOINTER_DISABLED
 			try {
 				/* A_registered_ptr3 "knows" that the (registered) object it was pointing to has now been deallocated. */
 				int i = A_registered_ptr3->b; /* So this is gonna throw an exception */
@@ -388,6 +397,7 @@ int main(int argc, char* argv[])
 			catch (...) {
 				std::cerr << "expected exception" << std::endl;
 			}
+#endif // !MSE_REGISTEREDPOINTER_DISABLED
 		}
 
 		{
