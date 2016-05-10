@@ -293,6 +293,14 @@ namespace mse {
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const;
 		explicit operator TRegisteredObj<_Ty, _Tn>*() const;
+		typename std::conditional<std::is_const<_Ty>::value
+			, const TRegisteredObj<_Ty, _Tn>&, TRegisteredObj<_Ty, _Tn>&>::type operator*() const {
+			return TSaferPtr<TRegisteredObj<_Ty, _Tn>>::operator*();
+		}
+		typename std::conditional<std::is_const<_Ty>::value
+			, const TRegisteredObj<_Ty, _Tn>*, TRegisteredObj<_Ty, _Tn>*>::type operator->() const {
+			return TSaferPtr<TRegisteredObj<_Ty, _Tn>>::operator->();
+		}
 
 	private:
 		/* If you want a pointer to a TRegisteredPointer<_Ty, _Tn>, declare the TRegisteredPointer<_Ty, _Tn> as a
@@ -446,8 +454,12 @@ namespace mse {
 			mseRPManager().onObjectDestruction();
 		}
 		using _TROy::operator=;
-		TRegisteredObj& operator=(TRegisteredObj&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
-		TRegisteredObj& operator=(const TRegisteredObj& _X) { _TROy::operator=(_X); return (*this); }
+		//TRegisteredObj& operator=(TRegisteredObj&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
+		TRegisteredObj& operator=(typename std::conditional<std::is_const<_TROy>::value
+			, nullptr_t, TRegisteredObj>::type&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
+		//TRegisteredObj& operator=(const TRegisteredObj& _X) { _TROy::operator=(_X); return (*this); }
+		TRegisteredObj& operator=(const typename std::conditional<std::is_const<_TROy>::value
+			, nullptr_t, TRegisteredObj>::type& _X) { _TROy::operator=(_X); return (*this); }
 		TRegisteredFixedPointer<_TROy, _Tn> operator&() {
 			return this;
 		}
