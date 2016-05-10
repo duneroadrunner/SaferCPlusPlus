@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer" class="anchor" href="#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer</h3>
 
-<p>TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;const X&gt;, but TRegisteredPointer&lt;const X&gt; doesn't actually enforce "const"ness at the moment. TRegisteredConstPointer&lt;X&gt; does.</p>
+<p>TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".</p>
 
 <h3>
 <a id="tsyncweakfixedpointer" class="anchor" href="#tsyncweakfixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TSyncWeakFixedPointer</h3>
