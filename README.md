@@ -119,7 +119,7 @@ usage example:
     }
 
 ### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
-TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;const X&gt;, but TRegisteredPointer&lt;const X&gt; doesn't actually enforce "const"ness at the moment. TRegisteredConstPointer&lt;X&gt; does.
+TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
 ###TSyncWeakFixedPointer
 TSyncWeakFixedPointer is primarily intended to be used as a safe pointer to a member of a registered object in cases where for some reason you can't, or don't want to, make the member itself a registered object. TSyncWeakFixedPointer essentially acts as a pointer to the member (or whatever object you specify), while keeping a copy of a registered pointer to the object. It uses the registered pointer to ensure that it is safe to access the object. Use mse::make_syncweak() to construct a TSyncWeakFixedPointer.  
