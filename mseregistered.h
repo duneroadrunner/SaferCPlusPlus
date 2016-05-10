@@ -456,10 +456,10 @@ namespace mse {
 		using _TROy::operator=;
 		//TRegisteredObj& operator=(TRegisteredObj&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
 		TRegisteredObj& operator=(typename std::conditional<std::is_const<_TROy>::value
-			, nullptr_t, TRegisteredObj>::type&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
+			, std::nullptr_t, TRegisteredObj>::type&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
 		//TRegisteredObj& operator=(const TRegisteredObj& _X) { _TROy::operator=(_X); return (*this); }
 		TRegisteredObj& operator=(const typename std::conditional<std::is_const<_TROy>::value
-			, nullptr_t, TRegisteredObj>::type& _X) { _TROy::operator=(_X); return (*this); }
+			, std::nullptr_t, TRegisteredObj>::type& _X) { _TROy::operator=(_X); return (*this); }
 		TRegisteredFixedPointer<_TROy, _Tn> operator&() {
 			return this;
 		}
