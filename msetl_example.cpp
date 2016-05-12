@@ -32,11 +32,14 @@ get to the data type your interested in.
 #include "mserefcountingofregistered.h"
 #include "mserefcountingofrelaxedregistered.h"
 #include "msescope.h"
+#include "mseasyncshared.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
 #include <ratio>
 #include <chrono>
+#include <thread>
+#include <sstream>
 
 /* This block of includes is required for the mse::TRegisteredRefWrapper example */
 #include <algorithm>
@@ -70,6 +73,19 @@ public:
 	template<class _TString1Pointer, class _TString2Pointer>
 	static std::string foo6(_TString1Pointer i1ptr, _TString2Pointer i2ptr) {
 		return (*i1ptr) + (*i2ptr);
+	}
+	template<class _TAsyncSharedAccessRequester>
+	static void foo7(_TAsyncSharedAccessRequester A_ashar) {
+		auto t1 = std::chrono::high_resolution_clock::now();
+		auto ptr1 = A_ashar.const_ptr();
+		auto t2 = std::chrono::high_resolution_clock::now();
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+		auto timespan_in_seconds = time_span.count();
+		auto thread_id = std::this_thread::get_id();
+		std::cout << "thread_id: " << thread_id << ", time to acquire read pointer: " << timespan_in_seconds << " seconds.";
+		std::cout << std::endl;
+		return;
 	}
 protected:
 	~H() {}
@@ -1075,6 +1091,82 @@ int main(int argc, char* argv[])
 		auto res5 = H::foo6(xscopeweak_string_ptr1, xscopeweak_string_ptr1);
 
 		mse::s_scpptr_test1();
+	}
+
+	{
+		/******************/
+		/*  TAsyncShared  */
+		/******************/
+
+		class A {
+		public:
+			A(int x) : b(x) {}
+			A(const A& _X) : b(_X.b) {}
+			virtual ~A() {}
+			A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+			int b = 3;
+			std::string s = "some text ";
+		};
+		class B {
+		public:
+			static void foo1(mse::TAsyncSharedAccessRequester<A> A_ashar) {
+				auto t1 = std::chrono::high_resolution_clock::now();
+				auto ptr1 = A_ashar.ptr();
+				auto t2 = std::chrono::high_resolution_clock::now();
+				std::this_thread::sleep_for(std::chrono::seconds(1));
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				auto timespan_in_seconds = time_span.count();
+				auto thread_id = std::this_thread::get_id();
+				std::cout << "thread_id: " << thread_id << ", time to acquire write pointer: " << timespan_in_seconds << " seconds.";
+				std::cout << std::endl;
+
+				std::stringstream ss;
+				ss << thread_id;
+				ptr1->s = ss.str();
+				return;
+			}
+		protected:
+			~B() {}
+		};
+
+		std::cout << std::endl;
+		std::cout << "AsyncShared test output:";
+		std::cout << std::endl;
+
+		{
+			std::cout << "TAsyncShared:";
+			std::cout << std::endl;
+			auto ash_access_requester = mse::make_asyncshared<A>(7);
+			ash_access_requester.ptr()->b = 11;
+			int res1 = ash_access_requester.ptr()->b;
+
+			std::list<std::thread> threads;
+			for (size_t i = 0; i < 3; i += 1) {
+				threads.emplace_back(std::thread(B::foo1, ash_access_requester));
+			}
+			for (auto it = threads.begin(); threads.end() != it; it++) {
+				(*it).join();
+			}
+			std::cout << std::endl;
+		}
+		{
+			std::cout << "TAsyncSharedImmutable:";
+			std::cout << std::endl;
+			auto ash_access_requester = mse::make_asyncsharedimmutable<A>(7);
+			int res1 = ash_access_requester.const_ptr()->b;
+
+			std::list<std::thread> threads;
+			for (size_t i = 0; i < 3; i += 1) {
+				threads.emplace_back(std::thread(H::foo7<mse::TAsyncSharedImmutableAccessRequester<A>>, ash_access_requester));
+			}
+			for (auto it = threads.begin(); threads.end() != it; it++) {
+				(*it).join();
+			}
+			std::cout << std::endl;
+		}
+
+		int q = 3;
 	}
 
 	return 0;
