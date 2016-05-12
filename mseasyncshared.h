@@ -83,9 +83,6 @@ namespace mse {
 		}
 	private:
 		TAsyncSharedPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
-		TAsyncSharedPointer<_Ty>& operator=(TXScopeObj<_Ty>* ptr) {
-			return TAsyncSharedPointerBase<_Ty>::operator=(ptr);
-		}
 		TAsyncSharedPointer<_Ty>& operator=(const TAsyncSharedPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedPointer<_Ty>& operator=(TAsyncSharedPointer<_Ty>&& _Right) = delete;
 
@@ -124,9 +121,6 @@ namespace mse {
 		}
 	private:
 		TAsyncSharedConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
-		TAsyncSharedConstPointer<_Ty>& operator=(TXScopeObj<_Ty>* ptr) {
-			return TAsyncSharedConstPointerBase<_Ty>::operator=(ptr);
-		}
 		TAsyncSharedConstPointer<_Ty>& operator=(const TAsyncSharedConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedConstPointer<_Ty>& operator=(TAsyncSharedConstPointer<_Ty>&& _Right) = delete;
 
@@ -200,9 +194,6 @@ namespace mse {
 		}
 	private:
 		TAsyncSharedImmutableConstPointer(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
-		TAsyncSharedImmutableConstPointer<_Ty>& operator=(TXScopeObj<_Ty>* ptr) {
-			return TAsyncSharedImmutableConstPointerBase<_Ty>::operator=(ptr);
-		}
 		TAsyncSharedImmutableConstPointer<_Ty>& operator=(const TAsyncSharedImmutableConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedImmutableConstPointer<_Ty>& operator=(TAsyncSharedImmutableConstPointer<_Ty>&& _Right) = delete;
 
