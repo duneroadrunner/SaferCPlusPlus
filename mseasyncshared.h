@@ -152,7 +152,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedAccessRequester : public TSaferPtr<TAsyncSharedObj<_Ty>> {
+	class TAsyncSharedAccessRequester {
 	public:
 		TAsyncSharedAccessRequester(const TAsyncSharedAccessRequester& src_cref) = default;
 
@@ -335,7 +335,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester : public TSaferPtr<TAsyncSharedObj<_Ty>> {
+	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester {
 	public:
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester& src_cref) = default;
 
@@ -388,7 +388,7 @@ namespace mse {
 			return std::addressof(*m_shptr);
 		}
 	private:
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableConstPointer(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableConstPointer(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr)/*, m_shared_lock(shptr->m_mutex1)*/ {}
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableConstPointer<_Ty>& operator=(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableConstPointer<_Ty>& operator=(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableConstPointer<_Ty>&& _Right) = delete;
 
@@ -402,13 +402,13 @@ namespace mse {
 		}
 
 		std::shared_ptr<const TAsyncSharedObj<_Ty>> m_shptr;
-		std::shared_lock<std::shared_timed_mutex> m_shared_lock;
+		//std::shared_lock<std::shared_timed_mutex> m_shared_lock;
 
 		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableAccessRequester<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableAccessRequester : public TSaferPtr<const TAsyncSharedObj<_Ty>> {
+	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableAccessRequester {
 	public:
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableAccessRequester& src_cref) = default;
 
