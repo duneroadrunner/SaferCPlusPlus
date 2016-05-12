@@ -1165,6 +1165,37 @@ int main(int argc, char* argv[])
 			}
 			std::cout << std::endl;
 		}
+		{
+			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembers:";
+			std::cout << std::endl;
+			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembers<A>(7);
+			ash_access_requester.ptr()->b = 11;
+			int res1 = ash_access_requester.ptr()->b;
+
+			std::list<std::thread> threads;
+			for (size_t i = 0; i < 3; i += 1) {
+				threads.emplace_back(std::thread(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<A>>, ash_access_requester));
+			}
+			for (auto it = threads.begin(); threads.end() != it; it++) {
+				(*it).join();
+			}
+			std::cout << std::endl;
+		}
+		{
+			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutable:";
+			std::cout << std::endl;
+			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersimmutable<A>(7);
+			int res1 = ash_access_requester.const_ptr()->b;
+
+			std::list<std::thread> threads;
+			for (size_t i = 0; i < 3; i += 1) {
+				threads.emplace_back(std::thread(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableAccessRequester<A>>, ash_access_requester));
+			}
+			for (auto it = threads.begin(); threads.end() != it; it++) {
+				(*it).join();
+			}
+			std::cout << std::endl;
+		}
 
 		int q = 3;
 	}
