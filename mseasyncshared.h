@@ -84,12 +84,12 @@ namespace mse {
 			return m_shptr.operator bool();
 		}
 		typename std::conditional<std::is_const<_Ty>::value
-			, TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&>::type operator*() const {
+			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&>::type operator*() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedPointer")); }
 			return (*m_shptr);
 		}
 		typename std::conditional<std::is_const<_Ty>::value
-			, TAsyncSharedObj<_Ty>*, TAsyncSharedObj<_Ty>*>::type operator->() const {
+			, const TAsyncSharedObj<_Ty>*, TAsyncSharedObj<_Ty>*>::type operator->() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedPointer")); }
 			return std::addressof(*m_shptr);
 		}
@@ -123,13 +123,15 @@ namespace mse {
 			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedConstPointer")); }
 			return m_shptr.operator bool();
 		}
-		const _Ty& operator*() const {
+		const TAsyncSharedObj<const _Ty>& operator*() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedConstPointer")); }
-			return (*m_shptr);
+			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
+			return (*extra_const_ptr);
 		}
-		const _Ty* operator->() const {
+		const TAsyncSharedObj<const _Ty>* operator->() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedConstPointer")); }
-			return std::addressof(*m_shptr);
+			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
+			return extra_const_ptr;
 		}
 	private:
 		TAsyncSharedConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
@@ -198,13 +200,15 @@ namespace mse {
 			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
 			return m_shptr.operator bool();
 		}
-		const _Ty& operator*() const {
+		const TAsyncSharedObj<const _Ty>& operator*() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
-			return (*m_shptr);
+			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
+			return (*extra_const_ptr);
 		}
-		const _Ty* operator->() const {
+		const TAsyncSharedObj<const _Ty>* operator->() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
-			return std::addressof(*m_shptr);
+			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
+			return extra_const_ptr;
 		}
 	private:
 		TAsyncSharedReadOnlyConstPointer(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
@@ -270,12 +274,12 @@ namespace mse {
 			return m_shptr.operator bool();
 		}
 		typename std::conditional<std::is_const<_Ty>::value
-			, TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&>::type operator*() const {
+			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&>::type operator*() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer")); }
 			return (*m_shptr);
 		}
 		typename std::conditional<std::is_const<_Ty>::value
-			, TAsyncSharedObj<_Ty>*, TAsyncSharedObj<_Ty>*>::type operator->() const {
+			, const TAsyncSharedObj<_Ty>*, TAsyncSharedObj<_Ty>*>::type operator->() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer")); }
 			return std::addressof(*m_shptr);
 		}
@@ -309,13 +313,15 @@ namespace mse {
 			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer")); }
 			return m_shptr.operator bool();
 		}
-		const _Ty& operator*() const {
+		const TAsyncSharedObj<const _Ty>& operator*() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer")); }
-			return (*m_shptr);
+			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
+			return (*extra_const_ptr);
 		}
-		const _Ty* operator->() const {
+		const TAsyncSharedObj<const _Ty>* operator->() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer")); }
-			return std::addressof(*m_shptr);
+			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
+			return extra_const_ptr;
 		}
 	private:
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
@@ -382,13 +388,15 @@ namespace mse {
 			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer")); }
 			return m_shptr.operator bool();
 		}
-		const _Ty& operator*() const {
+		const TAsyncSharedObj<const _Ty>& operator*() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer")); }
-			return (*m_shptr);
+			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
+			return (*extra_const_ptr);
 		}
-		const _Ty* operator->() const {
+		const TAsyncSharedObj<const _Ty>* operator->() const {
 			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer")); }
-			return std::addressof(*m_shptr);
+			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
+			return extra_const_ptr;
 		}
 	private:
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr)/*, m_shared_lock(shptr->m_mutex1)*/ {}
