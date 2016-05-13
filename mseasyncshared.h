@@ -178,6 +178,8 @@ namespace mse {
 		const TAsyncSharedAccessRequester<_Ty>* operator&() const { return this; }
 
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
+
+		friend class TAsyncSharedReadOnlyAccessRequester<_Ty>;
 	};
 
 	template <class X, class... Args>
@@ -228,6 +230,7 @@ namespace mse {
 	class TAsyncSharedReadOnlyAccessRequester : public TSaferPtr<const TAsyncSharedObj<_Ty>> {
 	public:
 		TAsyncSharedReadOnlyAccessRequester(const TAsyncSharedReadOnlyAccessRequester& src_cref) = default;
+		TAsyncSharedReadOnlyAccessRequester(const TAsyncSharedAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
 
 		TAsyncSharedReadOnlyConstPointer<_Ty> const_ptr() {
 			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr);
@@ -411,6 +414,7 @@ namespace mse {
 	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester {
 	public:
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester& src_cref) = default;
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
 
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty> const_ptr() {
 			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>(m_shptr);
