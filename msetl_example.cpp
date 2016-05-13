@@ -38,8 +38,9 @@ get to the data type your interested in.
 #include <ctime>
 #include <ratio>
 #include <chrono>
-#include <thread>
-#include <sstream>
+//include <thread>
+//include <sstream>
+#include <future>
 
 /* This block of includes is required for the mse::TRegisteredRefWrapper example */
 #include <algorithm>
@@ -57,6 +58,7 @@ public:
 	(smart/safe) pointer they want to use. */
 	template<typename _Tpointer>
 	static int foo4(_Tpointer A_ptr) { return A_ptr->b; }
+
 	template<typename _Tpointer, typename _Tvector>
 	static int foo5(_Tpointer A_ptr, _Tvector& vector_ref) {
 		int tmp = A_ptr->b;
@@ -70,22 +72,25 @@ public:
 		}
 		return retval;
 	}
+
 	template<class _TString1Pointer, class _TString2Pointer>
 	static std::string foo6(_TString1Pointer i1ptr, _TString2Pointer i2ptr) {
 		return (*i1ptr) + (*i2ptr);
 	}
+
 	template<class _TAsyncSharedAccessRequester>
-	static void foo7(_TAsyncSharedAccessRequester A_ashar) {
+	static double foo7(_TAsyncSharedAccessRequester A_ashar) {
 		auto t1 = std::chrono::high_resolution_clock::now();
-		auto ptr1 = A_ashar.const_ptr();
+		/* A_ashar.const_ptr() will block until it can obtain a read lock. */
+		auto ptr1 = A_ashar.const_ptr(); // while ptr1 exists it holds a (read) lock on the shared object
 		auto t2 = std::chrono::high_resolution_clock::now();
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 		auto timespan_in_seconds = time_span.count();
 		auto thread_id = std::this_thread::get_id();
-		std::cout << "thread_id: " << thread_id << ", time to acquire read pointer: " << timespan_in_seconds << " seconds.";
-		std::cout << std::endl;
-		return;
+		//std::cout << "thread_id: " << thread_id << ", time to acquire read pointer: " << timespan_in_seconds << " seconds.";
+		//std::cout << std::endl;
+		return timespan_in_seconds;
 	}
 protected:
 	~H() {}
@@ -1098,6 +1103,8 @@ int main(int argc, char* argv[])
 		/*  TAsyncShared  */
 		/******************/
 
+		/* The TAsyncShared data types are used to safely share objects between asynchronous threads. */
+
 		class A {
 		public:
 			A(int x) : b(x) {}
@@ -1110,21 +1117,20 @@ int main(int argc, char* argv[])
 		};
 		class B {
 		public:
-			static void foo1(mse::TAsyncSharedAccessRequester<A> A_ashar) {
+			static double foo1(mse::TAsyncSharedAccessRequester<A> A_ashar) {
 				auto t1 = std::chrono::high_resolution_clock::now();
-				auto ptr1 = A_ashar.ptr();
+				/* mse::TAsyncSharedAccessRequester<A>::ptr() will block until it can obtain a write lock. */
+				auto ptr1 = A_ashar.ptr(); // while ptr1 exists it holds a (write) lock on the shared object
 				auto t2 = std::chrono::high_resolution_clock::now();
 				std::this_thread::sleep_for(std::chrono::seconds(1));
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 				auto timespan_in_seconds = time_span.count();
 				auto thread_id = std::this_thread::get_id();
-				std::cout << "thread_id: " << thread_id << ", time to acquire write pointer: " << timespan_in_seconds << " seconds.";
-				std::cout << std::endl;
+				//std::cout << "thread_id: " << thread_id << ", time to acquire write pointer: " << timespan_in_seconds << " seconds.";
+				//std::cout << std::endl;
 
-				std::stringstream ss;
-				ss << thread_id;
-				ptr1->s = ss.str();
-				return;
+				ptr1->s = std::to_string(timespan_in_seconds);
+				return timespan_in_seconds;
 			}
 		protected:
 			~B() {}
@@ -1139,29 +1145,33 @@ int main(int argc, char* argv[])
 			std::cout << std::endl;
 			auto ash_access_requester = mse::make_asyncshared<A>(7);
 			ash_access_requester.ptr()->b = 11;
-			int res1 = ash_access_requester.ptr()->b;
+			int res1 = ash_access_requester.const_ptr()->b;
 
-			std::list<std::thread> threads;
+			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				threads.emplace_back(std::thread(B::foo1, ash_access_requester));
+				futures.emplace_back(std::async(B::foo1, ash_access_requester));
 			}
-			for (auto it = threads.begin(); threads.end() != it; it++) {
-				(*it).join();
+			int count = 1;
+			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+				std::cout << "thread: " << count << ", time to acquire write pointer: " << (*it).get() << " seconds.";
+				std::cout << std::endl;
 			}
 			std::cout << std::endl;
 		}
 		{
-			std::cout << "TAsyncSharedImmutable:";
+			std::cout << "TAsyncSharedConst:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedimmutable<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedconst<A>(7);
 			int res1 = ash_access_requester.const_ptr()->b;
 
-			std::list<std::thread> threads;
+			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				threads.emplace_back(std::thread(H::foo7<mse::TAsyncSharedImmutableAccessRequester<A>>, ash_access_requester));
+				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedConstAccessRequester<A>>, ash_access_requester));
 			}
-			for (auto it = threads.begin(); threads.end() != it; it++) {
-				(*it).join();
+			int count = 1;
+			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+				std::cout << "thread: " << count << ", time to acquire read pointer: " << (*it).get() << " seconds.";
+				std::cout << std::endl;
 			}
 			std::cout << std::endl;
 		}
@@ -1172,27 +1182,31 @@ int main(int argc, char* argv[])
 			ash_access_requester.ptr()->b = 11;
 			int res1 = ash_access_requester.ptr()->b;
 
-			std::list<std::thread> threads;
+			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				threads.emplace_back(std::thread(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<A>>, ash_access_requester));
+				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<A>>, ash_access_requester));
 			}
-			for (auto it = threads.begin(); threads.end() != it; it++) {
-				(*it).join();
+			int count = 1;
+			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+				std::cout << "thread: " << count << ", time to acquire read pointer: " << (*it).get() << " seconds.";
+				std::cout << std::endl;
 			}
 			std::cout << std::endl;
 		}
 		{
-			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutable:";
+			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConst:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersimmutable<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersconst<A>(7);
 			int res1 = ash_access_requester.const_ptr()->b;
 
-			std::list<std::thread> threads;
+			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				threads.emplace_back(std::thread(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersImmutableAccessRequester<A>>, ash_access_requester));
+				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstAccessRequester<A>>, ash_access_requester));
 			}
-			for (auto it = threads.begin(); threads.end() != it; it++) {
-				(*it).join();
+			int count = 1;
+			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+				std::cout << "thread: " << count << ", time to acquire read pointer: " << (*it).get() << " seconds.";
+				std::cout << std::endl;
 			}
 			std::cout << std::endl;
 		}
