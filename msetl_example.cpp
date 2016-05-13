@@ -78,8 +78,8 @@ public:
 		return (*i1ptr) + (*i2ptr);
 	}
 
-	template<class _TAsyncSharedAccessRequester>
-	static double foo7(_TAsyncSharedAccessRequester A_ashar) {
+	template<class _TAsyncSharedReadWriteAccessRequester>
+	static double foo7(_TAsyncSharedReadWriteAccessRequester A_ashar) {
 		auto t1 = std::chrono::high_resolution_clock::now();
 		/* A_ashar.const_ptr() will block until it can obtain a read lock. */
 		auto ptr1 = A_ashar.const_ptr(); // while ptr1 exists it holds a (read) lock on the shared object
@@ -1117,9 +1117,9 @@ int main(int argc, char* argv[])
 		};
 		class B {
 		public:
-			static double foo1(mse::TAsyncSharedAccessRequester<A> A_ashar) {
+			static double foo1(mse::TAsyncSharedReadWriteAccessRequester<A> A_ashar) {
 				auto t1 = std::chrono::high_resolution_clock::now();
-				/* mse::TAsyncSharedAccessRequester<A>::ptr() will block until it can obtain a write lock. */
+				/* mse::TAsyncSharedReadWriteAccessRequester<A>::ptr() will block until it can obtain a write lock. */
 				auto ptr1 = A_ashar.ptr(); // while ptr1 exists it holds a (write) lock on the shared object
 				auto t2 = std::chrono::high_resolution_clock::now();
 				std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -1143,7 +1143,7 @@ int main(int argc, char* argv[])
 		{
 			std::cout << "TAsyncShared:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncshared<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedreadwrite<A>(7);
 			ash_access_requester.ptr()->b = 11;
 			int res1 = ash_access_requester.const_ptr()->b;
 
@@ -1178,13 +1178,13 @@ int main(int argc, char* argv[])
 		{
 			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembers:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembers<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadwrite<A>(7);
 			ash_access_requester.ptr()->b = 11;
 			int res1 = ash_access_requester.ptr()->b;
 
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<A>>, ash_access_requester));
+				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<A>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {

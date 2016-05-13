@@ -22,15 +22,15 @@ namespace mse {
 #else /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
 #endif /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
 
-	template<typename _Ty> class TAsyncSharedAccessRequester;
-	template<typename _Ty> class TAsyncSharedPointer;
-	template<typename _Ty> class TAsyncSharedConstPointer;
+	template<typename _Ty> class TAsyncSharedReadWriteAccessRequester;
+	template<typename _Ty> class TAsyncSharedReadWritePointer;
+	template<typename _Ty> class TAsyncSharedReadWriteConstPointer;
 	template<typename _Ty> class TAsyncSharedReadOnlyAccessRequester;
 	template<typename _Ty> class TAsyncSharedReadOnlyConstPointer;
 
-	template<typename _Ty> class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester;
-	template<typename _Ty> class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer;
-	template<typename _Ty> class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer;
+	template<typename _Ty> class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester;
+	template<typename _Ty> class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer;
+	template<typename _Ty> class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer;
 	template<typename _Ty> class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester;
 	template<typename _Ty> class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer;
 
@@ -60,46 +60,46 @@ namespace mse {
 
 		mutable std::shared_timed_mutex m_mutex1;
 
-		friend class TAsyncSharedAccessRequester<_TROy>;
-		friend class TAsyncSharedPointer<_TROy>;
-		friend class TAsyncSharedConstPointer<_TROy>;
+		friend class TAsyncSharedReadWriteAccessRequester<_TROy>;
+		friend class TAsyncSharedReadWritePointer<_TROy>;
+		friend class TAsyncSharedReadWriteConstPointer<_TROy>;
 		friend class TAsyncSharedReadOnlyAccessRequester<_TROy>;
 		friend class TAsyncSharedReadOnlyConstPointer<_TROy>;
 
-		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<_TROy>;
-		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer<_TROy>;
-		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer<_TROy>;
+		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<_TROy>;
+		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_TROy>;
+		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_TROy>;
 		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester<_TROy>;
 		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_TROy>;
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedPointer {
+	class TAsyncSharedReadWritePointer {
 	public:
-		TAsyncSharedPointer(TAsyncSharedPointer&& src) = default;
-		virtual ~TAsyncSharedPointer() {}
+		TAsyncSharedReadWritePointer(TAsyncSharedReadWritePointer&& src) = default;
+		virtual ~TAsyncSharedReadWritePointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedPointer")); }
+			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
 			return m_shptr.operator bool();
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&>::type operator*() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
 			return (*m_shptr);
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>*, TAsyncSharedObj<_Ty>*>::type operator->() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
 			return std::addressof(*m_shptr);
 		}
 	private:
-		TAsyncSharedPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
-		TAsyncSharedPointer<_Ty>& operator=(const TAsyncSharedPointer<_Ty>& _Right_cref) = delete;
-		TAsyncSharedPointer<_Ty>& operator=(TAsyncSharedPointer<_Ty>&& _Right) = delete;
+		TAsyncSharedReadWritePointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
+		TAsyncSharedReadWritePointer<_Ty>& operator=(const TAsyncSharedReadWritePointer<_Ty>& _Right_cref) = delete;
+		TAsyncSharedReadWritePointer<_Ty>& operator=(TAsyncSharedReadWritePointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedPointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedPointer<_Ty>* operator&() const { return this; }
+		TAsyncSharedReadWritePointer<_Ty>* operator&() { return this; }
+		const TAsyncSharedReadWritePointer<_Ty>* operator&() const { return this; }
 		bool is_valid() const {
 			/* A false return value indicates misuse. This might return false if this object has been invalidated
 			by a move construction. */
@@ -110,36 +110,36 @@ namespace mse {
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
 		std::unique_lock<std::shared_timed_mutex> m_unique_lock;
 
-		friend class TAsyncSharedAccessRequester<_Ty>;
+		friend class TAsyncSharedReadWriteAccessRequester<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedConstPointer {
+	class TAsyncSharedReadWriteConstPointer {
 	public:
-		TAsyncSharedConstPointer(TAsyncSharedConstPointer&& src) = default;
-		virtual ~TAsyncSharedConstPointer() {}
+		TAsyncSharedReadWriteConstPointer(TAsyncSharedReadWriteConstPointer&& src) = default;
+		virtual ~TAsyncSharedReadWriteConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedConstPointer")); }
+			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedConstPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedConstPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}
 	private:
-		TAsyncSharedConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
-		TAsyncSharedConstPointer<_Ty>& operator=(const TAsyncSharedConstPointer<_Ty>& _Right_cref) = delete;
-		TAsyncSharedConstPointer<_Ty>& operator=(TAsyncSharedConstPointer<_Ty>&& _Right) = delete;
+		TAsyncSharedReadWriteConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
+		TAsyncSharedReadWriteConstPointer<_Ty>& operator=(const TAsyncSharedReadWriteConstPointer<_Ty>& _Right_cref) = delete;
+		TAsyncSharedReadWriteConstPointer<_Ty>& operator=(TAsyncSharedReadWriteConstPointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedConstPointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedConstPointer<_Ty>* operator&() const { return this; }
+		TAsyncSharedReadWriteConstPointer<_Ty>* operator&() { return this; }
+		const TAsyncSharedReadWriteConstPointer<_Ty>* operator&() const { return this; }
 		bool is_valid() const {
 			/* A false return value indicates misuse. This might return false if this object has been invalidated
 			by a move construction. */
@@ -150,34 +150,34 @@ namespace mse {
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
 		std::unique_lock<std::shared_timed_mutex> m_unique_lock;
 
-		friend class TAsyncSharedAccessRequester<_Ty>;
+		friend class TAsyncSharedReadWriteAccessRequester<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedAccessRequester {
+	class TAsyncSharedReadWriteAccessRequester {
 	public:
-		TAsyncSharedAccessRequester(const TAsyncSharedAccessRequester& src_cref) = default;
+		TAsyncSharedReadWriteAccessRequester(const TAsyncSharedReadWriteAccessRequester& src_cref) = default;
 
-		TAsyncSharedPointer<_Ty> ptr() {
-			return TAsyncSharedPointer<_Ty>(m_shptr);
+		TAsyncSharedReadWritePointer<_Ty> ptr() {
+			return TAsyncSharedReadWritePointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedConstPointer<_Ty> const_ptr() {
-			return TAsyncSharedConstPointer<_Ty>(m_shptr);
+		TAsyncSharedReadWriteConstPointer<_Ty> const_ptr() {
+			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr);
 		}
 
 		template <class... Args>
-		static TAsyncSharedAccessRequester make_asyncshared(Args&&... args) {
+		static TAsyncSharedReadWriteAccessRequester make_asyncsharedreadwrite(Args&&... args) {
 			//auto shptr = std::make_shared<TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
 			std::shared_ptr<TAsyncSharedObj<_Ty>> shptr(new TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
-			TAsyncSharedAccessRequester retval(shptr);
+			TAsyncSharedReadWriteAccessRequester retval(shptr);
 			return retval;
 		}
 
 	private:
-		TAsyncSharedAccessRequester(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
+		TAsyncSharedReadWriteAccessRequester(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
 
-		TAsyncSharedAccessRequester<_Ty>* operator&() { return this; }
-		const TAsyncSharedAccessRequester<_Ty>* operator&() const { return this; }
+		TAsyncSharedReadWriteAccessRequester<_Ty>* operator&() { return this; }
+		const TAsyncSharedReadWriteAccessRequester<_Ty>* operator&() const { return this; }
 
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
 
@@ -185,8 +185,8 @@ namespace mse {
 	};
 
 	template <class X, class... Args>
-	TAsyncSharedAccessRequester<X> make_asyncshared(Args&&... args) {
-		return TAsyncSharedAccessRequester<X>::make_asyncshared(std::forward<Args>(args)...);
+	TAsyncSharedReadWriteAccessRequester<X> make_asyncsharedreadwrite(Args&&... args) {
+		return TAsyncSharedReadWriteAccessRequester<X>::make_asyncsharedreadwrite(std::forward<Args>(args)...);
 	}
 
 
@@ -234,7 +234,7 @@ namespace mse {
 	class TAsyncSharedReadOnlyAccessRequester : public TSaferPtr<const TAsyncSharedObj<_Ty>> {
 	public:
 		TAsyncSharedReadOnlyAccessRequester(const TAsyncSharedReadOnlyAccessRequester& src_cref) = default;
-		TAsyncSharedReadOnlyAccessRequester(const TAsyncSharedAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
+		TAsyncSharedReadOnlyAccessRequester(const TAsyncSharedReadWriteAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
 
 		TAsyncSharedReadOnlyConstPointer<_Ty> const_ptr() {
 			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr);
@@ -264,32 +264,32 @@ namespace mse {
 
 
 	template<typename _Ty>
-	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer {
+	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer {
 	public:
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer&& src) = default;
-		virtual ~TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer() {}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer&& src) = default;
+		virtual ~TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer")); }
+			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer")); }
 			return m_shptr.operator bool();
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&>::type operator*() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer")); }
 			return (*m_shptr);
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>*, TAsyncSharedObj<_Ty>*>::type operator->() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer")); }
 			return std::addressof(*m_shptr);
 		}
 	private:
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer<_Ty>& operator=(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer<_Ty>& _Right_cref) = delete;
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer<_Ty>& operator=(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer<_Ty>&& _Right) = delete;
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>& operator=(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>& _Right_cref) = delete;
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>& operator=(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer<_Ty>* operator&() const { return this; }
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>* operator&() { return this; }
+		const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>* operator&() const { return this; }
 		bool is_valid() const {
 			/* A false return value indicates misuse. This might return false if this object has been invalidated
 			by a move construction. */
@@ -300,36 +300,36 @@ namespace mse {
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
 		std::unique_lock<std::shared_timed_mutex> m_unique_lock;
 
-		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<_Ty>;
+		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer {
+	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer {
 	public:
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer&& src) = default;
-		virtual ~TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer() {}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer&& src) = default;
+		virtual ~TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer")); }
+			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}
 	private:
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer<_Ty>& operator=(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer<_Ty>& _Right_cref) = delete;
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer<_Ty>& operator=(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer<_Ty>&& _Right) = delete;
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>& operator=(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>& _Right_cref) = delete;
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>& operator=(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer<_Ty>* operator&() const { return this; }
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>* operator&() { return this; }
+		const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>* operator&() const { return this; }
 		bool is_valid() const {
 			/* A false return value indicates misuse. This might return false if this object has been invalidated
 			by a move construction. */
@@ -340,41 +340,41 @@ namespace mse {
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
 		std::shared_lock<std::shared_timed_mutex> m_shared_lock;
 
-		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<_Ty>;
+		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester {
+	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester {
 	public:
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester& src_cref) = default;
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester& src_cref) = default;
 
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer<_Ty> ptr() {
-			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersPointer<_Ty>(m_shptr);
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty> ptr() {
+			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer<_Ty> const_ptr() {
-			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstPointer<_Ty>(m_shptr);
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty> const_ptr() {
+			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>(m_shptr);
 		}
 
 		template <class... Args>
-		static TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester make_asyncsharedsimpleobjectyouaresurehasnomutablemembers(Args&&... args) {
+		static TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadwrite(Args&&... args) {
 			//auto shptr = std::make_shared<TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
 			std::shared_ptr<TAsyncSharedObj<_Ty>> shptr(new TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
-			TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester retval(shptr);
+			TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester retval(shptr);
 			return retval;
 		}
 
 	private:
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
 
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<_Ty>* operator&() { return this; }
-		const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<_Ty>* operator&() const { return this; }
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>* operator&() { return this; }
+		const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>* operator&() const { return this; }
 
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
 	};
 
 	template <class X, class... Args>
-	TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<X> make_asyncsharedsimpleobjectyouaresurehasnomutablemembers(Args&&... args) {
-		return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<X>::make_asyncsharedsimpleobjectyouaresurehasnomutablemembers(std::forward<Args>(args)...);
+	TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<X> make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadwrite(Args&&... args) {
+		return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<X>::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadwrite(std::forward<Args>(args)...);
 	}
 
 
@@ -422,7 +422,7 @@ namespace mse {
 	class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester {
 	public:
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester& src_cref) = default;
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
 
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty> const_ptr() {
 			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>(m_shptr);
