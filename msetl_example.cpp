@@ -1159,14 +1159,14 @@ int main(int argc, char* argv[])
 			std::cout << std::endl;
 		}
 		{
-			std::cout << "TAsyncSharedConst:";
+			std::cout << "TAsyncSharedReadOnly:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedconst<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedreadonly<A>(7);
 			int res1 = ash_access_requester.const_ptr()->b;
 
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedConstAccessRequester<A>>, ash_access_requester));
+				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedReadOnlyAccessRequester<A>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -1194,14 +1194,14 @@ int main(int argc, char* argv[])
 			std::cout << std::endl;
 		}
 		{
-			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConst:";
+			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnly:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersconst<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadonly<A>(7);
 			int res1 = ash_access_requester.const_ptr()->b;
 
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersConstAccessRequester<A>>, ash_access_requester));
+				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester<A>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
