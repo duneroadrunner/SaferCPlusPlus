@@ -1,4 +1,4 @@
-Apr 2016
+May 2016
 
 ### Overview
 
@@ -12,11 +12,13 @@ A collection of safe data types that are compatible with, and can substitute for
 
 - An almost completely [safe implementation](#vector) of std::vector<> - bounds checked, iterator checked and memory managed.
 
-- A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation
+- A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation.
 
-- [replacements](#primitives) for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
+- [Replacements](#primitives) for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
 
-Tested with msvc2015 and g++5.3 (as of Apr 2016) and msvc2013 (as of Feb 2016). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
+- Data types for safe, simple [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
+
+Tested with msvc2015 and g++5.3 (as of May 2016) and msvc2013 (as of Feb 2016). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
 You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action.
 
@@ -31,7 +33,7 @@ For more information on how the safe smart pointers in this library are intended
 
 ### Setup and dependencies
 
-The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Three header files - "mseprimitives.h", "mseregistered.h" and "msemstdvector.h" - will cover most use cases. Outside of the stl, there are no other dependencies.  
+The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Outside of the stl, there are no other dependencies.  
 A couple of notes about compling: With g++, you'll need to link to the pthread library (-lpthread). You may want to use the -Wno-unused flag as well. With msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
 
 ### Registered pointers
@@ -640,9 +642,166 @@ usage example:
 
 ###TXScopeWeakFixedConstPointer
 
-
 ### Safely passing parameters by reference
 As has been shown, you can use TRegisteredPointers or TRefCountingPointers to safely pass parameters by reference. If you're writing a function for more general use, and for some reason you can only support one parameter type, we would probably recommend TRegisteredPointers over TRefCountingPointers, just because of their support for stack allocated targets. But much more preferable might be to "templatize" your function so that it can accept any type of pointer. This is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example. Or you can read an article about it [here](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+
+
+### Asynchronously Shared Objects
+
+One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, when one party (thread) is modifying an object, you want to ensure that no other party accesses it. So we provide TAsyncSharedReadWriteAccessRequester that (like std::shared_ptr) possesses shared ownership of an object to be shared among asynchronous threads, and provides (const and non-const smart) pointers that can be used to safely access the object.
+
+### TAsyncSharedReadWriteAccessRequester
+
+Use the ptr() and const_ptr() member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock while they are around. Their locks are only released when the pointers are destroyed (generally when they go out of scope).  
+
+Use mse::make_asyncsharedreadwrite<>() to obtain a TAsyncSharedReadWriteAccessRequester. TAsyncSharedReadWriteAccessRequester can be copied and passed-by-value as a parameter (to another thread, generally).
+
+### TAsyncSharedReadOnlyAccessRequester
+
+Same as TAsyncSharedReadWriteAccessRequester, but only supports const_ptr(), not ptr(). You can use mse::make_asyncsharedreadonly<>() to obtain a TAsyncSharedReadOnlyAccessRequester. TAsyncSharedReadOnlyAccessRequester can also be copy constructed from a TAsyncSharedReadWriteAccessRequester.
+
+### TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester, TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester
+
+A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. Because of this TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "const_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.  
+
+usage example:
+
+	#include "mseasyncshared.h"
+	#include <ctime>
+	#include <ratio>
+	#include <chrono>
+	#include <future>
+	
+	class H {
+	public:
+		template<class _TAsyncSharedReadWriteAccessRequester>
+		static double foo7(_TAsyncSharedReadWriteAccessRequester A_ashar) {
+			auto t1 = std::chrono::high_resolution_clock::now();
+			/* A_ashar.const_ptr() will block until it can obtain a read lock. */
+			auto ptr1 = A_ashar.const_ptr(); // while ptr1 exists it holds a (read) lock on the shared object
+			auto t2 = std::chrono::high_resolution_clock::now();
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+			auto timespan_in_seconds = time_span.count();
+			auto thread_id = std::this_thread::get_id();
+			return timespan_in_seconds;
+		}
+	protected:
+		~H() {}
+	};
+	
+	int main(int argc, char* argv[]) {
+		/* The TAsyncShared data types are used to safely share objects between asynchronous threads. */
+	
+		class A {
+		public:
+			A(int x) : b(x) {}
+			A(const A& _X) : b(_X.b) {}
+			virtual ~A() {}
+			A& operator=(const A& _X) { b = _X.b; return (*this); }
+	
+			int b = 3;
+			std::string s = "some text ";
+		};
+		class B {
+		public:
+			static double foo1(mse::TAsyncSharedReadWriteAccessRequester<A> A_ashar) {
+				auto t1 = std::chrono::high_resolution_clock::now();
+				/* mse::TAsyncSharedReadWriteAccessRequester<A>::ptr() will block until it can obtain a write lock. */
+				auto ptr1 = A_ashar.ptr(); // while ptr1 exists it holds a (write) lock on the shared object
+				auto t2 = std::chrono::high_resolution_clock::now();
+				std::this_thread::sleep_for(std::chrono::seconds(1));
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				auto timespan_in_seconds = time_span.count();
+				auto thread_id = std::this_thread::get_id();
+	
+				ptr1->s = std::to_string(timespan_in_seconds);
+				return timespan_in_seconds;
+			}
+		protected:
+			~B() {}
+		};
+	
+		std::cout << std::endl;
+		std::cout << "AsyncShared test output:";
+		std::cout << std::endl;
+	
+		{
+			std::cout << "TAsyncSharedReadWrite:";
+			std::cout << std::endl;
+			auto ash_access_requester = mse::make_asyncsharedreadwrite<A>(7);
+			ash_access_requester.ptr()->b = 11;
+			int res1 = ash_access_requester.const_ptr()->b;
+	
+			std::list<std::future<double>> futures;
+			for (size_t i = 0; i < 3; i += 1) {
+				futures.emplace_back(std::async(B::foo1, ash_access_requester));
+			}
+			int count = 1;
+			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+				std::cout << "thread: " << count << ", time to acquire write pointer: " << (*it).get() << " seconds.";
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
+	
+			/* Btw, mse::TAsyncSharedReadOnlyAccessRequester<>s can be copy constructed from 
+			mse::TAsyncSharedReadWriteAccessRequester<>s */
+			mse::TAsyncSharedReadOnlyAccessRequester<A> ash_read_only_access_requester(ash_access_requester);
+		}
+		{
+			std::cout << "TAsyncSharedReadOnly:";
+			std::cout << std::endl;
+			auto ash_access_requester = mse::make_asyncsharedreadonly<A>(7);
+			int res1 = ash_access_requester.const_ptr()->b;
+	
+			std::list<std::future<double>> futures;
+			for (size_t i = 0; i < 3; i += 1) {
+				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedReadOnlyAccessRequester<A>>, ash_access_requester));
+			}
+			int count = 1;
+			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+				std::cout << "thread: " << count << ", time to acquire read pointer: " << (*it).get() << " seconds.";
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
+		}
+		{
+			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWrite:";
+			std::cout << std::endl;
+			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadwrite<A>(7);
+			ash_access_requester.ptr()->b = 11;
+			int res1 = ash_access_requester.const_ptr()->b;
+	
+			std::list<std::future<double>> futures;
+			for (size_t i = 0; i < 3; i += 1) {
+				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<A>>, ash_access_requester));
+			}
+			int count = 1;
+			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+				std::cout << "thread: " << count << ", time to acquire read pointer: " << (*it).get() << " seconds.";
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
+		}
+		{
+			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnly:";
+			std::cout << std::endl;
+			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadonly<A>(7);
+			int res1 = ash_access_requester.const_ptr()->b;
+	
+			std::list<std::future<double>> futures;
+			for (size_t i = 0; i < 3; i += 1) {
+				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester<A>>, ash_access_requester));
+			}
+			int count = 1;
+			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+				std::cout << "thread: " << count << ", time to acquire read pointer: " << (*it).get() << " seconds.";
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
+		}
+	}
+
 
 ### Primitives
 ### CInt, CSize_t and CBool
