@@ -12,9 +12,11 @@ A collection of safe data types that are compatible with, and can substitute for
 
 - An almost completely [safe implementation](#vector) of std::vector<> - bounds checked, iterator checked and memory managed.
 
-- A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation
+- A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation.
 
-- [replacements](#primitives) for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
+- [Replacements](#primitives) for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
+
+- Data types for safe, simple [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
 
 Tested with msvc2015 and g++5.3 (as of May 2016) and msvc2013 (as of Feb 2016). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
