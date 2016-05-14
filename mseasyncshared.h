@@ -399,7 +399,7 @@ namespace mse {
 			return extra_const_ptr;
 		}
 	private:
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr)/*, m_shared_lock(shptr->m_mutex1)*/ {}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>& operator=(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>& operator=(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>&& _Right) = delete;
 
@@ -413,7 +413,7 @@ namespace mse {
 		}
 
 		std::shared_ptr<const TAsyncSharedObj<_Ty>> m_shptr;
-		//std::shared_lock<std::shared_timed_mutex> m_shared_lock;
+		std::shared_lock<std::shared_timed_mutex> m_shared_lock;
 
 		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester<_Ty>;
 	};
