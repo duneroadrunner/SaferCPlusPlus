@@ -1141,7 +1141,7 @@ int main(int argc, char* argv[])
 		std::cout << std::endl;
 
 		{
-			std::cout << "TAsyncShared:";
+			std::cout << "TAsyncSharedReadWrite:";
 			std::cout << std::endl;
 			auto ash_access_requester = mse::make_asyncsharedreadwrite<A>(7);
 			ash_access_requester.ptr()->b = 11;
@@ -1157,6 +1157,10 @@ int main(int argc, char* argv[])
 				std::cout << std::endl;
 			}
 			std::cout << std::endl;
+
+			/* Btw, mse::TAsyncSharedReadOnlyAccessRequester<>s can be copy constructed from 
+			mse::TAsyncSharedReadWriteAccessRequester<>s */
+			mse::TAsyncSharedReadOnlyAccessRequester<A> ash_read_only_access_requester(ash_access_requester);
 		}
 		{
 			std::cout << "TAsyncSharedReadOnly:";
@@ -1176,11 +1180,11 @@ int main(int argc, char* argv[])
 			std::cout << std::endl;
 		}
 		{
-			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembers:";
+			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWrite:";
 			std::cout << std::endl;
 			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadwrite<A>(7);
 			ash_access_requester.ptr()->b = 11;
-			int res1 = ash_access_requester.ptr()->b;
+			int res1 = ash_access_requester.const_ptr()->b;
 
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
