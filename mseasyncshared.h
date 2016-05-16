@@ -9,6 +9,8 @@
 #define MSEASYNCSHARED_H_
 
 #include <shared_mutex>
+#include <thread>
+#include <unordered_map>
 #include <cassert>
 
 
@@ -21,6 +23,114 @@ namespace mse {
 #ifdef MSE_ASYNCSHAREDPOINTER_DISABLED
 #else /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
 #endif /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
+
+	class recursive_shared_timed_mutex : private std::shared_timed_mutex {
+	public:
+		typedef std::shared_timed_mutex base_class;
+
+		void lock()
+		{	// lock exclusive
+			m_mutex1.lock();
+
+			if ((1 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
+			}
+			else {
+				m_mutex1.unlock();
+				base_class::lock();
+				m_mutex1.lock();
+
+				m_writelock_thread_id = std::this_thread::get_id();
+			}
+			m_writelock_count += 1;
+
+			m_mutex1.unlock();
+		}
+		bool try_lock()
+		{	// try to lock exclusive
+			bool retval = false;
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			if ((1 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
+				m_writelock_count += 1;
+				retval = true;
+			}
+			else {
+				retval = base_class::try_lock();
+				if (retval) {
+					m_writelock_thread_id = std::this_thread::get_id();
+					m_writelock_count += 1;
+				}
+			}
+			return retval;
+		}
+		void unlock()
+		{	// unlock exclusive
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			if ((2 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
+			}
+			else {
+				base_class::unlock();
+			}
+			m_writelock_count -= 1;
+		}
+		void lock_shared()
+		{	// lock exclusive
+			m_mutex1.lock();
+
+			const auto this_thread_id = std::this_thread::get_id();
+			const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+			if ((m_thread_id_readlock_count_map.end() != found_it) && (1 <= (*found_it).second)) {
+				(*found_it).second += 1;
+			}
+			else {
+				m_mutex1.unlock();
+				base_class::lock_shared();
+				m_mutex1.lock();
+
+				/* Things could've changed so we have to check again. */
+				const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+				if (m_thread_id_readlock_count_map.end() != found_it) {
+					(*found_it).second += 1;
+				}
+				else {
+					std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
+					m_thread_id_readlock_count_map.insert(item);
+				}
+			}
+
+			m_mutex1.unlock();
+		}
+		void unlock_shared()
+		{	// unlock exclusive
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			const auto this_thread_id = std::this_thread::get_id();
+			const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+			if (m_thread_id_readlock_count_map.end() != found_it) {
+				if (2 <= (*found_it).second) {
+					(*found_it).second -= 1;
+				}
+				else {
+					m_thread_id_readlock_count_map.erase(found_it);
+					base_class::unlock();
+				}
+			}
+			else {
+				assert(false);
+				base_class::unlock();
+			}
+		}
+
+		std::mutex m_mutex1;
+
+		std::thread::id m_writelock_thread_id;
+		int m_writelock_count = 0;
+		std::unordered_map<std::thread::id, int> m_thread_id_readlock_count_map;
+	};
+
+	//typedef std::shared_timed_mutex async_shared_timed_mutex_type;
+	typedef recursive_shared_timed_mutex async_shared_timed_mutex_type;
 
 	template<typename _Ty> class TAsyncSharedReadWriteAccessRequester;
 	template<typename _Ty> class TAsyncSharedReadWritePointer;
@@ -58,7 +168,7 @@ namespace mse {
 			return this;
 		}
 
-		mutable std::shared_timed_mutex m_mutex1;
+		mutable async_shared_timed_mutex_type m_mutex1;
 
 		friend class TAsyncSharedReadWriteAccessRequester<_TROy>;
 		friend class TAsyncSharedReadWritePointer<_TROy>;
@@ -95,6 +205,11 @@ namespace mse {
 		}
 	private:
 		TAsyncSharedReadWritePointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
+		TAsyncSharedReadWritePointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock()) {
+				shptr = nullptr;
+			}
+		}
 		TAsyncSharedReadWritePointer<_Ty>& operator=(const TAsyncSharedReadWritePointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedReadWritePointer<_Ty>& operator=(TAsyncSharedReadWritePointer<_Ty>&& _Right) = delete;
 
@@ -108,7 +223,7 @@ namespace mse {
 		}
 
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
-		std::unique_lock<std::shared_timed_mutex> m_unique_lock;
+		std::unique_lock<async_shared_timed_mutex_type> m_unique_lock;
 
 		friend class TAsyncSharedReadWriteAccessRequester<_Ty>;
 	};
@@ -148,7 +263,7 @@ namespace mse {
 		}
 
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
-		std::unique_lock<std::shared_timed_mutex> m_unique_lock;
+		std::unique_lock<async_shared_timed_mutex_type> m_unique_lock;
 
 		friend class TAsyncSharedReadWriteAccessRequester<_Ty>;
 	};
@@ -225,7 +340,7 @@ namespace mse {
 		}
 
 		std::shared_ptr<const TAsyncSharedObj<_Ty>> m_shptr;
-		std::unique_lock<std::shared_timed_mutex> m_unique_lock;
+		std::unique_lock<async_shared_timed_mutex_type> m_unique_lock;
 
 		friend class TAsyncSharedReadOnlyAccessRequester<_Ty>;
 	};
@@ -298,7 +413,7 @@ namespace mse {
 		}
 
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
-		std::unique_lock<std::shared_timed_mutex> m_unique_lock;
+		std::unique_lock<async_shared_timed_mutex_type> m_unique_lock;
 
 		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>;
 	};
@@ -338,7 +453,7 @@ namespace mse {
 		}
 
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
-		std::shared_lock<std::shared_timed_mutex> m_shared_lock;
+		std::shared_lock<async_shared_timed_mutex_type> m_shared_lock;
 
 		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>;
 	};
@@ -413,7 +528,7 @@ namespace mse {
 		}
 
 		std::shared_ptr<const TAsyncSharedObj<_Ty>> m_shptr;
-		std::shared_lock<std::shared_timed_mutex> m_shared_lock;
+		std::shared_lock<async_shared_timed_mutex_type> m_shared_lock;
 
 		friend class TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester<_Ty>;
 	};
