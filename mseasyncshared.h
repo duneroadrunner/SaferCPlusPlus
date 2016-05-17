@@ -30,31 +30,35 @@ namespace mse {
 
 		void lock()
 		{	// lock exclusive
-			m_mutex1.lock();
+			m_write_mutex.lock();
 
 			if ((1 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
 			}
 			else {
-				m_mutex1.unlock();
-				base_class::lock();
-				m_mutex1.lock();
-
+				assert((std::this_thread::get_id() != m_writelock_thread_id) || (0 == m_writelock_count));
+				{
+					m_write_mutex.unlock();
+					base_class::lock();
+					m_write_mutex.lock();
+				}
 				m_writelock_thread_id = std::this_thread::get_id();
+				assert(0 == m_writelock_count);
 			}
 			m_writelock_count += 1;
 
-			m_mutex1.unlock();
+			m_write_mutex.unlock();
 		}
 		bool try_lock()
 		{	// try to lock exclusive
 			bool retval = false;
-			std::lock_guard<std::mutex> lock1(m_mutex1);
+			std::lock_guard<std::mutex> lock1(m_write_mutex);
 
 			if ((1 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
 				m_writelock_count += 1;
 				retval = true;
 			}
 			else {
+				assert(0 == m_writelock_count);
 				retval = base_class::try_lock();
 				if (retval) {
 					m_writelock_thread_id = std::this_thread::get_id();
@@ -65,18 +69,20 @@ namespace mse {
 		}
 		void unlock()
 		{	// unlock exclusive
-			std::lock_guard<std::mutex> lock1(m_mutex1);
+			std::lock_guard<std::mutex> lock1(m_write_mutex);
+			assert(std::this_thread::get_id() == m_writelock_thread_id);
 
 			if ((2 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
 			}
 			else {
+				assert(1 == m_writelock_count);
 				base_class::unlock();
 			}
 			m_writelock_count -= 1;
 		}
 		void lock_shared()
 		{	// lock exclusive
-			m_mutex1.lock();
+			m_read_mutex.lock();
 
 			const auto this_thread_id = std::this_thread::get_id();
 			const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
@@ -84,13 +90,14 @@ namespace mse {
 				(*found_it).second += 1;
 			}
 			else {
-				m_mutex1.unlock();
+				m_read_mutex.unlock();
 				base_class::lock_shared();
-				m_mutex1.lock();
+				m_read_mutex.lock();
 
 				/* Things could've changed so we have to check again. */
 				const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
 				if (m_thread_id_readlock_count_map.end() != found_it) {
+					assert(0 == (*found_it).second);
 					(*found_it).second += 1;
 				}
 				else {
@@ -99,11 +106,37 @@ namespace mse {
 				}
 			}
 
-			m_mutex1.unlock();
+			m_read_mutex.unlock();
+		}
+		bool try_lock_shared()
+		{	// try to lock exclusive
+			bool retval = false;
+			std::lock_guard<std::mutex> lock1(m_read_mutex);
+
+			const auto this_thread_id = std::this_thread::get_id();
+			const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+			if ((m_thread_id_readlock_count_map.end() != found_it) && (1 <= (*found_it).second)) {
+				(*found_it).second += 1;
+				retval = true;
+			}
+			else {
+				retval = base_class::try_lock_shared();
+				if (retval) {
+					if (m_thread_id_readlock_count_map.end() != found_it) {
+						assert(0 == (*found_it).second);
+						(*found_it).second += 1;
+					}
+					else {
+						std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
+						m_thread_id_readlock_count_map.insert(item);
+					}
+				}
+			}
+			return retval;
 		}
 		void unlock_shared()
 		{	// unlock exclusive
-			std::lock_guard<std::mutex> lock1(m_mutex1);
+			std::lock_guard<std::mutex> lock1(m_read_mutex);
 
 			const auto this_thread_id = std::this_thread::get_id();
 			const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
@@ -112,17 +145,19 @@ namespace mse {
 					(*found_it).second -= 1;
 				}
 				else {
+					assert(1 == (*found_it).second);
 					m_thread_id_readlock_count_map.erase(found_it);
-					base_class::unlock();
+					base_class::unlock_shared();
 				}
 			}
 			else {
 				assert(false);
-				base_class::unlock();
+				base_class::unlock_shared();
 			}
 		}
 
-		std::mutex m_mutex1;
+		std::mutex m_write_mutex;
+		std::mutex m_read_mutex;
 
 		std::thread::id m_writelock_thread_id;
 		int m_writelock_count = 0;
@@ -400,6 +435,11 @@ namespace mse {
 		}
 	private:
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock()) {
+				shptr = nullptr;
+			}
+		}
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>& operator=(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>& operator=(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>&& _Right) = delete;
 
