@@ -287,6 +287,11 @@ namespace mse {
 		}
 	private:
 		TAsyncSharedReadWriteConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
+		TAsyncSharedReadWriteConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock()) {
+				shptr = nullptr;
+			}
+		}
 		TAsyncSharedReadWriteConstPointer<_Ty>& operator=(const TAsyncSharedReadWriteConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedReadWriteConstPointer<_Ty>& operator=(TAsyncSharedReadWriteConstPointer<_Ty>&& _Right) = delete;
 
@@ -313,8 +318,14 @@ namespace mse {
 		TAsyncSharedReadWritePointer<_Ty> ptr() {
 			return TAsyncSharedReadWritePointer<_Ty>(m_shptr);
 		}
+		TAsyncSharedReadWritePointer<_Ty> try_ptr() {
+			return TAsyncSharedReadWritePointer<_Ty>(m_shptr, std::try_to_lock);
+		}
 		TAsyncSharedReadWriteConstPointer<_Ty> const_ptr() {
 			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr);
+		}
+		TAsyncSharedReadWriteConstPointer<_Ty> try_const_ptr() {
+			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 
 		template <class... Args>
@@ -364,6 +375,11 @@ namespace mse {
 		}
 	private:
 		TAsyncSharedReadOnlyConstPointer(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
+		TAsyncSharedReadOnlyConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock()) {
+				shptr = nullptr;
+			}
+		}
 		TAsyncSharedReadOnlyConstPointer<_Ty>& operator=(const TAsyncSharedReadOnlyConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedReadOnlyConstPointer<_Ty>& operator=(TAsyncSharedReadOnlyConstPointer<_Ty>&& _Right) = delete;
 
@@ -390,6 +406,9 @@ namespace mse {
 
 		TAsyncSharedReadOnlyConstPointer<_Ty> const_ptr() {
 			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr);
+		}
+		TAsyncSharedReadOnlyConstPointer<_Ty> try_const_ptr() {
+			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 
 		template <class... Args>
@@ -482,6 +501,11 @@ namespace mse {
 		}
 	private:
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_shared_lock.try_lock()) {
+				shptr = nullptr;
+			}
+		}
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>& operator=(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>& operator=(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>&& _Right) = delete;
 
@@ -508,8 +532,14 @@ namespace mse {
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty> ptr() {
 			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>(m_shptr);
 		}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty> try_ptr() {
+			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>(m_shptr, std::try_to_lock);
+		}
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty> const_ptr() {
 			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>(m_shptr);
+		}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty> try_const_ptr() {
+			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 
 		template <class... Args>
@@ -557,6 +587,11 @@ namespace mse {
 		}
 	private:
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_shared_lock.try_lock()) {
+				shptr = nullptr;
+			}
+		}
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>& operator=(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>& operator=(TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>&& _Right) = delete;
 
@@ -583,6 +618,9 @@ namespace mse {
 
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty> const_ptr() {
 			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>(m_shptr);
+		}
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty> try_const_ptr() {
+			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 
 		template <class... Args>
