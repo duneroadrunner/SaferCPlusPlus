@@ -36,11 +36,11 @@ namespace mse {
 			}
 			else {
 				assert((std::this_thread::get_id() != m_writelock_thread_id) || (0 == m_writelock_count));
-				{
-					m_write_mutex.unlock();
-					base_class::lock();
-					m_write_mutex.lock();
-				}
+
+				m_write_mutex.unlock();
+				base_class::lock();
+				m_write_mutex.lock();
+
 				m_writelock_thread_id = std::this_thread::get_id();
 				assert(0 == m_writelock_count);
 			}
@@ -90,15 +90,17 @@ namespace mse {
 				(*found_it).second += 1;
 			}
 			else {
+				assert((m_thread_id_readlock_count_map.end() == found_it) || (0 == (*found_it).second));
+
 				m_read_mutex.unlock();
 				base_class::lock_shared();
 				m_read_mutex.lock();
 
 				/* Things could've changed so we have to check again. */
-				const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
-				if (m_thread_id_readlock_count_map.end() != found_it) {
-					assert(0 == (*found_it).second);
-					(*found_it).second += 1;
+				const auto l_found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+				if (m_thread_id_readlock_count_map.end() != l_found_it) {
+					assert(0 <= (*l_found_it).second);
+					(*l_found_it).second += 1;
 				}
 				else {
 					std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
@@ -123,7 +125,7 @@ namespace mse {
 				retval = base_class::try_lock_shared();
 				if (retval) {
 					if (m_thread_id_readlock_count_map.end() != found_it) {
-						assert(0 == (*found_it).second);
+						assert(0 <= (*found_it).second);
 						(*found_it).second += 1;
 					}
 					else {
