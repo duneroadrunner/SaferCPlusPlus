@@ -40,7 +40,7 @@ namespace mse {
 	class rstm_bad_alloc : public std::bad_alloc {
 	public:
 		rstm_bad_alloc(const std::string& what) : m_what(what) {}
-		virtual const char* what() const { return m_what.c_str(); }
+		virtual const char* what() const noexcept { return m_what.c_str(); }
 		std::string m_what;
 	};
 
