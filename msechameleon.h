@@ -37,7 +37,11 @@ namespace mse {
 	public:
 		TRefCountingOrXScopeFixedPointer(const TRefCountingOrXScopeFixedPointer& src_cref) : TStrongFixedPointer<_Ty, TRefCountingPointer<_Ty>>(src_cref) {}
 		TRefCountingOrXScopeFixedPointer(const TRefCountingPointer<_Ty>& src_cref) : TStrongFixedPointer<_Ty, TRefCountingPointer<_Ty>>(*src_cref, src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TRefCountingOrXScopeFixedPointer(const TRefCountingPointer<_Ty2>& src_cref) : TStrongFixedPointer<_Ty, TRefCountingPointer<_Ty>>(*src_cref, src_cref) {}
 		TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TStrongFixedPointer<_Ty, TRefCountingPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>()) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TStrongFixedPointer<_Ty, TRefCountingPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>()) {}
 		virtual ~TRefCountingOrXScopeFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TStrongFixedPointer<_Ty, TRefCountingPointer<_Ty>>::operator _Ty*(); }
@@ -59,9 +63,17 @@ namespace mse {
 		TRefCountingOrXScopeFixedConstPointer(const TRefCountingOrXScopeFixedConstPointer& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(src_cref) {}
 		TRefCountingOrXScopeFixedConstPointer(const TRefCountingOrXScopeFixedPointer<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(src_cref) {}
 		TRefCountingOrXScopeFixedConstPointer(const TRefCountingConstPointer<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TRefCountingOrXScopeFixedConstPointer(const TRefCountingConstPointer<_Ty2>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, src_cref) {}
 		TRefCountingOrXScopeFixedConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TRefCountingOrXScopeFixedConstPointer(const TRefCountingPointer<_Ty2>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>(src_cref)) {}
 		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>()) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>()) {}
 		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>()) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>()) {}
 		virtual ~TRefCountingOrXScopeFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>::operator _Ty*(); }
