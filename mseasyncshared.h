@@ -24,29 +24,46 @@ namespace mse {
 #else /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
 #endif /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
 
+	template <class _Ty>
+	class unlock_guard {
+	public:
+		unlock_guard(_Ty& mutex_ref) : m_mutex_ref(mutex_ref) {
+			m_mutex_ref.unlock();
+		}
+		~unlock_guard() {
+			m_mutex_ref.lock();
+		}
+
+		_Ty& m_mutex_ref;
+	};
+
+	class rstm_bad_alloc : public std::bad_alloc {
+	public:
+		rstm_bad_alloc(const std::string& what) : m_what(what) {}
+		virtual const char* what() const { return m_what.c_str(); }
+		std::string m_what;
+	};
+
 	class recursive_shared_timed_mutex : private std::shared_timed_mutex {
 	public:
 		typedef std::shared_timed_mutex base_class;
 
 		void lock()
 		{	// lock exclusive
-			m_write_mutex.lock();
+			std::lock_guard<std::mutex> lock1(m_write_mutex);
 
 			if ((1 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
 			}
 			else {
 				assert((std::this_thread::get_id() != m_writelock_thread_id) || (0 == m_writelock_count));
-
-				m_write_mutex.unlock();
-				base_class::lock();
-				m_write_mutex.lock();
-
+				{
+					unlock_guard<std::mutex> unlock1(m_write_mutex);
+					base_class::lock();
+				}
 				m_writelock_thread_id = std::this_thread::get_id();
 				assert(0 == m_writelock_count);
 			}
 			m_writelock_count += 1;
-
-			m_write_mutex.unlock();
 		}
 		bool try_lock()
 		{	// try to lock exclusive
@@ -82,7 +99,7 @@ namespace mse {
 		}
 		void lock_shared()
 		{	// lock exclusive
-			m_read_mutex.lock();
+			std::lock_guard<std::mutex> lock1(m_read_mutex);
 
 			const auto this_thread_id = std::this_thread::get_id();
 			const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
@@ -91,24 +108,27 @@ namespace mse {
 			}
 			else {
 				assert((m_thread_id_readlock_count_map.end() == found_it) || (0 == (*found_it).second));
-
-				m_read_mutex.unlock();
-				base_class::lock_shared();
-				m_read_mutex.lock();
-
-				/* Things could've changed so we have to check again. */
-				const auto l_found_it = m_thread_id_readlock_count_map.find(this_thread_id);
-				if (m_thread_id_readlock_count_map.end() != l_found_it) {
-					assert(0 <= (*l_found_it).second);
-					(*l_found_it).second += 1;
+				{
+					unlock_guard<std::mutex> unlock1(m_read_mutex);
+					base_class::lock_shared();
 				}
-				else {
-					std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
-					m_thread_id_readlock_count_map.insert(item);
+				try {
+					/* Things could've changed so we have to check again. */
+					const auto l_found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+					if (m_thread_id_readlock_count_map.end() != l_found_it) {
+						assert(0 <= (*l_found_it).second);
+						(*l_found_it).second += 1;
+					}
+					else {
+							std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
+							m_thread_id_readlock_count_map.insert(item);
+					}
+				}
+				catch (...) {
+					base_class::unlock_shared();
+					throw(rstm_bad_alloc("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
 				}
 			}
-
-			m_read_mutex.unlock();
 		}
 		bool try_lock_shared()
 		{	// try to lock exclusive
@@ -124,13 +144,19 @@ namespace mse {
 			else {
 				retval = base_class::try_lock_shared();
 				if (retval) {
-					if (m_thread_id_readlock_count_map.end() != found_it) {
-						assert(0 <= (*found_it).second);
-						(*found_it).second += 1;
+					try {
+						if (m_thread_id_readlock_count_map.end() != found_it) {
+							assert(0 <= (*found_it).second);
+							(*found_it).second += 1;
+						}
+						else {
+							std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
+							m_thread_id_readlock_count_map.insert(item);
+						}
 					}
-					else {
-						std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
-						m_thread_id_readlock_count_map.insert(item);
+					catch (...) {
+						base_class::unlock_shared();
+						throw(rstm_bad_alloc("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
 					}
 				}
 			}
