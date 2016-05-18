@@ -446,14 +446,32 @@ namespace mse {
 			return m_target_pointer;
 		}
 
+		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TStrongFixedPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const TStrongFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+
+		bool operator!() const { return (!m_target_pointer); }
+		operator bool() const {
+			return (m_target_pointer != nullptr);
+		}
+
+		explicit operator _TTargetType*() const {
+			if (nullptr == m_target_pointer) {
+				int q = 3; /* just a line of code for putting a debugger break point */
+			}
+			return m_target_pointer;
+		}
+
 		template <class _TTargetType2, class _TLeaseType2>
 		static TStrongFixedPointer make_strong(_TTargetType2& target, const _TLeaseType2& lease) {
 			return TStrongFixedPointer(target, lease);
 		}
 
-	private:
+	protected:
 		TStrongFixedPointer(_TTargetType& target/* often a struct member */, _TLeaseType lease/* usually a reference counting pointer */)
-			: m_target_pointer(&target), m_lease(lease) {}
+			: m_target_pointer(std::addressof(target)), m_lease(lease) {}
+	private:
 		TStrongFixedPointer& operator=(const TStrongFixedPointer& _Right_cref) = delete;
 
 		_TTargetType* m_target_pointer;
@@ -478,9 +496,10 @@ namespace mse {
 			return m_target_pointer;
 		}
 
-	private:
+	protected:
 		TStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeaseType lease/* usually a reference counting pointer */)
 			: m_target_pointer(&target), m_lease(lease) {}
+	private:
 		TStrongFixedConstPointer& operator=(const TStrongFixedConstPointer& _Right_cref) = delete;
 
 		const _TTargetType* m_target_pointer;
