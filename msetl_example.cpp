@@ -33,6 +33,7 @@ get to the data type your interested in.
 #include "mserefcountingofrelaxedregistered.h"
 #include "msescope.h"
 #include "mseasyncshared.h"
+#include "msechameleon.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -874,11 +875,9 @@ int main(int argc, char* argv[])
 		class A {
 		public:
 			A() {}
-			A(const A& _X) : b(_X.b) {}
 			virtual ~A() {
 				int q = 3; /* just so you can place a breakpoint if you want */
 			}
-			A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 			int b = 3;
 			std::string s = "some text ";
@@ -951,11 +950,9 @@ int main(int argc, char* argv[])
 		class A {
 		public:
 			A() {}
-			A(const A& _X) : b(_X.b) {}
 			virtual ~A() {
 				int q = 3; /* just so you can place a breakpoint if you want */
 			}
-			A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 			int b = 3;
 		};
@@ -1069,9 +1066,7 @@ int main(int argc, char* argv[])
 		class A {
 		public:
 			A(int x) : b(x) {}
-			A(const A& _X) : b(_X.b) {}
 			virtual ~A() {}
-			A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 			int b = 3;
 			std::string s = "some text ";
@@ -1108,9 +1103,7 @@ int main(int argc, char* argv[])
 		class A {
 		public:
 			A(int x) : b(x) {}
-			A(const A& _X) : b(_X.b) {}
 			virtual ~A() {}
-			A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 			int b = 3;
 			std::string s = "some text ";
@@ -1146,6 +1139,11 @@ int main(int argc, char* argv[])
 			auto ash_access_requester = mse::make_asyncsharedreadwrite<A>(7);
 			ash_access_requester.ptr()->b = 11;
 			int res1 = ash_access_requester.const_ptr()->b;
+
+			{
+				auto ptr1 = ash_access_requester.ptr();
+				auto ptr2 = ash_access_requester.ptr();
+			}
 
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
@@ -1214,6 +1212,52 @@ int main(int argc, char* argv[])
 			}
 			std::cout << std::endl;
 		}
+	}
+
+	{
+		/************************/
+		/*  Chameleon pointers  */
+		/************************/
+
+		class A {
+		public:
+			A(int x) : b(x) {}
+			virtual ~A() {}
+
+			int b = 3;
+		};
+		class D : public A {
+		public:
+			D(int x) : A(x) {}
+		};
+		class B {
+		public:
+			static int foo1(mse::TRefCountingOrXScopeFixedPointer<A> refcoxscpfp) {
+				int retval = refcoxscpfp->b;
+				return retval;
+			}
+			static int foo2(mse::TRefCountingOrXScopeFixedConstPointer<A> refcoxscpfcp) {
+				int retval = refcoxscpfcp->b;
+				return retval;
+			}
+		protected:
+			~B() {}
+		};
+
+		auto A_refcfp = mse::make_refcounting<A>(5);
+		mse::TXScopeObj<A> a_xscpobj(7);
+		A a(11);
+		int res1 = B::foo1(A_refcfp);
+		int res2 = B::foo1(&a_xscpobj);
+		int res3 = B::foo2(A_refcfp);
+		int res4 = B::foo2(&a_xscpobj);
+		auto D_refcfp = mse::make_refcounting<D>(5);
+		mse::TXScopeObj<D> d_xscpobj(7);
+		D d(11);
+		int res11 = B::foo1(D_refcfp);
+		int res12 = B::foo1(&d_xscpobj);
+		int res13 = B::foo2(D_refcfp);
+		int res14 = B::foo2(&d_xscpobj);
 
 		int q = 3;
 	}
