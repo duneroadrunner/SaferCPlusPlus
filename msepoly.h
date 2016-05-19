@@ -30,7 +30,7 @@ namespace mse {
 #else /*MSE_POLYPOINTER_DISABLED*/
 #endif /*MSE_POLYPOINTER_DISABLED*/
 
-	template<typename _Ty> class TRefCountingOrXScopeConstPointer;
+	template<typename _Ty> class TRefCountingOrXScopeFixedConstPointer;
 
 	template<typename _Ty>
 	class TRefCountingOrXScopeFixedPointer : public TStrongFixedPointer<_Ty, TRefCountingPointer<_Ty>> {
@@ -54,7 +54,7 @@ namespace mse {
 		//TRefCountingOrXScopeFixedPointer<_Ty>* operator&() { return this; }
 		//const TRefCountingOrXScopeFixedPointer<_Ty>* operator&() const { return this; }
 
-		friend class TRefCountingOrXScopeConstPointer<_Ty>;
+		friend class TRefCountingOrXScopeFixedConstPointer<_Ty>;
 	};
 
 	template<typename _Ty>
@@ -68,12 +68,12 @@ namespace mse {
 		TRefCountingOrXScopeFixedConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRefCountingOrXScopeFixedConstPointer(const TRefCountingPointer<_Ty2>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>(src_cref)) {}
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>()) {}
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingConstPointer<_Ty>()) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>()) {}
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>()) {}
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingConstPointer<_Ty>()) {}
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingConstPointer<_Ty>()) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingPointer<_Ty>()) {}
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*src_cref, TRefCountingConstPointer<_Ty>()) {}
 		virtual ~TRefCountingOrXScopeFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>::operator _Ty*(); }
@@ -100,6 +100,53 @@ namespace mse {
 	public:
 		MSE_SCOPE_USING(TRefCountingOrXScopeOrRawFixedConstPointer, TRefCountingOrXScopeFixedConstPointer<_Ty>);
 		TRefCountingOrXScopeOrRawFixedConstPointer(_Ty* ptr) : TRefCountingOrXScopeFixedConstPointer<_Ty>(ptr) {}
+	};
+
+
+	template<typename _Ty> class TSharedOrRawFixedConstPointer;
+
+	template<typename _Ty>
+	class TSharedOrRawFixedPointer : public TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>> {
+	public:
+		TSharedOrRawFixedPointer(const TSharedOrRawFixedPointer& src_cref) : TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>>(src_cref) {}
+		TSharedOrRawFixedPointer(const std::shared_ptr<_Ty>& src_cref) : TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>>(*src_cref, src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TSharedOrRawFixedPointer(const std::shared_ptr<_Ty2>& src_cref) : TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>>(*src_cref, src_cref) {}
+		TSharedOrRawFixedPointer(_Ty* ptr) : TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>>(*ptr, std::shared_ptr<_Ty>()) {}
+		virtual ~TSharedOrRawFixedPointer() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator _Ty*() const { return TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>>::operator _Ty*(); }
+
+	private:
+		TSharedOrRawFixedPointer<_Ty>& operator=(const TSharedOrRawFixedPointer<_Ty>& _Right_cref) = delete;
+
+		//TSharedOrRawFixedPointer<_Ty>* operator&() { return this; }
+		//const TSharedOrRawFixedPointer<_Ty>* operator&() const { return this; }
+
+		friend class TSharedOrRawFixedConstPointer<_Ty>;
+	};
+
+	template<typename _Ty>
+	class TSharedOrRawFixedConstPointer : public TStrongFixedConstPointer<_Ty, std::shared_ptr<const _Ty>> {
+	public:
+		TSharedOrRawFixedConstPointer(const TSharedOrRawFixedConstPointer& src_cref) : TStrongFixedConstPointer<_Ty, std::shared_ptr<const _Ty>>(src_cref) {}
+		TSharedOrRawFixedConstPointer(const TSharedOrRawFixedPointer<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, std::shared_ptr<const _Ty>>(src_cref) {}
+		TSharedOrRawFixedConstPointer(const std::shared_ptr<const _Ty>& src_cref) : TStrongFixedConstPointer<_Ty, std::shared_ptr<const _Ty>>(*src_cref, src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TSharedOrRawFixedConstPointer(const std::shared_ptr<const _Ty2>& src_cref) : TStrongFixedConstPointer<_Ty, std::shared_ptr<const _Ty>>(*src_cref, src_cref) {}
+		TSharedOrRawFixedConstPointer(const std::shared_ptr<_Ty>& src_cref) : TStrongFixedConstPointer<_Ty, std::shared_ptr<const _Ty>>(*src_cref, src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TSharedOrRawFixedConstPointer(const std::shared_ptr<_Ty2>& src_cref) : TStrongFixedConstPointer<_Ty, std::shared_ptr<_Ty>>(*src_cref, src_cref) {}
+		TSharedOrRawFixedConstPointer(_Ty* ptr) : TStrongFixedConstPointer<_Ty, std::shared_ptr<const _Ty>>(*ptr, std::shared_ptr<const _Ty>()) {}
+		virtual ~TSharedOrRawFixedConstPointer() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator _Ty*() const { return TStrongFixedConstPointer<_Ty, std::shared_ptr<const _Ty>>::operator _Ty*(); }
+
+	private:
+		TSharedOrRawFixedConstPointer<_Ty>& operator=(const TSharedOrRawFixedConstPointer<_Ty>& _Right_cref) = delete;
+
+		//TSharedOrRawFixedConstPointer<_Ty>* operator&() { return this; }
+		//const TSharedOrRawFixedConstPointer<_Ty>* operator&() const { return this; }
 	};
 
 }

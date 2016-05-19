@@ -1232,20 +1232,28 @@ int main(int argc, char* argv[])
 		};
 		class B {
 		public:
-			static int foo1(mse::TRefCountingOrXScopeFixedPointer<A> refcoxscpfp) {
-				int retval = refcoxscpfp->b;
+			static int foo1(mse::TRefCountingOrXScopeFixedPointer<A> ptr) {
+				int retval = ptr->b;
 				return retval;
 			}
-			static int foo2(mse::TRefCountingOrXScopeFixedConstPointer<A> refcoxscpfcp) {
-				int retval = refcoxscpfcp->b;
+			static int foo2(mse::TRefCountingOrXScopeFixedConstPointer<A> ptr) {
+				int retval = ptr->b;
 				return retval;
 			}
-			static int foo3(mse::TRefCountingOrXScopeOrRawFixedPointer<A> refcoxscporfp) {
-				int retval = refcoxscporfp->b;
+			static int foo3(mse::TRefCountingOrXScopeOrRawFixedPointer<A> ptr) {
+				int retval = ptr->b;
 				return retval;
 			}
-			static int foo4(mse::TRefCountingOrXScopeOrRawFixedConstPointer<A> refcoxscporfp) {
-				int retval = refcoxscporfp->b;
+			static int foo4(mse::TRefCountingOrXScopeOrRawFixedConstPointer<A> ptr) {
+				int retval = ptr->b;
+				return retval;
+			}
+			static int foo5(mse::TSharedOrRawFixedPointer<A> ptr) {
+				int retval = ptr->b;
+				return retval;
+			}
+			static int foo6(mse::TSharedOrRawFixedConstPointer<A> ptr) {
+				int retval = ptr->b;
 				return retval;
 			}
 		protected:
@@ -1281,6 +1289,12 @@ int main(int argc, char* argv[])
 		int res34 = B::foo4(D_refcfp);
 		int res35 = B::foo4(&a_xscpobj);
 		int res36 = B::foo4(&a_obj);
+
+		auto A_shp = std::make_shared<A>(5);
+		int res41 = B::foo5(A_shp);
+		int res42 = B::foo5(&a_obj);
+		int res43 = B::foo6(A_shp);
+		int res44 = B::foo6(&a_obj);
 
 
 		int q = 3;
