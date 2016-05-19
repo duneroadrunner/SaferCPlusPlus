@@ -341,16 +341,16 @@ namespace mse {
 	public:
 		TAsyncSharedReadWriteAccessRequester(const TAsyncSharedReadWriteAccessRequester& src_cref) = default;
 
-		TAsyncSharedReadWritePointer<_Ty> ptr() {
+		TAsyncSharedReadWritePointer<_Ty> writelock_ptr() {
 			return TAsyncSharedReadWritePointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedReadWritePointer<_Ty> try_ptr() {
+		TAsyncSharedReadWritePointer<_Ty> try_writelock_ptr() {
 			return TAsyncSharedReadWritePointer<_Ty>(m_shptr, std::try_to_lock);
 		}
-		TAsyncSharedReadWriteConstPointer<_Ty> const_ptr() {
+		TAsyncSharedReadWriteConstPointer<_Ty> readlock_ptr() {
 			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedReadWriteConstPointer<_Ty> try_const_ptr() {
+		TAsyncSharedReadWriteConstPointer<_Ty> try_readlock_ptr() {
 			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 
@@ -430,10 +430,10 @@ namespace mse {
 		TAsyncSharedReadOnlyAccessRequester(const TAsyncSharedReadOnlyAccessRequester& src_cref) = default;
 		TAsyncSharedReadOnlyAccessRequester(const TAsyncSharedReadWriteAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
 
-		TAsyncSharedReadOnlyConstPointer<_Ty> const_ptr() {
+		TAsyncSharedReadOnlyConstPointer<_Ty> readlock_ptr() {
 			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedReadOnlyConstPointer<_Ty> try_const_ptr() {
+		TAsyncSharedReadOnlyConstPointer<_Ty> try_readlock_ptr() {
 			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 
@@ -555,16 +555,16 @@ namespace mse {
 	public:
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester& src_cref) = default;
 
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty> ptr() {
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty> writelock_ptr() {
 			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty> try_ptr() {
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty> try_writelock_ptr() {
 			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWritePointer<_Ty>(m_shptr, std::try_to_lock);
 		}
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty> const_ptr() {
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty> readlock_ptr() {
 			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty> try_const_ptr() {
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty> try_readlock_ptr() {
 			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 
@@ -642,10 +642,10 @@ namespace mse {
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester& src_cref) = default;
 		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester(const TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
 
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty> const_ptr() {
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty> readlock_ptr() {
 			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty> try_const_ptr() {
+		TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty> try_readlock_ptr() {
 			return TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 
