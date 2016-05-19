@@ -1240,24 +1240,48 @@ int main(int argc, char* argv[])
 				int retval = refcoxscpfcp->b;
 				return retval;
 			}
+			static int foo3(mse::TRefCountingOrXScopeOrRawFixedPointer<A> refcoxscporfp) {
+				int retval = refcoxscporfp->b;
+				return retval;
+			}
+			static int foo4(mse::TRefCountingOrXScopeOrRawFixedConstPointer<A> refcoxscporfp) {
+				int retval = refcoxscporfp->b;
+				return retval;
+			}
 		protected:
 			~B() {}
 		};
 
 		auto A_refcfp = mse::make_refcounting<A>(5);
 		mse::TXScopeObj<A> a_xscpobj(7);
-		A a(11);
+		A a_obj(11);
 		int res1 = B::foo1(A_refcfp);
 		int res2 = B::foo1(&a_xscpobj);
 		int res3 = B::foo2(A_refcfp);
 		int res4 = B::foo2(&a_xscpobj);
+
 		auto D_refcfp = mse::make_refcounting<D>(5);
 		mse::TXScopeObj<D> d_xscpobj(7);
-		D d(11);
+		D d_obj(11);
 		int res11 = B::foo1(D_refcfp);
 		int res12 = B::foo1(&d_xscpobj);
 		int res13 = B::foo2(D_refcfp);
 		int res14 = B::foo2(&d_xscpobj);
+
+		int res21 = B::foo3(A_refcfp);
+		int res22 = B::foo3(&a_xscpobj);
+		int res23 = B::foo3(&a_obj);
+		int res24 = B::foo4(A_refcfp);
+		int res25 = B::foo4(&a_xscpobj);
+		int res26 = B::foo4(&a_obj);
+
+		int res31 = B::foo3(D_refcfp);
+		int res32 = B::foo3(&a_xscpobj);
+		int res33 = B::foo3(&a_obj);
+		int res34 = B::foo4(D_refcfp);
+		int res35 = B::foo4(&a_xscpobj);
+		int res36 = B::foo4(&a_obj);
+
 
 		int q = 3;
 	}
