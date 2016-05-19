@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
-#ifndef MSECHAMELEON_H_
-#define MSECHAMELEON_H_
+#ifndef MSEPOLY_H_
+#define MSEPOLY_H_
 
 //include "mseprimitives.h"
 #include "mserefcounting.h"
@@ -21,14 +21,14 @@
 #include <string>
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
-#define MSE_CHAMELEONPOINTER_DISABLED
+#define MSE_POLYPOINTER_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
 namespace mse {
 
-#ifdef MSE_CHAMELEONPOINTER_DISABLED
-#else /*MSE_CHAMELEONPOINTER_DISABLED*/
-#endif /*MSE_CHAMELEONPOINTER_DISABLED*/
+#ifdef MSE_POLYPOINTER_DISABLED
+#else /*MSE_POLYPOINTER_DISABLED*/
+#endif /*MSE_POLYPOINTER_DISABLED*/
 
 	template<typename _Ty> class TRefCountingOrXScopeConstPointer;
 
@@ -89,4 +89,4 @@ namespace mse {
 
 }
 
-#endif // MSECHAMELEON_H_
+#endif // MSEPOLY_H_

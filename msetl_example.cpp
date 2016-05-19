@@ -33,7 +33,7 @@ get to the data type your interested in.
 #include "mserefcountingofrelaxedregistered.h"
 #include "msescope.h"
 #include "mseasyncshared.h"
-#include "msechameleon.h"
+#include "msepoly.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -1215,9 +1215,9 @@ int main(int argc, char* argv[])
 	}
 
 	{
-		/************************/
-		/*  Chameleon pointers  */
-		/************************/
+		/*******************/
+		/*  Poly pointers  */
+		/*******************/
 
 		class A {
 		public:
