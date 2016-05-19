@@ -1284,11 +1284,11 @@ int main(int argc, char* argv[])
 		int res26 = B::foo4(&a_obj);
 
 		int res31 = B::foo3(D_refcfp);
-		int res32 = B::foo3(&a_xscpobj);
-		int res33 = B::foo3(&a_obj);
+		int res32 = B::foo3(&d_xscpobj);
+		int res33 = B::foo3(&d_obj);
 		int res34 = B::foo4(D_refcfp);
-		int res35 = B::foo4(&a_xscpobj);
-		int res36 = B::foo4(&a_obj);
+		int res35 = B::foo4(&d_xscpobj);
+		int res36 = B::foo4(&d_obj);
 
 		auto A_shp = std::make_shared<A>(5);
 		int res41 = B::foo5(A_shp);
