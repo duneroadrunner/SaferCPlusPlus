@@ -672,6 +672,38 @@ namespace mse {
 	}
 
 
+	/* For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a
+	slightly safety enhanced std::shared_ptr wrapper. The wrapper enforces "const"ness and tries to ensure that it always
+	points to a validly allocated object. Use mse::make_readonlystdshared<>() to construct an
+	mse::TReadOnlyStdSharedFixedConstPointer. And again, beware of sharing objects with mutable members. */
+	template<typename _Ty>
+	class TReadOnlyStdSharedFixedConstPointer : public std::shared_ptr<const _Ty> {
+	public:
+		TReadOnlyStdSharedFixedConstPointer(const TReadOnlyStdSharedFixedConstPointer& src_cref) : std::shared_ptr<const _Ty>(src_cref) {}
+		virtual ~TReadOnlyStdSharedFixedConstPointer() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator const _Ty*() const { return std::shared_ptr<const _Ty>::operator _Ty*(); }
+
+		template <class... Args>
+		static TReadOnlyStdSharedFixedConstPointer make_readonlystdshared(Args&&... args) {
+			TReadOnlyStdSharedFixedConstPointer retval(std::make_shared<const _Ty>(std::forward<Args>(args)...));
+			return retval;
+		}
+
+	private:
+		TReadOnlyStdSharedFixedConstPointer(std::shared_ptr<const _Ty> shptr) : std::shared_ptr<const _Ty>(shptr) {}
+		TReadOnlyStdSharedFixedConstPointer<_Ty>& operator=(const TReadOnlyStdSharedFixedConstPointer<_Ty>& _Right_cref) = delete;
+
+		//TReadOnlyStdSharedFixedConstPointer<_Ty>* operator&() { return this; }
+		//const TReadOnlyStdSharedFixedConstPointer<_Ty>* operator&() const { return this; }
+	};
+
+	template <class X, class... Args>
+	TReadOnlyStdSharedFixedConstPointer<X> make_readonlystdshared(Args&&... args) {
+		return TReadOnlyStdSharedFixedConstPointer<X>::make_readonlystdshared(std::forward<Args>(args)...);
+	}
+
+
 	static void s_ashptr_test1() {
 	}
 }

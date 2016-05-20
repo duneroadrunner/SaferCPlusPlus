@@ -1125,6 +1125,9 @@ int main(int argc, char* argv[])
 				ptr1->s = std::to_string(timespan_in_seconds);
 				return timespan_in_seconds;
 			}
+			static int foo2(std::shared_ptr<const A> A_shptr) {
+				return A_shptr->b;
+			}
 		protected:
 			~B() {}
 		};
@@ -1212,6 +1215,22 @@ int main(int argc, char* argv[])
 			}
 			std::cout << std::endl;
 		}
+		{
+			/* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
+			TReadOnlyStdSharedFixedConstPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
+			sharing objects with mutable members. */
+			auto read_only_sh_ptr = mse::make_readonlystdshared<A>(5);
+			int res1 = read_only_sh_ptr->b;
+
+			std::list<std::future<int>> futures;
+			for (size_t i = 0; i < 3; i += 1) {
+				futures.emplace_back(std::async(B::foo2, read_only_sh_ptr));
+			}
+			int count = 1;
+			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+				int res2 = (*it).get();
+			}
+		}
 	}
 
 	{
@@ -1295,7 +1314,6 @@ int main(int argc, char* argv[])
 		int res42 = B::foo5(&a_obj);
 		int res43 = B::foo6(A_shp);
 		int res44 = B::foo6(&a_obj);
-
 
 		int q = 3;
 	}
