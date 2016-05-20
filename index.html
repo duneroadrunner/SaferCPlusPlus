@@ -916,7 +916,12 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="tasyncsharedsimpleobjectyouaresurehasnomutablemembersreadwriteaccessrequester-tasyncsharedsimpleobjectyouaresurehasnomutablemembersreadonlyaccessrequester" class="anchor" href="#tasyncsharedsimpleobjectyouaresurehasnomutablemembersreadwriteaccessrequester-tasyncsharedsimpleobjectyouaresurehasnomutablemembersreadonlyaccessrequester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester, TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester</h3>
 
-<p>A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. Because of this TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "const_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.  </p>
+<p>A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. Because of this TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "const_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.</p>
+
+<h3>
+<a id="treadonlystdsharedfixedconstpointer" class="anchor" href="#treadonlystdsharedfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TReadOnlyStdSharedFixedConstPointer</h3>
+
+<p>For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a slightly safety-enhanced wrapper for std::shared_ptr. The wrapper enforces "const"ness and tries to ensure that it always points to a validly allocated object. Use mse::make_readonlystdshared&lt;&gt;() to construct an mse::TReadOnlyStdSharedFixedConstPointer. And again, beware of sharing objects with mutable members.  </p>
 
 <p>usage example:</p>
 
@@ -971,6 +976,9 @@ int main(int argc, char* argv[]) {
 
             ptr1-&gt;s = std::to_string(timespan_in_seconds);
             return timespan_in_seconds;
+        }
+        static int foo2(std::shared_ptr&lt;const A&gt; A_shptr) {
+            return A_shptr-&gt;b;
         }
     protected:
         ~B() {}
@@ -1053,6 +1061,22 @@ int main(int argc, char* argv[]) {
             std::cout &lt;&lt; std::endl;
         }
         std::cout &lt;&lt; std::endl;
+    }
+    {
+        /* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
+        TReadOnlyStdSharedFixedConstPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
+        sharing objects with mutable members. */
+        auto read_only_sh_ptr = mse::make_readonlystdshared&lt;A&gt;(5);
+        int res1 = read_only_sh_ptr-&gt;b;
+
+        std::list&lt;std::future&lt;int&gt;&gt; futures;
+        for (size_t i = 0; i &lt; 3; i += 1) {
+            futures.emplace_back(std::async(B::foo2, read_only_sh_ptr));
+        }
+        int count = 1;
+        for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+            int res2 = (*it).get();
+        }
     }
 }
 </code></pre>
