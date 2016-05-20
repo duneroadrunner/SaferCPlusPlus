@@ -732,7 +732,7 @@ Same as TAsyncSharedReadWriteAccessRequester, but only supports const_ptr(), not
 A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. Because of this TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "const_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.
 
 ### TReadOnlyStdSharedFixedConstPointer
-For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a slightly safety-enhanced wrapper for std::shared_ptr. The wrapper enforces "const"ness and tries to ensure that it always points to a validly allocated object. Use mse::make_readonlystdshared<>() to construct an mse::TReadOnlyStdSharedFixedConstPointer. And again, beware of sharing objects with mutable members.  
+For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a slightly safety-enhanced wrapper for std::shared_ptr. The wrapper enforces "const"ness and tries to ensure that it points to a validly allocated object. Use mse::make_readonlystdshared<>() to construct an mse::TReadOnlyStdSharedFixedConstPointer. And again, beware of sharing objects with mutable members.  
 
 usage example:
 
