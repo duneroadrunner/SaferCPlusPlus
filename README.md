@@ -788,6 +788,9 @@ usage example:
 				ptr1->s = std::to_string(timespan_in_seconds);
 				return timespan_in_seconds;
 			}
+			static int foo2(std::shared_ptr<const A> A_shptr) {
+				return A_shptr->b;
+			}
 		protected:
 			~B() {}
 		};
