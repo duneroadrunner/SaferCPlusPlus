@@ -904,14 +904,14 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="tasyncsharedreadwriteaccessrequester" class="anchor" href="#tasyncsharedreadwriteaccessrequester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TAsyncSharedReadWriteAccessRequester</h3>
 
-<p>Use the ptr() and const_ptr() member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock while they are around. Their locks are only released when the pointers are destroyed (generally when they go out of scope).  </p>
+<p>Use the writelock_ptr() and readlock_ptr() member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock while they are around. Their locks are only released when the pointers are destroyed (generally when they go out of scope).  </p>
 
 <p>Use mse::make_asyncsharedreadwrite&lt;&gt;() to obtain a TAsyncSharedReadWriteAccessRequester. TAsyncSharedReadWriteAccessRequester can be copied and passed-by-value as a parameter (to another thread, generally).</p>
 
 <h3>
 <a id="tasyncsharedreadonlyaccessrequester" class="anchor" href="#tasyncsharedreadonlyaccessrequester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TAsyncSharedReadOnlyAccessRequester</h3>
 
-<p>Same as TAsyncSharedReadWriteAccessRequester, but only supports const_ptr(), not ptr(). You can use mse::make_asyncsharedreadonly&lt;&gt;() to obtain a TAsyncSharedReadOnlyAccessRequester. TAsyncSharedReadOnlyAccessRequester can also be copy constructed from a TAsyncSharedReadWriteAccessRequester.</p>
+<p>Same as TAsyncSharedReadWriteAccessRequester, but only supports readlock_ptr(), not writelock_ptr(). You can use mse::make_asyncsharedreadonly&lt;&gt;() to obtain a TAsyncSharedReadOnlyAccessRequester. TAsyncSharedReadOnlyAccessRequester can also be copy constructed from a TAsyncSharedReadWriteAccessRequester.</p>
 
 <h3>
 <a id="tasyncsharedsimpleobjectyouaresurehasnomutablemembersreadwriteaccessrequester-tasyncsharedsimpleobjectyouaresurehasnomutablemembersreadonlyaccessrequester" class="anchor" href="#tasyncsharedsimpleobjectyouaresurehasnomutablemembersreadwriteaccessrequester-tasyncsharedsimpleobjectyouaresurehasnomutablemembersreadonlyaccessrequester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester, TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester</h3>
@@ -921,7 +921,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="treadonlystdsharedfixedconstpointer" class="anchor" href="#treadonlystdsharedfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TReadOnlyStdSharedFixedConstPointer</h3>
 
-<p>For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a slightly safety-enhanced wrapper for std::shared_ptr. The wrapper enforces "const"ness and tries to ensure that it always points to a validly allocated object. Use mse::make_readonlystdshared&lt;&gt;() to construct an mse::TReadOnlyStdSharedFixedConstPointer. And again, beware of sharing objects with mutable members.  </p>
+<p>For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a slightly safety-enhanced wrapper for std::shared_ptr. The wrapper enforces "const"ness and tries to ensure that it points to a validly allocated object. Use mse::make_readonlystdshared&lt;&gt;() to construct an mse::TReadOnlyStdSharedFixedConstPointer. And again, beware of sharing objects with mutable members.  </p>
 
 <p>usage example:</p>
 
@@ -936,8 +936,8 @@ public:
     template&lt;class _TAsyncSharedReadWriteAccessRequester&gt;
     static double foo7(_TAsyncSharedReadWriteAccessRequester A_ashar) {
         auto t1 = std::chrono::high_resolution_clock::now();
-        /* A_ashar.const_ptr() will block until it can obtain a read lock. */
-        auto ptr1 = A_ashar.const_ptr(); // while ptr1 exists it holds a (read) lock on the shared object
+        /* A_ashar.readlock_ptr() will block until it can obtain a read lock. */
+        auto ptr1 = A_ashar.readlock_ptr(); // while ptr1 exists it holds a (read) lock on the shared object
         auto t2 = std::chrono::high_resolution_clock::now();
         std::this_thread::sleep_for(std::chrono::seconds(1));
         auto time_span = std::chrono::duration_cast&lt;std::chrono::duration&lt;double&gt;&gt;(t2 - t1);
@@ -966,8 +966,8 @@ int main(int argc, char* argv[]) {
     public:
         static double foo1(mse::TAsyncSharedReadWriteAccessRequester&lt;A&gt; A_ashar) {
             auto t1 = std::chrono::high_resolution_clock::now();
-            /* mse::TAsyncSharedReadWriteAccessRequester&lt;A&gt;::ptr() will block until it can obtain a write lock. */
-            auto ptr1 = A_ashar.ptr(); // while ptr1 exists it holds a (write) lock on the shared object
+            /* mse::TAsyncSharedReadWriteAccessRequester&lt;A&gt;::writelock_ptr() will block until it can obtain a write lock. */
+            auto ptr1 = A_ashar.writelock_ptr(); // while ptr1 exists it holds a (write) lock on the shared object
             auto t2 = std::chrono::high_resolution_clock::now();
             std::this_thread::sleep_for(std::chrono::seconds(1));
             auto time_span = std::chrono::duration_cast&lt;std::chrono::duration&lt;double&gt;&gt;(t2 - t1);
@@ -992,8 +992,8 @@ int main(int argc, char* argv[]) {
         std::cout &lt;&lt; "TAsyncSharedReadWrite:";
         std::cout &lt;&lt; std::endl;
         auto ash_access_requester = mse::make_asyncsharedreadwrite&lt;A&gt;(7);
-        ash_access_requester.ptr()-&gt;b = 11;
-        int res1 = ash_access_requester.const_ptr()-&gt;b;
+        ash_access_requester.writelock_ptr()-&gt;b = 11;
+        int res1 = ash_access_requester.readlock_ptr()-&gt;b;
 
         std::list&lt;std::future&lt;double&gt;&gt; futures;
         for (size_t i = 0; i &lt; 3; i += 1) {
@@ -1014,7 +1014,7 @@ int main(int argc, char* argv[]) {
         std::cout &lt;&lt; "TAsyncSharedReadOnly:";
         std::cout &lt;&lt; std::endl;
         auto ash_access_requester = mse::make_asyncsharedreadonly&lt;A&gt;(7);
-        int res1 = ash_access_requester.const_ptr()-&gt;b;
+        int res1 = ash_access_requester.readlock_ptr()-&gt;b;
 
         std::list&lt;std::future&lt;double&gt;&gt; futures;
         for (size_t i = 0; i &lt; 3; i += 1) {
@@ -1031,8 +1031,8 @@ int main(int argc, char* argv[]) {
         std::cout &lt;&lt; "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWrite:";
         std::cout &lt;&lt; std::endl;
         auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadwrite&lt;A&gt;(7);
-        ash_access_requester.ptr()-&gt;b = 11;
-        int res1 = ash_access_requester.const_ptr()-&gt;b;
+        ash_access_requester.writelock_ptr()-&gt;b = 11;
+        int res1 = ash_access_requester.readlock_ptr()-&gt;b;
 
         std::list&lt;std::future&lt;double&gt;&gt; futures;
         for (size_t i = 0; i &lt; 3; i += 1) {
@@ -1049,7 +1049,7 @@ int main(int argc, char* argv[]) {
         std::cout &lt;&lt; "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnly:";
         std::cout &lt;&lt; std::endl;
         auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadonly&lt;A&gt;(7);
-        int res1 = ash_access_requester.const_ptr()-&gt;b;
+        int res1 = ash_access_requester.readlock_ptr()-&gt;b;
 
         std::list&lt;std::future&lt;double&gt;&gt; futures;
         for (size_t i = 0; i &lt; 3; i += 1) {
