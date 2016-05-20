@@ -718,22 +718,21 @@ As has been shown, you can use [registered pointers](#registered-pointers), [ref
 
 
 ### Asynchronously shared objects
-
 One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, when one party (thread) is modifying an object, you want to ensure that no other party accesses it. So we provide TAsyncSharedReadWriteAccessRequester that (like std::shared_ptr) possesses shared ownership of an object to be shared among asynchronous threads, and provides (const and non-const smart) pointers that can be used to safely access the object.
 
 ### TAsyncSharedReadWriteAccessRequester
-
-Use the ptr() and const_ptr() member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock while they are around. Their locks are only released when the pointers are destroyed (generally when they go out of scope).  
+Use the writelock_ptr() and readlock_ptr() member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock while they are around. Their locks are only released when the pointers are destroyed (generally when they go out of scope).  
 
 Use mse::make_asyncsharedreadwrite<>() to obtain a TAsyncSharedReadWriteAccessRequester. TAsyncSharedReadWriteAccessRequester can be copied and passed-by-value as a parameter (to another thread, generally).
 
 ### TAsyncSharedReadOnlyAccessRequester
-
-Same as TAsyncSharedReadWriteAccessRequester, but only supports const_ptr(), not ptr(). You can use mse::make_asyncsharedreadonly<>() to obtain a TAsyncSharedReadOnlyAccessRequester. TAsyncSharedReadOnlyAccessRequester can also be copy constructed from a TAsyncSharedReadWriteAccessRequester.
+Same as TAsyncSharedReadWriteAccessRequester, but only supports readlock_ptr(), not writelock_ptr(). You can use mse::make_asyncsharedreadonly<>() to obtain a TAsyncSharedReadOnlyAccessRequester. TAsyncSharedReadOnlyAccessRequester can also be copy constructed from a TAsyncSharedReadWriteAccessRequester.
 
 ### TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWriteAccessRequester, TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnlyAccessRequester
+A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. Because of this TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "readlock_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.
 
-A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. Because of this TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "const_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.  
+### TReadOnlyStdSharedFixedConstPointer
+For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a slightly safety-enhanced wrapper for std::shared_ptr. The wrapper enforces "const"ness and tries to ensure that it points to a validly allocated object. Use mse::make_readonlystdshared<>() to construct an mse::TReadOnlyStdSharedFixedConstPointer. And again, beware of sharing objects with mutable members.  
 
 usage example:
 
@@ -748,8 +747,8 @@ usage example:
 		template<class _TAsyncSharedReadWriteAccessRequester>
 		static double foo7(_TAsyncSharedReadWriteAccessRequester A_ashar) {
 			auto t1 = std::chrono::high_resolution_clock::now();
-			/* A_ashar.const_ptr() will block until it can obtain a read lock. */
-			auto ptr1 = A_ashar.const_ptr(); // while ptr1 exists it holds a (read) lock on the shared object
+			/* A_ashar.readlock_ptr() will block until it can obtain a read lock. */
+			auto ptr1 = A_ashar.readlock_ptr(); // while ptr1 exists it holds a (read) lock on the shared object
 			auto t2 = std::chrono::high_resolution_clock::now();
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
@@ -778,8 +777,8 @@ usage example:
 		public:
 			static double foo1(mse::TAsyncSharedReadWriteAccessRequester<A> A_ashar) {
 				auto t1 = std::chrono::high_resolution_clock::now();
-				/* mse::TAsyncSharedReadWriteAccessRequester<A>::ptr() will block until it can obtain a write lock. */
-				auto ptr1 = A_ashar.ptr(); // while ptr1 exists it holds a (write) lock on the shared object
+				/* mse::TAsyncSharedReadWriteAccessRequester<A>::writelock_ptr() will block until it can obtain a write lock. */
+				auto ptr1 = A_ashar.writelock_ptr(); // while ptr1 exists it holds a (write) lock on the shared object
 				auto t2 = std::chrono::high_resolution_clock::now();
 				std::this_thread::sleep_for(std::chrono::seconds(1));
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
@@ -788,6 +787,9 @@ usage example:
 	
 				ptr1->s = std::to_string(timespan_in_seconds);
 				return timespan_in_seconds;
+			}
+			static int foo2(std::shared_ptr<const A> A_shptr) {
+				return A_shptr->b;
 			}
 		protected:
 			~B() {}
@@ -801,8 +803,8 @@ usage example:
 			std::cout << "TAsyncSharedReadWrite:";
 			std::cout << std::endl;
 			auto ash_access_requester = mse::make_asyncsharedreadwrite<A>(7);
-			ash_access_requester.ptr()->b = 11;
-			int res1 = ash_access_requester.const_ptr()->b;
+			ash_access_requester.writelock_ptr()->b = 11;
+			int res1 = ash_access_requester.readlock_ptr()->b;
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
@@ -823,7 +825,7 @@ usage example:
 			std::cout << "TAsyncSharedReadOnly:";
 			std::cout << std::endl;
 			auto ash_access_requester = mse::make_asyncsharedreadonly<A>(7);
-			int res1 = ash_access_requester.const_ptr()->b;
+			int res1 = ash_access_requester.readlock_ptr()->b;
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
@@ -840,8 +842,8 @@ usage example:
 			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadWrite:";
 			std::cout << std::endl;
 			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadwrite<A>(7);
-			ash_access_requester.ptr()->b = 11;
-			int res1 = ash_access_requester.const_ptr()->b;
+			ash_access_requester.writelock_ptr()->b = 11;
+			int res1 = ash_access_requester.readlock_ptr()->b;
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
@@ -858,7 +860,7 @@ usage example:
 			std::cout << "TAsyncSharedSimpleObjectYouAreSureHasNoMutableMembersReadOnly:";
 			std::cout << std::endl;
 			auto ash_access_requester = mse::make_asyncsharedsimpleobjectyouaresurehasnomutablemembersreadonly<A>(7);
-			int res1 = ash_access_requester.const_ptr()->b;
+			int res1 = ash_access_requester.readlock_ptr()->b;
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
@@ -870,6 +872,22 @@ usage example:
 				std::cout << std::endl;
 			}
 			std::cout << std::endl;
+		}
+		{
+			/* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
+			TReadOnlyStdSharedFixedConstPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
+			sharing objects with mutable members. */
+			auto read_only_sh_ptr = mse::make_readonlystdshared<A>(5);
+			int res1 = read_only_sh_ptr->b;
+	
+			std::list<std::future<int>> futures;
+			for (size_t i = 0; i < 3; i += 1) {
+				futures.emplace_back(std::async(B::foo2, read_only_sh_ptr));
+			}
+			int count = 1;
+			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+				int res2 = (*it).get();
+			}
 		}
 	}
 
