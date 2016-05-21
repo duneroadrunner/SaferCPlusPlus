@@ -99,6 +99,54 @@ namespace mse {
 #endif // MSE_CHECK_USE_BEFORE_SET
 	};
 
+
+	template<typename _TDestination, typename _TSource>
+	MSE_CONSTEXPR static bool sg_can_exceed_upper_bound() {
+		return (
+			((std::numeric_limits<_TSource>::is_signed == std::numeric_limits<_TDestination>::is_signed)
+				&& (std::numeric_limits<_TSource>::digits > std::numeric_limits<_TDestination>::digits))
+			|| ((std::numeric_limits<_TSource>::is_signed != std::numeric_limits<_TDestination>::is_signed)
+				&& ((std::numeric_limits<_TSource>::is_signed && (std::numeric_limits<_TSource>::digits > (1 + std::numeric_limits<_TDestination>::digits)))
+					|| ((!std::numeric_limits<_TSource>::is_signed) && ((1 + std::numeric_limits<_TSource>::digits) > std::numeric_limits<_TDestination>::digits))
+					)
+				)
+			);
+	}
+	template<typename _TDestination, typename _TSource>
+	MSE_CONSTEXPR static bool sg_can_exceed_lower_bound() {
+		return (
+			(std::numeric_limits<_TSource>::is_signed && (!std::numeric_limits<_TDestination>::is_signed))
+			|| (std::numeric_limits<_TSource>::is_signed && (std::numeric_limits<_TSource>::digits > std::numeric_limits<_TDestination>::digits))
+			);
+	}
+
+	template<typename _TDestination, typename _TSource>
+	void g_assign_check_range(const _TSource &x) {
+		/* This probably needs to be cleaned up. But at the moment it this should be mostly compile time complexity. And
+		as is it avoids "signed/unsigned" mismatch warnings. */
+		MSE_CONSTEXPR const bool rhs_can_exceed_upper_bound = sg_can_exceed_upper_bound<_TDestination, _TSource>();
+		MSE_CONSTEXPR const bool rhs_can_exceed_lower_bound = sg_can_exceed_lower_bound<_TDestination, _TSource>();
+		MSE_CONSTEXPR const bool can_exceed_bounds = rhs_can_exceed_upper_bound || rhs_can_exceed_lower_bound;
+		if (can_exceed_bounds) {
+			if (rhs_can_exceed_upper_bound) {
+				if (x > _TSource(std::numeric_limits<_TDestination>::max())) {
+					throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
+				}
+			}
+			if (rhs_can_exceed_lower_bound) {
+				/* We're assuming that std::numeric_limits<>::lowest() will never be greater than zero. */
+				if (0 > x) {
+					if (0 == std::numeric_limits<_TDestination>::lowest()) {
+						throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
+					}
+					else if (x < _TSource(std::numeric_limits<_TDestination>::lowest())) {
+						throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
+					}
+				}
+			}
+		}
+	}
+
 	/* The CInt and CSize_t classes are meant to substitute for standard "int" and "size_t" types. The differences between
 	the standard types and these classes are that the classes have a default intialization value (zero), and the
 	classes, as much as possible, try to prevent the problematic behaviour of (possibly negative) signed integers
@@ -118,51 +166,9 @@ namespace mse {
 		explicit TIntBase1(_Ty   x) { note_value_assignment(); m_val = x; }
 
 		template<typename _Tz>
-		MSE_CONSTEXPR static bool can_exceed_upper_bound() {
-			return (
-				((std::numeric_limits<_Tz>::is_signed == std::numeric_limits<_Ty>::is_signed)
-					&& (std::numeric_limits<_Tz>::digits > std::numeric_limits<_Ty>::digits))
-				|| ((std::numeric_limits<_Tz>::is_signed != std::numeric_limits<_Ty>::is_signed)
-					&& ((std::numeric_limits<_Tz>::is_signed && (std::numeric_limits<_Tz>::digits > (1 + std::numeric_limits<_Ty>::digits)))
-						|| ((!std::numeric_limits<_Tz>::is_signed) && ((1 + std::numeric_limits<_Tz>::digits) > std::numeric_limits<_Ty>::digits))
-						)
-					)
-				);
-		}
-		template<typename _Tz>
-		MSE_CONSTEXPR static bool can_exceed_lower_bound() {
-			return (
-				(std::numeric_limits<_Tz>::is_signed && (!std::numeric_limits<_Ty>::is_signed))
-				|| (std::numeric_limits<_Tz>::is_signed && (std::numeric_limits<_Tz>::digits > std::numeric_limits<_Ty>::digits))
-				);
-		}
-
-		template<typename _Tz>
 		void assign_check_range(const _Tz &x) {
 			note_value_assignment();
-			/* This probably needs to be cleaned up. But at the moment it this should be mostly compile time complexity. And
-			as is it avoids "signed/unsigned" mismatch warnings. */
-			MSE_CONSTEXPR const bool rhs_can_exceed_upper_bound = can_exceed_upper_bound<_Tz>();
-			MSE_CONSTEXPR const bool rhs_can_exceed_lower_bound = can_exceed_lower_bound<_Tz>();
-			MSE_CONSTEXPR const bool can_exceed_bounds = rhs_can_exceed_upper_bound || rhs_can_exceed_lower_bound;
-			if (can_exceed_bounds) {
-				if (rhs_can_exceed_upper_bound) {
-					if (x > _Tz(std::numeric_limits<_Ty>::max())) {
-						throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
-					}
-				}
-				if (rhs_can_exceed_lower_bound) {
-					/* We're assuming that std::numeric_limits<>::lowest() will never be greater than zero. */
-					if (0 > x) {
-						if (0 == std::numeric_limits<_Ty>::lowest()) {
-							throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
-						}
-						else if (x < _Tz(std::numeric_limits<_Ty>::lowest())) {
-							throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
-						}
-					}
-				}
-			}
+			g_assign_check_range<_Ty, _Tz>(x);
 		}
 
 		_Ty m_val;
@@ -178,7 +184,11 @@ namespace mse {
 	};
 
 #ifndef MSE_CINT_BASE_INTEGER_TYPE
+#if SIZE_MAX <= ULONG_MAX
+#define MSE_CINT_BASE_INTEGER_TYPE long int
+#else // SIZE_MAX <= ULONG_MAX
 #define MSE_CINT_BASE_INTEGER_TYPE long long int
+#endif // SIZE_MAX <= ULONG_MAX
 #endif // !MSE_CINT_BASE_INTEGER_TYPE
 
 	class CInt : public TIntBase1<MSE_CINT_BASE_INTEGER_TYPE> {
@@ -560,8 +570,10 @@ namespace mse {
 		}
 
 		//_Ty m_val;
+
+		friend static size_t as_a_size_t(CSize_t n);
 	};
-	static size_t as_a_size_t(CSize_t n) { n.assert_initialized(); return CInt(n); }
+	static size_t as_a_size_t(CSize_t n) { n.assert_initialized(); return n.m_val; }
 
 	inline CInt operator+(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); rhs.assert_initialized(); return CSize_t(lhs) + rhs; }
 	inline CSize_t operator+(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) + rhs; }
