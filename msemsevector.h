@@ -43,7 +43,7 @@ namespace mse {
 	typedef mse::CInt msev_int;
 	typedef bool msev_bool; // no added safety benefit to using mse::CBool in this case
 	template<typename _Ty> using msev_pointer = _Ty*; // no added safety benefit to using mse::TSaferPtr in this case
-	typedef size_t msev_as_a_size_t;
+	#define msev_as_a_size_t as_a_size_t
 #else // MSE_MSEVECTOR_USE_MSE_PRIMITIVES
 	typedef size_t msev_size_t;
 	typedef long long int msev_int;
@@ -299,7 +299,7 @@ namespace mse {
 			}
 			else {
 				msev_int di = std::distance(base_class::begin(), _P);
-				msev_size_t d(di);
+				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
@@ -339,7 +339,7 @@ namespace mse {
 			}
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _P);
-				msev_size_t d(di);
+				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
@@ -386,7 +386,7 @@ namespace mse {
 			}
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _Where);
-				msev_size_t d(di);
+				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto _M = msev_int(std::distance(_First, _Last));
@@ -423,7 +423,7 @@ namespace mse {
 			/* g++4.8 seems to be using the c++98 version of this insert function instead of the c++11 version. */
 			insert(typename base_class::/*const_*/iterator _P, size_t _M, const _Ty& _X) {
 				msev_int di = std::distance(base_class::/*c*/begin(), _P);
-				msev_size_t d(di);
+				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
@@ -448,7 +448,7 @@ namespace mse {
 			, class = _mse_RequireInputIter<_Iter> > void
 		insert(typename base_class::/*const_*/iterator _Where, _Iter _First, _Iter _Last) {	// insert [_First, _Last) at _Where
 				msev_int di = std::distance(base_class::/*c*/begin(), _Where);
-				msev_size_t d(di);
+				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto _M = msev_int(std::distance(_First, _Last));
@@ -545,7 +545,7 @@ namespace mse {
 				msev_int di = std::distance(base_class::/*c*/begin(), _Where);
 #endif /*!(defined(GPP4P8_COMPATIBILE))*/
 
-				msev_size_t d(di);
+				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator emplace() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
@@ -577,7 +577,7 @@ namespace mse {
 			}
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _P);
-				msev_size_t d(di);
+				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
@@ -609,10 +609,10 @@ namespace mse {
 			}
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _F);
-				msev_size_t d(di);
+				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
 				msev_int di2 = std::distance(base_class::cbegin(), _L);
-				msev_size_t d2(di2);
+				msev_size_t d2 = msev_size_t(di2);
 				if ((0 > di2) || ((*this).size() < msev_size_t(di2))) { throw(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
 
 				auto _M = msev_int(std::distance(_F, _L));
@@ -674,7 +674,7 @@ namespace mse {
 		/* g++4.8 seems to be (incorrectly) using the c++98 version of this insert function instead of the c++11 version. */
 		/*typename base_class::iterator*/void insert(typename base_class::/*const_*/iterator _Where, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
 			msev_int di = std::distance(base_class::/*c*/begin(), _Where);
-			msev_size_t d(di);
+			msev_size_t d = msev_size_t(di);
 			if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 			auto _M = _Ilist.size();
@@ -703,7 +703,7 @@ namespace mse {
 			}
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _Where);
-				msev_size_t d(di);
+				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || ((*this).size() < msev_size_t(di))) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto _M = _Ilist.size();
@@ -810,7 +810,7 @@ namespace mse {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - mm_const_iterator_type - msevector"));
 				}
 				else {
-					m_index = new_index;
+					m_index = msev_size_t(new_index);
 					base_class::const_iterator::operator+=(n);
 					if (m_owner_cptr->size() <= m_index) {
 						(*this).m_points_to_an_item = false;
@@ -1024,7 +1024,7 @@ namespace mse {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - mm_iterator_type - msevector"));
 				}
 				else {
-					m_index = new_index;
+					m_index = msev_size_t(new_index);
 					base_class::iterator::operator+=(n);
 					if (m_owner_ptr->size() <= m_index) {
 						(*this).m_points_to_an_item = false;
@@ -1728,20 +1728,20 @@ namespace mse {
 		ipointer insert_before(const cipointer &pos, size_t _M, const _Ty& _X) {
 			msev_size_t original_pos = pos.position();
 			insert_before(pos.const_item_pointer(), _M, _X);
-			ipointer retval(*this); retval.advance((msev_int)original_pos);
+			ipointer retval(*this); retval.advance(msev_int(original_pos));
 			return retval;
 		}
 		ipointer insert_before(const cipointer &pos, _Ty&& _X) {
 			msev_size_t original_pos = pos.position();
 			insert_before(pos.const_item_pointer(), std::move(_X));
-			ipointer retval(*this); retval.advance((msev_int)original_pos);
+			ipointer retval(*this); retval.advance(msev_int(original_pos));
 			return retval;
 		}
 		ipointer insert_before(const cipointer &pos, const _Ty& _X = _Ty()) { return insert_before(pos, 1, _X); }
 		ipointer insert_before(const cipointer &pos, const cipointer &start, const cipointer &end) {
 			msev_size_t original_pos = pos.position();
 			insert_before(pos.const_item_pointer(), start.const_item_pointer(), end.const_item_pointer());
-			ipointer retval(*this); retval.advance((msev_int)original_pos);
+			ipointer retval(*this); retval.advance(msev_int(original_pos));
 			return retval;
 		}
 		ipointer insert_before_inclusive(const cipointer &pos, const cipointer &first, const cipointer &last) {
@@ -1752,7 +1752,7 @@ namespace mse {
 		ipointer insert_before(const cipointer &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
 			msev_size_t original_pos = pos.position();
 			(*this).insert_before(pos.const_item_pointer(), _Ilist);
-			ipointer retval(*this); retval.advance((msev_int)original_pos);
+			ipointer retval(*this); retval.advance(msev_int(original_pos));
 			return retval;
 		}
 #endif /*MSVC2010_COMPATIBILE*/
@@ -1921,7 +1921,7 @@ namespace mse {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - ss_const_iterator_type - msevector"));
 				}
 				else {
-					m_index = new_index;
+					m_index = msev_size_t(new_index);
 					base_class::const_iterator::operator+=(n);
 				}
 			}
@@ -2016,7 +2016,7 @@ namespace mse {
 						throw(std::out_of_range("void shift_inclusive_range() - ss_const_iterator_type - msevector"));
 					}
 					else {
-						(*this).m_index = new_index;
+						(*this).m_index = msev_size_t(new_index);
 						(*this).sync_const_iterator_to_index();
 					}
 				}
@@ -2115,7 +2115,7 @@ namespace mse {
 					throw(std::out_of_range("index out of range - void advance(difference_type n) - ss_iterator_type - msevector"));
 				}
 				else {
-					m_index = new_index;
+					m_index = msev_size_t(new_index);
 					base_class::iterator::operator+=(n);
 				}
 			}
@@ -2209,7 +2209,7 @@ namespace mse {
 						throw(std::out_of_range("void shift_inclusive_range() - ss_iterator_type - msevector"));
 					}
 					else {
-						(*this).m_index = new_index;
+						(*this).m_index = msev_size_t(new_index);
 						(*this).sync_iterator_to_index();
 					}
 				}
@@ -2334,7 +2334,7 @@ namespace mse {
 			typename base_class::iterator _P = pos;
 			(*this).insert(_P, _M, _X);
 			ss_iterator_type retval = ss_begin();
-			retval.advance((msev_int)original_pos);
+			retval.advance(msev_int(original_pos));
 			return retval;
 		}
 		ss_iterator_type insert_before(const ss_iterator_type &pos, _Ty&& _X) {
@@ -2343,7 +2343,7 @@ namespace mse {
 			typename base_class::iterator _P = pos;
 			(*this).insert(_P, std::move(_X));
 			ss_iterator_type retval = ss_begin();
-			retval.advance((msev_int)original_pos);
+			retval.advance(msev_int(original_pos));
 			return retval;
 		}
 		ss_iterator_type insert_before(const ss_iterator_type &pos, const _Ty& _X = _Ty()) { return (*this).insert(pos, 1, _X); }
@@ -2356,7 +2356,7 @@ namespace mse {
 			typename base_class::const_iterator _L = end;
 			(*this).insert(_P, _F, _L);
 			ss_iterator_type retval = ss_begin();
-			retval.advance((msev_int)original_pos);
+			retval.advance(msev_int(original_pos));
 			return retval;
 		}
 		/* Note that safety cannot be guaranteed when using an insert() function that takes unsafe typename base_class::iterator and/or pointer parameters. */
@@ -2366,7 +2366,7 @@ namespace mse {
 			typename base_class::iterator _P = pos;
 			(*this).insert(_P, start, end);
 			ss_iterator_type retval = ss_begin();
-			retval.advance((msev_int)original_pos);
+			retval.advance(msev_int(original_pos));
 			return retval;
 		}
 		ss_iterator_type insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) {
@@ -2380,7 +2380,7 @@ namespace mse {
 			_L++;
 			(*this).insert(_P, _F, _L);
 			ss_iterator_type retval = ss_begin();
-			retval.advance((msev_int)original_pos);
+			retval.advance(msev_int(original_pos));
 			return retval;
 		}
 #ifndef MSVC2010_COMPATIBILE
@@ -2390,7 +2390,7 @@ namespace mse {
 			typename base_class::iterator _P = pos;
 			(*this).insert(_P, _Ilist);
 			ss_iterator_type retval = ss_begin();
-			retval.advance((msev_int)original_pos);
+			retval.advance(msev_int(original_pos));
 			return retval;
 		}
 #endif /*MSVC2010_COMPATIBILE*/
