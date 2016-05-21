@@ -377,6 +377,9 @@ namespace mse {
 		//_Ty m_val;
 	};
 
+	class CSize_t;
+	static size_t as_a_size_t(CSize_t n);
+
 	/* Note that CSize_t does not have a default conversion to size_t. This is by design. Use the as_a_size_t() member
 	function to get a size_t when necessary. */
 	class CSize_t : public TIntBase1<size_t> {
@@ -571,9 +574,9 @@ namespace mse {
 
 		//_Ty m_val;
 
-		friend static size_t as_a_size_t(CSize_t n);
+		friend size_t as_a_size_t(CSize_t n);
 	};
-	static size_t as_a_size_t(CSize_t n) { n.assert_initialized(); return n.m_val; }
+	size_t as_a_size_t(CSize_t n) { n.assert_initialized(); return n.m_val; }
 
 	inline CInt operator+(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); rhs.assert_initialized(); return CSize_t(lhs) + rhs; }
 	inline CSize_t operator+(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) + rhs; }
