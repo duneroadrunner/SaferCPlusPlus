@@ -439,6 +439,9 @@ namespace mse {
 	template <class _TTargetType, class _TLeaseType>
 	class TStrongFixedPointer {
 	public:
+		TStrongFixedPointer(const TStrongFixedPointer&) = default;
+		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
+		TStrongFixedPointer(const TStrongFixedPointer<_TTargetType, _TLeaseType2>&src) : m_target_pointer(std::addressof(*src)), m_lease(src.lease()) {}
 		_TTargetType& operator*() const {
 			return (*m_target_pointer);
 		}
@@ -450,6 +453,8 @@ namespace mse {
 		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
 		bool operator==(const TStrongFixedPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
 		bool operator!=(const TStrongFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const;
+		bool operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const;
 
 		bool operator!() const { return (!m_target_pointer); }
 		operator bool() const {
@@ -462,6 +467,7 @@ namespace mse {
 			}
 			return m_target_pointer;
 		}
+		_TLeaseType lease() const { return (*this).m_lease; }
 
 		template <class _TTargetType2, class _TLeaseType2>
 		static TStrongFixedPointer make_strong(_TTargetType2& target, const _TLeaseType2& lease) {
@@ -476,6 +482,7 @@ namespace mse {
 
 		_TTargetType* m_target_pointer;
 		_TLeaseType m_lease;
+
 		friend class TStrongFixedConstPointer<_TTargetType, _TLeaseType>;
 	};
 
@@ -488,6 +495,8 @@ namespace mse {
 	class TStrongFixedConstPointer {
 	public:
 		TStrongFixedConstPointer(const TStrongFixedConstPointer&) = default;
+		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
+		TStrongFixedConstPointer(const TStrongFixedConstPointer<_TTargetType, _TLeaseType2>&src) : m_target_pointer(std::addressof(*src)), m_lease(src.lease()) {}
 		TStrongFixedConstPointer(const TStrongFixedPointer<_TTargetType, _TLeaseType>&src) : m_target_pointer(src.m_target_pointer), m_lease(src.m_lease) {}
 		const _TTargetType& operator*() const {
 			return (*m_target_pointer);
@@ -495,6 +504,24 @@ namespace mse {
 		const _TTargetType* operator->() const {
 			return m_target_pointer;
 		}
+
+		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TStrongFixedConstPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const TStrongFixedConstPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+
+		bool operator!() const { return (!m_target_pointer); }
+		operator bool() const {
+			return (m_target_pointer != nullptr);
+		}
+
+		explicit operator const _TTargetType*() const {
+			if (nullptr == m_target_pointer) {
+				int q = 3; /* just a line of code for putting a debugger break point */
+			}
+			return m_target_pointer;
+		}
+		_TLeaseType lease() const { return (*this).m_lease; }
 
 	protected:
 		TStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeaseType lease/* usually a reference counting pointer */)
@@ -505,6 +532,11 @@ namespace mse {
 		const _TTargetType* m_target_pointer;
 		_TLeaseType m_lease;
 	};
+
+	template <class _TTargetType, class _TLeaseType>
+	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+	template <class _TTargetType, class _TLeaseType>
+	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
 
 	/* shorter aliases */
 	template<typename _Ty> using refcp = TRefCountingPointer<_Ty>;

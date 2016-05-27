@@ -929,6 +929,22 @@ int main(int argc, char* argv[])
 			functions to be "templatized" so that they can accept any type of pointer. */
 			std::string res1 = H::foo6(strong_string_ptr1, strong_string_ptr1);
 		}
+		{
+			auto A_refcfp = mse::make_refcounting<A>();
+			auto sfptr1 = mse::make_strong<std::string>(A_refcfp->s, A_refcfp);
+			mse::TStrongFixedPointer<std::string, mse::TRefCountingPointer<A>> sfptr2 = sfptr1;
+			mse::TStrongFixedConstPointer<std::string, mse::TRefCountingFixedPointer<A>> sfcptr1 = sfptr1;
+			mse::TStrongFixedConstPointer<std::string, mse::TRefCountingPointer<A>> sfcptr2 = sfcptr1;
+			if (sfcptr1 == sfptr1) {
+				int q = 7;
+			}
+			if (sfptr1 == sfcptr1) {
+				int q = 7;
+			}
+			if (sfptr1) {
+				int q = 7;
+			}
+		}
 
 		mse::TRefCountingPointer_test TRefCountingPointer_test1;
 		bool TRefCountingPointer_test1_res = TRefCountingPointer_test1.testBehaviour();
