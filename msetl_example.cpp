@@ -1232,7 +1232,7 @@ int main(int argc, char* argv[])
 		{
 			std::cout << "TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWrite:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnomutablemembersreadwrite<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite<A>(7);
 			ash_access_requester.writelock_ptr()->b = 11;
 			int res1 = ash_access_requester.readlock_ptr()->b;
 
@@ -1250,7 +1250,7 @@ int main(int argc, char* argv[])
 		{
 			std::cout << "TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnly:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnomutablemembersreadonly<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly<A>(7);
 			int res1 = ash_access_requester.readlock_ptr()->b;
 
 			std::list<std::future<double>> futures;

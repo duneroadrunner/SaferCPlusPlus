@@ -569,7 +569,7 @@ namespace mse {
 		}
 
 		template <class... Args>
-		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester make_asyncsharedobjectthatyouaresurehasnomutablemembersreadwrite(Args&&... args) {
+		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite(Args&&... args) {
 			//auto shptr = std::make_shared<TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
 			std::shared_ptr<TAsyncSharedObj<_Ty>> shptr(new TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
 			TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester retval(shptr);
@@ -586,8 +586,8 @@ namespace mse {
 	};
 
 	template <class X, class... Args>
-	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnomutablemembersreadwrite(Args&&... args) {
-		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X>::make_asyncsharedobjectthatyouaresurehasnomutablemembersreadwrite(std::forward<Args>(args)...);
+	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite(Args&&... args) {
+		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X>::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite(std::forward<Args>(args)...);
 	}
 
 
@@ -650,7 +650,7 @@ namespace mse {
 		}
 
 		template <class... Args>
-		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester make_asyncsharedobjectthatyouaresurehasnomutablemembersreadonly(Args&&... args) {
+		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly(Args&&... args) {
 			//auto shptr = std::make_shared<const TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
 			std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr(new const TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
 			TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester retval(shptr);
@@ -667,8 +667,8 @@ namespace mse {
 	};
 
 	template <class X, class... Args>
-	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnomutablemembersreadonly(Args&&... args) {
-		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X>::make_asyncsharedobjectthatyouaresurehasnomutablemembersreadonly(std::forward<Args>(args)...);
+	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly(Args&&... args) {
+		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X>::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly(std::forward<Args>(args)...);
 	}
 
 
