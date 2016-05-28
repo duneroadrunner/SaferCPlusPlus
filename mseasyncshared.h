@@ -201,11 +201,11 @@ namespace mse {
 	template<typename _Ty> class TAsyncSharedReadOnlyAccessRequester;
 	template<typename _Ty> class TAsyncSharedReadOnlyConstPointer;
 
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester;
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer;
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer;
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester;
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer;
+	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester;
+	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer;
+	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer;
+	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester;
+	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer;
 
 	/* TAsyncSharedObj is intended as a transparent wrapper for other classes/objects. */
 	template<typename _TROy>
@@ -239,11 +239,11 @@ namespace mse {
 		friend class TAsyncSharedReadOnlyAccessRequester<_TROy>;
 		friend class TAsyncSharedReadOnlyConstPointer<_TROy>;
 
-		friend class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester<_TROy>;
-		friend class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer<_TROy>;
-		friend class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer<_TROy>;
-		friend class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester<_TROy>;
-		friend class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer<_TROy>;
+		friend class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<_TROy>;
+		friend class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_TROy>;
+		friend class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_TROy>;
+		friend class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<_TROy>;
+		friend class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_TROy>;
 	};
 
 	template<typename _Ty>
@@ -461,37 +461,37 @@ namespace mse {
 
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer {
 	public:
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer&& src) = default;
-		virtual ~TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer() {}
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer&& src) = default;
+		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer")); }
+			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
 			return m_shptr.operator bool();
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&>::type operator*() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
 			return (*m_shptr);
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>*, TAsyncSharedObj<_Ty>*>::type operator->() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
 			return std::addressof(*m_shptr);
 		}
 	private:
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
 			if (!m_unique_lock.try_lock()) {
 				shptr = nullptr;
 			}
 		}
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer<_Ty>& operator=(const TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer<_Ty>& _Right_cref) = delete;
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer<_Ty>& operator=(TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer<_Ty>&& _Right) = delete;
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& operator=(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& _Right_cref) = delete;
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& operator=(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer<_Ty>* operator&() const { return this; }
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>* operator&() { return this; }
+		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>* operator&() const { return this; }
 		bool is_valid() const {
 			/* A false return value indicates misuse. This might return false if this object has been invalidated
 			by a move construction. */
@@ -502,41 +502,41 @@ namespace mse {
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
 		std::unique_lock<async_shared_timed_mutex_type> m_unique_lock;
 
-		friend class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>;
+		friend class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer {
 	public:
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer(TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer&& src) = default;
-		virtual ~TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer() {}
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer&& src) = default;
+		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer")); }
+			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}
 	private:
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
 			if (!m_shared_lock.try_lock()) {
 				shptr = nullptr;
 			}
 		}
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>& operator=(const TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>& _Right_cref) = delete;
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>& operator=(TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>&& _Right) = delete;
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& operator=(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& _Right_cref) = delete;
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& operator=(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>* operator&() const { return this; }
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>* operator&() { return this; }
+		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>* operator&() const { return this; }
 		bool is_valid() const {
 			/* A false return value indicates misuse. This might return false if this object has been invalidated
 			by a move construction. */
@@ -547,82 +547,82 @@ namespace mse {
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
 		std::shared_lock<async_shared_timed_mutex_type> m_shared_lock;
 
-		friend class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>;
+		friend class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester {
 	public:
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester(const TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester& src_cref) = default;
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester& src_cref) = default;
 
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer<_Ty> writelock_ptr() {
-			return TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer<_Ty>(m_shptr);
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> writelock_ptr() {
+			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer<_Ty> try_writelock_ptr() {
-			return TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWritePointer<_Ty>(m_shptr, std::try_to_lock);
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> try_writelock_ptr() {
+			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr, std::try_to_lock);
 		}
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty> readlock_ptr() {
-			return TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>(m_shptr);
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> readlock_ptr() {
+			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty> try_readlock_ptr() {
-			return TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock);
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> try_readlock_ptr() {
+			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 
 		template <class... Args>
-		static TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester make_asyncsharedobjectthatyouaresurehasnomutablemembersreadwrite(Args&&... args) {
+		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester make_asyncsharedobjectthatyouaresurehasnomutablemembersreadwrite(Args&&... args) {
 			//auto shptr = std::make_shared<TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
 			std::shared_ptr<TAsyncSharedObj<_Ty>> shptr(new TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
-			TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester retval(shptr);
+			TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester retval(shptr);
 			return retval;
 		}
 
 	private:
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
 
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>* operator&() { return this; }
-		const TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>* operator&() const { return this; }
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<_Ty>* operator&() { return this; }
+		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<_Ty>* operator&() const { return this; }
 
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
 	};
 
 	template <class X, class... Args>
-	TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnomutablemembersreadwrite(Args&&... args) {
-		return TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester<X>::make_asyncsharedobjectthatyouaresurehasnomutablemembersreadwrite(std::forward<Args>(args)...);
+	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnomutablemembersreadwrite(Args&&... args) {
+		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X>::make_asyncsharedobjectthatyouaresurehasnomutablemembersreadwrite(std::forward<Args>(args)...);
 	}
 
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer {
 	public:
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer(TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer&& src) = default;
-		virtual ~TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer() {}
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer&& src) = default;
+		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer")); }
+			//if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer")); }
+			if (!is_valid()) { throw(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}
 	private:
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
 			if (!m_shared_lock.try_lock()) {
 				shptr = nullptr;
 			}
 		}
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>& operator=(const TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>& _Right_cref) = delete;
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>& operator=(TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>&& _Right) = delete;
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& operator=(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& _Right_cref) = delete;
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& operator=(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>* operator&() const { return this; }
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>* operator&() { return this; }
+		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>* operator&() const { return this; }
 		bool is_valid() const {
 			/* A false return value indicates misuse. This might return false if this object has been invalidated
 			by a move construction. */
@@ -633,42 +633,42 @@ namespace mse {
 		std::shared_ptr<const TAsyncSharedObj<_Ty>> m_shptr;
 		std::shared_lock<async_shared_timed_mutex_type> m_shared_lock;
 
-		friend class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester<_Ty>;
+		friend class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester {
 	public:
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester(const TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester& src_cref) = default;
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester(const TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester& src_cref) = default;
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
 
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty> readlock_ptr() {
-			return TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>(m_shptr);
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> readlock_ptr() {
+			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty> try_readlock_ptr() {
-			return TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock);
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> try_readlock_ptr() {
+			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 
 		template <class... Args>
-		static TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester make_asyncsharedobjectthatyouaresurehasnomutablemembersreadonly(Args&&... args) {
+		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester make_asyncsharedobjectthatyouaresurehasnomutablemembersreadonly(Args&&... args) {
 			//auto shptr = std::make_shared<const TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
 			std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr(new const TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
-			TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester retval(shptr);
+			TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester retval(shptr);
 			return retval;
 		}
 
 	private:
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
 
-		TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester<_Ty>* operator&() { return this; }
-		const TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester<_Ty>* operator&() const { return this; }
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<_Ty>* operator&() { return this; }
+		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<_Ty>* operator&() const { return this; }
 
 		std::shared_ptr<const TAsyncSharedObj<_Ty>> m_shptr;
 	};
 
 	template <class X, class... Args>
-	TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnomutablemembersreadonly(Args&&... args) {
-		return TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester<X>::make_asyncsharedobjectthatyouaresurehasnomutablemembersreadonly(std::forward<Args>(args)...);
+	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnomutablemembersreadonly(Args&&... args) {
+		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X>::make_asyncsharedobjectthatyouaresurehasnomutablemembersreadonly(std::forward<Args>(args)...);
 	}
 
 
