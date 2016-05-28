@@ -331,69 +331,113 @@ namespace mse {
 		TXScopeObj<_Ty>* m_ptr = nullptr;
 	};
 
-	template <class _TTargetType, class _TXScopePointerType = void*> class TXScopeWeakFixedConstPointer;
+	template <class _TTargetType, class _TLeasePointerType> class TXScopeWeakFixedConstPointer;
 
-	/* If, for example, you want a safe pointer to a member of a registered pointer target, you can use a
-	TXScopeWeakFixedPointer to store a copy of the registered pointer along with the pointer targeting the
+	/* If, for example, you want a safe pointer to a member of a scope pointer target, you can use a
+	TXScopeWeakFixedPointer to store a copy of the scope pointer along with the pointer targeting the
 	member. */
-	template <class _TTargetType, class _TXScopePointerType = void*>
+	template <class _TTargetType, class _TLeasePointerType>
 	class TXScopeWeakFixedPointer {
 	public:
+		TXScopeWeakFixedPointer(const TXScopeWeakFixedPointer&) = default;
+		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
+		TXScopeWeakFixedPointer(const TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
 		_TTargetType& operator*() const {
+			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return (*m_target_pointer);
 		}
 		_TTargetType* operator->() const {
+			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return m_target_pointer;
 		}
 
-		template <class _TTargetType2, class _TXScopePointerType2>
-		static TXScopeWeakFixedPointer make_xscopeweak(_TTargetType2& target, const _TXScopePointerType2& /*xscope_pointer*/) {
-			return TXScopeWeakFixedPointer(target/*, xscope_pointer*/);
+		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TXScopeWeakFixedPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const TXScopeWeakFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TXScopeWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const;
+		bool operator!=(const TXScopeWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const;
+
+		bool operator!() const { return (!m_target_pointer); }
+		operator bool() const {
+			return (m_target_pointer != nullptr);
 		}
-		template <class _TTargetType2>
-		static TXScopeWeakFixedPointer make_xscopeweak(_TTargetType2& target) {
-			return TXScopeWeakFixedPointer(target/*, xscope_pointer*/);
+
+		explicit operator _TTargetType*() const {
+			if (nullptr == m_target_pointer) {
+				int q = 3; /* just a line of code for putting a debugger break point */
+			}
+			return m_target_pointer;
+		}
+		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }
+
+		template <class _TTargetType2, class _TLeasePointerType2>
+		static TXScopeWeakFixedPointer make_xscopeweak(_TTargetType2& target, const _TLeasePointerType2& lease_pointer) {
+			return TXScopeWeakFixedPointer(target, lease_pointer);
 		}
 
 	private:
-		TXScopeWeakFixedPointer(_TTargetType& target/* often a struct member */, _TXScopePointerType xscope_pointer/* an xscope pointer */)
-			: m_target_pointer(&target) {}
-		TXScopeWeakFixedPointer(_TTargetType& target/* often a struct member */) : m_target_pointer(&target) {}
+		TXScopeWeakFixedPointer(_TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a registered pointer */)
+			: m_target_pointer(&target), m_lease_pointer(lease_pointer) {}
 		TXScopeWeakFixedPointer& operator=(const TXScopeWeakFixedPointer& _Right_cref) = delete;
 
 		_TTargetType* m_target_pointer;
-		friend class TXScopeWeakFixedConstPointer<_TTargetType, _TXScopePointerType>;
+		_TLeasePointerType m_lease_pointer;
+		friend class TXScopeWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;
 	};
 
-	template <class _TTargetType, class _TXScopePointerType>
-	TXScopeWeakFixedPointer<_TTargetType, _TXScopePointerType> make_xscopeweak(_TTargetType& target, const _TXScopePointerType& /*xscope_pointer*/) {
-		return TXScopeWeakFixedPointer<_TTargetType, _TXScopePointerType>::make_xscopeweak(target/*, xscope_pointer*/);
-	}
-	template <class _TTargetType>
-	TXScopeWeakFixedPointer<_TTargetType> make_xscopeweak(_TTargetType& target) {
-		return TXScopeWeakFixedPointer<_TTargetType>::make_xscopeweak(target/*, xscope_pointer*/);
+	template <class _TTargetType, class _TLeasePointerType>
+	TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType> make_xscopeweak(_TTargetType& target, const _TLeasePointerType& lease_pointer) {
+		return TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType>::make_xscopeweak(target, lease_pointer);
 	}
 
-	template <class _TTargetType, class _TXScopePointerType>
+	template <class _TTargetType, class _TLeasePointerType>
 	class TXScopeWeakFixedConstPointer {
 	public:
 		TXScopeWeakFixedConstPointer(const TXScopeWeakFixedConstPointer&) = default;
-		TXScopeWeakFixedConstPointer(const TXScopeWeakFixedPointer<_TTargetType, _TXScopePointerType>&src) : m_target_pointer(src.m_target_pointer) {}
+		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
+		TXScopeWeakFixedConstPointer(const TXScopeWeakFixedConstPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
+		TXScopeWeakFixedConstPointer(const TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType>&src) : m_target_pointer(src.m_target_pointer), m_lease_pointer(src.m_lease_pointer) {}
 		const _TTargetType& operator*() const {
+			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return (*m_target_pointer);
 		}
 		const _TTargetType* operator->() const {
+			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return m_target_pointer;
 		}
 
+		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TXScopeWeakFixedConstPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const TXScopeWeakFixedConstPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+
+		bool operator!() const { return (!m_target_pointer); }
+		operator bool() const {
+			return (m_target_pointer != nullptr);
+		}
+
+		explicit operator const _TTargetType*() const {
+			if (nullptr == m_target_pointer) {
+				int q = 3; /* just a line of code for putting a debugger break point */
+			}
+			return m_target_pointer;
+		}
+		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }
+
 	private:
-		TXScopeWeakFixedConstPointer(const _TTargetType& target/* often a struct member */, _TXScopePointerType xscope_pointer/* an xscope pointer */)
-			: m_target_pointer(&target) {}
-		TXScopeWeakFixedConstPointer(const _TTargetType& target/* often a struct member */) : m_target_pointer(&target) {}
+		TXScopeWeakFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a registered pointer */)
+			: m_target_pointer(&target), m_lease_pointer(lease_pointer) {}
 		TXScopeWeakFixedConstPointer& operator=(const TXScopeWeakFixedConstPointer& _Right_cref) = delete;
 
 		const _TTargetType* m_target_pointer;
+		_TLeasePointerType m_lease_pointer;
 	};
+
+	template <class _TTargetType, class _TLeasePointerType>
+	bool TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator==(const TXScopeWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+	template <class _TTargetType, class _TLeasePointerType>
+	bool TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator!=(const TXScopeWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
 
 	/* shorter aliases */
 	//template<typename _Ty> using scpp = TXScopePointer<_Ty>;

@@ -1123,6 +1123,22 @@ int main(int argc, char* argv[])
 		auto xscopeweak_string_ptr1 = mse::make_xscopeweak((a_scpobj.s), (&a_scpobj));
 		auto res5 = H::foo6(xscopeweak_string_ptr1, xscopeweak_string_ptr1);
 
+		/* Just testing the convertibility of mse::TXScopeWeakFixedPointers. */
+		auto A_xscope_fixed_ptr1 = &a_scpobj;
+		auto xscpwfptr1 = mse::make_xscopeweak<std::string>(A_xscope_fixed_ptr1->s, A_xscope_fixed_ptr1);
+		mse::TXScopeWeakFixedPointer<std::string, mse::TXScopeFixedConstPointer<A>> xscpwfptr2 = xscpwfptr1;
+		mse::TXScopeWeakFixedConstPointer<std::string, mse::TXScopeFixedPointer<A>> xscpwfcptr1 = xscpwfptr1;
+		mse::TXScopeWeakFixedConstPointer<std::string, mse::TXScopeFixedConstPointer<A>> xscpwfcptr2 = xscpwfcptr1;
+		if (xscpwfcptr1 == xscpwfptr1) {
+			int q = 7;
+		}
+		if (xscpwfptr1 == xscpwfcptr1) {
+			int q = 7;
+		}
+		if (xscpwfptr1) {
+			int q = 7;
+		}
+
 		mse::s_scpptr_test1();
 	}
 
