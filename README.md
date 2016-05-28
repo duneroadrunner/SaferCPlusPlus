@@ -728,7 +728,7 @@ Use mse::make_asyncsharedreadwrite<>() to obtain a TAsyncSharedReadWriteAccessRe
 ### TAsyncSharedReadOnlyAccessRequester
 Same as TAsyncSharedReadWriteAccessRequester, but only supports readlock_ptr(), not writelock_ptr(). You can use mse::make_asyncsharedreadonly<>() to obtain a TAsyncSharedReadOnlyAccessRequester. TAsyncSharedReadOnlyAccessRequester can also be copy constructed from a TAsyncSharedReadWriteAccessRequester.
 
-### TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester, TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester
+### TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester
 A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. Because of this TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "readlock_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.
 
 ### TReadOnlyStdSharedFixedConstPointer
@@ -839,15 +839,15 @@ usage example:
 			std::cout << std::endl;
 		}
 		{
-			std::cout << "TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWrite:";
+			std::cout << "TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWrite:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnomutablemembersreadwrite<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite<A>(7);
 			ash_access_requester.writelock_ptr()->b = 11;
 			int res1 = ash_access_requester.readlock_ptr()->b;
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadWriteAccessRequester<A>>, ash_access_requester));
+				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<A>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -857,14 +857,14 @@ usage example:
 			std::cout << std::endl;
 		}
 		{
-			std::cout << "TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnly:";
+			std::cout << "TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnly:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnomutablemembersreadonly<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly<A>(7);
 			int res1 = ash_access_requester.readlock_ptr()->b;
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedObjectThatYouAreSureHasNoMutableMembersReadOnlyAccessRequester<A>>, ash_access_requester));
+				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<A>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
