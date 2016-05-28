@@ -466,6 +466,22 @@ int main(int argc, char* argv[])
 			/* In practice, rather than declaring a specific mse::TSyncWeakFixedPointer parameter, we expect
 			functions to be "templatized" so that they can accept any type of pointer. */
 			std::string res1 = H::foo6(syncweak_string_ptr1, syncweak_string_ptr1);
+
+			/* Just testing the convertibility of mse::TSyncWeakFixedPointers. */
+			auto E_registered_fixed_ptr1 = &registered_e;
+			auto swfptr1 = mse::make_syncweak<std::string>(E_registered_fixed_ptr1->s2, E_registered_fixed_ptr1);
+			mse::TSyncWeakFixedPointer<std::string, mse::TRegisteredPointer<E>> swfptr2 = swfptr1;
+			mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredFixedPointer<E>> swfcptr1 = swfptr1;
+			mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredPointer<E>> swfcptr2 = swfcptr1;
+			if (swfcptr1 == swfptr1) {
+				int q = 7;
+			}
+			if (swfptr1 == swfcptr1) {
+				int q = 7;
+			}
+			if (swfptr1) {
+				int q = 7;
+			}
 		}
 
 		{
@@ -930,6 +946,7 @@ int main(int argc, char* argv[])
 			std::string res1 = H::foo6(strong_string_ptr1, strong_string_ptr1);
 		}
 		{
+			/* Just testing the convertibility of mse::TStrongFixedPointers. */
 			auto A_refcfp = mse::make_refcounting<A>();
 			auto sfptr1 = mse::make_strong<std::string>(A_refcfp->s, A_refcfp);
 			mse::TStrongFixedPointer<std::string, mse::TRefCountingPointer<A>> sfptr2 = sfptr1;

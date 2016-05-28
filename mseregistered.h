@@ -636,6 +636,9 @@ namespace mse {
 	template <class _TTargetType, class _TLeasePointerType>
 	class TSyncWeakFixedPointer {
 	public:
+		TSyncWeakFixedPointer(const TSyncWeakFixedPointer&) = default;
+		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
+		TSyncWeakFixedPointer(const TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
 		_TTargetType& operator*() const {
 			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return (*m_target_pointer);
@@ -644,6 +647,26 @@ namespace mse {
 			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return m_target_pointer;
 		}
+
+		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TSyncWeakFixedPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const TSyncWeakFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const;
+		bool operator!=(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const;
+
+		bool operator!() const { return (!m_target_pointer); }
+		operator bool() const {
+			return (m_target_pointer != nullptr);
+		}
+
+		explicit operator _TTargetType*() const {
+			if (nullptr == m_target_pointer) {
+				int q = 3; /* just a line of code for putting a debugger break point */
+			}
+			return m_target_pointer;
+		}
+		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }
 
 		template <class _TTargetType2, class _TLeasePointerType2>
 		static TSyncWeakFixedPointer make_syncweak(_TTargetType2& target, const _TLeasePointerType2& lease_pointer) {
@@ -669,6 +692,8 @@ namespace mse {
 	class TSyncWeakFixedConstPointer {
 	public:
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedConstPointer&) = default;
+		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
+		TSyncWeakFixedConstPointer(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>&src) : m_target_pointer(src.m_target_pointer), m_lease_pointer(src.m_lease_pointer) {}
 		const _TTargetType& operator*() const {
 			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
@@ -679,6 +704,24 @@ namespace mse {
 			return m_target_pointer;
 		}
 
+		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TSyncWeakFixedConstPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const TSyncWeakFixedConstPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+
+		bool operator!() const { return (!m_target_pointer); }
+		operator bool() const {
+			return (m_target_pointer != nullptr);
+		}
+
+		explicit operator const _TTargetType*() const {
+			if (nullptr == m_target_pointer) {
+				int q = 3; /* just a line of code for putting a debugger break point */
+			}
+			return m_target_pointer;
+		}
+		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }
+
 	private:
 		TSyncWeakFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a registered pointer */)
 			: m_target_pointer(&target), m_lease_pointer(lease_pointer) {}
@@ -687,6 +730,11 @@ namespace mse {
 		const _TTargetType* m_target_pointer;
 		_TLeasePointerType m_lease_pointer;
 	};
+
+	template <class _TTargetType, class _TLeasePointerType>
+	bool TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator==(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+	template <class _TTargetType, class _TLeasePointerType>
+	bool TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator!=(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
 
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
