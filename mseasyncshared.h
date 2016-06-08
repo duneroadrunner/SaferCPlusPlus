@@ -440,11 +440,11 @@ namespace mse {
 			return TAsyncSharedReadWritePointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedReadWritePointer<_Ty> try_for_writelock_ptr(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		TAsyncSharedReadWritePointer<_Ty> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
 			return TAsyncSharedReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedReadWritePointer<_Ty> try_until_writelock_ptr(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		TAsyncSharedReadWritePointer<_Ty> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
 			return TAsyncSharedReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
 		}
 		TAsyncSharedReadWriteConstPointer<_Ty> readlock_ptr() {
@@ -454,11 +454,11 @@ namespace mse {
 			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedReadWriteConstPointer<_Ty> try_for_readlock_ptr(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		TAsyncSharedReadWriteConstPointer<_Ty> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
 			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedReadWriteConstPointer<_Ty> try_until_readlock_ptr(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		TAsyncSharedReadWriteConstPointer<_Ty> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
 			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
 		}
 
@@ -555,11 +555,11 @@ namespace mse {
 			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedReadOnlyConstPointer<_Ty> try_for_readlock_ptr(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		TAsyncSharedReadOnlyConstPointer<_Ty> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
 			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedReadOnlyConstPointer<_Ty> try_until_readlock_ptr(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		TAsyncSharedReadOnlyConstPointer<_Ty> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
 			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
 		}
 
@@ -708,11 +708,11 @@ namespace mse {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> try_for_writelock_ptr(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> try_until_writelock_ptr(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
 		}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> readlock_ptr() {
@@ -722,11 +722,11 @@ namespace mse {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> try_for_readlock_ptr(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> try_until_readlock_ptr(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
 		}
 
@@ -821,11 +821,11 @@ namespace mse {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock);
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> try_for_readlock_ptr(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> try_until_readlock_ptr(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
 		}
 
