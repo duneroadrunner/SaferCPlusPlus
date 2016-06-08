@@ -549,7 +549,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedReadOnlyAccessRequester : public TSaferPtr<const TAsyncSharedObj<_Ty>> {
+	class TAsyncSharedReadOnlyAccessRequester {
 	public:
 		TAsyncSharedReadOnlyAccessRequester(const TAsyncSharedReadOnlyAccessRequester& src_cref) = default;
 		TAsyncSharedReadOnlyAccessRequester(const TAsyncSharedReadWriteAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
