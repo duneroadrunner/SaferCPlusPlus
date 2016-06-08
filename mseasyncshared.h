@@ -24,6 +24,12 @@ namespace mse {
 #else /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
 #endif /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
 
+	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
+	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
+#define MSE_ASYNC_USING(Derived, Base) \
+    template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
+    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
+
 	template <class _Ty>
 	class unlock_guard {
 	public:
@@ -293,7 +299,7 @@ namespace mse {
 			, std::nullptr_t, TAsyncSharedObj>::type& _X) { _TROy::operator=(_X); return (*this); }
 
 	private:
-		MSE_USING(TAsyncSharedObj, _TROy);
+		MSE_ASYNC_USING(TAsyncSharedObj, _TROy);
 		TAsyncSharedObj(const TAsyncSharedObj& _X) : _TROy(_X) {}
 		TAsyncSharedObj(TAsyncSharedObj&& _X) : _TROy(std::move(_X)) {}
 		TAsyncSharedObj* operator&() {
