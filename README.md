@@ -1060,5 +1060,5 @@ The choice to not include thread safety mechanisms in most of the types in this 
 To be clear, we are not discouraging asynchronous programming, or even inter-thread communication in general. Just the "casual" sharing of objects between asynchronous threads.
 
 ### Questions and comments
-Create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues) I guess.
+Create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
 
