@@ -62,7 +62,7 @@ A couple of notes about compling: With g++, you'll need to link to the pthread l
 
 <p>Registered pointers come in two flavors - <a href="#tregisteredpointer">TRegisteredPointer</a> and <a href="#trelaxedregisteredpointer">TRelaxedRegisteredPointer</a>. They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRelaxedRegisteredPointer emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRelaxedRegisteredPointer may be more convenient.</p>
 
-<p>Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. <a href="#compatibility-considerations">cannot act as base classes</a>. Fortunately, the library provides safer <a href="#primitives">substitutes</a> for int, bool and size_t that can act as base classes. Also note that pointers that can point to the stack are inherently not thread safe. While we <a href="#on-thread-safety">do not encourage</a> the casual sharing of objects between asynchronous threads, if you need to do so you might consider using a thread safe type such as std::share_ptr. For more information on how the safe smart pointers in this library are intended to be used, see <a href="http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu">this article</a>.</p>
+<p>Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. <a href="#compatibility-considerations">cannot act as base classes</a>. Fortunately, the library provides safer <a href="#primitives">substitutes</a> for int, bool and size_t that can act as base classes. Also note that pointers that can point to the stack are inherently not thread safe. While we <a href="#on-thread-safety">do not encourage</a> the casual sharing of objects between asynchronous threads, if you need to do so consider using the <a href="#asynchronously-shared-objects">safe sharing data types</a> in this library. For more information on how the safe smart pointers in this library are intended to be used, see <a href="http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu">this article</a>.</p>
 
 <h3>
 <a id="tregisteredpointer" class="anchor" href="#tregisteredpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TRegisteredPointer</h3>
@@ -899,14 +899,16 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="asynchronously-shared-objects" class="anchor" href="#asynchronously-shared-objects" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Asynchronously shared objects</h3>
 
-<p>One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, when one party (thread) is modifying an object, you want to ensure that no other party accesses it. So we provide TAsyncSharedReadWriteAccessRequester that (like std::shared_ptr) possesses shared ownership of an object to be shared among asynchronous threads, and provides (const and non-const smart) pointers that can be used to safely access the object.</p>
+<p>One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, when one party (thread) is modifying an object, you want to ensure that no other party accesses it. So we provide TAsyncSharedReadWriteAccessRequester that (like std::shared_ptr) possesses shared ownership of an object to be shared among asynchronous threads, and provides (const and non-const smart) pointers that can be used to safely access the object. For a more information and examples, see <a href="http://www.codeproject.com/Articles/1106491/Sharing-Objects-Between-Threads-in-Cplusplus-the-S">this article</a>. At the moment, these data types cannot target types that cannot act as a base class. If you want to share an int, bool or size_t, use the <a href="#primitives">safer substitutes</a> that can act as base classes.</p>
 
 <h3>
 <a id="tasyncsharedreadwriteaccessrequester" class="anchor" href="#tasyncsharedreadwriteaccessrequester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TAsyncSharedReadWriteAccessRequester</h3>
 
-<p>Use the writelock_ptr() and readlock_ptr() member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock while they are around. Their locks are only released when the pointers are destroyed (generally when they go out of scope).  </p>
+<p>Use the writelock_ptr() and readlock_ptr() member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock for as long as they exist. Their locks are released when the pointers are destroyed (generally when they go out of scope).  </p>
 
 <p>Use mse::make_asyncsharedreadwrite&lt;&gt;() to obtain a TAsyncSharedReadWriteAccessRequester. TAsyncSharedReadWriteAccessRequester can be copied and passed-by-value as a parameter (to another thread, generally).</p>
+
+<p>Non-blocking try_writelock_ptr() and try_readlock_ptr() member functions are also available. As are the limited-blocking try_writelock_ptr_for(), try_readlock_ptr_for(), try_writelock_ptr_until() and try_readlock_ptr_until().</p>
 
 <h3>
 <a id="tasyncsharedreadonlyaccessrequester" class="anchor" href="#tasyncsharedreadonlyaccessrequester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TAsyncSharedReadOnlyAccessRequester</h3>
@@ -916,7 +918,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="tasyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwriteaccessrequester-tasyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonlyaccessrequester" class="anchor" href="#tasyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwriteaccessrequester-tasyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonlyaccessrequester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester</h3>
 
-<p>A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. Because of this TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "readlock_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.</p>
+<p>A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. So, out of an abundance of prudence TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "readlock_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.</p>
 
 <h3>
 <a id="treadonlystdsharedfixedconstpointer" class="anchor" href="#treadonlystdsharedfixedconstpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TReadOnlyStdSharedFixedConstPointer</h3>
@@ -1061,6 +1063,17 @@ int main(int argc, char* argv[]) {
             std::cout &lt;&lt; std::endl;
         }
         std::cout &lt;&lt; std::endl;
+    }
+    {
+        /* Just demonstrating the existence of the "try" versions. */
+        auto access_requester = mse::make_asyncsharedreadwrite&lt;std::string&gt;("some text");
+        auto writelock_ptr1 = access_requester.try_writelock_ptr();
+        if (writelock_ptr1) {
+            // lock request succeeded
+            int q = 5;
+        }
+        auto readlock_ptr2 = access_requester.try_readlock_ptr_for(std::chrono::seconds(10));
+        auto writelock_ptr3 = access_requester.try_writelock_ptr_until(std::chrono::steady_clock::now() + std::chrono::seconds(10));
     }
     {
         /* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
