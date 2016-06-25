@@ -1186,6 +1186,9 @@ int main(int argc, char* argv[])
 		std::cout << std::endl;
 
 		{
+			/* This block contains a simple example demonstrating the use of mse::TAsyncSharedReadWriteAccessRequester
+			to safely share an object between threads. */
+
 			std::cout << "TAsyncSharedReadWrite:";
 			std::cout << std::endl;
 			auto ash_access_requester = mse::make_asyncsharedreadwrite<A>(7);
@@ -1263,6 +1266,17 @@ int main(int argc, char* argv[])
 				std::cout << std::endl;
 			}
 			std::cout << std::endl;
+		}
+		{
+			/* Just demonstrating the existence of the "try" versions. */
+			auto access_requester = mse::make_asyncsharedreadwrite<std::string>("some text");
+			auto writelock_ptr1 = access_requester.try_writelock_ptr();
+			if (writelock_ptr1) {
+				// lock request succeeded
+				int q = 5;
+			}
+			auto readlock_ptr2 = access_requester.try_readlock_ptr_for(std::chrono::seconds(10));
+			auto writelock_ptr3 = access_requester.try_writelock_ptr_until(std::chrono::steady_clock::now() + std::chrono::seconds(10));
 		}
 		{
 			/* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
