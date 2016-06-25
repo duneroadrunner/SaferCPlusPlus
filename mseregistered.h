@@ -746,10 +746,10 @@ namespace mse {
 #else /*_MSC_VER*/
 #define MSEREGISTEREDREFWRAPPER 1
 #if (defined(__GNUC__) || defined(__GNUG__))
-#define GPP_COMPATIBILE 1
+#define GPP_COMPATIBLE 1
 #else /*(defined(__GNUC__) || defined(__GNUG__))*/
 #ifdef __clang__
-#define CLANG_COMPATIBILE 1
+#define CLANG_COMPATIBLE 1
 #endif // __clang__
 #endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
@@ -776,11 +776,11 @@ namespace mse {
 		template< class... ArgTypes >
 		typename std::result_of<TRegisteredObj<_TRRWy, _TRRWn>&(ArgTypes&&...)>::type
 			operator() (ArgTypes&&... args) const {
-#if defined(GPP_COMPATIBILE) || defined(CLANG_COMPATIBILE)
+#if defined(GPP_COMPATIBLE) || defined(CLANG_COMPATIBLE)
 			return __invoke(get(), std::forward<ArgTypes>(args)...);
-#else // defined(GPP_COMPATIBILE) || definded(CLANG_COMPATIBILE)
+#else // defined(GPP_COMPATIBLE) || definded(CLANG_COMPATIBLE)
 			return std::invoke(get(), std::forward<ArgTypes>(args)...);
-#endif // defined(GPP_COMPATIBILE) || definded(CLANG_COMPATIBILE)
+#endif // defined(GPP_COMPATIBLE) || definded(CLANG_COMPATIBLE)
 		}
 
 	private:

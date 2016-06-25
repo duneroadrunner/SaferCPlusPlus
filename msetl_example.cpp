@@ -121,15 +121,15 @@ int main(int argc, char* argv[])
 		function so mse::mstd::vector does also. Unfortunately there is no way to ensure
 		that the naked pointer parameters have valid values. */
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 		mse::mstd::vector<double> v2(a1, a1+3);
 		mse::mstd::vector<double> v3(a2, a2+3);
 		mse::mstd::vector<double> v4;
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 		mse::mstd::vector<double> v2 = { 1.0, 2.0, 3.0 };
 		mse::mstd::vector<double> v3 = { 4.0, 5.0, 360 };
 		mse::mstd::vector<double> v4;
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 		try {
 			v4.insert(v4.begin(), v2.begin(), v3.begin());
 		}
@@ -174,12 +174,12 @@ int main(int argc, char* argv[])
 		position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted. They
 		support all the standard iterator operators, but also have member functions with "friendlier" names. */
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 		int a1[4] = { 1, 2, 3, 4 };
 		mse::msevector<int> v1(a1, a1+4);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 		mse::msevector<int> v1 = { 1, 2, 3, 4 };
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 
 		mse::msevector<int> v = v1;
 
@@ -290,13 +290,13 @@ int main(int argc, char* argv[])
 
 		mse::CSize_t mse_szt1 = 0;
 		/* size_t szt2 = mse_szt1; */ /* This wouldn't compile. */
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 		size_t szt1 = mse::as_a_size_t(mse_szt1); /* We exclude automatic conversion from mse::CSize_t to size_t because we
 													 consider size_t an intrinsically error prone type. */
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 		size_t szt1 = static_cast<size_t>(mse_szt1); /* We exclude automatic conversion from mse::CSize_t to size_t because we
 													 consider size_t an intrinsically error prone type. */
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 
 		try {
 			mse::CSize_t mse_szt2 = 0;

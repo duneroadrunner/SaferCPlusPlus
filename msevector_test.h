@@ -208,11 +208,11 @@ namespace mse {
 		{
 			int array[] = { 1, 4, 9, 16 };
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			msevector<int> v(array, array + 4);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			msevector<int> v = { 1, 4, 9, 16 };
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 
 			EXAM_CHECK(v.size() == 4);
 
@@ -229,11 +229,11 @@ namespace mse {
 		{
 			int array[] = { 1, 4, 9, 16, 25, 36 };
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			msevector<int> v(array, array + 6);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			msevector<int> v = { 1, 4, 9, 16, 25, 36 };
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 			msevector<int>::iterator vit;
 
 			EXAM_CHECK(v.size() == 6);
@@ -279,11 +279,11 @@ namespace mse {
 			int array1[] = { 1, 4, 25 };
 			int array2[] = { 9, 16 };
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			msevector<int> v(array1, array1 + 3);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			msevector<int> v = { 1, 4, 25 };
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 			msevector<int>::iterator vit;
 			vit = v.insert(v.begin(), 0); // Insert before first element.
 			EXAM_CHECK(*vit == 0);
@@ -299,11 +299,11 @@ namespace mse {
 			EXAM_CHECK(v[4] == 36);
 
 			// Insert contents of array2 before fourth element.
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			v.insert(v.begin() + 3, array2, array2 + 2);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			v.insert(v.begin() + 3, { 9, 16 });
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 
 			EXAM_CHECK(v.size() == 7);
 
@@ -506,14 +506,14 @@ namespace mse {
 			v1[0].x = 1;
 			v1[0].y = 2;
 
-#ifndef MSVC2010_COMPATIBILE
-#if !(defined(GPP_COMPATIBILE))
+#ifndef MSVC2010_COMPATIBLE
+#if !(defined(GPP_COMPATIBLE))
 			EXAM_CHECK(std::is_trivially_copyable<Point>::value == true);
 			EXAM_CHECK(std::is_trivially_copyable<msevector<Point>::const_iterator>::value == true);
 			EXAM_CHECK(std::is_trivially_copyable<PointEx>::value == true);
 			EXAM_CHECK(std::is_trivially_copyable<msevector<PointEx>::const_iterator>::value == true);
-#endif /*!(GPP_COMPATIBILE)*/
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*!(GPP_COMPATIBLE)*/
+#endif /*MSVC2010_COMPATIBLE*/
 
 			//msevector<PointEx> v2(v1.begin(), v1.end()); // non-trivial 
 			std::vector<PointEx> v2a(v1.begin(), v1.end()); // non-trivial 
@@ -557,11 +557,11 @@ namespace mse {
 			{
 				msevector<int> v(3, 1);
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 				v.assign(array, array + 5);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 				v.assign({ 1, 2, 3, 4, 5 });
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 				EXAM_CHECK(v[4] == 5);
 				EXAM_CHECK(v[0] == 1);
 				EXAM_CHECK(v[1] == 2);
@@ -571,11 +571,11 @@ namespace mse {
 				msevector<int> v(7, 1);
 				int array[] = { 1, 2, 3, 4, 5 };
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 				v.assign(array, array + 5);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 				v.assign({ 1, 2, 3, 4, 5 });
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 				EXAM_CHECK(v[4] == 5);
 				EXAM_CHECK(v[0] == 1);
 				EXAM_CHECK(v[1] == 2);
@@ -585,11 +585,11 @@ namespace mse {
 				msevector<int> v(3, 1);
 				v.reserve(7);
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 				v.assign(array, array + 5);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 				v.assign({ 1, 2, 3, 4, 5 });
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 				EXAM_CHECK(v[4] == 5);
 				EXAM_CHECK(v[0] == 1);
 				EXAM_CHECK(v[1] == 2);
@@ -873,11 +873,11 @@ namespace mse {
 		{
 			int array[] = { 1, 4, 9, 16 };
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			msevector<int> v(array, array + 4);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			msevector<int> v = { 1, 4, 9, 16 };
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 
 			EXAM_CHECK(v.size() == 4);
 
@@ -894,11 +894,11 @@ namespace mse {
 		{
 			int array[] = { 1, 4, 9, 16, 25, 36 };
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			msevector<int> v(array, array + 6);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			msevector<int> v = { 1, 4, 9, 16, 25, 36 };
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 			msevector<int>::ipointer vit(v);
 			//msevector<int>::iterator vit;
 
@@ -957,11 +957,11 @@ namespace mse {
 			int array1[] = { 1, 4, 25 };
 			int array2[] = { 9, 16 };
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			msevector<int> v(array1, array1 + 3);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			msevector<int> v = { 1, 4, 25 };
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 			msevector<int>::ipointer vit(v);
 			vit.set_to_beginning();
 			v.insert_before(vit, 0); // Insert before first element.
@@ -989,12 +989,12 @@ namespace mse {
 			vit.set_to_beginning();
 			vit.advance(3);
 			//for (int i = 0; i < 3; i += 1) { vit.set_to_next(); }
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			v.insert_before(vit, 9);
 			v.insert_before(vit, 16);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			v.insert_before(vit, { 9, 16 });
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 
 			EXAM_CHECK(v.size() == 7);
 
@@ -1161,11 +1161,11 @@ namespace mse {
 		{
 			int array[] = { 1, 4, 9, 16 };
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			ivector<int> v(array, array + 4);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			ivector<int> v = { 1, 4, 9, 16 };
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 
 			EXAM_CHECK(v.size() == 4);
 
@@ -1182,11 +1182,11 @@ namespace mse {
 		{
 			int array[] = { 1, 4, 9, 16, 25, 36 };
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			ivector<int> v(array, array + 6);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			ivector<int> v = { 1, 4, 9, 16, 25, 36 };
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 			ivector<int>::ipointer vit(v);
 			//ivector<int>::iterator vit;
 
@@ -1245,11 +1245,11 @@ namespace mse {
 			int array1[] = { 1, 4, 25 };
 			int array2[] = { 9, 16 };
 
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			ivector<int> v(array1, array1 + 3);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			ivector<int> v = { 1, 4, 25 };
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 			ivector<int>::ipointer vit(v);
 			vit.set_to_beginning();
 			v.insert_before(vit, 0); // Insert before first element.
@@ -1277,12 +1277,12 @@ namespace mse {
 			vit.set_to_beginning();
 			vit.advance(3);
 			//for (int i = 0; i < 3; i += 1) { vit.set_to_next(); }
-#ifdef MSVC2010_COMPATIBILE
+#ifdef MSVC2010_COMPATIBLE
 			v.insert_before(vit, 9);
 			v.insert_before(vit, 16);
-#else /*MSVC2010_COMPATIBILE*/
+#else /*MSVC2010_COMPATIBLE*/
 			v.insert_before(vit, { 9, 16 });
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 
 			EXAM_CHECK(v.size() == 7);
 

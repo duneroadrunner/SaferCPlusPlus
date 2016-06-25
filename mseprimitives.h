@@ -15,16 +15,16 @@
 /*compiler specific defines*/
 #ifdef _MSC_VER
 #if (1700 > _MSC_VER)
-#define MSVC2010_COMPATIBILE 1
+#define MSVC2010_COMPATIBLE 1
 #endif /*(1700 > _MSC_VER)*/
 #if (1900 > _MSC_VER)
-#define MSVC2013_COMPATIBILE 1
+#define MSVC2013_COMPATIBLE 1
 #endif /*(1900 > _MSC_VER)*/
 #else /*_MSC_VER*/
 #if (defined(__GNUC__) || defined(__GNUG__))
-#define GPP_COMPATIBILE 1
+#define GPP_COMPATIBLE 1
 #if (5 > __GNUC__)
-#define GPP4P8_COMPATIBILE 1
+#define GPP4P8_COMPATIBLE 1
 #endif /*(5 > __GNUC__)*/
 #endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
@@ -433,9 +433,9 @@ namespace mse {
 
 		// Casts to primitive integer types
 		operator CInt() const { (*this).assert_initialized(); return CInt(m_val); }
-#ifndef MSVC2010_COMPATIBILE
+#ifndef MSVC2010_COMPATIBLE
 		explicit operator size_t() const { (*this).assert_initialized(); return (m_val); }
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 		//size_t as_a_size_t() const { (*this).assert_initialized(); return m_val; }
 
 		CSize_t operator ~() const { (*this).assert_initialized(); return (~m_val); }
@@ -672,9 +672,9 @@ namespace mse {
 		szt4 += szt2;
 		szt4 -= 23;
 		szt4++;
-#ifndef MSVC2010_COMPATIBILE
+#ifndef MSVC2010_COMPATIBLE
 		size_t szt5 = (size_t)szt4;
-#endif /*MSVC2010_COMPATIBILE*/
+#endif /*MSVC2010_COMPATIBLE*/
 		bool b3 = (szt1 < szt2);
 		b3 = (szt1 < 17);
 		b3 = (19 < szt1);
