@@ -66,8 +66,9 @@ namespace mse {
 #define MTXASSERT(a, b) a &= (bool)(b)
 		bool testBehaviour()
 		{
-			static const TRefCountingOfRelaxedRegisteredPointer<Trackable> Nil = target_t(nullptr);
 			bool ok = true;
+#ifdef MSE_SELF_TESTS
+			static const TRefCountingOfRelaxedRegisteredPointer<Trackable> Nil = target_t(nullptr);
 
 			constructions.clear();
 			destructions.clear();
@@ -119,6 +120,7 @@ namespace mse {
 			MTXASSERT_EQ(ok, 1, destructions["noot"]);
 			MTXASSERT_EQ(ok, 1, destructions["mies"]);
 			MTXASSERT_EQ(ok, 4ul, constructions.size());
+#endif // MSE_SELF_TESTS
 
 			// ok, enuf for now
 			return ok;
@@ -134,6 +136,7 @@ namespace mse {
 		{
 			bool ok = true;
 
+#ifdef MSE_SELF_TESTS
 			constructions.clear();
 			destructions.clear();
 			MTXASSERT_EQ(ok, 0ul, constructions.size());
@@ -157,11 +160,13 @@ namespace mse {
 
 			MTXASSERT_EQ(ok, 2ul, constructions.size());
 			MTXASSERT_EQ(ok, 2ul, destructions.size());
+#endif // MSE_SELF_TESTS
 
 			return ok;
 		}
 
 		void test1() {
+#ifdef MSE_SELF_TESTS
 			class A {
 			public:
 				A() {}
@@ -227,6 +232,7 @@ namespace mse {
 			}
 
 			int i = A_refcountingofrelaxedregistered_ptr1->b;
+#endif // MSE_SELF_TESTS
 		}
 
 	};

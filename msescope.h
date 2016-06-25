@@ -458,6 +458,7 @@ namespace mse {
 
 
 	static void s_scpptr_test1() {
+#ifdef MSE_SELF_TESTS
 		class A {
 		public:
 			A(int x) : b(x) {}
@@ -538,6 +539,7 @@ namespace mse {
 			mse::TXScopeFixedPointer<E> E_scope_fptr2 = &scope_gd;
 			mse::TXScopeFixedConstPointer<E> E_scope_fcptr2 = &scope_gd;
 		}
+#endif // MSE_SELF_TESTS
 	}
 }
 

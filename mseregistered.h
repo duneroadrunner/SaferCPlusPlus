@@ -846,6 +846,7 @@ namespace mse {
 #endif // MSEREGISTEREDREFWRAPPER
 
 	static void s_regptr_test1() {
+#ifdef MSE_SELF_TESTS
 
 		class A {
 		public:
@@ -969,6 +970,8 @@ namespace mse {
 			mse::TRegisteredFixedPointer<A> A_registered_fptr1 = &registered_da;
 			mse::TRegisteredFixedConstPointer<A> A_registered_fcptr1 = &registered_da;
 		}
+
+#endif // MSE_SELF_TESTS
 	}
 }
 

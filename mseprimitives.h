@@ -644,6 +644,7 @@ namespace mse {
 #endif /*MSE_PRIMITIVES_DISABLED*/
 
 	static void s_type_test1() {
+#ifdef MSE_SELF_TESTS
 		CInt i1(3);
 		CInt i2 = 5;
 		CInt i3;
@@ -692,6 +693,7 @@ namespace mse {
 		b4 = (b3 && b1);
 		b4 |= b1;
 		b4 &= b3;
+#endif // MSE_SELF_TESTS
 	}
 
 #ifdef MSE_SAFERPTR_DISABLED

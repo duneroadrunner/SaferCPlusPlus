@@ -21,6 +21,8 @@ get to the data type your interested in.
 //define MSE_SCOPEPOINTER_DISABLED
 //define MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
 
+#define MSE_SELF_TESTS
+
 //include "msetl.h"
 #include "msemsevector.h"
 #include "msemstdvector.h"

@@ -632,6 +632,7 @@ namespace mse {
 
 
 	static void s_relaxedregptr_test1() {
+#ifdef MSE_SELF_TESTS
 		class C;
 
 		class D {
@@ -682,6 +683,7 @@ namespace mse {
 			mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr2 = &relaxedregistered_gd;
 			mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr2 = &relaxedregistered_gd;
 		}
+#endif // MSE_SELF_TESTS
 	}
 }
 

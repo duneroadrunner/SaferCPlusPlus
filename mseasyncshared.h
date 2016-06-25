@@ -891,6 +891,8 @@ namespace mse {
 
 
 	static void s_ashptr_test1() {
+#ifdef MSE_SELF_TESTS
+#endif // MSE_SELF_TESTS
 	}
 }
 
