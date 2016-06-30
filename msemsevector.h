@@ -298,7 +298,7 @@ namespace mse {
 				return retval;
 			}
 			else {
-				msev_int di = std::distance(base_class::begin(), _P);
+				msev_int di = std::distance(base_class::cbegin(), _P);
 				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || (msev_size_t((*this).size()) < di)) { throw(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
 
