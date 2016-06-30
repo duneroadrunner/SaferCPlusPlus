@@ -2395,14 +2395,14 @@ namespace mse {
 		}
 #endif /*MSVC2010_COMPATIBLE*/
 		/* These insert() functions are just aliases for their corresponding insert_before() functions. */
-		ss_iterator_type insert(const ss_iterator_type &pos, size_t _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
-		ss_iterator_type insert(const ss_iterator_type &pos, _Ty&& _X) { return insert_before(pos, std::move(_X)); }
-		ss_iterator_type insert(const ss_iterator_type &pos, const _Ty& _X = _Ty()) { return insert_before(pos, _X); }
-		ss_iterator_type insert(const ss_iterator_type &pos, const ss_const_iterator_type &start, const ss_const_iterator_type &end) { return insert_before(pos, start, end); }
+		ss_iterator_type insert(const ss_const_iterator_type &pos, size_t _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
+		ss_iterator_type insert(const ss_const_iterator_type &pos, _Ty&& _X) { return insert_before(pos, std::move(_X)); }
+		ss_iterator_type insert(const ss_const_iterator_type &pos, const _Ty& _X = _Ty()) { return insert_before(pos, _X); }
+		ss_iterator_type insert(const ss_const_iterator_type &pos, const ss_const_iterator_type &start, const ss_const_iterator_type &end) { return insert_before(pos, start, end); }
 		/* Note that safety cannot be guaranteed when using an insert() function that takes unsafe typename base_class::iterator and/or pointer parameters. */
-		ss_iterator_type insert(const ss_iterator_type &pos, const _Ty* start, const _Ty* &end) { return insert_before(pos, start, end); }
+		ss_iterator_type insert(const ss_const_iterator_type &pos, const _Ty* start, const _Ty* &end) { return insert_before(pos, start, end); }
 #ifndef MSVC2010_COMPATIBLE
-		ss_iterator_type insert(const ss_iterator_type &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) { return insert_before(pos, _Ilist); }
+		ss_iterator_type insert(const ss_const_iterator_type &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) { return insert_before(pos, _Ilist); }
 #endif /*MSVC2010_COMPATIBLE*/
 		ss_iterator_type erase(const ss_iterator_type &pos) {
 			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void erase() - msevector")); }
