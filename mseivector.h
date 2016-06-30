@@ -49,9 +49,9 @@ namespace mse {
 		void pop_back() { m_shptr->pop_back(); }
 		void assign(_It _F, _It _L) { m_shptr->assign(_F, _L); }
 		void assign(size_t _N, const _Ty& _X = _Ty()) { m_shptr->assign(_N, _X); }
-		typename _MV::iterator insert(typename _MV::iterator _P, _Ty&& _X) { return m_shptr->insert(_P, std::move(_X)); }
-		typename _MV::iterator insert(typename _MV::iterator _P, const _Ty& _X = _Ty()) { return m_shptr->insert(_P, _X); }
-		typename _MV::iterator insert(typename _MV::iterator _P, size_t _M, const _Ty& _X) { return m_shptr->insert(_P, _M, _X); }
+		typename _MV::iterator insert(typename _MV::const_iterator _P, _Ty&& _X) { return m_shptr->insert(_P, std::move(_X)); }
+		typename _MV::iterator insert(typename _MV::const_iterator _P, const _Ty& _X = _Ty()) { return m_shptr->insert(_P, _X); }
+		typename _MV::iterator insert(typename _MV::const_iterator _P, size_t _M, const _Ty& _X) { return m_shptr->insert(_P, _M, _X); }
 		template<class _Iter>
 		typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename _MV::iterator>::type
 			insert(typename _MV::const_iterator _Where, _Iter _First, _Iter _Last) { return m_shptr->insert(_Where, _First, _Last); }
@@ -83,7 +83,7 @@ namespace mse {
 			...
 #endif /*MSVC2010_COMPATIBLE*/
 		); }
-		typename _MV::iterator erase(typename _MV::iterator _P) { return m_shptr->emplace(_P); }
+		typename _MV::iterator erase(typename _MV::const_iterator _P) { return m_shptr->emplace(_P); }
 		typename _MV::iterator erase(typename _MV::iterator _F, typename _MV::iterator _L) { return m_shptr->emplace(_F, _L); }
 		void clear() { m_shptr->clear(); }
 		void swap(_MV& _X) { m_shptr->swap(_X); }
