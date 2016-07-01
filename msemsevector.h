@@ -2404,35 +2404,38 @@ namespace mse {
 #ifndef MSVC2010_COMPATIBLE
 		ss_iterator_type insert(const ss_const_iterator_type &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) { return insert_before(pos, _Ilist); }
 #endif /*MSVC2010_COMPATIBLE*/
-		ss_iterator_type erase(const ss_iterator_type &pos) {
-			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void erase() - msevector")); }
+		ss_iterator_type erase(const ss_const_iterator_type &pos) {
+			if (pos.m_owner_cptr != this) { throw(std::out_of_range("invalid arguments - void erase() - msevector")); }
+			if (!pos.points_to_an_item()) { throw(std::out_of_range("invalid arguments - void erase() - msevector")); }
+			auto pos_index = pos.position();
+
 			typename base_class::const_iterator _P = pos;
-			auto retval = pos;
-			static_cast<typename base_class::iterator&>(retval) = (*this).erase(_P);
+			(*this).erase(_P);
+
+			ss_iterator_type retval = (*this).ss_begin();
+			retval.advance(ss_const_iterator_type::difference_type(pos_index));
 			return retval;
 		}
-		ss_iterator_type erase(const ss_iterator_type &start, const ss_iterator_type &end) {
-			if (start.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void erase() - msevector")); }
-			if (end.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void erase() - msevector")); }
-			typename base_class::iterator _F = start;
-			typename base_class::iterator _L = end;
-			auto retval = start;
-			static_cast<typename base_class::iterator&>(retval) = (*this).erase(_F, _L);
+		ss_iterator_type erase(const ss_const_iterator_type &start, const ss_const_iterator_type &end) {
+			if (start.m_owner_cptr != this) { throw(std::out_of_range("invalid arguments - void erase() - msevector")); }
+			if (end.m_owner_cptr != this) { throw(std::out_of_range("invalid arguments - void erase() - msevector")); }
+			if (start.position() > end.position()) { throw(std::out_of_range("invalid arguments - void erase() - msevector")); }
+			auto pos_index = start.position();
+
+			typename base_class::const_iterator _F = start;
+			typename base_class::const_iterator _L = end;
+			(*this).erase(_F, _L);
+
+			ss_iterator_type retval = (*this).ss_begin();
+			retval.advance(ss_const_iterator_type::difference_type(pos_index));
 			return retval;
 		}
-		ss_iterator_type erase_inclusive(const ss_iterator_type &first, const ss_iterator_type &last) {
-			if (first.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void erase_inclusive() - msevector")); }
-			if (last.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void erase_inclusive() - msevector")); }
-			if (!(last.points_to_item())) { throw(std::out_of_range("invalid argument - void erase_inclusive() - msevector")); }
-			typename base_class::iterator _F = first;
-			typename base_class::iterator _L = last;
-			_L++;
-			auto retval = first;
-			static_cast<typename base_class::iterator&>(retval) = (*this).erase(_F, _L);
-			return retval;
+		ss_iterator_type erase_inclusive(const ss_const_iterator_type &first, const ss_const_iterator_type &last) {
+			auto end = last; end.set_to_next();
+			return erase(first, end);
 		}
-		void erase_previous_item(const ss_iterator_type &pos) {
-			if (pos.m_owner_ptr != this) { throw(std::out_of_range("invalid arguments - void erase_previous_item() - msevector")); }
+		void erase_previous_item(const ss_const_iterator_type &pos) {
+			if (pos.m_owner_cptr != this) { throw(std::out_of_range("invalid arguments - void erase_previous_item() - msevector")); }
 			if (!(pos.has_previous())) { throw(std::out_of_range("invalid arguments - void erase_previous_item() - msevector")); }
 			typename base_class::const_iterator _P = pos;
 			_P--;

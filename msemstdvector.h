@@ -358,17 +358,17 @@ namespace mse {
 #ifndef MSVC2010_COMPATIBLE
 			iterator insert(const const_iterator &pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) { return insert_before(pos, _Ilist); }
 #endif /*MSVC2010_COMPATIBLE*/
-			iterator erase(const iterator &pos) {
-				auto res = m_shptr->erase(pos.msevector_ss_iterator_type());
+			iterator erase(const const_iterator &pos) {
+				auto res = m_shptr->erase(pos.msevector_ss_const_iterator_type());
 				iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
 				return retval;
 			}
-			iterator erase(const iterator &start, const iterator &end) {
-				auto res = m_shptr->erase(start.msevector_ss_iterator_type(), end.msevector_ss_iterator_type());
+			iterator erase(const const_iterator &start, const const_iterator &end) {
+				auto res = m_shptr->erase(start.msevector_ss_const_iterator_type(), end.msevector_ss_const_iterator_type());
 				iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
 				return retval;
 			}
-			iterator erase_inclusive(const iterator &first, const iterator &last) {
+			iterator erase_inclusive(const const_iterator &first, const const_iterator &last) {
 				auto end = last; end.set_to_next();
 				return erase_inclusive(first, end);
 			}
