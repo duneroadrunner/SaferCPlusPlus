@@ -2413,7 +2413,7 @@ namespace mse {
 			(*this).erase(_P);
 
 			ss_iterator_type retval = (*this).ss_begin();
-			retval.advance(ss_const_iterator_type::difference_type(pos_index));
+			retval.advance(typename ss_const_iterator_type::difference_type(pos_index));
 			return retval;
 		}
 		ss_iterator_type erase(const ss_const_iterator_type &start, const ss_const_iterator_type &end) {
@@ -2427,7 +2427,7 @@ namespace mse {
 			(*this).erase(_F, _L);
 
 			ss_iterator_type retval = (*this).ss_begin();
-			retval.advance(ss_const_iterator_type::difference_type(pos_index));
+			retval.advance(typename ss_const_iterator_type::difference_type(pos_index));
 			return retval;
 		}
 		ss_iterator_type erase_inclusive(const ss_const_iterator_type &first, const ss_const_iterator_type &last) {
