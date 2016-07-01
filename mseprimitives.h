@@ -711,54 +711,70 @@ namespace mse {
 		virtual void setToNull() const = 0;
 	};
 
+#ifndef NDEBUG
+#ifndef MSE_SUPPRESS_TSAFERPTR_CHECK_USE_BEFORE_SET
+#define MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
+#endif // !MSE_SUPPRESS_TSAFERPTR_CHECK_USE_BEFORE_SET
+#endif // !NDEBUG
+
 	/* TSaferPtr behaves similar to, and is largely compatible with, native pointers. It's a bit safer in that it initializes to
 	nullptr by default and checks for attempted dereference of null pointers. */
 	template<typename _Ty>
 	class TSaferPtr : public CSaferPtrBase {
 	public:
 		TSaferPtr() : m_ptr(nullptr) {}
-		TSaferPtr(_Ty* ptr) : m_ptr(ptr) {}
-		TSaferPtr(const TSaferPtr<_Ty>& src) : m_ptr(src.m_ptr) {}
+		TSaferPtr(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
+		TSaferPtr(const TSaferPtr<_Ty>& src) : m_ptr(src.m_ptr) { note_value_assignment(); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TSaferPtr(const TSaferPtr<_Ty2>& src_cref) : m_ptr(src_cref.m_ptr) {}
+		TSaferPtr(const TSaferPtr<_Ty2>& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 		virtual ~TSaferPtr() {}
 
 		virtual void setToNull() const { m_ptr = nullptr; }
 
-		void raw_pointer(_Ty* ptr) { m_ptr = ptr; }
+		void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
 		_Ty* raw_pointer() const { return m_ptr; }
 		_Ty* get() const { return m_ptr; }
 		_Ty& operator*() const {
+			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTR_CHECKS
-			if (nullptr == m_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr")); }
+			if (nullptr == m_ptr) {
+				throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr"));
+			}
 #endif /*MSE_DISABLE_TSAFERPTR_CHECKS*/
 			return (*m_ptr);
 		}
 		_Ty* operator->() const {
+			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTR_CHECKS
-			if (nullptr == m_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr")); }
+			if (nullptr == m_ptr) {
+				throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr"));
+			}
 #endif /*MSE_DISABLE_TSAFERPTR_CHECKS*/
 			return m_ptr;
 		}
 		TSaferPtr<_Ty>& operator=(_Ty* ptr) {
+			note_value_assignment();
 			m_ptr = ptr;
 			return (*this);
 		}
 		TSaferPtr<_Ty>& operator=(const TSaferPtr<_Ty>& _Right_cref) {
+			note_value_assignment();
 			m_ptr = _Right_cref.m_ptr;
 			return (*this);
 		}
-		bool operator==(const _Ty* _Right_cref) const { return (_Right_cref == m_ptr); }
-		bool operator!=(const _Ty* _Right_cref) const { return (!((*this) == _Right_cref)); }
-		bool operator==(const TSaferPtr<_Ty> &_Right_cref) const { return (_Right_cref == m_ptr); }
-		bool operator!=(const TSaferPtr<_Ty> &_Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const _Ty* _Right_cref) const { assert_initialized(); return (_Right_cref == m_ptr); }
+		bool operator!=(const _Ty* _Right_cref) const { assert_initialized(); return (!((*this) == _Right_cref)); }
+		bool operator==(const TSaferPtr<_Ty> &_Right_cref) const { assert_initialized(); return (_Right_cref == m_ptr); }
+		bool operator!=(const TSaferPtr<_Ty> &_Right_cref) const { assert_initialized(); return (!((*this) == _Right_cref)); }
 
-		bool operator!() const { return (!m_ptr); }
+		bool operator!() const { assert_initialized(); return (!m_ptr); }
 		operator bool() const {
+			assert_initialized();
 			return (m_ptr != nullptr);
 		}
 
 		explicit operator _Ty*() const {
+			assert_initialized();
 			if (nullptr == m_ptr) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
@@ -768,6 +784,15 @@ namespace mse {
 		/* m_ptr needs to be mutable so that it can be set to nullptr when the object it points to is no longer valid (i.e. has
 		been deleted) even in cases when this smart pointer is const. */
 		mutable _Ty* m_ptr;
+
+#ifdef MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
+		void note_value_assignment() { m_initialized = true; }
+		void assert_initialized() const { assert(m_initialized); }
+		bool m_initialized = false;
+#else // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
+		void note_value_assignment() {}
+		void assert_initialized() const {}
+#endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 	};
 
 	/* TSaferPtrForLegacy is similar to TSaferPtr, but more readily converts to a native pointer implicitly. So when replacing
@@ -777,35 +802,43 @@ namespace mse {
 	class TSaferPtrForLegacy : public CSaferPtrBase {
 	public:
 		TSaferPtrForLegacy() : m_ptr(nullptr) {}
-		TSaferPtrForLegacy(_Ty* ptr) : m_ptr(ptr) {}
+		TSaferPtrForLegacy(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TSaferPtrForLegacy(const TSaferPtrForLegacy<_Ty2>& src_cref) : m_ptr(src_cref.m_ptr) {}
+		TSaferPtrForLegacy(const TSaferPtrForLegacy<_Ty2>& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 		virtual ~TSaferPtrForLegacy() {}
 
 		virtual void setToNull() const { m_ptr = nullptr; }
 
-		void raw_pointer(_Ty* ptr) { m_ptr = ptr; }
+		void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
 		_Ty* raw_pointer() const { return m_ptr; }
 		_Ty* get() const { return m_ptr; }
 		_Ty& operator*() const {
+			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS
-			if (nullptr == m_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy")); }
+			if (nullptr == m_ptr) {
+				throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy"));
+			}
 #endif /*MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS*/
 			return (*m_ptr);
 		}
 		_Ty* operator->() const {
+			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS
-			if (nullptr == m_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy")); }
+			if (nullptr == m_ptr) {
+				throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy"));
+			}
 #endif /*MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS*/
 			return m_ptr;
 		}
 		TSaferPtrForLegacy<_Ty>& operator=(_Ty* ptr) {
+			note_value_assignment();
 			m_ptr = ptr;
 			return (*this);
 		}
 		//operator bool() const { return m_ptr; }
 
 		operator _Ty*() const {
+			assert_initialized();
 			if (nullptr == m_ptr) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
@@ -815,6 +848,15 @@ namespace mse {
 		/* m_ptr needs to be mutable so that it can be set to nullptr when the object it points to is no longer valid (i.e. has
 		been deleted) even in cases when this smart pointer is const. */
 		mutable _Ty* m_ptr;
+
+#ifdef MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
+		void note_value_assignment() { m_initialized = true; }
+		void assert_initialized() const { assert(m_initialized); }
+		bool m_initialized = false;
+#else // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
+		void note_value_assignment() {}
+		void assert_initialized() const {}
+#endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 	};
 #endif /*MSE_SAFERPTR_DISABLED*/
 
