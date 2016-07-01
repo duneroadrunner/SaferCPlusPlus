@@ -282,29 +282,29 @@ namespace mse {
 		void assign_inclusive(const cipointer &first, const cipointer &last) {
 			m_shptr->assign_inclusive(first.msevector_cipointer(), last.msevector_cipointer());
 		}
-		ipointer insert_before(const ipointer &pos, size_t _M, const _Ty& _X) {
-			auto res = m_shptr->insert_before(pos.msevector_ipointer(), _M, _X);
+		ipointer insert_before(const cipointer &pos, size_t _M, const _Ty& _X) {
+			auto res = m_shptr->insert_before(pos.msevector_cipointer(), _M, _X);
 			ipointer retval(*this); retval.msevector_ipointer() = res;
 			return retval;
 		}
-		ipointer insert_before(const ipointer &pos, _Ty&& _X) {
-			auto res = m_shptr->insert_before(pos.msevector_ipointer(), std::move(_X));
+		ipointer insert_before(const cipointer &pos, _Ty&& _X) {
+			auto res = m_shptr->insert_before(pos.msevector_cipointer(), std::move(_X));
 			ipointer retval(*this); retval.msevector_ipointer() = res;
 			return retval;
 		}
-		ipointer insert_before(const ipointer &pos, const _Ty& _X = _Ty()) { return insert_before(pos, 1, _X); }
-		ipointer insert_before(const ipointer &pos, const cipointer &start, const cipointer &end) {
-			auto res = m_shptr->insert_before(pos.msevector_ipointer(), start.msevector_cipointer(), end.msevector_cipointer());
+		ipointer insert_before(const cipointer &pos, const _Ty& _X = _Ty()) { return insert_before(pos, 1, _X); }
+		ipointer insert_before(const cipointer &pos, const cipointer &start, const cipointer &end) {
+			auto res = m_shptr->insert_before(pos.msevector_cipointer(), start.msevector_cipointer(), end.msevector_cipointer());
 			ipointer retval(*this); retval.msevector_ipointer() = res;
 			return retval;
 		}
-		ipointer insert_before_inclusive(const ipointer &pos, const cipointer &first, const cipointer &last) {
+		ipointer insert_before_inclusive(const cipointer &pos, const cipointer &first, const cipointer &last) {
 			auto end = last; end.set_to_next();
 			return insert_before_inclusive(pos, first, end);
 		}
 #ifndef MSVC2010_COMPATIBLE
-		ipointer insert_before(const ipointer &pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
-			auto res = m_shptr->insert_before(pos.msevector_ipointer(), _Ilist);
+		ipointer insert_before(const cipointer &pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
+			auto res = m_shptr->insert_before(pos.msevector_cipointer(), _Ilist);
 			ipointer retval(*this); retval.msevector_ipointer() = res;
 			return retval;
 		}

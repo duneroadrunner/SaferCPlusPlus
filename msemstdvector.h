@@ -306,34 +306,34 @@ namespace mse {
 			void assign_inclusive(const const_iterator &first, const const_iterator &last) {
 				m_shptr->assign_inclusive(first.msevector_ss_const_iterator_type(), last.msevector_ss_const_iterator_type());
 			}
-			iterator insert_before(const iterator &pos, size_t _M, const _Ty& _X) {
-				auto res = m_shptr->insert_before(pos.msevector_ss_iterator_type(), _M, _X);
+			iterator insert_before(const const_iterator &pos, size_t _M, const _Ty& _X) {
+				auto res = m_shptr->insert_before(pos.msevector_ss_const_iterator_type(), _M, _X);
 				iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
 				return retval;
 			}
-			iterator insert_before(const iterator &pos, _Ty&& _X) {
-				auto res = m_shptr->insert_before(pos.msevector_ss_iterator_type(), std::move(_X));
+			iterator insert_before(const const_iterator &pos, _Ty&& _X) {
+				auto res = m_shptr->insert_before(pos.msevector_ss_const_iterator_type(), std::move(_X));
 				iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
 				return retval;
 			}
-			iterator insert_before(const iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, 1, _X); }
-			iterator insert_before(const iterator &pos, const const_iterator &start, const const_iterator &end) {
-				auto res = m_shptr->insert_before(pos.msevector_ss_iterator_type(), start.msevector_ss_const_iterator_type(), end.msevector_ss_const_iterator_type());
+			iterator insert_before(const const_iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, 1, _X); }
+			iterator insert_before(const const_iterator &pos, const const_iterator &start, const const_iterator &end) {
+				auto res = m_shptr->insert_before(pos.msevector_ss_const_iterator_type(), start.msevector_ss_const_iterator_type(), end.msevector_ss_const_iterator_type());
 				iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
 				return retval;
 			}
-			iterator insert_before(const iterator &pos, const _Ty* start, const _Ty* end) {
-				auto res = m_shptr->insert_before(pos.msevector_ss_iterator_type(), start, end);
+			iterator insert_before(const const_iterator &pos, const _Ty* start, const _Ty* end) {
+				auto res = m_shptr->insert_before(pos.msevector_ss_const_iterator_type(), start, end);
 				iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
 				return retval;
 			}
-			iterator insert_before_inclusive(const iterator &pos, const const_iterator &first, const const_iterator &last) {
+			iterator insert_before_inclusive(const const_iterator &pos, const const_iterator &first, const const_iterator &last) {
 				auto end = last; end.set_to_next();
 				return insert_before_inclusive(pos, first, end);
 			}
 #ifndef MSVC2010_COMPATIBLE
-			iterator insert_before(const iterator &pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
-				auto res = m_shptr->insert_before(pos.msevector_ss_iterator_type(), _Ilist);
+			iterator insert_before(const const_iterator &pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
+				auto res = m_shptr->insert_before(pos.msevector_ss_const_iterator_type(), _Ilist);
 				iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
 				return retval;
 			}
@@ -350,13 +350,13 @@ namespace mse {
 			}
 #endif /*MSVC2010_COMPATIBLE*/
 			/* These insert() functions are just aliases for their corresponding insert_before() functions. */
-			iterator insert(const iterator &pos, size_t _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
-			iterator insert(const iterator &pos, _Ty&& _X) { return insert_before(pos, std::move(_X)); }
-			iterator insert(const iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, _X); }
-			iterator insert(const iterator &pos, const const_iterator &start, const const_iterator &end) { return insert_before(pos, start, end); }
-			iterator insert(const iterator &pos, const _Ty* start, const _Ty* end) { return insert_before(pos, start, end); }
+			iterator insert(const const_iterator &pos, size_t _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
+			iterator insert(const const_iterator &pos, _Ty&& _X) { return insert_before(pos, std::move(_X)); }
+			iterator insert(const const_iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, _X); }
+			iterator insert(const const_iterator &pos, const const_iterator &start, const const_iterator &end) { return insert_before(pos, start, end); }
+			iterator insert(const const_iterator &pos, const _Ty* start, const _Ty* end) { return insert_before(pos, start, end); }
 #ifndef MSVC2010_COMPATIBLE
-			iterator insert(const iterator &pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) { return insert_before(pos, _Ilist); }
+			iterator insert(const const_iterator &pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) { return insert_before(pos, _Ilist); }
 #endif /*MSVC2010_COMPATIBLE*/
 			iterator erase(const iterator &pos) {
 				auto res = m_shptr->erase(pos.msevector_ss_iterator_type());
