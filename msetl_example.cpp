@@ -1282,9 +1282,9 @@ int main(int argc, char* argv[])
 		}
 		{
 			/* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
-			TReadOnlyStdSharedFixedConstPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
+			TStdSharedImmutableFixedPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
 			sharing objects with mutable members. */
-			auto read_only_sh_ptr = mse::make_readonlystdshared<A>(5);
+			auto read_only_sh_ptr = mse::make_stdsharedimmutable<A>(5);
 			int res1 = read_only_sh_ptr->b;
 
 			std::list<std::future<int>> futures;
