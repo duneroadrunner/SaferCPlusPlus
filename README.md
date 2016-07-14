@@ -733,8 +733,8 @@ Same as TAsyncSharedReadWriteAccessRequester, but only supports readlock_ptr(), 
 ### TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester
 A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. So, out of an abundance of prudence TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "readlock_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.
 
-### TReadOnlyStdSharedFixedConstPointer
-For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a slightly safety-enhanced wrapper for std::shared_ptr. The wrapper enforces "const"ness and tries to ensure that it points to a validly allocated object. Use mse::make_readonlystdshared<>() to construct an mse::TReadOnlyStdSharedFixedConstPointer. And again, beware of sharing objects with mutable members.  
+### TStdSharedImmutableFixedPointer
+For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a slightly safety-enhanced wrapper for std::shared_ptr. The wrapper enforces "const"ness and tries to ensure that it points to a validly allocated object. Use mse::make_stdsharedimmutable<>() to construct an mse::TStdSharedImmutableFixedPointer. And again, beware of sharing objects with mutable members.  
 
 usage example:
 
@@ -888,9 +888,9 @@ usage example:
 		}
 		{
 			/* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
-			TReadOnlyStdSharedFixedConstPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
+			TStdSharedImmutableFixedPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
 			sharing objects with mutable members. */
-			auto read_only_sh_ptr = mse::make_readonlystdshared<A>(5);
+			auto read_only_sh_ptr = mse::make_stdsharedimmutable<A>(5);
 			int res1 = read_only_sh_ptr->b;
 	
 			std::list<std::future<int>> futures;
