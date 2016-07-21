@@ -19,12 +19,12 @@
     </section>
 
     <section class="main-content">
-      <p>Jun 2016</p>
+      <p>Jul 2016</p>
 
 <h3>
 <a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h3>
 
-<p>A collection of safe data types that are compatible with, and can substitute for, common unsafe native C++ types. Currently these include:</p>
+<p>"SaferCPlusPlus" is essentially a collection of safe data types that are compatible with, and can substitute for, common unsafe native C++ types. Currently these include:</p>
 
 <ul>
 <li><p>A <a href="#simple-benchmarks">fast</a>, <a href="#registered-pointers">safe replacement for native pointers</a> that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).</p></li>
@@ -32,7 +32,7 @@
 <li><p>A "<a href="#scope-pointers">scope pointer</a>" for target objects allocated on the stack, or whose "owning" pointer is allocated on the stack. By default, not as safe as the other smart pointers in this library, but with zero runtime overhead.</p></li>
 <li><p>An almost completely <a href="#vector">safe implementation</a> of std::vector&lt;&gt; - bounds checked, iterator checked and memory managed.</p></li>
 <li><p>A couple of <a href="#vectors">other</a> highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation.</p></li>
-<li><p><a href="#primitives">Replacements</a> for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.</p></li>
+<li><p><a href="#primitives">Replacements</a> for the native "int", "size_t" and "bool" types that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.</p></li>
 <li><p>Data types for safe, simple <a href="#asynchronously-shared-objects">sharing</a> of objects among asynchronous threads.</p></li>
 </ul>
 
