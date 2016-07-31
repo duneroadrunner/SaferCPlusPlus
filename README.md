@@ -1,8 +1,8 @@
-Jun 2016
+Jul 2016
 
 ### Overview
 
-A collection of safe data types that are compatible with, and can substitute for, common unsafe native C++ types. Currently these include:
+"SaferCPlusPlus" is essentially a collection of safe data types that are compatible with, and can substitute for, common unsafe native C++ types. Currently these include:
 
 - A [fast](#simple-benchmarks), [safe replacement for native pointers](#registered-pointers) that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).
 
@@ -14,7 +14,7 @@ A collection of safe data types that are compatible with, and can substitute for
 
 - A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation.
 
-- [Replacements](#primitives) for the native "int", "size_t" and "bool" types that have default initialization values and address the "signed-unsigned mismatch" issues.
+- [Replacements](#primitives) for the native "int", "size_t" and "bool" types that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.
 
 - Data types for safe, simple [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
 
@@ -241,7 +241,7 @@ usage example:
 Just some simple microbenchmarks. We show the results for msvc2015 and msvc2013 (run on the same machine), since there are some interesting differences. The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp).
 
 #### Allocation, deallocation, pointer copy and assignment:
-##### platform: msvc2015/x64/Windows7/Haswell (Mar 2016):
+##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
 Pointer Type | Time
 ------------ | ----
 mse::TRegisteredPointer (stack): | 0.0317188 seconds.
@@ -251,7 +251,7 @@ mse::TRegisteredPointer (heap): | 0.0573699 seconds.
 std::shared_ptr (heap): | 0.0692405 seconds.
 mse::TRelaxedRegisteredPointer (heap): | 0.14475 seconds.
 
-##### platform: msvc2013/x64/Windows7/Haswell (Jan 2016):
+##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
 Pointer Type | Time
 ------------ | ----
 mse::TRegisteredPointer (stack): | 0.0270016 seconds.
@@ -264,7 +264,7 @@ Take these results with a grain of salt. The benchmarks were run on a noisy mach
 I'm speculating here, but it might be the case that the heap operations that occur in this benchmark may be more "cache friendly" than heap operations in real world code would be, making the "heap" results look artificially good (relative to the "stack" result).
 
 #### Dereferencing:
-##### platform: msvc2015/x64/Windows7/Haswell (Mar 2016):
+##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0105804 seconds.
@@ -273,7 +273,7 @@ mse::TRefCountingPointer (checked): | 0.0258107 seconds.
 mse::TRelaxedRegisteredPointer (checked): | 0.0308289 seconds.
 std::weak_ptr: | 0.179833 seconds.
 
-##### platform: msvc2013/x64/Windows7/Haswell (Jan 2016):
+##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0100006 seconds.
@@ -733,8 +733,8 @@ Same as TAsyncSharedReadWriteAccessRequester, but only supports readlock_ptr(), 
 ### TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester
 A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. So, out of an abundance of prudence TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "readlock_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.
 
-### TReadOnlyStdSharedFixedConstPointer
-For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a slightly safety-enhanced wrapper for std::shared_ptr. The wrapper enforces "const"ness and tries to ensure that it points to a validly allocated object. Use mse::make_readonlystdshared<>() to construct an mse::TReadOnlyStdSharedFixedConstPointer. And again, beware of sharing objects with mutable members.  
+### TStdSharedImmutableFixedPointer
+For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a slightly safety-enhanced wrapper for std::shared_ptr. The wrapper enforces "const"ness and tries to ensure that it points to a validly allocated object. Use mse::make_stdsharedimmutable<>() to construct an mse::TStdSharedImmutableFixedPointer. And again, beware of sharing objects with mutable members.  
 
 usage example:
 
@@ -888,9 +888,9 @@ usage example:
 		}
 		{
 			/* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
-			TReadOnlyStdSharedFixedConstPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
+			TStdSharedImmutableFixedPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
 			sharing objects with mutable members. */
-			auto read_only_sh_ptr = mse::make_readonlystdshared<A>(5);
+			auto read_only_sh_ptr = mse::make_stdsharedimmutable<A>(5);
 			int res1 = read_only_sh_ptr->b;
 	
 			std::list<std::future<int>> futures;
