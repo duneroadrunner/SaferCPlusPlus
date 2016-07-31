@@ -146,15 +146,6 @@ namespace mse {
 			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return x_ptr;
 		}
-		X* get() const {
-			if (!m_ref_with_target_obj_ptr) {
-				return nullptr;
-			}
-			else {
-				X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
-				return x_ptr;
-			}
-		}
 		bool unique() const {
 			return (m_ref_with_target_obj_ptr ? (m_ref_with_target_obj_ptr->use_count() == 1) : true);
 		}
@@ -164,6 +155,17 @@ namespace mse {
 			auto new_ptr = new CRefCounter(std::forward<Args>(args)...);
 			TRefCountingPointer retval(new_ptr);
 			return retval;
+		}
+
+	protected:
+		X* get() const {
+			if (!m_ref_with_target_obj_ptr) {
+				return nullptr;
+			}
+			else {
+				X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
+				return x_ptr;
+			}
 		}
 
 	private:
@@ -649,20 +651,20 @@ namespace mse {
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
 
 			TRefCountingPointer<Linked> node = make_refcounting<Linked>(this, "parent");
-			MTXASSERT(ok, (node.get() != nullptr));
+			MTXASSERT(ok, (node != nullptr));
 			node->next = make_refcounting<Linked>(this, "child");
 
 			MTXASSERT_EQ(ok, 2ul, constructions.size());
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
 
 			node = node->next;
-			MTXASSERT(ok, (node.get() != nullptr));
+			MTXASSERT(ok, (node != nullptr));
 
 			MTXASSERT_EQ(ok, 2ul, constructions.size());
 			MTXASSERT_EQ(ok, 1ul, destructions.size());
 
 			node = node->next;
-			MTXASSERT(ok, (node.get() == nullptr));
+			MTXASSERT(ok, (node == nullptr));
 
 			MTXASSERT_EQ(ok, 2ul, constructions.size());
 			MTXASSERT_EQ(ok, 2ul, destructions.size());
