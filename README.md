@@ -241,7 +241,7 @@ usage example:
 Just some simple microbenchmarks. We show the results for msvc2015 and msvc2013 (run on the same machine), since there are some interesting differences. The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp).
 
 #### Allocation, deallocation, pointer copy and assignment:
-##### platform: msvc2015/x64/Windows7/Haswell (Mar 2016):
+##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
 Pointer Type | Time
 ------------ | ----
 mse::TRegisteredPointer (stack): | 0.0317188 seconds.
@@ -251,7 +251,7 @@ mse::TRegisteredPointer (heap): | 0.0573699 seconds.
 std::shared_ptr (heap): | 0.0692405 seconds.
 mse::TRelaxedRegisteredPointer (heap): | 0.14475 seconds.
 
-##### platform: msvc2013/x64/Windows7/Haswell (Jan 2016):
+##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
 Pointer Type | Time
 ------------ | ----
 mse::TRegisteredPointer (stack): | 0.0270016 seconds.
@@ -264,7 +264,7 @@ Take these results with a grain of salt. The benchmarks were run on a noisy mach
 I'm speculating here, but it might be the case that the heap operations that occur in this benchmark may be more "cache friendly" than heap operations in real world code would be, making the "heap" results look artificially good (relative to the "stack" result).
 
 #### Dereferencing:
-##### platform: msvc2015/x64/Windows7/Haswell (Mar 2016):
+##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0105804 seconds.
@@ -273,7 +273,7 @@ mse::TRefCountingPointer (checked): | 0.0258107 seconds.
 mse::TRelaxedRegisteredPointer (checked): | 0.0308289 seconds.
 std::weak_ptr: | 0.179833 seconds.
 
-##### platform: msvc2013/x64/Windows7/Haswell (Jan 2016):
+##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0100006 seconds.
