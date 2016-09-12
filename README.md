@@ -36,6 +36,21 @@ For more information on how the safe smart pointers in this library are intended
 The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Outside of the stl, there are no other dependencies.  
 A couple of notes about compling: With g++, you'll need to link to the pthread library (-lpthread). You may want to use the -Wno-unused flag as well. With msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
 
+### SaferCplusPlus versus Clang/LLVM Sanitizers
+
+The Clang/LLVM compiler provides a set of "sanitizers" that address C++ "code safety" issues. While they address many of the same bugs, the solutions provided by the SaferCplusPlus library and the Clang/LLVM sanitizers differ in significant ways (as of Sep 2016). Namely:
+
+- The Clang/LLVM sanitizers require changes to the build process, not the code, whereas with SaferCplusPlus it's the other way around.
+- SaferCplusPlus (in theory) more completely solves the problem of invalid memory access (https://en.wikipedia.org/wiki/AddressSanitizer#Limitations), but does so by restricting what qualifies as "proper" SaferCplusPlus code.
+- When encountering an invalid memory operation, the Clang/LLVM sanitizers terminate the executable, where SaferCplusPlus throws a (catchable) exception. 
+- SaferCplusPlus requires exception handling.
+- SaferCplusPlus is portable C++ code that works on any platform, whereas Clang/LLVM sanitizers are available/maintained on a finite (but at the moment, ample) set of os/architecture combinations.
+- The Clang/LLVM sanitizers cost more in terms of run-time performance. ~2x slowdown for the AddressSanitizer alone (https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers). SaferCplusPlus [doesn't cost](#simple-benchmarks) nearly that much in typical code.
+- Clang's ThreadSanitizer tries to detect data race bugs, while SaferCplusPlus provides [data types](#asynchronously-shared-objects) that eliminate the possibility of data race bugs (and a superset we call "object race" bugs).
+
+So it's not really SaferCplusPlus "versus" Clang/LLVM Sanitizers. They are not incompatible, and there's no reason you couldn't use both simultaneously, although there would be significant redundancies. Basically, if you plan to rely on run-time checks to ensure memory safety, SaferCplusPlus solves the problem more completely with less run-time performance cost.  
+
+
 ### Registered pointers
 
 "Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap. In most cases, they can be used as a compatible, direct substitute for native pointers, making it straightforward to update legacy code (to be safer).
