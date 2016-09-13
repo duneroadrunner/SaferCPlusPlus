@@ -19,7 +19,7 @@
     </section>
 
     <section class="main-content">
-      <p>Jul 2016</p>
+      <p>Sep 2016</p>
 
 <h3>
 <a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h3>
@@ -45,7 +45,7 @@
 
 <p>This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else.<br>
 This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you a lot of the safety that you might get from, say Java, while retaining all of the power and most of the performance of C++.<br>
-While using the library may sometimes cost a modest performance penalty, because the library elements are <a href="#compatibility-considerations">largely compatible</a> with their native counterparts they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta modes while incurring no overhead in release mode.<br>
+While using the library may sometimes cost a modest performance penalty, because the library elements are <a href="#compatibility-considerations">largely compatible</a> with their native counterparts they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.<br>
 So there is really no excuse for not using the library in pretty much any situation.<br>
 For more information on how the safe smart pointers in this library are intended to be used, see <a href="http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu">this article</a>.</p>
 
@@ -53,7 +53,24 @@ For more information on how the safe smart pointers in this library are intended
 <a id="setup-and-dependencies" class="anchor" href="#setup-and-dependencies" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Setup and dependencies</h3>
 
 <p>The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Outside of the stl, there are no other dependencies.<br>
-A couple of notes about compling: With g++, you'll need to link to the pthread library (-lpthread). You may want to use the -Wno-unused flag as well. With msvc you may get a "<a href="https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx">fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj</a>". Just <a href="https://msdn.microsoft.com/en-us/library/ms173499.aspx">add</a> the "/bigobj" compile flag. For more help you can try the <a href="#questions-and-comments">questions and comments</a> section.</p>
+A couple of notes about compling: With g++, you'll need to link to the pthread library (-lpthread). You may want to use the -Wno-unused flag as well. With 64-bit builds in msvc you may get a "<a href="https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx">fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj</a>". Just <a href="https://msdn.microsoft.com/en-us/library/ms173499.aspx">add</a> the "/bigobj" compile flag. For more help you can try the <a href="#questions-and-comments">questions and comments</a> section.</p>
+
+<h3>
+<a id="safercplusplus-versus-clangllvm-sanitizers" class="anchor" href="#safercplusplus-versus-clangllvm-sanitizers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SaferCplusPlus versus Clang/LLVM Sanitizers</h3>
+
+<p>The Clang/LLVM compiler provides a set of "sanitizers" that address C++ "code safety" issues. While they address many of the same bugs, the solutions provided by the SaferCplusPlus library and the Clang/LLVM sanitizers differ in significant ways (as of Sep 2016). Namely:</p>
+
+<ul>
+<li>The Clang/LLVM sanitizers require changes to the build process, not the code, whereas with SaferCplusPlus it's the other way around.</li>
+<li>SaferCplusPlus (in theory) more completely solves the problem of invalid memory access (<a href="https://en.wikipedia.org/wiki/AddressSanitizer#Limitations">https://en.wikipedia.org/wiki/AddressSanitizer#Limitations</a>), but does so by restricting what qualifies as "proper" SaferCplusPlus code.</li>
+<li>When encountering an invalid memory operation, the Clang/LLVM sanitizers terminate the executable, where SaferCplusPlus throws a (catchable) exception. </li>
+<li>SaferCplusPlus requires exception handling.</li>
+<li>SaferCplusPlus is portable C++ code that works on any platform, whereas Clang/LLVM sanitizers are available/maintained on a finite (but at the moment, ample) set of os/architecture combinations.</li>
+<li>The Clang/LLVM sanitizers cost more in terms of run-time performance. ~2x slowdown for the AddressSanitizer alone (<a href="https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers">https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers</a>). SaferCplusPlus <a href="#simple-benchmarks">doesn't cost</a> nearly that much in typical code.</li>
+<li>Clang's ThreadSanitizer tries to detect data race bugs, while SaferCplusPlus provides <a href="#asynchronously-shared-objects">data types</a> that eliminate the possibility of data race bugs (and a superset we call "object race" bugs).</li>
+</ul>
+
+<p>So it's not really SaferCplusPlus "versus" Clang/LLVM Sanitizers. They are not incompatible, and there's no reason you couldn't use both simultaneously, although there would be significant redundancies. Basically, if you plan to rely on run-time checks to ensure memory safety, SaferCplusPlus solves the problem more completely with less run-time performance cost.  </p>
 
 <h3>
 <a id="registered-pointers" class="anchor" href="#registered-pointers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Registered pointers</h3>
@@ -282,7 +299,7 @@ int main(int argc, char* argv[]) {
 <a id="allocation-deallocation-pointer-copy-and-assignment" class="anchor" href="#allocation-deallocation-pointer-copy-and-assignment" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Allocation, deallocation, pointer copy and assignment:</h4>
 
 <h5>
-<a id="platform-msvc2015x64windows7haswell-mar-2016" class="anchor" href="#platform-msvc2015x64windows7haswell-mar-2016" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>platform: msvc2015/x64/Windows7/Haswell (Mar 2016):</h5>
+<a id="platform-msvc2015default-optimizationsx64windows7haswell-mar-2016" class="anchor" href="#platform-msvc2015default-optimizationsx64windows7haswell-mar-2016" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):</h5>
 
 <table>
 <thead>
@@ -320,7 +337,7 @@ int main(int argc, char* argv[]) {
 </table>
 
 <h5>
-<a id="platform-msvc2013x64windows7haswell-jan-2016" class="anchor" href="#platform-msvc2013x64windows7haswell-jan-2016" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>platform: msvc2013/x64/Windows7/Haswell (Jan 2016):</h5>
+<a id="platform-msvc2013default-optimizationsx64windows7haswell-jan-2016" class="anchor" href="#platform-msvc2013default-optimizationsx64windows7haswell-jan-2016" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):</h5>
 
 <table>
 <thead>
@@ -360,7 +377,7 @@ I'm speculating here, but it might be the case that the heap operations that occ
 <a id="dereferencing" class="anchor" href="#dereferencing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Dereferencing:</h4>
 
 <h5>
-<a id="platform-msvc2015x64windows7haswell-mar-2016-1" class="anchor" href="#platform-msvc2015x64windows7haswell-mar-2016-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>platform: msvc2015/x64/Windows7/Haswell (Mar 2016):</h5>
+<a id="platform-msvc2015default-optimizationsx64windows7haswell-mar-2016-1" class="anchor" href="#platform-msvc2015default-optimizationsx64windows7haswell-mar-2016-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):</h5>
 
 <table>
 <thead>
@@ -394,7 +411,7 @@ I'm speculating here, but it might be the case that the heap operations that occ
 </table>
 
 <h5>
-<a id="platform-msvc2013x64windows7haswell-jan-2016-1" class="anchor" href="#platform-msvc2013x64windows7haswell-jan-2016-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>platform: msvc2013/x64/Windows7/Haswell (Jan 2016):</h5>
+<a id="platform-msvc2013default-optimizationsx64windows7haswell-jan-2016-1" class="anchor" href="#platform-msvc2013default-optimizationsx64windows7haswell-jan-2016-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):</h5>
 
 <table>
 <thead>
