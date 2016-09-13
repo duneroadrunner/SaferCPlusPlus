@@ -41,11 +41,11 @@ A couple of notes about compling: With g++, you'll need to link to the pthread l
 The Clang/LLVM compiler provides a set of "sanitizers" that address C++ "code safety" issues. While they address many of the same bugs, the solutions provided by the SaferCplusPlus library and the Clang/LLVM sanitizers differ in significant ways (as of Sep 2016). Namely:
 
 - The Clang/LLVM sanitizers require modifications to the build process, not the code, whereas with SaferCplusPlus it's the other way around.
-- SaferCplusPlus (in theory) more completely solves the problem of invalid memory access (https://en.wikipedia.org/wiki/AddressSanitizer#Limitations), but does so by restricting what qualifies as "proper" SaferCplusPlus code.
+- SaferCplusPlus (in theory) [more completely](https://en.wikipedia.org/wiki/AddressSanitizer#Limitations) solves the problem of invalid memory access , but does so by restricting what qualifies as "proper" SaferCplusPlus code.
 - When encountering an invalid memory operation, the Clang/LLVM sanitizers terminate the executable, where SaferCplusPlus throws a (catchable) exception. 
 - SaferCplusPlus requires exception handling.
 - SaferCplusPlus is portable C++ code that works on any platform, whereas Clang/LLVM sanitizers are available/maintained on a finite (but at the moment, ample) set of OS-architecture combinations.
-- The Clang/LLVM sanitizers cost more in terms of run-time performance. ~2x slowdown for the AddressSanitizer alone (https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers). SaferCplusPlus [doesn't cost](#simple-benchmarks) nearly that much in typical code.
+- The Clang/LLVM sanitizers cost more in terms of run-time performance. [~2x slowdown](https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers) for the AddressSanitizer alone . SaferCplusPlus [doesn't cost](#simple-benchmarks) nearly that much in typical code.
 - Clang's ThreadSanitizer tries to detect data race bugs, while SaferCplusPlus provides [data types](#asynchronously-shared-objects) that eliminate the possibility of data race bugs (and a superset we call "object race" bugs).
 
 So it's not really SaferCplusPlus "versus" Clang/LLVM Sanitizers. They are not incompatible, and there's no reason you couldn't use both simultaneously, although there would be significant redundancies. Basically, if you plan to rely on run-time checks to ensure memory safety, SaferCplusPlus solves the problem more completely with less run-time performance cost.  
