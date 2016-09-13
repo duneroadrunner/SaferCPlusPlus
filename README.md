@@ -1,4 +1,4 @@
-Jul 2016
+Sep 2016
 
 ### Overview
 
@@ -27,14 +27,14 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
 
 This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else.  
 This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you a lot of the safety that you might get from, say Java, while retaining all of the power and most of the performance of C++.  
-While using the library may sometimes cost a modest performance penalty, because the library elements are [largely compatible](#compatibility-considerations) with their native counterparts they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta modes while incurring no overhead in release mode.  
+While using the library may sometimes cost a modest performance penalty, because the library elements are [largely compatible](#compatibility-considerations) with their native counterparts they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.  
 So there is really no excuse for not using the library in pretty much any situation.  
 For more information on how the safe smart pointers in this library are intended to be used, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 ### Setup and dependencies
 
 The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Outside of the stl, there are no other dependencies.  
-A couple of notes about compling: With g++, you'll need to link to the pthread library (-lpthread). You may want to use the -Wno-unused flag as well. With msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
+A couple of notes about compling: With g++, you'll need to link to the pthread library (-lpthread). You may want to use the -Wno-unused flag as well. With 64-bit builds in msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
 
 ### SaferCplusPlus versus Clang/LLVM Sanitizers
 
