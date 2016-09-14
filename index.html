@@ -66,7 +66,7 @@ A couple of notes about compling: With g++, you'll need to link to the pthread l
 <li>When encountering an invalid memory operation, the Clang/LLVM sanitizers terminate the executable, where SaferCplusPlus throws a (catchable) exception. </li>
 <li>SaferCplusPlus requires exception handling.</li>
 <li>SaferCplusPlus is portable C++ code that works on any platform, whereas Clang/LLVM sanitizers are available/maintained on a finite (but at the moment, ample) set of OS-architecture combinations.</li>
-<li>The Clang/LLVM sanitizers cost more in terms of run-time performance. <a href="https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers">~2x slowdown</a> for the AddressSanitizer alone . SaferCplusPlus <a href="#simple-benchmarks">doesn't cost</a> nearly that much in typical code.</li>
+<li>The Clang/LLVM sanitizers cost more in terms of run-time performance. <a href="https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers">~2x slowdown</a> for the AddressSanitizer, for example. SaferCplusPlus <a href="#simple-benchmarks">doesn't cost</a> nearly that much in typical code.</li>
 <li>Clang's ThreadSanitizer tries to detect data race bugs, while SaferCplusPlus provides <a href="#asynchronously-shared-objects">data types</a> that eliminate the possibility of data race bugs (and a superset we call "object race" bugs).</li>
 </ul>
 
