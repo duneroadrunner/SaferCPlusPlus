@@ -70,7 +70,7 @@ A couple of notes about compling: With g++, you'll need to link to the pthread l
 <li>Clang's ThreadSanitizer tries to detect data race bugs, while SaferCplusPlus provides <a href="#asynchronously-shared-objects">data types</a> that eliminate the possibility of data race bugs (and a superset we call "object race" bugs).</li>
 </ul>
 
-<p>So it's not really SaferCplusPlus "versus" Clang/LLVM Sanitizers. They are not incompatible, and there's no reason you couldn't use both simultaneously, although there would be significant redundancies. Basically, if you plan to rely on run-time checks to ensure memory safety, SaferCplusPlus solves the problem more completely with less run-time performance cost.</p>
+<p>Clang/LLVM Sanitizers are intended for debugging purposes, not to be used in deployed executables. As such, by design, some of their debugging convenience features themselves introduce <a href="http://seclists.org/oss-sec/2016/q1/363">opportunities</a> for malicious exploitation. SaferCPlusPlus on the other hand, is designed to be used in deployed executables, as well as for debugging and testing. And that's reflected in its performance, security and "completeness of solution". So it's not really SaferCPlusPlus "versus" Clang/LLVM Sanitizers. They are not incompatible, and there's no reason you couldn't use both simultaneously, although there would be significant redundancies.</p>
 
 <h3>
 <a id="safercplusplus-versus-checked-c" class="anchor" href="#safercplusplus-versus-checked-c" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SaferCPlusPlus versus Checked C</h3>
