@@ -153,15 +153,20 @@ int main(int argc, char* argv[])
 		}
 		auto vi_it = vvi[0].begin();
 		vvi.clear();
-		/* At this point, the vint_type object is cleared from vvi, but it has not been deallocated/destructed yet because it
-		"knows" that there is an iterator, namely vi_it, that is still referencing it. At the moment, std::shared_ptrs are being
-		used to achieve this. */
-		auto value = (*vi_it); /* So this is actually ok. vi_it still points to a valid item. */
-		assert(5 == value);
-		vint_type vi2;
-		vi_it = vi2.begin();
-		/* The vint_type object that vi_it was originally pointing to is now deallocated/destructed, because vi_it no longer
-		references it. */
+		try {
+			/* At this point, the vint_type object is cleared from vvi, but it has not been deallocated/destructed yet because it
+			"knows" that there is an iterator, namely vi_it, that is still referencing it. At the moment, std::shared_ptrs are being
+			used to achieve this. */
+			auto value = (*vi_it); /* So this is actually ok. vi_it still points to a valid item. */
+			assert(5 == value);
+			vint_type vi2;
+			vi_it = vi2.begin();
+			/* The vint_type object that vi_it was originally pointing to is now deallocated/destructed, because vi_it no longer
+			references it. */
+		}
+		catch (...) {
+			/* At present, no exception will be thrown. We're still debating whether it'd be better to throw an exception though. */
+		}
 	}
 #endif // !MSE_MSTDVECTOR_DISABLED
 
