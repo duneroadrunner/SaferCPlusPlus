@@ -988,6 +988,33 @@ usage example:
         std::vector<int> sv;
         /* These two vectors should be completely interchangeable. The difference being that mv should throw
         an exception on any attempt to access invalid memory. */
+        
+        
+        /* mse::msevector is not quite as safe as mse::mstd::vector in the following way: */
+        
+        std::vector<int>::iterator sv1_it;
+        mse::msevector<int>::ss_iterator msev1_it; // bounds checked iterator just like mse::mstd::vector<int>::iterator
+        mse::mstd::vector<int>::iterator mv1_it;
+        {
+            std::vector<int> sv1 = { 1, 2, 3 };
+            sv1_it = sv1.begin();
+            
+            mse::msevector<int> msev1 = { 1, 2, 3 };
+            msev1_it = msev1.ss_begin();
+            
+            mse::mstd::vector<int> mv1 = { 1, 2, 3 };
+            mv1_it = mv1.begin();
+        }
+        
+        // (*sv1_it) = 4; // not good
+        // (*msev1_it) = 4; // not good
+        
+        try {
+            (*mv1_it) = 4; // ok
+        } catch(...) {
+            // At present, this won't even result in an exception. It'll just work.
+            // Still debating whether it'd be better to throw an exception though.
+        }
     }
 
 ### msevector
@@ -1039,10 +1066,10 @@ usage example:
         /* Btw, ipointers are compatible with stl algorithms, like any other stl iterators. */
         std::sort(v.ibegin(), v.iend());
     
-        /* And just to be clear, mse::msevector<> retains it's original (high performance) stl::vector iterators. */
+        /* And just to be clear, mse::msevector<> retains it's original (high performance) stl vector iterators. */
         std::sort(v.begin(), v.end());
     
-        /* mse::msevector<> also provides "safe" (bounds checked) versions of the original stl::vector iterators. */
+        /* mse::msevector<> also provides "safe" (bounds checked) versions of the original stl vector iterators. */
         std::sort(v.ss_begin(), v.ss_end());
     }
 
