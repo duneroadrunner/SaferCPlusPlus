@@ -42,19 +42,51 @@ namespace mse {
 	typedef mse::CSize_t msev_size_t;
 	typedef mse::CInt msev_int;
 	typedef bool msev_bool; // no added safety benefit to using mse::CBool in this case
-	template<typename _Ty> using msev_pointer = _Ty*; // no added safety benefit to using mse::TSaferPtr in this case
 	#define msev_as_a_size_t as_a_size_t
 #else // MSE_MSEVECTOR_USE_MSE_PRIMITIVES
 	typedef size_t msev_size_t;
 	typedef long long int msev_int;
 	typedef bool msev_bool;
-	template<typename _Ty> using msev_pointer = _Ty*;
 	typedef size_t msev_as_a_size_t;
 #endif // MSE_MSEVECTOR_USE_MSE_PRIMITIVES
 
-#ifndef _NOEXCEPT
-#define _NOEXCEPT
-#endif /*_NOEXCEPT*/
+	/* msev_pointer behaves similar to native pointers. It's a bit safer in that it initializes to
+	nullptr by default and checks for attempted dereference of null pointers. */
+	template<typename _Ty>
+	class msev_pointer {
+	public:
+		msev_pointer() : m_ptr(nullptr) {}
+		msev_pointer(_Ty* ptr) : m_ptr(ptr) {}
+		msev_pointer(const msev_pointer<_Ty>& src) : m_ptr(src.m_ptr) {}
+
+		_Ty& operator*() const {
+#ifndef MSE_DISABLE_MSEAR_POINTER_CHECKS
+			if (nullptr == m_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::msev_pointer")); }
+#endif /*MSE_DISABLE_MSEAR_POINTER_CHECKS*/
+			return (*m_ptr);
+		}
+		_Ty* operator->() const {
+#ifndef MSE_DISABLE_MSEAR_POINTER_CHECKS
+			if (nullptr == m_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::msev_pointer")); }
+#endif /*MSE_DISABLE_MSEAR_POINTER_CHECKS*/
+			return m_ptr;
+		}
+		msev_pointer<_Ty>& operator=(_Ty* ptr) {
+			m_ptr = ptr;
+			return (*this);
+		}
+		bool operator==(const msev_pointer _Right_cref) const { return (_Right_cref.m_ptr == m_ptr); }
+		bool operator!=(const msev_pointer _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const _Ty* _Right_cref) const { return (_Right_cref == m_ptr); }
+		bool operator!=(const _Ty* _Right_cref) const { return (!((*this) == _Right_cref)); }
+
+		bool operator!() const { return (!m_ptr); }
+		operator bool() const { return (m_ptr != nullptr); }
+
+		operator _Ty*() const { return m_ptr; }
+
+		_Ty* m_ptr;
+	};
 
 #ifndef _XSTD
 #define _XSTD ::std::
