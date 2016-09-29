@@ -174,6 +174,20 @@ namespace mse {
 
 			EXAM_CHECK((v1 < v2) == true);
 
+			v1.swap(v2);
+
+			EXAM_CHECK(v1[0] == 'h');
+			EXAM_CHECK(v1[1] == 'o');
+			EXAM_CHECK(v2[0] == 'h');
+			EXAM_CHECK(v2[1] == 'i');
+
+			std::swap(v1, v2);
+
+			EXAM_CHECK(v1[0] == 'h');
+			EXAM_CHECK(v1[1] == 'i');
+			EXAM_CHECK(v2[0] == 'h');
+			EXAM_CHECK(v2[1] == 'o');
+
 			return EXAM_RESULT;
 		}
 
