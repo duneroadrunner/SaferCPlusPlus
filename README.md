@@ -993,7 +993,7 @@ usage example:
         /* mse::msevector is not quite as safe as mse::mstd::vector in the following way: */
         
         std::vector<int>::iterator sv1_it;
-        mse::msevector<int>::ss_iterator msev1_it; // bounds checked iterator just like mse::mstd::vector<int>::iterator
+        mse::msevector<int>::ss_iterator_type msev1_it; // bounds checked iterator just like mse::mstd::vector<int>::iterator
         mse::mstd::vector<int>::iterator mv1_it;
         {
             std::vector<int> sv1 = { 1, 2, 3 };
