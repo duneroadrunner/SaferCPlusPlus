@@ -24,6 +24,7 @@ get to the data type your interested in.
 #define MSE_SELF_TESTS
 
 //include "msetl.h"
+#include "msearray.h"
 #include "msemsevector.h"
 #include "msemstdvector.h"
 #include "mseivector.h"
@@ -36,6 +37,7 @@ get to the data type your interested in.
 #include "msescope.h"
 #include "mseasyncshared.h"
 #include "msepoly.h"
+#include "mseprimitives.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -139,6 +141,10 @@ int main(int argc, char* argv[])
 			std::cerr << "expected exception" << std::endl;
 			/* The exception is triggered by a comparision of incompatible "safe" iterators. */
 		}
+
+		v2.swap(v3);
+		assert(360 == v2[2]);
+		assert(3.0 == v3[2]);
 	}
 
 	{
@@ -237,6 +243,14 @@ int main(int argc, char* argv[])
 		mse::ivector<int> iv = { 1, 2, 3, 4 };
 		std::sort(iv.begin(), iv.end());
 		mse::ivector<int>::ipointer ivip = iv.begin();
+	}
+
+	{
+		/******************/
+		/*   msearray<>   */
+		/******************/
+		mse::msearray_test testobj1;
+		testobj1.test1();
 	}
 
 	{
