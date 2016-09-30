@@ -25,6 +25,7 @@ get to the data type your interested in.
 
 //include "msetl.h"
 #include "msemsearray.h"
+#include "msemstdarray.h"
 #include "msemsevector.h"
 #include "msemstdvector.h"
 #include "mseivector.h"
@@ -243,6 +244,14 @@ int main(int argc, char* argv[])
 		mse::ivector<int> iv = { 1, 2, 3, 4 };
 		std::sort(iv.begin(), iv.end());
 		mse::ivector<int>::ipointer ivip = iv.begin();
+	}
+
+	{
+		/*********************/
+		/*   mstd::array<>   */
+		/*********************/
+		mse::mstd::array_test testobj1;
+		testobj1.test1();
 	}
 
 	{
