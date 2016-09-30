@@ -19,7 +19,7 @@ namespace mse {
 	namespace mstd {
 
 #ifdef MSE_MSTDVECTOR_DISABLED
-		template<class _Ty, class _A = std::allocator<_Ty> > using vector = std::vector<_Ty>;
+		template<class _Ty, class _A = std::allocator<_Ty> > using vector = std::vector<_Ty, _A>;
 
 #else /*MSE_MSTDVECTOR_DISABLED*/
 
