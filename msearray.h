@@ -95,8 +95,10 @@ namespace mse {
 		typedef msearray<_Ty, _Size> _Myt;
 
 		msearray() {}
-		msearray(const msearray& src) : base_class(src) {}
-		msearray(const std::array<_Ty, _Size>& src) : base_class(src) {}
+		msearray(base_class&& _X) : base_class(std::move(_X)) {}
+		msearray(const base_class& _X) : base_class(_X) {}
+		msearray(msearray&& _X) : base_class(std::move(_X)) {}
+		msearray(const msearray& _X) : base_class(_X) {}
 		msearray(_XSTD initializer_list<typename base_class::value_type> _Ilist) {
 			/* std::array<> is an "aggregate type" (basically a POD struct with no base class, constructors or private
 			data members (details here: http://en.cppreference.com/w/cpp/language/aggregate_initialization)). As such,
@@ -118,6 +120,23 @@ namespace mse {
 			for (; count < _Size; count+=1, target_it++) {
 				(*target_it) = default_Ty;
 			}
+		}
+
+		_Myt& operator=(base_class&& _X) {
+			base_class::operator=(std::move(_X));
+			return (*this);
+		}
+		_Myt& operator=(const base_class& _X) {
+			base_class::operator =(_X);
+			return (*this);
+		}
+		_Myt& operator=(_Myt&& _X) {
+			operator=(std::move(static_cast<base_class&>(_X)));
+			return (*this);
+		}
+		_Myt& operator=(const _Myt& _X) {
+			operator=((base_class)_X);
+			return (*this);
 		}
 
 		typename base_class::const_reference operator[](size_t _P) const {
@@ -665,6 +684,8 @@ namespace mse {
 
 			auto l_tuple_size = std::tuple_size<mse::msearray<int, 3>>::value;
 			std::tuple_element<1, mse::msearray<int, 3>>::type b1 = 5;
+
+			a1 = a2;
 
 			{
 				mse::msearray<int, 5> a = { 10, 20, 30, 40, 50 };
