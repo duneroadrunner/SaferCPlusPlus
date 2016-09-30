@@ -32,27 +32,27 @@ namespace mse {
 			_MV& msevector() const { return (*m_shptr); }
 			operator _MV() { return msevector(); }
 
-			explicit vector(const _A& _Al = _A()) : m_shptr(new _MV(_Al)) {}
-			explicit vector(size_t _N, const _Ty& _V = _Ty(), const _A& _Al = _A()) : m_shptr(new _MV(_N, _V, _Al)) {}
-			vector(_MV&& _X) : m_shptr(new _MV(std::move(_X))) {}
-			vector(const _MV& _X) : m_shptr(new _MV(_X)) {}
-			vector(_Myt&& _X) : m_shptr(new _MV(std::move(_X.msevector()))) {}
-			vector(const _Myt& _X) : m_shptr(new _MV(_X.msevector())) {}
+			explicit vector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
+			explicit vector(size_t _N, const _Ty& _V = _Ty(), const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
+			vector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X))) {}
+			vector(const _MV& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
+			vector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X.msevector()))) {}
+			vector(const _Myt& _X) : m_shptr(std::make_shared<_MV>(_X.msevector())) {}
 			typedef typename _MV::const_iterator _It;
-			vector(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(new _MV(_F, _L, _Al)) {}
-			vector(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : m_shptr(new _MV(_F, _L, _Al)) {}
+			vector(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
+			vector(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
 			template<class _Iter
 #ifndef MSVC2010_COMPATIBLE
 				, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type
 #endif /*MSVC2010_COMPATIBLE*/
 			>
-			vector(_Iter _First, _Iter _Last) : m_shptr(new _MV(_First, _Last)) {}
+			vector(_Iter _First, _Iter _Last) : m_shptr(std::make_shared<_MV>(_First, _Last)) {}
 			template<class _Iter
 #ifndef MSVC2010_COMPATIBLE
 				, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type
 #endif /*MSVC2010_COMPATIBLE*/
 			>
-			vector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(new _MV(_First, _Last, _Al)) {}
+			vector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MV>(_First, _Last, _Al)) {}
 
 			_Myt& operator=(_MV&& _X) { m_shptr->operator=(std::move(_X)); return (*this); }
 			_Myt& operator=(const _MV& _X) { m_shptr->operator=(_X); return (*this); }
@@ -108,7 +108,7 @@ namespace mse {
 			void swap(_Myt& _X) { m_shptr->swap(_X.msevector()); }
 
 #ifndef MSVC2010_COMPATIBLE
-			vector(_XSTD initializer_list<typename _MV::value_type> _Ilist, const _A& _Al = _A()) : m_shptr(new _MV(_Ilist, _Al)) {}
+			vector(_XSTD initializer_list<typename _MV::value_type> _Ilist, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Ilist, _Al)) {}
 			_Myt& operator=(_XSTD initializer_list<typename _MV::value_type> _Ilist) { m_shptr->operator=(_Ilist); return (*this); }
 			void assign(_XSTD initializer_list<typename _MV::value_type> _Ilist) { m_shptr->assign(_Ilist); }
 			typename _MV::iterator insert(typename _MV::const_iterator _Where, _XSTD initializer_list<typename _MV::value_type> _Ilist) { return m_shptr->insert(_Where, _Ilist); }
@@ -299,7 +299,7 @@ namespace mse {
 
 
 			vector(const const_iterator &start, const const_iterator &end, const _A& _Al = _A())
-				: m_shptr(new _MV(start.msevector_ss_const_iterator_type(), end.msevector_ss_const_iterator_type(), _Al)) {}
+				: m_shptr(std::make_shared<_MV>(start.msevector_ss_const_iterator_type(), end.msevector_ss_const_iterator_type(), _Al)) {}
 			void assign(const const_iterator &start, const const_iterator &end) {
 				m_shptr->assign(start.msevector_ss_const_iterator_type(), end.msevector_ss_const_iterator_type());
 			}
