@@ -24,7 +24,7 @@ get to the data type your interested in.
 #define MSE_SELF_TESTS
 
 //include "msetl.h"
-#include "msearray.h"
+#include "msemsearray.h"
 #include "msemsevector.h"
 #include "msemstdvector.h"
 #include "mseivector.h"
