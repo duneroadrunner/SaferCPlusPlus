@@ -23,11 +23,24 @@ namespace mse {
 
 #else /*MSE_MSTDVECTOR_DISABLED*/
 
+#ifndef _NOEXCEPT
+#define _NOEXCEPT
+#endif /*_NOEXCEPT*/
+
 		template<class _Ty, class _A = std::allocator<_Ty> >
 		class vector {
 		public:
 			typedef mse::mstd::vector<_Ty, _A> _Myt;
 			typedef mse::msevector<_Ty, _A> _MV;
+
+			typedef typename _MV::allocator_type allocator_type;
+			typedef typename _MV::value_type value_type;
+			typedef typename _MV::size_type size_type;
+			typedef typename _MV::difference_type difference_type;
+			typedef typename _MV::pointer pointer;
+			typedef typename _MV::const_pointer const_pointer;
+			typedef typename _MV::reference reference;
+			typedef typename _MV::const_reference const_reference;
 
 			_MV& msevector() const { return (*m_shptr); }
 			operator _MV() { return msevector(); }
