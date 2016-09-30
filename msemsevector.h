@@ -1082,7 +1082,7 @@ namespace mse {
 				assert((int)(m_owner_ptr->size()) >= retval);
 				return retval;
 			}
-			reference operator*() {
+			reference operator*() const {
 				if (points_to_an_item()) {
 					return m_owner_ptr->at(msev_as_a_size_t(m_index));
 				}
@@ -1090,8 +1090,8 @@ namespace mse {
 					throw(std::out_of_range("attempt to use invalid item_pointer - reference operator*() - mm_iterator_type - msevector"));
 				}
 			}
-			reference item() { return operator*(); }
-			reference previous_item() {
+			reference item() const { return operator*(); }
+			reference previous_item() const {
 				if ((*this).has_previous()) {
 					return m_owner_ptr->at(m_index - 1);
 				}
@@ -1099,7 +1099,7 @@ namespace mse {
 					throw(std::out_of_range("attempt to use invalid item_pointer - reference previous_item() - mm_const_iterator_type - msevector"));
 				}
 			}
-			pointer operator->() {
+			pointer operator->() const {
 				if (points_to_an_item()) {
 					sync_iterator_to_index();
 					return base_class::iterator::operator->();
@@ -1108,7 +1108,7 @@ namespace mse {
 					throw(std::out_of_range("attempt to use invalid item_pointer - pointer operator->() - mm_iterator_type - msevector"));
 				}
 			}
-			reference operator[](difference_type _Off) { return (*(*this + _Off)); }
+			reference operator[](difference_type _Off) const { return (*(*this + _Off)); }
 			/*
 			mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref)
 			{
@@ -2167,7 +2167,7 @@ namespace mse {
 				assert((int)((*m_owner_ptr).size()) >= retval);
 				return retval;
 			}
-			reference operator*() {
+			reference operator*() const {
 				if (points_to_an_item()) {
 					return m_owner_ptr->at(msev_as_a_size_t(m_index));
 				}
@@ -2175,8 +2175,8 @@ namespace mse {
 					throw(std::out_of_range("attempt to use invalid item_pointer - reference operator*() - ss_iterator_type - msevector"));
 				}
 			}
-			reference item() { return operator*(); }
-			reference previous_item() {
+			reference item() const { return operator*(); }
+			reference previous_item() const {
 				if ((*this).has_previous()) {
 					return m_owner_ptr->at(m_index - 1);
 				}
@@ -2184,7 +2184,7 @@ namespace mse {
 					throw(std::out_of_range("attempt to use invalid item_pointer - reference previous_item() - ss_const_iterator_type - msevector"));
 				}
 			}
-			pointer operator->() {
+			pointer operator->() const {
 				if (points_to_an_item()) {
 					sync_iterator_to_index();
 					return base_class::iterator::operator->();
@@ -2193,7 +2193,7 @@ namespace mse {
 					throw(std::out_of_range("attempt to use invalid item_pointer - pointer operator->() - ss_iterator_type - msevector"));
 				}
 			}
-			reference operator[](difference_type _Off) { return (*(*this + _Off)); }
+			reference operator[](difference_type _Off) const { return (*(*this + _Off)); }
 			/*
 			ss_iterator_type& operator=(const typename base_class::iterator& _Right_cref)
 			{
