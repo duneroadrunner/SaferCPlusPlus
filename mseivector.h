@@ -12,29 +12,51 @@
 
 namespace mse {
 
+#ifndef _NOEXCEPT
+#define _NOEXCEPT
+#endif /*_NOEXCEPT*/
+
 	template<class _Ty, class _A = std::allocator<_Ty> >
 	class ivector {
 	public:
 		typedef mse::ivector<_Ty, _A> _Myt;
 		typedef mse::msevector<_Ty, _A> _MV;
 
-		_MV& msevector() const { return (*m_shptr); }
+		typedef typename _MV::allocator_type allocator_type;
+		typedef typename _MV::value_type value_type;
+		typedef typename _MV::size_type size_type;
+		typedef typename _MV::difference_type difference_type;
+		typedef typename _MV::pointer pointer;
+		typedef typename _MV::const_pointer const_pointer;
+		typedef typename _MV::reference reference;
+		typedef typename _MV::const_reference const_reference;
+
+		const _MV& msevector() const { return (*m_shptr); }
+		_MV& msevector() { return (*m_shptr); }
+		operator const _MV() const { return msevector(); }
 		operator _MV() { return msevector(); }
 
-		explicit ivector(const _A& _Al = _A()) : m_shptr(new _MV(_Al)) {}
-		explicit ivector(size_t _N, const _Ty& _V = _Ty(), const _A& _Al = _A()) : m_shptr(new _MV(_N, _V, _Al)) {}
-		ivector(_MV&& _X) : m_shptr(new _MV(std::move(_X))) {}
-		ivector(const _MV& _X) : m_shptr(new _MV(_X)) {}
-		ivector(_Myt&& _X) : m_shptr(new _MV(std::move(_X.msevector()))) {}
-		ivector(const _Myt& _X) : m_shptr(new _MV(_X.msevector())) {}
+		explicit ivector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
+		explicit ivector(size_t _N, const _Ty& _V = _Ty(), const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
+		ivector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X))) {}
+		ivector(const _MV& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
+		ivector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X.msevector()))) {}
+		ivector(const _Myt& _X) : m_shptr(std::make_shared<_MV>(_X.msevector())) {}
 		typedef typename _MV::const_iterator _It;
-		ivector(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(new _MV(_F, _L, _Al)) {}
+		ivector(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
+		ivector(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
 		template<class _Iter
 #ifndef MSVC2010_COMPATIBLE
 			, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type
 #endif /*MSVC2010_COMPATIBLE*/
 		>
-		ivector(_Iter _First, _Iter _Last) : m_shptr(new _MV(_First, _Last)) {}
+			ivector(_Iter _First, _Iter _Last) : m_shptr(std::make_shared<_MV>(_First, _Last)) {}
+		template<class _Iter
+#ifndef MSVC2010_COMPATIBLE
+			, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type
+#endif /*MSVC2010_COMPATIBLE*/
+		>
+			ivector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MV>(_First, _Last, _Al)) {}
 
 		_Myt& operator=(_MV&& _X) { m_shptr->operator=(std::move(_X)); return (*this); }
 		_Myt& operator=(const _MV& _X) { m_shptr->operator=(_X); return (*this); }
@@ -90,7 +112,7 @@ namespace mse {
 		void swap(_Myt& _X) { m_shptr->swap(_X.msevector()); }
 
 #ifndef MSVC2010_COMPATIBLE
-		ivector(_XSTD initializer_list<typename _MV::value_type> _Ilist, const _A& _Al = _A()) : m_shptr(new _MV(_Ilist, _Al)) {}
+		ivector(_XSTD initializer_list<typename _MV::value_type> _Ilist, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Ilist, _Al)) {}
 		_Myt& operator=(_XSTD initializer_list<typename _MV::value_type> _Ilist) { m_shptr->operator=(_Ilist); return (*this); }
 		void assign(_XSTD initializer_list<typename _MV::value_type> _Ilist) { m_shptr->assign(_Ilist); }
 		typename _MV::iterator insert(typename _MV::const_iterator _Where, _XSTD initializer_list<typename _MV::value_type> _Ilist) { return m_shptr->insert(_Where, _Ilist); }
@@ -118,13 +140,13 @@ namespace mse {
 			typedef typename _MV::mm_const_iterator_type::pointer pointer;
 			typedef typename _MV::mm_const_iterator_type::reference reference;
 
-			cipointer(const _Myt& owner_cref) : m_msevector_shptr(owner_cref.m_shptr), m_cipointer_shptr(new typename _MV::cipointer(*(owner_cref.m_shptr))) {}
-			cipointer(const cipointer& src_cref) : m_msevector_shptr(src_cref.m_msevector_shptr), m_cipointer_shptr(new typename _MV::cipointer(*(src_cref.m_cipointer_shptr))) {
-				(*this) = src_cref;
-			}
+			cipointer(const _Myt& owner_cref) : m_msevector_shptr(owner_cref.m_shptr), m_cipointer(*(owner_cref.m_shptr)) {}
+			cipointer(const cipointer& src_cref) : m_msevector_shptr(src_cref.m_msevector_shptr), m_cipointer(src_cref.m_cipointer) {}
 			~cipointer() {}
-			typename _MV::cipointer& msevector_cipointer() const { return (*m_cipointer_shptr); }
-			typename _MV::cipointer& mvcip() const { return msevector_cipointer(); }
+			const typename _MV::cipointer& msevector_cipointer() const { return m_cipointer; }
+			typename _MV::cipointer& msevector_cipointer() { return m_cipointer; }
+			const typename _MV::cipointer& mvcip() const { return msevector_cipointer(); }
+			typename _MV::cipointer& mvcip() { return msevector_cipointer(); }
 
 			void reset() { msevector_cipointer().reset(); }
 			bool points_to_an_item() const { return msevector_cipointer().points_to_an_item(); }
@@ -155,7 +177,6 @@ namespace mse {
 			typename _MV::const_reference previous_item() const { return msevector_cipointer().previous_item(); }
 			typename _MV::const_pointer operator->() const { return msevector_cipointer().operator->(); }
 			typename _MV::const_reference operator[](typename _MV::difference_type _Off) const { return (*(*this + _Off)); }
-			cipointer& operator=(const cipointer& _Right_cref) { msevector_cipointer().operator=(_Right_cref.msevector_cipointer()); return (*this); }
 			bool operator==(const cipointer& _Right_cref) const { return msevector_cipointer().operator==(_Right_cref.msevector_cipointer()); }
 			bool operator!=(const cipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const cipointer& _Right) const { return (msevector_cipointer() < _Right.msevector_cipointer()); }
@@ -165,10 +186,10 @@ namespace mse {
 			void set_to_const_item_pointer(const cipointer& _Right_cref) { msevector_cipointer().set_to_const_item_pointer(_Right_cref.msevector_cipointer()); }
 			msev_size_t position() const { return msevector_cipointer().position(); }
 		private:
-			cipointer(const std::shared_ptr<_MV>& msevector_shptr) : m_msevector_shptr(msevector_shptr), m_cipointer_shptr(new typename _MV::cipointer(*(msevector_shptr))) {}
+			cipointer(const std::shared_ptr<_MV>& msevector_shptr) : m_msevector_shptr(msevector_shptr), m_cipointer(*msevector_shptr) {}
 			std::shared_ptr<_MV> m_msevector_shptr;
-			/* m_cipointer_shptr needs to be declared after m_msevector_shptr so that it's destructor will be called first. */
-			std::shared_ptr<typename _MV::cipointer> m_cipointer_shptr;
+			/* m_cipointer needs to be declared after m_msevector_shptr so that it's destructor will be called first. */
+			typename _MV::cipointer m_cipointer;
 			friend class /*_Myt*/ivector<_Ty, _A>;
 			friend class ipointer;
 		};
@@ -181,14 +202,13 @@ namespace mse {
 			typedef typename _MV::mm_iterator_type::pointer pointer;
 			typedef typename _MV::mm_iterator_type::reference reference;
 
-			ipointer(_Myt& owner_ref) : m_msevector_shptr(owner_ref.m_shptr), m_ipointer_shptr(new typename _MV::ipointer(*(owner_ref.m_shptr))) {}
-			ipointer(const ipointer& src_cref) : m_msevector_shptr(src_cref.m_msevector_shptr), m_ipointer_shptr(new typename _MV::ipointer(*(src_cref.m_ipointer_shptr))) {
-				(*this) = src_cref;
-			}
+			ipointer(_Myt& owner_ref) : m_msevector_shptr(owner_ref.m_shptr), m_ipointer(*(owner_ref.m_shptr)) {}
+			ipointer(const ipointer& src_cref) : m_msevector_shptr(src_cref.m_msevector_shptr), m_ipointer(src_cref.m_ipointer) {}
 			~ipointer() {}
-			typename _MV::ipointer& msevector_ipointer() const { return (*m_ipointer_shptr); }
-			typename _MV::ipointer& mvip() const { return msevector_ipointer(); }
-			//const mm_iterator_handle_type& handle() const { return (*m_handle_shptr); }
+			const typename _MV::ipointer& msevector_ipointer() const { return m_ipointer; }
+			typename _MV::ipointer& msevector_ipointer() { return m_ipointer; }
+			const typename _MV::ipointer& mvip() const { return msevector_ipointer(); }
+			typename _MV::ipointer& mvip() { return msevector_ipointer(); }
 			operator cipointer() const {
 				cipointer retval(m_msevector_shptr);
 				retval.set_to_beginning();
@@ -224,8 +244,7 @@ namespace mse {
 			typename _MV::reference item() const { return operator*(); }
 			typename _MV::reference previous_item() const { return msevector_ipointer().previous_item(); }
 			typename _MV::pointer operator->() const { return msevector_ipointer().operator->(); }
-			typename _MV::reference operator[](typename _MV::difference_type _Off) { return (*(*this + _Off)); }
-			ipointer& operator=(const ipointer& _Right_cref) { msevector_ipointer().operator=(_Right_cref.msevector_ipointer()); return (*this); }
+			typename _MV::reference operator[](typename _MV::difference_type _Off) const { return (*(*this + _Off)); }
 			bool operator==(const ipointer& _Right_cref) const { return msevector_ipointer().operator==(_Right_cref.msevector_ipointer()); }
 			bool operator!=(const ipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const ipointer& _Right) const { return (msevector_ipointer() < _Right.msevector_ipointer()); }
@@ -236,8 +255,8 @@ namespace mse {
 			msev_size_t position() const { return msevector_ipointer().position(); }
 		private:
 			std::shared_ptr<_MV> m_msevector_shptr;
-			/* m_ipointer_shptr needs to be declared after m_msevector_shptr so that it's destructor will be called first. */
-			std::shared_ptr<typename _MV::ipointer> m_ipointer_shptr;
+			/* m_ipointer needs to be declared after m_msevector_shptr so that it's destructor will be called first. */
+			typename _MV::ipointer m_ipointer;
 			friend class /*_Myt*/ivector<_Ty, _A>;
 		};
 
@@ -245,37 +264,37 @@ namespace mse {
 		set_to_beginning() and set_to_end_marker() member functions are preferred. */
 		ipointer begin() {	// return ipointer for beginning of mutable sequence
 			ipointer retval(*this);
-			retval.m_ipointer_shptr->set_to_beginning();
+			retval.m_ipointer.set_to_beginning();
 			return retval;
 		}
 		cipointer begin() const {	// return ipointer for beginning of nonmutable sequence
 			cipointer retval(*this);
-			retval.m_cipointer_shptr->set_to_beginning();
+			retval.m_cipointer.set_to_beginning();
 			return retval;
 		}
 		ipointer end() {	// return ipointer for end of mutable sequence
 			ipointer retval(*this);
-			retval.m_ipointer_shptr->set_to_end_marker();
+			retval.m_ipointer.set_to_end_marker();
 			return retval;
 		}
 		cipointer end() const {	// return ipointer for end of nonmutable sequence
 			cipointer retval(*this);
-			retval.m_cipointer_shptr->set_to_end_marker();
+			retval.m_cipointer.set_to_end_marker();
 			return retval;
 		}
 		cipointer cbegin() const {	// return ipointer for beginning of nonmutable sequence
 			cipointer retval(*this);
-			retval.m_cipointer_shptr->set_to_beginning();
+			retval.m_cipointer.set_to_beginning();
 			return retval;
 		}
 		cipointer cend() const {	// return ipointer for end of nonmutable sequence
 			cipointer retval(*this);
-			retval.m_cipointer_shptr->set_to_beginning();
+			retval.m_cipointer.set_to_beginning();
 			return retval;
 		}
 
 		ivector(const cipointer &start, const cipointer &end, const _A& _Al = _A())
-			: m_shptr(new _MV(start.msevector_cipointer(), end.msevector_cipointer(), _Al)) {}
+			: m_shptr(std::make_shared<_MV>(start.msevector_cipointer(), end.msevector_cipointer(), _Al)) {}
 		void assign(const cipointer &start, const cipointer &end) {
 			m_shptr->assign(start.msevector_cipointer(), end.msevector_cipointer());
 		}
