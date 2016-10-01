@@ -1117,7 +1117,7 @@ We provide two arrays - [mstd::array<>](#array) and [msearray<>](#msearray). mst
 
 ### array
 
-mstd::array<> is simply an almost completely safe implementation of std::array<>.  
+mstd::array<> is simply an almost completely safe implementation of std::array<>. Note that the current implementation requires "mseregistered.h".  
 
 usage example:
 
