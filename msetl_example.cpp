@@ -142,10 +142,6 @@ int main(int argc, char* argv[])
 			std::cerr << "expected exception" << std::endl;
 			/* The exception is triggered by a comparision of incompatible "safe" iterators. */
 		}
-
-		v2.swap(v3);
-		assert(360 == v2[2]);
-		assert(3.0 == v3[2]);
 	}
 
 	{
@@ -250,6 +246,40 @@ int main(int argc, char* argv[])
 		/*********************/
 		/*   mstd::array<>   */
 		/*********************/
+
+		/* mse::mstd::array<> is an almost "completely safe" (bounds checked, iterator checked and "lifespan aware")
+		implementation of std::array. */
+
+		/* Here we demonstrate some iterator safety. */
+
+		mse::mstd::array<int, 3> a1 = { 1, 2, 3 };
+		mse::mstd::array<int, 3> a2 = { 11, 12, 13 };
+		try {
+			for (auto it1 = a1.begin(); it1 != a2.end(); it1++) {
+				/* It's not going to make it here. The invalid iterator comparison will throw an exception. */
+				std::cerr << "unexpected execution" << std::endl;
+			}
+		}
+		catch (...) {
+			std::cerr << "expected exception" << std::endl;
+		}
+
+		/* Here we're demonstrating mse::mstd::array<> and its iterator's "lifespan awareness".  */
+		mse::mstd::array<int, 2>::iterator it1;
+		{
+			mse::mstd::array<int, 2> a3 = { 5 }; /*Notice that initializer lists may contain fewer elements than the array.*/
+			it1 = a3.begin();
+			assert(5 == (*it1));
+		}
+		try {
+			/* it1 "knows" that its target has been destroyed. It will throw an exception on any attempt to dereference it. */
+			int i = (*it1);
+			std::cerr << "unexpected execution" << std::endl;
+		}
+		catch (...) {
+			std::cerr << "expected exception" << std::endl;
+		}
+
 		mse::mstd::array_test testobj1;
 		testobj1.test1();
 	}
@@ -258,6 +288,34 @@ int main(int argc, char* argv[])
 		/******************/
 		/*   msearray<>   */
 		/******************/
+
+		/* mse::msearray<> is another array implementation that's not quite as safe as mse::mstd::array<> in the sense
+		that its iterators are not "lifespan aware". And it provides both unsafe and safe iterators. Basically,
+		mse::msearray<> is a compromise between performance and safety. */
+
+		mse::msearray<int, 3> a1 = { 1, 2, 3 };
+		mse::msearray<int, 3> a2 = { 11, 12, 13 };
+
+		//bool bres1 = (a1.begin() == a2.end());
+		/* The previous commented out line would result in "undefined behavior. */
+
+		try {
+			/* The behavior of the next line is not "undefined". It's going to throw an exception. */
+			bool bres2 = (a1.ss_begin() == a2.ss_end());
+		}
+		catch (...) {
+			std::cerr << "expected exception" << std::endl;
+		}
+
+		auto ss_cit1 = a1.ss_cbegin();
+		/* These safe iterators support traditional and "friendly" iterator operation syntax. */
+		ss_cit1++;
+		ss_cit1.set_to_next(); /*same as previous line*/
+		ss_cit1.set_to_beginning();
+		bool bres3 = ss_cit1.has_previous();
+		ss_cit1.set_to_end_marker();
+		bool bres4 = ss_cit1.points_to_an_item();
+
 		mse::msearray_test testobj1;
 		testobj1.test1();
 	}
