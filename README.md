@@ -14,6 +14,8 @@ Sep 2016
 
 - A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation.
 
+- An almost completely [safe implementation](#array) of std::array<> - bounds checked, iterator checked and "lifespan aware".
+
 - [Replacements](#primitives) for the native "int", "size_t" and "bool" types that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.
 
 - Data types for safe, simple [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
