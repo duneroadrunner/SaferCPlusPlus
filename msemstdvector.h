@@ -191,7 +191,6 @@ namespace mse {
 				typename _MV::const_reference previous_item() const { return msevector_ss_const_iterator_type().previous_item(); }
 				typename _MV::const_pointer operator->() const { return msevector_ss_const_iterator_type().operator->(); }
 				typename _MV::const_reference operator[](typename _MV::difference_type _Off) const { return (*(*this + _Off)); }
-				const_iterator& operator=(const const_iterator& _Right_cref) { msevector_ss_const_iterator_type().operator=(_Right_cref.msevector_ss_const_iterator_type()); return (*this); }
 				bool operator==(const const_iterator& _Right_cref) const { return msevector_ss_const_iterator_type().operator==(_Right_cref.msevector_ss_const_iterator_type()); }
 				bool operator!=(const const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
 				bool operator<(const const_iterator& _Right) const { return (msevector_ss_const_iterator_type() < _Right.msevector_ss_const_iterator_type()); }
@@ -264,7 +263,6 @@ namespace mse {
 				typename _MV::reference previous_item() const { return msevector_ss_iterator_type().previous_item(); }
 				typename _MV::pointer operator->() const { return msevector_ss_iterator_type().operator->(); }
 				typename _MV::reference operator[](typename _MV::difference_type _Off) const { return (*(*this + _Off)); }
-				iterator& operator=(const iterator& _Right_cref) { msevector_ss_iterator_type().operator=(_Right_cref.msevector_ss_iterator_type()); return (*this); }
 				bool operator==(const iterator& _Right_cref) const { return msevector_ss_iterator_type().operator==(_Right_cref.msevector_ss_iterator_type()); }
 				bool operator!=(const iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
 				bool operator<(const iterator& _Right) const { return (msevector_ss_iterator_type() < _Right.msevector_ss_iterator_type()); }

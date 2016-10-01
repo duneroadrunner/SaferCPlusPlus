@@ -91,12 +91,18 @@ namespace mse {
 				typedef typename _MA::ss_const_iterator_type::reference reference;
 
 				const_iterator() {}
-				const_iterator(const const_iterator& src_cref) : m_msearray_shptr(src_cref.m_msearray_shptr) {
+				const_iterator(const const_iterator& src_cref) : m_msearray_regptr(src_cref.m_msearray_regptr) {
 					(*this) = src_cref;
 				}
 				~const_iterator() {}
-				const typename _MA::ss_const_iterator_type& msearray_ss_const_iterator_type() const { return m_ss_const_iterator; }
-				typename _MA::ss_const_iterator_type& msearray_ss_const_iterator_type() { return m_ss_const_iterator; }
+				const typename _MA::ss_const_iterator_type& msearray_ss_const_iterator_type() const {
+					if (!m_msearray_regptr) { auto z = (*m_msearray_regptr);/*This will throw.*/ }
+					return m_ss_const_iterator;
+				}
+				typename _MA::ss_const_iterator_type& msearray_ss_const_iterator_type() {
+					if (!m_msearray_regptr) { auto z = (*m_msearray_regptr);/*This will throw.*/ }
+					return m_ss_const_iterator;
+				}
 				const typename _MA::ss_const_iterator_type& mvssci() const { return msearray_ss_const_iterator_type(); }
 				typename _MA::ss_const_iterator_type& mvssci() { return msearray_ss_const_iterator_type(); }
 
@@ -129,7 +135,6 @@ namespace mse {
 				typename _MA::const_reference previous_item() const { return msearray_ss_const_iterator_type().previous_item(); }
 				typename _MA::const_pointer operator->() const { return msearray_ss_const_iterator_type().operator->(); }
 				typename _MA::const_reference operator[](typename _MA::difference_type _Off) const { return (*(*this + _Off)); }
-				const_iterator& operator=(const const_iterator& _Right_cref) { msearray_ss_const_iterator_type().operator=(_Right_cref.msearray_ss_const_iterator_type()); return (*this); }
 				bool operator==(const const_iterator& _Right_cref) const { return msearray_ss_const_iterator_type().operator==(_Right_cref.msearray_ss_const_iterator_type()); }
 				bool operator!=(const const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
 				bool operator<(const const_iterator& _Right) const { return (msearray_ss_const_iterator_type() < _Right.msearray_ss_const_iterator_type()); }
@@ -139,11 +144,11 @@ namespace mse {
 				void set_to_const_item_pointer(const const_iterator& _Right_cref) { msearray_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msearray_ss_const_iterator_type()); }
 				msear_size_t position() const { return msearray_ss_const_iterator_type().position(); }
 			private:
-				const_iterator(std::shared_ptr<_MA> msearray_shptr) : m_msearray_shptr(msearray_shptr) {
+				const_iterator(std::shared_ptr<_MA> msearray_shptr) : m_msearray_regptr(msearray_shptr) {
 					m_ss_const_iterator = msearray_shptr->ss_cbegin();
 				}
-				mse::TRegisteredPointer<_MA> m_msearray_shptr;
-				/* m_ss_const_iterator needs to be declared after m_msearray_shptr so that it's destructor will be called first. */
+				mse::TRegisteredPointer<_MA> m_msearray_regptr = nullptr;
+				/* m_ss_const_iterator needs to be declared after m_msearray_regptr so that it's destructor will be called first. */
 				typename _MA::ss_const_iterator_type m_ss_const_iterator;
 				friend class /*_Myt*/array<_Ty, _A>;
 				friend class iterator;
@@ -158,16 +163,22 @@ namespace mse {
 				typedef typename _MA::ss_iterator_type::reference reference;
 
 				iterator() {}
-				iterator(const iterator& src_cref) : m_msearray_shptr(src_cref.m_msearray_shptr) {
+				iterator(const iterator& src_cref) : m_msearray_regptr(src_cref.m_msearray_regptr) {
 					(*this) = src_cref;
 				}
 				~iterator() {}
-				const typename _MA::ss_iterator_type& msearray_ss_iterator_type() const { return m_ss_iterator; }
-				typename _MA::ss_iterator_type& msearray_ss_iterator_type() { return m_ss_iterator; }
+				const typename _MA::ss_iterator_type& msearray_ss_iterator_type() const {
+					if (!m_msearray_regptr) { auto z = (*m_msearray_regptr);/*This will throw.*/ }
+					return m_ss_iterator;
+				}
+				typename _MA::ss_iterator_type& msearray_ss_iterator_type() {
+					if (!m_msearray_regptr) { auto z = (*m_msearray_regptr);/*This will throw.*/ }
+					return m_ss_iterator;
+				}
 				const typename _MA::ss_iterator_type& mvssi() const { return msearray_ss_iterator_type(); }
 				typename _MA::ss_iterator_type& mvssi() { return msearray_ss_iterator_type(); }
 				operator const_iterator() const {
-					const_iterator retval(m_msearray_shptr);
+					const_iterator retval(m_msearray_regptr);
 					retval.msearray_ss_const_iterator_type().set_to_beginning();
 					retval.msearray_ss_const_iterator_type().advance(msear_int(msearray_ss_iterator_type().position()));
 					return retval;
@@ -202,7 +213,6 @@ namespace mse {
 				typename _MA::reference previous_item() const { return msearray_ss_iterator_type().previous_item(); }
 				typename _MA::pointer operator->() const { return msearray_ss_iterator_type().operator->(); }
 				typename _MA::reference operator[](typename _MA::difference_type _Off) const { return (*(*this + _Off)); }
-				iterator& operator=(const iterator& _Right_cref) { msearray_ss_iterator_type().operator=(_Right_cref.msearray_ss_iterator_type()); return (*this); }
 				bool operator==(const iterator& _Right_cref) const { return msearray_ss_iterator_type().operator==(_Right_cref.msearray_ss_iterator_type()); }
 				bool operator!=(const iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
 				bool operator<(const iterator& _Right) const { return (msearray_ss_iterator_type() < _Right.msearray_ss_iterator_type()); }
@@ -212,43 +222,43 @@ namespace mse {
 				void set_to_item_pointer(const iterator& _Right_cref) { msearray_ss_iterator_type().set_to_item_pointer(_Right_cref.msearray_ss_iterator_type()); }
 				msear_size_t position() const { return msearray_ss_iterator_type().position(); }
 			private:
-				mse::TRegisteredPointer<_MA> m_msearray_shptr;
-				/* m_ss_iterator needs to be declared after m_msearray_shptr so that it's destructor will be called first. */
+				mse::TRegisteredPointer<_MA> m_msearray_regptr = nullptr;
+				/* m_ss_iterator needs to be declared after m_msearray_regptr so that it's destructor will be called first. */
 				typename _MA::ss_iterator_type m_ss_iterator;
 				friend class /*_Myt*/array<_Ty, _A>;
 			};
 
 			iterator begin()
 			{	// return iterator for beginning of mutable sequence
-				iterator retval; retval.m_msearray_shptr = &(this->m_msearray);
+				iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
 				(retval.m_ss_iterator) = m_msearray.ss_begin();
 				return retval;
 			}
 
 			const_iterator begin() const
 			{	// return iterator for beginning of nonmutable sequence
-				const_iterator retval; retval.m_msearray_shptr = &(this->m_msearray);
+				const_iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
 				(retval.m_ss_const_iterator) = m_msearray.ss_begin();
 				return retval;
 			}
 
 			iterator end() {	// return iterator for end of mutable sequence
-				iterator retval; retval.m_msearray_shptr = &(this->m_msearray);
+				iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
 				(retval.m_ss_iterator) = m_msearray.ss_end();
 				return retval;
 			}
 			const_iterator end() const {	// return iterator for end of nonmutable sequence
-				const_iterator retval; retval.m_msearray_shptr = &(this->m_msearray);
+				const_iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
 				(retval.m_ss_const_iterator) = m_msearray.ss_end();
 				return retval;
 			}
 			const_iterator cbegin() const {	// return iterator for beginning of nonmutable sequence
-				const_iterator retval; retval.m_msearray_shptr = &(this->m_msearray);
+				const_iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
 				(retval.m_ss_const_iterator) = m_msearray.ss_cbegin();
 				return retval;
 			}
 			const_iterator cend() const {	// return iterator for end of nonmutable sequence
-				const_iterator retval; retval.m_msearray_shptr = &(this->m_msearray);
+				const_iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
 				(retval.m_ss_const_iterator) = m_msearray.ss_cend();
 				return retval;
 			}

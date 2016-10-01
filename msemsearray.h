@@ -110,15 +110,18 @@ namespace mse {
 			initializer lists is that the initialization is more likely to occur at compile-time. Apparently. So for
 			C++17 compliant compilers we should probably lose all these constructors. */
 			assert(_Size >= _Ilist.size());
+			auto stop_size = _Size;
+			if (_Size > _Ilist.size()) {
+				stop_size = _Ilist.size();
+				std::array<_Ty, _Size> sa = {};
+				base_class::operator=(sa);
+				/* Just to make sure that the remaining elements are default initialized the same way as std::array<>. */
+			}
 			msear_size_t count = 0;
 			auto Il_it = _Ilist.begin();
 			auto target_it = (*this).begin();
-			for (; _Ilist.end() != Il_it, count < _Size; Il_it++, count+=1, target_it++) {
+			for (; (count < stop_size); Il_it++, count+=1, target_it++) {
 				(*target_it) = (*Il_it);
-			}
-			static const auto default_Ty = _Ty();
-			for (; count < _Size; count+=1, target_it++) {
-				(*target_it) = default_Ty;
 			}
 		}
 
@@ -317,7 +320,10 @@ namespace mse {
 				base_class::const_iterator::operator=(_Right_cref);
 				return (*this);
 			}
-			bool operator==(const ss_const_iterator_type& _Right_cref) const { return ((_Right_cref.m_index == m_index) && (_Right_cref.m_owner_cptr == m_owner_cptr)); }
+			bool operator==(const ss_const_iterator_type& _Right_cref) const {
+				if (this->m_owner_cptr != _Right_cref.m_owner_cptr) { throw(std::out_of_range("invalid argument - ss_const_iterator_type& operator==(const ss_const_iterator_type& _Right) - ss_const_iterator_type - msearray")); }
+				return (_Right_cref.m_index == m_index);
+			}
 			bool operator!=(const ss_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const ss_const_iterator_type& _Right) const {
 				if (this->m_owner_cptr != _Right.m_owner_cptr) { throw(std::out_of_range("invalid argument - ss_const_iterator_type& operator<(const ss_const_iterator_type& _Right) - ss_const_iterator_type - msearray")); }
@@ -510,7 +516,10 @@ namespace mse {
 				base_class::iterator::operator=(_Right_cref);
 				return (*this);
 			}
-			bool operator==(const ss_iterator_type& _Right_cref) const { return ((_Right_cref.m_index == m_index) && (_Right_cref.m_owner_ptr == m_owner_ptr)); }
+			bool operator==(const ss_iterator_type& _Right_cref) const {
+				if (this->m_owner_ptr != _Right_cref.m_owner_ptr) { throw(std::out_of_range("invalid argument - ss_iterator_type& operator==(const ss_iterator_type& _Right) - ss_iterator_type - msearray")); }
+				return (_Right_cref.m_index == m_index);
+			}
 			bool operator!=(const ss_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const ss_iterator_type& _Right) const {
 				if (this->m_owner_ptr != _Right.m_owner_ptr) { throw(std::out_of_range("invalid argument - ss_iterator_type& operator<(const ss_iterator_type& _Right) - ss_iterator_type - msearray")); }

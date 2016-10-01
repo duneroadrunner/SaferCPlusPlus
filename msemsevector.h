@@ -929,7 +929,10 @@ namespace mse {
 				}
 				return (*this);
 			}
-			bool operator==(const mm_const_iterator_type& _Right_cref) const { return ((_Right_cref.m_index == m_index) && (_Right_cref.m_owner_cptr == m_owner_cptr)); }
+			bool operator==(const mm_const_iterator_type& _Right_cref) const {
+				if (((*this).m_owner_cptr) != (_Right_cref.m_owner_cptr)) { throw(std::out_of_range("invalid argument - mm_const_iterator_type& operator==(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
+				return (_Right_cref.m_index == m_index);
+			}
 			bool operator!=(const mm_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const mm_const_iterator_type& _Right) const {
 				if (((*this).m_owner_cptr) != (_Right.m_owner_cptr)) { throw(std::out_of_range("invalid argument - mm_const_iterator_type& operator<(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
@@ -1142,7 +1145,10 @@ namespace mse {
 				}
 				return (*this);
 			}
-			bool operator==(const mm_iterator_type& _Right_cref) const { return ((_Right_cref.m_index == m_index) && (_Right_cref.m_owner_ptr == m_owner_ptr)); }
+			bool operator==(const mm_iterator_type& _Right_cref) const {
+				if (((*this).m_owner_ptr) != (_Right_cref.m_owner_ptr)) { throw(std::out_of_range("invalid argument - mm_iterator_type& operator==(const typename base_class::iterator& _Right) - mm_iterator_type - msevector")); }
+				return (_Right_cref.m_index == m_index);
+			}
 			bool operator!=(const mm_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const mm_iterator_type& _Right) const {
 				if (((*this).m_owner_ptr) != (_Right.m_owner_ptr)) { throw(std::out_of_range("invalid argument - mm_iterator_type& operator<(const typename base_class::iterator& _Right) - mm_iterator_type - msevector")); }
@@ -2024,7 +2030,10 @@ namespace mse {
 				base_class::const_iterator::operator=(_Right_cref);
 				return (*this);
 			}
-			bool operator==(const ss_const_iterator_type& _Right_cref) const { return ((_Right_cref.m_index == m_index) && (_Right_cref.m_owner_cptr == m_owner_cptr)); }
+			bool operator==(const ss_const_iterator_type& _Right_cref) const {
+				if (this->m_owner_cptr != _Right_cref.m_owner_cptr) { throw(std::out_of_range("invalid argument - ss_const_iterator_type& operator==(const ss_const_iterator_type& _Right) - ss_const_iterator_type - msevector")); }
+				return (_Right_cref.m_index == m_index);
+			}
 			bool operator!=(const ss_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const ss_const_iterator_type& _Right) const {
 				if (this->m_owner_cptr != _Right.m_owner_cptr) { throw(std::out_of_range("invalid argument - ss_const_iterator_type& operator<(const ss_const_iterator_type& _Right) - ss_const_iterator_type - msevector")); }
@@ -2217,7 +2226,10 @@ namespace mse {
 				base_class::iterator::operator=(_Right_cref);
 				return (*this);
 			}
-			bool operator==(const ss_iterator_type& _Right_cref) const { return ((_Right_cref.m_index == m_index) && (_Right_cref.m_owner_ptr == m_owner_ptr)); }
+			bool operator==(const ss_iterator_type& _Right_cref) const {
+				if (this->m_owner_ptr != _Right_cref.m_owner_ptr) { throw(std::out_of_range("invalid argument - ss_iterator_type& operator==(const ss_iterator_type& _Right) - ss_iterator_type - msevector")); }
+				return (_Right_cref.m_index == m_index);
+			}
 			bool operator!=(const ss_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const ss_iterator_type& _Right) const {
 				if (this->m_owner_ptr != _Right.m_owner_ptr) { throw(std::out_of_range("invalid argument - ss_iterator_type& operator<(const ss_iterator_type& _Right) - ss_iterator_type - msevector")); }
