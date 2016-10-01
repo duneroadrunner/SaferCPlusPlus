@@ -12,7 +12,7 @@
   <body>
     <section class="page-header">
       <h1 class="project-name">SaferCPlusPlus</h1>
-      <h2 class="project-tagline">C++ for the internet age.</h2>
+      <h2 class="project-tagline">Hardened C++ for the internet age.</h2>
       <a href="https://github.com/duneroadrunner/SaferCPlusPlus" class="btn">View on GitHub</a>
       <a href="https://github.com/duneroadrunner/SaferCPlusPlus/zipball/master" class="btn">Download .zip</a>
       <a href="https://github.com/duneroadrunner/SaferCPlusPlus/tarball/master" class="btn">Download .tar.gz</a>
@@ -32,6 +32,7 @@
 <li><p>A "<a href="#scope-pointers">scope pointer</a>" for target objects allocated on the stack, or whose "owning" pointer is allocated on the stack. By default, not as safe as the other smart pointers in this library, but with zero runtime overhead.</p></li>
 <li><p>An almost completely <a href="#vector">safe implementation</a> of std::vector&lt;&gt; - bounds checked, iterator checked and memory managed.</p></li>
 <li><p>A couple of <a href="#vectors">other</a> highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation.</p></li>
+<li><p>An almost completely <a href="#array">safe implementation</a> of std::array&lt;&gt; - bounds checked, iterator checked and "lifespan aware".</p></li>
 <li><p><a href="#primitives">Replacements</a> for the native "int", "size_t" and "bool" types that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.</p></li>
 <li><p>Data types for safe, simple <a href="#asynchronously-shared-objects">sharing</a> of objects among asynchronous threads.</p></li>
 </ul>
@@ -1188,6 +1189,33 @@ int main(int argc, char* argv[]) {
     std::vector&lt;int&gt; sv;
     /* These two vectors should be completely interchangeable. The difference being that mv should throw
     an exception on any attempt to access invalid memory. */
+
+
+    /* mse::msevector is not quite as safe as mse::mstd::vector in the following way: */
+
+    std::vector&lt;int&gt;::iterator sv1_it;
+    mse::msevector&lt;int&gt;::ss_iterator_type msev1_it; // bounds checked iterator just like mse::mstd::vector&lt;int&gt;::iterator
+    mse::mstd::vector&lt;int&gt;::iterator mv1_it;
+    {
+        std::vector&lt;int&gt; sv1 = { 1, 2, 3 };
+        sv1_it = sv1.begin();
+
+        mse::msevector&lt;int&gt; msev1 = { 1, 2, 3 };
+        msev1_it = msev1.ss_begin();
+
+        mse::mstd::vector&lt;int&gt; mv1 = { 1, 2, 3 };
+        mv1_it = mv1.begin();
+    }
+
+    // (*sv1_it) = 4; // not good
+    // (*msev1_it) = 4; // not good
+
+    try {
+        (*mv1_it) = 4; // ok
+    } catch(...) {
+        // At present, this won't even result in an exception. It'll just work.
+        // Still debating whether it'd be better to throw an exception though.
+    }
 }
 </code></pre>
 
@@ -1241,10 +1269,10 @@ int main(int argc, char* argv[]) {
     /* Btw, ipointers are compatible with stl algorithms, like any other stl iterators. */
     std::sort(v.ibegin(), v.iend());
 
-    /* And just to be clear, mse::msevector&lt;&gt; retains it's original (high performance) stl::vector iterators. */
+    /* And just to be clear, mse::msevector&lt;&gt; retains it's original (high performance) stl vector iterators. */
     std::sort(v.begin(), v.end());
 
-    /* mse::msevector&lt;&gt; also provides "safe" (bounds checked) versions of the original stl::vector iterators. */
+    /* mse::msevector&lt;&gt; also provides "safe" (bounds checked) versions of the original stl vector iterators. */
     std::sort(v.ss_begin(), v.ss_end());
 }
 </code></pre>
@@ -1285,6 +1313,94 @@ int main(int argc, char* argv[]) {
     mse::ivector&lt;int&gt; iv = { 1, 2, 3, 4 };
     std::sort(iv.begin(), iv.end());
     mse::ivector&lt;int&gt;::ipointer ivip = iv.begin();
+}
+</code></pre>
+
+<h3>
+<a id="arrays" class="anchor" href="#arrays" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Arrays</h3>
+
+<p>We provide two arrays - <a href="#array">mstd::array&lt;&gt;</a> and <a href="#msearray">msearray&lt;&gt;</a>. mstd::array&lt;&gt; is simply an almost completely safe implementation of std::array&lt;&gt;. msearray&lt;&gt; is also quite safe. Not quite as safe as mstd::array&lt;&gt;, but it requires less overhead.</p>
+
+<h3>
+<a id="array" class="anchor" href="#array" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>array</h3>
+
+<p>mstd::array&lt;&gt; is simply an almost completely safe implementation of std::array&lt;&gt;.  </p>
+
+<p>usage example:</p>
+
+<pre><code>#include "msemstdarray.h"
+#include "msemsearray.h"
+#include &lt;array&gt;
+
+int main(int argc, char* argv[]) {
+
+    mse::mstd::array&lt;int, 3&gt; ma;
+    std::array&lt;int, 3&gt; sa;
+    /* These two arrays should be completely interchangeable. The difference being that ma should throw
+    an exception on any attempt to access invalid memory. */
+
+
+    /* mse::msearray is not quite as safe as mse::mstd::array in the following way: */
+
+    std::array&lt;int, 3&gt;::iterator sa1_it;
+    mse::msearray&lt;int, 3&gt;::ss_iterator_type msea1_it; // bounds checked iterator just like mse::mstd::array::iterator
+    mse::mstd::array&lt;int, 3&gt;::iterator ma1_it;
+    {
+        std::array&lt;int, 3&gt; sa1 = { 1, 2, 3 };
+        sa1_it = sa1.begin();
+
+        mse::msearray&lt;int, 3&gt; msea1 = { 1, 2, 3 };
+        msea1_it = msea1.ss_begin();
+
+        mse::mstd::array&lt;int, 3&gt; ma1 = { 1, 2, 3 };
+        ma1_it = ma1.begin();
+    }
+
+    // (*sa1_it) = 4; // not good - undefined behavior
+    // (*msea1_it) = 4; // not good - undefined behavior
+
+    try {
+        (*ma1_it) = 4; // not undefined behavior - will throw an exception
+    } catch(...) {
+        // expected exception
+    }
+}
+</code></pre>
+
+<h3>
+<a id="msearray" class="anchor" href="#msearray" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>msearray</h3>
+
+<p>msearray&lt;&gt;, like msevector&lt;&gt;, is a essentially a compromise between safety and performance. And like msevector&lt;&gt;, msearray&lt;&gt; provides a safer iterator, in addition to the (high performance) standard iterator. Like msevector&lt;&gt;, msearray&lt;&gt;'s safe iterator also supports the more "readable" interface.  </p>
+
+<p>usage example:</p>
+
+<pre><code>#include "msemstdarray.h"
+#include "msemsearray.h"
+#include &lt;array&gt;
+
+int main(int argc, char* argv[]) {
+    mse::msearray&lt;int, 3&gt; a1 = { 1, 2, 3 };
+    mse::msearray&lt;int, 3&gt; a2 = { 11, 12, 13 };
+
+    //bool bres1 = (a1.begin() == a2.end());
+    /* The previous commented out line would result in "undefined behavior. */
+
+    try {
+        /* The behavior of the next line is not "undefined". It's going to throw an exception. */
+        bool bres2 = (a1.ss_begin() == a2.ss_end());
+    }
+    catch (...) {
+        std::cerr &lt;&lt; "expected exception" &lt;&lt; std::endl;
+    }
+
+    auto ss_cit1 = a1.ss_cbegin();
+    /* These safe iterators support traditional and "friendly" iterator operation syntax. */
+    ss_cit1++;
+    ss_cit1.set_to_next(); /*same as previous line*/
+    ss_cit1.set_to_beginning();
+    bool bres3 = ss_cit1.has_previous();
+    ss_cit1.set_to_end_marker();
+    bool bres4 = ss_cit1.points_to_an_item();
 }
 </code></pre>
 
