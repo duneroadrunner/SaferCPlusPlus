@@ -40,6 +40,13 @@
 #define MSE_CONSTEXPR constexpr
 #endif // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
 
+#ifdef MSE_CUSTOM_THROW_DEFINITION
+#include <iostream>
+#define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
+#else // MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) throw(x)
+#endif // MSE_CUSTOM_THROW_DEFINITION
+
 
 namespace mse {
 
@@ -130,17 +137,17 @@ namespace mse {
 		if (can_exceed_bounds) {
 			if (rhs_can_exceed_upper_bound) {
 				if (x > _TSource(std::numeric_limits<_TDestination>::max())) {
-					throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
+					MSE_THROW(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 				}
 			}
 			if (rhs_can_exceed_lower_bound) {
 				/* We're assuming that std::numeric_limits<>::lowest() will never be greater than zero. */
 				if (0 > x) {
 					if (0 == std::numeric_limits<_TDestination>::lowest()) {
-						throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
+						MSE_THROW(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 					}
 					else if (x < _TSource(std::numeric_limits<_TDestination>::lowest())) {
-						throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
+						MSE_THROW(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 					}
 				}
 			}
@@ -252,7 +259,7 @@ namespace mse {
 		CInt& operator -=(const CInt &x) { (*this).assert_initialized();
 			if (0 <= std::numeric_limits<_Ty>::lowest()) { (*this).assert_initialized();
 				if (x.m_val > m_val) { (*this).assert_initialized(); /*check this*/
-					throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
+					MSE_THROW(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 				}
 			}
 			m_val -= x.m_val; return (*this);
@@ -450,7 +457,7 @@ namespace mse {
 		CSize_t& operator -=(const CSize_t &x) { (*this).assert_initialized();
 			if (0 <= std::numeric_limits<_Ty>::lowest()) { (*this).assert_initialized();
 				if (x.m_val > m_val) { (*this).assert_initialized(); /*check this*/
-					throw(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
+					MSE_THROW(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 				}
 			}
 			m_val -= x.m_val; return (*this);
@@ -738,7 +745,7 @@ namespace mse {
 			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTR_CHECKS
 			if (nullptr == m_ptr) {
-				throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr"));
+				MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr"));
 			}
 #endif /*MSE_DISABLE_TSAFERPTR_CHECKS*/
 			return (*m_ptr);
@@ -747,7 +754,7 @@ namespace mse {
 			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTR_CHECKS
 			if (nullptr == m_ptr) {
-				throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr"));
+				MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr"));
 			}
 #endif /*MSE_DISABLE_TSAFERPTR_CHECKS*/
 			return m_ptr;
@@ -816,7 +823,7 @@ namespace mse {
 			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS
 			if (nullptr == m_ptr) {
-				throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy"));
+				MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy"));
 			}
 #endif /*MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS*/
 			return (*m_ptr);
@@ -825,7 +832,7 @@ namespace mse {
 			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS
 			if (nullptr == m_ptr) {
-				throw(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy"));
+				MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy"));
 			}
 #endif /*MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS*/
 			return m_ptr;
@@ -861,5 +868,7 @@ namespace mse {
 #endif /*MSE_SAFERPTR_DISABLED*/
 
 }
+
+#undef MSE_THROW
 
 #endif /*ndef MSEPRIMITIVES_H*/

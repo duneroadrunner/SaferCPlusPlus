@@ -22,6 +22,13 @@
 #define MSE_REFCOUNTINGPOINTER_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
+#ifdef MSE_CUSTOM_THROW_DEFINITION
+#include <iostream>
+#define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
+#else // MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) throw(x)
+#endif // MSE_CUSTOM_THROW_DEFINITION
+
 namespace mse {
 
 #ifdef MSE_REFCOUNTINGPOINTER_DISABLED
@@ -137,12 +144,12 @@ namespace mse {
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
 		X& operator*() const {
-			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
+			if (!m_ref_with_target_obj_ptr) { MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
 			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return (*x_ptr);
 		}
 		X* operator->() const {
-			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
+			if (!m_ref_with_target_obj_ptr) { MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
 			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return x_ptr;
 		}
@@ -332,12 +339,12 @@ namespace mse {
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
 		const X& operator*() const {
-			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
+			if (!m_ref_with_target_obj_ptr) { MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
 			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return (*x_ptr);
 		}
 		const X* operator->() const {
-			if (!m_ref_with_target_obj_ptr) { throw(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
+			if (!m_ref_with_target_obj_ptr) { MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
 			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return x_ptr;
 		}
@@ -753,5 +760,7 @@ namespace mse {
 
 	};
 }
+
+#undef MSE_THROW
 
 #endif // MSEREFCOUNTING_H_

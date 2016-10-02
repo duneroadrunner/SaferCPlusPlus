@@ -19,7 +19,14 @@ get to the data type your interested in.
 //define MSE_PRIMITIVES_DISABLED
 //define MSE_REFCOUNTINGPOINTER_DISABLED
 //define MSE_SCOPEPOINTER_DISABLED
+
+/* The following adds run-time checks to scope pointers in debug mode */
 //define MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
+//define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED // This adds them to non-debug modes too.
+
+/* The following will result in program termination instead of exceptions being thrown. */
+//define MSE_CUSTOM_THROW_DEFINITION(x) std::cerr << std::endl << x.what(); exit(-11)
+/* Note that MSE_CUSTOM_THROW_DEFINITION(x) can be applied on a "per header file" basis if desired. */
 
 #define MSE_SELF_TESTS
 

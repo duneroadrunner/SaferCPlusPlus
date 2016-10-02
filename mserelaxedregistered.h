@@ -43,6 +43,13 @@ native GetCurrentThreadId(). */
 #define MSE_REGISTEREDPOINTER_DISABLED
 #endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
+#ifdef MSE_CUSTOM_THROW_DEFINITION
+#include <iostream>
+#define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
+#else // MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) throw(x)
+#endif // MSE_CUSTOM_THROW_DEFINITION
+
 namespace mse {
 
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
@@ -289,7 +296,7 @@ namespace mse {
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
-			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { throw(std::bad_cast(/*"cannot verify cast validity - mse::TRelaxedRegisteredPointer"*/)); }
+			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(std::bad_cast(/*"cannot verify cast validity - mse::TRelaxedRegisteredPointer"*/)); }
 			return (TRelaxedRegisteredObj<_Ty>*)((*this).m_ptr);
 		}
 
@@ -428,7 +435,7 @@ namespace mse {
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
-			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { throw(std::bad_cast(/*"cannot verify cast validity - mse::TRelaxedRegisteredConstPointer"*/)); }
+			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(std::bad_cast(/*"cannot verify cast validity - mse::TRelaxedRegisteredConstPointer"*/)); }
 			return (const TRelaxedRegisteredObj<_Ty>*)((*this).m_ptr);
 		}
 
@@ -687,5 +694,6 @@ namespace mse {
 	}
 }
 
+#undef MSE_THROW
 
 #endif // MSERELAXEDREGISTERED_H_

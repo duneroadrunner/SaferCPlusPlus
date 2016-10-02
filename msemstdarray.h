@@ -17,6 +17,13 @@
 #define MSE_MSTDARRAY_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
+#ifdef MSE_CUSTOM_THROW_DEFINITION
+#include <iostream>
+#define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
+#else // MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) throw(x)
+#endif // MSE_CUSTOM_THROW_DEFINITION
+
 namespace mse {
 
 	namespace mstd {
@@ -96,11 +103,11 @@ namespace mse {
 				}
 				~const_iterator() {}
 				const typename _MA::ss_const_iterator_type& msearray_ss_const_iterator_type() const {
-					if (!m_msearray_regptr) { throw(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
+					if (!m_msearray_regptr) { MSE_THROW(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
 					return m_ss_const_iterator;
 				}
 				typename _MA::ss_const_iterator_type& msearray_ss_const_iterator_type() {
-					if (!m_msearray_regptr) { throw(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
+					if (!m_msearray_regptr) { MSE_THROW(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
 					return m_ss_const_iterator;
 				}
 				const typename _MA::ss_const_iterator_type& mvssci() const { return msearray_ss_const_iterator_type(); }
@@ -168,11 +175,11 @@ namespace mse {
 				}
 				~iterator() {}
 				const typename _MA::ss_iterator_type& msearray_ss_iterator_type() const {
-					if (!m_msearray_regptr) { throw(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::iterator")); }
+					if (!m_msearray_regptr) { MSE_THROW(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::iterator")); }
 					return m_ss_iterator;
 				}
 				typename _MA::ss_iterator_type& msearray_ss_iterator_type() {
-					if (!m_msearray_regptr) { throw(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::iterator")); }
+					if (!m_msearray_regptr) { MSE_THROW(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::iterator")); }
 					return m_ss_iterator;
 				}
 				const typename _MA::ss_iterator_type& mvssi() const { return msearray_ss_iterator_type(); }
@@ -410,4 +417,7 @@ namespace mse {
 		};
 	}
 }
+
+#undef MSE_THROW
+
 #endif /*ndef MSEMSTDARRAY_H*/
