@@ -37,9 +37,17 @@ namespace mse {
 #define _XSTD ::std::
 #endif /*_XSTD*/
 
+#ifndef _STD
+#define _STD std::
+#endif /*_STD*/
+
 #ifndef _CONST_FUN
 #define _CONST_FUN 
 #endif /*_CONST_FUN*/
+
+#ifndef _NOEXCEPT
+#define _NOEXCEPT
+#endif /*_NOEXCEPT*/
 
 		template<class _Ty, size_t _A >
 		class array {
@@ -281,12 +289,12 @@ namespace mse {
 		private:
 			mse::TRegisteredObj<_MA> m_msearray;
 
-			template<size_t _Idx, class _Ty, size_t _Size>
-			friend _CONST_FUN _Ty& std::get(mse::mstd::array<_Ty, _Size>& _Arr) _NOEXCEPT;
-			template<size_t _Idx, class _Ty, size_t _Size>
-			friend _CONST_FUN const _Ty& get(const mse::mstd::array<_Ty, _Size>& _Arr) _NOEXCEPT;
-			template<size_t _Idx, class _Ty, size_t _Size>
-			friend _CONST_FUN _Ty&& get(mse::mstd::array<_Ty, _Size>&& _Arr) _NOEXCEPT;
+			template<size_t _Idx, class _Tz, size_t _Size>
+			friend _CONST_FUN _Tz& std::get(mse::mstd::array<_Tz, _Size>& _Arr) _NOEXCEPT;
+			template<size_t _Idx, class _Tz, size_t _Size>
+			friend _CONST_FUN const _Tz& get(const mse::mstd::array<_Tz, _Size>& _Arr) _NOEXCEPT;
+			template<size_t _Idx, class _Tz, size_t _Size>
+			friend _CONST_FUN _Tz&& get(mse::mstd::array<_Tz, _Size>&& _Arr) _NOEXCEPT;
 		};
 
 		template<class _Ty, size_t _Size> inline bool operator!=(const array<_Ty, _Size>& _Left,
@@ -308,25 +316,26 @@ namespace mse {
 			const array<_Ty, _Size>& _Right) {	// test if _Left >= _Right for arrays
 			return (!(_Left < _Right));
 		}
-
-		template<class _Ty, size_t _Size>
-		struct std::tuple_size<mse::mstd::array<_Ty, _Size> >
-			: integral_constant<size_t, _Size>
-		{	// struct to determine number of elements in array
-		};
-
-		template<size_t _Idx, class _Ty, size_t _Size>
-		struct std::tuple_element<_Idx, mse::mstd::array<_Ty, _Size> >
-		{	// struct to determine type of element _Idx in array
-			static_assert(_Idx < _Size, "array index out of bounds");
-
-			typedef _Ty type;
-		};
 #endif /*MSE_MSTDARRAY_DISABLED*/
 	}
 }
 
 namespace std {
+
+	template<class _Ty, size_t _Size>
+	struct tuple_size<mse::mstd::array<_Ty, _Size> >
+		: integral_constant<size_t, _Size>
+	{	// struct to determine number of elements in array
+	};
+
+	template<size_t _Idx, class _Ty, size_t _Size>
+	struct tuple_element<_Idx, mse::mstd::array<_Ty, _Size> >
+	{	// struct to determine type of element _Idx in array
+		static_assert(_Idx < _Size, "array index out of bounds");
+
+		typedef _Ty type;
+	};
+
 	// TUPLE INTERFACE TO array
 	template<size_t _Idx, class _Ty, size_t _Size>
 	_CONST_FUN _Ty& get(mse::mstd::array<_Ty, _Size>& _Arr) _NOEXCEPT
