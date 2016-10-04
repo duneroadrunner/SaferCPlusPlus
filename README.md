@@ -14,6 +14,8 @@ Sep 2016
 
 - A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation.
 
+- An almost completely [safe implementation](#array) of std::array<> - bounds checked, iterator checked and "lifespan aware".
+
 - [Replacements](#primitives) for the native "int", "size_t" and "bool" types that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.
 
 - Data types for safe, simple [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
@@ -42,7 +44,7 @@ The Clang/LLVM compiler provides a set of "sanitizers" (adopted by gcc) that add
 
 - The Clang/LLVM sanitizers require modifications to the build process, not the code, whereas with SaferCPlusPlus it's the other way around.
 - SaferCPlusPlus can [more completely](https://en.wikipedia.org/wiki/AddressSanitizer#Limitations) solve the problem of invalid memory access, but does so by restricting what qualifies as "proper" SaferCPlusPlus code (eg. no pointer arithmetic).
-- When encountering an invalid memory operation at run-time, the Clang/LLVM sanitizers terminate the executable, where SaferCPlusPlus throws a (catchable) exception. 
+- When encountering an invalid memory operation at run-time, the Clang/LLVM sanitizers terminate the executable, where SaferCPlusPlus, by default, throws a (catchable) exception, but supports any user-defined action, including program termination. 
 - SaferCPlusPlus is portable C++ code that works on any platform, whereas Clang/LLVM sanitizers are available/maintained on a finite (but at the moment, ample) set of OS-architecture combinations.
 - The Clang/LLVM sanitizers cost more in terms of run-time performance. [~2x slowdown](https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers) for the AddressSanitizer, for example. SaferCPlusPlus [doesn't cost](#simple-benchmarks) nearly that much in typical code. This is mainly because the Clang/LLVM sanitizers cannot assume any cooperation from the source code, so they have to instrument pretty much every allocated piece of memory and check pretty well every pointer dereference.
 - SaferCPlusPlus supports the mixing of "safe" and (high-performance) "unsafe" code at a granular level, where Clang/LLVM Sanitizers apply to entire modules, or as in the case of the MemorySanitizer, all modules, requiring recompilation of any linked libraries.
@@ -1109,6 +1111,88 @@ usage example:
         mse::ivector<int>::ipointer ivip = iv.begin();
     }
 
+### Arrays
+
+We provide two arrays - [mstd::array<>](#array) and [msearray<>](#msearray). mstd::array<> is simply an almost completely safe implementation of std::array<>. msearray<> is also quite safe. Not quite as safe as mstd::array<>, but it requires less overhead.
+
+### array
+
+mstd::array<> is simply an almost completely safe implementation of std::array<>. Note that the current implementation requires "mseregistered.h".  
+
+usage example:
+
+    #include "msemstdarray.h"
+    #include "msemsearray.h"
+    #include <array>
+    
+    int main(int argc, char* argv[]) {
+    
+        mse::mstd::array<int, 3> ma;
+        std::array<int, 3> sa;
+        /* These two arrays should be completely interchangeable. The difference being that ma should throw
+        an exception on any attempt to access invalid memory. */
+    
+    
+        /* mse::msearray is not quite as safe as mse::mstd::array in the following way: */
+    
+        std::array<int, 3>::iterator sa1_it;
+        mse::msearray<int, 3>::ss_iterator_type msea1_it; // bounds checked iterator just like mse::mstd::array::iterator
+        mse::mstd::array<int, 3>::iterator ma1_it;
+        {
+            std::array<int, 3> sa1 = { 1, 2, 3 };
+            sa1_it = sa1.begin();
+    
+            mse::msearray<int, 3> msea1 = { 1, 2, 3 };
+            msea1_it = msea1.ss_begin();
+    
+            mse::mstd::array<int, 3> ma1 = { 1, 2, 3 };
+            ma1_it = ma1.begin();
+        }
+    
+        // (*sa1_it) = 4; // not good - undefined behavior
+        // (*msea1_it) = 4; // not good - undefined behavior
+    
+        try {
+            (*ma1_it) = 4; // not undefined behavior - will throw an exception
+        } catch(...) {
+            // expected exception
+        }
+    }
+
+### msearray
+
+msearray<>, like msevector<>, is a essentially a compromise between safety and performance. And like msevector<>, msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like msevector<>, msearray<>'s safe iterator also supports the more "readable" interface.  
+
+usage example:
+
+    #include "msemstdarray.h"
+    #include "msemsearray.h"
+    #include <array>
+    
+    int main(int argc, char* argv[]) {
+        mse::msearray<int, 3> a1 = { 1, 2, 3 };
+        mse::msearray<int, 3> a2 = { 11, 12, 13 };
+        
+        //bool bres1 = (a1.begin() == a2.end());
+        /* The previous commented out line would result in "undefined behavior. */
+        
+        try {
+            /* The behavior of the next line is not "undefined". It's going to throw an exception. */
+            bool bres2 = (a1.ss_begin() == a2.ss_end());
+        }
+        catch (...) {
+            std::cerr << "expected exception" << std::endl;
+        }
+        
+        auto ss_cit1 = a1.ss_cbegin();
+        /* These safe iterators support traditional and "friendly" iterator operation syntax. */
+        ss_cit1++;
+        ss_cit1.set_to_next(); /*same as previous line*/
+        ss_cit1.set_to_beginning();
+        bool bres3 = ss_cit1.has_previous();
+        ss_cit1.set_to_end_marker();
+        bool bres4 = ss_cit1.points_to_an_item();
+    }
 
 ### Compatibility considerations
 People have asked why the primitive C++ types can't be used as base classes - http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
