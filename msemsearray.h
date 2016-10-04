@@ -247,7 +247,7 @@ namespace mse {
 				if (points_to_an_item()) {
 					m_index += 1;
 					(*this).m_base_const_iterator++;
-					assert(m_owner_cptr->size() <= m_index);
+					assert(m_owner_cptr->size() >= m_index);
 				}
 				else {
 					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - void set_to_next() - ss_const_iterator_type - msearray"));
@@ -427,7 +427,7 @@ namespace mse {
 				if (points_to_an_item()) {
 					m_index += 1;
 					(*this).m_base_iterator++;
-					assert(m_owner_ptr->size() <= m_index);
+					assert(m_owner_ptr->size() >= m_index);
 				}
 				else {
 					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - void set_to_next() - ss_const_iterator_type - msearray"));

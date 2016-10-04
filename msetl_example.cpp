@@ -249,7 +249,6 @@ int main(int argc, char* argv[])
 		mse::ivector<int>::ipointer ivip = iv.begin();
 	}
 
-#ifdef _MSC_VER
 	{
 		/*********************/
 		/*   mstd::array<>   */
@@ -327,7 +326,6 @@ int main(int argc, char* argv[])
 		mse::msearray_test testobj1;
 		testobj1.test1();
 	}
-#endif // _MSC_VER
 
 	{
 		/*******************************/
