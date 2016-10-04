@@ -32,9 +32,7 @@ get to the data type your interested in.
 
 //include "msetl.h"
 #include "msemsearray.h"
-#ifdef _MSC_VER
 #include "msemstdarray.h"
-#endif // _MSC_VER
 #include "msemsevector.h"
 #include "msemstdvector.h"
 #include "mseivector.h"
