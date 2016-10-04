@@ -31,7 +31,6 @@ get to the data type your interested in.
 #define MSE_SELF_TESTS
 
 //include "msetl.h"
-#ifdef _MSC_VER
 #include "msemsearray.h"
 #ifdef _MSC_VER
 #include "msemstdarray.h"
