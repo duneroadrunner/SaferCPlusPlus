@@ -22,6 +22,8 @@
 #ifdef MSE_SELF_TESTS
 #include <iostream>
 #include <string>
+#include <algorithm>
+#include <iterator>
 #endif // MSE_SELF_TESTS
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
@@ -650,21 +652,25 @@ namespace mse {
 			return (const_reverse_iterator(ss_begin()));
 		}
 	};
+}
 
+namespace std {
 	template<class _Ty, size_t _Size>
-	struct std::tuple_size<mse::msearray<_Ty, _Size> >
+	struct tuple_size<mse::msearray<_Ty, _Size> >
 		: integral_constant<size_t, _Size>
 	{	// struct to determine number of elements in array
 	};
 
 	template<size_t _Idx, class _Ty, size_t _Size>
-	struct std::tuple_element<_Idx, mse::msearray<_Ty, _Size> >
+	struct tuple_element<_Idx, mse::msearray<_Ty, _Size> >
 	{	// struct to determine type of element _Idx in array
 		static_assert(_Idx < _Size, "array index out of bounds");
 
 		typedef _Ty type;
 	};
+}
 
+namespace mse {
 	class msearray_test {
 	public:
 		void test1() {
