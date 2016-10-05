@@ -292,9 +292,9 @@ namespace mse {
 			template<size_t _Idx, class _Tz, size_t _Size>
 			friend _CONST_FUN _Tz& std::get(mse::mstd::array<_Tz, _Size>& _Arr) _NOEXCEPT;
 			template<size_t _Idx, class _Tz, size_t _Size>
-			friend _CONST_FUN const _Tz& get(const mse::mstd::array<_Tz, _Size>& _Arr) _NOEXCEPT;
+			friend _CONST_FUN const _Tz& std::get(const mse::mstd::array<_Tz, _Size>& _Arr) _NOEXCEPT;
 			template<size_t _Idx, class _Tz, size_t _Size>
-			friend _CONST_FUN _Tz&& get(mse::mstd::array<_Tz, _Size>&& _Arr) _NOEXCEPT;
+			friend _CONST_FUN _Tz&& std::get(mse::mstd::array<_Tz, _Size>&& _Arr) _NOEXCEPT;
 		};
 
 		template<class _Ty, size_t _Size> inline bool operator!=(const array<_Ty, _Size>& _Left,

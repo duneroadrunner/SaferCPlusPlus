@@ -1939,9 +1939,6 @@ namespace mse {
 				if (points_to_an_item()) {
 					m_index += 1;
 					base_class::const_iterator::operator++();
-					if (m_owner_cptr->size() <= m_index) {
-						if (m_owner_cptr->size() < m_index) { assert(false); reset(); }
-					}
 				}
 				else {
 					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - void set_to_next() - ss_const_iterator_type - msevector"));
@@ -1957,9 +1954,9 @@ namespace mse {
 				}
 			}
 			ss_const_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
-			ss_const_iterator_type operator++(int) { ss_const_iterator_type _Tmp = *this; ++*this; return (_Tmp); }
+			ss_const_iterator_type operator++(int) { ss_const_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
 			ss_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
-			ss_const_iterator_type operator--(int) { ss_const_iterator_type _Tmp = *this; --*this; return (_Tmp); }
+			ss_const_iterator_type operator--(int) { ss_const_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
 			void advance(difference_type n) {
 				auto new_index = msev_int(m_index) + n;
 				if ((0 > new_index) || (m_owner_cptr->size() < msev_size_t(new_index))) {
@@ -2013,7 +2010,7 @@ namespace mse {
 					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - pointer operator->() const - ss_const_iterator_type - msevector"));
 				}
 			}
-			const_reference operator[](difference_type _Off) const { return (*(*this + _Off)); }
+			const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(difference_type(m_index) + _Off); }
 			/*
 			ss_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref)
 			{
@@ -2136,9 +2133,6 @@ namespace mse {
 				if (points_to_an_item()) {
 					m_index += 1;
 					base_class::iterator::operator++();
-					if (m_owner_ptr->size() <= m_index) {
-						if (m_owner_ptr->size() < m_index) { assert(false); reset(); }
-					}
 				}
 				else {
 					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - void set_to_next() - ss_const_iterator_type - msevector"));
@@ -2154,9 +2148,9 @@ namespace mse {
 				}
 			}
 			ss_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
-			ss_iterator_type operator++(int) { ss_iterator_type _Tmp = *this; ++*this; return (_Tmp); }
+			ss_iterator_type operator++(int) { ss_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
 			ss_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
-			ss_iterator_type operator--(int) { ss_iterator_type _Tmp = *this; --*this; return (_Tmp); }
+			ss_iterator_type operator--(int) { ss_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
 			void advance(difference_type n) {
 				auto new_index = msev_int(m_index) + n;
 				if ((0 > new_index) || (m_owner_ptr->size() < msev_size_t(new_index))) {
@@ -2209,7 +2203,7 @@ namespace mse {
 					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - pointer operator->() - ss_iterator_type - msevector"));
 				}
 			}
-			reference operator[](difference_type _Off) const { return (*(*this + _Off)); }
+			reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(difference_type(m_index) + _Off); }
 			/*
 			ss_iterator_type& operator=(const typename base_class::iterator& _Right_cref)
 			{
