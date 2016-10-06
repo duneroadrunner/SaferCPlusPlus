@@ -190,6 +190,7 @@ namespace mse {
 			return base_class::back();
 		}
 
+
 		/* ss_const_iterator_type is a bounds checked const_iterator. */
 		class ss_const_iterator_type {
 		public:
@@ -226,7 +227,9 @@ namespace mse {
 			bool has_next_item_or_end_marker() const { return points_to_an_item(); } //his is
 			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
 			bool has_next() const { return has_next_item_or_end_marker(); }
-			bool has_previous() const { return (!points_to_beginning()); }
+			bool has_previous() const {
+				return ((1 <= m_owner_cptr->size()) && (!points_to_beginning()));
+			}
 			void set_to_beginning() {
 				m_index = 0;
 			}
@@ -374,7 +377,9 @@ namespace mse {
 			bool has_next_item_or_end_marker() const { return points_to_an_item(); }
 			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
 			bool has_next() const { return has_next_item_or_end_marker(); }
-			bool has_previous() const { return (!points_to_beginning()); }
+			bool has_previous() const {
+				return ((1 <= m_owner_ptr->size()) && (!points_to_beginning()));
+			}
 			void set_to_beginning() {
 				m_index = 0;
 			}
