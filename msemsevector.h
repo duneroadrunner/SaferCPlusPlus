@@ -1883,13 +1883,8 @@ namespace mse {
 		}
 
 
-		/* Note that, at the moment, ss_const_iterator_type inherits publicly from base_class::const_iterator. This is not intended to be a permanent
-		characteristc of ss_const_iterator_type and any reference to, or interpretation of, an ss_const_iterator_type as an base_class::const_iterator is (and has
-		always been) depricated. ss_const_iterator_type endeavors to support (and continue to support) the subset of the base_class::const_iterator
-		interface that is compatible with the security/safety goals of ss_const_iterator_type.
-		In particular, keep in mind that base_class::const_iterator does not have a virtual destructor, so deallocating an ss_const_iterator_type as an
-		base_class::const_iterator would result in memory leaks. */
-		class ss_const_iterator_type : public base_class::const_iterator {
+		/* ss_const_iterator_type is a bounds checked iterator. */
+		class ss_const_iterator_type/* : public base_class::const_iterator*/ {
 		public:
 			typedef typename base_class::const_iterator::iterator_category iterator_category;
 			typedef typename base_class::const_iterator::value_type value_type;
@@ -1903,7 +1898,7 @@ namespace mse {
 			ss_const_iterator_type() {}
 			void reset() { set_to_end_marker(); }
 			bool points_to_an_item() const {
-				if ((1 <= m_owner_cptr->size()) && (m_index < m_owner_cptr->size())) { return true; }
+				if (m_owner_cptr->size() > m_index) { return true; }
 				else {
 					if (m_index == m_owner_cptr->size()) { return false; }
 					else { MSE_THROW(std::out_of_range("attempt to use invalid ss_const_iterator_type - bool points_to_an_item() const - ss_const_iterator_type - msevector")); }
@@ -1911,10 +1906,8 @@ namespace mse {
 			}
 			bool points_to_end_marker() const {
 				if (false == points_to_an_item()) {
-					if (m_index == m_owner_cptr->size()) {
-						return true;
-					}
-					else { MSE_THROW(std::out_of_range("attempt to use invalid ss_const_iterator_type - bool points_to_end_marker() const - ss_const_iterator_type - msevector")); }
+					assert(m_index == m_owner_cptr->size());
+					return true;
 				}
 				else { return false; }
 			}
@@ -1923,22 +1916,29 @@ namespace mse {
 				else { return false; }
 			}
 			/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-			bool has_next_item_or_end_marker() const { return points_to_an_item(); } //his is
+			bool has_next_item_or_end_marker() const { return points_to_an_item(); }
 			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
 			bool has_next() const { return has_next_item_or_end_marker(); }
-			bool has_previous() const { return (!points_to_beginning()); }
+			bool has_previous() const {
+				if (m_owner_cptr->size() < m_index) {
+					MSE_THROW(std::out_of_range("attempt to use invalid ss_const_iterator_type - bool has_previous() const - ss_const_iterator_type - msevector"));
+				}
+				else if (1 <= m_index) {
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
 			void set_to_beginning() {
 				m_index = 0;
-				base_class::const_iterator::operator=(m_owner_cptr->cbegin());
 			}
 			void set_to_end_marker() {
 				m_index = m_owner_cptr->size();
-				base_class::const_iterator::operator=(m_owner_cptr->cend());
 			}
 			void set_to_next() {
 				if (points_to_an_item()) {
 					m_index += 1;
-					base_class::const_iterator::operator++();
 				}
 				else {
 					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - void set_to_next() - ss_const_iterator_type - msevector"));
@@ -1947,7 +1947,6 @@ namespace mse {
 			void set_to_previous() {
 				if (has_previous()) {
 					m_index -= 1;
-					base_class::const_iterator::operator--();
 				}
 				else {
 					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - void set_to_previous() - ss_const_iterator_type - msevector"));
@@ -1964,7 +1963,6 @@ namespace mse {
 				}
 				else {
 					m_index = msev_size_t(new_index);
-					base_class::const_iterator::operator+=(n);
 				}
 			}
 			void regress(difference_type n) { advance(-n); }
@@ -1979,36 +1977,24 @@ namespace mse {
 			ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const ss_const_iterator_type &rhs) const {
 				if (rhs.m_owner_cptr != (*this).m_owner_cptr) { MSE_THROW(std::out_of_range("invalid argument - difference_type operator-(const ss_const_iterator_type &rhs) const - msevector::ss_const_iterator_type")); }
-				auto retval = (static_cast<const typename base_class::const_iterator&>(*this) - static_cast<const typename base_class::const_iterator&>(rhs));
+				auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
 				assert((int)((*m_owner_cptr).size()) >= retval);
 				return retval;
 			}
 			const_reference operator*() const {
-				if (points_to_an_item()) {
-					return m_owner_cptr->at(msev_as_a_size_t(m_index));
-				}
-				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - const_reference operator*() const - ss_const_iterator_type - msevector"));
-				}
+				return (*m_owner_cptr).at((*this).m_index);
 			}
 			const_reference item() const { return operator*(); }
 			const_reference previous_item() const {
 				if ((*this).has_previous()) {
-					return m_owner_cptr->at(m_index - 1);
+					return (*m_owner_cptr)[m_index - 1];
 				}
 				else {
 					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - const_reference previous_item() const - ss_const_iterator_type - msevector"));
 				}
 			}
 			const_pointer operator->() const {
-				if (points_to_an_item()) {
-					const_cast<ss_const_iterator_type *>(this)->sync_const_iterator_to_index();
-					//sync_const_iterator_to_index();
-					return base_class::const_iterator::operator->();
-				}
-				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - pointer operator->() const - ss_const_iterator_type - msevector"));
-				}
+				return &((*m_owner_cptr).at((*this).m_index));
 			}
 			const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(difference_type(m_index) + _Off); }
 			/*
@@ -2031,7 +2017,6 @@ namespace mse {
 			ss_const_iterator_type& operator=(const ss_const_iterator_type& _Right_cref) {
 				((*this).m_owner_cptr) = _Right_cref.m_owner_cptr;
 				(*this).m_index = _Right_cref.m_index;
-				base_class::const_iterator::operator=(_Right_cref);
 				return (*this);
 			}
 			bool operator==(const ss_const_iterator_type& _Right_cref) const {
@@ -2069,23 +2054,23 @@ namespace mse {
 			msev_size_t position() const {
 				return m_index;
 			}
+			operator typename base_class::const_iterator() const {
+				typename base_class::const_iterator retval = (*m_owner_cptr).cbegin();
+				retval += m_index;
+				return retval;
+			}
 		private:
 			void sync_const_iterator_to_index() {
 				assert(m_owner_cptr->size() >= (*this).m_index);
-				base_class::const_iterator::operator=(m_owner_cptr->cbegin());
-				base_class::const_iterator::operator+=(msev_as_a_size_t(m_index));
+				//base_class::const_iterator::operator=(m_owner_cptr->cbegin());
+				//base_class::const_iterator::operator+=(msev_as_a_size_t(m_index));
 			}
 			msev_size_t m_index = 0;
 			msev_pointer<const _Myt> m_owner_cptr = nullptr;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
-		/* Note that, at the moment, ss_iterator_type inherits publicly from base_class::iterator. This is not intended to be a permanent
-		characteristc of ss_iterator_type and any reference to, or interpretation of, an ss_iterator_type as an base_class::iterator is (and has
-		always been) depricated. ss_iterator_type endeavors to support (and continue to support) the subset of the base_class::iterator
-		interface that is compatible with the security/safety goals of ss_iterator_type.
-		In particular, keep in mind that base_class::iterator does not have a virtual destructor, so deallocating an ss_iterator_type as an
-		base_class::iterator would result in memory leaks. */
-		class ss_iterator_type : public base_class::iterator {
+		/* ss_iterator_type is a bounds checked iterator. */
+		class ss_iterator_type/* : public base_class::iterator*/ {
 		public:
 			typedef typename base_class::iterator::iterator_category iterator_category;
 			typedef typename base_class::iterator::value_type value_type;
@@ -2097,7 +2082,7 @@ namespace mse {
 			ss_iterator_type() {}
 			void reset() { set_to_end_marker(); }
 			bool points_to_an_item() const {
-				if ((1 <= m_owner_ptr->size()) && (m_index < m_owner_ptr->size())) { return true; }
+				if (m_owner_ptr->size() > m_index) { return true; }
 				else {
 					if (m_index == m_owner_ptr->size()) { return false; }
 					else { MSE_THROW(std::out_of_range("attempt to use invalid ss_iterator_type - bool points_to_an_item() const - ss_iterator_type - msevector")); }
@@ -2105,10 +2090,8 @@ namespace mse {
 			}
 			bool points_to_end_marker() const {
 				if (false == points_to_an_item()) {
-					if (m_index == m_owner_ptr->size()) {
-						return true;
-					}
-					else { MSE_THROW(std::out_of_range("attempt to use invalid ss_iterator_type - bool points_to_end_marker() const - ss_iterator_type - msevector")); }
+					assert(m_index == m_owner_ptr->size());
+					return true;
 				}
 				else { return false; }
 			}
@@ -2120,19 +2103,25 @@ namespace mse {
 			bool has_next_item_or_end_marker() const { return points_to_an_item(); }
 			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
 			bool has_next() const { return has_next_item_or_end_marker(); }
-			bool has_previous() const { return (!points_to_beginning()); }
+			bool has_previous() const {
+				if (m_owner_ptr->size() < m_index) {
+					MSE_THROW(std::out_of_range("attempt to use invalid ss_iterator_type - bool has_previous() const - ss_iterator_type - msevector"));
+				} else if (1 <= m_index) {
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
 			void set_to_beginning() {
 				m_index = 0;
-				base_class::iterator::operator=(m_owner_ptr->begin());
 			}
 			void set_to_end_marker() {
 				m_index = m_owner_ptr->size();
-				base_class::iterator::operator=(m_owner_ptr->end());
 			}
 			void set_to_next() {
 				if (points_to_an_item()) {
 					m_index += 1;
-					base_class::iterator::operator++();
 				}
 				else {
 					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - void set_to_next() - ss_const_iterator_type - msevector"));
@@ -2141,7 +2130,6 @@ namespace mse {
 			void set_to_previous() {
 				if (has_previous()) {
 					m_index -= 1;
-					base_class::iterator::operator--();
 				}
 				else {
 					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - void set_to_previous() - ss_iterator_type - msevector"));
@@ -2158,7 +2146,6 @@ namespace mse {
 				}
 				else {
 					m_index = msev_size_t(new_index);
-					base_class::iterator::operator+=(n);
 				}
 			}
 			void regress(difference_type n) { advance(-n); }
@@ -2173,35 +2160,24 @@ namespace mse {
 			ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const ss_iterator_type& rhs) const {
 				if (rhs.m_owner_ptr != (*this).m_owner_ptr) { MSE_THROW(std::out_of_range("invalid argument - difference_type operator-(const ss_iterator_type& rhs) const - msevector::ss_iterator_type")); }
-				auto retval = (static_cast<const typename base_class::iterator&>(*this) - static_cast<const typename base_class::iterator&>(rhs));
+				auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
 				assert((int)((*m_owner_ptr).size()) >= retval);
 				return retval;
 			}
 			reference operator*() const {
-				if (points_to_an_item()) {
-					return m_owner_ptr->at(msev_as_a_size_t(m_index));
-				}
-				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - reference operator*() - ss_iterator_type - msevector"));
-				}
+				return (*m_owner_ptr).at((*this).m_index);
 			}
 			reference item() const { return operator*(); }
 			reference previous_item() const {
 				if ((*this).has_previous()) {
-					return m_owner_ptr->at(m_index - 1);
+					return (*m_owner_ptr)[m_index - 1];
 				}
 				else {
 					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - reference previous_item() - ss_const_iterator_type - msevector"));
 				}
 			}
 			pointer operator->() const {
-				if (points_to_an_item()) {
-					sync_iterator_to_index();
-					return base_class::iterator::operator->();
-				}
-				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - pointer operator->() - ss_iterator_type - msevector"));
-				}
+				return &((*m_owner_ptr).at((*this).m_index));
 			}
 			reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(difference_type(m_index) + _Off); }
 			/*
@@ -2224,7 +2200,6 @@ namespace mse {
 			ss_iterator_type& operator=(const ss_iterator_type& _Right_cref) {
 				((*this).m_owner_ptr) = _Right_cref.m_owner_ptr;
 				(*this).m_index = _Right_cref.m_index;
-				base_class::iterator::operator=(_Right_cref);
 				return (*this);
 			}
 			bool operator==(const ss_iterator_type& _Right_cref) const {
@@ -2273,8 +2248,8 @@ namespace mse {
 		private:
 			void sync_iterator_to_index() {
 				assert(m_owner_ptr->size() >= (*this).m_index);
-				base_class::iterator::operator=(m_owner_ptr->begin());
-				base_class::iterator::operator+=(msev_as_a_size_t(m_index));
+				//base_class::iterator::operator=(m_owner_ptr->begin());
+				//base_class::iterator::operator+=(msev_as_a_size_t(m_index));
 			}
 			msev_size_t m_index = 0;
 			msev_pointer<_Myt> m_owner_ptr = nullptr;
