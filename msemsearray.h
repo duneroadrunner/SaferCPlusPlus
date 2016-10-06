@@ -190,13 +190,7 @@ namespace mse {
 			return base_class::back();
 		}
 
-
-		/* Note that, at the moment, ss_const_iterator_type inherits publicly from base_class::const_iterator. This is not intended to be a permanent
-		characteristc of ss_const_iterator_type and any reference to, or interpretation of, an ss_const_iterator_type as an base_class::const_iterator is (and has
-		always been) depricated. ss_const_iterator_type endeavors to support (and continue to support) the subset of the base_class::const_iterator
-		interface that is compatible with the security/safety goals of ss_const_iterator_type.
-		In particular, keep in mind that base_class::const_iterator does not have a virtual destructor, so deallocating an ss_const_iterator_type as an
-		base_class::const_iterator would result in memory leaks. */
+		/* ss_const_iterator_type is a bounds checked const_iterator. */
 		class ss_const_iterator_type {
 		public:
 			typedef typename std::iterator_traits<typename base_class::const_iterator>::iterator_category iterator_category;
@@ -346,12 +340,7 @@ namespace mse {
 			msear_pointer<const _Myt> m_owner_cptr = nullptr;
 			friend class /*_Myt*/msearray<_Ty, _Size>;
 		};
-		/* Note that, at the moment, ss_iterator_type inherits publicly from base_class::iterator. This is not intended to be a permanent
-		characteristc of ss_iterator_type and any reference to, or interpretation of, an ss_iterator_type as an base_class::iterator is (and has
-		always been) depricated. ss_iterator_type endeavors to support (and continue to support) the subset of the base_class::iterator
-		interface that is compatible with the security/safety goals of ss_iterator_type.
-		In particular, keep in mind that base_class::iterator does not have a virtual destructor, so deallocating an ss_iterator_type as an
-		base_class::iterator would result in memory leaks. */
+		/* ss_iterator_type is a bounds checked iterator. */
 		class ss_iterator_type {
 		public:
 			typedef typename std::iterator_traits<typename base_class::iterator>::iterator_category iterator_category;
