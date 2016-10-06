@@ -115,7 +115,7 @@ namespace mse {
 #endif /*_NOEXCEPT*/
 
 #ifndef _CONST_FUN
-#define _CONST_FUN
+#define _CONST_FUN constexpr
 #endif /*_CONST_FUN*/
 
 	template<class _Ty, size_t _Size>

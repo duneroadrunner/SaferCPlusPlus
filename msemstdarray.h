@@ -42,7 +42,7 @@ namespace mse {
 #endif /*_STD*/
 
 #ifndef _CONST_FUN
-#define _CONST_FUN 
+#define _CONST_FUN  constexpr
 #endif /*_CONST_FUN*/
 
 #ifndef _NOEXCEPT
