@@ -160,9 +160,9 @@ namespace mse {
 
 		typedef typename base_class::value_type value_type;
 		//typedef typename base_class::size_type size_type;
-		typedef typename msear_size_t size_type;
+		typedef msear_size_t size_type;
 		//typedef typename base_class::difference_type difference_type;
-		typedef typename msear_int difference_type;
+		typedef msear_int difference_type;
 		typedef typename base_class::pointer pointer;
 		typedef typename base_class::const_pointer const_pointer;
 		typedef typename base_class::reference reference;

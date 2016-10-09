@@ -141,9 +141,9 @@ namespace mse {
 
 		typedef typename base_class::value_type value_type;
 		//typedef typename base_class::size_type size_type;
-		typedef typename msev_size_t size_type;
+		typedef msev_size_t size_type;
 		//typedef typename base_class::difference_type difference_type;
-		typedef typename msev_int difference_type;
+		typedef msev_int difference_type;
 		typedef typename base_class::pointer pointer;
 		typedef typename base_class::const_pointer const_pointer;
 		typedef typename base_class::reference reference;
@@ -789,7 +789,7 @@ namespace mse {
 			typedef typename base_class::const_iterator::iterator_category iterator_category;
 			typedef typename base_class::const_iterator::value_type value_type;
 			//typedef typename base_class::const_iterator::difference_type difference_type;
-			typedef typename msev_int difference_type;
+			typedef msev_int difference_type;
 			typedef difference_type distance_type;	// retained
 			typedef typename base_class::const_iterator::pointer pointer;
 			typedef typename base_class::const_iterator::pointer const_pointer;
@@ -861,7 +861,7 @@ namespace mse {
 				}
 				else {
 					m_index = msev_size_t(new_index);
-					base_class::const_iterator::operator+=(base_class::iterator::difference_type(n));
+					base_class::const_iterator::operator+=(typename base_class::iterator::difference_type(n));
 					if (m_owner_cptr->size() <= m_index) {
 						(*this).m_points_to_an_item = false;
 					}
@@ -992,7 +992,7 @@ namespace mse {
 			typedef typename base_class::iterator::iterator_category iterator_category;
 			typedef typename base_class::iterator::value_type value_type;
 			//typedef typename base_class::iterator::difference_type difference_type;
-			typedef typename msev_int difference_type;
+			typedef msev_int difference_type;
 			typedef difference_type distance_type;	// retained
 			typedef typename base_class::iterator::pointer pointer;
 			typedef typename base_class::iterator::reference reference;
@@ -1062,7 +1062,7 @@ namespace mse {
 				}
 				else {
 					m_index = msev_size_t(new_index);
-					base_class::iterator::operator+=(base_class::iterator::difference_type(n));
+					base_class::iterator::operator+=(typename base_class::iterator::difference_type(n));
 					if (m_owner_ptr->size() <= m_index) {
 						(*this).m_points_to_an_item = false;
 					}
