@@ -30,7 +30,9 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
 This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else.  
 This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you a lot of the safety that you might get from, say Java, while retaining all of the power and most of the performance of C++.  
 While using the library can incur a modest performance penalty, because the library elements are [largely compatible](#compatibility-considerations) with their native counterparts they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.  
+And note that the safe components of this library can be adopted completely incrementally. New code written with these safe elements will play nicely with existing (unsafe) code, and unsafe elements can be replaced selectively without breaking the existing code.  
 So there is really no excuse for not using the library in pretty much any situation.  
+Though, if you are using this library in a real time embedded application, you may want to override the default behavior upon invalid memory operations (using MSE_CUSTOM_THROW_DEFINITION(x)) and read the notes in the [array](#array) section.  
 For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 ### Setup and dependencies
@@ -1117,7 +1119,7 @@ We provide two arrays - [mstd::array<>](#array) and [msearray<>](#msearray). mst
 
 ### array
 
-mstd::array<> is simply an almost completely safe implementation of std::array<>. Note that the current implementation requires "mseregistered.h".  
+mstd::array<> is an almost completely safe implementation of std::array<>. Note that the current implementation requires "mseregistered.h".  
 
 usage example:
 
@@ -1158,6 +1160,8 @@ usage example:
             // expected exception
         }
     }
+
+Note for real time embedded applications that restrict heap allocations: mse:mstd::array<> keeps track of its iterators, and if the number of iterators exceeds the space reserved for tracking them, it will resort to obtaining space from the heap. You can instead use mse::msearray<>, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)
 
 ### msearray
 
