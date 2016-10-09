@@ -48,7 +48,7 @@ namespace mse {
 			operator _MV() { return msevector(); }
 
 			explicit vector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
-			explicit vector(size_t _N, const _Ty& _V = _Ty(), const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
+			explicit vector(size_type _N, const _Ty& _V = _Ty(), const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
 			vector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X))) {}
 			vector(const _MV& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
 			vector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X.msevector()))) {}
@@ -73,18 +73,18 @@ namespace mse {
 			_Myt& operator=(const _MV& _X) { m_shptr->operator=(_X); return (*this); }
 			_Myt& operator=(_Myt&& _X) { m_shptr->operator=(std::move(_X.msevector())); return (*this); }
 			_Myt& operator=(const _Myt& _X) { m_shptr->operator=(_X.msevector()); return (*this); }
-			void reserve(size_t _Count) { m_shptr->reserve(_Count); }
-			void resize(size_t _N, const _Ty& _X = _Ty()) { m_shptr->resize(_N, _X); }
-			typename _MV::const_reference operator[](size_t _P) const { return m_shptr->operator[](_P); }
-			typename _MV::reference operator[](size_t _P) { return m_shptr->operator[](_P); }
+			void reserve(size_type _Count) { m_shptr->reserve(_Count); }
+			void resize(size_type _N, const _Ty& _X = _Ty()) { m_shptr->resize(_N, _X); }
+			typename _MV::const_reference operator[](size_type _P) const { return m_shptr->operator[](_P); }
+			typename _MV::reference operator[](size_type _P) { return m_shptr->operator[](_P); }
 			void push_back(_Ty&& _X) { m_shptr->push_back(std::move(_X)); }
 			void push_back(const _Ty& _X) { m_shptr->push_back(_X); }
 			void pop_back() { m_shptr->pop_back(); }
 			void assign(_It _F, _It _L) { m_shptr->assign(_F, _L); }
-			void assign(size_t _N, const _Ty& _X = _Ty()) { m_shptr->assign(_N, _X); }
+			void assign(size_type _N, const _Ty& _X = _Ty()) { m_shptr->assign(_N, _X); }
 			typename _MV::iterator insert(typename _MV::const_iterator _P, _Ty&& _X) { return m_shptr->insert(_P, std::move(_X)); }
 			typename _MV::iterator insert(typename _MV::const_iterator _P, const _Ty& _X = _Ty()) { return m_shptr->insert(_P, _X); }
-			typename _MV::iterator insert(typename _MV::const_iterator _P, size_t _M, const _Ty& _X) { return m_shptr->insert(_P, _M, _X); }
+			typename _MV::iterator insert(typename _MV::const_iterator _P, size_type _M, const _Ty& _X) { return m_shptr->insert(_P, _M, _X); }
 			template<class _Iter>
 			typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename _MV::iterator>::type
 				insert(typename _MV::const_iterator _Where, _Iter _First, _Iter _Last) { return m_shptr->insert(_Where, _First, _Last); }
@@ -129,14 +129,14 @@ namespace mse {
 			typename _MV::iterator insert(typename _MV::const_iterator _Where, _XSTD initializer_list<typename _MV::value_type> _Ilist) { return m_shptr->insert(_Where, _Ilist); }
 #endif /*MSVC2010_COMPATIBLE*/
 
-			size_t capacity() const _NOEXCEPT{ return m_shptr->capacity(); }
+			size_type capacity() const _NOEXCEPT{ return m_shptr->capacity(); }
 			void shrink_to_fit() { m_shptr->shrink_to_fit(); }
-			size_t size() const _NOEXCEPT{ return m_shptr->size(); }
-			size_t max_size() const _NOEXCEPT{ return m_shptr->max_size(); }
+			size_type size() const _NOEXCEPT{ return m_shptr->size(); }
+			size_type max_size() const _NOEXCEPT{ return m_shptr->max_size(); }
 			bool empty() const _NOEXCEPT{ return m_shptr->empty(); }
 			_A get_allocator() const _NOEXCEPT{ return m_shptr->get_allocator(); }
-			typename _MV::const_reference at(size_t _Pos) const { return m_shptr->at(_Pos); }
-			typename _MV::reference at(size_t _Pos) { return m_shptr->at(_Pos); }
+			typename _MV::const_reference at(size_type _Pos) const { return m_shptr->at(_Pos); }
+			typename _MV::reference at(size_type _Pos) { return m_shptr->at(_Pos); }
 			typename _MV::reference front() { return m_shptr->front(); }
 			typename _MV::const_reference front() const { return m_shptr->front(); }
 			typename _MV::reference back() { return m_shptr->back(); }
@@ -322,7 +322,7 @@ namespace mse {
 			void assign_inclusive(const const_iterator &first, const const_iterator &last) {
 				m_shptr->assign_inclusive(first.msevector_ss_const_iterator_type(), last.msevector_ss_const_iterator_type());
 			}
-			iterator insert_before(const const_iterator &pos, size_t _M, const _Ty& _X) {
+			iterator insert_before(const const_iterator &pos, size_type _M, const _Ty& _X) {
 				auto res = m_shptr->insert_before(pos.msevector_ss_const_iterator_type(), _M, _X);
 				iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
 				return retval;
@@ -357,7 +357,7 @@ namespace mse {
 			void insert_before(msev_size_t pos, const _Ty& _X = _Ty()) {
 				m_shptr->insert_before(pos, _X);
 			}
-			void insert_before(msev_size_t pos, size_t _M, const _Ty& _X) {
+			void insert_before(msev_size_t pos, size_type _M, const _Ty& _X) {
 				m_shptr->insert_before(pos, _M, _X);
 			}
 #ifndef MSVC2010_COMPATIBLE
@@ -366,7 +366,7 @@ namespace mse {
 			}
 #endif /*MSVC2010_COMPATIBLE*/
 			/* These insert() functions are just aliases for their corresponding insert_before() functions. */
-			iterator insert(const const_iterator &pos, size_t _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
+			iterator insert(const const_iterator &pos, size_type _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
 			iterator insert(const const_iterator &pos, _Ty&& _X) { return insert_before(pos, std::move(_X)); }
 			iterator insert(const const_iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, _X); }
 			iterator insert(const const_iterator &pos, const const_iterator &start, const const_iterator &end) { return insert_before(pos, start, end); }

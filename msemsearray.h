@@ -135,17 +135,17 @@ namespace mse {
 		std::array. So the choice to make msearray an aggregate type enables it to better substitute for
 		std::array, but less able to interoperate with it. */
 
-		typename base_class::const_reference operator[](size_t _P) const {
-			return (*this).at(_P);
+		_CONST_FUN typename base_class::const_reference operator[](msear_size_t _P) const {
+			return (*this).at(msear_as_a_size_t(_P));
 		}
-		typename base_class::reference operator[](size_t _P) {
-			return (*this).at(_P);
+		typename base_class::reference operator[](msear_size_t _P) {
+			return (*this).at(msear_as_a_size_t(_P));
 		}
 		typename base_class::reference front() {	// return first element of mutable sequence
 			if (0 == (*this).size()) { MSE_THROW(std::out_of_range("front() on empty - typename base_class::reference front() - msearray")); }
 			return base_class::front();
 		}
-		typename base_class::const_reference front() const {	// return first element of nonmutable sequence
+		_CONST_FUN typename base_class::const_reference front() const {	// return first element of nonmutable sequence
 			if (0 == (*this).size()) { MSE_THROW(std::out_of_range("front() on empty - typename base_class::const_reference front() - msearray")); }
 			return base_class::front();
 		}
@@ -153,14 +153,16 @@ namespace mse {
 			if (0 == (*this).size()) { MSE_THROW(std::out_of_range("back() on empty - typename base_class::reference back() - msearray")); }
 			return base_class::back();
 		}
-		typename base_class::const_reference back() const {	// return last element of nonmutable sequence
+		_CONST_FUN typename base_class::const_reference back() const {	// return last element of nonmutable sequence
 			if (0 == (*this).size()) { MSE_THROW(std::out_of_range("back() on empty - typename base_class::const_reference back() - msearray")); }
 			return base_class::back();
 		}
 
 		typedef typename base_class::value_type value_type;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
+		//typedef typename base_class::size_type size_type;
+		typedef typename msear_size_t size_type;
+		//typedef typename base_class::difference_type difference_type;
+		typedef typename msear_int difference_type;
 		typedef typename base_class::pointer pointer;
 		typedef typename base_class::const_pointer const_pointer;
 		typedef typename base_class::reference reference;
@@ -262,14 +264,14 @@ namespace mse {
 			return m_array.empty();
 		}
 
-		reference at(size_type _Pos)
+		reference at(msear_size_t _Pos)
 		{	// subscript mutable sequence with checking
-			return m_array.at(_Pos);
+			return m_array.at(msear_as_a_size_t(_Pos));
 		}
 
-		_CONST_FUN const_reference at(size_type _Pos) const
+		_CONST_FUN const_reference at(msear_size_t _Pos) const
 		{	// subscript nonmutable sequence with checking
-			return m_array.at(_Pos);
+			return m_array.at(msear_as_a_size_t(_Pos));
 		}
 
 		_Ty *data() _NOEXCEPT
@@ -289,7 +291,8 @@ namespace mse {
 		public:
 			typedef typename std::iterator_traits<typename base_class::const_iterator>::iterator_category iterator_category;
 			typedef typename std::iterator_traits<typename base_class::const_iterator>::value_type value_type;
-			typedef typename std::iterator_traits<typename base_class::const_iterator>::difference_type difference_type;
+			//typedef typename std::iterator_traits<typename base_class::const_iterator>::difference_type difference_type;
+			typedef msear_int difference_type;
 			typedef typename std::iterator_traits<typename base_class::const_iterator>::pointer const_pointer;
 			typedef typename std::iterator_traits<typename base_class::const_iterator>::reference const_reference;
 
@@ -372,25 +375,20 @@ namespace mse {
 			difference_type operator-(const ss_const_iterator_type &rhs) const {
 				if (rhs.m_owner_cptr != (*this).m_owner_cptr) { MSE_THROW(std::out_of_range("invalid argument - difference_type operator-(const ss_const_iterator_type &rhs) const - msearray::ss_const_iterator_type")); }
 				auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
-				assert((int)((*m_owner_cptr).size()) >= retval);
+				assert(difference_type((*m_owner_cptr).size()) >= retval);
 				return retval;
 			}
 			const_reference operator*() const {
-				return (*m_owner_cptr).at((*this).m_index);
+				return (*m_owner_cptr).at(msear_as_a_size_t((*this).m_index));
 			}
 			const_reference item() const { return operator*(); }
 			const_reference previous_item() const {
-				if ((*this).has_previous()) {
-					return (*m_owner_cptr)[m_index - 1];
-				}
-				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - const_reference previous_item() const - ss_const_iterator_type - msearray"));
-				}
+				return (*m_owner_cptr).at(msear_as_a_size_t((*this).m_index - 1));
 			}
 			const_pointer operator->() const {
-				return &((*m_owner_cptr).at((*this).m_index));
+				return &((*m_owner_cptr).at(msear_as_a_size_t((*this).m_index)));
 			}
-			const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(difference_type(m_index) + _Off); }
+			const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(msear_as_a_size_t(difference_type(m_index) + _Off)); }
 			/*
 			ss_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref)
 			{
@@ -441,7 +439,8 @@ namespace mse {
 		public:
 			typedef typename std::iterator_traits<typename base_class::iterator>::iterator_category iterator_category;
 			typedef typename std::iterator_traits<typename base_class::iterator>::value_type value_type;
-			typedef typename std::iterator_traits<typename base_class::iterator>::difference_type difference_type;
+			//typedef typename std::iterator_traits<typename base_class::iterator>::difference_type difference_type;
+			typedef msear_int difference_type;
 			typedef typename std::iterator_traits<typename base_class::iterator>::pointer pointer;
 			typedef typename std::iterator_traits<typename base_class::iterator>::reference reference;
 			typedef difference_type distance_type;	// retained
@@ -522,11 +521,11 @@ namespace mse {
 			difference_type operator-(const ss_iterator_type& rhs) const {
 				if (rhs.m_owner_ptr != (*this).m_owner_ptr) { MSE_THROW(std::out_of_range("invalid argument - difference_type operator-(const ss_iterator_type& rhs) const - msearray::ss_iterator_type")); }
 				auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
-				assert((int)((*m_owner_ptr).size()) >= retval);
+				assert(difference_type((*m_owner_ptr).size()) >= retval);
 				return retval;
 			}
 			reference operator*() const {
-				return (*m_owner_ptr).at((*this).m_index);
+				return (*m_owner_ptr).at(msear_as_a_size_t((*this).m_index));
 			}
 			reference item() const { return operator*(); }
 			reference previous_item() const {
@@ -538,9 +537,9 @@ namespace mse {
 				}
 			}
 			pointer operator->() const {
-				return &((*m_owner_ptr).at((*this).m_index));
+				return &((*m_owner_ptr).at(msear_as_a_size_t((*this).m_index)));
 			}
-			reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(difference_type(m_index) + _Off); }
+			reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msear_as_a_size_t(difference_type(m_index) + _Off)); }
 			/*
 			ss_iterator_type& operator=(const typename base_class::iterator& _Right_cref)
 			{

@@ -28,6 +28,12 @@ get to the data type your interested in.
 //define MSE_CUSTOM_THROW_DEFINITION(x) std::cerr << std::endl << x.what(); exit(-11)
 /* Note that MSE_CUSTOM_THROW_DEFINITION(x) can be applied on a "per header file" basis if desired. */
 
+/* The following directs the vectors and arrays to use the safe substitutes for native primitives (like int
+and size_t) in their interface and implementation. This adds a marginal increase in safety. (Mostly due to
+the interface.) */
+//define MSE_MSEVECTOR_USE_MSE_PRIMITIVES 1
+//define MSE_MSEARRAY_USE_MSE_PRIMITIVES 1
+
 #define MSE_SELF_TESTS
 
 //include "msetl.h"

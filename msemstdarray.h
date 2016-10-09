@@ -134,21 +134,21 @@ namespace mse {
 			_Myt& operator=(const _MA& _X) { m_msearray.operator=(_X); return (*this); }
 			_Myt& operator=(_Myt&& _X) { m_msearray.operator=(std::move(_X.msearray())); return (*this); }
 			_Myt& operator=(const _Myt& _X) { m_msearray.operator=(_X.msearray()); return (*this); }
-			typename _MA::const_reference operator[](size_t _P) const { return m_msearray.operator[](_P); }
-			typename _MA::reference operator[](size_t _P) { return m_msearray.operator[](_P); }
+			_CONST_FUN typename _MA::const_reference operator[](size_type _P) const { return m_msearray.operator[](_P); }
+			typename _MA::reference operator[](size_type _P) { return m_msearray.operator[](_P); }
 			void fill(const _Ty& _Value) { m_msearray.fill(_Value); }
 			void swap(_MA& _X) { m_msearray.swap(_X); }
 			void swap(_Myt& _X) { m_msearray.swap(_X.msearray()); }
 
-			size_t size() const _NOEXCEPT { return m_msearray.size(); }
-			size_t max_size() const _NOEXCEPT { return m_msearray.max_size(); }
-			bool empty() const _NOEXCEPT { return m_msearray.empty(); }
-			typename _MA::const_reference at(size_t _Pos) const { return m_msearray.at(_Pos); }
-			typename _MA::reference at(size_t _Pos) { return m_msearray.at(_Pos); }
+			_CONST_FUN size_type size() const _NOEXCEPT { return m_msearray.size(); }
+			_CONST_FUN size_type max_size() const _NOEXCEPT { return m_msearray.max_size(); }
+			_CONST_FUN bool empty() const _NOEXCEPT { return m_msearray.empty(); }
+			_CONST_FUN typename _MA::const_reference at(size_type _Pos) const { return m_msearray.at(_Pos); }
+			typename _MA::reference at(size_type _Pos) { return m_msearray.at(_Pos); }
 			typename _MA::reference front() { return m_msearray.front(); }
-			typename _MA::const_reference front() const { return m_msearray.front(); }
+			_CONST_FUN typename _MA::const_reference front() const { return m_msearray.front(); }
 			typename _MA::reference back() { return m_msearray.back(); }
-			typename _MA::const_reference back() const { return m_msearray.back(); }
+			_CONST_FUN typename _MA::const_reference back() const { return m_msearray.back(); }
 
 
 			class const_iterator {
@@ -204,7 +204,7 @@ namespace mse {
 				typename _MA::const_reference item() const { return operator*(); }
 				typename _MA::const_reference previous_item() const { return msearray_ss_const_iterator_type().previous_item(); }
 				typename _MA::const_pointer operator->() const { return msearray_ss_const_iterator_type().operator->(); }
-				typename _MA::const_reference operator[](typename _MA::difference_type _Off) const { return (*(*this + _Off)); }
+				typename _MA::const_reference operator[](typename _MA::difference_type _Off) const { return msearray_ss_const_iterator_type()[_Off]; }
 				bool operator==(const const_iterator& _Right_cref) const { return msearray_ss_const_iterator_type().operator==(_Right_cref.msearray_ss_const_iterator_type()); }
 				bool operator!=(const const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
 				bool operator<(const const_iterator& _Right) const { return (msearray_ss_const_iterator_type() < _Right.msearray_ss_const_iterator_type()); }
@@ -282,7 +282,7 @@ namespace mse {
 				typename _MA::reference item() const { return operator*(); }
 				typename _MA::reference previous_item() const { return msearray_ss_iterator_type().previous_item(); }
 				typename _MA::pointer operator->() const { return msearray_ss_iterator_type().operator->(); }
-				typename _MA::reference operator[](typename _MA::difference_type _Off) const { return (*(*this + _Off)); }
+				typename _MA::reference operator[](typename _MA::difference_type _Off) const { return msearray_ss_iterator_type()[_Off]; }
 				bool operator==(const iterator& _Right_cref) const { return msearray_ss_iterator_type().operator==(_Right_cref.msearray_ss_iterator_type()); }
 				bool operator!=(const iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
 				bool operator<(const iterator& _Right) const { return (msearray_ss_iterator_type() < _Right.msearray_ss_iterator_type()); }

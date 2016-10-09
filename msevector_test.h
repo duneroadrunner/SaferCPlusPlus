@@ -128,8 +128,8 @@ namespace mse {
 
 			EXAM_CHECK(v2.size() == 1);
 			EXAM_CHECK(v2[0] == 3.56);
-			size_t v1Cap = v1.capacity();
-			size_t v2Cap = v2.capacity();
+			msev_size_t v1Cap = v1.capacity();
+			msev_size_t v2Cap = v2.capacity();
 
 			v1.swap(v2); // Swap the vector's contents.
 
@@ -691,8 +691,8 @@ namespace mse {
 			V *pv1 = new V(1, 1);
 			V *pv2 = new V(10, 2);
 
-			size_t v1Capacity = pv1->capacity();
-			size_t v2Capacity = pv2->capacity();
+			msev_size_t v1Capacity = pv1->capacity();
+			msev_size_t v2Capacity = pv2->capacity();
 
 			pv1->swap(*pv2);
 
@@ -804,8 +804,8 @@ namespace mse {
 
 			EXAM_CHECK(v2.size() == 1);
 			EXAM_CHECK(v2[0] == 3.56);
-			size_t v1Cap = v1.capacity();
-			size_t v2Cap = v2.capacity();
+			msev_size_t v1Cap = v1.capacity();
+			msev_size_t v2Cap = v2.capacity();
 
 			v1.swap(v2); // Swap the vector's contents.
 
@@ -1092,8 +1092,8 @@ namespace mse {
 
 			EXAM_CHECK(v2.size() == 1);
 			EXAM_CHECK(v2[0] == 3.56);
-			size_t v1Cap = v1.capacity();
-			size_t v2Cap = v2.capacity();
+			msev_size_t v1Cap = v1.capacity();
+			msev_size_t v2Cap = v2.capacity();
 
 			v1.swap(v2); // Swap the vector's contents.
 
@@ -1403,8 +1403,8 @@ namespace mse {
 
 			EXAM_CHECK(v2.size() == 1);
 			EXAM_CHECK(v2[0] == 3.56);
-			size_t v1Cap = v1.capacity();
-			size_t v2Cap = v2.capacity();
+			msev_size_t v1Cap = v1.capacity();
+			msev_size_t v2Cap = v2.capacity();
 
 			v1.swap(v2); // Swap the vector's contents.
 
