@@ -778,13 +778,8 @@ namespace mse {
 
 		//size_t m_debug_size;
 
-		/* Note that, at the moment, mm_const_iterator_type inherits publicly from typename base_class::const_iterator. This is not intended to be a permanent
-		characteristc of mm_const_iterator_type and any reference to, or interpretation of, an mm_const_iterator_type as an typename base_class::const_iterator is (and has
-		always been) depricated. mm_const_iterator_type endeavors to support (and continue to support) the subset of the typename base_class::const_iterator
-		interface that is compatible with the security/safety goals of mm_const_iterator_type.
-		In particular, keep in mind that typename base_class::const_iterator does not have a virtual destructor, so deallocating an mm_const_iterator_type as an
-		typename base_class::const_iterator would result in memory leaks. */
-		class mm_const_iterator_type : public base_class::const_iterator {
+		/* mm_const_iterator_type acts much like a list iterator. */
+		class mm_const_iterator_type {
 		public:
 			typedef typename base_class::const_iterator::iterator_category iterator_category;
 			typedef typename base_class::const_iterator::value_type value_type;
@@ -816,7 +811,6 @@ namespace mse {
 			bool has_previous() const { return (!points_to_beginning()); }
 			void set_to_beginning() {
 				m_index = 0;
-				base_class::const_iterator::operator=(m_owner_cptr->cbegin());
 				if (1 <= m_owner_cptr->size()) {
 					m_points_to_an_item = true;
 				}
@@ -824,13 +818,11 @@ namespace mse {
 			}
 			void set_to_end_marker() {
 				m_index = m_owner_cptr->size();
-				base_class::const_iterator::operator=(m_owner_cptr->cend());
 				m_points_to_an_item = false;
 			}
 			void set_to_next() {
 				if (points_to_an_item()) {
 					m_index += 1;
-					base_class::const_iterator::operator++();
 					if (m_owner_cptr->size() <= m_index) {
 						(*this).m_points_to_an_item = false;
 						if (m_owner_cptr->size() < m_index) { assert(false); reset(); }
@@ -843,7 +835,6 @@ namespace mse {
 			void set_to_previous() {
 				if (has_previous()) {
 					m_index -= 1;
-					base_class::const_iterator::operator--();
 					(*this).m_points_to_an_item = true;
 				}
 				else {
@@ -861,7 +852,6 @@ namespace mse {
 				}
 				else {
 					m_index = msev_size_t(new_index);
-					base_class::const_iterator::operator+=(typename base_class::iterator::difference_type(n));
 					if (m_owner_cptr->size() <= m_index) {
 						(*this).m_points_to_an_item = false;
 					}
@@ -882,7 +872,7 @@ namespace mse {
 			mm_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const mm_const_iterator_type &rhs) const {
 				if ((rhs.m_owner_cptr) != ((*this).m_owner_cptr)) { MSE_THROW(std::out_of_range("invalid argument - difference_type operator-(const mm_const_iterator_type &rhs) const - msevector::mm_const_iterator_type")); }
-				auto retval = (static_cast<const typename base_class::const_iterator&>(*this) - static_cast<const typename base_class::const_iterator&>(rhs));
+				auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
 				assert(difference_type(m_owner_cptr->size()) >= retval);
 				return retval;
 			}
@@ -923,7 +913,6 @@ namespace mse {
 					assert((*this).m_owner_cptr->size() >= _Right_cref.m_index);
 					(*this).m_points_to_an_item = _Right_cref.m_points_to_an_item;
 					(*this).m_index = _Right_cref.m_index;
-					base_class::const_iterator::operator=(_Right_cref);
 				}
 				else {
 					MSE_THROW(std::out_of_range("doesn't seem to be a valid assignment value - mm_const_iterator_type& operator=(const typename base_class::iterator& _Right_cref) - mm_const_iterator_type - msevector"));
@@ -965,14 +954,18 @@ namespace mse {
 			msev_size_t position() const {
 				return m_index;
 			}
+			operator typename base_class::const_iterator() const {
+				typename base_class::const_iterator retval = (*m_owner_cptr).cbegin();
+				retval += msev_as_a_size_t(m_index);
+				return retval;
+			}
+
 			/* We actually want to make this constructor private, but doing so seems to break std::make_shared<mm_const_iterator_type>.  */
 			mm_const_iterator_type(const _Myt& owner_cref) : m_owner_cptr(&owner_cref) { set_to_beginning(); }
 		private:
 			mm_const_iterator_type(const mm_const_iterator_type& src_cref) : m_owner_cptr(src_cref.m_owner_cptr) { (*this) = src_cref; }
 			void sync_const_iterator_to_index() {
 				assert(m_owner_cptr->size() >= (*this).m_index);
-				base_class::const_iterator::operator=(m_owner_cptr->cbegin());
-				base_class::const_iterator::operator+=(msev_as_a_size_t(m_index));
 			}
 			msev_bool m_points_to_an_item = false;
 			msev_size_t m_index = 0;
@@ -981,13 +974,8 @@ namespace mse {
 			friend class /*_Myt*/msevector<_Ty, _A>;
 			friend class mm_iterator_type;
 		};
-		/* Note that, at the moment, mm_iterator_type inherits publicly from base_class::iterator. This is not intended to be a permanent
-		characteristc of mm_iterator_type and any reference to, or interpretation of, an mm_iterator_type as an base_class::iterator is (and has
-		always been) depricated. mm_iterator_type endeavors to support (and continue to support) the subset of the base_class::iterator
-		interface that is compatible with the security/safety goals of mm_iterator_type.
-		In particular, keep in mind that base_class::iterator does not have a virtual destructor, so deallocating an mm_iterator_type as an
-		base_class::iterator would result in memory leaks. */
-		class mm_iterator_type : public base_class::iterator {
+		/* mm_iterator_type acts much like a list iterator. */
+		class mm_iterator_type {
 		public:
 			typedef typename base_class::iterator::iterator_category iterator_category;
 			typedef typename base_class::iterator::value_type value_type;
@@ -1017,7 +1005,6 @@ namespace mse {
 			bool has_previous() const { return (!points_to_beginning()); }
 			void set_to_beginning() {
 				m_index = 0;
-				base_class::iterator::operator=(m_owner_ptr->begin());
 				if (1 <= m_owner_ptr->size()) {
 					m_points_to_an_item = true;
 				}
@@ -1025,13 +1012,11 @@ namespace mse {
 			}
 			void set_to_end_marker() {
 				m_index = m_owner_ptr->size();
-				base_class::iterator::operator=(m_owner_ptr->end());
 				m_points_to_an_item = false;
 			}
 			void set_to_next() {
 				if (points_to_an_item()) {
 					m_index += 1;
-					base_class::iterator::operator++();
 					if (m_owner_ptr->size() <= m_index) {
 						(*this).m_points_to_an_item = false;
 						if (m_owner_ptr->size() < m_index) { assert(false); reset(); }
@@ -1044,7 +1029,6 @@ namespace mse {
 			void set_to_previous() {
 				if (has_previous()) {
 					m_index -= 1;
-					base_class::iterator::operator--();
 					(*this).m_points_to_an_item = true;
 				}
 				else {
@@ -1062,7 +1046,6 @@ namespace mse {
 				}
 				else {
 					m_index = msev_size_t(new_index);
-					base_class::iterator::operator+=(typename base_class::iterator::difference_type(n));
 					if (m_owner_ptr->size() <= m_index) {
 						(*this).m_points_to_an_item = false;
 					}
@@ -1083,7 +1066,7 @@ namespace mse {
 			mm_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const mm_iterator_type& rhs) const {
 				if ((rhs.m_owner_ptr) != ((*this).m_owner_ptr)) { MSE_THROW(std::out_of_range("invalid argument - difference_type operator-(const mm_iterator_type& rhs) const - msevector::mm_iterator_type")); }
-				auto retval = (static_cast<const typename base_class::iterator&>(*this) - static_cast<const typename base_class::iterator&>(rhs));
+				auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
 				assert(difference_type(m_owner_ptr->size()) >= retval);
 				return retval;
 			}
@@ -1124,7 +1107,6 @@ namespace mse {
 					assert((*this).m_owner_ptr->size() >= _Right_cref.m_index);
 					(*this).m_points_to_an_item = _Right_cref.m_points_to_an_item;
 					(*this).m_index = _Right_cref.m_index;
-					base_class::iterator::operator=(_Right_cref);
 				}
 				else {
 					MSE_THROW(std::out_of_range("doesn't seem to be a valid assignment value - mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref) - mm_const_iterator_type - msevector"));
@@ -1166,8 +1148,8 @@ namespace mse {
 			msev_size_t position() const {
 				return m_index;
 			}
-			operator mm_const_iterator_type() const {
-				mm_const_iterator_type retval(*m_owner_ptr);
+			operator mm_iterator_type() const {
+				mm_iterator_type retval(*m_owner_ptr);
 				retval.set_to_beginning();
 				retval.advance(msev_int(m_index));
 				return retval;
@@ -1178,8 +1160,6 @@ namespace mse {
 			mm_iterator_type(const mm_iterator_type& src_cref) : m_owner_ptr(src_cref.m_owner_ptr) { (*this) = src_cref; }
 			void sync_iterator_to_index() {
 				assert(m_owner_ptr->size() >= (*this).m_index);
-				base_class::iterator::operator=(m_owner_ptr->begin());
-				base_class::iterator::operator+=(msev_as_a_size_t(m_index));
 			}
 			msev_bool m_points_to_an_item = false;
 			msev_size_t m_index = 0;
@@ -1966,12 +1946,7 @@ namespace mse {
 			}
 			const_reference item() const { return operator*(); }
 			const_reference previous_item() const {
-				if ((*this).has_previous()) {
-					return (*m_owner_cptr)[msev_as_a_size_t(m_index - 1)];
-				}
-				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - const_reference previous_item() const - ss_const_iterator_type - msevector"));
-				}
+				return m_owner_cptr->at(msev_as_a_size_t(m_index - 1));
 			}
 			const_pointer operator->() const {
 				return &((*m_owner_cptr).at(msev_as_a_size_t((*this).m_index)));
@@ -2150,12 +2125,7 @@ namespace mse {
 			}
 			reference item() const { return operator*(); }
 			reference previous_item() const {
-				if ((*this).has_previous()) {
-					return (*m_owner_ptr)[msev_as_a_size_t(m_index - 1)];
-				}
-				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - reference previous_item() - ss_const_iterator_type - msevector"));
-				}
+				return m_owner_ptr->at(msev_as_a_size_t(m_index - 1));
 			}
 			pointer operator->() const {
 				return &((*m_owner_ptr).at(msev_as_a_size_t((*this).m_index)));
@@ -2226,6 +2196,12 @@ namespace mse {
 				}
 				return retval;
 			}
+			operator typename base_class::iterator() const {
+				typename base_class::iterator retval = (*m_owner_ptr).begin();
+				retval += msev_as_a_size_t(m_index);
+				return retval;
+			}
+
 		private:
 			void sync_iterator_to_index() {
 				assert(m_owner_ptr->size() >= (*this).m_index);
