@@ -34,6 +34,11 @@ the interface.) */
 //define MSE_MSEVECTOR_USE_MSE_PRIMITIVES 1
 //define MSE_MSEARRAY_USE_MSE_PRIMITIVES 1
 
+/* msvc2015's incomplete support for "constexpr" means that range checks that should be done at compile time would
+be done at run time, at significant cost. So they are disabled by default for that compiler. Here we're "forcing"
+them to be enabled. */
+#define MSE_FORCE_PRIMITIVE_ASSIGN_RANGE_CHECK_ENABLED
+
 #define MSE_SELF_TESTS
 
 //include "msetl.h"

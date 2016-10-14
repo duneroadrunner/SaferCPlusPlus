@@ -20,6 +20,9 @@
 #if (1900 > _MSC_VER)
 #define MSVC2013_COMPATIBLE 1
 #endif /*(1900 > _MSC_VER)*/
+#if (2000 > _MSC_VER)
+#define MSVC2015_COMPATIBLE 1
+#endif /*(1900 > _MSC_VER)*/
 #else /*_MSC_VER*/
 #if (defined(__GNUC__) || defined(__GNUG__))
 #define GPP_COMPATIBLE 1
@@ -39,6 +42,15 @@
 #else // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
 #define MSE_CONSTEXPR constexpr
 #endif // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
+
+#ifdef MSVC2015_COMPATIBLE
+#ifndef MSE_FORCE_PRIMITIVE_ASSIGN_RANGE_CHECK_ENABLED
+/* msvc2015's incomplete support for "constexpr" means that range checks that should be done at compile time would
+be done at run time, at significant cost. So by default we disable range checks upon assignment. */
+#define MSE_PRIMITIVE_ASSIGN_RANGE_CHECK_DISABLED 1
+#endif // !MSE_FORCE_PRIMITIVE_ASSIGN_RANGE_CHECK_ENABLED
+#endif // MSVC2015_COMPATIBLE
+
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
@@ -129,7 +141,8 @@ namespace mse {
 
 	template<typename _TDestination, typename _TSource>
 	void g_assign_check_range(const _TSource &x) {
-		/* This probably needs to be cleaned up. But at the moment it this should be mostly compile time complexity. And
+#ifndef MSE_PRIMITIVE_ASSIGN_RANGE_CHECK_DISABLED
+		/* This probably needs to be cleaned up. But at the moment this should be mostly compile time complexity. And
 		as is it avoids "signed/unsigned" mismatch warnings. */
 		MSE_CONSTEXPR const bool rhs_can_exceed_upper_bound = sg_can_exceed_upper_bound<_TDestination, _TSource>();
 		MSE_CONSTEXPR const bool rhs_can_exceed_lower_bound = sg_can_exceed_lower_bound<_TDestination, _TSource>();
@@ -152,6 +165,7 @@ namespace mse {
 				}
 			}
 		}
+#endif // !MSE_PRIMITIVE_ASSIGN_RANGE_CHECK_DISABLED
 	}
 
 	/* The CInt and CSize_t classes are meant to substitute for standard "int" and "size_t" types. The differences between

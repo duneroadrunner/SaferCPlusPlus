@@ -9,6 +9,7 @@
 #define MSESCOPE_H_
 
 #include "mseprimitives.h"
+#include "mseregistered.h" // Just for TSyncWeakFixedPointer. To do: Eliminate this dependency.
 #include <utility>
 #include <unordered_set>
 #include <functional>

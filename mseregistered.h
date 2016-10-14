@@ -75,7 +75,6 @@ namespace mse {
 				(*m_ptr_to_regptr_set_ptr).insert(item);
 			}
 			else {
-				/* We're gonna use a bunch of (ugly) hard coded cases to try to make fast mode fast. */
 				if (sc_fm1_max_pointers == m_fm1_num_pointers) {
 					/* Too many pointers. Initiate and switch to slow mode. */
 					/* Initialize slow storage. */
@@ -90,6 +89,8 @@ namespace mse {
 					(*m_ptr_to_regptr_set_ptr).insert(item);
 				}
 				else {
+#ifdef MSE_RP_SPECIAL_CASE_OPTIMIZATIONS
+					/* We're gonna use a bunch of (ugly) hard coded cases to try to make fast mode fast. */
 					if (1 == sc_fm1_max_pointers) {
 						m_fm1_ptr_to_regptr_array[0] = (&sp_ref);
 						m_fm1_num_pointers = 1;
@@ -105,7 +106,9 @@ namespace mse {
 							m_fm1_num_pointers = 1;
 						}
 					}
-					else {
+					else 
+#endif // MSE_RP_SPECIAL_CASE_OPTIMIZATIONS
+					{
 						m_fm1_ptr_to_regptr_array[m_fm1_num_pointers] = (&sp_ref);
 						m_fm1_num_pointers += 1;
 					}
@@ -118,6 +121,7 @@ namespace mse {
 				assert(0 != res);
 			}
 			else {
+#ifdef MSE_RP_SPECIAL_CASE_OPTIMIZATIONS
 				/* We're gonna use a bunch of (ugly) hard coded cases to try to make fast mode fast. */
 				if (1 == sc_fm1_max_pointers) {
 					if (1 == m_fm1_num_pointers) {
@@ -141,7 +145,9 @@ namespace mse {
 					}
 					else { /* There are no registered pointers to be unregistered. */ assert(false); }
 				}
-				else {
+				else 
+#endif // MSE_RP_SPECIAL_CASE_OPTIMIZATIONS
+				{
 					int found_index = -1;
 					for (int i = 0; i < m_fm1_num_pointers; i += 1) {
 						if ((&sp_ref) == m_fm1_ptr_to_regptr_array[i]) {
@@ -167,6 +173,7 @@ namespace mse {
 				}
 			}
 			else {
+#ifdef MSE_RP_SPECIAL_CASE_OPTIMIZATIONS
 				/* We're gonna use a bunch of (ugly) hard coded cases to try to make fast mode fast. */
 				if (1 == sc_fm1_max_pointers) {
 					if (0 == m_fm1_num_pointers) {
@@ -191,7 +198,9 @@ namespace mse {
 						m_fm1_num_pointers = 0;
 					}
 				}
-				else {
+				else 
+#endif // MSE_RP_SPECIAL_CASE_OPTIMIZATIONS
+				{
 					for (int i = 0; i < m_fm1_num_pointers; i += 1) {
 						(*(m_fm1_ptr_to_regptr_array[i])).setToNull();
 					}
