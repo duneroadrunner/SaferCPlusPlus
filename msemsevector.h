@@ -51,8 +51,14 @@ namespace mse {
 	typedef bool msev_bool; // no added safety benefit to using mse::CBool in this case
 	#define msev_as_a_size_t as_a_size_t
 #else // MSE_MSEVECTOR_USE_MSE_PRIMITIVES
+#if SIZE_MAX <= ULONG_MAX
+#define MSE_MSEVECTOR_BASE_INTEGER_TYPE long int
+#else // SIZE_MAX <= ULONG_MAX
+#define MSE_MSEVECTOR_BASE_INTEGER_TYPE long long int
+#endif // SIZE_MAX <= ULONG_MAX
+
 	typedef size_t msev_size_t;
-	typedef long long int msev_int;
+	typedef MSE_MSEVECTOR_BASE_INTEGER_TYPE msev_int;
 	typedef bool msev_bool;
 	typedef size_t msev_as_a_size_t;
 #endif // MSE_MSEVECTOR_USE_MSE_PRIMITIVES
@@ -886,7 +892,7 @@ namespace mse {
 			const_pointer operator->() const {
 				return &(m_owner_cptr->at(msev_as_a_size_t(m_index)));
 			}
-			const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(msear_as_a_size_t(difference_type(m_index) + _Off)); }
+			const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
 			/*
 			mm_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref)
 			{
@@ -1080,7 +1086,7 @@ namespace mse {
 			pointer operator->() const {
 				return &(m_owner_ptr->at(msev_as_a_size_t(m_index)));
 			}
-			reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msear_as_a_size_t(difference_type(m_index) + _Off)); }
+			reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
 			/*
 			mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref)
 			{

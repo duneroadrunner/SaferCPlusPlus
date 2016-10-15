@@ -58,8 +58,14 @@ namespace mse {
 	typedef bool msear_bool; // no added safety benefit to using mse::CBool in this case
 	#define msear_as_a_size_t as_a_size_t
 #else // MSE_MSEARRAY_USE_MSE_PRIMITIVES
+#if SIZE_MAX <= ULONG_MAX
+#define MSE_MSEARRAY_BASE_INTEGER_TYPE long int
+#else // SIZE_MAX <= ULONG_MAX
+#define MSE_MSEARRAY_BASE_INTEGER_TYPE long long int
+#endif // SIZE_MAX <= ULONG_MAX
+
 	typedef size_t msear_size_t;
-	typedef long long int msear_int;
+	typedef MSE_MSEARRAY_BASE_INTEGER_TYPE msear_int;
 	typedef bool msear_bool;
 	typedef size_t msear_as_a_size_t;
 #endif // MSE_MSEARRAY_USE_MSE_PRIMITIVES
