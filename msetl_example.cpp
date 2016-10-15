@@ -926,7 +926,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-#ifdef MSEREGISTEREDREFWRAPPER
+#if defined(MSEREGISTEREDREFWRAPPER) && !defined(MSE_PRIMITIVES_DISABLED)
 	{
 		/*****************************/
 		/*   TRegisteredRefWrapper   */
@@ -982,7 +982,7 @@ int main(int argc, char* argv[])
 			std::cout << foo << '\n';
 		}
 	}
-#endif // MSEREGISTEREDREFWRAPPER
+#endif // defined(MSEREGISTEREDREFWRAPPER) && !defined(MSE_PRIMITIVES_DISABLED)
 
 	{
 		/*****************************/
@@ -1125,6 +1125,7 @@ int main(int argc, char* argv[])
 		TRefCountingOfRegisteredPointer_test1.test1();
 	}
 
+#ifndef MSE_PRIMITIVES_DISABLED
 	{
 		/********************************************/
 		/*  TRefCountingOfRelaxedRegisteredPointer  */
@@ -1190,6 +1191,7 @@ int main(int argc, char* argv[])
 		TRefCountingOfRelaxedRegisteredPointer_test1_res &= TRefCountingOfRelaxedRegisteredPointer_test1.testLinked();
 		TRefCountingOfRelaxedRegisteredPointer_test1.test1();
 	}
+#endif // !MSE_PRIMITIVES_DISABLED
 
 	{
 		/*************************/

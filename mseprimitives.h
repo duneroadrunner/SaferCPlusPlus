@@ -60,6 +60,15 @@ be done at run time, at significant cost. So by default we disable range checks 
 #endif // MSE_CUSTOM_THROW_DEFINITION
 
 
+#ifndef MSE_CINT_BASE_INTEGER_TYPE
+#if SIZE_MAX <= ULONG_MAX
+#define MSE_CINT_BASE_INTEGER_TYPE long int
+#else // SIZE_MAX <= ULONG_MAX
+#define MSE_CINT_BASE_INTEGER_TYPE long long int
+#endif // SIZE_MAX <= ULONG_MAX
+#endif // !MSE_CINT_BASE_INTEGER_TYPE
+
+
 namespace mse {
 
 	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
@@ -73,7 +82,7 @@ namespace mse {
 	code that relies on it. */
 #ifdef MSE_PRIMITIVES_DISABLED
 	typedef bool CBool;
-	typedef long long int CInt;
+	typedef MSE_CINT_BASE_INTEGER_TYPE CInt;
 	typedef size_t CSize_t;
 	static size_t as_a_size_t(CSize_t n) { return (n); }
 #else /*MSE_PRIMITIVES_DISABLED*/
@@ -203,14 +212,6 @@ namespace mse {
 		void assert_initialized() const {}
 #endif // MSE_CHECK_USE_BEFORE_SET
 	};
-
-#ifndef MSE_CINT_BASE_INTEGER_TYPE
-#if SIZE_MAX <= ULONG_MAX
-#define MSE_CINT_BASE_INTEGER_TYPE long int
-#else // SIZE_MAX <= ULONG_MAX
-#define MSE_CINT_BASE_INTEGER_TYPE long long int
-#endif // SIZE_MAX <= ULONG_MAX
-#endif // !MSE_CINT_BASE_INTEGER_TYPE
 
 	class CInt : public TIntBase1<MSE_CINT_BASE_INTEGER_TYPE> {
 	public:
