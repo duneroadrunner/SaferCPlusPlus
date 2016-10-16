@@ -35,6 +35,7 @@
 #include <memory>
 #include <unordered_map>
 #include <functional>
+#include <climits>       // ULONG_MAX
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>

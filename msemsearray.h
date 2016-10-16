@@ -36,6 +36,7 @@
 #include <unordered_map>
 #include <functional>
 #include <tuple>
+#include <climits>       // ULONG_MAX
 #ifdef MSE_SELF_TESTS
 #include <iostream>
 #include <string>

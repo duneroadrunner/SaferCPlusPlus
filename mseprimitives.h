@@ -9,6 +9,7 @@
 #define MSEPRIMITIVES_H
 
 #include <assert.h>
+#include <climits>       // ULONG_MAX
 #include <limits>       // std::numeric_limits
 #include <stdexcept>      // std::out_of_range
 
