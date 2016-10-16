@@ -36,6 +36,12 @@ mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 
 namespace mse {
 
+	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
+	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
+#define MSE_SCOPE_USING(Derived, Base) \
+    template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
+    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
+
 #ifdef MSE_SCOPEPOINTER_DISABLED
 	template<typename _Ty> using TXScopePointer = _Ty*;
 	template<typename _Ty> using TXScopeConstPointer = const _Ty*;
@@ -46,12 +52,6 @@ namespace mse {
 	template<typename _TROy> using TXScopeObj = _TROy;
 
 #else /*MSE_SCOPEPOINTER_DISABLED*/
-
-	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
-	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
-#define MSE_SCOPE_USING(Derived, Base) \
-    template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
-    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
 #ifdef MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
 

@@ -414,6 +414,7 @@ namespace mse {
 	}
 }
 
+#ifndef MSE_MSTDARRAY_DISABLED
 namespace std {
 
 	template<class _Ty, size_t _Size>
@@ -452,6 +453,7 @@ namespace std {
 		return (_STD move(std::get<_Idx>(_Arr.m_msearray)));
 	}
 }
+#endif // !MSE_MSTDARRAY_DISABLED
 
 namespace mse {
 	namespace mstd {

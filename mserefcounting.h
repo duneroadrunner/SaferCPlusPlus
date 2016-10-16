@@ -35,9 +35,9 @@ namespace mse {
 	template <class X> using TRefCountingPointer = std::shared_ptr<X>;
 	template <class X> using TRefCountingNotNullPointer = std::shared_ptr<X>;
 	template <class X> using TRefCountingFixedPointer = std::shared_ptr<X>;
-	template <class X> using TRefCountingConstPointer = std::shared_ptr<X>;
-	template <class X> using TRefCountingNotNullConstPointer = std::shared_ptr<X>;
-	template <class X> using TRefCountingFixedConstPointer = std::shared_ptr<X>;
+	template <class X> using TRefCountingConstPointer = std::shared_ptr<const X>;
+	template <class X> using TRefCountingNotNullConstPointer = std::shared_ptr<const X>;
+	template <class X> using TRefCountingFixedConstPointer = std::shared_ptr<const X>;
 
 	template <class X, class... Args>
 	TRefCountingFixedPointer<X> make_refcounting(Args&&... args) {

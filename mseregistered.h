@@ -31,7 +31,6 @@ namespace mse {
 	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredFixedPointer = _Ty*;
 	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredFixedConstPointer = const _Ty*;
 	template<typename _TROy, int _Tn = sc_default_cache_size> using TRegisteredObj = _TROy;
-	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
 	template <class _TRRWy, int _TRRWn = sc_default_cache_size> using TRegisteredRefWrapper = std::reference_wrapper<_TRRWy>;
 
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/

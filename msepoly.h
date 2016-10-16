@@ -46,8 +46,10 @@ namespace mse {
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TStrongFixedPointer<_Ty, TRefCountingPointer<_Ty>>::operator _Ty*(); }
 
+#ifndef MSE_SCOPEPOINTER_DISABLED
 	protected:
 		TRefCountingOrXScopeFixedPointer(_Ty* ptr) : TStrongFixedPointer<_Ty, TRefCountingPointer<_Ty>>(*ptr, TRefCountingPointer<_Ty>()) {}
+#endif // !MSE_SCOPEPOINTER_DISABLED
 	private:
 		TRefCountingOrXScopeFixedPointer<_Ty>& operator=(const TRefCountingOrXScopeFixedPointer<_Ty>& _Right_cref) = delete;
 
@@ -78,8 +80,10 @@ namespace mse {
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>::operator _Ty*(); }
 
+#ifndef MSE_SCOPEPOINTER_DISABLED
 	protected:
 		TRefCountingOrXScopeFixedConstPointer(_Ty* ptr) : TStrongFixedConstPointer<_Ty, TRefCountingConstPointer<_Ty>>(*ptr, TRefCountingConstPointer<_Ty>()) {}
+#endif // !MSE_SCOPEPOINTER_DISABLED
 	private:
 		TRefCountingOrXScopeFixedConstPointer<_Ty>& operator=(const TRefCountingOrXScopeFixedConstPointer<_Ty>& _Right_cref) = delete;
 
