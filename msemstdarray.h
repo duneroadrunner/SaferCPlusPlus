@@ -161,16 +161,16 @@ namespace mse {
 				typedef typename _MA::ss_const_iterator_type::reference reference;
 
 				const_iterator() {}
-				const_iterator(const const_iterator& src_cref) : m_msearray_regptr(src_cref.m_msearray_regptr) {
+				const_iterator(const const_iterator& src_cref) : m_msearray_regcptr(src_cref.m_msearray_regcptr) {
 					(*this) = src_cref;
 				}
 				~const_iterator() {}
 				const typename _MA::ss_const_iterator_type& msearray_ss_const_iterator_type() const {
-					if (!m_msearray_regptr) { MSE_THROW(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
+					if (!m_msearray_regcptr) { MSE_THROW(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
 					return m_ss_const_iterator;
 				}
 				typename _MA::ss_const_iterator_type& msearray_ss_const_iterator_type() {
-					if (!m_msearray_regptr) { MSE_THROW(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
+					if (!m_msearray_regcptr) { MSE_THROW(std::out_of_range("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
 					return m_ss_const_iterator;
 				}
 				const typename _MA::ss_const_iterator_type& mvssci() const { return msearray_ss_const_iterator_type(); }
@@ -214,11 +214,11 @@ namespace mse {
 				void set_to_const_item_pointer(const const_iterator& _Right_cref) { msearray_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msearray_ss_const_iterator_type()); }
 				msear_size_t position() const { return msearray_ss_const_iterator_type().position(); }
 			private:
-				const_iterator(std::shared_ptr<_MA> msearray_shptr) : m_msearray_regptr(msearray_shptr) {
-					m_ss_const_iterator = msearray_shptr->ss_cbegin();
+				const_iterator(mse::TRegisteredConstPointer<_MA> msearray_regcptr) : m_msearray_regcptr(msearray_regcptr) {
+					m_ss_const_iterator = msearray_regcptr->ss_cbegin();
 				}
-				mse::TRegisteredPointer<_MA> m_msearray_regptr = nullptr;
-				/* m_ss_const_iterator needs to be declared after m_msearray_regptr so that it's destructor will be called first. */
+				mse::TRegisteredConstPointer<_MA> m_msearray_regcptr = nullptr;
+				/* m_ss_const_iterator needs to be declared after m_msearray_regcptr so that it's destructor will be called first. */
 				typename _MA::ss_const_iterator_type m_ss_const_iterator;
 				friend class /*_Myt*/array<_Ty, _Size>;
 				friend class iterator;
@@ -307,7 +307,7 @@ namespace mse {
 
 			const_iterator begin() const
 			{	// return iterator for beginning of nonmutable sequence
-				const_iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
+				const_iterator retval; retval.m_msearray_regcptr = &(this->m_msearray);
 				(retval.m_ss_const_iterator) = m_msearray.ss_begin();
 				return retval;
 			}
@@ -318,17 +318,17 @@ namespace mse {
 				return retval;
 			}
 			const_iterator end() const {	// return iterator for end of nonmutable sequence
-				const_iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
+				const_iterator retval; retval.m_msearray_regcptr = &(this->m_msearray);
 				(retval.m_ss_const_iterator) = m_msearray.ss_end();
 				return retval;
 			}
 			const_iterator cbegin() const {	// return iterator for beginning of nonmutable sequence
-				const_iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
+				const_iterator retval; retval.m_msearray_regcptr = &(this->m_msearray);
 				(retval.m_ss_const_iterator) = m_msearray.ss_cbegin();
 				return retval;
 			}
 			const_iterator cend() const {	// return iterator for end of nonmutable sequence
-				const_iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
+				const_iterator retval; retval.m_msearray_regcptr = &(this->m_msearray);
 				(retval.m_ss_const_iterator) = m_msearray.ss_cend();
 				return retval;
 			}
@@ -408,6 +408,97 @@ namespace mse {
 			static typename mse::msearray<_Ty, 7> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
 				if (7 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
 				typename mse::msearray<_Ty, 7> retval { *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 8> {
+		public:
+			static typename mse::msearray<_Ty, 8> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (8 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 8> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 9> {
+		public:
+			static typename mse::msearray<_Ty, 9> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (9 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 9> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 10> {
+		public:
+			static typename mse::msearray<_Ty, 10> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (10 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 10> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 11> {
+		public:
+			static typename mse::msearray<_Ty, 11> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (11 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 11> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 12> {
+		public:
+			static typename mse::msearray<_Ty, 12> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (12 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 12> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 13> {
+		public:
+			static typename mse::msearray<_Ty, 13> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (13 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 13> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 14> {
+		public:
+			static typename mse::msearray<_Ty, 14> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (14 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 14> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 15> {
+		public:
+			static typename mse::msearray<_Ty, 15> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (15 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 15> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 16> {
+		public:
+			static typename mse::msearray<_Ty, 16> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (16 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 16> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 17> {
+		public:
+			static typename mse::msearray<_Ty, 17> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (17 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 17> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 18> {
+		public:
+			static typename mse::msearray<_Ty, 18> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (18 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 18> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16), *(_Ilist.begin() + 17) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 19> {
+		public:
+			static typename mse::msearray<_Ty, 19> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (19 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 19> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16), *(_Ilist.begin() + 17), *(_Ilist.begin() + 18) }; return retval;
+			}
+		};
+		template<class _Ty> class array_helper_type<_Ty, 20> {
+		public:
+			static typename mse::msearray<_Ty, 20> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+				if (20 != _Ilist.size()) { MSE_THROW(std::out_of_range("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+				typename mse::msearray<_Ty, 20> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16), *(_Ilist.begin() + 17), *(_Ilist.begin() + 18), *(_Ilist.begin() + 19) }; return retval;
 			}
 		};
 #endif /*MSE_MSTDARRAY_DISABLED*/

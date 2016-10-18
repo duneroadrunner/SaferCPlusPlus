@@ -154,7 +154,7 @@ namespace mse {
 				typedef typename _MV::ss_const_iterator_type::reference reference;
 
 				const_iterator() {}
-				const_iterator(const const_iterator& src_cref) : m_msevector_shptr(src_cref.m_msevector_shptr) {
+				const_iterator(const const_iterator& src_cref) : m_msevector_cshptr(src_cref.m_msevector_cshptr) {
 					(*this) = src_cref;
 				}
 				~const_iterator() {}
@@ -201,11 +201,11 @@ namespace mse {
 				void set_to_const_item_pointer(const const_iterator& _Right_cref) { msevector_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msevector_ss_const_iterator_type()); }
 				msev_size_t position() const { return msevector_ss_const_iterator_type().position(); }
 			private:
-				const_iterator(std::shared_ptr<_MV> msevector_shptr) : m_msevector_shptr(msevector_shptr) {
+				const_iterator(std::shared_ptr<_MV> msevector_shptr) : m_msevector_cshptr(msevector_shptr) {
 					m_ss_const_iterator = msevector_shptr->ss_cbegin();
 				}
-				std::shared_ptr<_MV> m_msevector_shptr;
-				/* m_ss_const_iterator needs to be declared after m_msevector_shptr so that it's destructor will be called first. */
+				std::shared_ptr<const _MV> m_msevector_cshptr;
+				/* m_ss_const_iterator needs to be declared after m_msevector_cshptr so that it's destructor will be called first. */
 				typename _MV::ss_const_iterator_type m_ss_const_iterator;
 				friend class /*_Myt*/vector<_Ty, _A>;
 				friend class iterator;
@@ -288,7 +288,7 @@ namespace mse {
 
 			const_iterator begin() const
 			{	// return iterator for beginning of nonmutable sequence
-				const_iterator retval; retval.m_msevector_shptr = this->m_shptr;
+				const_iterator retval; retval.m_msevector_cshptr = this->m_shptr;
 				(retval.m_ss_const_iterator) = m_shptr->ss_begin();
 				return retval;
 			}
@@ -299,17 +299,17 @@ namespace mse {
 				return retval;
 			}
 			const_iterator end() const {	// return iterator for end of nonmutable sequence
-				const_iterator retval; retval.m_msevector_shptr = this->m_shptr;
+				const_iterator retval; retval.m_msevector_cshptr = this->m_shptr;
 				(retval.m_ss_const_iterator) = m_shptr->ss_end();
 				return retval;
 			}
 			const_iterator cbegin() const {	// return iterator for beginning of nonmutable sequence
-				const_iterator retval; retval.m_msevector_shptr = this->m_shptr;
+				const_iterator retval; retval.m_msevector_cshptr = this->m_shptr;
 				(retval.m_ss_const_iterator) = m_shptr->ss_cbegin();
 				return retval;
 			}
 			const_iterator cend() const {	// return iterator for end of nonmutable sequence
-				const_iterator retval; retval.m_msevector_shptr = this->m_shptr;
+				const_iterator retval; retval.m_msevector_cshptr = this->m_shptr;
 				(retval.m_ss_const_iterator) = m_shptr->ss_cend();
 				return retval;
 			}
