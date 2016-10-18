@@ -272,9 +272,12 @@ namespace mse {
 
 		CInt operator -() const { (*this).assert_initialized(); return CInt(-m_val); }
 		CInt& operator +=(const CInt &x) { (*this).assert_initialized(); m_val += x.m_val; return (*this); }
-		CInt& operator -=(const CInt &x) { (*this).assert_initialized();
-			if (0 <= std::numeric_limits<_Ty>::lowest()) { (*this).assert_initialized();
-				if (x.m_val > m_val) { (*this).assert_initialized(); /*check this*/
+		CInt& operator -=(const CInt &x) {
+			(*this).assert_initialized();
+			if (0 <= std::numeric_limits<_Ty>::lowest()) {
+				(*this).assert_initialized();
+				if (x.m_val > m_val) {
+					(*this).assert_initialized(); /*check this*/
 					MSE_THROW(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
 				}
 			}
@@ -378,20 +381,25 @@ namespace mse {
 
 		// INCREMENT/DECREMENT OPERATORS
 		CInt& operator ++() { (*this).assert_initialized(); m_val++; return (*this); }
-		CInt operator ++(int) { (*this).assert_initialized();
+		CInt operator ++(int) {
+			(*this).assert_initialized();
 			CInt tmp(*this); // copy
 			operator++(); // pre-increment
 			return tmp;   // return old value
 		}
-		CInt& operator --() { (*this).assert_initialized();
-			if (0 <= std::numeric_limits<_Ty>::lowest()) { (*this).assert_initialized();
+		CInt& operator --() {
+			(*this).assert_initialized();
+			if (0 <= std::numeric_limits<_Ty>::lowest()) {
+				(*this).assert_initialized();
 				(*this) = (*this) - 1; return (*this);
 			}
-			else { (*this).assert_initialized();
+			else {
+				(*this).assert_initialized();
 				m_val--; return (*this);
 			}
 		}
-		CInt operator --(int) { (*this).assert_initialized();
+		CInt operator --(int) {
+			(*this).assert_initialized();
 			CInt tmp(*this); // copy
 			operator--(); // pre-decrement
 			return tmp;   // return old value
@@ -399,7 +407,83 @@ namespace mse {
 
 		//_Ty m_val;
 	};
+}
 
+namespace std {
+#ifndef _THROW0
+#define _THROW0()
+#endif // !_THROW0
+#ifndef _STCONS
+#define _STCONS(ty, name, val)	static constexpr ty name = (ty)(val)
+#endif // !_STCONS
+
+	template<> class numeric_limits<mse::CInt> {	// limits for type int
+	public:
+		typedef int _Ty;
+
+		static constexpr _Ty(min)() _THROW0()
+		{	// return minimum value
+			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::min();
+		}
+		static constexpr _Ty(max)() _THROW0()
+		{	// return maximum value
+			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::max();
+		}
+		static constexpr _Ty lowest() _THROW0()
+		{	// return most negative value
+			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::lowest();
+		}
+		static constexpr _Ty epsilon() _THROW0()
+		{	// return smallest effective increment from 1.0
+			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::epsilon();
+		}
+		static constexpr _Ty round_error() _THROW0()
+		{	// return largest rounding error
+			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::round_error();
+		}
+		static constexpr _Ty denorm_min() _THROW0()
+		{	// return minimum denormalized value
+			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::denorm_min();
+		}
+		static constexpr _Ty infinity() _THROW0()
+		{	// return positive infinity
+			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::infinity();
+		}
+		static constexpr _Ty quiet_NaN() _THROW0()
+		{	// return non-signaling NaN
+			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::quiet_NaN();
+		}
+		static constexpr _Ty signaling_NaN() _THROW0()
+		{	// return signaling NaN
+			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::signaling_NaN();
+		}
+		_STCONS(float_denorm_style, has_denorm, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::has_denorm);
+		_STCONS(bool, has_denorm_loss, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::has_denorm_loss);
+		_STCONS(bool, has_infinity, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::has_infinity);
+		_STCONS(bool, has_quiet_NaN, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::has_quiet_NaN);
+		_STCONS(bool, has_signaling_NaN, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::has_signaling_NaN);
+		_STCONS(bool, is_bounded, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_bounded);
+		_STCONS(bool, is_exact, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_exact);
+		_STCONS(bool, is_iec559, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_iec559);
+		_STCONS(bool, is_integer, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_integer);
+		_STCONS(bool, is_modulo, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_modulo);
+		_STCONS(bool, is_signed, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_signed);
+		_STCONS(bool, is_specialized, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_specialized);
+		_STCONS(bool, tinyness_before, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::tinyness_before);
+		_STCONS(bool, traps, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::traps);
+		_STCONS(float_round_style, round_style, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::round_style);
+		_STCONS(int, digits, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::digits);
+		_STCONS(int, digits10, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::digits10);
+		_STCONS(int, max_digits10, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::max_digits10);
+		_STCONS(int, max_exponent, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::max_exponent);
+		_STCONS(int, max_exponent10, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::max_exponent10);
+		_STCONS(int, min_exponent, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::min_exponent);
+		_STCONS(int, min_exponent10, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::min_exponent10);
+		_STCONS(int, radix, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::radix);
+	};
+}
+
+namespace mse {
 	class CSize_t;
 	static size_t as_a_size_t(CSize_t n);
 
@@ -600,6 +684,83 @@ namespace mse {
 		friend size_t as_a_size_t(CSize_t n);
 	};
 	size_t as_a_size_t(CSize_t n) { n.assert_initialized(); return n.m_val; }
+}
+
+namespace std {
+#ifndef _THROW0
+#define _THROW0()
+#endif // !_THROW0
+#ifndef _STCONS
+#define _STCONS(ty, name, val)	static constexpr ty name = (ty)(val)
+#endif // !_STCONS
+
+	template<> class numeric_limits<mse::CSize_t> {	// limits for type int
+	public:
+		typedef int _Ty;
+
+		static constexpr _Ty(min)() _THROW0()
+		{	// return minimum value
+			return numeric_limits<size_t>::min();
+		}
+		static constexpr _Ty(max)() _THROW0()
+		{	// return maximum value
+			return numeric_limits<size_t>::max();
+		}
+		static constexpr _Ty lowest() _THROW0()
+		{	// return most negative value
+			return numeric_limits<size_t>::lowest();
+		}
+		static constexpr _Ty epsilon() _THROW0()
+		{	// return smallest effective increment from 1.0
+			return numeric_limits<size_t>::epsilon();
+		}
+		static constexpr _Ty round_error() _THROW0()
+		{	// return largest rounding error
+			return numeric_limits<size_t>::round_error();
+		}
+		static constexpr _Ty denorm_min() _THROW0()
+		{	// return minimum denormalized value
+			return numeric_limits<size_t>::denorm_min();
+		}
+		static constexpr _Ty infinity() _THROW0()
+		{	// return positive infinity
+			return numeric_limits<size_t>::infinity();
+		}
+		static constexpr _Ty quiet_NaN() _THROW0()
+		{	// return non-signaling NaN
+			return numeric_limits<size_t>::quiet_NaN();
+		}
+		static constexpr _Ty signaling_NaN() _THROW0()
+		{	// return signaling NaN
+			return numeric_limits<size_t>::signaling_NaN();
+		}
+		_STCONS(float_denorm_style, has_denorm, numeric_limits<size_t>::has_denorm);
+		_STCONS(bool, has_denorm_loss, numeric_limits<size_t>::has_denorm_loss);
+		_STCONS(bool, has_infinity, numeric_limits<size_t>::has_infinity);
+		_STCONS(bool, has_quiet_NaN, numeric_limits<size_t>::has_quiet_NaN);
+		_STCONS(bool, has_signaling_NaN, numeric_limits<size_t>::has_signaling_NaN);
+		_STCONS(bool, is_bounded, numeric_limits<size_t>::is_bounded);
+		_STCONS(bool, is_exact, numeric_limits<size_t>::is_exact);
+		_STCONS(bool, is_iec559, numeric_limits<size_t>::is_iec559);
+		_STCONS(bool, is_integer, numeric_limits<size_t>::is_integer);
+		_STCONS(bool, is_modulo, numeric_limits<size_t>::is_modulo);
+		_STCONS(bool, is_signed, numeric_limits<size_t>::is_signed);
+		_STCONS(bool, is_specialized, numeric_limits<size_t>::is_specialized);
+		_STCONS(bool, tinyness_before, numeric_limits<size_t>::tinyness_before);
+		_STCONS(bool, traps, numeric_limits<size_t>::traps);
+		_STCONS(float_round_style, round_style, numeric_limits<size_t>::round_style);
+		_STCONS(int, digits, numeric_limits<size_t>::digits);
+		_STCONS(int, digits10, numeric_limits<size_t>::digits10);
+		_STCONS(int, max_digits10, numeric_limits<size_t>::max_digits10);
+		_STCONS(int, max_exponent, numeric_limits<size_t>::max_exponent);
+		_STCONS(int, max_exponent10, numeric_limits<size_t>::max_exponent10);
+		_STCONS(int, min_exponent, numeric_limits<size_t>::min_exponent);
+		_STCONS(int, min_exponent10, numeric_limits<size_t>::min_exponent10);
+		_STCONS(int, radix, numeric_limits<size_t>::radix);
+	};
+}
+
+namespace mse {
 
 	inline CInt operator+(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); rhs.assert_initialized(); return CSize_t(lhs) + rhs; }
 	inline CSize_t operator+(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) + rhs; }
