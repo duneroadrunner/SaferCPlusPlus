@@ -160,7 +160,11 @@ namespace mse {
 			: base_class(_Al), m_mmitset(*this) {
 			/*m_debug_size = size();*/
 		}
-		explicit msevector(size_type _N, const _Ty& _V = _Ty(), const _A& _Al = _A())
+		explicit msevector(size_type _N)
+			: base_class(msev_as_a_size_t(_N)), m_mmitset(*this) {
+			/*m_debug_size = size();*/
+		}
+		explicit msevector(size_type _N, const _Ty& _V, const _A& _Al = _A())
 			: base_class(msev_as_a_size_t(_N), _V, _Al), m_mmitset(*this) {
 			/*m_debug_size = size();*/
 		}

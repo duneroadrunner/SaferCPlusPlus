@@ -48,7 +48,8 @@ namespace mse {
 			operator _MV() { return msevector(); }
 
 			explicit vector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
-			explicit vector(size_type _N, const _Ty& _V = _Ty(), const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
+			explicit vector(size_type _N) : m_shptr(std::make_shared<_MV>(_N)) {}
+			explicit vector(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
 			vector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X))) {}
 			vector(const _MV& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
 			vector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X.msevector()))) {}
