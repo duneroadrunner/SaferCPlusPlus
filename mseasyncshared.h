@@ -296,6 +296,7 @@ namespace mse {
 	template<typename _TROy>
 	class TAsyncSharedObj : public _TROy {
 	public:
+		MSE_ASYNC_USING(TAsyncSharedObj, _TROy);
 		virtual ~TAsyncSharedObj() {}
 		using _TROy::operator=;
 		//TAsyncSharedObj& operator=(TAsyncSharedObj&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
@@ -306,7 +307,6 @@ namespace mse {
 			, std::nullptr_t, TAsyncSharedObj>::type& _X) { _TROy::operator=(_X); return (*this); }
 
 	private:
-		MSE_ASYNC_USING(TAsyncSharedObj, _TROy);
 		TAsyncSharedObj(const TAsyncSharedObj& _X) : _TROy(_X) {}
 		TAsyncSharedObj(TAsyncSharedObj&& _X) : _TROy(std::move(_X)) {}
 		TAsyncSharedObj* operator&() {
