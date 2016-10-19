@@ -21,7 +21,11 @@
 
 namespace mse {
 
-	MSE_CONSTEXPR static const int sc_default_cache_size = 3/* 1 + (the maximum number of pointers expected to target the object at one time) */;
+#ifndef MSE_REGISTERED_DEFAULT_CACHE_SIZE
+#define MSE_REGISTERED_DEFAULT_CACHE_SIZE 4/* 1 + (the maximum number of pointers expected to target the object at one time) */
+#endif // !MSE_REGISTERED_DEFAULT_CACHE_SIZE
+
+	MSE_CONSTEXPR static const int sc_default_cache_size = MSE_REGISTERED_DEFAULT_CACHE_SIZE;
 
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredPointer = _Ty*;
@@ -72,6 +76,11 @@ namespace mse {
 			if (!fast_mode1()) {
 				std::unordered_set<const CSaferPtrBase*>::value_type item(&sp_ref);
 				(*m_ptr_to_regptr_set_ptr).insert(item);
+#ifdef MSE_REGISTERED_INSTRUMENTATION1
+				if ((*m_ptr_to_regptr_set_ptr).size() > m_highest_ptr_to_regptr_set_size) {
+					m_highest_ptr_to_regptr_set_size = (*m_ptr_to_regptr_set_ptr).size();
+				}
+#endif // MSE_REGISTERED_INSTRUMENTATION1
 			}
 			else {
 				if (sc_fm1_max_pointers == m_fm1_num_pointers) {
@@ -214,6 +223,10 @@ namespace mse {
 		const CSaferPtrBase* m_fm1_ptr_to_regptr_array[sc_fm1_max_pointers];
 
 		std::unordered_set<const CSaferPtrBase*> *m_ptr_to_regptr_set_ptr = nullptr;
+
+#ifdef MSE_REGISTERED_INSTRUMENTATION1
+		size_t m_highest_ptr_to_regptr_set_size = 0;
+#endif // MSE_REGISTERED_INSTRUMENTATION1
 	};
 
 	/* CSORPTracker is a "size optimized" (smaller and slower) version of CSPTracker. Currently not used. */
