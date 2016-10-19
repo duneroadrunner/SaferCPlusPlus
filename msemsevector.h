@@ -2250,7 +2250,7 @@ namespace mse {
 		ss_const_iterator_type ss_end() const
 		{	// return base_class::iterator for end of nonmutable sequence
 			ss_const_iterator_type retval; retval.m_owner_cptr = this;
-			retval.set_to_set_to_end_marker();
+			retval.set_to_end_marker();
 			return retval;
 		}
 
@@ -2264,7 +2264,7 @@ namespace mse {
 		ss_const_iterator_type ss_cend() const
 		{	// return base_class::iterator for end of nonmutable sequence
 			ss_const_iterator_type retval; retval.m_owner_cptr = this;
-			retval.set_to_set_to_end_marker();
+			retval.set_to_end_marker();
 			return retval;
 		}
 
