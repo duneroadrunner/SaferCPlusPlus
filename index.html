@@ -19,7 +19,7 @@
     </section>
 
     <section class="main-content">
-      <p>Sep 2016</p>
+      <p>Oct 2016</p>
 
 <h3>
 <a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h3>
@@ -37,7 +37,7 @@
 <li><p>Data types for safe, simple <a href="#asynchronously-shared-objects">sharing</a> of objects among asynchronous threads.</p></li>
 </ul>
 
-<p>Tested with msvc2015 and g++5.3 (as of May 2016) and msvc2013 (as of Feb 2016). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.</p>
+<p>Tested with msvc2015 and g++5.3 (as of Oct 2016) and msvc2013 (as of Feb 2016). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.</p>
 
 <p>You can have a look at <a href="https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp">msetl_example.cpp</a> to see the library in action.</p>
 
@@ -68,7 +68,7 @@ A couple of notes about compling: With g++, you'll need to link to the pthread l
 <li>SaferCPlusPlus can <a href="https://en.wikipedia.org/wiki/AddressSanitizer#Limitations">more completely</a> solve the problem of invalid memory access, but does so by restricting what qualifies as "proper" SaferCPlusPlus code (eg. no pointer arithmetic).</li>
 <li>When encountering an invalid memory operation at run-time, the Clang/LLVM sanitizers terminate the executable, where SaferCPlusPlus, by default, throws a (catchable) exception, but supports any user-defined action, including program termination. </li>
 <li>SaferCPlusPlus is portable C++ code that works on any platform, whereas Clang/LLVM sanitizers are available/maintained on a finite (but at the moment, ample) set of OS-architecture combinations.</li>
-<li>The Clang/LLVM sanitizers cost more in terms of run-time performance. <a href="https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers">~2x slowdown</a> for the AddressSanitizer, for example. SaferCPlusPlus <a href="#simple-benchmarks">doesn't cost</a> nearly that much in typical code. This is mainly because the Clang/LLVM sanitizers cannot assume any cooperation from the source code, so they have to instrument pretty much every allocated piece of memory and check pretty well every pointer dereference.</li>
+<li>The Clang/LLVM sanitizers cost more in terms of run-time performance. <a href="https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers">~2x slowdown</a> for the AddressSanitizer, for example. SaferCPlusPlus generally has <a href="#simple-benchmarks">lower performance costs</a>, mainly because the Clang/LLVM sanitizers cannot assume any cooperation from the source code, so they have to instrument pretty much every allocated piece of memory and check pretty well every pointer dereference.</li>
 <li>SaferCPlusPlus supports the mixing of "safe" and (high-performance) "unsafe" code at a granular level, where Clang/LLVM Sanitizers apply to entire modules, or as in the case of the MemorySanitizer, all modules, requiring recompilation of any linked libraries.</li>
 <li>Clang's ThreadSanitizer tries to detect data race bugs, while SaferCPlusPlus provides <a href="#asynchronously-shared-objects">data types</a> that eliminate the possibility of data race bugs (and a superset we call "object race" bugs).</li>
 </ul>
@@ -926,7 +926,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="asynchronously-shared-objects" class="anchor" href="#asynchronously-shared-objects" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Asynchronously shared objects</h3>
 
-<p>One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, when one party (thread) is modifying an object, you want to ensure that no other party accesses it. So we provide TAsyncSharedReadWriteAccessRequester that (like std::shared_ptr) possesses shared ownership of an object to be shared among asynchronous threads, and provides (const and non-const smart) pointers that can be used to safely access the object. For a more information and examples, see <a href="http://www.codeproject.com/Articles/1106491/Sharing-Objects-Between-Threads-in-Cplusplus-the-S">this article</a>. At the moment, these data types cannot target types that cannot act as a base class. If you want to share an int, bool or size_t, use the <a href="#primitives">safer substitutes</a> that can act as base classes.</p>
+<p>One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, when one party (thread) is modifying an object, you want to ensure that no other party accesses it. So we provide TAsyncSharedReadWriteAccessRequester that (like std::shared_ptr) possesses shared ownership of an object to be shared among asynchronous threads, and provides (const and non-const smart) pointers that can be used to safely access the object. For more information and examples, see <a href="http://www.codeproject.com/Articles/1106491/Sharing-Objects-Between-Threads-in-Cplusplus-the-S">this article</a>. At the moment, these data types cannot target types that cannot act as a base class. If you want to share an int, bool or size_t, use the <a href="#primitives">safer substitutes</a> that can act as base classes.</p>
 
 <h3>
 <a id="tasyncsharedreadwriteaccessrequester" class="anchor" href="#tasyncsharedreadwriteaccessrequester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TAsyncSharedReadWriteAccessRequester</h3>
@@ -1369,7 +1369,9 @@ int main(int argc, char* argv[]) {
 }
 </code></pre>
 
-<p>Note for real time embedded applications that restrict heap allocations: mse:mstd::array&lt;&gt; keeps track of its iterators, and if the number of iterators exceeds the space reserved for tracking them, it will resort to obtaining space from the heap. You can instead use mse::msearray&lt;&gt;, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)</p>
+<p>Important note: Avoid directly sharing mse::mstd::array&lt;&gt;s among asynchronous threads.<br>
+mse::mstd::array&lt;&gt; contains (unprotected) mutable members used to track its iterators. As such, it is not safe to directly obtain or release mse::mstd::array&lt;&gt; iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus <a href="#on-thread-safety">does not condone</a> the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use mse::msearray&lt;&gt; instead, as it does not have the same issue.<br>
+Also note for real time embedded applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array&lt;&gt; will resort to obtaining space from the heap. You can instead use mse::msearray&lt;&gt;, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)</p>
 
 <h3>
 <a id="msearray" class="anchor" href="#msearray" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>msearray</h3>
