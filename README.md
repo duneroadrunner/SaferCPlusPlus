@@ -27,17 +27,20 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
 
 ### Use cases
 
-This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else.  
-This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you a lot of the safety that you might get from, say Java, while retaining all of the power and most of the performance of C++.  
+This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else. This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you a lot of the safety that you might get from, say Java, while retaining all of the power and most of the performance of C++.  
+
 While using the library can incur a modest performance penalty, because the library elements are [largely compatible](#compatibility-considerations) with their native counterparts they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.  
-And note that the safe components of this library can be adopted completely incrementally. New code written with these safe elements will play nicely with existing (unsafe) code, and unsafe elements can be replaced selectively without breaking the existing code.  
-So there is really no excuse for not using the library in pretty much any situation.  
+
+And note that the safe components of this library can be adopted completely incrementally. New code written with these safe elements will play nicely with existing (unsafe) code, and unsafe elements can be replaced selectively without breaking the existing code. So there is really no excuse for not using the library in pretty much any situation.  
+
 Though, if you are using this library in a real time embedded application, you may want to override the default behavior upon invalid memory operations (using MSE_CUSTOM_THROW_DEFINITION(x)) and read the notes in the [array](#array) section.  
+
 For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 ### Setup and dependencies
 
 The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Outside of the stl, there are no other dependencies.  
+
 A couple of notes about compling: With g++, you'll need to link to the pthread library (-lpthread). You may want to use the -Wno-unused flag as well. With 64-bit builds in msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
 
 ### SaferCPlusPlus versus Clang/LLVM Sanitizers
@@ -151,6 +154,7 @@ TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;con
 
 ###TSyncWeakFixedPointer
 TSyncWeakFixedPointer is primarily intended to be used as a safe pointer to a member of a registered object in cases where for some reason you can't, or don't want to, make the member itself a registered object. TSyncWeakFixedPointer essentially acts as a pointer to the member (or whatever object you specify), while keeping a copy of a registered pointer to the object. It uses the registered pointer to ensure that it is safe to access the object. Use mse::make_syncweak() to construct a TSyncWeakFixedPointer.  
+
 What's with the name? "SyncWeak" is short for "sychronous weak", as opposed to "asynchronous weak". "Non-owning" pointers that support objects shared between asynchronous threads, like std::weak_ptr, cannot be used to access the object directly. If, on the other hand, asynchronous sharing is not supported, then a non-owning pointer (with the appropriate safety mechanisms), like TRegisteredPointer, can be used to access the object directly. There is a corresponding [TStrongFixedPointer](#tstrongfixedpointer).  
 
 usage example:
@@ -287,6 +291,7 @@ std::shared_ptr (heap): | 0.087005 seconds.
 mse::TRelaxedRegisteredPointer (heap): | 0.142008 seconds.
 
 Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. Interestingly, three of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.  
+
 I'm speculating here, but it might be the case that the heap operations that occur in this benchmark may be more "cache friendly" than heap operations in real world code would be, making the "heap" results look artificially good (relative to the "stack" result).
 
 #### Dereferencing:
@@ -308,6 +313,7 @@ mse::TRelaxedRegisteredPointer (checked): | 0.016001 seconds.
 std::weak_ptr: | 0.17701 seconds.
 
 The interesting thing here is that checking for nullptr seems to have gotten a lot slower between msvc2013 and msvc2015. But anyway, my guess is that pointer dereferencing is such a fast operation (std::weak_ptr aside) that outside of critical inner loops, the overhead of checking for nullptr would generally be probably pretty modest.  
+
 Also note that [mse::TRefCountingNotNullPointer](#trefcountingnotnullpointer) and [mse::TRefCountingFixedPointer](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked. mse::TRegisteredPointer's safety mechanisms are not compatible with the techniques used by the benchmark to isolate dereferencing performance, but mse::TRegisteredPointer's dereferencing performance would be expected to be essentially identical to that of mse::TRelaxedRegisteredPointer. By default, scope pointers have identical performance to native pointers.
 
 ###Reference counting pointers
@@ -965,6 +971,7 @@ Also see the section on "[compatibility considerations](#compatibility-considera
 ### Quarantined types
 
 Quarantined types are meant to hold values that are obtained from user input or some other untrusted source (like a media file for example). These are not yet available in the library, but are an important concept with respect to safe programming. Values obtained from untrusted sources are the main attack vector of malicious actors and should be handled with special care. For example, the so-called "stagefright" vulnerability in the Android OS is the result of a specially crafted media file causing the sum of integers to overflow.  
+
 It is often the case that untrusted values are obtained through intrinsically slow communication mediums (i.e. file system, internet, UI, etc.), so it often makes no perceptible difference whether the code that processes those untrusted values into "trusted" internal values is optimized for performance or not. So don't hesitate to use whatever safety methods are called for. In particular, integer types with more comprehensive range checking can be found here: https://github.com/robertramey/safe_numerics.
 
 ### CQuarantinedInt, CQuarantinedSize_t, CQuarantinedVector, CQuarantinedString
@@ -973,8 +980,10 @@ Not yet available.
 
 ### Vectors
 
-We provide three vectors - [mstd::vector<>](#vector), [msevector<>](#msevector) and [ivector<>](#ivector). mstd::vector<> is simply an almost completely safe implementation of std::vector<>.
-msevector<> is also quite safe. Not quite as safe as mstd::vector<>, but it requires less overhead. msevector<> also supports a new kind of iterator in addition to the standard vector iterator. This new iterator, called "ipointer", acts more like a list iterator. It's more intuitive, more useful, and isn't prone to being invalidated upon an insert or delete operation. If performance is of concern, msevector<> is probably the better choice of the three.
+We provide three vectors - [mstd::vector<>](#vector), [msevector<>](#msevector) and [ivector<>](#ivector). mstd::vector<> is simply an almost completely safe implementation of std::vector<>.  
+
+msevector<> is also quite safe. Not quite as safe as mstd::vector<>, but it requires less overhead. msevector<> also supports a new kind of iterator in addition to the standard vector iterator. This new iterator, called "ipointer", acts more like a list iterator. It's more intuitive, more useful, and isn't prone to being invalidated upon an insert or delete operation. If performance is of concern, msevector<> is probably the better choice of the three.  
+
 ivector<> is just as safe as mstd::vector<>, but drops support for the (problematic) standard vector iterators and only supports the ipointer iterators.
 
 ### vector
@@ -1025,6 +1034,7 @@ usage example:
 
 If you're willing to forego a little theoretical safety, msevector<> is still very safe without the overhead of memory management.  
 In addition to the (high performance) standard vector iterator, msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. In fact, standard vector iterators are so prone to being invalidated that for algorithms involving insertion or deletion, they can be generously considered not very useful, and more prudently considered dangerous. ipointers, aside from being safe, just make sense. Algorithms that work when applied to list iterators will work when applied to ipointers. And that's important as Bjarne famously [points out](https://www.youtube.com/watch?v=YQs6IC-vgmo), for cache coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate. You can read a short article comparing ipointers with some existing alternatives [here](http://www.codeproject.com/Articles/1087021/Stable-Iterators-for-Cplusplus-Vectors-and-Why-You).  
+
 msevector<> also provides a safe (bounds checked) version of the standard vector iterator.
 
 usage example:
@@ -1162,7 +1172,9 @@ usage example:
     }
 
 Important note: Avoid directly sharing mse::mstd::array<>s among asynchronous threads.  
+
 mse::mstd::array<> contains (unprotected) mutable members used to track its iterators. As such, it is not safe to directly obtain or release mse::mstd::array<> iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus [does not condone](#on-thread-safety) the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use mse::msearray<> instead, as it does not have the same issue.  
+
 Also note for real time embedded applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array<> will resort to obtaining space from the heap. You can instead use mse::msearray<>, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)
 
 ### msearray
@@ -1202,6 +1214,7 @@ usage example:
 
 ### Compatibility considerations
 People have asked why the primitive C++ types can't be used as base classes - http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
+
 But while substitute classes cannot be 100% compatible substitutes for their corresponding primitives, they can still be mostly compatible. And if you're writing new code or maintaining existing code, it should be considered good coding practice to ensure that your code is compatible with C++'s conversion rules for classes and not dependent on the "chaotic" legacy conversion rules of primitive types.
 
 If you are using legacy code or libraries where it's not practical to update the code, it shouldn't be a problem to continue using primitive types there and the safer substitute classes elsewhere in the code. The safer substitute classes generally have no problem interacting with primitive types, although in some cases you may need to do some explicit type casting. [Registered pointers](#registered-pointers) can be cast to raw pointers, and, for example, [CInt](#primitives) can participate in arithmetic operations with regular ints.
