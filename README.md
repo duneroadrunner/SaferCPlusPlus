@@ -1039,9 +1039,9 @@ usage example:
         }
     }
 
-Important note: Avoid directly sharing mse::mstd::vector<>s among asynchronous threads.
+Important note: Avoid directly sharing mse::mstd::vector<>s among asynchronous threads.  
 
-mse::mstd::vector<> contains (unprotected) mutable members used to track its iterators. As such, it is not safe to directly obtain or release mse::mstd::vector<> iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus does not condone the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use std::vector<> for vectors to be shared between asynchronous threads.
+mse::mstd::vector<> contains (unprotected) mutable members used to track its iterators. As such, it is not safe to directly obtain or release mse::mstd::vector<> iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus [does not condone](#on-thread-safety) the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use std::vector<> for vectors shared between asynchronous threads.
 
 ### msevector
 
@@ -1120,6 +1120,10 @@ ipointers support all the standard iterator operators, but also have member func
     reference previous_item() const;
     CSize_t position() const;
     void reset();
+
+Important note: You should probably avoid directly sharing mse::msevector<>s among asynchronous threads.  
+
+mse::msevector<> contains (unprotected) mutable members used to track its "ipointer" iterators. As such, it is not safe to directly obtain or release mse::msevector<> ipointer iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus [does not condone](#on-thread-safety) the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use std::vector<> for vectors shared between asynchronous threads.
 
 ### ivector
 
