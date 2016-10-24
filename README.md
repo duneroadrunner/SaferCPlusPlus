@@ -1039,6 +1039,10 @@ usage example:
         }
     }
 
+Important note: Avoid directly sharing mse::mstd::vector<>s among asynchronous threads.
+
+mse::mstd::vector<> contains (unprotected) mutable members used to track its iterators. As such, it is not safe to directly obtain or release mse::mstd::vector<> iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus does not condone the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use std::vector<> for vectors to be shared between asynchronous threads.
+
 ### msevector
 
 If you're willing to forego a little theoretical safety, msevector<> is still very safe without the overhead of memory management.  
