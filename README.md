@@ -57,12 +57,21 @@ The Clang/LLVM compiler provides a set of "sanitizers" (adopted by gcc) that add
 
 Clang/LLVM Sanitizers are intended for debugging purposes, not to be used in deployed executables. As such, by design, some of their debugging convenience features themselves introduce [opportunities](http://seclists.org/oss-sec/2016/q1/363) for malicious exploitation. SaferCPlusPlus on the other hand, is designed to be used in deployed executables, as well as for debugging and testing. And that's reflected in its performance, security and "completeness of solution". So it's not really SaferCPlusPlus "versus" Clang/LLVM Sanitizers. They are not incompatible, and there's no reason you couldn't use both simultaneously, although there would be significant redundancies.
 
-
 ### SaferCPlusPlus versus Checked C
 
 "Checked C", like SaferCPlusPlus, takes the approach of extending the language with safer elements that can directly substitute for unsafe native elements. In chapter 9 of their [spec](https://github.com/Microsoft/checkedc/releases/download/v0.5-final/checkedc-v0.5.pdf), there is an extensive survey of existing (and historical) efforts to address C/C++ memory safety. There they make the argument for the (heretofore neglected) "language extension" approach (basically citing performance, compatibility and the support for granular mixing of safe and unsafe code), that applies to SaferCPlusPlus as well.
 
-Checked C and SaferCPlusPlus are more complementary than competitive. Checked C targets low-level system C code and basically only addresses the array bounds checking issue, including pointer arithmetic, where SaferCPlusPlus skews more toward C++ code and legacy code that would benefit from being converted to modern C++. It seems that Checked C is not yet ready for deployment (as of Sep 2016), but one could imagine both solutions being used, with little contention, in projects that have both low-level system type code and higher-level application type code.  
+Checked C and SaferCPlusPlus are more complementary than competitive. Checked C targets low-level system C code and basically only addresses the array bounds checking issue, including pointer arithmetic, where SaferCPlusPlus skews more toward C++ code and legacy code that would benefit from being converted to modern C++. It seems that Checked C is not yet ready for deployment (as of Sep 2016), but one could imagine both solutions being used, with little contention, in projects that have both low-level system type code and higher-level application type code.
+
+###SaferCPlusPlus versus Ironclad C++
+
+SaferCPlusPlus and Ironclad C++ are very similar. The main difference is probably that Ironclad uses garbage collection while SaferCPlusPlus does not. SaferCPlusPlus is not yet as complete as Ironclad (for example, SaferCPlusPlus does not yet have a static validator to verify that "scope" pointers are being used properly), but Ironclad seems to be no longer under active development. They are not incompatible, both libraries could be used in the same project. Rather than thinking of them as competing solutions, you could think of them combined as one solution, sometimes with multiple options for achieving the same thing.  
+
+While both solutions address the pointer/reference safety issue, SaferCPlusPlus also provides safer replacements for int and size_t, and data types for safely sharing objects between asynchronous threads.  
+
+If you're considering one or the other solution (or both), I would suggest starting out with SaferCPlusPlus, as adopting it is essentially risk free. It's basically just a collection of header files written in portable C++. And can be easily disabled (i.e. its elements can be automatically aliased to their native counterparts) with a compile-time directive. Whereas because of its dependence on its garbage collector, Ironclad doesn't have quite the same properties. And if later you decide that to adopt the Ironclad solution, or parts of it, the transition should be painless.  
+
+There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu/~santosh.nagarakatte/papers/ironclad-oopsla2013.pdf). It's a beneficial read even for those not planning on adopting Ironclad, as the the approach has much in common with SaferCPlusPlus.  
 
 
 ### Registered pointers
