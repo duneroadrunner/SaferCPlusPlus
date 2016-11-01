@@ -1190,9 +1190,9 @@ usage example:
         }
     }
 
-Important note: Avoid directly sharing mse::mstd::array<>s among asynchronous threads.  
+Important note: As a general rule, avoid sharing mse::mstd::array<>s among asynchronous threads.  
 
-mse::mstd::array<> contains (unprotected) mutable members used to track its iterators. As such, it is not safe to directly obtain or release mse::mstd::array<> iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus [does not condone](#on-thread-safety) the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use mse::msearray<> instead, as it does not have the same issue.  
+The mechanism mse::mstd::array<> uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::array<> doesn't really qualify. mse::msearray<> is more appropriate for asyncronous sharing as it does not track its iterators. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.  
 
 Also note for real time embedded applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array<> will resort to obtaining space from the heap. You can instead use mse::msearray<>, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)
 
