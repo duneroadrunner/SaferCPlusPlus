@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="simple-benchmarks" class="anchor" href="#simple-benchmarks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Simple benchmarks</h3>
 
-<p>Just some simple microbenchmarks. (Some less "micro" benchmarks can be found <a href="https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame">here</a>.) We show the results for msvc2015 and msvc2013 (run on the same machine), since there are some interesting differences. The source code for these benchmarks can be found in the file <a href="https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp">msetl_example.cpp</a>.</p>
+<p>Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks of the library in general can be found <a href="https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame">here</a>.) We show the results for msvc2015 and msvc2013 (run on the same machine), since there are some interesting differences. The source code for these benchmarks can be found in the file <a href="https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp">msetl_example.cpp</a>.</p>
 
 <h4>
 <a id="allocation-deallocation-pointer-copy-and-assignment" class="anchor" href="#allocation-deallocation-pointer-copy-and-assignment" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Allocation, deallocation, pointer copy and assignment:</h4>
@@ -943,7 +943,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="asynchronously-shared-objects" class="anchor" href="#asynchronously-shared-objects" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Asynchronously shared objects</h3>
 
-<p>One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, when one party (thread) is modifying an object, you want to ensure that no other party accesses it. So we provide TAsyncSharedReadWriteAccessRequester that (like std::shared_ptr) possesses shared ownership of an object to be shared among asynchronous threads, and provides (const and non-const smart) pointers that can be used to safely access the object. For more information and examples, see <a href="http://www.codeproject.com/Articles/1106491/Sharing-Objects-Between-Threads-in-Cplusplus-the-S">this article</a>. At the moment, these data types cannot target types that cannot act as a base class. If you want to share an int, bool or size_t, use the <a href="#primitives">safer substitutes</a> that can act as base classes.</p>
+<p>One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, when one party (thread) is modifying an object, you want to ensure that no other party accesses it. So we provide TAsyncSharedReadWriteAccessRequester that (like std::shared_ptr) possesses shared ownership of an object to be shared among asynchronous threads, and provides (const and non-const smart) pointers that can be used to safely access the object. For more information and examples, see <a href="http://www.codeproject.com/Articles/1106491/Sharing-Objects-Between-Threads-in-Cplusplus-the-S">this article</a>. At the moment, these data types cannot target types that cannot act as a base class. If you want to share an int, bool or size_t, use the <a href="#primitives">safer substitutes</a> that can act as base classes. And as a rule of thumb, if you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members.</p>
 
 <h3>
 <a id="tasyncsharedreadwriteaccessrequester" class="anchor" href="#tasyncsharedreadwriteaccessrequester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TAsyncSharedReadWriteAccessRequester</h3>
@@ -1241,9 +1241,9 @@ int main(int argc, char* argv[]) {
 }
 </code></pre>
 
-<p>Important note: Avoid directly sharing mse::mstd::vector&lt;&gt;s among asynchronous threads.  </p>
+<p>Important note: As a general rule, avoid sharing mse::mstd::vector&lt;&gt;s among asynchronous threads.  </p>
 
-<p>mse::mstd::vector&lt;&gt; contains (unprotected) mutable members used to track its iterators. As such, it is not safe to directly obtain or release mse::mstd::vector&lt;&gt; iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus <a href="#on-thread-safety">does not condone</a> the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use std::vector&lt;&gt; for vectors shared between asynchronous threads.</p>
+<p>The mechanism mse::mstd::vector&lt;&gt; uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::vector&lt;&gt; doesn't really qualify. std::vector&lt;&gt;, while perhaps still not ideal, is much more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus <a href="#asynchronously-shared-objects">asyncronous sharing data types</a> when appropriate.</p>
 
 <h3>
 <a id="msevector" class="anchor" href="#msevector" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>msevector</h3>
@@ -1326,9 +1326,9 @@ CSize_t position() const;
 void reset();
 </code></pre>
 
-<p>Important note: You should probably avoid directly sharing mse::msevector&lt;&gt;s among asynchronous threads.  </p>
+<p>Important note: In general, you should probably avoid sharing mse::msevector&lt;&gt;s among asynchronous threads.  </p>
 
-<p>mse::msevector&lt;&gt; contains (unprotected) mutable members used to track its "ipointer" iterators. As such, it is not safe to directly obtain or release mse::msevector&lt;&gt; ipointer iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus <a href="#on-thread-safety">does not condone</a> the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use std::vector&lt;&gt; for vectors shared between asynchronous threads.</p>
+<p>The mechanism mse::msevector&lt;&gt; uses to track its "ipointer" iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated "ipointer" iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. std::vector&lt;&gt;, while perhaps still not ideal, may be more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus <a href="#asynchronously-shared-objects">asyncronous sharing data types</a> when appropriate.</p>
 
 <h3>
 <a id="ivector" class="anchor" href="#ivector" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ivector</h3>
@@ -1346,6 +1346,8 @@ int main(int argc, char* argv[]) {
     mse::ivector&lt;int&gt;::ipointer ivip = iv.begin();
 }
 </code></pre>
+
+<p>Important note: As a general rule, avoid sharing mse::ivector&lt;&gt;s among asynchronous threads. See <a href="#vector">mse::mstd::vector&lt;&gt;</a></p>
 
 <h3>
 <a id="arrays" class="anchor" href="#arrays" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Arrays</h3>
@@ -1398,9 +1400,9 @@ int main(int argc, char* argv[]) {
 }
 </code></pre>
 
-<p>Important note: Avoid directly sharing mse::mstd::array&lt;&gt;s among asynchronous threads.  </p>
+<p>Important note: As a general rule, avoid sharing mse::mstd::array&lt;&gt;s among asynchronous threads.  </p>
 
-<p>mse::mstd::array&lt;&gt; contains (unprotected) mutable members used to track its iterators. As such, it is not safe to directly obtain or release mse::mstd::array&lt;&gt; iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus <a href="#on-thread-safety">does not condone</a> the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use mse::msearray&lt;&gt; instead, as it does not have the same issue.  </p>
+<p>The mechanism mse::mstd::array&lt;&gt; uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::array&lt;&gt; doesn't really qualify. mse::msearray&lt;&gt; is more appropriate for asyncronous sharing as it does not track its iterators. And of course, remember to use SaferCPlusPlus <a href="#asynchronously-shared-objects">asyncronous sharing data types</a> when appropriate.  </p>
 
 <p>Also note for real time embedded applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array&lt;&gt; will resort to obtaining space from the heap. You can instead use mse::msearray&lt;&gt;, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)</p>
 
@@ -1453,7 +1455,7 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="on-thread-safety" class="anchor" href="#on-thread-safety" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>On thread safety</h3>
 
-<p>The choice to not include thread safety mechanisms in most of the types in this library is a deliberate one. If the goal is code safety, then we strongly discourage the casual sharing of objects between asynchronous threads (i.e. without the proper safety mechanisms). The practice of sharing objects between asynchronous threads can be prone to severe and insidious bugs that are particularly adept at evading exposure during testing. In cases where it's not practical to avoid the practice, we suggest doing so only in the context of some kind of system that comprehensively ensures against inadvertent unsafe access. For most straight-forward cases you can use the <a href="#asynchronously-shared-objects">asynchronous sharing data types</a> in this library.
+<p>The choice to not include thread safety mechanisms in most of the types in this library is a deliberate one. If the goal is code safety, then we strongly discourage the casual sharing of objects between asynchronous threads (i.e. without the proper safety mechanisms). The practice of sharing objects between asynchronous threads can be prone to severe and insidious bugs that are particularly adept at evading exposure during testing. In cases where it's not practical to avoid the practice, we suggest doing so only in the context of some kind of system that comprehensively ensures against inadvertent unsafe access. For most straight-forward cases you can use the <a href="#asynchronously-shared-objects">asynchronous sharing data types</a> in this library. And as a rule of thumb, if you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members.<br>
 To be clear, we are not discouraging asynchronous programming, or even inter-thread communication in general. Just the "casual" sharing of objects between asynchronous threads.</p>
 
 <h3>
