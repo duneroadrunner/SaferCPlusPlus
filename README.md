@@ -1039,9 +1039,9 @@ usage example:
         }
     }
 
-Important note: Avoid directly sharing mse::mstd::vector<>s among asynchronous threads.  
+Important note: As a general rule, avoid sharing mse::mstd::vector<>s among asynchronous threads.  
 
-mse::mstd::vector<> contains (unprotected) mutable members used to track its iterators. As such, it is not safe to directly obtain or release mse::mstd::vector<> iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus [does not condone](#on-thread-safety) the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use std::vector<> for vectors shared between asynchronous threads.
+The mechanism mse::mstd::vector<> uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::vector<> doesn't really qualify. std::vector<>, while perhaps still not ideal, is much more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.
 
 ### msevector
 
@@ -1121,9 +1121,9 @@ ipointers support all the standard iterator operators, but also have member func
     CSize_t position() const;
     void reset();
 
-Important note: You should probably avoid directly sharing mse::msevector<>s among asynchronous threads.  
+Important note: In general, you should probably avoid sharing mse::msevector<>s among asynchronous threads.  
 
-mse::msevector<> contains (unprotected) mutable members used to track its "ipointer" iterators. As such, it is not safe to directly obtain or release mse::msevector<> ipointer iterators from asyncronous threads. In theory this should just be an academic detail since SaferCPlusPlus [does not condone](#on-thread-safety) the direct sharing of objects among asyncronous threads. (That's why the mutable members are "unprotected".) But when transitioning legacy code to SaferCPlusPlus, it may be more prudent to use std::vector<> for vectors shared between asynchronous threads.
+The mechanism mse::msevector<> uses to track its "ipointer" iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated "ipointer" iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. std::vector<>, while perhaps still not ideal, may be more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.
 
 ### ivector
 
@@ -1139,6 +1139,8 @@ usage example:
         std::sort(iv.begin(), iv.end());
         mse::ivector<int>::ipointer ivip = iv.begin();
     }
+
+Important note: As a general rule, avoid sharing mse::ivector<>s among asynchronous threads. See [mse::mstd::vector<>](#vector)
 
 ### Arrays
 
