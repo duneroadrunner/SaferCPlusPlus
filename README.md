@@ -33,13 +33,13 @@ While using the library can incur a modest performance penalty, because the libr
 
 And note that the safe components of this library can be adopted completely incrementally. New code written with these safe elements will play nicely with existing (unsafe) code, and unsafe elements can be replaced selectively without breaking the existing code. So there is really no excuse for not using the library in pretty much any situation.  
 
-Though, if you are using this library in a real time embedded application, you may want to override the default behavior upon invalid memory operations (using MSE_CUSTOM_THROW_DEFINITION(x)) and read the notes in the [array](#array) section.  
+Though for real time embedded applications, note the dependence on the standard library. Also, you may want to override the default behavior upon invalid memory operations (using MSE_CUSTOM_THROW_DEFINITION(x)) and read the notes in the [array](#array) section.  
 
 For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 ### Setup and dependencies
 
-The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Outside of the stl, there are no other dependencies.  
+The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Outside of the standard library, there are no other dependencies.  
 
 A couple of notes about compling: With g++, you'll need to link to the pthread library (-lpthread). You may want to use the -Wno-unused flag as well. With 64-bit builds in msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
 
@@ -1194,7 +1194,7 @@ Important note: As a general rule, avoid sharing mse::mstd::array<>s among async
 
 The mechanism mse::mstd::array<> uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::array<> doesn't really qualify. mse::msearray<> is more appropriate for asyncronous sharing as it does not track its iterators. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.  
 
-Also note for real time embedded applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array<> will resort to obtaining space from the heap. You can instead use mse::msearray<>, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)
+Also note for real time applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array<> will resort to obtaining space from the heap. You can instead use mse::msearray<>, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)
 
 ### msearray
 
