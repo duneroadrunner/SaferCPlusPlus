@@ -12,6 +12,7 @@
 #include <thread>
 #include <unordered_map>
 #include <cassert>
+#include <stdexcept>
 
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
@@ -37,6 +38,13 @@ namespace mse {
     template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
+	class asyncshared_runtime_error : public std::runtime_error { public:
+		using std::runtime_error::runtime_error;
+	};
+	class asyncshared_use_of_invalid_pointer_error : public std::logic_error { public:
+		using std::logic_error::logic_error;
+	};
+
 	template <class _Ty>
 	class unlock_guard {
 	public:
@@ -48,13 +56,6 @@ namespace mse {
 		}
 
 		_Ty& m_mutex_ref;
-	};
-
-	class rstm_bad_alloc : public std::bad_alloc {
-	public:
-		rstm_bad_alloc(const std::string& what) : m_what(what) {}
-		virtual const char* what() const noexcept { return m_what.c_str(); }
-		std::string m_what;
 	};
 
 	class recursive_shared_timed_mutex : private std::shared_timed_mutex {
@@ -169,7 +170,7 @@ namespace mse {
 				}
 				catch (...) {
 					base_class::unlock_shared();
-					MSE_THROW(rstm_bad_alloc("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
+					MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
 				}
 			}
 		}
@@ -200,7 +201,7 @@ namespace mse {
 					}
 					catch (...) {
 						base_class::unlock_shared();
-						MSE_THROW(rstm_bad_alloc("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
+						MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
 					}
 				}
 			}
@@ -240,7 +241,7 @@ namespace mse {
 					}
 					catch (...) {
 						base_class::unlock_shared();
-						MSE_THROW(rstm_bad_alloc("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
+						MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
 					}
 				}
 			}
@@ -338,17 +339,17 @@ namespace mse {
 		virtual ~TAsyncSharedReadWritePointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
+			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
 			return m_shptr.operator bool();
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&>::type operator*() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
 			return (*m_shptr);
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>*, TAsyncSharedObj<_Ty>*>::type operator->() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
 			return std::addressof(*m_shptr);
 		}
 	private:
@@ -393,16 +394,16 @@ namespace mse {
 		virtual ~TAsyncSharedReadWriteConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
+			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}
@@ -507,16 +508,16 @@ namespace mse {
 		virtual ~TAsyncSharedReadOnlyConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
+			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}
@@ -606,17 +607,17 @@ namespace mse {
 		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
+			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
 			return m_shptr.operator bool();
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&>::type operator*() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
 			return (*m_shptr);
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>*, TAsyncSharedObj<_Ty>*>::type operator->() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
 			return std::addressof(*m_shptr);
 		}
 	private:
@@ -661,16 +662,16 @@ namespace mse {
 		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
+			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}
@@ -773,16 +774,16 @@ namespace mse {
 		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
+			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { MSE_THROW(std::out_of_range("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
+			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}

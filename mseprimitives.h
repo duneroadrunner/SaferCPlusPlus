@@ -11,7 +11,7 @@
 #include <assert.h>
 #include <climits>       // ULONG_MAX
 #include <limits>       // std::numeric_limits
-#include <stdexcept>      // std::out_of_range
+#include <stdexcept>      // primitives_range_error
 
 /*compiler specific defines*/
 #ifdef _MSC_VER
@@ -72,13 +72,6 @@ be done at run time, at significant cost. So by default we disable range checks 
 
 namespace mse {
 
-	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
-	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
-#define MSE_USING(Derived, Base) \
-    template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
-    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
-
-
 	/* When the mse primitive replacements are "disabled" they lose their default initialization and may cause problems for
 	code that relies on it. */
 #ifdef MSE_PRIMITIVES_DISABLED
@@ -93,6 +86,19 @@ namespace mse {
 #define MSE_CHECK_USE_BEFORE_SET
 #endif // !MSE_SUPPRESS_CHECK_USE_BEFORE_SET
 #endif // !NDEBUG
+
+	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
+	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
+#define MSE_USING(Derived, Base) \
+    template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
+    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
+
+	class primitives_range_error : public std::range_error { public:
+		using std::range_error::range_error;
+	};
+	class primitives_null_dereference_error : public std::logic_error { public:
+		using std::logic_error::logic_error;
+	};
 
 	/* This class is just meant to act like the "bool" type, except that it has a default intialization value (false). */
 	class CBool {
@@ -160,17 +166,17 @@ namespace mse {
 		if (can_exceed_bounds) {
 			if (rhs_can_exceed_upper_bound) {
 				if (x > _TSource(std::numeric_limits<_TDestination>::max())) {
-					MSE_THROW(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
+					MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
 				}
 			}
 			if (rhs_can_exceed_lower_bound) {
 				/* We're assuming that std::numeric_limits<>::lowest() will never be greater than zero. */
 				if (0 > x) {
 					if (0 == std::numeric_limits<_TDestination>::lowest()) {
-						MSE_THROW(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
+						MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
 					}
 					else if (x < _TSource(std::numeric_limits<_TDestination>::lowest())) {
-						MSE_THROW(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
+						MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
 					}
 				}
 			}
@@ -272,17 +278,7 @@ namespace mse {
 
 		CInt operator -() const { (*this).assert_initialized(); return CInt(-m_val); }
 		CInt& operator +=(const CInt &x) { (*this).assert_initialized(); m_val += x.m_val; return (*this); }
-		CInt& operator -=(const CInt &x) {
-			(*this).assert_initialized();
-			if (0 <= std::numeric_limits<_Ty>::lowest()) {
-				(*this).assert_initialized();
-				if (x.m_val > m_val) {
-					(*this).assert_initialized(); /*check this*/
-					MSE_THROW(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
-				}
-			}
-			m_val -= x.m_val; return (*this);
-		}
+		CInt& operator -=(const CInt &x) { (*this).assert_initialized(); m_val -= x.m_val; return (*this); }
 		CInt& operator *=(const CInt &x) { (*this).assert_initialized(); m_val *= x.m_val; return (*this); }
 		CInt& operator /=(const CInt &x) { (*this).assert_initialized(); m_val /= x.m_val; return (*this); }
 		CInt& operator %=(const CInt &x) { (*this).assert_initialized(); m_val %= x.m_val; return (*this); }
@@ -554,11 +550,11 @@ namespace mse {
 			return (-(CInt(m_val)));
 		}
 		CSize_t& operator +=(const CSize_t &x) { (*this).assert_initialized(); m_val += x.m_val; return (*this); }
-		CSize_t& operator -=(const CSize_t &x) { (*this).assert_initialized();
-			if (0 <= std::numeric_limits<_Ty>::lowest()) { (*this).assert_initialized();
-				if (x.m_val > m_val) { (*this).assert_initialized(); /*check this*/
-					MSE_THROW(std::out_of_range("out of range error - value to be assigned is out of range of the target (integer) type"));
-				}
+		CSize_t& operator -=(const CSize_t &x) {
+			(*this).assert_initialized();
+			//assert(0 <= std::numeric_limits<_Ty>::lowest());
+			if (x.m_val > m_val) {
+				MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
 			}
 			m_val -= x.m_val; return (*this);
 		}
@@ -922,7 +918,7 @@ namespace mse {
 			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTR_CHECKS
 			if (nullptr == m_ptr) {
-				MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr"));
+				MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TSaferPtr"));
 			}
 #endif /*MSE_DISABLE_TSAFERPTR_CHECKS*/
 			return (*m_ptr);
@@ -931,7 +927,7 @@ namespace mse {
 			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTR_CHECKS
 			if (nullptr == m_ptr) {
-				MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtr"));
+				MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TSaferPtr"));
 			}
 #endif /*MSE_DISABLE_TSAFERPTR_CHECKS*/
 			return m_ptr;
@@ -1000,7 +996,7 @@ namespace mse {
 			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS
 			if (nullptr == m_ptr) {
-				MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy"));
+				MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TSaferPtrForLegacy"));
 			}
 #endif /*MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS*/
 			return (*m_ptr);
@@ -1009,7 +1005,7 @@ namespace mse {
 			assert_initialized();
 #ifndef MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS
 			if (nullptr == m_ptr) {
-				MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TSaferPtrForLegacy"));
+				MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TSaferPtrForLegacy"));
 			}
 #endif /*MSE_DISABLE_TSAFERPTRFORLEGACY_CHECKS*/
 			return m_ptr;

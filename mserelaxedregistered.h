@@ -25,7 +25,8 @@ former purpose could be satisfied with a faster, safer, "header file only" set o
 #include <unordered_map>
 #include <mutex>
 #include <cassert>
-#include <typeinfo>      // std::bad_cast
+//include <typeinfo>      // std::bad_cast
+#include <stdexcept>
 
 
 #ifdef _MSC_VER
@@ -76,6 +77,10 @@ namespace mse {
 	}
 
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
+
+	class relaxedregistered_cannot_verify_cast_error : public std::logic_error { public:
+		using std::logic_error::logic_error;
+	};
 
 	/* CSPTracker is intended to keep track of all pointers, objects and their lifespans in order to ensure that pointers don't
 	end up pointing to deallocated objects. */
@@ -296,7 +301,7 @@ namespace mse {
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
-			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(std::bad_cast(/*"cannot verify cast validity - mse::TRelaxedRegisteredPointer"*/)); }
+			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(relaxedregistered_cannot_verify_cast_error("cannot verify cast validity - mse::TRelaxedRegisteredPointer")); }
 			return (TRelaxedRegisteredObj<_Ty>*)((*this).m_ptr);
 		}
 
@@ -435,7 +440,7 @@ namespace mse {
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
-			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(std::bad_cast(/*"cannot verify cast validity - mse::TRelaxedRegisteredConstPointer"*/)); }
+			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(relaxedregistered_cannot_verify_cast_error("cannot verify cast validity - mse::TRelaxedRegisteredConstPointer")); }
 			return (const TRelaxedRegisteredObj<_Ty>*)((*this).m_ptr);
 		}
 

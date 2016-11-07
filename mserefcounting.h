@@ -13,6 +13,8 @@
 #include <iostream>
 #include <utility>
 #include <cassert>
+#include <stdexcept>
+
 
 /* for the test functions */
 #include <map>
@@ -44,6 +46,10 @@ namespace mse {
 		return std::make_shared<X>(std::forward<Args>(args)...);
 	}
 #else /*MSE_REFCOUNTINGPOINTER_DISABLED*/
+
+	class refcounting_null_dereference_error : public std::logic_error { public:
+		using std::logic_error::logic_error;
+	};
 
 	template<typename _Ty> class TRefCountingNotNullPointer;
 	template<typename _Ty> class TRefCountingFixedPointer;
@@ -144,12 +150,12 @@ namespace mse {
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
 		X& operator*() const {
-			if (!m_ref_with_target_obj_ptr) { MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
+			if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingPointer")); }
 			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return (*x_ptr);
 		}
 		X* operator->() const {
-			if (!m_ref_with_target_obj_ptr) { MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingPointer")); }
+			if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingPointer")); }
 			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return x_ptr;
 		}
@@ -339,12 +345,12 @@ namespace mse {
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
 		const X& operator*() const {
-			if (!m_ref_with_target_obj_ptr) { MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
+			if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
 			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return (*x_ptr);
 		}
 		const X* operator->() const {
-			if (!m_ref_with_target_obj_ptr) { MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
+			if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
 			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return x_ptr;
 		}

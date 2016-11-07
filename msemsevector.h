@@ -36,6 +36,7 @@
 #include <unordered_map>
 #include <functional>
 #include <climits>       // ULONG_MAX
+#include <stdexcept>
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
@@ -64,6 +65,14 @@ namespace mse {
 	typedef size_t msev_as_a_size_t;
 #endif // MSE_MSEVECTOR_USE_MSE_PRIMITIVES
 
+
+	class msevector_range_error : public std::range_error { public:
+		using std::range_error::range_error;
+	};
+	class msevector_null_dereference_error : public std::logic_error { public:
+		using std::logic_error::logic_error;
+	};
+
 	/* msev_pointer behaves similar to native pointers. It's a bit safer in that it initializes to
 	nullptr by default and checks for attempted dereference of null pointers. */
 	template<typename _Ty>
@@ -75,13 +84,13 @@ namespace mse {
 
 		_Ty& operator*() const {
 #ifndef MSE_DISABLE_MSEAR_POINTER_CHECKS
-			if (nullptr == m_ptr) { MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::msev_pointer")); }
+			if (nullptr == m_ptr) { MSE_THROW(msevector_null_dereference_error("attempt to dereference null pointer - mse::msev_pointer")); }
 #endif /*MSE_DISABLE_MSEAR_POINTER_CHECKS*/
 			return (*m_ptr);
 		}
 		_Ty* operator->() const {
 #ifndef MSE_DISABLE_MSEAR_POINTER_CHECKS
-			if (nullptr == m_ptr) { MSE_THROW(std::out_of_range("attempt to dereference null pointer - mse::msev_pointer")); }
+			if (nullptr == m_ptr) { MSE_THROW(msevector_null_dereference_error("attempt to dereference null pointer - mse::msev_pointer")); }
 #endif /*MSE_DISABLE_MSEAR_POINTER_CHECKS*/
 			return m_ptr;
 		}
@@ -255,19 +264,19 @@ namespace mse {
 			return (*this).at(msev_as_a_size_t(_P));
 		}
 		typename base_class::reference front() {	// return first element of mutable sequence
-			if (0 == (*this).size()) { MSE_THROW(std::out_of_range("front() on empty - typename base_class::reference front() - msevector")); }
+			if (0 == (*this).size()) { MSE_THROW(msevector_range_error("front() on empty - typename base_class::reference front() - msevector")); }
 			return base_class::front();
 		}
 		typename base_class::const_reference front() const {	// return first element of nonmutable sequence
-			if (0 == (*this).size()) { MSE_THROW(std::out_of_range("front() on empty - typename base_class::const_reference front() - msevector")); }
+			if (0 == (*this).size()) { MSE_THROW(msevector_range_error("front() on empty - typename base_class::const_reference front() - msevector")); }
 			return base_class::front();
 		}
 		typename base_class::reference back() {	// return last element of mutable sequence
-			if (0 == (*this).size()) { MSE_THROW(std::out_of_range("back() on empty - typename base_class::reference back() - msevector")); }
+			if (0 == (*this).size()) { MSE_THROW(msevector_range_error("back() on empty - typename base_class::reference back() - msevector")); }
 			return base_class::back();
 		}
 		typename base_class::const_reference back() const {	// return last element of nonmutable sequence
-			if (0 == (*this).size()) { MSE_THROW(std::out_of_range("back() on empty - typename base_class::const_reference back() - msevector")); }
+			if (0 == (*this).size()) { MSE_THROW(msevector_range_error("back() on empty - typename base_class::const_reference back() - msevector")); }
 			return base_class::back();
 		}
 		void push_back(_Ty&& _X) {
@@ -318,7 +327,7 @@ namespace mse {
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
 
-				if (0 == original_size) { MSE_THROW(std::out_of_range("pop_back() on empty - void pop_back() - msevector")); }
+				if (0 == original_size) { MSE_THROW(msevector_range_error("pop_back() on empty - void pop_back() - msevector")); }
 				base_class::pop_back();
 				/*m_debug_size = size();*/
 
@@ -360,7 +369,7 @@ namespace mse {
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _P);
 				msev_size_t d = msev_size_t(di);
-				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
@@ -400,7 +409,7 @@ namespace mse {
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _P);
 				msev_size_t d = msev_size_t(di);
-				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
@@ -447,13 +456,13 @@ namespace mse {
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _Where);
 				msev_size_t d = msev_size_t(di);
-				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto _M = msev_int(std::distance(_First, _Last));
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
 
-				//if (0 > _M) { MSE_THROW(std::out_of_range("invalid argument - typename base_class::iterator insert() - msevector")); }
+				//if (0 > _M) { MSE_THROW(msevector_range_error("invalid argument - typename base_class::iterator insert() - msevector")); }
 #ifndef MSVC2010_COMPATIBLE
 				auto retval =
 #endif /*MSVC2010_COMPATIBLE*/
@@ -484,7 +493,7 @@ namespace mse {
 			insert(typename base_class::/*const_*/iterator _P, size_t _M, const _Ty& _X) {
 				msev_int di = std::distance(base_class::/*c*/begin(), _P);
 				msev_size_t d = msev_size_t(di);
-				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
@@ -509,13 +518,13 @@ namespace mse {
 		insert(typename base_class::/*const_*/iterator _Where, _Iter _First, _Iter _Last) {	// insert [_First, _Last) at _Where
 				msev_int di = std::distance(base_class::/*c*/begin(), _Where);
 				msev_size_t d = msev_size_t(di);
-				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto _M = msev_int(std::distance(_First, _Last));
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
 
-				//if (0 > _M) { MSE_THROW(std::out_of_range("invalid argument - typename base_class::iterator insert() - msevector")); }
+				//if (0 > _M) { MSE_THROW(msevector_range_error("invalid argument - typename base_class::iterator insert() - msevector")); }
 				/*auto retval =*/
 					base_class::insert(_Where, _First, _Last);
 				/*m_debug_size = size();*/
@@ -606,7 +615,7 @@ namespace mse {
 #endif /*!(defined(GPP4P8_COMPATIBLE))*/
 
 				msev_size_t d = msev_size_t(di);
-				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(std::out_of_range("index out of range - typename base_class::iterator emplace() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator emplace() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
@@ -638,12 +647,12 @@ namespace mse {
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _P);
 				msev_size_t d = msev_size_t(di);
-				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator erase() - msevector")); }
 
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
 
-				if (base_class::end() == _P) { MSE_THROW(std::out_of_range("invalid argument - typename base_class::iterator erase(typename base_class::const_iterator _P) - msevector")); }
+				if (base_class::end() == _P) { MSE_THROW(msevector_range_error("invalid argument - typename base_class::iterator erase(typename base_class::const_iterator _P) - msevector")); }
 				typename base_class::iterator retval = base_class::erase(_P);
 				/*m_debug_size = size();*/
 
@@ -670,16 +679,16 @@ namespace mse {
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _F);
 				msev_size_t d = msev_size_t(di);
-				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator erase() - msevector")); }
 				msev_int di2 = std::distance(base_class::cbegin(), _L);
 				msev_size_t d2 = msev_size_t(di2);
-				if ((0 > di2) || ((*this).size() < msev_size_t(di2))) { MSE_THROW(std::out_of_range("index out of range - typename base_class::iterator erase() - msevector")); }
+				if ((0 > di2) || ((*this).size() < msev_size_t(di2))) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator erase() - msevector")); }
 
 				auto _M = msev_int(std::distance(_F, _L));
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
 
-				if ((base_class::end() == _F)/* || (0 > _M)*/) { MSE_THROW(std::out_of_range("invalid argument - typename base_class::iterator erase(typename base_class::iterator _F, typename base_class::iterator _L) - msevector")); }
+				if ((base_class::end() == _F)/* || (0 > _M)*/) { MSE_THROW(msevector_range_error("invalid argument - typename base_class::iterator erase(typename base_class::iterator _F, typename base_class::iterator _L) - msevector")); }
 				typename base_class::iterator retval = base_class::erase(_F, _L);
 				/*m_debug_size = size();*/
 
@@ -735,7 +744,7 @@ namespace mse {
 		/*typename base_class::iterator*/void insert(typename base_class::/*const_*/iterator _Where, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
 			msev_int di = std::distance(base_class::/*c*/begin(), _Where);
 			msev_size_t d = msev_size_t(di);
-			if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+			if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator insert() - msevector")); }
 
 			auto _M = _Ilist.size();
 			auto original_size = msev_size_t((*this).size());
@@ -764,7 +773,7 @@ namespace mse {
 			else {
 				msev_int di = std::distance(base_class::cbegin(), _Where);
 				msev_size_t d = msev_size_t(di);
-				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(std::out_of_range("index out of range - typename base_class::iterator insert() - msevector")); }
+				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator insert() - msevector")); }
 
 				auto _M = _Ilist.size();
 				auto original_size = msev_size_t((*this).size());
@@ -840,7 +849,7 @@ namespace mse {
 					}
 				}
 				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - void set_to_next() - mm_const_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("attempt to use invalid const_item_pointer - void set_to_next() - mm_const_iterator_type - msevector"));
 				}
 			}
 			void set_to_previous() {
@@ -849,7 +858,7 @@ namespace mse {
 					(*this).m_points_to_an_item = true;
 				}
 				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - void set_to_previous() - mm_const_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("attempt to use invalid const_item_pointer - void set_to_previous() - mm_const_iterator_type - msevector"));
 				}
 			}
 			mm_const_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
@@ -859,7 +868,7 @@ namespace mse {
 			void advance(difference_type n) {
 				auto new_index = msev_int(m_index) + n;
 				if ((0 > new_index) || (m_owner_cptr->size() < msev_size_t(new_index))) {
-					MSE_THROW(std::out_of_range("index out of range - void advance(difference_type n) - mm_const_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("index out of range - void advance(difference_type n) - mm_const_iterator_type - msevector"));
 				}
 				else {
 					m_index = msev_size_t(new_index);
@@ -882,7 +891,7 @@ namespace mse {
 			}
 			mm_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const mm_const_iterator_type &rhs) const {
-				if ((rhs.m_owner_cptr) != ((*this).m_owner_cptr)) { MSE_THROW(std::out_of_range("invalid argument - difference_type operator-(const mm_const_iterator_type &rhs) const - msevector::mm_const_iterator_type")); }
+				if ((rhs.m_owner_cptr) != ((*this).m_owner_cptr)) { MSE_THROW(msevector_range_error("invalid argument - difference_type operator-(const mm_const_iterator_type &rhs) const - msevector::mm_const_iterator_type")); }
 				auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
 				assert(difference_type(m_owner_cptr->size()) >= retval);
 				return retval;
@@ -913,7 +922,7 @@ namespace mse {
 			base_class::const_iterator::operator=(_Right_cref);
 			}
 			else {
-			MSE_THROW(std::out_of_range("doesn't seem to be a valid assignment value - mm_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref) - mm_const_iterator_type - msevector"));
+			MSE_THROW(msevector_range_error("doesn't seem to be a valid assignment value - mm_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref) - mm_const_iterator_type - msevector"));
 			}
 			return (*this);
 			}
@@ -926,17 +935,17 @@ namespace mse {
 					(*this).m_index = _Right_cref.m_index;
 				}
 				else {
-					MSE_THROW(std::out_of_range("doesn't seem to be a valid assignment value - mm_const_iterator_type& operator=(const typename base_class::iterator& _Right_cref) - mm_const_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("doesn't seem to be a valid assignment value - mm_const_iterator_type& operator=(const typename base_class::iterator& _Right_cref) - mm_const_iterator_type - msevector"));
 				}
 				return (*this);
 			}
 			bool operator==(const mm_const_iterator_type& _Right_cref) const {
-				if (((*this).m_owner_cptr) != (_Right_cref.m_owner_cptr)) { MSE_THROW(std::out_of_range("invalid argument - mm_const_iterator_type& operator==(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
+				if (((*this).m_owner_cptr) != (_Right_cref.m_owner_cptr)) { MSE_THROW(msevector_range_error("invalid argument - mm_const_iterator_type& operator==(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
 				return (_Right_cref.m_index == m_index);
 			}
 			bool operator!=(const mm_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const mm_const_iterator_type& _Right) const {
-				if (((*this).m_owner_cptr) != (_Right.m_owner_cptr)) { MSE_THROW(std::out_of_range("invalid argument - mm_const_iterator_type& operator<(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
+				if (((*this).m_owner_cptr) != (_Right.m_owner_cptr)) { MSE_THROW(msevector_range_error("invalid argument - mm_const_iterator_type& operator<(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
 				return (m_index < _Right.m_index);
 			}
 			bool operator<=(const mm_const_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
@@ -954,7 +963,7 @@ namespace mse {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					auto new_index = (*this).m_index + shift;
 					if ((0 > new_index) || (m_owner_cptr->size() < new_index)) {
-						MSE_THROW(std::out_of_range("void shift_inclusive_range() - mm_const_iterator_type - msevector"));
+						MSE_THROW(msevector_range_error("void shift_inclusive_range() - mm_const_iterator_type - msevector"));
 					}
 					else {
 						(*this).m_index = msev_size_t(new_index);
@@ -1034,7 +1043,7 @@ namespace mse {
 					}
 				}
 				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - void set_to_next() - mm_const_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("attempt to use invalid item_pointer - void set_to_next() - mm_const_iterator_type - msevector"));
 				}
 			}
 			void set_to_previous() {
@@ -1043,7 +1052,7 @@ namespace mse {
 					(*this).m_points_to_an_item = true;
 				}
 				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - void set_to_previous() - mm_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("attempt to use invalid item_pointer - void set_to_previous() - mm_iterator_type - msevector"));
 				}
 			}
 			mm_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
@@ -1053,7 +1062,7 @@ namespace mse {
 			void advance(difference_type n) {
 				auto new_index = msev_int(m_index) + n;
 				if ((0 > new_index) || (m_owner_ptr->size() < msev_size_t(new_index))) {
-					MSE_THROW(std::out_of_range("index out of range - void advance(difference_type n) - mm_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("index out of range - void advance(difference_type n) - mm_iterator_type - msevector"));
 				}
 				else {
 					m_index = msev_size_t(new_index);
@@ -1076,7 +1085,7 @@ namespace mse {
 			}
 			mm_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const mm_iterator_type& rhs) const {
-				if ((rhs.m_owner_ptr) != ((*this).m_owner_ptr)) { MSE_THROW(std::out_of_range("invalid argument - difference_type operator-(const mm_iterator_type& rhs) const - msevector::mm_iterator_type")); }
+				if ((rhs.m_owner_ptr) != ((*this).m_owner_ptr)) { MSE_THROW(msevector_range_error("invalid argument - difference_type operator-(const mm_iterator_type& rhs) const - msevector::mm_iterator_type")); }
 				auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
 				assert(difference_type(m_owner_ptr->size()) >= retval);
 				return retval;
@@ -1107,7 +1116,7 @@ namespace mse {
 			base_class::iterator::operator=(_Right_cref);
 			}
 			else {
-			MSE_THROW(std::out_of_range("doesn't seem to be a valid assignment value - mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref) - mm_const_iterator_type - msevector"));
+			MSE_THROW(msevector_range_error("doesn't seem to be a valid assignment value - mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref) - mm_const_iterator_type - msevector"));
 			}
 			return (*this);
 			}
@@ -1120,17 +1129,17 @@ namespace mse {
 					(*this).m_index = _Right_cref.m_index;
 				}
 				else {
-					MSE_THROW(std::out_of_range("doesn't seem to be a valid assignment value - mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref) - mm_const_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("doesn't seem to be a valid assignment value - mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref) - mm_const_iterator_type - msevector"));
 				}
 				return (*this);
 			}
 			bool operator==(const mm_iterator_type& _Right_cref) const {
-				if (((*this).m_owner_ptr) != (_Right_cref.m_owner_ptr)) { MSE_THROW(std::out_of_range("invalid argument - mm_iterator_type& operator==(const typename base_class::iterator& _Right) - mm_iterator_type - msevector")); }
+				if (((*this).m_owner_ptr) != (_Right_cref.m_owner_ptr)) { MSE_THROW(msevector_range_error("invalid argument - mm_iterator_type& operator==(const typename base_class::iterator& _Right) - mm_iterator_type - msevector")); }
 				return (_Right_cref.m_index == m_index);
 			}
 			bool operator!=(const mm_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const mm_iterator_type& _Right) const {
-				if (((*this).m_owner_ptr) != (_Right.m_owner_ptr)) { MSE_THROW(std::out_of_range("invalid argument - mm_iterator_type& operator<(const typename base_class::iterator& _Right) - mm_iterator_type - msevector")); }
+				if (((*this).m_owner_ptr) != (_Right.m_owner_ptr)) { MSE_THROW(msevector_range_error("invalid argument - mm_iterator_type& operator<(const typename base_class::iterator& _Right) - mm_iterator_type - msevector")); }
 				return (m_index < _Right.m_index);
 			}
 			bool operator<=(const mm_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
@@ -1148,7 +1157,7 @@ namespace mse {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					auto new_index = (*this).m_index + shift;
 					if ((0 > new_index) || (m_owner_ptr->size() < new_index)) {
-						MSE_THROW(std::out_of_range("void shift_inclusive_range() - mm_iterator_type - msevector"));
+						MSE_THROW(msevector_range_error("void shift_inclusive_range() - mm_iterator_type - msevector"));
 					}
 					else {
 						(*this).m_index = msev_size_t(new_index);
@@ -1339,7 +1348,7 @@ namespace mse {
 					}
 					else {
 						/* Do we need to throw here? */
-						MSE_THROW(std::out_of_range("invalid handle - void release_aux_mm_const_iterator(mm_const_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
+						MSE_THROW(msevector_range_error("invalid handle - void release_aux_mm_const_iterator(mm_const_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
 					}
 				}
 				else {
@@ -1359,7 +1368,7 @@ namespace mse {
 					}
 					else {
 						/* Do we need to throw here? */
-						MSE_THROW(std::out_of_range("invalid handle - void release_aux_mm_const_iterator(mm_const_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
+						MSE_THROW(msevector_range_error("invalid handle - void release_aux_mm_const_iterator(mm_const_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
 					}
 				}
 			}
@@ -1400,7 +1409,7 @@ namespace mse {
 					}
 					else {
 						/* Do we need to throw here? */
-						MSE_THROW(std::out_of_range("invalid handle - void release_aux_mm_iterator(mm_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
+						MSE_THROW(msevector_range_error("invalid handle - void release_aux_mm_iterator(mm_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
 					}
 				}
 				else {
@@ -1420,7 +1429,7 @@ namespace mse {
 					}
 					else {
 						/* Do we need to throw here? */
-						MSE_THROW(std::out_of_range("invalid handle - void release_aux_mm_iterator(mm_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
+						MSE_THROW(msevector_range_error("invalid handle - void release_aux_mm_iterator(mm_iterator_handle_type handle) - msevector::mm_iterator_set_type"));
 					}
 				}
 			}
@@ -1685,14 +1694,14 @@ namespace mse {
 			/*m_debug_size = size();*/
 		}
 		void assign(const mm_const_iterator_type &start, const mm_const_iterator_type &end) {
-			if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(std::out_of_range("invalid arguments - void assign(const mm_const_iterator_type &start, const mm_const_iterator_type &end) - msevector")); }
+			if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(msevector_range_error("invalid arguments - void assign(const mm_const_iterator_type &start, const mm_const_iterator_type &end) - msevector")); }
 			typename base_class::const_iterator _F = start;
 			typename base_class::const_iterator _L = end;
 			(*this).assign(_F, _L);
 		}
 		void assign_inclusive(const mm_const_iterator_type &first, const mm_const_iterator_type &last) {
-			if (first.m_owner_cptr != last.m_owner_cptr) { MSE_THROW(std::out_of_range("invalid arguments - void assign_inclusive(const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
-			if (!(last.points_to_item())) { MSE_THROW(std::out_of_range("invalid argument - void assign_inclusive(const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
+			if (first.m_owner_cptr != last.m_owner_cptr) { MSE_THROW(msevector_range_error("invalid arguments - void assign_inclusive(const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
+			if (!(last.points_to_item())) { MSE_THROW(msevector_range_error("invalid argument - void assign_inclusive(const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
 			typename base_class::const_iterator _F = first;
 			typename base_class::const_iterator _L = last;
 			_L++;
@@ -1705,28 +1714,28 @@ namespace mse {
 			assign_inclusive(first.const_item_pointer(), last.const_item_pointer());
 		}
 		void insert_before(const mm_const_iterator_type &pos, size_type _M, const _Ty& _X) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
 			typename base_class::const_iterator _P = pos;
 			(*this).insert(_P, _M, _X);
 		}
 		void insert_before(const mm_const_iterator_type &pos, _Ty&& _X) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
 			typename base_class::const_iterator _P = pos;
 			(*this).insert(_P, 1, std::move(_X));
 		}
 		void insert_before(const mm_const_iterator_type &pos, const _Ty& _X = _Ty()) { (*this).insert(pos, 1, _X); }
 		void insert_before(const mm_const_iterator_type &pos, const mm_const_iterator_type &start, const mm_const_iterator_type &end) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
-			if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before(const mm_const_iterator_type &pos, const mm_const_iterator_type &start, const mm_const_iterator_type &end) - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
+			if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before(const mm_const_iterator_type &pos, const mm_const_iterator_type &start, const mm_const_iterator_type &end) - msevector")); }
 			typename base_class::const_iterator _P = pos;
 			typename base_class::const_iterator _F = start;
 			typename base_class::const_iterator _L = end;
 			(*this).insert(_P, _F, _L);
 		}
 		void insert_before_inclusive(const mm_const_iterator_type &pos, const mm_const_iterator_type &first, const mm_const_iterator_type &last) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
-			if (first.m_owner_cptr != last.m_owner_cptr) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before_inclusive(const mm_const_iterator_type &pos, const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
-			if (!(last.points_to_item())) { MSE_THROW(std::out_of_range("invalid argument - void insert_before_inclusive(const mm_const_iterator_type &pos, const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
+			if (first.m_owner_cptr != last.m_owner_cptr) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before_inclusive(const mm_const_iterator_type &pos, const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
+			if (!(last.points_to_item())) { MSE_THROW(msevector_range_error("invalid argument - void insert_before_inclusive(const mm_const_iterator_type &pos, const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msevector")); }
 			typename base_class::const_iterator _P = pos;
 			typename base_class::const_iterator _F = first;
 			typename base_class::const_iterator _L = last;
@@ -1735,7 +1744,7 @@ namespace mse {
 		}
 #ifndef MSVC2010_COMPATIBLE
 		void insert_before(const mm_const_iterator_type &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
 			typename base_class::const_iterator _P = pos;
 			(*this).insert(_P, _Ilist);
 		}
@@ -1798,21 +1807,21 @@ namespace mse {
 		ipointer insert(const cipointer &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) { return insert_before(pos, _Ilist); }
 #endif /*MSVC2010_COMPATIBLE*/
 		void erase(const mm_const_iterator_type &pos) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void erase() - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void erase() - msevector")); }
 			typename base_class::const_iterator _P = pos;
 			(*this).erase(_P);
 		}
 		void erase(const mm_const_iterator_type &start, const mm_const_iterator_type &end) {
-			if (start.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void erase() - msevector")); }
-			if (end.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void erase() - msevector")); }
+			if (start.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void erase() - msevector")); }
+			if (end.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void erase() - msevector")); }
 			typename base_class::const_iterator _F = start;
 			typename base_class::const_iterator _L = end;
 			(*this).erase(_F, _L);
 		}
 		void erase_inclusive(const mm_const_iterator_type &first, const mm_const_iterator_type &last) {
-			if (first.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void erase_inclusive() - msevector")); }
-			if (last.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void erase_inclusive() - msevector")); }
-			if (!(last.points_to_item())) { MSE_THROW(std::out_of_range("invalid argument - void erase_inclusive() - msevector")); }
+			if (first.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void erase_inclusive() - msevector")); }
+			if (last.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void erase_inclusive() - msevector")); }
+			if (!(last.points_to_item())) { MSE_THROW(msevector_range_error("invalid argument - void erase_inclusive() - msevector")); }
 			typename base_class::const_iterator _F = first;
 			typename base_class::const_iterator _L = last;
 			_L++;
@@ -1839,8 +1848,8 @@ namespace mse {
 			return erase(first, end);
 		}
 		void erase_previous_item(const mm_const_iterator_type &pos) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void erase_previous_item() - msevector")); }
-			if (!(pos.has_previous())) { MSE_THROW(std::out_of_range("invalid arguments - void erase_previous_item() - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void erase_previous_item() - msevector")); }
+			if (!(pos.has_previous())) { MSE_THROW(msevector_range_error("invalid arguments - void erase_previous_item() - msevector")); }
 			typename base_class::const_iterator _P = pos;
 			_P--;
 			(*this).erase(_P);
@@ -1872,7 +1881,7 @@ namespace mse {
 				if (m_owner_cptr->size() > m_index) { return true; }
 				else {
 					if (m_index == m_owner_cptr->size()) { return false; }
-					else { MSE_THROW(std::out_of_range("attempt to use invalid ss_const_iterator_type - bool points_to_an_item() const - ss_const_iterator_type - msevector")); }
+					else { MSE_THROW(msevector_range_error("attempt to use invalid ss_const_iterator_type - bool points_to_an_item() const - ss_const_iterator_type - msevector")); }
 				}
 			}
 			bool points_to_end_marker() const {
@@ -1892,7 +1901,7 @@ namespace mse {
 			bool has_next() const { return has_next_item_or_end_marker(); }
 			bool has_previous() const {
 				if (m_owner_cptr->size() < m_index) {
-					MSE_THROW(std::out_of_range("attempt to use invalid ss_const_iterator_type - bool has_previous() const - ss_const_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("attempt to use invalid ss_const_iterator_type - bool has_previous() const - ss_const_iterator_type - msevector"));
 				}
 				else if (1 <= m_index) {
 					return true;
@@ -1912,7 +1921,7 @@ namespace mse {
 					m_index += 1;
 				}
 				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - void set_to_next() - ss_const_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("attempt to use invalid const_item_pointer - void set_to_next() - ss_const_iterator_type - msevector"));
 				}
 			}
 			void set_to_previous() {
@@ -1920,7 +1929,7 @@ namespace mse {
 					m_index -= 1;
 				}
 				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid const_item_pointer - void set_to_previous() - ss_const_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("attempt to use invalid const_item_pointer - void set_to_previous() - ss_const_iterator_type - msevector"));
 				}
 			}
 			ss_const_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
@@ -1930,7 +1939,7 @@ namespace mse {
 			void advance(difference_type n) {
 				auto new_index = msev_int(m_index) + n;
 				if ((0 > new_index) || (m_owner_cptr->size() < msev_size_t(new_index))) {
-					MSE_THROW(std::out_of_range("index out of range - void advance(difference_type n) - ss_const_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("index out of range - void advance(difference_type n) - ss_const_iterator_type - msevector"));
 				}
 				else {
 					m_index = msev_size_t(new_index);
@@ -1947,7 +1956,7 @@ namespace mse {
 			}
 			ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const ss_const_iterator_type &rhs) const {
-				if (rhs.m_owner_cptr != (*this).m_owner_cptr) { MSE_THROW(std::out_of_range("invalid argument - difference_type operator-(const ss_const_iterator_type &rhs) const - msevector::ss_const_iterator_type")); }
+				if (rhs.m_owner_cptr != (*this).m_owner_cptr) { MSE_THROW(msevector_range_error("invalid argument - difference_type operator-(const ss_const_iterator_type &rhs) const - msevector::ss_const_iterator_type")); }
 				auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
 				assert(difference_type((*m_owner_cptr).size()) >= retval);
 				return retval;
@@ -1975,7 +1984,7 @@ namespace mse {
 			base_class::const_iterator::operator=(_Right_cref);
 			}
 			else {
-			MSE_THROW(std::out_of_range("doesn't seem to be a valid assignment value - ss_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref) - ss_const_iterator_type - msevector"));
+			MSE_THROW(msevector_range_error("doesn't seem to be a valid assignment value - ss_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref) - ss_const_iterator_type - msevector"));
 			}
 			return (*this);
 			}
@@ -1986,12 +1995,12 @@ namespace mse {
 				return (*this);
 			}
 			bool operator==(const ss_const_iterator_type& _Right_cref) const {
-				if (this->m_owner_cptr != _Right_cref.m_owner_cptr) { MSE_THROW(std::out_of_range("invalid argument - ss_const_iterator_type& operator==(const ss_const_iterator_type& _Right) - ss_const_iterator_type - msevector")); }
+				if (this->m_owner_cptr != _Right_cref.m_owner_cptr) { MSE_THROW(msevector_range_error("invalid argument - ss_const_iterator_type& operator==(const ss_const_iterator_type& _Right) - ss_const_iterator_type - msevector")); }
 				return (_Right_cref.m_index == m_index);
 			}
 			bool operator!=(const ss_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const ss_const_iterator_type& _Right) const {
-				if (this->m_owner_cptr != _Right.m_owner_cptr) { MSE_THROW(std::out_of_range("invalid argument - ss_const_iterator_type& operator<(const ss_const_iterator_type& _Right) - ss_const_iterator_type - msevector")); }
+				if (this->m_owner_cptr != _Right.m_owner_cptr) { MSE_THROW(msevector_range_error("invalid argument - ss_const_iterator_type& operator<(const ss_const_iterator_type& _Right) - ss_const_iterator_type - msevector")); }
 				return (m_index < _Right.m_index);
 			}
 			bool operator<=(const ss_const_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
@@ -2009,7 +2018,7 @@ namespace mse {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					auto new_index = (*this).m_index + shift;
 					if ((0 > new_index) || (m_owner_cptr->size() < new_index)) {
-						MSE_THROW(std::out_of_range("void shift_inclusive_range() - ss_const_iterator_type - msevector"));
+						MSE_THROW(msevector_range_error("void shift_inclusive_range() - ss_const_iterator_type - msevector"));
 					}
 					else {
 						(*this).m_index = msev_size_t(new_index);
@@ -2052,7 +2061,7 @@ namespace mse {
 				if (m_owner_ptr->size() > m_index) { return true; }
 				else {
 					if (m_index == m_owner_ptr->size()) { return false; }
-					else { MSE_THROW(std::out_of_range("attempt to use invalid ss_iterator_type - bool points_to_an_item() const - ss_iterator_type - msevector")); }
+					else { MSE_THROW(msevector_range_error("attempt to use invalid ss_iterator_type - bool points_to_an_item() const - ss_iterator_type - msevector")); }
 				}
 			}
 			bool points_to_end_marker() const {
@@ -2072,7 +2081,7 @@ namespace mse {
 			bool has_next() const { return has_next_item_or_end_marker(); }
 			bool has_previous() const {
 				if (m_owner_ptr->size() < m_index) {
-					MSE_THROW(std::out_of_range("attempt to use invalid ss_iterator_type - bool has_previous() const - ss_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("attempt to use invalid ss_iterator_type - bool has_previous() const - ss_iterator_type - msevector"));
 				} else if (1 <= m_index) {
 					return true;
 				}
@@ -2091,7 +2100,7 @@ namespace mse {
 					m_index += 1;
 				}
 				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - void set_to_next() - ss_const_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("attempt to use invalid item_pointer - void set_to_next() - ss_const_iterator_type - msevector"));
 				}
 			}
 			void set_to_previous() {
@@ -2099,7 +2108,7 @@ namespace mse {
 					m_index -= 1;
 				}
 				else {
-					MSE_THROW(std::out_of_range("attempt to use invalid item_pointer - void set_to_previous() - ss_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("attempt to use invalid item_pointer - void set_to_previous() - ss_iterator_type - msevector"));
 				}
 			}
 			ss_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
@@ -2109,7 +2118,7 @@ namespace mse {
 			void advance(difference_type n) {
 				auto new_index = msev_int(m_index) + n;
 				if ((0 > new_index) || (m_owner_ptr->size() < msev_size_t(new_index))) {
-					MSE_THROW(std::out_of_range("index out of range - void advance(difference_type n) - ss_iterator_type - msevector"));
+					MSE_THROW(msevector_range_error("index out of range - void advance(difference_type n) - ss_iterator_type - msevector"));
 				}
 				else {
 					m_index = msev_size_t(new_index);
@@ -2126,7 +2135,7 @@ namespace mse {
 			}
 			ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const ss_iterator_type& rhs) const {
-				if (rhs.m_owner_ptr != (*this).m_owner_ptr) { MSE_THROW(std::out_of_range("invalid argument - difference_type operator-(const ss_iterator_type& rhs) const - msevector::ss_iterator_type")); }
+				if (rhs.m_owner_ptr != (*this).m_owner_ptr) { MSE_THROW(msevector_range_error("invalid argument - difference_type operator-(const ss_iterator_type& rhs) const - msevector::ss_iterator_type")); }
 				auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
 				assert((int)((*m_owner_ptr).size()) >= retval);
 				return retval;
@@ -2154,7 +2163,7 @@ namespace mse {
 			base_class::iterator::operator=(_Right_cref);
 			}
 			else {
-			MSE_THROW(std::out_of_range("doesn't seem to be a valid assignment value - ss_iterator_type& operator=(const typename base_class::iterator& _Right_cref) - ss_const_iterator_type - msevector"));
+			MSE_THROW(msevector_range_error("doesn't seem to be a valid assignment value - ss_iterator_type& operator=(const typename base_class::iterator& _Right_cref) - ss_const_iterator_type - msevector"));
 			}
 			return (*this);
 			}
@@ -2165,12 +2174,12 @@ namespace mse {
 				return (*this);
 			}
 			bool operator==(const ss_iterator_type& _Right_cref) const {
-				if (this->m_owner_ptr != _Right_cref.m_owner_ptr) { MSE_THROW(std::out_of_range("invalid argument - ss_iterator_type& operator==(const ss_iterator_type& _Right) - ss_iterator_type - msevector")); }
+				if (this->m_owner_ptr != _Right_cref.m_owner_ptr) { MSE_THROW(msevector_range_error("invalid argument - ss_iterator_type& operator==(const ss_iterator_type& _Right) - ss_iterator_type - msevector")); }
 				return (_Right_cref.m_index == m_index);
 			}
 			bool operator!=(const ss_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const ss_iterator_type& _Right) const {
-				if (this->m_owner_ptr != _Right.m_owner_ptr) { MSE_THROW(std::out_of_range("invalid argument - ss_iterator_type& operator<(const ss_iterator_type& _Right) - ss_iterator_type - msevector")); }
+				if (this->m_owner_ptr != _Right.m_owner_ptr) { MSE_THROW(msevector_range_error("invalid argument - ss_iterator_type& operator<(const ss_iterator_type& _Right) - ss_iterator_type - msevector")); }
 				return (m_index < _Right.m_index);
 			}
 			bool operator<=(const ss_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
@@ -2188,7 +2197,7 @@ namespace mse {
 				if ((index_of_first <= (*this).m_index) && (index_of_last >= (*this).m_index)) {
 					auto new_index = (*this).m_index + shift;
 					if ((0 > new_index) || (m_owner_ptr->size() < new_index)) {
-						MSE_THROW(std::out_of_range("void shift_inclusive_range() - ss_iterator_type - msevector"));
+						MSE_THROW(msevector_range_error("void shift_inclusive_range() - ss_iterator_type - msevector"));
 					}
 					else {
 						(*this).m_index = msev_size_t(new_index);
@@ -2303,21 +2312,21 @@ namespace mse {
 			/*m_debug_size = size();*/
 		}
 		void assign(const ss_const_iterator_type &start, const ss_const_iterator_type &end) {
-			if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(std::out_of_range("invalid arguments - void assign(const ss_const_iterator_type &start, const ss_const_iterator_type &end) - msevector")); }
+			if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(msevector_range_error("invalid arguments - void assign(const ss_const_iterator_type &start, const ss_const_iterator_type &end) - msevector")); }
 			typename base_class::const_iterator _F = start;
 			typename base_class::const_iterator _L = end;
 			(*this).assign(_F, _L);
 		}
 		void assign_inclusive(const ss_const_iterator_type &first, const ss_const_iterator_type &last) {
-			if (first.m_owner_cptr != last.m_owner_cptr) { MSE_THROW(std::out_of_range("invalid arguments - void assign_inclusive(const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
-			if (!(last.points_to_item())) { MSE_THROW(std::out_of_range("invalid argument - void assign_inclusive(const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
+			if (first.m_owner_cptr != last.m_owner_cptr) { MSE_THROW(msevector_range_error("invalid arguments - void assign_inclusive(const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
+			if (!(last.points_to_item())) { MSE_THROW(msevector_range_error("invalid argument - void assign_inclusive(const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
 			typename base_class::const_iterator _F = first;
 			typename base_class::const_iterator _L = last;
 			_L++;
 			(*this).assign(_F, _L);
 		}
 		ss_iterator_type insert_before(const ss_const_iterator_type &pos, size_type _M, const _Ty& _X) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
 			msev_size_t original_pos = pos.position();
 			typename base_class::const_iterator _P = pos;
 			(*this).insert(_P, _M, _X);
@@ -2326,7 +2335,7 @@ namespace mse {
 			return retval;
 		}
 		ss_iterator_type insert_before(const ss_const_iterator_type &pos, _Ty&& _X) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
 			msev_size_t original_pos = pos.position();
 			typename base_class::const_iterator _P = pos;
 			(*this).insert(_P, std::move(_X));
@@ -2336,8 +2345,8 @@ namespace mse {
 		}
 		ss_iterator_type insert_before(const ss_const_iterator_type &pos, const _Ty& _X = _Ty()) { return (*this).insert(pos, 1, _X); }
 		ss_iterator_type insert_before(const ss_const_iterator_type &pos, const ss_const_iterator_type &start, const ss_const_iterator_type &end) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
-			if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before(const ss_const_iterator_type &pos, const ss_const_iterator_type &start, const ss_const_iterator_type &end) - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
+			if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before(const ss_const_iterator_type &pos, const ss_const_iterator_type &start, const ss_const_iterator_type &end) - msevector")); }
 			msev_size_t original_pos = pos.position();
 			typename base_class::const_iterator _P = pos;
 			typename base_class::const_iterator _F = start;
@@ -2349,7 +2358,7 @@ namespace mse {
 		}
 		/* Note that safety cannot be guaranteed when using an insert() function that takes unsafe typename base_class::iterator and/or pointer parameters. */
 		ss_iterator_type insert_before(const ss_const_iterator_type &pos, const _Ty* start, const _Ty* &end) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
 			msev_size_t original_pos = pos.position();
 			typename base_class::const_iterator _P = pos;
 			(*this).insert(_P, start, end);
@@ -2358,9 +2367,9 @@ namespace mse {
 			return retval;
 		}
 		ss_iterator_type insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) {
-			if (pos.m_owner_ptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
-			if (first.m_owner_cptr != last.m_owner_cptr) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
-			if (!(last.points_to_item())) { MSE_THROW(std::out_of_range("invalid argument - void insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
+			if (pos.m_owner_ptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
+			if (first.m_owner_cptr != last.m_owner_cptr) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
+			if (!(last.points_to_item())) { MSE_THROW(msevector_range_error("invalid argument - void insert_before_inclusive(const ss_iterator_type &pos, const ss_const_iterator_type &first, const ss_const_iterator_type &last) - msevector")); }
 			msev_size_t original_pos = pos.position();
 			typename base_class::const_iterator _P = pos;
 			typename base_class::const_iterator _F = first;
@@ -2373,7 +2382,7 @@ namespace mse {
 		}
 #ifndef MSVC2010_COMPATIBLE
 		ss_iterator_type insert_before(const ss_const_iterator_type &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
-			if (pos.m_owner_ptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void insert_before() - msevector")); }
+			if (pos.m_owner_ptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
 			msev_size_t original_pos = pos.position();
 			typename base_class::const_iterator _P = pos;
 			(*this).insert(_P, _Ilist);
@@ -2393,8 +2402,8 @@ namespace mse {
 		ss_iterator_type insert(const ss_const_iterator_type &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) { return insert_before(pos, _Ilist); }
 #endif /*MSVC2010_COMPATIBLE*/
 		ss_iterator_type erase(const ss_const_iterator_type &pos) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void erase() - msevector")); }
-			if (!pos.points_to_an_item()) { MSE_THROW(std::out_of_range("invalid arguments - void erase() - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void erase() - msevector")); }
+			if (!pos.points_to_an_item()) { MSE_THROW(msevector_range_error("invalid arguments - void erase() - msevector")); }
 			auto pos_index = pos.position();
 
 			typename base_class::const_iterator _P = pos;
@@ -2405,9 +2414,9 @@ namespace mse {
 			return retval;
 		}
 		ss_iterator_type erase(const ss_const_iterator_type &start, const ss_const_iterator_type &end) {
-			if (start.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void erase() - msevector")); }
-			if (end.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void erase() - msevector")); }
-			if (start.position() > end.position()) { MSE_THROW(std::out_of_range("invalid arguments - void erase() - msevector")); }
+			if (start.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void erase() - msevector")); }
+			if (end.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void erase() - msevector")); }
+			if (start.position() > end.position()) { MSE_THROW(msevector_range_error("invalid arguments - void erase() - msevector")); }
 			auto pos_index = start.position();
 
 			typename base_class::const_iterator _F = start;
@@ -2423,8 +2432,8 @@ namespace mse {
 			return erase(first, end);
 		}
 		void erase_previous_item(const ss_const_iterator_type &pos) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(std::out_of_range("invalid arguments - void erase_previous_item() - msevector")); }
-			if (!(pos.has_previous())) { MSE_THROW(std::out_of_range("invalid arguments - void erase_previous_item() - msevector")); }
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void erase_previous_item() - msevector")); }
+			if (!(pos.has_previous())) { MSE_THROW(msevector_range_error("invalid arguments - void erase_previous_item() - msevector")); }
 			typename base_class::const_iterator _P = pos;
 			_P--;
 			(*this).erase(_P);
