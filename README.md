@@ -27,7 +27,7 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
 
 ### Use cases
 
-This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else. This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you a lot of the safety that you might get from, say Java, while retaining all of the power and most of the performance of C++.  
+This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else. This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you [a lot](#practical-limitations) of the memory safety that you might get from say, Java, while retaining all of the power and most of the performance of C++.  
 
 While using the library can incur a modest performance penalty, because the library elements are [largely compatible](#compatibility-considerations) with their native counterparts they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.  
 
@@ -1043,7 +1043,9 @@ usage example:
 
 Important note: As a general rule, avoid sharing mse::mstd::vector<>s among asynchronous threads.  
 
-The mechanism mse::mstd::vector<> uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::vector<> doesn't really qualify. std::vector<>, while perhaps still not ideal, is much more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.
+The mechanism mse::mstd::vector<> uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::vector<> doesn't really qualify. std::vector<>, while perhaps still not ideal, is much more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.  
+
+Also, keep in mind that dynamic data structures, like vectors, are a primary source of memory access bugs, so unsafe native references and pointers to members of dynamic data structures should particularly avoided. See the note in the "[Practical limitations](#practical-limitations)" section about implicit "this" pointers.
 
 ### msevector
 
@@ -1243,6 +1245,65 @@ If you are using legacy code or libraries where it's not practical to update the
 ### On thread safety
 The choice to not include thread safety mechanisms in most of the types in this library is a deliberate one. If the goal is code safety, then we strongly discourage the casual sharing of objects between asynchronous threads (i.e. without the proper safety mechanisms). The practice of sharing objects between asynchronous threads can be prone to severe and insidious bugs that are particularly adept at evading exposure during testing. In cases where it's not practical to avoid the practice, we suggest doing so only in the context of some kind of system that comprehensively ensures against inadvertent unsafe access. For most straight-forward cases you can use the [asynchronous sharing data types](#asynchronously-shared-objects) in this library. And as a rule of thumb, if you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing), even when that means foregoing the use of some of the elements in this library. Ideally, prefer a POD ("plain old data") data type with no member functions and no mutable members.  
 To be clear, we are not discouraging asynchronous programming, or even inter-thread communication in general. Just the "casual" sharing of objects between asynchronous threads.
+
+### Practical limitations
+
+The degree of memory safety that can be achieved is a function of the degree to which use of C++'s (memory) unsafe elements is avoided. Unfortunately, there is not yet a tool to automatically identify such uses. But if, in the future, there is significant demand for such a tool, it wouldn't be a particulary difficult thing to develop. Certainly trivial compared to some of the existing static analysis tools.
+
+Note that one of C++'s more subtle unsafe elements is the implicit "this" pointer when accessing member variables from member functions. Consider this example:
+
+    #include "msescope.h"
+    #include "msemstdvector.h"
+    
+    class CI {
+    public:
+        template<class safe_vector_pointer_type>
+        void foo1(safe_vector_pointer_type vec_ptr) {
+            vec_ptr->clear();
+    
+            /* These next two lines are equivalent and technically unsafe. */
+            m_i += 1;
+            this->m_i += 1;
+        }
+    
+        int m_i = 0;
+    };
+    
+    void main() {
+        mse::TXScopeObj<mse::mstd::vector<CI>> vec1;
+        vec1.resize(1);
+        auto iter = vec1.begin();
+        iter->foo1(&vec1);
+    }
+
+The above example contains unchecked accesses to deallocated memory via an implicit and explicit "this" pointer. The "this" pointer (implicit or explicit) is a native pointer, and like any other native pointer, is unsafe and can/should be replaced with a safer substitute:
+
+    #include "msescope.h"
+    #include "msemstdvector.h"
+    
+    class CI {
+    public:
+        template<class safe_this_type, class safe_vector_pointer_type>
+        void foo2(safe_this_type safe_this, safe_vector_pointer_type vec_ptr) {
+            vec_ptr->clear();
+    
+            /* The safe_this pointer will catch the attempted invalid memory access. */
+            safe_this->m_i += 2;
+        }
+    
+        int m_i = 0;
+    };
+    
+    void main() {
+        mse::TXScopeObj<mse::mstd::vector<CI>> vec1;
+        vec1.resize(1);
+        auto iter = vec1.begin();
+        iter->foo2(iter, &vec1);
+    }
+
+So, technically, achieving complete memory safety requires passing a safe "this" pointer parameter as an argument to every member function that accesses a member variable.
+
+Another couple of potential pitfals are the potential misuse of "scope" pointers, and the sharing of objects with unprotected mutable members between asynchronous threads, as explained in the corresponding documentation. The library data types do what they can to prevent such misuse, but are ultimately limited in their enforcement capabilities. But these shortcomings could also be addressed in the future with a reasonably straightforward tool to detect the potential problems.
 
 ### Questions and comments
 If you have questions or comments you can create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
