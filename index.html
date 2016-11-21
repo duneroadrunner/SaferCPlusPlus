@@ -44,7 +44,7 @@
 <h3>
 <a id="use-cases" class="anchor" href="#use-cases" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Use cases</h3>
 
-<p>This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else. This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you a lot of the safety that you might get from, say Java, while retaining all of the power and most of the performance of C++.  </p>
+<p>This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else. This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you <a href="#practical-limitations">a lot</a> of the memory safety that you might get from say, Java, while retaining all of the power and most of the performance of C++.  </p>
 
 <p>While using the library can incur a modest performance penalty, because the library elements are <a href="#compatibility-considerations">largely compatible</a> with their native counterparts they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.  </p>
 
@@ -71,7 +71,7 @@
 <li>SaferCPlusPlus can <a href="https://en.wikipedia.org/wiki/AddressSanitizer#Limitations">more completely</a> solve the problem of invalid memory access, but does so by restricting what qualifies as "proper" SaferCPlusPlus code (eg. no pointer arithmetic).</li>
 <li>When encountering an invalid memory operation at run-time, the Clang/LLVM sanitizers terminate the executable, where SaferCPlusPlus, by default, throws a (catchable) exception, but supports any user-defined action, including program termination. </li>
 <li>SaferCPlusPlus is portable C++ code that works on any platform, whereas Clang/LLVM sanitizers are available/maintained on a finite (but at the moment, ample) set of OS-architecture combinations.</li>
-<li>The Clang/LLVM sanitizers cost more in terms of run-time performance. <a href="https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers">~2x slowdown</a> for the AddressSanitizer, for example. SaferCPlusPlus generally has <a href="#simple-benchmarks">lower performance costs</a>, mainly because the Clang/LLVM sanitizers cannot assume any cooperation from the source code, so they have to instrument pretty much every allocated piece of memory and check pretty well every pointer dereference.</li>
+<li>The Clang/LLVM sanitizers cost more in terms of run-time performance. <a href="https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers">~2x slowdown</a> for the AddressSanitizer, for example. SaferCPlusPlus generally has substantially <a href="#simple-benchmarks">lower performance costs</a>, mainly because the Clang/LLVM sanitizers cannot assume any cooperation from the source code, so they have to instrument pretty much every allocated piece of memory and check pretty well every pointer dereference.</li>
 <li>SaferCPlusPlus supports the mixing of "safe" and (high-performance) "unsafe" code at a granular level, where Clang/LLVM Sanitizers apply to entire modules, or as in the case of the MemorySanitizer, all modules, requiring recompilation of any linked libraries.</li>
 <li>Clang's ThreadSanitizer tries to detect data race bugs, while SaferCPlusPlus provides <a href="#asynchronously-shared-objects">data types</a> that eliminate the possibility of data race bugs (and a superset we call "object race" bugs).</li>
 </ul>
@@ -750,6 +750,8 @@ int main(int argc, char* argv[]) {
 <h3>
 <a id="txscopefixedpointer" class="anchor" href="#txscopefixedpointer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TXScopeFixedPointer</h3>
 
+<p>TXScopeFixedPointer is intended to be used to pass scope objects by reference as function arguments. It is not intended to be used as a member of any class or struct (this would generally produce a compile error) or as a function return type.  </p>
+
 <p>usage example:</p>
 
 <pre><code>#include "msescope.h"
@@ -1243,7 +1245,9 @@ int main(int argc, char* argv[]) {
 
 <p>Important note: As a general rule, avoid sharing mse::mstd::vector&lt;&gt;s among asynchronous threads.  </p>
 
-<p>The mechanism mse::mstd::vector&lt;&gt; uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::vector&lt;&gt; doesn't really qualify. std::vector&lt;&gt;, while perhaps still not ideal, is much more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus <a href="#asynchronously-shared-objects">asyncronous sharing data types</a> when appropriate.</p>
+<p>The mechanism mse::mstd::vector&lt;&gt; uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::vector&lt;&gt; doesn't really qualify. std::vector&lt;&gt;, while perhaps still not ideal, is much more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus <a href="#asynchronously-shared-objects">asyncronous sharing data types</a> when appropriate.  </p>
+
+<p>Also, keep in mind that dynamic data structures, like vectors, are a primary source of memory access bugs, so unsafe native references and pointers to members of dynamic data structures should particularly avoided. See the note in the "<a href="#practical-limitations">Practical limitations</a>" section about implicit "this" pointers.</p>
 
 <h3>
 <a id="msevector" class="anchor" href="#msevector" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>msevector</h3>
@@ -1457,6 +1461,68 @@ int main(int argc, char* argv[]) {
 
 <p>The choice to not include thread safety mechanisms in most of the types in this library is a deliberate one. If the goal is code safety, then we strongly discourage the casual sharing of objects between asynchronous threads (i.e. without the proper safety mechanisms). The practice of sharing objects between asynchronous threads can be prone to severe and insidious bugs that are particularly adept at evading exposure during testing. In cases where it's not practical to avoid the practice, we suggest doing so only in the context of some kind of system that comprehensively ensures against inadvertent unsafe access. For most straight-forward cases you can use the <a href="#asynchronously-shared-objects">asynchronous sharing data types</a> in this library. And as a rule of thumb, if you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing), even when that means foregoing the use of some of the elements in this library. Ideally, prefer a POD ("plain old data") data type with no member functions and no mutable members.<br>
 To be clear, we are not discouraging asynchronous programming, or even inter-thread communication in general. Just the "casual" sharing of objects between asynchronous threads.</p>
+
+<h3>
+<a id="practical-limitations" class="anchor" href="#practical-limitations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Practical limitations</h3>
+
+<p>The degree of memory safety that can be achieved is a function of the degree to which use of C++'s (memory) unsafe elements is avoided. Unfortunately, there is not yet a tool to automatically identify such uses. But if, in the future, there is significant demand for such a tool, it wouldn't be a particulary difficult thing to develop. Certainly trivial compared to some of the existing static analysis tools.</p>
+
+<p>Note that one of C++'s more subtle unsafe elements is the implicit "this" pointer when accessing member variables from member functions. Consider this example:</p>
+
+<pre><code>#include "msescope.h"
+#include "msemstdvector.h"
+
+class CI {
+public:
+    template&lt;class safe_vector_pointer_type&gt;
+    void foo1(safe_vector_pointer_type vec_ptr) {
+        vec_ptr-&gt;clear();
+
+        /* These next two lines are equivalent and technically unsafe. */
+        m_i += 1;
+        this-&gt;m_i += 1;
+    }
+
+    int m_i = 0;
+};
+
+void main() {
+    mse::TXScopeObj&lt;mse::mstd::vector&lt;CI&gt;&gt; vec1;
+    vec1.resize(1);
+    auto iter = vec1.begin();
+    iter-&gt;foo1(&amp;vec1);
+}
+</code></pre>
+
+<p>The above example contains unchecked accesses to deallocated memory via an implicit and explicit "this" pointer. The "this" pointer (implicit or explicit) is a native pointer, and like any other native pointer, is unsafe and can/should be replaced with a safer substitute:</p>
+
+<pre><code>#include "msescope.h"
+#include "msemstdvector.h"
+
+class CI {
+public:
+    template&lt;class safe_this_type, class safe_vector_pointer_type&gt;
+    void foo2(safe_this_type safe_this, safe_vector_pointer_type vec_ptr) {
+        vec_ptr-&gt;clear();
+
+        /* The safe_this pointer will catch the attempted invalid memory access. */
+        safe_this-&gt;m_i += 2;
+    }
+
+    int m_i = 0;
+};
+
+void main() {
+    mse::TXScopeObj&lt;mse::mstd::vector&lt;CI&gt;&gt; vec1;
+    vec1.resize(1);
+    auto iter = vec1.begin();
+    iter-&gt;foo2(iter, &amp;vec1);
+}
+</code></pre>
+
+<p>So, technically, achieving complete memory safety requires passing a safe "this" pointer parameter as an argument to every member function that accesses a member variable.</p>
+
+<p>Another couple of potential pitfals are the potential misuse of "scope" pointers, and the sharing of objects with unprotected mutable members between asynchronous threads, as explained in the corresponding documentation. The library data types do what they can to prevent such misuse, but are ultimately limited in their enforcement capabilities. But these shortcomings could also be addressed in the future with a reasonably straightforward tool to detect the potential problems.</p>
 
 <h3>
 <a id="questions-and-comments" class="anchor" href="#questions-and-comments" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Questions and comments</h3>
