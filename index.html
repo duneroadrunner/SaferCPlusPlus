@@ -1447,7 +1447,7 @@ int main(int argc, char* argv[]) {
 }
 </code></pre>
 
-<p>Note that we've decided to implement msearray&lt;&gt; as an "aggregate" type. This means that it gets automatic compiler support for <a href="http://en.cppreference.com/w/cpp/language/aggregate_initialization">aggregate initialization</a>, but it comes with some compromises as well. One detail to be aware of is that when replacing an aggregate initialized std::array&lt;&gt; with an mse::msearray&lt;&gt;, you generally need to add an extra set of braces around the initializer list. Note that with mse:mstd::array&lt;&gt;, you do not need the extra braces because it is not an aggregate type and instead tries to emulate support for aggregate initialization.</p>
+<p>Note that we've decided to implement msearray&lt;&gt; as an "aggregate" type. This means that it gets automatic compiler support for <a href="http://en.cppreference.com/w/cpp/language/aggregate_initialization">aggregate initialization</a>, but it comes with some compromises as well. One detail to be aware of is that when replacing an aggregate initialized std::array&lt;&gt; with an mse::msearray&lt;&gt;, you generally need to add an extra set of braces around the initializer list. Note that with mse::mstd::array&lt;&gt;, you do not need the extra braces because it is not an aggregate type and instead tries to emulate support for aggregate initialization.</p>
 
 <h3>
 <a id="compatibility-considerations" class="anchor" href="#compatibility-considerations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compatibility considerations</h3>
