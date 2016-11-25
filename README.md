@@ -1305,7 +1305,7 @@ The above example contains unchecked accesses to deallocated memory via an impli
 
 So, technically, achieving complete memory safety requires passing a safe "this" pointer parameter as an argument to every member function that accesses a member variable.
 
-Another couple of potential pitfals are the potential misuse of "scope" pointers, and the sharing of objects with unprotected mutable members between asynchronous threads, as explained in the corresponding documentation. The library data types do what they can to prevent such misuse, but are ultimately limited in their enforcement capabilities. But these shortcomings could also be addressed in the future with a reasonably straightforward tool to detect the potential problems.
+Another couple of potential pitfalls are the potential misuse of "scope" pointers, and the sharing of objects with unprotected mutable members between asynchronous threads, as explained in the corresponding documentation. The library data types do what they can to prevent such misuse, but are ultimately limited in their enforcement capabilities. But these shortcomings could also be addressed in the future with a reasonably straightforward tool to detect the potential problems.
 
 ### Questions and comments
 If you have questions or comments you can create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
