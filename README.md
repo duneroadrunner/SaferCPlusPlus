@@ -73,6 +73,22 @@ If you're considering one or the other solution (or both), I would suggest start
 
 There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu/~santosh.nagarakatte/papers/ironclad-oopsla2013.pdf). It's a beneficial read even for those not planning on adopting Ironclad, as the the approach has much in common with SaferCPlusPlus.  
 
+### SaferCPlusPlus versus Rust
+
+SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. (While SaferCPlusPlus itself is generally less restrictive than Rust, the programmer is of course free to use static tools to (self-)impose any desired additional restrictions.) Because run-time checks have a run-time cost, to a greater extent than Rust, SaferCPlusPlus' performance is dependent on the compiler optimizer's ability to discard them when they are not actually necessary (which should be most of the time).
+
+It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the correspondence between Rust and SaferCPlusPlus elements:
+
+Rust | SaferCPlusPlus
+---- | --------------
+reference | scope pointer
+Box<> | scope owner pointer
+RC<> | reference counting pointer
+
+Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. By default, these "smart" pointers may add a little run-time overhead, but usually the run-time overhead can be optimized out. (At least in theory.)
+
+So generally, Rust code has a direct translation into SaferCPlusPlus (standard library differences not withstanding). If you were to self-impose Rust's "borrow checker" rules onto your SaferCPlusPlus code, then the reverse should generally be true as well.  
+
 
 ### Registered pointers
 
@@ -81,7 +97,6 @@ There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu
 Registered pointers come in two flavors - [TRegisteredPointer](#tregisteredpointer) and [TRelaxedRegisteredPointer](#trelaxedregisteredpointer). They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRelaxedRegisteredPointer emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRelaxedRegisteredPointer may be more convenient.
 
 Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer [substitutes](#primitives) for int, bool and size_t that can act as base classes. Also note that pointers that can point to the stack are inherently not thread safe. While we [do not encourage](#on-thread-safety) the casual sharing of objects between asynchronous threads, if you need to do so consider using the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
-
 
 
 ### TRegisteredPointer
