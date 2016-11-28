@@ -97,6 +97,40 @@
 <p>There is a comprehensive paper on Ironclad C++ <a href="https://www.cs.rutgers.edu/%7Esantosh.nagarakatte/papers/ironclad-oopsla2013.pdf">here</a>. It's a beneficial read even for those not planning on adopting Ironclad, as the the approach has much in common with SaferCPlusPlus.  </p>
 
 <h3>
+<a id="safercplusplus-versus-rust" class="anchor" href="#safercplusplus-versus-rust" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SaferCPlusPlus versus Rust</h3>
+
+<p>SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. (While SaferCPlusPlus itself is generally less restrictive than Rust, the programmer is of course free to use static tools to (self-)impose any desired additional restrictions.) Because run-time checks have a run-time cost, to a greater extent than Rust, SaferCPlusPlus' performance is dependent on the compiler optimizer's ability to discard them when they are not actually necessary (which should be most of the time).</p>
+
+<p>It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the correspondence between Rust and SaferCPlusPlus elements:</p>
+
+<table>
+<thead>
+<tr>
+<th>Rust</th>
+<th>SaferCPlusPlus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>reference</td>
+<td>scope pointer</td>
+</tr>
+<tr>
+<td>Box&lt;&gt;</td>
+<td>scope owner pointer</td>
+</tr>
+<tr>
+<td>RC&lt;&gt;</td>
+<td>reference counting pointer</td>
+</tr>
+</tbody>
+</table>
+
+<p>Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. By default, these "smart" pointers may add a little run-time overhead, but usually the run-time overhead can be optimized out. (At least in theory.)</p>
+
+<p>So generally, Rust code has a direct translation into SaferCPlusPlus (standard library differences not withstanding). If you were to self-impose Rust's "borrow checker" rules onto your SaferCPlusPlus code, then the reverse should generally be true as well.  </p>
+
+<h3>
 <a id="registered-pointers" class="anchor" href="#registered-pointers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Registered pointers</h3>
 
 <p>"Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap. In most cases, they can be used as a compatible, direct substitute for native pointers, making it straightforward to update legacy code (to be safer).</p>
