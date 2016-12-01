@@ -19,7 +19,7 @@
     </section>
 
     <section class="main-content">
-      <p>Oct 2016</p>
+      <p>Nov 2016</p>
 
 <h3>
 <a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h3>
@@ -129,6 +129,13 @@
 <p>Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. By default, these "smart" pointers may add a little run-time overhead, but usually the run-time overhead can be optimized out. (At least in theory.)</p>
 
 <p>So generally, Rust code has a direct translation into SaferCPlusPlus (standard library differences not withstanding). If you were to self-impose Rust's "borrow checker" rules onto your SaferCPlusPlus code, then the reverse should generally be true as well.  </p>
+
+<h3>
+<a id="safercplusplus-versus-the-core-guidelines-checkers" class="anchor" href="#safercplusplus-versus-the-core-guidelines-checkers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SaferCPlusPlus versus the Core Guidelines Checkers</h3>
+
+<p>At the time of this writing (Nov 2016), the Core Guidelines Checkers were still a work in progress and so didn't yet provide any memory safety guarantees for your code. But the goal is that at some point the Checkers (the Lifetimes Checker in particular) will be able to detect all potentially unsafe memory operations, with a reasonable proportion of false positives (apparently "under 10%" is the goal). That should be a big boon for C++ memory safety and performance if/when that is achieved. But even then there will still be the issue of how best to address the false positives (or the positives that you think are false). Well of course SaferCPlusPlus is well suited to ensure memory safety when your static checkers can't.</p>
+
+<p>In the mean time, SaferCPlusPlus is, in general, not a substitute for, or incompatible with static analyzers. You are encouraged to use both.  </p>
 
 <h3>
 <a id="registered-pointers" class="anchor" href="#registered-pointers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Registered pointers</h3>
