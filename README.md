@@ -6,9 +6,9 @@ Nov 2016
 
 - A [fast](#simple-benchmarks), [safe replacement for native pointers](#registered-pointers) that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).
 
-- A fast, safe [reference counting pointer](#reference-counting-pointers) for all those situations when you, just for a moment, contemplated using an std::shared_ptr for something other than an object shared between asynchronous threads. Including [safe parameter passing](#safely-passing-parameters-by-reference) by reference.
+- A faster, smaller, safer [reference counting pointer](#reference-counting-pointers) that can substitute for std::shared_ptr in situations where the target is not shared between asynchronous threads. Including [safe parameter passing](#safely-passing-parameters-by-reference) by reference.
 
-- A "[scope pointer](#scope-pointers)" for target objects allocated on the stack, or whose "owning" pointer is allocated on the stack. By default, not as safe as the other smart pointers in this library, but with zero runtime overhead.
+- A "[scope pointer](#scope-pointers)" for target objects allocated on the stack, or whose "owning" pointer is allocated on the stack. By default, not quite as safe as the other smart pointers in this library, but with zero runtime overhead.
 
 - An almost completely [safe implementation](#vector) of std::vector<> - bounds checked, iterator checked and memory managed.
 
