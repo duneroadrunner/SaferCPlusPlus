@@ -4,7 +4,7 @@ Nov 2016
 
 "SaferCPlusPlus" is essentially a collection of safe data types that are compatible with, and can substitute for, common unsafe native C++ types. Currently these include:
 
-- A [fast](#simple-benchmarks), [safe replacement for native pointers](#registered-pointers) that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).
+- A [fast](#simple-benchmarks), safe general [replacement for native pointers](#registered-pointers).
 
 - A faster, smaller, safer [reference counting pointer](#reference-counting-pointers) that can substitute for std::shared_ptr in situations where the target is not shared between asynchronous threads. Including [safe parameter passing](#safely-passing-parameters-by-reference) by reference.
 
