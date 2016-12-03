@@ -553,6 +553,16 @@ namespace mse {
 	template <class _TTargetType, class _TLeaseType>
 	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
 
+	template<class _TTargetType, class _Ty>
+	TStrongFixedPointer<_TTargetType, TRefCountingPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TRefCountingPointer<_Ty> &lease_pointer) {
+		return TStrongFixedPointer<_TTargetType, TRefCountingPointer<_Ty>>::make(target, lease_pointer);
+	}
+	template<class _TTargetType, class _Ty>
+	TStrongFixedPointer<_TTargetType, TRefCountingConstPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TRefCountingConstPointer<_Ty> &lease_pointer) {
+		return TStrongFixedPointer<_TTargetType, TRefCountingConstPointer<_Ty>>::make(target, lease_pointer);
+	}
+
+
 	/* shorter aliases */
 	template<typename _Ty> using refcp = TRefCountingPointer<_Ty>;
 	template<typename _Ty> using refccp = TRefCountingConstPointer<_Ty>;

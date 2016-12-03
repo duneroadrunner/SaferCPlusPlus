@@ -440,6 +440,22 @@ namespace mse {
 	template <class _TTargetType, class _TLeasePointerType>
 	bool TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator!=(const TXScopeWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
 
+#if defined(MSE_SCOPEPOINTER_DISABLED) && (defined(MSEREGISTERED_H_) && defined(MSE_REGISTEREDPOINTER_DISABLED))
+	/* Omit definition of make_pointer_to_member() as it would clash with the one already defined in mseregistered.h. */
+#define MSE_SCOPE_OMIT_MAKE_POINTER_TO_MEMBER
+#endif // defined(MSE_SCOPEPOINTER_DISABLED)...
+#ifndef MSE_SCOPE_OMIT_MAKE_POINTER_TO_MEMBER
+	template<class _TTargetType, class _Ty>
+	TXScopeWeakFixedPointer<_TTargetType, TXScopeFixedPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty> &lease_pointer) {
+		return TXScopeWeakFixedPointer<_TTargetType, TXScopeFixedPointer<_Ty>>::make(target, lease_pointer);
+	}
+	template<class _TTargetType, class _Ty>
+	TXScopeWeakFixedPointer<_TTargetType, TXScopeFixedConstPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TXScopeFixedConstPointer<_Ty> &lease_pointer) {
+		return TXScopeWeakFixedPointer<_TTargetType, TXScopeFixedConstPointer<_Ty>>::make(target, lease_pointer);
+	}
+#endif // !MSE_SCOPE_OMIT_MAKE_POINTER_TO_MEMBER
+
+
 	/* shorter aliases */
 	//template<typename _Ty> using scpp = TXScopePointer<_Ty>;
 	//template<typename _Ty> using scpcp = TXScopeConstPointer<_Ty>;

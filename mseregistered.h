@@ -757,6 +757,21 @@ namespace mse {
 	template <class _TTargetType, class _TLeasePointerType>
 	bool TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator!=(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
 
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) && (defined(MSESCOPE_H_) && defined(MSE_SCOPEPOINTER_DISABLED))
+	/* Omit definition of make_pointer_to_member() as it would clash with the one already defined in msescope.h. */
+#define MSE_REGISTERED_OMIT_MAKE_POINTER_TO_MEMBER
+#endif // defined(MSE_REGISTEREDPOINTER_DISABLED)...
+#ifndef MSE_REGISTERED_OMIT_MAKE_POINTER_TO_MEMBER
+	template<class _TTargetType, class _Ty>
+	TSyncWeakFixedPointer<_TTargetType, TRegisteredPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TRegisteredPointer<_Ty> &lease_pointer) {
+		return TSyncWeakFixedPointer<_TTargetType, TRegisteredPointer<_Ty>>::make(target, lease_pointer);
+	}
+	template<class _TTargetType, class _Ty>
+	TSyncWeakFixedPointer<_TTargetType, TRegisteredConstPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TRegisteredConstPointer<_Ty> &lease_pointer) {
+		return TSyncWeakFixedPointer<_TTargetType, TRegisteredConstPointer<_Ty>>::make(target, lease_pointer);
+	}
+#endif // !MSE_REGISTERED_OMIT_MAKE_POINTER_TO_MEMBER
+
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
 

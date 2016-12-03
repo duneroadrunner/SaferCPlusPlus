@@ -629,6 +629,21 @@ namespace mse {
 	}
 #endif /*MSE_REGISTEREDPOINTER_DISABLED*/
 
+#if defined(MSE_REGISTEREDPOINTER_DISABLED)
+	/* Omit definition of make_pointer_to_member() as it would clash with the one already defined in mseregistered.h. */
+#define MSE_RELAXEDREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER
+#endif // defined(MSE_REGISTEREDPOINTER_DISABLED)
+#if !defined(MSE_RELAXEDREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER) && defined(MSEREGISTERED_H_)
+	template<class _TTargetType, class _Ty>
+	TSyncWeakFixedPointer<_TTargetType, TRelaxedRegisteredPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TRelaxedRegisteredPointer<_Ty> &lease_pointer) {
+		return TSyncWeakFixedPointer<_TTargetType, TRelaxedRegisteredPointer<_Ty>>::make(target, lease_pointer);
+	}
+	template<class _TTargetType, class _Ty>
+	TSyncWeakFixedPointer<_TTargetType, TRelaxedRegisteredConstPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TRelaxedRegisteredConstPointer<_Ty> &lease_pointer) {
+		return TSyncWeakFixedPointer<_TTargetType, TRelaxedRegisteredConstPointer<_Ty>>::make(target, lease_pointer);
+	}
+#endif // !defined(MSE_RELAXEDREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER) && defined(MSEREGISTERED_H_)
+
 	/* shorter aliases */
 	template<typename _Ty> using rrp = TRelaxedRegisteredPointer<_Ty>;
 	template<typename _Ty> using rrcp = TRelaxedRegisteredConstPointer<_Ty>;
