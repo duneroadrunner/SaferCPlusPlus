@@ -81,8 +81,8 @@ It's probably the similarities between SaferCPlusPlus and Rust that's most notab
 
 Rust | SaferCPlusPlus
 ---- | --------------
-immutable reference | scope pointer
-mutable reference | registered pointer
+non-rebindable reference | scope pointer
+rebindable reference | registered pointer
 Box<> | scope owner pointer
 Rc<> | reference counting pointer
 Arc<> | access requester
