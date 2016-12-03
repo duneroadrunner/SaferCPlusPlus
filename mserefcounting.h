@@ -164,7 +164,7 @@ namespace mse {
 		}
 
 		template <class... Args>
-		static TRefCountingPointer make_refcounting(Args&&... args) {
+		static TRefCountingPointer make(Args&&... args) {
 			auto new_ptr = new CRefCounter(std::forward<Args>(args)...);
 			TRefCountingPointer retval(new_ptr);
 			return retval;
@@ -253,7 +253,7 @@ namespace mse {
 		explicit operator _Ty*() const { return TRefCountingNotNullPointer<_Ty>::operator _Ty*(); }
 
 		template <class... Args>
-		static TRefCountingFixedPointer make_refcounting(Args&&... args) {
+		static TRefCountingFixedPointer make(Args&&... args) {
 			auto new_ptr = new TRefWithTargetObj<_Ty>(std::forward<Args>(args)...);
 			TRefCountingFixedPointer retval(new_ptr);
 			return retval;
@@ -271,7 +271,7 @@ namespace mse {
 
 	template <class X, class... Args>
 	TRefCountingFixedPointer<X> make_refcounting(Args&&... args) {
-		return TRefCountingFixedPointer<X>::make_refcounting(std::forward<Args>(args)...);
+		return TRefCountingFixedPointer<X>::make(std::forward<Args>(args)...);
 	}
 
 
@@ -485,7 +485,7 @@ namespace mse {
 		_TLeaseType lease() const { return (*this).m_lease; }
 
 		template <class _TTargetType2, class _TLeaseType2>
-		static TStrongFixedPointer make_strong(_TTargetType2& target, const _TLeaseType2& lease) {
+		static TStrongFixedPointer make(_TTargetType2& target, const _TLeaseType2& lease) {
 			return TStrongFixedPointer(target, lease);
 		}
 
@@ -503,7 +503,7 @@ namespace mse {
 
 	template <class _TTargetType, class _TLeaseType>
 	TStrongFixedPointer<_TTargetType, _TLeaseType> make_strong(_TTargetType& target, const _TLeaseType& lease) {
-		return TStrongFixedPointer<_TTargetType, _TLeaseType>::make_strong(target, lease);
+		return TStrongFixedPointer<_TTargetType, _TLeaseType>::make(target, lease);
 	}
 
 	template <class _TTargetType, class _TLeaseType>

@@ -373,7 +373,7 @@ namespace mse {
 		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }
 
 		template <class _TTargetType2, class _TLeasePointerType2>
-		static TXScopeWeakFixedPointer make_xscopeweak(_TTargetType2& target, const _TLeasePointerType2& lease_pointer) {
+		static TXScopeWeakFixedPointer make(_TTargetType2& target, const _TLeasePointerType2& lease_pointer) {
 			return TXScopeWeakFixedPointer(target, lease_pointer);
 		}
 
@@ -389,7 +389,7 @@ namespace mse {
 
 	template <class _TTargetType, class _TLeasePointerType>
 	TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType> make_xscopeweak(_TTargetType& target, const _TLeasePointerType& lease_pointer) {
-		return TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType>::make_xscopeweak(target, lease_pointer);
+		return TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType>::make(target, lease_pointer);
 	}
 
 	template <class _TTargetType, class _TLeasePointerType>

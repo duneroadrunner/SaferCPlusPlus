@@ -690,7 +690,7 @@ namespace mse {
 		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }
 
 		template <class _TTargetType2, class _TLeasePointerType2>
-		static TSyncWeakFixedPointer make_syncweak(_TTargetType2& target, const _TLeasePointerType2& lease_pointer) {
+		static TSyncWeakFixedPointer make(_TTargetType2& target, const _TLeasePointerType2& lease_pointer) {
 			return TSyncWeakFixedPointer(target, lease_pointer);
 		}
 
@@ -706,7 +706,7 @@ namespace mse {
 
 	template <class _TTargetType, class _TLeasePointerType>
 	TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType> make_syncweak(_TTargetType& target, const _TLeasePointerType& lease_pointer) {
-		return TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>::make_syncweak(target, lease_pointer);
+		return TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>::make(target, lease_pointer);
 	}
 
 	template <class _TTargetType, class _TLeasePointerType>
