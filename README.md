@@ -1,14 +1,14 @@
-Oct 2016
+Nov 2016
 
 ### Overview
 
 "SaferCPlusPlus" is essentially a collection of safe data types that are compatible with, and can substitute for, common unsafe native C++ types. Currently these include:
 
-- A [fast](#simple-benchmarks), [safe replacement for native pointers](#registered-pointers) that, unlike std::shared_ptr for example, does not take ownership of the target (and so can point to objects on the stack).
+- A [fast](#simple-benchmarks), safe general [replacement for native pointers](#registered-pointers).
 
-- A fast, safe [reference counting pointer](#reference-counting-pointers) for all those situations when you, just for a moment, contemplated using an std::shared_ptr for something other than an object shared between asynchronous threads. Including [safe parameter passing](#safely-passing-parameters-by-reference) by reference.
+- A faster, smaller, safer [reference counting pointer](#reference-counting-pointers) that can substitute for std::shared_ptr in situations where the target is not shared between asynchronous threads. Including [safe parameter passing](#safely-passing-parameters-by-reference) by reference.
 
-- A "[scope pointer](#scope-pointers)" for target objects allocated on the stack, or whose "owning" pointer is allocated on the stack. By default, not as safe as the other smart pointers in this library, but with zero runtime overhead.
+- A "[scope pointer](#scope-pointers)" for target objects allocated on the stack, or whose "owning" pointer is allocated on the stack. By default, not quite as safe as the other smart pointers in this library, but with zero runtime overhead.
 
 - An almost completely [safe implementation](#vector) of std::vector<> - bounds checked, iterator checked and memory managed.
 
@@ -27,9 +27,9 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
 
 ### Use cases
 
-This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else. This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you a lot of the safety that you might get from, say Java, while retaining all of the power and most of the performance of C++.  
+This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else. This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you [a lot](#practical-limitations) of the memory safety that you might get from say, Java, while retaining all of the power and most of the performance of C++.  
 
-While using the library can incur a modest performance penalty, because the library elements are [largely compatible](#compatibility-considerations) with their native counterparts they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.  
+While using the library can incur a modest performance penalty, because the library elements are [largely compatible](#compatibility-considerations) with their native counterparts, they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.  
 
 And note that the safe components of this library can be adopted completely incrementally. New code written with these safe elements will play nicely with existing (unsafe) code, and unsafe elements can be replaced selectively without breaking the existing code. So there is really no excuse for not using the library in pretty much any situation.  
 
@@ -51,7 +51,7 @@ The Clang/LLVM compiler provides a set of "sanitizers" (adopted by gcc) that add
 - SaferCPlusPlus can [more completely](https://en.wikipedia.org/wiki/AddressSanitizer#Limitations) solve the problem of invalid memory access, but does so by restricting what qualifies as "proper" SaferCPlusPlus code (eg. no pointer arithmetic).
 - When encountering an invalid memory operation at run-time, the Clang/LLVM sanitizers terminate the executable, where SaferCPlusPlus, by default, throws a (catchable) exception, but supports any user-defined action, including program termination. 
 - SaferCPlusPlus is portable C++ code that works on any platform, whereas Clang/LLVM sanitizers are available/maintained on a finite (but at the moment, ample) set of OS-architecture combinations.
-- The Clang/LLVM sanitizers cost more in terms of run-time performance. [~2x slowdown](https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers) for the AddressSanitizer, for example. SaferCPlusPlus generally has [lower performance costs](#simple-benchmarks), mainly because the Clang/LLVM sanitizers cannot assume any cooperation from the source code, so they have to instrument pretty much every allocated piece of memory and check pretty well every pointer dereference.
+- The Clang/LLVM sanitizers cost more in terms of run-time performance. [~2x slowdown](https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers) for the AddressSanitizer, for example. SaferCPlusPlus generally has substantially [lower performance costs](#simple-benchmarks), mainly because the Clang/LLVM sanitizers cannot assume any cooperation from the source code, so they have to instrument pretty much every allocated piece of memory and check pretty well every pointer dereference.
 - SaferCPlusPlus supports the mixing of "safe" and (high-performance) "unsafe" code at a granular level, where Clang/LLVM Sanitizers apply to entire modules, or as in the case of the MemorySanitizer, all modules, requiring recompilation of any linked libraries.
 - Clang's ThreadSanitizer tries to detect data race bugs, while SaferCPlusPlus provides [data types](#asynchronously-shared-objects) that eliminate the possibility of data race bugs (and a superset we call "object race" bugs).
 
@@ -73,6 +73,27 @@ If you're considering one or the other solution (or both), I would suggest start
 
 There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu/~santosh.nagarakatte/papers/ironclad-oopsla2013.pdf). It's a beneficial read even for those not planning on adopting Ironclad, as the the approach has much in common with SaferCPlusPlus.  
 
+### SaferCPlusPlus versus Rust
+
+SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. (While SaferCPlusPlus itself is generally less restrictive than Rust, the programmer is of course free to use static tools to (self-)impose any desired additional restrictions.) Because run-time checks have a run-time cost, to a greater extent than Rust, SaferCPlusPlus' performance is dependent on the compiler optimizer's ability to discard them when they are not actually necessary (which should be most of the time).
+
+It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the correspondence between Rust and SaferCPlusPlus elements:
+
+Rust | SaferCPlusPlus
+---- | --------------
+reference | scope pointer
+Box<> | scope owner pointer
+Rc<> | reference counting pointer
+Arc<> | access requester
+
+Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. By default, these "smart" pointers may add a little run-time overhead, but usually the run-time overhead can be optimized out. (At least in theory.)  
+
+### SaferCPlusPlus versus the Core Guidelines Checkers
+
+At the time of this writing (Nov 2016), the Core Guidelines Checkers were still a work in progress and so didn't yet provide any memory safety guarantees for your code. But the goal is that at some point the Checkers (the Lifetimes Checker in particular) will be able to detect all potentially unsafe memory operations, with a reasonable proportion of false positives (apparently "under 10%" is the goal). That should be a big boon for C++ memory safety and performance if/when that is achieved. But even then there will still be the issue of how best to address the false positives (or the positives that you think are false). Well of course SaferCPlusPlus is well suited to ensure memory safety when your static checkers can't.
+
+In the mean time, SaferCPlusPlus is, in general, not a substitute for, or incompatible with static analyzers. You are encouraged to use both.  
+
 
 ### Registered pointers
 
@@ -81,7 +102,6 @@ There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu
 Registered pointers come in two flavors - [TRegisteredPointer](#tregisteredpointer) and [TRelaxedRegisteredPointer](#trelaxedregisteredpointer). They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRelaxedRegisteredPointer emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRelaxedRegisteredPointer may be more convenient.
 
 Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer [substitutes](#primitives) for int, bool and size_t that can act as base classes. Also note that pointers that can point to the stack are inherently not thread safe. While we [do not encourage](#on-thread-safety) the casual sharing of objects between asynchronous threads, if you need to do so consider using the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
-
 
 
 ### TRegisteredPointer
@@ -586,6 +606,8 @@ There are two types of scope pointers, [TXScopeFixedPointer](#txscopefixedpointe
 
 
 ### TXScopeFixedPointer
+TXScopeFixedPointer is intended to be used to pass scope objects by reference as function arguments. It is not intended to be used as a member of any class or struct (this would generally produce a compile error) or as a function return type.  
+
 usage example:
 
     #include "msescope.h"
@@ -1041,7 +1063,9 @@ usage example:
 
 Important note: As a general rule, avoid sharing mse::mstd::vector<>s among asynchronous threads.  
 
-The mechanism mse::mstd::vector<> uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::vector<> doesn't really qualify. std::vector<>, while perhaps still not ideal, is much more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.
+The mechanism mse::mstd::vector<> uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::vector<> doesn't really qualify. std::vector<>, while perhaps still not ideal, is much more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.  
+
+Also, keep in mind that dynamic data structures, like vectors, are a primary source of memory access bugs, so unsafe native references and pointers to members of dynamic data structures should particularly avoided. See the note in the "[Practical limitations](#practical-limitations)" section about implicit "this" pointers.
 
 ### msevector
 
@@ -1231,6 +1255,8 @@ usage example:
         bool bres4 = ss_cit1.points_to_an_item();
     }
 
+Note that we've decided to implement msearray<> as an "aggregate" type. This means that it gets automatic compiler support for [aggregate initialization](http://en.cppreference.com/w/cpp/language/aggregate_initialization), but it comes with some compromises as well. One detail to be aware of is that when replacing an aggregate initialized std::array<> with an mse::msearray<>, you generally need to add an extra set of braces around the initializer list. Note that with mse::mstd::array<>, you do not need the extra braces because it is not an aggregate type and instead tries to emulate support for aggregate initialization.
+
 ### Compatibility considerations
 People have asked why the primitive C++ types can't be used as base classes - http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
 
@@ -1241,6 +1267,65 @@ If you are using legacy code or libraries where it's not practical to update the
 ### On thread safety
 The choice to not include thread safety mechanisms in most of the types in this library is a deliberate one. If the goal is code safety, then we strongly discourage the casual sharing of objects between asynchronous threads (i.e. without the proper safety mechanisms). The practice of sharing objects between asynchronous threads can be prone to severe and insidious bugs that are particularly adept at evading exposure during testing. In cases where it's not practical to avoid the practice, we suggest doing so only in the context of some kind of system that comprehensively ensures against inadvertent unsafe access. For most straight-forward cases you can use the [asynchronous sharing data types](#asynchronously-shared-objects) in this library. And as a rule of thumb, if you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing), even when that means foregoing the use of some of the elements in this library. Ideally, prefer a POD ("plain old data") data type with no member functions and no mutable members.  
 To be clear, we are not discouraging asynchronous programming, or even inter-thread communication in general. Just the "casual" sharing of objects between asynchronous threads.
+
+### Practical limitations
+
+The degree of memory safety that can be achieved is a function of the degree to which use of C++'s (memory) unsafe elements is avoided. Unfortunately, there is not yet a tool to automatically identify such uses. But if, in the future, there is significant demand for such a tool, it wouldn't be a particulary difficult thing to develop. Certainly trivial compared to some of the existing static analysis tools.
+
+Note that one of C++'s more subtle unsafe elements is the implicit "this" pointer when accessing member variables from member functions. Consider this example:
+
+    #include "msescope.h"
+    #include "msemstdvector.h"
+    
+    class CI {
+    public:
+        template<class safe_vector_pointer_type>
+        void foo1(safe_vector_pointer_type vec_ptr) {
+            vec_ptr->clear();
+    
+            /* These next two lines are equivalent and technically unsafe. */
+            m_i += 1;
+            this->m_i += 1;
+        }
+    
+        int m_i = 0;
+    };
+    
+    void main() {
+        mse::TXScopeObj<mse::mstd::vector<CI>> vec1;
+        vec1.resize(1);
+        auto iter = vec1.begin();
+        iter->foo1(&vec1);
+    }
+
+The above example contains unchecked accesses to deallocated memory via an implicit and explicit "this" pointer. The "this" pointer (implicit or explicit) is a native pointer, and like any other native pointer, is unsafe and can/should be replaced with a safer substitute:
+
+    #include "msescope.h"
+    #include "msemstdvector.h"
+    
+    class CI {
+    public:
+        template<class safe_this_type, class safe_vector_pointer_type>
+        void foo2(safe_this_type safe_this, safe_vector_pointer_type vec_ptr) {
+            vec_ptr->clear();
+    
+            /* The safe_this pointer will catch the attempted invalid memory access. */
+            safe_this->m_i += 2;
+        }
+    
+        int m_i = 0;
+    };
+    
+    void main() {
+        mse::TXScopeObj<mse::mstd::vector<CI>> vec1;
+        vec1.resize(1);
+        auto iter = vec1.begin();
+        iter->foo2(iter, &vec1);
+    }
+
+So, technically, achieving complete memory safety requires passing a safe "this" pointer parameter as an argument to every member function that accesses a member variable.
+
+Another couple of potential pitfalls are the potential misuse of "scope" pointers, and the sharing of objects with unprotected mutable members between asynchronous threads, as explained in the corresponding documentation. The library data types do what they can to prevent such misuse, but are ultimately limited in their enforcement capabilities. But these shortcomings could also be addressed in the future with a reasonably straightforward tool to detect the potential problems.
 
 ### Questions and comments
 If you have questions or comments you can create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
