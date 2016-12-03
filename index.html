@@ -99,9 +99,9 @@
 <h3>
 <a id="safercplusplus-versus-rust" class="anchor" href="#safercplusplus-versus-rust" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SaferCPlusPlus versus Rust</h3>
 
-<p>SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. (While SaferCPlusPlus itself is generally less restrictive than Rust, the programmer is of course free to use static tools to (self-)impose any desired additional restrictions.) Because run-time checks have a run-time cost, to a greater extent than Rust, SaferCPlusPlus' performance is dependent on the compiler optimizer's ability to discard them when they are not actually necessary (which should be most of the time).</p>
+<p>SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. Because run-time checks have a run-time cost, to a greater extent than Rust, SaferCPlusPlus' performance is dependent on the compiler optimizer's ability to discard them when they are not actually necessary (which should be most of the time).</p>
 
-<p>It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the correspondence between Rust and SaferCPlusPlus elements:</p>
+<p>It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the (loose) correspondence between Rust and SaferCPlusPlus elements:</p>
 
 <table>
 <thead>
@@ -112,8 +112,12 @@
 </thead>
 <tbody>
 <tr>
-<td>reference</td>
+<td>immutable reference</td>
 <td>scope pointer</td>
+</tr>
+<tr>
+<td>mutable reference</td>
+<td>registered pointer</td>
 </tr>
 <tr>
 <td>Box&lt;&gt;</td>
@@ -130,7 +134,7 @@
 </tbody>
 </table>
 
-<p>Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. By default, these "smart" pointers may add a little run-time overhead, but usually the run-time overhead can be optimized out. (At least in theory.)  </p>
+<p>Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. By default, these "smart" pointers may add a little run-time overhead, but often the run-time overhead can be optimized out. (At least in theory.)  </p>
 
 <h3>
 <a id="safercplusplus-versus-the-core-guidelines-checkers" class="anchor" href="#safercplusplus-versus-the-core-guidelines-checkers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SaferCPlusPlus versus the Core Guidelines Checkers</h3>
