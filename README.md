@@ -75,18 +75,19 @@ There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu
 
 ### SaferCPlusPlus versus Rust
 
-SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. (While SaferCPlusPlus itself is generally less restrictive than Rust, the programmer is of course free to use static tools to (self-)impose any desired additional restrictions.) Because run-time checks have a run-time cost, to a greater extent than Rust, SaferCPlusPlus' performance is dependent on the compiler optimizer's ability to discard them when they are not actually necessary (which should be most of the time).
+SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. Because run-time checks have a run-time cost, to a greater extent than Rust, SaferCPlusPlus' performance is dependent on the compiler optimizer's ability to discard them when they are not actually necessary (which should be most of the time).
 
-It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the correspondence between Rust and SaferCPlusPlus elements:
+It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the (loose) correspondence between Rust and SaferCPlusPlus elements:
 
 Rust | SaferCPlusPlus
 ---- | --------------
-reference | scope pointer
+non-rebindable reference | scope pointer
+rebindable reference | registered pointer
 Box<> | scope owner pointer
 Rc<> | reference counting pointer
 Arc<> | access requester
 
-Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. By default, these "smart" pointers may add a little run-time overhead, but usually the run-time overhead can be optimized out. (At least in theory.)  
+Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. By default, these "smart" pointers may add a little run-time overhead, but often the run-time overhead can be optimized out. (At least in theory.)  
 
 ### SaferCPlusPlus versus the Core Guidelines Checkers
 
