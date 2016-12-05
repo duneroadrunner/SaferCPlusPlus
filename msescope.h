@@ -563,6 +563,54 @@ namespace mse {
 			mse::TXScopeFixedPointer<E> E_scope_fptr2 = &scope_gd;
 			mse::TXScopeFixedConstPointer<E> E_scope_fcptr2 = &scope_gd;
 		}
+
+		{
+			class A {
+			public:
+				A(int x) : b(x) {}
+				virtual ~A() {}
+
+				int b = 3;
+				std::string s = "some text ";
+			};
+			class B {
+			public:
+				static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
+				static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+				static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+			protected:
+				~B() {}
+			};
+
+			mse::TXScopeObj<A> a_scpobj(5);
+			int res1 = (&a_scpobj)->b;
+			int res2 = B::foo2(&a_scpobj);
+			int res3 = B::foo3(&a_scpobj);
+			mse::TXScopeOwnerPointer<A> a_scpoptr(7);
+			int res4 = B::foo2(&(*a_scpoptr));
+
+			/* You can use the "mse::make_pointer_to_member()" function to obtain a safe pointer to a member of
+			an xscope object. */
+			auto s_safe_ptr1 = mse::make_pointer_to_member((a_scpobj.s), (&a_scpobj));
+			(*s_safe_ptr1) = "some new text";
+			auto s_safe_const_ptr1 = mse::make_const_pointer_to_member((a_scpobj.s), (&a_scpobj));
+
+			/* Just testing the convertibility of mse::TXScopeWeakFixedPointers. */
+			auto A_xscope_fixed_ptr1 = &a_scpobj;
+			auto xscpwfptr1 = mse::make_xscopeweak<std::string>(A_xscope_fixed_ptr1->s, A_xscope_fixed_ptr1);
+			mse::TXScopeWeakFixedPointer<std::string, mse::TXScopeFixedConstPointer<A>> xscpwfptr2 = xscpwfptr1;
+			mse::TXScopeWeakFixedConstPointer<std::string, mse::TXScopeFixedPointer<A>> xscpwfcptr1 = xscpwfptr1;
+			mse::TXScopeWeakFixedConstPointer<std::string, mse::TXScopeFixedConstPointer<A>> xscpwfcptr2 = xscpwfcptr1;
+			if (xscpwfcptr1 == xscpwfptr1) {
+				int q = 7;
+			}
+			if (xscpwfptr1 == xscpwfcptr1) {
+				int q = 7;
+			}
+			if (xscpwfptr1) {
+				int q = 7;
+			}
+		}
 #endif // MSE_SELF_TESTS
 	}
 }

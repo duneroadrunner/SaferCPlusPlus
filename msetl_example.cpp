@@ -42,12 +42,6 @@ them to be enabled. */
 #define MSE_SELF_TESTS
 
 //include "msetl.h"
-#include "msemsearray.h"
-#include "msemstdarray.h"
-#include "msemsevector.h"
-#include "msemstdvector.h"
-#include "mseivector.h"
-#include "msevector_test.h"
 #include "mseregistered.h"
 #include "mserelaxedregistered.h"
 #include "mserefcounting.h"
@@ -56,6 +50,12 @@ them to be enabled. */
 #include "msescope.h"
 #include "mseasyncshared.h"
 #include "msepoly.h"
+#include "msemsearray.h"
+#include "msemstdarray.h"
+#include "msemsevector.h"
+#include "msemstdvector.h"
+#include "mseivector.h"
+#include "msevector_test.h"
 #include "mseprimitives.h"
 #include <algorithm>
 #include <iostream>
@@ -120,8 +120,72 @@ protected:
 	~H() {}
 };
 
+typedef std::string Bar;
+
+struct Foo {
+	Bar m_b;
+
+	template<class this_type>
+	auto b_getter(this_type safe_this) -> decltype(mse::make_pointer_to_member(safe_this->m_b, safe_this)) {
+		return mse::make_pointer_to_member(safe_this->m_b, safe_this);
+	}
+};
+
 int main(int argc, char* argv[])
 {
+	{
+		// This part has no run-time overhead
+		mse::TXScopeObj<Foo> foo_obj1;
+		auto foo_obj1_b_pointer = foo_obj1.b_getter(&foo_obj1);
+		(*foo_obj1_b_pointer) = "some text";
+
+		auto foo_obj1_b_pointer2 = mse::make_pointer_to_member(foo_obj1.m_b, &foo_obj1);
+		(*foo_obj1_b_pointer2) = "some text";
+		auto foo_obj1_b_const_pointer3 = mse::make_const_pointer_to_member(foo_obj1.m_b, &foo_obj1);
+		//(*foo_obj1_b_const_pointer3) = "some text";
+
+		const mse::TXScopeObj<Foo> const_foo_obj2;
+		auto const_foo_obj2_b_pointer = mse::make_pointer_to_member(const_foo_obj2.m_b, &const_foo_obj2);
+		//(*const_foo_obj2_b_pointer) = "some text";
+	}
+
+	{
+		// vecfoo_b_pointer has a little run-time overhead
+		mse::mstd::vector<Foo> vec1;
+		vec1.resize(1);
+		auto iter = vec1.begin();
+		//auto vecfoo_b_pointer = mse::make_pointer_to_member/*<Bar, Foo>*/(iter->m_b, iter);
+		auto vecfoo_b_pointer = (*iter).b_getter(iter);
+		(*vecfoo_b_pointer) = "some other text";
+
+		auto vecfoo_b_pointer2 = mse::make_pointer_to_member(iter->m_b, iter);
+		(*vecfoo_b_pointer2) = "some text";
+		auto vecfoo_b_const_pointer3 = mse::make_const_pointer_to_member(iter->m_b, iter);
+		//(*vecfoo_b_const_pointer3) = "some text";
+
+		auto const_iter = vec1.cbegin();
+		auto const_vecfoo_b_pointer2 = mse::make_const_pointer_to_member(const_iter->m_b, const_iter);
+		//(*const_vecfoo_b_pointer2) = "some text";
+		auto const_vecfoo_b_pointer3 = mse::make_pointer_to_member(const_iter->m_b, const_iter);
+	}
+
+	{
+		auto refp1 = mse::make_refcounting<Foo>();
+		auto foo_b_pointer = (*refp1).b_getter(refp1);
+		(*foo_b_pointer) = "some other text";
+
+		auto foo_b_pointer2 = mse::make_pointer_to_member(refp1->m_b, refp1);
+		(*foo_b_pointer2) = "some text";
+		auto foo_b_const_pointer3 = mse::make_const_pointer_to_member(refp1->m_b, refp1);
+		//(*foo_b_const_pointer3) = "some text";
+
+		mse::TRefCountingConstPointer<Foo> ref_const_p1 = refp1;
+		auto const_foo_b_pointer2 = mse::make_const_pointer_to_member(ref_const_p1->m_b, ref_const_p1);
+		//(*const_foo_b_pointer2) = "some text";
+		auto const_foo_b_pointer3 = mse::make_pointer_to_member(ref_const_p1->m_b, ref_const_p1);
+	}
+
+
 	mse::msevector_test msevector_test;
 	msevector_test.run_all();
 
@@ -560,34 +624,24 @@ int main(int argc, char* argv[])
 			mse::TRegisteredObj<E> registered_e;
 			mse::TRegisteredPointer<E> E_registered_ptr1 = &registered_e;
 
-			/* The easiest way is to obtain a safe pointer to a member of a registered object is to make the
+			/* To obtain a safe pointer to a member of a registered object you could just make the
 			member itself a registered object. */
-			mse::TRegisteredPointer<std::string> string_registered_ptr1 = &(E_registered_ptr1->reg_s);
+			mse::TRegisteredPointer<std::string> reg_s_registered_ptr1 = &(E_registered_ptr1->reg_s);
 
-			/* Another option is to make a TSyncWeakFixedPointer. syncweak_string_ptr1 here is essentially
-			a pointer to "E.s2" (string member of class E) with a registered pointer to E to in its pocket.
-			It uses the registered pointer to ensure that it is safe to access the object. */
-			auto syncweak_string_ptr1 = mse::make_syncweak(E_registered_ptr1->s2, E_registered_ptr1);
+			/* Or you can use the "mse::make_pointer_to_member()" function. */
+			auto s2_safe_ptr1 = mse::make_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
+			(*s2_safe_ptr1) = "some new text";
+			auto s2_safe_const_ptr1 = mse::make_const_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
+
+			/* The return type of mse::make_pointer_to_member() depends in the type of the parameters passed
+			to it. In this case, the type of s2_safe_ptr1 is mse::TSyncWeakFixedPointer<std::string, 
+			mse::TRegisteredPointer<E>>. s2_safe_ptr1 here is essentially a pointer to "E.s2"
+			(string member of class E) with a registered pointer to E to in its pocket. It uses the registered
+			pointer to ensure that it is safe to access the object. */
 
 			/* In practice, rather than declaring a specific mse::TSyncWeakFixedPointer parameter, we expect
-			functions to be "templatized" so that they can accept any type of pointer. */
-			std::string res1 = H::foo6(syncweak_string_ptr1, syncweak_string_ptr1);
-
-			/* Just testing the convertibility of mse::TSyncWeakFixedPointers. */
-			auto E_registered_fixed_ptr1 = &registered_e;
-			auto swfptr1 = mse::make_syncweak<std::string>(E_registered_fixed_ptr1->s2, E_registered_fixed_ptr1);
-			mse::TSyncWeakFixedPointer<std::string, mse::TRegisteredPointer<E>> swfptr2 = swfptr1;
-			mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredFixedPointer<E>> swfcptr1 = swfptr1;
-			mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredPointer<E>> swfcptr2 = swfcptr1;
-			if (swfcptr1 == swfptr1) {
-				int q = 7;
-			}
-			if (swfptr1 == swfcptr1) {
-				int q = 7;
-			}
-			if (swfptr1) {
-				int q = 7;
-			}
+			functions intended for general use to be "templatized" so that they can accept any type of pointer. */
+			std::string res1 = H::foo6(s2_safe_ptr1, s2_safe_const_ptr1);
 		}
 
 		{
@@ -1033,40 +1087,33 @@ int main(int argc, char* argv[])
 			}
 			B::foo1(rcfpvector.front(), rcfpvector);
 		}
+
 		{
 			/* Obtaining a safe pointer to a member of an object owned by a reference counting pointer: */
+
 			CRCFPVector rcfpvector;
 			{
 				mse::TRefCountingFixedPointer<A> A_refcountingfixed_ptr1 = mse::make_refcounting<A>();
 				rcfpvector.push_back(A_refcountingfixed_ptr1);
 			}
 
-			/* strong_string_ptr1 here is essentially a pointer to "A.s" (the string member of class A) with
-			a refcounting pointer to A welded to it to make sure that the object is not deallocated while
-			strong_string_ptr1 is still around. */
-			auto strong_string_ptr1 = mse::make_strong(rcfpvector.front()->s, rcfpvector.front());
-			B::foo2(strong_string_ptr1, rcfpvector);
+			/* You can use the "mse::make_pointer_to_member()" function to obtain a safe pointer to a member of
+			an object owned by a refcounting pointer. */
+			auto s_safe_ptr1 = mse::make_pointer_to_member(rcfpvector.front()->s, rcfpvector.front());
+			(*s_safe_ptr1) = "some new text";
+			auto s_safe_const_ptr1 = mse::make_const_pointer_to_member(rcfpvector.front()->s, rcfpvector.front());
+
+			/* The return type of mse::make_pointer_to_member() depends in the type of the parameters passed
+			to it. In this case, the type of s_safe_ptr1 is mse::TStrongFixedPointer<std::string,
+			mse::TRefCountingFixedPointer<A>>. s_safe_ptr1 here is essentially a pointer to 
+			rcfpvector.front()->s with a copy of rcfpvector.front() welded to it to make sure that the
+			object is not deallocated while s_safe_ptr1 is still around. */
+
+			B::foo2(s_safe_ptr1, rcfpvector);
 
 			/* In practice, rather than declaring a specific mse::TStrongFixedPointer parameter, we expect
-			functions to be "templatized" so that they can accept any type of pointer. */
-			std::string res1 = H::foo6(strong_string_ptr1, strong_string_ptr1);
-		}
-		{
-			/* Just testing the convertibility of mse::TStrongFixedPointers. */
-			auto A_refcfp = mse::make_refcounting<A>();
-			auto sfptr1 = mse::make_strong<std::string>(A_refcfp->s, A_refcfp);
-			mse::TStrongFixedPointer<std::string, mse::TRefCountingPointer<A>> sfptr2 = sfptr1;
-			mse::TStrongFixedConstPointer<std::string, mse::TRefCountingFixedPointer<A>> sfcptr1 = sfptr1;
-			mse::TStrongFixedConstPointer<std::string, mse::TRefCountingPointer<A>> sfcptr2 = sfcptr1;
-			if (sfcptr1 == sfptr1) {
-				int q = 7;
-			}
-			if (sfptr1 == sfcptr1) {
-				int q = 7;
-			}
-			if (sfptr1) {
-				int q = 7;
-			}
+			functions intended for general use to be "templatized" so that they can accept any type of pointer. */
+			std::string res1 = H::foo6(s_safe_ptr1, s_safe_const_ptr1);
 		}
 
 		mse::TRefCountingPointer_test TRefCountingPointer_test1;
@@ -1228,24 +1275,17 @@ int main(int argc, char* argv[])
 		mse::TXScopeOwnerPointer<A> a_scpoptr(7);
 		int res4 = B::foo2(&(*a_scpoptr));
 
-		auto xscopeweak_string_ptr1 = mse::make_xscopeweak((a_scpobj.s), (&a_scpobj));
-		auto res5 = H::foo6(xscopeweak_string_ptr1, xscopeweak_string_ptr1);
+		/* You can use the "mse::make_pointer_to_member()" function to obtain a safe pointer to a member of
+		an xscope object. */
+		auto s_safe_ptr1 = mse::make_pointer_to_member((a_scpobj.s), (&a_scpobj));
+		(*s_safe_ptr1) = "some new text";
+		auto s_safe_const_ptr1 = mse::make_const_pointer_to_member((a_scpobj.s), (&a_scpobj));
 
-		/* Just testing the convertibility of mse::TXScopeWeakFixedPointers. */
-		auto A_xscope_fixed_ptr1 = &a_scpobj;
-		auto xscpwfptr1 = mse::make_xscopeweak<std::string>(A_xscope_fixed_ptr1->s, A_xscope_fixed_ptr1);
-		mse::TXScopeWeakFixedPointer<std::string, mse::TXScopeFixedConstPointer<A>> xscpwfptr2 = xscpwfptr1;
-		mse::TXScopeWeakFixedConstPointer<std::string, mse::TXScopeFixedPointer<A>> xscpwfcptr1 = xscpwfptr1;
-		mse::TXScopeWeakFixedConstPointer<std::string, mse::TXScopeFixedConstPointer<A>> xscpwfcptr2 = xscpwfcptr1;
-		if (xscpwfcptr1 == xscpwfptr1) {
-			int q = 7;
-		}
-		if (xscpwfptr1 == xscpwfcptr1) {
-			int q = 7;
-		}
-		if (xscpwfptr1) {
-			int q = 7;
-		}
+		/* The return type of mse::make_pointer_to_member() depends in the type of the parameters passed
+		to it. In this case, the type of s_safe_ptr1 is mse::TXScopeWeakFixedPointer<std::string,
+		mse::TXScopeFixedPointerA>>. */
+
+		auto res5 = H::foo6(s_safe_ptr1, s_safe_const_ptr1);
 
 		mse::s_scpptr_test1();
 	}

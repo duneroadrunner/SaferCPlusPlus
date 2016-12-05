@@ -1010,6 +1010,43 @@ namespace mse {
 			mse::TRegisteredFixedConstPointer<A> A_registered_fcptr1 = &registered_da;
 		}
 
+		{
+			/* Obtaining safe pointers to members of registered objects: */
+			class E {
+			public:
+				virtual ~E() {}
+				mse::TRegisteredObj<std::string> reg_s = "some text ";
+				std::string s2 = "some other text ";
+			};
+
+			mse::TRegisteredObj<E> registered_e;
+			mse::TRegisteredPointer<E> E_registered_ptr1 = &registered_e;
+
+			/* To obtain a safe pointer to a member of a registered object you could just make the
+			member itself a registered object. */
+			mse::TRegisteredPointer<std::string> reg_s_registered_ptr1 = &(E_registered_ptr1->reg_s);
+
+			/* Or you can use the "mse::make_pointer_to_member()" function. */
+			auto s2_safe_ptr1 = mse::make_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
+			(*s2_safe_ptr1) = "some new text";
+			auto s2_safe_const_ptr1 = mse::make_const_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
+
+			/* Just testing the convertibility of mse::TSyncWeakFixedPointers. */
+			auto E_registered_fixed_ptr1 = &registered_e;
+			auto swfptr1 = mse::make_syncweak<std::string>(E_registered_fixed_ptr1->s2, E_registered_fixed_ptr1);
+			mse::TSyncWeakFixedPointer<std::string, mse::TRegisteredPointer<E>> swfptr2 = swfptr1;
+			mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredFixedPointer<E>> swfcptr1 = swfptr1;
+			mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredPointer<E>> swfcptr2 = swfcptr1;
+			if (swfcptr1 == swfptr1) {
+				int q = 7;
+			}
+			if (swfptr1 == swfcptr1) {
+				int q = 7;
+			}
+			if (swfptr1) {
+				int q = 7;
+			}
+		}
 #endif // MSE_SELF_TESTS
 	}
 }
