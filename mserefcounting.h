@@ -490,7 +490,7 @@ namespace mse {
 		}
 
 	protected:
-		TStrongFixedPointer(_TTargetType& target/* often a struct member */, _TLeaseType lease/* usually a reference counting pointer */)
+		TStrongFixedPointer(_TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
 			: m_target_pointer(std::addressof(target)), m_lease(lease) {}
 	private:
 		TStrongFixedPointer& operator=(const TStrongFixedPointer& _Right_cref) = delete;
@@ -538,8 +538,13 @@ namespace mse {
 		}
 		_TLeaseType lease() const { return (*this).m_lease; }
 
+		template <class _TTargetType2, class _TLeaseType2>
+		static TStrongFixedConstPointer make(const _TTargetType2& target, const _TLeaseType2& lease) {
+			return TStrongFixedConstPointer(target, lease);
+		}
+
 	protected:
-		TStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeaseType lease/* usually a reference counting pointer */)
+		TStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
 			: m_target_pointer(&target), m_lease(lease) {}
 	private:
 		TStrongFixedConstPointer& operator=(const TStrongFixedConstPointer& _Right_cref) = delete;
@@ -558,8 +563,16 @@ namespace mse {
 		return TStrongFixedPointer<_TTargetType, TRefCountingPointer<_Ty>>::make(target, lease_pointer);
 	}
 	template<class _TTargetType, class _Ty>
-	TStrongFixedPointer<_TTargetType, TRefCountingConstPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TRefCountingConstPointer<_Ty> &lease_pointer) {
-		return TStrongFixedPointer<_TTargetType, TRefCountingConstPointer<_Ty>>::make(target, lease_pointer);
+	TStrongFixedConstPointer<_TTargetType, TRefCountingConstPointer<_Ty>> make_pointer_to_member(const _TTargetType& target, const TRefCountingConstPointer<_Ty> &lease_pointer) {
+		return TStrongFixedConstPointer<_TTargetType, TRefCountingConstPointer<_Ty>>::make(target, lease_pointer);
+	}
+	template<class _TTargetType, class _Ty>
+	TStrongFixedConstPointer<_TTargetType, TRefCountingPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TRefCountingPointer<_Ty> &lease_pointer) {
+		return TStrongFixedConstPointer<_TTargetType, TRefCountingPointer<_Ty>>::make(target, lease_pointer);
+	}
+	template<class _TTargetType, class _Ty>
+	TStrongFixedConstPointer<_TTargetType, TRefCountingConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TRefCountingConstPointer<_Ty> &lease_pointer) {
+		return TStrongFixedConstPointer<_TTargetType, TRefCountingConstPointer<_Ty>>::make(target, lease_pointer);
 	}
 
 
