@@ -203,10 +203,10 @@ namespace mse {
 		using tdp_variant<Ts...>::tdp_variant;
 
 		void* arrow_operator() const {
-			return pointer_helper_t::arrow_operator(type_id, &data);
+			return pointer_helper_t::arrow_operator((*this).type_id, &((*this).data));
 		}
 		const void* const_arrow_operator() const {
-			return pointer_helper_t::const_arrow_operator(type_id, &data);
+			return pointer_helper_t::const_arrow_operator((*this).type_id, &((*this).data));
 		}
 	};
 
@@ -437,7 +437,7 @@ namespace mse {
 		TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TPolyPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
 		virtual ~TRefCountingOrXScopeFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return std::addressof((*this)::operator*()); }
+		explicit operator _Ty*() const { return std::addressof((*this).operator*()); }
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 	protected:
@@ -471,7 +471,7 @@ namespace mse {
 		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TPolyConstPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
 		virtual ~TRefCountingOrXScopeFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return std::addressof((*this)::operator*()); }
+		explicit operator const _Ty*() const { return std::addressof((*this).operator*()); }
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 	protected:
@@ -512,7 +512,7 @@ namespace mse {
 		TSharedOrRawFixedPointer(_Ty* ptr) : TPolyPointer<_Ty>(ptr) {}
 		virtual ~TSharedOrRawFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return std::addressof((*this)::operator*()); }
+		explicit operator _Ty*() const { return std::addressof((*this).operator*()); }
 
 	private:
 		TSharedOrRawFixedPointer<_Ty>& operator=(const TSharedOrRawFixedPointer<_Ty>& _Right_cref) = delete;
@@ -537,7 +537,7 @@ namespace mse {
 		TSharedOrRawFixedConstPointer(_Ty* ptr) : TPolyConstPointer<_Ty>(ptr) {}
 		virtual ~TSharedOrRawFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return std::addressof((*this)::operator*()); }
+		explicit operator const _Ty*() const { return std::addressof((*this).operator*()); }
 
 	private:
 		TSharedOrRawFixedConstPointer<_Ty>& operator=(const TSharedOrRawFixedConstPointer<_Ty>& _Right_cref) = delete;
