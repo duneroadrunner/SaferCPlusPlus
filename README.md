@@ -91,7 +91,7 @@ Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusP
 
 ### SaferCPlusPlus versus the Core Guidelines Checkers
 
-At the time of this writing (Nov 2016), the Core Guidelines Checkers were still a work in progress and so didn't yet provide any memory safety guarantees for your code. But the goal is that at some point the Checkers (the Lifetimes Checker in particular) will be able to detect all potentially unsafe memory operations, with a reasonable proportion of false positives (apparently "under 10%" is the goal). That should be a big boon for C++ memory safety and performance if/when that is achieved. But even then there will still be the issue of how best to address the false positives (or the positives that you think are false). Well of course SaferCPlusPlus is well suited to ensure memory safety when your static checkers can't.
+At the time of this writing (Nov 2016), the Core Guidelines Checkers were still a work in progress and so didn't yet provide any memory safety guarantees for your code. But the goal is that at some point the Checkers (the Lifetimes Checker in particular) will be able to detect all potentially unsafe memory operations, with a reasonable proportion of false positives (apparently "under 10%" is the goal). That should be a big boon for C++ memory safety and performance if/when that is achieved. But even then there will still be the issue of how best to address the false (and true) positive concerns of the checkers. Often, appeasing static code verifiers will seem to require major code changes and/or a significant performance penalty. In those cases, SaferCPlusPlus is well suited to ensure memory safety with straightforward code modifications and minimal performance cost.
 
 In the mean time, SaferCPlusPlus is, in general, not a substitute for, or incompatible with static analyzers. You are encouraged to use both.  
 
@@ -1307,7 +1307,7 @@ The above example contains unchecked accesses to deallocated memory via an impli
     class CI {
     public:
         template<class safe_this_type, class safe_vector_pointer_type>
-        void foo2(safe_this_type safe_this, safe_vector_pointer_type vec_ptr) {
+        static void foo2(safe_this_type safe_this, safe_vector_pointer_type vec_ptr) {
             vec_ptr->clear();
     
             /* The safe_this pointer will catch the attempted invalid memory access. */
@@ -1324,9 +1324,9 @@ The above example contains unchecked accesses to deallocated memory via an impli
         iter->foo2(iter, &vec1);
     }
 
-So, technically, achieving complete memory safety requires passing a safe "this" pointer parameter as an argument to every member function that accesses a member variable.
+So, technically, achieving complete memory safety requires passing a safe "this" pointer parameter as an argument to every member function that accesses a member variable. (I.e. No non-static member functions.)
 
-Another couple of potential pitfalls are the potential misuse of "scope" pointers, and the sharing of objects with unprotected mutable members between asynchronous threads, as explained in the corresponding documentation. The library data types do what they can to prevent such misuse, but are ultimately limited in their enforcement capabilities. But these shortcomings could also be addressed in the future with a reasonably straightforward tool to detect the potential problems.
+Another couple of potential pitfalls are the potential misuse of "scope" pointers, and the sharing of objects with unprotected mutable members between asynchronous threads, as explained in the corresponding documentation. The library data types do what they can to prevent such misuse, but are ultimately limited in their enforcement capabilities. These shortcomings could also be addressed in the future with a reasonably straightforward "code checker" tool to detect the potential problems.
 
 ### Questions and comments
 If you have questions or comments you can create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
