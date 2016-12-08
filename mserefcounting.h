@@ -558,6 +558,7 @@ namespace mse {
 	template <class _TTargetType, class _TLeaseType>
 	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
 
+#if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 	template<class _TTargetType, class _Ty>
 	TStrongFixedPointer<_TTargetType, TRefCountingPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TRefCountingPointer<_Ty> &lease_pointer) {
 		return TStrongFixedPointer<_TTargetType, TRefCountingPointer<_Ty>>::make(target, lease_pointer);
@@ -607,6 +608,16 @@ namespace mse {
 	template<class _TTargetType, class _Ty>
 	TStrongFixedConstPointer<_TTargetType, TRefCountingFixedConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TRefCountingFixedConstPointer<_Ty> &lease_pointer) {
 		return TStrongFixedConstPointer<_TTargetType, TRefCountingFixedConstPointer<_Ty>>::make(target, lease_pointer);
+	}
+#endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
+
+	template<class _TTargetType, class _Ty>
+	TStrongFixedPointer<_TTargetType, std::shared_ptr<_Ty>> make_pointer_to_member(_TTargetType& target, const std::shared_ptr<_Ty> &lease_pointer) {
+		return TStrongFixedPointer<_TTargetType, std::shared_ptr<_Ty>>::make(target, lease_pointer);
+	}
+	template<class _TTargetType, class _Ty>
+	TStrongFixedConstPointer<_TTargetType, std::shared_ptr<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const std::shared_ptr<_Ty> &lease_pointer) {
+		return TStrongFixedConstPointer<_TTargetType, std::shared_ptr<_Ty>>::make(target, lease_pointer);
 	}
 
 

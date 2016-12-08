@@ -597,8 +597,10 @@ namespace mse {
 			}
 			operator ss_const_iterator_type() const {
 				ss_const_iterator_type retval;
-				retval = m_owner_ptr->ss_cbegin();
-				retval.advance(msear_int(m_index));
+				if (nullptr != m_owner_ptr) {
+					retval = m_owner_ptr->ss_cbegin();
+					retval.advance(msear_int(m_index));
+				}
 				return retval;
 			}
 		private:

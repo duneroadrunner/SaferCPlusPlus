@@ -254,8 +254,10 @@ namespace mse {
 				typename _MA::ss_iterator_type& mvssi() { return msearray_ss_iterator_type(); }
 				operator const_iterator() const {
 					const_iterator retval(m_msearray_regptr);
-					retval.msearray_ss_const_iterator_type().set_to_beginning();
-					retval.msearray_ss_const_iterator_type().advance(msear_int(msearray_ss_iterator_type().position()));
+					if (m_msearray_regptr) {
+						retval.msearray_ss_const_iterator_type().set_to_beginning();
+						retval.msearray_ss_const_iterator_type().advance(msear_int(msearray_ss_iterator_type().position()));
+					}
 					return retval;
 				}
 
