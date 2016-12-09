@@ -708,29 +708,19 @@ usage example:
 
 
 ### Poly pointers
-Ideally you won't need  to use these. Poly pointers can act as either a strong/owning pointer or weak/non-owning pointer, as needed. Generally, poly pointers would be expected to be used as function parameters. For functions intended for general use that take reference parameters, it is recommended that you "[templatize](#safely-passing-parameters-by-reference)" the function so that it can take any type of (smart) pointer reference the caller chooses. But if for some reason you can't or don't want to templatize the function, but still want to give the caller some flexibility in terms of pointer reference parameters then you might consider using a poly pointer. While convenient, poly pointers may have a small run-time cost.  
-
-There are currently three types of poly pointer available (and their "const" counterparts) - TRefCountingOrXScopeFixedPointer, TRefCountingOrXScopeOrRawFixedPointer and TSharedOrRawFixedPointer. When constructed from a strong/owning pointer (i.e. a refcounting pointer or an std::shared_ptr), the poly pointer will obtain and hold (shared) ownership of the target object.
-
-### TRefCountingOrXScopeFixedPointer, TRefCountingOrXScopeFixedConstPointer
-As you may have guessed, TRefCountingOrXScopeFixedPointer can be constructed from either a TRefCountingFixedPointer or a TXScopeFixedPointer.
-
-### TRefCountingOrXScopeOrRawFixedPointer, TRefCountingOrXScopeOrRawFixedConstPointer
-Same as TRefCountingOrXScopeFixedPointer, but also supports construction from "raw" pointers. While this adds flexibility, it means that there is no assurance that TRefCountingOrXScopeOrRawFixedPointer points to a validly allocated object, the way there is with TRefCountingOrXScopeFixedPointer.
-
-### TSharedOrRawFixedPointer, TSharedOrRawFixedConstPointer
-For those that are sticking with the standard library, this one supports construction from either an std::shared_ptr, or a "raw" pointer.  
+Poly pointers are "chameleon" pointers that can be constructed from, and retain the safety features of many of the pointer types in this library. If you're writing a function and you'd like it to be able to accept different types of safe pointer parameters, you can "templatize" your function. Alternatively, you can declare your pointer parameters as poly pointers. Note that poly pointers cannot be constructed from a type resulting from a mse::make_pointer_to_member() call. So templatizing your function is still the preferred option.
 
 usage example:
 
     #include "msepoly.h"
     
-    int main(int argc, char* argv[]) {
+    void main() {
         class A {
         public:
+            A() {}
             A(int x) : b(x) {}
             virtual ~A() {}
-
+    
             int b = 3;
         };
         class D : public A {
@@ -739,42 +729,61 @@ usage example:
         };
         class B {
         public:
-            static int foo1(mse::TRefCountingOrXScopeFixedPointer<A> ptr) {
+            static int foo1(mse::TPolyPointer<A> ptr) {
                 int retval = ptr->b;
                 return retval;
             }
-            static int foo2(mse::TRefCountingOrXScopeFixedConstPointer<A> ptr) {
-                int retval = ptr->b;
-                return retval;
-            }
-            static int foo3(mse::TRefCountingOrXScopeOrRawFixedPointer<A> ptr) {
-                int retval = ptr->b;
-                return retval;
-            }
-            static int foo5(mse::TSharedOrRawFixedPointer<A> ptr) {
+            static int foo2(mse::TPolyConstPointer<A> ptr) {
                 int retval = ptr->b;
                 return retval;
             }
         protected:
             ~B() {}
         };
-        
-        auto A_refcfp = mse::make_refcounting<A>(5);
-        mse::TXScopeObj<A> a_xscpobj(7);
-        A a_obj(11);
-        int res1 = B::foo1(A_refcfp);
-        int res2 = B::foo1(&a_xscpobj);
-
-        int res3 = B::foo2(A_refcfp);
-        int res4 = B::foo2(&a_xscpobj);
-        
-        int res21 = B::foo3(A_refcfp);
-        int res22 = B::foo3(&a_xscpobj);
-        int res23 = B::foo3(&a_obj);
-        
-        auto A_shp = std::make_shared<A>(5);
-        int res41 = B::foo5(A_shp);
-        int res42 = B::foo5(&a_obj);
+    
+        /* To demonstrate, first we'll declare some objects such that we can obtain safe pointers to those
+        objects. For better or worse, this library provides a bunch of different safe pointers types. */
+        mse::TXScopeObj<A> a_scpobj;
+        auto a_refcptr = mse::make_refcounting<A>();
+        mse::TRegisteredObj<A> a_regobj;
+        mse::TRelaxedRegisteredObj<A> a_rlxregobj;
+    
+        /* Safe iterators are a type of safe pointer too. */
+        mse::mstd::vector<A> a_mstdvec;
+        a_mstdvec.resize(1);
+        auto a_mstdvec_iter = a_mstdvec.begin();
+        mse::msevector<A> a_msevec;
+        a_msevec.resize(1);
+        auto a_msevec_ipointer = a_msevec.ibegin();
+        auto a_msevec_ssiter = a_msevec.ss_begin();
+    
+        /* And don't forget the safe async sharing pointers. */
+        auto a_access_requester = mse::make_asyncsharedreadwrite<A>();
+        auto a_writelock_ptr = a_access_requester.writelock_ptr();
+        auto a_stdshared_const_ptr = mse::make_stdsharedimmutable<A>();
+    
+        {
+            /* All of these safe pointer types happily convert to an mse::TPolyPointer<>. */
+            auto res_using_scpptr = B::foo1(&a_scpobj);
+            auto res_using_refcptr = B::foo1(a_refcptr);
+            auto res_using_regptr = B::foo1(&a_regobj);
+            auto res_using_rlxregptr = B::foo1(&a_rlxregobj);
+            auto res_using_mstdvec_iter = B::foo1(a_mstdvec_iter);
+            auto res_using_msevec_ipointer = B::foo1(a_msevec_ipointer);
+            auto res_using_msevec_ssiter = B::foo1(a_msevec_ssiter);
+            auto res_using_writelock_ptr = B::foo1(a_writelock_ptr);
+    
+            /* Or an mse::TPolyConstPointer<>. */
+            auto res_using_scpptr_via_const_poly = B::foo2(&a_scpobj);
+            auto res_using_refcptr_via_const_poly = B::foo2(a_refcptr);
+            auto res_using_regptr_via_const_poly = B::foo2(&a_regobj);
+            auto res_using_rlxregptr_via_const_poly = B::foo2(&a_rlxregobj);
+            auto res_using_mstdvec_iter_via_const_poly = B::foo2(a_mstdvec_iter);
+            auto res_using_msevec_ipointer_via_const_poly = B::foo2(a_msevec_ipointer);
+            auto res_using_msevec_ssiter_via_const_poly = B::foo2(a_msevec_ssiter);
+            auto res_using_writelock_ptr_via_const_poly = B::foo2(a_writelock_ptr);
+            auto res_using_stdshared_const_ptr_via_const_poly = B::foo2(a_stdshared_const_ptr);
+        }
     }
 
 ### Safely passing parameters by reference
