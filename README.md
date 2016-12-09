@@ -710,6 +710,8 @@ usage example:
 ### Poly pointers
 Poly pointers are "chameleon" pointers that can be constructed from, and retain the safety features of many of the pointer types in this library. If you're writing a function and you'd like it to be able to accept different types of safe pointer parameters, you can "templatize" your function. Alternatively, you can declare your pointer parameters as poly pointers. Note that poly pointers cannot be constructed from a type resulting from a mse::make_pointer_to_member() call. So templatizing your function is still the preferred option.
 
+###TPolyPointer, TPolyConstPointer
+
 usage example:
 
     #include "msepoly.h"
