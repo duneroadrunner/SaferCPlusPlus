@@ -13,7 +13,9 @@
 #include <unordered_map>
 #include <cassert>
 #include <stdexcept>
-
+#include <ctime>
+#include <ratio>
+#include <chrono>
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_ASYNCSHAREDPOINTER_DISABLED

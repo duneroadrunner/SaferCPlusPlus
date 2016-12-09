@@ -126,7 +126,6 @@ namespace mse {
 		"If, in the same class, you have a regular member function and a templated member function with the same
 		signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
 		*/
-		//  template <class Y> friend class TRefCountingPointer<Y>;
 		template <class Y> friend class TRefCountingPointer;
 		template <class Y> TRefCountingPointer(const TRefCountingPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
@@ -321,7 +320,6 @@ namespace mse {
 		"If, in the same class, you have a regular member function and a templated member function with the same
 		signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
 		*/
-		//  template <class Y> friend class TRefCountingConstPointer<Y>;
 		template <class Y> friend class TRefCountingConstPointer;
 		template <class Y> TRefCountingConstPointer(const TRefCountingConstPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);

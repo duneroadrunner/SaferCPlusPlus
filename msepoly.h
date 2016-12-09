@@ -223,31 +223,19 @@ namespace mse {
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 			mse::TRegisteredPointer<_Ty>,
 			mse::TRelaxedRegisteredPointer<_Ty>,
-			mse::TSyncWeakFixedPointer<_Ty, mse::TRelaxedRegisteredPointer<_Ty>>,
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 			mse::TRefCountingPointer<_Ty>,
-			mse::TStrongFixedPointer<_Ty, mse::TRefCountingPointer<_Ty>>,
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
 			typename mse::mstd::vector<_Ty>::iterator,
-			mse::TSyncWeakFixedPointer<_Ty, typename mse::mstd::vector<_Ty>::iterator>,
 #endif // !defined(MSE_MSTDVECTOR_DISABLED)
 			typename mse::msevector<_Ty>::iterator,
 			typename mse::msevector<_Ty>::ipointer,
 			typename mse::msevector<_Ty>::ss_iterator_type,
 			mse::TAsyncSharedReadWritePointer<_Ty>,
-			std::shared_ptr<_Ty>,
-
-			mse::TXScopeWeakFixedPointer<_Ty, mse::TXScopeFixedPointer<_Ty>>,
-			mse::TSyncWeakFixedPointer<_Ty, mse::TRegisteredPointer<_Ty>>,
-			mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::iterator>,
-			mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ipointer>,
-			mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ss_iterator_type>,
-			mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedReadWritePointer<_Ty>>,
 			mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>,
-			mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>,
-			mse::TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>>,
+			std::shared_ptr<_Ty>,
 
 			mse::TPointer<_Ty, TPolyPointerID<_Ty>>
 		>;
@@ -256,19 +244,27 @@ namespace mse {
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		TPolyPointer(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyPointer(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 		TPolyPointer(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<
+			std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value || std::is_same<const _Ty2, _Ty>::value
+			, void>::type>
+		TPolyPointer(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
+
 		TPolyPointer(const mse::TRelaxedRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredPointer<_Ty>>(p); }
-		TPolyPointer(const mse::TSyncWeakFixedPointer<_Ty, mse::TRelaxedRegisteredPointer<_Ty>>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, mse::TRelaxedRegisteredPointer<_Ty>>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyPointer(const mse::TRelaxedRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 		TPolyPointer(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
-		TPolyPointer(const mse::TStrongFixedPointer<_Ty, mse::TRefCountingPointer<_Ty>>& p) { m_pointer.template set<mse::TStrongFixedPointer<_Ty, mse::TRefCountingPointer<_Ty>>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyPointer(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
 		TPolyPointer(const typename mse::mstd::vector<_Ty>::iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::iterator>(p); }
-		TPolyPointer(const mse::TSyncWeakFixedPointer<_Ty, typename mse::mstd::vector<_Ty>::iterator>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, typename mse::mstd::vector<_Ty>::iterator>>(p); }
 #endif // !defined(MSE_MSTDVECTOR_DISABLED)
 		TPolyPointer(const typename mse::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::iterator>(p); }
 		TPolyPointer(const typename mse::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::ipointer>(p); }
@@ -276,15 +272,6 @@ namespace mse {
 		TPolyPointer(const mse::TAsyncSharedReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWritePointer<_Ty>>(p); }
 		TPolyPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>(p); }
 		TPolyPointer(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
-
-		TPolyPointer(const mse::TXScopeWeakFixedPointer<_Ty, mse::TXScopeFixedPointer<_Ty>>& p) { m_pointer.template set<mse::TXScopeWeakFixedPointer<_Ty, mse::TXScopeFixedPointer<_Ty>>>(p); }
-		TPolyPointer(const mse::TSyncWeakFixedPointer<_Ty, mse::TRegisteredPointer<_Ty>>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, mse::TRegisteredPointer<_Ty>>>(p); }
-		TPolyPointer(const mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::iterator>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::iterator>>(p); }
-		TPolyPointer(const mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ipointer>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ipointer>>(p); }
-		TPolyPointer(const mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ss_iterator_type>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ss_iterator_type>>(p); }
-		TPolyPointer(const mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedReadWritePointer<_Ty>>& p) { m_pointer.template set<mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedReadWritePointer<_Ty>>>(p); }
-		TPolyPointer(const mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>& p) { m_pointer.template set<mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>>(p); }
-		TPolyPointer(const mse::TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>>& p) { m_pointer.template set<mse::TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>>>(p); }
 
 		TPolyPointer(_Ty* p) { m_pointer.template set<mse::TPointer<_Ty, TPolyPointerID<_Ty>>>(p); }
 
@@ -308,43 +295,19 @@ namespace mse {
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 			mse::TRegisteredConstPointer<_Ty>,
 			mse::TRelaxedRegisteredConstPointer<_Ty>,
-			mse::TSyncWeakFixedConstPointer<_Ty, mse::TRelaxedRegisteredConstPointer<_Ty>>,
-			mse::TSyncWeakFixedPointer<_Ty, mse::TRelaxedRegisteredPointer<_Ty>>,
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 			mse::TRefCountingConstPointer<_Ty>,
-			mse::TStrongFixedConstPointer<_Ty, mse::TRefCountingConstPointer<_Ty>>,
-			mse::TStrongFixedPointer<_Ty, mse::TRefCountingPointer<_Ty>>,
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
 			typename mse::mstd::vector<_Ty>::const_iterator,
-			mse::TSyncWeakFixedConstPointer<_Ty, typename mse::mstd::vector<_Ty>::const_iterator>,
 #endif // !defined(MSE_MSTDVECTOR_DISABLED)
 			typename mse::msevector<_Ty>::const_iterator,
 			typename mse::msevector<_Ty>::cipointer,
 			typename mse::msevector<_Ty>::ss_const_iterator_type,
 			mse::TAsyncSharedReadWriteConstPointer<_Ty>,
-			std::shared_ptr<const _Ty>,
-
-			mse::TXScopeWeakFixedConstPointer<_Ty, mse::TXScopeFixedConstPointer<_Ty>>,
-			mse::TSyncWeakFixedConstPointer<_Ty, mse::TRegisteredConstPointer<_Ty>>,
-			mse::TSyncWeakFixedConstPointer<_Ty, typename mse::msevector<_Ty>::const_iterator>,
-			mse::TSyncWeakFixedConstPointer<_Ty, typename mse::msevector<_Ty>::cipointer>,
-			mse::TSyncWeakFixedConstPointer<_Ty, typename mse::msevector<_Ty>::ss_const_iterator_type>,
-			mse::TStrongFixedConstPointer<_Ty, mse::TAsyncSharedReadWriteConstPointer<_Ty>>,
 			mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>,
-			mse::TStrongFixedConstPointer<_Ty, mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>,
-			mse::TStrongFixedConstPointer<_Ty, std::shared_ptr<const _Ty>>,
-
-			mse::TXScopeWeakFixedPointer<_Ty, mse::TXScopeFixedPointer<_Ty>>,
-			mse::TSyncWeakFixedPointer<_Ty, mse::TRegisteredPointer<_Ty>>,
-			mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::iterator>,
-			mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ipointer>,
-			mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ss_iterator_type>,
-			mse::TSyncWeakFixedPointer<_Ty, typename mse::mstd::vector<_Ty>::iterator>,
-			mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedReadWritePointer<_Ty>>,
-			mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>,
-			mse::TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>>,
+			std::shared_ptr<const _Ty>,
 
 			mse::TPointer<const _Ty, TPolyPointerID<_Ty>>,
 			mse::TPolyPointer<_Ty>
@@ -355,27 +318,42 @@ namespace mse {
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		TPolyConstPointer(const mse::TXScopeFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const mse::TXScopeFixedConstPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
+
 		TPolyConstPointer(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 		TPolyConstPointer(const mse::TRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value, void>::type>
+		TPolyConstPointer(const mse::TRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
+
 		TPolyConstPointer(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value, void>::type>
+		TPolyConstPointer(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
+
 		TPolyConstPointer(const mse::TRelaxedRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedConstPointer<_Ty, mse::TRelaxedRegisteredConstPointer<_Ty>>& p) { m_pointer.template set<mse::TSyncWeakFixedConstPointer<_Ty, mse::TRelaxedRegisteredConstPointer<_Ty>>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const mse::TRelaxedRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
+
 		TPolyConstPointer(const mse::TRelaxedRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedPointer<_Ty, mse::TRelaxedRegisteredPointer<_Ty>>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, mse::TRelaxedRegisteredPointer<_Ty>>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const mse::TRelaxedRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 		TPolyConstPointer(const mse::TRefCountingConstPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
-		TPolyConstPointer(const mse::TStrongFixedConstPointer<_Ty, mse::TRefCountingConstPointer<_Ty>>& p) { m_pointer.template set<mse::TStrongFixedConstPointer<_Ty, mse::TRefCountingConstPointer<_Ty>>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const mse::TRefCountingConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
+
 		TPolyConstPointer(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
-		TPolyConstPointer(const mse::TStrongFixedPointer<_Ty, mse::TRefCountingPointer<_Ty>>& p) { m_pointer.template set<mse::TStrongFixedPointer<_Ty, mse::TRefCountingPointer<_Ty>>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
 		TPolyConstPointer(const typename mse::mstd::vector<_Ty>::const_iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::const_iterator>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedConstPointer<_Ty, typename mse::mstd::vector<_Ty>::const_iterator>& p) { m_pointer.template set<mse::TSyncWeakFixedConstPointer<_Ty, typename mse::mstd::vector<_Ty>::const_iterator>>(p); }
 		TPolyConstPointer(const typename mse::mstd::vector<_Ty>::iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::const_iterator>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedPointer<_Ty, typename mse::mstd::vector<_Ty>::iterator>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, typename mse::mstd::vector<_Ty>::iterator>>(p); }
 #endif // !defined(MSE_MSTDVECTOR_DISABLED)
 		TPolyConstPointer(const typename mse::msevector<_Ty>::const_iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::const_iterator>(p); }
 		TPolyConstPointer(const typename mse::msevector<_Ty>::cipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::cipointer>(p); }
@@ -384,30 +362,12 @@ namespace mse {
 		TPolyConstPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>(p); }
 		TPolyConstPointer(const std::shared_ptr<const _Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
 
-		TPolyConstPointer(const mse::TXScopeWeakFixedConstPointer<_Ty, mse::TXScopeFixedConstPointer<_Ty>>& p) { m_pointer.template set<mse::TXScopeWeakFixedConstPointer<_Ty, mse::TXScopeFixedConstPointer<_Ty>>>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedConstPointer<_Ty, mse::TRegisteredConstPointer<_Ty>>& p) { m_pointer.template set<mse::TSyncWeakFixedConstPointer<_Ty, mse::TRegisteredConstPointer<_Ty>>>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedConstPointer<_Ty, typename mse::msevector<_Ty>::const_iterator>& p) { m_pointer.template set<mse::TSyncWeakFixedConstPointer<_Ty, typename mse::msevector<_Ty>::const_iterator>>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedConstPointer<_Ty, typename mse::msevector<_Ty>::cipointer>& p) { m_pointer.template set<mse::TSyncWeakFixedConstPointer<_Ty, typename mse::msevector<_Ty>::cipointer>>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedConstPointer<_Ty, typename mse::msevector<_Ty>::ss_const_iterator_type>& p) { m_pointer.template set<mse::TSyncWeakFixedConstPointer<_Ty, typename mse::msevector<_Ty>::ss_const_iterator_type>>(p); }
-		TPolyConstPointer(const mse::TStrongFixedConstPointer<_Ty, mse::TAsyncSharedReadWriteConstPointer<_Ty>>& p) { m_pointer.template set<mse::TStrongFixedConstPointer<_Ty, mse::TAsyncSharedReadWriteConstPointer<_Ty>>>(p); }
-		TPolyConstPointer(const mse::TStrongFixedConstPointer<_Ty, mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>& p) { m_pointer.template set<mse::TStrongFixedConstPointer<_Ty, mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>>(p); }
-		TPolyConstPointer(const mse::TStrongFixedConstPointer<_Ty, std::shared_ptr<const _Ty>>& p) { m_pointer.template set<mse::TStrongFixedConstPointer<_Ty, std::shared_ptr<const _Ty>>>(p); }
-
 		TPolyConstPointer(const typename mse::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::const_iterator>(p); }
 		TPolyConstPointer(const typename mse::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::cipointer>(p); }
 		TPolyConstPointer(const typename mse::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::msevector<_Ty>::ss_const_iterator_type>(p); }
 		TPolyConstPointer(const mse::TAsyncSharedReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWriteConstPointer<_Ty>>(p); }
 		TPolyConstPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>(p); }
 		TPolyConstPointer(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
-
-		TPolyConstPointer(const mse::TXScopeWeakFixedPointer<_Ty, mse::TXScopeFixedPointer<_Ty>>& p) { m_pointer.template set<mse::TXScopeWeakFixedPointer<_Ty, mse::TXScopeFixedPointer<_Ty>>>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedPointer<_Ty, mse::TRegisteredPointer<_Ty>>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, mse::TRegisteredPointer<_Ty>>>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::iterator>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::iterator>>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ipointer>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ipointer>>(p); }
-		TPolyConstPointer(const mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ss_iterator_type>& p) { m_pointer.template set<mse::TSyncWeakFixedPointer<_Ty, typename mse::msevector<_Ty>::ss_iterator_type>>(p); }
-		TPolyConstPointer(const mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedReadWritePointer<_Ty>>& p) { m_pointer.template set<mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedReadWritePointer<_Ty>>>(p); }
-		TPolyConstPointer(const mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>& p) { m_pointer.template set<mse::TStrongFixedPointer<_Ty, mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>>(p); }
-		TPolyConstPointer(const mse::TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>>& p) { m_pointer.template set<mse::TStrongFixedPointer<_Ty, std::shared_ptr<_Ty>>>(p); }
 
 		TPolyConstPointer(const _Ty* p) { m_pointer.template set<mse::TPointer<const _Ty, TPolyPointerID<_Ty>>>(p); }
 
@@ -645,19 +605,22 @@ namespace mse {
 				auto res_using_msevec_ssiter_via_const_poly = B::foo2(a_msevec_ssiter);
 				auto res_using_writelock_ptr_via_const_poly = B::foo2(a_writelock_ptr);
 				auto res_using_stdshared_const_ptr_via_const_poly = B::foo2(a_stdshared_const_ptr);
+
+				mse::TPolyPointer<A> a_polyptr(a_refcptr);
+				mse::TPolyPointer<A> a_polyptr2(a_polyptr);
+				mse::TPolyConstPointer<A> a_polycptr(a_polyptr);
+				mse::TPolyConstPointer<A> a_polycptr2(a_polycptr);
 			}
 
 			{
-				/* Testing inheritance polymorphism.  */
+				/* Inheritance polymorphism.  */
 				auto D_refcfp = mse::make_refcounting<D>(5);
 				mse::TXScopeObj<D> d_xscpobj(7);
 				D d_obj(11);
-				/*
 				int res11 = B::foo1(D_refcfp);
 				int res12 = B::foo1(&d_xscpobj);
 				int res13 = B::foo2(D_refcfp);
 				int res14 = B::foo2(&d_xscpobj);
-				*/
 			}
 
 			{
@@ -697,14 +660,6 @@ namespace mse {
 				int res42 = B::foo5(&a_obj);
 				int res43 = B::foo6(A_shp);
 				int res44 = B::foo6(&a_obj);
-
-				int res51 = B::foo1(A_refcfp);
-				int res52 = B::foo1(&a_xscpobj);
-				int res53 = B::foo1(&a_obj);
-				int res54 = B::foo2(A_refcfp);
-				int res55 = B::foo2(&a_xscpobj);
-				int res56 = B::foo2(&a_obj);
-				mse::TRefCountingPointer<A> A_refcp = A_refcfp;
 			}
 
 			{
