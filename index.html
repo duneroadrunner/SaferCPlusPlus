@@ -19,7 +19,7 @@
     </section>
 
     <section class="main-content">
-      <p>Nov 2016</p>
+      <p>Dec 2016</p>
 
 <h3>
 <a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h3>
@@ -40,6 +40,121 @@
 <p>Tested with msvc2015 and g++5.3 (as of Oct 2016) and msvc2013 (as of Feb 2016). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.</p>
 
 <p>You can have a look at <a href="https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp">msetl_example.cpp</a> to see the library in action. You can also check out some <a href="https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame">benchmark code</a> where you can compare traditional C++ and SaferCPlusPlus implementations of the same algorithms.</p>
+
+<h3>
+<a id="table-of-contents" class="anchor" href="#table-of-contents" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Table of contents</h3>
+
+<ol>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#use-cases">Use cases</a></li>
+<li><a href="#setup-and-dependencies">Setup and dependencies</a></li>
+<li>Comparisons
+
+<ol>
+<li><a href="#safercplusplus-versus-clangllvm-sanitizers">SaferCPlusPlus versus Clang/LLVM Sanitizers</a></li>
+<li><a href="#safercplusplus-versus-checked-c">SaferCPlusPlus versus Checked C</a></li>
+<li><a href="#safercplusplus-versus-ironclad-c">SaferCPlusPlus versus Ironclad C++</a></li>
+<li><a href="#safercplusplus-versus-rust">SaferCPlusPlus versus Rust</a></li>
+<li><a href="#safercplusplus-versus-the-core-guidelines-checkers">SaferCPlusPlus versus the Core Guidelines Checkers</a></li>
+</ol>
+</li>
+<li>
+<a href="#registered-pointers">Registered pointers</a>
+
+<ol>
+<li>
+<a href="#tregisteredpointer">TRegisteredPointer</a>
+
+<ol>
+<li><a href="#tregisterednotnullpointer">TRegisteredNotNullPointer</a></li>
+<li><a href="#tregisteredfixedpointer">TRegisteredFixedPointer</a></li>
+<li><a href="#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer">TRegisteredConstPointer</a></li>
+<li><a href="#tregisteredrefwrapper">TRegisteredRefWrapper</a></li>
+</ol>
+</li>
+<li><a href="#trelaxedregisteredpointer">TRelaxedRegisteredPointer</a></li>
+</ol>
+</li>
+<li><a href="#simple-benchmarks">Simple benchmarks</a></li>
+<li>
+<a href="#reference-counting-pointers">Reference counting pointers</a>
+
+<ol>
+<li>
+<a href="#trefcountingpointer">TRefCountingPointer</a>
+
+<ol>
+<li><a href="#trefcountingnotnullpointer">TRefCountingNotNullPointer</a></li>
+<li><a href="#trefcountingfixedpointer">TRefCountingFixedPointer</a></li>
+<li><a href="#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer">TRefCountingConstPointer</a></li>
+</ol>
+</li>
+<li><a href="#trefcountingofregisteredpointer">TRefCountingOfRegisteredPointer</a></li>
+<li><a href="#trefcountingofrelaxedregisteredpointer">TRefCountingOfRelaxedRegisteredPointer</a></li>
+</ol>
+</li>
+<li>
+<a href="#scope-pointers">Scope pointers</a>
+
+<ol>
+<li><a href="#txscopefixedpointer">TXScopeFixedPointer</a></li>
+<li><a href="#txscopeownerpointer">TXScopeOwnerPointer</a></li>
+</ol>
+</li>
+<li><a href="#make_pointer_to_member">make_pointer_to_member()</a></li>
+<li>
+<a href="#poly-pointers">Poly pointers</a>
+
+<ol>
+<li><a href="#tpolypointer-tpolyconstpointer">TPolyPointer</a></li>
+</ol>
+</li>
+<li><a href="#safely-passing-parameters-by-reference">Safely passing parameters by reference</a></li>
+<li>
+<a href="#asynchronously-shared-objects">Asynchronously shared objects</a>
+
+<ol>
+<li>
+<a href="#tasyncsharedreadwriteaccessrequester">TAsyncSharedReadWriteAccessRequester</a>
+
+<ol>
+<li><a href="#tasyncsharedreadonlyaccessrequester">TAsyncSharedReadOnlyAccessRequester</a></li>
+</ol>
+</li>
+<li><a href="#tasyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwriteaccessrequester">TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester</a></li>
+<li><a href="#tstdsharedimmutablefixedpointer">TStdSharedImmutableFixedPointer</a></li>
+</ol>
+</li>
+<li>
+<a href="#primitives">Primitives</a>
+
+<ol>
+<li><a href="#cint-csize_t-and-cbool">CInt, CSize_t and CBool</a></li>
+<li><a href="#quarantined-types">Quarantined types</a></li>
+</ol>
+</li>
+<li>
+<a href="#vectors">Vectors</a>
+
+<ol>
+<li><a href="#vector">mstd::vector</a></li>
+<li><a href="#msevector">msevector</a></li>
+<li><a href="#ivector">ivector</a></li>
+</ol>
+</li>
+<li>
+<a href="#arrays">Arrays</a>
+
+<ol>
+<li><a href="#array">mstd::array</a></li>
+<li><a href="#msearray">msearray</a></li>
+</ol>
+</li>
+<li><a href="#compatibility-considerations">Compatibility considerations</a></li>
+<li><a href="#on-thread-safety">On thread safety</a></li>
+<li><a href="#practical-limitations">Practical limitations</a></li>
+<li><a href="#questions-and-comments">Questions and comments</a></li>
+</ol>
 
 <h3>
 <a id="use-cases" class="anchor" href="#use-cases" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Use cases</h3>
