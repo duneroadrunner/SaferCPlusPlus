@@ -1,4 +1,4 @@
-Nov 2016
+Dec 2016
 
 ### Overview
 
@@ -23,6 +23,59 @@ Nov 2016
 Tested with msvc2015 and g++5.3 (as of Oct 2016) and msvc2013 (as of Feb 2016). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
 You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action. You can also check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) where you can compare traditional C++ and SaferCPlusPlus implementations of the same algorithms.
+
+
+### Table of contents
+1. [Overview](#overview)
+2. [Use cases](#use-cases)
+3. [Setup and dependencies](#setup-and-dependencies)
+4. Comparisons
+    1. [SaferCPlusPlus versus Clang/LLVM Sanitizers](#safercplusplus-versus-clangllvm-sanitizers)
+    2. [SaferCPlusPlus versus Checked C](#safercplusplus-versus-checked-c)
+    3. [SaferCPlusPlus versus Ironclad C++](#safercplusplus-versus-ironclad-c)
+    4. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
+    5. [SaferCPlusPlus versus the Core Guidelines Checkers](#safercplusplus-versus-the-core-guidelines-checkers)
+5. [Registered pointers](#registered-pointers)
+    1. [TRegisteredPointer](#tregisteredpointer)
+        1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
+        2. [TRegisteredFixedPointer](#tregisteredfixedpointer)
+        3. [TRegisteredConstPointer](#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer)
+        4. [TRegisteredRefWrapper](#tregisteredrefwrapper)
+    2. [TRelaxedRegisteredPointer](#trelaxedregisteredpointer)
+6. [Simple benchmarks](#simple-benchmarks)
+7. [Reference counting pointers](#reference-counting-pointers)
+    1. [TRefCountingPointer](#trefcountingpointer)
+        1. [TRefCountingNotNullPointer](#trefcountingnotnullpointer)
+        2. [TRefCountingFixedPointer](#trefcountingfixedpointer)
+        3. [TRefCountingConstPointer](#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer)
+    2. [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer)
+    3. [TRefCountingOfRelaxedRegisteredPointer](#trefcountingofrelaxedregisteredpointer)
+8. [Scope pointers](#scope-pointers)
+    1. [TXScopeFixedPointer](#txscopefixedpointer)
+    2. [TXScopeOwnerPointer](#txscopeownerpointer)
+9. [make_pointer_to_member()](#make_pointer_to_member)
+10. [Poly pointers](#poly-pointers)
+    1. [TPolyPointer](#tpolypointer-tpolyconstpointer)
+11. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
+12. [Asynchronously shared objects](#asynchronously-shared-objects)
+    1. [TAsyncSharedReadWriteAccessRequester](#tasyncsharedreadwriteaccessrequester)
+        1. [TAsyncSharedReadOnlyAccessRequester](#tasyncsharedreadonlyaccessrequester)
+    2. [TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester](#tasyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwriteaccessrequester)
+    3. [TStdSharedImmutableFixedPointer](#tstdsharedimmutablefixedpointer)
+13. [Primitives](#primitives)
+    1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
+    2. [Quarantined types](#quarantined-types)
+14. [Vectors](#vectors)
+    1. [mstd::vector](#vector)
+    2. [msevector](#msevector)
+    3. [ivector](#ivector)
+15. [Arrays](#arrays)
+    1. [mstd::array](#array)
+    2. [msearray](#msearray)
+16. [Compatibility considerations](#compatibility-considerations)
+17. [On thread safety](#on-thread-safety)
+18. [Practical limitations](#practical-limitations)
+19. [Questions and comments](#questions-and-comments)
 
 
 ### Use cases
