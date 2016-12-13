@@ -141,7 +141,7 @@ Rc<> | reference counting pointer
 Arc<> | shared immutable pointer
 Arc< Mutex<> > | access requester
 
-Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to help ensure that dynamic objects are not deallocated while other references to that object still exist (among other things). SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. By default, these "smart" pointers may add a little run-time overhead, but often the run-time overhead can be optimized out. (At least in theory.)  
+Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to (among other things) help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. By default, these "smart" pointers may add a little run-time overhead, but often the run-time overhead can be optimized out. (At least in theory.)  
 
 ### SaferCPlusPlus versus the Core Guidelines Checkers
 
