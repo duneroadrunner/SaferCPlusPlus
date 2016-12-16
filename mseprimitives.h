@@ -1042,14 +1042,17 @@ namespace mse {
 	};
 #endif /*MSE_SAFERPTR_DISABLED*/
 
+	template<typename _Ty>
+	class TPointerID {};
+
 	/* TPointer is just a wrapper for native pointers that can act as a base class. */
-	template<typename _Ty, typename _TID>
+	template<typename _Ty, typename _TID = TPointerID<_Ty>>
 	class TPointer {
 	public:
 		TPointer() : m_ptr(nullptr) {}
 		TPointer(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
 		TPointer(const TPointer<_Ty, _TID>& src) : m_ptr(src.m_ptr) { note_value_assignment(); }
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
 		TPointer(const TPointer<_Ty2, _TID>& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 		virtual ~TPointer() {}
 
@@ -1096,6 +1099,62 @@ namespace mse {
 		}
 
 		explicit operator _Ty*() const {
+			assert_initialized();
+			if (nullptr == m_ptr) {
+				int q = 3; /* just a line of code for putting a debugger break point */
+			}
+			return m_ptr;
+		}
+
+		_Ty* m_ptr;
+
+#ifdef MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
+		void note_value_assignment() { m_initialized = true; }
+		void assert_initialized() const { assert(m_initialized); }
+		bool m_initialized = false;
+#else // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
+		void note_value_assignment() {}
+		void assert_initialized() const {}
+#endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
+	};
+
+	template<typename _Ty, typename _TID = TPointerForLegacyID<_Ty>>
+	class TPointerForLegacy {
+	public:
+		TPointerForLegacy() : m_ptr(nullptr) {}
+		TPointerForLegacy(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
+		TPointerForLegacy(const TPointerForLegacy<_Ty2, _TID>& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
+		virtual ~TPointerForLegacy() {}
+
+		void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
+		_Ty* raw_pointer() const { return m_ptr; }
+		_Ty* get() const { return m_ptr; }
+		_Ty& operator*() const {
+			assert_initialized();
+#ifndef NDEBUG
+			if (nullptr == m_ptr) {
+				MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TPointerForLegacy"));
+			}
+#endif // !NDEBUG
+			return (*m_ptr);
+		}
+		_Ty* operator->() const {
+			assert_initialized();
+#ifndef NDEBUG
+			if (nullptr == m_ptr) {
+				MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TPointerForLegacy"));
+			}
+#endif // !NDEBUG
+			return m_ptr;
+		}
+		TPointerForLegacy<_Ty, _TID>& operator=(_Ty* ptr) {
+			note_value_assignment();
+			m_ptr = ptr;
+			return (*this);
+		}
+
+		operator _Ty*() const {
 			assert_initialized();
 			if (nullptr == m_ptr) {
 				int q = 3; /* just a line of code for putting a debugger break point */

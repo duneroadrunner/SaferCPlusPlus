@@ -42,6 +42,9 @@ namespace mse {
     template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
+	template<typename _Ty>
+	class TScopeID {};
+
 #ifdef MSE_SCOPEPOINTER_DISABLED
 	template<typename _Ty> using TXScopePointer = _Ty*;
 	template<typename _Ty> using TXScopeConstPointer = const _Ty*;
@@ -61,8 +64,8 @@ namespace mse {
 
 #else // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
 
-	template<typename _Ty> using TXScopePointerBase = TSaferPtrForLegacy<_Ty>;
-	template<typename _Ty> using TXScopeConstPointerBase = TSaferPtrForLegacy<const _Ty>;
+	template<typename _Ty> using TXScopePointerBase = TPointerForLegacy<_Ty, TScopeID<const _Ty>>;
+	template<typename _Ty> using TXScopeConstPointerBase = TPointerForLegacy<const _Ty, TScopeID<const _Ty>>;
 
 	template<typename _TROz>
 	class TXScopeObjBase : public _TROz {
@@ -97,7 +100,7 @@ namespace mse {
 		TXScopePointer(TXScopeObj<_Ty>* ptr) : TXScopePointerBase<_Ty>(ptr) {}
 		TXScopePointer(const TXScopePointer& src_cref) : TXScopePointerBase<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopePointer(const TXScopePointer<_Ty2>& src_cref) : TXScopePointerBase<_Ty>(src_cref) {}
+		TXScopePointer(const TXScopePointer<_Ty2>& src_cref) : TXScopePointerBase<_Ty>(TXScopePointerBase<_Ty2>(src_cref)) {}
 		virtual ~TXScopePointer() {}
 		TXScopePointer<_Ty>& operator=(TXScopeObj<_Ty>* ptr) {
 			return TXScopePointerBase<_Ty>::operator=(ptr);
@@ -137,7 +140,7 @@ namespace mse {
 		TXScopeConstPointer(const TXScopeConstPointer<_Ty2>& src_cref) : TXScopeConstPointerBase<const _Ty>(src_cref) {}
 		TXScopeConstPointer(const TXScopePointer<_Ty>& src_cref) : TXScopeConstPointerBase<const _Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeConstPointer(const TXScopePointer<_Ty2>& src_cref) : TXScopeConstPointerBase<const _Ty>(src_cref) {}
+		TXScopeConstPointer(const TXScopePointer<_Ty2>& src_cref) : TXScopeConstPointerBase<const _Ty>(TXScopeConstPointerBase<_Ty2>(src_cref)) {}
 		virtual ~TXScopeConstPointer() {}
 		TXScopeConstPointer<_Ty>& operator=(const TXScopeObj<_Ty>* ptr) {
 			return TXScopeConstPointerBase<_Ty>::operator=(ptr);
