@@ -1118,7 +1118,7 @@ namespace mse {
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 	};
 
-	template<typename _Ty, typename _TID = TPointerForLegacyID<_Ty>>
+	template<typename _Ty, typename _TID = TPointerID<_Ty>>
 	class TPointerForLegacy {
 	public:
 		TPointerForLegacy() : m_ptr(nullptr) {}
