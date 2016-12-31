@@ -1301,7 +1301,7 @@ To be clear, we are not discouraging asynchronous programming, or even inter-thr
 
 ### Practical limitations
 
-The degree of memory safety that can be achieved is a function of the degree to which use of C++'s (memory) unsafe elements is avoided. Unfortunately, there is not yet a tool to automatically identify such uses. But if, in the future, there is significant demand for such a tool, it wouldn't be a particulary difficult thing to develop. Certainly trivial compared to some of the existing static analysis tools.
+The degree of memory safety that can be achieved is a function of the degree to which use of C++'s (memory) unsafe elements is avoided. Unfortunately, there is not yet a tool to automatically identify such uses. But if, in the future, there is significant demand for such a tool, it shouldn't be a particulary difficult thing to develop. Certainly trivial compared to some of the existing static analysis tools.
 
 Note that one of C++'s more subtle unsafe elements is the implicit "this" pointer when accessing member variables from member functions. Consider this example:
 
@@ -1357,6 +1357,8 @@ The above example contains unchecked accesses to deallocated memory via an impli
 So, technically, achieving complete memory safety requires passing a safe "this" pointer parameter as an argument to every member function that accesses a member variable. (I.e. No non-static member functions.)
 
 Another couple of potential pitfalls are the potential misuse of "scope" pointers, and the sharing of objects with unprotected mutable members between asynchronous threads, as explained in the corresponding documentation. The library data types do what they can to prevent such misuse, but are ultimately limited in their enforcement capabilities. These shortcomings could also be addressed in the future with a reasonably straightforward "code checker" tool to detect the potential problems.
+
+And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with one of the safe vectors (msevector or ivector) that support list-style iterators, often with a [performance benefit](#msevector).
 
 ### Questions and comments
 If you have questions or comments you can create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
