@@ -35,6 +35,7 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     3. [SaferCPlusPlus versus Ironclad C++](#safercplusplus-versus-ironclad-c)
     4. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
     5. [SaferCPlusPlus versus the Core Guidelines Checkers](#safercplusplus-versus-the-core-guidelines-checkers)
+5. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
 5. [Registered pointers](#registered-pointers)
     1. [TRegisteredPointer](#tregisteredpointer)
         1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
@@ -76,6 +77,7 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
 17. [On thread safety](#on-thread-safety)
 18. [Practical limitations](#practical-limitations)
 19. [Questions and comments](#questions-and-comments)
+
 
 
 ### Use cases
@@ -149,6 +151,27 @@ At the time of this writing (Nov 2016), the Core Guidelines Checkers were still 
 
 In the mean time, SaferCPlusPlus is, in general, not a substitute for, or incompatible with static analyzers. You are encouraged to use both.  
 
+### Getting started on safening existing code
+
+The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [mse::mstd::vector](#vector) and [mse::mstd::array](#array).
+
+The header files you'll need to include in your source file are "msemstdvector.h" and "msemstdarray.h". Those include files have additional dependencies on "msemsevector.h", "msemsearray.h", and possibly "mseprimitives.h".
+
+Statistically speaking, doing this should already catch a significant chunk of potential memory bugs. By default, an exception will be thrown upon any attempt to access invalid memory. If your project is not using C++ exceptions, you'll probably want to override the default exception behavior by defining the MSE_CUSTOM_THROW_DEFINITION() preprocessor macro prior to inclusion of the header files. For example:
+
+    #define MSE_CUSTOM_THROW_DEFINITION(x) std::cerr << std::endl << x.what(); exit(-11)
+
+will cause the error description to be written to stderr before program termination.
+
+The next most effective thing to do, in terms of improving memory safety, is probably to replace calls to new/malloc and delete/free. The direct substitutes provided in the library (for items not shared between threads) are mse::registered_new() and mse::registered_delete(). The pointer type returned by mse::registered_new() is an [mse::TRegisteredPointer<>](#tregisteredpointer). If you need this pointer to interact with legacy interfaces, it can be explicitly cast to a corresponding native pointer. If explicit casting is too inconvenient for your situation, you may instead use mse::relaxedregistered_new() to obtain an [mse::TRelaxedRegisteredPointer<>](#trelaxedregisteredpointer), which implicitly converts to a corresponding native pointer. But ultimately you're going to want to minimize the amount of casting to (unsafe) native pointers by updating your (function) interfaces to accomodate these safe pointers directly. (See the "[Safely passing parameters by reference](#safely-passing-parameters-by-reference)" section.)
+
+Based on reported vulnerabilities, these two things alone should catch most memory bugs.
+
+While the library provides these direct substitutes for new/malloc and delete/free, they are usually not the optimal solution. In most cases, you can instead use [mse::TXScopeOwnerPointer<>](#txscopeownerpointer) or [TRefCountingNotNullPointer<>](#trefcountingnotnullpointer), which are faster and automatically deallocate the item for you.
+
+For items shared between asynchronous threads, use one of the [data types designed for safe asynchronous sharing](#asynchronously-shared-objects).
+
+After that, it's just a matter of replacing the remaining unsafe elements in your code (generally native pointers and references) with the safer substitute that works best. You might want to leave C++ references for last, because a) they seem to be empirically (if not theoretically) less prone to bugs than pointers, and b) the library does not provide a directly compatible substitute (although [TRegisteredRefWrapper<>](#tregisteredrefwrapper) can be used in some situations), so references generally have to be substituted with pointers, which involves the extra bit of work of changing your dots to arrows.
 
 ### Registered pointers
 
@@ -312,12 +335,12 @@ Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks 
 ##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
 Pointer Type | Time
 ------------ | ----
-mse::TRegisteredPointer (stack): | 0.0317188 seconds.
+[mse::TRegisteredPointer](#tregisteredpointer) (stack): | 0.0317188 seconds.
 native pointer (heap): | 0.0394826 seconds.
-mse::TRefCountingPointer (heap): | 0.0493629 seconds.
+[mse::TRefCountingPointer](#trefcountingpointer) (heap): | 0.0493629 seconds.
 mse::TRegisteredPointer (heap): | 0.0573699 seconds.
 std::shared_ptr (heap): | 0.0692405 seconds.
-mse::TRelaxedRegisteredPointer (heap): | 0.14475 seconds.
+[mse::TRelaxedRegisteredPointer](#trelaxedregisteredpointer) (heap): | 0.14475 seconds.
 
 ##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
 Pointer Type | Time
@@ -352,7 +375,7 @@ std::weak_ptr: | 0.17701 seconds.
 
 The interesting thing here is that checking for nullptr seems to have gotten a lot slower between msvc2013 and msvc2015. But anyway, my guess is that pointer dereferencing is such a fast operation (std::weak_ptr aside) that outside of critical inner loops, the overhead of checking for nullptr would generally be probably pretty modest.  
 
-Also note that [mse::TRefCountingNotNullPointer](#trefcountingnotnullpointer) and [mse::TRefCountingFixedPointer](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked. mse::TRegisteredPointer's safety mechanisms are not compatible with the techniques used by the benchmark to isolate dereferencing performance, but mse::TRegisteredPointer's dereferencing performance would be expected to be essentially identical to that of mse::TRelaxedRegisteredPointer. By default, scope pointers have identical performance to native pointers.
+Also note that [mse::TRefCountingNotNullPointer](#trefcountingnotnullpointer) and [mse::TRefCountingFixedPointer](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked. mse::TRegisteredPointer's safety mechanisms are not compatible with the techniques used by the benchmark to isolate dereferencing performance, but mse::TRegisteredPointer's dereferencing performance would be expected to be essentially identical to that of mse::TRelaxedRegisteredPointer. By default, [scope pointers](#scope-pointers) have identical performance to native pointers.
 
 ###Reference counting pointers
 
@@ -1301,7 +1324,7 @@ To be clear, we are not discouraging asynchronous programming, or even inter-thr
 
 ### Practical limitations
 
-The degree of memory safety that can be achieved is a function of the degree to which use of C++'s (memory) unsafe elements is avoided. Unfortunately, there is not yet a tool to automatically identify such uses. But if, in the future, there is significant demand for such a tool, it wouldn't be a particulary difficult thing to develop. Certainly trivial compared to some of the existing static analysis tools.
+The degree of memory safety that can be achieved is a function of the degree to which use of C++'s (memory) unsafe elements is avoided. Unfortunately, there is not yet a tool to automatically identify such uses. But if, in the future, there is significant demand for such a tool, it shouldn't be a particulary difficult thing to develop. Certainly trivial compared to some of the existing static analysis tools.
 
 Note that one of C++'s more subtle unsafe elements is the implicit "this" pointer when accessing member variables from member functions. Consider this example:
 
@@ -1357,6 +1380,8 @@ The above example contains unchecked accesses to deallocated memory via an impli
 So, technically, achieving complete memory safety requires passing a safe "this" pointer parameter as an argument to every member function that accesses a member variable. (I.e. No non-static member functions.)
 
 Another couple of potential pitfalls are the potential misuse of "scope" pointers, and the sharing of objects with unprotected mutable members between asynchronous threads, as explained in the corresponding documentation. The library data types do what they can to prevent such misuse, but are ultimately limited in their enforcement capabilities. These shortcomings could also be addressed in the future with a reasonably straightforward "code checker" tool to detect the potential problems.
+
+And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with one of the safe vectors (msevector or ivector) that support list-style iterators, often with a [performance benefit](#msevector).
 
 ### Questions and comments
 If you have questions or comments you can create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
