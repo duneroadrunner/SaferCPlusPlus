@@ -164,7 +164,7 @@ namespace mse {
 
 		template <class... Args>
 		static TRefCountingPointer make(Args&&... args) {
-			auto new_ptr = new CRefCounter(std::forward<Args>(args)...);
+			auto new_ptr = new TRefWithTargetObj<X>(std::forward<Args>(args)...);
 			TRefCountingPointer retval(new_ptr);
 			return retval;
 		}
