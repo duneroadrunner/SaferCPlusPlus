@@ -486,7 +486,7 @@ namespace mse {
 		}
 
 		template <class... Args>
-		static TAsyncSharedReadWriteAccessRequester make_asyncsharedreadwrite(Args&&... args) {
+		static TAsyncSharedReadWriteAccessRequester make(Args&&... args) {
 			//auto shptr = std::make_shared<TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
 			std::shared_ptr<TAsyncSharedObj<_Ty>> shptr(new TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
 			TAsyncSharedReadWriteAccessRequester retval(shptr);
@@ -506,7 +506,7 @@ namespace mse {
 
 	template <class X, class... Args>
 	TAsyncSharedReadWriteAccessRequester<X> make_asyncsharedreadwrite(Args&&... args) {
-		return TAsyncSharedReadWriteAccessRequester<X>::make_asyncsharedreadwrite(std::forward<Args>(args)...);
+		return TAsyncSharedReadWriteAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
 
@@ -588,7 +588,7 @@ namespace mse {
 		}
 
 		template <class... Args>
-		static TAsyncSharedReadOnlyAccessRequester make_asyncsharedreadonly(Args&&... args) {
+		static TAsyncSharedReadOnlyAccessRequester make(Args&&... args) {
 			//auto shptr = std::make_shared<const TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
 			std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr(new const TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
 			TAsyncSharedReadOnlyAccessRequester retval(shptr);
@@ -606,7 +606,7 @@ namespace mse {
 
 	template <class X, class... Args>
 	TAsyncSharedReadOnlyAccessRequester<X> make_asyncsharedreadonly(Args&&... args) {
-		return TAsyncSharedReadOnlyAccessRequester<X>::make_asyncsharedreadonly(std::forward<Args>(args)...);
+		return TAsyncSharedReadOnlyAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
 
@@ -761,7 +761,7 @@ namespace mse {
 		}
 
 		template <class... Args>
-		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite(Args&&... args) {
+		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester make(Args&&... args) {
 			//auto shptr = std::make_shared<TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
 			std::shared_ptr<TAsyncSharedObj<_Ty>> shptr(new TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
 			TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester retval(shptr);
@@ -779,7 +779,7 @@ namespace mse {
 
 	template <class X, class... Args>
 	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite(Args&&... args) {
-		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X>::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite(std::forward<Args>(args)...);
+		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
 
@@ -861,7 +861,7 @@ namespace mse {
 		}
 
 		template <class... Args>
-		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly(Args&&... args) {
+		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester make(Args&&... args) {
 			//auto shptr = std::make_shared<const TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
 			std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr(new const TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
 			TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester retval(shptr);
@@ -879,7 +879,7 @@ namespace mse {
 
 	template <class X, class... Args>
 	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly(Args&&... args) {
-		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X>::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly(std::forward<Args>(args)...);
+		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
 
@@ -896,7 +896,7 @@ namespace mse {
 		explicit operator const _Ty*() const { return std::shared_ptr<const _Ty>::operator _Ty*(); }
 
 		template <class... Args>
-		static TStdSharedImmutableFixedPointer make_stdsharedimmutable(Args&&... args) {
+		static TStdSharedImmutableFixedPointer make(Args&&... args) {
 			TStdSharedImmutableFixedPointer retval(std::make_shared<const _Ty>(std::forward<Args>(args)...));
 			return retval;
 		}
@@ -911,14 +911,14 @@ namespace mse {
 
 	template <class X, class... Args>
 	TStdSharedImmutableFixedPointer<X> make_stdsharedimmutable(Args&&... args) {
-		return TStdSharedImmutableFixedPointer<X>::make_stdsharedimmutable(std::forward<Args>(args)...);
+		return TStdSharedImmutableFixedPointer<X>::make(std::forward<Args>(args)...);
 	}
 
 	/* Legacy aliases. */
 	template<typename _Ty> using TReadOnlyStdSharedFixedConstPointer = TStdSharedImmutableFixedPointer<_Ty>;
 	template <class X, class... Args>
 	TReadOnlyStdSharedFixedConstPointer<X> make_readonlystdshared(Args&&... args) {
-		return TStdSharedImmutableFixedPointer<X>::make_stdsharedimmutable(std::forward<Args>(args)...);
+		return TStdSharedImmutableFixedPointer<X>::make(std::forward<Args>(args)...);
 	}
 
 
