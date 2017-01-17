@@ -27,9 +27,9 @@
 #else /*_MSC_VER*/
 #if (defined(__GNUC__) || defined(__GNUG__))
 #define GPP_COMPATIBLE 1
-#if (5 > __GNUC__)
+#if ((5 > __GNUC__) && (!defined(__clang__)))
 #define GPP4P8_COMPATIBLE 1
-#endif /*(5 > __GNUC__)*/
+#endif /*((5 > __GNUC__) && (!defined(__clang__)))*/
 #endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
 
