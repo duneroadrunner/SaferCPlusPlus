@@ -417,7 +417,7 @@ namespace std {
 
 	template<> class numeric_limits<mse::CInt> {	// limits for type int
 	public:
-		typedef int _Ty;
+		typedef MSE_CINT_BASE_INTEGER_TYPE _Ty;
 
 		static constexpr _Ty(min)() _THROW0()
 		{	// return minimum value
@@ -694,7 +694,7 @@ namespace std {
 
 	template<> class numeric_limits<mse::CSize_t> {	// limits for type int
 	public:
-		typedef int _Ty;
+		typedef size_t _Ty;
 
 		static constexpr _Ty(min)() _THROW0()
 		{	// return minimum value
