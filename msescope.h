@@ -467,17 +467,17 @@ namespace mse {
 
 
 	/* shorter aliases */
-	//template<typename _Ty> using scpp = TXScopePointer<_Ty>;
-	//template<typename _Ty> using scpcp = TXScopeConstPointer<_Ty>;
-	//template<typename _Ty> using scpnnp = TXScopeNotNullPointer<_Ty>;
-	//template<typename _Ty> using scpnncp = TXScopeNotNullConstPointer<_Ty>;
+	template<typename _Ty> using sfp = TXScopeFixedPointer<_Ty>;
+	template<typename _Ty> using sfcp = TXScopeFixedConstPointer<_Ty>;
+	template<typename _TROy> using so = TXScopeObj<_TROy>;
+
+	/* deprecated aliases */
 	template<typename _Ty> using scpfp = TXScopeFixedPointer<_Ty>;
 	template<typename _Ty> using scpfcp = TXScopeFixedConstPointer<_Ty>;
 	template<typename _TROy> using scpo = TXScopeObj<_TROy>;
 	template<class _TTargetType, class _TXScopePointerType> using scpwkfp = TSyncWeakFixedPointer<_TTargetType, _TXScopePointerType>;
 	template<class _TTargetType, class _TXScopePointerType> using scpwkfcp = TSyncWeakFixedConstPointer<_TTargetType, _TXScopePointerType>;
 
-	/* deprecated aliases */
 	template<typename _Ty> using TScopeFixedPointer = TXScopeFixedPointer<_Ty>;
 	template<typename _Ty> using TScopeFixedConstPointer = TXScopeFixedConstPointer<_Ty>;
 	template<typename _TROy> using TScopeObj = TXScopeObj<_TROy>;

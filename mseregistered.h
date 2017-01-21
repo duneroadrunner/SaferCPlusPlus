@@ -841,6 +841,8 @@ namespace mse {
 	TRegisteredPointer<_Ty, _Tn> rnew(Args&&... args) { return registered_new<_Ty, _Tn>(std::forward<Args>(args)...); }
 	template <class _Ty, int _Tn = sc_default_cache_size>
 	void rdelete(const TRegisteredPointer<_Ty, _Tn>& regPtrRef) { registered_delete<_Ty, _Tn>(regPtrRef); }
+
+	/* deprecated aliases */
 	template<class _TTargetType, class _TLeasePointerType> using swkfp = TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>;
 	template<class _TTargetType, class _TLeasePointerType> using swkfcp = TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;
 

@@ -387,6 +387,10 @@ namespace mse {
 		poly_variant m_pointer;
 	};
 
+	/* shorter aliases */
+	template<typename _Ty> using pp = TPolyPointer<_Ty>;
+	template<typename _Ty> using pcp = TPolyConstPointer<_Ty>;
+
 
 	/* Deprecated poly pointers. */
 	template<typename _Ty> class TRefCountingOrXScopeFixedConstPointer;

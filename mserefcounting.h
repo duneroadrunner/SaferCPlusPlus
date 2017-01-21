@@ -626,6 +626,8 @@ namespace mse {
 	template<typename _Ty> using refcnncp = TRefCountingNotNullConstPointer<_Ty>;
 	template<typename _Ty> using refcfp = TRefCountingFixedPointer<_Ty>;
 	template<typename _Ty> using refcfcp = TRefCountingFixedConstPointer<_Ty>;
+
+	/* deprecated aliases */
 	template<class _TTargetType, class _TLeaseType> using strfp = TStrongFixedPointer<_TTargetType, _TLeaseType>;
 	template<class _TTargetType, class _TLeaseType> using strfcp = TStrongFixedConstPointer<_TTargetType, _TLeaseType>;
 
