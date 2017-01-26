@@ -221,6 +221,7 @@ namespace mse {
 	template <typename _Ty>
 	class TCommonPointerInterface {
 	public:
+		virtual ~TCommonPointerInterface() {}
 		virtual _Ty& operator*() const = 0;
 		virtual _Ty* operator->() const = 0;
 	};
@@ -229,6 +230,7 @@ namespace mse {
 	class TCommonizedPointer : public TCommonPointerInterface<_Ty> {
 	public:
 		TCommonizedPointer(const _TPointer1& pointer) : m_pointer(pointer) {}
+		virtual ~TCommonizedPointer() {}
 
 		_Ty& operator*() const {
 			return (*m_pointer);
