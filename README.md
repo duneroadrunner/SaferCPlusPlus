@@ -57,6 +57,7 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
 9. [make_pointer_to_member()](#make_pointer_to_member)
 10. [Poly pointers](#poly-pointers)
     1. [TPolyPointer](#tpolypointer-tpolyconstpointer)
+    2. [TAnyPointer](#tanypointer-tanyconstpointer)
 11. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
 12. [Asynchronously shared objects](#asynchronously-shared-objects)
     1. [TAsyncSharedReadWriteAccessRequester](#tasyncsharedreadwriteaccessrequester)
