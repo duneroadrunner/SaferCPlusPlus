@@ -764,23 +764,31 @@ usage example:
         class A {
         public:
             A() {}
-            A(int x) : b(x) {}
+            A(std::string x) : b(x) {}
             virtual ~A() {}
-    
-            int b = 3;
+
+            std::string b = "some text ";
         };
         class D : public A {
         public:
-            D(int x) : A(x) {}
+            D(std::string x) : A(x) {}
         };
         class B {
         public:
-            static int foo1(mse::TPolyPointer<A> ptr) {
-                int retval = ptr->b;
+            static std::string foo1(mse::TPolyPointer<A> ptr) {
+                std::string retval = ptr->b;
                 return retval;
             }
-            static int foo2(mse::TPolyConstPointer<A> ptr) {
-                int retval = ptr->b;
+            static std::string foo2(mse::TPolyConstPointer<A> ptr) {
+                std::string retval = ptr->b;
+                return retval;
+            }
+            static std::string foo3(mse::TPolyPointer<std::string> ptr) {
+                std::string retval = (*ptr) + (*ptr);
+                return retval;
+            }
+            static std::string foo4(mse::TPolyConstPointer<std::string> ptr) {
+                std::string retval = (*ptr) + (*ptr);
                 return retval;
             }
         protected:
@@ -808,6 +816,12 @@ usage example:
         auto a_writelock_ptr = a_access_requester.writelock_ptr();
         auto a_stdshared_const_ptr = mse::make_stdsharedimmutable<A>();
     
+        /* And note that safe pointers to member elements need to be wrapped in an mse::TAnyPointer<> for
+        mse::TPolyPointer<> to accept them. */
+        auto b_member_a_refc_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_refcptr->b, a_refcptr));
+        auto b_member_a_reg_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_regobj.b, &a_regobj));
+        auto b_member_a_writelock_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_writelock_ptr->b, a_writelock_ptr));
+    
         {
             /* All of these safe pointer types happily convert to an mse::TPolyPointer<>. */
             auto res_using_scpptr = B::foo1(&a_scpobj);
@@ -818,6 +832,9 @@ usage example:
             auto res_using_msevec_ipointer = B::foo1(a_msevec_ipointer);
             auto res_using_msevec_ssiter = B::foo1(a_msevec_ssiter);
             auto res_using_writelock_ptr = B::foo1(a_writelock_ptr);
+            auto res_using_member_refc_anyptr = B::foo3(b_member_a_refc_anyptr);
+            auto res_using_member_reg_anyptr = B::foo3(b_member_a_reg_anyptr);
+            auto res_using_member_writelock_anyptr = B::foo3(b_member_a_writelock_anyptr);
     
             /* Or an mse::TPolyConstPointer<>. */
             auto res_using_scpptr_via_const_poly = B::foo2(&a_scpobj);
@@ -829,6 +846,9 @@ usage example:
             auto res_using_msevec_ssiter_via_const_poly = B::foo2(a_msevec_ssiter);
             auto res_using_writelock_ptr_via_const_poly = B::foo2(a_writelock_ptr);
             auto res_using_stdshared_const_ptr_via_const_poly = B::foo2(a_stdshared_const_ptr);
+            auto res_using_member_refc_anyptr_via_const_poly = B::foo4(b_member_a_refc_anyptr);
+            auto res_using_member_reg_anyptr_via_const_poly = B::foo4(b_member_a_reg_anyptr);
+            auto res_using_member_writelock_anyptr_via_const_poly = B::foo4(b_member_a_writelock_anyptr);
         }
     }
 
