@@ -15,6 +15,7 @@
 #include "msescope.h"
 #include "msemstdvector.h"
 #include "mseasyncshared.h"
+#include "mseany.h"
 #include <memory>
 #include <iostream>
 #include <utility>
@@ -27,6 +28,13 @@
 /* for the test functions */
 #include <map>
 #include <string>
+
+#ifdef MSE_CUSTOM_THROW_DEFINITION
+#include <iostream>
+#define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
+#else // MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) throw(x)
+#endif // MSE_CUSTOM_THROW_DEFINITION
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_POLYPOINTER_DISABLED
@@ -158,7 +166,7 @@ namespace mse {
 			if (type_id == typeid(T).hash_code())
 				return *reinterpret_cast<T*>(&data);
 			else
-				throw std::bad_cast();
+				MSE_THROW(std::bad_cast());
 		}
 
 		~tdp_variant() {
@@ -210,6 +218,66 @@ namespace mse {
 		}
 	};
 
+	template <typename _Ty>
+	class TCommonPointerInterface {
+	public:
+		virtual _Ty& operator*() const = 0;
+		virtual _Ty* operator->() const = 0;
+	};
+
+	template <typename _Ty, typename _TPointer1>
+	class TCommonizedPointer : public TCommonPointerInterface<_Ty> {
+	public:
+		TCommonizedPointer(const _TPointer1& pointer) : m_pointer(pointer) {}
+
+		_Ty& operator*() const {
+			return (*m_pointer);
+		}
+		_Ty* operator->() const {
+			return m_pointer.operator->();
+		}
+
+		_TPointer1 m_pointer;
+	};
+
+	template <typename _Ty>
+	class TAnyPointer {
+	public:
+		template <typename _TPointer1>
+		TAnyPointer(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer))
+			, m_common_pointer_interface_ptr(mse::any_cast<TCommonizedPointer<_Ty, _TPointer1>>(&m_any_pointer)) {
+			assert(nullptr != m_common_pointer_interface_ptr);
+		}
+
+		_Ty& operator*() const {
+			return (*(*m_common_pointer_interface_ptr));
+		}
+		_Ty* operator->() const {
+			return m_common_pointer_interface_ptr->operator->();
+		}
+
+		mse::any m_any_pointer;
+		const TCommonPointerInterface<_Ty>* m_common_pointer_interface_ptr = nullptr;
+	};
+
+	template <typename _Ty>
+	class TAnyConstPointer {
+	public:
+		template <typename _TPointer1>
+		TAnyConstPointer(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<const _Ty, _TPointer1>(pointer)), m_common_pointer_interface_ptr(mse::any_cast<TCommonizedPointer<const _Ty, _TPointer1>>(&m_any_pointer)) {}
+
+		const _Ty& operator*() const {
+			return (*(*m_common_pointer_interface_ptr));
+		}
+		const _Ty* operator->() const {
+			return m_common_pointer_interface_ptr->operator->();
+		}
+
+		mse::any m_any_pointer;
+		const TCommonPointerInterface<const _Ty>* m_common_pointer_interface_ptr = nullptr;
+	};
+
+
 	template<typename _Ty>
 	class TPolyPointerID {};
 
@@ -236,6 +304,7 @@ namespace mse {
 			mse::TAsyncSharedReadWritePointer<_Ty>,
 			mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>,
 			std::shared_ptr<_Ty>,
+			mse::TAnyPointer<_Ty>,
 
 			mse::TPointer<_Ty, TPolyPointerID<const _Ty>>
 		>;
@@ -274,6 +343,7 @@ namespace mse {
 		TPolyPointer(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TPolyPointer(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
+		TPolyPointer(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TAnyPointer<_Ty>>(p); }
 
 		TPolyPointer(_Ty* p) { m_pointer.template set<mse::TPointer<_Ty, TPolyPointerID<const _Ty>>>(p); }
 
@@ -310,6 +380,7 @@ namespace mse {
 			mse::TAsyncSharedReadWriteConstPointer<_Ty>,
 			mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>,
 			std::shared_ptr<const _Ty>,
+			mse::TAnyConstPointer<_Ty>,
 
 			mse::TPointer<const _Ty, TPolyPointerID<const _Ty>>,
 			mse::TPolyPointer<_Ty>
@@ -365,6 +436,7 @@ namespace mse {
 		TPolyConstPointer(const std::shared_ptr<const _Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TPolyConstPointer(const std::shared_ptr<const _Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
+		TPolyConstPointer(const mse::TAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TAnyConstPointer<_Ty>>(p); }
 
 		TPolyConstPointer(const typename mse::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::const_iterator>(p); }
 		TPolyConstPointer(const typename mse::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::cipointer>(p); }
@@ -374,6 +446,7 @@ namespace mse {
 		TPolyConstPointer(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TPolyConstPointer(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
+		TPolyConstPointer(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TAnyConstPointer<_Ty>>(mse::TAnyConstPointer<_Ty>(p)); }
 
 		TPolyConstPointer(const _Ty* p) { m_pointer.template set<mse::TPointer<const _Ty, TPolyPointerID<const _Ty>>>(p); }
 
@@ -387,9 +460,12 @@ namespace mse {
 		poly_variant m_pointer;
 	};
 
+
 	/* shorter aliases */
 	template<typename _Ty> using pp = TPolyPointer<_Ty>;
 	template<typename _Ty> using pcp = TPolyConstPointer<_Ty>;
+	template<typename _Ty> using anyp = TAnyPointer<_Ty>;
+	template<typename _Ty> using anycp = TAnyConstPointer<_Ty>;
 
 
 	/* Deprecated poly pointers. */
