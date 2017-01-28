@@ -8,6 +8,7 @@
 #ifndef MSEASYNCSHARED_H_
 #define MSEASYNCSHARED_H_
 
+#include "mseoptional.h"
 #include <shared_mutex>
 #include <thread>
 #include <unordered_map>
@@ -345,17 +346,17 @@ namespace mse {
 		virtual ~TAsyncSharedReadWritePointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
 			return m_shptr.operator bool();
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&>::type operator*() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
 			return (*m_shptr);
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>*, TAsyncSharedObj<_Ty>*>::type operator->() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
 			return std::addressof(*m_shptr);
 		}
 	private:
@@ -403,16 +404,16 @@ namespace mse {
 		virtual ~TAsyncSharedReadWriteConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}
@@ -459,30 +460,54 @@ namespace mse {
 		TAsyncSharedReadWritePointer<_Ty> writelock_ptr() {
 			return TAsyncSharedReadWritePointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedReadWritePointer<_Ty> try_writelock_ptr() {
-			return TAsyncSharedReadWritePointer<_Ty>(m_shptr, std::try_to_lock);
+		mse::optional<TAsyncSharedReadWritePointer<_Ty>> try_writelock_ptr() {
+			mse::optional<TAsyncSharedReadWritePointer<_Ty>> retval(TAsyncSharedReadWritePointer<_Ty>(m_shptr, std::try_to_lock));
+			if (!((*retval).is_valid())) {
+				return {};
+			}
+			return retval;
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedReadWritePointer<_Ty> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			return TAsyncSharedReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
+		mse::optional<TAsyncSharedReadWritePointer<_Ty>> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::optional<TAsyncSharedReadWritePointer<_Ty>> retval(TAsyncSharedReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedReadWritePointer<_Ty> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			return TAsyncSharedReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
+		mse::optional<TAsyncSharedReadWritePointer<_Ty>> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::optional<TAsyncSharedReadWritePointer<_Ty>> retval(TAsyncSharedReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		TAsyncSharedReadWriteConstPointer<_Ty> readlock_ptr() {
 			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedReadWriteConstPointer<_Ty> try_readlock_ptr() {
-			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock);
+		mse::optional<TAsyncSharedReadWriteConstPointer<_Ty>> try_readlock_ptr() {
+			mse::optional<TAsyncSharedReadWriteConstPointer<_Ty>> retval(TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedReadWriteConstPointer<_Ty> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
+		mse::optional<TAsyncSharedReadWriteConstPointer<_Ty>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::optional<TAsyncSharedReadWriteConstPointer<_Ty>> retval(TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedReadWriteConstPointer<_Ty> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			return TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
+		mse::optional<TAsyncSharedReadWriteConstPointer<_Ty>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::optional<TAsyncSharedReadWriteConstPointer<_Ty>> retval(TAsyncSharedReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 
 		template <class... Args>
@@ -518,16 +543,16 @@ namespace mse {
 		virtual ~TAsyncSharedReadOnlyConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}
@@ -575,16 +600,28 @@ namespace mse {
 		TAsyncSharedReadOnlyConstPointer<_Ty> readlock_ptr() {
 			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedReadOnlyConstPointer<_Ty> try_readlock_ptr() {
-			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock);
+		mse::optional<TAsyncSharedReadOnlyConstPointer<_Ty>> try_readlock_ptr() {
+			mse::optional<TAsyncSharedReadOnlyConstPointer<_Ty>> retval(TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedReadOnlyConstPointer<_Ty> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
+		mse::optional<TAsyncSharedReadOnlyConstPointer<_Ty>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::optional<TAsyncSharedReadOnlyConstPointer<_Ty>> retval(TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedReadOnlyConstPointer<_Ty> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			return TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
+		mse::optional<TAsyncSharedReadOnlyConstPointer<_Ty>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::optional<TAsyncSharedReadOnlyConstPointer<_Ty>> retval(TAsyncSharedReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 
 		template <class... Args>
@@ -620,17 +657,17 @@ namespace mse {
 		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
 			return m_shptr.operator bool();
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&>::type operator*() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
 			return (*m_shptr);
 		}
 		typename std::conditional<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>*, TAsyncSharedObj<_Ty>*>::type operator->() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
 			return std::addressof(*m_shptr);
 		}
 	private:
@@ -678,16 +715,16 @@ namespace mse {
 		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}
@@ -734,30 +771,54 @@ namespace mse {
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> writelock_ptr() {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> try_writelock_ptr() {
-			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr, std::try_to_lock);
+		mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>> try_writelock_ptr() {
+			mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>> retval(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr, std::try_to_lock));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
+		mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>> retval(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
+		mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>> retval(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> readlock_ptr() {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> try_readlock_ptr() {
-			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock);
+		mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>> try_readlock_ptr() {
+			mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>> retval(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
+		mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>> retval(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
+		mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>> retval(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 
 		template <class... Args>
@@ -791,16 +852,16 @@ namespace mse {
 		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer() {}
 
 		operator bool() const {
-			//if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
 			return m_shptr.operator bool();
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return (*extra_const_ptr);
 		}
 		const TAsyncSharedObj<const _Ty>* operator->() const {
-			if (!is_valid()) { MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
 			const TAsyncSharedObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAsyncSharedObj<const _Ty>*>(std::addressof(*m_shptr));
 			return extra_const_ptr;
 		}
@@ -848,16 +909,28 @@ namespace mse {
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> readlock_ptr() {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr);
 		}
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> try_readlock_ptr() {
-			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock);
+		mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>> try_readlock_ptr() {
+			mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>> retval(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		template<class _Rep, class _Period>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time);
+		mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>> retval(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Rel_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 		template<class _Clock, class _Duration>
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time);
+		mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::optional<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>> retval(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>(m_shptr, std::try_to_lock, _Abs_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
 		}
 
 		template <class... Args>
