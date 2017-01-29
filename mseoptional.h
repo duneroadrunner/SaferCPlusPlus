@@ -156,7 +156,7 @@ namespace mse {
 
 
 	template <class T>
-	struct is_nothrow_move_assignable
+	struct std::is_nothrow_move_assignable
 	{
 		template <class X, bool has_any_move_assign>
 		struct has_nothrow_move_assign {
@@ -455,7 +455,7 @@ namespace mse {
 		}
 
 		optional& operator=(optional&& rhs)
-			noexcept(is_nothrow_move_assignable<T>::value && std::is_nothrow_move_constructible<T>::value)
+			noexcept(std::is_nothrow_move_assignable<T>::value && std::is_nothrow_move_constructible<T>::value)
 		{
 			if (initialized() == true && rhs.initialized() == false) clear();
 			else if (initialized() == false && rhs.initialized() == true)  initialize(std::move(*rhs));
@@ -492,7 +492,7 @@ namespace mse {
 		}
 
 		// 20.5.4.4, Swap
-		void swap(optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(swap(declval<T&>(), declval<T&>())))
+		void swap(optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(swap(std::declval<T&>(), std::declval<T&>())))
 		{
 			if (initialized() == true && rhs.initialized() == false) { rhs.initialize(std::move(**this)); clear(); }
 			else if (initialized() == false && rhs.initialized() == true) { initialize(std::move(*rhs)); rhs.clear(); }
