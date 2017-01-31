@@ -119,7 +119,7 @@ Clang/LLVM Sanitizers are intended for debugging purposes, not to be used in dep
 
 Checked C and SaferCPlusPlus are more complementary than competitive. Checked C targets low-level system C code and basically only addresses the array bounds checking issue, including pointer arithmetic, where SaferCPlusPlus skews more toward C++ code and legacy code that would benefit from being converted to modern C++. It seems that Checked C is not yet ready for deployment (as of Sep 2016), but one could imagine both solutions being used, with little contention, in projects that have both low-level system type code and higher-level application type code.
 
-###SaferCPlusPlus versus Ironclad C++
+### SaferCPlusPlus versus Ironclad C++
 
 SaferCPlusPlus and Ironclad C++ are very similar. The main difference is probably that Ironclad uses garbage collection while SaferCPlusPlus does not. SaferCPlusPlus is not yet as complete as Ironclad (for example, SaferCPlusPlus does not yet have a static validator to verify that "scope" pointers are being used properly), but Ironclad seems to be no longer under active development. They are not incompatible, both libraries could be used in the same project. Rather than thinking of them as competing solutions, you could think of them combined as one solution, sometimes with multiple options for achieving the same thing.  
 
@@ -386,12 +386,12 @@ The interesting thing here is that checking for nullptr seems to have gotten a l
 
 Also note that [mse::TRefCountingNotNullPointer](#trefcountingnotnullpointer) and [mse::TRefCountingFixedPointer](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked. mse::TRegisteredPointer's safety mechanisms are not compatible with the techniques used by the benchmark to isolate dereferencing performance, but mse::TRegisteredPointer's dereferencing performance would be expected to be essentially identical to that of mse::TRelaxedRegisteredPointer. By default, [scope pointers](#scope-pointers) have identical performance to native pointers.
 
-###Reference counting pointers
+### Reference counting pointers
 
 If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is std::shared_ptr, which is notable for its thread-safe reference counting that's rather handy when you're sharing an object among asynchronous threads, but unnecessarily costly when you aren't. So we provide fast reference counting pointers that [forego](#on-thread-safety) any thread safety mechanisms. In addition to being substantially faster (and smaller) than std::shared_ptr, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use mse::make_refcounting&lt;&gt;() instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 
-###TRefCountingPointer
+### TRefCountingPointer
 
 usage example:
 
@@ -514,6 +514,7 @@ usage example:
     }
 
 ### TRefCountingOfRegisteredNotNullPointer, TRefCountingOfRegisteredFixedPointer
+
 ### TRefCountingOfRegisteredConstPointer, TRefCountingOfRegisteredNotNullConstPointer, TRefCountingOfRegisteredFixedConstPointer
 
 ### TRefCountingOfRelaxedRegisteredPointer
@@ -578,6 +579,7 @@ usage example:
     }
 
 ### TRefCountingOfRelaxedRegisteredNotNullPointer, TRefCountingOfRelaxedRegisteredFixedPointer
+
 ### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
 
 ### Scope pointers
@@ -1058,6 +1060,7 @@ usage example:
 
 
 ### Primitives
+
 ### CInt, CSize_t and CBool
 These classes are meant to behave like, and be compatible with their native counterparts. In debug mode, they check for "use before initialization", and in release mode, they use default initialization to help ensure deterministic behavior. Upon value assignment, CInt and CSize_t will check to ensure that the value fits within the type's range. CSize_t's `-=` operator checks that the operation evaluates to a positive value. And unlike its native counterpart, arithmetic operations involving CSize_t that could evaluate to a negative number are returned as a (signed) CInt.
 
