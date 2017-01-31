@@ -336,6 +336,7 @@ Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks 
 
 #### Allocation, deallocation, pointer copy and assignment:
 ##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
+
 Pointer Type | Time
 ------------ | ----
 [mse::TRegisteredPointer](#tregisteredpointer) (stack): | 0.0317188 seconds.
@@ -346,6 +347,7 @@ std::shared_ptr (heap): | 0.0692405 seconds.
 [mse::TRelaxedRegisteredPointer](#trelaxedregisteredpointer) (heap): | 0.14475 seconds.
 
 ##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
+
 Pointer Type | Time
 ------------ | ----
 mse::TRegisteredPointer (stack): | 0.0270016 seconds.
@@ -360,6 +362,7 @@ I'm speculating here, but it might be the case that the heap operations that occ
 
 #### Dereferencing:
 ##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
+
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0105804 seconds.
@@ -369,6 +372,7 @@ mse::TRelaxedRegisteredPointer (checked): | 0.0308289 seconds.
 std::weak_ptr: | 0.179833 seconds.
 
 ##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
+
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0100006 seconds.
