@@ -1,4 +1,4 @@
-Jan 2017
+Feb 2017
 
 ### Overview
 
@@ -131,9 +131,7 @@ There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu
 
 ### SaferCPlusPlus versus Rust
 
-SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. Because run-time checks have a run-time cost, to a greater extent than Rust, SaferCPlusPlus' performance is dependent on the compiler optimizer's ability to discard them when they are not actually necessary (which should be most of the time).
-
-It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the (loose) correspondence between Rust and SaferCPlusPlus elements:
+SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the (loose) correspondence between Rust and SaferCPlusPlus elements:
 
 Rust | SaferCPlusPlus
 ---- | --------------
@@ -144,7 +142,11 @@ Rc<> | reference counting pointer
 Arc<> | shared immutable pointer
 Arc< Mutex<> > | access requester
 
-Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to (among other things) help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. By default, these "smart" pointers may add a little run-time overhead, but often the run-time overhead can be optimized out. (At least in theory.)  
+Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to (among other things) help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. This can result in a little run-time overhead that a Rust implementation might tend to avoid. But perhaps unintuitively, this tends to have little effect on performance in practice. In part because there is often opportunity for the compiler optimizer to discard redundant run-time overhead, but mainly because with both SaferCPlusPlus and Rust, it's usually the case that the vast majority of pointer/reference instances end up spending their entire existence targeting a single object with "scope lifetime" (which incurs no run-time overhead in either solution). In practice, we observe that in both cases, the largest contributor to run-time overhead actually tends to be bounds checking of vectors and arrays.
+
+A sample [subset of "The Computer Language Benchmark Game"](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) showed SaferCPlusPlus translations of C++ implementations to be, on average, about 30% slower than the original, with wide variation. At the time of this writing (Feb 2017), the Rust implementations of the same subset were reported as also, on average, about 30% slower than the C++ implementations, with very wide variation. For various reasons, these benchmarks should not be considered an accurate measure of intrinsic language performance. (The underperformance versus C++ probably being overstated in both cases.) But we can probably take away two things from these results - i) SaferCPlusPlus and Rust are both at least within the same order of magnitude of C++, in terms of performance, and ii) any theoretical performance difference between SaferCPlusPlus and Rust due to extra run-time checks on pointers/references is, in practice, not significant relative to the observed performance variation due to other factors.
+
+So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.  
 
 ### SaferCPlusPlus versus the Core Guidelines Checkers
 
