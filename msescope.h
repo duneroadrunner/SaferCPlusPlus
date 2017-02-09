@@ -263,7 +263,6 @@ namespace mse {
 		TXScopeFixedConstPointer<_Ty>& operator=(const TXScopeFixedConstPointer<_Ty>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
-
 		TXScopeFixedConstPointer<_Ty>* operator&() { return this; }
 		const TXScopeFixedConstPointer<_Ty>* operator&() const { return this; }
 

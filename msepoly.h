@@ -258,6 +258,13 @@ namespace mse {
 			return m_common_pointer_interface_ptr->operator->();
 		}
 
+	private:
+		TAnyPointer<_Ty>& operator=(const TAnyPointer<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TAnyPointer<_Ty>* operator&() { return this; }
+		const TAnyPointer<_Ty>* operator&() const { return this; }
+
 		mse::any m_any_pointer;
 		const TCommonPointerInterface<_Ty>* m_common_pointer_interface_ptr = nullptr;
 	};
@@ -274,6 +281,13 @@ namespace mse {
 		const _Ty* operator->() const {
 			return m_common_pointer_interface_ptr->operator->();
 		}
+
+	private:
+		TAnyConstPointer<_Ty>& operator=(const TAnyConstPointer<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TAnyConstPointer<_Ty>* operator&() { return this; }
+		const TAnyConstPointer<_Ty>* operator&() const { return this; }
 
 		mse::any m_any_pointer;
 		const TCommonPointerInterface<const _Ty>* m_common_pointer_interface_ptr = nullptr;
@@ -355,6 +369,13 @@ namespace mse {
 		_Ty* operator->() const {
 			return reinterpret_cast<_Ty*>(m_pointer.arrow_operator());
 		}
+
+	private:
+		TPolyPointer<_Ty>& operator=(const TPolyPointer<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TPolyPointer<_Ty>* operator&() { return this; }
+		const TPolyPointer<_Ty>* operator&() const { return this; }
 
 		poly_variant m_pointer;
 	};
@@ -458,6 +479,13 @@ namespace mse {
 		const _Ty* operator->() const {
 			return reinterpret_cast<const _Ty*>(m_pointer.const_arrow_operator());
 		}
+
+	private:
+		TPolyConstPointer<_Ty>& operator=(const TPolyConstPointer<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TPolyConstPointer<_Ty>* operator&() { return this; }
+		const TPolyConstPointer<_Ty>* operator&() const { return this; }
 
 		poly_variant m_pointer;
 	};
