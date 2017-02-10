@@ -171,6 +171,11 @@ namespace mse
 			}
 		}
 
+		const void* storage_address() const noexcept
+		{
+			return empty() ? nullptr : this->vtable->storage_address(storage);
+		}
+
 	private: // Storage and Virtual Method Table
 
 		union storage_union
@@ -204,6 +209,9 @@ namespace mse
 
 			/// Exchanges the storage between lhs and rhs.
 			void(*swap)(storage_union& lhs, storage_union& rhs) noexcept;
+
+			/// Exchanges the storage between lhs and rhs.
+			const void* (*storage_address)(const storage_union&) noexcept;
 		};
 
 		/// VTable for dynamically allocated storage.
@@ -236,6 +244,11 @@ namespace mse
 			{
 				// just exchage the storage pointers.
 				std::swap(lhs.dynamic, rhs.dynamic);
+			}
+
+			static const void* storage_address(const storage_union& storage) noexcept
+			{
+				return reinterpret_cast<void*>(storage.dynamic);
 			}
 		};
 
@@ -270,6 +283,11 @@ namespace mse
 			{
 				std::swap(reinterpret_cast<T&>(lhs.stack), reinterpret_cast<T&>(rhs.stack));
 			}
+
+			static const void* storage_address(const storage_union& storage) noexcept
+			{
+				return reinterpret_cast<void*>(&storage.stack);
+			}
 		};
 
 		/// Whether the type T must be dynamically allocated or can be stored on the stack.
@@ -289,7 +307,7 @@ namespace mse
 			static vtable_type table = {
 				VTableType::type, VTableType::destroy,
 				VTableType::copy, VTableType::move,
-				VTableType::swap,
+				VTableType::swap, VTableType::storage_address,
 			};
 			return &table;
 		}

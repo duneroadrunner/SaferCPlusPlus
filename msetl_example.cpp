@@ -1547,13 +1547,11 @@ int main(int argc, char* argv[])
 		auto a_writelock_ptr = a_access_requester.writelock_ptr();
 		auto a_stdshared_const_ptr = mse::make_stdsharedimmutable<A>();
 
-#ifdef MSE_ANYPOINTER_ENABLED
 		/* And note that safe pointers to member elements need to be wrapped in an mse::TAnyPointer<> for
 		mse::TPolyPointer<> to accept them. */
 		auto b_member_a_refc_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_refcptr->b, a_refcptr));
 		auto b_member_a_reg_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_regobj.b, &a_regobj));
 		auto b_member_a_mstdvec_iter_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_mstdvec_iter->b, a_mstdvec_iter));
-#endif // MSE_ANYPOINTER_ENABLED
 
 		{
 			/* All of these safe pointer types happily convert to an mse::TPolyPointer<>. */
@@ -1565,11 +1563,9 @@ int main(int argc, char* argv[])
 			auto res_using_msevec_ipointer = B::foo1(a_msevec_ipointer);
 			auto res_using_msevec_ssiter = B::foo1(a_msevec_ssiter);
 			auto res_using_writelock_ptr = B::foo1(a_writelock_ptr);
-#ifdef MSE_ANYPOINTER_ENABLED
 			auto res_using_member_refc_anyptr = B::foo3(b_member_a_refc_anyptr);
 			auto res_using_member_reg_anyptr = B::foo3(b_member_a_reg_anyptr);
 			auto res_using_member_mstdvec_iter_anyptr = B::foo3(b_member_a_mstdvec_iter_anyptr);
-#endif // MSE_ANYPOINTER_ENABLED
 
 			/* Or an mse::TPolyConstPointer<>. */
 			auto res_using_scpptr_via_const_poly = B::foo2(&a_scpobj);
@@ -1581,18 +1577,15 @@ int main(int argc, char* argv[])
 			auto res_using_msevec_ssiter_via_const_poly = B::foo2(a_msevec_ssiter);
 			auto res_using_writelock_ptr_via_const_poly = B::foo2(a_writelock_ptr);
 			auto res_using_stdshared_const_ptr_via_const_poly = B::foo2(a_stdshared_const_ptr);
-#ifdef MSE_ANYPOINTER_ENABLED
 			auto res_using_member_refc_anyptr_via_const_poly = B::foo4(b_member_a_refc_anyptr);
 			auto res_using_member_reg_anyptr_via_const_poly = B::foo4(b_member_a_reg_anyptr);
 			auto res_using_member_mstdvec_iter_anyptr_via_const_poly = B::foo4(b_member_a_mstdvec_iter_anyptr);
-#endif // MSE_ANYPOINTER_ENABLED
 		}
 
 		mse::s_poly_test1();
 		int q = 3;
 	}
 
-#ifdef MSE_ANYPOINTER_ENABLED
 	{
 		/******************************/
 		/*  TAnyRandomAccessIterator  */
@@ -1617,16 +1610,16 @@ int main(int argc, char* argv[])
 		};
 
 		auto array_iter1 = array1.begin();
-		array_iter1 += 2;
+		array_iter1++;
 		auto res1 = B::foo2(array_iter1);
 		B::foo1(array_iter1);
 
-		auto array_const_iter2 = array1.cbegin();
+		auto array_const_iter2 = array2.cbegin();
 		array_const_iter2 += 2;
 		auto res2 = B::foo2(array_const_iter2);
 
 		auto res3 = B::foo2(vec1.cbegin());
-		B::foo1(vec1.begin());
+		B::foo1(++vec1.begin());
 		auto res4 = B::foo2(vec1.begin());
 
 		mse::TRandomAccessSection<int> ra_section1(array_iter1, 2);
@@ -1635,7 +1628,6 @@ int main(int argc, char* argv[])
 		mse::TRandomAccessSection<int> ra_section2(vec1.begin(), 3);
 		B::foo3(ra_section2);
 	}
-#endif // MSE_ANYPOINTER_ENABLED
 
 	return 0;
 }
