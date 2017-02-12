@@ -1329,6 +1329,153 @@ int main(int argc, char* argv[])
 	}
 
 	{
+		/*******************/
+		/*  Poly pointers  */
+		/*******************/
+
+		/* Poly pointers are "chameleon" pointers that can be constructed from, and retain the safety
+		features of multiple different pointer types in this library. If you'd like your function to be
+		able to take different types of safe pointer parameters, you can "templatize" your function, or
+		alternatively, you can declare your pointer parameters as poly pointers. */
+
+		class A {
+		public:
+			A() {}
+			A(std::string x) : b(x) {}
+			virtual ~A() {}
+
+			std::string b = "some text ";
+		};
+		class D : public A {
+		public:
+			D(std::string x) : A(x) {}
+		};
+		class B {
+		public:
+			static std::string foo1(mse::TXScopePolyPointer<A> ptr) {
+				std::string retval = ptr->b;
+				return retval;
+			}
+			static std::string foo2(mse::TXScopePolyConstPointer<A> ptr) {
+				std::string retval = ptr->b;
+				return retval;
+			}
+			static std::string foo3(mse::TXScopePolyPointer<std::string> ptr) {
+				std::string retval = (*ptr) + (*ptr);
+				return retval;
+			}
+			static std::string foo4(mse::TXScopePolyConstPointer<std::string> ptr) {
+				std::string retval = (*ptr) + (*ptr);
+				return retval;
+			}
+		protected:
+			~B() {}
+		};
+
+		/* To demonstrate, first we'll declare some objects such that we can obtain safe pointers to those
+		objects. For better or worse, this library provides a bunch of different safe pointers types. */
+		mse::TXScopeObj<A> a_scpobj;
+		auto a_refcptr = mse::make_refcounting<A>();
+		mse::TRegisteredObj<A> a_regobj;
+		mse::TRelaxedRegisteredObj<A> a_rlxregobj;
+
+		/* Safe iterators are a type of safe pointer too. */
+		mse::mstd::vector<A> a_mstdvec;
+		a_mstdvec.resize(1);
+		auto a_mstdvec_iter = a_mstdvec.begin();
+		mse::msevector<A> a_msevec;
+		a_msevec.resize(1);
+		auto a_msevec_ipointer = a_msevec.ibegin();
+		auto a_msevec_ssiter = a_msevec.ss_begin();
+
+		/* And don't forget the safe async sharing pointers. */
+		auto a_access_requester = mse::make_asyncsharedreadwrite<A>();
+		auto a_writelock_ptr = a_access_requester.writelock_ptr();
+		auto a_stdshared_const_ptr = mse::make_stdsharedimmutable<A>();
+
+		/* And note that safe pointers to member elements need to be wrapped in an mse::TXScopeAnyPointer<> for
+		mse::TXScopePolyPointer<> to accept them. */
+		auto b_member_a_refc_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_refcptr->b, a_refcptr));
+		auto b_member_a_reg_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_regobj.b, &a_regobj));
+		auto b_member_a_mstdvec_iter_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_mstdvec_iter->b, a_mstdvec_iter));
+
+		{
+			/* All of these safe pointer types happily convert to an mse::TXScopePolyPointer<>. */
+			auto res_using_scpptr = B::foo1(&a_scpobj);
+			auto res_using_refcptr = B::foo1(a_refcptr);
+			auto res_using_regptr = B::foo1(&a_regobj);
+			auto res_using_rlxregptr = B::foo1(&a_rlxregobj);
+			auto res_using_mstdvec_iter = B::foo1(a_mstdvec_iter);
+			auto res_using_msevec_ipointer = B::foo1(a_msevec_ipointer);
+			auto res_using_msevec_ssiter = B::foo1(a_msevec_ssiter);
+			auto res_using_writelock_ptr = B::foo1(a_writelock_ptr);
+			auto res_using_member_refc_anyptr = B::foo3(b_member_a_refc_anyptr);
+			auto res_using_member_reg_anyptr = B::foo3(b_member_a_reg_anyptr);
+			auto res_using_member_mstdvec_iter_anyptr = B::foo3(b_member_a_mstdvec_iter_anyptr);
+
+			/* Or an mse::TXScopePolyConstPointer<>. */
+			auto res_using_scpptr_via_const_poly = B::foo2(&a_scpobj);
+			auto res_using_refcptr_via_const_poly = B::foo2(a_refcptr);
+			auto res_using_regptr_via_const_poly = B::foo2(&a_regobj);
+			auto res_using_rlxregptr_via_const_poly = B::foo2(&a_rlxregobj);
+			auto res_using_mstdvec_iter_via_const_poly = B::foo2(a_mstdvec_iter);
+			auto res_using_msevec_ipointer_via_const_poly = B::foo2(a_msevec_ipointer);
+			auto res_using_msevec_ssiter_via_const_poly = B::foo2(a_msevec_ssiter);
+			auto res_using_writelock_ptr_via_const_poly = B::foo2(a_writelock_ptr);
+			auto res_using_stdshared_const_ptr_via_const_poly = B::foo2(a_stdshared_const_ptr);
+			auto res_using_member_refc_anyptr_via_const_poly = B::foo4(b_member_a_refc_anyptr);
+			auto res_using_member_reg_anyptr_via_const_poly = B::foo4(b_member_a_reg_anyptr);
+			auto res_using_member_mstdvec_iter_anyptr_via_const_poly = B::foo4(b_member_a_mstdvec_iter_anyptr);
+		}
+
+		mse::s_poly_test1();
+		int q = 3;
+	}
+
+	{
+		/******************************/
+		/*  TAnyRandomAccessIterator  */
+		/******************************/
+
+		mse::mstd::array<int, 4> array1 { 1, 2, 3, 4 };
+		mse::mstd::array<int, 5> array2 { 5, 6, 7, 8, 9 };
+		mse::mstd::vector<int> vec1 { 10, 11, 12, 13, 14 };
+		class B {
+		public:
+			static void foo1(mse::TAnyRandomAccessIterator<int> ra_iter1) {
+				ra_iter1[1] = 15;
+			}
+			static int foo2(mse::TAnyConstRandomAccessIterator<int> const_ra_iter1) {
+				return const_ra_iter1[2];
+			}
+			static void foo3(mse::TRandomAccessSection<int> ra_section) {
+				for (mse::TRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
+					ra_section[i] = 0;
+				}
+			}
+		};
+
+		auto array_iter1 = array1.begin();
+		array_iter1++;
+		auto res1 = B::foo2(array_iter1);
+		B::foo1(array_iter1);
+
+		auto array_const_iter2 = array2.cbegin();
+		array_const_iter2 += 2;
+		auto res2 = B::foo2(array_const_iter2);
+
+		auto res3 = B::foo2(vec1.cbegin());
+		B::foo1(++vec1.begin());
+		auto res4 = B::foo2(vec1.begin());
+
+		mse::TRandomAccessSection<int> ra_section1(array_iter1, 2);
+		B::foo3(ra_section1);
+
+		mse::TRandomAccessSection<int> ra_section2(vec1.begin(), 3);
+		B::foo3(ra_section2);
+	}
+
+	{
 		/******************/
 		/*  TAsyncShared  */
 		/******************/
@@ -1397,7 +1544,7 @@ int main(int argc, char* argv[])
 			}
 			std::cout << std::endl;
 
-			/* Btw, mse::TAsyncSharedReadOnlyAccessRequester<>s can be copy constructed from 
+			/* Btw, mse::TAsyncSharedReadOnlyAccessRequester<>s can be copy constructed from
 			mse::TAsyncSharedReadWriteAccessRequester<>s */
 			mse::TAsyncSharedReadOnlyAccessRequester<A> ash_read_only_access_requester(ash_access_requester);
 		}
@@ -1480,153 +1627,6 @@ int main(int argc, char* argv[])
 				int res2 = (*it).get();
 			}
 		}
-	}
-
-	{
-		/*******************/
-		/*  Poly pointers  */
-		/*******************/
-
-		/* Poly pointers are "chameleon" pointers that can be constructed from, and retain the safety
-		features of multiple different pointer types in this library. If you'd like your function to be
-		able to take different types of safe pointer parameters, you can "templatize" your function, or
-		alternatively, you can declare your pointer parameters as poly pointers. */
-
-		class A {
-		public:
-			A() {}
-			A(std::string x) : b(x) {}
-			virtual ~A() {}
-
-			std::string b = "some text ";
-		};
-		class D : public A {
-		public:
-			D(std::string x) : A(x) {}
-		};
-		class B {
-		public:
-			static std::string foo1(mse::TPolyPointer<A> ptr) {
-				std::string retval = ptr->b;
-				return retval;
-			}
-			static std::string foo2(mse::TPolyConstPointer<A> ptr) {
-				std::string retval = ptr->b;
-				return retval;
-			}
-			static std::string foo3(mse::TPolyPointer<std::string> ptr) {
-				std::string retval = (*ptr) + (*ptr);
-				return retval;
-			}
-			static std::string foo4(mse::TPolyConstPointer<std::string> ptr) {
-				std::string retval = (*ptr) + (*ptr);
-				return retval;
-			}
-		protected:
-			~B() {}
-		};
-
-		/* To demonstrate, first we'll declare some objects such that we can obtain safe pointers to those
-		objects. For better or worse, this library provides a bunch of different safe pointers types. */
-		mse::TXScopeObj<A> a_scpobj;
-		auto a_refcptr = mse::make_refcounting<A>();
-		mse::TRegisteredObj<A> a_regobj;
-		mse::TRelaxedRegisteredObj<A> a_rlxregobj;
-
-		/* Safe iterators are a type of safe pointer too. */
-		mse::mstd::vector<A> a_mstdvec;
-		a_mstdvec.resize(1);
-		auto a_mstdvec_iter = a_mstdvec.begin();
-		mse::msevector<A> a_msevec;
-		a_msevec.resize(1);
-		auto a_msevec_ipointer = a_msevec.ibegin();
-		auto a_msevec_ssiter = a_msevec.ss_begin();
-
-		/* And don't forget the safe async sharing pointers. */
-		auto a_access_requester = mse::make_asyncsharedreadwrite<A>();
-		auto a_writelock_ptr = a_access_requester.writelock_ptr();
-		auto a_stdshared_const_ptr = mse::make_stdsharedimmutable<A>();
-
-		/* And note that safe pointers to member elements need to be wrapped in an mse::TAnyPointer<> for
-		mse::TPolyPointer<> to accept them. */
-		auto b_member_a_refc_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_refcptr->b, a_refcptr));
-		auto b_member_a_reg_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_regobj.b, &a_regobj));
-		auto b_member_a_mstdvec_iter_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_mstdvec_iter->b, a_mstdvec_iter));
-
-		{
-			/* All of these safe pointer types happily convert to an mse::TPolyPointer<>. */
-			auto res_using_scpptr = B::foo1(&a_scpobj);
-			auto res_using_refcptr = B::foo1(a_refcptr);
-			auto res_using_regptr = B::foo1(&a_regobj);
-			auto res_using_rlxregptr = B::foo1(&a_rlxregobj);
-			auto res_using_mstdvec_iter = B::foo1(a_mstdvec_iter);
-			auto res_using_msevec_ipointer = B::foo1(a_msevec_ipointer);
-			auto res_using_msevec_ssiter = B::foo1(a_msevec_ssiter);
-			auto res_using_writelock_ptr = B::foo1(a_writelock_ptr);
-			auto res_using_member_refc_anyptr = B::foo3(b_member_a_refc_anyptr);
-			auto res_using_member_reg_anyptr = B::foo3(b_member_a_reg_anyptr);
-			auto res_using_member_mstdvec_iter_anyptr = B::foo3(b_member_a_mstdvec_iter_anyptr);
-
-			/* Or an mse::TPolyConstPointer<>. */
-			auto res_using_scpptr_via_const_poly = B::foo2(&a_scpobj);
-			auto res_using_refcptr_via_const_poly = B::foo2(a_refcptr);
-			auto res_using_regptr_via_const_poly = B::foo2(&a_regobj);
-			auto res_using_rlxregptr_via_const_poly = B::foo2(&a_rlxregobj);
-			auto res_using_mstdvec_iter_via_const_poly = B::foo2(a_mstdvec_iter);
-			auto res_using_msevec_ipointer_via_const_poly = B::foo2(a_msevec_ipointer);
-			auto res_using_msevec_ssiter_via_const_poly = B::foo2(a_msevec_ssiter);
-			auto res_using_writelock_ptr_via_const_poly = B::foo2(a_writelock_ptr);
-			auto res_using_stdshared_const_ptr_via_const_poly = B::foo2(a_stdshared_const_ptr);
-			auto res_using_member_refc_anyptr_via_const_poly = B::foo4(b_member_a_refc_anyptr);
-			auto res_using_member_reg_anyptr_via_const_poly = B::foo4(b_member_a_reg_anyptr);
-			auto res_using_member_mstdvec_iter_anyptr_via_const_poly = B::foo4(b_member_a_mstdvec_iter_anyptr);
-		}
-
-		mse::s_poly_test1();
-		int q = 3;
-	}
-
-	{
-		/******************************/
-		/*  TAnyRandomAccessIterator  */
-		/******************************/
-
-		mse::mstd::array<int, 4> array1 { 1, 2, 3, 4 };
-		mse::mstd::array<int, 5> array2 { 5, 6, 7, 8, 9 };
-		mse::mstd::vector<int> vec1 { 10, 11, 12, 13, 14 };
-		class B {
-		public:
-			static void foo1(mse::TAnyRandomAccessIterator<int> ra_iter1) {
-				ra_iter1[1] = 15;
-			}
-			static int foo2(mse::TAnyConstRandomAccessIterator<int> const_ra_iter1) {
-				return const_ra_iter1[2];
-			}
-			static void foo3(mse::TRandomAccessSection<int> ra_section) {
-				for (mse::TRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
-					ra_section[i] = 0;
-				}
-			}
-		};
-
-		auto array_iter1 = array1.begin();
-		array_iter1++;
-		auto res1 = B::foo2(array_iter1);
-		B::foo1(array_iter1);
-
-		auto array_const_iter2 = array2.cbegin();
-		array_const_iter2 += 2;
-		auto res2 = B::foo2(array_const_iter2);
-
-		auto res3 = B::foo2(vec1.cbegin());
-		B::foo1(++vec1.begin());
-		auto res4 = B::foo2(vec1.begin());
-
-		mse::TRandomAccessSection<int> ra_section1(array_iter1, 2);
-		B::foo3(ra_section1);
-
-		mse::TRandomAccessSection<int> ra_section2(vec1.begin(), 3);
-		B::foo3(ra_section2);
 	}
 
 	return 0;

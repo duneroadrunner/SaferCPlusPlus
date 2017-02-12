@@ -220,6 +220,9 @@ namespace mse {
 	};
 
 	template <typename _Ty>
+	class TXScopeAnyConstPointer;
+
+	template <typename _Ty>
 	class TCommonPointerInterface {
 	public:
 		virtual ~TCommonPointerInterface() {}
@@ -244,15 +247,15 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TAnyPointer {
+	class TXScopeAnyPointer {
 	public:
-		TAnyPointer(const TAnyPointer& src) : m_any_pointer(src.m_any_pointer)
+		TXScopeAnyPointer(const TXScopeAnyPointer& src) : m_any_pointer(src.m_any_pointer)
 			, m_common_pointer_interface_ptr(reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_pointer.storage_address())) {
 			assert(nullptr != m_common_pointer_interface_ptr);
 		}
 
 		template <typename _TPointer1>
-		TAnyPointer(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer))
+		TXScopeAnyPointer(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer))
 			, m_common_pointer_interface_ptr(mse::any_cast<TCommonizedPointer<_Ty, _TPointer1>>(&m_any_pointer)) {
 			assert(nullptr != m_common_pointer_interface_ptr);
 		}
@@ -264,15 +267,39 @@ namespace mse {
 			return m_common_pointer_interface_ptr->operator->();
 		}
 
-	private:
-		TAnyPointer<_Ty>& operator=(const TAnyPointer<_Ty>& _Right_cref) = delete;
+	protected:
+		TXScopeAnyPointer<_Ty>& operator=(const TXScopeAnyPointer<_Ty>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
-		TAnyPointer<_Ty>* operator&() { return this; }
-		const TAnyPointer<_Ty>* operator&() const { return this; }
+		TXScopeAnyPointer<_Ty>* operator&() { return this; }
+		const TXScopeAnyPointer<_Ty>* operator&() const { return this; }
 
 		mse::any m_any_pointer;
 		const TCommonPointerInterface<_Ty>* m_common_pointer_interface_ptr = nullptr;
+	};
+
+	template <typename _Ty>
+	class TAnyPointer : public TXScopeAnyPointer<_Ty> {
+	public:
+		TAnyPointer(const TAnyPointer& src) : TXScopeAnyPointer<_Ty>(src) {}
+
+		template <typename _TPointer1
+#ifndef MSE_SCOPEPOINTER_DISABLED
+			, class = typename std::enable_if<
+			(!std::is_convertible<_TPointer1, TXScopeFixedPointer<_Ty>>::value) 
+			&& (!std::is_convertible<_TPointer1, TXScopeFixedConstPointer<_Ty>>::value)
+			&& (!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
+			&& (!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
+			, void>::type
+#endif // !MSE_SCOPEPOINTER_DISABLED
+		>
+			TAnyPointer(const _TPointer1& pointer) : TXScopeAnyPointer<_Ty>(pointer) {}
+
+	protected:
+		TAnyPointer<_Ty>& operator=(const TAnyPointer<_Ty>& _Right_cref) = delete;
+
+		TAnyPointer<_Ty>* operator&() { return this; }
+		const TAnyPointer<_Ty>* operator&() const { return this; }
 	};
 
 	template <typename _Ty>
@@ -300,35 +327,59 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TAnyConstPointer {
+	class TXScopeAnyConstPointer {
 	public:
-		TAnyConstPointer(const TAnyConstPointer& src) : m_any_const_pointer(src.m_any_const_pointer)
-			, m_common_const_pointer_interface_ptr(reinterpret_cast<const TCommonConstPointerInterface<const _Ty>*>(m_any_const_pointer.storage_address())) {
-			assert(nullptr != m_common_const_pointer_interface_ptr);
+		TXScopeAnyConstPointer(const TXScopeAnyConstPointer& src) : m_any_const_pointer(src.m_any_const_pointer)
+			, m_common_pointer_interface_ptr(reinterpret_cast<const TCommonConstPointerInterface<_Ty>*>(m_any_const_pointer.storage_address())) {
+			assert(nullptr != m_common_pointer_interface_ptr);
 		}
 
-		template <typename _TConstPointer1>
-		TAnyConstPointer(const _TConstPointer1& const_pointer) : m_any_const_pointer(TCommonizedConstPointer<const _Ty, _TConstPointer1>(const_pointer))
-			, m_common_const_pointer_interface_ptr(mse::any_cast<TCommonizedConstPointer<const _Ty, _TConstPointer1>>(&m_any_const_pointer)) {
-			assert(nullptr != m_common_const_pointer_interface_ptr);
+		template <typename _TPointer1>
+		TXScopeAnyConstPointer(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer))
+			, m_common_pointer_interface_ptr(mse::any_cast<TCommonizedConstPointer<_Ty, _TPointer1>>(&m_any_const_pointer)) {
+			assert(nullptr != m_common_pointer_interface_ptr);
 		}
 
 		const _Ty& operator*() const {
-			return (*(*m_common_const_pointer_interface_ptr));
+			return (*(*m_common_pointer_interface_ptr));
 		}
 		const _Ty* operator->() const {
-			return m_common_const_pointer_interface_ptr->operator->();
+			return m_common_pointer_interface_ptr->operator->();
 		}
 
-	private:
-		TAnyConstPointer<_Ty>& operator=(const TAnyConstPointer<_Ty>& _Right_cref) = delete;
+	protected:
+		TXScopeAnyConstPointer<_Ty>& operator=(const TXScopeAnyConstPointer<_Ty>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeAnyConstPointer<_Ty>* operator&() { return this; }
+		const TXScopeAnyConstPointer<_Ty>* operator&() const { return this; }
+
+		mse::any m_any_const_pointer;
+		const TCommonConstPointerInterface<_Ty>* m_common_pointer_interface_ptr = nullptr;
+	};
+
+	template <typename _Ty>
+	class TAnyConstPointer : public TXScopeAnyConstPointer<_Ty> {
+	public:
+		TAnyConstPointer(const TAnyConstPointer& src) : TXScopeAnyConstPointer<_Ty>(src) {}
+
+		template <typename _TPointer1
+#ifndef MSE_SCOPEPOINTER_DISABLED
+			, class = typename std::enable_if<
+			(!std::is_convertible<_TPointer1, TXScopeFixedPointer<_Ty>>::value)
+			&& (!std::is_convertible<_TPointer1, TXScopeFixedConstPointer<_Ty>>::value)
+			&& (!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
+			&& (!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
+			, void>::type
+#endif // !MSE_SCOPEPOINTER_DISABLED
+		>
+			TAnyConstPointer(const _TPointer1& pointer) : TXScopeAnyConstPointer<_Ty>(pointer) {}
+
+	protected:
+		TAnyConstPointer<_Ty>& operator=(const TAnyConstPointer<_Ty>& _Right_cref) = delete;
 
 		TAnyConstPointer<_Ty>* operator&() { return this; }
 		const TAnyConstPointer<_Ty>* operator&() const { return this; }
-
-		mse::any m_any_const_pointer;
-		const TCommonConstPointerInterface<const _Ty>* m_common_const_pointer_interface_ptr = nullptr;
 	};
 
 
@@ -336,7 +387,7 @@ namespace mse {
 	class TPolyPointerID {};
 
 	template<typename _Ty>
-	class TPolyPointer {
+	class TXScopePolyPointer {
 	public:
 		using poly_variant = tdp_pointer_variant<
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -358,48 +409,50 @@ namespace mse {
 			mse::TAsyncSharedReadWritePointer<_Ty>,
 			mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>,
 			std::shared_ptr<_Ty>,
+			mse::TXScopeAnyPointer<_Ty>,
 			mse::TAnyPointer<_Ty>,
 
 			mse::TPointer<_Ty, TPolyPointerID<const _Ty>>
 		>;
 
-		TPolyPointer(const TPolyPointer<_Ty>& p) : m_pointer(p.m_pointer) {}
+		TXScopePolyPointer(const TXScopePolyPointer<_Ty>& p) : m_pointer(p.m_pointer) {}
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-		TPolyPointer(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyPointer(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
-		TPolyPointer(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<
 			std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value || std::is_same<const _Ty2, _Ty>::value
 			, void>::type>
-		TPolyPointer(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
 
-		TPolyPointer(const mse::TRelaxedRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredPointer<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TRelaxedRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyPointer(const mse::TRelaxedRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredPointer<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TRelaxedRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
-		TPolyPointer(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyPointer(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
-		TPolyPointer(const typename mse::mstd::vector<_Ty>::iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::iterator>(p); }
+		TXScopePolyPointer(const typename mse::mstd::vector<_Ty>::iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::iterator>(p); }
 #endif // !defined(MSE_MSTDVECTOR_DISABLED)
-		TPolyPointer(const typename mse::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::iterator>(p); }
-		TPolyPointer(const typename mse::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::ipointer>(p); }
-		TPolyPointer(const typename mse::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::msevector<_Ty>::ss_iterator_type>(p); }
-		TPolyPointer(const mse::TAsyncSharedReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWritePointer<_Ty>>(p); }
-		TPolyPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>(p); }
-		TPolyPointer(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
+		TXScopePolyPointer(const typename mse::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::iterator>(p); }
+		TXScopePolyPointer(const typename mse::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::ipointer>(p); }
+		TXScopePolyPointer(const typename mse::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::msevector<_Ty>::ss_iterator_type>(p); }
+		TXScopePolyPointer(const mse::TAsyncSharedReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWritePointer<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>(p); }
+		TXScopePolyPointer(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyPointer(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
-		TPolyPointer(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TAnyPointer<_Ty>>(p); }
+		TXScopePolyPointer(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TXScopeAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyPointer<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TAnyPointer<_Ty>>(p); }
 
-		TPolyPointer(_Ty* p) { m_pointer.template set<mse::TPointer<_Ty, TPolyPointerID<const _Ty>>>(p); }
+		TXScopePolyPointer(_Ty* p) { m_pointer.template set<mse::TPointer<_Ty, TPolyPointerID<const _Ty>>>(p); }
 
 		_Ty& operator*() const {
 			return *(reinterpret_cast<_Ty*>(m_pointer.arrow_operator()));
@@ -409,17 +462,63 @@ namespace mse {
 		}
 
 	private:
-		TPolyPointer<_Ty>& operator=(const TPolyPointer<_Ty>& _Right_cref) = delete;
+		TXScopePolyPointer<_Ty>& operator=(const TXScopePolyPointer<_Ty>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
-		TPolyPointer<_Ty>* operator&() { return this; }
-		const TPolyPointer<_Ty>* operator&() const { return this; }
+		TXScopePolyPointer<_Ty>* operator&() { return this; }
+		const TXScopePolyPointer<_Ty>* operator&() const { return this; }
 
 		poly_variant m_pointer;
 	};
 
 	template<typename _Ty>
-	class TPolyConstPointer {
+	class TPolyPointer : public TXScopePolyPointer<_Ty> {
+	public:
+
+		TPolyPointer(const TPolyPointer<_Ty>& p) : TXScopePolyPointer<_Ty>(p) {}
+
+#if !defined(MSE_REGISTEREDPOINTER_DISABLED)
+		TPolyPointer(const mse::TRegisteredPointer<_Ty>& p) : TXScopePolyPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<
+			std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value || std::is_same<const _Ty2, _Ty>::value
+			, void>::type>
+			TPolyPointer(const mse::TRegisteredPointer<_Ty2>& p) : TXScopePolyPointer<_Ty>(p) {}
+
+		TPolyPointer(const mse::TRelaxedRegisteredPointer<_Ty>& p) : TXScopePolyPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyPointer(const mse::TRelaxedRegisteredPointer<_Ty2>& p) : TXScopePolyPointer<_Ty>(p) {}
+#endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
+#if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
+		TPolyPointer(const mse::TRefCountingPointer<_Ty>& p) : TXScopePolyPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyPointer(const mse::TRefCountingPointer<_Ty2>& p) : TXScopePolyPointer<_Ty>(p) {}
+#endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
+#if !defined(MSE_MSTDVECTOR_DISABLED)
+		TPolyPointer(const typename mse::mstd::vector<_Ty>::iterator& p) : TXScopePolyPointer<_Ty>(p) {}
+#endif // !defined(MSE_MSTDVECTOR_DISABLED)
+		TPolyPointer(const typename mse::msevector<_Ty>::iterator& p) : TXScopePolyPointer<_Ty>(p) {}
+		TPolyPointer(const typename mse::msevector<_Ty>::ipointer& p) : TXScopePolyPointer<_Ty>(p) {}
+		TPolyPointer(const typename mse::msevector<_Ty>::ss_iterator_type& p) : TXScopePolyPointer<_Ty>(p) {}
+		TPolyPointer(const mse::TAsyncSharedReadWritePointer<_Ty>& p) : TXScopePolyPointer<_Ty>(p) {}
+		TPolyPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) : TXScopePolyPointer<_Ty>(p) {}
+		TPolyPointer(const std::shared_ptr<_Ty>& p) : TXScopePolyPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyPointer(const std::shared_ptr<_Ty2>& p) : TXScopePolyPointer<_Ty>(p) {}
+		//TPolyPointer(const mse::TXScopeAnyPointer<_Ty>& p) : TXScopePolyPointer<_Ty>(p) {}
+		TPolyPointer(const mse::TAnyPointer<_Ty>& p) : TXScopePolyPointer<_Ty>(p) {}
+
+		TPolyPointer(_Ty* p) : TXScopePolyPointer<_Ty>(p) {}
+
+	private:
+		TPolyPointer<_Ty>& operator=(const TPolyPointer<_Ty>& _Right_cref) = delete;
+		//void* operator new(size_t size) { return ::operator new(size); }
+
+		TPolyPointer<_Ty>* operator&() { return this; }
+		const TPolyPointer<_Ty>* operator&() const { return this; }
+	};
+
+	template<typename _Ty>
+	class TXScopePolyConstPointer {
 	public:
 		using poly_variant = tdp_pointer_variant<
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -441,75 +540,78 @@ namespace mse {
 			mse::TAsyncSharedReadWriteConstPointer<_Ty>,
 			mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>,
 			std::shared_ptr<const _Ty>,
+			mse::TXScopeAnyConstPointer<_Ty>,
 			mse::TAnyConstPointer<_Ty>,
 
 			mse::TPointer<const _Ty, TPolyPointerID<const _Ty>>,
 			mse::TPolyPointer<_Ty>
 		>;
 
-		TPolyConstPointer(const TPolyConstPointer<_Ty>& p) : m_pointer(p.m_pointer) {}
-		TPolyConstPointer(const mse::TPolyPointer<_Ty>& p) { m_pointer.template set<mse::TPolyPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const TXScopePolyConstPointer<_Ty>& p) : m_pointer(p.m_pointer) {}
+		TXScopePolyConstPointer(const mse::TXScopePolyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopePolyPointer<_Ty>>(p); }
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-		TPolyConstPointer(const mse::TXScopeFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TXScopeFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyConstPointer(const mse::TXScopeFixedConstPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TXScopeFixedConstPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 
-		TPolyConstPointer(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyConstPointer(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
-		TPolyConstPointer(const mse::TRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value, void>::type>
-		TPolyConstPointer(const mse::TRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
 
-		TPolyConstPointer(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value, void>::type>
-		TPolyConstPointer(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
 
-		TPolyConstPointer(const mse::TRelaxedRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRelaxedRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyConstPointer(const mse::TRelaxedRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRelaxedRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
 
-		TPolyConstPointer(const mse::TRelaxedRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRelaxedRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyConstPointer(const mse::TRelaxedRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRelaxedRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
-		TPolyConstPointer(const mse::TRefCountingConstPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRefCountingConstPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyConstPointer(const mse::TRefCountingConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRefCountingConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
 
-		TPolyConstPointer(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyConstPointer(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
-		TPolyConstPointer(const typename mse::mstd::vector<_Ty>::const_iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::const_iterator>(p); }
-		TPolyConstPointer(const typename mse::mstd::vector<_Ty>::iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::const_iterator>(p); }
+		TXScopePolyConstPointer(const typename mse::mstd::vector<_Ty>::const_iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::const_iterator>(p); }
+		TXScopePolyConstPointer(const typename mse::mstd::vector<_Ty>::iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::const_iterator>(p); }
 #endif // !defined(MSE_MSTDVECTOR_DISABLED)
-		TPolyConstPointer(const typename mse::msevector<_Ty>::const_iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::const_iterator>(p); }
-		TPolyConstPointer(const typename mse::msevector<_Ty>::cipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::cipointer>(p); }
-		TPolyConstPointer(const typename mse::msevector<_Ty>::ss_const_iterator_type& p) { m_pointer.template set<typename mse::msevector<_Ty>::ss_const_iterator_type>(p); }
-		TPolyConstPointer(const mse::TAsyncSharedReadWriteConstPointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWriteConstPointer<_Ty>>(p); }
-		TPolyConstPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>(p); }
-		TPolyConstPointer(const std::shared_ptr<const _Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
+		TXScopePolyConstPointer(const typename mse::msevector<_Ty>::const_iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::const_iterator>(p); }
+		TXScopePolyConstPointer(const typename mse::msevector<_Ty>::cipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::cipointer>(p); }
+		TXScopePolyConstPointer(const typename mse::msevector<_Ty>::ss_const_iterator_type& p) { m_pointer.template set<typename mse::msevector<_Ty>::ss_const_iterator_type>(p); }
+		TXScopePolyConstPointer(const mse::TAsyncSharedReadWriteConstPointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWriteConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const std::shared_ptr<const _Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyConstPointer(const std::shared_ptr<const _Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
-		TPolyConstPointer(const mse::TAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TAnyConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const std::shared_ptr<const _Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TXScopeAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TAnyConstPointer<_Ty>>(p); }
 
-		TPolyConstPointer(const typename mse::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::const_iterator>(p); }
-		TPolyConstPointer(const typename mse::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::cipointer>(p); }
-		TPolyConstPointer(const typename mse::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::msevector<_Ty>::ss_const_iterator_type>(p); }
-		TPolyConstPointer(const mse::TAsyncSharedReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWriteConstPointer<_Ty>>(p); }
-		TPolyConstPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>(p); }
-		TPolyConstPointer(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
+		TXScopePolyConstPointer(const typename mse::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::const_iterator>(p); }
+		TXScopePolyConstPointer(const typename mse::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::cipointer>(p); }
+		TXScopePolyConstPointer(const typename mse::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::msevector<_Ty>::ss_const_iterator_type>(p); }
+		TXScopePolyConstPointer(const mse::TAsyncSharedReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWriteConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyConstPointer(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
-		TPolyConstPointer(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TAnyConstPointer<_Ty>>(mse::TAnyConstPointer<_Ty>(p)); }
+		TXScopePolyConstPointer(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TXScopeAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(mse::TXScopeAnyConstPointer<_Ty>(p)); }
+		TXScopePolyConstPointer(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TAnyConstPointer<_Ty>>(mse::TAnyConstPointer<_Ty>(p)); }
 
-		TPolyConstPointer(const _Ty* p) { m_pointer.template set<mse::TPointer<const _Ty, TPolyPointerID<const _Ty>>>(p); }
+		TXScopePolyConstPointer(const _Ty* p) { m_pointer.template set<mse::TPointer<const _Ty, TPolyPointerID<const _Ty>>>(p); }
 
 		const _Ty& operator*() const {
 			return *(reinterpret_cast<const _Ty*>(m_pointer.const_arrow_operator()));
@@ -519,13 +621,82 @@ namespace mse {
 		}
 
 	private:
-		TPolyConstPointer<_Ty>& operator=(const TPolyConstPointer<_Ty>& _Right_cref) = delete;
+		TXScopePolyConstPointer<_Ty>& operator=(const TXScopePolyConstPointer<_Ty>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopePolyConstPointer<_Ty>* operator&() { return this; }
+		const TXScopePolyConstPointer<_Ty>* operator&() const { return this; }
+
+		poly_variant m_pointer;
+	};
+
+	template<typename _Ty>
+	class TPolyConstPointer : public TXScopePolyConstPointer<_Ty> {
+	public:
+
+		TPolyConstPointer(const TPolyConstPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const mse::TPolyPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+
+#if !defined(MSE_REGISTEREDPOINTER_DISABLED)
+		TPolyConstPointer(const mse::TRegisteredConstPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value, void>::type>
+		TPolyConstPointer(const mse::TRegisteredConstPointer<_Ty2>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+
+		TPolyConstPointer(const mse::TRegisteredPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value, void>::type>
+		TPolyConstPointer(const mse::TRegisteredPointer<_Ty2>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+
+		TPolyConstPointer(const mse::TRelaxedRegisteredConstPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const mse::TRelaxedRegisteredConstPointer<_Ty2>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+
+		TPolyConstPointer(const mse::TRelaxedRegisteredPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const mse::TRelaxedRegisteredPointer<_Ty2>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+#endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
+#if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
+		TPolyConstPointer(const mse::TRefCountingConstPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const mse::TRefCountingConstPointer<_Ty2>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+
+		TPolyConstPointer(const mse::TRefCountingPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const mse::TRefCountingPointer<_Ty2>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+#endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
+#if !defined(MSE_MSTDVECTOR_DISABLED)
+		TPolyConstPointer(const typename mse::mstd::vector<_Ty>::const_iterator& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const typename mse::mstd::vector<_Ty>::iterator& p) : TXScopePolyConstPointer<_Ty>(p) {}
+#endif // !defined(MSE_MSTDVECTOR_DISABLED)
+		TPolyConstPointer(const typename mse::msevector<_Ty>::const_iterator& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const typename mse::msevector<_Ty>::cipointer& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const typename mse::msevector<_Ty>::ss_const_iterator_type& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const mse::TAsyncSharedReadWriteConstPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const std::shared_ptr<const _Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const std::shared_ptr<const _Ty2>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const mse::TXScopeAnyConstPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const mse::TAnyConstPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+
+		TPolyConstPointer(const typename mse::msevector<_Ty>::iterator& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const typename mse::msevector<_Ty>::ipointer& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const typename mse::msevector<_Ty>::ss_iterator_type& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const mse::TAsyncSharedReadWritePointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const std::shared_ptr<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointer(const std::shared_ptr<_Ty2>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const mse::TXScopeAnyPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+		TPolyConstPointer(const mse::TAnyPointer<_Ty>& p) : TXScopePolyConstPointer<_Ty>(p) {}
+
+		TPolyConstPointer(const _Ty* p) : TXScopePolyConstPointer<_Ty>(p) {}
+
+	private:
+		TPolyConstPointer<_Ty>& operator=(const TPolyConstPointer<_Ty>& _Right_cref) = delete;
+		//void* operator new(size_t size) { return ::operator new(size); }
 
 		TPolyConstPointer<_Ty>* operator&() { return this; }
 		const TPolyConstPointer<_Ty>* operator&() const { return this; }
-
-		poly_variant m_pointer;
 	};
 
 
@@ -587,6 +758,7 @@ namespace mse {
 
 	private:
 		TAnyRandomAccessIterator<_Ty>& operator=(const TAnyRandomAccessIterator<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
 
 		TAnyRandomAccessIterator<_Ty>* operator&() { return this; }
 		const TAnyRandomAccessIterator<_Ty>* operator&() const { return this; }
@@ -653,6 +825,7 @@ namespace mse {
 
 	private:
 		TAnyConstRandomAccessIterator<_Ty>& operator=(const TAnyConstRandomAccessIterator<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
 
 		TAnyConstRandomAccessIterator<_Ty>* operator&() { return this; }
 		const TAnyConstRandomAccessIterator<_Ty>* operator&() const { return this; }
@@ -723,25 +896,26 @@ namespace mse {
 	template<typename _Ty> class TRefCountingOrXScopeFixedConstPointer;
 
 	template<typename _Ty>
-	class TRefCountingOrXScopeFixedPointer : public TPolyPointer<_Ty> {
+	class TRefCountingOrXScopeFixedPointer : public TXScopePolyPointer<_Ty> {
 	public:
-		TRefCountingOrXScopeFixedPointer(const TRefCountingOrXScopeFixedPointer& src_cref) : TPolyPointer<_Ty>(src_cref) {}
-		TRefCountingOrXScopeFixedPointer(const TRefCountingPointer<_Ty>& src_cref) : TPolyPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedPointer(const TRefCountingOrXScopeFixedPointer& src_cref) : TXScopePolyPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedPointer(const TRefCountingPointer<_Ty>& src_cref) : TXScopePolyPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TRefCountingOrXScopeFixedPointer(const TRefCountingPointer<_Ty2>& src_cref) : TPolyPointer<_Ty>(TRefCountingPointer<_Ty>(src_cref)) {}
-		TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TPolyPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedPointer(const TRefCountingPointer<_Ty2>& src_cref) : TXScopePolyPointer<_Ty>(TRefCountingPointer<_Ty>(src_cref)) {}
+		TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TXScopePolyPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TPolyPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
+		TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopePolyPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
 		virtual ~TRefCountingOrXScopeFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return std::addressof((*this).operator*()); }
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 	protected:
-		TRefCountingOrXScopeFixedPointer(_Ty* ptr) : TPolyPointer<_Ty>(ptr) {}
+		TRefCountingOrXScopeFixedPointer(_Ty* ptr) : TXScopePolyPointer<_Ty>(ptr) {}
 #endif // !MSE_SCOPEPOINTER_DISABLED
 	private:
 		TRefCountingOrXScopeFixedPointer<_Ty>& operator=(const TRefCountingOrXScopeFixedPointer<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
 
 		//TRefCountingOrXScopeFixedPointer<_Ty>* operator&() { return this; }
 		//const TRefCountingOrXScopeFixedPointer<_Ty>* operator&() const { return this; }
@@ -750,32 +924,33 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TRefCountingOrXScopeFixedConstPointer : public TPolyConstPointer<_Ty> {
+	class TRefCountingOrXScopeFixedConstPointer : public TXScopePolyConstPointer<_Ty> {
 	public:
-		TRefCountingOrXScopeFixedConstPointer(const TRefCountingOrXScopeFixedConstPointer& src_cref) : TPolyConstPointer<_Ty>(src_cref) {}
-		TRefCountingOrXScopeFixedConstPointer(const TRefCountingOrXScopeFixedPointer<_Ty>& src_cref) : TPolyConstPointer<_Ty>(src_cref) {}
-		TRefCountingOrXScopeFixedConstPointer(const TRefCountingConstPointer<_Ty>& src_cref) : TPolyConstPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedConstPointer(const TRefCountingOrXScopeFixedConstPointer& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedConstPointer(const TRefCountingOrXScopeFixedPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedConstPointer(const TRefCountingConstPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TRefCountingOrXScopeFixedConstPointer(const TRefCountingConstPointer<_Ty2>& src_cref) : TPolyConstPointer<_Ty>(TRefCountingConstPointer<_Ty>(src_cref)) {}
-		TRefCountingOrXScopeFixedConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TPolyConstPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedConstPointer(const TRefCountingConstPointer<_Ty2>& src_cref) : TXScopePolyConstPointer<_Ty>(TRefCountingConstPointer<_Ty>(src_cref)) {}
+		TRefCountingOrXScopeFixedConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TRefCountingOrXScopeFixedConstPointer(const TRefCountingPointer<_Ty2>& src_cref) : TPolyConstPointer<_Ty>(TRefCountingPointer<_Ty>(src_cref)) {}
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) : TPolyConstPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedConstPointer(const TRefCountingPointer<_Ty2>& src_cref) : TXScopePolyConstPointer<_Ty>(TRefCountingPointer<_Ty>(src_cref)) {}
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : TPolyConstPointer<_Ty>(TXScopeFixedConstPointer<_Ty>(src_cref)) {}
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TPolyConstPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : TXScopePolyConstPointer<_Ty>(TXScopeFixedConstPointer<_Ty>(src_cref)) {}
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TPolyConstPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopePolyConstPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
 		virtual ~TRefCountingOrXScopeFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return std::addressof((*this).operator*()); }
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 	protected:
-		TRefCountingOrXScopeFixedConstPointer(_Ty* ptr) : TPolyConstPointer<_Ty>(ptr) {}
+		TRefCountingOrXScopeFixedConstPointer(_Ty* ptr) : TXScopePolyConstPointer<_Ty>(ptr) {}
 #endif // !MSE_SCOPEPOINTER_DISABLED
 	private:
 		TRefCountingOrXScopeFixedConstPointer<_Ty>& operator=(const TRefCountingOrXScopeFixedConstPointer<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
 
 		//TRefCountingOrXScopeFixedConstPointer<_Ty>* operator&() { return this; }
 		//const TRefCountingOrXScopeFixedConstPointer<_Ty>* operator&() const { return this; }
@@ -862,11 +1037,11 @@ namespace mse {
 			};
 			class B {
 			public:
-				static int foo1(mse::TPolyPointer<A> ptr) {
+				static int foo1(mse::TXScopePolyPointer<A> ptr) {
 					int retval = ptr->b;
 					return retval;
 				}
-				static int foo2(mse::TPolyConstPointer<A> ptr) {
+				static int foo2(mse::TXScopePolyConstPointer<A> ptr) {
 					int retval = ptr->b;
 					return retval;
 				}
@@ -922,7 +1097,7 @@ namespace mse {
 			auto a_stdshared_const_ptr = mse::make_stdsharedimmutable<A>();
 
 			{
-				/* All of these safe pointer types happily convert to an mse::TPolyPointer<>. */
+				/* All of these safe pointer types happily convert to an mse::TXScopePolyPointer<>. */
 				auto res_using_scpptr = B::foo1(&a_scpobj);
 				auto res_using_refcptr = B::foo1(a_refcptr);
 				auto res_using_regptr = B::foo1(&a_regobj);
@@ -932,7 +1107,7 @@ namespace mse {
 				auto res_using_msevec_ssiter = B::foo1(a_msevec_ssiter);
 				auto res_using_writelock_ptr = B::foo1(a_writelock_ptr);
 
-				/* Or an mse::TPolyConstPointer<>. */
+				/* Or an mse::TXScopePolyConstPointer<>. */
 				auto res_using_scpptr_via_const_poly = B::foo2(&a_scpobj);
 				auto res_using_refcptr_via_const_poly = B::foo2(a_refcptr);
 				auto res_using_regptr_via_const_poly = B::foo2(&a_regobj);
@@ -943,10 +1118,10 @@ namespace mse {
 				auto res_using_writelock_ptr_via_const_poly = B::foo2(a_writelock_ptr);
 				auto res_using_stdshared_const_ptr_via_const_poly = B::foo2(a_stdshared_const_ptr);
 
-				mse::TPolyPointer<A> a_polyptr(a_refcptr);
-				mse::TPolyPointer<A> a_polyptr2(a_polyptr);
-				mse::TPolyConstPointer<A> a_polycptr(a_polyptr);
-				mse::TPolyConstPointer<A> a_polycptr2(a_polycptr);
+				mse::TXScopePolyPointer<A> a_polyptr(a_refcptr);
+				mse::TXScopePolyPointer<A> a_polyptr2(a_polyptr);
+				mse::TXScopePolyConstPointer<A> a_polycptr(a_polyptr);
+				mse::TXScopePolyConstPointer<A> a_polycptr2(a_polycptr);
 			}
 
 			{
