@@ -56,8 +56,9 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
 9. [make_pointer_to_member()](#make_pointer_to_member)
 10. [Poly pointers](#poly-pointers)
-    1. [TPolyPointer](#tpolypointer-tpolyconstpointer)
-    2. [TAnyPointer](#tanypointer-tanyconstpointer)
+    1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
+    2. [TPolyPointer](#tpolypointer-tpolyconstpointer)
+    3. [TAnyPointer](#txscopeanypointer-txscopeanyconstpointer-tanypointer-tanyconstpointer)
 11. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
 12. [Asynchronously shared objects](#asynchronously-shared-objects)
     1. [TAsyncSharedReadWriteAccessRequester](#tasyncsharedreadwriteaccessrequester)
@@ -763,9 +764,9 @@ usage example:
 
 ### Poly pointers
 Poly pointers are "chameleon" pointers that can be constructed from, and retain the safety features of many of the pointer types in this library. If you're writing a function and you'd like it to be able to accept different types of safe pointer parameters, you can "templatize" your function. Alternatively, you can declare your pointer parameters as poly pointers.  
-Note that poly pointers are primarily intended to be used in function parameter declarations. In particular, when constructed from a TXScopeFixedPointer (or TXScopeFixedConstPointer), poly pointers must observe the same restrictions on intended use.
 
-### TPolyPointer, TPolyConstPointer
+### TXScopePolyPointer, TXScopePolyConstPointer
+Scope poly pointers are primarily intended to be used in function parameter declarations. In particular, as they can be constructed from a scope pointer (TXScopeFixedPointer or TXScopeFixedConstPointer), they must observe the same restrictions on intended use.
 
 usage example:
 
@@ -786,19 +787,19 @@ usage example:
         };
         class B {
         public:
-            static std::string foo1(mse::TPolyPointer<A> ptr) {
+            static std::string foo1(mse::TXScopePolyPointer<A> ptr) {
                 std::string retval = ptr->b;
                 return retval;
             }
-            static std::string foo2(mse::TPolyConstPointer<A> ptr) {
+            static std::string foo2(mse::TXScopePolyConstPointer<A> ptr) {
                 std::string retval = ptr->b;
                 return retval;
             }
-            static std::string foo3(mse::TPolyPointer<std::string> ptr) {
+            static std::string foo3(mse::TXScopePolyPointer<std::string> ptr) {
                 std::string retval = (*ptr) + (*ptr);
                 return retval;
             }
-            static std::string foo4(mse::TPolyConstPointer<std::string> ptr) {
+            static std::string foo4(mse::TXScopePolyConstPointer<std::string> ptr) {
                 std::string retval = (*ptr) + (*ptr);
                 return retval;
             }
@@ -827,14 +828,14 @@ usage example:
         auto a_writelock_ptr = a_access_requester.writelock_ptr();
         auto a_stdshared_const_ptr = mse::make_stdsharedimmutable<A>();
     
-        /* And note that safe pointers to member elements need to be wrapped in an mse::TAnyPointer<> for
-        mse::TPolyPointer<> to accept them. */
-        auto b_member_a_refc_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_refcptr->b, a_refcptr));
-        auto b_member_a_reg_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_regobj.b, &a_regobj));
-        auto b_member_a_mstdvec_iter_anyptr = mse::TAnyPointer<std::string>(mse::make_pointer_to_member(a_mstdvec_iter->b, a_mstdvec_iter));
+        /* And note that safe pointers to member elements need to be wrapped in an mse::TXScopeAnyPointer<> for
+        mse::TXScopePolyPointer<> to accept them. */
+        auto b_member_a_refc_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_refcptr->b, a_refcptr));
+        auto b_member_a_reg_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_regobj.b, &a_regobj));
+        auto b_member_a_mstdvec_iter_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_mstdvec_iter->b, a_mstdvec_iter));
     
         {
-            /* All of these safe pointer types happily convert to an mse::TPolyPointer<>. */
+            /* All of these safe pointer types happily convert to an mse::TXScopePolyPointer<>. */
             auto res_using_scpptr = B::foo1(&a_scpobj);
             auto res_using_refcptr = B::foo1(a_refcptr);
             auto res_using_regptr = B::foo1(&a_regobj);
@@ -847,7 +848,7 @@ usage example:
             auto res_using_member_reg_anyptr = B::foo3(b_member_a_reg_anyptr);
             auto res_using_member_mstdvec_iter_anyptr = B::foo3(b_member_a_mstdvec_iter_anyptr);
     
-            /* Or an mse::TPolyConstPointer<>. */
+            /* Or an mse::TXScopePolyConstPointer<>. */
             auto res_using_scpptr_via_const_poly = B::foo2(&a_scpobj);
             auto res_using_refcptr_via_const_poly = B::foo2(a_refcptr);
             auto res_using_regptr_via_const_poly = B::foo2(&a_regobj);
@@ -863,9 +864,11 @@ usage example:
         }
     }
 
-### TAnyPointer, TAnyConstPointer
+### TPolyPointer, TPolyConstPointer
+These poly pointers do not support construction from scope pointers, and thus are not bound by the same usage restrictions. For example, these poly pointers may be used a member of a class or struct.
 
-"Any" pointers are also “chameleon” pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by make_pointer_to_member() to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the poly pointer usage example.  
+### TXScopeAnyPointer, TXScopeAnyConstPointer, TAnyPointer, TAnyConstPointer
+"Any" pointers are also “chameleon” pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by make_pointer_to_member() to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the scope poly pointer usage example.  
 
 While in theory you could use "any" pointers directly as function arguments, it is generally recommended that you use poly pointers instead, for largely the same reasons [std::variant is generally preferred over std::any](http://www.boost.org/doc/libs/1_63_0/doc/html/variant/misc.html#variant.versus-any). 
 
