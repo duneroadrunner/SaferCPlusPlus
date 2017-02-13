@@ -1442,16 +1442,33 @@ int main(int argc, char* argv[])
 		mse::mstd::vector<int> vec1 { 10, 11, 12, 13, 14 };
 		class B {
 		public:
-			static void foo1(mse::TAnyRandomAccessIterator<int> ra_iter1) {
+			static void foo1(mse::TXScopeAnyRandomAccessIterator<int> ra_iter1) {
 				ra_iter1[1] = 15;
 			}
 			static int foo2(mse::TXScopeAnyConstRandomAccessIterator<int> const_ra_iter1) {
+				const_ra_iter1 += 2;
+				--const_ra_iter1;
+				const_ra_iter1--;
 				return const_ra_iter1[2];
 			}
 			static void foo3(mse::TXScopeRandomAccessSection<int> ra_section) {
 				for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
 					ra_section[i] = 0;
 				}
+			}
+			static int foo4(mse::TXScopeConstRandomAccessSection<int> const_ra_section) {
+				int retval = 0;
+				for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
+					retval += const_ra_section[i];
+				}
+				return retval;
+			}
+			static int foo5(mse::TXScopeConstRandomAccessSection<int> const_ra_section) {
+				int retval = 0;
+				for (const auto& const_item : const_ra_section) {
+					retval += const_item;
+				}
+				return retval;
 			}
 		};
 
@@ -1468,27 +1485,13 @@ int main(int argc, char* argv[])
 		B::foo1(++vec1.begin());
 		auto res4 = B::foo2(vec1.begin());
 
-		mse::TRandomAccessSection<int> ra_section1(array_iter1, 2);
+		mse::TXScopeRandomAccessSection<int> ra_section1(array_iter1, 2);
 		B::foo3(ra_section1);
 
-		mse::TRandomAccessSection<int> ra_section2(vec1.begin(), 3);
+		mse::TXScopeRandomAccessSection<int> ra_section2(++vec1.begin(), 3);
+		auto res5 = B::foo5(ra_section2);
 		B::foo3(ra_section2);
-
-		{
-			mse::TAnyRandomAccessIterator<int> ra_iter2(array1.begin());
-			ra_iter2++;
-			ra_iter2 += 1;
-			--ra_iter2;
-			auto res5 = (*ra_iter2);
-			auto res6 = ra_iter2[2];
-			ra_iter2 = array2.begin();
-			auto res7 = (*ra_iter2);
-			auto res8 = ra_iter2[2];
-			mse::TAnyRandomAccessIterator<int> ra_iter3(vec1.begin());
-			ra_iter2 = ra_iter3;
-			ra_iter2 += 2;
-			auto res9 = ra_iter2[2];
-		}
+		auto res6 = B::foo4(ra_section2);
 	}
 
 	{
