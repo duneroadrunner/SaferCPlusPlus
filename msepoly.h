@@ -262,6 +262,12 @@ namespace mse {
 		_Ty* operator->() const {
 			return common_pointer_interface_const_ptr()->operator->();
 		}
+		template <typename _Ty2>
+		bool operator ==(const _Ty2& _Right_cref) const {
+			return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
+		}
+		template <typename _Ty2>
+		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 	protected:
 		TXScopeAnyPointer<_Ty>& operator=(const TXScopeAnyPointer<_Ty>& _Right_cref) = delete;
@@ -339,6 +345,12 @@ namespace mse {
 		const _Ty* operator->() const {
 			return common_pointer_interface_const_ptr()->operator->();
 		}
+		template <typename _Ty2>
+		bool operator ==(const _Ty2& _Right_cref) const {
+			return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
+		}
+		template <typename _Ty2>
+		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 	protected:
 		TXScopeAnyConstPointer<_Ty>& operator=(const TXScopeAnyConstPointer<_Ty>& _Right_cref) = delete;
@@ -458,6 +470,12 @@ namespace mse {
 		_Ty* operator->() const {
 			return reinterpret_cast<_Ty*>(m_pointer.arrow_operator());
 		}
+		template <typename _Ty2>
+		bool operator ==(const _Ty2& _Right_cref) const {
+			return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
+		}
+		template <typename _Ty2>
+		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 	private:
 		TXScopePolyPointer<_Ty>& operator=(const TXScopePolyPointer<_Ty>& _Right_cref) = delete;
@@ -617,6 +635,12 @@ namespace mse {
 		const _Ty* operator->() const {
 			return reinterpret_cast<const _Ty*>(m_pointer.const_arrow_operator());
 		}
+		template <typename _Ty2>
+		bool operator ==(const _Ty2& _Right_cref) const {
+			return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
+		}
+		template <typename _Ty2>
+		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 	private:
 		TXScopePolyConstPointer<_Ty>& operator=(const TXScopePolyConstPointer<_Ty>& _Right_cref) = delete;
