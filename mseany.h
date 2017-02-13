@@ -171,9 +171,13 @@ namespace mse
 			}
 		}
 
-		const void* storage_address() const noexcept
+		void* storage_address() noexcept
 		{
 			return empty() ? nullptr : this->vtable->storage_address(storage);
+		}
+		const void* storage_address() const noexcept
+		{
+			return empty() ? nullptr : this->vtable->const_storage_address(storage);
 		}
 
 	private: // Storage and Virtual Method Table
@@ -210,8 +214,8 @@ namespace mse
 			/// Exchanges the storage between lhs and rhs.
 			void(*swap)(storage_union& lhs, storage_union& rhs) noexcept;
 
-			/// Exchanges the storage between lhs and rhs.
-			const void* (*storage_address)(const storage_union&) noexcept;
+			void* (*storage_address)(storage_union&) noexcept;
+			const void* (*const_storage_address)(const storage_union&) noexcept;
 		};
 
 		/// VTable for dynamically allocated storage.
@@ -246,9 +250,13 @@ namespace mse
 				std::swap(lhs.dynamic, rhs.dynamic);
 			}
 
-			static const void* storage_address(const storage_union& storage) noexcept
+			static void* storage_address(storage_union& storage) noexcept
 			{
 				return reinterpret_cast<void*>(storage.dynamic);
+			}
+			static const void* storage_address(const storage_union& storage) noexcept
+			{
+				return reinterpret_cast<const void*>(storage.dynamic);
 			}
 		};
 
@@ -284,9 +292,13 @@ namespace mse
 				std::swap(reinterpret_cast<T&>(lhs.stack), reinterpret_cast<T&>(rhs.stack));
 			}
 
-			static const void* storage_address(const storage_union& storage) noexcept
+			static void* storage_address(storage_union& storage) noexcept
 			{
 				return reinterpret_cast<void*>(&storage.stack);
+			}
+			static const void* const_storage_address(const storage_union& storage) noexcept
+			{
+				return reinterpret_cast<const void*>(&storage.stack);
 			}
 		};
 

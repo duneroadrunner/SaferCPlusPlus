@@ -1445,11 +1445,11 @@ int main(int argc, char* argv[])
 			static void foo1(mse::TAnyRandomAccessIterator<int> ra_iter1) {
 				ra_iter1[1] = 15;
 			}
-			static int foo2(mse::TAnyConstRandomAccessIterator<int> const_ra_iter1) {
+			static int foo2(mse::TXScopeAnyConstRandomAccessIterator<int> const_ra_iter1) {
 				return const_ra_iter1[2];
 			}
-			static void foo3(mse::TRandomAccessSection<int> ra_section) {
-				for (mse::TRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
+			static void foo3(mse::TXScopeRandomAccessSection<int> ra_section) {
+				for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
 					ra_section[i] = 0;
 				}
 			}
@@ -1473,6 +1473,22 @@ int main(int argc, char* argv[])
 
 		mse::TRandomAccessSection<int> ra_section2(vec1.begin(), 3);
 		B::foo3(ra_section2);
+
+		{
+			mse::TAnyRandomAccessIterator<int> ra_iter2(array1.begin());
+			ra_iter2++;
+			ra_iter2 += 1;
+			--ra_iter2;
+			auto res5 = (*ra_iter2);
+			auto res6 = ra_iter2[2];
+			ra_iter2 = array2.begin();
+			auto res7 = (*ra_iter2);
+			auto res8 = ra_iter2[2];
+			mse::TAnyRandomAccessIterator<int> ra_iter3(vec1.begin());
+			ra_iter2 = ra_iter3;
+			ra_iter2 += 2;
+			auto res9 = ra_iter2[2];
+		}
 	}
 
 	{
