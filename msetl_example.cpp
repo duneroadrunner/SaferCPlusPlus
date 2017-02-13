@@ -1445,7 +1445,7 @@ int main(int argc, char* argv[])
 			static void foo1(mse::TXScopeAnyRandomAccessIterator<int> ra_iter1) {
 				ra_iter1[1] = 15;
 			}
-			static int foo2(mse::TXScopeAnyConstRandomAccessIterator<int> const_ra_iter1) {
+			static int foo2(mse::TXScopeAnyRandomAccessConstIterator<int> const_ra_iter1) {
 				const_ra_iter1 += 2;
 				--const_ra_iter1;
 				const_ra_iter1--;
@@ -1456,14 +1456,14 @@ int main(int argc, char* argv[])
 					ra_section[i] = 0;
 				}
 			}
-			static int foo4(mse::TXScopeConstRandomAccessSection<int> const_ra_section) {
+			static int foo4(mse::TXScopeRandomAccessConstSection<int> const_ra_section) {
 				int retval = 0;
 				for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
 					retval += const_ra_section[i];
 				}
 				return retval;
 			}
-			static int foo5(mse::TXScopeConstRandomAccessSection<int> const_ra_section) {
+			static int foo5(mse::TXScopeRandomAccessConstSection<int> const_ra_section) {
 				int retval = 0;
 				for (const auto& const_item : const_ra_section) {
 					retval += const_item;
