@@ -254,7 +254,8 @@ namespace mse
 			{
 				return reinterpret_cast<void*>(storage.dynamic);
 			}
-			static const void* storage_address(const storage_union& storage) noexcept
+
+			static const void* const_storage_address(const storage_union& storage) noexcept
 			{
 				return reinterpret_cast<const void*>(storage.dynamic);
 			}
@@ -296,6 +297,7 @@ namespace mse
 			{
 				return reinterpret_cast<void*>(&storage.stack);
 			}
+
 			static const void* const_storage_address(const storage_union& storage) noexcept
 			{
 				return reinterpret_cast<const void*>(&storage.stack);
@@ -320,6 +322,7 @@ namespace mse
 				VTableType::type, VTableType::destroy,
 				VTableType::copy, VTableType::move,
 				VTableType::swap, VTableType::storage_address,
+				VTableType::const_storage_address,
 			};
 			return &table;
 		}
