@@ -794,6 +794,9 @@ namespace mse {
 	};
 
 	template <typename _Ty>
+	class TXScopeAnyRandomAccessConstIterator;
+
+	template <typename _Ty>
 	class TAnyRandomAccessIterator : public TXScopeAnyRandomAccessIterator<_Ty> {
 	public:
 		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : TXScopeAnyRandomAccessIterator<_Ty>(static_cast<TXScopeAnyRandomAccessIterator<_Ty>>(src)) {}
