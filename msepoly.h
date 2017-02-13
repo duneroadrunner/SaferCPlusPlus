@@ -976,9 +976,9 @@ namespace mse {
 		typedef typename mse::mstd::array<int, 0>::size_type size_type;
 
 	private:
-		difference_t m_index = 0;
-		const size_type m_count = 0;
 		const _TRAIterator m_ra_iterator;
+		const size_type m_count = 0;
+		difference_t m_index = 0;
 
 	public:
 		TRASectionIterator(_TRAIterator ra_iterator, size_type count, size_type index = 0)
