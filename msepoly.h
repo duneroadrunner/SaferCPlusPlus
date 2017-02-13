@@ -732,7 +732,7 @@ namespace mse {
 		typename TCommonRandomAccessIteratorInterface<_Ty>::reference_t operator[](typename TCommonRandomAccessIteratorInterface<_Ty>::difference_t _Off) const {
 			return m_random_access_iterator[_Off];
 		}
-		void operator +=(difference_t x) { m_random_access_iterator += x; };
+		void operator +=(typename TCommonRandomAccessIteratorInterface<_Ty>::difference_t x) { m_random_access_iterator += x; };
 
 		_TRandomAccessIterator1 m_random_access_iterator;
 	};
@@ -844,7 +844,7 @@ namespace mse {
 		typename TCommonConstRandomAccessIteratorInterface<_Ty>::const_reference_t operator[](typename TCommonConstRandomAccessIteratorInterface<_Ty>::difference_t _Off) const {
 			return m_const_random_access_iterator[_Off];
 		}
-		void operator +=(difference_t x) { m_const_random_access_iterator += x; };
+		void operator +=(typename TCommonConstRandomAccessIteratorInterface<_Ty>::difference_t x) { m_const_random_access_iterator += x; };
 
 		_TConstRandomAccessIterator1 m_const_random_access_iterator;
 	};
