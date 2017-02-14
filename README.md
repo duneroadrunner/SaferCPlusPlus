@@ -59,6 +59,8 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
     2. [TPolyPointer](#tpolypointer-tpolyconstpointer)
     3. [TAnyPointer](#txscopeanypointer-txscopeanyconstpointer-tanypointer-tanyconstpointer)
+    4. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
+    5. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
 11. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
 12. [Asynchronously shared objects](#asynchronously-shared-objects)
     1. [TAsyncSharedReadWriteAccessRequester](#tasyncsharedreadwriteaccessrequester)
