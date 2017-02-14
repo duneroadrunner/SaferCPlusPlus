@@ -874,6 +874,78 @@ These poly pointers do not support construction from scope pointers, and thus ar
 
 While in theory you could use "any" pointers directly as function arguments, it is generally recommended that you use poly pointers instead, for largely the same reasons [std::variant is generally preferred over std::any](http://www.boost.org/doc/libs/1_63_0/doc/html/variant/misc.html#variant.versus-any). 
 
+### TXScopeAnyRandomAccessIterator, TXScopeAnyRandomAccessConstIterator, TAnyRandomAccessIterator, TAnyRandomAccessConstIterator
+
+In modern C++ (and SaferCPlusPlus), arrays of different sizes are actually different types, with incompatible iterators. So, for example, if you wanted to make a function that accepts the iterators of arrays of varying size, you would generally do that by "templatizing" the function. Alternatively, you could could use an "any random access iterator" which is a "chameleon" iterator that can be constructed from basically any iterator that supports operator\[\] (the "square bracket" operator).
+
+Note that at the time of this writing (Feb 2017), the library does not yet provide any "scope" iterators, but may do so in the future.
+
+### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
+
+A "random access section" is basically a convenient interface to access a (contiguous) subsection of an existing array or vector. (Also monikered as "array view" or "span" if you're familiar with those.) It's constructed by specifying an iterator to the start of the section, and the length of the section.
+
+usage example:
+
+    #include "msepoly.h"
+    
+    int main(int argc, char* argv[]) {
+        mse::mstd::array<int, 4> array1 { 1, 2, 3, 4 };
+        mse::mstd::array<int, 5> array2 { 5, 6, 7, 8, 9 };
+        mse::mstd::vector<int> vec1 { 10, 11, 12, 13, 14 };
+        class B {
+        public:
+            static void foo1(mse::TXScopeAnyRandomAccessIterator<int> ra_iter1) {
+                ra_iter1[1] = 15;
+            }
+            static int foo2(mse::TXScopeAnyRandomAccessConstIterator<int> const_ra_iter1) {
+                const_ra_iter1 += 2;
+                --const_ra_iter1;
+                const_ra_iter1--;
+                return const_ra_iter1[2];
+            }
+            static void foo3(mse::TXScopeRandomAccessSection<int> ra_section) {
+                for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
+                    ra_section[i] = 0;
+                }
+            }
+            static int foo4(mse::TXScopeRandomAccessConstSection<int> const_ra_section) {
+                int retval = 0;
+                for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
+                    retval += const_ra_section[i];
+                }
+                return retval;
+            }
+            static int foo5(mse::TXScopeRandomAccessConstSection<int> const_ra_section) {
+                int retval = 0;
+                for (const auto& const_item : const_ra_section) {
+                    retval += const_item;
+                }
+                return retval;
+            }
+        };
+    
+        auto array_iter1 = array1.begin();
+        array_iter1++;
+        auto res1 = B::foo2(array_iter1);
+        B::foo1(array_iter1);
+    
+        auto array_const_iter2 = array2.cbegin();
+        array_const_iter2 += 2;
+        auto res2 = B::foo2(array_const_iter2);
+    
+        auto res3 = B::foo2(vec1.cbegin());
+        B::foo1(++vec1.begin());
+        auto res4 = B::foo2(vec1.begin());
+    
+        mse::TXScopeRandomAccessSection<int> ra_section1(array_iter1, 2);
+        B::foo3(ra_section1);
+    
+        mse::TXScopeRandomAccessSection<int> ra_section2(++vec1.begin(), 3);
+        auto res5 = B::foo5(ra_section2);
+        B::foo3(ra_section2);
+        auto res6 = B::foo4(ra_section2);
+    }
+
 ### Safely passing parameters by reference
 As has been shown, you can use [registered pointers](#registered-pointers), [reference counting pointers](#reference-counting-pointers) and [scope pointers](#scope-pointers) to safely pass parameters by reference. (Well, scope pointers aren't completely safe yet, but "safer" anyway.) If you're writing a function for general use, we recommend that you "templatize" the function so that it can accept any type of pointer. This is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example. Or you can read an article about it [here](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu). If for some reason you can't or don't want to templatize the function, but still want to give the caller some flexibility in terms of pointer reference parameters then you can use a [poly pointer](#poly-pointers). And of course the library remains perfectly compatible with (the less safe) traditional C++ references if you prefer. 
 
