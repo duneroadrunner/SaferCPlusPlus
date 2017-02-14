@@ -765,8 +765,10 @@ usage example:
 ### Poly pointers
 Poly pointers are "chameleon" pointers that can be constructed from, and retain the safety features of many of the pointer types in this library. If you're writing a function and you'd like it to be able to accept different types of safe pointer parameters, you can "templatize" your function. Alternatively, you can declare your pointer parameters as poly pointers.  
 
+Note that poly pointers support only basic facilities common to all the covered pointer and iterator types, providing essentially the functionality of a C++ reference. For example, this means no assignment operator, and no "operator bool()". Where null pointer values are desired you might consider using mse::optional<> or std::optional<> instead.  
+
 ### TXScopePolyPointer, TXScopePolyConstPointer
-Scope poly pointers are primarily intended to be used in function parameter declarations. In particular, as they can be constructed from a scope pointer (TXScopeFixedPointer or TXScopeFixedConstPointer), they must observe the same restrictions on intended use.
+Scope poly pointers are primarily intended to be used in function parameter declarations. In particular, as they can be constructed from a scope pointer (TXScopeFixedPointer or TXScopeFixedConstPointer), they must observe the same usage restrictions.
 
 usage example:
 
