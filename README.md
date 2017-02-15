@@ -36,49 +36,51 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     4. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
     5. [SaferCPlusPlus versus the Core Guidelines Checkers](#safercplusplus-versus-the-core-guidelines-checkers)
 5. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
-5. [Registered pointers](#registered-pointers)
+6. [Registered pointers](#registered-pointers)
     1. [TRegisteredPointer](#tregisteredpointer)
         1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
         2. [TRegisteredFixedPointer](#tregisteredfixedpointer)
         3. [TRegisteredConstPointer](#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer)
         4. [TRegisteredRefWrapper](#tregisteredrefwrapper)
     2. [TRelaxedRegisteredPointer](#trelaxedregisteredpointer)
-6. [Simple benchmarks](#simple-benchmarks)
-7. [Reference counting pointers](#reference-counting-pointers)
+7. [Simple benchmarks](#simple-benchmarks)
+8. [Reference counting pointers](#reference-counting-pointers)
     1. [TRefCountingPointer](#trefcountingpointer)
         1. [TRefCountingNotNullPointer](#trefcountingnotnullpointer)
         2. [TRefCountingFixedPointer](#trefcountingfixedpointer)
         3. [TRefCountingConstPointer](#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer)
     2. [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer)
     3. [TRefCountingOfRelaxedRegisteredPointer](#trefcountingofrelaxedregisteredpointer)
-8. [Scope pointers](#scope-pointers)
+9. [Scope pointers](#scope-pointers)
     1. [TXScopeFixedPointer](#txscopefixedpointer)
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
-9. [make_pointer_to_member()](#make_pointer_to_member)
-10. [Poly pointers](#poly-pointers)
+10. [make_pointer_to_member()](#make_pointer_to_member)
+11. [Poly pointers](#poly-pointers)
     1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
     2. [TPolyPointer](#tpolypointer-tpolyconstpointer)
     3. [TAnyPointer](#txscopeanypointer-txscopeanyconstpointer-tanypointer-tanyconstpointer)
-11. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
-12. [Asynchronously shared objects](#asynchronously-shared-objects)
+    4. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
+    5. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
+12. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
+13. [Asynchronously shared objects](#asynchronously-shared-objects)
     1. [TAsyncSharedReadWriteAccessRequester](#tasyncsharedreadwriteaccessrequester)
         1. [TAsyncSharedReadOnlyAccessRequester](#tasyncsharedreadonlyaccessrequester)
     2. [TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester](#tasyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwriteaccessrequester)
     3. [TStdSharedImmutableFixedPointer](#tstdsharedimmutablefixedpointer)
-13. [Primitives](#primitives)
+14. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [Quarantined types](#quarantined-types)
-14. [Vectors](#vectors)
+15. [Vectors](#vectors)
     1. [mstd::vector](#vector)
     2. [msevector](#msevector)
     3. [ivector](#ivector)
-15. [Arrays](#arrays)
+16. [Arrays](#arrays)
     1. [mstd::array](#array)
     2. [msearray](#msearray)
-16. [Compatibility considerations](#compatibility-considerations)
-17. [On thread safety](#on-thread-safety)
-18. [Practical limitations](#practical-limitations)
-19. [Questions and comments](#questions-and-comments)
+17. [Compatibility considerations](#compatibility-considerations)
+18. [On thread safety](#on-thread-safety)
+19. [Practical limitations](#practical-limitations)
+20. [Questions and comments](#questions-and-comments)
 
 
 
@@ -765,8 +767,10 @@ usage example:
 ### Poly pointers
 Poly pointers are "chameleon" pointers that can be constructed from, and retain the safety features of many of the pointer types in this library. If you're writing a function and you'd like it to be able to accept different types of safe pointer parameters, you can "templatize" your function. Alternatively, you can declare your pointer parameters as poly pointers.  
 
+Note that poly pointers support only basic facilities common to all the covered pointer and iterator types, providing essentially the functionality of a C++ reference. For example, this means no assignment operator, and no "operator bool()". Where null pointer values are desired you might consider using mse::optional<> or std::optional<> instead.  
+
 ### TXScopePolyPointer, TXScopePolyConstPointer
-Scope poly pointers are primarily intended to be used in function parameter declarations. In particular, as they can be constructed from a scope pointer (TXScopeFixedPointer or TXScopeFixedConstPointer), they must observe the same restrictions on intended use.
+Scope poly pointers are primarily intended to be used in function parameter declarations. In particular, as they can be constructed from a scope pointer (TXScopeFixedPointer or TXScopeFixedConstPointer), they must observe the same usage restrictions.
 
 usage example:
 
@@ -865,12 +869,84 @@ usage example:
     }
 
 ### TPolyPointer, TPolyConstPointer
-These poly pointers do not support construction from scope pointers, and thus are not bound by the same usage restrictions. For example, these poly pointers may be used a member of a class or struct.
+These poly pointers do not support construction from scope pointers, and thus are not bound by the same usage restrictions. For example, these poly pointers may be used as a member of a class or struct.
 
 ### TXScopeAnyPointer, TXScopeAnyConstPointer, TAnyPointer, TAnyConstPointer
 "Any" pointers are also “chameleon” pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by make_pointer_to_member() to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the scope poly pointer usage example.  
 
 While in theory you could use "any" pointers directly as function arguments, it is generally recommended that you use poly pointers instead, for largely the same reasons [std::variant is generally preferred over std::any](http://www.boost.org/doc/libs/1_63_0/doc/html/variant/misc.html#variant.versus-any). 
+
+### TXScopeAnyRandomAccessIterator, TXScopeAnyRandomAccessConstIterator, TAnyRandomAccessIterator, TAnyRandomAccessConstIterator
+
+In modern C++ (and SaferCPlusPlus), arrays of different sizes are actually different types, with incompatible iterators. So, for example, if you wanted to make a function that accepts the iterators of arrays of varying size, you would generally do that by "templatizing" the function. Alternatively, you could use an "any random access iterator" which is a "chameleon" iterator that can be constructed from basically any iterator that supports operator\[\] (the "square bracket" operator).
+
+Note that at the time of this writing (Feb 2017), the library does not yet provide any "scope" iterators, but may do so in the future.
+
+### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
+
+A "random access section" is basically a convenient interface to access a (contiguous) subsection of an existing array or vector. (Also monikered as "array view" or "span" if you're familiar with those.) It's constructed by specifying an iterator to the start of the section, and the length of the section.
+
+usage example:
+
+    #include "msepoly.h"
+    
+    int main(int argc, char* argv[]) {
+        mse::mstd::array<int, 4> array1 { 1, 2, 3, 4 };
+        mse::mstd::array<int, 5> array2 { 5, 6, 7, 8, 9 };
+        mse::mstd::vector<int> vec1 { 10, 11, 12, 13, 14 };
+        class B {
+        public:
+            static void foo1(mse::TXScopeAnyRandomAccessIterator<int> ra_iter1) {
+                ra_iter1[1] = 15;
+            }
+            static int foo2(mse::TXScopeAnyRandomAccessConstIterator<int> const_ra_iter1) {
+                const_ra_iter1 += 2;
+                --const_ra_iter1;
+                const_ra_iter1--;
+                return const_ra_iter1[2];
+            }
+            static void foo3(mse::TXScopeRandomAccessSection<int> ra_section) {
+                for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
+                    ra_section[i] = 0;
+                }
+            }
+            static int foo4(mse::TXScopeRandomAccessConstSection<int> const_ra_section) {
+                int retval = 0;
+                for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
+                    retval += const_ra_section[i];
+                }
+                return retval;
+            }
+            static int foo5(mse::TXScopeRandomAccessConstSection<int> const_ra_section) {
+                int retval = 0;
+                for (const auto& const_item : const_ra_section) {
+                    retval += const_item;
+                }
+                return retval;
+            }
+        };
+    
+        auto array_iter1 = array1.begin();
+        array_iter1++;
+        auto res1 = B::foo2(array_iter1);
+        B::foo1(array_iter1);
+    
+        auto array_const_iter2 = array2.cbegin();
+        array_const_iter2 += 2;
+        auto res2 = B::foo2(array_const_iter2);
+    
+        auto res3 = B::foo2(vec1.cbegin());
+        B::foo1(++vec1.begin());
+        auto res4 = B::foo2(vec1.begin());
+    
+        mse::TXScopeRandomAccessSection<int> ra_section1(array_iter1, 2);
+        B::foo3(ra_section1);
+    
+        mse::TXScopeRandomAccessSection<int> ra_section2(++vec1.begin(), 3);
+        auto res5 = B::foo5(ra_section2);
+        B::foo3(ra_section2);
+        auto res6 = B::foo4(ra_section2);
+    }
 
 ### Safely passing parameters by reference
 As has been shown, you can use [registered pointers](#registered-pointers), [reference counting pointers](#reference-counting-pointers) and [scope pointers](#scope-pointers) to safely pass parameters by reference. (Well, scope pointers aren't completely safe yet, but "safer" anyway.) If you're writing a function for general use, we recommend that you "templatize" the function so that it can accept any type of pointer. This is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example. Or you can read an article about it [here](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu). If for some reason you can't or don't want to templatize the function, but still want to give the caller some flexibility in terms of pointer reference parameters then you can use a [poly pointer](#poly-pointers). And of course the library remains perfectly compatible with (the less safe) traditional C++ references if you prefer. 
