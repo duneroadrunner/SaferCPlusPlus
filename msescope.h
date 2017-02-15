@@ -8,8 +8,8 @@
 #ifndef MSESCOPE_H_
 #define MSESCOPE_H_
 
-#include "mseprimitives.h"
-#include "mseregistered.h" // Just for TSyncWeakFixedPointer. To do: Eliminate this dependency.
+//include "mseprimitives.h"
+#include "msepointerbasics.h"
 #include <utility>
 #include <unordered_set>
 #include <functional>

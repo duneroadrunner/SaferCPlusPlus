@@ -9,6 +9,7 @@
 #define MSEPOLY_H_
 
 //include "mseprimitives.h"
+#include "msepointerbasics.h"
 #include "mseregistered.h"
 #include "mserelaxedregistered.h"
 #include "mserefcounting.h"

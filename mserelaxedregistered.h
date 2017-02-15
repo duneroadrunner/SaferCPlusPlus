@@ -20,7 +20,8 @@ former purpose could be satisfied with a faster, safer, "header file only" set o
 #ifndef MSERELAXEDREGISTERED_H_
 #define MSERELAXEDREGISTERED_H_
 
-#include "mseprimitives.h"
+//include "mseprimitives.h"
+#include "msepointerbasics.h"
 #include <utility>
 #include <unordered_map>
 #include <mutex>
