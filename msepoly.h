@@ -221,6 +221,8 @@ namespace mse {
 	};
 
 	template <typename _Ty>
+	class TAnyPointer;
+	template <typename _Ty>
 	class TXScopeAnyConstPointer;
 	template <typename _Ty>
 	class TAnyConstPointer;
@@ -253,8 +255,14 @@ namespace mse {
 	class TXScopeAnyPointer {
 	public:
 		TXScopeAnyPointer(const TXScopeAnyPointer& src) : m_any_pointer(src.m_any_pointer) {}
+		TXScopeAnyPointer(const TAnyPointer<_Ty>& src) : m_any_pointer(src.m_any_pointer) {}
 
-		template <typename _TPointer1>
+		template <typename _TPointer1, class = typename std::enable_if<
+			(!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
+			&& (!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
+			&& (!std::is_same<_TPointer1, TAnyPointer<_Ty>>::value)
+			&& (!std::is_same<_TPointer1, TAnyConstPointer<_Ty>>::value)
+			, void>::type>
 		TXScopeAnyPointer(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
 
 		_Ty& operator*() const {
@@ -294,6 +302,7 @@ namespace mse {
 		template <typename _TPointer1, class = typename std::enable_if<
 			(!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
 			&& (!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
+			&& (!std::is_same<_TPointer1, TAnyConstPointer<_Ty>>::value)
 #ifndef MSE_SCOPEPOINTER_DISABLED
 			&& (!std::is_convertible<_TPointer1, TXScopeFixedPointer<_Ty>>::value) 
 			&& (!std::is_convertible<_TPointer1, TXScopeFixedConstPointer<_Ty>>::value)
@@ -336,8 +345,12 @@ namespace mse {
 	class TXScopeAnyConstPointer {
 	public:
 		TXScopeAnyConstPointer(const TXScopeAnyConstPointer& src) : m_any_const_pointer(src.m_any_const_pointer) {}
+		TXScopeAnyConstPointer(const TAnyConstPointer<_Ty>& src) : m_any_const_pointer(src.m_any_const_pointer) {}
 
-		template <typename _TPointer1>
+		template <typename _TPointer1, class = typename std::enable_if<
+			(!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
+			&& (!std::is_same<_TPointer1, TAnyConstPointer<_Ty>>::value)
+			, void>::type>
 		TXScopeAnyConstPointer(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
 
 		const _Ty& operator*() const {
@@ -373,7 +386,7 @@ namespace mse {
 	class TAnyConstPointer : public TXScopeAnyConstPointer<_Ty> {
 	public:
 		TAnyConstPointer(const TAnyConstPointer& src) : TXScopeAnyConstPointer<_Ty>(src) {}
-		TAnyConstPointer(const TAnyPointer<_Ty>& src) : TXScopeAnyConstPointer<_Ty>(static_cast<TXScopeAnyPointer<_Ty>>(src)) {}
+		TAnyConstPointer(const TAnyPointer<_Ty>& src) : TXScopeAnyConstPointer<_Ty>(src) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
 			(!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
@@ -421,7 +434,7 @@ namespace mse {
 			mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>,
 			std::shared_ptr<_Ty>,
 			mse::TXScopeAnyPointer<_Ty>,
-			mse::TAnyPointer<_Ty>,
+			//mse::TAnyPointer<_Ty>,
 
 			mse::TPointer<_Ty, TPolyPointerID<const _Ty>>
 		>;
@@ -461,7 +474,7 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TXScopePolyPointer(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
 		TXScopePolyPointer(const mse::TXScopeAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyPointer<_Ty>>(p); }
-		TXScopePolyPointer(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TAnyPointer<_Ty>>(p); }
+		TXScopePolyPointer(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyPointer<_Ty>>(p); }
 
 		TXScopePolyPointer(_Ty* p) { m_pointer.template set<mse::TPointer<_Ty, TPolyPointerID<const _Ty>>>(p); }
 
@@ -558,14 +571,14 @@ namespace mse {
 			mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>,
 			std::shared_ptr<const _Ty>,
 			mse::TXScopeAnyConstPointer<_Ty>,
-			mse::TAnyConstPointer<_Ty>,
+			//mse::TAnyConstPointer<_Ty>,
 
-			mse::TPointer<const _Ty, TPolyPointerID<const _Ty>>,
-			mse::TPolyPointer<_Ty>
+			//mse::TXScopePolyPointer<_Ty>,
+			mse::TPointer<const _Ty, TPolyPointerID<const _Ty>>
 		>;
 
 		TXScopePolyConstPointer(const TXScopePolyConstPointer<_Ty>& p) : m_pointer(p.m_pointer) {}
-		TXScopePolyConstPointer(const mse::TXScopePolyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopePolyPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TXScopePolyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(mse::TXScopeAnyConstPointer<_Ty>(p)); }
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		TXScopePolyConstPointer(const mse::TXScopeFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
@@ -615,7 +628,7 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TXScopePolyConstPointer(const std::shared_ptr<const _Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
 		TXScopePolyConstPointer(const mse::TXScopeAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(p); }
-		TXScopePolyConstPointer(const mse::TAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TAnyConstPointer<_Ty>>(p); }
+		TXScopePolyConstPointer(const mse::TAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(p); }
 
 		TXScopePolyConstPointer(const typename mse::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::const_iterator>(p); }
 		TXScopePolyConstPointer(const typename mse::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::cipointer>(p); }
@@ -626,7 +639,7 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TXScopePolyConstPointer(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
 		TXScopePolyConstPointer(const mse::TXScopeAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(mse::TXScopeAnyConstPointer<_Ty>(p)); }
-		TXScopePolyConstPointer(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TAnyConstPointer<_Ty>>(mse::TAnyConstPointer<_Ty>(p)); }
+		TXScopePolyConstPointer(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(mse::TXScopeAnyConstPointer<_Ty>(p)); }
 
 		TXScopePolyConstPointer(const _Ty* p) { m_pointer.template set<mse::TPointer<const _Ty, TPolyPointerID<const _Ty>>>(p); }
 
@@ -824,7 +837,7 @@ namespace mse {
 	template <typename _Ty>
 	class TAnyRandomAccessIterator : public TXScopeAnyRandomAccessIterator<_Ty> {
 	public:
-		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : TXScopeAnyRandomAccessIterator<_Ty>(static_cast<TXScopeAnyRandomAccessIterator<_Ty>>(src)) {}
+		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : TXScopeAnyRandomAccessIterator<_Ty>(src) {}
 
 		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
 			(!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessIterator<_Ty>>::value)
@@ -945,7 +958,7 @@ namespace mse {
 	template <typename _Ty>
 	class TAnyRandomAccessConstIterator : public TXScopeAnyRandomAccessConstIterator<_Ty> {
 	public:
-		TAnyRandomAccessConstIterator(const TAnyRandomAccessConstIterator& src) : TXScopeAnyRandomAccessConstIterator<_Ty>(static_cast<TXScopeAnyRandomAccessConstIterator<_Ty>>(src)) {}
+		TAnyRandomAccessConstIterator(const TAnyRandomAccessConstIterator& src) : TXScopeAnyRandomAccessConstIterator<_Ty>(src) {}
 		TAnyRandomAccessConstIterator(const TAnyRandomAccessIterator<_Ty>& src) : TXScopeAnyRandomAccessConstIterator<_Ty>(static_cast<TXScopeAnyRandomAccessIterator<_Ty>>(src)) {}
 
 		template <typename _TRandomAccessConstIterator1, class = typename std::enable_if<
