@@ -704,14 +704,14 @@ namespace mse {
 			xscope_ss_const_iterator_type(const xscope_ss_const_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
 			xscope_ss_const_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
 			~xscope_ss_const_iterator_type() {}
-			const typename ss_const_iterator_type& msearray_ss_const_iterator_type() const {
+			const ss_const_iterator_type& msearray_ss_const_iterator_type() const {
 				return (*this);
 			}
-			typename ss_const_iterator_type& msearray_ss_const_iterator_type() {
+			ss_const_iterator_type& msearray_ss_const_iterator_type() {
 				return (*this);
 			}
-			const typename ss_const_iterator_type& mvssci() const { return msearray_ss_const_iterator_type(); }
-			typename ss_const_iterator_type& mvssci() { return msearray_ss_const_iterator_type(); }
+			const ss_const_iterator_type& mvssci() const { return msearray_ss_const_iterator_type(); }
+			ss_const_iterator_type& mvssci() { return msearray_ss_const_iterator_type(); }
 
 			void reset() { ss_const_iterator_type::reset(); }
 			bool points_to_an_item() const { return ss_const_iterator_type::points_to_an_item(); }
@@ -730,18 +730,18 @@ namespace mse {
 			xscope_ss_const_iterator_type operator++(int) { xscope_ss_const_iterator_type _Tmp = *this; ss_const_iterator_type::operator++(); return (_Tmp); }
 			xscope_ss_const_iterator_type& operator --() { ss_const_iterator_type::operator --(); return (*this); }
 			xscope_ss_const_iterator_type operator--(int) { xscope_ss_const_iterator_type _Tmp = *this; ss_const_iterator_type::operator--(); return (_Tmp); }
-			void advance(typename difference_type n) { ss_const_iterator_type::advance(n); }
-			void regress(typename difference_type n) { ss_const_iterator_type::regress(n); }
+			void advance(difference_type n) { ss_const_iterator_type::advance(n); }
+			void regress(difference_type n) { ss_const_iterator_type::regress(n); }
 			xscope_ss_const_iterator_type& operator +=(difference_type n) { ss_const_iterator_type::operator +=(n); return (*this); }
 			xscope_ss_const_iterator_type& operator -=(difference_type n) { ss_const_iterator_type::operator -=(n); return (*this); }
 			xscope_ss_const_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 			xscope_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-			typename difference_type operator-(const xscope_ss_const_iterator_type& _Right_cref) const { return ss_const_iterator_type::operator-(_Right_cref); }
-			typename const_reference operator*() const { return ss_const_iterator_type::operator*(); }
-			typename const_reference item() const { return operator*(); }
-			typename const_reference previous_item() const { return ss_const_iterator_type::previous_item(); }
-			typename const_pointer operator->() const { return ss_const_iterator_type::operator->(); }
-			typename const_reference operator[](typename difference_type _Off) const { return ss_const_iterator_type::operator[](_Off); }
+			difference_type operator-(const xscope_ss_const_iterator_type& _Right_cref) const { return ss_const_iterator_type::operator-(_Right_cref); }
+			const_reference operator*() const { return ss_const_iterator_type::operator*(); }
+			const_reference item() const { return operator*(); }
+			const_reference previous_item() const { return ss_const_iterator_type::previous_item(); }
+			const_pointer operator->() const { return ss_const_iterator_type::operator->(); }
+			const_reference operator[](difference_type _Off) const { return ss_const_iterator_type::operator[](_Off); }
 			xscope_ss_const_iterator_type& operator=(const ss_const_iterator_type& _Right_cref) {
 				if (_Right_cref.m_owner_cptr != (*this).m_owner_cptr) { MSE_THROW(msearray_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const xscope_ss_const_iterator_type& _Right_cref) - msearray::xscope_ss_const_iterator_type")); }
 				ss_const_iterator_type::operator=(_Right_cref);
@@ -773,14 +773,14 @@ namespace mse {
 
 			xscope_ss_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_iterator_type(src_cref) {}
 			~xscope_ss_iterator_type() {}
-			const typename ss_iterator_type& msearray_ss_iterator_type() const {
+			const ss_iterator_type& msearray_ss_iterator_type() const {
 				return (*this);
 			}
-			typename ss_iterator_type& msearray_ss_iterator_type() {
+			ss_iterator_type& msearray_ss_iterator_type() {
 				return (*this);
 			}
-			const typename ss_iterator_type& mvssi() const { return msearray_ss_iterator_type(); }
-			typename ss_iterator_type& mvssi() { return msearray_ss_iterator_type(); }
+			const ss_iterator_type& mvssi() const { return msearray_ss_iterator_type(); }
+			ss_iterator_type& mvssi() { return msearray_ss_iterator_type(); }
 
 			void reset() { ss_iterator_type::reset(); }
 			bool points_to_an_item() const { return ss_iterator_type::points_to_an_item(); }
@@ -799,18 +799,18 @@ namespace mse {
 			xscope_ss_iterator_type operator++(int) { xscope_ss_iterator_type _Tmp = *this; ss_iterator_type::operator++(); return (_Tmp); }
 			xscope_ss_iterator_type& operator --() { ss_iterator_type::operator --(); return (*this); }
 			xscope_ss_iterator_type operator--(int) { xscope_ss_iterator_type _Tmp = *this; ss_iterator_type::operator--(); return (_Tmp); }
-			void advance(typename difference_type n) { ss_iterator_type::advance(n); }
-			void regress(typename difference_type n) { ss_iterator_type::regress(n); }
+			void advance(difference_type n) { ss_iterator_type::advance(n); }
+			void regress(difference_type n) { ss_iterator_type::regress(n); }
 			xscope_ss_iterator_type& operator +=(difference_type n) { ss_iterator_type::operator +=(n); return (*this); }
 			xscope_ss_iterator_type& operator -=(difference_type n) { ss_iterator_type::operator -=(n); return (*this); }
 			xscope_ss_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 			xscope_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-			typename difference_type operator-(const xscope_ss_iterator_type& _Right_cref) const { return ss_iterator_type::operator-(_Right_cref); }
-			typename reference operator*() const { return ss_iterator_type::operator*(); }
-			typename reference item() const { return operator*(); }
-			typename reference previous_item() const { return ss_iterator_type::previous_item(); }
-			typename pointer operator->() const { return ss_iterator_type::operator->(); }
-			typename reference operator[](typename difference_type _Off) const { return ss_iterator_type::operator[](_Off); }
+			difference_type operator-(const xscope_ss_iterator_type& _Right_cref) const { return ss_iterator_type::operator-(_Right_cref); }
+			reference operator*() const { return ss_iterator_type::operator*(); }
+			reference item() const { return operator*(); }
+			reference previous_item() const { return ss_iterator_type::previous_item(); }
+			pointer operator->() const { return ss_iterator_type::operator->(); }
+			reference operator[](difference_type _Off) const { return ss_iterator_type::operator[](_Off); }
 			xscope_ss_iterator_type& operator=(const ss_iterator_type& _Right_cref) {
 				if (_Right_cref.m_owner_ptr != (*this).m_owner_ptr) { MSE_THROW(msearray_range_error("invalid argument - xscope_ss_iterator_type& operator=(const xscope_ss_iterator_type& _Right_cref) - msearray::xscope_ss_iterator_type")); }
 				ss_iterator_type::operator=(_Right_cref);

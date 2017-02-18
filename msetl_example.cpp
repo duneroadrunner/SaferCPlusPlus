@@ -406,7 +406,9 @@ int main(int argc, char* argv[])
 			scope object. */
 			class CContainer1 {
 			public:
-				mse::msearray<int, 3> m_array = { 1, 2, 3 };
+				CContainer1() : m_array({ 1, 2, 3 }) {}
+
+				mse::msearray<int, 3> m_array;
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
 			auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
