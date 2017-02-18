@@ -36,8 +36,7 @@ mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 
 namespace mse {
 
-	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
-	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
+	/* This macro roughly simulates constructor inheritance. */
 #define MSE_SCOPE_USING(Derived, Base) \
     template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
@@ -550,12 +549,6 @@ namespace mse {
 			public:
 				int m_b = 5;
 			};
-			class FE : public mse::TXScopeObj<E> {};
-			mse::TXScopeObj<FE> scope_fd;
-			mse::TXScopeFixedPointer<FE> FE_scope_fptr1 = &scope_fd;
-			mse::TXScopeFixedPointer<E> E_scope_ptr4 = FE_scope_fptr1;
-			mse::TXScopeFixedPointer<E> E_scope_fptr1 = &scope_fd;
-			mse::TXScopeFixedConstPointer<E> E_scope_fcptr1 = &scope_fd;
 
 			/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
 			class GE : public E {};

@@ -306,6 +306,43 @@ int main(int argc, char* argv[])
 			std::cerr << "expected exception" << std::endl;
 		}
 
+		{
+			/* If the array is declared as a "scope" object (which basically indicates that it is declared
+			on the stack), then you can use "scope" iterators. While there are limitations on when they can
+			be used, scope iterators would be the preferred iterator type where performance is a priority
+			as they don't require extra run time overhead to ensure that the array has not been deallocated. */
+
+			/* Here we're declaring an array as a scope object. */
+			mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
+
+			/* Here we're obtaining a scope iterator to the array. */
+			auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
+			scp_array_iter1 = array1_scpobj.begin();
+			auto scp_array_iter2 = mse::mstd::make_xscope_iterator(&array1_scpobj);
+			scp_array_iter2 = array1_scpobj.end();
+
+			std::sort(scp_array_iter1, scp_array_iter2);
+
+			auto scp_array_citer3 = mse::mstd::make_xscope_const_iterator(&array1_scpobj);
+			scp_array_citer3 = scp_array_iter1;
+			scp_array_citer3 = array1_scpobj.cbegin();
+			scp_array_citer3 += 2;
+			auto res1 = *scp_array_citer3;
+			auto res2 = scp_array_citer3[0];
+
+			/* Here we demonstrate the case where the array is a member of a class/struct declared as a
+			scope object. */
+			class CContainer1 {
+			public:
+				mse::mstd::array<int, 3> m_array = { 1, 2, 3 };
+			};
+			mse::TXScopeObj<CContainer1> container1_scpobj;
+			auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+			auto scp_iter4 = mse::mstd::make_xscope_iterator(container1_m_array_scpptr);
+			scp_iter4++;
+			auto res3 = *scp_iter4;
+		}
+
 		mse::mstd::array_test testobj1;
 		testobj1.test1();
 	}
@@ -317,8 +354,9 @@ int main(int argc, char* argv[])
 		/******************/
 
 		/* mse::msearray<> is another array implementation that's not quite as safe as mse::mstd::array<> in the sense
-		that its iterators are not "lifespan aware". And it provides both unsafe and safe iterators. Basically,
-		mse::msearray<> is a compromise between performance and safety. */
+		that its iterators are not "lifespan aware" (i.e. could be used to access an array after it's been deallocated).
+		And it provides both "safe" (bounds-checked) and unsafe iterators. Basically, mse::msearray<> is a compromise
+		between performance and safety. */
 
 		mse::msearray<int, 3> a1 = { 1, 2, 3 };
 		mse::msearray<int, 3> a2 = { 11, 12, 13 };
@@ -343,8 +381,43 @@ int main(int argc, char* argv[])
 		ss_cit1.set_to_end_marker();
 		bool bres4 = ss_cit1.points_to_an_item();
 
+		{
+			/* A "scope" version of the safe iterators can be used when the array is declared as a scope
+			object. There are limitations on when thay can be used, but unlike the other msearray iterators,
+			those restrictions ensure that they won't be used to access the array after it's been deallocated. */
+
+			mse::TXScopeObj<mse::msearray<int, 3>> array1_scpobj = mse::msearray<int, 3>{ 1, 2, 3 };
+
+			auto scp_ss_iter1 = mse::make_xscope_ss_iterator_type(&array1_scpobj);
+			scp_ss_iter1.set_to_beginning();
+			auto scp_ss_iter2 = mse::make_xscope_ss_iterator_type(&array1_scpobj);
+			scp_ss_iter2.set_to_end_marker();
+
+			std::sort(scp_ss_iter1, scp_ss_iter2);
+
+			auto scp_ss_citer3 = mse::make_xscope_ss_const_iterator_type(&array1_scpobj);
+			scp_ss_citer3 = scp_ss_iter1;
+			scp_ss_citer3 = array1_scpobj.ss_cbegin();
+			scp_ss_citer3 += 2;
+			auto res1 = *scp_ss_citer3;
+			auto res2 = scp_ss_citer3[0];
+
+			/* Here we demonstrate the case where the array is a member of a class/struct declared as a
+			scope object. */
+			class CContainer1 {
+			public:
+				mse::msearray<int, 3> m_array = { 1, 2, 3 };
+			};
+			mse::TXScopeObj<CContainer1> container1_scpobj;
+			auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+			auto scp_ss_citer4 = mse::make_xscope_ss_iterator_type(container1_m_array_scpptr);
+			scp_ss_citer4++;
+			auto res3 = *scp_ss_citer4;
+		}
+
 		mse::msearray_test testobj1;
 		testobj1.test1();
+
 	}
 
 	{
@@ -1190,11 +1263,12 @@ int main(int argc, char* argv[])
 		/*  TXScopeFixedPointer  */
 		/*************************/
 
-		/* The "xscope" templates basically just allow the programmer to indicate that the target object has "scope
-		lifetime". That is, the object is either allocated on the stack, or it's "owner" pointer is allocated on
-		the stack. Unfortunately there's really no way to enforce this, which makes this data type less intrinsically
-		safe than say, "reference counting" pointers. Because of this, "xscope" pointers can optionally use relaxed
-		registered pointers as their base class, thereby inheriting their safety features. */
+		/* The "xscope" templates basically allow the programmer to indicate that the target object has "scope
+		lifetime". That is, the object is either allocated on the stack, or its "owner" pointer is allocated on
+		the stack. Scope pointers may only point to scope objects. While there are limitations on when they can
+		be used, scope pointers would be the preferred pointer type where performance is a priority as they don't
+		require any run time overhead to ensure that they will not be used to access a target object has already
+		been deallocated. */
 
 		class A {
 		public:
@@ -1213,10 +1287,13 @@ int main(int argc, char* argv[])
 			~B() {}
 		};
 
+		/* Here we're declaring a scope object. */
 		mse::TXScopeObj<A> a_scpobj(5);
 		int res1 = (&a_scpobj)->b;
 		int res2 = B::foo2(&a_scpobj);
 		int res3 = B::foo3(&a_scpobj);
+		/* mse::TXScopeOwnerPointer<> will allocate a scope object on the heap (and deallocate it at the
+		end of the scope). */
 		mse::TXScopeOwnerPointer<A> a_scpoptr(7);
 		int res4 = B::foo2(&(*a_scpoptr));
 
@@ -1226,7 +1303,7 @@ int main(int argc, char* argv[])
 		(*s_safe_ptr1) = "some new text";
 		auto s_safe_const_ptr1 = mse::make_const_pointer_to_member((a_scpobj.s), (&a_scpobj));
 
-		/* The return type of mse::make_pointer_to_member() depends in the type of the parameters passed
+		/* The return type of mse::make_pointer_to_member() depends on the type of the parameters passed
 		to it. In this case, the type of s_safe_ptr1 is mse::TXScopeWeakFixedPointer<std::string,
 		mse::TXScopeFixedPointerA>>. */
 

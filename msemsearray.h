@@ -30,6 +30,7 @@
 #include "mseprimitives.h"
 #endif // MSE_MSEARRAY_USE_MSE_PRIMITIVES
 
+#include "msescope.h"
 #include <array>
 #include <assert.h>
 #include <memory>
@@ -299,7 +300,8 @@ namespace mse {
 			return m_array.data();
 		}
 
-
+		class xscope_ss_const_iterator_type;
+		class xscope_ss_iterator_type;
 
 		/* ss_const_iterator_type is a bounds checked const_iterator. */
 		class ss_const_iterator_type {
@@ -448,6 +450,7 @@ namespace mse {
 			msear_size_t m_index = 0;
 			msear_pointer<const _Myt> m_owner_cptr = nullptr;
 			friend class /*_Myt*/msearray<_Ty, _Size>;
+			friend class xscope_ss_const_iterator_type;
 		};
 		/* ss_iterator_type is a bounds checked iterator. */
 		class ss_iterator_type {
@@ -683,6 +686,151 @@ namespace mse {
 			return (const_reverse_iterator(ss_begin()));
 		}
 
+		class xscope_ss_iterator_type;
+
+		class xscope_ss_const_iterator_type : public ss_const_iterator_type {
+		public:
+			xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
+			xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
+			template <class _TLeasePointerType>
+			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedConstPointer<msearray, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
+			template <class _TLeasePointerType>
+			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedPointer<msearray, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
+			template <class _TLeasePointerType>
+			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedConstPointer<const msearray, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
+			template <class _TLeasePointerType>
+			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedPointer<const msearray, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
+
+			xscope_ss_const_iterator_type(const xscope_ss_const_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
+			xscope_ss_const_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
+			~xscope_ss_const_iterator_type() {}
+			const typename ss_const_iterator_type& msearray_ss_const_iterator_type() const {
+				return (*this);
+			}
+			typename ss_const_iterator_type& msearray_ss_const_iterator_type() {
+				return (*this);
+			}
+			const typename ss_const_iterator_type& mvssci() const { return msearray_ss_const_iterator_type(); }
+			typename ss_const_iterator_type& mvssci() { return msearray_ss_const_iterator_type(); }
+
+			void reset() { ss_const_iterator_type::reset(); }
+			bool points_to_an_item() const { return ss_const_iterator_type::points_to_an_item(); }
+			bool points_to_end_marker() const { return ss_const_iterator_type::points_to_end_marker(); }
+			bool points_to_beginning() const { return ss_const_iterator_type::points_to_beginning(); }
+			/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+			bool has_next_item_or_end_marker() const { return ss_const_iterator_type::has_next_item_or_end_marker(); }
+			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
+			bool has_next() const { return ss_const_iterator_type::has_next(); }
+			bool has_previous() const { return ss_const_iterator_type::has_previous(); }
+			void set_to_beginning() { ss_const_iterator_type::set_to_beginning(); }
+			void set_to_end_marker() { ss_const_iterator_type::set_to_end_marker(); }
+			void set_to_next() { ss_const_iterator_type::set_to_next(); }
+			void set_to_previous() { ss_const_iterator_type::set_to_previous(); }
+			xscope_ss_const_iterator_type& operator ++() { ss_const_iterator_type::operator ++(); return (*this); }
+			xscope_ss_const_iterator_type operator++(int) { xscope_ss_const_iterator_type _Tmp = *this; ss_const_iterator_type::operator++(); return (_Tmp); }
+			xscope_ss_const_iterator_type& operator --() { ss_const_iterator_type::operator --(); return (*this); }
+			xscope_ss_const_iterator_type operator--(int) { xscope_ss_const_iterator_type _Tmp = *this; ss_const_iterator_type::operator--(); return (_Tmp); }
+			void advance(typename difference_type n) { ss_const_iterator_type::advance(n); }
+			void regress(typename difference_type n) { ss_const_iterator_type::regress(n); }
+			xscope_ss_const_iterator_type& operator +=(difference_type n) { ss_const_iterator_type::operator +=(n); return (*this); }
+			xscope_ss_const_iterator_type& operator -=(difference_type n) { ss_const_iterator_type::operator -=(n); return (*this); }
+			xscope_ss_const_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			xscope_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+			typename difference_type operator-(const xscope_ss_const_iterator_type& _Right_cref) const { return ss_const_iterator_type::operator-(_Right_cref); }
+			typename const_reference operator*() const { return ss_const_iterator_type::operator*(); }
+			typename const_reference item() const { return operator*(); }
+			typename const_reference previous_item() const { return ss_const_iterator_type::previous_item(); }
+			typename const_pointer operator->() const { return ss_const_iterator_type::operator->(); }
+			typename const_reference operator[](typename difference_type _Off) const { return ss_const_iterator_type::operator[](_Off); }
+			xscope_ss_const_iterator_type& operator=(const ss_const_iterator_type& _Right_cref) {
+				if (_Right_cref.m_owner_cptr != (*this).m_owner_cptr) { MSE_THROW(msearray_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const xscope_ss_const_iterator_type& _Right_cref) - msearray::xscope_ss_const_iterator_type")); }
+				ss_const_iterator_type::operator=(_Right_cref);
+				return (*this);
+			}
+			xscope_ss_const_iterator_type& operator=(const ss_iterator_type& _Right_cref) {
+				return operator=(ss_const_iterator_type(_Right_cref));
+			}
+			bool operator==(const xscope_ss_const_iterator_type& _Right_cref) const { return ss_const_iterator_type::operator==(_Right_cref); }
+			bool operator!=(const xscope_ss_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
+			bool operator<(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator<(_Right); }
+			bool operator<=(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator<=(_Right); }
+			bool operator>(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator>(_Right); }
+			bool operator>=(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator>=(_Right); }
+			void set_to_const_item_pointer(const xscope_ss_const_iterator_type& _Right_cref) { ss_const_iterator_type::set_to_item_pointer(_Right_cref); }
+			msear_size_t position() const { return ss_const_iterator_type::position(); }
+		private:
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			//typename ss_const_iterator_type (*this);
+			friend class /*_Myt*/msearray<_Ty, _Size>;
+			friend class xscope_ss_iterator_type;
+		};
+		class xscope_ss_iterator_type : public ss_iterator_type {
+		public:
+			xscope_ss_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
+			template <class _TLeasePointerType>
+			xscope_ss_iterator_type(const mse::TXScopeWeakFixedPointer<msearray, _TLeasePointerType>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
+
+			xscope_ss_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_iterator_type(src_cref) {}
+			~xscope_ss_iterator_type() {}
+			const typename ss_iterator_type& msearray_ss_iterator_type() const {
+				return (*this);
+			}
+			typename ss_iterator_type& msearray_ss_iterator_type() {
+				return (*this);
+			}
+			const typename ss_iterator_type& mvssi() const { return msearray_ss_iterator_type(); }
+			typename ss_iterator_type& mvssi() { return msearray_ss_iterator_type(); }
+
+			void reset() { ss_iterator_type::reset(); }
+			bool points_to_an_item() const { return ss_iterator_type::points_to_an_item(); }
+			bool points_to_end_marker() const { return ss_iterator_type::points_to_end_marker(); }
+			bool points_to_beginning() const { return ss_iterator_type::points_to_beginning(); }
+			/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+			bool has_next_item_or_end_marker() const { return ss_iterator_type::has_next_item_or_end_marker(); }
+			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
+			bool has_next() const { return ss_iterator_type::has_next(); }
+			bool has_previous() const { return ss_iterator_type::has_previous(); }
+			void set_to_beginning() { ss_iterator_type::set_to_beginning(); }
+			void set_to_end_marker() { ss_iterator_type::set_to_end_marker(); }
+			void set_to_next() { ss_iterator_type::set_to_next(); }
+			void set_to_previous() { ss_iterator_type::set_to_previous(); }
+			xscope_ss_iterator_type& operator ++() { ss_iterator_type::operator ++(); return (*this); }
+			xscope_ss_iterator_type operator++(int) { xscope_ss_iterator_type _Tmp = *this; ss_iterator_type::operator++(); return (_Tmp); }
+			xscope_ss_iterator_type& operator --() { ss_iterator_type::operator --(); return (*this); }
+			xscope_ss_iterator_type operator--(int) { xscope_ss_iterator_type _Tmp = *this; ss_iterator_type::operator--(); return (_Tmp); }
+			void advance(typename difference_type n) { ss_iterator_type::advance(n); }
+			void regress(typename difference_type n) { ss_iterator_type::regress(n); }
+			xscope_ss_iterator_type& operator +=(difference_type n) { ss_iterator_type::operator +=(n); return (*this); }
+			xscope_ss_iterator_type& operator -=(difference_type n) { ss_iterator_type::operator -=(n); return (*this); }
+			xscope_ss_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			xscope_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+			typename difference_type operator-(const xscope_ss_iterator_type& _Right_cref) const { return ss_iterator_type::operator-(_Right_cref); }
+			typename reference operator*() const { return ss_iterator_type::operator*(); }
+			typename reference item() const { return operator*(); }
+			typename reference previous_item() const { return ss_iterator_type::previous_item(); }
+			typename pointer operator->() const { return ss_iterator_type::operator->(); }
+			typename reference operator[](typename difference_type _Off) const { return ss_iterator_type::operator[](_Off); }
+			xscope_ss_iterator_type& operator=(const ss_iterator_type& _Right_cref) {
+				if (_Right_cref.m_owner_ptr != (*this).m_owner_ptr) { MSE_THROW(msearray_range_error("invalid argument - xscope_ss_iterator_type& operator=(const xscope_ss_iterator_type& _Right_cref) - msearray::xscope_ss_iterator_type")); }
+				ss_iterator_type::operator=(_Right_cref);
+				return (*this);
+			}
+			bool operator==(const xscope_ss_iterator_type& _Right_cref) const { return ss_iterator_type::operator==(_Right_cref); }
+			bool operator!=(const xscope_ss_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
+			bool operator<(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator<(_Right); }
+			bool operator<=(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator<=(_Right); }
+			bool operator>(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator>(_Right); }
+			bool operator>=(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator>=(_Right); }
+			void set_to_item_pointer(const xscope_ss_iterator_type& _Right_cref) { ss_iterator_type::set_to_item_pointer(_Right_cref); }
+			msear_size_t position() const { return ss_iterator_type::position(); }
+		private:
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			//typename ss_iterator_type (*this);
+			friend class /*_Myt*/msearray<_Ty, _Size>;
+		};
+
 
 		bool operator==(const _Myt& _Right) const {	// test for array equality
 			return (_Right.m_array == m_array);
@@ -718,6 +866,43 @@ namespace mse {
 	template<class _Ty, size_t _Size> inline bool operator>=(const msearray<_Ty, _Size>& _Left,
 		const msearray<_Ty, _Size>& _Right) {	// test if _Left >= _Right for arrays
 		return (!(_Left < _Right));
+	}
+
+
+	template<class _TArray> using xscope_ss_const_iterator_type = typename _TArray::xscope_ss_const_iterator_type;
+	template<class _TArray>
+	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
+		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
+	}
+	template<class _TArray>
+	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
+	}
+	template<class _TArray, class _TLeasePointerType>
+	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedConstPointer<_TArray, _TLeasePointerType>& owner_ptr) {
+		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
+	}
+	template<class _TArray, class _TLeasePointerType>
+	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedPointer<_TArray, _TLeasePointerType>& owner_ptr) {
+		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
+	}
+	template<class _TArray, class _TLeasePointerType>
+	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedConstPointer<const _TArray, _TLeasePointerType>& owner_ptr) {
+		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
+	}
+	template<class _TArray, class _TLeasePointerType>
+	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedPointer<const _TArray, _TLeasePointerType>& owner_ptr) {
+		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
+	}
+
+	template<class _TArray> using xscope_ss_iterator_type = typename _TArray::xscope_ss_iterator_type;
+	template<class _TArray>
+	xscope_ss_iterator_type<_TArray> make_xscope_ss_iterator_type(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+		return xscope_ss_iterator_type<_TArray>(owner_ptr);
+	}
+	template<class _TArray, class _TLeasePointerType>
+	xscope_ss_iterator_type<_TArray> make_xscope_ss_iterator_type(const mse::TXScopeWeakFixedPointer<_TArray, _TLeasePointerType>& owner_ptr) {
+		return xscope_ss_iterator_type<_TArray>(owner_ptr);
 	}
 }
 
