@@ -1438,11 +1438,10 @@ usage example:
 
 ### msearray
 
-msearray<>, like msevector<>, is a essentially a compromise between safety and performance. And like msevector<>, msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like msevector<>, msearray<>'s safe iterator also supports the more "readable" interface.  
+msearray<>, like msevector<>, is a essentially a compromise between safety and performance. And like msevector<>, msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like msevector<>, msearray<>'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
 
 usage example:
 
-    #include "msemstdarray.h"
     #include "msemsearray.h"
     #include <array>
     
@@ -1469,6 +1468,42 @@ usage example:
         bool bres3 = ss_cit1.has_previous();
         ss_cit1.set_to_end_marker();
         bool bres4 = ss_cit1.points_to_an_item();
+    
+        {
+            /* A "scope" version of the safe iterators can be used when the array is declared as a scope
+            object. There are limitations on when thay can be used, but unlike the other msearray iterators,
+            those restrictions ensure that they won't be used to access the array after it's been deallocated. */
+            
+            mse::TXScopeObj<mse::msearray<int, 3>> array1_scpobj = mse::msearray<int, 3>{ 1, 2, 3 };
+            
+            auto scp_ss_iter1 = mse::make_xscope_ss_iterator_type(&array1_scpobj);
+            scp_ss_iter1.set_to_beginning();
+            auto scp_ss_iter2 = mse::make_xscope_ss_iterator_type(&array1_scpobj);
+            scp_ss_iter2.set_to_end_marker();
+            
+            std::sort(scp_ss_iter1, scp_ss_iter2);
+            
+            auto scp_ss_citer3 = mse::make_xscope_ss_const_iterator_type(&array1_scpobj);
+            scp_ss_citer3 = scp_ss_iter1;
+            scp_ss_citer3 = array1_scpobj.ss_cbegin();
+            scp_ss_citer3 += 2;
+            auto res1 = *scp_ss_citer3;
+            auto res2 = scp_ss_citer3[0];
+            
+            /* Here we demonstrate the case where the array is a member of a class/struct declared as a
+            scope object. */
+            class CContainer1 {
+            public:
+                CContainer1() : m_array({ 1, 2, 3 }) {}
+                
+                mse::msearray<int, 3> m_array;
+            };
+            mse::TXScopeObj<CContainer1> container1_scpobj;
+            auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+            auto scp_ss_citer4 = mse::make_xscope_ss_iterator_type(container1_m_array_scpptr);
+            scp_ss_citer4++;
+            auto res3 = *scp_ss_citer4;
+        }
     }
 
 Note that we've decided to implement msearray<> as an "aggregate" type. This means that it gets automatic compiler support for [aggregate initialization](http://en.cppreference.com/w/cpp/language/aggregate_initialization), but it comes with some compromises as well. One detail to be aware of is that when replacing an aggregate initialized std::array<> with an mse::msearray<>, you generally need to add an extra set of braces around the initializer list. Note that with mse::mstd::array<>, you do not need the extra braces because it is not an aggregate type and instead tries to emulate support for aggregate initialization.
