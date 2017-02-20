@@ -763,7 +763,8 @@ namespace mse {
 			return (*m_random_access_iterator);
 		}
 		_Ty* operator->() const {
-			return m_random_access_iterator.operator->();
+			return std::addressof(*m_random_access_iterator);
+			//return m_random_access_iterator.operator->();
 		}
 		typename TCommonRandomAccessIteratorInterface<_Ty>::reference_t operator[](typename TCommonRandomAccessIteratorInterface<_Ty>::difference_t _Off) const {
 			return m_random_access_iterator[_Off];
@@ -842,6 +843,10 @@ namespace mse {
 		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
 			(!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessIterator<_Ty>>::value)
 			&& (!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessConstIterator<_Ty>>::value)
+			&& (!std::is_convertible<_TRandomAccessIterator1, mse::mstd::array<_Ty>::xscope_iterator>::value)
+			&& (!std::is_convertible<_TRandomAccessIterator1, mse::mstd::array<_Ty>::xscope_const_iterator>::value)
+			&& (!std::is_convertible<_TRandomAccessIterator1, mse::msearray<_Ty>::xscope_ss_iterator_type>::value)
+			&& (!std::is_convertible<_TRandomAccessIterator1, mse::msearray<_Ty>::xscope_ss_const_iterator_type>::value)
 			, void>::type
 		>
 		TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TXScopeAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
@@ -887,7 +892,8 @@ namespace mse {
 			return (*m_random_access_const_iterator);
 		}
 		const _Ty* operator->() const {
-			return m_random_access_const_iterator.operator->();
+			return std::addressof(*m_random_access_const_iterator);
+			//return m_random_access_const_iterator.operator->();
 		}
 		typename TCommonRandomAccessConstIteratorInterface<_Ty>::const_reference_t operator[](typename TCommonRandomAccessConstIteratorInterface<_Ty>::difference_t _Off) const {
 			return m_random_access_const_iterator[_Off];
@@ -966,6 +972,10 @@ namespace mse {
 			&& (!std::is_convertible<_TRandomAccessConstIterator1, TXScopeAnyRandomAccessIterator<_Ty>>::value)
 			&& (!std::is_same<_TRandomAccessConstIterator1, TAnyRandomAccessConstIterator>::value)
 			&& (!std::is_same<_TRandomAccessConstIterator1, TAnyRandomAccessIterator<_Ty>>::value)
+			&& (!std::is_convertible<_TRandomAccessIterator1, mse::mstd::array<_Ty>::xscope_iterator>::value)
+			&& (!std::is_convertible<_TRandomAccessIterator1, mse::mstd::array<_Ty>::xscope_const_iterator>::value)
+			&& (!std::is_convertible<_TRandomAccessIterator1, mse::msearray<_Ty>::xscope_ss_iterator_type>::value)
+			&& (!std::is_convertible<_TRandomAccessIterator1, mse::msearray<_Ty>::xscope_ss_const_iterator_type>::value)
 			, void>::type>
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : TXScopeAnyRandomAccessConstIterator<_Ty>(random_access_const_iterator) {}
 
