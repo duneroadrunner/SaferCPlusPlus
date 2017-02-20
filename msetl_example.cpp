@@ -253,7 +253,7 @@ int main(int argc, char* argv[])
 		/* Btw, ipointers are compatible with stl algorithms, like any other stl iterators. */
 		std::sort(v.ibegin(), v.iend());
 
-		/* And just to be clear, mse::msevector<> retains it's original (high performance) stl::vector iterators. */
+		/* And just to be clear, mse::msevector<> retains its original (high performance) stl::vector iterators. */
 		std::sort(v.begin(), v.end());
 
 		/* mse::msevector<> also provides "safe" (bounds checked) versions of the original stl::vector iterators. */
@@ -407,7 +407,6 @@ int main(int argc, char* argv[])
 			class CContainer1 {
 			public:
 				CContainer1() : m_array({ 1, 2, 3 }) {}
-
 				mse::msearray<int, 3> m_array;
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
@@ -826,7 +825,8 @@ int main(int argc, char* argv[])
 			}
 			{
 				int count = 0;
-				mse::TRegisteredPointer<CE> item_ptr2 = &(mse::TRegisteredObj<CE>(count));
+				mse::TRegisteredObj<CE> place_holder1(count);
+				mse::TRegisteredPointer<CE> item_ptr2 = &place_holder1;
 				auto t1 = std::chrono::high_resolution_clock::now();
 				{
 					for (int i = 0; i < number_of_loops; i += 1) {
