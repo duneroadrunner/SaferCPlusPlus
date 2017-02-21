@@ -840,6 +840,7 @@ namespace mse {
 	public:
 		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : TXScopeAnyRandomAccessIterator<_Ty>(src) {}
 
+		/* todo: exclude construction from (the array) "xscope" iterators. */
 		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
 			(!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessIterator<_Ty>>::value)
 			&& (!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessConstIterator<_Ty>>::value)
