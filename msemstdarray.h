@@ -488,6 +488,7 @@ namespace mse {
 				bool operator>=(const xscope_const_iterator& _Right) const { return (msearray_xscope_ss_const_iterator_type() >= _Right.msearray_xscope_ss_const_iterator_type()); }
 				void set_to_const_item_pointer(const xscope_const_iterator& _Right_cref) { msearray_xscope_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msearray_xscope_ss_const_iterator_type()); }
 				msear_size_t position() const { return msearray_xscope_ss_const_iterator_type().position(); }
+				void xscope_iterator_tag() const {}
 			private:
 				typename _MA::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 				friend class /*_Myt*/array<_Ty, _Size>;
@@ -563,6 +564,7 @@ namespace mse {
 				bool operator>=(const xscope_iterator& _Right) const { return (msearray_xscope_ss_iterator_type() >= _Right.msearray_xscope_ss_iterator_type()); }
 				void set_to_item_pointer(const xscope_iterator& _Right_cref) { msearray_xscope_ss_iterator_type().set_to_item_pointer(_Right_cref.msearray_xscope_ss_iterator_type()); }
 				msear_size_t position() const { return msearray_xscope_ss_iterator_type().position(); }
+				void xscope_iterator_tag() const {}
 			private:
 				typename _MA::xscope_ss_iterator_type m_xscope_ss_iterator;
 				friend class /*_Myt*/array<_Ty, _Size>;

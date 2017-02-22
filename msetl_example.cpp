@@ -1516,9 +1516,9 @@ int main(int argc, char* argv[])
 		/*  TAnyRandomAccessIterator  */
 		/******************************/
 
-		mse::mstd::array<int, 4> array1 { 1, 2, 3, 4 };
-		mse::mstd::array<int, 5> array2 { 5, 6, 7, 8, 9 };
-		mse::mstd::vector<int> vec1 { 10, 11, 12, 13, 14 };
+		mse::mstd::array<int, 4> mstd_array1 { 1, 2, 3, 4 };
+		mse::msearray<int, 5> msearray2 { 5, 6, 7, 8, 9 };
+		mse::mstd::vector<int> mstd_vec1 { 10, 11, 12, 13, 14 };
 		class B {
 		public:
 			static void foo1(mse::TXScopeAnyRandomAccessIterator<int> ra_iter1) {
@@ -1551,23 +1551,29 @@ int main(int argc, char* argv[])
 			}
 		};
 
-		auto array_iter1 = array1.begin();
-		array_iter1++;
-		auto res1 = B::foo2(array_iter1);
-		B::foo1(array_iter1);
+		auto mstd_array_iter1 = mstd_array1.begin();
+		mstd_array_iter1++;
+		auto res1 = B::foo2(mstd_array_iter1);
+		B::foo1(mstd_array_iter1);
 
-		auto array_const_iter2 = array2.cbegin();
-		array_const_iter2 += 2;
-		auto res2 = B::foo2(array_const_iter2);
+		auto msearray_const_iter2 = msearray2.ss_cbegin();
+		msearray_const_iter2 += 2;
+		auto res2 = B::foo2(msearray_const_iter2);
 
-		auto res3 = B::foo2(vec1.cbegin());
-		B::foo1(++vec1.begin());
-		auto res4 = B::foo2(vec1.begin());
+		auto res3 = B::foo2(mstd_vec1.cbegin());
+		B::foo1(++mstd_vec1.begin());
+		auto res4 = B::foo2(mstd_vec1.begin());
 
-		mse::TXScopeRandomAccessSection<int> ra_section1(array_iter1, 2);
+		mse::TXScopeObj<mse::mstd::array<int, 4>> mstd_array3_scbobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
+		auto mstd_array_scpiter3 = mse::mstd::make_xscope_iterator(&mstd_array3_scbobj);
+		mstd_array_scpiter3 = mstd_array3_scbobj.begin();
+		++mstd_array_scpiter3;
+		B::foo1(mstd_array_scpiter3);
+
+		mse::TXScopeRandomAccessSection<int> ra_section1(mstd_array_iter1, 2);
 		B::foo3(ra_section1);
 
-		mse::TXScopeRandomAccessSection<int> ra_section2(++vec1.begin(), 3);
+		mse::TXScopeRandomAccessSection<int> ra_section2(++mstd_vec1.begin(), 3);
 		auto res5 = B::foo5(ra_section2);
 		B::foo3(ra_section2);
 		auto res6 = B::foo4(ra_section2);

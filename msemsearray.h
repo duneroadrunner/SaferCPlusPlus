@@ -758,6 +758,7 @@ namespace mse {
 			bool operator>=(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator>=(_Right); }
 			void set_to_const_item_pointer(const xscope_ss_const_iterator_type& _Right_cref) { ss_const_iterator_type::set_to_item_pointer(_Right_cref); }
 			msear_size_t position() const { return ss_const_iterator_type::position(); }
+			void xscope_ss_iterator_type_tag() const {}
 		private:
 			void* operator new(size_t size) { return ::operator new(size); }
 
@@ -824,6 +825,7 @@ namespace mse {
 			bool operator>=(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator>=(_Right); }
 			void set_to_item_pointer(const xscope_ss_iterator_type& _Right_cref) { ss_iterator_type::set_to_item_pointer(_Right_cref); }
 			msear_size_t position() const { return ss_iterator_type::position(); }
+			void xscope_ss_iterator_type_tag() const {}
 		private:
 			void* operator new(size_t size) { return ::operator new(size); }
 

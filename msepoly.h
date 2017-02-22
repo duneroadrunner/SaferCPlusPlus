@@ -833,36 +833,6 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessConstIterator;
-
-	template <typename _Ty>
-	class TAnyRandomAccessIterator : public TXScopeAnyRandomAccessIterator<_Ty> {
-	public:
-		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : TXScopeAnyRandomAccessIterator<_Ty>(src) {}
-
-		/* todo: exclude construction from (the array) "xscope" iterators. */
-		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
-			(!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessIterator<_Ty>>::value)
-			&& (!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessConstIterator<_Ty>>::value)
-			, void>::type
-		>
-		TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TXScopeAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
-
-		TAnyRandomAccessIterator<_Ty>& operator=(const TAnyRandomAccessIterator<_Ty>& _Right_cref) {
-			TXScopeAnyRandomAccessIterator<_Ty>::operator=(_Right_cref);
-			return (*this);
-		}
-		//void* operator new(size_t size) { return ::operator new(size); }
-
-	private:
-		TAnyRandomAccessIterator<_Ty>* operator&() { return this; }
-		const TAnyRandomAccessIterator<_Ty>* operator&() const { return this; }
-	};
-
-	template <typename _Ty>
-	class TAnyRandomAccessConstIterator;
-
-	template <typename _Ty>
 	class TCommonRandomAccessConstIteratorInterface {
 	public:
 		virtual ~TCommonRandomAccessConstIteratorInterface() {}
@@ -956,6 +926,48 @@ namespace mse {
 		mse::any m_any_random_access_const_iterator;
 
 		friend class TAnyRandomAccessConstIterator<_Ty>;
+	};
+
+	template<typename T>
+	struct HasXScopeIteratorTagMethod
+	{
+		template<typename U, void(U::*)() const> struct SFINAE {};
+		template<typename U> static char Test(SFINAE<U, &U::xscope_iterator_tag>*);
+		template<typename U> static int Test(...);
+		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+	};
+
+	template<typename T>
+	struct HasXScopeSSIteratorTypeTagMethod
+	{
+		template<typename U, void(U::*)() const> struct SFINAE {};
+		template<typename U> static char Test(SFINAE<U, &U::xscope_ss_iterator_type_tag>*);
+		template<typename U> static int Test(...);
+		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+	};
+
+	template <typename _Ty>
+	class TAnyRandomAccessIterator : public TXScopeAnyRandomAccessIterator<_Ty> {
+	public:
+		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : TXScopeAnyRandomAccessIterator<_Ty>(src) {}
+
+		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
+			(!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessIterator<_Ty>>::value)
+			&& (!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessConstIterator<_Ty>>::value)
+			&& (!std::integral_constant<bool, HasXScopeIteratorTagMethod<_TRandomAccessIterator1>::Has>())
+			&& (!std::integral_constant<bool, HasXScopeSSIteratorTypeTagMethod<_TRandomAccessIterator1>::Has>())
+			, void>::type>
+			TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TXScopeAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
+
+		TAnyRandomAccessIterator<_Ty>& operator=(const TAnyRandomAccessIterator<_Ty>& _Right_cref) {
+			TXScopeAnyRandomAccessIterator<_Ty>::operator=(_Right_cref);
+			return (*this);
+		}
+		//void* operator new(size_t size) { return ::operator new(size); }
+
+	private:
+		TAnyRandomAccessIterator<_Ty>* operator&() { return this; }
+		const TAnyRandomAccessIterator<_Ty>* operator&() const { return this; }
 	};
 
 	template <typename _Ty>
