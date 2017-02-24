@@ -217,6 +217,29 @@ namespace mse {
 				}
 			}
 		}
+		void reserve_space_for_one_more() {
+			/* The purpose of this function is to ensure that the next call to registerPointer() won't
+			need to allocate more memory, and thus won't have any chance of throwing an exception due to
+			memory allocation failure. */
+			if (!fast_mode1()) {
+				(*m_ptr_to_regptr_set_ptr).reserve((*m_ptr_to_regptr_set_ptr).size() + 1);
+			}
+			else if (sc_fm1_max_pointers == m_fm1_num_pointers) {
+				/* At this point, a call to registerPointer() would result in a switch out of fast mode
+				and the allocation of an std::unordered_set. We'll trigger that event now by adding and
+				removing a placeholder pointer. */
+				class CPlaceHolderPtr : public CSaferPtrBase {
+				public:
+					void setToNull() const {}
+				};
+				CPlaceHolderPtr placeholder_ptr;
+				(*this).registerPointer(placeholder_ptr);
+				(*this).unregisterPointer(placeholder_ptr);
+
+				assert(m_ptr_to_regptr_set_ptr);
+				//(*m_ptr_to_regptr_set_ptr).reserve((*m_ptr_to_regptr_set_ptr).size() + 1);
+			}
+		}
 
 		bool fast_mode1() const { return (nullptr == m_ptr_to_regptr_set_ptr); }
 		int m_fm1_num_pointers = 0;
@@ -280,6 +303,15 @@ namespace mse {
 					(*sp_ref_ptr).setToNull();
 				}
 			}
+		}
+		void reserve_space_for_one_more() {
+			/* The purpose of this function is to ensure that the next call to registerPointer() won't
+			need to allocate more memory, and thus won't have any chance of throwing an exception due to
+			memory allocation failure. */
+			if (!m_ptr_to_regptr_set_ptr) {
+				m_ptr_to_regptr_set_ptr = new std::unordered_set<const CSaferPtrBase*>();
+			}
+			(*m_ptr_to_regptr_set_ptr).reserve((*m_ptr_to_regptr_set_ptr).size() + 1);
 		}
 
 		std::unordered_set<const CSaferPtrBase*> *m_ptr_to_regptr_set_ptr = nullptr;
@@ -527,12 +559,22 @@ namespace mse {
 	}
 	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>& TRegisteredPointer<_Ty, _Tn>::operator=(TRegisteredObj<_Ty, _Tn>* ptr) {
-		if (nullptr != (*this).m_ptr) {
-			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
-		}
-		TSaferPtr<TRegisteredObj<_Ty, _Tn>>::operator=(ptr);
 		if (nullptr != ptr) {
+			/* Here we're just ensuring that the registerPointer() call won't throw an exception (due to
+			memory allocation failure).*/
+			(*ptr).mseRPManager().reserve_space_for_one_more();
+
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
+			}
+			TSaferPtr<TRegisteredObj<_Ty, _Tn>>::operator=(ptr);
 			(*ptr).mseRPManager().registerPointer(*this);
+		}
+		else {
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
+			}
+			TSaferPtr<TRegisteredObj<_Ty, _Tn>>::operator=(ptr);
 		}
 		return (*this);
 	}
@@ -600,12 +642,22 @@ namespace mse {
 	}
 	template<typename _Ty, int _Tn>
 	TRegisteredConstPointer<_Ty, _Tn>& TRegisteredConstPointer<_Ty, _Tn>::operator=(const TRegisteredObj<_Ty, _Tn>* ptr) {
-		if (nullptr != (*this).m_ptr) {
-			(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
-		}
-		TSaferPtr<const TRegisteredObj<_Ty, _Tn>>::operator=(ptr);
 		if (nullptr != ptr) {
+			/* Here we're just ensuring that the registerPointer() call won't throw an exception (due to
+			memory allocation failure).*/
+			(*ptr).mseRPManager().reserve_space_for_one_more();
+
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
+			}
+			TSaferPtr<const TRegisteredObj<_Ty, _Tn>>::operator=(ptr);
 			(*ptr).mseRPManager().registerPointer(*this);
+		}
+		else {
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).mseRPManager().unregisterPointer(*this);
+			}
+			TSaferPtr<const TRegisteredObj<_Ty, _Tn>>::operator=(ptr);
 		}
 		return (*this);
 	}

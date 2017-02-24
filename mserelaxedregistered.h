@@ -97,6 +97,12 @@ namespace mse {
 		bool unregisterPointer(const CSaferPtrBase& sp_ref, const void *obj_ptr) { return (*this).unregisterPointer(sp_ref, (void *)obj_ptr); }
 		void onObjectDestruction(const void *obj_ptr) { (*this).onObjectDestruction((void *)obj_ptr); }
 		void onObjectConstruction(const void *obj_ptr) { (*this).onObjectConstruction((void *)obj_ptr); }
+		void reserve_space_for_one_more() {
+			/* The purpose of this function is to ensure that the next call to registerPointer() won't
+			need to allocate more memory, and thus won't have any chance of throwing an exception due to
+			memory allocation failure. */
+			m_obj_pointer_map.reserve(m_obj_pointer_map.size() + 1);
+		}
 
 		bool isEmpty() const { return ((0 == m_num_fs1_objects) && (0 == m_obj_pointer_map.size())); }
 
@@ -229,6 +235,7 @@ namespace mse {
 			(*m_sp_tracker_ptr).onObjectDestruction(this); /* Just in case there are pointers to this pointer out there. */
 		}
 		TRelaxedRegisteredPointer<_Ty>& operator=(_Ty* ptr) {
+			(*m_sp_tracker_ptr).reserve_space_for_one_more();
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
 			TSaferPtrForLegacy<_Ty>::operator=(ptr);
 			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
@@ -236,6 +243,7 @@ namespace mse {
 			return (*this);
 		}
 		TRelaxedRegisteredPointer<_Ty>& operator=(const TRelaxedRegisteredPointer<_Ty>& _Right_cref) {
+			(*m_sp_tracker_ptr).reserve_space_for_one_more();
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
 			TSaferPtrForLegacy<_Ty>::operator=(_Right_cref);
 			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
@@ -361,6 +369,7 @@ namespace mse {
 			(*m_sp_tracker_ptr).onObjectDestruction(this); /* Just in case there are pointers to this pointer out there. */
 		}
 		TRelaxedRegisteredConstPointer<_Ty>& operator=(const _Ty* ptr) {
+			(*m_sp_tracker_ptr).reserve_space_for_one_more();
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
 			TSaferPtrForLegacy<const _Ty>::operator=(ptr);
 			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
@@ -368,6 +377,7 @@ namespace mse {
 			return (*this);
 		}
 		TRelaxedRegisteredConstPointer<_Ty>& operator=(const TRelaxedRegisteredConstPointer<_Ty>& _Right_cref) {
+			(*m_sp_tracker_ptr).reserve_space_for_one_more();
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
 			TSaferPtrForLegacy<const _Ty>::operator=(_Right_cref);
 			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
