@@ -134,6 +134,7 @@ namespace mse {
 			helper_t::move(old.type_id, &old.data, &data);
 		}
 
+#ifdef MSE_TDP_VARIANT_ASSIGNMENT_OPERATOR_USE_NON_TYPESAFE_SWAP
 		// Serves as both the move and the copy asignment operator.
 		tdp_variant<Ts...>& operator= (tdp_variant<Ts...> old)
 		{
@@ -142,13 +143,27 @@ namespace mse {
 
 			return *this;
 		}
+#else // MSE_TDP_VARIANT_ASSIGNMENT_OPERATOR_USE_NON_TYPESAFE_SWAP
+		tdp_variant<Ts...>& operator= (const tdp_variant<Ts...>& old)
+		{
+			/* The original implementation seemed to assume a bitwise swap was valid, which
+			isn't always the case. This implementation doesn't rely on swap functionality, but
+			also doesn't benefit from the inherent exception safety of the swap implementation. */
+			auto held_type_id = type_id;
+			type_id = invalid_type();
+			helper_t::destroy(held_type_id, &data);
+			helper_t::copy(old.type_id, &old.data, &data);
+			type_id = old.type_id;
+			return *this;
+		}
+#endif // MSE_TDP_VARIANT_ASSIGNMENT_OPERATOR_USE_NON_TYPESAFE_SWAP
 
 		template<typename T>
-		bool is() {
+		bool is() const {
 			return (type_id == typeid(T).hash_code());
 		}
 
-		bool valid() {
+		bool valid() const {
 			return (type_id != invalid_type());
 		}
 
@@ -156,9 +171,21 @@ namespace mse {
 		void set(Args&&... args)
 		{
 			// First we destroy the current contents    
-			helper_t::destroy(type_id, &data);
+			auto held_type_id = type_id;
+			type_id = invalid_type();
+			helper_t::destroy(held_type_id, &data);
 			::new (&data) T(std::forward<Args>(args)...);
 			type_id = typeid(T).hash_code();
+		}
+
+		template<typename T>
+		const T& get() const
+		{
+			// It is a dynamic_cast-like behaviour
+			if (type_id == typeid(T).hash_code())
+				return *reinterpret_cast<const T*>(&data);
+			else
+				MSE_THROW(std::bad_cast());
 		}
 
 		template<typename T>
@@ -172,7 +199,9 @@ namespace mse {
 		}
 
 		~tdp_variant() {
-			helper_t::destroy(type_id, &data);
+			auto held_type_id = type_id;
+			type_id = invalid_type();
+			helper_t::destroy(held_type_id, &data);
 		}
 	};
 
@@ -279,7 +308,10 @@ namespace mse {
 		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 	protected:
-		TXScopeAnyPointer<_Ty>& operator=(const TXScopeAnyPointer<_Ty>& _Right_cref) = delete;
+		TXScopeAnyPointer<_Ty>& operator=(const TXScopeAnyPointer<_Ty>& _Right_cref) {
+			m_any_pointer = _Right_cref.m_any_pointer;
+			return (*this);
+		}
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		TXScopeAnyPointer<_Ty>* operator&() { return this; }
@@ -310,9 +342,12 @@ namespace mse {
 			, void>::type>
 			TAnyPointer(const _TPointer1& pointer) : TXScopeAnyPointer<_Ty>(pointer) {}
 
-	protected:
-		TAnyPointer<_Ty>& operator=(const TAnyPointer<_Ty>& _Right_cref) = delete;
+		TAnyPointer<_Ty>& operator=(const TAnyPointer<_Ty>& _Right_cref) {
+			TXScopeAnyPointer<_Ty>::operator=(_Right_cref);
+			return (*this);
+		}
 
+	protected:
 		TAnyPointer<_Ty>* operator&() { return this; }
 		const TAnyPointer<_Ty>* operator&() const { return this; }
 	};
@@ -367,7 +402,10 @@ namespace mse {
 		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 	protected:
-		TXScopeAnyConstPointer<_Ty>& operator=(const TXScopeAnyConstPointer<_Ty>& _Right_cref) = delete;
+		TXScopeAnyConstPointer<_Ty>& operator=(const TXScopeAnyConstPointer<_Ty>& _Right_cref) {
+			m_any_const_pointer = _Right_cref.m_any_const_pointer;
+			return (*this);
+		}
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		TXScopeAnyConstPointer<_Ty>* operator&() { return this; }
@@ -399,9 +437,12 @@ namespace mse {
 			, void>::type>
 			TAnyConstPointer(const _TPointer1& pointer) : TXScopeAnyConstPointer<_Ty>(pointer) {}
 
-	protected:
-		TAnyConstPointer<_Ty>& operator=(const TAnyConstPointer<_Ty>& _Right_cref) = delete;
+		TAnyConstPointer<_Ty>& operator=(const TAnyConstPointer<_Ty>& _Right_cref) {
+			TXScopeAnyConstPointer<_Ty>::operator=(_Right_cref);
+			return (*this);
+		}
 
+	protected:
 		TAnyConstPointer<_Ty>* operator&() { return this; }
 		const TAnyConstPointer<_Ty>* operator&() const { return this; }
 	};
@@ -491,8 +532,14 @@ namespace mse {
 		template <typename _Ty2>
 		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
-	private:
-		TXScopePolyPointer<_Ty>& operator=(const TXScopePolyPointer<_Ty>& _Right_cref) = delete;
+	protected:
+		TXScopePolyPointer<_Ty>& operator=(const TXScopePolyPointer<_Ty>& _Right_cref) {
+			/* We can't use the "copy and swap idiom" because the "variant" implementation we're using
+			doesn't support typesafe swap. */
+			m_pointer.~poly_variant();
+			new (&m_pointer) poly_variant(_Right_cref.m_pointer);
+			return (*this);
+		}
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		TXScopePolyPointer<_Ty>* operator&() { return this; }
@@ -539,10 +586,12 @@ namespace mse {
 
 		TPolyPointer(_Ty* p) : TXScopePolyPointer<_Ty>(p) {}
 
-	private:
-		TPolyPointer<_Ty>& operator=(const TPolyPointer<_Ty>& _Right_cref) = delete;
-		//void* operator new(size_t size) { return ::operator new(size); }
+		TPolyPointer<_Ty>& operator=(const TPolyPointer<_Ty>& _Right_cref) {
+			TXScopePolyPointer<_Ty>::operator=(_Right_cref);
+			return (*this);
+		}
 
+	private:
 		TPolyPointer<_Ty>* operator&() { return this; }
 		const TPolyPointer<_Ty>* operator&() const { return this; }
 	};
@@ -656,8 +705,14 @@ namespace mse {
 		template <typename _Ty2>
 		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
-	private:
-		TXScopePolyConstPointer<_Ty>& operator=(const TXScopePolyConstPointer<_Ty>& _Right_cref) = delete;
+	protected:
+		TXScopePolyConstPointer<_Ty>& operator=(const TXScopePolyConstPointer<_Ty>& _Right_cref) {
+			/* We can't use the "copy and swap idiom" because the "variant" implementation we're using
+			doesn't support typesafe swap. */
+			m_pointer.~poly_variant();
+			new (&m_pointer) poly_variant(_Right_cref.m_pointer);
+			return (*this);
+		}
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		TXScopePolyConstPointer<_Ty>* operator&() { return this; }
@@ -727,10 +782,12 @@ namespace mse {
 
 		TPolyConstPointer(const _Ty* p) : TXScopePolyConstPointer<_Ty>(p) {}
 
-	private:
-		TPolyConstPointer<_Ty>& operator=(const TPolyConstPointer<_Ty>& _Right_cref) = delete;
-		//void* operator new(size_t size) { return ::operator new(size); }
+		TPolyConstPointer<_Ty>& operator=(const TPolyConstPointer<_Ty>& _Right_cref) {
+			TXScopePolyConstPointer<_Ty>::operator=(_Right_cref);
+			return (*this);
+		}
 
+	private:
 		TPolyConstPointer<_Ty>* operator&() { return this; }
 		const TPolyConstPointer<_Ty>* operator&() const { return this; }
 	};
@@ -809,8 +866,11 @@ namespace mse {
 		template <typename _Ty2>
 		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
-	private:
-		TXScopeAnyRandomAccessIterator<_Ty>& operator=(const TXScopeAnyRandomAccessIterator<_Ty>& _Right_cref) = default;
+	protected:
+		TXScopeAnyRandomAccessIterator<_Ty>& operator=(const TXScopeAnyRandomAccessIterator<_Ty>& _Right_cref) {
+			m_any_random_access_iterator = _Right_cref.m_any_random_access_iterator;
+			return (*this);
+		}
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		TXScopeAnyRandomAccessIterator<_Ty>* operator&() { return this; }
@@ -905,8 +965,11 @@ namespace mse {
 		template <typename _Ty2>
 		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
-	private:
-		TXScopeAnyRandomAccessConstIterator<_Ty>& operator=(const TXScopeAnyRandomAccessConstIterator<_Ty>& _Right_cref) = default;
+	protected:
+		TXScopeAnyRandomAccessConstIterator<_Ty>& operator=(const TXScopeAnyRandomAccessConstIterator<_Ty>& _Right_cref) {
+			m_any_random_access_const_iterator = _Right_cref.m_any_random_access_const_iterator;
+			return (*this);
+		}
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		TXScopeAnyRandomAccessConstIterator<_Ty>* operator&() { return this; }
@@ -963,7 +1026,6 @@ namespace mse {
 			TXScopeAnyRandomAccessIterator<_Ty>::operator=(_Right_cref);
 			return (*this);
 		}
-		//void* operator new(size_t size) { return ::operator new(size); }
 
 	private:
 		TAnyRandomAccessIterator<_Ty>* operator&() { return this; }
@@ -988,7 +1050,6 @@ namespace mse {
 			TXScopeAnyRandomAccessConstIterator<_Ty>::operator=(_Right_cref);
 			return (*this);
 		}
-		//void* operator new(size_t size) { return ::operator new(size); }
 
 	private:
 		TAnyRandomAccessConstIterator<_Ty>* operator&() { return this; }
@@ -1534,6 +1595,29 @@ namespace mse {
 				d = e;
 
 				//std::cout << d.get<mse::TRefCountingFixedPointer<A>>()->b << std::endl;
+			}
+
+			{
+				/* Poly and "any" pointer assignment operators. */
+				mse::TPolyPointer<A> a_poly_pointer1 = a_refcptr;
+				mse::TPolyPointer<A> a_poly_pointer2 = &a_regobj;
+				auto res21 = a_poly_pointer1->b;
+				a_poly_pointer1 = a_poly_pointer2;
+				auto res22 = a_poly_pointer1->b;
+
+				mse::TAnyPointer<A> a_any_pointer1 = a_refcptr;
+				mse::TAnyPointer<A> a_any_pointer2 = &a_regobj;
+				auto res31 = a_any_pointer1->b;
+				a_any_pointer1 = a_any_pointer2;
+				auto res32 = a_any_pointer1->b;
+
+				mse::mstd::array<int, 4> array1 = { 1, 2, 3, 4 };
+				mse::TAnyRandomAccessIterator<int> ara_iter1 = array1.end();
+				--ara_iter1;
+				mse::TAnyRandomAccessIterator<int> ara_iter2 = array1.begin();
+				auto res41 = (*ara_iter1);
+				ara_iter1 = ara_iter2;
+				auto res42 = (*ara_iter1);
 			}
 			int q = 3;
 		}
