@@ -1564,6 +1564,20 @@ int main(int argc, char* argv[])
 		B::foo1(++mstd_vec1.begin());
 		auto res4 = B::foo2(mstd_vec1.begin());
 
+		mse::TXScopeAnyRandomAccessIterator<int> ra_iter1 = mstd_vec1.begin();
+		mse::TXScopeAnyRandomAccessIterator<int> ra_iter2 = mstd_vec1.end();
+		auto res5 = ra_iter2 - ra_iter1;
+		ra_iter1 = ra_iter2;
+
+		{
+			std::array<int, 4> std_array1{ 1, 2, 3, 4 };
+			mse::TXScopeAnyRandomAccessIterator<int> ra_iter1(std_array1.begin());
+			mse::TXScopeAnyRandomAccessIterator<int> ra_iter2 = std_array1.end();
+			auto res5 = ra_iter2 - ra_iter1;
+			ra_iter1 = ra_iter2;
+			int q = 3;
+		}
+
 		mse::TXScopeObj<mse::mstd::array<int, 4>> mstd_array3_scbobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
 		auto mstd_array_scpiter3 = mse::mstd::make_xscope_iterator(&mstd_array3_scbobj);
 		mstd_array_scpiter3 = mstd_array3_scbobj.begin();
@@ -1574,9 +1588,9 @@ int main(int argc, char* argv[])
 		B::foo3(ra_section1);
 
 		mse::TXScopeRandomAccessSection<int> ra_section2(++mstd_vec1.begin(), 3);
-		auto res5 = B::foo5(ra_section2);
+		auto res6 = B::foo5(ra_section2);
 		B::foo3(ra_section2);
-		auto res6 = B::foo4(ra_section2);
+		auto res7 = B::foo4(ra_section2);
 	}
 
 	{
