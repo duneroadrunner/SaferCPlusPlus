@@ -1591,6 +1591,11 @@ int main(int argc, char* argv[])
 		auto res6 = B::foo5(ra_section2);
 		B::foo3(ra_section2);
 		auto res7 = B::foo4(ra_section2);
+
+		auto ra_section1_iter1 = ra_section1.begin();
+		auto ra_section1_iter2 = ra_section1.end();
+		auto res8 = ra_section1_iter2 - ra_section1_iter1;
+		bool res9 = (ra_section1_iter1 < ra_section1_iter2);
 	}
 
 	{

@@ -1115,6 +1115,8 @@ namespace mse {
 	public:
 		TRASectionIterator(_TRAIterator ra_iterator, size_type count, size_type index = 0)
 			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_t(index)) {}
+		TRASectionIterator(const TRASectionIterator& src)
+			: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
 
 		void dereference_bounds_check() const {
 			if ((0 > m_index) || (difference_t(m_count) <= m_index)) {
@@ -1142,10 +1144,26 @@ namespace mse {
 		TRASectionIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRASectionIterator& operator --() { operator -=(1); return (*this); }
 		TRASectionIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+		TRASectionIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
+		TRASectionIterator operator-(difference_t n) const { return ((*this) + (-n)); }
+		difference_t operator-(const TRASectionIterator& _Right_cref) const {
+			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_t operator-() - TRASectionIterator")); }
+			return m_index - _Right_cref.m_index;
+		}
 		bool operator ==(const TRASectionIterator& _Right_cref) const {
 			return ((_Right_cref.m_index == m_index) && (_Right_cref.m_count == m_count) && (_Right_cref.m_ra_iterator == m_ra_iterator));
 		}
 		bool operator !=(const TRASectionIterator& _Right_cref) const { return !((*this) == _Right_cref); }
+		bool operator<(const TRASectionIterator& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		bool operator>(const TRASectionIterator& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		bool operator<=(const TRASectionIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+		bool operator>=(const TRASectionIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+		TRASectionIterator& operator=(const TRASectionIterator& _Right_cref) {
+			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionIterator& operator=() - TRASectionIterator")); }
+			m_index = _Right_cref.m_index;
+			return (*this);
+		}
 	};
 
 	template <typename _Ty>
