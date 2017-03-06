@@ -809,6 +809,12 @@ namespace mse {
 		virtual void operator --() { operator -=(1); }
 		virtual void operator --(int) { operator -=(1); }
 		virtual difference_t operator-(const TCommonRandomAccessIteratorInterface& _Right_cref) const = 0;
+		virtual bool operator==(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 == operator-(_Right_cref)); }
+		virtual bool operator!=(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return !(operator==(_Right_cref)); }
+		virtual bool operator<(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		virtual bool operator>(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		virtual bool operator<=(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+		virtual bool operator>=(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
 		virtual void set_value(const TCommonRandomAccessIteratorInterface& _Right_cref) = 0;
 	};
 
@@ -873,18 +879,18 @@ namespace mse {
 		void operator ++(int) { operator +=(1); }
 		void operator --() { operator -=(1); }
 		void operator --(int) { operator -=(1); }
-		template <typename _Ty2>
-		bool operator ==(const _Ty2& _Right_cref) const {
-			return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
-		}
-		template <typename _Ty2>
-		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 		TXScopeAnyRandomAccessIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeAnyRandomAccessIterator operator-(difference_t n) const { return ((*this) + (-n)); }
 		difference_t operator-(const TXScopeAnyRandomAccessIterator& _Right_cref) const {
 			return (*common_random_access_iterator_interface_ptr()) - (*(_Right_cref.common_random_access_iterator_interface_ptr()));
 		}
+		bool operator==(const TXScopeAnyRandomAccessIterator& _Right_cref) const { return (0 == operator-(_Right_cref)); }
+		bool operator!=(const TXScopeAnyRandomAccessIterator& _Right_cref) const { return !(operator==(_Right_cref)); }
+		bool operator<(const TXScopeAnyRandomAccessIterator& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		bool operator>(const TXScopeAnyRandomAccessIterator& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		bool operator<=(const TXScopeAnyRandomAccessIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+		bool operator>=(const TXScopeAnyRandomAccessIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
 		TXScopeAnyRandomAccessIterator& operator=(const TXScopeAnyRandomAccessIterator& _Right_cref) {
 			(*common_random_access_iterator_interface_ptr()).set_value(*(_Right_cref.common_random_access_iterator_interface_ptr()));
 			return (*this);
@@ -928,6 +934,12 @@ namespace mse {
 		virtual void operator --() { operator -=(1); }
 		virtual void operator --(int) { operator -=(1); }
 		virtual difference_t operator-(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const = 0;
+		virtual bool operator==(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 == operator-(_Right_cref)); }
+		virtual bool operator!=(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return !(operator==(_Right_cref)); }
+		virtual bool operator<(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		virtual bool operator>(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		virtual bool operator<=(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+		virtual bool operator>=(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
 		virtual void set_value(const TCommonRandomAccessConstIteratorInterface& _Right_cref) = 0;
 	};
 
@@ -992,18 +1004,18 @@ namespace mse {
 		void operator ++(int) { operator +=(1); }
 		void operator --() { operator -=(1); }
 		void operator --(int) { operator -=(1); }
-		template <typename _Ty2>
-		bool operator ==(const _Ty2& _Right_cref) const {
-			return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
-		}
-		template <typename _Ty2>
-		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 		TXScopeAnyRandomAccessConstIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeAnyRandomAccessConstIterator operator-(difference_t n) const { return ((*this) + (-n)); }
 		difference_t operator-(const TXScopeAnyRandomAccessConstIterator& _Right_cref) const {
 			return (*common_random_access_const_iterator_interface_ptr()) - (*(_Right_cref.common_random_access_const_iterator_interface_ptr()));
 		}
+		bool operator==(const TXScopeAnyRandomAccessConstIterator& _Right_cref) const { return (0 == operator-(_Right_cref)); }
+		bool operator!=(const TXScopeAnyRandomAccessConstIterator& _Right_cref) const { return !(operator==(_Right_cref)); }
+		bool operator<(const TXScopeAnyRandomAccessConstIterator& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		bool operator>(const TXScopeAnyRandomAccessConstIterator& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		bool operator<=(const TXScopeAnyRandomAccessConstIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+		bool operator>=(const TXScopeAnyRandomAccessConstIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
 		TXScopeAnyRandomAccessConstIterator& operator=(const TXScopeAnyRandomAccessConstIterator& _Right_cref) {
 			(*common_random_access_const_iterator_interface_ptr()).set_value(*(_Right_cref.common_random_access_const_iterator_interface_ptr()));
 			return (*this);
