@@ -298,8 +298,8 @@ namespace mse {
 		}
 		template<class ..._Valty>
 		ipointer emplace(const cipointer &pos, _Valty&& ..._Val) {
-			auto res = m_shptr->emplace(pos.msevector_ss_const_iterator_type(), std::forward<_Valty>(_Val)...);
-			iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
+			auto res = m_shptr->emplace(pos.msevector_cipointer(), std::forward<_Valty>(_Val)...);
+			ipointer retval = begin(); retval.msevector_ipointer() = res;
 			return retval;
 		}
 		ipointer erase(const ipointer &pos) {

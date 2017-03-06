@@ -2367,15 +2367,16 @@ namespace mse {
 #if !(defined(GPP4P8_COMPATIBLE))
 		ss_iterator_type emplace(const ss_const_iterator_type &pos, _Valty&& ..._Val)
 		{	// insert by moving _Val at pos
+			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void emplace() - msevector")); }
 #else /*!(defined(GPP4P8_COMPATIBLE))*/
 		ipointer emplace(const ipointer &pos, _Valty&& ..._Val)
 		{	// insert by moving _Val at pos
-#endif /*!(defined(GPP4P8_COMPATIBLE))*/
 			if (pos.m_owner_ptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void emplace() - msevector")); }
+#endif /*!(defined(GPP4P8_COMPATIBLE))*/
 			pos.assert_valid_index();
 			msev_size_t original_pos = pos.position();
 			typename base_class::const_iterator _P = pos;
-			(*this).emplace(_P, _Ilist);
+			(*this).emplace(_P,  std::forward<_Valty>(_Val)...);
 			ss_iterator_type retval = ss_begin();
 			retval.advance(msev_int(original_pos));
 			return retval;
