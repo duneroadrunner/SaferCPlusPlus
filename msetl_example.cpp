@@ -1596,6 +1596,12 @@ int main(int argc, char* argv[])
 		auto ra_section1_iter2 = ra_section1.end();
 		auto res8 = ra_section1_iter2 - ra_section1_iter1;
 		bool res9 = (ra_section1_iter1 < ra_section1_iter2);
+
+		mse::TIPointerWithBundledVector<int> iptrwbv1(mse::msevector<int>({1, 2}));
+		iptrwbv1.resize(5);
+		auto res10 = iptrwbv1[0];
+		auto res11 = iptrwbv1[1];
+		auto res12 = iptrwbv1[2];
 	}
 
 	{

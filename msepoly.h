@@ -1342,6 +1342,55 @@ namespace mse {
 	//template<typename _Ty> using TArraySection = TRandomAccessSection<_Ty>;
 	//template<typename _Ty> using TConstArraySection = TRandomAccessConstSection<_Ty>;
 
+	template <typename _Ty>
+	class TOpaqueWrapper {
+	public:
+		TOpaqueWrapper(const _Ty& value_param) : m_value(value_param) {}
+		_Ty& value() { return m_value; }
+		const _Ty& value() const { return m_value; }
+
+		_Ty m_value;
+	};
+	template <typename _Ty> using TVectorRefcfptrWrapper = TOpaqueWrapper<mse::TRefCountingFixedPointer<mse::msevector<_Ty>>>;
+
+	/* This data type was motivated by the need for a direct substitute for native pointers targeting dynamically
+	allocated (native) arrays, which can kind of play a dual role as a reference to the array object and/or as an
+	iterator. I'm not sure about this implementation though. We could base it on an mse::ivector::ipointer
+	instead... */
+	template <typename _Ty>
+	class TIPointerWithBundledVector : private TVectorRefcfptrWrapper<_Ty>, public mse::msevector<_Ty>::ipointer {
+	public:
+		typedef typename mse::msevector<_Ty>::size_type size_type;
+
+		TIPointerWithBundledVector() : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>())
+			, mse::msevector<_Ty>::ipointer(*vector_refcptr()) {}
+		TIPointerWithBundledVector(const TIPointerWithBundledVector& src) : TVectorRefcfptrWrapper<_Ty>(src.vector_refcptr()), mse::msevector<_Ty>::ipointer(*vector_refcptr()) {}
+		template <class... Args>
+		TIPointerWithBundledVector(Args&&... args) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>(std::forward<Args>(args)...))
+			, mse::msevector<_Ty>::ipointer(*vector_refcptr()) {}
+
+		size_type size() const {
+			return (*vector_refcptr()).size();
+		}
+		void resize(size_type _N, const _Ty& _X = _Ty()) {
+			(*vector_refcptr()).resize(_N, _X);
+		}
+
+		template <class... Args>
+		static TIPointerWithBundledVector make(Args&&... args) {
+			return TIPointerWithBundledVector(std::forward<Args>(args)...);
+		}
+
+	private:
+		mse::TRefCountingFixedPointer<mse::msevector<_Ty>>& vector_refcptr() { return (*this).value(); }
+		const mse::TRefCountingFixedPointer<mse::msevector<_Ty>>& vector_refcptr() const { return (*this).value();  }
+		//mse::TRefCountingFixedPointer<mse::msevector<_Ty>> m_vector_refcptr;
+	};
+
+	template <class X, class... Args>
+	TIPointerWithBundledVector<X> make_refcounting_vector_ipointer(Args&&... args) {
+		return TIPointerWithBundledVector<X>::make(std::forward<Args>(args)...);
+	}
 
 	/* shorter aliases */
 	template<typename _Ty> using pp = TPolyPointer<_Ty>;
