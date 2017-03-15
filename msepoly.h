@@ -1376,6 +1376,10 @@ namespace mse {
 			(*vector_refcptr()).resize(_N, _X);
 		}
 
+		operator bool() const {
+			return ((*this).size() != 0);
+		}
+
 		template <class... Args>
 		static TIPointerWithBundledVector make(Args&&... args) {
 			return TIPointerWithBundledVector(std::forward<Args>(args)...);
