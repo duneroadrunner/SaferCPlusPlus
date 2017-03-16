@@ -393,7 +393,7 @@ Also note that [mse::TRefCountingNotNullPointer](#trefcountingnotnullpointer) an
 
 ### Reference counting pointers
 
-If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is std::shared_ptr, which is notable for its thread-safe reference counting that's rather handy when you're sharing an object among asynchronous threads, but unnecessarily costly when you aren't. So we provide fast reference counting pointers that [forego](#on-thread-safety) any thread safety mechanisms. In addition to being substantially faster (and smaller) than std::shared_ptr, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use mse::make_refcounting&lt;&gt;() instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is std::shared_ptr, which is notable for its thread-safe reference counting that can be handy when you're sharing an object among asynchronous threads, but is unnecessarily costly when you aren't. So we provide fast reference counting pointers that [forego](#on-thread-safety) any thread safety mechanisms. In addition to being substantially faster (and smaller) than std::shared_ptr, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use mse::make_refcounting&lt;&gt;() instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 
 ### TRefCountingPointer
@@ -443,7 +443,7 @@ usage example:
 
 ### TRefCountingNotNullPointer
 
-Same as TRefCountingPointer, but cannot be constructed to or assigned a null value. Because TRefCountingNotNullPointer controls the lifetime of it's target it, should be always safe to assume that it points to a validly allocated object.
+Same as TRefCountingPointer, but cannot be constructed to or assigned a null value. Because TRefCountingNotNullPointer controls the lifetime of its target it, should be always safe to assume that it points to a validly allocated object.
 
 ### TRefCountingFixedPointer
 
@@ -588,9 +588,9 @@ usage example:
 ### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
 
 ### Scope pointers
-Scope pointers are different from other smart pointers in the library in that, by default, they have no runtime safety enforcement mechanism, and the compile-time safety mechanisms aren't (yet) quite sufficient to ensure that they will be used in an intrinsically safe manner. Scope pointers point to scope objects. Scope objects are objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So basically the object is destroyed when it, or it's owner, goes out of scope. The purpose of scope pointers and objects is to identify a class of situations that are simple and deterministic enough that no (runtime) safety mechanisms are necessary. In theory, a tool could be constructed to verify that scope pointers are used in a safe manner at compile-time. But in the mean time we provide the option of using a relaxed registered pointer as the scope pointer's base class for enhanced safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause relaxed registered pointers to be used in debug mode. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For int, bool and size_t use the safer [substitutes](#primitives) that can act as base classes.
+Scope pointers are different from other smart pointers in the library in that, by default, they have no runtime safety enforcement mechanism, and the compile-time safety mechanisms aren't (yet) quite sufficient to ensure that they will be used in an intrinsically safe manner. Scope pointers point to scope objects. Scope objects are objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So basically the object is destroyed when it, or its owner, goes out of scope. The purpose of scope pointers and objects is to identify a class of situations that are simple and deterministic enough that no (runtime) safety mechanisms are necessary. In theory, a tool could be constructed to verify that scope pointers are used in a safe manner at compile-time. But in the mean time we provide the option of using a relaxed registered pointer as the scope pointer's base class for enhanced safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause relaxed registered pointers to be used in debug mode. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For int, bool and size_t use the safer [substitutes](#primitives) that can act as base classes.
 
-There are two types of scope pointers, [TXScopeFixedPointer](#txscopefixedpointer) and [TXScopeOwnerPointer](#txscopeownerpointer). TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to refer to "declaration scope".) TXScopeFixedPointer is a "non-owning" (or "weak") pointer to a scope object. It is (intentionally) limited in it's functionality, and is intended pretty much for the sole purpose of passing scope objects by reference as function arguments. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+There are two types of scope pointers, [TXScopeFixedPointer](#txscopefixedpointer) and [TXScopeOwnerPointer](#txscopeownerpointer). TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to refer to "declaration scope".) TXScopeFixedPointer is a "non-owning" (or "weak") pointer to a scope object. It is (intentionally) limited in its functionality, and is intended pretty much for the sole purpose of passing scope objects by reference as function arguments. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 
 ### TXScopeFixedPointer
@@ -872,15 +872,13 @@ usage example:
 These poly pointers do not support construction from scope pointers, and thus are not bound by the same usage restrictions. For example, these poly pointers may be used as a member of a class or struct.
 
 ### TXScopeAnyPointer, TXScopeAnyConstPointer, TAnyPointer, TAnyConstPointer
-"Any" pointers are also “chameleon” pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by make_pointer_to_member() to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the scope poly pointer usage example.  
+"Any" pointers are also “chameleon” pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by [make_pointer_to_member()](#make_pointer_to_member) to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the scope poly pointer usage example.  
 
-While in theory you could use "any" pointers directly as function arguments, it is generally recommended that you use poly pointers instead, for largely the same reasons [std::variant is generally preferred over std::any](http://www.boost.org/doc/libs/1_63_0/doc/html/variant/misc.html#variant.versus-any). 
+"Any" pointers can also be used as function arguments. The choice between using poly pointers versus "any" pointers is similar to the choice between [std::variant and std::any](http://www.boost.org/doc/libs/1_63_0/doc/html/variant/misc.html#variant.versus-any). 
 
 ### TXScopeAnyRandomAccessIterator, TXScopeAnyRandomAccessConstIterator, TAnyRandomAccessIterator, TAnyRandomAccessConstIterator
 
 In modern C++ (and SaferCPlusPlus), arrays of different sizes are actually different types, with incompatible iterators. So, for example, if you wanted to make a function that accepts the iterators of arrays of varying size, you would generally do that by "templatizing" the function. Alternatively, you could use an "any random access iterator" which is a "chameleon" iterator that can be constructed from basically any iterator that supports operator\[\] (the "square bracket" operator).
-
-Note that at the time of this writing (Feb 2017), the library does not yet provide any "scope" iterators, but may do so in the future.
 
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
@@ -1290,7 +1288,7 @@ usage example:
         /* Btw, ipointers are compatible with stl algorithms, like any other stl iterators. */
         std::sort(v.ibegin(), v.iend());
     
-        /* And just to be clear, mse::msevector<> retains it's original (high performance) stl vector iterators. */
+        /* And just to be clear, mse::msevector<> retains its original (high performance) stl vector iterators. */
         std::sort(v.begin(), v.end());
     
         /* mse::msevector<> also provides "safe" (bounds checked) versions of the original stl vector iterators. */
@@ -1393,13 +1391,57 @@ The mechanism mse::mstd::array<> uses to track its iterators is not thread safe 
 
 Also note for real time applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array<> will resort to obtaining space from the heap. You can instead use mse::msearray<>, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)
 
-### msearray
+### xscope_iterator
 
-msearray<>, like msevector<>, is a essentially a compromise between safety and performance. And like msevector<>, msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like msevector<>, msearray<>'s safe iterator also supports the more "readable" interface.  
+The implementation of mstd::array iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run time cost. So just as the library provides [scope pointers](#scope-pointers) without run time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct, and may not be used as a function return value.
 
 usage example:
 
     #include "msemstdarray.h"
+    
+    int main(int argc, char* argv[]) {
+        /* If the array is declared as a "scope" object (which basically indicates that it is declared
+        on the stack), then you can use "scope" iterators. While there are limitations on when they can
+        be used, scope iterators would be the preferred iterator type where performance is a priority
+        as they don't require extra run time overhead to ensure that the array has not been deallocated. */
+        
+        /* Here we're declaring an array as a scope object. */
+        mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
+        
+        /* Here we're obtaining a scope iterator to the array. */
+        auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
+        scp_array_iter1 = array1_scpobj.begin();
+        auto scp_array_iter2 = mse::mstd::make_xscope_iterator(&array1_scpobj);
+        scp_array_iter2 = array1_scpobj.end();
+        
+        std::sort(scp_array_iter1, scp_array_iter2);
+        
+        auto scp_array_citer3 = mse::mstd::make_xscope_const_iterator(&array1_scpobj);
+        scp_array_citer3 = scp_array_iter1;
+        scp_array_citer3 = array1_scpobj.cbegin();
+        scp_array_citer3 += 2;
+        auto res1 = *scp_array_citer3;
+        auto res2 = scp_array_citer3[0];
+        
+        /* Here we demonstrate the case where the array is a member of a class/struct declared as a
+        scope object. */
+        class CContainer1 {
+        public:
+            mse::mstd::array<int, 3> m_array = { 1, 2, 3 };
+        };
+        mse::TXScopeObj<CContainer1> container1_scpobj;
+        auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+        auto scp_iter4 = mse::mstd::make_xscope_iterator(container1_m_array_scpptr);
+        scp_iter4++;
+        auto res3 = *scp_iter4;
+    }
+
+### msearray
+
+msearray<>, like msevector<>, is a essentially a compromise between safety and performance. And like msevector<>, msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like msevector<>, msearray<>'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
+
+usage example:
+
     #include "msemsearray.h"
     #include <array>
     
@@ -1426,6 +1468,42 @@ usage example:
         bool bres3 = ss_cit1.has_previous();
         ss_cit1.set_to_end_marker();
         bool bres4 = ss_cit1.points_to_an_item();
+    
+        {
+            /* A "scope" version of the safe iterators can be used when the array is declared as a scope
+            object. There are limitations on when thay can be used, but unlike the other msearray iterators,
+            those restrictions ensure that they won't be used to access the array after it's been deallocated. */
+            
+            mse::TXScopeObj<mse::msearray<int, 3>> array1_scpobj = mse::msearray<int, 3>{ 1, 2, 3 };
+            
+            auto scp_ss_iter1 = mse::make_xscope_ss_iterator_type(&array1_scpobj);
+            scp_ss_iter1.set_to_beginning();
+            auto scp_ss_iter2 = mse::make_xscope_ss_iterator_type(&array1_scpobj);
+            scp_ss_iter2.set_to_end_marker();
+            
+            std::sort(scp_ss_iter1, scp_ss_iter2);
+            
+            auto scp_ss_citer3 = mse::make_xscope_ss_const_iterator_type(&array1_scpobj);
+            scp_ss_citer3 = scp_ss_iter1;
+            scp_ss_citer3 = array1_scpobj.ss_cbegin();
+            scp_ss_citer3 += 2;
+            auto res1 = *scp_ss_citer3;
+            auto res2 = scp_ss_citer3[0];
+            
+            /* Here we demonstrate the case where the array is a member of a class/struct declared as a
+            scope object. */
+            class CContainer1 {
+            public:
+                CContainer1() : m_array({ 1, 2, 3 }) {}
+                
+                mse::msearray<int, 3> m_array;
+            };
+            mse::TXScopeObj<CContainer1> container1_scpobj;
+            auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+            auto scp_ss_citer4 = mse::make_xscope_ss_iterator_type(container1_m_array_scpptr);
+            scp_ss_citer4++;
+            auto res3 = *scp_ss_citer4;
+        }
     }
 
 Note that we've decided to implement msearray<> as an "aggregate" type. This means that it gets automatic compiler support for [aggregate initialization](http://en.cppreference.com/w/cpp/language/aggregate_initialization), but it comes with some compromises as well. One detail to be aware of is that when replacing an aggregate initialized std::array<> with an mse::msearray<>, you generally need to add an extra set of braces around the initializer list. Note that with mse::mstd::array<>, you do not need the extra braces because it is not an aggregate type and instead tries to emulate support for aggregate initialization.
