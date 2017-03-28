@@ -1376,6 +1376,11 @@ namespace mse {
 			(*vector_refcptr()).resize(_N, _X);
 		}
 
+		TIPointerWithBundledVector& operator=(const TIPointerWithBundledVector& _Right_cref) {
+			typename mse::msevector<_Ty>::ipointer::operator=(_Right_cref);
+			return(*this);
+		}
+
 		operator bool() const {
 			return ((*this).size() != 0);
 		}
@@ -1392,9 +1397,49 @@ namespace mse {
 	};
 
 	template <class X, class... Args>
-	TIPointerWithBundledVector<X> make_refcounting_vector_ipointer(Args&&... args) {
+	TIPointerWithBundledVector<X> make_ipointer_with_bundled_vector(Args&&... args) {
 		return TIPointerWithBundledVector<X>::make(std::forward<Args>(args)...);
 	}
+
+	template <typename _Ty>
+	class TNullableAnyRandomAccessIterator : public TAnyRandomAccessIterator<_Ty> {
+	public:
+		TNullableAnyRandomAccessIterator() : TAnyRandomAccessIterator<_Ty>(typename mse::mstd::vector<_Ty>::iterator()), m_is_null(true) {}
+		TNullableAnyRandomAccessIterator(const nullptr_t& src) : TNullableAnyRandomAccessIterator() {}
+		TNullableAnyRandomAccessIterator(const TNullableAnyRandomAccessIterator& src) : TAnyRandomAccessIterator<_Ty>(src) {}
+
+		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
+			/*(!std::is_same<_TRandomAccessIterator1, TXScopeNullableAnyRandomAccessIterator<_Ty>>::value)
+			&& (!std::is_same<_TRandomAccessIterator1, TXScopeNullableAnyRandomAccessConstIterator<_Ty>>::value)
+			&& */(!std::integral_constant<bool, HasXScopeIteratorTagMethod<_TRandomAccessIterator1>::Has>())
+			&& (!std::integral_constant<bool, HasXScopeSSIteratorTypeTagMethod<_TRandomAccessIterator1>::Has>())
+			, void>::type>
+			TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
+
+		TNullableAnyRandomAccessIterator& operator=(const nullptr_t& _Right_cref) {
+			m_is_null = true;
+			TAnyRandomAccessIterator<_Ty>::~TAnyRandomAccessIterator();
+			::new (static_cast<TAnyRandomAccessIterator<_Ty>*>(this)) TAnyRandomAccessIterator<_Ty>(typename mse::mstd::vector<_Ty>::iterator());
+			return (*this);
+		}
+		TNullableAnyRandomAccessIterator& operator=(const TNullableAnyRandomAccessIterator& _Right_cref) {
+			m_is_null = true;
+			TAnyRandomAccessIterator<_Ty>::~TAnyRandomAccessIterator();
+			::new (static_cast<TAnyRandomAccessIterator<_Ty>*>(this)) TAnyRandomAccessIterator<_Ty>(_Right_cref);
+			m_is_null = _Right_cref.m_is_null;
+			return (*this);
+		}
+
+		operator bool() const {
+			return (!m_is_null);
+		}
+
+	private:
+		TNullableAnyRandomAccessIterator<_Ty>* operator&() { return this; }
+		const TNullableAnyRandomAccessIterator<_Ty>* operator&() const { return this; }
+		bool m_is_null = false;
+	};
+
 
 	/* shorter aliases */
 	template<typename _Ty> using pp = TPolyPointer<_Ty>;

@@ -1602,6 +1602,16 @@ int main(int argc, char* argv[])
 		auto res10 = iptrwbv1[0];
 		auto res11 = iptrwbv1[1];
 		auto res12 = iptrwbv1[2];
+
+		mse::TNullableAnyRandomAccessIterator<int> naraiter1;
+		mse::TNullableAnyRandomAccessIterator<int> naraiter2(nullptr);
+		mse::TNullableAnyRandomAccessIterator<int> naraiter3(iptrwbv1);
+		naraiter1 = nullptr;
+		naraiter1 = 0;
+		naraiter1 = NULL;
+		naraiter1 = naraiter2;
+		naraiter1 = mse::TNullableAnyRandomAccessIterator<int>(iptrwbv1);
+		auto res13 = naraiter1[1];
 	}
 
 	{
