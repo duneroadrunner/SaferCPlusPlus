@@ -1377,7 +1377,7 @@ namespace mse {
 		}
 
 		TIPointerWithBundledVector& operator=(const TIPointerWithBundledVector& _Right_cref) {
-			typename mse::msevector<_Ty>::ipointer::operator=(_Right_cref);
+			mse::msevector<_Ty>::ipointer::operator=(_Right_cref);
 			return(*this);
 		}
 
@@ -1405,7 +1405,7 @@ namespace mse {
 	class TNullableAnyRandomAccessIterator : public TAnyRandomAccessIterator<_Ty> {
 	public:
 		TNullableAnyRandomAccessIterator() : TAnyRandomAccessIterator<_Ty>(typename mse::mstd::vector<_Ty>::iterator()), m_is_null(true) {}
-		TNullableAnyRandomAccessIterator(const nullptr_t& src) : TNullableAnyRandomAccessIterator() {}
+		TNullableAnyRandomAccessIterator(const std::nullptr_t& src) : TNullableAnyRandomAccessIterator() {}
 		TNullableAnyRandomAccessIterator(const TNullableAnyRandomAccessIterator& src) : TAnyRandomAccessIterator<_Ty>(src) {}
 
 		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
@@ -1416,7 +1416,7 @@ namespace mse {
 			, void>::type>
 			TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
 
-		TNullableAnyRandomAccessIterator& operator=(const nullptr_t& _Right_cref) {
+		TNullableAnyRandomAccessIterator& operator=(const std::nullptr_t& _Right_cref) {
 			m_is_null = true;
 			TAnyRandomAccessIterator<_Ty>::~TAnyRandomAccessIterator();
 			::new (static_cast<TAnyRandomAccessIterator<_Ty>*>(this)) TAnyRandomAccessIterator<_Ty>(typename mse::mstd::vector<_Ty>::iterator());
