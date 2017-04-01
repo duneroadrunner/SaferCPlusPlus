@@ -287,10 +287,13 @@ namespace mse {
 		TXScopeAnyPointer(const TAnyPointer<_Ty>& src) : m_any_pointer(src.m_any_pointer) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
+			(!std::is_convertible<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
 			&& (!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeAnyConstPointer<_Ty>, _TPointer1>::value)
 			&& (!std::is_same<_TPointer1, TAnyPointer<_Ty>>::value)
+			&& (!std::is_base_of<TAnyPointer<_Ty>, _TPointer1>::value)
 			&& (!std::is_same<_TPointer1, TAnyConstPointer<_Ty>>::value)
+			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
 			, void>::type>
 		TXScopeAnyPointer(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
 
@@ -332,9 +335,13 @@ namespace mse {
 		TAnyPointer(const TAnyPointer& src) : TXScopeAnyPointer<_Ty>(src) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
+			(!std::is_convertible<_TPointer1, TAnyPointer>::value)
+			&& (!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeAnyPointer<_Ty>, _TPointer1>::value)
 			&& (!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeAnyConstPointer<_Ty>, _TPointer1>::value)
 			&& (!std::is_same<_TPointer1, TAnyConstPointer<_Ty>>::value)
+			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
 #ifndef MSE_SCOPEPOINTER_DISABLED
 			&& (!std::is_convertible<_TPointer1, TXScopeFixedPointer<_Ty>>::value) 
 			&& (!std::is_convertible<_TPointer1, TXScopeFixedConstPointer<_Ty>>::value)
@@ -383,8 +390,9 @@ namespace mse {
 		TXScopeAnyConstPointer(const TAnyConstPointer<_Ty>& src) : m_any_const_pointer(src.m_any_const_pointer) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
+			(!std::is_convertible<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
 			&& (!std::is_same<_TPointer1, TAnyConstPointer<_Ty>>::value)
+			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
 			, void>::type>
 		TXScopeAnyConstPointer(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
 
@@ -427,13 +435,17 @@ namespace mse {
 		TAnyConstPointer(const TAnyPointer<_Ty>& src) : TXScopeAnyConstPointer<_Ty>(src) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
+			(!std::is_convertible<_TPointer1, TAnyConstPointer<_Ty>>::value)
+			&& (!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeAnyPointer<_Ty>, _TPointer1>::value)
 			&& (!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeAnyConstPointer<_Ty>, _TPointer1>::value)
+			&& (!std::is_same<_TPointer1, TAnyPointer<_Ty>>::value)
+			&& (!std::is_base_of<TAnyPointer<_Ty>, _TPointer1>::value)
 #ifndef MSE_SCOPEPOINTER_DISABLED
 			&& (!std::is_convertible<_TPointer1, TXScopeFixedPointer<_Ty>>::value)
 			&& (!std::is_convertible<_TPointer1, TXScopeFixedConstPointer<_Ty>>::value)
 #endif // !MSE_SCOPEPOINTER_DISABLED
-			&& (!std::is_same<_TPointer1, TAnyPointer<_Ty>>::value)
 			, void>::type>
 			TAnyConstPointer(const _TPointer1& pointer) : TXScopeAnyConstPointer<_Ty>(pointer) {}
 
@@ -1067,8 +1079,11 @@ namespace mse {
 		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : TXScopeAnyRandomAccessIterator<_Ty>(src) {}
 
 		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
-			(!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessIterator<_Ty>>::value)
+			(!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIterator<_Ty>>::value)
+			&& (!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessIterator<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeAnyRandomAccessIterator<_Ty>, _TRandomAccessIterator1>::value)
 			&& (!std::is_same<_TRandomAccessIterator1, TXScopeAnyRandomAccessConstIterator<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)
 			&& (!std::integral_constant<bool, HasXScopeIteratorTagMethod<_TRandomAccessIterator1>::Has>())
 			&& (!std::integral_constant<bool, HasXScopeSSIteratorTypeTagMethod<_TRandomAccessIterator1>::Has>())
 			, void>::type>
@@ -1086,10 +1101,13 @@ namespace mse {
 		TAnyRandomAccessConstIterator(const TAnyRandomAccessIterator<_Ty>& src) : TXScopeAnyRandomAccessConstIterator<_Ty>(static_cast<TXScopeAnyRandomAccessIterator<_Ty>>(src)) {}
 
 		template <typename _TRandomAccessConstIterator1, class = typename std::enable_if<
-			(!std::is_convertible<_TRandomAccessConstIterator1, TXScopeAnyRandomAccessConstIterator<_Ty>>::value)
-			&& (!std::is_convertible<_TRandomAccessConstIterator1, TXScopeAnyRandomAccessIterator<_Ty>>::value)
-			&& (!std::is_same<_TRandomAccessConstIterator1, TAnyRandomAccessConstIterator>::value)
+			(!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIterator<_Ty>>::value)
+			&& (!std::is_same<_TRandomAccessConstIterator1, TXScopeAnyRandomAccessConstIterator<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeAnyRandomAccessConstIterator<_Ty>, _TRandomAccessConstIterator1>::value)
+			&& (!std::is_same<_TRandomAccessConstIterator1, TXScopeAnyRandomAccessIterator<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
 			&& (!std::is_same<_TRandomAccessConstIterator1, TAnyRandomAccessIterator<_Ty>>::value)
+			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
 			, void>::type>
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : TXScopeAnyRandomAccessConstIterator<_Ty>(random_access_const_iterator) {}
 
@@ -1407,11 +1425,17 @@ namespace mse {
 		TNullableAnyRandomAccessIterator() : TAnyRandomAccessIterator<_Ty>(typename mse::mstd::vector<_Ty>::iterator()), m_is_null(true) {}
 		TNullableAnyRandomAccessIterator(const std::nullptr_t& src) : TNullableAnyRandomAccessIterator() {}
 		TNullableAnyRandomAccessIterator(const TNullableAnyRandomAccessIterator& src) : TAnyRandomAccessIterator<_Ty>(src) {}
+		TNullableAnyRandomAccessIterator(const TAnyRandomAccessIterator<_Ty>& src) : TAnyRandomAccessIterator<_Ty>(src) {}
 
 		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
-			/*(!std::is_same<_TRandomAccessIterator1, TXScopeNullableAnyRandomAccessIterator<_Ty>>::value)
+			(!std::is_convertible<_TRandomAccessIterator1, TNullableAnyRandomAccessIterator>::value)
+			&& (!std::is_same<_TRandomAccessIterator1, TAnyRandomAccessIterator<_Ty>>::value)
+			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessIterator1>::value)
+			/*&& (!std::is_same<_TRandomAccessIterator1, TXScopeNullableAnyRandomAccessIterator<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeNullableAnyRandomAccessIterator<_Ty>, _TRandomAccessIterator1>::value)
 			&& (!std::is_same<_TRandomAccessIterator1, TXScopeNullableAnyRandomAccessConstIterator<_Ty>>::value)
-			&& */(!std::integral_constant<bool, HasXScopeIteratorTagMethod<_TRandomAccessIterator1>::Has>())
+			&& (!std::is_base_of<TXScopeNullableAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)*/
+			&& (!std::integral_constant<bool, HasXScopeIteratorTagMethod<_TRandomAccessIterator1>::Has>())
 			&& (!std::integral_constant<bool, HasXScopeSSIteratorTypeTagMethod<_TRandomAccessIterator1>::Has>())
 			, void>::type>
 			TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
@@ -1437,6 +1461,49 @@ namespace mse {
 	private:
 		TNullableAnyRandomAccessIterator<_Ty>* operator&() { return this; }
 		const TNullableAnyRandomAccessIterator<_Ty>* operator&() const { return this; }
+		bool m_is_null = false;
+	};
+
+	template <typename _Ty>
+	class TNullableAnyPointer : public TAnyPointer<_Ty> {
+	public:
+		TNullableAnyPointer() : TAnyPointer<_Ty>(mse::TRegisteredPointer<_Ty>()), m_is_null(true) {}
+		TNullableAnyPointer(const std::nullptr_t& src) : TNullableAnyPointer() {}
+		TNullableAnyPointer(const TNullableAnyPointer& src) : TAnyPointer<_Ty>(src) {}
+		TNullableAnyPointer(const TAnyPointer<_Ty>& src) : TAnyPointer<_Ty>(src) {}
+
+		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
+			(!std::is_convertible<_TRandomAccessIterator1, TNullableAnyPointer>::value)
+			&& (!std::is_same<_TRandomAccessIterator1, TAnyPointer<_Ty>>::value)
+			&& (!std::is_base_of<TAnyPointer<_Ty>, _TRandomAccessIterator1>::value)
+			/*&& (!std::is_same<_TRandomAccessIterator1, TXScopeNullableAnyRandomAccessIterator<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeNullableAnyRandomAccessIterator<_Ty>, _TRandomAccessIterator1>::value)
+			&& (!std::is_same<_TRandomAccessIterator1, TXScopeNullableAnyRandomAccessConstIterator<_Ty>>::value)
+			&& (!std::is_base_of<TXScopeNullableAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)*/
+			, void>::type>
+			TNullableAnyPointer(const _TRandomAccessIterator1& random_access_iterator) : TAnyPointer<_Ty>(random_access_iterator) {}
+
+		TNullableAnyPointer& operator=(const std::nullptr_t& _Right_cref) {
+			m_is_null = true;
+			TAnyPointer<_Ty>::~TAnyPointer();
+			::new (static_cast<TAnyPointer<_Ty>*>(this)) TAnyPointer<_Ty>(mse::TRegisteredPointer<_Ty>());
+			return (*this);
+		}
+		TNullableAnyPointer& operator=(const TNullableAnyPointer& _Right_cref) {
+			m_is_null = true;
+			TAnyPointer<_Ty>::~TAnyPointer();
+			::new (static_cast<TAnyPointer<_Ty>*>(this)) TAnyPointer<_Ty>(_Right_cref);
+			m_is_null = _Right_cref.m_is_null;
+			return (*this);
+		}
+
+		operator bool() const {
+			return (!m_is_null);
+		}
+
+	private:
+		TNullableAnyPointer<_Ty>* operator&() { return this; }
+		const TNullableAnyPointer<_Ty>* operator&() const { return this; }
 		bool m_is_null = false;
 	};
 

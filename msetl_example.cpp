@@ -1507,6 +1507,17 @@ int main(int argc, char* argv[])
 			auto res_using_member_mstdvec_iter_anyptr_via_const_poly = B::foo4(b_member_a_mstdvec_iter_anyptr);
 		}
 
+		mse::TNullableAnyPointer<A> nanyptr1;
+		mse::TNullableAnyPointer<A> nanyptr2(nullptr);
+		mse::TNullableAnyPointer<A> nanyptr3(a_refcptr);
+		mse::TAnyPointer<A> anyptr3(a_refcptr);
+		nanyptr1 = nullptr;
+		nanyptr1 = 0;
+		nanyptr1 = NULL;
+		nanyptr1 = nanyptr2;
+		nanyptr1 = mse::TNullableAnyPointer<A>(a_refcptr);
+		auto res_nap1 = *nanyptr1;
+		
 		mse::s_poly_test1();
 		int q = 3;
 	}
