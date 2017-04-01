@@ -827,7 +827,6 @@ namespace mse {
 		virtual bool operator>(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
 		virtual bool operator<=(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
 		virtual bool operator>=(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		virtual void set_value(const TCommonRandomAccessIteratorInterface& _Right_cref) = 0;
 	};
 
 	template <typename _Ty, typename _TRandomAccessIterator1>
@@ -853,12 +852,6 @@ namespace mse {
 			const _TRandomAccessIterator1& _Right_cref_m_random_access_iterator_cref = (*crai_ptr).m_random_access_iterator;
 			return m_random_access_iterator - _Right_cref_m_random_access_iterator_cref;
 		}
-		void set_value(const TCommonRandomAccessIteratorInterface<_Ty>& _Right_cref) {
-			const TCommonizedRandomAccessIterator* crai_ptr = static_cast<const TCommonizedRandomAccessIterator*>(&_Right_cref);
-			assert(crai_ptr);
-			const _TRandomAccessIterator1& _Right_cref_m_random_access_iterator_cref = (*crai_ptr).m_random_access_iterator;
-			m_random_access_iterator = _Right_cref_m_random_access_iterator_cref;
-		}
 
 		_TRandomAccessIterator1 m_random_access_iterator;
 	};
@@ -873,6 +866,10 @@ namespace mse {
 
 		template <typename _TRandomAccessIterator1, class = typename std::enable_if<!std::is_convertible<_TRandomAccessIterator1, TXScopeAnyRandomAccessIterator>::value, void>::type>
 		TXScopeAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _TRandomAccessIterator1>(random_access_iterator)) {}
+
+		friend void swap(TXScopeAnyRandomAccessIterator& first, TXScopeAnyRandomAccessIterator& second) {
+			std::swap(first.m_any_random_access_iterator, second.m_any_random_access_iterator);
+		}
 
 		_Ty& operator*() const {
 			return (*(*common_random_access_iterator_interface_ptr()));
@@ -903,8 +900,8 @@ namespace mse {
 		bool operator>(const TXScopeAnyRandomAccessIterator& _Right_cref) const { return (0 > operator-(_Right_cref)); }
 		bool operator<=(const TXScopeAnyRandomAccessIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
 		bool operator>=(const TXScopeAnyRandomAccessIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		TXScopeAnyRandomAccessIterator& operator=(const TXScopeAnyRandomAccessIterator& _Right_cref) {
-			(*common_random_access_iterator_interface_ptr()).set_value(*(_Right_cref.common_random_access_iterator_interface_ptr()));
+		TXScopeAnyRandomAccessIterator& operator=(TXScopeAnyRandomAccessIterator _Right) {
+			swap(*this, _Right);
 			return (*this);
 		}
 
@@ -952,7 +949,6 @@ namespace mse {
 		virtual bool operator>(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
 		virtual bool operator<=(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
 		virtual bool operator>=(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		virtual void set_value(const TCommonRandomAccessConstIteratorInterface& _Right_cref) = 0;
 	};
 
 	template <typename _Ty, typename _TRandomAccessConstIterator1>
@@ -978,12 +974,6 @@ namespace mse {
 			const _TRandomAccessConstIterator1& _Right_cref_m_random_access_const_iterator_cref = (*crai_ptr).m_random_access_const_iterator;
 			return m_random_access_const_iterator - _Right_cref_m_random_access_const_iterator_cref;
 		}
-		void set_value(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) {
-			const TCommonizedRandomAccessConstIterator* crai_ptr = static_cast<const TCommonizedRandomAccessConstIterator*>(&_Right_cref);
-			assert(crai_ptr);
-			const _TRandomAccessConstIterator1& _Right_cref_m_random_access_const_iterator_cref = (*crai_ptr).m_random_access_const_iterator;
-			m_random_access_const_iterator = _Right_cref_m_random_access_const_iterator_cref;
-		}
 
 		_TRandomAccessConstIterator1 m_random_access_const_iterator;
 	};
@@ -998,6 +988,10 @@ namespace mse {
 
 		template <typename _TRandomAccessConstIterator1, class = typename std::enable_if<!std::is_convertible<_TRandomAccessConstIterator1, TXScopeAnyRandomAccessConstIterator>::value, void>::type>
 		TXScopeAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, _TRandomAccessConstIterator1>(random_access_const_iterator)) {}
+
+		friend void swap(TXScopeAnyRandomAccessConstIterator& first, TXScopeAnyRandomAccessConstIterator& second) {
+			std::swap(first.m_any_random_access_const_iterator, second.m_any_random_access_const_iterator);
+		}
 
 		const _Ty& operator*() const {
 			return (*(*common_random_access_const_iterator_interface_ptr()));
@@ -1028,8 +1022,8 @@ namespace mse {
 		bool operator>(const TXScopeAnyRandomAccessConstIterator& _Right_cref) const { return (0 > operator-(_Right_cref)); }
 		bool operator<=(const TXScopeAnyRandomAccessConstIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
 		bool operator>=(const TXScopeAnyRandomAccessConstIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		TXScopeAnyRandomAccessConstIterator& operator=(const TXScopeAnyRandomAccessConstIterator& _Right_cref) {
-			(*common_random_access_const_iterator_interface_ptr()).set_value(*(_Right_cref.common_random_access_const_iterator_interface_ptr()));
+		TXScopeAnyRandomAccessConstIterator& operator=(TXScopeAnyRandomAccessConstIterator _Right) {
+			swap(*this, _Right);
 			return (*this);
 		}
 
@@ -1382,7 +1376,10 @@ namespace mse {
 
 		TIPointerWithBundledVector() : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>())
 			, mse::msevector<_Ty>::ipointer(*vector_refcptr()) {}
-		TIPointerWithBundledVector(const TIPointerWithBundledVector& src) : TVectorRefcfptrWrapper<_Ty>(src.vector_refcptr()), mse::msevector<_Ty>::ipointer(*vector_refcptr()) {}
+		TIPointerWithBundledVector(const TIPointerWithBundledVector& src) : TVectorRefcfptrWrapper<_Ty>(src.vector_refcptr())
+			, mse::msevector<_Ty>::ipointer(*vector_refcptr()) {
+			mse::msevector<_Ty>::ipointer::operator=(src);
+		}
 		template <class... Args>
 		TIPointerWithBundledVector(Args&&... args) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>(std::forward<Args>(args)...))
 			, mse::msevector<_Ty>::ipointer(*vector_refcptr()) {}
@@ -1395,7 +1392,13 @@ namespace mse {
 		}
 
 		TIPointerWithBundledVector& operator=(const TIPointerWithBundledVector& _Right_cref) {
-			mse::msevector<_Ty>::ipointer::operator=(_Right_cref);
+			if (_Right_cref.vector_refcptr() == vector_refcptr()) {
+				mse::msevector<_Ty>::ipointer::operator=(_Right_cref);
+			}
+			else {
+				~TIPointerWithBundledVector();
+				::new (this) TIPointerWithBundledVector(_Right_cref);
+			}
 			return(*this);
 		}
 
@@ -1440,17 +1443,16 @@ namespace mse {
 			, void>::type>
 			TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
 
-		TNullableAnyRandomAccessIterator& operator=(const std::nullptr_t& _Right_cref) {
-			m_is_null = true;
-			TAnyRandomAccessIterator<_Ty>::~TAnyRandomAccessIterator();
-			::new (static_cast<TAnyRandomAccessIterator<_Ty>*>(this)) TAnyRandomAccessIterator<_Ty>(typename mse::mstd::vector<_Ty>::iterator());
-			return (*this);
+		friend void swap(TNullableAnyRandomAccessIterator& first, TNullableAnyRandomAccessIterator& second) {
+			std::swap(static_cast<TAnyRandomAccessIterator<_Ty>&>(first), static_cast<TAnyRandomAccessIterator<_Ty>&>(second));
+			std::swap(first.m_is_null, second.m_is_null);
 		}
-		TNullableAnyRandomAccessIterator& operator=(const TNullableAnyRandomAccessIterator& _Right_cref) {
-			m_is_null = true;
-			TAnyRandomAccessIterator<_Ty>::~TAnyRandomAccessIterator();
-			::new (static_cast<TAnyRandomAccessIterator<_Ty>*>(this)) TAnyRandomAccessIterator<_Ty>(_Right_cref);
-			m_is_null = _Right_cref.m_is_null;
+
+		TNullableAnyRandomAccessIterator& operator=(const std::nullptr_t& _Right_cref) {
+			return operator=(TNullableAnyRandomAccessIterator());
+		}
+		TNullableAnyRandomAccessIterator& operator=(TNullableAnyRandomAccessIterator _Right) {
+			swap(*this, _Right);
 			return (*this);
 		}
 
@@ -1483,17 +1485,16 @@ namespace mse {
 			, void>::type>
 			TNullableAnyPointer(const _TRandomAccessIterator1& random_access_iterator) : TAnyPointer<_Ty>(random_access_iterator) {}
 
-		TNullableAnyPointer& operator=(const std::nullptr_t& _Right_cref) {
-			m_is_null = true;
-			TAnyPointer<_Ty>::~TAnyPointer();
-			::new (static_cast<TAnyPointer<_Ty>*>(this)) TAnyPointer<_Ty>(mse::TRegisteredPointer<_Ty>());
-			return (*this);
+		friend void swap(TNullableAnyPointer& first, TNullableAnyPointer& second) {
+			std::swap(static_cast<TAnyPointer<_Ty>&>(first), static_cast<TAnyPointer<_Ty>&>(second));
+			std::swap(first.m_is_null, second.m_is_null);
 		}
-		TNullableAnyPointer& operator=(const TNullableAnyPointer& _Right_cref) {
-			m_is_null = true;
-			TAnyPointer<_Ty>::~TAnyPointer();
-			::new (static_cast<TAnyPointer<_Ty>*>(this)) TAnyPointer<_Ty>(_Right_cref);
-			m_is_null = _Right_cref.m_is_null;
+
+		TNullableAnyPointer& operator=(const std::nullptr_t& _Right_cref) {
+			return operator=(TNullableAnyPointer());
+		}
+		TNullableAnyPointer& operator=(TNullableAnyPointer _Right) {
+			swap(*this, _Right);
 			return (*this);
 		}
 

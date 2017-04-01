@@ -1515,6 +1515,7 @@ int main(int argc, char* argv[])
 		nanyptr1 = 0;
 		nanyptr1 = NULL;
 		nanyptr1 = nanyptr2;
+		nanyptr1 = mse::TNullableAnyPointer<A>(&a_regobj);
 		nanyptr1 = mse::TNullableAnyPointer<A>(a_refcptr);
 		auto res_nap1 = *nanyptr1;
 		
