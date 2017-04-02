@@ -505,6 +505,7 @@ namespace mse {
 		constexpr bool has_value() const noexcept { return initialized(); }
 
 		constexpr T const* operator ->() const {
+			if (!has_value()) { MSE_THROW(bad_optional_access("bad optional access")); }
 			return TR2_OPTIONAL_ASSERTED_EXPRESSION(initialized(), dataptr());
 		}
 
@@ -512,20 +513,24 @@ namespace mse {
 
 		OPTIONAL_MUTABLE_CONSTEXPR T* operator ->() {
 			assert(initialized());
+			if (!has_value()) { MSE_THROW(bad_optional_access("bad optional access")); }
 			return dataptr();
 		}
 
 		constexpr T const& operator *() const& {
+			if (!has_value()) { MSE_THROW(bad_optional_access("bad optional access")); }
 			return TR2_OPTIONAL_ASSERTED_EXPRESSION(initialized(), contained_val());
 		}
 
 		OPTIONAL_MUTABLE_CONSTEXPR T& operator *() & {
 			assert(initialized());
+			if (!has_value()) { MSE_THROW(bad_optional_access("bad optional access")); }
 			return contained_val();
 		}
 
 		OPTIONAL_MUTABLE_CONSTEXPR T&& operator *() && {
 			assert(initialized());
+			if (!has_value()) { MSE_THROW(bad_optional_access("bad optional access")); }
 			return constexpr_move(contained_val());
 		}
 
@@ -546,15 +551,18 @@ namespace mse {
 
 		T* operator ->() {
 			assert(initialized());
+			if (!has_value()) { MSE_THROW(bad_optional_access("bad optional access")); }
 			return dataptr();
 		}
 
 		constexpr T const& operator *() const {
+			if (!has_value()) { MSE_THROW(bad_optional_access("bad optional access")); }
 			return TR2_OPTIONAL_ASSERTED_EXPRESSION(initialized(), contained_val());
 		}
 
 		T& operator *() {
 			assert(initialized());
+			if (!has_value()) { MSE_THROW(bad_optional_access("bad optional access")); }
 			return contained_val();
 		}
 
