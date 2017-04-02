@@ -218,12 +218,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="mseany.h" />
     <ClInclude Include="mseasyncshared.h" />
     <ClInclude Include="mseivector.h" />
     <ClInclude Include="msemsearray.h" />
     <ClInclude Include="msemsevector.h" />
     <ClInclude Include="msemstdarray.h" />
     <ClInclude Include="msemstdvector.h" />
+    <ClInclude Include="mseoptional.h" />
+    <ClInclude Include="msepointerbasics.h" />
     <ClInclude Include="msepoly.h" />
     <ClInclude Include="mseprimitives.h" />
     <ClInclude Include="mserefcounting.h" />
