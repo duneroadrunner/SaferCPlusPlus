@@ -291,7 +291,7 @@ namespace mse {
 		}
 
 	private:
-		explicit TXScopeObj(TXScopeObj&& _X) = delete;
+		//explicit TXScopeObj(TXScopeObj&& _X) = delete;
 		TXScopeObj& operator=(TXScopeObj&& _X) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 

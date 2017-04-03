@@ -12,6 +12,7 @@
 #include <climits>       // ULONG_MAX
 #include <limits>       // std::numeric_limits
 #include <stdexcept>      // primitives_range_error
+#include <memory>
 
 /*compiler specific defines*/
 #ifdef _MSC_VER
