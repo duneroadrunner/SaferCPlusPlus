@@ -1372,17 +1372,20 @@ namespace mse {
 	template <typename _Ty>
 	class TIPointerWithBundledVector : private TVectorRefcfptrWrapper<_Ty>, public mse::msevector<_Ty>::ipointer {
 	public:
+		typedef typename mse::msevector<_Ty>::ipointer ipointer_base_class;
 		typedef typename mse::msevector<_Ty>::size_type size_type;
 
 		TIPointerWithBundledVector() : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>())
-			, mse::msevector<_Ty>::ipointer(*vector_refcptr()) {}
+			, ipointer_base_class(*vector_refcptr()) {}
 		TIPointerWithBundledVector(const TIPointerWithBundledVector& src) : TVectorRefcfptrWrapper<_Ty>(src.vector_refcptr())
-			, mse::msevector<_Ty>::ipointer(*vector_refcptr()) {
-			mse::msevector<_Ty>::ipointer::operator=(src);
+			, ipointer_base_class(*vector_refcptr()) {
+			ipointer_base_class::operator=(src);
 		}
+		TIPointerWithBundledVector(_XSTD initializer_list<_Ty> _Ilist) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>(_Ilist))
+			, ipointer_base_class(*vector_refcptr()) {}
 		template <class... Args>
 		TIPointerWithBundledVector(Args&&... args) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>(std::forward<Args>(args)...))
-			, mse::msevector<_Ty>::ipointer(*vector_refcptr()) {}
+			, ipointer_base_class(*vector_refcptr()) {}
 
 		size_type size() const {
 			return (*vector_refcptr()).size();
@@ -1393,7 +1396,7 @@ namespace mse {
 
 		TIPointerWithBundledVector& operator=(const TIPointerWithBundledVector& _Right_cref) {
 			if (_Right_cref.vector_refcptr() == vector_refcptr()) {
-				mse::msevector<_Ty>::ipointer::operator=(_Right_cref);
+				ipointer_base_class::operator=(_Right_cref);
 			}
 			else {
 				~TIPointerWithBundledVector();
@@ -1420,6 +1423,64 @@ namespace mse {
 	template <class X, class... Args>
 	TIPointerWithBundledVector<X> make_ipointer_with_bundled_vector(Args&&... args) {
 		return TIPointerWithBundledVector<X>::make(std::forward<Args>(args)...);
+	}
+
+	/* This data type was motivated by the need for a direct substitute for native pointers targeting ("constant"
+	native) arrays, which can kind of play a dual role as a reference to the array object and/or as an
+	iterator. At some point we should probably switch to using an msearray<> instead of an mstd::array<>, but
+	that might require some consideration of initializer_list initializations. */
+	template <typename _Ty, size_t _Size>
+	class TIteratorWithBundledArray : public mse::mstd::array<_Ty, _Size>::iterator {
+	public:
+		typedef typename mse::mstd::array<_Ty, _Size>::iterator iterator_base_class;
+		typedef typename mse::mstd::array<_Ty, _Size>::size_type size_type;
+
+		TIteratorWithBundledArray() {
+			iterator_base_class::operator=(array_ref().begin());
+		}
+		TIteratorWithBundledArray(_XSTD initializer_list<_Ty> _Ilist) : m_array(_Ilist) {
+			iterator_base_class::operator=(array_ref().begin());
+		}
+		template <class... Args>
+		TIteratorWithBundledArray(Args&&... args) : m_array(std::forward<Args>(args)...) {
+			iterator_base_class::operator=(array_ref().begin());
+		}
+		~TIteratorWithBundledArray() {
+			/* The (member) array gets destructed before the iterator (base class object), which means that (theoretically) there would
+			be a moment where the iterator pointed to an already destructed array, which is technically not kosher (and may trip an
+			assert somewhere). So we first set the iterator to its "unassigned" state where it is not pointing to any array object. */
+			iterator_base_class::operator=(iterator_base_class());
+		}
+
+		size_type size() const {
+			return (array_ref()).size();
+		}
+
+		operator bool() const {
+			return ((*this).size() != 0);
+		}
+
+		template <class... Args>
+		static TIteratorWithBundledArray make(Args&&... args) {
+			return TIteratorWithBundledArray(std::forward<Args>(args)...);
+		}
+
+	protected:
+		/* I don't know about these... */
+		TIteratorWithBundledArray(const TIteratorWithBundledArray& src) : iterator_base_class(src) {}
+		TIteratorWithBundledArray& operator=(const TIteratorWithBundledArray& _Right_cref) {
+			iterator_base_class::operator=(_Right_cref);
+			return(*this);
+		}
+
+		mse::mstd::array<_Ty, _Size>& array_ref() { return m_array; }
+		const mse::mstd::array<_Ty, _Size>& array_ref() const { return m_array; }
+		mse::mstd::array<_Ty, _Size> m_array;
+	};
+
+	template <class X, size_t _Size, class... Args>
+	TIteratorWithBundledArray<X, _Size> make_ipointer_with_bundled_vector(Args&&... args) {
+		return TIteratorWithBundledArray<X, _Size>::make(std::forward<Args>(args)...);
 	}
 
 	template <typename _Ty>
