@@ -884,10 +884,10 @@ namespace mse {
 		}
 		void operator +=(difference_t x) { common_random_access_iterator_interface_ptr()->operator+=(x); }
 		void operator -=(difference_t x) { operator +=(-x); }
-		void operator ++() { operator +=(1); }
-		void operator ++(int) { operator +=(1); }
-		void operator --() { operator -=(1); }
-		void operator --(int) { operator -=(1); }
+		TXScopeAnyRandomAccessIterator& operator ++() { operator +=(1); return (*this); }
+		TXScopeAnyRandomAccessIterator operator ++(int) { auto _Tmp = (*this); operator +=(1); return _Tmp; }
+		TXScopeAnyRandomAccessIterator& operator --() { operator -=(1); return (*this); }
+		TXScopeAnyRandomAccessIterator operator --(int) { auto _Tmp = (*this); operator -=(1); return _Tmp; }
 
 		TXScopeAnyRandomAccessIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeAnyRandomAccessIterator operator-(difference_t n) const { return ((*this) + (-n)); }
@@ -1006,10 +1006,10 @@ namespace mse {
 		}
 		void operator +=(difference_t x) { common_random_access_const_iterator_interface_ptr()->operator+=(x); };
 		void operator -=(difference_t x) { operator +=(-x); }
-		void operator ++() { operator +=(1); }
-		void operator ++(int) { operator +=(1); }
-		void operator --() { operator -=(1); }
-		void operator --(int) { operator -=(1); }
+		TXScopeAnyRandomAccessConstIterator& operator ++() { operator +=(1); return (*this); }
+		TXScopeAnyRandomAccessConstIterator operator ++(int) { auto _Tmp = (*this); operator +=(1); return _Tmp; }
+		TXScopeAnyRandomAccessConstIterator& operator --() { operator -=(1); return (*this); }
+		TXScopeAnyRandomAccessConstIterator operator --(int) { auto _Tmp = (*this); operator -=(1); return _Tmp; }
 
 		TXScopeAnyRandomAccessConstIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeAnyRandomAccessConstIterator operator-(difference_t n) const { return ((*this) + (-n)); }
@@ -1405,7 +1405,7 @@ namespace mse {
 			return(*this);
 		}
 
-		operator bool() const {
+		explicit operator bool() const {
 			return ((*this).size() != 0);
 		}
 
@@ -1456,7 +1456,7 @@ namespace mse {
 			return (array_ref()).size();
 		}
 
-		operator bool() const {
+		explicit operator bool() const {
 			return ((*this).size() != 0);
 		}
 
@@ -1517,7 +1517,7 @@ namespace mse {
 			return (*this);
 		}
 
-		operator bool() const {
+		explicit operator bool() const {
 			return (!m_is_null);
 		}
 
