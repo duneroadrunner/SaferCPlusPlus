@@ -128,7 +128,7 @@ SaferCPlusPlus and Ironclad C++ are very similar. The main difference is probabl
 
 While both solutions address the pointer/reference safety issue, SaferCPlusPlus also provides safer replacements for int and size_t, and data types for safely sharing objects between asynchronous threads.  
 
-If you're considering one or the other solution (or both), I would suggest starting out with SaferCPlusPlus, as adopting it is essentially risk free. It's basically just a collection of header files written in portable C++. And can be easily disabled (i.e. its elements can be automatically aliased to their native counterparts) with a compile-time directive. Whereas because of its dependence on its garbage collector, Ironclad doesn't have quite the same properties. And if later you decide that to adopt the Ironclad solution, or parts of it, the transition should be painless.  
+If you're considering one or the other solution (or both), I would suggest starting out with SaferCPlusPlus, as adopting it is essentially risk free. It's basically just a collection of header files written in portable C++. And can be easily disabled (i.e. its elements can be automatically aliased to their native counterparts) with a compile-time directive. Whereas because of its dependence on its garbage collector, Ironclad doesn't have quite the same properties. And if later you decide to adopt the Ironclad solution, or parts of it, the transition should be painless.  
 
 There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu/~santosh.nagarakatte/papers/ironclad-oopsla2013.pdf). It's a beneficial read even for those not planning on adopting Ironclad, as the the approach has much in common with SaferCPlusPlus.  
 
