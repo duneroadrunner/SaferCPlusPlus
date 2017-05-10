@@ -191,6 +191,23 @@ namespace mse {
 			typename _MA::reference back() { return m_msearray.back(); }
 			_CONST_FUN typename _MA::const_reference back() const { return m_msearray.back(); }
 
+			/* Try to avoid using these whenever possible. */
+			value_type *data() _NOEXCEPT {	// return pointer to mutable data array
+				return m_msearray.data();
+			}
+			const value_type *data() const _NOEXCEPT {	// return pointer to nonmutable data array
+				return m_msearray.data();
+			}
+
+			array(std::array<_Ty, _Size>&& _X) {
+				m_msearray.m_array = std::move(_X);
+			}
+			array(const std::array<_Ty, _Size>& _X) {
+				m_msearray.m_array = _X;
+			}
+			operator const std::array<_Ty, _Size>() const { return msearray().m_array; }
+			operator std::array<_Ty, _Size>() { return msearray().m_array; }
+
 
 			class xscope_const_iterator;
 			class xscope_iterator;

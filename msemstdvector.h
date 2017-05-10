@@ -98,6 +98,14 @@ namespace mse {
 			typename _MV::reference back() { return m_shptr->back(); }
 			typename _MV::const_reference back() const { return m_shptr->back(); }
 
+			/* Try to avoid using these whenever possible. */
+			value_type *data() _NOEXCEPT {
+				return m_shptr->data();
+			}
+			const value_type *data() const _NOEXCEPT {
+				return m_shptr->data();
+			}
+
 
 			class const_iterator {
 			public:
