@@ -114,19 +114,19 @@ namespace mse {
 			using base_class::base_class;
 
 			operator mse::TNullableAnyRandomAccessIterator<_Ty>() {
-				return begin();
+				return base_class::begin();
 			}
 			operator mse::TAnyRandomAccessIterator<_Ty>() {
-				return begin();
+				return base_class::begin();
 			}
 			operator mse::TAnyRandomAccessConstIterator<_Ty>() const {
-				return cbegin();
+				return base_class::cbegin();
 			}
 			operator typename mse::mstd::array<_Ty, _Size>::iterator() {
-				return begin();
+				return base_class::begin();
 			}
 			operator typename mse::mstd::array<_Ty, _Size>::const_iterator() {
-				return cbegin();
+				return base_class::cbegin();
 			}
 		};
 
