@@ -57,6 +57,7 @@ them to be enabled. */
 #include "mseivector.h"
 #include "msevector_test.h"
 #include "mseprimitives.h"
+#include "mselegacyhelpers.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -1610,7 +1611,7 @@ int main(int argc, char* argv[])
 		bool res9 = (ra_section1_iter1 < ra_section1_iter2);
 
 		{
-			mse::TIPointerWithBundledVector<int> iptrwbv1 = { 1, 2 };
+			mse::lh::TIPointerWithBundledVector<int> iptrwbv1 = { 1, 2 };
 			iptrwbv1.resize(5);
 			auto res10 = iptrwbv1[0];
 			auto res11 = iptrwbv1[1];
@@ -1618,15 +1619,24 @@ int main(int argc, char* argv[])
 		}
 
 		{
-			mse::TIteratorWithBundledArray<int, 5> iterwba1 = { 1, 2, 3, 4, 5 };
-			auto res13 = iterwba1.size();
-			auto res14 = iterwba1[0];
-			auto res15 = iterwba1[1];
-			auto res16 = iterwba1[2];
+			mse::lh::TNativeArrayReplacement<int, 5> nar1 = { 1, 2, 3, 4, 5 };
+			auto res13 = nar1.size();
+			auto res14 = nar1[0];
+			auto res15 = nar1[1];
+			auto res16 = nar1[2];
+
+			mse::lh::TNativeArrayReplacement<int, 3> nar11 = { 1, 2, 3 };
+			mse::lh::TNativeArrayReplacement<int, 3> nar12 = nar11;
+			nar12[1] = 4;
+			nar11 = nar12;
+			auto res16b = nar11[1];
+			mse::TAnyRandomAccessIterator<int> araiter1 = nar11;
+			mse::TNullableAnyRandomAccessIterator<int> naraiter1 = nar11;
+			auto res16c = naraiter1[1];
 		}
 
 		{
-			mse::TIPointerWithBundledVector<int> iptrwbv1 = { 1, 2 };
+			mse::lh::TIPointerWithBundledVector<int> iptrwbv1 = { 1, 2 };
 
 			mse::TNullableAnyRandomAccessIterator<int> naraiter1;
 			mse::TNullableAnyRandomAccessIterator<int> naraiter2(nullptr);
@@ -1637,6 +1647,16 @@ int main(int argc, char* argv[])
 			naraiter1 = naraiter2;
 			naraiter1 = mse::TNullableAnyRandomAccessIterator<int>(iptrwbv1);
 			auto res17 = naraiter1[1];
+		}
+
+		{
+			typedef int dyn_arr2_element_type;
+			MSE_LH_DYNAMIC_ARRAY_TYPE(dyn_arr2_element_type) dyn_arr2;
+
+			MSE_LH_ALLOC_DYNAMIC_ARRAY(dyn_arr2_element_type, dyn_arr2, 5/*bytes*/);
+			auto dyn_arr2b = dyn_arr2;
+
+			MSE_LH_FREE_DYNAMIC_ARRAY(dyn_arr2_element_type, dyn_arr2);
 		}
 		int q = 5;
 	}
