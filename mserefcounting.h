@@ -75,7 +75,7 @@ namespace mse {
 		Y m_object;
 
 		template<class ... Args>
-		TRefWithTargetObj(Args && ...args) : m_object(args...) {}
+		TRefWithTargetObj(Args && ...args) : m_object(std::forward<Args>(args)...) {}
 
 		void* target_obj_address() const {
 			return const_cast<void *>(static_cast<const void *>(std::addressof(m_object)));
