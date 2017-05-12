@@ -1641,8 +1641,8 @@ int main(int argc, char* argv[])
 			s1 = s2;
 			auto res16b = s1.nar11[1];
 
-			mse::TAnyRandomAccessIterator<int> araiter1 = MSE_LH_ITERATOR_FROM_ARRAY(s1.nar11);
-			mse::TNullableAnyRandomAccessIterator<int> naraiter1 = MSE_LH_ITERATOR_FROM_ARRAY(s1.nar11);
+			mse::TAnyRandomAccessIterator<int> araiter1 = s1.nar11;
+			mse::TNullableAnyRandomAccessIterator<int> naraiter1 = s1.nar11;
 			auto res16c = naraiter1[1];
 		}
 
@@ -1676,8 +1676,8 @@ int main(int argc, char* argv[])
 			MSE_LH_FIXED_ARRAY_DECLARATION(arr_element_type, 3/*elements*/, array1) = { 1, 2, 3 };
 			MSE_LH_FIXED_ARRAY_DECLARATION(arr_element_type, 3/*elements*/, array2) = { 4, 5, 6 };
 
-			MSE_LH_TYPED_MEMSET(arr_element_type, array1, 99, 3/*elements*/ * sizeof(arr_element_type));
-			MSE_LH_TYPED_MEMCPY(arr_element_type, array2, array1, 3/*elements*/ * sizeof(arr_element_type));
+			MSE_LH_MEMSET(array1, 99, 3/*elements*/ * sizeof(arr_element_type));
+			MSE_LH_MEMCPY(array2, array1, 3/*elements*/ * sizeof(arr_element_type));
 			auto res18 = array2[1];
 		}
 	}

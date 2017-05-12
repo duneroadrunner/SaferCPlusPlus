@@ -21,7 +21,6 @@ namespace mse {
 #ifdef MSE_LEGACYHELPERS_DISABLED
 
 #define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) element_type name[size]
-#define MSE_LH_ITERATOR_FROM_ARRAY(array) (&(array[0]))
 
 #define MSE_LH_DYNAMIC_ARRAY_TYPE(element_type) element_type *
 #define MSE_LH_ALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) dyn_array = (element_type *)malloc(num_bytes)
@@ -39,20 +38,19 @@ namespace mse {
 #else /*MSE_LEGACYHELPERS_DISABLED*/
 
 #define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) mse::lh::TNativeArrayReplacement< element_type, size > name
-#define MSE_LH_ITERATOR_FROM_ARRAY(array) array
 
 #define MSE_LH_DYNAMIC_ARRAY_TYPE(element_type) mse::lh::TIPointerWithBundledVector< element_type >
 #define MSE_LH_ALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) mse::lh::CAllocF< decltype(dyn_array) >::allocate(dyn_array, num_bytes)
 #define MSE_LH_REALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) mse::lh::CAllocF< decltype(dyn_array) >::reallocate(dyn_array, num_bytes)
 #define MSE_LH_FREE_DYNAMIC_ARRAY(dyn_array) mse::lh::CAllocF< decltype(dyn_array) >::free(dyn_array)
 
-#define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::CFileF< decltype(ptr) >::fread(ptr, size, count, stream)
-#define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::CFileF< decltype(ptr) >::fwrite(ptr, size, count, stream)
+#define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype(ptr[0])>::type> >::fread(ptr, size, count, stream)
+#define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype(ptr[0])>::type> >::fwrite(ptr, size, count, stream)
 
 #define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<element_type> >::memcpy(destination, source, num_bytes)
 #define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<element_type> >::memset(ptr, value, num_bytes)
-#define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::CMemF< decltype(destination) >::memcpy(destination, source, num_bytes)
-#define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::CMemF< decltype(ptr) >::memset(ptr, value, num_bytes)
+#define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype(destination[0])>::type> >::memcpy(destination, source, num_bytes)
+#define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype(ptr[0])>::type> >::memset(ptr, value, num_bytes)
 
 #endif /*MSE_LEGACYHELPERS_DISABLED*/
 
