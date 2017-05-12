@@ -1609,6 +1609,13 @@ int main(int argc, char* argv[])
 		auto ra_section1_iter2 = ra_section1.end();
 		auto res8 = ra_section1_iter2 - ra_section1_iter1;
 		bool res9 = (ra_section1_iter1 < ra_section1_iter2);
+		int q = 5;
+	}
+
+	{
+		/********************/
+		/*  legacy helpers  */
+		/********************/
 
 		{
 			mse::lh::TIPointerWithBundledVector<int> iptrwbv1 = { 1, 2 };
@@ -1652,13 +1659,23 @@ int main(int argc, char* argv[])
 		{
 			typedef int dyn_arr2_element_type;
 			MSE_LH_DYNAMIC_ARRAY_TYPE(dyn_arr2_element_type) dyn_arr2;
+			MSE_LH_ALLOC_DYNAMIC_ARRAY(dyn_arr2, 64/*bytes*/);
 
-			MSE_LH_ALLOC_DYNAMIC_ARRAY(dyn_arr2_element_type, dyn_arr2, 5/*bytes*/);
+			MSE_LH_MEMSET(dyn_arr2, 99, 64/*bytes*/);
 			auto dyn_arr2b = dyn_arr2;
 
-			MSE_LH_FREE_DYNAMIC_ARRAY(dyn_arr2_element_type, dyn_arr2);
+			MSE_LH_FREE_DYNAMIC_ARRAY(dyn_arr2);
 		}
-		int q = 5;
+
+		{
+			typedef int arr_element_type;
+			MSE_LH_FIXED_ARRAY_DECLARATION(arr_element_type, 3/*elements*/, array1) = { 1, 2, 3 };
+			MSE_LH_FIXED_ARRAY_DECLARATION(arr_element_type, 3/*elements*/, array2) = array1;
+
+			MSE_LH_TYPED_MEMSET(arr_element_type, array1, 99, 3/*elements*/ * sizeof(arr_element_type));
+			MSE_LH_TYPED_MEMCPY(arr_element_type, array2, array1, 3/*elements*/ * sizeof(arr_element_type));
+			auto res18 = array2[1];
+		}
 	}
 
 	{

@@ -15,17 +15,37 @@ namespace mse {
 
 #ifdef MSE_LEGACYHELPERS_DISABLED
 
+#define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) element_type name[size]
+
 #define MSE_LH_DYNAMIC_ARRAY_TYPE(element_type) element_type *
-#define MSE_LH_ALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) dyn_array = malloc(num_bytes)
-#define MSE_LH_REALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) dyn_array = realloc(dyn_array, num_bytes)
-#define MSE_LH_FREE_DYNAMIC_ARRAY(element_type, dyn_array) free(dyn_array)
+#define MSE_LH_ALLOC_DYNAMIC_ARRAY(dyn_array, num_bytes) dyn_array = malloc(num_bytes)
+#define MSE_LH_REALLOC_DYNAMIC_ARRAY(dyn_array, num_bytes) dyn_array = realloc(dyn_array, num_bytes)
+#define MSE_LH_FREE_DYNAMIC_ARRAY(dyn_array) free(dyn_array)
+
+#define MSE_LH_FREAD(ptr, size, count, stream) fread(ptr, size, count, stream)
+#define MSE_LH_FWRITE(ptr, size, count, stream) fwrite(ptr, size, count, stream)
+
+#define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) memcpy(destination, source, num_bytes)
+#define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) memset(ptr, value, num_bytes)
+#define MSE_LH_MEMCPY(destination, source, num_bytes) memcpy(destination, source, num_bytes)
+#define MSE_LH_MEMSET(ptr, value, num_bytes) memset(ptr, value, num_bytes)
 
 #else /*MSE_LEGACYHELPERS_DISABLED*/
 
+#define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) mse::lh::TNativeArrayReplacement< element_type, size > name
+
 #define MSE_LH_DYNAMIC_ARRAY_TYPE(element_type) mse::lh::TIPointerWithBundledVector< element_type >
-#define MSE_LH_ALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) mse::lh::CAllocF< MSE_LH_DYNAMIC_ARRAY_TYPE(element_type) >::allocate(dyn_array, num_bytes)
-#define MSE_LH_REALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) mse::lh::CAllocF< MSE_LH_DYNAMIC_ARRAY_TYPE(element_type) >::reallocate(dyn_array, num_bytes)
-#define MSE_LH_FREE_DYNAMIC_ARRAY(element_type, dyn_array) mse::lh::CAllocF< MSE_LH_DYNAMIC_ARRAY_TYPE(element_type) >::free(dyn_array)
+#define MSE_LH_ALLOC_DYNAMIC_ARRAY(dyn_array, num_bytes) mse::lh::CAllocF< decltype(dyn_array) >::allocate(dyn_array, num_bytes)
+#define MSE_LH_REALLOC_DYNAMIC_ARRAY(dyn_array, num_bytes) mse::lh::CAllocF< decltype(dyn_array) >::reallocate(dyn_array, num_bytes)
+#define MSE_LH_FREE_DYNAMIC_ARRAY(dyn_array) mse::lh::CAllocF< decltype(dyn_array) >::free(dyn_array)
+
+#define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::CFileF< decltype(ptr) >::fread(ptr, size, count, stream)
+#define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::CFileF< decltype(ptr) >::fwrite(ptr, size, count, stream)
+
+#define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<element_type> >::memcpy(destination, source, num_bytes)
+#define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<element_type> >::memset(ptr, value, num_bytes)
+#define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::CMemF< decltype(destination) >::memcpy(destination, source, num_bytes)
+#define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::CMemF< decltype(ptr) >::memset(ptr, value, num_bytes)
 
 #endif /*MSE_LEGACYHELPERS_DISABLED*/
 
@@ -72,8 +92,14 @@ namespace mse {
 				return (*vector_refcptr()).size();
 			}
 			void resize(size_type _N, const _Ty& _X = _Ty()) {
+				auto old_size = size();
+
 				(*vector_refcptr()).resize(_N, _X);
 				(*vector_refcptr()).shrink_to_fit();
+
+				if (true || (0 == old_size)) {
+					(*this).set_to_beginning();
+				}
 			}
 
 			TIPointerWithBundledVector& operator=(const TIPointerWithBundledVector& _Right_cref) {
@@ -184,7 +210,8 @@ namespace mse {
 		class CFileF<mse::TNullableAnyRandomAccessIterator<_Ty>> {
 		public:
 			static size_t fread(mse::TNullableAnyRandomAccessIterator<_Ty> ptr, size_t size, size_t count, FILE * stream) {
-				std::vector<unsigned char> v(size * count);
+				static std::vector<unsigned char> v;
+				v.resize(size * count);
 				auto num_bytes_read = ::fread(v.data(), size, count, stream);
 				auto num_items_read = num_bytes_read / sizeof(_Ty);
 				size_t uc_index = 0;
@@ -194,10 +221,12 @@ namespace mse {
 					_Ty* Ty_ptr = (_Ty*)uc_ptr;
 					ptr[Ty_index] = (*Ty_ptr);
 				}
+				v.resize(0);
 				return num_bytes_read;
 			}
 			static size_t fwrite(mse::TNullableAnyRandomAccessIterator<_Ty> ptr, size_t size, size_t count, FILE * stream) {
-				std::vector<unsigned char> v(size * count);
+				static std::vector<unsigned char> v;
+				v.resize(size * count);
 				auto num_items_to_write = size * count / sizeof(_Ty);
 				size_t uc_index = 0;
 				size_t Ty_index = 0;
@@ -206,7 +235,53 @@ namespace mse {
 					_Ty* Ty_ptr = (_Ty*)uc_ptr;
 					(*Ty_ptr) = ptr[Ty_index];
 				}
-				return ::fwrite(v.data(), size, count, stream);
+				auto res = ::fwrite(v.data(), size, count, stream);
+				v.resize(0);
+				return res;
+			}
+		};
+
+		template<class _Ty>
+		class CMemF {
+		public:
+			static void memcpy(_Ty destination, _Ty source, size_t num);
+			static void memset(_Ty ptr, int value, size_t num);
+		};
+		template<class _Ty>
+		class CMemF<_Ty*> {
+		public:
+			static void memcpy(_Ty* destination, _Ty* source, size_t num) {
+				::memcpy(destination, source, num);
+			}
+			static void memset(_Ty ptr, int value, size_t num) {
+				::memset(ptr, value, num);
+			}
+		};
+		template<class _Ty>
+		class CMemF<mse::TNullableAnyRandomAccessIterator<_Ty>> {
+		public:
+			static void memcpy(mse::TNullableAnyRandomAccessIterator<_Ty> destination, mse::TNullableAnyRandomAccessIterator<_Ty> source, size_t num_bytes) {
+				auto num_items = num_bytes / sizeof(_Ty);
+				for (size_t i = 0; i < num_items; i += 1) {
+					destination[i] = source[i];
+				}
+			}
+			static void memset(mse::TNullableAnyRandomAccessIterator<_Ty> ptr, int value, size_t num_bytes) {
+				auto Ty_value = _Ty(value);
+				auto num_items = num_bytes / sizeof(_Ty);
+				for (size_t i = 0; i < num_items; i += 1) {
+					ptr[i] = Ty_value;
+				}
+			}
+		};
+		template<class _Ty>
+		class CMemF<mse::lh::TIPointerWithBundledVector<_Ty>> {
+		public:
+			static void memcpy(mse::TNullableAnyRandomAccessIterator<_Ty> destination, mse::TNullableAnyRandomAccessIterator<_Ty> source, size_t num_bytes) {
+				CMemF< mse::TNullableAnyRandomAccessIterator<_Ty> >::memcpy(destination, source, num_bytes);
+			}
+			static void memset(mse::TNullableAnyRandomAccessIterator<_Ty> ptr, int value, size_t num_bytes) {
+				CMemF< mse::TNullableAnyRandomAccessIterator<_Ty> >::memset(ptr, value, num_bytes);
 			}
 		};
 
