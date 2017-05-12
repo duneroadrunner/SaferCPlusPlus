@@ -9,6 +9,7 @@
 #define MSELEGACYHELPERS_H_
 
 #include "msepoly.h"
+#include <cstring>
 
 namespace mse {
 	namespace lh {
