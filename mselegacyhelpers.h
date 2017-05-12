@@ -11,16 +11,21 @@
 #include "msepoly.h"
 #include <cstring>
 
+#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+#define MSE_LEGACYHELPERS_DISABLED
+#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+
 namespace mse {
 	namespace lh {
 
 #ifdef MSE_LEGACYHELPERS_DISABLED
 
 #define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) element_type name[size]
+#define MSE_LH_ITERATOR_FROM_ARRAY(array) (&(array[0]))
 
 #define MSE_LH_DYNAMIC_ARRAY_TYPE(element_type) element_type *
-#define MSE_LH_ALLOC_DYNAMIC_ARRAY(dyn_array, num_bytes) dyn_array = malloc(num_bytes)
-#define MSE_LH_REALLOC_DYNAMIC_ARRAY(dyn_array, num_bytes) dyn_array = realloc(dyn_array, num_bytes)
+#define MSE_LH_ALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) dyn_array = (element_type *)malloc(num_bytes)
+#define MSE_LH_REALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) dyn_array = (element_type *)realloc(dyn_array, num_bytes)
 #define MSE_LH_FREE_DYNAMIC_ARRAY(dyn_array) free(dyn_array)
 
 #define MSE_LH_FREAD(ptr, size, count, stream) fread(ptr, size, count, stream)
@@ -34,10 +39,11 @@ namespace mse {
 #else /*MSE_LEGACYHELPERS_DISABLED*/
 
 #define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) mse::lh::TNativeArrayReplacement< element_type, size > name
+#define MSE_LH_ITERATOR_FROM_ARRAY(array) array
 
 #define MSE_LH_DYNAMIC_ARRAY_TYPE(element_type) mse::lh::TIPointerWithBundledVector< element_type >
-#define MSE_LH_ALLOC_DYNAMIC_ARRAY(dyn_array, num_bytes) mse::lh::CAllocF< decltype(dyn_array) >::allocate(dyn_array, num_bytes)
-#define MSE_LH_REALLOC_DYNAMIC_ARRAY(dyn_array, num_bytes) mse::lh::CAllocF< decltype(dyn_array) >::reallocate(dyn_array, num_bytes)
+#define MSE_LH_ALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) mse::lh::CAllocF< decltype(dyn_array) >::allocate(dyn_array, num_bytes)
+#define MSE_LH_REALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) mse::lh::CAllocF< decltype(dyn_array) >::reallocate(dyn_array, num_bytes)
 #define MSE_LH_FREE_DYNAMIC_ARRAY(dyn_array) mse::lh::CAllocF< decltype(dyn_array) >::free(dyn_array)
 
 #define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::CFileF< decltype(ptr) >::fread(ptr, size, count, stream)

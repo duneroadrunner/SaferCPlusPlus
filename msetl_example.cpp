@@ -1626,19 +1626,23 @@ int main(int argc, char* argv[])
 		}
 
 		{
-			mse::lh::TNativeArrayReplacement<int, 5> nar1 = { 1, 2, 3, 4, 5 };
-			auto res13 = nar1.size();
+			struct s1_type {
+				MSE_LH_FIXED_ARRAY_DECLARATION(int, 3, nar11) = { 1, 2, 3 };
+			} s1, s2;
+
+			MSE_LH_FIXED_ARRAY_DECLARATION(int, 5, nar1) = { 1, 2, 3, 4, 5 };
 			auto res14 = nar1[0];
 			auto res15 = nar1[1];
 			auto res16 = nar1[2];
 
-			mse::lh::TNativeArrayReplacement<int, 3> nar11 = { 1, 2, 3 };
-			mse::lh::TNativeArrayReplacement<int, 3> nar12 = nar11;
-			nar12[1] = 4;
-			nar11 = nar12;
-			auto res16b = nar11[1];
-			mse::TAnyRandomAccessIterator<int> araiter1 = nar11;
-			mse::TNullableAnyRandomAccessIterator<int> naraiter1 = nar11;
+			s2 = s1;
+
+			s2.nar11[1] = 4;
+			s1 = s2;
+			auto res16b = s1.nar11[1];
+
+			mse::TAnyRandomAccessIterator<int> araiter1 = MSE_LH_ITERATOR_FROM_ARRAY(s1.nar11);
+			mse::TNullableAnyRandomAccessIterator<int> naraiter1 = MSE_LH_ITERATOR_FROM_ARRAY(s1.nar11);
 			auto res16c = naraiter1[1];
 		}
 
@@ -1659,7 +1663,7 @@ int main(int argc, char* argv[])
 		{
 			typedef int dyn_arr2_element_type;
 			MSE_LH_DYNAMIC_ARRAY_TYPE(dyn_arr2_element_type) dyn_arr2;
-			MSE_LH_ALLOC_DYNAMIC_ARRAY(dyn_arr2, 64/*bytes*/);
+			MSE_LH_ALLOC_DYNAMIC_ARRAY(dyn_arr2_element_type, dyn_arr2, 64/*bytes*/);
 
 			MSE_LH_MEMSET(dyn_arr2, 99, 64/*bytes*/);
 			auto dyn_arr2b = dyn_arr2;
@@ -1670,7 +1674,7 @@ int main(int argc, char* argv[])
 		{
 			typedef int arr_element_type;
 			MSE_LH_FIXED_ARRAY_DECLARATION(arr_element_type, 3/*elements*/, array1) = { 1, 2, 3 };
-			MSE_LH_FIXED_ARRAY_DECLARATION(arr_element_type, 3/*elements*/, array2) = array1;
+			MSE_LH_FIXED_ARRAY_DECLARATION(arr_element_type, 3/*elements*/, array2) = { 4, 5, 6 };
 
 			MSE_LH_TYPED_MEMSET(arr_element_type, array1, 99, 3/*elements*/ * sizeof(arr_element_type));
 			MSE_LH_TYPED_MEMCPY(arr_element_type, array2, array1, 3/*elements*/ * sizeof(arr_element_type));

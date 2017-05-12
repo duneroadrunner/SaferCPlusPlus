@@ -274,7 +274,8 @@ namespace mse {
 			return (*m_pointer);
 		}
 		_Ty* operator->() const {
-			return m_pointer.operator->();
+			//return m_pointer.operator->();
+			return std::addressof(*m_pointer);
 		}
 
 		_TPointer1 m_pointer;
@@ -377,7 +378,8 @@ namespace mse {
 			return (*m_const_pointer);
 		}
 		const _Ty* operator->() const {
-			return m_const_pointer.operator->();
+			//return m_const_pointer.operator->();
+			return std::addressof(*m_const_pointer);
 		}
 
 		_TConstPointer1 m_const_pointer;
