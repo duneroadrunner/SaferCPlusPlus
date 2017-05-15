@@ -1075,6 +1075,7 @@ namespace mse {
 	class TAnyRandomAccessIterator : public TXScopeAnyRandomAccessIterator<_Ty> {
 	public:
 		typedef TXScopeAnyRandomAccessIterator<_Ty> base_class;
+		typedef typename base_class::difference_t difference_t;
 
 		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : TXScopeAnyRandomAccessIterator<_Ty>(src) {}
 		TAnyRandomAccessIterator(_Ty arr[]) : TXScopeAnyRandomAccessIterator<_Ty>((_Ty*)arr) {}
@@ -1091,9 +1092,9 @@ namespace mse {
 			TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TXScopeAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
 
 		TAnyRandomAccessIterator& operator ++() { base_class::operator ++(); return (*this); }
-		TAnyRandomAccessIterator operator ++(int) { return base_class::operator ++(int); }
+		TAnyRandomAccessIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
 		TAnyRandomAccessIterator& operator --() { base_class::operator --(); return (*this); }
-		TAnyRandomAccessIterator operator --(int) { return base_class::operator --(int); }
+		TAnyRandomAccessIterator operator --(int) { auto _Tmp = (*this); base_class::operator -=(1); return _Tmp; }
 
 		TAnyRandomAccessIterator operator+(difference_t n) const { return base_class::operator+(n); }
 		TAnyRandomAccessIterator operator-(difference_t n) const { return base_class::operator-(n); }
@@ -1111,6 +1112,7 @@ namespace mse {
 	class TAnyRandomAccessConstIterator : public TXScopeAnyRandomAccessConstIterator<_Ty> {
 	public:
 		typedef TXScopeAnyRandomAccessConstIterator<_Ty> base_class;
+		typedef typename base_class::difference_t difference_t;
 
 		TAnyRandomAccessConstIterator(const TAnyRandomAccessConstIterator& src) : TXScopeAnyRandomAccessConstIterator<_Ty>(src) {}
 		TAnyRandomAccessConstIterator(const TAnyRandomAccessIterator<_Ty>& src) : TXScopeAnyRandomAccessConstIterator<_Ty>(static_cast<TXScopeAnyRandomAccessIterator<_Ty>>(src)) {}
@@ -1128,9 +1130,9 @@ namespace mse {
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : TXScopeAnyRandomAccessConstIterator<_Ty>(random_access_const_iterator) {}
 
 		TAnyRandomAccessConstIterator& operator ++() { base_class::operator ++(); return (*this); }
-		TAnyRandomAccessConstIterator operator ++(int) { return base_class::operator ++(int); }
+		TAnyRandomAccessConstIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
 		TAnyRandomAccessConstIterator& operator --() { base_class::operator --(); return (*this); }
-		TAnyRandomAccessConstIterator operator --(int) { return base_class::operator --(int); }
+		TAnyRandomAccessConstIterator operator --(int) { auto _Tmp = (*this); base_class::operator -=(1); return _Tmp; }
 
 		TAnyRandomAccessConstIterator operator+(difference_t n) const { return base_class::operator+(n); }
 		TAnyRandomAccessConstIterator operator-(difference_t n) const { return base_class::operator-(n); }
