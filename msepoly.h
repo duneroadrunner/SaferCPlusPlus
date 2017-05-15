@@ -1098,6 +1098,7 @@ namespace mse {
 
 		TAnyRandomAccessIterator operator+(difference_t n) const { return base_class::operator+(n); }
 		TAnyRandomAccessIterator operator-(difference_t n) const { return base_class::operator-(n); }
+		difference_t operator-(const TAnyRandomAccessIterator& _Right_cref) const { return base_class::operator-(_Right_cref); }
 
 		TAnyRandomAccessIterator& operator=(TAnyRandomAccessIterator _Right) { base_class::operator=(_Right); return (*this); }
 
@@ -1136,6 +1137,7 @@ namespace mse {
 
 		TAnyRandomAccessConstIterator operator+(difference_t n) const { return base_class::operator+(n); }
 		TAnyRandomAccessConstIterator operator-(difference_t n) const { return base_class::operator-(n); }
+		difference_t operator-(const TAnyRandomAccessConstIterator& _Right_cref) const { return base_class::operator-(_Right_cref); }
 
 		TAnyRandomAccessConstIterator& operator=(TAnyRandomAccessConstIterator _Right) { base_class::operator=(_Right); return (*this); }
 
