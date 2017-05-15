@@ -44,13 +44,13 @@ namespace mse {
 #define MSE_LH_REALLOC_DYNAMIC_ARRAY(element_type, dyn_array, num_bytes) mse::lh::CAllocF< decltype(dyn_array) >::reallocate(dyn_array, num_bytes)
 #define MSE_LH_FREE_DYNAMIC_ARRAY(dyn_array) mse::lh::CAllocF< decltype(dyn_array) >::free(dyn_array)
 
-#define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype(ptr[0])>::type> >::fread(ptr, size, count, stream)
-#define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype(ptr[0])>::type> >::fwrite(ptr, size, count, stream)
+#define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fread(ptr, size, count, stream)
+#define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fwrite(ptr, size, count, stream)
 
 #define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<element_type> >::memcpy(destination, source, num_bytes)
 #define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<element_type> >::memset(ptr, value, num_bytes)
-#define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype(destination[0])>::type> >::memcpy(destination, source, num_bytes)
-#define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype(ptr[0])>::type> >::memset(ptr, value, num_bytes)
+#define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((destination)[0])>::type> >::memcpy(destination, source, num_bytes)
+#define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::memset(ptr, value, num_bytes)
 
 #endif /*MSE_LEGACYHELPERS_DISABLED*/
 
@@ -112,7 +112,7 @@ namespace mse {
 					ipointer_base_class::operator=(_Right_cref);
 				}
 				else {
-					~TIPointerWithBundledVector();
+					(*this).~TIPointerWithBundledVector();
 					::new (this) TIPointerWithBundledVector(_Right_cref);
 				}
 				return(*this);
