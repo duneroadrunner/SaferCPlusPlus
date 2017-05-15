@@ -1074,6 +1074,8 @@ namespace mse {
 	template <typename _Ty>
 	class TAnyRandomAccessIterator : public TXScopeAnyRandomAccessIterator<_Ty> {
 	public:
+		typedef TXScopeAnyRandomAccessIterator<_Ty> base_class;
+
 		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : TXScopeAnyRandomAccessIterator<_Ty>(src) {}
 		TAnyRandomAccessIterator(_Ty arr[]) : TXScopeAnyRandomAccessIterator<_Ty>((_Ty*)arr) {}
 
@@ -1088,7 +1090,19 @@ namespace mse {
 			, void>::type>
 			TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TXScopeAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
 
+		TAnyRandomAccessIterator& operator ++() { base_class::operator ++(); return (*this); }
+		TAnyRandomAccessIterator operator ++(int) { return base_class::operator ++(int); }
+		TAnyRandomAccessIterator& operator --() { base_class::operator --(); return (*this); }
+		TAnyRandomAccessIterator operator --(int) { return base_class::operator --(int); }
+
+		TAnyRandomAccessIterator operator+(difference_t n) const { return base_class::operator+(n); }
+		TAnyRandomAccessIterator operator-(difference_t n) const { return base_class::operator-(n); }
+
+		TAnyRandomAccessIterator& operator=(TAnyRandomAccessIterator _Right) { base_class::operator=(_Right); return (*this); }
+
 	private:
+		TAnyRandomAccessIterator(const TXScopeAnyRandomAccessIterator<_Ty>& src) : TXScopeAnyRandomAccessIterator<_Ty>(src) {}
+
 		TAnyRandomAccessIterator<_Ty>* operator&() { return this; }
 		const TAnyRandomAccessIterator<_Ty>* operator&() const { return this; }
 	};
@@ -1096,6 +1110,8 @@ namespace mse {
 	template <typename _Ty>
 	class TAnyRandomAccessConstIterator : public TXScopeAnyRandomAccessConstIterator<_Ty> {
 	public:
+		typedef TXScopeAnyRandomAccessConstIterator<_Ty> base_class;
+
 		TAnyRandomAccessConstIterator(const TAnyRandomAccessConstIterator& src) : TXScopeAnyRandomAccessConstIterator<_Ty>(src) {}
 		TAnyRandomAccessConstIterator(const TAnyRandomAccessIterator<_Ty>& src) : TXScopeAnyRandomAccessConstIterator<_Ty>(static_cast<TXScopeAnyRandomAccessIterator<_Ty>>(src)) {}
 		TAnyRandomAccessConstIterator(const _Ty arr[]) : TXScopeAnyRandomAccessConstIterator<_Ty>((const _Ty*)arr) {}
@@ -1111,7 +1127,19 @@ namespace mse {
 			, void>::type>
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : TXScopeAnyRandomAccessConstIterator<_Ty>(random_access_const_iterator) {}
 
+		TAnyRandomAccessConstIterator& operator ++() { base_class::operator ++(); return (*this); }
+		TAnyRandomAccessConstIterator operator ++(int) { return base_class::operator ++(int); }
+		TAnyRandomAccessConstIterator& operator --() { base_class::operator --(); return (*this); }
+		TAnyRandomAccessConstIterator operator --(int) { return base_class::operator --(int); }
+
+		TAnyRandomAccessConstIterator operator+(difference_t n) const { return base_class::operator+(n); }
+		TAnyRandomAccessConstIterator operator-(difference_t n) const { return base_class::operator-(n); }
+
+		TAnyRandomAccessConstIterator& operator=(TAnyRandomAccessConstIterator _Right) { base_class::operator=(_Right); return (*this); }
+
 	private:
+		TAnyRandomAccessConstIterator(const TXScopeAnyRandomAccessConstIterator<_Ty>& src) : TXScopeAnyRandomAccessConstIterator<_Ty>(src) {}
+
 		TAnyRandomAccessConstIterator<_Ty>* operator&() { return this; }
 		const TAnyRandomAccessConstIterator<_Ty>* operator&() const { return this; }
 	};
