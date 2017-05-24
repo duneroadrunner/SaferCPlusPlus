@@ -77,6 +77,7 @@ namespace mse {
 
 			TIPointerWithBundledVector() : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>())
 				, ipointer_base_class(*vector_refcptr()) {}
+			TIPointerWithBundledVector(const std::nullptr_t& src) : TIPointerWithBundledVector() {}
 			TIPointerWithBundledVector(const TIPointerWithBundledVector& src) : TVectorRefcfptrWrapper<_Ty>(src.vector_refcptr())
 				, ipointer_base_class(*vector_refcptr()) {
 				ipointer_base_class::operator=(src);
@@ -107,6 +108,9 @@ namespace mse {
 				}
 			}
 
+			TIPointerWithBundledVector& operator=(const std::nullptr_t& _Right_cref) {
+				return operator=(TIPointerWithBundledVector());
+			}
 			TIPointerWithBundledVector& operator=(const TIPointerWithBundledVector& _Right_cref) {
 				if (_Right_cref.vector_refcptr() == vector_refcptr()) {
 					ipointer_base_class::operator=(_Right_cref);
