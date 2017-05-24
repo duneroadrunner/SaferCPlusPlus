@@ -412,8 +412,6 @@ namespace mse {
 			static _MA& _MA_ref(_MA& obj) { return obj; }
 			static const _MA& _MA_cref(const _MA& obj) { return obj; }
 
-			class xscope_iterator;
-
 			class xscope_const_iterator {
 			public:
 				typedef typename _MA::xscope_ss_const_iterator_type::iterator_category iterator_category;

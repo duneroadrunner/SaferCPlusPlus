@@ -686,8 +686,6 @@ namespace mse {
 			return (const_reverse_iterator(ss_begin()));
 		}
 
-		class xscope_ss_iterator_type;
-
 		class xscope_ss_const_iterator_type : public ss_const_iterator_type {
 		public:
 			xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
