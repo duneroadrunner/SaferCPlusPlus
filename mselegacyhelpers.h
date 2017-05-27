@@ -108,6 +108,7 @@ namespace mse {
 				}
 			}
 
+			bool operator==(const std::nullptr_t& _Right_cref) const { return (0 == size()); }
 			TIPointerWithBundledVector& operator=(const std::nullptr_t& _Right_cref) {
 				return operator=(TIPointerWithBundledVector());
 			}
@@ -162,6 +163,10 @@ namespace mse {
 			}
 			operator typename mse::mstd::array<_Ty, _Size>::const_iterator() {
 				return base_class::cbegin();
+			}
+			template <class = typename std::enable_if<(!std::is_const<_Ty>::value), void>::type>
+			operator mse::TNullableAnyRandomAccessIterator<const _Ty>() {
+				return base_class::begin();
 			}
 		};
 
@@ -235,6 +240,7 @@ namespace mse {
 				return num_bytes_read;
 			}
 			static size_t fwrite(mse::TNullableAnyRandomAccessIterator<_Ty> ptr, size_t size, size_t count, FILE * stream) {
+				typedef typename std::remove_const<_Ty>::type non_const_Ty;
 				static std::vector<unsigned char> v;
 				v.resize(size * count);
 				auto num_items_to_write = size * count / sizeof(_Ty);
@@ -242,7 +248,7 @@ namespace mse {
 				size_t Ty_index = 0;
 				for (; Ty_index < num_items_to_write; uc_index += sizeof(_Ty), Ty_index += 1) {
 					unsigned char* uc_ptr = &(v[uc_index]);
-					_Ty* Ty_ptr = (_Ty*)uc_ptr;
+					non_const_Ty* Ty_ptr = (non_const_Ty*)uc_ptr;
 					(*Ty_ptr) = ptr[Ty_index];
 				}
 				auto res = ::fwrite(v.data(), size, count, stream);
