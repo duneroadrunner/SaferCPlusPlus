@@ -107,7 +107,7 @@ namespace mse {
 			}
 
 
-			class const_iterator {
+			class const_iterator : public _MV::random_access_const_iterator_base {
 			public:
 				typedef typename _MV::ss_const_iterator_type::iterator_category iterator_category;
 				typedef typename _MV::ss_const_iterator_type::value_type value_type;
@@ -173,7 +173,7 @@ namespace mse {
 				friend class /*_Myt*/vector<_Ty, _A>;
 				friend class iterator;
 			};
-			class iterator {
+			class iterator : public _MV::random_access_iterator_base {
 			public:
 				typedef typename _MV::ss_iterator_type::iterator_category iterator_category;
 				typedef typename _MV::ss_iterator_type::value_type value_type;

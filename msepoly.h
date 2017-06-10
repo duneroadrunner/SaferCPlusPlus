@@ -807,14 +807,19 @@ namespace mse {
 	};
 
 
+	template <typename _Ty> using TRandomAccessIteratorBase = typename mse::msearray<_Ty, 0>::random_access_iterator_base;
+	template <typename _Ty> using TRandomAccessConstIteratorBase = typename mse::msearray<_Ty, 0>::random_access_const_iterator_base;
+
 	template <typename _Ty>
-	class TCommonRandomAccessIteratorInterface {
+	class TCommonRandomAccessIteratorInterface : public TRandomAccessIteratorBase<_Ty> {
 	public:
+		typedef TRandomAccessIteratorBase<_Ty> base_class;
+
 		virtual ~TCommonRandomAccessIteratorInterface() {}
 		virtual _Ty& operator*() const = 0;
 		virtual _Ty* operator->() const = 0;
-		typedef typename mse::mstd::array<_Ty, 0>::reference reference_t;
-		typedef typename mse::mstd::array<_Ty, 0>::difference_type difference_t;
+		typedef typename base_class::reference reference_t;
+		typedef typename base_class::difference_type difference_t;
 		virtual reference_t operator[](difference_t _Off) const = 0;
 		virtual void operator +=(difference_t x) = 0;
 		virtual void operator -=(difference_t x) { operator +=(-x); }
@@ -862,7 +867,7 @@ namespace mse {
 	class TAnyRandomAccessIterator;
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessIterator {
+	class TXScopeAnyRandomAccessIterator : public TRandomAccessIteratorBase<_Ty> {
 	public:
 		TXScopeAnyRandomAccessIterator(const TXScopeAnyRandomAccessIterator& src) : m_any_random_access_iterator(src.m_any_random_access_iterator) {}
 		TXScopeAnyRandomAccessIterator(_Ty arr[]) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _Ty*>((_Ty*)arr)) {}
@@ -931,13 +936,15 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TCommonRandomAccessConstIteratorInterface {
+	class TCommonRandomAccessConstIteratorInterface : public TRandomAccessConstIteratorBase<_Ty> {
 	public:
+		typedef TRandomAccessConstIteratorBase<_Ty> base_class;
+
 		virtual ~TCommonRandomAccessConstIteratorInterface() {}
 		virtual const _Ty& operator*() const = 0;
 		virtual const _Ty* operator->() const = 0;
-		typedef typename mse::mstd::array<_Ty, 0>::const_reference const_reference_t;
-		typedef typename mse::mstd::array<_Ty, 0>::difference_type difference_t;
+		typedef typename base_class::reference const_reference_t;
+		typedef typename base_class::difference_type difference_t;
 		virtual const_reference_t operator[](difference_t _Off) const = 0;
 		virtual void operator +=(difference_t x) = 0;
 		virtual void operator -=(difference_t x) { operator +=(-x); }
@@ -985,7 +992,7 @@ namespace mse {
 	class TAnyRandomAccessConstIterator;
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessConstIterator {
+	class TXScopeAnyRandomAccessConstIterator : public TRandomAccessConstIteratorBase<_Ty> {
 	public:
 		TXScopeAnyRandomAccessConstIterator(const TXScopeAnyRandomAccessConstIterator& src) : m_any_random_access_const_iterator(src.m_any_random_access_const_iterator) {}
 		TXScopeAnyRandomAccessConstIterator(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>((const _Ty*)arr)) {}

@@ -88,7 +88,7 @@ namespace mse {
 		typename _MV::reference back() { return m_shptr->back(); }
 		typename _MV::const_reference back() const { return m_shptr->back(); }
 
-		class cipointer {
+		class cipointer : public _MV::random_access_const_iterator_base {
 		public:
 			typedef typename _MV::mm_const_iterator_type::iterator_category iterator_category;
 			typedef typename _MV::mm_const_iterator_type::value_type value_type;
@@ -150,7 +150,7 @@ namespace mse {
 			friend class /*_Myt*/ivector<_Ty, _A>;
 			friend class ipointer;
 		};
-		class ipointer {
+		class ipointer : public _MV::random_access_iterator_base {
 		public:
 			typedef typename _MV::mm_iterator_type::iterator_category iterator_category;
 			typedef typename _MV::mm_iterator_type::value_type value_type;

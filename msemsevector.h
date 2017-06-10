@@ -723,8 +723,11 @@ namespace mse {
 
 		//size_t m_debug_size;
 
+		class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
+		class random_access_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+
 		/* mm_const_iterator_type acts much like a list iterator. */
-		class mm_const_iterator_type {
+		class mm_const_iterator_type : public random_access_const_iterator_base {
 		public:
 			typedef typename base_class::const_iterator::iterator_category iterator_category;
 			typedef typename base_class::const_iterator::value_type value_type;
@@ -920,7 +923,7 @@ namespace mse {
 			friend class mm_iterator_type;
 		};
 		/* mm_iterator_type acts much like a list iterator. */
-		class mm_iterator_type {
+		class mm_iterator_type : random_access_iterator_base {
 		public:
 			typedef typename base_class::iterator::iterator_category iterator_category;
 			typedef typename base_class::iterator::value_type value_type;
@@ -1441,7 +1444,7 @@ namespace mse {
 		void release_all_item_pointers() const { m_mmitset.release_all_item_pointers(); }
 
 	public:
-		class cipointer {
+		class cipointer : public random_access_const_iterator_base {
 		public:
 			typedef typename mm_const_iterator_type::iterator_category iterator_category;
 			typedef typename mm_const_iterator_type::value_type value_type;
@@ -1511,7 +1514,7 @@ namespace mse {
 			std::shared_ptr<mm_const_iterator_handle_type> m_handle_shptr;
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
-		class ipointer {
+		class ipointer : public random_access_iterator_base {
 		public:
 			typedef typename mm_iterator_type::iterator_category iterator_category;
 			typedef typename mm_iterator_type::value_type value_type;
@@ -1819,7 +1822,7 @@ namespace mse {
 
 
 		/* ss_const_iterator_type is a bounds checked iterator. */
-		class ss_const_iterator_type/* : public base_class::const_iterator*/ {
+		class ss_const_iterator_type : public random_access_const_iterator_base {
 		public:
 			typedef typename base_class::const_iterator::iterator_category iterator_category;
 			typedef typename base_class::const_iterator::value_type value_type;
@@ -2004,7 +2007,7 @@ namespace mse {
 			friend class /*_Myt*/msevector<_Ty, _A>;
 		};
 		/* ss_iterator_type is a bounds checked iterator. */
-		class ss_iterator_type/* : public base_class::iterator*/ {
+		class ss_iterator_type : public random_access_iterator_base {
 		public:
 			typedef typename base_class::iterator::iterator_category iterator_category;
 			typedef typename base_class::iterator::value_type value_type;

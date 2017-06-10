@@ -212,7 +212,7 @@ namespace mse {
 			class xscope_const_iterator;
 			class xscope_iterator;
 
-			class const_iterator {
+			class const_iterator : public _MA::random_access_const_iterator_base {
 			public:
 				typedef typename _MA::ss_const_iterator_type::iterator_category iterator_category;
 				typedef typename _MA::ss_const_iterator_type::value_type value_type;
@@ -285,7 +285,7 @@ namespace mse {
 				friend class iterator;
 				friend class xscope_const_iterator;
 			};
-			class iterator {
+			class iterator : public _MA::random_access_iterator_base {
 			public:
 				typedef typename _MA::ss_iterator_type::iterator_category iterator_category;
 				typedef typename _MA::ss_iterator_type::value_type value_type;

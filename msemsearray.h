@@ -300,11 +300,14 @@ namespace mse {
 			return m_array.data();
 		}
 
+		class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
+		class random_access_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+
 		class xscope_ss_const_iterator_type;
 		class xscope_ss_iterator_type;
 
 		/* ss_const_iterator_type is a bounds checked const_iterator. */
-		class ss_const_iterator_type {
+		class ss_const_iterator_type : public random_access_const_iterator_base {
 		public:
 			typedef typename std::iterator_traits<typename base_class::const_iterator>::iterator_category iterator_category;
 			typedef typename std::iterator_traits<typename base_class::const_iterator>::value_type value_type;
@@ -453,7 +456,7 @@ namespace mse {
 			friend class xscope_ss_const_iterator_type;
 		};
 		/* ss_iterator_type is a bounds checked iterator. */
-		class ss_iterator_type {
+		class ss_iterator_type : public random_access_iterator_base {
 		public:
 			typedef typename std::iterator_traits<typename base_class::iterator>::iterator_category iterator_category;
 			typedef typename std::iterator_traits<typename base_class::iterator>::value_type value_type;
