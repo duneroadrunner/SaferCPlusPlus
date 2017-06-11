@@ -50,10 +50,12 @@ namespace mse {
 			explicit vector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
 			explicit vector(size_type _N) : m_shptr(std::make_shared<_MV>(_N)) {}
 			explicit vector(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
-			vector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X))) {}
-			vector(const _MV& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
 			vector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X.msevector()))) {}
 			vector(const _Myt& _X) : m_shptr(std::make_shared<_MV>(_X.msevector())) {}
+			vector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X))) {}
+			vector(const _MV& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
+			vector(std::vector<_Ty>&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X))) {}
+			vector(const std::vector<_Ty>& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
 			typedef typename _MV::const_iterator _It;
 			vector(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
 			vector(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
