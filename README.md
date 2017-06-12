@@ -1168,6 +1168,8 @@ usage example:
         }
     }
 
+Note that while CInt and CSize_t have no problem interacting with native signed integers, they do not implicitly play well with size_t or native unsigned integers. We'd be generally wary of using native unsigned integer types due to the implicit conversion/promotion rules between signed and unsigned native integers. But if you need to obtain a size_t from a CSize_t, you can do so explicitly using the mse::as_a_size_t() function. If you want to construct a CSize_t (or CInt) from a native unsigned integer type, you'd need to first cast it to a size_t, or a signed integer.  
+
 Also see the section on "[compatibility considerations](#compatibility-considerations)".
 
 ### Quarantined types
@@ -1393,7 +1395,7 @@ Also note for real time applications that restrict heap allocations: If the numb
 
 ### xscope_iterator
 
-The implementation of mstd::array iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run time cost. So just as the library provides [scope pointers](#scope-pointers) without run time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct, and may not be used as a function return value.
+The implementation of mstd::array iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct, and may not be used as a function return value.
 
 usage example:
 
