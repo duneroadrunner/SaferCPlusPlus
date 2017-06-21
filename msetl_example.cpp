@@ -1662,8 +1662,9 @@ int main(int argc, char* argv[])
 
 		{
 			typedef int dyn_arr2_element_type;
-			MSE_LH_DYNAMIC_ARRAY_TYPE(dyn_arr2_element_type) dyn_arr2;
+			MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(dyn_arr2_element_type) dyn_arr2;
 			MSE_LH_ALLOC(dyn_arr2_element_type, dyn_arr2, 64/*bytes*/);
+			//dyn_arr2 = MSE_LH_ALLOC_DYN_ARRAY1(MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(dyn_arr2_element_type), 64/*bytes*/);
 
 			MSE_LH_MEMSET(dyn_arr2, 99, 64/*bytes*/);
 			auto dyn_arr2b = dyn_arr2;

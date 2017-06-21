@@ -21,11 +21,12 @@ namespace mse {
 #ifdef MSE_LEGACYHELPERS_DISABLED
 
 #define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) element_type name[size]
-#define MSE_LH_DYNAMIC_ARRAY_TYPE(element_type) element_type *
+#define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) element_type *
 
 #define MSE_LH_ALLOC(element_type, ptr, num_bytes) ptr = (element_type *)malloc(num_bytes)
 #define MSE_LH_REALLOC(element_type, ptr, num_bytes) ptr = (element_type *)realloc(ptr, num_bytes)
 #define MSE_LH_FREE(ptr) free(ptr)
+#define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) (iterator_type)malloc(num_bytes)
 
 #define MSE_LH_FREAD(ptr, size, count, stream) fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) fwrite(ptr, size, count, stream)
@@ -38,11 +39,12 @@ namespace mse {
 #else /*MSE_LEGACYHELPERS_DISABLED*/
 
 #define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) mse::lh::TNativeArrayReplacement< element_type, size > name
-#define MSE_LH_DYNAMIC_ARRAY_TYPE(element_type) mse::lh::TIPointerWithBundledVector< element_type >
+#define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TIPointerWithBundledVector< element_type >
 
-#define MSE_LH_ALLOC(element_type, ptr, num_bytes) mse::lh::CAllocF< decltype(ptr) >::allocate(ptr, num_bytes)
-#define MSE_LH_REALLOC(element_type, ptr, num_bytes) mse::lh::CAllocF< decltype(ptr) >::reallocate(ptr, num_bytes)
-#define MSE_LH_FREE(ptr) mse::lh::CAllocF< decltype(ptr) >::free(ptr)
+#define MSE_LH_ALLOC(element_type, ptr, num_bytes) mse::lh::allocate(ptr, num_bytes)
+#define MSE_LH_REALLOC(element_type, ptr, num_bytes) mse::lh::reallocate(ptr, num_bytes)
+#define MSE_LH_FREE(ptr) mse::lh::CAllocF<typename std::remove_reference<decltype(ptr)>::type>::free(ptr)
+#define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) mse::lh::allocate_dyn_array1<iterator_type>(num_bytes)
 
 #define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fwrite(ptr, size, count, stream)
@@ -194,7 +196,7 @@ namespace mse {
 		class CAllocF<mse::lh::TIPointerWithBundledVector<_Ty>> {
 		public:
 			static void free(mse::lh::TIPointerWithBundledVector<_Ty>& ptr) {
-				ptr.resize(0);
+				ptr = mse::lh::TIPointerWithBundledVector<_Ty>();
 			}
 			static void allocate(mse::lh::TIPointerWithBundledVector<_Ty>& ptr, size_t num_bytes) {
 				mse::lh::TIPointerWithBundledVector<_Ty> tmp(num_bytes / sizeof(_Ty));
@@ -204,6 +206,22 @@ namespace mse {
 				ptr.resize(num_bytes / sizeof(_Ty));
 			}
 		};
+		template<class _TDynArrayIter>
+		_TDynArrayIter& allocate(_TDynArrayIter& ptr, size_t num_bytes) {
+			CAllocF<_TDynArrayIter>::allocate(ptr, num_bytes);
+			return ptr;
+		}
+		template<class _TDynArrayIter>
+		_TDynArrayIter& reallocate(_TDynArrayIter& ptr, size_t num_bytes) {
+			CAllocF<_TDynArrayIter>::reallocate(ptr, num_bytes);
+			return ptr;
+		}
+		template<class _TDynArrayIter>
+		_TDynArrayIter allocate_dyn_array1(size_t num_bytes) {
+			_TDynArrayIter ptr;
+			CAllocF<_TDynArrayIter>::allocate(ptr, num_bytes);
+			return ptr;
+		}
 
 		template<class _Ty>
 		class CFileF {
