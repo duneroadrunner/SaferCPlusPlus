@@ -1618,7 +1618,7 @@ int main(int argc, char* argv[])
 		/********************/
 
 		{
-			mse::lh::TIPointerWithBundledVector<int> iptrwbv1 = { 1, 2 };
+			MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int) iptrwbv1 = { 1, 2 };
 			iptrwbv1.resize(5);
 			auto res10 = iptrwbv1[0];
 			auto res11 = iptrwbv1[1];
@@ -1641,22 +1641,21 @@ int main(int argc, char* argv[])
 			s1 = s2;
 			auto res16b = s1.nar11[1];
 
-			mse::TAnyRandomAccessIterator<int> araiter1 = s1.nar11;
-			mse::TNullableAnyRandomAccessIterator<int> naraiter1 = s1.nar11;
+			MSE_LH_ARRAY_ITERATOR_TYPE(int) naraiter1 = s1.nar11;
 			auto res16c = naraiter1[1];
 		}
 
 		{
-			mse::lh::TIPointerWithBundledVector<int> iptrwbv1 = { 1, 2 };
+			MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int) iptrwbv1 = { 1, 2 };
 
-			mse::TNullableAnyRandomAccessIterator<int> naraiter1;
-			mse::TNullableAnyRandomAccessIterator<int> naraiter2(nullptr);
-			mse::TNullableAnyRandomAccessIterator<int> naraiter3(iptrwbv1);
+			MSE_LH_ARRAY_ITERATOR_TYPE(int) naraiter1;
+			MSE_LH_ARRAY_ITERATOR_TYPE(int) naraiter2 = nullptr;
+			MSE_LH_ARRAY_ITERATOR_TYPE(int) naraiter3 = iptrwbv1;
 			naraiter1 = nullptr;
 			naraiter1 = 0;
 			naraiter1 = NULL;
 			naraiter1 = naraiter2;
-			naraiter1 = mse::TNullableAnyRandomAccessIterator<int>(iptrwbv1);
+			naraiter1 = iptrwbv1;
 			auto res17 = naraiter1[1];
 		}
 

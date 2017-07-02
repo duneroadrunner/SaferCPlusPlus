@@ -20,13 +20,18 @@ namespace mse {
 
 #ifdef MSE_LEGACYHELPERS_DISABLED
 
-#define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) element_type name[size]
+#define MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) 
+#define MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) 
+#define MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size) [size]
+#define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) element_type MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) name MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size)
 #define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) element_type *
 
 #define MSE_LH_ALLOC(element_type, ptr, num_bytes) ptr = (element_type *)malloc(num_bytes)
 #define MSE_LH_REALLOC(element_type, ptr, num_bytes) ptr = (element_type *)realloc(ptr, num_bytes)
 #define MSE_LH_FREE(ptr) free(ptr)
 #define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) (iterator_type)malloc(num_bytes)
+
+#define MSE_LH_ARRAY_ITERATOR_TYPE(element_type) element_type *
 
 #define MSE_LH_FREAD(ptr, size, count, stream) fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) fwrite(ptr, size, count, stream)
@@ -38,13 +43,18 @@ namespace mse {
 
 #else /*MSE_LEGACYHELPERS_DISABLED*/
 
-#define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) mse::lh::TNativeArrayReplacement< element_type, size > name
+#define MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) mse::lh::TNativeArrayReplacement< 
+#define MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) , size >
+#define MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size) 
+#define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) element_type MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) name MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size)
 #define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TIPointerWithBundledVector< element_type >
 
 #define MSE_LH_ALLOC(element_type, ptr, num_bytes) mse::lh::allocate(ptr, num_bytes)
 #define MSE_LH_REALLOC(element_type, ptr, num_bytes) mse::lh::reallocate(ptr, num_bytes)
 #define MSE_LH_FREE(ptr) mse::lh::CAllocF<typename std::remove_reference<decltype(ptr)>::type>::free(ptr)
 #define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) mse::lh::allocate_dyn_array1<iterator_type>(num_bytes)
+
+#define MSE_LH_ARRAY_ITERATOR_TYPE(element_type) mse::TNullableAnyRandomAccessIterator< element_type >
 
 #define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fwrite(ptr, size, count, stream)
