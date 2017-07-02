@@ -1618,8 +1618,10 @@ int main(int argc, char* argv[])
 		/********************/
 
 		{
-			MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int) iptrwbv1 = { 1, 2 };
-			iptrwbv1.resize(5);
+			MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int) iptrwbv1 = MSE_LH_ALLOC_DYN_ARRAY1(MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int), 2 * sizeof(int));
+			iptrwbv1[0] = 1;
+			iptrwbv1[1] = 2;
+			MSE_LH_REALLOC(int, iptrwbv1, 5 * sizeof(int));
 			auto res10 = iptrwbv1[0];
 			auto res11 = iptrwbv1[1];
 			auto res12 = iptrwbv1[2];
@@ -1646,7 +1648,9 @@ int main(int argc, char* argv[])
 		}
 
 		{
-			MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int) iptrwbv1 = { 1, 2 };
+			MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int) iptrwbv1 = MSE_LH_ALLOC_DYN_ARRAY1(MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int), 2 * sizeof(int));
+			iptrwbv1[0] = 1;
+			iptrwbv1[1] = 2;
 
 			MSE_LH_ARRAY_ITERATOR_TYPE(int) naraiter1;
 			MSE_LH_ARRAY_ITERATOR_TYPE(int) naraiter2 = nullptr;
