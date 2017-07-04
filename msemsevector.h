@@ -204,7 +204,7 @@ namespace mse {
 			return (*this);
 		}
 		_Myt& operator=(const _Myt& _X) {
-			operator=((base_class)_X);
+			operator=(static_cast<const base_class&>(_X));
 			m_mmitset.reset();
 			return (*this);
 		}
