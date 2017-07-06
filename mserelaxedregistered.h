@@ -93,10 +93,10 @@ namespace mse {
 		bool unregisterPointer(const CSaferPtrBase& sp_ref, void *obj_ptr);
 		void onObjectDestruction(void *obj_ptr);
 		void onObjectConstruction(void *obj_ptr);
-		bool registerPointer(const CSaferPtrBase& sp_ref, const void *obj_ptr) { return (*this).registerPointer(sp_ref, (void *)obj_ptr); }
-		bool unregisterPointer(const CSaferPtrBase& sp_ref, const void *obj_ptr) { return (*this).unregisterPointer(sp_ref, (void *)obj_ptr); }
-		void onObjectDestruction(const void *obj_ptr) { (*this).onObjectDestruction((void *)obj_ptr); }
-		void onObjectConstruction(const void *obj_ptr) { (*this).onObjectConstruction((void *)obj_ptr); }
+		bool registerPointer(const CSaferPtrBase& sp_ref, const void *obj_ptr) { return (*this).registerPointer(sp_ref, const_cast<void *>(obj_ptr)); }
+		bool unregisterPointer(const CSaferPtrBase& sp_ref, const void *obj_ptr) { return (*this).unregisterPointer(sp_ref, const_cast<void *>(obj_ptr)); }
+		void onObjectDestruction(const void *obj_ptr) { (*this).onObjectDestruction(const_cast<void *>(obj_ptr)); }
+		void onObjectConstruction(const void *obj_ptr) { (*this).onObjectConstruction(const_cast<void *>(obj_ptr)); }
 		void reserve_space_for_one_more() {
 			/* The purpose of this function is to ensure that the next call to registerPointer() won't
 			need to allocate more memory, and thus won't have any chance of throwing an exception due to
@@ -311,7 +311,7 @@ namespace mse {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
 			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(relaxedregistered_cannot_verify_cast_error("cannot verify cast validity - mse::TRelaxedRegisteredPointer")); }
-			return (TRelaxedRegisteredObj<_Ty>*)((*this).m_ptr);
+			return reinterpret_cast<TRelaxedRegisteredObj<_Ty>*>((*this).m_ptr);
 		}
 
 		CSPTracker* m_sp_tracker_ptr = nullptr;
@@ -452,7 +452,7 @@ namespace mse {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
 			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(relaxedregistered_cannot_verify_cast_error("cannot verify cast validity - mse::TRelaxedRegisteredConstPointer")); }
-			return (const TRelaxedRegisteredObj<_Ty>*)((*this).m_ptr);
+			return reinterpret_cast<const TRelaxedRegisteredObj<_Ty>*>((*this).m_ptr);
 		}
 
 		CSPTracker* m_sp_tracker_ptr = nullptr;

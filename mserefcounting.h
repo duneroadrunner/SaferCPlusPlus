@@ -652,7 +652,7 @@ namespace mse {
 
 
 #define MTXASSERT_EQ(a, b, c) a &= (b==c)
-#define MTXASSERT(a, b) a &= (bool)(b)
+#define MTXASSERT(a, b) a &= static_cast<bool>(b)
 		bool testBehaviour()
 		{
 			bool ok = true;

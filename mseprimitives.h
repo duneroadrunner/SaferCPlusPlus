@@ -401,7 +401,7 @@ namespace std {
 #define _THROW0()
 #endif // !_THROW0
 #ifndef _STCONS
-#define _STCONS(ty, name, val)	static constexpr ty name = (ty)(val)
+#define _STCONS(ty, name, val)	static constexpr ty name = static_cast<ty>(val)
 #endif // !_STCONS
 
 	template<> class numeric_limits<mse::CInt> {	// limits for type int
@@ -845,7 +845,7 @@ namespace mse {
 		szt4 -= 23;
 		szt4++;
 #ifndef MSVC2010_COMPATIBLE
-		size_t szt5 = (size_t)szt4;
+		size_t szt5 = size_t(szt4);
 #endif /*MSVC2010_COMPATIBLE*/
 		bool b3 = (szt1 < szt2);
 		b3 = (szt1 < 17);

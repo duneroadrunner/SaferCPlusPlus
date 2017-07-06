@@ -563,7 +563,7 @@ int main(int argc, char* argv[])
 #endif // !MSE_REGISTEREDPOINTER_DISABLED
 
 			/* mse::TRegisteredPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-			B::foo1((A*)A_registered_ptr1);
+			B::foo1(static_cast<A*>(A_registered_ptr1));
 
 			B::foo3(&registered_a);
 			/* mse::TRegisteredPointers don't convert directly into mse::TRegisteredFixedConstPointers because
@@ -1029,7 +1029,7 @@ int main(int argc, char* argv[])
 			for (auto n : l) { std::cout << n << ' '; } std::cout << '\n';
 
 			std::cout << "Contents of the list, as seen through a shuffled vector: ";
-			for (auto i : v) { std::cout << (mse::CInt&)i << ' '; } std::cout << '\n';
+			for (auto i : v) { std::cout << static_cast<mse::CInt&>(i) << ' '; } std::cout << '\n';
 
 			std::cout << "Doubling the values in the initial list...\n";
 			for (auto& i : l) {
@@ -1037,7 +1037,7 @@ int main(int argc, char* argv[])
 			}
 
 			std::cout << "Contents of the list, as seen through a shuffled vector: ";
-			for (auto i : v) { std::cout << (mse::CInt&)i << ' '; } std::cout << '\n';
+			for (auto i : v) { std::cout << static_cast<mse::CInt&>(i) << ' '; } std::cout << '\n';
 			std::cout << '\n';
 		}
 		{
@@ -1053,7 +1053,7 @@ int main(int argc, char* argv[])
 			auto bar = mse::registered_ref(foo);
 			//++bar;
 			//++(mse::TRegisteredObj<mse::CInt>&)bar;
-			++(mse::CInt&)bar;
+			++(static_cast<mse::CInt&>(bar));
 			std::cout << foo << '\n';
 		}
 	}

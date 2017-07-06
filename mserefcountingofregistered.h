@@ -63,7 +63,7 @@ namespace mse {
 
 
 #define MTXASSERT_EQ(a, b, c) a &= (b==c)
-#define MTXASSERT(a, b) a &= (bool)(b)
+#define MTXASSERT(a, b) a &= static_cast<bool>(b)
 		bool testBehaviour()
 		{
 			bool ok = true;
@@ -213,7 +213,7 @@ namespace mse {
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLED
 
 				auto registeredfixedpointer1 = (&(*A_refcountingofregistered_ptr1));
-				B::foo1((A*)registeredfixedpointer1);
+				B::foo1(static_cast<A*>(registeredfixedpointer1));
 
 				if (A_refcountingofregistered_ptr2) {
 				}

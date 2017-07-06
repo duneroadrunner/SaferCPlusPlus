@@ -519,7 +519,7 @@ namespace mse {
 			mse::TXScopeFixedPointer<A> A_scope_ptr2 = &scope_a;
 
 			/* mse::TXScopeFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-			B::foo1((A*)A_scope_ptr1);
+			B::foo1(static_cast<A*>(A_scope_ptr1));
 
 			if (A_scope_ptr2) {
 			}

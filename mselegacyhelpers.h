@@ -261,7 +261,7 @@ namespace mse {
 				size_t Ty_index = 0;
 				for (; Ty_index < num_items_read; uc_index += sizeof(_Ty), Ty_index += 1) {
 					unsigned char* uc_ptr = &(v[uc_index]);
-					_Ty* Ty_ptr = (_Ty*)uc_ptr;
+					_Ty* Ty_ptr = reinterpret_cast<_Ty*>(uc_ptr);
 					ptr[Ty_index] = (*Ty_ptr);
 				}
 				v.resize(0);
@@ -276,7 +276,7 @@ namespace mse {
 				size_t Ty_index = 0;
 				for (; Ty_index < num_items_to_write; uc_index += sizeof(_Ty), Ty_index += 1) {
 					unsigned char* uc_ptr = &(v[uc_index]);
-					non_const_Ty* Ty_ptr = (non_const_Ty*)uc_ptr;
+					non_const_Ty* Ty_ptr = reinterpret_cast<non_const_Ty*>(uc_ptr);
 					(*Ty_ptr) = ptr[Ty_index];
 				}
 				auto res = ::fwrite(v.data(), size, count, stream);

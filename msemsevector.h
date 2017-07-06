@@ -656,7 +656,7 @@ namespace mse {
 			/*m_debug_size = size();*/
 		}
 		_Myt& operator=(_XSTD initializer_list<typename base_class::value_type> _Ilist) {	// assign initializer_list
-			operator=((base_class)_Ilist);
+			operator=(static_cast<base_class>(_Ilist));
 			m_mmitset.reset();
 			return (*this);
 		}
@@ -2099,7 +2099,7 @@ namespace mse {
 			difference_type operator-(const ss_iterator_type& rhs) const {
 				if (rhs.m_owner_ptr != (*this).m_owner_ptr) { MSE_THROW(msevector_range_error("invalid argument - difference_type operator-(const ss_iterator_type& rhs) const - msevector::ss_iterator_type")); }
 				auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
-				assert((int)((*m_owner_ptr).size()) >= retval);
+				assert(int((*m_owner_ptr).size()) >= retval);
 				return retval;
 			}
 			reference operator*() const {

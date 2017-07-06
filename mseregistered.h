@@ -692,13 +692,13 @@ namespace mse {
 	template <class _Ty, int _Tn = sc_default_cache_size>
 	void registered_delete(const TRegisteredPointer<_Ty, _Tn>& regPtrRef) {
 		//auto a = dynamic_cast<TRegisteredObj<_Ty, _Tn> *>((_Ty*)regPtrRef);
-		auto a = (TRegisteredObj<_Ty, _Tn>*)regPtrRef;
+		auto a = static_cast<TRegisteredObj<_Ty, _Tn>*>(regPtrRef);
 		delete a;
 	}
 	template <class _Ty, int _Tn = sc_default_cache_size>
 	void registered_delete(const TRegisteredConstPointer<_Ty, _Tn>& regPtrRef) {
 		//auto a = dynamic_cast<TRegisteredObj<_Ty, _Tn> *>((_Ty*)regPtrRef);
-		auto a = (const TRegisteredObj<_Ty, _Tn>*)regPtrRef;
+		auto a = static_cast<const TRegisteredObj<_Ty, _Tn>*>(regPtrRef);
 		delete a;
 	}
 
@@ -866,7 +866,7 @@ namespace mse {
 #endif // !MSE_REGISTEREDPOINTER_DISABLED
 
 			/* mse::TRegisteredPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-			B::foo1((A*)A_registered_ptr1);
+			B::foo1(static_cast<A*>(A_registered_ptr1));
 
 			if (A_registered_ptr2) {
 			}
