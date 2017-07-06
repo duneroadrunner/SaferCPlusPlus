@@ -311,7 +311,7 @@ namespace mse {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
 			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(relaxedregistered_cannot_verify_cast_error("cannot verify cast validity - mse::TRelaxedRegisteredPointer")); }
-			return reinterpret_cast<TRelaxedRegisteredObj<_Ty>*>((*this).m_ptr);
+			return static_cast<TRelaxedRegisteredObj<_Ty>*>((*this).m_ptr);
 		}
 
 		CSPTracker* m_sp_tracker_ptr = nullptr;
@@ -452,7 +452,7 @@ namespace mse {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
 			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(relaxedregistered_cannot_verify_cast_error("cannot verify cast validity - mse::TRelaxedRegisteredConstPointer")); }
-			return reinterpret_cast<const TRelaxedRegisteredObj<_Ty>*>((*this).m_ptr);
+			return static_cast<const TRelaxedRegisteredObj<_Ty>*>((*this).m_ptr);
 		}
 
 		CSPTracker* m_sp_tracker_ptr = nullptr;
