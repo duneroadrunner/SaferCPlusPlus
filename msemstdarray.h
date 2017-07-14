@@ -399,6 +399,28 @@ namespace mse {
 				return retval;
 			}
 
+			typedef std::reverse_iterator<iterator> reverse_iterator;
+			typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+
+			reverse_iterator rbegin() {	// return iterator for beginning of reversed mutable sequence
+				return (reverse_iterator(end()));
+			}
+			const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+				return (const_reverse_iterator(end()));
+			}
+			reverse_iterator rend() {	// return iterator for end of reversed mutable sequence
+				return (reverse_iterator(begin()));
+			}
+			const_reverse_iterator rend() const {	// return iterator for end of reversed nonmutable sequence
+				return (const_reverse_iterator(begin()));
+			}
+			const_reverse_iterator crbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+				return (rbegin());
+			}
+			const_reverse_iterator crend() const {	// return iterator for end of reversed nonmutable sequence
+				return (rend());
+			}
+
 
 			bool operator==(const _Myt& _Right) const {	// test for array equality
 				return (_Right.m_msearray == m_msearray);
