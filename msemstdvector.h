@@ -246,20 +246,16 @@ namespace mse {
 				friend class /*_Myt*/vector<_Ty, _A>;
 			};
 
-			iterator begin()
-			{	// return iterator for beginning of mutable sequence
+			iterator begin() {	// return iterator for beginning of mutable sequence
 				iterator retval; retval.m_msevector_shptr = this->m_shptr;
 				(retval.m_ss_iterator) = m_shptr->ss_begin();
 				return retval;
 			}
-
-			const_iterator begin() const
-			{	// return iterator for beginning of nonmutable sequence
+			const_iterator begin() const {	// return iterator for beginning of nonmutable sequence
 				const_iterator retval; retval.m_msevector_cshptr = this->m_shptr;
 				(retval.m_ss_const_iterator) = m_shptr->ss_begin();
 				return retval;
 			}
-
 			iterator end() {	// return iterator for end of mutable sequence
 				iterator retval; retval.m_msevector_shptr = this->m_shptr;
 				(retval.m_ss_iterator) = m_shptr->ss_end();
@@ -279,6 +275,28 @@ namespace mse {
 				const_iterator retval; retval.m_msevector_cshptr = this->m_shptr;
 				(retval.m_ss_const_iterator) = m_shptr->ss_cend();
 				return retval;
+			}
+
+			typedef std::reverse_iterator<iterator> reverse_iterator;
+			typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+
+			reverse_iterator rbegin() {	// return iterator for beginning of reversed mutable sequence
+				return (reverse_iterator(end()));
+			}
+			const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+				return (const_reverse_iterator(end()));
+			}
+			reverse_iterator rend() {	// return iterator for end of reversed mutable sequence
+				return (reverse_iterator(begin()));
+			}
+			const_reverse_iterator rend() const {	// return iterator for end of reversed nonmutable sequence
+				return (const_reverse_iterator(begin()));
+			}
+			const_reverse_iterator crbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+				return (rbegin());
+			}
+			const_reverse_iterator crend() const {	// return iterator for end of reversed nonmutable sequence
+				return (rend());
 			}
 
 
