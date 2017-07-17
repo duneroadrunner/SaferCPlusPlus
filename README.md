@@ -124,11 +124,9 @@ Checked C and SaferCPlusPlus are more complementary than competitive. Checked C 
 
 ### SaferCPlusPlus versus Ironclad C++
 
-SaferCPlusPlus and Ironclad C++ are very similar. The main difference is probably that Ironclad uses garbage collection while SaferCPlusPlus does not. SaferCPlusPlus is not yet as complete as Ironclad (for example, SaferCPlusPlus does not yet have a static validator to verify that "scope" pointers are being used properly), but Ironclad seems to be no longer under active development. They are not incompatible, both libraries could be used in the same project. Rather than thinking of them as competing solutions, you could think of them combined as one solution, sometimes with multiple options for achieving the same thing.  
+SaferCPlusPlus and Ironclad C++ are very similar. The main difference is probably that Ironclad uses garbage collection while SaferCPlusPlus does not. They are not incompatible, both libraries could be used in the same project. Unfortunately, Ironclad seems to be no longer under active development.  
 
 While both solutions address the pointer/reference safety issue, SaferCPlusPlus also provides safer replacements for int and size_t, and data types for safely sharing objects between asynchronous threads.  
-
-If you're considering one or the other solution (or both), I would suggest starting out with SaferCPlusPlus, as adopting it is essentially risk free. It's basically just a collection of header files written in portable C++. And can be easily disabled (i.e. its elements can be automatically aliased to their native counterparts) with a compile-time directive. Whereas because of its dependence on its garbage collector, Ironclad doesn't have quite the same properties. And if later you decide to adopt the Ironclad solution, or parts of it, the transition should be painless.  
 
 There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu/~santosh.nagarakatte/papers/ironclad-oopsla2013.pdf). It's a beneficial read even for those not planning on adopting Ironclad, as the the approach has much in common with SaferCPlusPlus.  
 
