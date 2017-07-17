@@ -137,7 +137,7 @@ SaferCPlusPlus and Rust both rely on a combination of compile-time code restrict
 Rust | SaferCPlusPlus
 ---- | --------------
 non-reassignable reference | scope pointer
-reassignable reference | registered pointer
+reassignable (mut) reference | registered pointer
 Box<> | scope owner pointer
 Rc<> | reference counting pointer
 Arc<> | shared immutable pointer
