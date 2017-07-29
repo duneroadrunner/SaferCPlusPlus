@@ -180,6 +180,12 @@ namespace mse {
 			operator mse::TNullableAnyRandomAccessIterator<const _Ty>() {
 				return base_class::begin();
 			}
+			typename base_class::iterator operator+(typename base_class::difference_type n) { return base_class::begin() + n; }
+			typename base_class::iterator operator-(typename base_class::difference_type n) { return base_class::begin() - n; }
+			typename base_class::difference_type operator-(const typename base_class::iterator& _Right_cref) const { return base_class::begin() - _Right_cref; }
+			typename base_class::const_iterator operator+(typename base_class::difference_type n) const { return base_class::cbegin() + n; }
+			typename base_class::const_iterator operator-(typename base_class::difference_type n) const { return base_class::cbegin() - n; }
+			typename base_class::difference_type operator-(const typename base_class::const_iterator& _Right_cref) const { return base_class::cbegin() - _Right_cref; }
 		};
 
 		template<class _Ty>
