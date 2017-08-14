@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
 	}
 
 	{
-		/* Here we're demonstrating mse::mstd::vector<>'s "java-like" safety due to it's "managed" lifespan.  */
+		/* Here's how mse::mstd::vector<>::iterator handles occurrences of "use-after-free".  */
 
 		typedef mse::mstd::vector<int> vint_type;
 		mse::mstd::vector<vint_type> vvi;
@@ -194,7 +194,8 @@ int main(int argc, char* argv[])
 			references it. */
 		}
 		catch (...) {
-			/* At present, no exception will be thrown. We're still debating whether it'd be better to throw an exception though. */
+			/* At present, no exception will be thrown. In the future, an exception may be thrown in debug builds. */
+			std::cerr << "potentially expected exception" << std::endl;
 		}
 	}
 #endif // !MSE_MSTDVECTOR_DISABLED

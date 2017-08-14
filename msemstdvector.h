@@ -170,7 +170,7 @@ namespace mse {
 					m_ss_const_iterator = msevector_shptr->ss_cbegin();
 				}
 				std::shared_ptr<const _MV> m_msevector_cshptr;
-				/* m_ss_const_iterator needs to be declared after m_msevector_cshptr so that it's destructor will be called first. */
+				/* m_ss_const_iterator needs to be declared after m_msevector_cshptr so that its destructor will be called first. */
 				typename _MV::ss_const_iterator_type m_ss_const_iterator;
 				friend class /*_Myt*/vector<_Ty, _A>;
 				friend class iterator;
@@ -241,7 +241,7 @@ namespace mse {
 				msev_size_t position() const { return msevector_ss_iterator_type().position(); }
 			private:
 				std::shared_ptr<_MV> m_msevector_shptr;
-				/* m_ss_iterator needs to be declared after m_msevector_shptr so that it's destructor will be called first. */
+				/* m_ss_iterator needs to be declared after m_msevector_shptr so that its destructor will be called first. */
 				typename _MV::ss_iterator_type m_ss_iterator;
 				friend class /*_Myt*/vector<_Ty, _A>;
 			};
