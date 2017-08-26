@@ -1228,7 +1228,7 @@ usage example:
             (*mv1_it) = 4; // ok
         } catch(...) {
             // At present, this won't even result in an exception. It'll just work.
-            // Still debating whether it'd be better to throw an exception though.
+            // In the future an exception may be throw in debug builds.
         }
     }
 
