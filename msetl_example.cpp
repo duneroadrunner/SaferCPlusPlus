@@ -127,10 +127,15 @@ public:
 			auto now1 = std::chrono::system_clock::now();
 			auto tt = std::chrono::system_clock::to_time_t(now1);
 
+#ifdef _MSC_VER
 			static const size_t buffer_size = 64;
 			char buffer[buffer_size];
 			buffer[0] = '\0';
 			ctime_s(buffer, buffer_size, &tt);
+#else /*_MSC_VER*/
+			auto buffer = ctime(&tt);
+#endif /*_MSC_VER*/
+
 			std::string now_str(buffer);
 			item_ref = now_str;
 
@@ -1874,7 +1879,7 @@ int main(int argc, char* argv[])
 			static const size_t section_size = 5;
 			const size_t num_elements = num_sections * section_size;
 
-			typedef mse::msearray<std::string, num_elements> array1_t;
+			typedef mse::mstd::array<std::string, num_elements> array1_t;
 			/* Let's say we have an array. */
 			array1_t array1;
 			{

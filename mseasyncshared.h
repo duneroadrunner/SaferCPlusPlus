@@ -44,7 +44,7 @@ namespace mse {
 #endif /*_NOEXCEPT*/
 
 #ifndef _THROW_NCEE
-#define _THROW_NCEE(x, y)	MSE_THROW x(y)
+#define _THROW_NCEE(x, y)	MSE_THROW(x(y))
 #endif /*_THROW_NCEE*/
 
 
@@ -386,34 +386,6 @@ namespace mse {
 	typedef recursive_shared_timed_mutex async_shared_timed_mutex_type;
 
 	template<class _Mutex>
-	class recursive_as_nonrecursive_mutex_proxy {
-	public:
-		explicit recursive_as_nonrecursive_mutex_proxy(_Mutex& _Mtx) : _Pmtx(&_Mtx) {}
-
-		void lock() {
-			_Pmtx->nonrecursive_lock();
-		}
-		bool try_lock() {
-			_Pmtx->try_nonrecursive_lock();
-		}
-		template<class _Rep, class _Period>
-		bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time)
-		{	// try to lock for duration
-			return (try_lock_until(std::chrono::steady_clock::now() + _Rel_time));
-		}
-		template<class _Clock, class _Duration>
-		bool try_lock_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			_Pmtx->try_nonrecursive_lock_until(_Abs_time);
-		}
-		void unlock() {
-			_Pmtx->unlock();
-		}
-
-	private:
-		_Mutex *_Pmtx;
-	};
-
-	template<class _Mutex>
 	class unique_nonrecursive_lock
 	{	// a version of std::unique_lock that calls "nonrecursive_lock()" instead of "lock()"
 	public:
@@ -464,12 +436,6 @@ namespace mse {
 		{	// construct and lock with timeout
 		}
 
-		unique_nonrecursive_lock(_Mutex& _Mtx, const xtime *_Abs_time)
-			: _Pmtx(&_Mtx), _Owns(false)
-		{	// try to lock until _Abs_time
-			_Owns = _Pmtx->try_nonrecursive_lock_until(_Abs_time);
-		}
-
 		unique_nonrecursive_lock(unique_nonrecursive_lock&& _Other) _NOEXCEPT
 			: _Pmtx(_Other._Pmtx), _Owns(_Other._Owns)
 		{	// destructive copy
@@ -508,7 +474,7 @@ namespace mse {
 			_Owns = true;
 		}
 
-		bool try_nonrecursive_lock()
+		bool try_lock()
 		{	// try to lock the mutex
 			_Validate();
 			_Owns = _Pmtx->try_nonrecursive_lock();
@@ -517,7 +483,7 @@ namespace mse {
 
 		template<class _Rep,
 			class _Period>
-			bool try_nonrecursive_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time)
+			bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time)
 		{	// try to lock mutex for _Rel_time
 			_Validate();
 			_Owns = _Pmtx->try_nonrecursive_lock_for(_Rel_time);
@@ -526,16 +492,9 @@ namespace mse {
 
 		template<class _Clock,
 			class _Duration>
-			bool try_nonrecursive_lock_until(
+			bool try_lock_until(
 				const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
 		{	// try to lock mutex until _Abs_time
-			_Validate();
-			_Owns = _Pmtx->try_nonrecursive_lock_until(_Abs_time);
-			return (_Owns);
-		}
-
-		bool try_nonrecursive_lock_until(const xtime *_Abs_time)
-		{	// try to lock the mutex until _Abs_time
 			_Validate();
 			_Owns = _Pmtx->try_nonrecursive_lock_until(_Abs_time);
 			return (_Owns);
@@ -544,7 +503,7 @@ namespace mse {
 		void unlock()
 		{	// try to unlock the mutex
 			if (!_Pmtx || !_Owns)
-				_THROW_NCEE(system_error,
+				_THROW_NCEE(std::system_error,
 					_STD make_error_code(std::errc::operation_not_permitted));
 
 			_Pmtx->unlock();
@@ -567,7 +526,7 @@ namespace mse {
 		}
 
 		// OBSERVE
-		bool owns_nonrecursive_lock() const _NOEXCEPT
+		bool owns_lock() const _NOEXCEPT
 		{	// return true if this object owns the lock
 			return (_Owns);
 		}
@@ -589,11 +548,11 @@ namespace mse {
 		void _Validate() const
 		{	// check if the mutex can be locked
 			if (!_Pmtx)
-				_THROW_NCEE(system_error,
+				_THROW_NCEE(std::system_error,
 					_STD make_error_code(std::errc::operation_not_permitted));
 
 			if (_Owns)
-				_THROW_NCEE(system_error,
+				_THROW_NCEE(std::system_error,
 					_STD make_error_code(std::errc::resource_deadlock_would_occur));
 		}
 	};
