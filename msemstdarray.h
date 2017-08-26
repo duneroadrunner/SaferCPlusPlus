@@ -434,7 +434,7 @@ namespace mse {
 			static _MA& _MA_ref(_MA& obj) { return obj; }
 			static const _MA& _MA_cref(const _MA& obj) { return obj; }
 
-			class xscope_const_iterator {
+			class xscope_const_iterator : public _MA::random_access_iterator_base, public TXScopeTagBase {
 			public:
 				typedef typename _MA::xscope_ss_const_iterator_type::iterator_category iterator_category;
 				typedef typename _MA::xscope_ss_const_iterator_type::value_type value_type;
@@ -509,11 +509,11 @@ namespace mse {
 					msearray_xscope_ss_const_iterator_type().operator=(_Right_cref.msearray_xscope_ss_iterator_type());
 					return (*this);
 				}
-				xscope_const_iterator& operator=(const const_iterator& _Right_cref) {
+				xscope_const_iterator& operator=(const typename _Myt::const_iterator& _Right_cref) {
 					msearray_xscope_ss_const_iterator_type().operator=(_Right_cref.msearray_ss_const_iterator_type());
 					return (*this);
 				}
-				xscope_const_iterator& operator=(const iterator& _Right_cref) {
+				xscope_const_iterator& operator=(const typename _Myt::iterator& _Right_cref) {
 					msearray_xscope_ss_const_iterator_type().operator=(_Right_cref.msearray_ss_iterator_type());
 					return (*this);
 				}
@@ -525,12 +525,13 @@ namespace mse {
 				bool operator>=(const xscope_const_iterator& _Right) const { return (msearray_xscope_ss_const_iterator_type() >= _Right.msearray_xscope_ss_const_iterator_type()); }
 				void set_to_const_item_pointer(const xscope_const_iterator& _Right_cref) { msearray_xscope_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msearray_xscope_ss_const_iterator_type()); }
 				msear_size_t position() const { return msearray_xscope_ss_const_iterator_type().position(); }
+				void xscope_tag() const {}
 				void xscope_iterator_tag() const {}
 			private:
 				typename _MA::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 				friend class /*_Myt*/array<_Ty, _Size>;
 			};
-			class xscope_iterator {
+			class xscope_iterator : public _MA::random_access_iterator_base, public TXScopeTagBase {
 			public:
 				typedef typename _MA::xscope_ss_iterator_type::iterator_category iterator_category;
 				typedef typename _MA::xscope_ss_iterator_type::value_type value_type;
@@ -589,7 +590,7 @@ namespace mse {
 					msearray_xscope_ss_iterator_type().operator=(_Right_cref.msearray_xscope_ss_iterator_type());
 					return (*this);
 				}
-				xscope_iterator& operator=(const iterator& _Right_cref) {
+				xscope_iterator& operator=(const typename _Myt::iterator& _Right_cref) {
 					msearray_xscope_ss_iterator_type().operator=(_Right_cref.msearray_ss_iterator_type());
 					return (*this);
 				}
@@ -601,6 +602,7 @@ namespace mse {
 				bool operator>=(const xscope_iterator& _Right) const { return (msearray_xscope_ss_iterator_type() >= _Right.msearray_xscope_ss_iterator_type()); }
 				void set_to_item_pointer(const xscope_iterator& _Right_cref) { msearray_xscope_ss_iterator_type().set_to_item_pointer(_Right_cref.msearray_xscope_ss_iterator_type()); }
 				msear_size_t position() const { return msearray_xscope_ss_iterator_type().position(); }
+				void xscope_tag() const {}
 				void xscope_iterator_tag() const {}
 			private:
 				typename _MA::xscope_ss_iterator_type m_xscope_ss_iterator;

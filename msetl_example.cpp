@@ -117,6 +117,33 @@ public:
 		//std::cout << std::endl;
 		return timespan_in_seconds;
 	}
+	template<class _TStringContainerPtr>
+	static void foo8(_TStringContainerPtr container_ptr) {
+		size_t delay_in_milliseconds = 3000/*arbitrary*/;
+		if (1 <= (*container_ptr).size()) {
+			delay_in_milliseconds /= (*container_ptr).size();
+		}
+		for (auto& item_ref : *container_ptr) {
+			auto now1 = std::chrono::system_clock::now();
+			auto tt = std::chrono::system_clock::to_time_t(now1);
+
+			static const size_t buffer_size = 64;
+			char buffer[buffer_size];
+			buffer[0] = '\0';
+			ctime_s(buffer, buffer_size, &tt);
+			std::string now_str(buffer);
+			item_ref = now_str;
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(delay_in_milliseconds));
+		}
+	}
+	/* This function just obtains a writelock_ptr from the given access requester and calls the given function with the
+	writelock_ptr as the first argument. This can be convenient when you want to call a function asychronously with a
+	shared object. */
+	template<class _TAsyncSharedReadWriteAccessRequester, class _TFunction, class... Args>
+	static void invoke_with_writelock_ptr1(_TAsyncSharedReadWriteAccessRequester ar, _TFunction function1, Args&&... args) {
+		function1(ar.writelock_ptr(), args...);
+	}
 
 	/* A member function that provides a safe pointer/reference to a class/struct member is going to need to
 	take a safe version of the "this" pointer as a parameter. */
@@ -1544,19 +1571,19 @@ int main(int argc, char* argv[])
 				const_ra_iter1--;
 				return const_ra_iter1[2];
 			}
-			static void foo3(mse::TXScopeRandomAccessSection<int> ra_section) {
-				for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
+			static void foo3(mse::TXScopeAnyRandomAccessSection<int> ra_section) {
+				for (mse::TXScopeAnyRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
 					ra_section[i] = 0;
 				}
 			}
-			static int foo4(mse::TXScopeRandomAccessConstSection<int> const_ra_section) {
+			static int foo4(mse::TXScopeAnyRandomAccessConstSection<int> const_ra_section) {
 				int retval = 0;
-				for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
+				for (mse::TXScopeAnyRandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
 					retval += const_ra_section[i];
 				}
 				return retval;
 			}
-			static int foo5(mse::TXScopeRandomAccessConstSection<int> const_ra_section) {
+			static int foo5(mse::TXScopeAnyRandomAccessConstSection<int> const_ra_section) {
 				int retval = 0;
 				for (const auto& const_item : const_ra_section) {
 					retval += const_item;
@@ -1598,10 +1625,10 @@ int main(int argc, char* argv[])
 		++mstd_array_scpiter3;
 		B::foo1(mstd_array_scpiter3);
 
-		mse::TXScopeRandomAccessSection<int> ra_section1(mstd_array_iter1, 2);
+		mse::TXScopeAnyRandomAccessSection<int> ra_section1(mstd_array_iter1, 2);
 		B::foo3(ra_section1);
 
-		mse::TXScopeRandomAccessSection<int> ra_section2(++mstd_vec1.begin(), 3);
+		mse::TXScopeAnyRandomAccessSection<int> ra_section2(++mstd_vec1.begin(), 3);
 		auto res6 = B::foo5(ra_section2);
 		B::foo3(ra_section2);
 		auto res7 = B::foo4(ra_section2);
@@ -1820,8 +1847,8 @@ int main(int argc, char* argv[])
 				// lock request succeeded
 				int q = 5;
 			}
-			auto readlock_ptr2 = access_requester.try_readlock_ptr_for(std::chrono::seconds(10));
-			auto writelock_ptr3 = access_requester.try_writelock_ptr_until(std::chrono::steady_clock::now() + std::chrono::seconds(10));
+			auto readlock_ptr2 = access_requester.try_readlock_ptr_for(std::chrono::seconds(1));
+			auto writelock_ptr3 = access_requester.try_writelock_ptr_until(std::chrono::steady_clock::now() + std::chrono::seconds(1));
 		}
 		{
 			/* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
@@ -1838,6 +1865,103 @@ int main(int argc, char* argv[])
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
 				int res2 = (*it).get();
 			}
+		}
+		{
+			/* This block demonstrates safely allowing different threads to (simultaneously) modify different
+			sections of an array. */
+
+			static const size_t num_sections = 10;
+			static const size_t section_size = 5;
+			const size_t num_elements = num_sections * section_size;
+
+			typedef mse::msearray<std::string, num_elements> array1_t;
+			/* Let's say we have an array. */
+			array1_t array1;
+			{
+				size_t count = 0;
+				for (auto& item_ref : array1) {
+					count += 1;
+					item_ref = "text" + std::to_string(count);
+				}
+			}
+
+			/* Only access controlled objects can be shared with other threads, so we'll make an access controlled array and
+			(temporarily) swap it with our original one. */
+			auto ash_access_requester = mse::make_asyncsharedreadwrite<array1_t>();
+			array1.swap(*(ash_access_requester.writelock_ptr()));
+
+			{
+				/* Now, we're going to use the access requester to obtain two new access requesters that provide access to 
+				(newly created) "random access section" objects which are used to access (disjoint) sections of the array.
+				We need to specify the position where we want to split the array. Here we specify that it be split at index
+				"num_elements / 2", right down the middle. */
+				auto ra_rection_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, num_elements / 2);
+				auto ar1 = ra_rection_split1.first_ra_section_access_requester();
+				auto ar2 = ra_rection_split1.second_ra_section_access_requester();
+
+				/* The H::foo8 template function is just an example function that operates on containers of strings. In our case the
+				containers will be the random access sections we just created. We'll create an instance of the function here. */
+				auto& my_foo8_function_ref = H::foo8<decltype(ar1.writelock_ptr())>;
+				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
+
+				/* We want to execute the my_foo8 function in a separate thread. The function takes a pointer to a random access
+				section as an argument. But as we're not allowed to pass pointers between threads, we must pass an access requester
+				instead. The H::invoke_with_writelock_ptr1 template function is just a helper function that will obtain a (writelock)
+				pointer from the access requester, then call the given function, in this case my_foo8, with that pointer. So here
+				we'll use it to create a proxy function that we can execute directly in a separate thread and will accept an access
+				requester as a parameter. */
+				auto& my_foo8_proxy_function_ref = H::invoke_with_writelock_ptr1<decltype(ar1), my_foo8_function_type>;
+
+				std::list<std::thread> threads;
+				/* So this thread will modify the first section of the array. */
+				threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref));
+				/* While this thread modifies the other section. */
+				threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref));
+
+				{
+					int count = 1;
+					for (auto it = threads.begin(); threads.end() != it; it++, count++) {
+						(*it).join();
+					}
+				}
+				int q = 5;
+			}
+			{
+				/* Ok, now let's do it again, but instead of splitting the array into two sections, let's split it into more sections: */
+				/* First we create a list of a the sizes of each section. We'll use a vector here, but any iteratable container will work. */
+				mse::mstd::vector<size_t> section_sizes;
+				for (size_t i = 0; i < num_sections; i += 1) {
+					section_sizes.push_back(section_size);
+				}
+
+				/* Just as before, TAsyncRASectionSplitter<> will generate a new access requester for each section. */
+				auto ra_rection_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, section_sizes);
+				auto ar0 = ra_rection_split1.ra_section_access_requester(0);
+
+				auto& my_foo8_function_ref = H::foo8<decltype(ar0.writelock_ptr())>;
+				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
+				auto& my_foo8_proxy_function_ref = H::invoke_with_writelock_ptr1<decltype(ar0), my_foo8_function_type>;
+
+				std::list<std::thread> threads;
+				for (size_t i = 0; i < num_sections; i += 1) {
+					auto ar = ra_rection_split1.ra_section_access_requester(i);
+					threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
+				}
+
+				{
+					int count = 1;
+					for (auto it = threads.begin(); threads.end() != it; it++, count++) {
+						(*it).join();
+					}
+				}
+			}
+
+			/* Now that we're done sharing the (controlled access) array, we can swap it back to our original array. */
+			array1.swap(*(ash_access_requester.writelock_ptr()));
+			auto first_element_value = array1[0];
+			auto last_element_value = array1.back();
+
+			int q = 5;
 		}
 	}
 
