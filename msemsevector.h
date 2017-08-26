@@ -608,7 +608,6 @@ namespace mse {
 				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator erase() - msevector")); }
 				msev_int di2 = std::distance(base_class::cbegin(), _L);
-				msev_size_t d2 = msev_size_t(di2);
 				if ((0 > di2) || ((*this).size() < msev_size_t(di2))) { MSE_THROW(msevector_range_error("index out of range - typename base_class::iterator erase() - msevector")); }
 
 				auto _M = msev_int(std::distance(_F, _L));

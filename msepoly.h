@@ -1383,7 +1383,7 @@ namespace mse {
 			}
 		}
 		TAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, size_t split_index)
-			: TAsyncRASectionSplitterXWP(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr), std::array<size_t, 1>{split_index}) {}
+			: TAsyncRASectionSplitterXWP(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr), std::array<size_t, 1>{{split_index}}) {}
 		/*
 		TAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, size_t split_index)
 			: m_access_lease_obj_shptr(std::make_shared<TAccessLeaseObj<exclusive_writelock_ptr_t>>(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr))) {
@@ -1659,211 +1659,236 @@ namespace mse {
 
 
 
-	static void s_poly_test1() {
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
+	class CPolyPtrTest1 {
+	public:
+		static void s_test1() {
 #ifdef MSE_SELF_TESTS
-		{
-			class A {
-			public:
-				A() {}
-				A(int x) : b(x) {}
-				virtual ~A() {}
+			{
+				class A {
+				public:
+					A() {}
+					A(int x) : b(x) {}
+					virtual ~A() {}
 
-				int b = 3;
-			};
-			class D : public A {
-			public:
-				D(int x) : A(x) {}
-			};
-			class B {
-			public:
-				static int foo1(mse::TXScopePolyPointer<A> ptr) {
-					int retval = ptr->b;
-					return retval;
-				}
-				static int foo2(mse::TXScopePolyConstPointer<A> ptr) {
-					int retval = ptr->b;
-					return retval;
-				}
+					int b = 3;
+				};
+				class D : public A {
+				public:
+					D(int x) : A(x) {}
+				};
+				class B {
+				public:
+					static int foo1(mse::TXScopePolyPointer<A> ptr) {
+						int retval = ptr->b;
+						return retval;
+					}
+					static int foo2(mse::TXScopePolyConstPointer<A> ptr) {
+						int retval = ptr->b;
+						return retval;
+					}
 
-				/* Deprecated poly pointers */
-				static int foo3(mse::TRefCountingOrXScopeOrRawFixedPointer<A> ptr) {
-					int retval = ptr->b;
-					return retval;
-				}
-				static int foo4(mse::TRefCountingOrXScopeOrRawFixedConstPointer<A> ptr) {
-					int retval = ptr->b;
-					return retval;
-				}
-				static int foo5(mse::TSharedOrRawFixedPointer<A> ptr) {
-					int retval = ptr->b;
-					return retval;
-				}
-				static int foo6(mse::TSharedOrRawFixedConstPointer<A> ptr) {
-					int retval = ptr->b;
-					return retval;
-				}
-				static int foo7(mse::TRefCountingOrXScopeFixedPointer<A> ptr) {
-					int retval = ptr->b;
-					return retval;
-				}
-				static int foo8(mse::TRefCountingOrXScopeFixedConstPointer<A> ptr) {
-					int retval = ptr->b;
-					return retval;
-				}
-			protected:
-				~B() {}
-			};
+					/* Deprecated poly pointers */
+					static int foo3(mse::TRefCountingOrXScopeOrRawFixedPointer<A> ptr) {
+						int retval = ptr->b;
+						return retval;
+					}
+					static int foo4(mse::TRefCountingOrXScopeOrRawFixedConstPointer<A> ptr) {
+						int retval = ptr->b;
+						return retval;
+					}
+					static int foo5(mse::TSharedOrRawFixedPointer<A> ptr) {
+						int retval = ptr->b;
+						return retval;
+					}
+					static int foo6(mse::TSharedOrRawFixedConstPointer<A> ptr) {
+						int retval = ptr->b;
+						return retval;
+					}
+					static int foo7(mse::TRefCountingOrXScopeFixedPointer<A> ptr) {
+						int retval = ptr->b;
+						return retval;
+					}
+					static int foo8(mse::TRefCountingOrXScopeFixedConstPointer<A> ptr) {
+						int retval = ptr->b;
+						return retval;
+					}
+				protected:
+					~B() {}
+				};
 
-			/* To demonstrate, first we'll declare some objects such that we can obtain safe pointers to those
+				/* To demonstrate, first we'll declare some objects such that we can obtain safe pointers to those
 			objects. For better or worse, this library provides a bunch of different safe pointers types. */
-			mse::TXScopeObj<A> a_scpobj;
-			auto a_refcptr = mse::make_refcounting<A>();
-			mse::TRegisteredObj<A> a_regobj;
-			mse::TRelaxedRegisteredObj<A> a_rlxregobj;
+				mse::TXScopeObj<A> a_scpobj;
+				auto a_refcptr = mse::make_refcounting<A>();
+				mse::TRegisteredObj<A> a_regobj;
+				mse::TRelaxedRegisteredObj<A> a_rlxregobj;
 
-			/* Safe iterators are a type of safe pointer too. */
-			mse::mstd::vector<A> a_mstdvec;
-			a_mstdvec.resize(1);
-			auto a_mstdvec_iter = a_mstdvec.begin();
-			mse::msevector<A> a_msevec;
-			a_msevec.resize(1);
-			auto a_msevec_ipointer = a_msevec.ibegin();
-			auto a_msevec_ssiter = a_msevec.ss_begin();
+				/* Safe iterators are a type of safe pointer too. */
+				mse::mstd::vector<A> a_mstdvec;
+				a_mstdvec.resize(1);
+				auto a_mstdvec_iter = a_mstdvec.begin();
+				mse::msevector<A> a_msevec;
+				a_msevec.resize(1);
+				auto a_msevec_ipointer = a_msevec.ibegin();
+				auto a_msevec_ssiter = a_msevec.ss_begin();
 
-			/* And don't forget the safe async sharing pointers. */
-			auto a_access_requester = mse::make_asyncsharedreadwrite<A>();
-			auto a_writelock_ptr = a_access_requester.writelock_ptr();
-			auto a_stdshared_const_ptr = mse::make_stdsharedimmutable<A>();
+				/* And don't forget the safe async sharing pointers. */
+				auto a_access_requester = mse::make_asyncsharedreadwrite<A>();
+				auto a_writelock_ptr = a_access_requester.writelock_ptr();
+				auto a_stdshared_const_ptr = mse::make_stdsharedimmutable<A>();
 
-			{
-				/* All of these safe pointer types happily convert to an mse::TXScopePolyPointer<>. */
-				auto res_using_scpptr = B::foo1(&a_scpobj);
-				auto res_using_refcptr = B::foo1(a_refcptr);
-				auto res_using_regptr = B::foo1(&a_regobj);
-				auto res_using_rlxregptr = B::foo1(&a_rlxregobj);
-				auto res_using_mstdvec_iter = B::foo1(a_mstdvec_iter);
-				auto res_using_msevec_ipointer = B::foo1(a_msevec_ipointer);
-				auto res_using_msevec_ssiter = B::foo1(a_msevec_ssiter);
-				auto res_using_writelock_ptr = B::foo1(a_writelock_ptr);
+				{
+					/* All of these safe pointer types happily convert to an mse::TXScopePolyPointer<>. */
+					auto res_using_scpptr = B::foo1(&a_scpobj);
+					auto res_using_refcptr = B::foo1(a_refcptr);
+					auto res_using_regptr = B::foo1(&a_regobj);
+					auto res_using_rlxregptr = B::foo1(&a_rlxregobj);
+					auto res_using_mstdvec_iter = B::foo1(a_mstdvec_iter);
+					auto res_using_msevec_ipointer = B::foo1(a_msevec_ipointer);
+					auto res_using_msevec_ssiter = B::foo1(a_msevec_ssiter);
+					auto res_using_writelock_ptr = B::foo1(a_writelock_ptr);
 
-				/* Or an mse::TXScopePolyConstPointer<>. */
-				auto res_using_scpptr_via_const_poly = B::foo2(&a_scpobj);
-				auto res_using_refcptr_via_const_poly = B::foo2(a_refcptr);
-				auto res_using_regptr_via_const_poly = B::foo2(&a_regobj);
-				auto res_using_rlxregptr_via_const_poly = B::foo2(&a_rlxregobj);
-				auto res_using_mstdvec_iter_via_const_poly = B::foo2(a_mstdvec_iter);
-				auto res_using_msevec_ipointer_via_const_poly = B::foo2(a_msevec_ipointer);
-				auto res_using_msevec_ssiter_via_const_poly = B::foo2(a_msevec_ssiter);
-				auto res_using_writelock_ptr_via_const_poly = B::foo2(a_writelock_ptr);
-				auto res_using_stdshared_const_ptr_via_const_poly = B::foo2(a_stdshared_const_ptr);
+					/* Or an mse::TXScopePolyConstPointer<>. */
+					auto res_using_scpptr_via_const_poly = B::foo2(&a_scpobj);
+					auto res_using_refcptr_via_const_poly = B::foo2(a_refcptr);
+					auto res_using_regptr_via_const_poly = B::foo2(&a_regobj);
+					auto res_using_rlxregptr_via_const_poly = B::foo2(&a_rlxregobj);
+					auto res_using_mstdvec_iter_via_const_poly = B::foo2(a_mstdvec_iter);
+					auto res_using_msevec_ipointer_via_const_poly = B::foo2(a_msevec_ipointer);
+					auto res_using_msevec_ssiter_via_const_poly = B::foo2(a_msevec_ssiter);
+					auto res_using_writelock_ptr_via_const_poly = B::foo2(a_writelock_ptr);
+					auto res_using_stdshared_const_ptr_via_const_poly = B::foo2(a_stdshared_const_ptr);
 
-				mse::TXScopePolyPointer<A> a_polyptr(a_refcptr);
-				mse::TXScopePolyPointer<A> a_polyptr2(a_polyptr);
-				mse::TXScopePolyConstPointer<A> a_polycptr(a_polyptr);
-				mse::TXScopePolyConstPointer<A> a_polycptr2(a_polycptr);
+					mse::TXScopePolyPointer<A> a_polyptr(a_refcptr);
+					mse::TXScopePolyPointer<A> a_polyptr2(a_polyptr);
+					mse::TXScopePolyConstPointer<A> a_polycptr(a_polyptr);
+					mse::TXScopePolyConstPointer<A> a_polycptr2(a_polycptr);
+				}
+
+				{
+					/* Inheritance polymorphism.  */
+					auto D_refcfp = mse::make_refcounting<D>(5);
+					mse::TXScopeObj<D> d_xscpobj(7);
+					D d_obj(11);
+					int res11 = B::foo1(D_refcfp);
+					int res12 = B::foo1(&d_xscpobj);
+					int res13 = B::foo2(D_refcfp);
+					int res14 = B::foo2(&d_xscpobj);
+				}
+
+				{
+					/* Testing the deprecated poly pointers */
+					auto A_refcfp = mse::make_refcounting<A>(5);
+					mse::TXScopeObj<A> a_xscpobj(7);
+					A a_obj(11);
+					int res1 = B::foo7(A_refcfp);
+					int res2 = B::foo7(&a_xscpobj);
+					int res3 = B::foo8(A_refcfp);
+					int res4 = B::foo8(&a_xscpobj);
+
+					auto D_refcfp = mse::make_refcounting<D>(5);
+					mse::TXScopeObj<D> d_xscpobj(7);
+					D d_obj(11);
+					int res11 = B::foo7(D_refcfp);
+					int res12 = B::foo7(&d_xscpobj);
+					int res13 = B::foo8(D_refcfp);
+					int res14 = B::foo8(&d_xscpobj);
+
+					int res21 = B::foo3(A_refcfp);
+					int res22 = B::foo3(&a_xscpobj);
+					int res23 = B::foo3(&a_obj);
+					int res24 = B::foo4(A_refcfp);
+					int res25 = B::foo4(&a_xscpobj);
+					int res26 = B::foo4(&a_obj);
+
+					int res31 = B::foo3(D_refcfp);
+					int res32 = B::foo3(&d_xscpobj);
+					int res33 = B::foo3(&d_obj);
+					int res34 = B::foo4(D_refcfp);
+					int res35 = B::foo4(&d_xscpobj);
+					int res36 = B::foo4(&d_obj);
+
+					auto A_shp = std::make_shared<A>(5);
+					int res41 = B::foo5(A_shp);
+					int res42 = B::foo5(&a_obj);
+					int res43 = B::foo6(A_shp);
+					int res44 = B::foo6(&a_obj);
+				}
+
+				{
+					/* Just exercising the tdp_variant type. */
+					auto A_refcfp = mse::make_refcounting<A>(5);
+					mse::TXScopeObj<A> a_xscpobj(7);
+
+					using my_var = tdp_variant<A*, mse::TScopeFixedPointer<A>, mse::TRefCountingFixedPointer<A>>;
+
+					my_var d;
+
+					d.set<mse::TScopeFixedPointer<A>>(&a_xscpobj);
+					//std::cout << d.get<mse::TScopeFixedPointer<A>>()->b << std::endl;
+
+					d.set<mse::TRefCountingFixedPointer<A>>(A_refcfp);
+					d.get<mse::TRefCountingFixedPointer<A>>()->b = 42;
+
+					my_var e(std::move(d));
+					//std::cout << e.get<mse::TRefCountingFixedPointer<A>>()->b << std::endl;
+
+					e.get<mse::TRefCountingFixedPointer<A>>()->b = 43;
+
+					d = e;
+
+					//std::cout << d.get<mse::TRefCountingFixedPointer<A>>()->b << std::endl;
+				}
+
+				{
+					/* Poly and "any" pointer assignment operators. */
+					mse::TPolyPointer<A> a_poly_pointer1 = a_refcptr;
+					mse::TPolyPointer<A> a_poly_pointer2 = &a_regobj;
+					auto res21 = a_poly_pointer1->b;
+					a_poly_pointer1 = a_poly_pointer2;
+					auto res22 = a_poly_pointer1->b;
+
+					mse::TAnyPointer<A> a_any_pointer1 = a_refcptr;
+					mse::TAnyPointer<A> a_any_pointer2 = &a_regobj;
+					auto res31 = a_any_pointer1->b;
+					a_any_pointer1 = a_any_pointer2;
+					auto res32 = a_any_pointer1->b;
+
+					mse::mstd::array<int, 4> array1 = { 1, 2, 3, 4 };
+					mse::TAnyRandomAccessIterator<int> ara_iter1 = array1.end();
+					--ara_iter1;
+					mse::TAnyRandomAccessIterator<int> ara_iter2 = array1.begin();
+					auto res41 = (*ara_iter1);
+					ara_iter1 = ara_iter2;
+					auto res42 = (*ara_iter1);
+				}
+				int q = 3;
 			}
-
-			{
-				/* Inheritance polymorphism.  */
-				auto D_refcfp = mse::make_refcounting<D>(5);
-				mse::TXScopeObj<D> d_xscpobj(7);
-				D d_obj(11);
-				int res11 = B::foo1(D_refcfp);
-				int res12 = B::foo1(&d_xscpobj);
-				int res13 = B::foo2(D_refcfp);
-				int res14 = B::foo2(&d_xscpobj);
-			}
-
-			{
-				/* Testing the deprecated poly pointers */
-				auto A_refcfp = mse::make_refcounting<A>(5);
-				mse::TXScopeObj<A> a_xscpobj(7);
-				A a_obj(11);
-				int res1 = B::foo7(A_refcfp);
-				int res2 = B::foo7(&a_xscpobj);
-				int res3 = B::foo8(A_refcfp);
-				int res4 = B::foo8(&a_xscpobj);
-
-				auto D_refcfp = mse::make_refcounting<D>(5);
-				mse::TXScopeObj<D> d_xscpobj(7);
-				D d_obj(11);
-				int res11 = B::foo7(D_refcfp);
-				int res12 = B::foo7(&d_xscpobj);
-				int res13 = B::foo8(D_refcfp);
-				int res14 = B::foo8(&d_xscpobj);
-
-				int res21 = B::foo3(A_refcfp);
-				int res22 = B::foo3(&a_xscpobj);
-				int res23 = B::foo3(&a_obj);
-				int res24 = B::foo4(A_refcfp);
-				int res25 = B::foo4(&a_xscpobj);
-				int res26 = B::foo4(&a_obj);
-
-				int res31 = B::foo3(D_refcfp);
-				int res32 = B::foo3(&d_xscpobj);
-				int res33 = B::foo3(&d_obj);
-				int res34 = B::foo4(D_refcfp);
-				int res35 = B::foo4(&d_xscpobj);
-				int res36 = B::foo4(&d_obj);
-
-				auto A_shp = std::make_shared<A>(5);
-				int res41 = B::foo5(A_shp);
-				int res42 = B::foo5(&a_obj);
-				int res43 = B::foo6(A_shp);
-				int res44 = B::foo6(&a_obj);
-			}
-
-			{
-				/* Just exercising the tdp_variant type. */
-				auto A_refcfp = mse::make_refcounting<A>(5);
-				mse::TXScopeObj<A> a_xscpobj(7);
-
-				using my_var = tdp_variant<A*, mse::TScopeFixedPointer<A>, mse::TRefCountingFixedPointer<A>>;
-
-				my_var d;
-
-				d.set<mse::TScopeFixedPointer<A>>(&a_xscpobj);
-				//std::cout << d.get<mse::TScopeFixedPointer<A>>()->b << std::endl;
-
-				d.set<mse::TRefCountingFixedPointer<A>>(A_refcfp);
-				d.get<mse::TRefCountingFixedPointer<A>>()->b = 42;
-
-				my_var e(std::move(d));
-				//std::cout << e.get<mse::TRefCountingFixedPointer<A>>()->b << std::endl;
-
-				e.get<mse::TRefCountingFixedPointer<A>>()->b = 43;
-
-				d = e;
-
-				//std::cout << d.get<mse::TRefCountingFixedPointer<A>>()->b << std::endl;
-			}
-
-			{
-				/* Poly and "any" pointer assignment operators. */
-				mse::TPolyPointer<A> a_poly_pointer1 = a_refcptr;
-				mse::TPolyPointer<A> a_poly_pointer2 = &a_regobj;
-				auto res21 = a_poly_pointer1->b;
-				a_poly_pointer1 = a_poly_pointer2;
-				auto res22 = a_poly_pointer1->b;
-
-				mse::TAnyPointer<A> a_any_pointer1 = a_refcptr;
-				mse::TAnyPointer<A> a_any_pointer2 = &a_regobj;
-				auto res31 = a_any_pointer1->b;
-				a_any_pointer1 = a_any_pointer2;
-				auto res32 = a_any_pointer1->b;
-
-				mse::mstd::array<int, 4> array1 = { 1, 2, 3, 4 };
-				mse::TAnyRandomAccessIterator<int> ara_iter1 = array1.end();
-				--ara_iter1;
-				mse::TAnyRandomAccessIterator<int> ara_iter2 = array1.begin();
-				auto res41 = (*ara_iter1);
-				ara_iter1 = ara_iter2;
-				auto res42 = (*ara_iter1);
-			}
-			int q = 3;
-		}
 #endif // MSE_SELF_TESTS
-	}
+		}
+	};
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 }
 
 #endif // MSEPOLY_H_

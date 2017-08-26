@@ -43,6 +43,18 @@ namespace mse {
 	}
 
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 	class TRefCountingOfRelaxedRegisteredPointer_test {
 	public:
 		// sensed events
@@ -234,8 +246,16 @@ namespace mse {
 			int i = A_refcountingofrelaxedregistered_ptr1->b;
 #endif // MSE_SELF_TESTS
 		}
-
 	};
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 }
 
 #endif // MSEREFCOUNTINGOFRELAXEDREGISTERED_H_

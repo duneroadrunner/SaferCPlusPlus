@@ -475,9 +475,11 @@ namespace mse {
 		}
 
 		explicit operator _TTargetType*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_target_pointer) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_target_pointer;
 		}
 		_TLeaseType lease() const { return (*this).m_lease; }
@@ -529,9 +531,11 @@ namespace mse {
 		}
 
 		explicit operator const _TTargetType*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_target_pointer) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_target_pointer;
 		}
 		_TLeaseType lease() const { return (*this).m_lease; }
@@ -631,6 +635,18 @@ namespace mse {
 	template<class _TTargetType, class _TLeaseType> using strfp = TStrongFixedPointer<_TTargetType, _TLeaseType>;
 	template<class _TTargetType, class _TLeaseType> using strfcp = TStrongFixedConstPointer<_TTargetType, _TLeaseType>;
 
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
 
 	class TRefCountingPointer_test {
 	public:
@@ -856,8 +872,16 @@ namespace mse {
 			}
 #endif // MSE_SELF_TESTS
 		}
-
 	};
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 }
 
 #undef MSE_THROW

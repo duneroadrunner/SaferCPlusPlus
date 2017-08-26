@@ -355,7 +355,7 @@ namespace mse {
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
 		TXScopeWeakFixedPointer(const TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
 		_TTargetType& operator*() const {
-			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
+			/*const auto &test_cref =*/ *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return (*m_target_pointer);
 		}
 		_TTargetType* operator->() const {
@@ -376,9 +376,11 @@ namespace mse {
 		}
 
 		explicit operator _TTargetType*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_target_pointer) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_target_pointer;
 		}
 		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }
@@ -413,7 +415,7 @@ namespace mse {
 		TXScopeWeakFixedConstPointer(const TXScopeWeakFixedConstPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
 		TXScopeWeakFixedConstPointer(const TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType>&src) : m_target_pointer(src.m_target_pointer), m_lease_pointer(src.m_lease_pointer) {}
 		const _TTargetType& operator*() const {
-			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
+			/*const auto &test_cref =*/ *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return (*m_target_pointer);
 		}
 		const _TTargetType* operator->() const {
@@ -432,9 +434,11 @@ namespace mse {
 		}
 
 		explicit operator const _TTargetType*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_target_pointer) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_target_pointer;
 		}
 		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }
@@ -496,132 +500,157 @@ namespace mse {
 	template<typename _Ty> using TScopeOwnerPointer = TXScopeOwnerPointer<_Ty>;
 
 
-	static void s_scpptr_test1() {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
+	class CXScpPtrTest1 {
+	public:
+		static void s_test1() {
 #ifdef MSE_SELF_TESTS
-		class A {
-		public:
-			A(int x) : b(x) {}
-			A(const A& _X) : b(_X.b) {}
-			A(A&& _X) : b(std::move(_X.b)) {}
-			virtual ~A() {}
-			A& operator=(A&& _X) { b = std::move(_X.b); return (*this); }
-			A& operator=(const A& _X) { b = _X.b; return (*this); }
-
-			int b = 3;
-		};
-		class B {
-		public:
-			static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-			static int foo2(mse::TXScopeFixedPointer<A> A_scope_ptr) { return A_scope_ptr->b; }
-		protected:
-			~B() {}
-		};
-
-		A* A_native_ptr = nullptr;
-
-		{
-			A a(7);
-			mse::TXScopeObj<A> scope_a(7);
-			/* mse::TXScopeObj<A> is a class that is publicly derived from A, and so should be a compatible substitute for A
-			in almost all cases. */
-
-			assert(a.b == scope_a.b);
-			A_native_ptr = &a;
-			mse::TXScopeFixedPointer<A> A_scope_ptr1 = &scope_a;
-			assert(A_native_ptr->b == A_scope_ptr1->b);
-
-			mse::TXScopeFixedPointer<A> A_scope_ptr2 = &scope_a;
-
-			/* mse::TXScopeFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-			B::foo1(static_cast<A*>(A_scope_ptr1));
-
-			if (A_scope_ptr2) {
-			}
-			else if (A_scope_ptr2 != A_scope_ptr1) {
-				int q = B::foo2(A_scope_ptr2);
-			}
-
-			A a2 = a;
-			mse::TXScopeObj<A> scope_a2 = scope_a;
-			scope_a2 = a;
-			scope_a2 = scope_a;
-
-			mse::TXScopeFixedConstPointer<A> rcp = A_scope_ptr1;
-			mse::TXScopeFixedConstPointer<A> rcp2 = rcp;
-			const mse::TXScopeObj<A> cscope_a(11);
-			mse::TXScopeFixedConstPointer<A> rfcp = &cscope_a;
-
-			mse::TXScopeOwnerPointer<A> A_scpoptr(11);
-			B::foo2(&*A_scpoptr);
-			if (A_scpoptr->b == (&*A_scpoptr)->b) {
-			}
-		}
-
-		{
-			/* Polymorphic conversions. */
-			class E {
-			public:
-				int m_b = 5;
-			};
-
-			/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
-			class GE : public E {};
-			mse::TXScopeObj<GE> scope_gd;
-			mse::TXScopeFixedPointer<GE> GE_scope_fptr1 = &scope_gd;
-			mse::TXScopeFixedPointer<E> E_scope_ptr5 = GE_scope_fptr1;
-			mse::TXScopeFixedPointer<E> E_scope_fptr2 = &scope_gd;
-			mse::TXScopeFixedConstPointer<E> E_scope_fcptr2 = &scope_gd;
-		}
-
-		{
 			class A {
 			public:
 				A(int x) : b(x) {}
+				A(const A& _X) : b(_X.b) {}
+				A(A&& _X) : b(std::move(_X.b)) {}
 				virtual ~A() {}
+				A& operator=(A&& _X) { b = std::move(_X.b); return (*this); }
+				A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 				int b = 3;
-				std::string s = "some text ";
 			};
 			class B {
 			public:
 				static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-				static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-				static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+				static int foo2(mse::TXScopeFixedPointer<A> A_scope_ptr) { return A_scope_ptr->b; }
 			protected:
 				~B() {}
 			};
 
-			mse::TXScopeObj<A> a_scpobj(5);
-			int res1 = (&a_scpobj)->b;
-			int res2 = B::foo2(&a_scpobj);
-			int res3 = B::foo3(&a_scpobj);
-			mse::TXScopeOwnerPointer<A> a_scpoptr(7);
-			int res4 = B::foo2(&(*a_scpoptr));
+			A* A_native_ptr = nullptr;
 
-			/* You can use the "mse::make_pointer_to_member()" function to obtain a safe pointer to a member of
+			{
+				A a(7);
+				mse::TXScopeObj<A> scope_a(7);
+				/* mse::TXScopeObj<A> is a class that is publicly derived from A, and so should be a compatible substitute for A
+			in almost all cases. */
+
+				assert(a.b == scope_a.b);
+				A_native_ptr = &a;
+				mse::TXScopeFixedPointer<A> A_scope_ptr1 = &scope_a;
+				assert(A_native_ptr->b == A_scope_ptr1->b);
+
+				mse::TXScopeFixedPointer<A> A_scope_ptr2 = &scope_a;
+
+				/* mse::TXScopeFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
+				B::foo1(static_cast<A*>(A_scope_ptr1));
+
+				if (A_scope_ptr2) {
+				}
+				else if (A_scope_ptr2 != A_scope_ptr1) {
+					int q = B::foo2(A_scope_ptr2);
+				}
+
+				A a2 = a;
+				mse::TXScopeObj<A> scope_a2 = scope_a;
+				scope_a2 = a;
+				scope_a2 = scope_a;
+
+				mse::TXScopeFixedConstPointer<A> rcp = A_scope_ptr1;
+				mse::TXScopeFixedConstPointer<A> rcp2 = rcp;
+				const mse::TXScopeObj<A> cscope_a(11);
+				mse::TXScopeFixedConstPointer<A> rfcp = &cscope_a;
+
+				mse::TXScopeOwnerPointer<A> A_scpoptr(11);
+				B::foo2(&*A_scpoptr);
+				if (A_scpoptr->b == (&*A_scpoptr)->b) {
+				}
+			}
+
+			{
+				/* Polymorphic conversions. */
+				class E {
+				public:
+					int m_b = 5;
+				};
+
+				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
+				class GE : public E {};
+				mse::TXScopeObj<GE> scope_gd;
+				mse::TXScopeFixedPointer<GE> GE_scope_fptr1 = &scope_gd;
+				mse::TXScopeFixedPointer<E> E_scope_ptr5 = GE_scope_fptr1;
+				mse::TXScopeFixedPointer<E> E_scope_fptr2 = &scope_gd;
+				mse::TXScopeFixedConstPointer<E> E_scope_fcptr2 = &scope_gd;
+			}
+
+			{
+				class A {
+				public:
+					A(int x) : b(x) {}
+					virtual ~A() {}
+
+					int b = 3;
+					std::string s = "some text ";
+				};
+				class B {
+				public:
+					static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
+					static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+					static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+				protected:
+					~B() {}
+				};
+
+				mse::TXScopeObj<A> a_scpobj(5);
+				int res1 = (&a_scpobj)->b;
+				int res2 = B::foo2(&a_scpobj);
+				int res3 = B::foo3(&a_scpobj);
+				mse::TXScopeOwnerPointer<A> a_scpoptr(7);
+				int res4 = B::foo2(&(*a_scpoptr));
+
+				/* You can use the "mse::make_pointer_to_member()" function to obtain a safe pointer to a member of
 			an xscope object. */
-			auto s_safe_ptr1 = mse::make_pointer_to_member((a_scpobj.s), (&a_scpobj));
-			(*s_safe_ptr1) = "some new text";
-			auto s_safe_const_ptr1 = mse::make_const_pointer_to_member((a_scpobj.s), (&a_scpobj));
+				auto s_safe_ptr1 = mse::make_pointer_to_member((a_scpobj.s), (&a_scpobj));
+				(*s_safe_ptr1) = "some new text";
+				auto s_safe_const_ptr1 = mse::make_const_pointer_to_member((a_scpobj.s), (&a_scpobj));
 
-			/* Just testing the convertibility of mse::TXScopeWeakFixedPointers. */
-			auto A_xscope_fixed_ptr1 = &a_scpobj;
-			auto xscpwfptr1 = mse::make_xscopeweak<std::string>(A_xscope_fixed_ptr1->s, A_xscope_fixed_ptr1);
-			mse::TXScopeWeakFixedPointer<std::string, mse::TXScopeFixedConstPointer<A>> xscpwfptr2 = xscpwfptr1;
-			mse::TXScopeWeakFixedConstPointer<std::string, mse::TXScopeFixedPointer<A>> xscpwfcptr1 = xscpwfptr1;
-			mse::TXScopeWeakFixedConstPointer<std::string, mse::TXScopeFixedConstPointer<A>> xscpwfcptr2 = xscpwfcptr1;
-			if (xscpwfcptr1 == xscpwfptr1) {
-				int q = 7;
+				/* Just testing the convertibility of mse::TXScopeWeakFixedPointers. */
+				auto A_xscope_fixed_ptr1 = &a_scpobj;
+				auto xscpwfptr1 = mse::make_xscopeweak<std::string>(A_xscope_fixed_ptr1->s, A_xscope_fixed_ptr1);
+				mse::TXScopeWeakFixedPointer<std::string, mse::TXScopeFixedConstPointer<A>> xscpwfptr2 = xscpwfptr1;
+				mse::TXScopeWeakFixedConstPointer<std::string, mse::TXScopeFixedPointer<A>> xscpwfcptr1 = xscpwfptr1;
+				mse::TXScopeWeakFixedConstPointer<std::string, mse::TXScopeFixedConstPointer<A>> xscpwfcptr2 = xscpwfcptr1;
+				if (xscpwfcptr1 == xscpwfptr1) {
+					int q = 7;
+				}
+				if (xscpwfptr1 == xscpwfcptr1) {
+					int q = 7;
+				}
+				if (xscpwfptr1) {
+					int q = 7;
+				}
 			}
-			if (xscpwfptr1 == xscpwfcptr1) {
-				int q = 7;
-			}
-			if (xscpwfptr1) {
-				int q = 7;
-			}
-		}
+
 #endif // MSE_SELF_TESTS
-	}
+		}
+	};
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 }
 
 #endif // MSESCOPE_H_

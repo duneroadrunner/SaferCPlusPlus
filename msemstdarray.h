@@ -27,6 +27,19 @@
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-braces"
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 namespace mse {
 
 	namespace mstd {
@@ -814,6 +827,11 @@ namespace mse {
 #ifndef MSE_MSTDARRAY_DISABLED
 namespace std {
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmismatched-tags"
+#endif /*__clang__*/
+
 	template<class _Ty, size_t _Size>
 	struct tuple_size<mse::mstd::array<_Ty, _Size> >
 		: integral_constant<size_t, _Size>
@@ -827,6 +845,10 @@ namespace std {
 
 		typedef _Ty type;
 	};
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif /*__clang__*/
 
 	// TUPLE INTERFACE TO array
 	template<size_t _Idx, class _Ty, size_t _Size>
@@ -931,6 +953,15 @@ namespace mse {
 	}
 }
 
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 #undef MSE_THROW
+
 
 #endif /*ndef MSEMSTDARRAY_H*/

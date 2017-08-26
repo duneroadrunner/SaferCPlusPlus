@@ -585,17 +585,21 @@ namespace mse {
 	/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>::operator _Ty*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 		if (nullptr == (*this).m_ptr) {
 			int q = 5; /* just a line of code for putting a debugger break point */
 		}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 		return (*this).m_ptr;
 	}
 	/* This cast operator, if possible, should not be used. It is meant to be used exclusively by registered_delete<>(). */
 	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>::operator TRegisteredObj<_Ty, _Tn>*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 		if (nullptr == (*this).m_ptr) {
 			int q = 5; /* just a line of code for putting a debugger break point */
 		}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 		return (*this).m_ptr;
 	}
 
@@ -668,17 +672,21 @@ namespace mse {
 	/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 	template<typename _Ty, int _Tn>
 	TRegisteredConstPointer<_Ty, _Tn>::operator const _Ty*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 		if (nullptr == (*this).m_ptr) {
 			int q = 5; /* just a line of code for putting a debugger break point */
 		}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 		return (*this).m_ptr;
 	}
 	/* This cast operator, if possible, should not be used. It is meant to be used exclusively by registered_delete<>(). */
 	template<typename _Ty, int _Tn>
 	TRegisteredConstPointer<_Ty, _Tn>::operator const TRegisteredObj<_Ty, _Tn>*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 		if (nullptr == (*this).m_ptr) {
 			int q = 5; /* just a line of code for putting a debugger break point */
 		}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 		return (*this).m_ptr;
 	}
 
@@ -813,171 +821,196 @@ namespace mse {
 	}
 #endif // MSEREGISTEREDREFWRAPPER
 
-	static void s_regptr_test1() {
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
+	class CRegPtrTest1 {
+	public:
+		static void s_test1() {
 #ifdef MSE_SELF_TESTS
-
-		class A {
-		public:
-			A() {}
-			A(const A& _X) : b(_X.b) {}
-			A(A&& _X) : b(std::move(_X.b)) {}
-			virtual ~A() {}
-			A& operator=(A&& _X) { b = std::move(_X.b); return (*this); }
-			A& operator=(const A& _X) { b = _X.b; return (*this); }
-
-			int b = 3;
-		};
-		class B {
-		public:
-			static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-			static int foo2(mse::TRegisteredPointer<A> A_registered_ptr) { return A_registered_ptr->b; }
-		protected:
-			~B() {}
-		};
-
-		A* A_native_ptr = nullptr;
-		/* mse::TRegisteredPointer<> is basically a "safe" version of the native pointer. */
-		mse::TRegisteredPointer<A> A_registered_ptr1;
-
-		{
-			A a;
-			mse::TRegisteredObj<A> registered_a;
-			/* mse::TRegisteredObj<A> is a class that is publicly derived from A, and so should be a compatible substitute for A
-			in almost all cases. */
-
-			assert(a.b == registered_a.b);
-			A_native_ptr = &a;
-			A_registered_ptr1 = &registered_a;
-			assert(A_native_ptr->b == A_registered_ptr1->b);
-
-			mse::TRegisteredPointer<A> A_registered_ptr2 = &registered_a;
-			A_registered_ptr2 = nullptr;
-#ifndef MSE_REGISTEREDPOINTER_DISABLED
-			bool expected_exception = false;
-			try {
-				int i = A_registered_ptr2->b; /* this is gonna throw an exception */
-			}
-			catch (...) {
-				//std::cerr << "expected exception" << std::endl;
-				expected_exception = true;
-				/* The exception is triggered by an attempt to dereference a null "registered pointer". */
-			}
-			assert(expected_exception);
-#endif // !MSE_REGISTEREDPOINTER_DISABLED
-
-			/* mse::TRegisteredPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-			B::foo1(static_cast<A*>(A_registered_ptr1));
-
-			if (A_registered_ptr2) {
-			}
-			else if (A_registered_ptr2 != A_registered_ptr1) {
-				A_registered_ptr2 = A_registered_ptr1;
-				assert(A_registered_ptr2 == A_registered_ptr1);
-			}
-
-			A a2 = a;
-			mse::TRegisteredObj<A> registered_a2 = registered_a;
-
-			a2 = std::move(a);
-			registered_a2 = std::move(registered_a);
-
-			A a3(std::move(a2));
-			mse::TRegisteredObj<A> registered_a3(std::move(registered_a2));
-
-			mse::TRegisteredConstPointer<A> rcp = A_registered_ptr1;
-			mse::TRegisteredConstPointer<A> rcp2 = rcp;
-			const mse::TRegisteredObj<A> cregistered_a;
-			rcp = &cregistered_a;
-			mse::TRegisteredFixedConstPointer<A> rfcp = &cregistered_a;
-			rcp = mse::registered_new<A>();
-			mse::registered_delete<A>(rcp);
-		}
-
-		bool expected_exception = false;
-#ifndef MSE_REGISTEREDPOINTER_DISABLED
-		try {
-			/* A_registered_ptr1 "knows" that the (registered) object it was pointing to has now been deallocated. */
-			int i = A_registered_ptr1->b; /* So this is gonna throw an exception */
-		}
-		catch (...) {
-			//std::cerr << "expected exception" << std::endl;
-			expected_exception = true;
-		}
-		assert(expected_exception);
-#endif // !MSE_REGISTEREDPOINTER_DISABLED
-
-		{
-			/* For heap allocations mse::registered_new is kind of analagous to std::make_shared, but again,
-			mse::TRegisteredPointers don't take ownership so you are responsible for deallocation. */
-			auto A_registered_ptr3 = mse::registered_new<A>();
-			assert(3 == A_registered_ptr3->b);
-			mse::registered_delete<A>(A_registered_ptr3);
-			bool expected_exception = false;
-#ifndef MSE_REGISTEREDPOINTER_DISABLED
-			try {
-				/* A_registered_ptr3 "knows" that the (registered) object it was pointing to has now been deallocated. */
-				int i = A_registered_ptr3->b; /* So this is gonna throw an exception */
-			}
-			catch (...) {
-				//std::cerr << "expected exception" << std::endl;
-				expected_exception = true;
-			}
-			assert(expected_exception);
-#endif // !MSE_REGISTEREDPOINTER_DISABLED
-		}
-
-		{
-			/* Remember that registered pointers can only point to registered objects. So, for example, if you want
-			a registered pointer to an object's base class object, that base class object has to be a registered
-			object. */
-			class DA : public mse::TRegisteredObj<A> {};
-			mse::TRegisteredObj<DA> registered_da;
-			mse::TRegisteredPointer<DA> DA_registered_ptr1 = &registered_da;
-			mse::TRegisteredPointer<A> A_registered_ptr4 = DA_registered_ptr1;
-			A_registered_ptr4 = &registered_da;
-			mse::TRegisteredFixedPointer<A> A_registered_fptr1 = &registered_da;
-			mse::TRegisteredFixedConstPointer<A> A_registered_fcptr1 = &registered_da;
-		}
-
-		{
-			/* Obtaining safe pointers to members of registered objects: */
-			class E {
+			class A {
 			public:
-				virtual ~E() {}
-				mse::TRegisteredObj<std::string> reg_s = "some text ";
-				std::string s2 = "some other text ";
+				A() {}
+				A(const A& _X) : b(_X.b) {}
+				A(A&& _X) : b(std::move(_X.b)) {}
+				virtual ~A() {}
+				A& operator=(A&& _X) { b = std::move(_X.b); return (*this); }
+				A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+				int b = 3;
+			};
+			class B {
+			public:
+				static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
+				static int foo2(mse::TRegisteredPointer<A> A_registered_ptr) { return A_registered_ptr->b; }
+			protected:
+				~B() {}
 			};
 
-			mse::TRegisteredObj<E> registered_e;
-			mse::TRegisteredPointer<E> E_registered_ptr1 = &registered_e;
+			A* A_native_ptr = nullptr;
+			/* mse::TRegisteredPointer<> is basically a "safe" version of the native pointer. */
+			mse::TRegisteredPointer<A> A_registered_ptr1;
 
-			/* To obtain a safe pointer to a member of a registered object you could just make the
+			{
+				A a;
+				mse::TRegisteredObj<A> registered_a;
+				/* mse::TRegisteredObj<A> is a class that is publicly derived from A, and so should be a compatible substitute for A
+			in almost all cases. */
+
+				assert(a.b == registered_a.b);
+				A_native_ptr = &a;
+				A_registered_ptr1 = &registered_a;
+				assert(A_native_ptr->b == A_registered_ptr1->b);
+
+				mse::TRegisteredPointer<A> A_registered_ptr2 = &registered_a;
+				A_registered_ptr2 = nullptr;
+#ifndef MSE_REGISTEREDPOINTER_DISABLED
+				bool expected_exception = false;
+				try {
+					int i = A_registered_ptr2->b; /* this is gonna throw an exception */
+				}
+				catch (...) {
+					//std::cerr << "expected exception" << std::endl;
+					expected_exception = true;
+					/* The exception is triggered by an attempt to dereference a null "registered pointer". */
+				}
+				assert(expected_exception);
+#endif // !MSE_REGISTEREDPOINTER_DISABLED
+
+				/* mse::TRegisteredPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
+				B::foo1(static_cast<A*>(A_registered_ptr1));
+
+				if (A_registered_ptr2) {
+				}
+				else if (A_registered_ptr2 != A_registered_ptr1) {
+					A_registered_ptr2 = A_registered_ptr1;
+					assert(A_registered_ptr2 == A_registered_ptr1);
+				}
+
+				A a2 = a;
+				mse::TRegisteredObj<A> registered_a2 = registered_a;
+
+				a2 = std::move(a);
+				registered_a2 = std::move(registered_a);
+
+				A a3(std::move(a2));
+				mse::TRegisteredObj<A> registered_a3(std::move(registered_a2));
+
+				mse::TRegisteredConstPointer<A> rcp = A_registered_ptr1;
+				mse::TRegisteredConstPointer<A> rcp2 = rcp;
+				const mse::TRegisteredObj<A> cregistered_a;
+				rcp = &cregistered_a;
+				mse::TRegisteredFixedConstPointer<A> rfcp = &cregistered_a;
+				rcp = mse::registered_new<A>();
+				mse::registered_delete<A>(rcp);
+			}
+
+			bool expected_exception = false;
+#ifndef MSE_REGISTEREDPOINTER_DISABLED
+			try {
+				/* A_registered_ptr1 "knows" that the (registered) object it was pointing to has now been deallocated. */
+				int i = A_registered_ptr1->b; /* So this is gonna throw an exception */
+			}
+			catch (...) {
+				//std::cerr << "expected exception" << std::endl;
+				expected_exception = true;
+			}
+			assert(expected_exception);
+#endif // !MSE_REGISTEREDPOINTER_DISABLED
+
+			{
+				/* For heap allocations mse::registered_new is kind of analagous to std::make_shared, but again,
+			mse::TRegisteredPointers don't take ownership so you are responsible for deallocation. */
+				auto A_registered_ptr3 = mse::registered_new<A>();
+				assert(3 == A_registered_ptr3->b);
+				mse::registered_delete<A>(A_registered_ptr3);
+				bool expected_exception = false;
+#ifndef MSE_REGISTEREDPOINTER_DISABLED
+				try {
+					/* A_registered_ptr3 "knows" that the (registered) object it was pointing to has now been deallocated. */
+					int i = A_registered_ptr3->b; /* So this is gonna throw an exception */
+				}
+				catch (...) {
+					//std::cerr << "expected exception" << std::endl;
+					expected_exception = true;
+				}
+				assert(expected_exception);
+#endif // !MSE_REGISTEREDPOINTER_DISABLED
+			}
+
+			{
+				/* Remember that registered pointers can only point to registered objects. So, for example, if you want
+			a registered pointer to an object's base class object, that base class object has to be a registered
+			object. */
+				class DA : public mse::TRegisteredObj<A> {};
+				mse::TRegisteredObj<DA> registered_da;
+				mse::TRegisteredPointer<DA> DA_registered_ptr1 = &registered_da;
+				mse::TRegisteredPointer<A> A_registered_ptr4 = DA_registered_ptr1;
+				A_registered_ptr4 = &registered_da;
+				mse::TRegisteredFixedPointer<A> A_registered_fptr1 = &registered_da;
+				mse::TRegisteredFixedConstPointer<A> A_registered_fcptr1 = &registered_da;
+			}
+
+			{
+				/* Obtaining safe pointers to members of registered objects: */
+				class E {
+				public:
+					virtual ~E() {}
+					mse::TRegisteredObj<std::string> reg_s = "some text ";
+					std::string s2 = "some other text ";
+				};
+
+				mse::TRegisteredObj<E> registered_e;
+				mse::TRegisteredPointer<E> E_registered_ptr1 = &registered_e;
+
+				/* To obtain a safe pointer to a member of a registered object you could just make the
 			member itself a registered object. */
-			mse::TRegisteredPointer<std::string> reg_s_registered_ptr1 = &(E_registered_ptr1->reg_s);
+				mse::TRegisteredPointer<std::string> reg_s_registered_ptr1 = &(E_registered_ptr1->reg_s);
 
-			/* Or you can use the "mse::make_pointer_to_member()" function. */
-			auto s2_safe_ptr1 = mse::make_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
-			(*s2_safe_ptr1) = "some new text";
-			auto s2_safe_const_ptr1 = mse::make_const_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
+				/* Or you can use the "mse::make_pointer_to_member()" function. */
+				auto s2_safe_ptr1 = mse::make_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
+				(*s2_safe_ptr1) = "some new text";
+				auto s2_safe_const_ptr1 = mse::make_const_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
 
-			/* Just testing the convertibility of mse::TSyncWeakFixedPointers. */
-			auto E_registered_fixed_ptr1 = &registered_e;
-			auto swfptr1 = mse::make_syncweak<std::string>(E_registered_fixed_ptr1->s2, E_registered_fixed_ptr1);
-			mse::TSyncWeakFixedPointer<std::string, mse::TRegisteredPointer<E>> swfptr2 = swfptr1;
-			mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredFixedPointer<E>> swfcptr1 = swfptr1;
-			mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredPointer<E>> swfcptr2 = swfcptr1;
-			if (swfcptr1 == swfptr1) {
-				int q = 7;
+				/* Just testing the convertibility of mse::TSyncWeakFixedPointers. */
+				auto E_registered_fixed_ptr1 = &registered_e;
+				auto swfptr1 = mse::make_syncweak<std::string>(E_registered_fixed_ptr1->s2, E_registered_fixed_ptr1);
+				mse::TSyncWeakFixedPointer<std::string, mse::TRegisteredPointer<E>> swfptr2 = swfptr1;
+				mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredFixedPointer<E>> swfcptr1 = swfptr1;
+				mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredPointer<E>> swfcptr2 = swfcptr1;
+				if (swfcptr1 == swfptr1) {
+					int q = 7;
+				}
+				if (swfptr1 == swfcptr1) {
+					int q = 7;
+				}
+				if (swfptr1) {
+					int q = 7;
+				}
 			}
-			if (swfptr1 == swfcptr1) {
-				int q = 7;
-			}
-			if (swfptr1) {
-				int q = 7;
-			}
-		}
+
 #endif // MSE_SELF_TESTS
-	}
+		}
+	};
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 }
 
 #endif // MSEREGISTERED_H_

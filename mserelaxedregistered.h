@@ -247,12 +247,14 @@ namespace mse {
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
 			TSaferPtrForLegacy<_Ty>::operator=(_Right_cref);
 			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (m_sp_tracker_ptr != _Right_cref.m_sp_tracker_ptr) {
 				/* This indicates that the target object may have been created in a different thread than this pointer. If these
 				threads are asynchronous this can be unsafe. We'll allow it here because in many of these cases the threads are
 				not asynchoronous. Usually because (at least) one of the original threads is deceased. */
 				int q = 7;
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			(*m_sp_tracker_ptr).registerPointer((*this), _Right_cref);
 			m_might_not_point_to_a_TRelaxedRegisteredObj = _Right_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			return (*this);
@@ -264,9 +266,11 @@ namespace mse {
 		operator bool() const { return (*this).m_ptr; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		operator _Ty*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return (*this).m_ptr;
 		}
 		/*Ideally these "address of" operators shouldn't be used. If you want a pointer to a TRelaxedRegisteredPointer<_Ty>,
@@ -307,9 +311,11 @@ namespace mse {
 	private:
 		/* This function, if possible, should not be used. It is meant to be used exclusively by relaxed_registered_delete<>(). */
 		TRelaxedRegisteredObj<_Ty>* asANativePointerToTRelaxedRegisteredObj() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(relaxedregistered_cannot_verify_cast_error("cannot verify cast validity - mse::TRelaxedRegisteredPointer")); }
 			return static_cast<TRelaxedRegisteredObj<_Ty>*>((*this).m_ptr);
 		}
@@ -381,12 +387,14 @@ namespace mse {
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
 			TSaferPtrForLegacy<const _Ty>::operator=(_Right_cref);
 			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (m_sp_tracker_ptr != _Right_cref.m_sp_tracker_ptr) {
 				/* This indicates that the target object may have been created in a different thread than this pointer. If these
 				threads are asynchronous this can be unsafe. We'll allow it here because in many of these cases the threads are
 				not asynchoronous. Usually because (at least) one of the original threads is deceased. */
 				int q = 7;
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			(*m_sp_tracker_ptr).registerPointer((*this), _Right_cref);
 			m_might_not_point_to_a_TRelaxedRegisteredObj = _Right_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			return (*this);
@@ -405,9 +413,11 @@ namespace mse {
 		operator bool() const { return (*this).m_ptr; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		operator const _Ty*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return (*this).m_ptr;
 		}
 		/*Ideally these "address of" operators shouldn't be used. If you want a pointer to a TRelaxedRegisteredConstPointer<_Ty>,
@@ -448,9 +458,11 @@ namespace mse {
 	private:
 		/* This function, if possible, should not be used. It is meant to be used exclusively by relaxed_registered_delete<>(). */
 		const TRelaxedRegisteredObj<_Ty>* asANativePointerToTRelaxedRegisteredObj() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(relaxedregistered_cannot_verify_cast_error("cannot verify cast validity - mse::TRelaxedRegisteredConstPointer")); }
 			return static_cast<const TRelaxedRegisteredObj<_Ty>*>((*this).m_ptr);
 		}
@@ -669,60 +681,85 @@ namespace mse {
 	void rrdelete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) { relaxed_registered_delete<_Ty>(regPtrRef); }
 
 
-	static void s_relaxedregptr_test1() {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
+	class CRelaxedRegPtrTest1 {
+	public:
+		static void s_test1() {
 #ifdef MSE_SELF_TESTS
-		class C;
+			class C;
 
-		class D {
-		public:
-			virtual ~D() {}
-			mse::TRelaxedRegisteredPointer<C> m_c_ptr = nullptr;
-		};
+			class D {
+			public:
+				virtual ~D() {}
+				mse::TRelaxedRegisteredPointer<C> m_c_ptr = nullptr;
+			};
 
-		class C {
-		public:
-			mse::TRelaxedRegisteredPointer<D> m_d_ptr = nullptr;
-		};
+			class C {
+			public:
+				mse::TRelaxedRegisteredPointer<D> m_d_ptr = nullptr;
+			};
 
-		mse::TRelaxedRegisteredObj<C> regobjfl_c;
-		mse::TRelaxedRegisteredPointer<D> d_ptr = mse::relaxed_registered_new<D>();
+			mse::TRelaxedRegisteredObj<C> regobjfl_c;
+			mse::TRelaxedRegisteredPointer<D> d_ptr = mse::relaxed_registered_new<D>();
 
-		regobjfl_c.m_d_ptr = d_ptr;
-		d_ptr->m_c_ptr = &regobjfl_c;
+			regobjfl_c.m_d_ptr = d_ptr;
+			d_ptr->m_c_ptr = &regobjfl_c;
 
-		mse::TRelaxedRegisteredConstPointer<C> rrcp = d_ptr->m_c_ptr;
-		mse::TRelaxedRegisteredConstPointer<C> rrcp2 = rrcp;
-		const mse::TRelaxedRegisteredObj<C> regobjfl_e;
-		rrcp = &regobjfl_e;
-		mse::TRelaxedRegisteredFixedConstPointer<C> rrfcp = &regobjfl_e;
-		rrcp = mse::relaxed_registered_new<C>();
-		mse::relaxed_registered_delete<C>(rrcp);
+			mse::TRelaxedRegisteredConstPointer<C> rrcp = d_ptr->m_c_ptr;
+			mse::TRelaxedRegisteredConstPointer<C> rrcp2 = rrcp;
+			const mse::TRelaxedRegisteredObj<C> regobjfl_e;
+			rrcp = &regobjfl_e;
+			mse::TRelaxedRegisteredFixedConstPointer<C> rrfcp = &regobjfl_e;
+			rrcp = mse::relaxed_registered_new<C>();
+			mse::relaxed_registered_delete<C>(rrcp);
 
-		mse::relaxed_registered_delete<D>(d_ptr);
+			mse::relaxed_registered_delete<D>(d_ptr);
 
-		{
-			/* Polymorphic conversions. */
-			class FD : public mse::TRelaxedRegisteredObj<D> {};
-			mse::TRelaxedRegisteredObj<FD> relaxedregistered_fd;
-			mse::TRelaxedRegisteredPointer<FD> FD_relaxedregistered_ptr1 = &relaxedregistered_fd;
-			mse::TRelaxedRegisteredPointer<D> D_relaxedregistered_ptr4 = FD_relaxedregistered_ptr1;
-			D_relaxedregistered_ptr4 = &relaxedregistered_fd;
-			mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr1 = &relaxedregistered_fd;
-			mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr1 = &relaxedregistered_fd;
+			{
+				/* Polymorphic conversions. */
+				class FD : public mse::TRelaxedRegisteredObj<D> {};
+				mse::TRelaxedRegisteredObj<FD> relaxedregistered_fd;
+				mse::TRelaxedRegisteredPointer<FD> FD_relaxedregistered_ptr1 = &relaxedregistered_fd;
+				mse::TRelaxedRegisteredPointer<D> D_relaxedregistered_ptr4 = FD_relaxedregistered_ptr1;
+				D_relaxedregistered_ptr4 = &relaxedregistered_fd;
+				mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr1 = &relaxedregistered_fd;
+				mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr1 = &relaxedregistered_fd;
 
-			/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
-			class GD : public D {};
-			mse::TRelaxedRegisteredObj<GD> relaxedregistered_gd;
-			mse::TRelaxedRegisteredPointer<GD> GD_relaxedregistered_ptr1 = &relaxedregistered_gd;
-			mse::TRelaxedRegisteredPointer<D> D_relaxedregistered_ptr5 = GD_relaxedregistered_ptr1;
-			D_relaxedregistered_ptr5 = GD_relaxedregistered_ptr1;
-			mse::TRelaxedRegisteredFixedPointer<GD> GD_relaxedregistered_fptr1 = &relaxedregistered_gd;
-			D_relaxedregistered_ptr5 = &relaxedregistered_gd;
-			mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr2 = &relaxedregistered_gd;
-			mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr2 = &relaxedregistered_gd;
-		}
+				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
+				class GD : public D {};
+				mse::TRelaxedRegisteredObj<GD> relaxedregistered_gd;
+				mse::TRelaxedRegisteredPointer<GD> GD_relaxedregistered_ptr1 = &relaxedregistered_gd;
+				mse::TRelaxedRegisteredPointer<D> D_relaxedregistered_ptr5 = GD_relaxedregistered_ptr1;
+				D_relaxedregistered_ptr5 = GD_relaxedregistered_ptr1;
+				mse::TRelaxedRegisteredFixedPointer<GD> GD_relaxedregistered_fptr1 = &relaxedregistered_gd;
+				D_relaxedregistered_ptr5 = &relaxedregistered_gd;
+				mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr2 = &relaxedregistered_gd;
+				mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr2 = &relaxedregistered_gd;
+			}
+
 #endif // MSE_SELF_TESTS
-	}
+		}
+	};
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 }
 
 #undef MSE_THROW

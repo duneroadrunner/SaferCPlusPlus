@@ -814,58 +814,84 @@ namespace mse {
 	inline bool operator!=(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs != as_a_size_t(rhs); }
 #endif /*MSE_PRIMITIVES_DISABLED*/
 
-	static void s_type_test1() {
-#ifdef MSE_SELF_TESTS
-		CInt i1(3);
-		CInt i2 = 5;
-		CInt i3;
-		i3 = 7;
-		CInt i4 = i1 + i2;
-		i4 = i1 + 17;
-		i4 = 19 + i1;
-		i4 += i2;
-		i4 -= 23;
-		i4++;
-		CBool b1 = (i1 < i2);
-		b1 = (i1 < 17);
-		b1 = (19 < i1);
-		b1 = (i1 == i2);
-		b1 = (i1 == 17);
-		b1 = (19 == i1);
+	#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+//pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
 
-		CSize_t szt1(3);
-		CSize_t szt2 = 5;
-		CSize_t szt3;
-		szt3 = 7;
-		CSize_t szt4 = szt1 + szt2;
-		szt4 = szt1 + 17;
-		szt4 = 19 + szt1;
-		CInt i11 = 19 + szt1;
-		szt4 += szt2;
-		szt4 -= 23;
-		szt4++;
+	class CPrimitivesTest1 {
+	public:
+		static void s_test1() {
+#ifdef MSE_SELF_TESTS
+			CInt i1(3);
+			CInt i2 = 5;
+			CInt i3;
+			i3 = 7;
+			CInt i4 = i1 + i2;
+			i4 = i1 + 17;
+			i4 = 19 + i1;
+			i4 += i2;
+			i4 -= 23;
+			i4++;
+			CBool b1 = (i1 < i2);
+			b1 = (i1 < 17);
+			b1 = (19 < i1);
+			b1 = (i1 == i2);
+			b1 = (i1 == 17);
+			b1 = (19 == i1);
+
+			CSize_t szt1(3);
+			CSize_t szt2 = 5;
+			CSize_t szt3;
+			szt3 = 7;
+			CSize_t szt4 = szt1 + szt2;
+			szt4 = szt1 + 17;
+			szt4 = 19 + szt1;
+			CInt i11 = 19 + szt1;
+			szt4 += szt2;
+			szt4 -= 23;
+			szt4++;
 #ifndef MSVC2010_COMPATIBLE
-		size_t szt5 = size_t(szt4);
+			size_t szt5 = size_t(szt4);
 #endif /*MSVC2010_COMPATIBLE*/
-		bool b3 = (szt1 < szt2);
-		b3 = (szt1 < 17);
-		b3 = (19 < szt1);
-		CBool b2 = (19 < szt1);
-		b3 = (szt1 == szt2);
-		b3 = (szt1 == 17);
-		b3 = (19 == szt1);
-		CBool b4 = (b1 < b2);
-		b4 = (b1 == b2);
-		b4 = (b1 > b3);
-		b4 = (b3 >= b1);
-		b4 = (b3 == b1);
-		b4 = (b1 && b2);
-		b4 = (b1 || b3);
-		b4 = (b3 && b1);
-		b4 |= b1;
-		b4 &= b3;
+			bool b3 = (szt1 < szt2);
+			b3 = (szt1 < 17);
+			b3 = (19 < szt1);
+			CBool b2 = (19 < szt1);
+			b3 = (szt1 == szt2);
+			b3 = (szt1 == 17);
+			b3 = (19 == szt1);
+			CBool b4 = (b1 < b2);
+			b4 = (b1 == b2);
+			b4 = (b1 > b3);
+			b4 = (b3 >= b1);
+			b4 = (b3 == b1);
+			b4 = (b1 && b2);
+			b4 = (b1 || b3);
+			b4 = (b3 && b1);
+			b4 |= b1;
+			b4 &= b3;
 #endif // MSE_SELF_TESTS
-	}
+		}
+	};
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 }
 
 #undef MSE_THROW

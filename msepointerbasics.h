@@ -150,9 +150,11 @@ namespace mse {
 
 		explicit operator _Ty*() const {
 			assert_initialized();
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_ptr) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_ptr;
 		}
 
@@ -214,9 +216,11 @@ namespace mse {
 
 		operator _Ty*() const {
 			assert_initialized();
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_ptr) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_ptr;
 		}
 
@@ -293,9 +297,11 @@ namespace mse {
 
 		explicit operator _Ty*() const {
 			assert_initialized();
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_ptr) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_ptr;
 		}
 
@@ -349,9 +355,11 @@ namespace mse {
 
 		operator _Ty*() const {
 			assert_initialized();
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_ptr) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_ptr;
 		}
 
@@ -380,7 +388,7 @@ namespace mse {
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
 		TSyncWeakFixedPointer(const TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
 		_TTargetType& operator*() const {
-			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
+			/*const auto &test_cref =*/ *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return (*m_target_pointer);
 		}
 		_TTargetType* operator->() const {
@@ -401,9 +409,11 @@ namespace mse {
 		}
 
 		explicit operator _TTargetType*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_target_pointer) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_target_pointer;
 		}
 		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }
@@ -436,7 +446,7 @@ namespace mse {
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>&src) : m_target_pointer(src.m_target_pointer), m_lease_pointer(src.m_lease_pointer) {}
 		const _TTargetType& operator*() const {
-			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
+			/*const auto &test_cref =*/ *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return (*m_target_pointer);
 		}
 		const _TTargetType* operator->() const {
@@ -455,9 +465,11 @@ namespace mse {
 		}
 
 		explicit operator const _TTargetType*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_target_pointer) {
 				int q = 3; /* just a line of code for putting a debugger break point */
 			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_target_pointer;
 		}
 		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }

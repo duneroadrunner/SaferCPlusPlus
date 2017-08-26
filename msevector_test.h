@@ -14,6 +14,18 @@
 #include "mseivector.h"
 #include <algorithm>    // std::sort
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 namespace mse {
 	class msevector_test {
 	public:
@@ -1652,4 +1664,13 @@ namespace mse {
 #endif /*STDVECTOR_IS_READY*/
 	};
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 #endif /*ndef MSEVECTOR_TEST_H*/

@@ -76,6 +76,23 @@ them to be enabled. */
 #include <random>
 #include <functional>
 
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-braces"
+#pragma clang diagnostic ignored "-Wtautological-compare"
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+//pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 class H {
 public:
 	/* Just an example of a templated member function. In this case it's a static one, but it doesn't have to be.
@@ -464,7 +481,7 @@ int main(int argc, char* argv[])
 		implicitly converted to unsigned. msetl provides substitutes for size_t and int that change the implicit conversion to
 		instead be from unsigned to signed. */
 
-		mse::s_type_test1();
+		mse::CPrimitivesTest1::s_test1();
 
 #ifndef MSE_PRIMITIVES_DISABLED
 		{
@@ -755,8 +772,8 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		mse::s_regptr_test1();
-		mse::s_relaxedregptr_test1();
+		mse::CRegPtrTest1::s_test1();
+		mse::CRelaxedRegPtrTest1::s_test1();
 
 		{
 			/*************************/
@@ -1345,7 +1362,7 @@ int main(int argc, char* argv[])
 
 		auto res5 = H::foo6(s_safe_ptr1, s_safe_const_ptr1);
 
-		mse::s_scpptr_test1();
+		mse::CXScpPtrTest1::s_test1();
 	}
 
 	{
@@ -1553,7 +1570,7 @@ int main(int argc, char* argv[])
 		nanyptr1 = mse::TNullableAnyPointer<A>(a_refcptr);
 		auto res_nap1 = *nanyptr1;
 		
-		mse::s_poly_test1();
+		mse::CPolyPtrTest1::s_test1();
 		int q = 3;
 	}
 
@@ -1972,4 +1989,13 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
 

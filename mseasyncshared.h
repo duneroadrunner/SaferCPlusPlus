@@ -1434,10 +1434,12 @@ namespace mse {
 	}
 #endif // defined(MSEREFCOUNTING_H_)
 
+	/*
 	static void s_ashptr_test1() {
 #ifdef MSE_SELF_TESTS
 #endif // MSE_SELF_TESTS
 	}
+	*/
 }
 
 #undef MSE_THROW
