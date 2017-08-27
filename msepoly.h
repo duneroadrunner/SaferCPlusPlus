@@ -296,7 +296,7 @@ namespace mse {
 		TAnyPointerBase(const TAnyPointerBase& src) : m_any_pointer(src.m_any_pointer) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_convertible<_TPointer1, TAnyPointerBase<_Ty>>::value)
+			(!std::is_convertible<_TPointer1, TAnyPointerBase>::value)
 			&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
 			, void>::type>
 		TAnyPointerBase(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
@@ -325,10 +325,12 @@ namespace mse {
 		}
 
 		mse::any m_any_pointer;
+
+		friend class TAnyConstPointerBase<_Ty>;
 	};
 
 	template <typename _Ty>
-	class TXScopeAnyPointer : public TAnyPointerBase<_Ty>, public TXScopeTagBase {
+	class TXScopeAnyPointer : public TAnyPointerBase<_Ty>, public XScopeTagBase {
 	public:
 		typedef TAnyPointerBase<_Ty> base_class;
 		TXScopeAnyPointer(const TAnyPointerBase<_Ty>& src) : base_class(src) {}
@@ -360,7 +362,7 @@ namespace mse {
 			(!std::is_convertible<_TPointer1, TAnyPointer>::value)
 			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
 			//&& (!std::integral_constant<bool, HasXScopeTagMethod_poly<_TPointer1>::Has>())
-			&& (!std::is_base_of<TXScopeTagBase, _TPointer1>::value)
+			&& (!std::is_base_of<XScopeTagBase, _TPointer1>::value)
 			, void>::type>
 			TAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
@@ -400,17 +402,16 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TXScopeAnyConstPointer : public TXScopeTagBase {
+	class TAnyConstPointerBase {
 	public:
-		TXScopeAnyConstPointer(const TXScopeAnyConstPointer& src) : m_any_const_pointer(src.m_any_const_pointer) {}
-		TXScopeAnyConstPointer(const TAnyConstPointer<_Ty>& src) : m_any_const_pointer(src.m_any_const_pointer) {}
+		TAnyConstPointerBase(const TAnyConstPointerBase& src) : m_any_const_pointer(src.m_any_const_pointer) {}
+		TAnyConstPointerBase(const TAnyPointerBase<_Ty>& src) : m_any_const_pointer(src.m_any_pointer) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_convertible<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
-			&& (!std::is_same<_TPointer1, TAnyConstPointer<_Ty>>::value)
-			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
+			(!std::is_convertible<_TPointer1, TAnyConstPointerBase>::value)
+			&& (!std::is_convertible<TAnyPointerBase<_Ty>, _TPointer1>::value)
 			, void>::type>
-		TXScopeAnyConstPointer(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
+			TAnyConstPointerBase(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
 
 		const _Ty& operator*() const {
 			return (*(*common_pointer_interface_const_ptr()));
@@ -426,14 +427,8 @@ namespace mse {
 		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 	protected:
-		TXScopeAnyConstPointer<_Ty>& operator=(const TXScopeAnyConstPointer<_Ty>& _Right_cref) {
-			m_any_const_pointer = _Right_cref.m_any_const_pointer;
-			return (*this);
-		}
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeAnyConstPointer<_Ty>* operator&() { return this; }
-		const TXScopeAnyConstPointer<_Ty>* operator&() const { return this; }
+		TAnyConstPointerBase<_Ty>* operator&() { return this; }
+		const TAnyConstPointerBase<_Ty>* operator&() const { return this; }
 
 		const TCommonPointerInterface<_Ty>* common_pointer_interface_const_ptr() const {
 			auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_const_pointer.storage_address());
@@ -445,29 +440,48 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TAnyConstPointer : public TXScopeAnyConstPointer<_Ty> {
+	class TXScopeAnyConstPointer : public TAnyConstPointerBase<_Ty>, public XScopeTagBase {
 	public:
-		TAnyConstPointer(const TAnyConstPointer& src) : TXScopeAnyConstPointer<_Ty>(src) {}
-		TAnyConstPointer(const TAnyPointer<_Ty>& src) : TXScopeAnyConstPointer<_Ty>(src) {}
+		typedef TAnyConstPointerBase<_Ty> base_class;
+		TXScopeAnyConstPointer(const TAnyConstPointerBase<_Ty>& src) : base_class(src) {}
+		TXScopeAnyConstPointer(const TAnyPointerBase<_Ty>& src) : base_class(src) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_convertible<_TPointer1, TAnyConstPointer<_Ty>>::value)
-			&& (!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
-			&& (!std::is_base_of<TXScopeAnyPointer<_Ty>, _TPointer1>::value)
-			&& (!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
-			&& (!std::is_base_of<TXScopeAnyConstPointer<_Ty>, _TPointer1>::value)
-			&& (!std::is_same<_TPointer1, TAnyPointer<_Ty>>::value)
-			&& (!std::is_base_of<TAnyPointer<_Ty>, _TPointer1>::value)
-#ifndef MSE_SCOPEPOINTER_DISABLED
-			//&& (!std::is_convertible<_TPointer1, TXScopeFixedPointer<_Ty>>::value)
-			//&& (!std::is_convertible<_TPointer1, TXScopeFixedConstPointer<_Ty>>::value)
-#endif // !MSE_SCOPEPOINTER_DISABLED
-			&& (!std::is_base_of<TXScopeTagBase, _TPointer1>::value)
+			(!std::is_convertible<_TPointer1, TAnyConstPointerBase<_Ty>>::value)
+			&& (!std::is_convertible<_TPointer1, TAnyPointerBase<_Ty>>::value)
 			, void>::type>
-			TAnyConstPointer(const _TPointer1& pointer) : TXScopeAnyConstPointer<_Ty>(pointer) {}
+		TXScopeAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
+
+	protected:
+		TXScopeAnyConstPointer<_Ty>& operator=(const TXScopeAnyConstPointer<_Ty>& _Right_cref) {
+			base_class::operator=(_Right_cref);
+			return (*this);
+		}
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeAnyConstPointer<_Ty>* operator&() { return this; }
+		const TXScopeAnyConstPointer<_Ty>* operator&() const { return this; }
+	};
+
+	template <typename _Ty>
+	class TAnyConstPointer : public TAnyConstPointerBase<_Ty> {
+	public:
+		typedef TAnyConstPointerBase<_Ty> base_class;
+		TAnyConstPointer(const TAnyConstPointer& src) : base_class(src) {}
+		TAnyConstPointer(const TAnyPointer<_Ty>& src) : base_class(src) {}
+
+
+
+		template <typename _TPointer1, class = typename std::enable_if<
+			(!std::is_convertible<_TPointer1, TAnyConstPointer>::value)
+			&& (!std::is_convertible<_TPointer1, TAnytPointer>::value)
+			//&& (!std::integral_constant<bool, HasXScopeTagMethod_poly<_TPointer1>::Has>())
+			&& (!std::is_base_of<XScopeTagBase, _TPointer1>::value)
+			, void>::type>
+			TAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		TAnyConstPointer<_Ty>& operator=(const TAnyConstPointer<_Ty>& _Right_cref) {
-			TXScopeAnyConstPointer<_Ty>::operator=(_Right_cref);
+			base_class::operator=(_Right_cref);
 			return (*this);
 		}
 
@@ -481,7 +495,7 @@ namespace mse {
 	class TPolyPointerID {};
 
 	template<typename _Ty>
-	class TXScopePolyPointer : public TXScopeTagBase {
+	class TXScopePolyPointer : public XScopeTagBase {
 	public:
 		using poly_variant = tdp_pointer_variant<
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -626,7 +640,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TXScopePolyConstPointer : public TXScopeTagBase {
+	class TXScopePolyConstPointer : public XScopeTagBase {
 	public:
 		using poly_variant = tdp_pointer_variant<
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -884,7 +898,7 @@ namespace mse {
 	class TAnyRandomAccessIterator;
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessIterator : public TRandomAccessIteratorBase<_Ty>, public TXScopeTagBase {
+	class TXScopeAnyRandomAccessIterator : public TRandomAccessIteratorBase<_Ty>, public XScopeTagBase {
 	public:
 		TXScopeAnyRandomAccessIterator(const TXScopeAnyRandomAccessIterator& src) : m_any_random_access_iterator(src.m_any_random_access_iterator) {}
 		TXScopeAnyRandomAccessIterator(_Ty arr[]) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _Ty*>(arr)) {}
@@ -1009,7 +1023,7 @@ namespace mse {
 	class TAnyRandomAccessConstIterator;
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessConstIterator : public TRandomAccessConstIteratorBase<_Ty>, public TXScopeTagBase {
+	class TXScopeAnyRandomAccessConstIterator : public TRandomAccessConstIteratorBase<_Ty>, public XScopeTagBase {
 	public:
 		TXScopeAnyRandomAccessConstIterator(const TXScopeAnyRandomAccessConstIterator& src) : m_any_random_access_const_iterator(src.m_any_random_access_const_iterator) {}
 		TXScopeAnyRandomAccessConstIterator(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>(arr)) {}
@@ -1111,7 +1125,7 @@ namespace mse {
 			&& (!std::is_base_of<TXScopeAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)
 			&& (!std::integral_constant<bool, HasXScopeIteratorTagMethod_poly<_TRandomAccessIterator1>::Has>())
 			&& (!std::integral_constant<bool, HasXScopeSSIteratorTypeTagMethod_poly<_TRandomAccessIterator1>::Has>())
-			&& (!std::is_base_of<TXScopeTagBase, _TRandomAccessIterator1>::value)
+			&& (!std::is_base_of<XScopeTagBase, _TRandomAccessIterator1>::value)
 			, void>::type>
 			TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TXScopeAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
 
@@ -1151,7 +1165,7 @@ namespace mse {
 			&& (!std::is_base_of<TXScopeAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
 			&& (!std::is_same<_TRandomAccessConstIterator1, TAnyRandomAccessIterator<_Ty>>::value)
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
-			&& (!std::is_base_of<TXScopeTagBase, _TRandomAccessConstIterator1>::value)
+			&& (!std::is_base_of<XScopeTagBase, _TRandomAccessConstIterator1>::value)
 			, void>::type>
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : TXScopeAnyRandomAccessConstIterator<_Ty>(random_access_const_iterator) {}
 
@@ -1181,7 +1195,7 @@ namespace mse {
 	class TAnyRandomAccessConstSection;
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessSection : public TXScopeTagBase {
+	class TXScopeAnyRandomAccessSection : public XScopeTagBase {
 	public:
 		typedef typename TXScopeAnyRandomAccessIterator<_Ty>::reference_t reference_t;
 		typedef typename mse::mstd::array<_Ty, 0>::size_type size_type;
@@ -1228,7 +1242,7 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessConstSection : public TXScopeTagBase {
+	class TXScopeAnyRandomAccessConstSection : public XScopeTagBase {
 	public:
 		typedef typename TXScopeAnyRandomAccessConstIterator<_Ty>::const_reference_t const_reference_t;
 		typedef typename mse::mstd::array<_Ty, 0>::size_type size_type;

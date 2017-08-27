@@ -63,7 +63,7 @@ namespace mse {
 
 #else // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
 
-	class TXScopeTagBase {
+	class XScopeTagBase {
 	public:
 		void xscope_tag() const {}
 	};
@@ -98,7 +98,7 @@ namespace mse {
 
 	/* Use TXScopeFixedPointer instead. */
 	template<typename _Ty>
-	class TXScopePointer : public TXScopePointerBase<_Ty>, public TXScopeTagBase {
+	class TXScopePointer : public TXScopePointerBase<_Ty>, public XScopeTagBase {
 	public:
 	private:
 		TXScopePointer() : TXScopePointerBase<_Ty>() {}
@@ -135,7 +135,7 @@ namespace mse {
 
 	/* Use TXScopeFixedConstPointer instead. */
 	template<typename _Ty>
-	class TXScopeConstPointer : public TXScopeConstPointerBase<const _Ty>, public TXScopeTagBase {
+	class TXScopeConstPointer : public TXScopeConstPointerBase<const _Ty>, public XScopeTagBase {
 	public:
 	private:
 		TXScopeConstPointer() : TXScopeConstPointerBase<const _Ty>() {}
@@ -284,7 +284,7 @@ namespace mse {
 	mse::TRelaxedRegisteredObj to be used in debug mode. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 	will cause mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 	template<typename _TROy>
-	class TXScopeObj : public TXScopeObjBase<_TROy>, public TXScopeTagBase {
+	class TXScopeObj : public TXScopeObjBase<_TROy>, public XScopeTagBase {
 	public:
 		MSE_SCOPE_USING(TXScopeObj, TXScopeObjBase<_TROy>);
 		TXScopeObj(const TXScopeObj& _X) : TXScopeObjBase<_TROy>(_X) {}
@@ -315,7 +315,7 @@ namespace mse {
 	enforce this, which makes this data type less intrinsically safe than say, "reference counting" pointers.
 	*/
 	template<typename _Ty>
-	class TXScopeOwnerPointer : public TXScopeTagBase {
+	class TXScopeOwnerPointer : public XScopeTagBase {
 	public:
 		template <class... Args>
 		TXScopeOwnerPointer(Args&&... args) {
@@ -349,7 +349,7 @@ namespace mse {
 	TXScopeWeakFixedPointer to store a copy of the scope pointer along with the pointer targeting the
 	member. */
 	template <class _TTargetType, class _TLeasePointerType>
-	class TXScopeWeakFixedPointer : public TXScopeTagBase {
+	class TXScopeWeakFixedPointer : public XScopeTagBase {
 	public:
 		TXScopeWeakFixedPointer(const TXScopeWeakFixedPointer&) = default;
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
@@ -408,7 +408,7 @@ namespace mse {
 	}
 
 	template <class _TTargetType, class _TLeasePointerType>
-	class TXScopeWeakFixedConstPointer : public TXScopeTagBase {
+	class TXScopeWeakFixedConstPointer : public XScopeTagBase {
 	public:
 		TXScopeWeakFixedConstPointer(const TXScopeWeakFixedConstPointer&) = default;
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>

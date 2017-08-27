@@ -689,7 +689,7 @@ namespace mse {
 			return (const_reverse_iterator(ss_begin()));
 		}
 
-		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public TXScopeTagBase {
+		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeTagBase {
 		public:
 			xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 			xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
@@ -767,7 +767,7 @@ namespace mse {
 			friend class /*_Myt*/msearray<_Ty, _Size>;
 			friend class xscope_ss_iterator_type;
 		};
-		class xscope_ss_iterator_type : public ss_iterator_type, public TXScopeTagBase {
+		class xscope_ss_iterator_type : public ss_iterator_type, public XScopeTagBase {
 		public:
 			xscope_ss_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 			template <class _TLeasePointerType>
@@ -1143,7 +1143,7 @@ namespace mse {
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_t difference_t;
 
-		template <class = typename std::enable_if<(!std::is_base_of<TXScopeTagBase, _TRAIterator>::value)>>
+		template <class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TRAIterator>::value)>>
 		TRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		TRandomAccessSection(const TRandomAccessSection& src) = default;
 
@@ -1162,7 +1162,7 @@ namespace mse {
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_t difference_t;
 
-		template <class = typename std::enable_if<(!std::is_base_of<TXScopeTagBase, _TRAIterator>::value)>>
+		template <class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TRAIterator>::value)>>
 		TRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		TRandomAccessConstSection(const TRandomAccessConstSection& src) = default;
 
