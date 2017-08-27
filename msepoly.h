@@ -258,12 +258,12 @@ namespace mse {
 		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
 	};
 
-	template <typename _Ty>
-	class TAnyPointer;
-	template <typename _Ty>
-	class TXScopeAnyConstPointer;
-	template <typename _Ty>
-	class TAnyConstPointer;
+	template <typename _Ty> class TAnyPointerBase;
+	template <typename _Ty> class TAnyConstPointerBase;
+	template <typename _Ty> class TXScopeAnyPointer;
+	template <typename _Ty> class TAnyPointer;
+	template <typename _Ty> class TXScopeAnyConstPointer;
+	template <typename _Ty> class TAnyConstPointer;
 
 	template <typename _Ty>
 	class TCommonPointerInterface {
@@ -291,21 +291,15 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TXScopeAnyPointer : public TXScopeTagBase {
+	class TAnyPointerBase {
 	public:
-		TXScopeAnyPointer(const TXScopeAnyPointer& src) : m_any_pointer(src.m_any_pointer) {}
-		TXScopeAnyPointer(const TAnyPointer<_Ty>& src) : m_any_pointer(src.m_any_pointer) {}
+		TAnyPointerBase(const TAnyPointerBase& src) : m_any_pointer(src.m_any_pointer) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_convertible<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
-			&& (!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
-			&& (!std::is_base_of<TXScopeAnyConstPointer<_Ty>, _TPointer1>::value)
-			&& (!std::is_same<_TPointer1, TAnyPointer<_Ty>>::value)
-			&& (!std::is_base_of<TAnyPointer<_Ty>, _TPointer1>::value)
-			&& (!std::is_same<_TPointer1, TAnyConstPointer<_Ty>>::value)
-			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
+			(!std::is_convertible<_TPointer1, TAnyPointerBase<_Ty>>::value)
+			&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
 			, void>::type>
-		TXScopeAnyPointer(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
+		TAnyPointerBase(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
 
 		_Ty& operator*() const {
 			return (*(*common_pointer_interface_const_ptr()));
@@ -321,14 +315,8 @@ namespace mse {
 		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 	protected:
-		TXScopeAnyPointer<_Ty>& operator=(const TXScopeAnyPointer<_Ty>& _Right_cref) {
-			m_any_pointer = _Right_cref.m_any_pointer;
-			return (*this);
-		}
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeAnyPointer<_Ty>* operator&() { return this; }
-		const TXScopeAnyPointer<_Ty>* operator&() const { return this; }
+		TAnyPointerBase<_Ty>* operator&() { return this; }
+		const TAnyPointerBase<_Ty>* operator&() const { return this; }
 
 		const TCommonPointerInterface<_Ty>* common_pointer_interface_const_ptr() const {
 			auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_pointer.storage_address());
@@ -340,29 +328,44 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TAnyPointer : public TXScopeAnyPointer<_Ty> {
+	class TXScopeAnyPointer : public TAnyPointerBase<_Ty>, public TXScopeTagBase {
 	public:
-		TAnyPointer(const TAnyPointer& src) : TXScopeAnyPointer<_Ty>(src) {}
+		typedef TAnyPointerBase<_Ty> base_class;
+		TXScopeAnyPointer(const TAnyPointerBase<_Ty>& src) : base_class(src) {}
+
+		template <typename _TPointer1, class = typename std::enable_if<
+			(!std::is_convertible<_TPointer1, TAnyPointerBase<_Ty>>::value)
+			&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
+			, void>::type>
+			TXScopeAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
+
+	protected:
+		TXScopeAnyPointer<_Ty>& operator=(const TXScopeAnyPointer<_Ty>& _Right_cref) {
+			base_class::operator=(_Right_cref);
+			return (*this);
+		}
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeAnyPointer<_Ty>* operator&() { return this; }
+		const TXScopeAnyPointer<_Ty>* operator&() const { return this; }
+	};
+
+	template <typename _Ty>
+	class TAnyPointer : public TAnyPointerBase<_Ty> {
+	public:
+		typedef TAnyPointerBase<_Ty> base_class;
+		TAnyPointer(const TAnyPointer& src) : base_class(src) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
 			(!std::is_convertible<_TPointer1, TAnyPointer>::value)
-			&& (!std::is_same<_TPointer1, TXScopeAnyPointer<_Ty>>::value)
-			&& (!std::is_base_of<TXScopeAnyPointer<_Ty>, _TPointer1>::value)
-			&& (!std::is_same<_TPointer1, TXScopeAnyConstPointer<_Ty>>::value)
-			&& (!std::is_base_of<TXScopeAnyConstPointer<_Ty>, _TPointer1>::value)
-			&& (!std::is_same<_TPointer1, TAnyConstPointer<_Ty>>::value)
 			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
-#ifndef MSE_SCOPEPOINTER_DISABLED
-			//&& (!std::is_convertible<_TPointer1, TXScopeFixedPointer<_Ty>>::value) 
-			//&& (!std::is_convertible<_TPointer1, TXScopeFixedConstPointer<_Ty>>::value)
-#endif // !MSE_SCOPEPOINTER_DISABLED
 			//&& (!std::integral_constant<bool, HasXScopeTagMethod_poly<_TPointer1>::Has>())
 			&& (!std::is_base_of<TXScopeTagBase, _TPointer1>::value)
 			, void>::type>
-			TAnyPointer(const _TPointer1& pointer) : TXScopeAnyPointer<_Ty>(pointer) {}
+			TAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		TAnyPointer<_Ty>& operator=(const TAnyPointer<_Ty>& _Right_cref) {
-			TXScopeAnyPointer<_Ty>::operator=(_Right_cref);
+			base_class::operator=(_Right_cref);
 			return (*this);
 		}
 

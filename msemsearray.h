@@ -1083,6 +1083,7 @@ namespace mse {
 		const size_type m_count = 0;
 
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
+		friend class TRandomAccessSection<_TRAIterator>;
 	};
 
 	template <typename _TRAIterator>
@@ -1130,38 +1131,23 @@ namespace mse {
 
 		const _TRAIterator m_start_const_iter;
 		const size_type m_count = 0;
+
+		friend class TRandomAccessConstSection<_TRAIterator>;
 	};
 
 	template <typename _TRAIterator>
-	class TRandomAccessSection {
+	class TRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator> {
 	public:
-		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
-		typedef typename mse::msearray<int, 0>::size_type size_type;
-		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+		typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
+		typedef typename base_class::reference_t reference_t;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_t difference_t;
 
 		template <class = typename std::enable_if<(!std::is_base_of<TXScopeTagBase, _TRAIterator>::value)>>
-		TRandomAccessSection(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
+		TRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		TRandomAccessSection(const TRandomAccessSection& src) = default;
 
-		reference_t operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TRandomAccessSection")); }
-			return m_start_iter[difference_t(_P)];
-		}
-		size_type size() const {
-			return m_count;
-		}
-		_TRAIterator begin() const { return m_start_iter; }
-		_TRAIterator cbegin() const { return m_start_iter; }
-		_TRAIterator end() const {
-			auto retval(m_start_iter);
-			retval += (*this).m_count;
-			return retval;
-		}
-		_TRAIterator cend() const { return (*this).end(); }
-
-	private:
-		const _TRAIterator m_start_iter;
-		const size_type m_count = 0;
+		void* operator new(size_t size) { return base_class::operator new(size); }
 
 		friend class TXScopeRandomAccessSection<_TRAIterator>;
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
@@ -1169,39 +1155,21 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	class TRandomAccessConstSection {
+	class TRandomAccessConstSection : public TXScopeRandomAccessConstSection<_TRAIterator> {
 	public:
-		typedef typename _TRAIterator::const_reference_t const_reference_t;
-		typedef typename mse::msearray<int, 0>::size_type size_type;
-		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+		typedef TXScopeRandomAccessConstSection<_TRAIterator> base_class;
+		typedef typename base_class::reference_t reference_t;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_t difference_t;
 
 		template <class = typename std::enable_if<(!std::is_base_of<TXScopeTagBase, _TRAIterator>::value)>>
-		TRandomAccessConstSection(const _TRAIterator& start_const_iter, size_type count) : m_start_const_iter(start_const_iter), m_count(count) {}
+		TRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		TRandomAccessConstSection(const TRandomAccessConstSection& src) = default;
-		template <class = typename std::enable_if<(!std::is_base_of<TXScopeTagBase, _TRAIterator>::value)>>
-		TRandomAccessConstSection(const TRandomAccessSection<_TRAIterator>& src) : m_start_const_iter(src.m_start_iter), m_count(src.size()) {}
 
-		const_reference_t operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - const_reference_t operator[](size_type _P) - TRandomAccessConstSection")); }
-			return m_start_const_iter[difference_t(_P)];
-		}
-		size_type size() const {
-			return m_count;
-		}
-		_TRAIterator begin() const { return m_start_const_iter; }
-		_TRAIterator cbegin() const { return m_start_const_iter; }
-		_TRAIterator end() const {
-			auto retval(m_start_const_iter);
-			retval += (*this).m_count;
-			return retval;
-		}
-		_TRAIterator cend() const { return (*this).end(); }
-
-	private:
-		const _TRAIterator m_start_const_iter;
-		const size_type m_count = 0;
+		void* operator new(size_t size) { return base_class::operator new(size); }
 
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
+		friend class TRandomAccessConstSection<_TRAIterator>;
 	};
 
 
