@@ -1888,6 +1888,7 @@ int main(int argc, char* argv[])
 				int res2 = (*it).get();
 			}
 		}
+#if 0
 		{
 			/* This block demonstrates safely allowing different threads to (simultaneously) modify different
 			sections of an array. */
@@ -1896,7 +1897,7 @@ int main(int argc, char* argv[])
 			static const size_t section_size = 5;
 			const size_t num_elements = num_sections * section_size;
 
-			typedef mse::mstd::array<std::string, num_elements> array1_t;
+			typedef mse::msearray<std::string, num_elements> array1_t;
 			/* Let's say we have an array. */
 			array1_t array1;
 			{
@@ -1985,6 +1986,7 @@ int main(int argc, char* argv[])
 
 			int q = 5;
 		}
+#endif
 	}
 
 	return 0;
