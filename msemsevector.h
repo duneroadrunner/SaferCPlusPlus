@@ -2454,6 +2454,34 @@ namespace mse {
 		//friend class TStrongFixedConstIterator<_TIterator, _TLeaseType>;
 	};
 
+	template <class _Ty, class _TLeaseType>
+	class TStrongFixedIterator<_Ty*, _TLeaseType> : public TSaferPtrForLegacy<_Ty> {
+	public:
+		typedef TSaferPtrForLegacy<_Ty> _TIterator;
+		typedef _TIterator base_class;
+		TStrongFixedIterator(const TStrongFixedIterator&) = default;
+		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
+		TStrongFixedIterator(const TStrongFixedIterator<_TIterator, _TLeaseType2>&src) : base_class(src), m_lease(src.lease()) {}
+		_TLeaseType lease() const { return (*this).m_lease; }
+
+		template <class _TIterator2, class _TLeaseType2>
+		static TStrongFixedIterator make(const _TIterator2& src_iterator, const _TLeaseType2& lease) {
+			return TStrongFixedIterator(src_iterator, lease);
+		}
+
+	protected:
+		TStrongFixedIterator(const _TIterator& src_iterator, const _TLeaseType& lease/* often a reference counting pointer */)
+			: base_class(src_iterator), m_lease(lease) {}
+		TStrongFixedIterator(const _Ty* & src_iterator, const _TLeaseType& lease/* often a reference counting pointer */)
+			: base_class(TSaferPtrForLegacy<_Ty>(src_iterator)), m_lease(lease) {}
+	private:
+		TStrongFixedIterator& operator=(const TStrongFixedIterator& _Right_cref) = delete;
+
+		_TLeaseType m_lease;
+
+		//friend class TStrongFixedConstIterator<_TIterator, _TLeaseType>;
+	};
+
 	template <class _TIterator, class _TLeaseType>
 	TStrongFixedIterator<_TIterator, _TLeaseType> make_strong_iterator(const _TIterator& src_iterator, const _TLeaseType& lease) {
 		return TStrongFixedIterator<_TIterator, _TLeaseType>::make(src_iterator, lease);

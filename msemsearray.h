@@ -987,17 +987,17 @@ namespace mse {
 				MSE_THROW(msearray_range_error("out of bounds index - bool dereference_bounds_check() - TRASectionIterator"));
 			}
 		}
-		auto operator*() -> decltype((m_ra_iterator).operator*()) const {
+		auto operator*() -> decltype(*m_ra_iterator) const {
 			dereference_bounds_check();
 			auto tmp_ra_iterator(m_ra_iterator);
 			tmp_ra_iterator += m_index;
-			return (tmp_ra_iterator).operator*();
+			return (*tmp_ra_iterator);
 		}
-		auto operator->() -> decltype((m_ra_iterator).operator->()) const {
+		auto operator->() -> decltype(std::addressof(*m_ra_iterator)) const {
 			dereference_bounds_check();
 			auto tmp_ra_iterator(m_ra_iterator);
 			tmp_ra_iterator += m_index;
-			return (tmp_ra_iterator).operator->();
+			return std::addressof(*m_ra_iterator);
 		}
 		TRASectionIterator& operator +=(difference_t x) {
 			m_index += (x);
@@ -1169,7 +1169,6 @@ namespace mse {
 		void* operator new(size_t size) { return base_class::operator new(size); }
 
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
-		friend class TRandomAccessConstSection<_TRAIterator>;
 	};
 
 
