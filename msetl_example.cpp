@@ -1888,7 +1888,6 @@ int main(int argc, char* argv[])
 				int res2 = (*it).get();
 			}
 		}
-#if 1
 		{
 			/* This block demonstrates safely allowing different threads to (simultaneously) modify different
 			sections of an array. */
@@ -1986,7 +1985,6 @@ int main(int argc, char* argv[])
 
 			int q = 5;
 		}
-#endif
 	}
 
 	return 0;
