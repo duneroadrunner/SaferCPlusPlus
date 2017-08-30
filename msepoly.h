@@ -958,10 +958,10 @@ namespace mse {
 
 		typedef typename base_class::difference_t difference_t;
 
-		TXScopeAnyRandomAccessIterator& operator ++() { operator +=(1); return (*this); }
-		TXScopeAnyRandomAccessIterator operator ++(int) { auto _Tmp = (*this); operator +=(1); return _Tmp; }
-		TXScopeAnyRandomAccessIterator& operator --() { operator -=(1); return (*this); }
-		TXScopeAnyRandomAccessIterator operator --(int) { auto _Tmp = (*this); operator -=(1); return _Tmp; }
+		TXScopeAnyRandomAccessIterator& operator ++() { base_class::operator +=(1); return (*this); }
+		TXScopeAnyRandomAccessIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
+		TXScopeAnyRandomAccessIterator& operator --() { base_class::operator -=(1); return (*this); }
+		TXScopeAnyRandomAccessIterator operator --(int) { auto _Tmp = (*this); base_class::operator -=(1); return _Tmp; }
 
 		TXScopeAnyRandomAccessIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeAnyRandomAccessIterator operator-(difference_t n) const { return ((*this) + (-n)); }
@@ -1113,10 +1113,10 @@ namespace mse {
 
 		typedef typename base_class::difference_t difference_t;
 
-		TXScopeAnyRandomAccessConstIterator& operator ++() { operator +=(1); return (*this); }
-		TXScopeAnyRandomAccessConstIterator operator ++(int) { auto _Tmp = (*this); operator +=(1); return _Tmp; }
-		TXScopeAnyRandomAccessConstIterator& operator --() { operator -=(1); return (*this); }
-		TXScopeAnyRandomAccessConstIterator operator --(int) { auto _Tmp = (*this); operator -=(1); return _Tmp; }
+		TXScopeAnyRandomAccessConstIterator& operator ++() { base_class::operator +=(1); return (*this); }
+		TXScopeAnyRandomAccessConstIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
+		TXScopeAnyRandomAccessConstIterator& operator --() { base_class::operator -=(1); return (*this); }
+		TXScopeAnyRandomAccessConstIterator operator --(int) { auto _Tmp = (*this); base_class::operator -=(1); return _Tmp; }
 
 		TXScopeAnyRandomAccessConstIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeAnyRandomAccessConstIterator operator-(difference_t n) const { return ((*this) + (-n)); }
@@ -1134,17 +1134,6 @@ namespace mse {
 
 		TXScopeAnyRandomAccessConstIterator<_Ty>* operator&() { return this; }
 		const TXScopeAnyRandomAccessConstIterator<_Ty>* operator&() const { return this; }
-
-		TCommonRandomAccessConstIteratorInterface<_Ty>* common_random_access_const_iterator_interface_ptr() {
-			auto retval = reinterpret_cast<TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());
-			assert(nullptr != retval);
-			return retval;
-		}
-		const TCommonRandomAccessConstIteratorInterface<_Ty>* common_random_access_const_iterator_interface_ptr() const {
-			auto retval = reinterpret_cast<const TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());
-			assert(nullptr != retval);
-			return retval;
-		}
 
 		friend class TAnyRandomAccessConstIterator<_Ty>;
 	};
