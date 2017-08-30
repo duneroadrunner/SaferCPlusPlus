@@ -965,8 +965,10 @@ namespace std {
 
 namespace mse {
 
+	template <typename _TRAIterator> class TRASectionConstIteratorBase;
+
 	template <typename _TRAIterator>
-	class TRASectionIterator {
+	class TRASectionIteratorBase {
 	public:
 		typedef typename mse::msearray<int, 0>::difference_type difference_t;
 		typedef typename mse::msearray<int, 0>::size_type size_type;
@@ -977,14 +979,14 @@ namespace mse {
 		difference_t m_index = 0;
 
 	public:
-		TRASectionIterator(_TRAIterator ra_iterator, size_type count, size_type index = 0)
-			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_t(index)) {}
-		TRASectionIterator(const TRASectionIterator& src)
+		TRASectionIteratorBase(const TRASectionIteratorBase& src)
 			: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
+		TRASectionIteratorBase(_TRAIterator ra_iterator, size_type count, size_type index = 0)
+			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_t(index)) {}
 
 		void dereference_bounds_check() const {
 			if ((0 > m_index) || (difference_t(m_count) <= m_index)) {
-				MSE_THROW(msearray_range_error("out of bounds index - bool dereference_bounds_check() - TRASectionIterator"));
+				MSE_THROW(msearray_range_error("out of bounds index - bool dereference_bounds_check() - TRASectionIteratorBase"));
 			}
 		}
 		auto operator*() -> decltype(*m_ra_iterator) const {
@@ -999,8 +1001,102 @@ namespace mse {
 			tmp_ra_iterator += m_index;
 			return std::addressof(*m_ra_iterator);
 		}
-		TRASectionIterator& operator +=(difference_t x) {
+		TRASectionIteratorBase& operator +=(difference_t x) {
 			m_index += (x);
+			return (*this);
+		}
+		TRASectionIteratorBase& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TRASectionIteratorBase& operator ++() { operator +=(1); return (*this); }
+		TRASectionIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TRASectionIteratorBase& operator --() { operator -=(1); return (*this); }
+		TRASectionIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+		TRASectionIteratorBase operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
+		TRASectionIteratorBase operator-(difference_t n) const { return ((*this) + (-n)); }
+		difference_t operator-(const TRASectionIteratorBase& _Right_cref) const {
+			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_t operator-() - TRASectionIteratorBase")); }
+			return m_index - _Right_cref.m_index;
+		}
+		bool operator ==(const TRASectionIteratorBase& _Right_cref) const {
+			return ((_Right_cref.m_index == m_index) && (_Right_cref.m_count == m_count) && (_Right_cref.m_ra_iterator == m_ra_iterator));
+		}
+		bool operator !=(const TRASectionIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
+		bool operator<(const TRASectionIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		bool operator>(const TRASectionIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		bool operator<=(const TRASectionIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+		bool operator>=(const TRASectionIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+		TRASectionIteratorBase& operator=(const TRASectionIteratorBase& _Right_cref) {
+			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionIteratorBase& operator=() - TRASectionIteratorBase")); }
+			m_index = _Right_cref.m_index;
+			return (*this);
+		}
+		friend class TRASectionConstIteratorBase<_TRAIterator>;
+	};
+
+	template <typename _TRAIterator>
+	class TXScopeRASectionIterator : public TRASectionIteratorBase<_TRAIterator>, public XScopeTagBase {
+	public:
+		typedef TRASectionIteratorBase<_TRAIterator> base_class;
+
+		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::size_type size_type;
+
+		TXScopeRASectionIterator(const TRASectionIteratorBase<_TRAIterator>& src)
+			: base_class(src) {}
+		TXScopeRASectionIterator(_TRAIterator ra_iterator, size_type count, size_type index = 0)
+			: base_class(ra_iterator, count, index) {}
+
+		TXScopeRASectionIterator& operator +=(difference_t x) {
+			base_class::operator +=(x);
+			return (*this);
+		}
+		TXScopeRASectionIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TXScopeRASectionIterator& operator ++() { operator +=(1); return (*this); }
+		TXScopeRASectionIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TXScopeRASectionIterator& operator --() { operator -=(1); return (*this); }
+		TXScopeRASectionIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+		TXScopeRASectionIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
+		TXScopeRASectionIterator operator-(difference_t n) const { return ((*this) + (-n)); }
+		difference_t operator-(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) const {
+			return base_class::operator-(_Right_cref);
+		}
+
+		TXScopeRASectionIterator& operator=(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) {
+			base_class::operator=(_Right_cref);
+			return (*this);
+		}
+
+	private:
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeRASectionIterator* operator&() { return this; }
+		const TXScopeRASectionIterator* operator&() const { return this; }
+
+	};
+
+	template <typename _TRAIterator>
+	class TRASectionIterator : public TRASectionIteratorBase<_TRAIterator> {
+	public:
+		typedef TRASectionIteratorBase<_TRAIterator> base_class;
+
+		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::size_type size_type;
+
+		TRASectionIterator(const TRASectionIterator& src)
+			: base_class(src) {}
+
+		template <typename _TRAIterator1, class = typename std::enable_if<
+			//(!std::is_convertible<_TRAIterator1, TPolyPointer>::value)
+			//&& (!std::is_base_of<TPolyConstPointer<_Ty>, _TRAIterator1>::value)
+			//&& (!std::integral_constant<bool, HasXScopeTagMethod_poly<_TRAIterator1>::Has>())
+			/*&&*/ (!std::is_base_of<XScopeTagBase, _TRAIterator1>::value)
+			, void>::type>
+			TRASectionIterator(_TRAIterator1 ra_iterator, size_type count, size_type index = 0)
+			: base_class(ra_iterator, count, index) {}
+
+		TRASectionIterator& operator +=(difference_t x) {
+			base_class::operator +=(x);
 			return (*this);
 		}
 		TRASectionIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
@@ -1011,25 +1107,174 @@ namespace mse {
 
 		TRASectionIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
 		TRASectionIterator operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRASectionIterator& _Right_cref) const {
-			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_t operator-() - TRASectionIterator")); }
+		difference_t operator-(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) const {
+			return base_class::operator-(_Right_cref);
+		}
+
+		TRASectionIterator& operator=(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) {
+			base_class::operator=(_Right_cref);
+			return (*this);
+		}
+	};
+
+	template <typename _TRAIterator>
+	class TRASectionConstIteratorBase {
+	public:
+		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
+		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
+		typedef typename std::add_lvalue_reference<typename std::add_const<element_t>::type>::type const_reference_t;
+		typedef typename mse::msearray<int, 0>::size_type size_type;
+		typedef typename mse::msearray<int, 0>::difference_type difference_t;
+
+	private:
+		const _TRAIterator m_ra_iterator;
+		const size_type m_count = 0;
+		difference_t m_index = 0;
+
+	public:
+		TRASectionConstIteratorBase(const TRASectionConstIteratorBase& src)
+			: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
+		TRASectionConstIteratorBase(const TRASectionIteratorBase<_TRAIterator>& src)
+			: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
+		TRASectionConstIteratorBase(_TRAIterator ra_iterator, size_type count, size_type index = 0)
+			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_t(index)) {}
+
+		void dereference_bounds_check() const {
+			if ((0 > m_index) || (difference_t(m_count) <= m_index)) {
+				MSE_THROW(msearray_range_error("out of bounds index - bool dereference_bounds_check() - TRASectionConstIteratorBase"));
+			}
+		}
+		auto operator*() -> const_reference_t const {
+			dereference_bounds_check();
+			auto tmp_ra_iterator(m_ra_iterator);
+			tmp_ra_iterator += m_index;
+			return (*tmp_ra_iterator);
+		}
+		auto operator->() -> typename std::add_pointer<typename std::add_const<element_t>::type>::type const {
+			dereference_bounds_check();
+			auto tmp_ra_iterator(m_ra_iterator);
+			tmp_ra_iterator += m_index;
+			return std::addressof(*m_ra_iterator);
+		}
+		TRASectionConstIteratorBase& operator +=(difference_t x) {
+			m_index += (x);
+			return (*this);
+		}
+		TRASectionConstIteratorBase& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TRASectionConstIteratorBase& operator ++() { operator +=(1); return (*this); }
+		TRASectionConstIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TRASectionConstIteratorBase& operator --() { operator -=(1); return (*this); }
+		TRASectionConstIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+		TRASectionConstIteratorBase operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
+		TRASectionConstIteratorBase operator-(difference_t n) const { return ((*this) + (-n)); }
+		difference_t operator-(const TRASectionConstIteratorBase& _Right_cref) const {
+			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_t operator-() - TRASectionConstIteratorBase")); }
 			return m_index - _Right_cref.m_index;
 		}
-		bool operator ==(const TRASectionIterator& _Right_cref) const {
+		bool operator ==(const TRASectionConstIteratorBase& _Right_cref) const {
 			return ((_Right_cref.m_index == m_index) && (_Right_cref.m_count == m_count) && (_Right_cref.m_ra_iterator == m_ra_iterator));
 		}
-		bool operator !=(const TRASectionIterator& _Right_cref) const { return !((*this) == _Right_cref); }
-		bool operator<(const TRASectionIterator& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator>(const TRASectionIterator& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator<=(const TRASectionIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		bool operator>=(const TRASectionIterator& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		TRASectionIterator& operator=(const TRASectionIterator& _Right_cref) {
-			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionIterator& operator=() - TRASectionIterator")); }
+		bool operator !=(const TRASectionConstIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
+		bool operator<(const TRASectionConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		bool operator>(const TRASectionConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+		bool operator<=(const TRASectionConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+		bool operator>=(const TRASectionConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+		TRASectionConstIteratorBase& operator=(const TRASectionConstIteratorBase& _Right_cref) {
+			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionConstIteratorBase& operator=() - TRASectionConstIteratorBase")); }
 			m_index = _Right_cref.m_index;
 			return (*this);
 		}
 	};
 
+	template <typename _TRAIterator>
+	class TXScopeRASectionConstIterator : public TRASectionConstIteratorBase<_TRAIterator>, public XScopeTagBase {
+	public:
+		typedef TRASectionConstIteratorBase<_TRAIterator> base_class;
+
+		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::size_type size_type;
+
+		TXScopeRASectionConstIterator(const TRASectionConstIteratorBase<_TRAIterator>& src)
+			: base_class(src) {}
+		TXScopeRASectionConstIterator(_TRAIterator ra_iterator, size_type count, size_type index = 0)
+			: base_class(ra_iterator, count, index) {}
+
+		TXScopeRASectionConstIterator& operator +=(difference_t x) {
+			base_class::operator +=(x);
+			return (*this);
+		}
+		TXScopeRASectionConstIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TXScopeRASectionConstIterator& operator ++() { operator +=(1); return (*this); }
+		TXScopeRASectionConstIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TXScopeRASectionConstIterator& operator --() { operator -=(1); return (*this); }
+		TXScopeRASectionConstIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+		TXScopeRASectionConstIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
+		TXScopeRASectionConstIterator operator-(difference_t n) const { return ((*this) + (-n)); }
+		difference_t operator-(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
+			return base_class::operator-(_Right_cref);
+		}
+
+		TXScopeRASectionConstIterator& operator=(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) {
+			base_class::operator=(_Right_cref);
+			return (*this);
+		}
+
+	private:
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeRASectionConstIterator* operator&() { return this; }
+		const TXScopeRASectionConstIterator* operator&() const { return this; }
+
+	};
+
+	template <typename _TRAIterator>
+	class TRASectionConstIterator : public TRASectionConstIteratorBase<_TRAIterator> {
+	public:
+		typedef TRASectionConstIteratorBase<_TRAIterator> base_class;
+
+		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::size_type size_type;
+
+		TRASectionConstIterator(const TRASectionConstIterator& src)
+			: base_class(src) {}
+
+		template <typename _TRAIterator1, class = typename std::enable_if<
+			//(!std::is_convertible<_TRAIterator1, TPolyPointer>::value)
+			//&& (!std::is_base_of<TPolyConstPointer<_Ty>, _TRAIterator1>::value)
+			//&& (!std::integral_constant<bool, HasXScopeTagMethod_poly<_TRAIterator1>::Has>())
+			/*&&*/ (!std::is_base_of<XScopeTagBase, _TRAIterator1>::value)
+			, void>::type>
+			TRASectionConstIterator(_TRAIterator1 ra_iterator, size_type count, size_type index = 0)
+			: base_class(ra_iterator, count, index) {}
+
+		TRASectionConstIterator& operator +=(difference_t x) {
+			base_class::operator +=(x);
+			return (*this);
+		}
+		TRASectionConstIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TRASectionConstIterator& operator ++() { operator +=(1); return (*this); }
+		TRASectionConstIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TRASectionConstIterator& operator --() { operator -=(1); return (*this); }
+		TRASectionConstIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+		TRASectionConstIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
+		TRASectionConstIterator operator-(difference_t n) const { return ((*this) + (-n)); }
+		difference_t operator-(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
+			return base_class::operator-(_Right_cref);
+		}
+
+		TRASectionConstIterator& operator=(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) {
+			base_class::operator=(_Right_cref);
+			return (*this);
+		}
+	};
+
+	template <typename _TRAIterator>
+	class TRandomAccessConstSectionBase;
+	template <typename _TRAIterator>
+	class TXScopeRandomAccessSection;
 	template <typename _TRAIterator>
 	class TXScopeRandomAccessConstSection;
 	template <typename _TRAIterator>
@@ -1038,19 +1283,21 @@ namespace mse {
 	class TRandomAccessConstSection;
 
 	template <typename _TRAIterator>
-	class TXScopeRandomAccessSection {
+	class TRandomAccessSectionBase {
 	public:
 		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
 		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
+		typedef typename std::add_lvalue_reference<typename std::add_const<element_t>::type>::type const_reference_t;
 		typedef typename mse::msearray<element_t, 0>::size_type size_type;
 		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
 
-		TXScopeRandomAccessSection(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
-		TXScopeRandomAccessSection(const TXScopeRandomAccessSection& src) = default;
-		TXScopeRandomAccessSection(const TRandomAccessSection<_TRAIterator>& src) : m_start_iter(src.m_start_iter), m_count(src.size()) {}
+		TRandomAccessSectionBase(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
+		//TRandomAccessSectionBase(const TRandomAccessSectionBase& src) = default;
+		template <typename _TRAIterator1>
+		TRandomAccessSectionBase(const TRandomAccessSectionBase<_TRAIterator1>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
 
 		reference_t operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TXScopeRandomAccessSection")); }
+			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TRandomAccessSectionBase")); }
 			return m_start_iter[difference_t(_P)];
 		}
 		size_type size() const {
@@ -1058,7 +1305,7 @@ namespace mse {
 		}
 
 		typedef TRASectionIterator<_TRAIterator> iterator;
-		typedef TRASectionIterator<_TRAIterator> const_iterator;
+		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
 		iterator begin() const { return iterator(m_start_iter, m_count); }
 		const_iterator cbegin() const { return const_iterator(m_start_iter, m_count); }
 		iterator end() const {
@@ -1073,81 +1320,60 @@ namespace mse {
 		}
 
 	private:
-		TXScopeRandomAccessSection<_TRAIterator>& operator=(const TXScopeRandomAccessSection<_TRAIterator>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeRandomAccessSection<_TRAIterator>* operator&() { return this; }
-		const TXScopeRandomAccessSection<_TRAIterator>* operator&() const { return this; }
+		TRandomAccessSectionBase<_TRAIterator>* operator&() { return this; }
+		const TRandomAccessSectionBase<_TRAIterator>* operator&() const { return this; }
 
 		_TRAIterator m_start_iter;
 		const size_type m_count = 0;
 
-		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
-		friend class TRandomAccessSection<_TRAIterator>;
+		friend class TXScopeRandomAccessSection<_TRAIterator>;
+		template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
+		template<typename _TRAIterator1> friend class TRandomAccessSectionBase;
 	};
 
 	template <typename _TRAIterator>
-	class TXScopeRandomAccessConstSection {
+	class TXScopeRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator>, public XScopeTagBase {
 	public:
-		typedef typename _TRAIterator::const_reference_t const_reference_t;
-		typedef typename mse::msearray<int, 0>::size_type size_type;
-		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
 
-		TXScopeRandomAccessConstSection(const _TRAIterator& start_const_iter, size_type count) : m_start_const_iter(start_const_iter), m_count(count) {}
-		TXScopeRandomAccessConstSection(const TXScopeRandomAccessConstSection& src) = default;
-		TXScopeRandomAccessConstSection(const TXScopeRandomAccessSection<_TRAIterator>& src) : m_start_const_iter(src.m_start_iter), m_count(src.size()) {}
-		TXScopeRandomAccessConstSection(const TRandomAccessSection<_TRAIterator>& src) : m_start_const_iter(src.m_start_iter), m_count(src.size()) {}
-		TXScopeRandomAccessConstSection(const TRandomAccessConstSection<_TRAIterator>& src) : m_start_const_iter(src.m_start_const_iter), m_count(src.size()) {}
+		//TXScopeRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter,count) {}
+		//TXScopeRandomAccessSection(const TXScopeRandomAccessSection& src) = default;
+		//TXScopeRandomAccessSection(const TRandomAccessSectionBase<_TRAIterator>& src) : base_class(src) {}
 
-		const_reference_t operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - const_reference_t operator[](size_type _P) - TXScopeRandomAccessConstSection")); }
-			return m_start_const_iter[difference_t(_P)];
-		}
-		size_type size() const {
-			return m_count;
-		}
+		MSE_USING(TXScopeRandomAccessSection, base_class);
 
-		typedef TRASectionIterator<_TRAIterator> iterator;
-		typedef TRASectionIterator<_TRAIterator> const_iterator;
-		iterator begin() const { return iterator(m_start_const_iter, m_count); }
-		const_iterator cbegin() const { return const_iterator(m_start_const_iter, m_count); }
+		typedef TXScopeRASectionIterator<_TRAIterator> iterator;
+		typedef TXScopeRASectionConstIterator<_TRAIterator> const_iterator;
+		iterator begin() const { return iterator(m_start_iter, m_count); }
+		const_iterator cbegin() const { return const_iterator(m_start_iter, m_count); }
 		iterator end() const {
-			auto retval(iterator(m_start_const_iter, m_count));
+			auto retval(iterator(m_start_iter, m_count));
 			retval += (*this).m_count;
 			return retval;
 		}
 		const_iterator cend() const {
-			auto retval(const_iterator(m_start_const_iter, m_count));
+			auto retval(const_iterator(m_start_iter, m_count));
 			retval += (*this).m_count;
 			return retval;
 		}
 
 	private:
-		TXScopeRandomAccessConstSection<_TRAIterator>& operator=(const TXScopeRandomAccessConstSection<_TRAIterator>& _Right_cref) = delete;
+		//TXScopeRandomAccessSection<_TRAIterator>& operator=(const TXScopeRandomAccessSection<_TRAIterator>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
-		TXScopeRandomAccessConstSection<_TRAIterator>* operator&() { return this; }
-		const TXScopeRandomAccessConstSection<_TRAIterator>* operator&() const { return this; }
-
-		const _TRAIterator m_start_const_iter;
-		const size_type m_count = 0;
-
-		friend class TRandomAccessConstSection<_TRAIterator>;
+		TXScopeRandomAccessSection<_TRAIterator>* operator&() { return this; }
+		const TXScopeRandomAccessSection<_TRAIterator>* operator&() const { return this; }
 	};
 
 	template <typename _TRAIterator>
-	class TRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator> {
+	class TRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator> {
 	public:
-		typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
-		typedef typename base_class::reference_t reference_t;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_t difference_t;
+		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
 
 		template <class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TRAIterator>::value)>>
 		TRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
-		TRandomAccessSection(const TRandomAccessSection& src) = default;
-
-		void* operator new(size_t size) { return base_class::operator new(size); }
+		template <typename _TRAIterator1>
+		TRandomAccessSection(const TRandomAccessSectionBase<_TRAIterator1>& src) : base_class(src) {}
 
 		friend class TXScopeRandomAccessSection<_TRAIterator>;
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
@@ -1155,18 +1381,96 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	class TRandomAccessConstSection : public TXScopeRandomAccessConstSection<_TRAIterator> {
+	class TRandomAccessConstSectionBase {
 	public:
-		typedef TXScopeRandomAccessConstSection<_TRAIterator> base_class;
-		typedef typename base_class::reference_t reference_t;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_t difference_t;
+		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
+		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
+		typedef typename std::add_lvalue_reference<typename std::add_const<element_t>::type>::type const_reference_t;
+		typedef typename mse::msearray<element_t, 0>::size_type size_type;
+		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+
+		TRandomAccessConstSectionBase(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
+		//TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) = default;
+		template <typename _TRAIterator1>
+		TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase<_TRAIterator1>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
+		//TRandomAccessConstSectionBase(const TRandomAccessSectionBase<_TRAIterator>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
+		template <typename _TRAIterator1>
+		TRandomAccessConstSectionBase(const TRandomAccessSectionBase<_TRAIterator1>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
+
+		const_reference_t operator[](size_type _P) const {
+			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TRandomAccessConstSectionBase")); }
+			return m_start_iter[difference_t(_P)];
+		}
+		size_type size() const {
+			return m_count;
+		}
+
+		typedef TRASectionIterator<_TRAIterator> iterator;
+		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
+		const_iterator begin() const { return cbegin(); }
+		const_iterator cbegin() const { return const_iterator(m_start_iter, m_count); }
+		const_iterator end() const {
+			return cend();
+		}
+		const_iterator cend() const {
+			auto retval(const_iterator(m_start_iter, m_count));
+			retval += (*this).m_count;
+			return retval;
+		}
+
+	private:
+		TRandomAccessConstSectionBase<_TRAIterator>* operator&() { return this; }
+		const TRandomAccessConstSectionBase<_TRAIterator>* operator&() const { return this; }
+
+		_TRAIterator m_start_iter;
+		const size_type m_count = 0;
+
+		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
+		template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
+	};
+
+	template <typename _TRAIterator>
+	class TXScopeRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator>, public XScopeTagBase {
+	public:
+		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
+
+		//TXScopeRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		//TXScopeRandomAccessConstSection(const TXScopeRandomAccessConstSection& src) = default;
+		//TXScopeRandomAccessConstSection(const TRandomAccessConstSectionBase<_TRAIterator>& src) : base_class(src) {}
+		//TXScopeRandomAccessConstSection(const TRandomAccessSectionBase<_TRAIterator>& src) : base_class(src) {}
+
+		MSE_USING(TXScopeRandomAccessConstSection, base_class);
+
+		typedef TXScopeRASectionIterator<_TRAIterator> iterator;
+		typedef TXScopeRASectionConstIterator<_TRAIterator> const_iterator;
+		const_iterator begin() const { return cbegin(); }
+		const_iterator cbegin() const { return const_iterator(m_start_iter, m_count); }
+		const_iterator end() const { return cend(); }
+		const_iterator cend() const {
+			auto retval(const_iterator(m_start_iter, m_count));
+			retval += (*this).m_count;
+			return retval;
+		}
+
+	private:
+		//TXScopeRandomAccessConstSection<_TRAIterator>& operator=(const TXScopeRandomAccessConstSection<_TRAIterator>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeRandomAccessConstSection<_TRAIterator>* operator&() { return this; }
+		const TXScopeRandomAccessConstSection<_TRAIterator>* operator&() const { return this; }
+	};
+
+	template <typename _TRAIterator>
+	class TRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator> {
+	public:
+		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
 
 		template <class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TRAIterator>::value)>>
 		TRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
-		TRandomAccessConstSection(const TRandomAccessConstSection& src) = default;
-
-		void* operator new(size_t size) { return base_class::operator new(size); }
+		template <typename _TRAIterator1>
+		TRandomAccessConstSection(const TRandomAccessConstSection<_TRAIterator1>& src) : base_class(src) {}
+		template <typename _TRAIterator1>
+		TRandomAccessConstSection(const TRandomAccessSectionBase<_TRAIterator1>& src) : base_class(src) {}
 
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
 	};

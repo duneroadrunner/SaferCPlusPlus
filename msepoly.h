@@ -825,13 +825,13 @@ namespace mse {
 	};
 
 
-	template <typename _Ty> using TRandomAccessIteratorBase = typename mse::msearray<_Ty, 0>::random_access_iterator_base;
-	template <typename _Ty> using TRandomAccessConstIteratorBase = typename mse::msearray<_Ty, 0>::random_access_const_iterator_base;
+	template <typename _Ty> using TRandomAccessIteratorStdBase = typename mse::msearray<_Ty, 0>::random_access_iterator_base;
+	template <typename _Ty> using TRandomAccessConstIteratorStdBase = typename mse::msearray<_Ty, 0>::random_access_const_iterator_base;
 
 	template <typename _Ty>
-	class TCommonRandomAccessIteratorInterface : public TRandomAccessIteratorBase<_Ty> {
+	class TCommonRandomAccessIteratorInterface : public TRandomAccessIteratorStdBase<_Ty> {
 	public:
-		typedef TRandomAccessIteratorBase<_Ty> base_class;
+		typedef TRandomAccessIteratorStdBase<_Ty> base_class;
 
 		virtual ~TCommonRandomAccessIteratorInterface() {}
 		virtual _Ty& operator*() const = 0;
@@ -885,7 +885,7 @@ namespace mse {
 	class TAnyRandomAccessIterator;
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessIterator : public TRandomAccessIteratorBase<_Ty>, public XScopeTagBase {
+	class TXScopeAnyRandomAccessIterator : public TRandomAccessIteratorStdBase<_Ty>, public XScopeTagBase {
 	public:
 		TXScopeAnyRandomAccessIterator(const TXScopeAnyRandomAccessIterator& src) : m_any_random_access_iterator(src.m_any_random_access_iterator) {}
 		TXScopeAnyRandomAccessIterator(_Ty arr[]) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _Ty*>(arr)) {}
@@ -954,9 +954,9 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TCommonRandomAccessConstIteratorInterface : public TRandomAccessConstIteratorBase<_Ty> {
+	class TCommonRandomAccessConstIteratorInterface : public TRandomAccessConstIteratorStdBase<_Ty> {
 	public:
-		typedef TRandomAccessConstIteratorBase<_Ty> base_class;
+		typedef TRandomAccessConstIteratorStdBase<_Ty> base_class;
 
 		virtual ~TCommonRandomAccessConstIteratorInterface() {}
 		virtual const _Ty& operator*() const = 0;
@@ -1010,7 +1010,7 @@ namespace mse {
 	class TAnyRandomAccessConstIterator;
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessConstIterator : public TRandomAccessConstIteratorBase<_Ty>, public XScopeTagBase {
+	class TXScopeAnyRandomAccessConstIterator : public TRandomAccessConstIteratorStdBase<_Ty>, public XScopeTagBase {
 	public:
 		TXScopeAnyRandomAccessConstIterator(const TXScopeAnyRandomAccessConstIterator& src) : m_any_random_access_const_iterator(src.m_any_random_access_const_iterator) {}
 		TXScopeAnyRandomAccessConstIterator(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>(arr)) {}
@@ -1174,174 +1174,37 @@ namespace mse {
 		const TAnyRandomAccessConstIterator<_Ty>* operator&() const { return this; }
 	};
 
-	template <typename _Ty>
-	class TXScopeAnyRandomAccessConstSection;
-	template <typename _Ty>
-	class TAnyRandomAccessSection;
-	template <typename _Ty>
-	class TAnyRandomAccessConstSection;
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessSection : public XScopeTagBase {
+	class TXScopeAnyRandomAccessSection : public TXScopeRandomAccessSection<TXScopeAnyRandomAccessIterator<_Ty>> {
 	public:
-		typedef typename TXScopeAnyRandomAccessIterator<_Ty>::reference_t reference_t;
-		typedef typename mse::mstd::array<_Ty, 0>::size_type size_type;
-		typedef typename TXScopeAnyRandomAccessIterator<_Ty>::difference_t difference_t;
+		typedef TXScopeRandomAccessSection<TXScopeAnyRandomAccessIterator<_Ty>> base_class;
 
-		TXScopeAnyRandomAccessSection(const TXScopeAnyRandomAccessIterator<_Ty>& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
-		TXScopeAnyRandomAccessSection(const TXScopeAnyRandomAccessSection& src) = default;
-		TXScopeAnyRandomAccessSection(const TAnyRandomAccessSection<_Ty>& src) : m_start_iter(src.m_start_iter), m_count(src.size()) {}
-
-		reference_t operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TXScopeAnyRandomAccessSection")); }
-			return m_start_iter[difference_t(_P)];
-		}
-		size_type size() const {
-			return m_count;
-		}
-
-		typedef TRASectionIterator<TXScopeAnyRandomAccessIterator<_Ty>> iterator;
-		typedef TRASectionIterator<TXScopeAnyRandomAccessConstIterator<_Ty>> const_iterator;
-		iterator begin() const { return iterator(m_start_iter, m_count); }
-		const_iterator cbegin() const { return const_iterator(m_start_iter, m_count); }
-		iterator end() const {
-			auto retval(iterator(m_start_iter, m_count));
-			retval += (*this).m_count;
-			return retval;
-		}
-		const_iterator cend() const {
-			auto retval(const_iterator(m_start_iter, m_count));
-			retval += (*this).m_count;
-			return retval;
-		}
-
-	private:
-		TXScopeAnyRandomAccessSection<_Ty>& operator=(const TXScopeAnyRandomAccessSection<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeAnyRandomAccessSection<_Ty>* operator&() { return this; }
-		const TXScopeAnyRandomAccessSection<_Ty>* operator&() const { return this; }
-
-		TXScopeAnyRandomAccessIterator<_Ty> m_start_iter;
-		const size_type m_count = 0;
-
-		friend class TXScopeAnyRandomAccessConstSection<_Ty>;
+		MSE_USING(TXScopeAnyRandomAccessSection, base_class);
 	};
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessConstSection : public XScopeTagBase {
+	class TAnyRandomAccessSection : public TRandomAccessSection<TAnyRandomAccessIterator<_Ty>> {
 	public:
-		typedef typename TXScopeAnyRandomAccessConstIterator<_Ty>::const_reference_t const_reference_t;
-		typedef typename mse::mstd::array<_Ty, 0>::size_type size_type;
-		typedef typename TXScopeAnyRandomAccessConstIterator<_Ty>::difference_t difference_t;
+		typedef TRandomAccessSection<TAnyRandomAccessIterator<_Ty>> base_class;
 
-		TXScopeAnyRandomAccessConstSection(const TXScopeAnyRandomAccessConstIterator<_Ty>& start_const_iter, size_type count) : m_start_const_iter(start_const_iter), m_count(count) {}
-		TXScopeAnyRandomAccessConstSection(const TXScopeAnyRandomAccessConstSection& src) = default;
-		TXScopeAnyRandomAccessConstSection(const TXScopeAnyRandomAccessSection<_Ty>& src) : m_start_const_iter(src.m_start_iter), m_count(src.size()) {}
-		TXScopeAnyRandomAccessConstSection(const TAnyRandomAccessSection<_Ty>& src) : m_start_const_iter(src.m_start_iter), m_count(src.size()) {}
-		TXScopeAnyRandomAccessConstSection(const TAnyRandomAccessConstSection<_Ty>& src) : m_start_const_iter(src.m_start_const_iter), m_count(src.size()) {}
-
-		const_reference_t operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - const_reference_t operator[](size_type _P) - TXScopeAnyRandomAccessConstSection")); }
-			return m_start_const_iter[difference_t(_P)];
-		}
-		size_type size() const {
-			return m_count;
-		}
-
-		typedef TRASectionIterator<TXScopeAnyRandomAccessConstIterator<_Ty>> iterator;
-		typedef TRASectionIterator<TXScopeAnyRandomAccessConstIterator<_Ty>> const_iterator;
-		iterator begin() const { return iterator(m_start_const_iter, m_count); }
-		const_iterator cbegin() const { return const_iterator(m_start_const_iter, m_count); }
-		iterator end() const {
-			auto retval(iterator(m_start_const_iter, m_count));
-			retval += (*this).m_count;
-			return retval;
-		}
-		const_iterator cend() const {
-			auto retval(const_iterator(m_start_const_iter, m_count));
-			retval += (*this).m_count;
-			return retval;
-		}
-
-	private:
-		TXScopeAnyRandomAccessConstSection<_Ty>& operator=(const TXScopeAnyRandomAccessConstSection<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeAnyRandomAccessConstSection<_Ty>* operator&() { return this; }
-		const TXScopeAnyRandomAccessConstSection<_Ty>* operator&() const { return this; }
-
-		const TXScopeAnyRandomAccessConstIterator<_Ty> m_start_const_iter;
-		const size_type m_count = 0;
+		MSE_USING(TAnyRandomAccessSection, base_class);
 	};
 
 	template <typename _Ty>
-	class TAnyRandomAccessSection {
+	class TXScopeAnyRandomAccessConstSection : public TXScopeRandomAccessConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>> {
 	public:
-		typedef typename TAnyRandomAccessIterator<_Ty>::reference_t reference_t;
-		typedef typename mse::mstd::array<_Ty, 0>::size_type size_type;
-		typedef typename TAnyRandomAccessIterator<_Ty>::difference_t difference_t;
+		typedef TXScopeRandomAccessConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>> base_class;
 
-		TAnyRandomAccessSection(const TAnyRandomAccessIterator<_Ty>& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
-		TAnyRandomAccessSection(const TAnyRandomAccessSection& src) = default;
-
-		reference_t operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TAnyRandomAccessSection")); }
-			return m_start_iter[difference_t(_P)];
-		}
-		size_type size() const {
-			return m_count;
-		}
-		TAnyRandomAccessIterator<_Ty> begin() const { return m_start_iter; }
-		TAnyRandomAccessConstIterator<_Ty> cbegin() const { return m_start_iter; }
-		TAnyRandomAccessIterator<_Ty> end() const {
-			auto retval(m_start_iter);
-			retval += (*this).m_count;
-			return retval;
-		}
-		TAnyRandomAccessConstIterator<_Ty> cend() const { return (*this).end(); }
-
-	private:
-		const TAnyRandomAccessIterator<_Ty> m_start_iter;
-		const size_type m_count = 0;
-
-		friend class TXScopeAnyRandomAccessSection<_Ty>;
-		friend class TXScopeAnyRandomAccessConstSection<_Ty>;
-		friend class TAnyRandomAccessConstSection<_Ty>;
+		MSE_USING(TXScopeAnyRandomAccessConstSection, base_class);
 	};
 
 	template <typename _Ty>
-	class TAnyRandomAccessConstSection {
+	class TAnyRandomAccessConstSection : public TRandomAccessConstSection<TAnyRandomAccessConstIterator<_Ty>> {
 	public:
-		typedef typename TAnyRandomAccessConstIterator<_Ty>::const_reference_t const_reference_t;
-		typedef typename mse::mstd::array<_Ty, 0>::size_type size_type;
-		typedef typename TAnyRandomAccessConstIterator<_Ty>::difference_t difference_t;
+		typedef TRandomAccessConstSection<TAnyRandomAccessConstIterator<_Ty>> base_class;
 
-		TAnyRandomAccessConstSection(const TAnyRandomAccessConstIterator<_Ty>& start_const_iter, size_type count) : m_start_const_iter(start_const_iter), m_count(count) {}
-		TAnyRandomAccessConstSection(const TAnyRandomAccessConstSection& src) = default;
-		TAnyRandomAccessConstSection(const TAnyRandomAccessSection<_Ty>& src) : m_start_const_iter(src.m_start_iter), m_count(src.size()) {}
-
-		const_reference_t operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - const_reference_t operator[](size_type _P) - TAnyRandomAccessConstSection")); }
-			return m_start_const_iter[difference_t(_P)];
-		}
-		size_type size() const {
-			return m_count;
-		}
-		TAnyRandomAccessConstIterator<_Ty> begin() const { return m_start_const_iter; }
-		TAnyRandomAccessConstIterator<_Ty> cbegin() const { return m_start_const_iter; }
-		TAnyRandomAccessConstIterator<_Ty> end() const {
-			auto retval(m_start_const_iter);
-			retval += (*this).m_count;
-			return retval;
-		}
-		TAnyRandomAccessConstIterator<_Ty> cend() const { return (*this).end(); }
-
-	private:
-		const TAnyRandomAccessConstIterator<_Ty> m_start_const_iter;
-		const size_type m_count = 0;
-
-		friend class TXScopeAnyRandomAccessConstSection<_Ty>;
+		MSE_USING(TAnyRandomAccessConstSection, base_class);
 	};
 
 
