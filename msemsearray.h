@@ -1344,15 +1344,15 @@ namespace mse {
 
 		typedef TXScopeRASectionIterator<_TRAIterator> iterator;
 		typedef TXScopeRASectionConstIterator<_TRAIterator> const_iterator;
-		iterator begin() const { return iterator(m_start_iter, m_count); }
-		const_iterator cbegin() const { return const_iterator(m_start_iter, m_count); }
+		iterator begin() const { return iterator((*this).m_start_iter, (*this).m_count); }
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
 		iterator end() const {
-			auto retval(iterator(m_start_iter, m_count));
+			auto retval(iterator((*this).m_start_iter, (*this).m_count));
 			retval += (*this).m_count;
 			return retval;
 		}
 		const_iterator cend() const {
-			auto retval(const_iterator(m_start_iter, m_count));
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
 			retval += (*this).m_count;
 			return retval;
 		}
@@ -1369,6 +1369,7 @@ namespace mse {
 	class TRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator> {
 	public:
 		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
+		typedef typename base_class::size_type size_type;
 
 		template <class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TRAIterator>::value)>>
 		TRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
@@ -1444,10 +1445,10 @@ namespace mse {
 		typedef TXScopeRASectionIterator<_TRAIterator> iterator;
 		typedef TXScopeRASectionConstIterator<_TRAIterator> const_iterator;
 		const_iterator begin() const { return cbegin(); }
-		const_iterator cbegin() const { return const_iterator(m_start_iter, m_count); }
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
 		const_iterator end() const { return cend(); }
 		const_iterator cend() const {
-			auto retval(const_iterator(m_start_iter, m_count));
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
 			retval += (*this).m_count;
 			return retval;
 		}
@@ -1464,6 +1465,7 @@ namespace mse {
 	class TRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator> {
 	public:
 		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
+		typedef typename base_class::size_type size_type;
 
 		template <class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TRAIterator>::value)>>
 		TRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
