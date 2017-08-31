@@ -13,6 +13,11 @@
 #include <limits>       // std::numeric_limits
 #include <stdexcept>      // primitives_range_error
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4100 4456 4189 )
+#endif /*_MSC_VER*/
+
 /*compiler specific defines*/
 #ifdef _MSC_VER
 #if (1700 > _MSC_VER)
@@ -895,5 +900,9 @@ namespace mse {
 }
 
 #undef MSE_THROW
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 #endif /*ndef MSEPRIMITIVES_H*/

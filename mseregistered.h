@@ -15,6 +15,11 @@
 #include <functional>
 #include <cassert>
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4100 4456 4189 )
+#endif /*_MSC_VER*/
+
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_REGISTEREDPOINTER_DISABLED
@@ -1012,5 +1017,9 @@ namespace mse {
 #endif /*__clang__*/
 
 }
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 #endif // MSEREGISTERED_H_

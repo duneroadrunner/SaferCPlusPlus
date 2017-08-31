@@ -15,6 +15,11 @@
 #include <functional>
 #include <cassert>
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4100 4456 4189 )
+#endif /*_MSC_VER*/
+
 /* Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause relaxed registered pointers to be used to help catch
 misuse of scope pointers in debug mode. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause
 mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
@@ -652,5 +657,9 @@ namespace mse {
 #endif /*__clang__*/
 
 }
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 #endif // MSESCOPE_H_

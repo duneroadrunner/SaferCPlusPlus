@@ -16,6 +16,11 @@
 #include "mseregistered.h"
 #endif /*MSE_MSTDARRAY_DISABLED*/
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4100 4456 4189 )
+#endif /*_MSC_VER*/
+
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_MSTDARRAY_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
@@ -963,5 +968,8 @@ namespace mse {
 
 #undef MSE_THROW
 
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 #endif /*ndef MSEMSTDARRAY_H*/

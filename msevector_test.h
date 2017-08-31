@@ -14,6 +14,11 @@
 #include "mseivector.h"
 #include <algorithm>    // std::sort
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4100 4456 4189 )
+#endif /*_MSC_VER*/
+
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
@@ -1672,5 +1677,9 @@ namespace mse {
 #pragma GCC diagnostic pop
 #endif /*__GNUC__*/
 #endif /*__clang__*/
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 #endif /*ndef MSEVECTOR_TEST_H*/

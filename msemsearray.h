@@ -46,6 +46,11 @@
 #include <iterator>
 #endif // MSE_SELF_TESTS
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4100 4456 4189 )
+#endif /*_MSC_VER*/
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
@@ -1566,5 +1571,8 @@ namespace mse {
 
 #undef MSE_THROW
 
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 #endif /*ndef MSEMSEARRAY_H*/

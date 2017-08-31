@@ -11,6 +11,11 @@
 #include "msepoly.h"
 #include <cstring>
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4100 4456 4189 4127 )
+#endif /*_MSC_VER*/
+
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_LEGACYHELPERS_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
@@ -337,5 +342,9 @@ namespace mse {
 
 	}
 }
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 #endif // MSELEGACYHELPERS_H_

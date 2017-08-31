@@ -31,6 +31,11 @@
 #include <map>
 #include <string>
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4100 4456 4189 )
+#endif /*_MSC_VER*/
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
@@ -1807,5 +1812,9 @@ namespace mse {
 #endif /*__clang__*/
 
 }
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 #endif // MSEPOLY_H_
