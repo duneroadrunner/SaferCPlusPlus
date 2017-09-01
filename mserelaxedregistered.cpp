@@ -10,6 +10,11 @@
 #include "windows.h"
 #endif /*_MSC_VER*/
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4127 )
+#endif /*_MSC_VER*/
+
 
 namespace mse {
 
@@ -199,3 +204,7 @@ namespace mse {
 
 	CSPTrackerMap gSPTrackerMap;
 }
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
