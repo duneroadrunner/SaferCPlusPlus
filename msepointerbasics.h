@@ -392,7 +392,7 @@ namespace mse {
 			return (*m_target_pointer);
 		}
 		_TTargetType* operator->() const {
-			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
+			/*const auto &test_cref =*/ *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return m_target_pointer;
 		}
 
@@ -450,7 +450,7 @@ namespace mse {
 			return (*m_target_pointer);
 		}
 		const _TTargetType* operator->() const {
-			const auto &test_cref = *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
+			/*const auto &test_cref =*/ *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return m_target_pointer;
 		}
 
