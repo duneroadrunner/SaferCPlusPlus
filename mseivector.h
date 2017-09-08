@@ -39,9 +39,9 @@ namespace mse {
 		explicit ivector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
 		explicit ivector(size_type _N) : m_shptr(std::make_shared<_MV>(_N)) {}
 		explicit ivector(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
-		ivector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X))) {}
+		ivector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X)>(_X))) {}
 		ivector(const _MV& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
-		ivector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X.msevector()))) {}
+		ivector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X.msevector())>(_X.msevector()))) {}
 		ivector(const _Myt& _X) : m_shptr(std::make_shared<_MV>(_X.msevector())) {}
 		typedef typename _MV::const_iterator _It;
 		ivector(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
@@ -51,15 +51,15 @@ namespace mse {
 		template<class _Iter, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type>
 			ivector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MV>(_First, _Last, _Al)) {}
 
-		_Myt& operator=(_MV&& _X) { m_shptr->operator=(std::move(_X)); return (*this); }
+		_Myt& operator=(_MV&& _X) { m_shptr->operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		_Myt& operator=(const _MV& _X) { m_shptr->operator=(_X); return (*this); }
-		_Myt& operator=(_Myt&& _X) { m_shptr->operator=(std::move(_X.msevector())); return (*this); }
+		_Myt& operator=(_Myt&& _X) { m_shptr->operator=(std::forward<decltype(_X.msevector())>(_X.msevector())); return (*this); }
 		_Myt& operator=(const _Myt& _X) { m_shptr->operator=(_X.msevector()); return (*this); }
 		void reserve(size_type _Count) { m_shptr->reserve(_Count); }
 		void resize(size_type _N, const _Ty& _X = _Ty()) { m_shptr->resize(_N, _X); }
 		typename _MV::const_reference operator[](size_type _P) const { return m_shptr->operator[](_P); }
 		typename _MV::reference operator[](size_type _P) { return m_shptr->operator[](_P); }
-		void push_back(_Ty&& _X) { m_shptr->push_back(std::move(_X)); }
+		void push_back(_Ty&& _X) { m_shptr->push_back(std::forward<decltype(_X)>(_X)); }
 		void push_back(const _Ty& _X) { m_shptr->push_back(_X); }
 		void pop_back() { m_shptr->pop_back(); }
 		void assign(_It _F, _It _L) { m_shptr->assign(_F, _L); }
@@ -265,7 +265,7 @@ namespace mse {
 			return retval;
 		}
 		ipointer insert_before(const cipointer &pos, _Ty&& _X) {
-			auto res = m_shptr->insert_before(pos.msevector_cipointer(), std::move(_X));
+			auto res = m_shptr->insert_before(pos.msevector_cipointer(), std::forward<decltype(_X)>(_X));
 			ipointer retval(*this); retval.msevector_ipointer() = res;
 			return retval;
 		}
@@ -285,7 +285,7 @@ namespace mse {
 			return retval;
 		}
 		void insert_before(msev_size_t pos, _Ty&& _X) {
-			m_shptr->insert_before(pos, std::move(_X));
+			m_shptr->insert_before(pos, std::forward<decltype(_X)>(_X));
 		}
 		void insert_before(msev_size_t pos, const _Ty& _X = _Ty()) {
 			m_shptr->insert_before(pos, _X);

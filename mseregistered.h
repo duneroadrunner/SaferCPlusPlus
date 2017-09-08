@@ -508,14 +508,14 @@ namespace mse {
 	public:
 		MSE_USING(TRegisteredObj, _TROy);
 		TRegisteredObj(const TRegisteredObj& _X) : _TROy(_X) {}
-		TRegisteredObj(TRegisteredObj&& _X) : _TROy(std::move(_X)) {}
+		TRegisteredObj(TRegisteredObj&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
 		virtual ~TRegisteredObj() {
 			mseRPManager().onObjectDestruction();
 		}
 		using _TROy::operator=;
-		//TRegisteredObj& operator=(TRegisteredObj&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
+		//TRegisteredObj& operator=(TRegisteredObj&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		TRegisteredObj& operator=(typename std::conditional<std::is_const<_TROy>::value
-			, std::nullptr_t, TRegisteredObj>::type&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
+			, std::nullptr_t, TRegisteredObj>::type&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		//TRegisteredObj& operator=(const TRegisteredObj& _X) { _TROy::operator=(_X); return (*this); }
 		TRegisteredObj& operator=(const typename std::conditional<std::is_const<_TROy>::value
 			, std::nullptr_t, TRegisteredObj>::type& _X) { _TROy::operator=(_X); return (*this); }

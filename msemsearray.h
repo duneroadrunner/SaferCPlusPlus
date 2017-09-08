@@ -60,6 +60,18 @@
 
 namespace mse {
 
+#ifndef _STD
+#define _STD std::
+#endif /*_STD*/
+
+#ifndef _NOEXCEPT
+#define _NOEXCEPT
+#endif /*_NOEXCEPT*/
+
+#ifndef _THROW_NCEE
+#define _THROW_NCEE(x, y)	MSE_THROW(x(y))
+#endif /*_THROW_NCEE*/
+
 #ifdef MSE_MSEARRAY_USE_MSE_PRIMITIVES
 	typedef mse::CSize_t msear_size_t;
 	typedef mse::CInt msear_int;
@@ -136,6 +148,360 @@ namespace mse {
 		operator _Ty*() const { return m_ptr; }
 
 		_Ty* m_ptr;
+	};
+
+	class non_thread_safe_mutex {
+	public:
+		void lock() {	// lock exclusive
+			if (m_is_locked) {
+				MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
+			}
+			m_is_locked = true;
+		}
+		bool try_lock() {	// try to lock exclusive
+			return m_is_locked;
+		}
+		template<class _Rep, class _Period>
+		bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {	// try to lock for duration
+			return (try_lock_until(std::chrono::steady_clock::now() + _Rel_time));
+		}
+		template<class _Clock, class _Duration>
+		bool try_lock_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {	// try to lock until time point
+			return try_lock();
+		}
+		void unlock() {	// unlock exclusive
+			assert(m_is_locked);
+			m_is_locked = false;
+		}
+
+		bool m_is_locked = false;
+	};
+
+	class non_thread_safe_shared_mutex {
+	public:
+		void lock() {	// lock exclusive
+			if (m_is_exclusive_locked || (1 <= m_shared_lock_count)) {
+				MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
+			}
+			m_is_exclusive_locked = true;
+		}
+		bool try_lock() {	// try to lock exclusive
+			bool retval = true;
+			if (m_is_exclusive_locked || (1 <= m_shared_lock_count)) {
+				retval = false;
+			}
+			else {
+				m_is_exclusive_locked = true;
+			}
+			return retval;
+		}
+		template<class _Rep, class _Period>
+		bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {	// try to lock for duration
+			return (try_lock_until(std::chrono::steady_clock::now() + _Rel_time));
+		}
+		template<class _Clock, class _Duration>
+		bool try_lock_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {	// try to lock until time point
+			return try_lock();
+		}
+		void unlock() {	// unlock exclusive
+			assert(m_is_exclusive_locked && (0 == m_shared_lock_count));
+			m_is_exclusive_locked = false;
+		}
+		void lock_shared() {	// lock non-exclusive
+			if (m_is_exclusive_locked) {
+				MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
+			}
+			m_shared_lock_count += 1;
+		}
+		bool try_lock_shared() {	// try to lock non-exclusive
+			bool retval = true;
+			if (m_is_exclusive_locked) {
+				retval = false;
+			}
+			else {
+				m_shared_lock_count += 1;
+			}
+			return retval;
+		}
+		template<class _Rep, class _Period>
+		bool try_lock_shared_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {	// try to lock non-exclusive for relative time
+			return (try_lock_shared_until(_Rel_time + std::chrono::steady_clock::now()));
+		}
+		template<class _Clock, class _Duration>
+		bool try_lock_shared_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {	// try to lock non-exclusive until absolute time
+			return try_lock_shared();
+		}
+		void unlock_shared() {	// unlock non-exclusive
+			assert((1 <= m_shared_lock_count) && (!m_is_exclusive_locked));
+			m_shared_lock_count -= 1;
+		}
+
+		bool m_is_exclusive_locked = false;
+		size_t m_shared_lock_count = 0;
+	};
+
+	class non_thread_safe_recursive_shared_timed_mutex : public non_thread_safe_shared_mutex {
+	public:
+		typedef non_thread_safe_shared_mutex base_class;
+
+		void lock() {
+			base_class::lock_shared();
+		}
+		bool try_lock() {
+			return base_class::try_lock_shared();
+		}
+		template<class _Rep, class _Period>
+		bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			return (try_lock_until(std::chrono::steady_clock::now() + _Rel_time));
+		}
+		template<class _Clock, class _Duration>
+		bool try_lock_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			return base_class::try_lock_shared_until(_Abs_time);
+		}
+		void unlock() {
+			base_class::unlock_shared();
+		}
+
+		void nonrecursive_lock() {
+			base_class::lock();
+		}
+		bool try_nonrecursive_lock() {
+			return base_class::try_lock();
+		}
+		template<class _Rep, class _Period>
+		bool try_nonrecursive_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			return (try_nonrecursive_lock_until(std::chrono::steady_clock::now() + _Rel_time));
+		}
+		template<class _Clock, class _Duration>
+		bool try_nonrecursive_lock_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			return base_class::try_lock_until(_Abs_time);
+		}
+		void nonrecursive_unlock() {
+			base_class::unlock();
+		}
+	};
+
+	class dummy_recursive_shared_timed_mutex {
+	public:
+		void lock() {
+		}
+		bool try_lock() {
+			return true;
+		}
+		template<class _Rep, class _Period>
+		bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {	// try to lock for duration
+			return (try_lock_until(std::chrono::steady_clock::now() + _Rel_time));
+		}
+		template<class _Clock, class _Duration>
+		bool try_lock_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {	// try to lock until time point
+			return try_lock();
+		}
+		void unlock() {
+		}
+		void nonrecursive_lock() {
+			lock();
+		}
+		bool try_nonrecursive_lock() {	// try to lock nonrecursive
+			return try_lock();
+		}
+		template<class _Rep, class _Period>
+		bool try_nonrecursive_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {	// try to nonrecursive lock for duration
+			return (try_nonrecursive_lock_until(std::chrono::steady_clock::now() + _Rel_time));
+		}
+		template<class _Clock, class _Duration>
+		bool try_nonrecursive_lock_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {	// try to nonrecursive lock until time point
+			return try_lock_until(_Abs_time);
+		}
+		void nonrecursive_unlock() {
+			unlock();
+		}
+		void lock_shared() {	// lock non-exclusive
+		}
+		bool try_lock_shared() {	// try to lock non-exclusive
+			return true;
+		}
+		template<class _Rep, class _Period>
+		bool try_lock_shared_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {	// try to lock non-exclusive for relative time
+			return (try_lock_shared_until(_Rel_time + std::chrono::steady_clock::now()));
+		}
+		template<class _Clock, class _Duration>
+		bool try_lock_shared_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {	// try to lock non-exclusive until absolute time
+			return try_lock_shared();
+		}
+		void unlock_shared() {	// unlock non-exclusive
+		}
+	};
+
+	template<class _Mutex>
+	class unique_nonrecursive_lock
+	{	// a version of std::unique_lock that calls "nonrecursive_lock()" instead of "lock()"
+	public:
+		typedef unique_nonrecursive_lock<_Mutex> _Myt;
+		typedef _Mutex mutex_type;
+
+		// CONSTRUCT, ASSIGN, AND DESTROY
+		unique_nonrecursive_lock() _NOEXCEPT
+			: _Pmtx(0), _Owns(false)
+		{	// default construct
+		}
+
+		explicit unique_nonrecursive_lock(_Mutex& _Mtx)
+			: _Pmtx(&_Mtx), _Owns(false)
+		{	// construct and lock
+			_Pmtx->nonrecursive_lock();
+			_Owns = true;
+		}
+
+		unique_nonrecursive_lock(_Mutex& _Mtx, std::adopt_lock_t)
+			: _Pmtx(&_Mtx), _Owns(true)
+		{	// construct and assume already locked
+		}
+
+		unique_nonrecursive_lock(_Mutex& _Mtx, std::defer_lock_t) _NOEXCEPT
+			: _Pmtx(&_Mtx), _Owns(false)
+		{	// construct but don't lock
+		}
+
+		unique_nonrecursive_lock(_Mutex& _Mtx, std::try_to_lock_t)
+			: _Pmtx(&_Mtx), _Owns(_Pmtx->try_nonrecursive_lock())
+		{	// construct and try to lock
+		}
+
+		template<class _Rep,
+			class _Period>
+			unique_nonrecursive_lock(_Mutex& _Mtx,
+				const std::chrono::duration<_Rep, _Period>& _Rel_time)
+			: _Pmtx(&_Mtx), _Owns(_Pmtx->try_nonrecursive_lock_for(_Rel_time))
+		{	// construct and lock with timeout
+		}
+
+		template<class _Clock,
+			class _Duration>
+			unique_nonrecursive_lock(_Mutex& _Mtx,
+				const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
+			: _Pmtx(&_Mtx), _Owns(_Pmtx->try_nonrecursive_lock_until(_Abs_time))
+		{	// construct and lock with timeout
+		}
+
+		unique_nonrecursive_lock(unique_nonrecursive_lock&& _Other) _NOEXCEPT
+			: _Pmtx(_Other._Pmtx), _Owns(_Other._Owns)
+		{	// destructive copy
+			_Other._Pmtx = 0;
+			_Other._Owns = false;
+		}
+
+		unique_nonrecursive_lock& operator=(unique_nonrecursive_lock&& _Other)
+		{	// destructive copy
+			if (this != &_Other)
+			{	// different, move contents
+				if (_Owns)
+					_Pmtx->nonrecursive_unlock();
+				_Pmtx = _Other._Pmtx;
+				_Owns = _Other._Owns;
+				_Other._Pmtx = 0;
+				_Other._Owns = false;
+			}
+			return (*this);
+		}
+
+		~unique_nonrecursive_lock() _NOEXCEPT
+		{	// clean up
+			if (_Owns)
+				_Pmtx->nonrecursive_unlock();
+		}
+
+		unique_nonrecursive_lock(const unique_nonrecursive_lock&) = delete;
+		unique_nonrecursive_lock& operator=(const unique_nonrecursive_lock&) = delete;
+
+		// LOCK AND UNLOCK
+		void lock()
+		{	// lock the mutex
+			_Validate();
+			_Pmtx->nonrecursive_lock();
+			_Owns = true;
+		}
+
+		bool try_lock()
+		{	// try to lock the mutex
+			_Validate();
+			_Owns = _Pmtx->try_nonrecursive_lock();
+			return (_Owns);
+		}
+
+		template<class _Rep,
+			class _Period>
+			bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time)
+		{	// try to lock mutex for _Rel_time
+			_Validate();
+			_Owns = _Pmtx->try_nonrecursive_lock_for(_Rel_time);
+			return (_Owns);
+		}
+
+		template<class _Clock,
+			class _Duration>
+			bool try_lock_until(
+				const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
+		{	// try to lock mutex until _Abs_time
+			_Validate();
+			_Owns = _Pmtx->try_nonrecursive_lock_until(_Abs_time);
+			return (_Owns);
+		}
+
+		void unlock()
+		{	// try to unlock the mutex
+			if (!_Pmtx || !_Owns)
+				_THROW_NCEE(std::system_error,
+					_STD make_error_code(std::errc::operation_not_permitted));
+
+			_Pmtx->nonrecursive_unlock();
+			_Owns = false;
+		}
+
+		// MUTATE
+		void swap(unique_nonrecursive_lock& _Other) _NOEXCEPT
+		{	// swap with _Other
+			_STD swap(_Pmtx, _Other._Pmtx);
+			_STD swap(_Owns, _Other._Owns);
+		}
+
+		_Mutex *release() _NOEXCEPT
+		{	// disconnect
+			_Mutex *_Res = _Pmtx;
+			_Pmtx = 0;
+			_Owns = false;
+			return (_Res);
+		}
+
+		// OBSERVE
+		bool owns_lock() const _NOEXCEPT
+		{	// return true if this object owns the lock
+			return (_Owns);
+		}
+
+		explicit operator bool() const _NOEXCEPT
+		{	// return true if this object owns the lock
+			return (_Owns);
+		}
+
+		_Mutex *mutex() const _NOEXCEPT
+		{	// return pointer to managed mutex
+			return (_Pmtx);
+		}
+
+	private:
+		_Mutex *_Pmtx;
+		bool _Owns;
+
+		void _Validate() const
+		{	// check if the mutex can be locked
+			if (!_Pmtx)
+				_THROW_NCEE(std::system_error,
+					_STD make_error_code(std::errc::operation_not_permitted));
+
+			if (_Owns)
+				_THROW_NCEE(std::system_error,
+					_STD make_error_code(std::errc::resource_deadlock_would_occur));
+		}
 	};
 
 #ifndef _XSTD
@@ -235,7 +601,13 @@ namespace mse {
 		return TSyncWeakFixedIterator<_TIterator, _TLeasePointer>::make(src_iterator, lease_pointer);
 	}
 
-	template<class _Ty, size_t _Size>
+	template<class _Ty, size_t _Size, class _TReentrancyMutex =
+#ifndef NDEBUG
+		non_thread_safe_mutex
+#else // !NDEBUG
+		dummy_recursive_shared_timed_mutex
+#endif // !NDEBUG
+	>
 	class msearray {
 	public:
 		typedef std::array<_Ty, _Size> std_array;
@@ -251,6 +623,12 @@ namespace mse {
 		or assignment operators. This means, for example, that msearray cannot be copy constructed from an
 		std::array. So the choice to make msearray an aggregate type enables it to better substitute for
 		std::array, but less able to interoperate with it. */
+
+		_TReentrancyMutex m_mutex1;
+
+		~msearray() {
+			std::lock_guard<_TReentrancyMutex> lock1(m_mutex1);
+		}
 
 		_CONST_FUN typename std_array::const_reference operator[](msear_size_t _P) const {
 			return (*this).at(msear_as_a_size_t(_P));
@@ -293,16 +671,19 @@ namespace mse {
 
 		void assign(const _Ty& _Value)
 		{	// assign value to all elements
+			std::lock_guard<_TReentrancyMutex> lock1(m_mutex1);
 			m_array.assign(_Value);
 		}
 
 		void fill(const _Ty& _Value)
 		{	// assign value to all elements
+			std::lock_guard<_TReentrancyMutex> lock1(m_mutex1);
 			m_array.fill(_Value);
 		}
 
 		void swap(_Myt& _Other) /*_NOEXCEPT_OP(_NOEXCEPT_OP(_Swap_adl(this->m_array[0], _Other.m_array[0])))*/
 		{	// swap contents with _Other
+			std::lock_guard<_TReentrancyMutex> lock1(m_mutex1);
 			m_array.swap(_Other.m_array);
 		}
 
@@ -399,6 +780,17 @@ namespace mse {
 		const value_type *data() const _NOEXCEPT
 		{	// return pointer to nonmutable data array
 			return m_array.data();
+		}
+
+		msearray& operator=(const msearray& _Right_cref) {
+			std::lock_guard<_TReentrancyMutex> lock1(m_mutex1);
+			m_array = _Right_cref.m_array;
+			return (*this);
+		}
+		msearray& operator=(const std_array& _Right_cref) {
+			std::lock_guard<_TReentrancyMutex> lock1(m_mutex1);
+			m_array = _Right_cref;
+			return (*this);
 		}
 
 		class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
@@ -1694,6 +2086,270 @@ namespace mse {
 
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
 	};
+
+#if 1
+
+	template<typename _Ty> class TAccessControlledReadWriteObj;
+	template<typename _Ty> class TAccessControlledReadWriteConstPointer;
+
+	template<typename _Ty>
+	class TAccessControlledReadWritePointer {
+	public:
+		TAccessControlledReadWritePointer(const TAccessControlledReadWriteObj<_Ty>& src);
+		TAccessControlledReadWritePointer(const TAccessControlledReadWritePointer& src) : m_obj_ptr(src.m_obj_ptr), m_unique_lock(src.m_obj_ptr->m_mutex1) {}
+		TAccessControlledReadWritePointer(TAccessControlledReadWritePointer&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
+		virtual ~TAccessControlledReadWritePointer() {}
+
+		operator bool() const {
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWritePointer")); }
+			return bool(m_obj_ptr);
+		}
+		typename std::conditional<std::is_const<_Ty>::value
+			, const TAccessControlledReadWriteObj<_Ty>&, TAccessControlledReadWriteObj<_Ty>&>::type operator*() const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWritePointer")); }
+			return (*m_obj_ptr);
+		}
+		typename std::conditional<std::is_const<_Ty>::value
+			, const TAccessControlledReadWriteObj<_Ty>*, TAccessControlledReadWriteObj<_Ty>*>::type operator->() const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWritePointer")); }
+			return std::addressof(*m_obj_ptr);
+		}
+	private:
+		TAccessControlledReadWritePointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1) {}
+		TAccessControlledReadWritePointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr, std::try_to_lock_t) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock()) {
+				m_obj_ptr = nullptr;
+			}
+		}
+		template<class _Rep, class _Period>
+		TAccessControlledReadWritePointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock_for(_Rel_time)) {
+				m_obj_ptr = nullptr;
+			}
+		}
+		template<class _Clock, class _Duration>
+		TAccessControlledReadWritePointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock_until(_Abs_time)) {
+				m_obj_ptr = nullptr;
+			}
+		}
+		TAccessControlledReadWritePointer<_Ty>& operator=(const TAccessControlledReadWritePointer<_Ty>& _Right_cref) = delete;
+		TAccessControlledReadWritePointer<_Ty>& operator=(TAccessControlledReadWritePointer<_Ty>&& _Right) = delete;
+
+		TAccessControlledReadWritePointer<_Ty>* operator&() { return this; }
+		const TAccessControlledReadWritePointer<_Ty>* operator&() const { return this; }
+		bool is_valid() const {
+			bool retval = bool(m_obj_ptr);
+			return retval;
+		}
+
+		_Ty* m_obj_ptr = nullptr;
+		std::unique_lock<non_thread_safe_recursive_shared_timed_mutex> m_unique_lock;
+
+		friend class TAccessControlledReadWriteObj<_Ty>;
+		friend class TAccessControlledReadWriteConstPointer<_Ty>;
+	};
+
+	template<typename _Ty>
+	class TAccessControlledReadWriteConstPointer {
+	public:
+		TAccessControlledReadWriteConstPointer(const TAccessControlledReadWriteConstPointer& src) : m_obj_ptr(src.m_obj_ptr), m_unique_lock(src.m_obj_ptr->m_mutex1) {}
+		TAccessControlledReadWriteConstPointer(TAccessControlledReadWriteConstPointer&& src) = default;
+		TAccessControlledReadWriteConstPointer(const TAccessControlledReadWritePointer<_Ty>& src) : m_obj_ptr(src.m_obj_ptr), m_unique_lock(src.m_obj_ptr->m_mutex1) {}
+		virtual ~TAccessControlledReadWriteConstPointer() {}
+
+		operator bool() const {
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWriteConstPointer")); }
+			return bool(m_obj_ptr);
+		}
+		const TAccessControlledReadWriteObj<const _Ty>& operator*() const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWriteConstPointer")); }
+			const TAccessControlledReadWriteObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAccessControlledReadWriteObj<const _Ty>*>(std::addressof(*m_obj_ptr));
+			return (*extra_const_ptr);
+		}
+		const TAccessControlledReadWriteObj<const _Ty>* operator->() const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWriteConstPointer")); }
+			const TAccessControlledReadWriteObj<const _Ty>* extra_const_ptr = reinterpret_cast<const TAccessControlledReadWriteObj<const _Ty>*>(std::addressof(*m_obj_ptr));
+			return extra_const_ptr;
+		}
+	private:
+		TAccessControlledReadWriteConstPointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1) {}
+		TAccessControlledReadWriteConstPointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr, std::try_to_lock_t) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock()) {
+				m_obj_ptr = nullptr;
+			}
+		}
+		template<class _Rep, class _Period>
+		TAccessControlledReadWriteConstPointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock_for(_Rel_time)) {
+				m_obj_ptr = nullptr;
+			}
+		}
+		template<class _Clock, class _Duration>
+		TAccessControlledReadWriteConstPointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock_until(_Abs_time)) {
+				m_obj_ptr = nullptr;
+			}
+		}
+		TAccessControlledReadWriteConstPointer<_Ty>& operator=(const TAccessControlledReadWriteConstPointer<_Ty>& _Right_cref) = delete;
+		TAccessControlledReadWriteConstPointer<_Ty>& operator=(TAccessControlledReadWriteConstPointer<_Ty>&& _Right) = delete;
+
+		TAccessControlledReadWriteConstPointer<_Ty>* operator&() { return this; }
+		const TAccessControlledReadWriteConstPointer<_Ty>* operator&() const { return this; }
+		bool is_valid() const {
+			bool retval = bool(m_obj_ptr);
+			return retval;
+		}
+
+		_Ty* m_obj_ptr = nullptr;
+		std::unique_lock<non_thread_safe_recursive_shared_timed_mutex> m_unique_lock;
+
+		friend class TAccessControlledReadWriteObj<_Ty>;
+	};
+
+	template<typename _Ty>
+	class TAccessControlledExclusiveReadWritePointer {
+	public:
+		TAccessControlledExclusiveReadWritePointer(const TAccessControlledExclusiveReadWritePointer& src) = delete;
+		TAccessControlledExclusiveReadWritePointer(TAccessControlledExclusiveReadWritePointer&& src) = default;
+		virtual ~TAccessControlledExclusiveReadWritePointer() {}
+
+		operator bool() const {
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusiveReadWritePointer")); }
+			return bool(m_obj_ptr);
+		}
+		typename std::conditional<std::is_const<_Ty>::value
+			, const TAccessControlledReadWriteObj<_Ty>&, TAccessControlledReadWriteObj<_Ty>&>::type operator*() const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusiveReadWritePointer")); }
+			return (*m_obj_ptr);
+		}
+		typename std::conditional<std::is_const<_Ty>::value
+			, const TAccessControlledReadWriteObj<_Ty>*, TAccessControlledReadWriteObj<_Ty>*>::type operator->() const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusiveReadWritePointer")); }
+			return std::addressof(*m_obj_ptr);
+		}
+	private:
+		TAccessControlledExclusiveReadWritePointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1) {}
+		TAccessControlledExclusiveReadWritePointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr, std::try_to_lock_t) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock()) {
+				m_obj_ptr = nullptr;
+			}
+		}
+		template<class _Rep, class _Period>
+		TAccessControlledExclusiveReadWritePointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock_for(_Rel_time)) {
+				m_obj_ptr = nullptr;
+			}
+		}
+		template<class _Clock, class _Duration>
+		TAccessControlledExclusiveReadWritePointer(TAccessControlledReadWriteObj<_Ty>* obj_ptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(obj_ptr), m_unique_lock(obj_ptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock_until(_Abs_time)) {
+				m_obj_ptr = nullptr;
+			}
+		}
+		TAccessControlledExclusiveReadWritePointer<_Ty>& operator=(const TAccessControlledExclusiveReadWritePointer<_Ty>& _Right_cref) = delete;
+		TAccessControlledExclusiveReadWritePointer<_Ty>& operator=(TAccessControlledExclusiveReadWritePointer<_Ty>&& _Right) = delete;
+
+		TAccessControlledExclusiveReadWritePointer<_Ty>* operator&() { return this; }
+		const TAccessControlledExclusiveReadWritePointer<_Ty>* operator&() const { return this; }
+		bool is_valid() const {
+			bool retval = bool(m_obj_ptr);
+			return retval;
+		}
+
+		TAccessControlledReadWriteObj<_Ty>* m_obj_ptr;
+		unique_nonrecursive_lock<non_thread_safe_recursive_shared_timed_mutex> m_unique_lock;
+
+		friend class TAccessControlledReadWriteObj<_Ty>;
+		//friend class TAccessControlledReadWriteExclusiveConstPointer<_Ty>;
+	};
+
+	template<typename _Ty>
+	class TAccessControlledReadWriteObj {
+	public:
+		TAccessControlledReadWriteObj(const TAccessControlledReadWriteObj& src_cref) : m_obj(src_cref.m_obj) {}
+
+		template <class... Args>
+		TAccessControlledReadWriteObj(Args&&... args) : m_obj(std::forward<Args>(args)...) {}
+		~TAccessControlledReadWriteObj() {
+			m_mutex1.lock();
+			m_mutex1.unlock();
+		}
+
+		TAccessControlledReadWritePointer<_Ty> writelock_ptr() {
+			return TAccessControlledReadWritePointer<_Ty>(*this);
+		}
+		mse::optional<TAccessControlledReadWritePointer<_Ty>> try_writelock_ptr() {
+			mse::optional<TAccessControlledReadWritePointer<_Ty>> retval(TAccessControlledReadWritePointer<_Ty>(*this, std::try_to_lock));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		template<class _Rep, class _Period>
+		mse::optional<TAccessControlledReadWritePointer<_Ty>> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::optional<TAccessControlledReadWritePointer<_Ty>> retval(TAccessControlledReadWritePointer<_Ty>(*this, std::try_to_lock, _Rel_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		template<class _Clock, class _Duration>
+		mse::optional<TAccessControlledReadWritePointer<_Ty>> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::optional<TAccessControlledReadWritePointer<_Ty>> retval(TAccessControlledReadWritePointer<_Ty>(*this, std::try_to_lock, _Abs_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		TAccessControlledReadWriteConstPointer<_Ty> readlock_ptr() {
+			return TAccessControlledReadWriteConstPointer<_Ty>(*this);
+		}
+		mse::optional<TAccessControlledReadWriteConstPointer<_Ty>> try_readlock_ptr() {
+			mse::optional<TAccessControlledReadWriteConstPointer<_Ty>> retval(TAccessControlledReadWriteConstPointer<_Ty>(*this, std::try_to_lock));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		template<class _Rep, class _Period>
+		mse::optional<TAccessControlledReadWriteConstPointer<_Ty>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::optional<TAccessControlledReadWriteConstPointer<_Ty>> retval(TAccessControlledReadWriteConstPointer<_Ty>(*this, std::try_to_lock, _Rel_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		template<class _Clock, class _Duration>
+		mse::optional<TAccessControlledReadWriteConstPointer<_Ty>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::optional<TAccessControlledReadWriteConstPointer<_Ty>> retval(TAccessControlledReadWriteConstPointer<_Ty>(*this, std::try_to_lock, _Abs_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		/* Note that an exclusive_writelock_ptr cannot coexist with any other lock_ptrs (targeting the same object), including ones in
+		the same thread. Thus, using exclusive_writelock_ptrs without sufficient care introduces the potential for exceptions (in a way
+		that sticking to (regular) writelock_ptrs doesn't). */
+		TAccessControlledExclusiveReadWritePointer<_Ty> exclusive_writelock_ptr() {
+			return TAccessControlledExclusiveReadWritePointer<_Ty>(*this);
+		}
+
+	private:
+		TAccessControlledReadWriteObj* operator&() { return this; }
+		const TAccessControlledReadWriteObj* operator&() const { return this; }
+
+		_Ty m_obj;
+
+		non_thread_safe_recursive_shared_timed_mutex m_mutex1;
+
+		//friend class TAccessControlledReadOnlyObj<_Ty>;
+		friend class TAccessControlledReadWritePointer<_Ty>;
+	};
+
+	template<typename _Ty>
+	TAccessControlledReadWritePointer<_Ty>::TAccessControlledReadWritePointer(const TAccessControlledReadWriteObj<_Ty>& src) : m_obj_ptr(&src), m_unique_lock(src.m_mutex1) {}
+#endif //0
 
 
 #ifdef __clang__

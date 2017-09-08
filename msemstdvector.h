@@ -50,11 +50,11 @@ namespace mse {
 			explicit vector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
 			explicit vector(size_type _N) : m_shptr(std::make_shared<_MV>(_N)) {}
 			explicit vector(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
-			vector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X.msevector()))) {}
+			vector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X.msevector())>(_X.msevector()))) {}
 			vector(const _Myt& _X) : m_shptr(std::make_shared<_MV>(_X.msevector())) {}
-			vector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X))) {}
+			vector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X)>(_X))) {}
 			vector(const _MV& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
-			vector(std::vector<_Ty>&& _X) : m_shptr(std::make_shared<_MV>(std::move(_X))) {}
+			vector(std::vector<_Ty>&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X)>(_X))) {}
 			vector(const std::vector<_Ty>& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
 			typedef typename _MV::const_iterator _It;
 			vector(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
@@ -64,15 +64,15 @@ namespace mse {
 			template<class _Iter, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type>
 			vector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MV>(_First, _Last, _Al)) {}
 
-			_Myt& operator=(_MV&& _X) { m_shptr->operator=(std::move(_X)); return (*this); }
+			_Myt& operator=(_MV&& _X) { m_shptr->operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 			_Myt& operator=(const _MV& _X) { m_shptr->operator=(_X); return (*this); }
-			_Myt& operator=(_Myt&& _X) { m_shptr->operator=(std::move(_X.msevector())); return (*this); }
+			_Myt& operator=(_Myt&& _X) { m_shptr->operator=(std::forward<decltype(_X.msevector())>(_X.msevector())); return (*this); }
 			_Myt& operator=(const _Myt& _X) { m_shptr->operator=(_X.msevector()); return (*this); }
 			void reserve(size_type _Count) { m_shptr->reserve(_Count); }
 			void resize(size_type _N, const _Ty& _X = _Ty()) { m_shptr->resize(_N, _X); }
 			typename _MV::const_reference operator[](size_type _P) const { return m_shptr->operator[](_P); }
 			typename _MV::reference operator[](size_type _P) { return m_shptr->operator[](_P); }
-			void push_back(_Ty&& _X) { m_shptr->push_back(std::move(_X)); }
+			void push_back(_Ty&& _X) { m_shptr->push_back(std::forward<decltype(_X)>(_X)); }
 			void push_back(const _Ty& _X) { m_shptr->push_back(_X); }
 			void pop_back() { m_shptr->pop_back(); }
 			void assign(_It _F, _It _L) { m_shptr->assign(_F, _L); }
@@ -314,7 +314,7 @@ namespace mse {
 				return retval;
 			}
 			iterator insert_before(const const_iterator &pos, _Ty&& _X) {
-				auto res = m_shptr->insert_before(pos.msevector_ss_const_iterator_type(), std::move(_X));
+				auto res = m_shptr->insert_before(pos.msevector_ss_const_iterator_type(), std::forward<decltype(_X)>(_X));
 				iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
 				return retval;
 			}
@@ -350,7 +350,7 @@ namespace mse {
 			}
 			/* These insert() functions are just aliases for their corresponding insert_before() functions. */
 			iterator insert(const const_iterator &pos, size_type _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
-			iterator insert(const const_iterator &pos, _Ty&& _X) { return insert_before(pos, std::move(_X)); }
+			iterator insert(const const_iterator &pos, _Ty&& _X) { return insert_before(pos, std::forward<decltype(_X)>(_X)); }
 			iterator insert(const const_iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, _X); }
 			template<class _Iter
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type

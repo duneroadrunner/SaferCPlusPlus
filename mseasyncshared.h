@@ -9,6 +9,7 @@
 #define MSEASYNCSHARED_H_
 
 #include "mseoptional.h"
+#include "msemsearray.h"
 #include <shared_mutex>
 #include <thread>
 #include <unordered_map>
@@ -74,7 +75,7 @@ namespace mse {
 		_Ty& m_mutex_ref;
 	};
 
-	class recursive_shared_timed_mutex : private std::shared_timed_mutex {
+	class recursive_shared_timed_mutex_v1 : private std::shared_timed_mutex {
 	public:
 		typedef std::shared_timed_mutex base_class;
 
@@ -244,6 +245,22 @@ namespace mse {
 			return retval;
 		}
 
+		void nonrecursive_unlock()
+		{	// unlock nonrecursive
+			std::lock_guard<std::mutex> lock1(m_write_mutex);
+			assert(std::this_thread::get_id() == m_writelock_thread_id);
+			assert((m_writelock_is_nonrecursive) && (1 == m_writelock_count));
+
+			if ((2 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
+			}
+			else {
+				assert(1 == m_writelock_count);
+				base_class::unlock();
+				m_writelock_is_nonrecursive = false;
+			}
+			m_writelock_count -= 1;
+		}
+
 		void lock_shared()
 		{	// lock non-exclusive
 			std::lock_guard<std::mutex> lock1(m_read_mutex);
@@ -267,8 +284,8 @@ namespace mse {
 						(*l_found_it).second += 1;
 					}
 					else {
-							std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
-							m_thread_id_readlock_count_map.insert(item);
+						std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
+						m_thread_id_readlock_count_map.insert(item);
 					}
 				}
 				catch (...) {
@@ -382,180 +399,478 @@ namespace mse {
 		std::unordered_map<std::thread::id, int> m_thread_id_readlock_count_map;
 	};
 
-	//typedef std::shared_timed_mutex async_shared_timed_mutex_type;
-	typedef recursive_shared_timed_mutex async_shared_timed_mutex_type;
-
-	template<class _Mutex>
-	class unique_nonrecursive_lock
-	{	// a version of std::unique_lock that calls "nonrecursive_lock()" instead of "lock()"
+	class recursive_shared_timed_mutex_v2 : private std::shared_timed_mutex {
 	public:
-		typedef unique_nonrecursive_lock<_Mutex> _Myt;
-		typedef _Mutex mutex_type;
+		typedef std::shared_timed_mutex base_class;
 
-		// CONSTRUCT, ASSIGN, AND DESTROY
-		unique_nonrecursive_lock() _NOEXCEPT
-			: _Pmtx(0), _Owns(false)
-		{	// default construct
-		}
-
-		explicit unique_nonrecursive_lock(_Mutex& _Mtx)
-			: _Pmtx(&_Mtx), _Owns(false)
-		{	// construct and lock
-			_Pmtx->nonrecursive_lock();
-			_Owns = true;
-		}
-
-		unique_nonrecursive_lock(_Mutex& _Mtx, std::adopt_lock_t)
-			: _Pmtx(&_Mtx), _Owns(true)
-		{	// construct and assume already locked
-		}
-
-		unique_nonrecursive_lock(_Mutex& _Mtx, std::defer_lock_t) _NOEXCEPT
-			: _Pmtx(&_Mtx), _Owns(false)
-		{	// construct but don't lock
-		}
-
-		unique_nonrecursive_lock(_Mutex& _Mtx, std::try_to_lock_t)
-			: _Pmtx(&_Mtx), _Owns(_Pmtx->try_nonrecursive_lock())
-		{	// construct and try to lock
-		}
-
-		template<class _Rep,
-			class _Period>
-			unique_nonrecursive_lock(_Mutex& _Mtx,
-				const std::chrono::duration<_Rep, _Period>& _Rel_time)
-			: _Pmtx(&_Mtx), _Owns(_Pmtx->try_nonrecursive_lock_for(_Rel_time))
-		{	// construct and lock with timeout
-		}
-
-		template<class _Clock,
-			class _Duration>
-			unique_nonrecursive_lock(_Mutex& _Mtx,
-				const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
-			: _Pmtx(&_Mtx), _Owns(_Pmtx->try_nonrecursive_lock_until(_Abs_time))
-		{	// construct and lock with timeout
-		}
-
-		unique_nonrecursive_lock(unique_nonrecursive_lock&& _Other) _NOEXCEPT
-			: _Pmtx(_Other._Pmtx), _Owns(_Other._Owns)
-		{	// destructive copy
-			_Other._Pmtx = 0;
-			_Other._Owns = false;
-		}
-
-		unique_nonrecursive_lock& operator=(unique_nonrecursive_lock&& _Other)
-		{	// destructive copy
-			if (this != &_Other)
-			{	// different, move contents
-				if (_Owns)
-					_Pmtx->unlock();
-				_Pmtx = _Other._Pmtx;
-				_Owns = _Other._Owns;
-				_Other._Pmtx = 0;
-				_Other._Owns = false;
-			}
-			return (*this);
-		}
-
-		~unique_nonrecursive_lock() _NOEXCEPT
-		{	// clean up
-			if (_Owns)
-				_Pmtx->unlock();
-		}
-
-		unique_nonrecursive_lock(const unique_nonrecursive_lock&) = delete;
-		unique_nonrecursive_lock& operator=(const unique_nonrecursive_lock&) = delete;
-
-		// LOCK AND UNLOCK
 		void lock()
-		{	// lock the mutex
-			_Validate();
-			_Pmtx->nonrecursive_lock();
-			_Owns = true;
+		{	// lock exclusive
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			if ((1 <= m_readlock_count) && (!m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock)) {
+				assert(0 == m_writelock_count);
+				const auto this_thread_id = std::this_thread::get_id();
+				const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+				if (m_thread_id_readlock_count_map.end() != found_it) {
+					assert(1 <= (*found_it).second);
+					/* This thread currently holds a shared_lock on the underlying mutex. We'll release it (and note that
+					we did so) so as not to prevent the exclusive_lock from being acquired. */
+					base_class::unlock_shared();
+					m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = true;
+				}
+			}
+
+			if ((1 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
+				if (m_writelock_is_nonrecursive) {
+					MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
+				}
+			}
+			else {
+				assert((0 == m_writelock_count) || (std::this_thread::get_id() != m_writelock_thread_id));
+				{
+					unlock_guard<std::mutex> unlock1(m_mutex1);
+					base_class::lock();
+				}
+				m_writelock_thread_id = std::this_thread::get_id();
+				assert(0 == m_writelock_count);
+			}
+			m_writelock_count += 1;
 		}
 
 		bool try_lock()
-		{	// try to lock the mutex
-			_Validate();
-			_Owns = _Pmtx->try_nonrecursive_lock();
-			return (_Owns);
+		{	// try to lock exclusive
+			bool retval = false;
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			if ((1 <= m_readlock_count) && (!m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock)) {
+				assert(0 == m_writelock_count);
+				const auto this_thread_id = std::this_thread::get_id();
+				const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+				if (m_thread_id_readlock_count_map.end() != found_it) {
+					if ((*found_it).second == m_readlock_count) {
+						/* All of the (one or more) readlocks are owned by this thread. So we should be able to release
+						the shared_lock on the underlying mutex and immediately acquire an exclusive_lock. */
+						base_class::unlock_shared();
+						base_class::lock();
+						assert(0 == m_writelock_count);
+						m_writelock_thread_id = std::this_thread::get_id();
+						m_writelock_count += 1;
+						m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = true;
+						retval = true;
+					}
+				}
+			}
+
+			if (!retval) {
+				if ((1 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
+					if (m_writelock_is_nonrecursive) {
+						retval = false;
+					}
+					else {
+						m_writelock_count += 1;
+						retval = true;
+					}
+				}
+				else {
+					retval = base_class::try_lock();
+					if (retval) {
+						assert(0 == m_writelock_count);
+						m_writelock_thread_id = std::this_thread::get_id();
+						m_writelock_count += 1;
+					}
+				}
+			}
+			return retval;
 		}
 
-		template<class _Rep,
-			class _Period>
-			bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time)
-		{	// try to lock mutex for _Rel_time
-			_Validate();
-			_Owns = _Pmtx->try_nonrecursive_lock_for(_Rel_time);
-			return (_Owns);
+		template<class _Rep, class _Period>
+		bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time)
+		{	// try to lock for duration
+			return (try_lock_until(std::chrono::steady_clock::now() + _Rel_time));
 		}
 
-		template<class _Clock,
-			class _Duration>
-			bool try_lock_until(
-				const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
-		{	// try to lock mutex until _Abs_time
-			_Validate();
-			_Owns = _Pmtx->try_nonrecursive_lock_until(_Abs_time);
-			return (_Owns);
+		template<class _Clock, class _Duration>
+		bool try_lock_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
+		{	// try to lock until time point
+			bool retval = false;
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			if ((1 <= m_readlock_count) && (!m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock)) {
+				assert(0 == m_writelock_count);
+				const auto this_thread_id = std::this_thread::get_id();
+				const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+				if (m_thread_id_readlock_count_map.end() != found_it) {
+					if ((*found_it).second == m_readlock_count) {
+						/* All of the (one or more) readlocks are owned by this thread. So we should be able to release
+						the shared_lock on the underlying mutex and immediately acquire an exclusive_lock. */
+						base_class::unlock_shared();
+						base_class::lock();
+						assert(0 == m_writelock_count);
+						m_writelock_thread_id = std::this_thread::get_id();
+						m_writelock_count += 1;
+						m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = true;
+						retval = true;
+					}
+				}
+			}
+
+			if (!retval) {
+				if ((1 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
+					if (m_writelock_is_nonrecursive) {
+						retval = false;
+					}
+					else {
+						m_writelock_count += 1;
+						retval = true;
+					}
+				}
+				else {
+					{
+						unlock_guard<std::mutex> unlock1(m_mutex1);
+						retval = base_class::try_lock_until(_Abs_time);
+					}
+					if (retval) {
+						assert(0 == m_writelock_count);
+						m_writelock_thread_id = std::this_thread::get_id();
+						m_writelock_count += 1;
+					}
+				}
+			}
+			return retval;
 		}
 
 		void unlock()
-		{	// try to unlock the mutex
-			if (!_Pmtx || !_Owns)
-				_THROW_NCEE(std::system_error,
-					_STD make_error_code(std::errc::operation_not_permitted));
+		{	// unlock exclusive
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+			assert(std::this_thread::get_id() == m_writelock_thread_id);
 
-			_Pmtx->unlock();
-			_Owns = false;
+			if ((2 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
+			}
+			else {
+				assert(1 == m_writelock_count);
+				base_class::unlock();
+				m_writelock_is_nonrecursive = false;
+				if (m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock) {
+					/* We need to reacquire the shared_lock that was suspended to make way for the exclusive_lock we
+					just released. */
+					base_class::lock_shared();
+					m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = false;
+				}
+			}
+			m_writelock_count -= 1;
 		}
 
-		// MUTATE
-		void swap(unique_nonrecursive_lock& _Other) _NOEXCEPT
-		{	// swap with _Other
-			_STD swap(_Pmtx, _Other._Pmtx);
-			_STD swap(_Owns, _Other._Owns);
+		void nonrecursive_lock()
+		{	// lock nonrecursive
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			if ((1 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
+				MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
+			}
+			else {
+				if (1 <= m_readlock_count) {
+					const auto this_thread_id = std::this_thread::get_id();
+					const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+					if (m_thread_id_readlock_count_map.end() != found_it) {
+						assert(1 <= (*found_it).second);
+						MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
+					}
+				}
+
+				assert((std::this_thread::get_id() != m_writelock_thread_id) || (0 == m_writelock_count));
+				{
+					unlock_guard<std::mutex> unlock1(m_mutex1);
+					base_class::lock();
+				}
+				m_writelock_thread_id = std::this_thread::get_id();
+				assert(0 == m_writelock_count);
+			}
+			m_writelock_count += 1;
+			m_writelock_is_nonrecursive = true;
 		}
 
-		_Mutex *release() _NOEXCEPT
-		{	// disconnect
-			_Mutex *_Res = _Pmtx;
-			_Pmtx = 0;
-			_Owns = false;
-			return (_Res);
+		bool try_nonrecursive_lock()
+		{	// try to lock nonrecursive
+			bool retval = false;
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			if ((1 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
+				retval = false;
+			}
+			else {
+				if (1 <= m_readlock_count) {
+					const auto this_thread_id = std::this_thread::get_id();
+					const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+					if (m_thread_id_readlock_count_map.end() != found_it) {
+						assert(1 <= (*found_it).second);
+						return false;
+					}
+				}
+
+				retval = base_class::try_lock();
+				if (retval) {
+					assert(0 == m_writelock_count);
+					m_writelock_thread_id = std::this_thread::get_id();
+					m_writelock_count += 1;
+					m_writelock_is_nonrecursive = true;
+				}
+			}
+			return retval;
 		}
 
-		// OBSERVE
-		bool owns_lock() const _NOEXCEPT
-		{	// return true if this object owns the lock
-			return (_Owns);
+		template<class _Rep, class _Period>
+		bool try_nonrecursive_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time)
+		{	// try to nonrecursive lock for duration
+			return (try_nonrecursive_lock_until(std::chrono::steady_clock::now() + _Rel_time));
 		}
 
-		explicit operator bool() const _NOEXCEPT
-		{	// return true if this object owns the lock
-			return (_Owns);
+		template<class _Clock, class _Duration>
+		bool try_nonrecursive_lock_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
+		{	// try to nonrecursive lock until time point
+			bool retval = false;
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			if ((1 <= m_writelock_count) && (std::this_thread::get_id() == m_writelock_thread_id)) {
+				retval = false;
+			}
+			else {
+				if (1 <= m_readlock_count) {
+					const auto this_thread_id = std::this_thread::get_id();
+					const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+					if (m_thread_id_readlock_count_map.end() != found_it) {
+						assert(1 <= (*found_it).second);
+						return false;
+					}
+				}
+
+				{
+					unlock_guard<std::mutex> unlock1(m_mutex1);
+					retval = base_class::try_lock_until(_Abs_time);
+				}
+				if (retval) {
+					assert(0 == m_writelock_count);
+					m_writelock_thread_id = std::this_thread::get_id();
+					m_writelock_count += 1;
+					m_writelock_is_nonrecursive = true;
+				}
+			}
+			return retval;
 		}
 
-		_Mutex *mutex() const _NOEXCEPT
-		{	// return pointer to managed mutex
-			return (_Pmtx);
+		void nonrecursive_unlock()
+		{	// unlock nonrecursive
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+			assert(std::this_thread::get_id() == m_writelock_thread_id);
+			assert((m_writelock_is_nonrecursive) && (1 == m_writelock_count));
+			assert(0 == m_readlock_count);
+
+			base_class::unlock();
+			m_writelock_is_nonrecursive = false;
+			m_writelock_count -= 1;
 		}
 
-	private:
-		_Mutex *_Pmtx;
-		bool _Owns;
+		void lock_shared()
+		{	// lock non-exclusive
+			std::lock_guard<std::mutex> lock1(m_mutex1);
 
-		void _Validate() const
-		{	// check if the mutex can be locked
-			if (!_Pmtx)
-				_THROW_NCEE(std::system_error,
-					_STD make_error_code(std::errc::operation_not_permitted));
-
-			if (_Owns)
-				_THROW_NCEE(std::system_error,
-					_STD make_error_code(std::errc::resource_deadlock_would_occur));
+			const auto this_thread_id = std::this_thread::get_id();
+			const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+			if ((m_thread_id_readlock_count_map.end() != found_it) && (1 <= (*found_it).second)) {
+				(*found_it).second += 1;
+			}
+			else if ((1 <= m_writelock_count) && (this_thread_id == m_writelock_thread_id) && (!m_writelock_is_nonrecursive)) {
+				assert((m_thread_id_readlock_count_map.end() == found_it) || (0 == (*found_it).second));
+				assert(!m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock);
+				m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = true;
+				try {
+					std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
+					m_thread_id_readlock_count_map.insert(item);
+				}
+				catch (...) {
+					m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = false;
+					MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
+				}
+			}
+			else {
+				assert((m_thread_id_readlock_count_map.end() == found_it) || (0 == (*found_it).second));
+				{
+					unlock_guard<std::mutex> unlock1(m_mutex1);
+					base_class::lock_shared();
+				}
+				try {
+					/* Things could've changed so we have to check again. */
+					const auto l_found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+					if (m_thread_id_readlock_count_map.end() != l_found_it) {
+						assert(0 <= (*l_found_it).second);
+						(*l_found_it).second += 1;
+					}
+					else {
+							std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
+							m_thread_id_readlock_count_map.insert(item);
+					}
+				}
+				catch (...) {
+					base_class::unlock_shared();
+					MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
+				}
+			}
+			m_readlock_count += 1;
 		}
+
+		bool try_lock_shared()
+		{	// try to lock non-exclusive
+			bool retval = false;
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			const auto this_thread_id = std::this_thread::get_id();
+			const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+			if ((m_thread_id_readlock_count_map.end() != found_it) && (1 <= (*found_it).second)) {
+				(*found_it).second += 1;
+				m_readlock_count += 1;
+				retval = true;
+			}
+			else if ((1 <= m_writelock_count) && (this_thread_id == m_writelock_thread_id) && (!m_writelock_is_nonrecursive)) {
+				assert((m_thread_id_readlock_count_map.end() == found_it) || (0 == (*found_it).second));
+				assert(!m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock);
+				m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = true;
+				try {
+					std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
+					m_thread_id_readlock_count_map.insert(item);
+					m_readlock_count += 1;
+					retval = true;
+				}
+				catch (...) {
+					m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = false;
+					MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
+				}
+			}
+			else {
+				retval = base_class::try_lock_shared();
+				if (retval) {
+					try {
+						if (m_thread_id_readlock_count_map.end() != found_it) {
+							assert(0 <= (*found_it).second);
+							(*found_it).second += 1;
+						}
+						else {
+							std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
+							m_thread_id_readlock_count_map.insert(item);
+						}
+						m_readlock_count += 1;
+					}
+					catch (...) {
+						base_class::unlock_shared();
+						MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
+					}
+				}
+			}
+			return retval;
+		}
+
+		template<class _Rep, class _Period>
+		bool try_lock_shared_for(const std::chrono::duration<_Rep, _Period>& _Rel_time)
+		{	// try to lock non-exclusive for relative time
+			return (try_lock_shared_until(_Rel_time + std::chrono::steady_clock::now()));
+		}
+
+		template<class _Clock, class _Duration>
+		bool try_lock_shared_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
+		{	// try to lock non-exclusive until absolute time
+			bool retval = false;
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			const auto this_thread_id = std::this_thread::get_id();
+			const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+			if ((m_thread_id_readlock_count_map.end() != found_it) && (1 <= (*found_it).second)) {
+				(*found_it).second += 1;
+				m_readlock_count += 1;
+				retval = true;
+			}
+			else if ((1 <= m_writelock_count) && (this_thread_id == m_writelock_thread_id) && (!m_writelock_is_nonrecursive)) {
+				assert((m_thread_id_readlock_count_map.end() == found_it) || (0 == (*found_it).second));
+				assert(!m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock);
+				m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = true;
+				try {
+					std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
+					m_thread_id_readlock_count_map.insert(item);
+					m_readlock_count += 1;
+					retval = true;
+				}
+				catch (...) {
+					m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = false;
+					MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
+				}
+			}
+			else {
+				{
+					unlock_guard<std::mutex> unlock1(m_mutex1);
+					retval = base_class::try_lock_shared_until(_Abs_time);
+				}
+				if (retval) {
+					try {
+						if (m_thread_id_readlock_count_map.end() != found_it) {
+							assert(0 <= (*found_it).second);
+							(*found_it).second += 1;
+						}
+						else {
+							std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
+							m_thread_id_readlock_count_map.insert(item);
+						}
+						m_readlock_count += 1;
+					}
+					catch (...) {
+						base_class::unlock_shared();
+						MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
+					}
+				}
+			}
+			return retval;
+		}
+
+		void unlock_shared()
+		{	// unlock non-exclusive
+			std::lock_guard<std::mutex> lock1(m_mutex1);
+
+			const auto this_thread_id = std::this_thread::get_id();
+			const auto found_it = m_thread_id_readlock_count_map.find(this_thread_id);
+			if (m_thread_id_readlock_count_map.end() != found_it) {
+				if (2 <= (*found_it).second) {
+					(*found_it).second -= 1;
+				}
+				else {
+					assert(1 == (*found_it).second);
+					m_thread_id_readlock_count_map.erase(found_it);
+					if (m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock) {
+						m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = false;
+					}
+					else {
+						base_class::unlock_shared();
+					}
+				}
+			}
+			else {
+				assert(false);
+				MSE_THROW(asyncshared_runtime_error("unpaired unlock_shared() call? - mse::recursive_shared_timed_mutex"));
+				//base_class::unlock_shared();
+			}
+			m_readlock_count -= 1;
+		}
+
+		//std::mutex m_write_mutex;
+		//std::mutex m_read_mutex;
+		std::mutex m_mutex1;
+
+		std::thread::id m_writelock_thread_id;
+		int m_writelock_count = 0;
+		bool m_writelock_is_nonrecursive = false;
+		std::unordered_map<std::thread::id, int> m_thread_id_readlock_count_map;
+		int m_readlock_count = 0;
+		bool m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = false;
 	};
+
+	typedef recursive_shared_timed_mutex_v2 recursive_shared_timed_mutex;
+	//typedef std::shared_timed_mutex async_shared_timed_mutex_type;
+	typedef recursive_shared_timed_mutex async_shared_timed_mutex_type;
 
 	template<typename _Ty> class TAsyncSharedReadWriteAccessRequester;
 	template<typename _Ty> class TAsyncSharedReadWritePointer;
@@ -578,16 +893,16 @@ namespace mse {
 		MSE_ASYNC_USING(TAsyncSharedObj, _TROy);
 		virtual ~TAsyncSharedObj() {}
 		using _TROy::operator=;
-		//TAsyncSharedObj& operator=(TAsyncSharedObj&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
+		//TAsyncSharedObj& operator=(TAsyncSharedObj&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		TAsyncSharedObj& operator=(typename std::conditional<std::is_const<_TROy>::value
-			, std::nullptr_t, TAsyncSharedObj>::type&& _X) { _TROy::operator=(std::move(_X)); return (*this); }
+			, std::nullptr_t, TAsyncSharedObj>::type&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		//TAsyncSharedObj& operator=(const TAsyncSharedObj& _X) { _TROy::operator=(_X); return (*this); }
 		TAsyncSharedObj& operator=(const typename std::conditional<std::is_const<_TROy>::value
 			, std::nullptr_t, TAsyncSharedObj>::type& _X) { _TROy::operator=(_X); return (*this); }
 
 	private:
 		TAsyncSharedObj(const TAsyncSharedObj& _X) : _TROy(_X) {}
-		TAsyncSharedObj(TAsyncSharedObj&& _X) : _TROy(std::move(_X)) {}
+		TAsyncSharedObj(TAsyncSharedObj&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
 		TAsyncSharedObj* operator&() {
 			return this;
 		}

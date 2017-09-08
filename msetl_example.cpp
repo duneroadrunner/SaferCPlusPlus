@@ -1838,6 +1838,12 @@ int main(int argc, char* argv[])
 			ash_access_requester.writelock_ptr()->b = 11;
 			int res1 = ash_access_requester.readlock_ptr()->b;
 
+			{
+				auto ptr3 = ash_access_requester.readlock_ptr();
+				auto ptr1 = ash_access_requester.writelock_ptr();
+				auto ptr2 = ash_access_requester.writelock_ptr();
+			}
+
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
 				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<A>>, ash_access_requester));

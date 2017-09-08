@@ -612,14 +612,14 @@ namespace mse {
 	public:
 		MSE_USING(TRelaxedRegisteredObj, _TROFLy);
 		TRelaxedRegisteredObj(const TRelaxedRegisteredObj& _X) : _TROFLy(_X) {}
-		TRelaxedRegisteredObj(TRelaxedRegisteredObj&& _X) : _TROFLy(std::move(_X)) {}
+		TRelaxedRegisteredObj(TRelaxedRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
 		virtual ~TRelaxedRegisteredObj() {
 			//gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(this);
 		}
 		using _TROFLy::operator=;
-		//TRelaxedRegisteredObj& operator=(TRelaxedRegisteredObj&& _X) { _TROFLy::operator=(std::move(_X)); return (*this); }
+		//TRelaxedRegisteredObj& operator=(TRelaxedRegisteredObj&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		TRelaxedRegisteredObj& operator=(typename std::conditional<std::is_const<_TROFLy>::value
-			, std::nullptr_t, TRelaxedRegisteredObj>::type&& _X) { _TROFLy::operator=(std::move(_X)); return (*this); }
+			, std::nullptr_t, TRelaxedRegisteredObj>::type&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		//TRelaxedRegisteredObj& operator=(const TRelaxedRegisteredObj& _X) { _TROFLy::operator=(_X); return (*this); }
 		TRelaxedRegisteredObj& operator=(const typename std::conditional<std::is_const<_TROFLy>::value
 			, std::nullptr_t, TRelaxedRegisteredObj>::type& _X) { _TROFLy::operator=(_X); return (*this); }

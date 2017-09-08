@@ -151,9 +151,9 @@ namespace mse {
 			operator _MA() { return msearray(); }
 
 			array() {}
-			array(_MA&& _X) : m_msearray(std::move(_X)) {}
+			array(_MA&& _X) : m_msearray(std::forward<decltype(_X)>(_X)) {}
 			array(const _MA& _X) : m_msearray(_X) {}
-			array(_Myt&& _X) : m_msearray(std::move(_X.msearray())) {}
+			array(_Myt&& _X) : m_msearray(std::forward<decltype(_X.msearray())>(_X.msearray())) {}
 			array(const _Myt& _X) : m_msearray(_X.msearray()) {}
 			//array(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : m_msearray(_Ilist) {}
 			static mse::msearray<_Ty, _Size> msearray_initial_value(std::true_type, _XSTD initializer_list<_Ty> _Ilist) {
@@ -189,9 +189,9 @@ namespace mse {
 				can. */
 			}
 
-			_Myt& operator=(_MA&& _X) { m_msearray.operator=(std::move(_X)); return (*this); }
+			_Myt& operator=(_MA&& _X) { m_msearray.operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 			_Myt& operator=(const _MA& _X) { m_msearray.operator=(_X); return (*this); }
-			_Myt& operator=(_Myt&& _X) { m_msearray.operator=(std::move(_X.msearray())); return (*this); }
+			_Myt& operator=(_Myt&& _X) { m_msearray.operator=(std::forward<decltype(_X.msearray())>(_X.msearray())); return (*this); }
 			_Myt& operator=(const _Myt& _X) { m_msearray.operator=(_X.msearray()); return (*this); }
 			_CONST_FUN typename _MA::const_reference operator[](size_type _P) const { return m_msearray.operator[](_P); }
 			typename _MA::reference operator[](size_type _P) { return m_msearray.operator[](_P); }
@@ -218,7 +218,7 @@ namespace mse {
 			}
 
 			array(std::array<_Ty, _Size>&& _X) {
-				m_msearray.m_array = std::move(_X);
+				m_msearray.m_array = std::forward<decltype(_X)>(_X);
 			}
 			array(const std::array<_Ty, _Size>& _X) {
 				m_msearray.m_array = _X;

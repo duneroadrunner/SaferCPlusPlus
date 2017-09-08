@@ -175,9 +175,9 @@ namespace mse {
 			: base_class(msev_as_a_size_t(_N), _V, _Al), m_mmitset(*this) {
 			/*m_debug_size = size();*/
 		}
-		msevector(base_class&& _X) : base_class(std::move(_X)), m_mmitset(*this) { /*m_debug_size = size();*/ }
+		msevector(base_class&& _X) : base_class(std::forward<decltype(_X)>(_X)), m_mmitset(*this) { /*m_debug_size = size();*/ }
 		msevector(const base_class& _X) : base_class(_X), m_mmitset(*this) { /*m_debug_size = size();*/ }
-		msevector(_Myt&& _X) : base_class(std::move(_X)), m_mmitset(*this) { /*m_debug_size = size();*/ }
+		msevector(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X)), m_mmitset(*this) { /*m_debug_size = size();*/ }
 		msevector(const _Myt& _X) : base_class(_X), m_mmitset(*this) { /*m_debug_size = size();*/ }
 		typedef typename base_class::const_iterator _It;
 		/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
@@ -199,7 +199,7 @@ namespace mse {
 			return (*this);
 		}
 		_Myt& operator=(_Myt&& _X) {
-			operator=(std::move(static_cast<base_class&>(_X)));
+			operator=(std::forward<base_class>(_X));
 			m_mmitset.reset();
 			return (*this);
 		}
@@ -273,13 +273,13 @@ namespace mse {
 		}
 		void push_back(_Ty&& _X) {
 			if (m_mmitset.is_empty()) {
-				base_class::push_back(std::move(_X));
+				base_class::push_back(std::forward<decltype(_X)>(_X));
 			}
 			else {
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
 
-				base_class::push_back(std::move(_X));
+				base_class::push_back(std::forward<decltype(_X)>(_X));
 				/*m_debug_size = size();*/
 
 				assert((original_size + 1) == msev_size_t((*this).size()));
@@ -350,7 +350,7 @@ namespace mse {
 			m_mmitset.reset();
 		}
 		typename base_class::iterator insert(typename base_class::const_iterator _P, _Ty&& _X) {
-			return (emplace(_P, std::move(_X)));
+			return (emplace(_P, std::forward<decltype(_X)>(_X)));
 		}
 		typename base_class::iterator insert(typename base_class::const_iterator _P, const _Ty& _X = _Ty()) {
 			if (m_mmitset.is_empty()) {
@@ -1650,7 +1650,7 @@ namespace mse {
 		void insert_before(const mm_const_iterator_type &pos, _Ty&& _X) {
 			if (pos.m_owner_cptr != this) { MSE_THROW(msevector_range_error("invalid arguments - void insert_before() - msevector")); }
 			typename base_class::const_iterator _P = pos;
-			(*this).insert(_P, 1, std::move(_X));
+			(*this).insert(_P, 1, std::forward<decltype(_X)>(_X));
 		}
 		void insert_before(const mm_const_iterator_type &pos, const _Ty& _X = _Ty()) { (*this).insert(pos, 1, _X); }
 		template<class _Iter
@@ -1687,7 +1687,7 @@ namespace mse {
 		}
 		ipointer insert_before(const cipointer &pos, _Ty&& _X) {
 			msev_size_t original_pos = pos.position();
-			insert_before(pos.const_item_pointer(), std::move(_X));
+			insert_before(pos.const_item_pointer(), std::forward<decltype(_X)>(_X));
 			ipointer retval(*this); retval.advance(msev_int(original_pos));
 			return retval;
 		}
@@ -1716,7 +1716,7 @@ namespace mse {
 		}
 		void insert_before(msev_size_t pos, _Ty&& _X) {
 			typename base_class::const_iterator _P = (*this).begin() + msev_as_a_size_t(pos);
-			(*this).insert(_P, std::move(_X));
+			(*this).insert(_P, std::forward<decltype(_X)>(_X));
 		}
 		void insert_before(msev_size_t pos, const _Ty& _X = _Ty()) {
 			typename base_class::const_iterator _P = (*this).begin() + msev_as_a_size_t(pos);
@@ -1732,7 +1732,7 @@ namespace mse {
 		}
 		/* These insert() functions are just aliases for their corresponding insert_before() functions. */
 		ipointer insert(const cipointer &pos, size_type _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
-		ipointer insert(const cipointer &pos, _Ty&& _X) { return insert_before(pos, std::move(_X)); }
+		ipointer insert(const cipointer &pos, _Ty&& _X) { return insert_before(pos, std::forward<decltype(_X)>(_X)); }
 		ipointer insert(const cipointer &pos, const _Ty& _X = _Ty()) { return insert_before(pos, _X); }
 		template<class _Iter
 			//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
@@ -2300,7 +2300,7 @@ namespace mse {
 			pos.assert_valid_index();
 			msev_size_t original_pos = pos.position();
 			typename base_class::const_iterator _P = pos;
-			(*this).insert(_P, std::move(_X));
+			(*this).insert(_P, std::forward<decltype(_X)>(_X));
 			ss_iterator_type retval = ss_begin();
 			retval.advance(msev_int(original_pos));
 			return retval;
@@ -2360,7 +2360,7 @@ namespace mse {
 		}
 		/* These insert() functions are just aliases for their corresponding insert_before() functions. */
 		ss_iterator_type insert(const ss_const_iterator_type &pos, size_type _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
-		ss_iterator_type insert(const ss_const_iterator_type &pos, _Ty&& _X) { return insert_before(pos, std::move(_X)); }
+		ss_iterator_type insert(const ss_const_iterator_type &pos, _Ty&& _X) { return insert_before(pos, std::forward<decltype(_X)>(_X)); }
 		ss_iterator_type insert(const ss_const_iterator_type &pos, const _Ty& _X = _Ty()) { return insert_before(pos, _X); }
 		template<class _Iter
 			//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
