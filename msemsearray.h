@@ -820,7 +820,7 @@ namespace mse {
 			Tss_const_iterator_type(const Tss_const_iterator_type& src) = default;
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TMseArrayConstPointer>::value, void>::type>
 			Tss_const_iterator_type(const Tss_iterator_type<_Ty2>& src) {
-				(*this).m_owner_ptr = src.owner_ptr();
+				(*this).m_owner_ptr = src.target_container_ptr();
 				(*this).m_index = src.position();
 			}
 
@@ -953,7 +953,7 @@ namespace mse {
 			msear_size_t position() const {
 				return m_index;
 			}
-			_TMseArrayConstPointer owner_ptr() const {
+			_TMseArrayConstPointer target_container_ptr() const {
 				return m_owner_cptr;
 			}
 		private:
@@ -1109,7 +1109,7 @@ namespace mse {
 			msear_size_t position() const {
 				return m_index;
 			}
-			_TMseArrayPointer owner_ptr() const {
+			_TMseArrayPointer target_container_ptr() const {
 				return m_owner_ptr;
 			}
 			/*
@@ -1190,7 +1190,7 @@ namespace mse {
 		template<typename _TMseArrayPointer>
 		static Tss_const_iterator_type<_TMseArrayPointer> ss_cbegin(_TMseArrayPointer owner_ptr)
 		{	// return iterator for beginning of nonmutable sequence
-			Tss_const_iterator_type<_TMseArrayPointer> retval; retval.m_owner_ptr = owner_ptr;
+			Tss_const_iterator_type<_TMseArrayPointer> retval; retval.m_owner_cptr = owner_ptr;
 			retval.set_to_beginning();
 			return retval;
 		}
@@ -1359,6 +1359,7 @@ namespace mse {
 				return (*this);
 			}
 			xscope_ss_const_iterator_type& operator=(const ss_iterator_type& _Right_cref) {
+				if (_Right_cref.m_owner_ptr != (*this).m_owner_cptr) { MSE_THROW(msearray_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const ss_iterator_type& _Right_cref) - msearray::xscope_ss_const_iterator_type")); }
 				return operator=(ss_const_iterator_type(_Right_cref));
 			}
 			bool operator==(const xscope_ss_const_iterator_type& _Right_cref) const { return ss_const_iterator_type::operator==(_Right_cref); }

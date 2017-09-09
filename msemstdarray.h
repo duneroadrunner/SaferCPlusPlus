@@ -227,156 +227,178 @@ namespace mse {
 			operator std::array<_Ty, _Size>() { return msearray().m_array; }
 
 
+			class reg_ss_iterator_type : public _MA::template Tss_iterator_type<mse::TRegisteredPointer<_MA>> {
+			public:
+				typedef typename _MA::template Tss_iterator_type<mse::TRegisteredPointer<_MA>> base_class;
+				MSE_USING(reg_ss_iterator_type, base_class);
+				reg_ss_iterator_type(const base_class& src) : base_class(src) {}
+
+				friend class reg_ss_const_iterator_type;
+			};
+			class reg_ss_const_iterator_type : public _MA::template Tss_const_iterator_type<mse::TRegisteredConstPointer<_MA>> {
+			public:
+				typedef typename _MA::template Tss_const_iterator_type<mse::TRegisteredConstPointer<_MA>> base_class;
+				MSE_USING(reg_ss_const_iterator_type, base_class);
+				reg_ss_const_iterator_type(const base_class& src) : base_class(src) {}
+				reg_ss_const_iterator_type(const reg_ss_iterator_type& src) {
+					(*this).m_owner_cptr = src.m_owner_ptr;
+					(*this).m_index = src.m_index;
+				}
+			};
+
 			class xscope_const_iterator;
 			class xscope_iterator;
 
 			class const_iterator : public _MA::random_access_const_iterator_base {
 			public:
-				typedef typename _MA::ss_const_iterator_type::iterator_category iterator_category;
-				typedef typename _MA::ss_const_iterator_type::value_type value_type;
-				typedef typename _MA::ss_const_iterator_type::difference_type difference_type;
+				typedef typename reg_ss_const_iterator_type::iterator_category iterator_category;
+				typedef typename reg_ss_const_iterator_type::value_type value_type;
+				typedef typename reg_ss_const_iterator_type::difference_type difference_type;
 				typedef typename _MA::difference_type distance_type;	// retained
-				typedef typename _MA::ss_const_iterator_type::pointer pointer;
-				typedef typename _MA::ss_const_iterator_type::reference reference;
+				typedef typename reg_ss_const_iterator_type::pointer pointer;
+				typedef typename reg_ss_const_iterator_type::reference reference;
 
 				const_iterator() {}
-				const_iterator(const const_iterator& src_cref) : m_msearray_regcptr(src_cref.m_msearray_regcptr) {
-					(*this) = src_cref;
-				}
+				const_iterator(const const_iterator& src_cref) = default;
 				~const_iterator() {}
-				const typename _MA::ss_const_iterator_type& msearray_ss_const_iterator_type() const {
-					if (!m_msearray_regcptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
-					return m_ss_const_iterator;
+				const reg_ss_const_iterator_type& msearray_reg_ss_const_iterator_type() const {
+					//if (!m_msearray_regcptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
+					return m_reg_ss_const_iterator;
 				}
-				typename _MA::ss_const_iterator_type& msearray_ss_const_iterator_type() {
-					if (!m_msearray_regcptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
-					return m_ss_const_iterator;
+				reg_ss_const_iterator_type& msearray_reg_ss_const_iterator_type() {
+					//if (!m_msearray_regcptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
+					return m_reg_ss_const_iterator;
 				}
-				const typename _MA::ss_const_iterator_type& mvssci() const { return msearray_ss_const_iterator_type(); }
-				typename _MA::ss_const_iterator_type& mvssci() { return msearray_ss_const_iterator_type(); }
+				const reg_ss_const_iterator_type& mvssci() const { return msearray_reg_ss_const_iterator_type(); }
+				reg_ss_const_iterator_type& mvssci() { return msearray_reg_ss_const_iterator_type(); }
 
-				void reset() { msearray_ss_const_iterator_type().reset(); }
-				bool points_to_an_item() const { return msearray_ss_const_iterator_type().points_to_an_item(); }
-				bool points_to_end_marker() const { return msearray_ss_const_iterator_type().points_to_end_marker(); }
-				bool points_to_beginning() const { return msearray_ss_const_iterator_type().points_to_beginning(); }
+				void reset() { msearray_reg_ss_const_iterator_type().reset(); }
+				bool points_to_an_item() const { return msearray_reg_ss_const_iterator_type().points_to_an_item(); }
+				bool points_to_end_marker() const { return msearray_reg_ss_const_iterator_type().points_to_end_marker(); }
+				bool points_to_beginning() const { return msearray_reg_ss_const_iterator_type().points_to_beginning(); }
 				/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-				bool has_next_item_or_end_marker() const { return msearray_ss_const_iterator_type().has_next_item_or_end_marker(); }
+				bool has_next_item_or_end_marker() const { return msearray_reg_ss_const_iterator_type().has_next_item_or_end_marker(); }
 				/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-				bool has_next() const { return msearray_ss_const_iterator_type().has_next(); }
-				bool has_previous() const { return msearray_ss_const_iterator_type().has_previous(); }
-				void set_to_beginning() { msearray_ss_const_iterator_type().set_to_beginning(); }
-				void set_to_end_marker() { msearray_ss_const_iterator_type().set_to_end_marker(); }
-				void set_to_next() { msearray_ss_const_iterator_type().set_to_next(); }
-				void set_to_previous() { msearray_ss_const_iterator_type().set_to_previous(); }
-				const_iterator& operator ++() { msearray_ss_const_iterator_type().operator ++(); return (*this); }
+				bool has_next() const { return msearray_reg_ss_const_iterator_type().has_next(); }
+				bool has_previous() const { return msearray_reg_ss_const_iterator_type().has_previous(); }
+				void set_to_beginning() { msearray_reg_ss_const_iterator_type().set_to_beginning(); }
+				void set_to_end_marker() { msearray_reg_ss_const_iterator_type().set_to_end_marker(); }
+				void set_to_next() { msearray_reg_ss_const_iterator_type().set_to_next(); }
+				void set_to_previous() { msearray_reg_ss_const_iterator_type().set_to_previous(); }
+				const_iterator& operator ++() { msearray_reg_ss_const_iterator_type().operator ++(); return (*this); }
 				const_iterator operator++(int) { const_iterator _Tmp = *this; ++*this; return (_Tmp); }
-				const_iterator& operator --() { msearray_ss_const_iterator_type().operator --(); return (*this); }
+				const_iterator& operator --() { msearray_reg_ss_const_iterator_type().operator --(); return (*this); }
 				const_iterator operator--(int) { const_iterator _Tmp = *this; --*this; return (_Tmp); }
-				void advance(typename _MA::difference_type n) { msearray_ss_const_iterator_type().advance(n); }
-				void regress(typename _MA::difference_type n) { msearray_ss_const_iterator_type().regress(n); }
-				const_iterator& operator +=(difference_type n) { msearray_ss_const_iterator_type().operator +=(n); return (*this); }
-				const_iterator& operator -=(difference_type n) { msearray_ss_const_iterator_type().operator -=(n); return (*this); }
+				void advance(typename _MA::difference_type n) { msearray_reg_ss_const_iterator_type().advance(n); }
+				void regress(typename _MA::difference_type n) { msearray_reg_ss_const_iterator_type().regress(n); }
+				const_iterator& operator +=(difference_type n) { msearray_reg_ss_const_iterator_type().operator +=(n); return (*this); }
+				const_iterator& operator -=(difference_type n) { msearray_reg_ss_const_iterator_type().operator -=(n); return (*this); }
 				const_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				const_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
-				typename _MA::difference_type operator-(const const_iterator& _Right_cref) const { return msearray_ss_const_iterator_type() - (_Right_cref.msearray_ss_const_iterator_type()); }
-				typename _MA::const_reference operator*() const { return msearray_ss_const_iterator_type().operator*(); }
+				typename _MA::difference_type operator-(const const_iterator& _Right_cref) const { return msearray_reg_ss_const_iterator_type() - (_Right_cref.msearray_reg_ss_const_iterator_type()); }
+				typename _MA::const_reference operator*() const { return msearray_reg_ss_const_iterator_type().operator*(); }
 				typename _MA::const_reference item() const { return operator*(); }
-				typename _MA::const_reference previous_item() const { return msearray_ss_const_iterator_type().previous_item(); }
-				typename _MA::const_pointer operator->() const { return msearray_ss_const_iterator_type().operator->(); }
-				typename _MA::const_reference operator[](typename _MA::difference_type _Off) const { return msearray_ss_const_iterator_type()[_Off]; }
-				bool operator==(const const_iterator& _Right_cref) const { return msearray_ss_const_iterator_type().operator==(_Right_cref.msearray_ss_const_iterator_type()); }
+				typename _MA::const_reference previous_item() const { return msearray_reg_ss_const_iterator_type().previous_item(); }
+				typename _MA::const_pointer operator->() const { return msearray_reg_ss_const_iterator_type().operator->(); }
+				typename _MA::const_reference operator[](typename _MA::difference_type _Off) const { return msearray_reg_ss_const_iterator_type()[_Off]; }
+				bool operator==(const const_iterator& _Right_cref) const { return msearray_reg_ss_const_iterator_type().operator==(_Right_cref.msearray_reg_ss_const_iterator_type()); }
 				bool operator!=(const const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const const_iterator& _Right) const { return (msearray_ss_const_iterator_type() < _Right.msearray_ss_const_iterator_type()); }
-				bool operator<=(const const_iterator& _Right) const { return (msearray_ss_const_iterator_type() <= _Right.msearray_ss_const_iterator_type()); }
-				bool operator>(const const_iterator& _Right) const { return (msearray_ss_const_iterator_type() > _Right.msearray_ss_const_iterator_type()); }
-				bool operator>=(const const_iterator& _Right) const { return (msearray_ss_const_iterator_type() >= _Right.msearray_ss_const_iterator_type()); }
-				void set_to_const_item_pointer(const const_iterator& _Right_cref) { msearray_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msearray_ss_const_iterator_type()); }
-				msear_size_t position() const { return msearray_ss_const_iterator_type().position(); }
-			private:
-				const_iterator(mse::TRegisteredConstPointer<_MA> msearray_regcptr) : m_msearray_regcptr(msearray_regcptr) {
-					m_ss_const_iterator = msearray_regcptr->ss_cbegin();
+				bool operator<(const const_iterator& _Right) const { return (msearray_reg_ss_const_iterator_type() < _Right.msearray_reg_ss_const_iterator_type()); }
+				bool operator<=(const const_iterator& _Right) const { return (msearray_reg_ss_const_iterator_type() <= _Right.msearray_reg_ss_const_iterator_type()); }
+				bool operator>(const const_iterator& _Right) const { return (msearray_reg_ss_const_iterator_type() > _Right.msearray_reg_ss_const_iterator_type()); }
+				bool operator>=(const const_iterator& _Right) const { return (msearray_reg_ss_const_iterator_type() >= _Right.msearray_reg_ss_const_iterator_type()); }
+				void set_to_const_item_pointer(const const_iterator& _Right_cref) { msearray_reg_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msearray_reg_ss_const_iterator_type()); }
+				msear_size_t position() const { return msearray_reg_ss_const_iterator_type().position(); }
+				auto target_container_ptr() const -> decltype(msearray_reg_ss_const_iterator_type().target_container_ptr()) {
+					return msearray_reg_ss_const_iterator_type().target_container_ptr();
 				}
-				mse::TRegisteredConstPointer<_MA> m_msearray_regcptr = nullptr;
-				/* m_ss_const_iterator needs to be declared after m_msearray_regcptr so that it's destructor will be called first. */
-				typename _MA::ss_const_iterator_type m_ss_const_iterator;
+			private:
+				const_iterator(mse::TRegisteredConstPointer<_MA> msearray_regcptr) {
+					if (msearray_regcptr) {
+						m_reg_ss_const_iterator = _MA::template ss_cbegin<mse::TRegisteredConstPointer<_MA>>(msearray_regcptr);
+					}
+				}
+				reg_ss_const_iterator_type m_reg_ss_const_iterator;
+
 				friend class /*_Myt*/array<_Ty, _Size>;
 				friend class iterator;
 				friend class xscope_const_iterator;
 			};
 			class iterator : public _MA::random_access_iterator_base {
 			public:
-				typedef typename _MA::ss_iterator_type::iterator_category iterator_category;
-				typedef typename _MA::ss_iterator_type::value_type value_type;
-				typedef typename _MA::ss_iterator_type::difference_type difference_type;
+				typedef typename reg_ss_iterator_type::iterator_category iterator_category;
+				typedef typename reg_ss_iterator_type::value_type value_type;
+				typedef typename reg_ss_iterator_type::difference_type difference_type;
 				typedef typename _MA::difference_type distance_type;	// retained
-				typedef typename _MA::ss_iterator_type::pointer pointer;
-				typedef typename _MA::ss_iterator_type::reference reference;
+				typedef typename reg_ss_iterator_type::pointer pointer;
+				typedef typename reg_ss_iterator_type::reference reference;
 
 				iterator() {}
-				iterator(const iterator& src_cref) : m_msearray_regptr(src_cref.m_msearray_regptr) {
-					(*this) = src_cref;
-				}
+				iterator(const iterator& src_cref) = default;
 				~iterator() {}
-				const typename _MA::ss_iterator_type& msearray_ss_iterator_type() const {
-					if (!m_msearray_regptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::iterator")); }
-					return m_ss_iterator;
+				const reg_ss_iterator_type& msearray_reg_ss_iterator_type() const {
+					//if (!m_msearray_regptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::iterator")); }
+					return m_reg_ss_iterator;
 				}
-				typename _MA::ss_iterator_type& msearray_ss_iterator_type() {
-					if (!m_msearray_regptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::iterator")); }
-					return m_ss_iterator;
+				reg_ss_iterator_type& msearray_reg_ss_iterator_type() {
+					//if (!m_msearray_regptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::iterator")); }
+					return m_reg_ss_iterator;
 				}
-				const typename _MA::ss_iterator_type& mvssi() const { return msearray_ss_iterator_type(); }
-				typename _MA::ss_iterator_type& mvssi() { return msearray_ss_iterator_type(); }
+				const reg_ss_iterator_type& mvssi() const { return msearray_reg_ss_iterator_type(); }
+				reg_ss_iterator_type& mvssi() { return msearray_reg_ss_iterator_type(); }
 				operator const_iterator() const {
-					const_iterator retval(m_msearray_regptr);
-					if (m_msearray_regptr) {
-						retval.msearray_ss_const_iterator_type().set_to_beginning();
-						retval.msearray_ss_const_iterator_type().advance(msear_int(msearray_ss_iterator_type().position()));
+					auto msearray_regptr = m_reg_ss_iterator.target_container_ptr();
+					const_iterator retval(msearray_regptr);
+					if (msearray_regptr) {
+						retval.msearray_reg_ss_const_iterator_type().set_to_beginning();
+						retval.msearray_reg_ss_const_iterator_type().advance(msear_int(msearray_reg_ss_iterator_type().position()));
 					}
 					return retval;
 				}
 
-				void reset() { msearray_ss_iterator_type().reset(); }
-				bool points_to_an_item() const { return msearray_ss_iterator_type().points_to_an_item(); }
-				bool points_to_end_marker() const { return msearray_ss_iterator_type().points_to_end_marker(); }
-				bool points_to_beginning() const { return msearray_ss_iterator_type().points_to_beginning(); }
+				void reset() { msearray_reg_ss_iterator_type().reset(); }
+				bool points_to_an_item() const { return msearray_reg_ss_iterator_type().points_to_an_item(); }
+				bool points_to_end_marker() const { return msearray_reg_ss_iterator_type().points_to_end_marker(); }
+				bool points_to_beginning() const { return msearray_reg_ss_iterator_type().points_to_beginning(); }
 				/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-				bool has_next_item_or_end_marker() const { return msearray_ss_iterator_type().has_next_item_or_end_marker(); }
+				bool has_next_item_or_end_marker() const { return msearray_reg_ss_iterator_type().has_next_item_or_end_marker(); }
 				/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-				bool has_next() const { return msearray_ss_iterator_type().has_next(); }
-				bool has_previous() const { return msearray_ss_iterator_type().has_previous(); }
-				void set_to_beginning() { msearray_ss_iterator_type().set_to_beginning(); }
-				void set_to_end_marker() { msearray_ss_iterator_type().set_to_end_marker(); }
-				void set_to_next() { msearray_ss_iterator_type().set_to_next(); }
-				void set_to_previous() { msearray_ss_iterator_type().set_to_previous(); }
-				iterator& operator ++() { msearray_ss_iterator_type().operator ++(); return (*this); }
+				bool has_next() const { return msearray_reg_ss_iterator_type().has_next(); }
+				bool has_previous() const { return msearray_reg_ss_iterator_type().has_previous(); }
+				void set_to_beginning() { msearray_reg_ss_iterator_type().set_to_beginning(); }
+				void set_to_end_marker() { msearray_reg_ss_iterator_type().set_to_end_marker(); }
+				void set_to_next() { msearray_reg_ss_iterator_type().set_to_next(); }
+				void set_to_previous() { msearray_reg_ss_iterator_type().set_to_previous(); }
+				iterator& operator ++() { msearray_reg_ss_iterator_type().operator ++(); return (*this); }
 				iterator operator++(int) { iterator _Tmp = *this; ++*this; return (_Tmp); }
-				iterator& operator --() { msearray_ss_iterator_type().operator --(); return (*this); }
+				iterator& operator --() { msearray_reg_ss_iterator_type().operator --(); return (*this); }
 				iterator operator--(int) { iterator _Tmp = *this; --*this; return (_Tmp); }
-				void advance(typename _MA::difference_type n) { msearray_ss_iterator_type().advance(n); }
-				void regress(typename _MA::difference_type n) { msearray_ss_iterator_type().regress(n); }
-				iterator& operator +=(difference_type n) { msearray_ss_iterator_type().operator +=(n); return (*this); }
-				iterator& operator -=(difference_type n) { msearray_ss_iterator_type().operator -=(n); return (*this); }
+				void advance(typename _MA::difference_type n) { msearray_reg_ss_iterator_type().advance(n); }
+				void regress(typename _MA::difference_type n) { msearray_reg_ss_iterator_type().regress(n); }
+				iterator& operator +=(difference_type n) { msearray_reg_ss_iterator_type().operator +=(n); return (*this); }
+				iterator& operator -=(difference_type n) { msearray_reg_ss_iterator_type().operator -=(n); return (*this); }
 				iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				iterator operator-(difference_type n) const { return ((*this) + (-n)); }
-				typename _MA::difference_type operator-(const iterator& _Right_cref) const { return msearray_ss_iterator_type() - (_Right_cref.msearray_ss_iterator_type()); }
-				typename _MA::reference operator*() const { return msearray_ss_iterator_type().operator*(); }
+				typename _MA::difference_type operator-(const iterator& _Right_cref) const { return msearray_reg_ss_iterator_type() - (_Right_cref.msearray_reg_ss_iterator_type()); }
+				typename _MA::reference operator*() const { return msearray_reg_ss_iterator_type().operator*(); }
 				typename _MA::reference item() const { return operator*(); }
-				typename _MA::reference previous_item() const { return msearray_ss_iterator_type().previous_item(); }
-				typename _MA::pointer operator->() const { return msearray_ss_iterator_type().operator->(); }
-				typename _MA::reference operator[](typename _MA::difference_type _Off) const { return msearray_ss_iterator_type()[_Off]; }
-				bool operator==(const iterator& _Right_cref) const { return msearray_ss_iterator_type().operator==(_Right_cref.msearray_ss_iterator_type()); }
+				typename _MA::reference previous_item() const { return msearray_reg_ss_iterator_type().previous_item(); }
+				typename _MA::pointer operator->() const { return msearray_reg_ss_iterator_type().operator->(); }
+				typename _MA::reference operator[](typename _MA::difference_type _Off) const { return msearray_reg_ss_iterator_type()[_Off]; }
+				bool operator==(const iterator& _Right_cref) const { return msearray_reg_ss_iterator_type().operator==(_Right_cref.msearray_reg_ss_iterator_type()); }
 				bool operator!=(const iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const iterator& _Right) const { return (msearray_ss_iterator_type() < _Right.msearray_ss_iterator_type()); }
-				bool operator<=(const iterator& _Right) const { return (msearray_ss_iterator_type() <= _Right.msearray_ss_iterator_type()); }
-				bool operator>(const iterator& _Right) const { return (msearray_ss_iterator_type() > _Right.msearray_ss_iterator_type()); }
-				bool operator>=(const iterator& _Right) const { return (msearray_ss_iterator_type() >= _Right.msearray_ss_iterator_type()); }
-				void set_to_item_pointer(const iterator& _Right_cref) { msearray_ss_iterator_type().set_to_item_pointer(_Right_cref.msearray_ss_iterator_type()); }
-				msear_size_t position() const { return msearray_ss_iterator_type().position(); }
+				bool operator<(const iterator& _Right) const { return (msearray_reg_ss_iterator_type() < _Right.msearray_reg_ss_iterator_type()); }
+				bool operator<=(const iterator& _Right) const { return (msearray_reg_ss_iterator_type() <= _Right.msearray_reg_ss_iterator_type()); }
+				bool operator>(const iterator& _Right) const { return (msearray_reg_ss_iterator_type() > _Right.msearray_reg_ss_iterator_type()); }
+				bool operator>=(const iterator& _Right) const { return (msearray_reg_ss_iterator_type() >= _Right.msearray_reg_ss_iterator_type()); }
+				void set_to_item_pointer(const iterator& _Right_cref) { msearray_reg_ss_iterator_type().set_to_item_pointer(_Right_cref.msearray_reg_ss_iterator_type()); }
+				msear_size_t position() const { return msearray_reg_ss_iterator_type().position(); }
+				auto target_container_ptr() const -> decltype(msearray_reg_ss_iterator_type().target_container_ptr()) {
+					return msearray_reg_ss_iterator_type().target_container_ptr();
+				}
 			private:
-				mse::TRegisteredPointer<_MA> m_msearray_regptr = nullptr;
-				/* m_ss_iterator needs to be declared after m_msearray_regptr so that it's destructor will be called first. */
-				typename _MA::ss_iterator_type m_ss_iterator;
+				reg_ss_iterator_type m_reg_ss_iterator;
+
 				friend class /*_Myt*/array<_Ty, _Size>;
 				friend class xscope_const_iterator;
 				friend class xscope_iterator;
@@ -384,36 +406,36 @@ namespace mse {
 
 			iterator begin()
 			{	// return iterator for beginning of mutable sequence
-				iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
-				(retval.m_ss_iterator) = m_msearray.ss_begin();
+				iterator retval; //retval.m_msearray_regptr = &(this->m_msearray);
+				(retval.m_reg_ss_iterator) = m_msearray.template ss_begin<mse::TRegisteredPointer<_MA>>(&(this->m_msearray));
 				return retval;
 			}
 
 			const_iterator begin() const
 			{	// return iterator for beginning of nonmutable sequence
-				const_iterator retval; retval.m_msearray_regcptr = &(this->m_msearray);
-				(retval.m_ss_const_iterator) = m_msearray.ss_begin();
+				const_iterator retval; //retval.m_msearray_regcptr = &(this->m_msearray);
+				(retval.m_reg_ss_const_iterator) = m_msearray.template ss_cbegin<mse::TRegisteredConstPointer<_MA>>(&(this->m_msearray));
 				return retval;
 			}
 
 			iterator end() {	// return iterator for end of mutable sequence
-				iterator retval; retval.m_msearray_regptr = &(this->m_msearray);
-				(retval.m_ss_iterator) = m_msearray.ss_end();
+				iterator retval; //retval.m_msearray_regptr = &(this->m_msearray);
+				(retval.m_reg_ss_iterator) = m_msearray.template ss_end<mse::TRegisteredPointer<_MA>>(&(this->m_msearray));
 				return retval;
 			}
 			const_iterator end() const {	// return iterator for end of nonmutable sequence
-				const_iterator retval; retval.m_msearray_regcptr = &(this->m_msearray);
-				(retval.m_ss_const_iterator) = m_msearray.ss_end();
+				const_iterator retval; //retval.m_msearray_regcptr = &(this->m_msearray);
+				(retval.m_reg_ss_const_iterator) = m_msearray.template ss_cend<mse::TRegisteredConstPointer<_MA>>(&(this->m_msearray));
 				return retval;
 			}
 			const_iterator cbegin() const {	// return iterator for beginning of nonmutable sequence
-				const_iterator retval; retval.m_msearray_regcptr = &(this->m_msearray);
-				(retval.m_ss_const_iterator) = m_msearray.ss_cbegin();
+				const_iterator retval; //retval.m_msearray_regcptr = &(this->m_msearray);
+				(retval.m_reg_ss_const_iterator) = m_msearray.template ss_cbegin<mse::TRegisteredConstPointer<_MA>>(&(this->m_msearray));
 				return retval;
 			}
 			const_iterator cend() const {	// return iterator for end of nonmutable sequence
-				const_iterator retval; retval.m_msearray_regcptr = &(this->m_msearray);
-				(retval.m_ss_const_iterator) = m_msearray.ss_cend();
+				const_iterator retval; //retval.m_msearray_regcptr = &(this->m_msearray);
+				(retval.m_reg_ss_const_iterator) = m_msearray.template ss_cend<mse::TRegisteredConstPointer<_MA>>(&(this->m_msearray));
 				return retval;
 			}
 
@@ -528,11 +550,25 @@ namespace mse {
 					return (*this);
 				}
 				xscope_const_iterator& operator=(const typename _Myt::const_iterator& _Right_cref) {
-					msearray_xscope_ss_const_iterator_type().operator=(_Right_cref.msearray_ss_const_iterator_type());
+					//msearray_xscope_ss_const_iterator_type().operator=(_Right_cref.msearray_reg_ss_const_iterator_type());
+					if (!(_Right_cref.target_container_ptr())
+						|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) { 
+						MSE_THROW(mstdarray_range_error("invalid assignment - mse::mstd::array<>::xscope_const_iterator"));
+					}
+					auto const_ss_iter = (*((*this).target_container_ptr())).ss_cbegin();
+					const_ss_iter += _Right_cref.position();
+					msearray_xscope_ss_const_iterator_type().operator=(const_ss_iter);
 					return (*this);
 				}
 				xscope_const_iterator& operator=(const typename _Myt::iterator& _Right_cref) {
-					msearray_xscope_ss_const_iterator_type().operator=(_Right_cref.msearray_ss_iterator_type());
+					//msearray_xscope_ss_const_iterator_type().operator=(_Right_cref.msearray_reg_ss_iterator_type());
+					if (!(_Right_cref.target_container_ptr())
+						|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
+						MSE_THROW(mstdarray_range_error("invalid assignment - mse::mstd::array<>::xscope_const_iterator"));
+					}
+					auto const_ss_iter = (*((*this).target_container_ptr())).ss_cbegin();
+					const_ss_iter += _Right_cref.position();
+					msearray_xscope_ss_const_iterator_type().operator=(const_ss_iter);
 					return (*this);
 				}
 				bool operator==(const xscope_const_iterator& _Right_cref) const { return msearray_xscope_ss_const_iterator_type().operator==(_Right_cref.msearray_xscope_ss_const_iterator_type()); }
@@ -543,6 +579,9 @@ namespace mse {
 				bool operator>=(const xscope_const_iterator& _Right) const { return (msearray_xscope_ss_const_iterator_type() >= _Right.msearray_xscope_ss_const_iterator_type()); }
 				void set_to_const_item_pointer(const xscope_const_iterator& _Right_cref) { msearray_xscope_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msearray_xscope_ss_const_iterator_type()); }
 				msear_size_t position() const { return msearray_xscope_ss_const_iterator_type().position(); }
+				auto target_container_ptr() const -> decltype(msearray_xscope_ss_const_iterator_type().target_container_ptr()) {
+					return msearray_xscope_ss_const_iterator_type().target_container_ptr();
+				}
 				void xscope_tag() const {}
 				void xscope_iterator_tag() const {}
 			private:
@@ -609,7 +648,14 @@ namespace mse {
 					return (*this);
 				}
 				xscope_iterator& operator=(const typename _Myt::iterator& _Right_cref) {
-					msearray_xscope_ss_iterator_type().operator=(_Right_cref.msearray_ss_iterator_type());
+					//msearray_xscope_ss_iterator_type().operator=(_Right_cref.msearray_reg_ss_iterator_type());
+					if (!(_Right_cref.target_container_ptr())
+						|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
+						MSE_THROW(mstdarray_range_error("invalid assignment - mse::mstd::array<>::xscope_iterator"));
+					}
+					auto ss_iter = (*((*this).target_container_ptr())).ss_begin();
+					ss_iter += _Right_cref.position();
+					msearray_xscope_ss_iterator_type().operator=(ss_iter);
 					return (*this);
 				}
 				bool operator==(const xscope_iterator& _Right_cref) const { return msearray_xscope_ss_iterator_type().operator==(_Right_cref.msearray_xscope_ss_iterator_type()); }
@@ -620,6 +666,9 @@ namespace mse {
 				bool operator>=(const xscope_iterator& _Right) const { return (msearray_xscope_ss_iterator_type() >= _Right.msearray_xscope_ss_iterator_type()); }
 				void set_to_item_pointer(const xscope_iterator& _Right_cref) { msearray_xscope_ss_iterator_type().set_to_item_pointer(_Right_cref.msearray_xscope_ss_iterator_type()); }
 				msear_size_t position() const { return msearray_xscope_ss_iterator_type().position(); }
+				auto target_container_ptr() const -> decltype(msearray_xscope_ss_iterator_type().target_container_ptr()) {
+					return msearray_xscope_ss_iterator_type().target_container_ptr();
+				}
 				void xscope_tag() const {}
 				void xscope_iterator_tag() const {}
 			private:
