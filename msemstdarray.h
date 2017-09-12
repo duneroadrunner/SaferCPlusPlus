@@ -116,7 +116,7 @@ namespace mse {
 			static typename mse::msearray<_Ty, _Size> msearray_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
 				/* Template specializations of this function construct mse::msearrays of non-default constructible
 				elements. This (non-specialized) implementation here should cause a compile error when invoked. */
-				if (0 < _Ilist.size()) { MSE_THROW(mstdarray_range_error("sorry, arrays of this size are not supported with when the elements are non-default constructible - mse::mstd::array")); }
+				if (0 < _Ilist.size()) { MSE_THROW(mstdarray_range_error("sorry, arrays of this size are not supported when the elements are non-default constructible - mse::mstd::array")); }
 				typename mse::msearray<_Ty, _Size> retval {};
 				return retval;
 			}

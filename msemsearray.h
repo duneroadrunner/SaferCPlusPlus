@@ -602,11 +602,11 @@ namespace mse {
 	}
 
 	template<class _Ty, size_t _Size, class _TReentrancyMutex =
-#ifndef NDEBUG
+#if !defined(NDEBUG) || defined(MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT)
 		non_thread_safe_mutex
-#else // !NDEBUG
+#else // !defined(NDEBUG) || defined(MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT)
 		dummy_recursive_shared_timed_mutex
-#endif // !NDEBUG
+#endif // !defined(NDEBUG) || defined(MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT)
 	>
 	class msearray {
 	public:
@@ -816,7 +816,11 @@ namespace mse {
 			typedef typename std::iterator_traits<typename std_array::const_iterator>::pointer pointer;
 			typedef typename std::iterator_traits<typename std_array::const_iterator>::reference reference;
 
+			template<class = typename std::enable_if<std::is_default_constructible<_TMseArrayConstPointer>::value, void>::type>
 			Tss_const_iterator_type() {}
+
+			Tss_const_iterator_type(const _TMseArrayConstPointer& owner_cptr) : m_owner_cptr(owner_cptr) {}
+
 			Tss_const_iterator_type(const Tss_const_iterator_type& src) = default;
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TMseArrayConstPointer>::value, void>::type>
 			Tss_const_iterator_type(const Tss_iterator_type<_Ty2>& src) {
@@ -958,7 +962,7 @@ namespace mse {
 			}
 		private:
 			msear_size_t m_index = 0;
-			_TMseArrayConstPointer m_owner_cptr = nullptr;
+			_TMseArrayConstPointer m_owner_cptr;
 
 			friend class /*_Myt*/msearray<_Ty, _Size>;
 		};
@@ -974,7 +978,11 @@ namespace mse {
 			typedef typename std::iterator_traits<typename std_array::iterator>::reference reference;
 			typedef difference_type distance_type;	// retained
 
+			template<class = typename std::enable_if<std::is_default_constructible<_TMseArrayPointer>::value, void>::type>
 			Tss_iterator_type() {}
+
+			Tss_iterator_type(const _TMseArrayPointer& owner_ptr) : m_owner_ptr(owner_ptr){}
+
 			void reset() { set_to_end_marker(); }
 			bool points_to_an_item() const {
 				if (m_owner_ptr->size() > m_index) { return true; }
@@ -1125,13 +1133,13 @@ namespace mse {
 		private:
 			msear_size_t m_index = 0;
 			//msear_pointer<_Myt> m_owner_ptr = nullptr;
-			_TMseArrayPointer m_owner_ptr = nullptr;
+			_TMseArrayPointer m_owner_ptr;
 
 			friend class /*_Myt*/msearray<_Ty, _Size>;
 			template<typename _TMseArrayConstPointer>
 			friend class Tss_const_iterator_type;
 		};
-		
+
 		template<typename _TMseArrayPointer>
 		using Tss_reverse_iterator_type = std::reverse_iterator<Tss_iterator_type<_TMseArrayPointer>>;
 		template<typename _TMseArrayConstPointer>
@@ -1174,7 +1182,7 @@ namespace mse {
 		template<typename _TMseArrayPointer>
 		static Tss_iterator_type<_TMseArrayPointer> ss_begin(_TMseArrayPointer owner_ptr)
 		{	// return iterator for beginning of mutable sequence
-			Tss_iterator_type<_TMseArrayPointer> retval; retval.m_owner_ptr = owner_ptr;
+			Tss_iterator_type<_TMseArrayPointer> retval(owner_ptr);
 			retval.set_to_beginning();
 			return retval;
 		}
@@ -1182,7 +1190,7 @@ namespace mse {
 		template<typename _TMseArrayPointer>
 		static Tss_iterator_type<_TMseArrayPointer> ss_end(_TMseArrayPointer owner_ptr)
 		{	// return iterator for end of mutable sequence
-			Tss_iterator_type<_TMseArrayPointer> retval; retval.m_owner_ptr = owner_ptr;
+			Tss_iterator_type<_TMseArrayPointer> retval(owner_ptr);
 			retval.set_to_end_marker();
 			return retval;
 		}
@@ -1190,7 +1198,7 @@ namespace mse {
 		template<typename _TMseArrayPointer>
 		static Tss_const_iterator_type<_TMseArrayPointer> ss_cbegin(_TMseArrayPointer owner_ptr)
 		{	// return iterator for beginning of nonmutable sequence
-			Tss_const_iterator_type<_TMseArrayPointer> retval; retval.m_owner_cptr = owner_ptr;
+			Tss_const_iterator_type<_TMseArrayPointer> retval(owner_ptr);
 			retval.set_to_beginning();
 			return retval;
 		}
@@ -1198,7 +1206,7 @@ namespace mse {
 		template<typename _TMseArrayPointer>
 		static Tss_const_iterator_type<_TMseArrayPointer> ss_cend(_TMseArrayPointer owner_ptr)
 		{	// return iterator for end of nonmutable sequence
-			Tss_const_iterator_type<_TMseArrayPointer> retval; retval.m_owner_ptr = owner_ptr;
+			Tss_const_iterator_type<_TMseArrayPointer> retval(owner_ptr);
 			retval.set_to_end_marker();
 			return retval;
 		}
@@ -2090,7 +2098,7 @@ namespace mse {
 
 #if 1
 
-	template<typename _Ty> class TAccessControlledReadWriteObj;
+	template<class _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledReadWriteObj;
 	template<typename _Ty> class TAccessControlledReadWriteConstPointer;
 
 	template<typename _Ty>
@@ -2265,7 +2273,7 @@ namespace mse {
 		//friend class TAccessControlledReadWriteExclusiveConstPointer<_Ty>;
 	};
 
-	template<typename _Ty>
+	template<class _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
 	class TAccessControlledReadWriteObj {
 	public:
 		TAccessControlledReadWriteObj(const TAccessControlledReadWriteObj& src_cref) : m_obj(src_cref.m_obj) {}
@@ -2342,7 +2350,7 @@ namespace mse {
 
 		_Ty m_obj;
 
-		non_thread_safe_recursive_shared_timed_mutex m_mutex1;
+		_TAccessMutex m_mutex1;
 
 		//friend class TAccessControlledReadOnlyObj<_Ty>;
 		friend class TAccessControlledReadWritePointer<_Ty>;
