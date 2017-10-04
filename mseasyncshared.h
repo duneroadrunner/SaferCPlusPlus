@@ -566,7 +566,6 @@ namespace mse {
 	class TAsyncSharedObj : public _TROy {
 	public:
 		MSE_ASYNC_USING(TAsyncSharedObj, _TROy);
-		virtual ~TAsyncSharedObj() {}
 		using _TROy::operator=;
 		//TAsyncSharedObj& operator=(TAsyncSharedObj&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		TAsyncSharedObj& operator=(typename std::conditional<std::is_const<_TROy>::value
@@ -1354,6 +1353,406 @@ namespace mse {
 	template <class X, class... Args>
 	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly(Args&&... args) {
 		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X>::make(std::forward<Args>(args)...);
+	}
+
+
+	template<typename _TAccessLease> class TAsyncSharedXWPReadWriteAccessRequester;
+	template<typename _TAccessLease> class TAsyncSharedV2ReadWritePointer;
+	template<typename _TAccessLease> class TAsyncSharedV2ReadWriteConstPointer;
+	template<typename _TAccessLease> class TAsyncSharedV2ExclusiveReadWritePointer;
+	template<typename _TAccessLease> class TAsyncSharedXWPReadOnlyAccessRequester;
+	template<typename _TAccessLease> class TAsyncSharedV2ReadOnlyConstPointer;
+
+	template <typename _TAccessLease>
+	class TAsyncSharedXWPAccessLeaseObj {
+	public:
+		TAsyncSharedXWPAccessLeaseObj(_TAccessLease&& access_lease)
+			: m_access_lease(std::forward<_TAccessLease>(access_lease)) {}
+		const _TAccessLease& cref() const {
+			return m_access_lease;
+		}
+		async_shared_timed_mutex_type& mutex_ref() const {
+			return m_mutex1;
+		}
+	private:
+		_TAccessLease m_access_lease;
+
+		mutable async_shared_timed_mutex_type m_mutex1;
+
+		friend class TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>;
+		friend class TAsyncSharedV2ReadWritePointer<_TAccessLease>;
+		friend class TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>;
+		friend class TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>;
+		friend class TAsyncSharedXWPReadOnlyAccessRequester<_TAccessLease>;
+		friend class TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>;
+	};
+
+	template<typename _TAccessLease> class TAsyncSharedV2ReadWriteConstPointer;
+
+	template<typename _TAccessLease>
+	class TAsyncSharedV2ReadWritePointer {
+	public:
+		TAsyncSharedV2ReadWritePointer(const TAsyncSharedV2ReadWritePointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
+		TAsyncSharedV2ReadWritePointer(TAsyncSharedV2ReadWritePointer&& src) = default;
+		virtual ~TAsyncSharedV2ReadWritePointer() {}
+
+		operator bool() const {
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
+			return m_shptr.operator bool();
+		}
+		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
+		auto operator*() -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
+			return (*((*m_shptr).cref()));
+		}
+		auto operator->() -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref()))) const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
+			return std::addressof(*((*m_shptr).cref()));
+		}
+	private:
+		TAsyncSharedV2ReadWritePointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
+		TAsyncSharedV2ReadWritePointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock()) {
+				m_shptr = nullptr;
+			}
+		}
+		template<class _Rep, class _Period>
+		TAsyncSharedV2ReadWritePointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock_for(_Rel_time)) {
+				m_shptr = nullptr;
+			}
+		}
+		template<class _Clock, class _Duration>
+		TAsyncSharedV2ReadWritePointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock_until(_Abs_time)) {
+				m_shptr = nullptr;
+			}
+		}
+		TAsyncSharedV2ReadWritePointer<_TAccessLease>& operator=(const TAsyncSharedV2ReadWritePointer<_TAccessLease>& _Right_cref) = delete;
+		TAsyncSharedV2ReadWritePointer<_TAccessLease>& operator=(TAsyncSharedV2ReadWritePointer<_TAccessLease>&& _Right) = delete;
+
+		TAsyncSharedV2ReadWritePointer<_TAccessLease>* operator&() { return this; }
+		const TAsyncSharedV2ReadWritePointer<_TAccessLease>* operator&() const { return this; }
+		bool is_valid() const {
+			bool retval = m_shptr.operator bool();
+			return retval;
+		}
+
+		std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
+		std::unique_lock<async_shared_timed_mutex_type> m_unique_lock;
+
+		friend class TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>;
+		friend class TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>;
+	};
+
+	template<typename _TAccessLease>
+	class TAsyncSharedV2ReadWriteConstPointer {
+	public:
+		TAsyncSharedV2ReadWriteConstPointer(const TAsyncSharedV2ReadWriteConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
+		TAsyncSharedV2ReadWriteConstPointer(TAsyncSharedV2ReadWriteConstPointer&& src) = default;
+		TAsyncSharedV2ReadWriteConstPointer(const TAsyncSharedV2ReadWritePointer<_TAccessLease>& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
+		virtual ~TAsyncSharedV2ReadWriteConstPointer() {}
+
+		operator bool() const {
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWriteConstPointer")); }
+			return m_shptr.operator bool();
+		}
+		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
+		auto operator*() -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
+			return (*((*m_shptr).cref()));
+		}
+		auto operator->() -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
+			return std::addressof(*((*m_shptr).cref()));
+		}
+	private:
+		TAsyncSharedV2ReadWriteConstPointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
+		TAsyncSharedV2ReadWriteConstPointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_shared_lock.try_lock()) {
+				m_shptr = nullptr;
+			}
+		}
+		template<class _Rep, class _Period>
+		TAsyncSharedV2ReadWriteConstPointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_shared_lock.try_lock_for(_Rel_time)) {
+				m_shptr = nullptr;
+			}
+		}
+		template<class _Clock, class _Duration>
+		TAsyncSharedV2ReadWriteConstPointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_shared_lock.try_lock_until(_Abs_time)) {
+				m_shptr = nullptr;
+			}
+		}
+		TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>& operator=(const TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>& _Right_cref) = delete;
+		TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>& operator=(TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>&& _Right) = delete;
+
+		TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>* operator&() { return this; }
+		const TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>* operator&() const { return this; }
+		bool is_valid() const {
+			bool retval = m_shptr.operator bool();
+			return retval;
+		}
+
+		std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
+		std::shared_lock<async_shared_timed_mutex_type> m_shared_lock;
+
+		friend class TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>;
+	};
+
+	template<typename _TAccessLease>
+	class TAsyncSharedV2ExclusiveReadWritePointer {
+	public:
+		TAsyncSharedV2ExclusiveReadWritePointer(const TAsyncSharedV2ExclusiveReadWritePointer& src) = delete;
+		TAsyncSharedV2ExclusiveReadWritePointer(TAsyncSharedV2ExclusiveReadWritePointer&& src) = default;
+		virtual ~TAsyncSharedV2ExclusiveReadWritePointer() {}
+
+		operator bool() const {
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ExclusiveReadWritePointer")); }
+			return m_shptr.operator bool();
+		}
+		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
+		auto operator*() -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
+			return (*((*m_shptr).cref()));
+		}
+		auto operator->() -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref()))) const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
+			return std::addressof(*((*m_shptr).cref()));
+		}
+	private:
+		TAsyncSharedV2ExclusiveReadWritePointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
+		TAsyncSharedV2ExclusiveReadWritePointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock()) {
+				m_shptr = nullptr;
+			}
+		}
+		template<class _Rep, class _Period>
+		TAsyncSharedV2ExclusiveReadWritePointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock_for(_Rel_time)) {
+				m_shptr = nullptr;
+			}
+		}
+		template<class _Clock, class _Duration>
+		TAsyncSharedV2ExclusiveReadWritePointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_unique_lock.try_lock_until(_Abs_time)) {
+				m_shptr = nullptr;
+			}
+		}
+		TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>& operator=(const TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>& _Right_cref) = delete;
+		TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>& operator=(TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>&& _Right) = delete;
+
+		TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>* operator&() { return this; }
+		const TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>* operator&() const { return this; }
+		bool is_valid() const {
+			bool retval = m_shptr.operator bool();
+			return retval;
+		}
+
+		std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
+		unique_nonrecursive_lock<async_shared_timed_mutex_type> m_unique_lock;
+
+		friend class TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>;
+		//friend class TAsyncSharedXWPReadWriteExclusiveConstPointer<_TAccessLease>;
+	};
+
+	template<typename _TAccessLease>
+	class TAsyncSharedXWPReadWriteAccessRequester {
+	public:
+		TAsyncSharedXWPReadWriteAccessRequester(const TAsyncSharedXWPReadWriteAccessRequester& src_cref) = default;
+		TAsyncSharedXWPReadWriteAccessRequester(_TAccessLease&& exclusive_write_pointer) {
+			m_shptr = std::make_shared<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>(std::forward<_TAccessLease>(exclusive_write_pointer));
+		}
+
+		TAsyncSharedV2ReadWritePointer<_TAccessLease> writelock_ptr() {
+			return TAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr);
+		}
+		mse::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr() {
+			mse::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> retval(TAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr, std::try_to_lock));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		template<class _Rep, class _Period>
+		mse::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> retval(TAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr, std::try_to_lock, _Rel_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		template<class _Clock, class _Duration>
+		mse::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> retval(TAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr, std::try_to_lock, _Abs_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		TAsyncSharedV2ReadWriteConstPointer<_TAccessLease> readlock_ptr() {
+			return TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr);
+		}
+		mse::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr() {
+			mse::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr, std::try_to_lock));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		template<class _Rep, class _Period>
+		mse::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Rel_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		template<class _Clock, class _Duration>
+		mse::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Abs_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		/* Note that an exclusive_writelock_ptr cannot coexist with any other lock_ptrs (targeting the same object), including ones in
+		the same thread. Thus, using exclusive_writelock_ptrs without sufficient care introduces the potential for exceptions (in a way
+		that sticking to (regular) writelock_ptrs doesn't). */
+		TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease> exclusive_writelock_ptr() {
+			return TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>(m_shptr);
+		}
+
+		static TAsyncSharedXWPReadWriteAccessRequester make(_TAccessLease&& exclusive_write_pointer) {
+			return TAsyncSharedXWPReadWriteAccessRequester(std::forward<_TAccessLease>(exclusive_write_pointer));
+		}
+
+	private:
+		TAsyncSharedXWPReadWriteAccessRequester(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr) : m_shptr(shptr) {}
+
+		TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>* operator&() { return this; }
+		const TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>* operator&() const { return this; }
+
+		std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
+
+		friend class TAsyncSharedXWPReadOnlyAccessRequester<_TAccessLease>;
+	};
+
+	template<typename _TAccessLease>
+	TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease> make_asyncsharedxwpreadwrite(_TAccessLease&& exclusive_write_pointer) {
+		return TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>::make(std::forward<_TAccessLease>(exclusive_write_pointer));
+	}
+
+
+	template<typename _TAccessLease>
+	class TAsyncSharedV2ReadOnlyConstPointer {
+	public:
+		TAsyncSharedV2ReadOnlyConstPointer(const TAsyncSharedV2ReadOnlyConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
+		TAsyncSharedV2ReadOnlyConstPointer(TAsyncSharedV2ReadOnlyConstPointer&& src) = default;
+		virtual ~TAsyncSharedV2ReadOnlyConstPointer() {}
+
+		operator bool() const {
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadOnlyConstPointer")); }
+			return m_shptr.operator bool();
+		}
+		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
+		auto operator*() -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
+			return (*((*m_shptr).cref()));
+		}
+		auto operator->() -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type const {
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
+			return std::addressof(*((*m_shptr).cref()));
+		}
+	private:
+		TAsyncSharedV2ReadOnlyConstPointer(std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1) {}
+		TAsyncSharedV2ReadOnlyConstPointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_shared_lock.try_lock()) {
+				m_shptr = nullptr;
+			}
+		}
+		template<class _Rep, class _Period>
+		TAsyncSharedV2ReadOnlyConstPointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_shared_lock.try_lock_for(_Rel_time)) {
+				m_shptr = nullptr;
+			}
+		}
+		template<class _Clock, class _Duration>
+		TAsyncSharedV2ReadOnlyConstPointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_shptr(shptr), m_shared_lock(shptr->m_mutex1, std::defer_lock) {
+			if (!m_shared_lock.try_lock_until(_Abs_time)) {
+				m_shptr = nullptr;
+			}
+		}
+		TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>& operator=(const TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>& _Right_cref) = delete;
+		TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>& operator=(TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>&& _Right) = delete;
+
+		TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>* operator&() { return this; }
+		const TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>* operator&() const { return this; }
+		bool is_valid() const {
+			bool retval = m_shptr.operator bool();
+			return retval;
+		}
+
+		std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
+		std::shared_lock<async_shared_timed_mutex_type> m_shared_lock;
+
+		friend class TAsyncSharedXWPReadOnlyAccessRequester<_TAccessLease>;
+	};
+
+	template<typename _TAccessLease>
+	class TAsyncSharedXWPReadOnlyAccessRequester {
+	public:
+		TAsyncSharedXWPReadOnlyAccessRequester(const TAsyncSharedXWPReadOnlyAccessRequester& src_cref) = default;
+		TAsyncSharedXWPReadOnlyAccessRequester(const TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>& src_cref) : m_shptr(src_cref.m_shptr) {}
+
+		TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease> readlock_ptr() {
+			return TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr);
+		}
+		mse::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr() {
+			mse::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr, std::try_to_lock));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		template<class _Rep, class _Period>
+		mse::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Rel_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+		template<class _Clock, class _Duration>
+		mse::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Abs_time));
+			if (!((*retval).is_valid())) {
+				return{};
+			}
+			return retval;
+		}
+
+		template <class... Args>
+		static TAsyncSharedXWPReadOnlyAccessRequester make(Args&&... args) {
+			//auto shptr = std::make_shared<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>(std::forward<Args>(args)...);
+			std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr(new const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>(std::forward<Args>(args)...));
+			TAsyncSharedXWPReadOnlyAccessRequester retval(shptr);
+			return retval;
+		}
+
+	private:
+		TAsyncSharedXWPReadOnlyAccessRequester(std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr) : m_shptr(shptr) {}
+
+		TAsyncSharedXWPReadOnlyAccessRequester<_TAccessLease>* operator&() { return this; }
+		const TAsyncSharedXWPReadOnlyAccessRequester<_TAccessLease>* operator&() const { return this; }
+
+		std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
+	};
+
+	template <class X, class... Args>
+	TAsyncSharedXWPReadOnlyAccessRequester<X> make_asyncsharedxwpreadonly(Args&&... args) {
+		return TAsyncSharedXWPReadOnlyAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
 

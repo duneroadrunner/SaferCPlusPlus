@@ -365,23 +365,23 @@ namespace mse {
 		typedef _Mutex base_class;
 
 		void nonrecursive_lock() {
-			nonrecursive_lock_helper(std::conditional<HasNonrecursiveUnlockMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
+			nonrecursive_lock_helper(typename std::conditional<HasNonrecursiveUnlockMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
 		}
 		bool try_nonrecursive_lock() {	// try to lock nonrecursive
-			return nonrecursive_try_lock_helper(std::conditional<HasNonrecursiveUnlockMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
+			return nonrecursive_try_lock_helper(typename std::conditional<HasNonrecursiveUnlockMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
 		}
 		void nonrecursive_unlock() {
-			nonrecursive_unlock_helper(std::conditional<HasNonrecursiveUnlockMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
+			nonrecursive_unlock_helper(typename std::conditional<HasNonrecursiveUnlockMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
 		}
 
 		void lock_shared() {	// lock non-exclusive
-			lock_shared_helper(std::conditional<HasUnlockSharedMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
+			lock_shared_helper(typename std::conditional<HasUnlockSharedMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
 		}
 		bool try_lock_shared() {	// try to lock non-exclusive
-			return try_lock_shared_helper(std::conditional<HasUnlockSharedMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
+			return try_lock_shared_helper(typename std::conditional<HasUnlockSharedMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
 		}
 		void unlock_shared() {	// unlock non-exclusive
-			unlock_shared_helper(std::conditional<HasUnlockSharedMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
+			unlock_shared_helper(typename std::conditional<HasUnlockSharedMethod_msemsearray<_Mutex>::Has, std::true_type, std::false_type>::type());
 		}
 	private:
 		void nonrecursive_lock_helper(std::true_type) {
@@ -693,6 +693,25 @@ namespace mse {
 	TSyncWeakFixedIterator<_TIterator, _TLeasePointer> make_syncweak_iterator(const _TIterator& src_iterator, const _TLeasePointer& lease_pointer) {
 		return TSyncWeakFixedIterator<_TIterator, _TLeasePointer>::make(src_iterator, lease_pointer);
 	}
+
+
+	template<typename T>
+	struct HasNotAsyncShareableTagMethod_msemsearray
+	{
+		template<typename U, void(U::*)() const> struct SFINAE {};
+		template<typename U> static char Test(SFINAE<U, &U::not_async_shareable_tag>*);
+		template<typename U> static int Test(...);
+		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+	};
+
+	template<typename T>
+	struct HasAsyncShareableTagMethod_msemsearray
+	{
+		template<typename U, void(U::*)() const> struct SFINAE {};
+		template<typename U> static char Test(SFINAE<U, &U::async_shareable_tag>*);
+		template<typename U> static int Test(...);
+		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+	};
 
 
 	template<class _Ty, size_t _Size>
@@ -1247,6 +1266,7 @@ namespace mse {
 		public:
 			typedef Tss_iterator_type<msear_pointer<_Myt>> base_class;
 			MSE_USING(ss_iterator_type, base_class);
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 			friend class ss_const_iterator_type;
 		};
@@ -1258,12 +1278,14 @@ namespace mse {
 				(*this).m_owner_cptr = src.m_owner_ptr;
 				(*this).m_index = src.m_index;
 			}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		};
 
 		class ss_reverse_iterator_type : public Tss_reverse_iterator_type<msear_pointer<_Myt>> {
 		public:
 			typedef Tss_reverse_iterator_type<msear_pointer<_Myt>> base_class;
 			MSE_USING(ss_reverse_iterator_type, base_class);
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 			friend class ss_const_reverse_iterator_type;
 		};
@@ -1275,6 +1297,7 @@ namespace mse {
 				(*this).m_owner_cptr = src.m_owner_ptr;
 				(*this).m_index = src.m_index;
 			}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		};
 
 		template<typename _TMseArrayPointer>
@@ -1399,6 +1422,7 @@ namespace mse {
 			void set_to_const_item_pointer(const xscope_ss_const_iterator_type& _Right_cref) { ss_const_iterator_type::set_to_item_pointer(_Right_cref); }
 			msear_size_t position() const { return ss_const_iterator_type::position(); }
 			void xscope_ss_iterator_type_tag() const {}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		private:
 			void* operator new(size_t size) { return ::operator new(size); }
 
@@ -1466,6 +1490,7 @@ namespace mse {
 			void set_to_item_pointer(const xscope_ss_iterator_type& _Right_cref) { ss_iterator_type::set_to_item_pointer(_Right_cref); }
 			msear_size_t position() const { return ss_iterator_type::position(); }
 			void xscope_ss_iterator_type_tag() const {}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		private:
 			void* operator new(size_t size) { return ::operator new(size); }
 
@@ -1479,6 +1504,12 @@ namespace mse {
 		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for arrays
 			return (m_array < _Right.m_array);
 		}
+
+		/* This array is safely "async shareable" if the elements it contains are also "async shareable". */
+
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	protected:
@@ -1791,6 +1822,7 @@ namespace mse {
 			void set_to_const_item_pointer(const xscope_ss_const_iterator_type& _Right_cref) { ss_const_iterator_type::set_to_item_pointer(_Right_cref); }
 			msear_size_t position() const { return ss_const_iterator_type::position(); }
 			void xscope_ss_iterator_type_tag() const {}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		private:
 			void* operator new(size_t size) { return ::operator new(size); }
 
@@ -1858,6 +1890,7 @@ namespace mse {
 			void set_to_item_pointer(const xscope_ss_iterator_type& _Right_cref) { ss_iterator_type::set_to_item_pointer(_Right_cref); }
 			msear_size_t position() const { return ss_iterator_type::position(); }
 			void xscope_ss_iterator_type_tag() const {}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		private:
 			void* operator new(size_t size) { return ::operator new(size); }
 
@@ -2554,26 +2587,8 @@ namespace mse {
 	template <class N, int _Size>
 	struct is_std_array<std::array<N, _Size> > { static const int value = 1; };
 
-	template<typename T>
-	struct HasNotAsyncShareableTagMethod_msemsearray
-	{
-		template<typename U, void(U::*)() const> struct SFINAE {};
-		template<typename U> static char Test(SFINAE<U, &U::not_async_shareable_tag>*);
-		template<typename U> static int Test(...);
-		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
-	};
-
-	template<typename T>
-	struct HasAsyncShareableTagMethod_msemsearray
-	{
-		template<typename U, void(U::*)() const> struct SFINAE {};
-		template<typename U> static char Test(SFINAE<U, &U::async_shareable_tag>*);
-		template<typename U> static int Test(...);
-		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
-	};
-
 	/* TAsyncShareableObj is intended as a transparent wrapper for other classes/objects. */
-	template<typename _TROy/*, class = typename std::enable_if<(!std::integral_constant<bool, HasNotAsyncShareableTagMethod_msemsearray<_TROy>::Has>()), void>::type*/>
+	template<typename _TROy>
 	class TAsyncShareableObj : public _TROy {
 	public:
 		MSE_USING(TAsyncShareableObj, _TROy);
@@ -2593,7 +2608,7 @@ namespace mse {
 			(!std::integral_constant<bool, HasNotAsyncShareableTagMethod_msemsearray<_TROy>::Has>())
 			/*&& (!is_std_array<_TROy>::value)*/
 				), void>::type>
-		void _TROy_is_not_marked_as_unshareable() {}
+		void _TROy_is_not_marked_as_unshareable() const {}
 
 		TAsyncShareableObj(const TAsyncShareableObj& _X) : _TROy(_X) {}
 		TAsyncShareableObj(TAsyncShareableObj&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
@@ -2864,23 +2879,27 @@ namespace mse {
 		the same thread. Thus, using exclusive_writelock_ptrs without sufficient care introduces the potential for exceptions (in a way
 		that sticking to (regular) writelock_ptrs doesn't). */
 		TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex> exclusive_writelock_ptr() {
-			return TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex>(*this);
+			return TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex>(this);
 		}
+
+		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
+		_TWrappedAccessMutex m_mutex1;
 
 	private:
 
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
-		function), then the following member function will not instantiate, causing an (intended) compile error. */
-		template<class = typename std::enable_if<(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty>::Has>()), void>::type>
-		void _Ty_is_marked_as_shareable() {}
+		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
+		objects can be marked safe to share by wrapping them with TUserDeclaredAsyncShareableObj<>. */
+
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
+		void _Ty_is_marked_as_shareable() const {}
 
 		TAccessControlledReadWriteObj* operator&() { return this; }
 		const TAccessControlledReadWriteObj* operator&() const { return this; }
 
 		_Ty m_obj;
-
-		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
-		_TWrappedAccessMutex m_mutex1;
 
 		//friend class TAccessControlledReadOnlyObj<_Ty, _TAccessMutex>;
 		friend class TAccessControlledReadWritePointer<_Ty, _TAccessMutex>;

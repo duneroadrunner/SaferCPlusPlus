@@ -1264,9 +1264,9 @@ namespace mse {
 
 
 	template <typename _TAccessLease>
-	class TAccessLeaseObj {
+	class TSplitterAccessLeaseObj {
 	public:
-		TAccessLeaseObj(_TAccessLease&& access_lease)
+		TSplitterAccessLeaseObj(_TAccessLease&& access_lease)
 			: m_access_lease(std::forward<_TAccessLease>(access_lease)) {}
 		const _TAccessLease& cref() const {
 			return m_access_lease;
@@ -1286,7 +1286,7 @@ namespace mse {
 
 		template<typename _TList>
 		TAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, _TList section_sizes)
-			: m_access_lease_obj_shptr(std::make_shared<TAccessLeaseObj<exclusive_writelock_ptr_t>>(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr))) {
+			: m_access_lease_obj_shptr(std::make_shared<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t>>(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr))) {
 			size_t cummulative_size = 0;
 			auto section_begin_it = m_access_lease_obj_shptr->cref()->begin();
 			for (const auto& section_size : section_sizes) {
@@ -1308,7 +1308,7 @@ namespace mse {
 			: TAsyncRASectionSplitterXWP(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr), std::array<size_t, 1>{{split_index}}) {}
 		/*
 		TAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, size_t split_index)
-			: m_access_lease_obj_shptr(std::make_shared<TAccessLeaseObj<exclusive_writelock_ptr_t>>(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr))) {
+			: m_access_lease_obj_shptr(std::make_shared<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t>>(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr))) {
 			auto section_begin_it = exclusive_writelock_ptr->begin();
 			size_t section_size = split_index;
 			{
@@ -1335,7 +1335,7 @@ namespace mse {
 			return m_ra_sections.at(1);
 		}
 	private:
-		std::shared_ptr<TAccessLeaseObj<exclusive_writelock_ptr_t>> m_access_lease_obj_shptr;
+		std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t>> m_access_lease_obj_shptr;
 		msevector<ras_ar_t> m_ra_sections;
 	};
 
