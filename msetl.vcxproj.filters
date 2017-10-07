@@ -75,6 +75,12 @@
     <ClInclude Include="mselegacyhelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="msemsestring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msemstdstring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="msetl_example.cpp">

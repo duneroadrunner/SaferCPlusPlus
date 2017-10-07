@@ -75,6 +75,12 @@ namespace mse {
 		_Ty& m_mutex_ref;
 	};
 
+	/* todo: Detect the case where two threads each have a "read" lock and are (indefinitely) blocking on obtaining a "write"
+	lock (in addition to the "read" locks they already hold). This is a deadlock case. We should throw an exception when the
+	second thread requests a "write" lock (by calling "lock()"). */
+	/* Note that this "recursive_shared_timed_mutex" allows a thread to hold "read" (shared) locks and "write" locks at the
+	same time. It also provides "nonrecursive_lock()" member functions to obtain a lock that is exclusive within the thread
+	as well as between threads. */
 	class recursive_shared_timed_mutex : private std::shared_timed_mutex {
 	public:
 		typedef std::shared_timed_mutex base_class;
@@ -1356,11 +1362,11 @@ namespace mse {
 	}
 
 
-	template<typename _TAccessLease> class TAsyncSharedXWPReadWriteAccessRequester;
+	template<typename _TAccessLease> class TAsyncSharedV2XWPReadWriteAccessRequester;
 	template<typename _TAccessLease> class TAsyncSharedV2ReadWritePointer;
 	template<typename _TAccessLease> class TAsyncSharedV2ReadWriteConstPointer;
 	template<typename _TAccessLease> class TAsyncSharedV2ExclusiveReadWritePointer;
-	template<typename _TAccessLease> class TAsyncSharedXWPReadOnlyAccessRequester;
+	template<typename _TAccessLease> class TAsyncSharedV2XWPReadOnlyAccessRequester;
 	template<typename _TAccessLease> class TAsyncSharedV2ReadOnlyConstPointer;
 
 	template <typename _TAccessLease>
@@ -1379,11 +1385,11 @@ namespace mse {
 
 		mutable async_shared_timed_mutex_type m_mutex1;
 
-		friend class TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>;
+		friend class TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>;
 		friend class TAsyncSharedV2ReadWritePointer<_TAccessLease>;
 		friend class TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>;
 		friend class TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>;
-		friend class TAsyncSharedXWPReadOnlyAccessRequester<_TAccessLease>;
+		friend class TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>;
 		friend class TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>;
 	};
 
@@ -1441,7 +1447,7 @@ namespace mse {
 		std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
 		std::unique_lock<async_shared_timed_mutex_type> m_unique_lock;
 
-		friend class TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>;
+		friend class TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>;
 		friend class TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>;
 	};
 
@@ -1498,7 +1504,7 @@ namespace mse {
 		std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
 		std::shared_lock<async_shared_timed_mutex_type> m_shared_lock;
 
-		friend class TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>;
+		friend class TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>;
 	};
 
 	template<typename _TAccessLease>
@@ -1553,15 +1559,15 @@ namespace mse {
 		std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
 		unique_nonrecursive_lock<async_shared_timed_mutex_type> m_unique_lock;
 
-		friend class TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>;
+		friend class TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>;
 		//friend class TAsyncSharedXWPReadWriteExclusiveConstPointer<_TAccessLease>;
 	};
 
 	template<typename _TAccessLease>
-	class TAsyncSharedXWPReadWriteAccessRequester {
+	class TAsyncSharedV2XWPReadWriteAccessRequester {
 	public:
-		TAsyncSharedXWPReadWriteAccessRequester(const TAsyncSharedXWPReadWriteAccessRequester& src_cref) = default;
-		TAsyncSharedXWPReadWriteAccessRequester(_TAccessLease&& exclusive_write_pointer) {
+		TAsyncSharedV2XWPReadWriteAccessRequester(const TAsyncSharedV2XWPReadWriteAccessRequester& src_cref) = default;
+		TAsyncSharedV2XWPReadWriteAccessRequester(_TAccessLease&& exclusive_write_pointer) {
 			m_shptr = std::make_shared<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>(std::forward<_TAccessLease>(exclusive_write_pointer));
 		}
 
@@ -1624,24 +1630,25 @@ namespace mse {
 			return TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>(m_shptr);
 		}
 
-		static TAsyncSharedXWPReadWriteAccessRequester make(_TAccessLease&& exclusive_write_pointer) {
-			return TAsyncSharedXWPReadWriteAccessRequester(std::forward<_TAccessLease>(exclusive_write_pointer));
+		static TAsyncSharedV2XWPReadWriteAccessRequester make(_TAccessLease&& exclusive_write_pointer) {
+			auto shptr = std::make_shared<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>(std::forward<_TAccessLease>(exclusive_write_pointer));
+			return TAsyncSharedV2XWPReadWriteAccessRequester(shptr);
 		}
 
 	private:
-		TAsyncSharedXWPReadWriteAccessRequester(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr) : m_shptr(shptr) {}
+		TAsyncSharedV2XWPReadWriteAccessRequester(const std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr) : m_shptr(shptr) {}
 
-		TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>* operator&() const { return this; }
+		TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>* operator&() { return this; }
+		const TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>* operator&() const { return this; }
 
 		std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
 
-		friend class TAsyncSharedXWPReadOnlyAccessRequester<_TAccessLease>;
+		friend class TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>;
 	};
 
 	template<typename _TAccessLease>
-	TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease> make_asyncsharedxwpreadwrite(_TAccessLease&& exclusive_write_pointer) {
-		return TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>::make(std::forward<_TAccessLease>(exclusive_write_pointer));
+	TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease> make_asyncsharedv2xwpreadwrite(_TAccessLease&& exclusive_write_pointer) {
+		return TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>::make(std::forward<_TAccessLease>(exclusive_write_pointer));
 	}
 
 
@@ -1697,14 +1704,14 @@ namespace mse {
 		std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
 		std::shared_lock<async_shared_timed_mutex_type> m_shared_lock;
 
-		friend class TAsyncSharedXWPReadOnlyAccessRequester<_TAccessLease>;
+		friend class TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>;
 	};
 
 	template<typename _TAccessLease>
-	class TAsyncSharedXWPReadOnlyAccessRequester {
+	class TAsyncSharedV2XWPReadOnlyAccessRequester {
 	public:
-		TAsyncSharedXWPReadOnlyAccessRequester(const TAsyncSharedXWPReadOnlyAccessRequester& src_cref) = default;
-		TAsyncSharedXWPReadOnlyAccessRequester(const TAsyncSharedXWPReadWriteAccessRequester<_TAccessLease>& src_cref) : m_shptr(src_cref.m_shptr) {}
+		TAsyncSharedV2XWPReadOnlyAccessRequester(const TAsyncSharedV2XWPReadOnlyAccessRequester& src_cref) = default;
+		TAsyncSharedV2XWPReadOnlyAccessRequester(const TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>& src_cref) : m_shptr(src_cref.m_shptr) {}
 
 		TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease> readlock_ptr() {
 			return TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr);
@@ -1734,25 +1741,66 @@ namespace mse {
 		}
 
 		template <class... Args>
-		static TAsyncSharedXWPReadOnlyAccessRequester make(Args&&... args) {
+		static TAsyncSharedV2XWPReadOnlyAccessRequester make(Args&&... args) {
 			//auto shptr = std::make_shared<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>(std::forward<Args>(args)...);
 			std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr(new const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>(std::forward<Args>(args)...));
-			TAsyncSharedXWPReadOnlyAccessRequester retval(shptr);
+			TAsyncSharedV2XWPReadOnlyAccessRequester retval(shptr);
 			return retval;
 		}
 
 	private:
-		TAsyncSharedXWPReadOnlyAccessRequester(std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr) : m_shptr(shptr) {}
+		TAsyncSharedV2XWPReadOnlyAccessRequester(std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr) : m_shptr(shptr) {}
 
-		TAsyncSharedXWPReadOnlyAccessRequester<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedXWPReadOnlyAccessRequester<_TAccessLease>* operator&() const { return this; }
+		TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>* operator&() { return this; }
+		const TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>* operator&() const { return this; }
 
 		std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
 	};
 
+	template<typename _TAccessLease>
+	TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease> make_asyncsharedv2xwpreadonly(_TAccessLease&& exclusive_write_pointer) {
+		return TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>::make(std::forward<_TAccessLease>(exclusive_write_pointer));
+	}
+
+
+	template <typename _Ty>
+	class TAsyncSharedV2ReadWriteAccessRequester : public TAsyncSharedV2XWPReadWriteAccessRequester<std::shared_ptr<_Ty>> {
+	public:
+		typedef TAsyncSharedV2XWPReadWriteAccessRequester<std::shared_ptr<_Ty>> base_class;
+
+		TAsyncSharedV2ReadWriteAccessRequester(const TAsyncSharedV2ReadWriteAccessRequester& src_cref) = default;
+
+		~TAsyncSharedV2ReadWriteAccessRequester() {
+			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+			_Ty_is_marked_as_shareable();
+		}
+
+		template <class... Args>
+		static TAsyncSharedV2ReadWriteAccessRequester make(Args&&... args) {
+			//auto shptr = std::make_shared<_Ty>(std::forward<Args>(args)...);
+			std::shared_ptr<_Ty> shptr(new _Ty(std::forward<Args>(args)...));
+			TAsyncSharedV2ReadWriteAccessRequester retval(shptr);
+			return retval;
+		}
+
+	private:
+		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
+		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
+		objects can be marked safe to share by wrapping them with TUserDeclaredAsyncShareableObj<>. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
+		void _Ty_is_marked_as_shareable() const {}
+
+		TAsyncSharedV2ReadWriteAccessRequester(std::shared_ptr<_Ty> shptr) : base_class(make_asyncsharedv2xwpreadwrite(std::forward<std::shared_ptr<_Ty>>(shptr))) {}
+
+		TAsyncSharedV2ReadWriteAccessRequester<_Ty>* operator&() { return this; }
+		const TAsyncSharedV2ReadWriteAccessRequester<_Ty>* operator&() const { return this; }
+	};
+
 	template <class X, class... Args>
-	TAsyncSharedXWPReadOnlyAccessRequester<X> make_asyncsharedxwpreadonly(Args&&... args) {
-		return TAsyncSharedXWPReadOnlyAccessRequester<X>::make(std::forward<Args>(args)...);
+	TAsyncSharedV2ReadWriteAccessRequester<X> make_asyncsharedv2readwrite(Args&&... args) {
+		return TAsyncSharedV2ReadWriteAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
 

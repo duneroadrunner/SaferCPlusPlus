@@ -1281,17 +1281,20 @@ namespace mse {
 		typedef _TExclusiveWritelockPtr exclusive_writelock_ptr_t;
 		typedef typename std::remove_reference<decltype(*(std::declval<exclusive_writelock_ptr_t>()))>::type _TContainer;
 		typedef typename std::remove_reference<decltype(std::declval<_TContainer>()[0])>::type element_t;
-		typedef typename std::remove_reference<decltype(std::declval<_TContainer>().begin())>::type iterator_t;
-		typedef TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<TRandomAccessSection<iterator_t>> ras_ar_t;
+		//typedef typename std::remove_reference<decltype(std::declval<_TContainer>().begin())>::type iterator_t;
+		typedef mse::TRAIterator<_TContainer*> ra_iterator_t;
+		//typedef TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<TRandomAccessSection<iterator_t>> ras_ar_t;
+		typedef TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<TRandomAccessSection<ra_iterator_t>> ras_ar_t;
 
 		template<typename _TList>
 		TAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, _TList section_sizes)
 			: m_access_lease_obj_shptr(std::make_shared<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t>>(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr))) {
 			size_t cummulative_size = 0;
-			auto section_begin_it = m_access_lease_obj_shptr->cref()->begin();
+			//auto section_begin_it = m_access_lease_obj_shptr->cref()->begin();
+			auto section_begin_it = ra_iterator_t(std::addressof(*(m_access_lease_obj_shptr->cref())));
 			for (const auto& section_size : section_sizes) {
 				auto it1 = mse::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
-				auto ras_ar1 = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite<TRandomAccessSection<iterator_t>>(it1, section_size);
+				auto ras_ar1 = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite<TRandomAccessSection<ra_iterator_t>>(it1, section_size);
 				m_ra_sections.push_back(ras_ar1);
 				
 				cummulative_size += section_size;
@@ -1300,7 +1303,7 @@ namespace mse {
 			if (m_access_lease_obj_shptr->cref()->size() > cummulative_size) {
 				auto section_size = m_access_lease_obj_shptr->cref()->size() - cummulative_size;
 				auto it1 = mse::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
-				auto ras_ar1 = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite<TRandomAccessSection<iterator_t>>(it1, section_size);
+				auto ras_ar1 = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite<TRandomAccessSection<ra_iterator_t>>(it1, section_size);
 				m_ra_sections.push_back(ras_ar1);
 			}
 		}

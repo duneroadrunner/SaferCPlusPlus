@@ -58,6 +58,7 @@ them to be enabled. */
 #include "msevector_test.h"
 #include "mseprimitives.h"
 #include "mselegacyhelpers.h"
+#include "msemstdstring.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -139,13 +140,13 @@ public:
 		//std::cout << std::endl;
 		return timespan_in_seconds;
 	}
-	template<class _TStringContainerPtr>
-	static void foo8(_TStringContainerPtr container_ptr) {
+	template<class _TStringRAContainerPtr>
+	static void foo8(_TStringRAContainerPtr ra_container_ptr) {
 		size_t delay_in_milliseconds = 3000/*arbitrary*/;
-		if (1 <= (*container_ptr).size()) {
-			delay_in_milliseconds /= (*container_ptr).size();
+		if (1 <= (*ra_container_ptr).size()) {
+			delay_in_milliseconds /= (*ra_container_ptr).size();
 		}
-		for (auto& item_ref : *container_ptr) {
+		for (size_t i = 0; i < (*ra_container_ptr).size(); i += 1) {
 			auto now1 = std::chrono::system_clock::now();
 			auto tt = std::chrono::system_clock::to_time_t(now1);
 
@@ -159,7 +160,7 @@ public:
 #endif /*_MSC_VER*/
 
 			std::string now_str(buffer);
-			item_ref = now_str;
+			(*ra_container_ptr)[i] = now_str;
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(delay_in_milliseconds));
 		}
@@ -1907,24 +1908,25 @@ int main(int argc, char* argv[])
 			static const size_t section_size = 5;
 			const size_t num_elements = num_sections * section_size;
 
-			typedef mse::msearray<std::string, num_elements> array1_t;
+			typedef mse::nii_array<mse::nii_string, num_elements> async_shareable_array1_t;
+			typedef mse::mstd::array<mse::nii_string, num_elements> nonshareable_array1_t;
 			/* Let's say we have an array. */
-			array1_t array1;
+			nonshareable_array1_t array1;
 			{
-				size_t count = 0;
-				for (auto& item_ref : array1) {
-					count += 1;
-					item_ref = "text" + std::to_string(count);
-				}
+			size_t count = 0;
+			for (auto& item_ref : array1) {
+				count += 1;
+				item_ref = "text" + std::to_string(count);
+			}
 			}
 
 			/* Only access controlled objects can be shared with other threads, so we'll make an access controlled array and
 			(temporarily) swap it with our original one. */
-			auto ash_access_requester = mse::make_asyncsharedreadwrite<array1_t>();
+			auto ash_access_requester = mse::make_asyncsharedreadwrite<async_shareable_array1_t>();
 			array1.swap(*(ash_access_requester.writelock_ptr()));
 
 			{
-				/* Now, we're going to use the access requester to obtain two new access requesters that provide access to 
+				/* Now, we're going to use the access requester to obtain two new access requesters that provide access to
 				(newly created) "random access section" objects which are used to access (disjoint) sections of the array.
 				We need to specify the position where we want to split the array. Here we specify that it be split at index
 				"num_elements / 2", right down the middle. */
@@ -1995,6 +1997,20 @@ int main(int argc, char* argv[])
 			auto last_element_value = array1.back();
 
 			int q = 5;
+		}
+		{
+			mse::mstd::string mstd_string1;
+			mse::TUserDeclaredAsyncShareableObj<std::string> aso1;
+			//mse::TUserDeclaredAsyncShareableObj<mse::msearray<std::string, 3>> aso2;
+			mse::TUserDeclaredAsyncShareableObj<mse::nii_array<std::string, 3>> aso3;
+
+			mse::TAccessControlledReadWriteObj<mse::TUserDeclaredAsyncShareableObj<std::string>> aco1;
+			auto asxwp_ar = mse::make_asyncsharedv2xwpreadwrite(aco1.exclusive_writelock_ptr());
+			mse::TAccessControlledReadWriteObj<mse::nii_array<mse::nii_string, 3>> aco2;
+			//mse::TAccessControlledReadWriteObj<mse::nii_array<std::string, 3>> aco3;
+
+			auto as_ar = mse::make_asyncsharedv2readwrite<mse::nii_string>("some text");
+			//auto as_ar2 = mse::make_asyncsharedv2readwrite<std::string>("some text");
 		}
 	}
 

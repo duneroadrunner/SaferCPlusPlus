@@ -124,16 +124,16 @@ namespace mse {
 			typedef typename _MA::reference reference;
 			typedef typename _MA::const_reference const_reference;
 
-			const _MA& nii_array() const { return m_nii_array; }
-			_MA& nii_array() { return m_nii_array; }
-			operator const _MA() const { return nii_array(); }
-			operator _MA() { return nii_array(); }
+			const _MA& as_nii_array() const { return m_nii_array; }
+			_MA& as_nii_array() { return m_nii_array; }
+			operator const _MA() const { return as_nii_array(); }
+			operator _MA() { return as_nii_array(); }
 
 			array() {}
 			array(_MA&& _X) : m_nii_array(std::forward<decltype(_X)>(_X)) {}
 			array(const _MA& _X) : m_nii_array(_X) {}
-			array(_Myt&& _X) : m_nii_array(std::forward<decltype(_X.nii_array())>(_X.nii_array())) {}
-			array(const _Myt& _X) : m_nii_array(_X.nii_array()) {}
+			array(_Myt&& _X) : m_nii_array(std::forward<decltype(_X.as_nii_array())>(_X.as_nii_array())) {}
+			array(const _Myt& _X) : m_nii_array(_X.as_nii_array()) {}
 			//array(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : m_nii_array(_Ilist) {}
 			static std::array<_Ty, _Size> std_array_initial_value(std::true_type, _XSTD initializer_list<_Ty> _Ilist) {
 				/* _Ty is default constructible. */
@@ -170,13 +170,13 @@ namespace mse {
 
 			_Myt& operator=(_MA&& _X) { m_nii_array.operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 			_Myt& operator=(const _MA& _X) { m_nii_array.operator=(_X); return (*this); }
-			_Myt& operator=(_Myt&& _X) { m_nii_array.operator=(std::forward<decltype(_X.nii_array())>(_X.nii_array())); return (*this); }
-			_Myt& operator=(const _Myt& _X) { m_nii_array.operator=(_X.nii_array()); return (*this); }
+			_Myt& operator=(_Myt&& _X) { m_nii_array.operator=(std::forward<decltype(_X.as_nii_array())>(_X.as_nii_array())); return (*this); }
+			_Myt& operator=(const _Myt& _X) { m_nii_array.operator=(_X.as_nii_array()); return (*this); }
 			_CONST_FUN typename _MA::const_reference operator[](size_type _P) const { return m_nii_array.operator[](_P); }
 			typename _MA::reference operator[](size_type _P) { return m_nii_array.operator[](_P); }
 			void fill(const _Ty& _Value) { m_nii_array.fill(_Value); }
 			void swap(_MA& _X) { m_nii_array.swap(_X); }
-			void swap(_Myt& _X) { m_nii_array.swap(_X.nii_array()); }
+			void swap(_Myt& _X) { m_nii_array.swap(_X.as_nii_array()); }
 
 			_CONST_FUN size_type size() const _NOEXCEPT { return m_nii_array.size(); }
 			_CONST_FUN size_type max_size() const _NOEXCEPT { return m_nii_array.max_size(); }
@@ -202,8 +202,8 @@ namespace mse {
 			array(const std::array<_Ty, _Size>& _X) {
 				m_nii_array.m_array = _X;
 			}
-			operator const std::array<_Ty, _Size>() const { return nii_array(); }
-			operator std::array<_Ty, _Size>() { return nii_array(); }
+			operator const std::array<_Ty, _Size>() const { return as_nii_array(); }
+			operator std::array<_Ty, _Size>() { return as_nii_array(); }
 
 
 			class reg_ss_iterator_type : public _MA::template Tss_iterator_type<mse::TRegisteredPointer<_MA>> {

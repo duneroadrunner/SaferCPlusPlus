@@ -223,8 +223,10 @@
     <ClInclude Include="mseivector.h" />
     <ClInclude Include="mselegacyhelpers.h" />
     <ClInclude Include="msemsearray.h" />
+    <ClInclude Include="msemsestring.h" />
     <ClInclude Include="msemsevector.h" />
     <ClInclude Include="msemstdarray.h" />
+    <ClInclude Include="msemstdstring.h" />
     <ClInclude Include="msemstdvector.h" />
     <ClInclude Include="mseoptional.h" />
     <ClInclude Include="msepointerbasics.h" />
