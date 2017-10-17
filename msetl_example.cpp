@@ -223,6 +223,9 @@ int main(int argc, char* argv[])
 			std::cerr << "expected exception" << std::endl;
 			/* The exception is triggered by a comparision of incompatible "safe" iterators. */
 		}
+
+		/* And of course the iterators can be used with the standard algorithms, just like those of std::vector. */
+		std::sort(v3.begin(), v3.end());
 	}
 
 	{
@@ -363,6 +366,9 @@ int main(int argc, char* argv[])
 			std::cerr << "expected exception" << std::endl;
 		}
 
+		/* And of course the iterators can be used with the standard algorithms, just like those of std::array. */
+		std::sort(a2.begin(), a2.end());
+
 		{
 			/* If the array is declared as a "scope" object (which basically indicates that it is declared
 			on the stack), then you can use "scope" iterators. While there are limitations on when they can
@@ -437,6 +443,8 @@ int main(int argc, char* argv[])
 		bool bres3 = ss_cit1.has_previous();
 		ss_cit1.set_to_end_marker();
 		bool bres4 = ss_cit1.points_to_an_item();
+
+		std::sort(a2.ss_begin(), a2.ss_end());
 
 		{
 			/* A "scope" version of the safe iterators can be used when the array is declared as a scope
@@ -2012,6 +2020,20 @@ int main(int argc, char* argv[])
 			auto as_ar = mse::make_asyncsharedv2readwrite<mse::nii_string>("some text");
 			//auto as_ar2 = mse::make_asyncsharedv2readwrite<std::string>("some text");
 		}
+	}
+
+	{
+		mse::TRegisteredObj<mse::nii_vector<mse::nii_string>> rg_vo1;
+		for (size_t i = 0; i < 5; i += 1) {
+			rg_vo1.push_back("some text");
+		}
+		auto iter1 = rg_vo1.ss_begin(&rg_vo1);
+		auto citer1 = decltype(rg_vo1)::Tss_const_iterator_type<decltype(&rg_vo1)>(iter1);
+		rg_vo1.emplace(citer1, "some other text");
+		rg_vo1.insert(citer1, "some other text");
+		mse::nii_string str1 = "some other text";
+		rg_vo1.insert(citer1, str1);
+		int q = 5;
 	}
 
 	return 0;

@@ -1803,6 +1803,47 @@ namespace mse {
 		return TAsyncSharedV2ReadWriteAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
+	template <typename _Ty>
+	class TAsyncSharedV2ReadOnlyAccessRequester : public TAsyncSharedV2XWPReadOnlyAccessRequester<std::shared_ptr<_Ty>> {
+	public:
+		typedef TAsyncSharedV2XWPReadOnlyAccessRequester<std::shared_ptr<_Ty>> base_class;
+
+		TAsyncSharedV2ReadOnlyAccessRequester(const TAsyncSharedV2ReadOnlyAccessRequester& src_cref) = default;
+		TAsyncSharedV2ReadOnlyAccessRequester(const TAsyncSharedV2ReadWriteAccessRequester<_Ty>& src_cref) : base_class(src_cref) {}
+
+		~TAsyncSharedV2ReadOnlyAccessRequester() {
+			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+			_Ty_is_marked_as_shareable();
+		}
+
+		template <class... Args>
+		static TAsyncSharedV2ReadOnlyAccessRequester make(Args&&... args) {
+			//auto shptr = std::make_shared<_Ty>(std::forward<Args>(args)...);
+			std::shared_ptr<_Ty> shptr(new _Ty(std::forward<Args>(args)...));
+			TAsyncSharedV2ReadOnlyAccessRequester retval(shptr);
+			return retval;
+		}
+
+	private:
+		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
+		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
+		objects can be marked safe to share by wrapping them with TUserDeclaredAsyncShareableObj<>. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
+		void _Ty_is_marked_as_shareable() const {}
+
+		TAsyncSharedV2ReadOnlyAccessRequester(std::shared_ptr<_Ty> shptr) : base_class(make_asyncsharedv2xwpreadonly(std::forward<std::shared_ptr<_Ty>>(shptr))) {}
+
+		TAsyncSharedV2ReadOnlyAccessRequester<_Ty>* operator&() { return this; }
+		const TAsyncSharedV2ReadOnlyAccessRequester<_Ty>* operator&() const { return this; }
+	};
+
+	template <class X, class... Args>
+	TAsyncSharedV2ReadOnlyAccessRequester<X> make_asyncsharedv2readonly(Args&&... args) {
+		return TAsyncSharedV2ReadOnlyAccessRequester<X>::make(std::forward<Args>(args)...);
+	}
+
 
 	/* For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a
 	slightly safety enhanced std::shared_ptr wrapper. The wrapper enforces "const"ness and tries to ensure that it always
