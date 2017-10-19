@@ -61,6 +61,16 @@ namespace mse {
 		xscope_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
 			return xscope_const_iterator<_TArray>();
 		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _TArray>
+		xscope_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
+			return xscope_const_iterator<_TArray>();
+		}
+		template<class _TArray>
+		xscope_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+			return xscope_const_iterator<_TArray>();
+		}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _TArray, class _TLeasePointerType>
 		xscope_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeWeakFixedConstPointer<_TArray, _TLeasePointerType>& owner_ptr) {
 			return xscope_const_iterator<_TArray>();
@@ -83,6 +93,12 @@ namespace mse {
 		xscope_iterator<_TArray> make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
 			return xscope_iterator<_TArray>();
 		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _TArray>
+		xscope_iterator<_TArray> make_xscope_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+			return xscope_iterator<_TArray>();
+		}
+#endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 		template<class _TArray, class _TLeasePointerType>
 		xscope_iterator<_TArray> make_xscope_iterator(const mse::TXScopeWeakFixedPointer<_TArray, _TLeasePointerType>& owner_ptr) {
 			return xscope_iterator<_TArray>();
@@ -466,6 +482,12 @@ namespace mse {
 					: m_xscope_ss_const_iterator(mse::make_xscopeweak(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
 				xscope_const_iterator(const mse::TXScopeFixedPointer<array>& owner_ptr)
 					: m_xscope_ss_const_iterator(mse::make_xscopeweak(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<array>& owner_ptr)
+					: m_xscope_ss_const_iterator(mse::make_xscopeweak(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
+				xscope_const_iterator(const mse::TXScopeItemFixedPointer<array>& owner_ptr)
+					: m_xscope_ss_const_iterator(mse::make_xscopeweak(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 				template <class _TLeasePointerType>
 				xscope_const_iterator(const mse::TXScopeWeakFixedConstPointer<array, _TLeasePointerType>& owner_ptr)
 					: m_xscope_ss_const_iterator(mse::make_xscopeweak(_MA_cref((*owner_ptr).m_nii_array), owner_ptr.lease_pointer())) {}
@@ -576,6 +598,10 @@ namespace mse {
 
 				xscope_iterator(const mse::TXScopeFixedPointer<array>& owner_ptr)
 					: m_xscope_ss_iterator(mse::make_xscopeweak(_MA_ref((*owner_ptr).m_nii_array), owner_ptr)) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_iterator(const mse::TXScopeItemFixedPointer<array>& owner_ptr)
+					: m_xscope_ss_iterator(mse::make_xscopeweak(_MA_ref((*owner_ptr).m_nii_array), owner_ptr)) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 				template <class _TLeasePointerType>
 				xscope_iterator(const mse::TXScopeWeakFixedPointer<array, _TLeasePointerType>& owner_ptr)
 					: m_xscope_ss_iterator(mse::make_xscopeweak(_MA_ref((*owner_ptr).m_nii_array), owner_ptr.lease_pointer())) {}
@@ -694,6 +720,16 @@ namespace mse {
 		xscope_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
 			return xscope_const_iterator<_TArray>(owner_ptr);
 		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _TArray>
+		xscope_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
+			return xscope_const_iterator<_TArray>(owner_ptr);
+		}
+		template<class _TArray>
+		xscope_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+			return xscope_const_iterator<_TArray>(owner_ptr);
+		}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _TArray, class _TLeasePointerType>
 		xscope_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeWeakFixedConstPointer<_TArray, _TLeasePointerType>& owner_ptr) {
 			return xscope_const_iterator<_TArray>(owner_ptr);
@@ -716,6 +752,12 @@ namespace mse {
 		xscope_iterator<_TArray> make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
 			return xscope_iterator<_TArray>(owner_ptr);
 		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _TArray>
+		xscope_iterator<_TArray> make_xscope_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+			return xscope_iterator<_TArray>(owner_ptr);
+		}
+#endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 		template<class _TArray, class _TLeasePointerType>
 		xscope_iterator<_TArray> make_xscope_iterator(const mse::TXScopeWeakFixedPointer<_TArray, _TLeasePointerType>& owner_ptr) {
 			return xscope_iterator<_TArray>(owner_ptr);
@@ -725,9 +767,9 @@ namespace mse {
 	}
 }
 
-#ifndef MSE_MSTDARRAY_DISABLED
 namespace std {
 
+#ifndef MSE_MSTDARRAY_DISABLED
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmismatched-tags"
@@ -772,8 +814,27 @@ namespace std {
 		static_assert(_Idx < _Size, "array index out of bounds");
 		return (_STD move(std::get<_Idx>(_Arr.m_nii_array)));
 	}
-}
+
+	template<class _Ty, size_t _Size>
+	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap arrays
+		return (_Left.swap(_Right));
+	}
+
+	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap arrays
+		return (_Left.swap(_Right));
+	}
+
+	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap arrays
+		return (_Left.swap(_Right));
+	}
+
 #endif // !MSE_MSTDARRAY_DISABLED
+}
 
 namespace mse {
 	namespace mstd {

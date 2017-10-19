@@ -681,6 +681,11 @@ namespace mse {
 	void rrdelete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) { relaxed_registered_delete<_Ty>(regPtrRef); }
 
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4189 )
+#endif /*_MSC_VER*/
+
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
@@ -759,6 +764,10 @@ namespace mse {
 #pragma GCC diagnostic pop
 #endif /*__GNUC__*/
 #endif /*__clang__*/
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 }
 

@@ -510,6 +510,7 @@ namespace mse {
 		using poly_variant = tdp_pointer_variant<
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 			mse::TXScopeFixedPointer<_Ty>,
+			mse::TXScopeItemFixedPointer<_Ty>,
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 			mse::TRegisteredPointer<_Ty>,
@@ -539,6 +540,9 @@ namespace mse {
 		TPolyPointerBase(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TPolyPointerBase(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
+		TPolyPointerBase(const mse::TXScopeItemFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeItemFixedPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyPointerBase(const mse::TXScopeItemFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeItemFixedPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 		TPolyPointerBase(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
@@ -660,6 +664,7 @@ namespace mse {
 		using poly_variant = tdp_pointer_variant<
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 			mse::TXScopeFixedConstPointer<_Ty>,
+			mse::TXScopeItemFixedConstPointer<_Ty>,
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 			mse::TRegisteredConstPointer<_Ty>,
@@ -697,6 +702,14 @@ namespace mse {
 		TPolyConstPointerBase(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TPolyConstPointerBase(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
+
+		TPolyConstPointerBase(const mse::TXScopeItemFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeItemFixedConstPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointerBase(const mse::TXScopeItemFixedConstPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeItemFixedConstPointer<_Ty>>(p); }
+
+		TPolyConstPointerBase(const mse::TXScopeItemFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeItemFixedConstPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointerBase(const mse::TXScopeItemFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeItemFixedConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 		TPolyConstPointerBase(const mse::TRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }

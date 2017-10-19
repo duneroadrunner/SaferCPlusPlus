@@ -4,6 +4,10 @@
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+/* todo: Change implementation to use thread-local storage for the "CSPTracker"s. That will eliminate the need
+for a global instance of a CSPTrackerMap, and thus, the need for this cpp source file. It will also require the
+complete prohibition of sharing relaxed registered pointers between threads. */
+
 #include "mserelaxedregistered.h"
 
 #ifdef _MSC_VER

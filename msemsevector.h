@@ -1382,7 +1382,7 @@ namespace mse {
 	}
 
 
-	/* msevector<> is an unsafe extension of nii_vector<> that provide the traditional begin() and end() (non-static)
+	/* msevector<> is an unsafe extension of nii_vector<> that provides the traditional begin() and end() (non-static)
 	member functions that return unsafe iterators. It also provides ss_begin() and ss_end() (non-static) member
 	functions which return bounds-checked, but still technically unsafe iterators. */
 	template<class _Ty, class _A, class _TStateMutex>

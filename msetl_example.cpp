@@ -80,7 +80,7 @@ them to be enabled. */
 
 #ifdef _MSC_VER
 #pragma warning( push )  
-#pragma warning( disable : 4100 4456 4189 )
+#pragma warning( disable : 4100 4456 4189 4702 )
 #endif /*_MSC_VER*/
 
 #ifdef __clang__
@@ -1921,17 +1921,17 @@ int main(int argc, char* argv[])
 			/* Let's say we have an array. */
 			nonshareable_array1_t array1;
 			{
-			size_t count = 0;
-			for (auto& item_ref : array1) {
-				count += 1;
-				item_ref = "text" + std::to_string(count);
-			}
+				size_t count = 0;
+				for (auto& item_ref : array1) {
+					count += 1;
+					item_ref = "text" + std::to_string(count);
+				}
 			}
 
 			/* Only access controlled objects can be shared with other threads, so we'll make an access controlled array and
 			(temporarily) swap it with our original one. */
 			auto ash_access_requester = mse::make_asyncsharedreadwrite<async_shareable_array1_t>();
-			array1.swap(*(ash_access_requester.writelock_ptr()));
+			std::swap(array1, (*(ash_access_requester.writelock_ptr())));
 
 			{
 				/* Now, we're going to use the access requester to obtain two new access requesters that provide access to
@@ -2000,7 +2000,7 @@ int main(int argc, char* argv[])
 			}
 
 			/* Now that we're done sharing the (controlled access) array, we can swap it back to our original array. */
-			array1.swap(*(ash_access_requester.writelock_ptr()));
+			std::swap(array1, (*(ash_access_requester.writelock_ptr())));
 			auto first_element_value = array1[0];
 			auto last_element_value = array1.back();
 
@@ -2034,6 +2034,18 @@ int main(int argc, char* argv[])
 		mse::nii_string str1 = "some other text";
 		rg_vo1.insert(citer1, str1);
 		int q = 5;
+	}
+
+	{
+		class CA {
+		public:
+			mse::CInt m_i1;
+		};
+		mse::TXScopeObj<CA> xscp_obj1;
+		mse::TXScopeItemFixedPointer<CA> xscp_ifptr1 = &xscp_obj1;
+		mse::TXScopeItemFixedPointer<mse::CInt> xscp_ifptr2 = mse::make_pointer_to_member(xscp_obj1.m_i1, &xscp_obj1);
+		mse::TXScopePolyPointer<CA> xscp_polyptr1 = xscp_ifptr1;
+		mse::TXScopePolyPointer<mse::CInt> xscp_polyptr2 = xscp_ifptr2;
 	}
 
 	return 0;
