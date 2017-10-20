@@ -1334,14 +1334,6 @@ namespace mse {
 			xscope_ss_const_iterator_type(const mse::TXScopeItemFixedConstPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 			xscope_ss_const_iterator_type(const mse::TXScopeItemFixedPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-			template <class _TLeasePointerType>
-			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedConstPointer<nii_array, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-			template <class _TLeasePointerType>
-			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedPointer<nii_array, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-			template <class _TLeasePointerType>
-			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedConstPointer<const nii_array, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-			template <class _TLeasePointerType>
-			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedPointer<const nii_array, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 
 			xscope_ss_const_iterator_type(const xscope_ss_const_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
 			xscope_ss_const_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
@@ -1416,8 +1408,6 @@ namespace mse {
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 			xscope_ss_iterator_type(const mse::TXScopeItemFixedPointer<nii_array>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-			template <class _TLeasePointerType>
-			xscope_ss_iterator_type(const mse::TXScopeWeakFixedPointer<nii_array, _TLeasePointerType>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 
 			xscope_ss_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_iterator_type(src_cref) {}
 			~xscope_ss_iterator_type() {}
@@ -1737,14 +1727,6 @@ namespace mse {
 			xscope_ss_const_iterator_type(const mse::TXScopeItemFixedConstPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 			xscope_ss_const_iterator_type(const mse::TXScopeItemFixedPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-			template <class _TLeasePointerType>
-			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedConstPointer<msearray, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-			template <class _TLeasePointerType>
-			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedPointer<msearray, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-			template <class _TLeasePointerType>
-			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedConstPointer<const msearray, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-			template <class _TLeasePointerType>
-			xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedPointer<const msearray, _TLeasePointerType>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 
 			xscope_ss_const_iterator_type(const xscope_ss_const_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
 			xscope_ss_const_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
@@ -1819,8 +1801,6 @@ namespace mse {
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 			xscope_ss_iterator_type(const mse::TXScopeItemFixedPointer<msearray>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-			template <class _TLeasePointerType>
-			xscope_ss_iterator_type(const mse::TXScopeWeakFixedPointer<msearray, _TLeasePointerType>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 
 			xscope_ss_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_iterator_type(src_cref) {}
 			~xscope_ss_iterator_type() {}
@@ -1939,22 +1919,6 @@ namespace mse {
 		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TArray, class _TLeasePointerType>
-	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedConstPointer<_TArray, _TLeasePointerType>& owner_ptr) {
-		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
-	}
-	template<class _TArray, class _TLeasePointerType>
-	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedPointer<_TArray, _TLeasePointerType>& owner_ptr) {
-		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
-	}
-	template<class _TArray, class _TLeasePointerType>
-	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedConstPointer<const _TArray, _TLeasePointerType>& owner_ptr) {
-		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
-	}
-	template<class _TArray, class _TLeasePointerType>
-	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeWeakFixedPointer<const _TArray, _TLeasePointerType>& owner_ptr) {
-		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
-	}
 
 	template<class _TArray> using xscope_ss_iterator_type = typename _TArray::xscope_ss_iterator_type;
 	template<class _TArray>
@@ -1967,10 +1931,6 @@ namespace mse {
 		return xscope_ss_iterator_type<_TArray>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TArray, class _TLeasePointerType>
-	xscope_ss_iterator_type<_TArray> make_xscope_ss_iterator_type(const mse::TXScopeWeakFixedPointer<_TArray, _TLeasePointerType>& owner_ptr) {
-		return xscope_ss_iterator_type<_TArray>(owner_ptr);
-	}
 }
 
 namespace std {

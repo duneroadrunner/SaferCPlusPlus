@@ -2051,9 +2051,17 @@ int main(int argc, char* argv[])
 		mse::TXScopeRefCountingConstStore<std::string> xscp_refc_cstore(refc_ptr1);
 		auto xscp_cptr1 = xscp_refc_cstore.xscope_cptr();
 		mse::TXScopeItemFixedConstPointer<std::string> xscp_cptr2 = xscp_cptr1;
+		std::string res1 = *xscp_cptr2;
 		mse::TXScopeRefCountingNotNullStore<std::string> xscp_refcnn_store(refc_ptr1);
 		auto xscp_ptr3 = xscp_refcnn_store.xscope_ptr();
+		(*xscp_ptr3) = "some other text";
 		mse::TXScopeItemFixedConstPointer<std::string> xscp_cptr4 = xscp_ptr3;
+		std::string res2 = *xscp_cptr4;
+
+		auto res3 = mse::xscope_chosen(xscp_cptr2, xscp_cptr4, true);
+		auto xscp_fptr1 = &xscp_obj1;
+		auto xscp_fptr2 = &xscp_obj1;
+		auto res4 = mse::xscope_chosen(xscp_fptr1, xscp_fptr1, false);
 	}
 
 	return 0;
