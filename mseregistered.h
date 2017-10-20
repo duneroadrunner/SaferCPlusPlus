@@ -406,10 +406,17 @@ namespace mse {
 	class TRegisteredNotNullPointer : public TRegisteredPointer<_Ty, _Tn> {
 	public:
 		TRegisteredNotNullPointer(const TRegisteredNotNullPointer& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<
-			std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value
-			, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
 		TRegisteredNotNullPointer(const TRegisteredNotNullPointer<_Ty2, _Tn>& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {}
+
+		TRegisteredNotNullPointer(const TRegisteredPointer<_Ty, _Tn>& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
+		TRegisteredNotNullPointer(const TRegisteredPointer<_Ty2, _Tn>& src_cref) : TRegisteredPointer<_Ty, _Tn>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+
 		virtual ~TRegisteredNotNullPointer() {}
 		TRegisteredNotNullPointer<_Ty, _Tn>& operator=(const TRegisteredNotNullPointer<_Ty, _Tn>& _Right_cref) {
 			TRegisteredPointer<_Ty, _Tn>::operator=(_Right_cref);
@@ -437,6 +444,22 @@ namespace mse {
 		TRegisteredNotNullConstPointer(const TRegisteredNotNullPointer<_Ty, _Tn>& src_cref) : TRegisteredConstPointer<_Ty, _Tn>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
 		TRegisteredNotNullConstPointer(const TRegisteredNotNullPointer<_Ty2, _Tn>& src_cref) : TRegisteredConstPointer<_Ty, _Tn>(src_cref) {}
+
+		TRegisteredNotNullConstPointer(const TRegisteredConstPointer<_Ty, _Tn>& src_cref) : TRegisteredConstPointer<_Ty, _Tn>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+		TRegisteredNotNullConstPointer(const TRegisteredConstPointer<_Ty2, _Tn>& src_cref) : TRegisteredConstPointer<_Ty, _Tn>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+		TRegisteredNotNullConstPointer(const TRegisteredPointer<_Ty, _Tn>& src_cref) : TRegisteredConstPointer<_Ty, _Tn>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+		TRegisteredNotNullConstPointer(const TRegisteredPointer<_Ty2, _Tn>& src_cref) : TRegisteredConstPointer<_Ty, _Tn>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+
 		virtual ~TRegisteredNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRegisteredConstPointer<_Ty, _Tn>::operator const _Ty*(); }
@@ -457,10 +480,17 @@ namespace mse {
 	class TRegisteredFixedPointer : public TRegisteredNotNullPointer<_Ty, _Tn> {
 	public:
 		TRegisteredFixedPointer(const TRegisteredFixedPointer& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<
-			std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value
-			, void>::type>
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
 		TRegisteredFixedPointer(const TRegisteredFixedPointer<_Ty2, _Tn>& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
+
+		TRegisteredFixedPointer(const TRegisteredNotNullPointer<_Ty, _Tn>& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
+		TRegisteredFixedPointer(const TRegisteredNotNullPointer<_Ty2, _Tn>& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
+
+		TRegisteredFixedPointer(const TRegisteredPointer<_Ty, _Tn>& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
+		TRegisteredFixedPointer(const TRegisteredPointer<_Ty2, _Tn>& src_cref) : TRegisteredNotNullPointer<_Ty, _Tn>(src_cref) {}
+
 		virtual ~TRegisteredFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TRegisteredNotNullPointer<_Ty, _Tn>::operator _Ty*(); }
@@ -485,6 +515,21 @@ namespace mse {
 		TRegisteredFixedConstPointer(const TRegisteredFixedPointer<_Ty, _Tn>& src_cref) : TRegisteredNotNullConstPointer<_Ty, _Tn>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
 		TRegisteredFixedConstPointer(const TRegisteredFixedPointer<_Ty2, _Tn>& src_cref) : TRegisteredNotNullConstPointer<_Ty, _Tn>(src_cref) {}
+
+		TRegisteredFixedConstPointer(const TRegisteredNotNullConstPointer<_Ty, _Tn>& src_cref) : TRegisteredNotNullConstPointer<_Ty, _Tn>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+		TRegisteredFixedConstPointer(const TRegisteredNotNullConstPointer<_Ty2, _Tn>& src_cref) : TRegisteredNotNullConstPointer<_Ty, _Tn>(src_cref) {}
+		TRegisteredFixedConstPointer(const TRegisteredNotNullPointer<_Ty, _Tn>& src_cref) : TRegisteredNotNullConstPointer<_Ty, _Tn>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+		TRegisteredFixedConstPointer(const TRegisteredNotNullPointer<_Ty2, _Tn>& src_cref) : TRegisteredNotNullConstPointer<_Ty, _Tn>(src_cref) {}
+
+		TRegisteredFixedConstPointer(const TRegisteredConstPointer<_Ty, _Tn>& src_cref) : TRegisteredNotNullConstPointer<_Ty, _Tn>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+		TRegisteredFixedConstPointer(const TRegisteredConstPointer<_Ty2, _Tn>& src_cref) : TRegisteredNotNullConstPointer<_Ty, _Tn>(src_cref) {}
+		TRegisteredFixedConstPointer(const TRegisteredPointer<_Ty, _Tn>& src_cref) : TRegisteredNotNullConstPointer<_Ty, _Tn>(src_cref) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2, _Tn> *, TRegisteredObj<_Ty, _Tn> *>::value, void>::type>
+		TRegisteredFixedConstPointer(const TRegisteredPointer<_Ty2, _Tn>& src_cref) : TRegisteredNotNullConstPointer<_Ty, _Tn>(src_cref) {}
+
 		virtual ~TRegisteredFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRegisteredNotNullConstPointer<_Ty, _Tn>::operator const _Ty*(); }

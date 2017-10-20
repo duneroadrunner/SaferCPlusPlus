@@ -2046,6 +2046,14 @@ int main(int argc, char* argv[])
 		mse::TXScopeItemFixedPointer<mse::CInt> xscp_ifptr2 = mse::make_pointer_to_member(xscp_obj1.m_i1, &xscp_obj1);
 		mse::TXScopePolyPointer<CA> xscp_polyptr1 = xscp_ifptr1;
 		mse::TXScopePolyPointer<mse::CInt> xscp_polyptr2 = xscp_ifptr2;
+
+		auto refc_ptr1 = mse::make_refcounting<std::string>("some text");
+		mse::TXScopeRefCountingConstStore<std::string> xscp_refc_cstore(refc_ptr1);
+		auto xscp_cptr1 = xscp_refc_cstore.xscope_cptr();
+		mse::TXScopeItemFixedConstPointer<std::string> xscp_cptr2 = xscp_cptr1;
+		mse::TXScopeRefCountingNotNullStore<std::string> xscp_refcnn_store(refc_ptr1);
+		auto xscp_ptr3 = xscp_refcnn_store.xscope_ptr();
+		mse::TXScopeItemFixedConstPointer<std::string> xscp_cptr4 = xscp_ptr3;
 	}
 
 	return 0;

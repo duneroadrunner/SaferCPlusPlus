@@ -9,6 +9,9 @@
 #define MSEREFCOUNTING_H_
 
 //include "mseprimitives.h"
+#ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
+#include "msescope.h"
+#endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 #include <memory>
 #include <iostream>
 #include <utility>
@@ -228,6 +231,9 @@ namespace mse {
 	class TRefCountingNotNullPointer : public TRefCountingPointer<_Ty> {
 	public:
 		TRefCountingNotNullPointer(const TRefCountingNotNullPointer& src_cref) : TRefCountingPointer<_Ty>(src_cref) {}
+		TRefCountingNotNullPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingPointer<_Ty>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
 		virtual ~TRefCountingNotNullPointer() {}
 		TRefCountingNotNullPointer<_Ty>& operator=(const TRefCountingNotNullPointer<_Ty>& _Right_cref) {
 			TRefCountingPointer<_Ty>::operator=(_Right_cref);
@@ -252,6 +258,8 @@ namespace mse {
 	class TRefCountingFixedPointer : public TRefCountingNotNullPointer<_Ty> {
 	public:
 		TRefCountingFixedPointer(const TRefCountingFixedPointer& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
+		TRefCountingFixedPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
+		TRefCountingFixedPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
 		virtual ~TRefCountingFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TRefCountingNotNullPointer<_Ty>::operator _Ty*(); }
@@ -413,6 +421,12 @@ namespace mse {
 	public:
 		TRefCountingNotNullConstPointer(const TRefCountingNotNullConstPointer& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {}
 		TRefCountingNotNullConstPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {}
+		TRefCountingNotNullConstPointer(const TRefCountingConstPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+		TRefCountingNotNullConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
 		virtual ~TRefCountingNotNullConstPointer() {}
 		TRefCountingNotNullConstPointer<_Ty>& operator=(const TRefCountingNotNullConstPointer<_Ty>& _Right_cref) {
 			TRefCountingConstPointer<_Ty>::operator=(_Right_cref);
@@ -436,6 +450,10 @@ namespace mse {
 	public:
 		TRefCountingFixedConstPointer(const TRefCountingFixedConstPointer& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
 		TRefCountingFixedConstPointer(const TRefCountingFixedPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
+		TRefCountingFixedConstPointer(const TRefCountingNotNullConstPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
+		TRefCountingFixedConstPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
+		TRefCountingFixedConstPointer(const TRefCountingConstPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
+		TRefCountingFixedConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
 		virtual ~TRefCountingFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TRefCountingNotNullConstPointer<_Ty>::operator _Ty*(); }
@@ -626,6 +644,73 @@ namespace mse {
 	TStrongFixedConstPointer<_TTargetType, std::shared_ptr<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const std::shared_ptr<_Ty> &lease_pointer) {
 		return TStrongFixedConstPointer<_TTargetType, std::shared_ptr<_Ty>>::make(target, lease_pointer);
 	}
+
+
+#ifdef MSESCOPE_H_
+	template<typename _Ty>
+	class TXScopeRefCountingStore {
+	public:
+		TXScopeRefCountingStore(const TRefCountingPointer<_Ty>& refc_ptr) : m_refc_ptr(refc_ptr) {
+			*refc_ptr; /* Just verifying that refc_ptr points to a valid target. */
+		}
+		TXScopeItemFixedPointer<_Ty> xscope_ptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_pointer_to_member(*m_refc_ptr, &xscp_obj1);
+		}
+		const TRefCountingPointer<_Ty>& refc_ptr() const { return m_refc_ptr; }
+	private:
+		TRefCountingPointer<_Ty> m_refc_ptr;
+	};
+
+	template<typename _Ty>
+	class TXScopeRefCountingConstStore {
+	public:
+		TXScopeRefCountingConstStore(const TRefCountingConstPointer<_Ty>& refc_cptr) : m_refc_cptr(refc_cptr) {
+			*refc_cptr; /* Just verifying that refc_cptr points to a valid target. */
+		}
+		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static const mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_const_pointer_to_member(*m_refc_cptr, &xscp_obj1);
+		}
+		const TRefCountingConstPointer<_Ty>& refc_cptr() const { return m_refc_cptr; }
+	private:
+		TRefCountingConstPointer<_Ty> m_refc_cptr;
+	};
+
+	template<typename _Ty>
+	class TXScopeRefCountingNotNullStore {
+	public:
+		TXScopeRefCountingNotNullStore(const TRefCountingNotNullPointer<_Ty>& refc_ptr) : m_refc_ptr(refc_ptr) {}
+		TXScopeItemFixedPointer<_Ty> xscope_ptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_pointer_to_member(*m_refc_ptr, &xscp_obj1);
+		}
+		const TRefCountingNotNullPointer<_Ty>& refc_ptr() const { return m_refc_ptr; }
+	private:
+		TRefCountingNotNullPointer<_Ty> m_refc_ptr;
+	};
+
+	template<typename _Ty>
+	class TXScopeRefCountingNotNullConstStore {
+	public:
+		TXScopeRefCountingNotNullConstStore(const TRefCountingNotNullConstPointer<_Ty>& refc_cptr) : m_refc_cptr(refc_cptr) {}
+		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static const mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_const_pointer_to_member(*m_refc_cptr, &xscp_obj1);
+		}
+		const TRefCountingNotNullConstPointer<_Ty>& refc_cptr() const { return m_refc_cptr; }
+	private:
+		TRefCountingNotNullConstPointer<_Ty> m_refc_cptr;
+	};
+#endif // MSESCOPE_H_
 
 
 	/* shorter aliases */
