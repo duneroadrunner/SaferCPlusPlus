@@ -2058,10 +2058,14 @@ int main(int argc, char* argv[])
 		mse::TXScopeItemFixedConstPointer<std::string> xscp_cptr4 = xscp_ptr3;
 		std::string res2 = *xscp_cptr4;
 
-		auto res3 = mse::xscope_chosen(xscp_cptr2, xscp_cptr4, true);
-		auto xscp_fptr1 = &xscp_obj1;
-		auto xscp_fptr2 = &xscp_obj1;
-		auto res4 = mse::xscope_chosen(xscp_fptr1, xscp_fptr1, false);
+		const auto& bool_min_function1_cref = [](const decltype(xscp_cptr2)& a, const decltype(xscp_cptr4)& b) { return !((*a) < (*b)); };
+		auto res5 = mse::xscope_chosen(bool_min_function1_cref, xscp_cptr2, xscp_cptr4);
+
+		mse::TXScopeObj<std::string> xscp_obj2;
+		auto xscp_fptr1 = &xscp_obj2;
+		auto xscp_fptr2 = &xscp_obj2;
+		const auto& bool_min_function2_cref = [](const decltype(xscp_fptr1)& a, const decltype(xscp_fptr2)& b, bool c) { return !(((*a) < (*b)) || c); };
+		auto res6 = mse::xscope_chosen(bool_min_function2_cref, xscp_fptr1, xscp_fptr2, false);
 	}
 
 	return 0;

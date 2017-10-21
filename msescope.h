@@ -593,22 +593,29 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 
-	template<typename _Ty>
-	TXScopeItemFixedConstPointer<_Ty> xscope_chosen(const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b, bool return_the_second_arg) {
-		return return_the_second_arg ? b : a;
+	/* The purpose of the xscope_chosen() function is simply to take two scope pointers as input parameters and return one of
+	them. Which of the pointers is returned is determined by a "decider" function that is passed, as the first parameter, to
+	xscope_chosen(). The "decider" function needs to return a bool and take the two scope pointers as its first two parameters.
+	The reason this xscope_chosen() function is needed is that (non-owning) scope pointers are, in general, not allowed to be
+	used as a function return value. (Because you might accidentally return a pointer to a local scope object (which is bad)
+	instead of one of the pointers given as an input parameter (which is fine).) So the xscope_chosen() template is the
+	sanctioned way of creating a function that returns a non-owning scope pointer. */
+	template<typename _TBoolFunction, typename _Ty, class... Args>
+	TXScopeItemFixedConstPointer<_Ty> xscope_chosen(_TBoolFunction function1, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b, Args&&... args) {
+		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
-	template<typename _Ty>
-	TXScopeItemFixedPointer<_Ty> xscope_chosen(const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b, bool return_the_second_arg) {
-		return return_the_second_arg ? b : a;
+	template<typename _TBoolFunction, typename _Ty, class... Args>
+	TXScopeItemFixedPointer<_Ty> xscope_chosen(_TBoolFunction function1, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b, Args&&... args) {
+		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<typename _Ty>
-	TXScopeFixedConstPointer<_Ty> xscope_chosen(const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b, bool return_the_second_arg) {
-		return return_the_second_arg ? b : a;
+	template<typename _TBoolFunction, typename _Ty, class... Args>
+	TXScopeFixedConstPointer<_Ty> xscope_chosen(_TBoolFunction function1, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b, Args&&... args) {
+		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
-	template<typename _Ty>
-	TXScopeFixedPointer<_Ty> xscope_chosen(const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b, bool return_the_second_arg) {
-		return return_the_second_arg ? b : a;
+	template<typename _TBoolFunction, typename _Ty, class... Args>
+	TXScopeFixedPointer<_Ty> xscope_chosen(_TBoolFunction function1, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b, Args&&... args) {
+		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
