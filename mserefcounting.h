@@ -866,9 +866,9 @@ namespace mse {
 			public:
 				A() {}
 				A(const A& _X) : b(_X.b) {}
-				A(A&& _X) : b(std::move(_X.b)) {}
+				A(A&& _X) : b(std::forward<decltype(_X.b)>(_X.b)) {}
 				virtual ~A() {}
-				A& operator=(A&& _X) { b = std::move(_X.b); return (*this); }
+				A& operator=(A&& _X) { b = std::forward<decltype(_X.b)>(_X.b); return (*this); }
 				A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 				int b = 3;

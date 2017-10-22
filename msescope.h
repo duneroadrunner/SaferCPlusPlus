@@ -330,7 +330,7 @@ namespace mse {
 
 		virtual ~TXScopeItemFixedPointer() {}
 
-		operator bool() const { return (*static_cast<const TXScopePointerBase<_Ty>*>(this)); }
+		//operator bool() const { return (*static_cast<const TXScopePointerBase<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TXScopePointerBase<_Ty>::operator _Ty*(); }
 		void xscope_tag() const {}
@@ -361,15 +361,16 @@ namespace mse {
 		TXScopeItemFixedConstPointer(const TXScopeItemFixedPointer<_Ty2>& src_cref) : TXScopeConstPointerBase<_Ty>(TXScopeConstPointerBase<_Ty2>(src_cref)) {}
 
 		TXScopeItemFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) : TXScopeItemFixedConstPointer(std::addressof(*src_cref)) {}
-		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TXScopeItemFixedConstPointer(const TXScopeWeakFixedConstPointer<_Ty, _Ty2>& src_cref) : TXScopeItemFixedConstPointer(std::addressof(*src_cref)) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TXScopeItemFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : TXScopeItemFixedConstPointer(std::addressof(*src_cref)) {}
 
 		TXScopeItemFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TXScopeItemFixedConstPointer(std::addressof(*src_cref)) {}
-		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TXScopeItemFixedConstPointer(const TXScopeWeakFixedPointer<_Ty, _Ty2>& src_cref) : TXScopeItemFixedConstPointer(std::addressof(*src_cref)) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TXScopeItemFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopeItemFixedConstPointer(std::addressof(*src_cref)) {}
 
 		virtual ~TXScopeItemFixedConstPointer() {}
-		operator bool() const { return (*static_cast<const TXScopeConstPointerBase<_Ty>*>(this)); }
+
+		//operator bool() const { return (*static_cast<const TXScopeConstPointerBase<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TXScopeConstPointerBase<_Ty>::operator const _Ty*(); }
 		void xscope_tag() const {}
@@ -660,9 +661,9 @@ namespace mse {
 			public:
 				A(int x) : b(x) {}
 				A(const A& _X) : b(_X.b) {}
-				A(A&& _X) : b(std::move(_X.b)) {}
+				A(A&& _X) : b(std::forward<decltype(_X.b)>(_X.b)) {}
 				virtual ~A() {}
-				A& operator=(A&& _X) { b = std::move(_X.b); return (*this); }
+				A& operator=(A&& _X) { b = std::forward<decltype(_X.b)>(_X.b); return (*this); }
 				A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 				int b = 3;
@@ -670,7 +671,7 @@ namespace mse {
 			class B {
 			public:
 				static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-				static int foo2(mse::TXScopeFixedPointer<A> A_scope_ptr) { return A_scope_ptr->b; }
+				static int foo2(mse::TXScopeItemFixedPointer<A> A_scope_ptr) { return A_scope_ptr->b; }
 			protected:
 				~B() {}
 			};
@@ -681,22 +682,35 @@ namespace mse {
 				A a(7);
 				mse::TXScopeObj<A> scope_a(7);
 				/* mse::TXScopeObj<A> is a class that is publicly derived from A, and so should be a compatible substitute for A
-			in almost all cases. */
+				in almost all cases. */
 
 				assert(a.b == scope_a.b);
 				A_native_ptr = &a;
-				mse::TXScopeFixedPointer<A> A_scope_ptr1 = &scope_a;
+
+				mse::TXScopeItemFixedPointer<A> A_scope_ptr1 = &scope_a;
 				assert(A_native_ptr->b == A_scope_ptr1->b);
+				mse::TXScopeItemFixedPointer<A> A_scope_ptr2 = &scope_a;
 
-				mse::TXScopeFixedPointer<A> A_scope_ptr2 = &scope_a;
-
-				/* mse::TXScopeFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
+				/* mse::TXScopeItemFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
 				B::foo1(static_cast<A*>(A_scope_ptr1));
 
-				if (A_scope_ptr2) {
+				if (!A_scope_ptr2) {
+					assert(false);
 				}
-				else if (A_scope_ptr2 != A_scope_ptr1) {
+				else if (!(A_scope_ptr2 != A_scope_ptr1)) {
 					int q = B::foo2(A_scope_ptr2);
+				}
+				else {
+					assert(false);
+				}
+
+				TPointerForLegacy<A> pfl_ptr1 = &a;
+				if (!(pfl_ptr1 != nullptr)) {
+					assert(false);
+				}
+				TPointerForLegacy<A> pfl_ptr2 = nullptr;
+				if (!(pfl_ptr1 != pfl_ptr2)) {
+					assert(false);
 				}
 
 				A a2 = a;
@@ -704,10 +718,10 @@ namespace mse {
 				scope_a2 = a;
 				scope_a2 = scope_a;
 
-				mse::TXScopeFixedConstPointer<A> rcp = A_scope_ptr1;
-				mse::TXScopeFixedConstPointer<A> rcp2 = rcp;
+				mse::TXScopeItemFixedConstPointer<A> rcp = A_scope_ptr1;
+				mse::TXScopeItemFixedConstPointer<A> rcp2 = rcp;
 				const mse::TXScopeObj<A> cscope_a(11);
-				mse::TXScopeFixedConstPointer<A> rfcp = &cscope_a;
+				mse::TXScopeItemFixedConstPointer<A> rfcp = &cscope_a;
 
 				mse::TXScopeOwnerPointer<A> A_scpoptr(11);
 				B::foo2(&*A_scpoptr);
@@ -725,10 +739,11 @@ namespace mse {
 				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
 				class GE : public E {};
 				mse::TXScopeObj<GE> scope_gd;
-				mse::TXScopeFixedPointer<GE> GE_scope_fptr1 = &scope_gd;
-				mse::TXScopeFixedPointer<E> E_scope_ptr5 = GE_scope_fptr1;
+				mse::TXScopeItemFixedPointer<GE> GE_scope_ifptr1 = &scope_gd;
+				mse::TXScopeItemFixedPointer<E> E_scope_ifptr5 = GE_scope_ifptr1;
 				mse::TXScopeFixedPointer<E> E_scope_fptr2 = &scope_gd;
-				mse::TXScopeFixedConstPointer<E> E_scope_fcptr2 = &scope_gd;
+				//mse::TXScopeItemFixedPointer<E> E_scope_ifptr2 = &scope_gd;
+				mse::TXScopeItemFixedConstPointer<E> E_scope_fcptr2 = &scope_gd;
 			}
 
 			{
@@ -743,8 +758,8 @@ namespace mse {
 				class B {
 				public:
 					static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-					static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-					static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+					static int foo2(mse::TXScopeItemFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+					static int foo3(mse::TXScopeItemFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
 				protected:
 					~B() {}
 				};
@@ -777,6 +792,64 @@ namespace mse {
 				if (xscpwfptr1) {
 					int q = 7;
 				}
+			}
+
+			{
+				A a(7);
+				mse::TXScopeObj<A> scope_a(7);
+				/* mse::TXScopeObj<A> is a class that is publicly derived from A, and so should be a compatible substitute for A
+				in almost all cases. */
+
+				assert(a.b == scope_a.b);
+				A_native_ptr = &a;
+
+				mse::TXScopeFixedPointer<A> A_scope_ptr1 = &scope_a;
+				assert(A_native_ptr->b == A_scope_ptr1->b);
+				mse::TXScopeFixedPointer<A> A_scope_ptr2 = &scope_a;
+
+				/* mse::TXScopeFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
+				B::foo1(static_cast<A*>(A_scope_ptr1));
+
+				if (!A_scope_ptr2) {
+					assert(false);
+				}
+				else if (!(A_scope_ptr2 != A_scope_ptr1)) {
+					int q = B::foo2(A_scope_ptr2);
+				}
+				else {
+					assert(false);
+				}
+
+				A a2 = a;
+				mse::TXScopeObj<A> scope_a2 = scope_a;
+				scope_a2 = a;
+				scope_a2 = scope_a;
+
+				mse::TXScopeFixedConstPointer<A> rcp = A_scope_ptr1;
+				mse::TXScopeFixedConstPointer<A> rcp2 = rcp;
+				const mse::TXScopeObj<A> cscope_a(11);
+				mse::TXScopeFixedConstPointer<A> rfcp = &cscope_a;
+
+				mse::TXScopeOwnerPointer<A> A_scpoptr(11);
+				B::foo2(&*A_scpoptr);
+				if (A_scpoptr->b == (&*A_scpoptr)->b) {
+				}
+			}
+
+			{
+				/* Polymorphic conversions. */
+				class E {
+				public:
+					int m_b = 5;
+				};
+
+				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
+				class GE : public E {};
+				mse::TXScopeObj<GE> scope_gd;
+				mse::TXScopeFixedPointer<GE> GE_scope_ifptr1 = &scope_gd;
+				mse::TXScopeFixedPointer<E> E_scope_ptr5 = GE_scope_ifptr1;
+				mse::TXScopeFixedPointer<E> E_scope_ifptr2 = &scope_gd;
+				mse::TXScopeFixedConstPointer<E> E_scope_fcptr2 = &scope_gd;
 			}
 
 #endif // MSE_SELF_TESTS

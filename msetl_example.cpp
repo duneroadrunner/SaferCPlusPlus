@@ -1348,8 +1348,8 @@ int main(int argc, char* argv[])
 		class B {
 		public:
 			static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-			static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-			static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+			static int foo2(mse::TXScopeItemFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+			static int foo3(mse::TXScopeItemFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
 		protected:
 			~B() {}
 		};
@@ -1371,8 +1371,7 @@ int main(int argc, char* argv[])
 		auto s_safe_const_ptr1 = mse::make_const_pointer_to_member((a_scpobj.s), (&a_scpobj));
 
 		/* The return type of mse::make_pointer_to_member() depends on the type of the parameters passed
-		to it. In this case, the type of s_safe_ptr1 is mse::TXScopeWeakFixedPointer<std::string,
-		mse::TXScopeFixedPointerA>>. */
+		to it. In this case, the type of s_safe_ptr1 is mse::TXScopeItemFixedPointer<A>>. */
 
 		auto res5 = H::foo6(s_safe_ptr1, s_safe_const_ptr1);
 

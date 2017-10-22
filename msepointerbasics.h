@@ -117,9 +117,9 @@ namespace mse {
 			return (*this);
 		}
 		bool operator==(const _Ty* _Right_cref) const { assert_initialized(); return (_Right_cref == m_ptr); }
-		bool operator!=(const _Ty* _Right_cref) const { assert_initialized(); return (!((*this) == _Right_cref)); }
-		bool operator==(const TPointer<_Ty, _TID> &_Right_cref) const { assert_initialized(); return (_Right_cref == m_ptr); }
-		bool operator!=(const TPointer<_Ty, _TID> &_Right_cref) const { assert_initialized(); return (!((*this) == _Right_cref)); }
+		bool operator!=(const _Ty* _Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref)); }
+		bool operator==(const TPointer<_Ty, _TID> &_Right_cref) const { /*assert_initialized();*/ return (_Right_cref == m_ptr); }
+		bool operator!=(const TPointer<_Ty, _TID> &_Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref)); }
 
 		bool operator!() const { assert_initialized(); return (!m_ptr); }
 		operator bool() const {
@@ -183,6 +183,16 @@ namespace mse {
 			note_value_assignment();
 			m_ptr = ptr;
 			return (*this);
+		}
+		bool operator==(const _Ty* _Right_cref) const { assert_initialized(); return (_Right_cref == m_ptr); }
+		bool operator!=(const _Ty* _Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref)); }
+		bool operator==(const TPointerForLegacy<_Ty, _TID> &_Right_cref) const { /*assert_initialized();*/ return (m_ptr == _Right_cref); }
+		bool operator!=(const TPointerForLegacy<_Ty, _TID> &_Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref)); }
+
+		bool operator!() const { assert_initialized(); return (!m_ptr); }
+		operator bool() const {
+			assert_initialized();
+			return (m_ptr != nullptr);
 		}
 
 		operator _Ty*() const {
