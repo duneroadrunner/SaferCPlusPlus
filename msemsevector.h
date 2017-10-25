@@ -235,6 +235,9 @@ namespace mse {
 
 		~nii_vector() {
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+
+			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+			valid_if_Ty_is_not_an_xscope_type();
 		}
 
 		operator const _MV() const { return contained_vector(); }
@@ -1269,6 +1272,13 @@ namespace mse {
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
+		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
+		(intended) compile error. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
+		void valid_if_Ty_is_not_an_xscope_type() const {}
+
 		typename std_vector::iterator begin() {	// return iterator for beginning of mutable sequence
 			return m_vector.begin();
 		}

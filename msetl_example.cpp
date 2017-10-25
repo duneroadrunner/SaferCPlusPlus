@@ -2065,6 +2065,32 @@ int main(int argc, char* argv[])
 		auto xscp_fptr2 = &xscp_obj2;
 		const auto& bool_min_function2_cref = [](const decltype(xscp_fptr1)& a, const decltype(xscp_fptr2)& b, bool c) { return !(((*a) < (*b)) || c); };
 		auto res6 = mse::xscope_chosen(bool_min_function2_cref, xscp_fptr1, xscp_fptr2, false);
+
+		mse::nii_vector<std::string> niiv1;
+		mse::nii_vector<mse::TRegisteredObj<std::string> > niiv2;
+		//mse::nii_vector<mse::TXScopeObj<std::string> > niiv3;
+
+		mse::nii_array<std::string, 5> niiar1;
+		mse::nii_array<mse::TRegisteredObj<std::string>, 5> niiar2;
+		//mse::nii_array<mse::TXScopeObj<std::string>, 5> niiar3;
+
+		mse::TXScopeObj<mse::nii_array<std::string, 5> > xscp_nii_ar1 = mse::nii_array<std::string, 5>({ "0", "1", "2", "3", "4"});
+		auto nii_ar_iter1 = mse::make_xscope_ss_iterator_type(&xscp_nii_ar1);
+		nii_ar_iter1 += 2;
+		auto xscp_nii_ar_ifptr = mse::xscope_pointer_from_array_iterator<std::string, 5>(nii_ar_iter1);
+		auto nii_ar_res1 = (*xscp_nii_ar_ifptr);
+
+		mse::TXScopeObj<mse::msearray<std::string, 5> > xscp_msear1 = mse::msearray<std::string, 5>({ "0", "1", "2", "3", "4" });
+		auto msear_iter1 = mse::make_xscope_ss_iterator_type(&xscp_msear1);
+		msear_iter1 += 2;
+		auto xscp_msear_ifptr = mse::xscope_pointer_from_array_iterator<std::string, 5>(msear_iter1);
+		auto msear_res1 = (*xscp_msear_ifptr);
+
+		mse::TXScopeObj<mse::mstd::array<std::string, 5> > xscp_mstd_ar1 = mse::mstd::array<std::string, 5>({ "0", "1", "2", "3", "4" });
+		auto mstd_ar_iter1 = mse::mstd::make_xscope_iterator(&xscp_mstd_ar1);
+		mstd_ar_iter1 += 2;
+		auto xscp_mstd_ar_ifptr = mse::mstd::xscope_pointer_from_array_iterator<std::string, 5>(mstd_ar_iter1);
+		auto mstd_ar_res1 = (*xscp_mstd_ar_ifptr);
 	}
 
 	return 0;

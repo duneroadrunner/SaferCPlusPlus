@@ -805,6 +805,9 @@ namespace mse {
 
 		~nii_array() {
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+
+			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+			valid_if_Ty_is_not_an_xscope_type();
 		}
 
 		operator const _MA() const { return contained_array(); }
@@ -1485,6 +1488,13 @@ namespace mse {
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
+		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
+		(intended) compile error. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
+		void valid_if_Ty_is_not_an_xscope_type() const {}
+
 		ss_iterator_type ss_begin() {	// return std_array::iterator for beginning of mutable sequence
 			ss_iterator_type retval(this);
 			retval.set_to_beginning();
@@ -1571,6 +1581,22 @@ namespace mse {
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator>=(const nii_array<_Ty, _Size, _TStateMutex>& _Left,
 		const nii_array<_Ty, _Size, _TStateMutex>& _Right) {	// test if _Left >= _Right for arrays
 		return (!(_Left < _Right));
+	}
+
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedPointer<_Ty> xscope_pointer_from_array_iterator(const typename nii_array<_Ty, _Size, _TStateMutex>::xscope_ss_iterator_type& iter_cref) {
+		/* We'll come up with a nicer way to do this at some point. */
+		class CDummy {};
+		static mse::TXScopeObj<CDummy> xscp_obj1;
+		return mse::make_pointer_to_member(*iter_cref, &xscp_obj1);
+	}
+
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_from_array_iterator(const typename nii_array<_Ty, _Size, _TStateMutex>::xscope_ss_const_iterator_type& iter_cref) {
+		/* We'll come up with a nicer way to do this at some point. */
+		class CDummy {};
+		static mse::TXScopeObj<CDummy> xscp_obj1;
+		return mse::make_const_pointer_to_member(*iter_cref, &xscp_obj1);
 	}
 
 
@@ -1899,36 +1925,50 @@ namespace mse {
 		return (!(_Left < _Right));
 	}
 
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedPointer<_Ty> xscope_pointer_from_array_iterator(const typename msearray<_Ty, _Size, _TStateMutex>::xscope_ss_iterator_type& iter_cref) {
+		/* We'll come up with a nicer way to do this at some point. */
+		class CDummy {};
+		static mse::TXScopeObj<CDummy> xscp_obj1;
+		return mse::make_pointer_to_member(*iter_cref, &xscp_obj1);
+	}
 
-	template<class _TArray> using xscope_ss_const_iterator_type = typename _TArray::xscope_ss_const_iterator_type;
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_from_array_iterator(const typename msearray<_Ty, _Size, _TStateMutex>::xscope_ss_const_iterator_type& iter_cref) {
+		/* We'll come up with a nicer way to do this at some point. */
+		class CDummy {};
+		static mse::TXScopeObj<CDummy> xscp_obj1;
+		return mse::make_const_pointer_to_member(*iter_cref, &xscp_obj1);
+	}
+
+
 	template<class _TArray>
-	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
-		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
+	typename _TArray::xscope_ss_const_iterator_type make_xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_ss_const_iterator_type(owner_ptr);
 	}
 	template<class _TArray>
-	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
-		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
+	typename _TArray::xscope_ss_const_iterator_type make_xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_ss_const_iterator_type(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TArray>
-	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
+	typename _TArray::xscope_ss_const_iterator_type make_xscope_ss_const_iterator_type(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_ss_const_iterator_type(owner_ptr);
 	}
 	template<class _TArray>
-	xscope_ss_const_iterator_type<_TArray> make_xscope_ss_const_iterator_type(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-		return xscope_ss_const_iterator_type<_TArray>(owner_ptr);
+	typename _TArray::xscope_ss_const_iterator_type make_xscope_ss_const_iterator_type(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_ss_const_iterator_type(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-	template<class _TArray> using xscope_ss_iterator_type = typename _TArray::xscope_ss_iterator_type;
 	template<class _TArray>
-	xscope_ss_iterator_type<_TArray> make_xscope_ss_iterator_type(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
-		return xscope_ss_iterator_type<_TArray>(owner_ptr);
+	typename _TArray::xscope_ss_iterator_type make_xscope_ss_iterator_type(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_ss_iterator_type(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TArray>
-	xscope_ss_iterator_type<_TArray> make_xscope_ss_iterator_type(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-		return xscope_ss_iterator_type<_TArray>(owner_ptr);
+	typename _TArray::xscope_ss_iterator_type make_xscope_ss_iterator_type(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_ss_iterator_type(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 }
@@ -2893,7 +2933,7 @@ namespace mse {
 		MSE_USING(TAsyncShareableObj, _TROy);
 		virtual ~TAsyncShareableObj() {
 			/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
-			_TROy_is_not_marked_as_unshareable();
+			valid_if_TROy_is_not_marked_as_unshareable();
 		}
 		using _TROy::operator=;
 		TAsyncShareableObj& operator=(const TAsyncShareableObj& _X) { _TROy::operator=(_X); return (*this); }
@@ -2907,7 +2947,7 @@ namespace mse {
 			(!std::integral_constant<bool, HasNotAsyncShareableTagMethod_msemsearray<_TROy>::Has>())
 			/*&& (!is_std_array<_TROy>::value)*/
 				), void>::type>
-		void _TROy_is_not_marked_as_unshareable() const {}
+		void valid_if_TROy_is_not_marked_as_unshareable() const {}
 
 		TAsyncShareableObj(const TAsyncShareableObj& _X) : _TROy(_X) {}
 		TAsyncShareableObj(TAsyncShareableObj&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
@@ -3119,7 +3159,7 @@ namespace mse {
 			}
 
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
-			_Ty_is_marked_as_shareable();
+			valid_if_Ty_is_marked_as_shareable();
 		}
 
 		TAccessControlledReadWritePointer<_Ty, _TAccessMutex> writelock_ptr() {
@@ -3191,7 +3231,7 @@ namespace mse {
 		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
 		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
-		void _Ty_is_marked_as_shareable() const {}
+		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		TAccessControlledReadWriteObj* operator&() { return this; }
 		const TAccessControlledReadWriteObj* operator&() const { return this; }

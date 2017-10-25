@@ -1772,7 +1772,7 @@ namespace mse {
 
 		~TAsyncSharedV2ReadWriteAccessRequester() {
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
-			_Ty_is_marked_as_shareable();
+			valid_if_Ty_is_marked_as_shareable();
 		}
 
 		template <class... Args>
@@ -1790,7 +1790,7 @@ namespace mse {
 		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
 		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
-		void _Ty_is_marked_as_shareable() const {}
+		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		TAsyncSharedV2ReadWriteAccessRequester(std::shared_ptr<_Ty> shptr) : base_class(make_asyncsharedv2xwpreadwrite(std::forward<std::shared_ptr<_Ty>>(shptr))) {}
 
@@ -1813,7 +1813,7 @@ namespace mse {
 
 		~TAsyncSharedV2ReadOnlyAccessRequester() {
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
-			_Ty_is_marked_as_shareable();
+			valid_if_Ty_is_marked_as_shareable();
 		}
 
 		template <class... Args>
@@ -1831,7 +1831,7 @@ namespace mse {
 		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
 		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
-		void _Ty_is_marked_as_shareable() const {}
+		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		TAsyncSharedV2ReadOnlyAccessRequester(std::shared_ptr<_Ty> shptr) : base_class(make_asyncsharedv2xwpreadonly(std::forward<std::shared_ptr<_Ty>>(shptr))) {}
 
