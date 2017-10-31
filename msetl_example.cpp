@@ -180,6 +180,12 @@ public:
 		return mse::make_pointer_to_member(safe_this->m_string1, safe_this);
 	}
 
+	template<class _TPointer>
+	static bool min_pointer_indicator(const _TPointer& a_ptr, const _TPointer& b_ptr) {
+		return ((*b_ptr) < (*a_ptr));
+	}
+#define XSCOPE_MIN1(a_ptr, b_ptr) mse::xscope_chosen_pointer(&H::min_pointer_indicator<decltype(a_ptr)>, a_ptr, b_ptr)
+
 	std::string m_string1 = "initial text";
 };
 
@@ -400,10 +406,14 @@ int main(int argc, char* argv[])
 				mse::mstd::array<int, 3> m_array = { 1, 2, 3 };
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
-			auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+			auto container1_m_array_scpptr = mse::xscope_make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
 			auto scp_iter4 = mse::mstd::make_xscope_iterator(container1_m_array_scpptr);
 			scp_iter4++;
 			auto res3 = *scp_iter4;
+
+			/* You can also obtain a corresponding scope pointer from a scope iterator. */
+			auto scp_ptr1 = mse::mstd::xscope_pointer_from_array_iterator<int, 3>(scp_iter4);
+			auto res4 = *scp_ptr1;
 		}
 
 		mse::mstd::array_test testobj1;
@@ -475,7 +485,7 @@ int main(int argc, char* argv[])
 				mse::msearray<int, 3> m_array;
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
-			auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+			auto container1_m_array_scpptr = mse::xscope_make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
 			auto scp_ss_citer4 = mse::make_xscope_ss_iterator_type(container1_m_array_scpptr);
 			scp_ss_citer4++;
 			auto res3 = *scp_ss_citer4;
@@ -1341,6 +1351,7 @@ int main(int argc, char* argv[])
 		public:
 			A(int x) : b(x) {}
 			virtual ~A() {}
+			bool operator<(const A& _X) const { return (b < _X.b); }
 
 			int b = 3;
 			std::string s = "some text ";
@@ -1361,19 +1372,39 @@ int main(int argc, char* argv[])
 		int res3 = B::foo3(&a_scpobj);
 		/* mse::TXScopeOwnerPointer<> will allocate a scope object on the heap (and deallocate it at the
 		end of the scope). */
-		mse::TXScopeOwnerPointer<A> a_scpoptr(7);
-		int res4 = B::foo2(&(*a_scpoptr));
+		mse::TXScopeOwnerPointer<A> xscp_a_ownerptr(7);
+		int res4 = B::foo2(&(*xscp_a_ownerptr));
 
 		/* You can use the "mse::make_pointer_to_member()" function to obtain a safe pointer to a member of
 		an xscope object. */
-		auto s_safe_ptr1 = mse::make_pointer_to_member((a_scpobj.s), (&a_scpobj));
-		(*s_safe_ptr1) = "some new text";
-		auto s_safe_const_ptr1 = mse::make_const_pointer_to_member((a_scpobj.s), (&a_scpobj));
+		auto xscp_s_ptr1 = mse::make_pointer_to_member((a_scpobj.s), (&a_scpobj));
+		(*xscp_s_ptr1) = "some new text";
+		auto xscp_s_const_ptr1 = mse::make_const_pointer_to_member((a_scpobj.s), (&a_scpobj));
 
 		/* The return type of mse::make_pointer_to_member() depends on the type of the parameters passed
-		to it. In this case, the type of s_safe_ptr1 is mse::TXScopeItemFixedPointer<A>>. */
+		to it. In this case, the type of xscp_s_ptr1 is mse::TXScopeItemFixedPointer<A>>. */
 
-		auto res5 = H::foo6(s_safe_ptr1, s_safe_const_ptr1);
+		auto res5 = H::foo6(xscp_s_ptr1, xscp_s_const_ptr1);
+
+		/* Using mse::xscope_make_strong_pointer_store(), you can obtain a scope pointer from a refcounting pointer. */
+		auto refc_ptr1 = mse::make_refcounting<A>(11);
+		auto xscp_refc_cstore = mse::xscope_make_strong_pointer_store(refc_ptr1);
+		auto xscp_cptr1 = xscp_refc_cstore.xscope_ptr();
+		int res6 = B::foo3(xscp_cptr1);
+		mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
+		A res7 = *xscp_cptr2;
+
+		/* Use xscope_chosen_pointer() when you otherwise would have returned a non-owning scope pointer. Here we use
+		it to implement "min(a, b)" functionality with scope pointers. */
+		auto xscp_a_ptr5 = &a_scpobj;
+		auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
+		auto xscp_min_ptr1 = mse::xscope_chosen_pointer(
+			[](decltype(xscp_a_ptr5) a_ptr, decltype(xscp_a_ptr6) b_ptr) { return ((*b_ptr) < (*a_ptr)); },
+			xscp_a_ptr5, xscp_a_ptr6);
+		auto lesser_val1 = *xscp_min_ptr1;
+
+		auto xscp_min_ptr2 = mse::xscope_chosen_pointer(&H::min_pointer_indicator<decltype(xscp_a_ptr5)>, xscp_a_ptr5, xscp_a_ptr6);
+		auto xscp_min_ptr3 = XSCOPE_MIN1(xscp_a_ptr5, xscp_a_ptr6);
 
 		mse::CXScpPtrTest1::s_test1();
 	}
@@ -2042,13 +2073,13 @@ int main(int argc, char* argv[])
 		};
 		mse::TXScopeObj<CA> xscp_obj1;
 		mse::TXScopeItemFixedPointer<CA> xscp_ifptr1 = &xscp_obj1;
-		mse::TXScopeItemFixedPointer<mse::CInt> xscp_ifptr2 = mse::make_pointer_to_member(xscp_obj1.m_i1, &xscp_obj1);
+		mse::TXScopeItemFixedPointer<mse::CInt> xscp_ifptr2 = mse::xscope_make_pointer_to_member(xscp_obj1.m_i1, &xscp_obj1);
 		mse::TXScopePolyPointer<CA> xscp_polyptr1 = xscp_ifptr1;
 		mse::TXScopePolyPointer<mse::CInt> xscp_polyptr2 = xscp_ifptr2;
 
 		auto refc_ptr1 = mse::make_refcounting<std::string>("some text");
 		mse::TXScopeRefCountingConstStore<std::string> xscp_refc_cstore(refc_ptr1);
-		auto xscp_cptr1 = xscp_refc_cstore.xscope_cptr();
+		auto xscp_cptr1 = xscp_refc_cstore.xscope_ptr();
 		mse::TXScopeItemFixedConstPointer<std::string> xscp_cptr2 = xscp_cptr1;
 		std::string res1 = *xscp_cptr2;
 		mse::TXScopeRefCountingNotNullStore<std::string> xscp_refcnn_store(refc_ptr1);
@@ -2057,14 +2088,14 @@ int main(int argc, char* argv[])
 		mse::TXScopeItemFixedConstPointer<std::string> xscp_cptr4 = xscp_ptr3;
 		std::string res2 = *xscp_cptr4;
 
-		const auto& bool_min_function1_cref = [](const decltype(xscp_cptr2)& a, const decltype(xscp_cptr4)& b) { return !((*a) < (*b)); };
-		auto res5 = mse::xscope_chosen(bool_min_function1_cref, xscp_cptr2, xscp_cptr4);
+		const auto& min_pointer_indicator = [](const decltype(xscp_cptr2)& a, const decltype(xscp_cptr4)& b) { return ((*b) < (*a)); };
+		auto res5 = mse::xscope_chosen_pointer(min_pointer_indicator, xscp_cptr2, xscp_cptr4);
 
 		mse::TXScopeObj<std::string> xscp_obj2;
 		auto xscp_fptr1 = &xscp_obj2;
 		auto xscp_fptr2 = &xscp_obj2;
 		const auto& bool_min_function2_cref = [](const decltype(xscp_fptr1)& a, const decltype(xscp_fptr2)& b, bool c) { return !(((*a) < (*b)) || c); };
-		auto res6 = mse::xscope_chosen(bool_min_function2_cref, xscp_fptr1, xscp_fptr2, false);
+		auto res6 = mse::xscope_chosen_pointer(bool_min_function2_cref, xscp_fptr1, xscp_fptr2, false);
 
 		mse::nii_vector<std::string> niiv1;
 		mse::nii_vector<mse::TRegisteredObj<std::string> > niiv2;

@@ -10,6 +10,9 @@
 
 #include "mseoptional.h"
 #include "msemsearray.h"
+#ifndef MSE_ASYNCSHARED_NO_XSCOPE_DEPENDENCE
+#include "msescope.h"
+#endif // !MSE_ASYNCSHARED_NO_XSCOPE_DEPENDENCE
 #include <shared_mutex>
 #include <thread>
 #include <unordered_map>
@@ -875,6 +878,52 @@ namespace mse {
 	template<typename _Ty>
 	TAsyncSharedReadWritePointer<_Ty>::TAsyncSharedReadWritePointer(const TAsyncSharedReadWriteAccessRequester<_Ty>& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 
+#ifdef MSESCOPE_H_
+	template<typename _Ty> using TXScopeAsyncSharedReadWriteStore = TXScopeStrongNotNullPointerStore<TAsyncSharedReadWritePointer<_Ty> >;
+	template<typename _Ty> using TXScopeAsyncSharedReadWriteConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedReadWriteConstPointer<_Ty> >;
+
+	template<typename _Ty>
+	TXScopeAsyncSharedReadWriteStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedReadWritePointer<_Ty>& stored_ptr) {
+		return TXScopeAsyncSharedReadWriteStore<_Ty>(stored_ptr);
+	}
+	template<typename _Ty>
+	TXScopeAsyncSharedReadWriteConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedReadWriteConstPointer<_Ty>& stored_ptr) {
+		return TXScopeAsyncSharedReadWriteConstStore<_Ty>(stored_ptr);
+	}
+
+#if 0
+	template<typename _Ty>
+	class TXScopeAsyncSharedReadWriteStore {
+	public:
+		TXScopeAsyncSharedReadWriteStore(const TAsyncSharedReadWritePointer<_Ty>& asrw_ptr) : m_asrw_ptr(asrw_ptr) {}
+		TXScopeItemFixedPointer<_Ty> xscope_ptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_pointer_to_member(*m_asrw_ptr, &xscp_obj1);
+		}
+		const TAsyncSharedReadWritePointer<_Ty>& asrw_ptr() const { return m_asrw_ptr; }
+	private:
+		TAsyncSharedReadWritePointer<_Ty> m_asrw_ptr;
+	};
+
+	template<typename _Ty>
+	class TXScopeAsyncSharedReadWriteConstStore {
+	public:
+		TXScopeAsyncSharedReadWriteConstStore(const TAsyncSharedReadWriteConstPointer<_Ty>& asrw_cptr) : m_asrw_cptr(asrw_cptr) {}
+		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static const mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_const_pointer_to_member(*m_asrw_cptr, &xscp_obj1);
+		}
+		const TAsyncSharedReadWriteConstPointer<_Ty>& asrw_cptr() const { return m_asrw_cptr; }
+	private:
+		TAsyncSharedReadWriteConstPointer<_Ty> m_asrw_cptr;
+	};
+#endif
+#endif // MSESCOPE_H_
+
 
 	template<typename _Ty>
 	class TAsyncSharedReadOnlyConstPointer {
@@ -986,6 +1035,32 @@ namespace mse {
 	TAsyncSharedReadOnlyAccessRequester<X> make_asyncsharedreadonly(Args&&... args) {
 		return TAsyncSharedReadOnlyAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
+
+#ifdef MSESCOPE_H_
+	template<typename _Ty> using TXScopeAsyncSharedReadOnlyConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedReadOnlyConstPointer<_Ty> >;
+
+	template<typename _Ty>
+	TXScopeAsyncSharedReadOnlyConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedReadOnlyConstPointer<_Ty>& stored_ptr) {
+		return TXScopeAsyncSharedReadOnlyConstStore<_Ty>(stored_ptr);
+	}
+
+#if 0
+	template<typename _Ty>
+	class TXScopeAsyncSharedReadOnlyConstStore {
+	public:
+		TXScopeAsyncSharedReadOnlyConstStore(const TAsyncSharedReadOnlyConstPointer<_Ty>& asro_cptr) : m_asro_cptr(asro_cptr) {}
+		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static const mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_const_pointer_to_member(*m_asro_cptr, &xscp_obj1);
+		}
+		const TAsyncSharedReadOnlyConstPointer<_Ty>& asro_cptr() const { return m_asro_cptr; }
+	private:
+		TAsyncSharedReadOnlyConstPointer<_Ty> m_asro_cptr;
+	};
+#endif
+#endif // MSESCOPE_H_
 
 
 	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer;
@@ -1249,6 +1324,52 @@ namespace mse {
 		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
+#ifdef MSESCOPE_H_
+	template<typename _Ty> using TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore = TXScopeStrongNotNullPointerStore<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> >;
+	template<typename _Ty> using TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> >;
+
+	template<typename _Ty>
+	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& stored_ptr) {
+		return TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore<_Ty>(stored_ptr);
+	}
+	template<typename _Ty>
+	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& stored_ptr) {
+		return TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore<_Ty>(stored_ptr);
+	}
+
+#if 0
+	template<typename _Ty>
+	class TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore {
+	public:
+		TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& asrw_ptr) : m_asrw_ptr(asrw_ptr) {}
+		TXScopeItemFixedPointer<_Ty> xscope_ptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_pointer_to_member(*m_asrw_ptr, &xscp_obj1);
+		}
+		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& asrw_ptr() const { return m_asrw_ptr; }
+	private:
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> m_asrw_ptr;
+	};
+
+	template<typename _Ty>
+	class TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore {
+	public:
+		TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& asrw_cptr) : m_asrw_cptr(asrw_cptr) {}
+		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static const mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_const_pointer_to_member(*m_asrw_cptr, &xscp_obj1);
+		}
+		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& asrw_cptr() const { return m_asrw_cptr; }
+	private:
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> m_asrw_cptr;
+	};
+#endif
+#endif // MSESCOPE_H_
+
 
 	template<typename _Ty>
 	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer {
@@ -1360,6 +1481,32 @@ namespace mse {
 	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly(Args&&... args) {
 		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
+
+#ifdef MSESCOPE_H_
+	template<typename _Ty> using TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> >;
+
+	template<typename _Ty>
+	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& stored_ptr) {
+		return TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore<_Ty>(stored_ptr);
+	}
+
+#if 0
+	template<typename _Ty>
+	class TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore {
+	public:
+		TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& asro_cptr) : m_asro_cptr(asro_cptr) {}
+		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static const mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_const_pointer_to_member(*m_asro_cptr, &xscp_obj1);
+		}
+		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& asro_cptr() const { return m_asro_cptr; }
+	private:
+		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> m_asro_cptr;
+	};
+#endif
+#endif // MSESCOPE_H_
 
 
 	template<typename _TAccessLease> class TAsyncSharedV2XWPReadWriteAccessRequester;
@@ -1651,6 +1798,52 @@ namespace mse {
 		return TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>::make(std::forward<_TAccessLease>(exclusive_write_pointer));
 	}
 
+#ifdef MSESCOPE_H_
+	template<typename _Ty> using TXScopeAsyncSharedV2ReadWriteStore = TXScopeStrongNotNullPointerStore<TAsyncSharedV2ReadWritePointer<_Ty> >;
+	template<typename _Ty> using TXScopeAsyncSharedV2ReadWriteConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedV2ReadWriteConstPointer<_Ty> >;
+
+	template<typename _Ty>
+	TXScopeAsyncSharedV2ReadWriteStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedV2ReadWritePointer<_Ty>& stored_ptr) {
+		return TXScopeAsyncSharedV2ReadWriteStore<_Ty>(stored_ptr);
+	}
+	template<typename _Ty>
+	TXScopeAsyncSharedV2ReadWriteConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedV2ReadWriteConstPointer<_Ty>& stored_ptr) {
+		return TXScopeAsyncSharedV2ReadWriteConstStore<_Ty>(stored_ptr);
+	}
+
+#if 0
+	template<typename _Ty>
+	class TXScopeAsyncSharedV2ReadWriteStore {
+	public:
+		TXScopeAsyncSharedV2ReadWriteStore(const TAsyncSharedV2ReadWritePointer<_Ty>& asrw_ptr) : m_asrw_ptr(asrw_ptr) {}
+		TXScopeItemFixedPointer<_Ty> xscope_ptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_pointer_to_member(*m_asrw_ptr, &xscp_obj1);
+		}
+		const TAsyncSharedV2ReadWritePointer<_Ty>& asrw_ptr() const { return m_asrw_ptr; }
+	private:
+		TAsyncSharedV2ReadWritePointer<_Ty> m_asrw_ptr;
+	};
+
+	template<typename _Ty>
+	class TXScopeAsyncSharedV2ReadWriteConstStore {
+	public:
+		TXScopeAsyncSharedV2ReadWriteConstStore(const TAsyncSharedV2ReadWriteConstPointer<_Ty>& asrw_cptr) : m_asrw_cptr(asrw_cptr) {}
+		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static const mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_const_pointer_to_member(*m_asrw_cptr, &xscp_obj1);
+		}
+		const TAsyncSharedV2ReadWriteConstPointer<_Ty>& asrw_cptr() const { return m_asrw_cptr; }
+	private:
+		TAsyncSharedV2ReadWriteConstPointer<_Ty> m_asrw_cptr;
+	};
+#endif
+#endif // MSESCOPE_H_
+
 
 	template<typename _TAccessLease>
 	class TAsyncSharedV2ReadOnlyConstPointer {
@@ -1761,6 +1954,32 @@ namespace mse {
 	TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease> make_asyncsharedv2xwpreadonly(_TAccessLease&& exclusive_write_pointer) {
 		return TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>::make(std::forward<_TAccessLease>(exclusive_write_pointer));
 	}
+
+#ifdef MSESCOPE_H_
+	template<typename _Ty> using TXScopeAsyncSharedV2ReadOnlyConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedV2ReadOnlyConstPointer<_Ty> >;
+
+	template<typename _Ty>
+	TXScopeAsyncSharedV2ReadOnlyConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedV2ReadOnlyConstPointer<_Ty>& stored_ptr) {
+		return TXScopeAsyncSharedV2ReadOnlyConstStore<_Ty>(stored_ptr);
+	}
+
+#if 0
+	template<typename _Ty>
+	class TXScopeAsyncSharedV2ReadOnlyConstStore {
+	public:
+		TXScopeAsyncSharedV2ReadOnlyConstStore(const TAsyncSharedV2ReadOnlyConstPointer<_Ty>& asro_cptr) : m_asro_cptr(asro_cptr) {}
+		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
+			/* We'll come up with a nicer way to do this at some point. */
+			class CDummy {};
+			static const mse::TXScopeObj<CDummy> xscp_obj1;
+			return mse::make_const_pointer_to_member(*m_asro_cptr, &xscp_obj1);
+		}
+		const TAsyncSharedV2ReadOnlyConstPointer<_Ty>& asro_cptr() const { return m_asro_cptr; }
+	private:
+		TAsyncSharedV2ReadOnlyConstPointer<_Ty> m_asro_cptr;
+	};
+#endif
+#endif // MSESCOPE_H_
 
 
 	template <typename _Ty>
@@ -1875,6 +2094,16 @@ namespace mse {
 	TStdSharedImmutableFixedPointer<X> make_stdsharedimmutable(Args&&... args) {
 		return TStdSharedImmutableFixedPointer<X>::make(std::forward<Args>(args)...);
 	}
+
+#ifdef MSESCOPE_H_
+	template<typename _Ty> using TXScopeStdSharedImmutableFixedStore = TXScopeStrongNotNullConstPointerStore<TStdSharedImmutableFixedPointer<_Ty> >;
+
+	template<typename _Ty>
+	TXScopeStdSharedImmutableFixedStore<_Ty> xscope_make_strong_pointer_store(const TStdSharedImmutableFixedPointer<_Ty>& stored_ptr) {
+		return TXScopeStdSharedImmutableFixedStore<_Ty>(stored_ptr);
+	}
+#endif // MSESCOPE_H_
+
 
 	/* Legacy aliases. */
 	template<typename _Ty> using TReadOnlyStdSharedFixedConstPointer = TStdSharedImmutableFixedPointer<_Ty>;

@@ -647,6 +647,29 @@ namespace mse {
 
 
 #ifdef MSESCOPE_H_
+	template<typename _Ty> using TXScopeRefCountingStore = TXScopeStrongPointerStore<TRefCountingPointer<_Ty> >;
+	template<typename _Ty> using TXScopeRefCountingConstStore = TXScopeStrongConstPointerStore<TRefCountingConstPointer<_Ty> >;
+	template<typename _Ty> using TXScopeRefCountingNotNullStore = TXScopeStrongNotNullPointerStore<TRefCountingNotNullPointer<_Ty> >;
+	template<typename _Ty> using TXScopeRefCountingNotNullConstStore = TXScopeStrongNotNullConstPointerStore<TRefCountingNotNullConstPointer<_Ty> >;
+
+	template<typename _Ty>
+	TXScopeRefCountingStore<_Ty> xscope_make_strong_pointer_store(const TRefCountingPointer<_Ty>& stored_ptr) {
+		return TXScopeRefCountingStore<_Ty>(stored_ptr);
+	}
+	template<typename _Ty>
+	TXScopeRefCountingConstStore<_Ty> xscope_make_strong_pointer_store(const TRefCountingConstPointer<_Ty>& stored_ptr) {
+		return TXScopeRefCountingConstStore<_Ty>(stored_ptr);
+	}
+	template<typename _Ty>
+	TXScopeRefCountingNotNullStore<_Ty> xscope_make_strong_pointer_store(const TRefCountingNotNullPointer<_Ty>& stored_ptr) {
+		return TXScopeRefCountingNotNullStore<_Ty>(stored_ptr);
+	}
+	template<typename _Ty>
+	TXScopeRefCountingNotNullConstStore<_Ty> xscope_make_strong_pointer_store(const TRefCountingNotNullConstPointer<_Ty>& stored_ptr) {
+		return TXScopeRefCountingNotNullConstStore<_Ty>(stored_ptr);
+	}
+
+#if 0
 	template<typename _Ty>
 	class TXScopeRefCountingStore {
 	public:
@@ -657,7 +680,7 @@ namespace mse {
 			/* We'll come up with a nicer way to do this at some point. */
 			class CDummy {};
 			static mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_pointer_to_member(*m_refc_ptr, &xscp_obj1);
+			return mse::xscope_make_pointer_to_member(*m_refc_ptr, &xscp_obj1);
 		}
 		const TRefCountingPointer<_Ty>& refc_ptr() const { return m_refc_ptr; }
 	private:
@@ -674,7 +697,7 @@ namespace mse {
 			/* We'll come up with a nicer way to do this at some point. */
 			class CDummy {};
 			static const mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_const_pointer_to_member(*m_refc_cptr, &xscp_obj1);
+			return mse::xscope_make_const_pointer_to_member(*m_refc_cptr, &xscp_obj1);
 		}
 		const TRefCountingConstPointer<_Ty>& refc_cptr() const { return m_refc_cptr; }
 	private:
@@ -689,7 +712,7 @@ namespace mse {
 			/* We'll come up with a nicer way to do this at some point. */
 			class CDummy {};
 			static mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_pointer_to_member(*m_refc_ptr, &xscp_obj1);
+			return mse::xscope_make_pointer_to_member(*m_refc_ptr, &xscp_obj1);
 		}
 		const TRefCountingNotNullPointer<_Ty>& refc_ptr() const { return m_refc_ptr; }
 	private:
@@ -704,12 +727,13 @@ namespace mse {
 			/* We'll come up with a nicer way to do this at some point. */
 			class CDummy {};
 			static const mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_const_pointer_to_member(*m_refc_cptr, &xscp_obj1);
+			return mse::xscope_make_const_pointer_to_member(*m_refc_cptr, &xscp_obj1);
 		}
 		const TRefCountingNotNullConstPointer<_Ty>& refc_cptr() const { return m_refc_cptr; }
 	private:
 		TRefCountingNotNullConstPointer<_Ty> m_refc_cptr;
 	};
+#endif
 #endif // MSESCOPE_H_
 
 

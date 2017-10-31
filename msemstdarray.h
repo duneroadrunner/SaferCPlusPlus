@@ -459,14 +459,14 @@ namespace mse {
 				typedef typename _MA::xscope_ss_const_iterator_type::reference reference;
 
 				xscope_const_iterator(const mse::TXScopeFixedConstPointer<array>& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
+					: m_xscope_ss_const_iterator(mse::xscope_make_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
 				xscope_const_iterator(const mse::TXScopeFixedPointer<array>& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
+					: m_xscope_ss_const_iterator(mse::xscope_make_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 				xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<array>& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
+					: m_xscope_ss_const_iterator(mse::xscope_make_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
 				xscope_const_iterator(const mse::TXScopeItemFixedPointer<array>& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
+					: m_xscope_ss_const_iterator(mse::xscope_make_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 				xscope_const_iterator(const xscope_const_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_const_iterator) {}
@@ -565,10 +565,10 @@ namespace mse {
 				typedef typename _MA::xscope_ss_iterator_type::reference reference;
 
 				xscope_iterator(const mse::TXScopeFixedPointer<array>& owner_ptr)
-					: m_xscope_ss_iterator(mse::make_pointer_to_member(_MA_ref((*owner_ptr).m_nii_array), owner_ptr)) {}
+					: m_xscope_ss_iterator(mse::xscope_make_pointer_to_member(_MA_ref((*owner_ptr).m_nii_array), owner_ptr)) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 				xscope_iterator(const mse::TXScopeItemFixedPointer<array>& owner_ptr)
-					: m_xscope_ss_iterator(mse::make_pointer_to_member(_MA_ref((*owner_ptr).m_nii_array), owner_ptr)) {}
+					: m_xscope_ss_iterator(mse::xscope_make_pointer_to_member(_MA_ref((*owner_ptr).m_nii_array), owner_ptr)) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 				xscope_iterator(const xscope_iterator& src_cref) : m_xscope_ss_iterator(src_cref.m_xscope_ss_iterator) {}
@@ -680,7 +680,7 @@ namespace mse {
 			/* We'll come up with a nicer way to do this at some point. */
 			class CDummy {};
 			static mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_pointer_to_member(*iter_cref, &xscp_obj1);
+			return mse::xscope_make_pointer_to_member(*iter_cref, &xscp_obj1);
 		}
 
 		template<class _Ty, size_t _Size>
@@ -688,7 +688,7 @@ namespace mse {
 			/* We'll come up with a nicer way to do this at some point. */
 			class CDummy {};
 			static mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_const_pointer_to_member(*iter_cref, &xscp_obj1);
+			return mse::xscope_make_const_pointer_to_member(*iter_cref, &xscp_obj1);
 		}
 
 

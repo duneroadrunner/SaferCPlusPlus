@@ -1588,7 +1588,7 @@ namespace mse {
 		/* We'll come up with a nicer way to do this at some point. */
 		class CDummy {};
 		static mse::TXScopeObj<CDummy> xscp_obj1;
-		return mse::make_pointer_to_member(*iter_cref, &xscp_obj1);
+		return mse::xscope_make_pointer_to_member(*iter_cref, &xscp_obj1);
 	}
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
@@ -1596,7 +1596,7 @@ namespace mse {
 		/* We'll come up with a nicer way to do this at some point. */
 		class CDummy {};
 		static mse::TXScopeObj<CDummy> xscp_obj1;
-		return mse::make_const_pointer_to_member(*iter_cref, &xscp_obj1);
+		return mse::xscope_make_const_pointer_to_member(*iter_cref, &xscp_obj1);
 	}
 
 
@@ -1930,7 +1930,7 @@ namespace mse {
 		/* We'll come up with a nicer way to do this at some point. */
 		class CDummy {};
 		static mse::TXScopeObj<CDummy> xscp_obj1;
-		return mse::make_pointer_to_member(*iter_cref, &xscp_obj1);
+		return mse::xscope_make_pointer_to_member(*iter_cref, &xscp_obj1);
 	}
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
@@ -1938,7 +1938,7 @@ namespace mse {
 		/* We'll come up with a nicer way to do this at some point. */
 		class CDummy {};
 		static mse::TXScopeObj<CDummy> xscp_obj1;
-		return mse::make_const_pointer_to_member(*iter_cref, &xscp_obj1);
+		return mse::xscope_make_const_pointer_to_member(*iter_cref, &xscp_obj1);
 	}
 
 
