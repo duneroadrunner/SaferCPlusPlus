@@ -84,11 +84,8 @@ namespace mse {
 		MSE_SCOPE_USING(TXScopeObjBase, _TROz);
 
 		using _TROz::operator=;
-		//TXScopeObjBase& operator=(const TXScopeObjBase& _X) { _TROz::operator=(_X); return (*this); }
-		TXScopeObjBase& operator=(const typename std::conditional<std::is_const<_TROz>::value
-			, std::nullptr_t, TXScopeObjBase>::type& _X) {
-			_TROz::operator=(_X); return (*this);
-		}
+		TXScopeObjBase& operator=(const TXScopeObjBase& _X) { _TROz::operator=(_X); return (*this); }
+		//TXScopeObjBase& operator=(const typename std::conditional<std::is_const<_TROz>::value, std::nullptr_t, TXScopeObjBase>::type& _X) { _TROz::operator=(_X); return (*this); }
 	private:
 		TXScopeObjBase& operator=(TXScopeObjBase&& _X) = delete;
 	};

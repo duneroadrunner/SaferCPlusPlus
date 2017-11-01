@@ -576,12 +576,10 @@ namespace mse {
 	public:
 		MSE_ASYNC_USING(TAsyncSharedObj, _TROy);
 		using _TROy::operator=;
-		//TAsyncSharedObj& operator=(TAsyncSharedObj&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		TAsyncSharedObj& operator=(typename std::conditional<std::is_const<_TROy>::value
-			, std::nullptr_t, TAsyncSharedObj>::type&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		//TAsyncSharedObj& operator=(const TAsyncSharedObj& _X) { _TROy::operator=(_X); return (*this); }
-		TAsyncSharedObj& operator=(const typename std::conditional<std::is_const<_TROy>::value
-			, std::nullptr_t, TAsyncSharedObj>::type& _X) { _TROy::operator=(_X); return (*this); }
+		TAsyncSharedObj& operator=(TAsyncSharedObj&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		//TAsyncSharedObj& operator=(typename std::conditional<std::is_const<_TROy>::value, std::nullptr_t, TAsyncSharedObj>::type&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TAsyncSharedObj& operator=(const TAsyncSharedObj& _X) { _TROy::operator=(_X); return (*this); }
+		//TAsyncSharedObj& operator=(const typename std::conditional<std::is_const<_TROy>::value, std::nullptr_t, TAsyncSharedObj>::type& _X) { _TROy::operator=(_X); return (*this); }
 
 	private:
 		TAsyncSharedObj(const TAsyncSharedObj& _X) : _TROy(_X) {}
@@ -852,10 +850,7 @@ namespace mse {
 
 		template <class... Args>
 		static TAsyncSharedReadWriteAccessRequester make(Args&&... args) {
-			//auto shptr = std::make_shared<TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
-			std::shared_ptr<TAsyncSharedObj<_Ty>> shptr(new TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
-			TAsyncSharedReadWriteAccessRequester retval(shptr);
-			return retval;
+			return TAsyncSharedReadWriteAccessRequester(std::make_shared<TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...));
 		}
 
 	private:
@@ -984,10 +979,7 @@ namespace mse {
 
 		template <class... Args>
 		static TAsyncSharedReadOnlyAccessRequester make(Args&&... args) {
-			//auto shptr = std::make_shared<const TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
-			std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr(new const TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
-			TAsyncSharedReadOnlyAccessRequester retval(shptr);
-			return retval;
+			return TAsyncSharedReadOnlyAccessRequester(std::make_shared<const TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...));
 		}
 
 	private:
@@ -1253,10 +1245,7 @@ namespace mse {
 
 		template <class... Args>
 		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester make(Args&&... args) {
-			//auto shptr = std::make_shared<TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
-			std::shared_ptr<TAsyncSharedObj<_Ty>> shptr(new TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
-			TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester retval(shptr);
-			return retval;
+			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester(std::make_shared<TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...));
 		}
 
 	private:
@@ -1381,10 +1370,7 @@ namespace mse {
 
 		template <class... Args>
 		static TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester make(Args&&... args) {
-			//auto shptr = std::make_shared<const TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...);
-			std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr(new const TAsyncSharedObj<_Ty>(std::forward<Args>(args)...));
-			TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester retval(shptr);
-			return retval;
+			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester(std::make_shared<const TAsyncSharedObj<_Ty>>(std::forward<Args>(args)...));
 		}
 
 	private:
@@ -1456,11 +1442,11 @@ namespace mse {
 			return m_shptr.operator bool();
 		}
 		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
-		auto operator*() -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type const {
+		auto operator*() const -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return (*((*m_shptr).cref()));
 		}
-		auto operator->() -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref()))) const {
+		auto operator->() const -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref()))) {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return std::addressof(*((*m_shptr).cref()));
 		}
@@ -1513,11 +1499,11 @@ namespace mse {
 			return m_shptr.operator bool();
 		}
 		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
-		auto operator*() -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type const {
+		auto operator*() const -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return (*((*m_shptr).cref()));
 		}
-		auto operator->() -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type const {
+		auto operator->() const -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return std::addressof(*((*m_shptr).cref()));
 		}
@@ -1568,11 +1554,11 @@ namespace mse {
 			return m_shptr.operator bool();
 		}
 		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
-		auto operator*() -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type const {
+		auto operator*() const -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return (*((*m_shptr).cref()));
 		}
-		auto operator->() -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref()))) const {
+		auto operator->() const -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref()))) {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return std::addressof(*((*m_shptr).cref()));
 		}
@@ -1680,12 +1666,12 @@ namespace mse {
 		}
 
 		static TAsyncSharedV2XWPReadWriteAccessRequester make(_TAccessLease&& exclusive_write_pointer) {
-			auto shptr = std::make_shared<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>(std::forward<_TAccessLease>(exclusive_write_pointer));
-			return TAsyncSharedV2XWPReadWriteAccessRequester(shptr);
+			return TAsyncSharedV2XWPReadWriteAccessRequester(std::make_shared<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>(std::forward<_TAccessLease>(exclusive_write_pointer)));
 		}
 
 	private:
 		TAsyncSharedV2XWPReadWriteAccessRequester(const std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr) : m_shptr(shptr) {}
+		TAsyncSharedV2XWPReadWriteAccessRequester(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>&& shptr) : m_shptr(std::forward<decltype(shptr)>(shptr)) {}
 
 		TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>* operator&() { return this; }
 		const TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>* operator&() const { return this; }
@@ -1727,11 +1713,11 @@ namespace mse {
 			return m_shptr.operator bool();
 		}
 		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
-		auto operator*() -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type const {
+		auto operator*() const -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return (*((*m_shptr).cref()));
 		}
-		auto operator->() -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type const {
+		auto operator->() const -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return std::addressof(*((*m_shptr).cref()));
 		}
@@ -1805,10 +1791,7 @@ namespace mse {
 
 		template <class... Args>
 		static TAsyncSharedV2XWPReadOnlyAccessRequester make(Args&&... args) {
-			//auto shptr = std::make_shared<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>(std::forward<Args>(args)...);
-			std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr(new const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>(std::forward<Args>(args)...));
-			TAsyncSharedV2XWPReadOnlyAccessRequester retval(shptr);
-			return retval;
+			return TAsyncSharedV2XWPReadOnlyAccessRequester(std::make_shared<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>(std::forward<Args>(args)...));
 		}
 
 	private:
@@ -1849,10 +1832,7 @@ namespace mse {
 
 		template <class... Args>
 		static TAsyncSharedV2ReadWriteAccessRequester make(Args&&... args) {
-			//auto shptr = std::make_shared<_Ty>(std::forward<Args>(args)...);
-			std::shared_ptr<_Ty> shptr(new _Ty(std::forward<Args>(args)...));
-			TAsyncSharedV2ReadWriteAccessRequester retval(shptr);
-			return retval;
+			return TAsyncSharedV2ReadWriteAccessRequester(std::make_shared<_Ty>(std::forward<Args>(args)...));
 		}
 
 	private:
@@ -1864,7 +1844,8 @@ namespace mse {
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
-		TAsyncSharedV2ReadWriteAccessRequester(std::shared_ptr<_Ty> shptr) : base_class(make_asyncsharedv2xwpreadwrite(std::forward<std::shared_ptr<_Ty>>(shptr))) {}
+		//TAsyncSharedV2ReadWriteAccessRequester(const std::shared_ptr<_Ty>& shptr) : base_class(make_asyncsharedv2xwpreadwrite(std::shared_ptr<_Ty>(shptr))) {}
+		TAsyncSharedV2ReadWriteAccessRequester(std::shared_ptr<_Ty>&& shptr) : base_class(make_asyncsharedv2xwpreadwrite(std::forward<decltype(shptr)>(shptr))) {}
 
 		TAsyncSharedV2ReadWriteAccessRequester<_Ty>* operator&() { return this; }
 		const TAsyncSharedV2ReadWriteAccessRequester<_Ty>* operator&() const { return this; }
@@ -1890,10 +1871,7 @@ namespace mse {
 
 		template <class... Args>
 		static TAsyncSharedV2ReadOnlyAccessRequester make(Args&&... args) {
-			//auto shptr = std::make_shared<_Ty>(std::forward<Args>(args)...);
-			std::shared_ptr<_Ty> shptr(new _Ty(std::forward<Args>(args)...));
-			TAsyncSharedV2ReadOnlyAccessRequester retval(shptr);
-			return retval;
+			return TAsyncSharedV2ReadOnlyAccessRequester(std::make_shared<_Ty>(std::forward<Args>(args)...));
 		}
 
 	private:
@@ -1905,7 +1883,8 @@ namespace mse {
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
-		TAsyncSharedV2ReadOnlyAccessRequester(std::shared_ptr<_Ty> shptr) : base_class(make_asyncsharedv2xwpreadonly(std::forward<std::shared_ptr<_Ty>>(shptr))) {}
+		//TAsyncSharedV2ReadOnlyAccessRequester(const std::shared_ptr<_Ty>& shptr) : base_class(make_asyncsharedv2xwpreadonly(std::shared_ptr<_Ty>(shptr))) {}
+		TAsyncSharedV2ReadOnlyAccessRequester(std::shared_ptr<_Ty>&& shptr) : base_class(make_asyncsharedv2xwpreadonly(std::forward<decltype(shptr)>(shptr))) {}
 
 		TAsyncSharedV2ReadOnlyAccessRequester<_Ty>* operator&() { return this; }
 		const TAsyncSharedV2ReadOnlyAccessRequester<_Ty>* operator&() const { return this; }
@@ -1931,8 +1910,7 @@ namespace mse {
 
 		template <class... Args>
 		static TStdSharedImmutableFixedPointer make(Args&&... args) {
-			TStdSharedImmutableFixedPointer retval(std::make_shared<const _Ty>(std::forward<Args>(args)...));
-			return retval;
+			return TStdSharedImmutableFixedPointer(std::make_shared<const _Ty>(std::forward<Args>(args)...));
 		}
 
 	private:

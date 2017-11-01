@@ -1453,12 +1453,12 @@ namespace mse {
 			return (*this);
 		}
 		_Myt& operator=(_Myt&& _X) {
-			operator=(std::forward<base_class>(_X));
+			base_class::operator=(std::forward<decltype(_X)>(_X));
 			m_mmitset.reset();
 			return (*this);
 		}
 		_Myt& operator=(const _Myt& _X) {
-			operator=(static_cast<const base_class&>(_X));
+			base_class::operator=(_X);
 			m_mmitset.reset();
 			return (*this);
 		}
