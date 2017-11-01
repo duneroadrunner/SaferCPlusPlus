@@ -890,38 +890,6 @@ namespace mse {
 	TXScopeAsyncSharedReadWriteConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedReadWriteConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedReadWriteConstStore<_Ty>(stored_ptr);
 	}
-
-#if 0
-	template<typename _Ty>
-	class TXScopeAsyncSharedReadWriteStore {
-	public:
-		TXScopeAsyncSharedReadWriteStore(const TAsyncSharedReadWritePointer<_Ty>& asrw_ptr) : m_asrw_ptr(asrw_ptr) {}
-		TXScopeItemFixedPointer<_Ty> xscope_ptr() const {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_pointer_to_member(*m_asrw_ptr, &xscp_obj1);
-		}
-		const TAsyncSharedReadWritePointer<_Ty>& asrw_ptr() const { return m_asrw_ptr; }
-	private:
-		TAsyncSharedReadWritePointer<_Ty> m_asrw_ptr;
-	};
-
-	template<typename _Ty>
-	class TXScopeAsyncSharedReadWriteConstStore {
-	public:
-		TXScopeAsyncSharedReadWriteConstStore(const TAsyncSharedReadWriteConstPointer<_Ty>& asrw_cptr) : m_asrw_cptr(asrw_cptr) {}
-		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static const mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_const_pointer_to_member(*m_asrw_cptr, &xscp_obj1);
-		}
-		const TAsyncSharedReadWriteConstPointer<_Ty>& asrw_cptr() const { return m_asrw_cptr; }
-	private:
-		TAsyncSharedReadWriteConstPointer<_Ty> m_asrw_cptr;
-	};
-#endif
 #endif // MSESCOPE_H_
 
 
@@ -1043,23 +1011,6 @@ namespace mse {
 	TXScopeAsyncSharedReadOnlyConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedReadOnlyConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedReadOnlyConstStore<_Ty>(stored_ptr);
 	}
-
-#if 0
-	template<typename _Ty>
-	class TXScopeAsyncSharedReadOnlyConstStore {
-	public:
-		TXScopeAsyncSharedReadOnlyConstStore(const TAsyncSharedReadOnlyConstPointer<_Ty>& asro_cptr) : m_asro_cptr(asro_cptr) {}
-		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static const mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_const_pointer_to_member(*m_asro_cptr, &xscp_obj1);
-		}
-		const TAsyncSharedReadOnlyConstPointer<_Ty>& asro_cptr() const { return m_asro_cptr; }
-	private:
-		TAsyncSharedReadOnlyConstPointer<_Ty> m_asro_cptr;
-	};
-#endif
 #endif // MSESCOPE_H_
 
 
@@ -1336,38 +1287,6 @@ namespace mse {
 	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore<_Ty>(stored_ptr);
 	}
-
-#if 0
-	template<typename _Ty>
-	class TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore {
-	public:
-		TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& asrw_ptr) : m_asrw_ptr(asrw_ptr) {}
-		TXScopeItemFixedPointer<_Ty> xscope_ptr() const {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_pointer_to_member(*m_asrw_ptr, &xscp_obj1);
-		}
-		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& asrw_ptr() const { return m_asrw_ptr; }
-	private:
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> m_asrw_ptr;
-	};
-
-	template<typename _Ty>
-	class TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore {
-	public:
-		TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& asrw_cptr) : m_asrw_cptr(asrw_cptr) {}
-		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static const mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_const_pointer_to_member(*m_asrw_cptr, &xscp_obj1);
-		}
-		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& asrw_cptr() const { return m_asrw_cptr; }
-	private:
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> m_asrw_cptr;
-	};
-#endif
 #endif // MSESCOPE_H_
 
 
@@ -1489,23 +1408,6 @@ namespace mse {
 	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore<_Ty>(stored_ptr);
 	}
-
-#if 0
-	template<typename _Ty>
-	class TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore {
-	public:
-		TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& asro_cptr) : m_asro_cptr(asro_cptr) {}
-		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static const mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_const_pointer_to_member(*m_asro_cptr, &xscp_obj1);
-		}
-		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& asro_cptr() const { return m_asro_cptr; }
-	private:
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> m_asro_cptr;
-	};
-#endif
 #endif // MSESCOPE_H_
 
 
@@ -1810,38 +1712,6 @@ namespace mse {
 	TXScopeAsyncSharedV2ReadWriteConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedV2ReadWriteConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedV2ReadWriteConstStore<_Ty>(stored_ptr);
 	}
-
-#if 0
-	template<typename _Ty>
-	class TXScopeAsyncSharedV2ReadWriteStore {
-	public:
-		TXScopeAsyncSharedV2ReadWriteStore(const TAsyncSharedV2ReadWritePointer<_Ty>& asrw_ptr) : m_asrw_ptr(asrw_ptr) {}
-		TXScopeItemFixedPointer<_Ty> xscope_ptr() const {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_pointer_to_member(*m_asrw_ptr, &xscp_obj1);
-		}
-		const TAsyncSharedV2ReadWritePointer<_Ty>& asrw_ptr() const { return m_asrw_ptr; }
-	private:
-		TAsyncSharedV2ReadWritePointer<_Ty> m_asrw_ptr;
-	};
-
-	template<typename _Ty>
-	class TXScopeAsyncSharedV2ReadWriteConstStore {
-	public:
-		TXScopeAsyncSharedV2ReadWriteConstStore(const TAsyncSharedV2ReadWriteConstPointer<_Ty>& asrw_cptr) : m_asrw_cptr(asrw_cptr) {}
-		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static const mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_const_pointer_to_member(*m_asrw_cptr, &xscp_obj1);
-		}
-		const TAsyncSharedV2ReadWriteConstPointer<_Ty>& asrw_cptr() const { return m_asrw_cptr; }
-	private:
-		TAsyncSharedV2ReadWriteConstPointer<_Ty> m_asrw_cptr;
-	};
-#endif
 #endif // MSESCOPE_H_
 
 
@@ -1962,23 +1832,6 @@ namespace mse {
 	TXScopeAsyncSharedV2ReadOnlyConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedV2ReadOnlyConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedV2ReadOnlyConstStore<_Ty>(stored_ptr);
 	}
-
-#if 0
-	template<typename _Ty>
-	class TXScopeAsyncSharedV2ReadOnlyConstStore {
-	public:
-		TXScopeAsyncSharedV2ReadOnlyConstStore(const TAsyncSharedV2ReadOnlyConstPointer<_Ty>& asro_cptr) : m_asro_cptr(asro_cptr) {}
-		TXScopeItemFixedConstPointer<_Ty> xscope_cptr() const {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static const mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::make_const_pointer_to_member(*m_asro_cptr, &xscp_obj1);
-		}
-		const TAsyncSharedV2ReadOnlyConstPointer<_Ty>& asro_cptr() const { return m_asro_cptr; }
-	private:
-		TAsyncSharedV2ReadOnlyConstPointer<_Ty> m_asro_cptr;
-	};
-#endif
 #endif // MSESCOPE_H_
 
 

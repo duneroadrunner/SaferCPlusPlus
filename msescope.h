@@ -347,6 +347,7 @@ namespace mse {
 		friend TXScopeItemFixedPointer<_TTargetType> xscope_make_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty2> &lease_pointer);
 		template<class _TTargetType, class _Ty2>
 		friend TXScopeItemFixedPointer<_TTargetType> xscope_make_pointer_to_member(_TTargetType& target, const TXScopeItemFixedPointer<_Ty2> &lease_pointer);
+		template<class _Ty2> friend TXScopeItemFixedPointer<_Ty2> xscope_unsafe_make_pointer_to(_Ty2& ref);
 	};
 
 	template<typename _Ty>
@@ -396,9 +397,20 @@ namespace mse {
 		friend TXScopeItemFixedConstPointer<_TTargetType> xscope_make_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedPointer<_Ty2> &lease_pointer);
 		template<class _TTargetType, class _Ty2>
 		friend TXScopeItemFixedConstPointer<_TTargetType> xscope_make_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedConstPointer<_Ty2> &lease_pointer);
+		template<class _Ty2> friend TXScopeItemFixedConstPointer<_Ty2> xscope_unsafe_make_const_pointer_to(const _Ty2& cref);
 	};
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
+
+	/* A couple of unsafe functions for internal use. */
+	template<typename _Ty>
+	TXScopeItemFixedPointer<_Ty> xscope_unsafe_make_pointer_to(_Ty& ref) {
+		return TXScopeItemFixedPointer<_Ty>(&ref);
+	}
+	template<typename _Ty>
+	TXScopeItemFixedConstPointer<_Ty> xscope_unsafe_make_const_pointer_to(const _Ty& cref) {
+		return TXScopeItemFixedConstPointer<_Ty>(&cref);
+	}
 
 	/* TXScopeOwnerPointer is meant to be much like boost::scoped_ptr<>. Instead of taking a native pointer,
 	TXScopeOwnerPointer just forwards it's constructor arguments to the constructor of the TXScopeObj<_Ty>.
@@ -654,10 +666,7 @@ namespace mse {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
 		auto xscope_ptr() const {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::xscope_make_pointer_to_member(*m_stored_ptr, &xscp_obj1);
+			return mse::xscope_unsafe_make_pointer_to(*m_stored_ptr);
 		}
 		const _TPointer& stored_ptr() const { return m_stored_ptr; }
 	private:
@@ -671,10 +680,7 @@ namespace mse {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
 		auto xscope_ptr() const {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static const mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::xscope_make_const_pointer_to_member(*m_stored_ptr, &xscp_obj1);
+			return mse::xscope_unsafe_make_const_pointer_to(*m_stored_ptr);
 		}
 		const _TPointer& stored_ptr() const { return m_stored_ptr; }
 	private:

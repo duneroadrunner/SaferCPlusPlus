@@ -1401,7 +1401,7 @@ int main(int argc, char* argv[])
 		auto xscp_min_ptr1 = mse::xscope_chosen_pointer(
 			[](decltype(xscp_a_ptr5) a_ptr, decltype(xscp_a_ptr6) b_ptr) { return ((*b_ptr) < (*a_ptr)); },
 			xscp_a_ptr5, xscp_a_ptr6);
-		auto lesser_val1 = *xscp_min_ptr1;
+		assert(5 == xscp_min_ptr1->b);
 
 		auto xscp_min_ptr2 = mse::xscope_chosen_pointer(&H::min_pointer_indicator<decltype(xscp_a_ptr5)>, xscp_a_ptr5, xscp_a_ptr6);
 		auto xscp_min_ptr3 = XSCOPE_MIN1(xscp_a_ptr5, xscp_a_ptr6);

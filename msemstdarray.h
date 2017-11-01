@@ -677,18 +677,12 @@ namespace mse {
 
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedPointer<_Ty> xscope_pointer_from_array_iterator(const typename array<_Ty, _Size>::xscope_iterator& iter_cref) {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::xscope_make_pointer_to_member(*iter_cref, &xscp_obj1);
+			return mse::xscope_unsafe_make_pointer_to(*iter_cref);
 		}
 
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_from_array_iterator(const typename array<_Ty, _Size>::xscope_const_iterator& iter_cref) {
-			/* We'll come up with a nicer way to do this at some point. */
-			class CDummy {};
-			static mse::TXScopeObj<CDummy> xscp_obj1;
-			return mse::xscope_make_const_pointer_to_member(*iter_cref, &xscp_obj1);
+			return mse::xscope_unsafe_make_const_pointer_to(*iter_cref);
 		}
 
 

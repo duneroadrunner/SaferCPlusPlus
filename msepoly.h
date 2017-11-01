@@ -1300,7 +1300,7 @@ namespace mse {
 		typedef TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<TRandomAccessSection<ra_iterator_t>> ras_ar_t;
 
 		template<typename _TList>
-		TAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, _TList section_sizes)
+		TAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, const _TList& section_sizes)
 			: m_access_lease_obj_shptr(std::make_shared<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t>>(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr))) {
 			size_t cummulative_size = 0;
 			//auto section_begin_it = m_access_lease_obj_shptr->cref()->begin();
@@ -1361,9 +1361,9 @@ namespace mse {
 		typedef TAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_writelock_ptr())> base_class;
 
 		template<typename _TList>
-		TAsyncRASectionSplitter(_TAccessRequester ar, _TList section_sizes) : base_class(ar.exclusive_writelock_ptr(), section_sizes) {}
+		TAsyncRASectionSplitter(_TAccessRequester& ar, const _TList& section_sizes) : base_class(ar.exclusive_writelock_ptr(), section_sizes) {}
 
-		TAsyncRASectionSplitter(_TAccessRequester ar, size_t split_index) : base_class(ar.exclusive_writelock_ptr(), split_index) {}
+		TAsyncRASectionSplitter(_TAccessRequester& ar, size_t split_index) : base_class(ar.exclusive_writelock_ptr(), split_index) {}
 	};
 
 
