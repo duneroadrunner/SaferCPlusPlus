@@ -878,11 +878,11 @@ namespace mse {
 	template<typename _Ty> using TXScopeAsyncSharedReadWriteConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedReadWriteConstPointer<_Ty> >;
 
 	template<typename _Ty>
-	TXScopeAsyncSharedReadWriteStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedReadWritePointer<_Ty>& stored_ptr) {
+	TXScopeAsyncSharedReadWriteStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedReadWritePointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedReadWriteStore<_Ty>(stored_ptr);
 	}
 	template<typename _Ty>
-	TXScopeAsyncSharedReadWriteConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedReadWriteConstPointer<_Ty>& stored_ptr) {
+	TXScopeAsyncSharedReadWriteConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedReadWriteConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedReadWriteConstStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
@@ -1000,7 +1000,7 @@ namespace mse {
 	template<typename _Ty> using TXScopeAsyncSharedReadOnlyConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedReadOnlyConstPointer<_Ty> >;
 
 	template<typename _Ty>
-	TXScopeAsyncSharedReadOnlyConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedReadOnlyConstPointer<_Ty>& stored_ptr) {
+	TXScopeAsyncSharedReadOnlyConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedReadOnlyConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedReadOnlyConstStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
@@ -1269,11 +1269,11 @@ namespace mse {
 	template<typename _Ty> using TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> >;
 
 	template<typename _Ty>
-	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& stored_ptr) {
+	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore<_Ty>(stored_ptr);
 	}
 	template<typename _Ty>
-	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& stored_ptr) {
+	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
@@ -1391,7 +1391,7 @@ namespace mse {
 	template<typename _Ty> using TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> >;
 
 	template<typename _Ty>
-	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& stored_ptr) {
+	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
@@ -1691,11 +1691,11 @@ namespace mse {
 	template<typename _Ty> using TXScopeAsyncSharedV2ReadWriteConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedV2ReadWriteConstPointer<_Ty> >;
 
 	template<typename _Ty>
-	TXScopeAsyncSharedV2ReadWriteStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedV2ReadWritePointer<_Ty>& stored_ptr) {
+	TXScopeAsyncSharedV2ReadWriteStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedV2ReadWritePointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedV2ReadWriteStore<_Ty>(stored_ptr);
 	}
 	template<typename _Ty>
-	TXScopeAsyncSharedV2ReadWriteConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedV2ReadWriteConstPointer<_Ty>& stored_ptr) {
+	TXScopeAsyncSharedV2ReadWriteConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedV2ReadWriteConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedV2ReadWriteConstStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
@@ -1812,7 +1812,7 @@ namespace mse {
 	template<typename _Ty> using TXScopeAsyncSharedV2ReadOnlyConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedV2ReadOnlyConstPointer<_Ty> >;
 
 	template<typename _Ty>
-	TXScopeAsyncSharedV2ReadOnlyConstStore<_Ty> xscope_make_strong_pointer_store(const TAsyncSharedV2ReadOnlyConstPointer<_Ty>& stored_ptr) {
+	TXScopeAsyncSharedV2ReadOnlyConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedV2ReadOnlyConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedV2ReadOnlyConstStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
@@ -1930,7 +1930,7 @@ namespace mse {
 	template<typename _Ty> using TXScopeStdSharedImmutableFixedStore = TXScopeStrongNotNullConstPointerStore<TStdSharedImmutableFixedPointer<_Ty> >;
 
 	template<typename _Ty>
-	TXScopeStdSharedImmutableFixedStore<_Ty> xscope_make_strong_pointer_store(const TStdSharedImmutableFixedPointer<_Ty>& stored_ptr) {
+	TXScopeStdSharedImmutableFixedStore<_Ty> make_xscope_strong_pointer_store(const TStdSharedImmutableFixedPointer<_Ty>& stored_ptr) {
 		return TXScopeStdSharedImmutableFixedStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_

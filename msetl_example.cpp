@@ -262,6 +262,56 @@ int main(int argc, char* argv[])
 			std::cerr << "potentially expected exception" << std::endl;
 		}
 	}
+
+	{
+		/* If the vector is declared as a "scope" object (which basically indicates that it is declared
+		on the stack), then you can use "scope" iterators. While there are limitations on when they can
+		be used, scope iterators would be the preferred iterator type where performance is a priority
+		as they don't require extra run-time overhead to ensure that the vector has not been prematurely
+		deallocated. */
+
+		/* Here we're declaring an vector as a scope object. */
+		mse::TXScopeObj<mse::mstd::vector<int>> vector1_scpobj = mse::mstd::vector<int>{ 1, 2, 3 };
+
+		/* Here we're obtaining a scope iterator to the vector. */
+		auto scp_iter1 = mse::mstd::make_xscope_iterator(&vector1_scpobj);
+		scp_iter1 = vector1_scpobj.begin();
+		auto scp_iter2 = mse::mstd::make_xscope_iterator(&vector1_scpobj);
+		scp_iter2 = vector1_scpobj.end();
+
+		std::sort(scp_iter1, scp_iter2);
+
+		auto scp_citer3 = mse::mstd::make_xscope_const_iterator(&vector1_scpobj);
+		scp_citer3 = scp_iter1;
+		scp_citer3 = vector1_scpobj.cbegin();
+		scp_citer3 += 2;
+		auto res1 = *scp_citer3;
+		auto res2 = scp_citer3[0];
+
+		/* Here we demonstrate the case where the vector is a member of a class/struct declared as a scope object. */
+		class CContainer1 {
+		public:
+			CContainer1() : m_vector({ 1, 2, 3 }) {}
+			mse::mstd::vector<int> m_vector;
+		};
+		mse::TXScopeObj<CContainer1> container1_scpobj;
+		auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member(container1_scpobj.m_vector, &container1_scpobj);
+		auto scp_citer4 = mse::mstd::make_xscope_iterator(container1_m_vector_scpptr);
+		scp_citer4 = (*container1_m_vector_scpptr).begin();
+		scp_citer4++;
+		auto res3 = *scp_citer4;
+
+		{
+			/* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
+			object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
+			to become invalid is performed. */
+			auto xscp_vector1_change_lock_guard = mse::mstd::make_xscope_vector_size_change_lock_guard(&vector1_scpobj);
+			auto scp_ptr1 = xscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+			auto res4 = *scp_ptr1;
+		}
+		vector1_scpobj.push_back(4);
+	}
+
 #endif // !MSE_MSTDVECTOR_DISABLED
 
 	{
@@ -331,6 +381,51 @@ int main(int argc, char* argv[])
 		mse::ivector<int> iv = { 1, 2, 3, 4 };
 		std::sort(iv.begin(), iv.end());
 		mse::ivector<int>::ipointer ivip = iv.begin();
+
+		{
+			/* A "scope" version of the safe iterators can be used when the vector is declared as a scope
+			object. There are limitations on when they can be used, but unlike the other msevector iterators,
+			those restrictions ensure that they won't be used to access the vector after it's been deallocated. */
+
+			mse::TXScopeObj<mse::msevector<int>> vector1_scpobj = mse::msevector<int>{ 1, 2, 3 };
+
+			auto scp_ss_iter1 = mse::make_xscope_ss_iterator_type(&vector1_scpobj);
+			scp_ss_iter1.set_to_beginning();
+			auto scp_ss_iter2 = mse::make_xscope_ss_iterator_type(&vector1_scpobj);
+			scp_ss_iter2.set_to_end_marker();
+
+			std::sort(scp_ss_iter1, scp_ss_iter2);
+
+			auto scp_ss_citer3 = mse::make_xscope_ss_const_iterator_type(&vector1_scpobj);
+			scp_ss_citer3 = scp_ss_iter1;
+			scp_ss_citer3 = vector1_scpobj.ss_cbegin();
+			scp_ss_citer3 += 2;
+			auto res1 = *scp_ss_citer3;
+			auto res2 = scp_ss_citer3[0];
+
+			/* Here we demonstrate the case where the vector is a member of a class/struct declared as a
+			scope object. */
+			class CContainer1 {
+			public:
+				CContainer1() : m_vector({ 1, 2, 3 }) {}
+				mse::msevector<int> m_vector;
+			};
+			mse::TXScopeObj<CContainer1> container1_scpobj;
+			auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member(container1_scpobj.m_vector, &container1_scpobj);
+			auto scp_ss_citer4 = mse::make_xscope_ss_iterator_type(container1_m_vector_scpptr);
+			scp_ss_citer4++;
+			auto res3 = *scp_ss_citer4;
+
+			{
+				/* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
+				object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
+				to become invalid is performed. */
+				auto xscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(&vector1_scpobj);
+				auto scp_ptr1 = xscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+				auto res4 = *scp_ptr1;
+			}
+			vector1_scpobj.push_back(4);
+		}
 	}
 
 #ifndef MSE_MSTDARRAY_DISABLED
@@ -379,7 +474,8 @@ int main(int argc, char* argv[])
 			/* If the array is declared as a "scope" object (which basically indicates that it is declared
 			on the stack), then you can use "scope" iterators. While there are limitations on when they can
 			be used, scope iterators would be the preferred iterator type where performance is a priority
-			as they don't require extra run time overhead to ensure that the array has not been deallocated. */
+			as they don't require extra run-time overhead to ensure that the array has not been prematurely
+			deallocated. */
 
 			/* Here we're declaring an array as a scope object. */
 			mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
@@ -406,14 +502,18 @@ int main(int argc, char* argv[])
 				mse::mstd::array<int, 3> m_array = { 1, 2, 3 };
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
-			auto container1_m_array_scpptr = mse::xscope_make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+			auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
 			auto scp_iter4 = mse::mstd::make_xscope_iterator(container1_m_array_scpptr);
+			scp_iter4 = (*container1_m_array_scpptr).begin();
 			scp_iter4++;
 			auto res3 = *scp_iter4;
 
 			/* You can also obtain a corresponding scope pointer from a scope iterator. */
-			auto scp_ptr1 = mse::mstd::xscope_pointer_from_array_iterator<int, 3>(scp_iter4);
+			auto scp_ptr1 = mse::mstd::xscope_pointer_to_array_element<int, 3>(scp_iter4);
 			auto res4 = *scp_ptr1;
+			/* Or with a scope pointer to the array and an index. */
+			auto scp_ptr2 = mse::mstd::xscope_pointer_to_array_element<int, 3>(container1_m_array_scpptr, 2/*element index*/);
+			auto res5 = *scp_ptr2;
 		}
 
 		mse::mstd::array_test testobj1;
@@ -458,7 +558,7 @@ int main(int argc, char* argv[])
 
 		{
 			/* A "scope" version of the safe iterators can be used when the array is declared as a scope
-			object. There are limitations on when thay can be used, but unlike the other msearray iterators,
+			object. There are limitations on when they can be used, but unlike the other msearray iterators,
 			those restrictions ensure that they won't be used to access the array after it's been deallocated. */
 
 			mse::TXScopeObj<mse::msearray<int, 3>> array1_scpobj = mse::msearray<int, 3>{ 1, 2, 3 };
@@ -485,10 +585,17 @@ int main(int argc, char* argv[])
 				mse::msearray<int, 3> m_array;
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
-			auto container1_m_array_scpptr = mse::xscope_make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+			auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
 			auto scp_ss_citer4 = mse::make_xscope_ss_iterator_type(container1_m_array_scpptr);
 			scp_ss_citer4++;
 			auto res3 = *scp_ss_citer4;
+
+			/* You can also obtain a corresponding scope pointer from a scope iterator. */
+			auto scp_ptr1 = mse::xscope_pointer_to_array_element<int, 3>(scp_ss_citer4);
+			auto res4 = *scp_ptr1;
+			/* Or with a scope pointer to the array and an index. */
+			auto scp_ptr2 = mse::xscope_pointer_to_array_element<int, 3>(container1_m_array_scpptr, 2/*element index*/);
+			auto res5 = *scp_ptr2;
 		}
 
 		mse::msearray_test testobj1;
@@ -1386,9 +1493,9 @@ int main(int argc, char* argv[])
 
 		auto res5 = H::foo6(xscp_s_ptr1, xscp_s_const_ptr1);
 
-		/* Using mse::xscope_make_strong_pointer_store(), you can obtain a scope pointer from a refcounting pointer. */
+		/* Using mse::make_xscope_strong_pointer_store(), you can obtain a scope pointer from a refcounting pointer. */
 		auto refc_ptr1 = mse::make_refcounting<A>(11);
-		auto xscp_refc_cstore = mse::xscope_make_strong_pointer_store(refc_ptr1);
+		auto xscp_refc_cstore = mse::make_xscope_strong_pointer_store(refc_ptr1);
 		auto xscp_cptr1 = xscp_refc_cstore.xscope_ptr();
 		int res6 = B::foo3(xscp_cptr1);
 		mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
@@ -2069,13 +2176,13 @@ int main(int argc, char* argv[])
 	{
 		class CA {
 		public:
-			mse::CInt m_i1;
+			std::string m_s1;
 		};
 		mse::TXScopeObj<CA> xscp_obj1;
 		mse::TXScopeItemFixedPointer<CA> xscp_ifptr1 = &xscp_obj1;
-		mse::TXScopeItemFixedPointer<mse::CInt> xscp_ifptr2 = mse::xscope_make_pointer_to_member(xscp_obj1.m_i1, &xscp_obj1);
+		mse::TXScopeItemFixedPointer<std::string> xscp_ifptr2 = mse::make_xscope_pointer_to_member(xscp_obj1.m_s1, &xscp_obj1);
 		mse::TXScopePolyPointer<CA> xscp_polyptr1 = xscp_ifptr1;
-		mse::TXScopePolyPointer<mse::CInt> xscp_polyptr2 = xscp_ifptr2;
+		mse::TXScopePolyPointer<std::string> xscp_polyptr2 = xscp_ifptr2;
 
 		auto refc_ptr1 = mse::make_refcounting<std::string>("some text");
 		mse::TXScopeRefCountingConstStore<std::string> xscp_refc_cstore(refc_ptr1);
@@ -2108,19 +2215,20 @@ int main(int argc, char* argv[])
 		mse::TXScopeObj<mse::nii_array<std::string, 5> > xscp_nii_ar1 = mse::nii_array<std::string, 5>({ "0", "1", "2", "3", "4"});
 		auto nii_ar_iter1 = mse::make_xscope_ss_iterator_type(&xscp_nii_ar1);
 		nii_ar_iter1 += 2;
-		auto xscp_nii_ar_ifptr = mse::xscope_pointer_from_array_iterator<std::string, 5>(nii_ar_iter1);
+		auto xscp_nii_ar_ifptr = mse::xscope_pointer_to_array_element<std::string, 5>(nii_ar_iter1);
 		auto nii_ar_res1 = (*xscp_nii_ar_ifptr);
 
 		mse::TXScopeObj<mse::msearray<std::string, 5> > xscp_msear1 = mse::msearray<std::string, 5>({ "0", "1", "2", "3", "4" });
 		auto msear_iter1 = mse::make_xscope_ss_iterator_type(&xscp_msear1);
 		msear_iter1 += 2;
-		auto xscp_msear_ifptr = mse::xscope_pointer_from_array_iterator<std::string, 5>(msear_iter1);
+		auto xscp_msear_ifptr = mse::xscope_pointer_to_array_element<std::string, 5>(msear_iter1);
 		auto msear_res1 = (*xscp_msear_ifptr);
 
 		mse::TXScopeObj<mse::mstd::array<std::string, 5> > xscp_mstd_ar1 = mse::mstd::array<std::string, 5>({ "0", "1", "2", "3", "4" });
 		auto mstd_ar_iter1 = mse::mstd::make_xscope_iterator(&xscp_mstd_ar1);
+		mstd_ar_iter1 = xscp_mstd_ar1.begin();
 		mstd_ar_iter1 += 2;
-		auto xscp_mstd_ar_ifptr = mse::mstd::xscope_pointer_from_array_iterator<std::string, 5>(mstd_ar_iter1);
+		auto xscp_mstd_ar_ifptr = mse::mstd::xscope_pointer_to_array_element<std::string, 5>(mstd_ar_iter1);
 		auto mstd_ar_res1 = (*xscp_mstd_ar_ifptr);
 	}
 

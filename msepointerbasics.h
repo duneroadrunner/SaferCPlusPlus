@@ -52,6 +52,16 @@
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-value"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 namespace mse {
 
 	class primitives_null_dereference_error : public std::logic_error {
@@ -516,6 +526,14 @@ namespace mse {
 		return TSyncWeakFixedConstPointer<_TTargetType, _Ty>::make(target, lease_pointer);
 	}
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
 
 #undef MSE_THROW
 

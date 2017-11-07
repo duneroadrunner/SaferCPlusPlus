@@ -14,6 +14,13 @@
 #define MSE_MSTDVECTOR_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
+#ifdef MSE_CUSTOM_THROW_DEFINITION
+#include <iostream>
+#define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
+#else // MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) throw(x)
+#endif // MSE_CUSTOM_THROW_DEFINITION
+
 namespace mse {
 
 	namespace mstd {
@@ -26,6 +33,11 @@ namespace mse {
 #ifndef _NOEXCEPT
 #define _NOEXCEPT
 #endif /*_NOEXCEPT*/
+
+		class mstdvector_range_error : public std::range_error {
+		public:
+			using std::range_error::range_error;
+		};
 
 		template<class _Ty, class _A = std::allocator<_Ty> >
 		class vector {
@@ -108,6 +120,8 @@ namespace mse {
 				return m_shptr->data();
 			}
 
+			class xscope_const_iterator;
+			class xscope_iterator;
 
 			class const_iterator : public _MV::random_access_const_iterator_base {
 			public:
@@ -165,6 +179,9 @@ namespace mse {
 				bool operator>=(const const_iterator& _Right) const { return (msevector_ss_const_iterator_type() >= _Right.msevector_ss_const_iterator_type()); }
 				void set_to_const_item_pointer(const const_iterator& _Right_cref) { msevector_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msevector_ss_const_iterator_type()); }
 				msev_size_t position() const { return msevector_ss_const_iterator_type().position(); }
+				auto target_container_ptr() const -> decltype(msevector_ss_const_iterator_type().target_container_ptr()) {
+					return msevector_ss_const_iterator_type().target_container_ptr();
+				}
 			private:
 				const_iterator(std::shared_ptr<_MV> msevector_shptr) : m_msevector_cshptr(msevector_shptr) {
 					m_ss_const_iterator = msevector_shptr->ss_cbegin();
@@ -239,6 +256,9 @@ namespace mse {
 				bool operator>=(const iterator& _Right) const { return (msevector_ss_iterator_type() >= _Right.msevector_ss_iterator_type()); }
 				void set_to_item_pointer(const iterator& _Right_cref) { msevector_ss_iterator_type().set_to_item_pointer(_Right_cref.msevector_ss_iterator_type()); }
 				msev_size_t position() const { return msevector_ss_iterator_type().position(); }
+				auto target_container_ptr() const -> decltype(msevector_ss_iterator_type().target_container_ptr()) {
+					return msevector_ss_iterator_type().target_container_ptr();
+				}
 			private:
 				std::shared_ptr<_MV> m_msevector_shptr;
 				/* m_ss_iterator needs to be declared after m_msevector_shptr so that its destructor will be called first. */
@@ -385,6 +405,255 @@ namespace mse {
 				return ((*m_shptr) < (*(_Right.m_shptr)));
 			}
 
+			/* These static functions are just used to obtain a (base class) reference to an
+			object of a (possibly) derived class. */
+			static _MV& _MV_ref(_MV& obj) { return obj; }
+			static const _MV& _MV_cref(const _MV& obj) { return obj; }
+
+			class xscope_const_iterator : public _MV::random_access_iterator_base, public XScopeTagBase {
+			public:
+				typedef typename _MV::xscope_ss_const_iterator_type::iterator_category iterator_category;
+				typedef typename _MV::xscope_ss_const_iterator_type::value_type value_type;
+				typedef typename _MV::xscope_ss_const_iterator_type::difference_type difference_type;
+				typedef typename _MV::difference_type distance_type;	// retained
+				typedef typename _MV::xscope_ss_const_iterator_type::pointer pointer;
+				typedef typename _MV::xscope_ss_const_iterator_type::reference reference;
+
+				xscope_const_iterator(const mse::TXScopeFixedConstPointer<vector>& owner_ptr)
+					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+				xscope_const_iterator(const mse::TXScopeFixedPointer<vector>& owner_ptr)
+					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<vector>& owner_ptr)
+					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+				xscope_const_iterator(const mse::TXScopeItemFixedPointer<vector>& owner_ptr)
+					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+				xscope_const_iterator(const xscope_const_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_const_iterator) {}
+				xscope_const_iterator(const xscope_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_iterator) {}
+				~xscope_const_iterator() {}
+				const typename _MV::xscope_ss_const_iterator_type& msevector_xscope_ss_const_iterator_type() const {
+					return m_xscope_ss_const_iterator;
+				}
+				typename _MV::xscope_ss_const_iterator_type& msevector_xscope_ss_const_iterator_type() {
+					return m_xscope_ss_const_iterator;
+				}
+				const typename _MV::xscope_ss_const_iterator_type& mvssci() const { return msevector_xscope_ss_const_iterator_type(); }
+				typename _MV::xscope_ss_const_iterator_type& mvssci() { return msevector_xscope_ss_const_iterator_type(); }
+
+				void reset() { msevector_xscope_ss_const_iterator_type().reset(); }
+				bool points_to_an_item() const { return msevector_xscope_ss_const_iterator_type().points_to_an_item(); }
+				bool points_to_end_marker() const { return msevector_xscope_ss_const_iterator_type().points_to_end_marker(); }
+				bool points_to_beginning() const { return msevector_xscope_ss_const_iterator_type().points_to_beginning(); }
+				/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+				bool has_next_item_or_end_marker() const { return msevector_xscope_ss_const_iterator_type().has_next_item_or_end_marker(); }
+				/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
+				bool has_next() const { return msevector_xscope_ss_const_iterator_type().has_next(); }
+				bool has_previous() const { return msevector_xscope_ss_const_iterator_type().has_previous(); }
+				void set_to_beginning() { msevector_xscope_ss_const_iterator_type().set_to_beginning(); }
+				void set_to_end_marker() { msevector_xscope_ss_const_iterator_type().set_to_end_marker(); }
+				void set_to_next() { msevector_xscope_ss_const_iterator_type().set_to_next(); }
+				void set_to_previous() { msevector_xscope_ss_const_iterator_type().set_to_previous(); }
+				xscope_const_iterator& operator ++() { msevector_xscope_ss_const_iterator_type().operator ++(); return (*this); }
+				xscope_const_iterator operator++(int) { xscope_const_iterator _Tmp = *this; ++*this; return (_Tmp); }
+				xscope_const_iterator& operator --() { msevector_xscope_ss_const_iterator_type().operator --(); return (*this); }
+				xscope_const_iterator operator--(int) { xscope_const_iterator _Tmp = *this; --*this; return (_Tmp); }
+				void advance(typename _MV::difference_type n) { msevector_xscope_ss_const_iterator_type().advance(n); }
+				void regress(typename _MV::difference_type n) { msevector_xscope_ss_const_iterator_type().regress(n); }
+				xscope_const_iterator& operator +=(difference_type n) { msevector_xscope_ss_const_iterator_type().operator +=(n); return (*this); }
+				xscope_const_iterator& operator -=(difference_type n) { msevector_xscope_ss_const_iterator_type().operator -=(n); return (*this); }
+				xscope_const_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				xscope_const_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
+				typename _MV::difference_type operator-(const xscope_const_iterator& _Right_cref) const { return msevector_xscope_ss_const_iterator_type() - (_Right_cref.msevector_xscope_ss_const_iterator_type()); }
+				typename _MV::const_reference operator*() const { return msevector_xscope_ss_const_iterator_type().operator*(); }
+				typename _MV::const_reference item() const { return operator*(); }
+				typename _MV::const_reference previous_item() const { return msevector_xscope_ss_const_iterator_type().previous_item(); }
+				typename _MV::const_pointer operator->() const { return msevector_xscope_ss_const_iterator_type().operator->(); }
+				typename _MV::const_reference operator[](typename _MV::difference_type _Off) const { return msevector_xscope_ss_const_iterator_type()[_Off]; }
+				xscope_const_iterator& operator=(const xscope_const_iterator& _Right_cref) {
+					msevector_xscope_ss_const_iterator_type().operator=(_Right_cref.msevector_xscope_ss_const_iterator_type());
+					return (*this);
+				}
+				xscope_const_iterator& operator=(const xscope_iterator& _Right_cref) {
+					msevector_xscope_ss_const_iterator_type().operator=(_Right_cref.msevector_xscope_ss_iterator_type());
+					return (*this);
+				}
+				xscope_const_iterator& operator=(const typename _Myt::const_iterator& _Right_cref) {
+					//msevector_xscope_ss_const_iterator_type().operator=(_Right_cref.msevector_reg_ss_const_iterator_type());
+					if (!(_Right_cref.target_container_ptr())
+						|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
+						MSE_THROW(mstdvector_range_error("invalid assignment - mse::mstd::vector<>::xscope_const_iterator"));
+					}
+					(*this).set_to_beginning();
+					(*this) += _Right_cref.position();
+					return (*this);
+				}
+				xscope_const_iterator& operator=(const typename _Myt::iterator& _Right_cref) {
+					//msevector_xscope_ss_const_iterator_type().operator=(_Right_cref.msevector_reg_ss_iterator_type());
+					if (!(_Right_cref.target_container_ptr())
+						|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
+						MSE_THROW(mstdvector_range_error("invalid assignment - mse::mstd::vector<>::xscope_const_iterator"));
+					}
+					(*this).set_to_beginning();
+					(*this) += _Right_cref.position();
+					return (*this);
+				}
+				bool operator==(const xscope_const_iterator& _Right_cref) const { return msevector_xscope_ss_const_iterator_type().operator==(_Right_cref.msevector_xscope_ss_const_iterator_type()); }
+				bool operator!=(const xscope_const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
+				bool operator<(const xscope_const_iterator& _Right) const { return (msevector_xscope_ss_const_iterator_type() < _Right.msevector_xscope_ss_const_iterator_type()); }
+				bool operator<=(const xscope_const_iterator& _Right) const { return (msevector_xscope_ss_const_iterator_type() <= _Right.msevector_xscope_ss_const_iterator_type()); }
+				bool operator>(const xscope_const_iterator& _Right) const { return (msevector_xscope_ss_const_iterator_type() > _Right.msevector_xscope_ss_const_iterator_type()); }
+				bool operator>=(const xscope_const_iterator& _Right) const { return (msevector_xscope_ss_const_iterator_type() >= _Right.msevector_xscope_ss_const_iterator_type()); }
+				void set_to_const_item_pointer(const xscope_const_iterator& _Right_cref) { msevector_xscope_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msevector_xscope_ss_const_iterator_type()); }
+				msear_size_t position() const { return msevector_xscope_ss_const_iterator_type().position(); }
+				auto target_container_ptr() const -> decltype(msevector_xscope_ss_const_iterator_type().target_container_ptr()) {
+					return msevector_xscope_ss_const_iterator_type().target_container_ptr();
+				}
+				void xscope_tag() const {}
+				void xscope_iterator_tag() const {}
+			private:
+				typename _MV::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
+				friend class /*_Myt*/vector<_Ty>;
+			};
+			class xscope_iterator : public _MV::random_access_iterator_base, public XScopeTagBase {
+			public:
+				typedef typename _MV::xscope_ss_iterator_type::iterator_category iterator_category;
+				typedef typename _MV::xscope_ss_iterator_type::value_type value_type;
+				typedef typename _MV::xscope_ss_iterator_type::difference_type difference_type;
+				typedef typename _MV::difference_type distance_type;	// retained
+				typedef typename _MV::xscope_ss_iterator_type::pointer pointer;
+				typedef typename _MV::xscope_ss_iterator_type::reference reference;
+
+				xscope_iterator(const mse::TXScopeFixedPointer<vector>& owner_ptr)
+					: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member(_MV_ref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_iterator(const mse::TXScopeItemFixedPointer<vector>& owner_ptr)
+					: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member(_MV_ref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+				xscope_iterator(const xscope_iterator& src_cref) : m_xscope_ss_iterator(src_cref.m_xscope_ss_iterator) {}
+				~xscope_iterator() {}
+				const typename _MV::xscope_ss_iterator_type& msevector_xscope_ss_iterator_type() const {
+					return m_xscope_ss_iterator;
+				}
+				typename _MV::xscope_ss_iterator_type& msevector_xscope_ss_iterator_type() {
+					return m_xscope_ss_iterator;
+				}
+				const typename _MV::xscope_ss_iterator_type& mvssi() const { return msevector_xscope_ss_iterator_type(); }
+				typename _MV::xscope_ss_iterator_type& mvssi() { return msevector_xscope_ss_iterator_type(); }
+
+				void reset() { msevector_xscope_ss_iterator_type().reset(); }
+				bool points_to_an_item() const { return msevector_xscope_ss_iterator_type().points_to_an_item(); }
+				bool points_to_end_marker() const { return msevector_xscope_ss_iterator_type().points_to_end_marker(); }
+				bool points_to_beginning() const { return msevector_xscope_ss_iterator_type().points_to_beginning(); }
+				/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+				bool has_next_item_or_end_marker() const { return msevector_xscope_ss_iterator_type().has_next_item_or_end_marker(); }
+				/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
+				bool has_next() const { return msevector_xscope_ss_iterator_type().has_next(); }
+				bool has_previous() const { return msevector_xscope_ss_iterator_type().has_previous(); }
+				void set_to_beginning() { msevector_xscope_ss_iterator_type().set_to_beginning(); }
+				void set_to_end_marker() { msevector_xscope_ss_iterator_type().set_to_end_marker(); }
+				void set_to_next() { msevector_xscope_ss_iterator_type().set_to_next(); }
+				void set_to_previous() { msevector_xscope_ss_iterator_type().set_to_previous(); }
+				xscope_iterator& operator ++() { msevector_xscope_ss_iterator_type().operator ++(); return (*this); }
+				xscope_iterator operator++(int) { xscope_iterator _Tmp = *this; ++*this; return (_Tmp); }
+				xscope_iterator& operator --() { msevector_xscope_ss_iterator_type().operator --(); return (*this); }
+				xscope_iterator operator--(int) { xscope_iterator _Tmp = *this; --*this; return (_Tmp); }
+				void advance(typename _MV::difference_type n) { msevector_xscope_ss_iterator_type().advance(n); }
+				void regress(typename _MV::difference_type n) { msevector_xscope_ss_iterator_type().regress(n); }
+				xscope_iterator& operator +=(difference_type n) { msevector_xscope_ss_iterator_type().operator +=(n); return (*this); }
+				xscope_iterator& operator -=(difference_type n) { msevector_xscope_ss_iterator_type().operator -=(n); return (*this); }
+				xscope_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				xscope_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
+				typename _MV::difference_type operator-(const xscope_iterator& _Right_cref) const { return msevector_xscope_ss_iterator_type() - (_Right_cref.msevector_xscope_ss_iterator_type()); }
+				typename _MV::reference operator*() const { return msevector_xscope_ss_iterator_type().operator*(); }
+				typename _MV::reference item() const { return operator*(); }
+				typename _MV::reference previous_item() const { return msevector_xscope_ss_iterator_type().previous_item(); }
+				typename _MV::pointer operator->() const { return msevector_xscope_ss_iterator_type().operator->(); }
+				typename _MV::reference operator[](typename _MV::difference_type _Off) const { return msevector_xscope_ss_iterator_type()[_Off]; }
+				xscope_iterator& operator=(const xscope_iterator& _Right_cref) {
+					msevector_xscope_ss_iterator_type().operator=(_Right_cref.msevector_xscope_ss_iterator_type());
+					return (*this);
+				}
+				xscope_iterator& operator=(const typename _Myt::iterator& _Right_cref) {
+					//msevector_xscope_ss_iterator_type().operator=(_Right_cref.msevector_reg_ss_iterator_type());
+					if (!(_Right_cref.target_container_ptr())
+						|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
+						MSE_THROW(mstdvector_range_error("invalid assignment - mse::mstd::vector<>::xscope_iterator"));
+					}
+					(*this).set_to_beginning();
+					(*this) += _Right_cref.position();
+					return (*this);
+				}
+				bool operator==(const xscope_iterator& _Right_cref) const { return msevector_xscope_ss_iterator_type().operator==(_Right_cref.msevector_xscope_ss_iterator_type()); }
+				bool operator!=(const xscope_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
+				bool operator<(const xscope_iterator& _Right) const { return (msevector_xscope_ss_iterator_type() < _Right.msevector_xscope_ss_iterator_type()); }
+				bool operator<=(const xscope_iterator& _Right) const { return (msevector_xscope_ss_iterator_type() <= _Right.msevector_xscope_ss_iterator_type()); }
+				bool operator>(const xscope_iterator& _Right) const { return (msevector_xscope_ss_iterator_type() > _Right.msevector_xscope_ss_iterator_type()); }
+				bool operator>=(const xscope_iterator& _Right) const { return (msevector_xscope_ss_iterator_type() >= _Right.msevector_xscope_ss_iterator_type()); }
+				void set_to_item_pointer(const xscope_iterator& _Right_cref) { msevector_xscope_ss_iterator_type().set_to_item_pointer(_Right_cref.msevector_xscope_ss_iterator_type()); }
+				msear_size_t position() const { return msevector_xscope_ss_iterator_type().position(); }
+				auto target_container_ptr() const -> decltype(msevector_xscope_ss_iterator_type().target_container_ptr()) {
+					return msevector_xscope_ss_iterator_type().target_container_ptr();
+				}
+				void xscope_tag() const {}
+				void xscope_iterator_tag() const {}
+			private:
+				typename _MV::xscope_ss_iterator_type m_xscope_ss_iterator;
+				friend class /*_Myt*/vector<_Ty>;
+				friend class xscope_const_iterator;
+			};
+
+			/* For each (scope) vector instance, only one instance of xscope_structure_change_lock_guard may exist at any one
+			time. While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+			individual elements in the vector do not become invalid by preventing any operation that might resize the vector
+			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
+			class xscope_structure_change_lock_guard : public XScopeTagBase {
+			public:
+				xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<vector>& owner_ptr)
+					: m_MV_xscope_structure_change_lock_guard(mse::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_structure_change_lock_guard(const mse::TXScopeItemFixedPointer<vector>& owner_ptr)
+					: m_MV_xscope_structure_change_lock_guard(mse::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+				auto xscope_ptr_to_element(size_type _P) const {
+					return m_MV_xscope_structure_change_lock_guard.xscope_ptr_to_element(_P);
+				}
+				auto xscope_ptr_to_element(const xscope_iterator& iter) const {
+					assert(std::addressof(*(iter.target_container_ptr())) == std::addressof(*target_container_ptr()));
+					return xscope_ptr_to_element(iter.position());
+				}
+				auto target_container_ptr() const {
+					return m_MV_xscope_structure_change_lock_guard.target_container_ptr();
+				}
+			private:
+				typename mse::msevector<_Ty>::xscope_structure_change_lock_guard m_MV_xscope_structure_change_lock_guard;
+			};
+			class xscope_const_structure_change_lock_guard : public XScopeTagBase {
+			public:
+				xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<vector>& owner_ptr)
+					: m_MV_xscope_const_structure_change_lock_guard(mse::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_const_structure_change_lock_guard(const mse::TXScopeItemFixedConstPointer<vector>& owner_ptr)
+					: m_MV_xscope_const_structure_change_lock_guard(mse::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+				auto xscope_ptr_to_element(size_type _P) const {
+					return m_MV_xscope_const_structure_change_lock_guard.xscope_ptr_to_element(_P);
+				}
+				auto xscope_ptr_to_element(const xscope_const_iterator& citer) const {
+					assert(std::addressof(*(citer.target_container_ptr())) == std::addressof(*target_container_ptr()));
+					return xscope_ptr_to_element(citer.position());
+				}
+				auto target_container_ptr() const {
+					return m_MV_xscope_const_structure_change_lock_guard.target_container_ptr();
+				}
+			private:
+				typename mse::msevector<_Ty>::xscope_const_structure_change_lock_guard m_MV_xscope_const_structure_change_lock_guard;
+			};
+
 		private:
 			std::shared_ptr<_MV> m_shptr;
 		};
@@ -408,7 +677,36 @@ namespace mse {
 			const vector<_Ty, _Alloc>& _Right) {	// test if _Left >= _Right for vectors
 			return (!(_Left < _Right));
 		}
+
+		/* For each (scope) vector instance, only one instance of xscope_structure_change_lock_guard may exist at any one
+		time. While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+		individual elements in the vector do not become invalid by preventing any operation that might resize the vector
+		or increase its capacity. Any attempt to execute such an operation would result in an exception. */
+		template<class _Ty, class _A = std::allocator<_Ty> >
+		auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedPointer<vector<_Ty, _A> >& owner_ptr) {
+			return typename vector<_Ty, _A>::xscope_structure_change_lock_guard(owner_ptr);
+		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _Ty, class _A = std::allocator<_Ty> >
+		auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedPointer<vector<_Ty, _A> >& owner_ptr) {
+			return typename vector<_Ty, _A>::xscope_structure_change_lock_guard(owner_ptr);
+		}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _Ty, class _A = std::allocator<_Ty> >
+		auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedConstPointer<vector<_Ty, _A> >& owner_ptr) {
+			return vector<_Ty, _A>::xscope_const_structure_change_lock_guard(owner_ptr);
+		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _Ty, class _A = std::allocator<_Ty> >
+		auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedConstPointer<vector<_Ty, _A> >& owner_ptr) {
+			return vector<_Ty, _A>::xscope_const_structure_change_lock_guard(owner_ptr);
+		}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
 #endif /*MSE_MSTDVECTOR_DISABLED*/
 	}
 }
+
+#undef MSE_THROW
+
 #endif /*ndef MSEMSTDVECTOR_H*/

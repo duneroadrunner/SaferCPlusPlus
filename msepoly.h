@@ -1596,6 +1596,7 @@ namespace mse {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wmissing-braces"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push

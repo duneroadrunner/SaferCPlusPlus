@@ -18,6 +18,20 @@
 #pragma warning( disable : 4100 4456 4189 4505 )
 #endif /*_MSC_VER*/
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+//pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 /*compiler specific defines*/
 #ifdef _MSC_VER
 #if (1700 > _MSC_VER)
@@ -818,20 +832,6 @@ namespace mse {
 	inline bool operator!=(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) != as_a_size_t(rhs); }
 	inline bool operator!=(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs != as_a_size_t(rhs); }
 #endif /*MSE_PRIMITIVES_DISABLED*/
-
-	#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-variable"
-#pragma clang diagnostic ignored "-Wunused-function"
-//pragma clang diagnostic ignored "-Wunused-but-set-variable"
-#else /*__clang__*/
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-#endif /*__GNUC__*/
-#endif /*__clang__*/
 
 	class CPrimitivesTest1 {
 	public:

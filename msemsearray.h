@@ -174,7 +174,14 @@ namespace mse {
 			m_is_locked = true;
 		}
 		bool try_lock() {	// try to lock exclusive
-			return m_is_locked;
+			if (m_is_locked) {
+				return false;
+			}
+			else
+			{
+				m_is_locked = true;
+				return true;
+			}
 		}
 		template<class _Rep, class _Period>
 		bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {	// try to lock for duration
@@ -1380,12 +1387,12 @@ namespace mse {
 			const_pointer operator->() const { return ss_const_iterator_type::operator->(); }
 			const_reference operator[](difference_type _Off) const { return ss_const_iterator_type::operator[](_Off); }
 			xscope_ss_const_iterator_type& operator=(const ss_const_iterator_type& _Right_cref) {
-				if (_Right_cref.m_owner_cptr != (*this).m_owner_cptr) { MSE_THROW(nii_array_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const xscope_ss_const_iterator_type& _Right_cref) - nii_array::xscope_ss_const_iterator_type")); }
+				if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(nii_array_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const xscope_ss_const_iterator_type& _Right_cref) - nii_array::xscope_ss_const_iterator_type")); }
 				ss_const_iterator_type::operator=(_Right_cref);
 				return (*this);
 			}
 			xscope_ss_const_iterator_type& operator=(const ss_iterator_type& _Right_cref) {
-				if (_Right_cref.m_owner_ptr != (*this).m_owner_cptr) { MSE_THROW(nii_array_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const ss_iterator_type& _Right_cref) - nii_array::xscope_ss_const_iterator_type")); }
+				if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(nii_array_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const ss_iterator_type& _Right_cref) - nii_array::xscope_ss_const_iterator_type")); }
 				return operator=(ss_const_iterator_type(_Right_cref));
 			}
 			bool operator==(const xscope_ss_const_iterator_type& _Right_cref) const { return ss_const_iterator_type::operator==(_Right_cref); }
@@ -1396,6 +1403,9 @@ namespace mse {
 			bool operator>=(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator>=(_Right); }
 			void set_to_const_item_pointer(const xscope_ss_const_iterator_type& _Right_cref) { ss_const_iterator_type::set_to_item_pointer(_Right_cref); }
 			msear_size_t position() const { return ss_const_iterator_type::position(); }
+			auto target_container_ptr() const {
+				return mse::unsafe_make_xscope_const_pointer_to(*(ss_const_iterator_type::target_container_ptr()));
+			}
 			void xscope_ss_iterator_type_tag() const {}
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		private:
@@ -1453,7 +1463,7 @@ namespace mse {
 			pointer operator->() const { return ss_iterator_type::operator->(); }
 			reference operator[](difference_type _Off) const { return ss_iterator_type::operator[](_Off); }
 			xscope_ss_iterator_type& operator=(const ss_iterator_type& _Right_cref) {
-				if (_Right_cref.m_owner_ptr != (*this).m_owner_ptr) { MSE_THROW(nii_array_range_error("invalid argument - xscope_ss_iterator_type& operator=(const xscope_ss_iterator_type& _Right_cref) - nii_array::xscope_ss_iterator_type")); }
+				if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(nii_array_range_error("invalid argument - xscope_ss_iterator_type& operator=(const xscope_ss_iterator_type& _Right_cref) - nii_array::xscope_ss_iterator_type")); }
 				ss_iterator_type::operator=(_Right_cref);
 				return (*this);
 			}
@@ -1465,6 +1475,9 @@ namespace mse {
 			bool operator>=(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator>=(_Right); }
 			void set_to_item_pointer(const xscope_ss_iterator_type& _Right_cref) { ss_iterator_type::set_to_item_pointer(_Right_cref); }
 			msear_size_t position() const { return ss_iterator_type::position(); }
+			auto target_container_ptr() const {
+				return mse::unsafe_make_xscope_pointer_to(*(ss_iterator_type::target_container_ptr()));
+			}
 			void xscope_ss_iterator_type_tag() const {}
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		private:
@@ -1584,14 +1597,34 @@ namespace mse {
 	}
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeItemFixedPointer<_Ty> xscope_pointer_from_array_iterator(const typename nii_array<_Ty, _Size, _TStateMutex>::xscope_ss_iterator_type& iter_cref) {
-		return mse::xscope_unsafe_make_pointer_to(*iter_cref);
+	TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const typename nii_array<_Ty, _Size, _TStateMutex>::xscope_ss_iterator_type& iter_cref) {
+		return mse::unsafe_make_xscope_pointer_to(*iter_cref);
 	}
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeItemFixedPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_pointer_to((*ptr)[_P]);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeFixedPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_pointer_to((*ptr)[_P]);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_from_array_iterator(const typename nii_array<_Ty, _Size, _TStateMutex>::xscope_ss_const_iterator_type& iter_cref) {
-		return mse::xscope_unsafe_make_const_pointer_to(*iter_cref);
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const typename nii_array<_Ty, _Size, _TStateMutex>::xscope_ss_const_iterator_type& iter_cref) {
+		return mse::unsafe_make_xscope_const_pointer_to(*iter_cref);
 	}
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedConstPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 
 	/* msearray<> is an unsafe extension of nii_array<> that provides the traditional begin() and end() (non-static)
@@ -1790,12 +1823,12 @@ namespace mse {
 			const_pointer operator->() const { return ss_const_iterator_type::operator->(); }
 			const_reference operator[](difference_type _Off) const { return ss_const_iterator_type::operator[](_Off); }
 			xscope_ss_const_iterator_type& operator=(const ss_const_iterator_type& _Right_cref) {
-				if (_Right_cref.target_container_ptr() != (*this).target_container_ptr()) { MSE_THROW(msearray_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const xscope_ss_const_iterator_type& _Right_cref) - msearray::xscope_ss_const_iterator_type")); }
+				if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(msearray_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const xscope_ss_const_iterator_type& _Right_cref) - msearray::xscope_ss_const_iterator_type")); }
 				ss_const_iterator_type::operator=(_Right_cref);
 				return (*this);
 			}
 			xscope_ss_const_iterator_type& operator=(const ss_iterator_type& _Right_cref) {
-				if (_Right_cref.target_container_ptr() != (*this).target_container_ptr()) { MSE_THROW(msearray_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const ss_iterator_type& _Right_cref) - msearray::xscope_ss_const_iterator_type")); }
+				if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(msearray_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const ss_iterator_type& _Right_cref) - msearray::xscope_ss_const_iterator_type")); }
 				return operator=(ss_const_iterator_type(_Right_cref));
 			}
 			bool operator==(const xscope_ss_const_iterator_type& _Right_cref) const { return ss_const_iterator_type::operator==(_Right_cref); }
@@ -1806,6 +1839,9 @@ namespace mse {
 			bool operator>=(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator>=(_Right); }
 			void set_to_const_item_pointer(const xscope_ss_const_iterator_type& _Right_cref) { ss_const_iterator_type::set_to_item_pointer(_Right_cref); }
 			msear_size_t position() const { return ss_const_iterator_type::position(); }
+			auto target_container_ptr() const {
+				return mse::unsafe_make_xscope_const_pointer_to(*(ss_const_iterator_type::target_container_ptr()));
+			}
 			void xscope_ss_iterator_type_tag() const {}
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		private:
@@ -1863,7 +1899,7 @@ namespace mse {
 			pointer operator->() const { return ss_iterator_type::operator->(); }
 			reference operator[](difference_type _Off) const { return ss_iterator_type::operator[](_Off); }
 			xscope_ss_iterator_type& operator=(const ss_iterator_type& _Right_cref) {
-				if (_Right_cref.target_container_ptr() != (*this).target_container_ptr()) { MSE_THROW(msearray_range_error("invalid argument - xscope_ss_iterator_type& operator=(const xscope_ss_iterator_type& _Right_cref) - msearray::xscope_ss_iterator_type")); }
+				if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(msearray_range_error("invalid argument - xscope_ss_iterator_type& operator=(const xscope_ss_iterator_type& _Right_cref) - msearray::xscope_ss_iterator_type")); }
 				ss_iterator_type::operator=(_Right_cref);
 				return (*this);
 			}
@@ -1875,6 +1911,9 @@ namespace mse {
 			bool operator>=(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator>=(_Right); }
 			void set_to_item_pointer(const xscope_ss_iterator_type& _Right_cref) { ss_iterator_type::set_to_item_pointer(_Right_cref); }
 			msear_size_t position() const { return ss_iterator_type::position(); }
+			auto target_container_ptr() const {
+				return mse::unsafe_make_xscope_pointer_to(*(ss_iterator_type::target_container_ptr()));
+			}
 			void xscope_ss_iterator_type_tag() const {}
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		private:
@@ -1920,14 +1959,34 @@ namespace mse {
 	}
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeItemFixedPointer<_Ty> xscope_pointer_from_array_iterator(const typename msearray<_Ty, _Size, _TStateMutex>::xscope_ss_iterator_type& iter_cref) {
-		return mse::xscope_unsafe_make_pointer_to(*iter_cref);
+	TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const typename msearray<_Ty, _Size, _TStateMutex>::xscope_ss_iterator_type& iter_cref) {
+		return mse::unsafe_make_xscope_pointer_to(*iter_cref);
 	}
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeItemFixedPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_pointer_to((*ptr)[_P]);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeFixedPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_pointer_to((*ptr)[_P]);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_from_array_iterator(const typename msearray<_Ty, _Size, _TStateMutex>::xscope_ss_const_iterator_type& iter_cref) {
-		return mse::xscope_unsafe_make_const_pointer_to(*iter_cref);
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const typename msearray<_Ty, _Size, _TStateMutex>::xscope_ss_const_iterator_type& iter_cref) {
+		return mse::unsafe_make_xscope_const_pointer_to(*iter_cref);
 	}
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedConstPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 
 	template<class _TArray>
