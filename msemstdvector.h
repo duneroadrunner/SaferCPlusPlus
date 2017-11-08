@@ -94,17 +94,19 @@ namespace mse {
 			void clear() { m_shptr->clear(); }
 			void swap(_MV& _X) { m_shptr->swap(_X); }
 			void swap(_Myt& _X) { m_shptr->swap(_X.msevector()); }
+			void swap(mse::nii_vector<_Ty, _A>& _X) { m_shptr->swap(_X); }
+			void swap(std::vector<_Ty, _A>& _X) { m_shptr->swap(_X); }
 
 			vector(_XSTD initializer_list<typename _MV::value_type> _Ilist, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Ilist, _Al)) {}
 			_Myt& operator=(_XSTD initializer_list<typename _MV::value_type> _Ilist) { m_shptr->operator=(_Ilist); return (*this); }
 			void assign(_XSTD initializer_list<typename _MV::value_type> _Ilist) { m_shptr->assign(_Ilist); }
 
-			size_type capacity() const _NOEXCEPT{ return m_shptr->capacity(); }
+			size_type capacity() const _NOEXCEPT { return m_shptr->capacity(); }
 			void shrink_to_fit() { m_shptr->shrink_to_fit(); }
-			size_type size() const _NOEXCEPT{ return m_shptr->size(); }
-			size_type max_size() const _NOEXCEPT{ return m_shptr->max_size(); }
-			bool empty() const _NOEXCEPT{ return m_shptr->empty(); }
-			_A get_allocator() const _NOEXCEPT{ return m_shptr->get_allocator(); }
+			size_type size() const _NOEXCEPT { return m_shptr->size(); }
+			size_type max_size() const _NOEXCEPT { return m_shptr->max_size(); }
+			bool empty() const _NOEXCEPT { return m_shptr->empty(); }
+			_A get_allocator() const _NOEXCEPT { return m_shptr->get_allocator(); }
 			typename _MV::const_reference at(size_type _Pos) const { return m_shptr->at(_Pos); }
 			typename _MV::reference at(size_type _Pos) { return m_shptr->at(_Pos); }
 			typename _MV::reference front() { return m_shptr->front(); }
@@ -182,6 +184,7 @@ namespace mse {
 				auto target_container_ptr() const -> decltype(msevector_ss_const_iterator_type().target_container_ptr()) {
 					return msevector_ss_const_iterator_type().target_container_ptr();
 				}
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
 				const_iterator(std::shared_ptr<_MV> msevector_shptr) : m_msevector_cshptr(msevector_shptr) {
 					m_ss_const_iterator = msevector_shptr->ss_cbegin();
@@ -259,6 +262,7 @@ namespace mse {
 				auto target_container_ptr() const -> decltype(msevector_ss_iterator_type().target_container_ptr()) {
 					return msevector_ss_iterator_type().target_container_ptr();
 				}
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
 				std::shared_ptr<_MV> m_msevector_shptr;
 				/* m_ss_iterator needs to be declared after m_msevector_shptr so that its destructor will be called first. */
@@ -342,7 +346,7 @@ namespace mse {
 			template<class _Iter
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
 				, class = _mse_RequireInputIter<_Iter> >
-			iterator insert_before(const const_iterator &pos, const _Iter &start, const _Iter &end) {
+				iterator insert_before(const const_iterator &pos, const _Iter &start, const _Iter &end) {
 				auto res = m_shptr->insert_before(pos.msevector_ss_const_iterator_type(), start, end);
 				iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
 				return retval;
@@ -350,7 +354,7 @@ namespace mse {
 			template<class _Iter
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
 				, class = _mse_RequireInputIter<_Iter> >
-			iterator insert_before_inclusive(const const_iterator &pos, const _Iter &first, const _Iter &last) {
+				iterator insert_before_inclusive(const const_iterator &pos, const _Iter &first, const _Iter &last) {
 				auto end = last; end++;
 				return insert_before(pos, first, end);
 			}
@@ -375,7 +379,7 @@ namespace mse {
 			template<class _Iter
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
 				, class = _mse_RequireInputIter<_Iter> >
-			iterator insert(const const_iterator &pos, const _Iter &start, const _Iter &end) { return insert_before(pos, start, end); }
+				iterator insert(const const_iterator &pos, const _Iter &start, const _Iter &end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, const _Ty* start, const _Ty* end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) { return insert_before(pos, _Ilist); }
 			template<class ..._Valty>
@@ -512,6 +516,7 @@ namespace mse {
 				}
 				void xscope_tag() const {}
 				void xscope_iterator_tag() const {}
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
 				typename _MV::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 				friend class /*_Myt*/vector<_Ty>;
@@ -599,6 +604,7 @@ namespace mse {
 				}
 				void xscope_tag() const {}
 				void xscope_iterator_tag() const {}
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
 				typename _MV::xscope_ss_iterator_type m_xscope_ss_iterator;
 				friend class /*_Myt*/vector<_Ty>;
@@ -628,6 +634,7 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_MV_xscope_structure_change_lock_guard.target_container_ptr();
 				}
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
 				typename mse::msevector<_Ty>::xscope_structure_change_lock_guard m_MV_xscope_structure_change_lock_guard;
 			};
@@ -650,31 +657,27 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_MV_xscope_const_structure_change_lock_guard.target_container_ptr();
 				}
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
 				typename mse::msevector<_Ty>::xscope_const_structure_change_lock_guard m_MV_xscope_const_structure_change_lock_guard;
 			};
+
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 		private:
 			std::shared_ptr<_MV> m_shptr;
 		};
 
-		template<class _Ty, class _Alloc> inline bool operator!=(const vector<_Ty, _Alloc>& _Left,
-			const vector<_Ty, _Alloc>& _Right) {	// test for vector inequality
+		template<class _Ty, class _Alloc> inline bool operator!=(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test for vector inequality
 			return (!(_Left == _Right));
 		}
-
-		template<class _Ty, class _Alloc> inline bool operator>(const vector<_Ty, _Alloc>& _Left,
-			const vector<_Ty, _Alloc>& _Right) {	// test if _Left > _Right for vectors
+		template<class _Ty, class _Alloc> inline bool operator>(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test if _Left > _Right for vectors
 			return (_Right < _Left);
 		}
-
-		template<class _Ty, class _Alloc> inline bool operator<=(const vector<_Ty, _Alloc>& _Left,
-			const vector<_Ty, _Alloc>& _Right) {	// test if _Left <= _Right for vectors
+		template<class _Ty, class _Alloc> inline bool operator<=(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test if _Left <= _Right for vectors
 			return (!(_Right < _Left));
 		}
-
-		template<class _Ty, class _Alloc> inline bool operator>=(const vector<_Ty, _Alloc>& _Left,
-			const vector<_Ty, _Alloc>& _Right) {	// test if _Left >= _Right for vectors
+		template<class _Ty, class _Alloc> inline bool operator>=(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test if _Left >= _Right for vectors
 			return (!(_Left < _Right));
 		}
 
@@ -702,6 +705,52 @@ namespace mse {
 			return vector<_Ty, _A>::xscope_const_structure_change_lock_guard(owner_ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	}
+}
+
+namespace std {
+
+	template<class _Ty, class _A = std::allocator<_Ty> >
+	void swap(mse::mstd::vector<_Ty, _A>& _Left, mse::mstd::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap vectors
+		return (_Left.swap(_Right));
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::mstd::vector<_Ty, _A>& _Left, mse::nii_vector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap vectors
+		return (_Left.swap(_Right));
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::mstd::vector<_Ty, _A>& _Left, mse::msevector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap vectors
+		return (_Left.swap(_Right));
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::mstd::vector<_Ty, _A>& _Left, std::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap vectors
+		return (_Left.swap(_Right));
+	}
+
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::nii_vector<_Ty, _A, _TStateMutex>& _Left, mse::mstd::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap vectors
+		return (_Right.swap(_Left));
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::msevector<_Ty, _A, _TStateMutex>& _Left, mse::mstd::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap vectors
+		return (_Right.swap(_Left));
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(std::vector<_Ty, _A>& _Left, mse::mstd::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap vectors
+		return (_Right.swap(_Left));
+	}
+}
+
+namespace mse {
+	namespace mstd {
 
 #endif /*MSE_MSTDVECTOR_DISABLED*/
 	}

@@ -346,6 +346,8 @@ namespace mse {
 			, void>::type>
 			TXScopeAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
 	protected:
 		TXScopeAnyPointer<_Ty>& operator=(const TXScopeAnyPointer<_Ty>& _Right_cref) {
 			base_class::operator=(_Right_cref);
@@ -375,6 +377,8 @@ namespace mse {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	protected:
 		TAnyPointer<_Ty>* operator&() { return this; }
@@ -457,6 +461,8 @@ namespace mse {
 			, void>::type>
 		TXScopeAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
 	protected:
 		TXScopeAnyConstPointer<_Ty>& operator=(const TXScopeAnyConstPointer<_Ty>& _Right_cref) {
 			base_class::operator=(_Right_cref);
@@ -487,6 +493,8 @@ namespace mse {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	protected:
 		TAnyConstPointer<_Ty>* operator&() { return this; }
@@ -621,6 +629,8 @@ namespace mse {
 			, void>::type>
 			TXScopePolyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
 	protected:
 		TXScopePolyPointer<_Ty>& operator=(const TXScopePolyPointer<_Ty>& _Right_cref) {
 			base_class::operator=(_Right_cref);
@@ -652,6 +662,8 @@ namespace mse {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
 		TPolyPointer<_Ty>* operator&() { return this; }
@@ -806,6 +818,8 @@ namespace mse {
 			, void>::type*/>
 			TXScopePolyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
 	protected:
 		TXScopePolyConstPointer<_Ty>& operator=(const TXScopePolyConstPointer<_Ty>& _Right_cref) {
 			base_class::operator=(_Right_cref);
@@ -836,6 +850,8 @@ namespace mse {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
 		TPolyConstPointer<_Ty>* operator&() { return this; }
@@ -992,6 +1008,8 @@ namespace mse {
 			return (*this);
 		}
 
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
 	protected:
 		void* operator new(size_t size) { return ::operator new(size); }
 
@@ -1147,6 +1165,8 @@ namespace mse {
 			return (*this);
 		}
 
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
 	protected:
 		void* operator new(size_t size) { return ::operator new(size); }
 
@@ -1202,6 +1222,8 @@ namespace mse {
 
 		TAnyRandomAccessIterator& operator=(TAnyRandomAccessIterator _Right) { base_class::operator=(_Right); return (*this); }
 
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
 	private:
 		TAnyRandomAccessIterator<_Ty>* operator&() { return this; }
 		const TAnyRandomAccessIterator<_Ty>* operator&() const { return this; }
@@ -1237,6 +1259,8 @@ namespace mse {
 
 		TAnyRandomAccessConstIterator& operator=(const TAnyRandomAccessConstIterator& _Right) { base_class::operator=(_Right); return (*this); }
 
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
 	private:
 		TAnyRandomAccessConstIterator<_Ty>* operator&() { return this; }
 		const TAnyRandomAccessConstIterator<_Ty>* operator&() const { return this; }
@@ -1247,32 +1271,36 @@ namespace mse {
 	class TXScopeAnyRandomAccessSection : public TXScopeRandomAccessSection<TXScopeAnyRandomAccessIterator<_Ty>> {
 	public:
 		typedef TXScopeRandomAccessSection<TXScopeAnyRandomAccessIterator<_Ty>> base_class;
-
 		MSE_USING(TXScopeAnyRandomAccessSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
 
 	template <typename _Ty>
 	class TAnyRandomAccessSection : public TRandomAccessSection<TAnyRandomAccessIterator<_Ty>> {
 	public:
 		typedef TRandomAccessSection<TAnyRandomAccessIterator<_Ty>> base_class;
-
 		MSE_USING(TAnyRandomAccessSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
 
 	template <typename _Ty>
 	class TXScopeAnyRandomAccessConstSection : public TXScopeRandomAccessConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>> {
 	public:
 		typedef TXScopeRandomAccessConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>> base_class;
-
 		MSE_USING(TXScopeAnyRandomAccessConstSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
 
 	template <typename _Ty>
 	class TAnyRandomAccessConstSection : public TRandomAccessConstSection<TAnyRandomAccessConstIterator<_Ty>> {
 	public:
 		typedef TRandomAccessConstSection<TAnyRandomAccessConstIterator<_Ty>> base_class;
-
 		MSE_USING(TAnyRandomAccessConstSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
 
 
@@ -1406,6 +1434,8 @@ namespace mse {
 			return (!m_is_null);
 		}
 
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
 	private:
 		TNullableAnyRandomAccessIterator<_Ty>* operator&() { return this; }
 		const TNullableAnyRandomAccessIterator<_Ty>* operator&() const { return this; }
@@ -1449,6 +1479,8 @@ namespace mse {
 			return (!m_is_null);
 		}
 
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
 	private:
 		TNullableAnyPointer<_Ty>* operator&() { return this; }
 		const TNullableAnyPointer<_Ty>* operator&() const { return this; }
@@ -1479,6 +1511,7 @@ namespace mse {
 		virtual ~TRefCountingOrXScopeFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return std::addressof((*this).operator*()); }
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 	protected:
@@ -1514,6 +1547,7 @@ namespace mse {
 		virtual ~TRefCountingOrXScopeFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return std::addressof((*this).operator*()); }
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 	protected:
@@ -1533,6 +1567,7 @@ namespace mse {
 	public:
 		MSE_SCOPE_USING(TRefCountingOrXScopeOrRawFixedPointer, TRefCountingOrXScopeFixedPointer<_Ty>);
 		TRefCountingOrXScopeOrRawFixedPointer(_Ty* ptr) : TRefCountingOrXScopeFixedPointer<_Ty>(ptr) {}
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
 
 	template<typename _Ty>
@@ -1540,6 +1575,7 @@ namespace mse {
 	public:
 		MSE_SCOPE_USING(TRefCountingOrXScopeOrRawFixedConstPointer, TRefCountingOrXScopeFixedConstPointer<_Ty>);
 		TRefCountingOrXScopeOrRawFixedConstPointer(_Ty* ptr) : TRefCountingOrXScopeFixedConstPointer<_Ty>(ptr) {}
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
 
 
@@ -1556,6 +1592,7 @@ namespace mse {
 		virtual ~TSharedOrRawFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return std::addressof((*this).operator*()); }
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
 		TSharedOrRawFixedPointer<_Ty>& operator=(const TSharedOrRawFixedPointer<_Ty>& _Right_cref) = delete;
@@ -1581,6 +1618,7 @@ namespace mse {
 		virtual ~TSharedOrRawFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return std::addressof((*this).operator*()); }
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
 		TSharedOrRawFixedConstPointer<_Ty>& operator=(const TSharedOrRawFixedConstPointer<_Ty>& _Right_cref) = delete;

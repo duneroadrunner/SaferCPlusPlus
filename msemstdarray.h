@@ -306,6 +306,7 @@ namespace mse {
 				auto target_container_ptr() const -> decltype(nii_array_reg_ss_const_iterator_type().target_container_ptr()) {
 					return nii_array_reg_ss_const_iterator_type().target_container_ptr();
 				}
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
 				const_iterator(mse::TRegisteredConstPointer<_MA> nii_array_regcptr) {
 					if (nii_array_regcptr) {
@@ -390,6 +391,7 @@ namespace mse {
 				auto target_container_ptr() const -> decltype(nii_array_reg_ss_iterator_type().target_container_ptr()) {
 					return nii_array_reg_ss_iterator_type().target_container_ptr();
 				}
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
 				reg_ss_iterator_type m_reg_ss_iterator;
 
@@ -568,6 +570,7 @@ namespace mse {
 				}
 				void xscope_tag() const {}
 				void xscope_iterator_tag() const {}
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
 				typename _MA::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 				friend class /*_Myt*/array<_Ty, _Size>;
@@ -655,11 +658,14 @@ namespace mse {
 				}
 				void xscope_tag() const {}
 				void xscope_iterator_tag() const {}
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
 				typename _MA::xscope_ss_iterator_type m_xscope_ss_iterator;
 				friend class /*_Myt*/array<_Ty, _Size>;
 				friend class xscope_const_iterator;
 			};
+
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 		private:
 			mse::TRegisteredObj<_MA> m_nii_array;
@@ -792,14 +798,12 @@ namespace std {
 		static_assert(_Idx < _Size, "array index out of bounds");
 		return (std::get<_Idx>(_Arr.m_nii_array));
 	}
-
 	template<size_t _Idx, class _Ty, size_t _Size>
 		_CONST_FUN const _Ty& get(const mse::mstd::array<_Ty, _Size>& _Arr) _NOEXCEPT
 	{	// return element at _Idx in array _Arr
 		static_assert(_Idx < _Size, "array index out of bounds");
 		return (std::get<_Idx>(_Arr.m_nii_array));
 	}
-
 	template<size_t _Idx, class _Ty, size_t _Size>
 	_CONST_FUN _Ty&& get(mse::mstd::array<_Ty, _Size>&& _Arr) _NOEXCEPT
 	{	// return element at _Idx in array _Arr
@@ -812,17 +816,26 @@ namespace std {
 	{	// swap arrays
 		return (_Left.swap(_Right));
 	}
-
 	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap arrays
 		return (_Left.swap(_Right));
 	}
-
 	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap arrays
 		return (_Left.swap(_Right));
+	}
+
+	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap arrays
+		return (_Right.swap(_Left));
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::msearray<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap arrays
+		return (_Right.swap(_Left));
 	}
 
 #endif // !MSE_MSTDARRAY_DISABLED

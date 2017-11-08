@@ -651,6 +651,7 @@ namespace mse {
 		static TSyncWeakFixedIterator make(const _TIterator2& src_iterator, const _TLeasePointer2& lease_pointer) {
 			return TSyncWeakFixedIterator(src_iterator, lease_pointer);
 		}
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	protected:
 		TSyncWeakFixedIterator(const _TIterator& src_iterator, const _TLeasePointer& lease_pointer/* often a registered pointer */)
@@ -687,6 +688,7 @@ namespace mse {
 		static TSyncWeakFixedIterator make(const _TIterator2& src_iterator, const _TLeasePointer2& lease_pointer) {
 			return TSyncWeakFixedIterator(src_iterator, lease_pointer);
 		}
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	protected:
 		TSyncWeakFixedIterator(const _TIterator& src_iterator, const _TLeasePointer& lease_pointer/* often a registered pointer */)
@@ -2114,23 +2116,30 @@ namespace std {
 	{
 		_Left.swap(_Right);
 	}
-
 	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT
 	{
 		_Left.swap(_Right);
 	}
-
 	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap arrays
 		return (_Right.swap(_Left));
 	}
-
 	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(array<_Ty, _Size>& _Left, mse::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap arrays
 		return (_Right.swap(_Left));
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, array<_Ty, _Size>& _Right) _NOEXCEPT
+	{
+		_Left.swap(_Right);
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::msearray<_Ty, _Size, _TStateMutex>& _Left, array<_Ty, _Size>& _Right) _NOEXCEPT
+	{
+		_Left.swap(_Right);
 	}
 
 }

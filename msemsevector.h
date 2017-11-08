@@ -1920,6 +1920,12 @@ namespace mse {
 			/*m_debug_size = size();*/
 			m_mmitset.reset();
 		}
+		void swap(std::vector<_Ty, _A>& _X) {
+			std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+			base_class::swap(_X);
+			/*m_debug_size = size();*/
+			m_mmitset.reset();
+		}
 		void swap(base_class& _X) {
 			std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
 			base_class::swap(_X);
@@ -2229,6 +2235,7 @@ namespace mse {
 				retval += msev_as_a_size_t(m_index);
 				return retval;
 			}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 			/* We actually want to make this constructor private, but doing so seems to break std::make_shared<mm_const_iterator_type>.  */
 			mm_const_iterator_type(const _Myt& owner_cref) : m_owner_cptr(&owner_cref) { set_to_beginning(); }
@@ -2424,6 +2431,8 @@ namespace mse {
 				retval.advance(msev_int(m_index));
 				return retval;
 			}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
 			/* We actually want to make this constructor private, but doing so seems to break std::make_shared<mm_iterator_type>.  */
 			mm_iterator_type(_Myt& owner_ref) : m_owner_ptr(&owner_ref) { set_to_beginning(); }
 		private:
@@ -2832,6 +2841,7 @@ namespace mse {
 			bool operator>=(const cipointer& _Right) const { return (const_item_pointer() >= _Right.const_item_pointer()); }
 			void set_to_const_item_pointer(const cipointer& _Right_cref) { const_item_pointer().set_to_const_item_pointer(_Right_cref.const_item_pointer()); }
 			msev_size_t position() const { return const_item_pointer().position(); }
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		private:
 			const _Myt* m_owner_cptr = nullptr;
 			std::shared_ptr<mm_const_iterator_handle_type> m_handle_shptr;
@@ -2906,6 +2916,7 @@ namespace mse {
 			bool operator>=(const ipointer& _Right) const { return (item_pointer() >= _Right.item_pointer()); }
 			void set_to_item_pointer(const ipointer& _Right_cref) { item_pointer().set_to_item_pointer(_Right_cref.item_pointer()); }
 			msev_size_t position() const { return item_pointer().position(); }
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		private:
 			_Myt* m_owner_ptr = nullptr;
 			std::shared_ptr<mm_iterator_handle_type> m_handle_shptr;
@@ -3559,6 +3570,7 @@ namespace mse {
 			auto target_container_ptr() const {
 				return m_stored_ptr;
 			}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 		private:
 			std::unique_lock<mse::non_thread_safe_mutex> m_unique_lock;
@@ -3581,6 +3593,7 @@ namespace mse {
 			auto target_container_ptr() const {
 				return m_stored_ptr;
 			}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 		private:
 			std::unique_lock<mse::non_thread_safe_mutex> m_unique_lock;

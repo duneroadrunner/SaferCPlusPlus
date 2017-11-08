@@ -2230,6 +2230,12 @@ int main(int argc, char* argv[])
 		mstd_ar_iter1 += 2;
 		auto xscp_mstd_ar_ifptr = mse::mstd::xscope_pointer_to_array_element<std::string, 5>(mstd_ar_iter1);
 		auto mstd_ar_res1 = (*xscp_mstd_ar_ifptr);
+
+		mse::mstd::vector<std::string> mstdv1;
+		mstdv1.swap(niiv1);
+		bool b1 = (mstdv1 == mstdv1);
+		std::swap(niiv1, mstdv1);
+		std::swap(mstdv1, niiv1);
 	}
 
 	return 0;
