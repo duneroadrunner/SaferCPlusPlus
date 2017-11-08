@@ -1,4 +1,4 @@
-Feb 2017
+Nov 2017
 
 ### Overview
 
@@ -52,8 +52,10 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     2. [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer)
     3. [TRefCountingOfRelaxedRegisteredPointer](#trefcountingofrelaxedregisteredpointer)
 9. [Scope pointers](#scope-pointers)
-    1. [TXScopeFixedPointer](#txscopefixedpointer)
+    1. [TXScopeItemFixedPointer](#txscopeitemfixedpointer)
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
+    3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
+    4. [xscope_chosen_pointer()](#xscope_chosen_pointer)
 10. [make_pointer_to_member()](#make_pointer_to_member)
 11. [Poly pointers](#poly-pointers)
     1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
@@ -586,13 +588,31 @@ usage example:
 ### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
 
 ### Scope pointers
-Scope pointers are different from other smart pointers in the library in that, by default, they have no runtime safety enforcement mechanism, and the compile-time safety mechanisms aren't (yet) quite sufficient to ensure that they will be used in an intrinsically safe manner. Scope pointers point to scope objects. Scope objects are objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So basically the object is destroyed when it, or its owner, goes out of scope. The purpose of scope pointers and objects is to identify a class of situations that are simple and deterministic enough that no (runtime) safety mechanisms are necessary. In theory, a tool could be constructed to verify that scope pointers are used in a safe manner at compile-time. But in the mean time we provide the option of using a relaxed registered pointer as the scope pointer's base class for enhanced safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause relaxed registered pointers to be used in debug mode. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For int, bool and size_t use the safer [substitutes](#primitives) that can act as base classes.
+Scope pointers point to scope objects. Scope objects are essentially objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So the object is destroyed when it, or its owner, goes out of scope. In C++ at the moment, there isn't really a good way for a program to determine at compile time whether an object is allocated on the stack or not, so in order to exploit the properties of stack allocated objects, the library needs you to explicitly declare when an object is stack allocated. You do this by wrapping the type in the mse::TXScopeObj<> (transparent) wrapper template.
 
-There are two types of scope pointers, [TXScopeFixedPointer](#txscopefixedpointer) and [TXScopeOwnerPointer](#txscopeownerpointer). TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to refer to "declaration scope".) TXScopeFixedPointer is a "non-owning" (or "weak") pointer to a scope object. It is (intentionally) limited in its functionality, and is intended pretty much for the sole purpose of passing scope objects by reference as function arguments. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+Note that you do not need to do this for all objects allocated on the stack. Just the ones for which you want to obtain a scope pointer. The reason you might want a scope pointer, as opposed to say, a registered pointer, is that, by default, scope pointers have no run-time overhead. In fact, it is expected that ultimately, scope pointers will be by far the most commonly used of the pointers provided by the library. 
 
+In the future we expect that there will be a "compile helper tool" to verify that objects declared as scope objects are indeed allocated on the stack. For now, be careful to follow these rules:
 
-### TXScopeFixedPointer
-TXScopeFixedPointer is intended to be used to pass scope objects by reference as function arguments. It is not intended to be used as a member of any class or struct (this would generally produce a compile error) or as a function return type.  
+- Objects of scope type (types whose name starts with "TXScope" or "xscope") must be global or (non-static) automatic local variables.
+	- Basically global or allocated on the stack.
+- Scope types must not be used as members of classes or structs that are not themselves scope types.
+	- Note that you can use the mse::make_pointer_to_member() function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
+- Scope types must not be used as base classes of classes that are not themselves scope types.
+	- There probably isn't much motivation to do that anyway.
+- Note that scope pointers are themselves scope objects and must adhere to the same restrictions.
+- Non-owning scope pointers (scope pointers other than TXScopeOwnerPointer<>s) should not be used as a function return value.
+	- Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [xscope_chosen_pointer()](#xscope_chosen_pointer) function.
+
+Failure to adhere to the rules for scope objects could result in unsafe code. Again, at some point they will be enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural.
+
+In lieu of compile-time enforcement, run-time checking is available to detect some misuses of scope pointers. Run-time checking in debug mode is enabled by defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For int, bool and size_t use the safer [substitutes](#primitives) that can act as base classes. 
+
+Generally, there are two types of scope pointers you might use, [TXScopeOwnerPointer](#txscopeownerpointer) and [TXScopeItemFixedPointer](#txscopeitemfixedpointer). TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to also include "declaration scope".)
+TXScopeItemFixedPointer is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is intended pretty much for the sole purpose of passing scope objects by reference as function arguments. 
+
+### TXScopeItemFixedPointer
+TXScopeItemFixedPointer is intended to be used to pass scope objects by reference as function arguments. It is not intended to be used as a member of any class or struct (this would generally produce a compile error) or as a function return type.  
 
 usage example:
 
@@ -610,8 +630,8 @@ usage example:
         };
         class B {
         public:
-            static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-            static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+            static int foo2(mse::TXScopeItemFixedPointer<A> A_scpifptr) { return A_scpifptr->b; }
+            static int foo3(mse::TXScopeItemFixedConstPointer<A> A_scpifcptr) { return A_scpifcptr->b; }
         protected:
             ~B() {}
         };
@@ -622,7 +642,7 @@ usage example:
         int res3 = B::foo3(&a_scpobj);
     }
 
-### TXScopeFixedConstPointer
+### TXScopeItemFixedConstPointer
 
 ### TXScopeOwnerPointer
 TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, TXScopeOwnerPointer is not intended to be used as a member of any class or struct. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
@@ -643,14 +663,88 @@ usage example:
         };
         class B {
         public:
-            static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-            static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+            static int foo2(mse::TXScopeItemFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+            static int foo3(mse::TXScopeItemFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
         protected:
             ~B() {}
         };
     
-        mse::TXScopeOwnerPointer<A> a_scpoptr(7);
-        int res4 = B::foo2(&(*a_scpoptr));
+        mse::TXScopeOwnerPointer<A> xscp_a_ownerptr(7);
+        int res4 = B::foo2(&(*xscp_a_ownerptr));
+    }
+
+### TXScopeFixedPointer
+TXScopeFixedPointer is the actual type of the pointer value returned by the "&" (ampersand) operator of an object declared as a "scope" object (by virtue of being wrapped in the TXScopeObj<> transparent wrapper template). Generally, you don't need to use this type directly. TXScopeFixedPointer implicitly converts to a TXScopeItemFixedPointer, which can point to both explicitly declared and implicit scope objects. So generally you would just use the latter.
+
+### TXScopeFixedConstPointer
+
+### make_xscope_strong_pointer_store()
+
+make_xscope_strong_pointer_store() returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Currently supported strong pointers include [reference counting pointers](#reference-counting-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
+
+    #include "msescope.h"
+    #include "mserefcounting.h"
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A(int x) : b(x) {}
+            A(const A& _X) : b(_X.b) {}
+            virtual ~A() {}
+            A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+            int b = 3;
+        };
+        class B {
+        public:
+            static int foo2(mse::TXScopeItemFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+            static int foo3(mse::TXScopeItemFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+        protected:
+            ~B() {}
+        };
+    
+        /* Using mse::make_xscope_strong_pointer_store(), you can obtain a scope pointer from a refcounting pointer. */
+        auto refc_ptr1 = mse::make_refcounting<A>(11);
+        auto xscp_refc_cstore = mse::make_xscope_strong_pointer_store(refc_ptr1);
+        auto xscp_cptr1 = xscp_refc_cstore.xscope_cptr();
+        int res6 = B::foo3(xscp_cptr1);
+        mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
+        A res7 = *xscp_cptr2;
+    }
+
+### xscope_chosen_pointer()
+
+Currently there's a rule against using non-owning scope pointers as function return values due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the xscope_chosen_pointer() function instead.
+
+In essence, the xscope_chosen_pointer() function simply takes two scope pointers as input parameters and returns one of them. Which of the pointers is returned is determined by a (user supplied) "chooser" function that is passed, as the first parameter, to xscope_chosen_pointer(). The "chooser" function returns a bool and takes the two scope pointers as its first two parameters. If the chooser function returns false then the first scope pointer is returned, otherwise the second is returned.
+
+So consider, for example, a "min" function that takes two scope pointers and returns a scope pointer to the lesser of the two target (scope) objects. The implementation of this function would be straightforward if returning non-owning scope pointers was permitted. The following example demonstrates the same functionality using xscope_chosen_pointer() instead. It isn't necessarily super-pretty, but anyway the need to return a scope pointer generally isn't that common.
+
+    #include "msescope.h"
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A(int x) : b(x) {}
+            A(const A& _X) : b(_X.b) {}
+            virtual ~A() {}
+            bool operator<(const A& _X) const { return (b < _X.b); }
+
+            int b = 3;
+        };
+    
+        mse::TXScopeObj<A> a_scpobj(5);
+        mse::TXScopeOwnerPointer<A> xscp_a_ownerptr(7);
+        auto xscp_a_ptr5 = &a_scpobj;
+        auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
+    
+        /* Use xscope_chosen_pointer() when you otherwise would have returned a non-owning scope pointer. Here we use
+        it to implement "min(a, b)" functionality with scope pointers. */
+        auto xscp_min_ptr1 = mse::xscope_chosen_pointer(
+            [](decltype(xscp_a_ptr5) a_ptr, decltype(xscp_a_ptr6) b_ptr) { return ((*b_ptr) < (*a_ptr)); },
+            xscp_a_ptr5, xscp_a_ptr6);
+
+        assert(5 == xscp_min_ptr1->b);
     }
 
 
