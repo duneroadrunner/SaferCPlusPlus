@@ -1326,12 +1326,6 @@ usage example:
         }
     }
 
-Important note: As a general rule, avoid sharing mse::mstd::vector<>s among asynchronous threads.  
-
-The mechanism mse::mstd::vector<> uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::vector<> doesn't really qualify. std::vector<>, while perhaps still not ideal, is much more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.  
-
-Also, keep in mind that dynamic data structures, like vectors, are a primary source of memory access bugs, so unsafe native references and pointers to members of dynamic data structures should particularly avoided. See the note in the "[Practical limitations](#practical-limitations)" section about implicit "this" pointers.
-
 ### msevector
 
 If you're willing to forego a little theoretical safety, msevector<> is still very safe without the overhead of memory management.  
