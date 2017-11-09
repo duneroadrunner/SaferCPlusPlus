@@ -239,11 +239,13 @@
     <ClInclude Include="mserelaxedregistered.h" />
     <ClInclude Include="msescope.h" />
     <ClInclude Include="msetl.h" />
+    <ClInclude Include="msetl_example2.h" />
     <ClInclude Include="msevector_test.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mserelaxedregistered.cpp" />
     <ClCompile Include="msetl_example.cpp" />
+    <ClCompile Include="msetl_example2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="msetl_blurb.odt" />

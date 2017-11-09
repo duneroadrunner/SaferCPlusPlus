@@ -77,6 +77,8 @@ them to be enabled. */
 #include <random>
 #include <functional>
 
+#include "msetl_example2.h"
+
 
 #ifdef _MSC_VER
 #pragma warning( push )  
@@ -2159,84 +2161,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	{
-		mse::TRegisteredObj<mse::nii_vector<mse::nii_string>> rg_vo1;
-		for (size_t i = 0; i < 5; i += 1) {
-			rg_vo1.push_back("some text");
-		}
-		auto iter1 = rg_vo1.ss_begin(&rg_vo1);
-		auto citer1 = decltype(rg_vo1)::Tss_const_iterator_type<decltype(&rg_vo1)>(iter1);
-		rg_vo1.emplace(citer1, "some other text");
-		rg_vo1.insert(citer1, "some other text");
-		mse::nii_string str1 = "some other text";
-		rg_vo1.insert(citer1, str1);
-		int q = 5;
-	}
-
-	{
-		class CA {
-		public:
-			std::string m_s1;
-		};
-		mse::TXScopeObj<CA> xscp_obj1;
-		mse::TXScopeItemFixedPointer<CA> xscp_ifptr1 = &xscp_obj1;
-		mse::TXScopeItemFixedPointer<std::string> xscp_ifptr2 = mse::make_xscope_pointer_to_member(xscp_obj1.m_s1, &xscp_obj1);
-		mse::TXScopePolyPointer<CA> xscp_polyptr1 = xscp_ifptr1;
-		mse::TXScopePolyPointer<std::string> xscp_polyptr2 = xscp_ifptr2;
-
-		auto refc_ptr1 = mse::make_refcounting<std::string>("some text");
-		mse::TXScopeRefCountingConstStore<std::string> xscp_refc_cstore(refc_ptr1);
-		auto xscp_cptr1 = xscp_refc_cstore.xscope_ptr();
-		mse::TXScopeItemFixedConstPointer<std::string> xscp_cptr2 = xscp_cptr1;
-		std::string res1 = *xscp_cptr2;
-		mse::TXScopeRefCountingNotNullStore<std::string> xscp_refcnn_store(refc_ptr1);
-		auto xscp_ptr3 = xscp_refcnn_store.xscope_ptr();
-		(*xscp_ptr3) = "some other text";
-		mse::TXScopeItemFixedConstPointer<std::string> xscp_cptr4 = xscp_ptr3;
-		std::string res2 = *xscp_cptr4;
-
-		const auto& min_pointer_indicator = [](const decltype(xscp_cptr2)& a, const decltype(xscp_cptr4)& b) { return ((*b) < (*a)); };
-		auto res5 = mse::xscope_chosen_pointer(min_pointer_indicator, xscp_cptr2, xscp_cptr4);
-
-		mse::TXScopeObj<std::string> xscp_obj2;
-		auto xscp_fptr1 = &xscp_obj2;
-		auto xscp_fptr2 = &xscp_obj2;
-		const auto& bool_min_function2_cref = [](const decltype(xscp_fptr1)& a, const decltype(xscp_fptr2)& b, bool c) { return !(((*a) < (*b)) || c); };
-		auto res6 = mse::xscope_chosen_pointer(bool_min_function2_cref, xscp_fptr1, xscp_fptr2, false);
-
-		mse::nii_vector<std::string> niiv1;
-		mse::nii_vector<mse::TRegisteredObj<std::string> > niiv2;
-		//mse::nii_vector<mse::TXScopeObj<std::string> > niiv3;
-
-		mse::nii_array<std::string, 5> niiar1;
-		mse::nii_array<mse::TRegisteredObj<std::string>, 5> niiar2;
-		//mse::nii_array<mse::TXScopeObj<std::string>, 5> niiar3;
-
-		mse::TXScopeObj<mse::nii_array<std::string, 5> > xscp_nii_ar1 = mse::nii_array<std::string, 5>({ "0", "1", "2", "3", "4"});
-		auto nii_ar_iter1 = mse::make_xscope_ss_iterator_type(&xscp_nii_ar1);
-		nii_ar_iter1 += 2;
-		auto xscp_nii_ar_ifptr = mse::xscope_pointer_to_array_element<std::string, 5>(nii_ar_iter1);
-		auto nii_ar_res1 = (*xscp_nii_ar_ifptr);
-
-		mse::TXScopeObj<mse::msearray<std::string, 5> > xscp_msear1 = mse::msearray<std::string, 5>({ "0", "1", "2", "3", "4" });
-		auto msear_iter1 = mse::make_xscope_ss_iterator_type(&xscp_msear1);
-		msear_iter1 += 2;
-		auto xscp_msear_ifptr = mse::xscope_pointer_to_array_element<std::string, 5>(msear_iter1);
-		auto msear_res1 = (*xscp_msear_ifptr);
-
-		mse::TXScopeObj<mse::mstd::array<std::string, 5> > xscp_mstd_ar1 = mse::mstd::array<std::string, 5>({ "0", "1", "2", "3", "4" });
-		auto mstd_ar_iter1 = mse::mstd::make_xscope_iterator(&xscp_mstd_ar1);
-		mstd_ar_iter1 = xscp_mstd_ar1.begin();
-		mstd_ar_iter1 += 2;
-		auto xscp_mstd_ar_ifptr = mse::mstd::xscope_pointer_to_array_element<std::string, 5>(mstd_ar_iter1);
-		auto mstd_ar_res1 = (*xscp_mstd_ar_ifptr);
-
-		mse::mstd::vector<std::string> mstdv1;
-		mstdv1.swap(niiv1);
-		bool b1 = (mstdv1 == mstdv1);
-		std::swap(niiv1, mstdv1);
-		std::swap(mstdv1, niiv1);
-	}
+	msetl_example2();
 
 	return 0;
 }
