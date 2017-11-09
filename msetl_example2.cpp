@@ -70,7 +70,7 @@ void msetl_example2() {
 		/*   nii_vector<>   */
 		/********************/
 
-		/* nii_vector<> is a safe vector designed to for safe sharing between asynchronous threads. */
+		/* nii_vector<> is a safe vector designed for safe sharing between asynchronous threads. */
 
 		typedef mse::nii_vector<mse::nii_string> nii_vector1_t;
 
@@ -80,7 +80,7 @@ void msetl_example2() {
 		}
 		mse::TRegisteredPointer<nii_vector1_t> vo1_regptr1 = &rg_vo1;
 
-		/* nii_vector<> does not have member functions like "begin(void)" that return implicit "iterators". It does have
+		/* nii_vector<> does not have member functions like "begin(void)" that return "implicit" iterators. It does have
 		(template) member functions like "ss_begin" which take a (safe) pointer to the nii_vector<> as a parameter and
 		return a (safe) iterator. */
 		auto iter1 = rg_vo1.ss_begin(vo1_regptr1);

@@ -105,6 +105,9 @@ namespace mse {
 		TRefCountingPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr) {}
 		~TRefCountingPointer() {
 			release();
+
+			/* This is just a no-op function that will cause a compile error when X is not an eligible type. */
+			valid_if_X_is_not_an_xscope_type();
 		}
 		TRefCountingPointer(const TRefCountingPointer& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
@@ -220,6 +223,15 @@ namespace mse {
 				ref_with_target_obj_ptr = nullptr;
 			}
 		}
+
+#ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
+		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
+		(intended) compile error. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class X2 = X, class = typename std::enable_if<(std::is_same<X2, X>::value) && (!std::is_base_of<XScopeTagBase, X2>::value), void>::type>
+#endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
+		void valid_if_X_is_not_an_xscope_type() const {}
 
 		CRefCounter* m_ref_with_target_obj_ptr;
 

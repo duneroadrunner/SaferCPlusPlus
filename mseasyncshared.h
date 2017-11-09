@@ -1829,6 +1829,7 @@ namespace mse {
 		~TAsyncSharedV2ReadWriteAccessRequester() {
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			valid_if_Ty_is_marked_as_shareable();
+			valid_if_Ty_is_not_an_xscope_type();
 		}
 
 		template <class... Args>
@@ -1844,6 +1845,13 @@ namespace mse {
 		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
+
+		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
+		(intended) compile error. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
+		void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		//TAsyncSharedV2ReadWriteAccessRequester(const std::shared_ptr<_Ty>& shptr) : base_class(make_asyncsharedv2xwpreadwrite(std::shared_ptr<_Ty>(shptr))) {}
 		TAsyncSharedV2ReadWriteAccessRequester(std::shared_ptr<_Ty>&& shptr) : base_class(make_asyncsharedv2xwpreadwrite(std::forward<decltype(shptr)>(shptr))) {}
@@ -1868,6 +1876,7 @@ namespace mse {
 		~TAsyncSharedV2ReadOnlyAccessRequester() {
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			valid_if_Ty_is_marked_as_shareable();
+			valid_if_Ty_is_not_an_xscope_type();
 		}
 
 		template <class... Args>
@@ -1883,6 +1892,13 @@ namespace mse {
 		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
+
+		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
+		(intended) compile error. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
+		void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		//TAsyncSharedV2ReadOnlyAccessRequester(const std::shared_ptr<_Ty>& shptr) : base_class(make_asyncsharedv2xwpreadonly(std::shared_ptr<_Ty>(shptr))) {}
 		TAsyncSharedV2ReadOnlyAccessRequester(std::shared_ptr<_Ty>&& shptr) : base_class(make_asyncsharedv2xwpreadonly(std::forward<decltype(shptr)>(shptr))) {}

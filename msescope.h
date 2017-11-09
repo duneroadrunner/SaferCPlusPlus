@@ -773,6 +773,23 @@ namespace mse {
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
+	template<class _Ty>
+	class IsNotAnXScopeType {
+	public:
+		IsNotAnXScopeType() {}
+		~IsNotAnXScopeType() {
+			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+			valid_if_Ty_is_not_an_xscope_type();
+		}
+	private:
+		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
+		(intended) compile error. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
+		void valid_if_Ty_is_not_an_xscope_type() const {}
+	};
+
 
 	/* shorter aliases */
 	template<typename _Ty> using sfp = TXScopeFixedPointer<_Ty>;
