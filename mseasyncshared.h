@@ -1442,11 +1442,12 @@ namespace mse {
 			return m_shptr.operator bool();
 		}
 		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
-		auto operator*() const -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type {
+		/* gcc5 crashes if you uncomment the explicit return type declaration (Nov 2017). */
+		auto& operator*() const/* -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type*/ {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return (*((*m_shptr).cref()));
 		}
-		auto operator->() const -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref()))) {
+		auto operator->() const/* -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))*/ {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return std::addressof(*((*m_shptr).cref()));
 		}
@@ -1499,11 +1500,11 @@ namespace mse {
 			return m_shptr.operator bool();
 		}
 		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
-		auto operator*() const -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type {
+		const auto& operator*() const/* -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type*/ {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return (*((*m_shptr).cref()));
 		}
-		auto operator->() const -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type {
+		const auto operator->() const/* -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type*/ {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return std::addressof(*((*m_shptr).cref()));
 		}
@@ -1554,11 +1555,11 @@ namespace mse {
 			return m_shptr.operator bool();
 		}
 		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
-		auto operator*() const -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type {
+		auto& operator*() const/* -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type*/ {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return (*((*m_shptr).cref()));
 		}
-		auto operator->() const -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref()))) {
+		auto operator->() const/* -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))*/ {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return std::addressof(*((*m_shptr).cref()));
 		}
@@ -1713,11 +1714,11 @@ namespace mse {
 			return m_shptr.operator bool();
 		}
 		typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
-		auto operator*() const -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type {
+		const auto& operator*() const/* -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type*/ {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return (*((*m_shptr).cref()));
 		}
-		auto operator->() const -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type {
+		const auto operator->() const/* -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type*/ {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return std::addressof(*((*m_shptr).cref()));
 		}
