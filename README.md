@@ -1276,15 +1276,15 @@ Not yet available.
 
 ### Vectors
 
-We provide three vectors - [mstd::vector<>](#vector), [msevector<>](#msevector) and [ivector<>](#ivector). mstd::vector<> is simply an almost completely safe implementation of std::vector<>.  
+The library provides a number of vector types. Probably the two most essential are [mstd::vector<>](#vector) and [nii_vector<>](#nii_vector). mstd::vector<> is simply a memory-safe drop-in replacement for std::vector. Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed for safe sharing among asynchronous threads.
 
-msevector<> is also quite safe. Not quite as safe as mstd::vector<>, but it requires less overhead. msevector<> also supports a new kind of iterator in addition to the standard vector iterator. This new iterator, called "ipointer", acts more like a list iterator. It's more intuitive, more useful, and isn't prone to being invalidated upon an insert or delete operation. If performance is of concern, msevector<> is probably the better choice of the three.  
+The standard library vector iterators are designed so that they can be (unsafely) implemented as just pointers. But this makes them prone to being invalidated as a side effect of insertion, deletion and resize operations on the vector. This also means that they behave differently from list iterators, so algorithms that work on lists won't necessarily work on vectors. So the library includes [ivector<>](#ivector), whose iterators behave like list iterators. That is, they don't get invalidated by insert/delete/resize vector operations, unless the element they were pointing to is deleted, and after any such operation, they will continue to point to the same item, which may then be in a different position in the vector.
 
-ivector<> is just as safe as mstd::vector<>, but drops support for the (problematic) standard vector iterators and only supports the ipointer iterators.
+And finally, for those whose are willing to sacrifice some safety for performance there is [msevector<>](#msevector). This vector is not memory-safe in the way that the other vectors are. It supports three types of iterators - the traditional (unsafe) iterators, a bounds-checked version of the traditional iterator, and, like ivector<>, iterators that behave like list iterators.
 
 ### vector
 
-mstd::vector<> is simply an almost completely safe implementation of std::vector<>.
+mstd::vector<> is simply memory-safe drop-in replacement for std::vector<>.
 
 usage example:
 
@@ -1324,6 +1324,68 @@ usage example:
             // At present, this won't even result in an exception. It'll just work.
             // In the future an exception may be throw in debug builds.
         }
+    }
+
+### nii_vector
+
+Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed to be safely shareable between asynchronous threads. To that end, it does not support "implicit" iterators. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the nii_vector<>. So for example, the "begin()" member function actually requires a pointer to the vector to passed as a parameter.  
+
+Note that in cases when you only need the vector to be shared between threads part of the time, you can swap between, for example, (non-shareable) mstd::vector<>s and (shareable) nii_vector<>s when you need.
+
+usage example:
+
+    #include "msemsevector.h"
+    #include "mseregistered.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        /* nii_vector<> is a safe vector designed for safe sharing between asynchronous threads. */
+    
+        typedef mse::nii_vector<mse::nii_string> nii_vector1_t;
+    
+        mse::TRegisteredObj<nii_vector1_t> rg_vo1;
+        for (size_t i = 0; i < 5; i += 1) {
+            rg_vo1.push_back("some text");
+        }
+        mse::TRegisteredPointer<nii_vector1_t> vo1_regptr1 = &rg_vo1;
+    
+        /* nii_vector<> does not have member functions like "begin(void)" that return "implicit" iterators. It does have
+        (template) member functions like "ss_begin" which take a (safe) pointer to the nii_vector<> as a parameter and
+        return a (safe) iterator. */
+        auto iter1 = rg_vo1.ss_begin(vo1_regptr1);
+        auto citer1 = rg_vo1.ss_cend(vo1_regptr1);
+        citer1 = iter1;
+        rg_vo1.emplace(citer1, "some other text");
+        rg_vo1.insert(citer1, "some other text");
+        mse::nii_string str1 = "some other text";
+        rg_vo1.insert(citer1, str1);
+    
+        class A {
+        public:
+            A() {}
+            int m_i;
+        };
+        /* Here we're declaring that A can be safely shared between asynchronous threads. */
+        typedef mse::TUserDeclaredAsyncShareableObj<A> shareable_A_t;
+    
+        /* When the element type of an nii_vector<> is marked as "async shareable", the nii_vector<> itself is
+        (automatically) marked as async shareable as well and can be safely shared between asynchronous threads
+        using "access requesters". */
+        auto access_requester1 = mse::make_asyncsharedv2readwrite<mse::nii_vector<shareable_A_t>>();
+        auto access_requester2 = mse::make_asyncsharedv2readwrite<nii_vector1_t>();
+    
+        /* If the element type of an nii_vector<> is not marked as "async shareable", then neither is the
+        nii_vector<> itself. So attempting to create an "access requester" using it would result in a compile
+        error. */
+        //auto access_requester3 = mse::make_asyncsharedv2readwrite<mse::nii_vector<A>>();
+        //auto access_requester4 = mse::make_asyncsharedv2readwrite<mse::nii_vector<mse::mstd::string>>();
+    
+        typedef mse::mstd::vector<mse::nii_string> vector1_t;
+        vector1_t vo2 = { "a", "b", "c" };
+        /* mstd::vector<>s, for example, are not safely shareable between threads. But if its element type is
+        safely shareable, then the contents of the mse::mstd::vector<>, can be swapped with a corresponding
+        shareable nii_vector<>. Note that vector swaps are intrinsically fast operations. */
+        vo2.swap(*(access_requester2.writelock_ptr()));
     }
 
 ### msevector
@@ -1404,13 +1466,9 @@ ipointers support all the standard iterator operators, but also have member func
     CSize_t position() const;
     void reset();
 
-Important note: In general, you should probably avoid sharing mse::msevector<>s among asynchronous threads.  
-
-The mechanism mse::msevector<> uses to track its "ipointer" iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated "ipointer" iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. std::vector<>, while perhaps still not ideal, may be more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.
-
 ### ivector
 
-ivector is for cases when safety and correctness are higher priorities than compatibility and performance. ivector, like mstd::vector<>, is almost completely safe. ivector takes the further step of dropping support for the (problematic) standard vector iterator, and replacing it with [ipointer](#msevector).
+ivector is for cases when safety and correctness are higher priorities than compatibility and performance. ivector drops support for the (problematic) standard vector iterator, replacing it with [ipointer](#msevector).
 
 usage example:
 
@@ -1422,8 +1480,6 @@ usage example:
         std::sort(iv.begin(), iv.end());
         mse::ivector<int>::ipointer ivip = iv.begin();
     }
-
-Important note: As a general rule, avoid sharing mse::ivector<>s among asynchronous threads. See [mse::mstd::vector<>](#vector)
 
 ### Arrays
 
