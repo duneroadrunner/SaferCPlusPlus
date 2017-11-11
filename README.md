@@ -1276,7 +1276,7 @@ Not yet available.
 
 ### Vectors
 
-The library provides a number of vector types. Probably the two most essential are [mstd::vector<>](#vector) and [nii_vector<>](#nii_vector). mstd::vector<> is simply a memory-safe drop-in replacement for std::vector. Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed for safe sharing among asynchronous threads.
+The library provides a number of vector types. Probably the two most essential are [mstd::vector<>](#vector) and [nii_vector<>](#nii_vector). mstd::vector<> is simply a memory-safe drop-in replacement for std::vector<>. Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed for safe sharing among asynchronous threads.
 
 The standard library vector iterators are designed so that they can be (unsafely) implemented as just pointers. But this makes them prone to being invalidated as a side effect of insertion, deletion and resize operations on the vector. This also means that they behave differently from list iterators, so algorithms that work on lists won't necessarily work on vectors. So the library includes [ivector<>](#ivector), whose iterators behave like list iterators. That is, they don't get invalidated by insert/delete/resize vector operations, unless the element they were pointing to is deleted, and after any such operation, they will continue to point to the same item, which may then be in a different position in the vector.
 
@@ -1284,7 +1284,7 @@ And finally, for those whose are willing to sacrifice some safety for performanc
 
 ### vector
 
-mstd::vector<> is simply memory-safe drop-in replacement for std::vector<>.
+mstd::vector<> is a memory-safe drop-in replacement for std::vector<>.
 
 usage example:
 
@@ -1483,11 +1483,11 @@ usage example:
 
 ### Arrays
 
-We provide two arrays - [mstd::array<>](#array) and [msearray<>](#msearray). mstd::array<> is simply an almost completely safe implementation of std::array<>. msearray<> is also quite safe. Not quite as safe as mstd::array<>, but it requires less overhead.
+We provide two arrays - [mstd::array<>](#array) and [msearray<>](#msearray). mstd::array<> is simply a memory-safe drop-in replacement for std::array<>. msearray<>, like msevector<> is not memory-safe in the way that the other arrays are, but requires less overhead.
 
 ### array
 
-mstd::array<> is an almost completely safe implementation of std::array<>. Note that the current implementation requires "mseregistered.h".  
+mstd::array<> is a memory-safe drop-in replacement for std::array<>. Note that the current implementation requires "mseregistered.h".  
 
 usage example:
 
@@ -1529,11 +1529,7 @@ usage example:
         }
     }
 
-Important note: As a general rule, avoid sharing mse::mstd::array<>s among asynchronous threads.  
-
-The mechanism mse::mstd::array<> uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::array<> doesn't really qualify. mse::msearray<> is more appropriate for asyncronous sharing as it does not track its iterators. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.  
-
-Also note for real time applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array<> will resort to obtaining space from the heap. You can instead use mse::msearray<>, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)
+Note for real time applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array<> will resort to obtaining space from the heap. You can instead use mse::msearray<>, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)
 
 ### xscope_iterator
 
@@ -1582,7 +1578,7 @@ usage example:
 
 ### msearray
 
-msearray<>, like msevector<>, is a essentially a compromise between safety and performance. And like msevector<>, msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like msevector<>, msearray<>'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
+msearray<>, like msevector<>, is not memory-safe in the way that the other arrays are. And like msevector<>, msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like msevector<>, msearray<>'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
 
 usage example:
 
@@ -1649,8 +1645,6 @@ usage example:
             auto res3 = *scp_ss_citer4;
         }
     }
-
-Note that we've decided to implement msearray<> as an "aggregate" type. This means that it gets automatic compiler support for [aggregate initialization](http://en.cppreference.com/w/cpp/language/aggregate_initialization), but it comes with some compromises as well. One detail to be aware of is that when replacing an aggregate initialized std::array<> with an mse::msearray<>, you generally need to add an extra set of braces around the initializer list. Note that with mse::mstd::array<>, you do not need the extra braces because it is not an aggregate type and instead tries to emulate support for aggregate initialization.
 
 ### Compatibility considerations
 People have asked why the primitive C++ types can't be used as base classes - http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
