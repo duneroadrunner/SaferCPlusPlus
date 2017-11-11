@@ -74,8 +74,9 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     2. [Quarantined types](#quarantined-types)
 15. [Vectors](#vectors)
     1. [mstd::vector](#vector)
-    2. [msevector](#msevector)
-    3. [ivector](#ivector)
+    2. [nii_vector](#nii_vector)
+    3. [msevector](#msevector)
+    4. [ivector](#ivector)
 16. [Arrays](#arrays)
     1. [mstd::array](#array)
     2. [msearray](#msearray)
@@ -1328,7 +1329,7 @@ usage example:
 
 ### nii_vector
 
-Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed to be safely shareable between asynchronous threads. To that end, it does not support "implicit" iterators. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the nii_vector<>. So for example, the "begin()" member function actually requires a pointer to the vector to passed as a parameter.  
+Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed to be safely shareable between asynchronous threads. To that end, it does not support "implicit" iterators. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the nii_vector<>. So for example, instead of a "begin()" member function that takes no parameters, nii_vector<> has an "ss_begin(...)" (static template) member function that actually requires a pointer to the vector to passed as a parameter.  
 
 Note that in cases when you only need the vector to be shared between threads part of the time, you can swap between, for example, (non-shareable) mstd::vector<>s and (shareable) nii_vector<>s when you need.
 
