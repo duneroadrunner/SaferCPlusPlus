@@ -1264,6 +1264,9 @@ namespace mse {
 			friend class /*_Myt*/nii_vector<_Ty>;
 		};
 
+		typedef xscope_ss_const_iterator_type xscope_const_iterator;
+		typedef xscope_ss_iterator_type xscope_iterator;
+
 		bool operator==(const _Myt& _Right) const {	// test for vector equality
 			return (_Right.m_vector == m_vector);
 		}
@@ -3548,6 +3551,9 @@ namespace mse {
 			//typename ss_iterator_type (*this);
 			friend class /*_Myt*/msevector<_Ty, _A, _TStateMutex>;
 		};
+
+		typedef xscope_ss_const_iterator_type xscope_const_iterator;
+		typedef xscope_ss_iterator_type xscope_iterator;
 
 		/* For each (scope) vector instance, only one instance of xscope_structure_change_lock_guard may exist at any one
 		time. While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to

@@ -1489,6 +1489,9 @@ namespace mse {
 			friend class /*_Myt*/nii_array<_Ty, _Size>;
 		};
 
+		typedef xscope_ss_const_iterator_type xscope_const_iterator;
+		typedef xscope_ss_iterator_type xscope_iterator;
+
 		bool operator==(const _Myt& _Right) const {	// test for array equality
 			return (_Right.m_array == m_array);
 		}
@@ -1925,6 +1928,9 @@ namespace mse {
 			friend class /*_Myt*/msearray<_Ty, _Size>;
 		};
 
+		typedef xscope_ss_const_iterator_type xscope_const_iterator;
+		typedef xscope_ss_iterator_type xscope_iterator;
+
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
@@ -1992,6 +1998,38 @@ namespace mse {
 
 
 	template<class _TArray>
+	auto make_xscope_const_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_const_iterator(owner_ptr);
+	}
+	template<class _TArray>
+	auto make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_const_iterator(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _TArray>
+	auto make_xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_const_iterator(owner_ptr);
+	}
+	template<class _TArray>
+	auto make_xscope_const_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_const_iterator(owner_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	template<class _TArray>
+	auto make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_iterator(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _TArray>
+	auto make_xscope_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_iterator(owner_ptr);
+	}
+#endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
+
+
+	/* deprecated */
+	template<class _TArray>
 	typename _TArray::xscope_ss_const_iterator_type make_xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
 		return typename _TArray::xscope_ss_const_iterator_type(owner_ptr);
 	}
@@ -2020,6 +2058,7 @@ namespace mse {
 		return typename _TArray::xscope_ss_iterator_type(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
 }
 
 namespace std {

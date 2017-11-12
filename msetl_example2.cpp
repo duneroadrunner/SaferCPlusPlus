@@ -161,19 +161,19 @@ void msetl_example2() {
 		//mse::nii_array<mse::TXScopeObj<std::string>, 5> niiar3;
 
 		mse::TXScopeObj<mse::nii_array<std::string, 5> > xscp_nii_ar1 = mse::nii_array<std::string, 5>({ "0", "1", "2", "3", "4"});
-		auto nii_ar_iter1 = mse::make_xscope_ss_iterator_type(&xscp_nii_ar1);
+		auto nii_ar_iter1 = mse::make_xscope_iterator(&xscp_nii_ar1);
 		nii_ar_iter1 += 2;
 		auto xscp_nii_ar_ifptr = mse::xscope_pointer_to_array_element<std::string, 5>(nii_ar_iter1);
 		auto nii_ar_res1 = (*xscp_nii_ar_ifptr);
 
 		mse::TXScopeObj<mse::msearray<std::string, 5> > xscp_msear1 = mse::msearray<std::string, 5>({ "0", "1", "2", "3", "4" });
-		auto msear_iter1 = mse::make_xscope_ss_iterator_type(&xscp_msear1);
+		auto msear_iter1 = mse::make_xscope_iterator(&xscp_msear1);
 		msear_iter1 += 2;
 		auto xscp_msear_ifptr = mse::xscope_pointer_to_array_element<std::string, 5>(msear_iter1);
 		auto msear_res1 = (*xscp_msear_ifptr);
 
 		mse::TXScopeObj<mse::mstd::array<std::string, 5> > xscp_mstd_ar1 = mse::mstd::array<std::string, 5>({ "0", "1", "2", "3", "4" });
-		auto mstd_ar_iter1 = mse::mstd::make_xscope_iterator(&xscp_mstd_ar1);
+		auto mstd_ar_iter1 = mse::make_xscope_iterator(&xscp_mstd_ar1);
 		mstd_ar_iter1 = xscp_mstd_ar1.begin();
 		mstd_ar_iter1 += 2;
 		auto xscp_mstd_ar_ifptr = mse::mstd::xscope_pointer_to_array_element<std::string, 5>(mstd_ar_iter1);
