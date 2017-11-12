@@ -74,8 +74,9 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     2. [Quarantined types](#quarantined-types)
 15. [Vectors](#vectors)
     1. [mstd::vector](#vector)
-    2. [msevector](#msevector)
-    3. [ivector](#ivector)
+    2. [nii_vector](#nii_vector)
+    3. [msevector](#msevector)
+    4. [ivector](#ivector)
 16. [Arrays](#arrays)
     1. [mstd::array](#array)
     2. [msearray](#msearray)
@@ -609,10 +610,10 @@ Failure to adhere to the rules for scope objects could result in unsafe code. Ag
 In lieu of compile-time enforcement, run-time checking is available to detect some misuses of scope pointers. Run-time checking in debug mode is enabled by defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For int, bool and size_t use the safer [substitutes](#primitives) that can act as base classes. 
 
 Generally, there are two types of scope pointers you might use, [TXScopeOwnerPointer](#txscopeownerpointer) and [TXScopeItemFixedPointer](#txscopeitemfixedpointer). TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to also include "declaration scope".)
-TXScopeItemFixedPointer is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is intended pretty much for the sole purpose of passing scope objects by reference as function arguments. 
+TXScopeItemFixedPointer is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is primarily intended for the purpose of passing scope objects by reference as function arguments. 
 
 ### TXScopeItemFixedPointer
-TXScopeItemFixedPointer is intended to be used to pass scope objects by reference as function arguments. It is not intended to be used as a member of any class or struct (this would generally produce a compile error) or as a function return type.  
+TXScopeItemFixedPointer is primarily intended to be used to pass scope objects by reference as function arguments. It should not be used as a function return type, as that could be unsafe. And as with any other scope object, it should not be used as a member of any class or struct that is not itself a scope object (though attempting to do so would generally produce a compile error).  
 
 usage example:
 
@@ -645,7 +646,7 @@ usage example:
 ### TXScopeItemFixedConstPointer
 
 ### TXScopeOwnerPointer
-TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, TXScopeOwnerPointer is not intended to be used as a member of any class or struct. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
+TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, as a scope object, TXScopeOwnerPointer should not be used as a member of any class or struct that is not iself a scope object. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
 
 usage example:
 
@@ -1276,15 +1277,15 @@ Not yet available.
 
 ### Vectors
 
-We provide three vectors - [mstd::vector<>](#vector), [msevector<>](#msevector) and [ivector<>](#ivector). mstd::vector<> is simply an almost completely safe implementation of std::vector<>.  
+The library provides a number of vector types. Probably the two most essential are [mstd::vector<>](#vector) and [nii_vector<>](#nii_vector). mstd::vector<> is simply a memory-safe drop-in replacement for std::vector<>. Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed for safe sharing among asynchronous threads.
 
-msevector<> is also quite safe. Not quite as safe as mstd::vector<>, but it requires less overhead. msevector<> also supports a new kind of iterator in addition to the standard vector iterator. This new iterator, called "ipointer", acts more like a list iterator. It's more intuitive, more useful, and isn't prone to being invalidated upon an insert or delete operation. If performance is of concern, msevector<> is probably the better choice of the three.  
+The standard library vector iterators are designed so that they can be (unsafely) implemented as just pointers. But this makes them prone to being invalidated as a side effect of insertion, deletion and resize operations on the vector. This also means that they behave differently from list iterators, so algorithms that work on lists won't necessarily work on vectors. So the library includes [ivector<>](#ivector), whose iterators behave like list iterators. That is, they don't get invalidated by insert/delete/resize vector operations unless the element they were pointing to is deleted, and after any such operation, they will continue to point to the same item, which may then be in a different position in the vector.
 
-ivector<> is just as safe as mstd::vector<>, but drops support for the (problematic) standard vector iterators and only supports the ipointer iterators.
+And finally, for those whose are willing to sacrifice some safety for performance there is [msevector<>](#msevector). This vector is not memory-safe in the way that the other vectors are. It may be useful in cases where you want more control over the safety-performance trade-off. It supports a variety of iterator types - the traditional (unsafe) iterators, a bounds-checked version of the traditional iterator, and iterators that, like ivector<>'s iterators, behave like list iterators.
 
 ### vector
 
-mstd::vector<> is simply an almost completely safe implementation of std::vector<>.
+mstd::vector<> is a memory-safe drop-in replacement for std::vector<>.
 
 usage example:
 
@@ -1326,12 +1327,75 @@ usage example:
         }
     }
 
+### nii_vector
+
+Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed to be safely shareable between asynchronous threads. To that end, it does not support "implicit" iterators. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the nii_vector<>. So for example, instead of a "begin()" member function that takes no parameters, nii_vector<> has an "ss_begin(...)" (static template) member function that actually requires a pointer to the vector to passed as a parameter.  
+
+Note that in cases when you only need the vector to be shared between threads part of the time, you can swap between, for example, (non-shareable) mstd::vector<>s and (shareable) nii_vector<>s when you need.
+
+usage example:
+
+    #include "msemsevector.h"
+    #include "mseregistered.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        /* nii_vector<> is a safe vector designed for safe sharing between asynchronous threads. */
+    
+        typedef mse::nii_vector<mse::nii_string> nii_vector1_t;
+    
+        mse::TRegisteredObj<nii_vector1_t> rg_vo1;
+        for (size_t i = 0; i < 5; i += 1) {
+            rg_vo1.push_back("some text");
+        }
+        mse::TRegisteredPointer<nii_vector1_t> vo1_regptr1 = &rg_vo1;
+    
+        /* nii_vector<> does not have member functions like "begin(void)" that return "implicit" iterators. It does have
+        (template) member functions like "ss_begin" which take a (safe) pointer to the nii_vector<> as a parameter and
+        return a (safe) iterator. */
+        auto iter1 = rg_vo1.ss_begin(vo1_regptr1);
+        auto citer1 = rg_vo1.ss_cend(vo1_regptr1);
+        citer1 = iter1;
+        rg_vo1.emplace(citer1, "some other text");
+        rg_vo1.insert(citer1, "some other text");
+        mse::nii_string str1 = "some other text";
+        rg_vo1.insert(citer1, str1);
+    
+        class A {
+        public:
+            A() {}
+            int m_i;
+        };
+        /* Here we're declaring that A can be safely shared between asynchronous threads. */
+        typedef mse::TUserDeclaredAsyncShareableObj<A> shareable_A_t;
+    
+        /* When the element type of an nii_vector<> is marked as "async shareable", the nii_vector<> itself is
+        (automatically) marked as async shareable as well and can be safely shared between asynchronous threads
+        using "access requesters". */
+        auto access_requester1 = mse::make_asyncsharedv2readwrite<mse::nii_vector<shareable_A_t>>();
+        auto access_requester2 = mse::make_asyncsharedv2readwrite<nii_vector1_t>();
+    
+        /* If the element type of an nii_vector<> is not marked as "async shareable", then neither is the
+        nii_vector<> itself. So attempting to create an "access requester" using it would result in a compile
+        error. */
+        //auto access_requester3 = mse::make_asyncsharedv2readwrite<mse::nii_vector<A>>();
+        //auto access_requester4 = mse::make_asyncsharedv2readwrite<mse::nii_vector<mse::mstd::string>>();
+    
+        typedef mse::mstd::vector<mse::nii_string> vector1_t;
+        vector1_t vo2 = { "a", "b", "c" };
+        /* mstd::vector<>s, for example, are not safely shareable between threads. But if its element type is
+        safely shareable, then the contents of the mse::mstd::vector<>, can be swapped with a corresponding
+        shareable nii_vector<>. Note that vector swaps are intrinsically fast operations. */
+        vo2.swap(*(access_requester2.writelock_ptr()));
+    }
+
 ### msevector
 
-If you're willing to forego a little theoretical safety, msevector<> is still very safe without the overhead of memory management.  
-In addition to the (high performance) standard vector iterator, msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. In fact, standard vector iterators are so prone to being invalidated that for algorithms involving insertion or deletion, they can be generously considered not very useful, and more prudently considered dangerous. ipointers, aside from being safe, just make sense. Algorithms that work when applied to list iterators will work when applied to ipointers. And that's important as Bjarne famously [points out](https://www.youtube.com/watch?v=YQs6IC-vgmo), for cache coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate. You can read a short article comparing ipointers with some existing alternatives [here](http://www.codeproject.com/Articles/1087021/Stable-Iterators-for-Cplusplus-Vectors-and-Why-You).  
+msevector<> is not memory-safe in the way that the other vectors are. It can be used in cases where you want more control over the safety-performance trade-off.  
 
-msevector<> also provides a safe (bounds checked) version of the standard vector iterator.
+In addition to the (high performance) standard vector iterator, msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. Algorithms that work when applied to list iterators will work when applied to ipointers. This can be useful as Bjarne famously [points out](https://www.youtube.com/watch?v=YQs6IC-vgmo), for cache-coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate. You can read a short article comparing ipointers with some existing alternatives [here](http://www.codeproject.com/Articles/1087021/Stable-Iterators-for-Cplusplus-Vectors-and-Why-You).  
+
+msevector<> also provides a safer bounds-checked version of the standard vector iterator. Note that none of these iterators are safe against the situation where the vector is deleted before an iterator is finished using it.
 
 usage example:
 
@@ -1404,13 +1468,9 @@ ipointers support all the standard iterator operators, but also have member func
     CSize_t position() const;
     void reset();
 
-Important note: In general, you should probably avoid sharing mse::msevector<>s among asynchronous threads.  
-
-The mechanism mse::msevector<> uses to track its "ipointer" iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated "ipointer" iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. std::vector<>, while perhaps still not ideal, may be more appropriate for asyncronous sharing. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.
-
 ### ivector
 
-ivector is for cases when safety and correctness are higher priorities than compatibility and performance. ivector, like mstd::vector<>, is almost completely safe. ivector takes the further step of dropping support for the (problematic) standard vector iterator, and replacing it with [ipointer](#msevector).
+ivector is for cases when safety and correctness are higher priorities than compatibility and performance. ivector drops support for the (problematic) standard vector iterator, replacing it with [ipointer](#msevector).
 
 usage example:
 
@@ -1423,15 +1483,13 @@ usage example:
         mse::ivector<int>::ipointer ivip = iv.begin();
     }
 
-Important note: As a general rule, avoid sharing mse::ivector<>s among asynchronous threads. See [mse::mstd::vector<>](#vector)
-
 ### Arrays
 
-We provide two arrays - [mstd::array<>](#array) and [msearray<>](#msearray). mstd::array<> is simply an almost completely safe implementation of std::array<>. msearray<> is also quite safe. Not quite as safe as mstd::array<>, but it requires less overhead.
+We provide two arrays - [mstd::array<>](#array) and [msearray<>](#msearray). mstd::array<> is simply a memory-safe drop-in replacement for std::array<>. msearray<>, like msevector<> is not memory-safe in the way that the other arrays are, but requires less overhead.
 
 ### array
 
-mstd::array<> is an almost completely safe implementation of std::array<>. Note that the current implementation requires "mseregistered.h".  
+mstd::array<> is a memory-safe drop-in replacement for std::array<>. Note that the current implementation requires "mseregistered.h".  
 
 usage example:
 
@@ -1473,11 +1531,7 @@ usage example:
         }
     }
 
-Important note: As a general rule, avoid sharing mse::mstd::array<>s among asynchronous threads.  
-
-The mechanism mse::mstd::array<> uses to track its iterators is not thread safe (for performance reasons). Technically there is no issue as long as you don't obtain, release, move or copy any associated iterators from asyncronous threads. But there's no way to enforce that, so it's generally better just to follow the SaferCPlusPlus rule of thumb: If you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing). Ideally a POD ("plain old data") data type with no member functions and no mutable members. mse::mstd::array<> doesn't really qualify. mse::msearray<> is more appropriate for asyncronous sharing as it does not track its iterators. And of course, remember to use SaferCPlusPlus [asyncronous sharing data types](#asynchronously-shared-objects) when appropriate.  
-
-Also note for real time applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array<> will resort to obtaining space from the heap. You can instead use mse::msearray<>, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)
+Note for real time applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array<> will resort to obtaining space from the heap. You can instead use mse::msearray<>, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)
 
 ### xscope_iterator
 
@@ -1497,14 +1551,14 @@ usage example:
         mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
         
         /* Here we're obtaining a scope iterator to the array. */
-        auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
+        auto scp_array_iter1 = mse::make_xscope_iterator(&array1_scpobj);
         scp_array_iter1 = array1_scpobj.begin();
-        auto scp_array_iter2 = mse::mstd::make_xscope_iterator(&array1_scpobj);
+        auto scp_array_iter2 = mse::make_xscope_iterator(&array1_scpobj);
         scp_array_iter2 = array1_scpobj.end();
         
         std::sort(scp_array_iter1, scp_array_iter2);
         
-        auto scp_array_citer3 = mse::mstd::make_xscope_const_iterator(&array1_scpobj);
+        auto scp_array_citer3 = mse::make_xscope_const_iterator(&array1_scpobj);
         scp_array_citer3 = scp_array_iter1;
         scp_array_citer3 = array1_scpobj.cbegin();
         scp_array_citer3 += 2;
@@ -1519,14 +1573,14 @@ usage example:
         };
         mse::TXScopeObj<CContainer1> container1_scpobj;
         auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
-        auto scp_iter4 = mse::mstd::make_xscope_iterator(container1_m_array_scpptr);
+        auto scp_iter4 = mse::make_xscope_iterator(container1_m_array_scpptr);
         scp_iter4++;
         auto res3 = *scp_iter4;
     }
 
 ### msearray
 
-msearray<>, like msevector<>, is a essentially a compromise between safety and performance. And like msevector<>, msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like msevector<>, msearray<>'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
+msearray<>, like msevector<>, is not memory-safe in the way that the other arrays are. And like msevector<>, msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like msevector<>, msearray<>'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
 
 usage example:
 
@@ -1564,14 +1618,14 @@ usage example:
             
             mse::TXScopeObj<mse::msearray<int, 3>> array1_scpobj = mse::msearray<int, 3>{ 1, 2, 3 };
             
-            auto scp_ss_iter1 = mse::make_xscope_ss_iterator_type(&array1_scpobj);
+            auto scp_ss_iter1 = mse::make_xscope_iterator(&array1_scpobj);
             scp_ss_iter1.set_to_beginning();
-            auto scp_ss_iter2 = mse::make_xscope_ss_iterator_type(&array1_scpobj);
+            auto scp_ss_iter2 = mse::make_xscope_iterator(&array1_scpobj);
             scp_ss_iter2.set_to_end_marker();
             
             std::sort(scp_ss_iter1, scp_ss_iter2);
             
-            auto scp_ss_citer3 = mse::make_xscope_ss_const_iterator_type(&array1_scpobj);
+            auto scp_ss_citer3 = mse::make_xscope_const_iterator(&array1_scpobj);
             scp_ss_citer3 = scp_ss_iter1;
             scp_ss_citer3 = array1_scpobj.ss_cbegin();
             scp_ss_citer3 += 2;
@@ -1588,13 +1642,11 @@ usage example:
             };
             mse::TXScopeObj<CContainer1> container1_scpobj;
             auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
-            auto scp_ss_citer4 = mse::make_xscope_ss_iterator_type(container1_m_array_scpptr);
+            auto scp_ss_citer4 = mse::make_xscope_iterator(container1_m_array_scpptr);
             scp_ss_citer4++;
             auto res3 = *scp_ss_citer4;
         }
     }
-
-Note that we've decided to implement msearray<> as an "aggregate" type. This means that it gets automatic compiler support for [aggregate initialization](http://en.cppreference.com/w/cpp/language/aggregate_initialization), but it comes with some compromises as well. One detail to be aware of is that when replacing an aggregate initialized std::array<> with an mse::msearray<>, you generally need to add an extra set of braces around the initializer list. Note that with mse::mstd::array<>, you do not need the extra braces because it is not an aggregate type and instead tries to emulate support for aggregate initialization.
 
 ### Compatibility considerations
 People have asked why the primitive C++ types can't be used as base classes - http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
@@ -1670,4 +1722,3 @@ And also, SaferCPlusPlus does not yet provide safer substitutes for all of the s
 
 ### Questions and comments
 If you have questions or comments you can create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
-
