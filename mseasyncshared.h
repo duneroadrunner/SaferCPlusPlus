@@ -52,8 +52,7 @@ namespace mse {
 #endif /*_THROW_NCEE*/
 
 
-	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
-	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
+	/* This macro roughly simulates constructor inheritance. */
 #define MSE_ASYNC_USING(Derived, Base) \
     template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}

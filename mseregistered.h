@@ -545,6 +545,7 @@ namespace mse {
 		friend class TRegisteredObj<_Ty, _Tn>;
 	};
 
+
 	/* TRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
 	destruction so that TRegisteredPointers will avoid referencing destroyed objects. Note that TRegisteredObj can be used with
 	objects allocated on the stack. */
@@ -557,11 +558,12 @@ namespace mse {
 		virtual ~TRegisteredObj() {
 			mseRPManager().onObjectDestruction();
 		}
-		using _TROy::operator=;
-		TRegisteredObj& operator=(TRegisteredObj&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		//TRegisteredObj& operator=(typename std::conditional<std::is_const<_TROy>::value, std::nullptr_t, TRegisteredObj>::type&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		TRegisteredObj& operator=(const TRegisteredObj& _X) { _TROy::operator=(_X); return (*this); }
-		//TRegisteredObj& operator=(const typename std::conditional<std::is_const<_TROy>::value, std::nullptr_t, TRegisteredObj>::type& _X) { _TROy::operator=(_X); return (*this); }
+
+		template<class _Ty2>
+		TRegisteredObj& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		template<class _Ty2>
+		TRegisteredObj& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
+
 		TRegisteredFixedPointer<_TROy, _Tn> operator&() {
 			return this;
 		}

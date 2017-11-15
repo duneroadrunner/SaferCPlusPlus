@@ -75,11 +75,29 @@ namespace mse {
 #endif // !MSE_SUPPRESS_CHECK_USE_BEFORE_SET
 #endif // !NDEBUG
 
-	/* This macro roughly simulates constructor inheritance. Originally it was used when some compilers didn't support
-	constructor inheritance, but now we use it because of it's differences with standard constructor inheritance. */
-#define MSE_USING(Derived, Base) \
+	/* This macro roughly simulates constructor inheritance. */
+#define MSE_USING_V1(Derived, Base) \
     template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
+
+	template<bool _Val>
+	struct Cat_base_msepointerbasics : std::integral_constant<bool, _Val> {	// base class for type predicates
+	};
+	template<class _Ty, class... _Args>
+	struct is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics : Cat_base_msepointerbasics<false> {};
+	template<class _Ty, class _Tz>
+	struct is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_Ty, _Tz> : Cat_base_msepointerbasics<std::is_base_of<typename std::remove_reference<_Ty>::type, typename std::remove_reference<_Tz>::type>::value> {};
+	template<class _Ty>
+	struct is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_Ty> : Cat_base_msepointerbasics<false> {};
+
+	/* This macro roughly simulates constructor inheritance. */
+#define MSE_USING(Derived, Base) \
+    template<typename ...Args, typename = typename std::enable_if< \
+	std::is_constructible<Base, Args...>::value \
+	&& !is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
+	>::type> \
+    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
+
 
 	template<typename _Ty>
 	class TPointerID {};

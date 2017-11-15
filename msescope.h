@@ -57,9 +57,7 @@ mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 namespace mse {
 
 	/* This macro roughly simulates constructor inheritance. */
-#define MSE_SCOPE_USING(Derived, Base) \
-    template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
-    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
+#define MSE_SCOPE_USING(Derived, Base) MSE_USING(Derived, Base)
 
 	template<typename _Ty>
 	class TScopeID {};
@@ -98,11 +96,10 @@ namespace mse {
 	public:
 		MSE_SCOPE_USING(TXScopeObjBase, _TROz);
 
-		using _TROz::operator=;
-		TXScopeObjBase& operator=(const TXScopeObjBase& _X) { _TROz::operator=(_X); return (*this); }
-		//TXScopeObjBase& operator=(const typename std::conditional<std::is_const<_TROz>::value, std::nullptr_t, TXScopeObjBase>::type& _X) { _TROz::operator=(_X); return (*this); }
-	private:
-		TXScopeObjBase& operator=(TXScopeObjBase&& _X) = delete;
+		template<class _Ty2>
+		TXScopeObjBase& operator=(_Ty2&& _X) { _TROz::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		template<class _Ty2>
+		TXScopeObjBase& operator=(const _Ty2& _X) { _TROz::operator=(_X); return (*this); }
 	};
 
 #endif // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
@@ -294,6 +291,11 @@ namespace mse {
 		friend class TXScopeObj<_Ty>;
 	};
 
+	template <class _Ty, class _Ty2, class = typename std::enable_if<
+		(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
+		, void>::type>
+	static void valid_if_not_rvalue_reference_of_given_type(_Ty2 src) {}
+
 	/* TXScopeObj is intended as a transparent wrapper for other classes/objects with "scope lifespans". That is, objects
 	that are either allocated on the stack, or whose "owning" pointer is allocated on the stack. Unfortunately it's not
 	really possible to prevent misuse. For example, std::list<TXScopeObj<mse::CInt>> is an improper, and dangerous, use
@@ -304,11 +306,28 @@ namespace mse {
 	template<typename _TROy>
 	class TXScopeObj : public TXScopeObjBase<_TROy>, public XScopeTagBase {
 	public:
-		MSE_SCOPE_USING(TXScopeObj, TXScopeObjBase<_TROy>);
 		TXScopeObj(const TXScopeObj& _X) : TXScopeObjBase<_TROy>(_X) {}
+		explicit TXScopeObj(TXScopeObj&& _X) : TXScopeObjBase<_TROy>(std::forward<decltype(_X)>(_X)) {
+#ifndef __clang__
+			/* The idea is that we want to disallow (by causing a compile error) move construction from another TXScopeObj,
+			but allow move construction from an object of the base type, _TROy. But clang3.8 seems to require this move
+			constructor to be compilable, even when move constructing from an object of the base type. g++ and msvc don't
+			seem to have this issue. */
+			valid_if_not_rvalue_reference_of_given_type<TXScopeObj<_TROy>, decltype(_X)>(_X);
+#endif /*!__clang__*/
+		}
+		MSE_SCOPE_USING(TXScopeObj, TXScopeObjBase<_TROy>);
 		virtual ~TXScopeObj() {}
-		using _TROy::operator=;
-		TXScopeObj& operator=(const TXScopeObj& _X) { TXScopeObjBase<_TROy>::operator=(_X); return (*this); }
+
+		template<class _Ty2>
+		TXScopeObj& operator=(_Ty2&& _X){
+			valid_if_not_rvalue_reference_of_given_type<TXScopeObj<_TROy>, decltype(_X)>(_X);
+			TXScopeObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
+			return (*this);
+		}
+		template<class _Ty2>
+		TXScopeObj& operator=(const _Ty2& _X) { TXScopeObjBase<_TROy>::operator=(_X); return (*this); }
+
 		TXScopeFixedPointer<_TROy> operator&() {
 			return this;
 		}
@@ -318,8 +337,6 @@ namespace mse {
 		void xscope_tag() const {}
 
 	private:
-		//explicit TXScopeObj(TXScopeObj&& _X) = delete;
-		TXScopeObj& operator=(TXScopeObj&& _X) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		friend class TXScopeOwnerPointer<_TROy>;

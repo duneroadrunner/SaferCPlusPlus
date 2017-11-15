@@ -666,11 +666,12 @@ namespace mse {
 		virtual ~TRelaxedRegisteredObj() {
 			//gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(this);
 		}
-		using _TROFLy::operator=;
-		TRelaxedRegisteredObj& operator=(TRelaxedRegisteredObj&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		//TRelaxedRegisteredObj& operator=(typename std::conditional<std::is_const<_TROFLy>::value, std::nullptr_t, TRelaxedRegisteredObj>::type&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		TRelaxedRegisteredObj& operator=(const TRelaxedRegisteredObj& _X) { _TROFLy::operator=(_X); return (*this); }
-		//TRelaxedRegisteredObj& operator=(const typename std::conditional<std::is_const<_TROFLy>::value, std::nullptr_t, TRelaxedRegisteredObj>::type& _X) { _TROFLy::operator=(_X); return (*this); }
+
+		template<class _Ty2>
+		TRelaxedRegisteredObj& operator=(_Ty2&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		template<class _Ty2>
+		TRelaxedRegisteredObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
+
 		TRelaxedRegisteredFixedPointer<_TROFLy> operator&() {
 			return TRelaxedRegisteredFixedPointer<_TROFLy>(this);
 			//return this;
