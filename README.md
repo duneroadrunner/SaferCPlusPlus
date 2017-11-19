@@ -20,7 +20,7 @@ Nov 2017
 
 - Data types for safe, simple [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
 
-Tested with msvc2015, g++5.3 and clang++3.8 (as of Jan 2017). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
+Tested with msvc2015, g++5.3 and clang++3.8 (as of Nov 2017). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
 You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action. You can also check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) where you can compare traditional C++ and SaferCPlusPlus implementations of the same algorithms.
 
@@ -77,6 +77,7 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     2. [nii_vector](#nii_vector)
     3. [msevector](#msevector)
     4. [ivector](#ivector)
+    5. [make_xscope_vector_size_change_lock_guard()](#make_xscope_vector_size_change_lock_guard)
 16. [Arrays](#arrays)
     1. [mstd::array](#array)
     2. [msearray](#msearray)
@@ -1483,6 +1484,31 @@ usage example:
         mse::ivector<int> iv = { 1, 2, 3, 4 };
         std::sort(iv.begin(), iv.end());
         mse::ivector<int>::ipointer ivip = iv.begin();
+    }
+
+### make_xscope_vector_size_change_lock_guard()
+
+The make_xscope_vector_size_change_lock_guard() function is used to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the make_xscope_vector_size_change_lock_guard() function to create an "xscope_structure_change_lock_guard" object. You can obtain scope pointers to elements in the corresponding vector via its xscope_ptr_to_element() member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. mstd::vector and msevector are supported. nii_vector is not supported because the mechanism required to ensure memory safety would either compromise thread safety or require costly synchronization operations.
+
+usage example:
+
+    #include "msemstdvector.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        /* Here we're declaring an vector as a scope object. */
+        mse::TXScopeObj<mse::mstd::vector<int>> vector1_scpobj = mse::mstd::vector<int>{ 1, 2, 3 };
+        
+        {
+            /* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
+            object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
+            to become invalid is performed. */
+            auto xscp_vector1_change_lock_guard = mse::mstd::make_xscope_vector_size_change_lock_guard(&vector1_scpobj);
+            auto scp_ptr1 = xscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+            auto res4 = *scp_ptr1;
+        }
+        // the vector is no longer "size change locked"
+        vector1_scpobj.push_back(4);
     }
 
 ### Arrays
