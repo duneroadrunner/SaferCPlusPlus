@@ -104,6 +104,11 @@ namespace mse {
 
 #endif // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
 
+	template <class _Ty, class _Ty2, class = typename std::enable_if<
+		(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
+		, void>::type>
+	static void valid_if_not_rvalue_reference_of_given_type(_Ty2 src) {}
+
 	template<typename _Ty> class TXScopeObj;
 	template<typename _Ty> class TXScopeNotNullPointer;
 	template<typename _Ty> class TXScopeNotNullConstPointer;
@@ -255,6 +260,17 @@ namespace mse {
 
 	private:
 		TXScopeFixedPointer(TXScopeObj<_Ty>* ptr) : TXScopeNotNullPointer<_Ty>(ptr) {}
+#ifndef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
+		/* Disabling public move construction prevents some unsafe operations, like some, but not all,
+		attempts to use a TXScopeFixedPointer<> as a return value. But it also prevents some safe
+		operations too, like initialization via '=' (assignment operator). And the set of prevented
+		operations might not be consistent across compilers. We're deciding here that the minor safety
+		benefits outweigh the minor inconveniences. Note that we can't disable public move construction
+		in the other scope pointers as it would interfere with implicit conversions. */
+		TXScopeFixedPointer(TXScopeFixedPointer&& src_ref) : TXScopeNotNullPointer<_Ty>(src_ref) {
+			int q = 5;
+		}
+#endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 		TXScopeFixedPointer<_Ty>& operator=(const TXScopeFixedPointer<_Ty>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
@@ -291,18 +307,12 @@ namespace mse {
 		friend class TXScopeObj<_Ty>;
 	};
 
-	template <class _Ty, class _Ty2, class = typename std::enable_if<
-		(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
-		, void>::type>
-	static void valid_if_not_rvalue_reference_of_given_type(_Ty2 src) {}
-
 	/* TXScopeObj is intended as a transparent wrapper for other classes/objects with "scope lifespans". That is, objects
 	that are either allocated on the stack, or whose "owning" pointer is allocated on the stack. Unfortunately it's not
-	really possible to prevent misuse. For example, std::list<TXScopeObj<mse::CInt>> is an improper, and dangerous, use
-	of TXScopeObj<>. So we provide the option of using an mse::TRelaxedRegisteredObj as TXScopeObj's base class for
-	enhanced safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause
-	mse::TRelaxedRegisteredObj to be used in debug mode. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
-	will cause mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
+	really possible to completely prevent misuse. For example, std::list<TXScopeObj<mse::CInt>> is an improper, and
+	dangerous, use of TXScopeObj<>. So we provide the option of using an mse::TRelaxedRegisteredObj as TXScopeObj's base
+	class to enforce safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause
+	mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 	template<typename _TROy>
 	class TXScopeObj : public TXScopeObjBase<_TROy>, public XScopeTagBase {
 	public:
@@ -313,35 +323,48 @@ namespace mse {
 			but allow move construction from an object of the base type, _TROy. But clang3.8 seems to require this move
 			constructor to be compilable, even when move constructing from an object of the base type. g++ and msvc don't
 			seem to have this issue. */
-			valid_if_not_rvalue_reference_of_given_type<TXScopeObj<_TROy>, decltype(_X)>(_X);
+			valid_if_not_rvalue_reference_of_given_type<TXScopeObj, decltype(_X)>(_X);
 #endif /*!__clang__*/
 		}
 		MSE_SCOPE_USING(TXScopeObj, TXScopeObjBase<_TROy>);
 		virtual ~TXScopeObj() {}
 
+		TXScopeObj& operator=(TXScopeObj&& _X) {
+			valid_if_not_rvalue_reference_of_given_type<TXScopeObj, decltype(_X)>(_X);
+			TXScopeObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
+			return (*this);
+		}
 		template<class _Ty2>
-		TXScopeObj& operator=(_Ty2&& _X){
-			valid_if_not_rvalue_reference_of_given_type<TXScopeObj<_TROy>, decltype(_X)>(_X);
+		TXScopeObj& operator=(_Ty2&& _X) {
 			TXScopeObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
 			return (*this);
 		}
 		template<class _Ty2>
 		TXScopeObj& operator=(const _Ty2& _X) { TXScopeObjBase<_TROy>::operator=(_X); return (*this); }
 
-		TXScopeFixedPointer<_TROy> operator&() {
+		const TXScopeFixedPointer<_TROy> operator&() & {
 			return this;
 		}
-		TXScopeFixedConstPointer<_TROy> operator&() const {
+		const TXScopeFixedConstPointer<_TROy> operator&() const & {
 			return this;
 		}
 		void xscope_tag() const {}
 
 	private:
+		/* While there are legitimate cases where one could use a scope pointer to an r-value
+		 * scope object, for the sake of safety, we're going to discourage explicit use of
+		 * r-value scope objects in general. */
+		const TXScopeFixedPointer<_TROy> operator&() && {
+			return this;
+		}
+		const TXScopeFixedConstPointer<_TROy> operator&() const && {
+			return this;
+		}
+
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		friend class TXScopeOwnerPointer<_TROy>;
 	};
-
 
 	/* While TXScopeFixedPointer<> points to a TXScopeObj<>, TXScopeItemFixedPointer<> is intended to be able to point to a
 	TXScopeObj<>, any member of a TXScopeObj<>, or various other items with scope lifetime that, for various reasons, aren't
@@ -772,20 +795,20 @@ namespace mse {
 	instead of one of the pointers given as an input parameter (which is fine).) So the xscope_chosen_pointer() template is the
 	sanctioned way of creating a function that returns a non-owning scope pointer. */
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	TXScopeItemFixedConstPointer<_Ty> xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b, Args&&... args) {
+	const TXScopeItemFixedConstPointer<_Ty>& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	TXScopeItemFixedPointer<_Ty> xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b, Args&&... args) {
+	const TXScopeItemFixedPointer<_Ty>& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	TXScopeFixedConstPointer<_Ty> xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b, Args&&... args) {
+	const TXScopeFixedConstPointer<_Ty>& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	TXScopeFixedPointer<_Ty> xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b, Args&&... args) {
+	const TXScopeFixedPointer<_Ty>& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -862,7 +885,7 @@ namespace mse {
 				assert(a.b == scope_a.b);
 				A_native_ptr = &a;
 
-				mse::TXScopeItemFixedPointer<A> A_scope_ptr1 = &scope_a;
+				mse::TXScopeItemFixedPointer<A> A_scope_ptr1(&scope_a);
 				assert(A_native_ptr->b == A_scope_ptr1->b);
 				mse::TXScopeItemFixedPointer<A> A_scope_ptr2 = &scope_a;
 
@@ -916,8 +939,8 @@ namespace mse {
 				mse::TXScopeObj<GE> scope_gd;
 				mse::TXScopeItemFixedPointer<GE> GE_scope_ifptr1 = &scope_gd;
 				mse::TXScopeItemFixedPointer<E> E_scope_ifptr5 = GE_scope_ifptr1;
-				mse::TXScopeFixedPointer<E> E_scope_fptr2 = &scope_gd;
-				//mse::TXScopeItemFixedPointer<E> E_scope_ifptr2 = &scope_gd;
+				mse::TXScopeFixedPointer<E> E_scope_fptr2(&scope_gd);
+				mse::TXScopeItemFixedPointer<E> E_scope_ifptr2(&scope_gd);
 				mse::TXScopeItemFixedConstPointer<E> E_scope_fcptr2 = &scope_gd;
 			}
 
@@ -1022,8 +1045,8 @@ namespace mse {
 				class GE : public E {};
 				mse::TXScopeObj<GE> scope_gd;
 				mse::TXScopeFixedPointer<GE> GE_scope_ifptr1 = &scope_gd;
-				mse::TXScopeFixedPointer<E> E_scope_ptr5 = GE_scope_ifptr1;
-				mse::TXScopeFixedPointer<E> E_scope_ifptr2 = &scope_gd;
+				mse::TXScopeFixedPointer<E> E_scope_ptr5(GE_scope_ifptr1);
+				mse::TXScopeFixedPointer<E> E_scope_ifptr2(&scope_gd);
 				mse::TXScopeFixedConstPointer<E> E_scope_fcptr2 = &scope_gd;
 			}
 

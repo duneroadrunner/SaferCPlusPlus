@@ -74,6 +74,15 @@ namespace mse {
 			static_max<arg2, others...>::value;
 	};
 
+/* The original implementation required that stored types be movable. We may need to relax that requirement.  */
+#ifdef TDP_VARIANT_REQUIRE_MOVABILITY
+#define TDP_VARIANT_STD_MOVE(x) std::move(x)
+#define TDP_VARIANT_STD_FORWARD(X) std::forward<X>
+#else // TDP_VARIANT_REQUIRE_MOVABILITY
+#define TDP_VARIANT_STD_MOVE(x) (x)
+#define TDP_VARIANT_STD_FORWARD(X)
+#endif // TDP_VARIANT_REQUIRE_MOVABILITY
+
 	template<typename... Ts>
 	struct tdp_variant_helper;
 
@@ -89,10 +98,12 @@ namespace mse {
 
 		inline static void move(size_t old_t, void * old_v, void * new_v)
 		{
-			if (old_t == typeid(F).hash_code())
-				::new (new_v) F(std::move(*reinterpret_cast<F*>(old_v)));
-			else
+			if (old_t == typeid(F).hash_code()) {
+				::new (new_v) F(TDP_VARIANT_STD_MOVE(*reinterpret_cast<F*>(old_v)));
+			}
+			else {
 				tdp_variant_helper<Ts...>::move(old_t, old_v, new_v);
+			}
 		}
 
 		inline static void copy(size_t old_t, const void * old_v, void * new_v)
@@ -151,9 +162,10 @@ namespace mse {
 #else // MSE_TDP_VARIANT_ASSIGNMENT_OPERATOR_USE_NON_TYPESAFE_SWAP
 		tdp_variant<Ts...>& operator= (const tdp_variant<Ts...>& old)
 		{
-			/* The original implementation seemed to assume a bitwise swap was valid, which
-			isn't always the case. This implementation doesn't rely on swap functionality, but
-			also doesn't benefit from the inherent exception safety of the swap implementation. */
+			/* The original implementation seemed to assume a bitwise swap was valid, which isn't always
+			the case in our application (with registered pointers specifically). This implementation
+			doesn't rely on swap functionality, but also doesn't benefit from the inherent exception
+			safety of the swap implementation. */
 			auto held_type_id = type_id;
 			type_id = invalid_type();
 			helper_t::destroy(held_type_id, &data);
@@ -179,7 +191,7 @@ namespace mse {
 			auto held_type_id = type_id;
 			type_id = invalid_type();
 			helper_t::destroy(held_type_id, &data);
-			::new (&data) T(std::forward<Args>(args)...);
+			::new (&data) T(TDP_VARIANT_STD_FORWARD(Args) (args)...);
 			type_id = typeid(T).hash_code();
 		}
 
