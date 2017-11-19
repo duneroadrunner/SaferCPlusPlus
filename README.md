@@ -81,6 +81,7 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
 16. [Arrays](#arrays)
     1. [mstd::array](#array)
     2. [msearray](#msearray)
+    3. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
 17. [Compatibility considerations](#compatibility-considerations)
 18. [On thread safety](#on-thread-safety)
 19. [Practical limitations](#practical-limitations)
@@ -1563,7 +1564,7 @@ Note for real time applications that restrict heap allocations: If the number of
 
 ### xscope_iterator
 
-The implementation of mstd::array iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct that is not itself a scope object, and may not be used as a function return value.
+The implementation of, for example, mstd::array iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct that is not itself a scope object, and may not be used as a function return value. mstd::array, nii_array and msearray all support scope iterators.
 
 usage example:
 
@@ -1674,6 +1675,31 @@ usage example:
             scp_ss_citer4++;
             auto res3 = *scp_ss_citer4;
         }
+    }
+
+### xscope_pointer_to_array_element()
+
+You can use this function to obtain a scope pointer to an array element. You can pass it ethier an xscope_iterator or a scope pointer to an array and an index. mstd::array, nii_array and msearray are supported.
+
+usage example:
+
+    #include "msemstdarray.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        /* Here we're declaring an array as a scope object. */
+        mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
+        
+        /* Here we're obtaining a scope iterator to the array. */
+        auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
+        scp_array_iter1 = array1_scpobj.begin();
+        
+        /* You can also obtain a corresponding scope pointer from a scope iterator. */
+        auto scp_ptr1 = mse::mstd::xscope_pointer_to_array_element<int, 3>(scp_array_iter1);
+        auto res1 = *scp_ptr1;
+        /* Or with a scope pointer to the array and an index. */
+        auto scp_cptr2 = mse::mstd::xscope_const_pointer_to_array_element<int, 3>(&array1_scpobj, 2/*element index*/);
+        auto res2 = *scp_cptr2;
     }
 
 ### Compatibility considerations
