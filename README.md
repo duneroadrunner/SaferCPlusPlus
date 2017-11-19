@@ -1283,6 +1283,8 @@ The standard library vector iterators are designed so that they can be (unsafely
 
 And finally, for those whose are willing to sacrifice some safety for performance there is [msevector<>](#msevector). This vector is not memory-safe in the way that the other vectors are. It may be useful in cases where you want more control over the safety-performance trade-off. It supports a variety of iterator types - the traditional (unsafe) iterators, a bounds-checked version of the traditional iterator, and iterators that, like ivector<>'s iterators, behave like list iterators.
 
+The vectors, except ivector<>, also support scope iterators which have the same syntax and behavior as the arrays' [scope iterators](#xscope_iterator). ivector<> support for scope iterators will be added in the future.
+
 ### vector
 
 mstd::vector<> is a memory-safe drop-in replacement for std::vector<>.
