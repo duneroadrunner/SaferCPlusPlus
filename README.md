@@ -1551,14 +1551,14 @@ usage example:
         mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
         
         /* Here we're obtaining a scope iterator to the array. */
-        auto scp_array_iter1 = mse::make_xscope_iterator(&array1_scpobj);
+        auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
         scp_array_iter1 = array1_scpobj.begin();
-        auto scp_array_iter2 = mse::make_xscope_iterator(&array1_scpobj);
+        auto scp_array_iter2 = mse::mstd::make_xscope_iterator(&array1_scpobj);
         scp_array_iter2 = array1_scpobj.end();
         
         std::sort(scp_array_iter1, scp_array_iter2);
         
-        auto scp_array_citer3 = mse::make_xscope_const_iterator(&array1_scpobj);
+        auto scp_array_citer3 = mse::mstd::make_xscope_const_iterator(&array1_scpobj);
         scp_array_citer3 = scp_array_iter1;
         scp_array_citer3 = array1_scpobj.cbegin();
         scp_array_citer3 += 2;
@@ -1572,7 +1572,7 @@ usage example:
             mse::mstd::array<int, 3> m_array = { 1, 2, 3 };
         };
         mse::TXScopeObj<CContainer1> container1_scpobj;
-        auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+        auto container1_m_array_scpptr = mse::mstd::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
         auto scp_iter4 = mse::make_xscope_iterator(container1_m_array_scpptr);
         scp_iter4++;
         auto res3 = *scp_iter4;
