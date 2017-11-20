@@ -20,7 +20,7 @@ Nov 2017
 
 - Data types for safe, simple [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
 
-Tested with msvc2015, g++5.3 and clang++3.8 (as of Jan 2017). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
+Tested with msvc2015, g++5.3 and clang++3.8 (as of Nov 2017). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
 You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action. You can also check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) where you can compare traditional C++ and SaferCPlusPlus implementations of the same algorithms.
 
@@ -77,9 +77,11 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     2. [nii_vector](#nii_vector)
     3. [msevector](#msevector)
     4. [ivector](#ivector)
+    5. [make_xscope_vector_size_change_lock_guard()](#make_xscope_vector_size_change_lock_guard)
 16. [Arrays](#arrays)
     1. [mstd::array](#array)
     2. [msearray](#msearray)
+    3. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
 17. [Compatibility considerations](#compatibility-considerations)
 18. [On thread safety](#on-thread-safety)
 19. [Practical limitations](#practical-limitations)
@@ -605,9 +607,9 @@ In the future we expect that there will be a "compile helper tool" to verify tha
 - Non-owning scope pointers (scope pointers other than TXScopeOwnerPointer<>s) should not be used as a function return value.
 	- Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [xscope_chosen_pointer()](#xscope_chosen_pointer) function.
 
-Failure to adhere to the rules for scope objects could result in unsafe code. Again, at some point they will be enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural.
+Failure to adhere to the rules for scope objects could result in unsafe code. Currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. Again, at some point the restrictions will be fully enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural.
 
-In lieu of compile-time enforcement, run-time checking is available to detect some misuses of scope pointers. Run-time checking in debug mode is enabled by defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For int, bool and size_t use the safer [substitutes](#primitives) that can act as base classes. 
+In lieu of full compile-time enforcement, run-time checking is available to enforce safety and help detect misuses of scope pointers. Run-time checking in debug mode is enabled by defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For int, bool and size_t use the safer [substitutes](#primitives) that can act as base classes. 
 
 Generally, there are two types of scope pointers you might use, [TXScopeOwnerPointer](#txscopeownerpointer) and [TXScopeItemFixedPointer](#txscopeitemfixedpointer). TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to also include "declaration scope".)
 TXScopeItemFixedPointer is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is primarily intended for the purpose of passing scope objects by reference as function arguments. 
@@ -1283,6 +1285,8 @@ The standard library vector iterators are designed so that they can be (unsafely
 
 And finally, for those whose are willing to sacrifice some safety for performance there is [msevector<>](#msevector). This vector is not memory-safe in the way that the other vectors are. It may be useful in cases where you want more control over the safety-performance trade-off. It supports a variety of iterator types - the traditional (unsafe) iterators, a bounds-checked version of the traditional iterator, and iterators that, like ivector<>'s iterators, behave like list iterators.
 
+The vectors, except ivector<>, also support scope iterators which have the same syntax and behavior as the arrays' [scope iterators](#xscope_iterator). ivector<> support for scope iterators will be added in the future.
+
 ### vector
 
 mstd::vector<> is a memory-safe drop-in replacement for std::vector<>.
@@ -1483,6 +1487,31 @@ usage example:
         mse::ivector<int>::ipointer ivip = iv.begin();
     }
 
+### make_xscope_vector_size_change_lock_guard()
+
+The make_xscope_vector_size_change_lock_guard() function is used to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the make_xscope_vector_size_change_lock_guard() function to create an "xscope_structure_change_lock_guard" object. You can obtain scope pointers to elements in the corresponding vector via its xscope_ptr_to_element() member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. mstd::vector and msevector are supported. nii_vector is not supported because the mechanism required to ensure memory safety would either compromise thread safety or require costly synchronization operations.
+
+usage example:
+
+    #include "msemstdvector.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        /* Here we're declaring an vector as a scope object. */
+        mse::TXScopeObj<mse::mstd::vector<int>> vector1_scpobj = mse::mstd::vector<int>{ 1, 2, 3 };
+        
+        {
+            /* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
+            object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
+            to become invalid is performed. */
+            auto xscp_vector1_change_lock_guard = mse::mstd::make_xscope_vector_size_change_lock_guard(&vector1_scpobj);
+            auto scp_ptr1 = xscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+            auto res4 = *scp_ptr1;
+        }
+        // the vector is no longer "size change locked"
+        vector1_scpobj.push_back(4);
+    }
+
 ### Arrays
 
 We provide two arrays - [mstd::array<>](#array) and [msearray<>](#msearray). mstd::array<> is simply a memory-safe drop-in replacement for std::array<>. msearray<>, like msevector<> is not memory-safe in the way that the other arrays are, but requires less overhead.
@@ -1535,7 +1564,7 @@ Note for real time applications that restrict heap allocations: If the number of
 
 ### xscope_iterator
 
-The implementation of mstd::array iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct, and may not be used as a function return value.
+The implementation of, for example, mstd::array iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct that is not itself a scope object, and may not be used as a function return value. mstd::array, nii_array and msearray all support scope iterators.
 
 usage example:
 
@@ -1551,14 +1580,14 @@ usage example:
         mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
         
         /* Here we're obtaining a scope iterator to the array. */
-        auto scp_array_iter1 = mse::make_xscope_iterator(&array1_scpobj);
+        auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
         scp_array_iter1 = array1_scpobj.begin();
-        auto scp_array_iter2 = mse::make_xscope_iterator(&array1_scpobj);
+        auto scp_array_iter2 = mse::mstd::make_xscope_iterator(&array1_scpobj);
         scp_array_iter2 = array1_scpobj.end();
         
         std::sort(scp_array_iter1, scp_array_iter2);
         
-        auto scp_array_citer3 = mse::make_xscope_const_iterator(&array1_scpobj);
+        auto scp_array_citer3 = mse::mstd::make_xscope_const_iterator(&array1_scpobj);
         scp_array_citer3 = scp_array_iter1;
         scp_array_citer3 = array1_scpobj.cbegin();
         scp_array_citer3 += 2;
@@ -1572,7 +1601,7 @@ usage example:
             mse::mstd::array<int, 3> m_array = { 1, 2, 3 };
         };
         mse::TXScopeObj<CContainer1> container1_scpobj;
-        auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+        auto container1_m_array_scpptr = mse::mstd::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
         auto scp_iter4 = mse::make_xscope_iterator(container1_m_array_scpptr);
         scp_iter4++;
         auto res3 = *scp_iter4;
@@ -1646,6 +1675,31 @@ usage example:
             scp_ss_citer4++;
             auto res3 = *scp_ss_citer4;
         }
+    }
+
+### xscope_pointer_to_array_element()
+
+You can use this function to obtain a scope pointer to an array element. You can pass it ethier an xscope_iterator or a scope pointer to an array and an index. mstd::array, nii_array and msearray are supported.
+
+usage example:
+
+    #include "msemstdarray.h"
+    
+    int main(int argc, char* argv[]) {
+    
+        /* Here we're declaring an array as a scope object. */
+        mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
+        
+        /* Here we're obtaining a scope iterator to the array. */
+        auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
+        scp_array_iter1 = array1_scpobj.begin();
+        
+        /* You can also obtain a corresponding scope pointer from a scope iterator. */
+        auto scp_ptr1 = mse::mstd::xscope_pointer_to_array_element<int, 3>(scp_array_iter1);
+        auto res1 = *scp_ptr1;
+        /* Or with a scope pointer to the array and an index. */
+        auto scp_cptr2 = mse::mstd::xscope_const_pointer_to_array_element<int, 3>(&array1_scpobj, 2/*element index*/);
+        auto res2 = *scp_cptr2;
     }
 
 ### Compatibility considerations
