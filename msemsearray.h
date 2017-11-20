@@ -1624,9 +1624,17 @@ namespace mse {
 	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedConstPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
 		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
 	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
 		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -1989,9 +1997,17 @@ namespace mse {
 	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedConstPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
 	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
+		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 		return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)

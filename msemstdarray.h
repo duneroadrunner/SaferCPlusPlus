@@ -756,9 +756,17 @@ namespace mse {
 		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedConstPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
 			return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
+		template<class _Ty, size_t _Size>
+		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
+			return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
+			return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+		}
+		template<class _Ty, size_t _Size>
+		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
 			return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
