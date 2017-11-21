@@ -80,8 +80,10 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     5. [make_xscope_vector_size_change_lock_guard()](#make_xscope_vector_size_change_lock_guard)
 16. [Arrays](#arrays)
     1. [mstd::array](#array)
-    2. [msearray](#msearray)
-    3. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
+    2. [nii_array](#nii_array)
+    3. [msearray](#msearray)
+    4. [xscope_iterator](#xscope_iterator)
+    5. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
 17. [Compatibility considerations](#compatibility-considerations)
 18. [On thread safety](#on-thread-safety)
 19. [Practical limitations](#practical-limitations)
@@ -97,7 +99,7 @@ While using the library can incur a modest performance penalty, because the libr
 
 And note that the safe components of this library can be adopted completely incrementally. New code written with these safe elements will play nicely with existing (unsafe) code, and unsafe elements can be replaced selectively without breaking the existing code. So there is really no excuse for not using the library in pretty much any situation.  
 
-Though for real time embedded applications, note the dependence on the standard library. Also, you may want to override the default behavior upon invalid memory operations (using MSE_CUSTOM_THROW_DEFINITION(x)) and read the notes in the [array](#array) section.  
+Though for real time embedded applications, note the dependence on the standard library. Also, you may want to override the default behavior upon invalid memory operations (using MSE_CUSTOM_THROW_DEFINITION(x)).  
 
 For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
@@ -1042,7 +1044,15 @@ usage example:
     }
 
 ### Safely passing parameters by reference
-As has been shown, you can use [registered pointers](#registered-pointers), [reference counting pointers](#reference-counting-pointers) and [scope pointers](#scope-pointers) to safely pass parameters by reference. (Well, scope pointers aren't completely safe yet, but "safer" anyway.) If you're writing a function for general use, we recommend that you "templatize" the function so that it can accept any type of pointer. This is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example. Or you can read an article about it [here](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu). If for some reason you can't or don't want to templatize the function, but still want to give the caller some flexibility in terms of pointer reference parameters then you can use a [poly pointer](#poly-pointers). And of course the library remains perfectly compatible with (the less safe) traditional C++ references if you prefer. 
+As has been shown, you can use [registered pointers](#registered-pointers), [reference counting pointers](#reference-counting-pointers), [scope pointers](#scope-pointers) and/or various iterators to safely pass parameters by reference. When writing a function for general use that takes parameters by reference, you can either require a specific (safe) reference type for its reference parameters, or allow the caller some flexibility as to which reference type they use. 
+
+One way to allow your function to accept any reference type is to make your function into a function template. The benefits of this approach are that it requires no extra run-time overhead, and it intrinsically supports legacy (unsafe, native) pointer types when needed. This approach is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example. Or you can read a slightly out-of-date article about it [here](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+
+Another option is to use [poly pointers](#poly-pointers) instead. They can also enable your function to accept a variety of reference types, without "templatizing" your function, but with a small run-time overhead.
+
+Another choice is to require that reference parameters be passed using scope pointers. This approach, by default, has no more run-time overhead than using native pointers/references. And note that scope pointers can be obtained from reference counting pointers and pointers to shared objects (using [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)), but not registered pointers. And legacy (native) pointers would not be supported either. Generally, you would use scope pointer parameters in cases where you are adopting a "scopecentric" style of programming (similar to the Rust language), and trying to avoid use of (unsafe) legacy elements.
+
+And of course the library remains perfectly compatible with (the less safe) traditional C++ references if you prefer. 
 
 
 ### Asynchronously shared objects
@@ -1271,11 +1281,13 @@ Also see the section on "[compatibility considerations](#compatibility-considera
 
 Quarantined types are meant to hold values that are obtained from user input or some other untrusted source (like a media file for example). These are not yet available in the library, but are an important concept with respect to safe programming. Values obtained from untrusted sources are the main attack vector of malicious actors and should be handled with special care. For example, the so-called "stagefright" vulnerability in the Android OS is the result of a specially crafted media file causing the sum of integers to overflow.  
 
-It is often the case that untrusted values are obtained through intrinsically slow communication mediums (i.e. file system, internet, UI, etc.), so it often makes no perceptible difference whether the code that processes those untrusted values into "trusted" internal values is optimized for performance or not. So don't hesitate to use whatever safety methods are called for. In particular, integer types with more comprehensive range checking can be found here: https://github.com/robertramey/safe_numerics.
+It is intended that these types will appropriately handle "extreme" values (at some run-time cost if necessary), and ensure that their values are in an appropriate range when converted to their (high-performance) native counterparts.
 
 ### CQuarantinedInt, CQuarantinedSize_t, CQuarantinedVector, CQuarantinedString
 
 Not yet available.
+
+Integer types with more comprehensive range checking can be found here: https://github.com/robertramey/safe_numerics.
 
 ### Vectors
 
@@ -1489,7 +1501,7 @@ usage example:
 
 ### make_xscope_vector_size_change_lock_guard()
 
-The make_xscope_vector_size_change_lock_guard() function is used to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the make_xscope_vector_size_change_lock_guard() function to create an "xscope_structure_change_lock_guard" object. You can obtain scope pointers to elements in the corresponding vector via its xscope_ptr_to_element() member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. mstd::vector and msevector are supported. nii_vector is not supported because the mechanism required to ensure memory safety would either compromise thread safety or require costly synchronization operations.
+The make_xscope_vector_size_change_lock_guard() function is used, indirectly, to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the make_xscope_vector_size_change_lock_guard() function to create an "xscope_structure_change_lock_guard" object. You can obtain scope pointers to elements in the corresponding vector via its xscope_ptr_to_element() member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. mstd::vector and msevector are supported. nii_vector is not supported because the mechanism required to ensure memory safety would either compromise thread safety or require costly synchronization operations.
 
 usage example:
 
@@ -1514,7 +1526,9 @@ usage example:
 
 ### Arrays
 
-We provide two arrays - [mstd::array<>](#array) and [msearray<>](#msearray). mstd::array<> is simply a memory-safe drop-in replacement for std::array<>. msearray<>, like msevector<> is not memory-safe in the way that the other arrays are, but requires less overhead.
+The library provides a few array types - [mstd::array<>](#array), [nii_array<>](#nii_array) and [msearray<>](#msearray) - which have properties similar to their corresponding [vector](#vectors) types. mstd::array<> is simply a memory-safe drop-in replacement for std::array<>. nii_array<> is designed to be safely shared between asynchronous threads. And msearray<> is not memory-safe in the way the other arrays are, and is provided for cases where more control over the safety-preformance trade-off is desired.
+
+Note that these arrays currently do not support using [scope](#scope-pointers) types as the element type even when the array itself is declared as a scope object. It's expected that this will be supported in the future. The (few) cases where this would be an issue is when you want the element type to be a scope pointer or a type with scope pointer members. In those cases, you might use registered and/or refcounting pointers instead. 
 
 ### array
 
@@ -1560,52 +1574,9 @@ usage example:
         }
     }
 
-Note for real time applications that restrict heap allocations: If the number of iterators exceeds the space reserved for tracking them, mse::mstd::array<> will resort to obtaining space from the heap. You can instead use mse::msearray<>, which does not track its iterators. (The same applies to registered objects in general. Use scope objects instead.)
+### nii_array
 
-### xscope_iterator
-
-The implementation of, for example, mstd::array iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct that is not itself a scope object, and may not be used as a function return value. mstd::array, nii_array and msearray all support scope iterators.
-
-usage example:
-
-    #include "msemstdarray.h"
-    
-    int main(int argc, char* argv[]) {
-        /* If the array is declared as a "scope" object (which basically indicates that it is declared
-        on the stack), then you can use "scope" iterators. While there are limitations on when they can
-        be used, scope iterators would be the preferred iterator type where performance is a priority
-        as they don't require extra run time overhead to ensure that the array has not been deallocated. */
-        
-        /* Here we're declaring an array as a scope object. */
-        mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
-        
-        /* Here we're obtaining a scope iterator to the array. */
-        auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
-        scp_array_iter1 = array1_scpobj.begin();
-        auto scp_array_iter2 = mse::mstd::make_xscope_iterator(&array1_scpobj);
-        scp_array_iter2 = array1_scpobj.end();
-        
-        std::sort(scp_array_iter1, scp_array_iter2);
-        
-        auto scp_array_citer3 = mse::mstd::make_xscope_const_iterator(&array1_scpobj);
-        scp_array_citer3 = scp_array_iter1;
-        scp_array_citer3 = array1_scpobj.cbegin();
-        scp_array_citer3 += 2;
-        auto res1 = *scp_array_citer3;
-        auto res2 = scp_array_citer3[0];
-        
-        /* Here we demonstrate the case where the array is a member of a class/struct declared as a
-        scope object. */
-        class CContainer1 {
-        public:
-            mse::mstd::array<int, 3> m_array = { 1, 2, 3 };
-        };
-        mse::TXScopeObj<CContainer1> container1_scpobj;
-        auto container1_m_array_scpptr = mse::mstd::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
-        auto scp_iter4 = mse::make_xscope_iterator(container1_m_array_scpptr);
-        scp_iter4++;
-        auto res3 = *scp_iter4;
-    }
+nii_array<> is just the corresponding array version of [nii_vector](#nii_vector). It is designed such that it can be safely shared between asynchronous threads.
 
 ### msearray
 
@@ -1677,9 +1648,54 @@ usage example:
         }
     }
 
+### xscope_iterator
+
+The implementation of, for example, mstd::array<> iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct that is not itself a scope object, and may not be used as a function return value. mstd::array<>, nii_array<> and msearray<> all support scope iterators.
+
+usage example:
+
+    #include "msemstdarray.h"
+    
+    int main(int argc, char* argv[]) {
+        /* If the array is declared as a "scope" object (which basically indicates that it is declared
+        on the stack), then you can use "scope" iterators. While there are limitations on when they can
+        be used, scope iterators would be the preferred iterator type where performance is a priority
+        as they don't require extra run time overhead to ensure that the array has not been deallocated. */
+        
+        /* Here we're declaring an array as a scope object. */
+        mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
+        
+        /* Here we're obtaining a scope iterator to the array. */
+        auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
+        scp_array_iter1 = array1_scpobj.begin();
+        auto scp_array_iter2 = mse::mstd::make_xscope_iterator(&array1_scpobj);
+        scp_array_iter2 = array1_scpobj.end();
+        
+        std::sort(scp_array_iter1, scp_array_iter2);
+        
+        auto scp_array_citer3 = mse::mstd::make_xscope_const_iterator(&array1_scpobj);
+        scp_array_citer3 = scp_array_iter1;
+        scp_array_citer3 = array1_scpobj.cbegin();
+        scp_array_citer3 += 2;
+        auto res1 = *scp_array_citer3;
+        auto res2 = scp_array_citer3[0];
+        
+        /* Here we demonstrate the case where the array is a member of a class/struct declared as a
+        scope object. */
+        class CContainer1 {
+        public:
+            mse::mstd::array<int, 3> m_array = { 1, 2, 3 };
+        };
+        mse::TXScopeObj<CContainer1> container1_scpobj;
+        auto container1_m_array_scpptr = mse::mstd::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+        auto scp_iter4 = mse::make_xscope_iterator(container1_m_array_scpptr);
+        scp_iter4++;
+        auto res3 = *scp_iter4;
+    }
+
 ### xscope_pointer_to_array_element()
 
-You can use this function to obtain a scope pointer to an array element. You can pass it ethier an xscope_iterator or a scope pointer to an array and an index. mstd::array, nii_array and msearray are supported.
+You can use this function to obtain a scope pointer to an array element. You can pass it ethier an xscope_iterator or a scope pointer to an array and an index. mstd::array<>, nii_array<> and msearray<> are supported.
 
 usage example:
 
