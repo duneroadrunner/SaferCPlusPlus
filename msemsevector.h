@@ -531,7 +531,7 @@ namespace mse {
 				return (*m_owner_cptr).at(msev_as_a_size_t((*this).m_index - 1));
 			}
 			const_pointer operator->() const {
-				return &((*m_owner_cptr).at(msev_as_a_size_t((*this).m_index)));
+				return std::addressof((*m_owner_cptr).at(msev_as_a_size_t((*this).m_index)));
 			}
 			const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
 			/*
@@ -692,7 +692,7 @@ namespace mse {
 				}
 			}
 			pointer operator->() const {
-				return &((*m_owner_ptr).at(msev_as_a_size_t((*this).m_index)));
+				return std::addressof((*m_owner_ptr).at(msev_as_a_size_t((*this).m_index)));
 			}
 			reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
 			/*
@@ -2163,7 +2163,7 @@ namespace mse {
 				return m_owner_cptr->at(msev_as_a_size_t(m_index - 1));
 			}
 			const_pointer operator->() const {
-				return &(m_owner_cptr->at(msev_as_a_size_t(m_index)));
+				return std::addressof(m_owner_cptr->at(msev_as_a_size_t(m_index)));
 			}
 			const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
 			/*
@@ -2358,7 +2358,7 @@ namespace mse {
 				return m_owner_ptr->at(msev_as_a_size_t(m_index - 1));
 			}
 			pointer operator->() const {
-				return &(m_owner_ptr->at(msev_as_a_size_t(m_index)));
+				return std::addressof(m_owner_ptr->at(msev_as_a_size_t(m_index)));
 			}
 			reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
 			/*

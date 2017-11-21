@@ -1053,7 +1053,7 @@ namespace mse {
 				return (*m_owner_cptr).at(msear_as_a_size_t((*this).m_index - 1));
 			}
 			const_pointer operator->() const {
-				return &((*m_owner_cptr).at(msear_as_a_size_t((*this).m_index)));
+				return std::addressof((*m_owner_cptr).at(msear_as_a_size_t((*this).m_index)));
 			}
 			const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(msear_as_a_size_t(difference_type(m_index) + _Off)); }
 			/*
@@ -1212,7 +1212,7 @@ namespace mse {
 				}
 			}
 			pointer operator->() const {
-				return &((*m_owner_ptr).at(msear_as_a_size_t((*this).m_index)));
+				return std::addressof((*m_owner_ptr).at(msear_as_a_size_t((*this).m_index)));
 			}
 			reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msear_as_a_size_t(difference_type(m_index) + _Off)); }
 			/*
@@ -3042,12 +3042,18 @@ namespace mse {
 	class TAsyncShareableObj : public _TROy {
 	public:
 		MSE_USING(TAsyncShareableObj, _TROy);
+		TAsyncShareableObj(const TAsyncShareableObj& _X) : _TROy(_X) {}
+		TAsyncShareableObj(TAsyncShareableObj&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
 		virtual ~TAsyncShareableObj() {
 			/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
 			valid_if_TROy_is_not_marked_as_unshareable();
 		}
-		using _TROy::operator=;
-		TAsyncShareableObj& operator=(const TAsyncShareableObj& _X) { _TROy::operator=(_X); return (*this); }
+
+		template<class _Ty2>
+		TAsyncShareableObj& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		template<class _Ty2>
+		TAsyncShareableObj& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
+
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
@@ -3060,8 +3066,6 @@ namespace mse {
 				), void>::type>
 		void valid_if_TROy_is_not_marked_as_unshareable() const {}
 
-		TAsyncShareableObj(const TAsyncShareableObj& _X) : _TROy(_X) {}
-		TAsyncShareableObj(TAsyncShareableObj&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
 		TAsyncShareableObj* operator&() {
 			return this;
 		}

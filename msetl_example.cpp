@@ -128,53 +128,6 @@ public:
 		return (*i1ptr) + (*i2ptr);
 	}
 
-	template<class _TAsyncSharedReadWriteAccessRequester>
-	static double foo7(_TAsyncSharedReadWriteAccessRequester A_ashar) {
-		auto t1 = std::chrono::high_resolution_clock::now();
-		/* A_ashar.readlock_ptr() will block until it can obtain a read lock. */
-		auto ptr1 = A_ashar.readlock_ptr(); // while ptr1 exists it holds a (read) lock on the shared object
-		auto t2 = std::chrono::high_resolution_clock::now();
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-		auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-		auto timespan_in_seconds = time_span.count();
-		auto thread_id = std::this_thread::get_id();
-		//std::cout << "thread_id: " << thread_id << ", time to acquire read pointer: " << timespan_in_seconds << " seconds.";
-		//std::cout << std::endl;
-		return timespan_in_seconds;
-	}
-	template<class _TStringRAContainerPtr>
-	static void foo8(_TStringRAContainerPtr ra_container_ptr) {
-		size_t delay_in_milliseconds = 3000/*arbitrary*/;
-		if (1 <= (*ra_container_ptr).size()) {
-			delay_in_milliseconds /= (*ra_container_ptr).size();
-		}
-		for (size_t i = 0; i < (*ra_container_ptr).size(); i += 1) {
-			auto now1 = std::chrono::system_clock::now();
-			auto tt = std::chrono::system_clock::to_time_t(now1);
-
-#ifdef _MSC_VER
-			static const size_t buffer_size = 64;
-			char buffer[buffer_size];
-			buffer[0] = '\0';
-			ctime_s(buffer, buffer_size, &tt);
-#else /*_MSC_VER*/
-			auto buffer = ctime(&tt);
-#endif /*_MSC_VER*/
-
-			std::string now_str(buffer);
-			(*ra_container_ptr)[i] = now_str;
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(delay_in_milliseconds));
-		}
-	}
-	/* This function just obtains a writelock_ptr from the given access requester and calls the given function with the
-	writelock_ptr as the first argument. This can be convenient when you want to call a function asychronously with a
-	shared object. */
-	template<class _TAsyncSharedReadWriteAccessRequester, class _TFunction, class... Args>
-	static void invoke_with_writelock_ptr1(_TAsyncSharedReadWriteAccessRequester ar, _TFunction function1, Args&&... args) {
-		function1(ar.writelock_ptr(), args...);
-	}
-
 	/* A member function that provides a safe pointer/reference to a class/struct member is going to need to
 	take a safe version of the "this" pointer as a parameter. */
 	template<class this_type>
@@ -188,8 +141,10 @@ public:
 	}
 #define XSCOPE_MIN1(a_ptr, b_ptr) mse::xscope_chosen_pointer(&H::min_pointer_indicator<decltype(a_ptr)>, a_ptr, b_ptr)
 
-	std::string m_string1 = "initial text";
+	mse::nii_string m_string1 = "initial text";
 };
+/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
+typedef mse::TUserDeclaredAsyncShareableObj<H> ShareableH;
 
 int main(int argc, char* argv[])
 {
@@ -1543,7 +1498,7 @@ int main(int argc, char* argv[])
 		auto h_msevec_ssiter = h_msevec.ss_begin();
 
 		/* And don't forget the safe async sharing pointers. */
-		auto h_access_requester = mse::make_asyncsharedreadwrite<H>();
+		auto h_access_requester = mse::make_asyncsharedv2readwrite<ShareableH>();
 		auto h_writelock_ptr = h_access_requester.writelock_ptr();
 		auto h_stdshared_const_ptr = mse::make_stdsharedimmutable<H>();
 
@@ -1671,11 +1626,6 @@ int main(int argc, char* argv[])
 		auto a_msevec_ipointer = a_msevec.ibegin();
 		auto a_msevec_ssiter = a_msevec.ss_begin();
 
-		/* And don't forget the safe async sharing pointers. */
-		auto a_access_requester = mse::make_asyncsharedreadwrite<A>();
-		auto a_writelock_ptr = a_access_requester.writelock_ptr();
-		auto a_stdshared_const_ptr = mse::make_stdsharedimmutable<A>();
-
 		/* And note that safe pointers to member elements need to be wrapped in an mse::TXScopeAnyPointer<> for
 		mse::TXScopePolyPointer<> to accept them. */
 		auto b_member_a_refc_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_refcptr->b, a_refcptr));
@@ -1691,7 +1641,6 @@ int main(int argc, char* argv[])
 			auto res_using_mstdvec_iter = B::foo1(a_mstdvec_iter);
 			auto res_using_msevec_ipointer = B::foo1(a_msevec_ipointer);
 			auto res_using_msevec_ssiter = B::foo1(a_msevec_ssiter);
-			auto res_using_writelock_ptr = B::foo1(a_writelock_ptr);
 			auto res_using_member_refc_anyptr = B::foo3(b_member_a_refc_anyptr);
 			auto res_using_member_reg_anyptr = B::foo3(b_member_a_reg_anyptr);
 			auto res_using_member_mstdvec_iter_anyptr = B::foo3(b_member_a_mstdvec_iter_anyptr);
@@ -1704,8 +1653,6 @@ int main(int argc, char* argv[])
 			auto res_using_mstdvec_iter_via_const_poly = B::foo2(a_mstdvec_iter);
 			auto res_using_msevec_ipointer_via_const_poly = B::foo2(a_msevec_ipointer);
 			auto res_using_msevec_ssiter_via_const_poly = B::foo2(a_msevec_ssiter);
-			auto res_using_writelock_ptr_via_const_poly = B::foo2(a_writelock_ptr);
-			auto res_using_stdshared_const_ptr_via_const_poly = B::foo2(a_stdshared_const_ptr);
 			auto res_using_member_refc_anyptr_via_const_poly = B::foo4(b_member_a_refc_anyptr);
 			auto res_using_member_reg_anyptr_via_const_poly = B::foo4(b_member_a_reg_anyptr);
 			auto res_using_member_mstdvec_iter_anyptr_via_const_poly = B::foo4(b_member_a_mstdvec_iter_anyptr);
@@ -1886,278 +1833,6 @@ int main(int argc, char* argv[])
 			MSE_LH_MEMSET(array1, 99, 3/*elements*/ * sizeof(arr_element_type));
 			MSE_LH_MEMCPY(array2, array1, 3/*elements*/ * sizeof(arr_element_type));
 			auto res18 = array2[1];
-		}
-	}
-
-	{
-		/******************/
-		/*  TAsyncShared  */
-		/******************/
-
-		/* The TAsyncShared data types are used to safely share objects between asynchronous threads. */
-
-		class A {
-		public:
-			A(int x) : b(x) {}
-			virtual ~A() {}
-
-			int b = 3;
-			std::string s = "some text ";
-		};
-		class B {
-		public:
-			static double foo1(mse::TAsyncSharedReadWriteAccessRequester<A> A_ashar) {
-				auto t1 = std::chrono::high_resolution_clock::now();
-				/* mse::TAsyncSharedReadWriteAccessRequester<A>::writelock_ptr() will block until it can obtain a write lock. */
-				auto ptr1 = A_ashar.writelock_ptr(); // while ptr1 exists it holds a (write) lock on the shared object
-				auto t2 = std::chrono::high_resolution_clock::now();
-				std::this_thread::sleep_for(std::chrono::seconds(1));
-				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				auto timespan_in_seconds = time_span.count();
-				auto thread_id = std::this_thread::get_id();
-				//std::cout << "thread_id: " << thread_id << ", time to acquire write pointer: " << timespan_in_seconds << " seconds.";
-				//std::cout << std::endl;
-
-				ptr1->s = std::to_string(timespan_in_seconds);
-				return timespan_in_seconds;
-			}
-			static int foo2(std::shared_ptr<const A> A_shptr) {
-				return A_shptr->b;
-			}
-		protected:
-			~B() {}
-		};
-
-		std::cout << std::endl;
-		std::cout << "AsyncShared test output:";
-		std::cout << std::endl;
-
-		{
-			/* This block contains a simple example demonstrating the use of mse::TAsyncSharedReadWriteAccessRequester
-			to safely share an object between threads. */
-
-			std::cout << "TAsyncSharedReadWrite:";
-			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedreadwrite<A>(7);
-			ash_access_requester.writelock_ptr()->b = 11;
-			int res1 = ash_access_requester.readlock_ptr()->b;
-
-			{
-				auto ptr1 = ash_access_requester.writelock_ptr();
-				auto ptr2 = ash_access_requester.writelock_ptr();
-			}
-
-			std::list<std::future<double>> futures;
-			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(B::foo1, ash_access_requester));
-			}
-			int count = 1;
-			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
-				std::cout << "thread: " << count << ", time to acquire write pointer: " << (*it).get() << " seconds.";
-				std::cout << std::endl;
-			}
-			std::cout << std::endl;
-
-			/* Btw, mse::TAsyncSharedReadOnlyAccessRequester<>s can be copy constructed from
-			mse::TAsyncSharedReadWriteAccessRequester<>s */
-			mse::TAsyncSharedReadOnlyAccessRequester<A> ash_read_only_access_requester(ash_access_requester);
-		}
-		{
-			std::cout << "TAsyncSharedReadOnly:";
-			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedreadonly<A>(7);
-			int res1 = ash_access_requester.readlock_ptr()->b;
-
-			std::list<std::future<double>> futures;
-			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedReadOnlyAccessRequester<A>>, ash_access_requester));
-			}
-			int count = 1;
-			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
-				std::cout << "thread: " << count << ", time to acquire read pointer: " << (*it).get() << " seconds.";
-				std::cout << std::endl;
-			}
-			std::cout << std::endl;
-		}
-		{
-			std::cout << "TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWrite:";
-			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite<A>(7);
-			ash_access_requester.writelock_ptr()->b = 11;
-			int res1 = ash_access_requester.readlock_ptr()->b;
-
-			{
-				auto ptr3 = ash_access_requester.readlock_ptr();
-				auto ptr1 = ash_access_requester.writelock_ptr();
-				auto ptr2 = ash_access_requester.writelock_ptr();
-			}
-
-			std::list<std::future<double>> futures;
-			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<A>>, ash_access_requester));
-			}
-			int count = 1;
-			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
-				std::cout << "thread: " << count << ", time to acquire read pointer: " << (*it).get() << " seconds.";
-				std::cout << std::endl;
-			}
-			std::cout << std::endl;
-		}
-		{
-			std::cout << "TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnly:";
-			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly<A>(7);
-			int res1 = ash_access_requester.readlock_ptr()->b;
-
-			std::list<std::future<double>> futures;
-			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<A>>, ash_access_requester));
-			}
-			int count = 1;
-			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
-				std::cout << "thread: " << count << ", time to acquire read pointer: " << (*it).get() << " seconds.";
-				std::cout << std::endl;
-			}
-			std::cout << std::endl;
-		}
-		{
-			/* Just demonstrating the existence of the "try" versions. */
-			auto access_requester = mse::make_asyncsharedreadwrite<std::string>("some text");
-			auto writelock_ptr1 = access_requester.try_writelock_ptr();
-			if (writelock_ptr1) {
-				// lock request succeeded
-				int q = 5;
-			}
-			auto readlock_ptr2 = access_requester.try_readlock_ptr_for(std::chrono::seconds(1));
-			auto writelock_ptr3 = access_requester.try_writelock_ptr_until(std::chrono::steady_clock::now() + std::chrono::seconds(1));
-		}
-		{
-			/* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
-			TStdSharedImmutableFixedPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
-			sharing objects with mutable members. */
-			auto read_only_sh_ptr = mse::make_stdsharedimmutable<A>(5);
-			int res1 = read_only_sh_ptr->b;
-
-			std::list<std::future<int>> futures;
-			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(B::foo2, read_only_sh_ptr));
-			}
-			int count = 1;
-			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
-				int res2 = (*it).get();
-			}
-		}
-		{
-			/* This block demonstrates safely allowing different threads to (simultaneously) modify different
-			sections of an array. */
-
-			static const size_t num_sections = 10;
-			static const size_t section_size = 5;
-			const size_t num_elements = num_sections * section_size;
-
-			typedef mse::nii_array<mse::nii_string, num_elements> async_shareable_array1_t;
-			typedef mse::mstd::array<mse::nii_string, num_elements> nonshareable_array1_t;
-			/* Let's say we have an array. */
-			nonshareable_array1_t array1;
-			{
-				size_t count = 0;
-				for (auto& item_ref : array1) {
-					count += 1;
-					item_ref = "text" + std::to_string(count);
-				}
-			}
-
-			/* Only access controlled objects can be shared with other threads, so we'll make an access controlled array and
-			(temporarily) swap it with our original one. */
-			auto ash_access_requester = mse::make_asyncsharedreadwrite<async_shareable_array1_t>();
-			std::swap(array1, (*(ash_access_requester.writelock_ptr())));
-
-			{
-				/* Now, we're going to use the access requester to obtain two new access requesters that provide access to
-				(newly created) "random access section" objects which are used to access (disjoint) sections of the array.
-				We need to specify the position where we want to split the array. Here we specify that it be split at index
-				"num_elements / 2", right down the middle. */
-				auto ra_rection_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, num_elements / 2);
-				auto ar1 = ra_rection_split1.first_ra_section_access_requester();
-				auto ar2 = ra_rection_split1.second_ra_section_access_requester();
-
-				/* The H::foo8 template function is just an example function that operates on containers of strings. In our case the
-				containers will be the random access sections we just created. We'll create an instance of the function here. */
-				auto& my_foo8_function_ref = H::foo8<decltype(ar1.writelock_ptr())>;
-				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
-
-				/* We want to execute the my_foo8 function in a separate thread. The function takes a pointer to a random access
-				section as an argument. But as we're not allowed to pass pointers between threads, we must pass an access requester
-				instead. The H::invoke_with_writelock_ptr1 template function is just a helper function that will obtain a (writelock)
-				pointer from the access requester, then call the given function, in this case my_foo8, with that pointer. So here
-				we'll use it to create a proxy function that we can execute directly in a separate thread and will accept an access
-				requester as a parameter. */
-				auto& my_foo8_proxy_function_ref = H::invoke_with_writelock_ptr1<decltype(ar1), my_foo8_function_type>;
-
-				std::list<std::thread> threads;
-				/* So this thread will modify the first section of the array. */
-				threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref));
-				/* While this thread modifies the other section. */
-				threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref));
-
-				{
-					int count = 1;
-					for (auto it = threads.begin(); threads.end() != it; it++, count++) {
-						(*it).join();
-					}
-				}
-				int q = 5;
-			}
-			{
-				/* Ok, now let's do it again, but instead of splitting the array into two sections, let's split it into more sections: */
-				/* First we create a list of a the sizes of each section. We'll use a vector here, but any iteratable container will work. */
-				mse::mstd::vector<size_t> section_sizes;
-				for (size_t i = 0; i < num_sections; i += 1) {
-					section_sizes.push_back(section_size);
-				}
-
-				/* Just as before, TAsyncRASectionSplitter<> will generate a new access requester for each section. */
-				auto ra_rection_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, section_sizes);
-				auto ar0 = ra_rection_split1.ra_section_access_requester(0);
-
-				auto& my_foo8_function_ref = H::foo8<decltype(ar0.writelock_ptr())>;
-				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
-				auto& my_foo8_proxy_function_ref = H::invoke_with_writelock_ptr1<decltype(ar0), my_foo8_function_type>;
-
-				std::list<std::thread> threads;
-				for (size_t i = 0; i < num_sections; i += 1) {
-					auto ar = ra_rection_split1.ra_section_access_requester(i);
-					threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
-				}
-
-				{
-					int count = 1;
-					for (auto it = threads.begin(); threads.end() != it; it++, count++) {
-						(*it).join();
-					}
-				}
-			}
-
-			/* Now that we're done sharing the (controlled access) array, we can swap it back to our original array. */
-			std::swap(array1, (*(ash_access_requester.writelock_ptr())));
-			auto first_element_value = array1[0];
-			auto last_element_value = array1.back();
-
-			int q = 5;
-		}
-		{
-			mse::mstd::string mstd_string1;
-			mse::TUserDeclaredAsyncShareableObj<std::string> aso1;
-			//mse::TUserDeclaredAsyncShareableObj<mse::msearray<std::string, 3>> aso2;
-			mse::TUserDeclaredAsyncShareableObj<mse::nii_array<std::string, 3>> aso3;
-
-			mse::TAccessControlledReadWriteObj<mse::TUserDeclaredAsyncShareableObj<std::string>> aco1;
-			auto asxwp_ar = mse::make_asyncsharedv2xwpreadwrite(aco1.exclusive_writelock_ptr());
-			mse::TAccessControlledReadWriteObj<mse::nii_array<mse::nii_string, 3>> aco2;
-			//mse::TAccessControlledReadWriteObj<mse::nii_array<std::string, 3>> aco3;
-
-			auto as_ar = mse::make_asyncsharedv2readwrite<mse::nii_string>("some text");
-			//auto as_ar2 = mse::make_asyncsharedv2readwrite<std::string>("some text");
 		}
 	}
 

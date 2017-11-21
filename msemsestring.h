@@ -26,7 +26,7 @@ namespace mse {
 		typedef std::basic_string<_Elem, _Traits, _Alloc> base_class;
 		MSE_MSESTRING_USING(nii_basic_string, base_class);
 
-		/* This placeholder implementation is actually not safe to share asybchronously (due to its unsafe iterators), but
+		/* This placeholder implementation is actually not safe to share asynchronously (due to its unsafe iterators), but
 		the eventual implementation will be.*/
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 	};
@@ -36,7 +36,7 @@ namespace mse {
 		typedef nii_basic_string<char> base_class;
 		MSE_MSESTRING_USING(nii_string, base_class);
 
-		/* This placeholder implementation is actually not safe to share asybchronously (due to its unsafe iterators), but
+		/* This placeholder implementation is actually not safe to share asynchronously (due to its unsafe iterators), but
 		the eventual implementation will be.*/
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 	};
