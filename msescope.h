@@ -118,7 +118,7 @@ namespace mse {
 
 	/* Use TXScopeFixedPointer instead. */
 	template<typename _Ty>
-	class TXScopePointer : public TXScopePointerBase<_Ty>, public XScopeTagBase {
+	class TXScopePointer : public TXScopePointerBase<_Ty>, public XScopeTagBase, public StrongPointerTagBase {
 	public:
 	private:
 		TXScopePointer() : TXScopePointerBase<_Ty>() {}
@@ -155,7 +155,7 @@ namespace mse {
 
 	/* Use TXScopeFixedConstPointer instead. */
 	template<typename _Ty>
-	class TXScopeConstPointer : public TXScopeConstPointerBase<const _Ty>, public XScopeTagBase {
+	class TXScopeConstPointer : public TXScopeConstPointerBase<const _Ty>, public XScopeTagBase, public StrongPointerTagBase {
 	public:
 	private:
 		TXScopeConstPointer() : TXScopeConstPointerBase<const _Ty>() {}
@@ -370,7 +370,7 @@ namespace mse {
 	TXScopeObj<>, any member of a TXScopeObj<>, or various other items with scope lifetime that, for various reasons, aren't
 	declared as TXScopeObj<>. */
 	template<typename _Ty>
-	class TXScopeItemFixedPointer : public TXScopePointerBase<_Ty>, public XScopeTagBase {
+	class TXScopeItemFixedPointer : public TXScopePointerBase<_Ty>, public XScopeTagBase, public StrongPointerTagBase {
 	public:
 		TXScopeItemFixedPointer(const TXScopeItemFixedPointer& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -403,7 +403,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TXScopeItemFixedConstPointer : public TXScopeConstPointerBase<_Ty>, public XScopeTagBase {
+	class TXScopeItemFixedConstPointer : public TXScopeConstPointerBase<_Ty>, public XScopeTagBase, public StrongPointerTagBase {
 	public:
 		TXScopeItemFixedConstPointer(const TXScopeItemFixedConstPointer<_Ty>& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -470,7 +470,7 @@ namespace mse {
 	enforce this, which makes this data type less intrinsically safe than say, "reference counting" pointers.
 	*/
 	template<typename _Ty>
-	class TXScopeOwnerPointer : public XScopeTagBase {
+	class TXScopeOwnerPointer : public XScopeTagBase, public StrongPointerTagBase {
 	public:
 		TXScopeOwnerPointer(TXScopeOwnerPointer<_Ty>&& src_ref) = default;
 
@@ -711,57 +711,63 @@ namespace mse {
 
 	/* TXScopeStrongPointerStore et al are types that store a strong pointer (like a refcounting pointer), and let you
 	obtain a corresponding scope pointer. */
-	template<typename _TPointer>
+	template<typename _TStrongPointer, class = is_valid_if_strong_pointer<_TStrongPointer> >
 	class TXScopeStrongPointerStore : public XScopeTagBase {
 	public:
-		TXScopeStrongPointerStore(const _TPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
+		TXScopeStrongPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
 		auto xscope_ptr() const {
 			return mse::unsafe_make_xscope_pointer_to(*m_stored_ptr);
 		}
-		const _TPointer& stored_ptr() const { return m_stored_ptr; }
+		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 	private:
-		_TPointer m_stored_ptr;
+		_TStrongPointer m_stored_ptr;
 	};
 
-	template<typename _TPointer>
+	template<typename _TStrongPointer, class = is_valid_if_strong_pointer<_TStrongPointer> >
 	class TXScopeStrongConstPointerStore : public XScopeTagBase {
 	public:
-		TXScopeStrongConstPointerStore(const _TPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
+		TXScopeStrongConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
 		auto xscope_ptr() const {
 			return mse::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
 		}
-		const _TPointer& stored_ptr() const { return m_stored_ptr; }
+		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 	private:
-		_TPointer m_stored_ptr;
+		_TStrongPointer m_stored_ptr;
 	};
 
-	template<typename _TPointer>
+	template<typename _TStrongPointer, class = is_valid_if_strong_pointer<_TStrongPointer> >
 	class TXScopeStrongNotNullPointerStore : public XScopeTagBase {
 	public:
-		TXScopeStrongNotNullPointerStore(const _TPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
+		TXScopeStrongNotNullPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
 		auto xscope_ptr() const {
 			return mse::unsafe_make_xscope_pointer_to(*m_stored_ptr);
 		}
-		const _TPointer& stored_ptr() const { return m_stored_ptr; }
+		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 	private:
-		_TPointer m_stored_ptr;
+		_TStrongPointer m_stored_ptr;
 	};
 
-	template<typename _TPointer>
+	template<typename _TStrongPointer, class = is_valid_if_strong_pointer<_TStrongPointer> >
 	class TXScopeStrongNotNullConstPointerStore : public XScopeTagBase {
 	public:
-		TXScopeStrongNotNullConstPointerStore(const _TPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
+		TXScopeStrongNotNullConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
 		auto xscope_ptr() const {
 			return mse::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
 		}
-		const _TPointer& stored_ptr() const { return m_stored_ptr; }
+		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 	private:
-		_TPointer m_stored_ptr;
+		_TStrongPointer m_stored_ptr;
 	};
+
+	template<typename _TStrongPointer>
+	TXScopeStrongPointerStore<_TStrongPointer> make_xscope_strong_pointer_store(const _TStrongPointer& stored_ptr) {
+		return TXScopeStrongPointerStore<_TStrongPointer>(stored_ptr);
+	}
+
 
 	template<typename _Ty> using TXScopeXScopeItemFixedStore = TXScopeStrongNotNullPointerStore<TXScopeItemFixedPointer<_Ty> >;
 	template<typename _Ty> using TXScopeXScopeItemFixedConstStore = TXScopeStrongNotNullConstPointerStore<TXScopeItemFixedConstPointer<_Ty> >;

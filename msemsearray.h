@@ -1338,7 +1338,7 @@ namespace mse {
 			return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_end<_TArrayPointer>(owner_ptr)));
 		}
 
-		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeTagBase {
+		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeTagBase, public StrongPointerTagBase {
 		public:
 			xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 			xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
@@ -1417,7 +1417,7 @@ namespace mse {
 			friend class /*_Myt*/nii_array<_Ty, _Size>;
 			friend class xscope_ss_iterator_type;
 		};
-		class xscope_ss_iterator_type : public ss_iterator_type, public XScopeTagBase {
+		class xscope_ss_iterator_type : public ss_iterator_type, public XScopeTagBase, public StrongPointerTagBase {
 		public:
 			xscope_ss_iterator_type(const mse::TXScopeFixedPointer<nii_array>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -1785,7 +1785,7 @@ namespace mse {
 
 		class xscope_ss_iterator_type;
 
-		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeTagBase {
+		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeTagBase, public StrongPointerTagBase {
 		public:
 			xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 			xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
@@ -1864,7 +1864,7 @@ namespace mse {
 			friend class /*_Myt*/msearray<_Ty, _Size>;
 			friend class xscope_ss_iterator_type;
 		};
-		class xscope_ss_iterator_type : public ss_iterator_type, public XScopeTagBase {
+		class xscope_ss_iterator_type : public ss_iterator_type, public XScopeTagBase, public StrongPointerTagBase {
 		public:
 			xscope_ss_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)

@@ -271,8 +271,8 @@ void msetl_example2() {
 				ptr1->s = std::to_string(timespan_in_seconds);
 				return timespan_in_seconds;
 			}
-			static int foo2(std::shared_ptr<const A> A_shptr) {
-				return A_shptr->b;
+			static int foo2(mse::TAsyncSharedV2ImmutableFixedPointer<ShareableA> A_immptr) {
+				return A_immptr->b;
 			}
 		protected:
 			~B() {}
@@ -382,20 +382,22 @@ void msetl_example2() {
 			auto writelock_ptr3 = access_requester.try_writelock_ptr_until(std::chrono::steady_clock::now() + std::chrono::seconds(1));
 		}
 		{
-			/* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
-			TStdSharedImmutableFixedPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
-			sharing objects with mutable members. */
-			auto read_only_sh_ptr = mse::make_stdsharedimmutable<A>(5);
-			int res1 = read_only_sh_ptr->b;
+			/* For scenarios where the shared object is immutable (i.e. is never modified), you can get away without using locks
+			or access requesters. */
+			auto A_immptr = mse::make_asyncsharedv2immutable<ShareableA>(5);
+			int res1 = A_immptr->b;
+			std::shared_ptr<const ShareableA> A_shptr(A_immptr);
 
 			std::list<std::future<int>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(B::foo2, read_only_sh_ptr));
+				futures.emplace_back(std::async(B::foo2, A_immptr));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
 				int res2 = (*it).get();
 			}
+
+			auto A_b_safe_cptr = mse::make_const_pointer_to_member(A_immptr->b, A_immptr);
 		}
 		{
 			/* This block demonstrates safely allowing different threads to (simultaneously) modify different

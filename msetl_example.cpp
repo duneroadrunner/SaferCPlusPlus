@@ -791,7 +791,7 @@ int main(int argc, char* argv[])
 			(*s2_safe_ptr1) = "some new text";
 			auto s2_safe_const_ptr1 = mse::make_const_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
 
-			/* The return type of mse::make_pointer_to_member() depends in the type of the parameters passed
+			/* The return type of mse::make_pointer_to_member() depends on the type of the parameters passed
 			to it. In this case, the type of s2_safe_ptr1 is mse::TSyncWeakFixedPointer<std::string, 
 			mse::TRegisteredPointer<E>>. s2_safe_ptr1 here is essentially a pointer to "E.s2"
 			(string member of class E) with a registered pointer to E to in its pocket. It uses the registered
@@ -1262,7 +1262,7 @@ int main(int argc, char* argv[])
 			(*s_safe_ptr1) = "some new text";
 			auto s_safe_const_ptr1 = mse::make_const_pointer_to_member(rcfpvector.front()->s, rcfpvector.front());
 
-			/* The return type of mse::make_pointer_to_member() depends in the type of the parameters passed
+			/* The return type of mse::make_pointer_to_member() depends on the type of the parameters passed
 			to it. In this case, the type of s_safe_ptr1 is mse::TStrongFixedPointer<std::string,
 			mse::TRefCountingFixedPointer<A>>. s_safe_ptr1 here is essentially a pointer to 
 			rcfpvector.front()->s with a copy of rcfpvector.front() welded to it to make sure that the
@@ -1273,6 +1273,10 @@ int main(int argc, char* argv[])
 			/* In practice, rather than declaring a specific mse::TStrongFixedPointer parameter, we expect
 			functions intended for general use to be "templatized" so that they can accept any type of pointer. */
 			std::string res1 = H::foo6(s_safe_ptr1, s_safe_const_ptr1);
+
+			/* Obtaining a scope pointer to a member of an object owned by a reference counting pointer */
+			auto strong_store1 = mse::make_xscope_strong_pointer_store(s_safe_ptr1);
+			auto s_scpptr1 = strong_store1.xscope_ptr();
 		}
 
 		mse::TRefCountingPointer_test TRefCountingPointer_test1;

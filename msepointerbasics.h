@@ -543,6 +543,149 @@ namespace mse {
 	TSyncWeakFixedConstPointer<_TTargetType, _Ty> make_const_pointer_to_member(const _TTargetType& target, const _Ty &lease_pointer) {
 		return TSyncWeakFixedConstPointer<_TTargetType, _Ty>::make(target, lease_pointer);
 	}
+
+
+	class StrongPointerTagBase {
+	public:
+		void strong_pointer_tag() const {}
+	};
+
+	template <typename T> struct is_shared_ptr : std::false_type {};
+	template <typename T> struct is_shared_ptr<std::shared_ptr<T> > : std::true_type {};
+
+	template<typename _TStrongPointer, class = typename std::enable_if<
+		(std::is_base_of<StrongPointerTagBase, _TStrongPointer>::value)
+		|| (std::is_pointer<_TStrongPointer>::value)/* for when scope pointers are "disabled" */
+		|| (is_shared_ptr<_TStrongPointer>::value)/* for when refcounting pointers are "disabled" */
+		, void>::type>
+	class is_valid_if_strong_pointer {
+	public:
+		static void no_op() {}
+	};
+
+	template <class _TTargetType, class _TLeaseType> class TStrongFixedConstPointer;
+
+	/* If, for example, you want an "owning" pointer to a member of a refcounting pointer target, you can use a
+	TStrongFixedPointer to store a copy of the owning (refcounting) pointer along with the pointer targeting the
+	member. */
+	template <class _TTargetType, class _TLeaseType>
+	class TStrongFixedPointer : public StrongPointerTagBase {
+	public:
+		TStrongFixedPointer(const TStrongFixedPointer&) = default;
+		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
+		TStrongFixedPointer(const TStrongFixedPointer<_TTargetType, _TLeaseType2>&src) : m_target_pointer(std::addressof(*src)), m_lease(src.lease()) {}
+		virtual ~TStrongFixedPointer() {
+			/* This is just a no-op function that will cause a compile error when _TLeaseType is not an eligible type. */
+			is_valid_if_strong_pointer<_TLeaseType>::no_op();
+		}
+		_TTargetType& operator*() const {
+			return (*m_target_pointer);
+		}
+		_TTargetType* operator->() const {
+			return m_target_pointer;
+		}
+
+		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TStrongFixedPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const TStrongFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const;
+		bool operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const;
+
+		bool operator!() const { return (!m_target_pointer); }
+		operator bool() const {
+			return (m_target_pointer != nullptr);
+		}
+
+		explicit operator _TTargetType*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
+			if (nullptr == m_target_pointer) {
+				int q = 3; /* just a line of code for putting a debugger break point */
+			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
+			return m_target_pointer;
+		}
+		_TLeaseType lease() const { return (*this).m_lease; }
+
+		template <class _TTargetType2, class _TLeaseType2>
+		static TStrongFixedPointer make(_TTargetType2& target, const _TLeaseType2& lease) {
+			return TStrongFixedPointer(target, lease);
+		}
+
+	protected:
+		TStrongFixedPointer(_TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
+			: m_target_pointer(std::addressof(target)), m_lease(lease) {}
+	private:
+		TStrongFixedPointer& operator=(const TStrongFixedPointer& _Right_cref) = delete;
+
+		_TTargetType* m_target_pointer;
+		_TLeaseType m_lease;
+
+		friend class TStrongFixedConstPointer<_TTargetType, _TLeaseType>;
+	};
+
+	template <class _TTargetType, class _TLeaseType>
+	TStrongFixedPointer<_TTargetType, _TLeaseType> make_strong(_TTargetType& target, const _TLeaseType& lease) {
+		return TStrongFixedPointer<_TTargetType, _TLeaseType>::make(target, lease);
+	}
+
+	template <class _TTargetType, class _TLeaseType>
+	class TStrongFixedConstPointer : public StrongPointerTagBase {
+	public:
+		TStrongFixedConstPointer(const TStrongFixedConstPointer&) = default;
+		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
+		TStrongFixedConstPointer(const TStrongFixedConstPointer<_TTargetType, _TLeaseType2>&src) : m_target_pointer(std::addressof(*src)), m_lease(src.lease()) {}
+		TStrongFixedConstPointer(const TStrongFixedPointer<_TTargetType, _TLeaseType>&src) : m_target_pointer(src.m_target_pointer), m_lease(src.m_lease) {}
+		virtual ~TStrongFixedConstPointer() {
+			/* This is just a no-op function that will cause a compile error when _TLeaseType is not an eligible type. */
+			is_valid_if_strong_pointer<_TLeaseType>::no_op();
+		}
+		const _TTargetType& operator*() const {
+			return (*m_target_pointer);
+		}
+		const _TTargetType* operator->() const {
+			return m_target_pointer;
+		}
+
+		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TStrongFixedConstPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool operator!=(const TStrongFixedConstPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+
+		bool operator!() const { return (!m_target_pointer); }
+		operator bool() const {
+			return (m_target_pointer != nullptr);
+		}
+
+		explicit operator const _TTargetType*() const {
+#ifdef NATIVE_PTR_DEBUG_HELPER1
+			if (nullptr == m_target_pointer) {
+				int q = 3; /* just a line of code for putting a debugger break point */
+			}
+#endif /*NATIVE_PTR_DEBUG_HELPER1*/
+			return m_target_pointer;
+		}
+		_TLeaseType lease() const { return (*this).m_lease; }
+
+		template <class _TTargetType2, class _TLeaseType2>
+		static TStrongFixedConstPointer make(const _TTargetType2& target, const _TLeaseType2& lease) {
+			return TStrongFixedConstPointer(target, lease);
+		}
+
+	protected:
+		TStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
+			: m_target_pointer(&target), m_lease(lease) {}
+	private:
+		TStrongFixedConstPointer& operator=(const TStrongFixedConstPointer& _Right_cref) = delete;
+
+		const _TTargetType* m_target_pointer;
+		_TLeaseType m_lease;
+	};
+
+	template <class _TTargetType, class _TLeaseType>
+	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+	template <class _TTargetType, class _TLeaseType>
+	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
 }
 
 #ifdef __clang__

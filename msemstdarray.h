@@ -468,7 +468,7 @@ namespace mse {
 			static _MA& _MA_ref(_MA& obj) { return obj; }
 			static const _MA& _MA_cref(const _MA& obj) { return obj; }
 
-			class xscope_const_iterator : public _MA::random_access_iterator_base, public XScopeTagBase {
+			class xscope_const_iterator : public _MA::random_access_iterator_base, public XScopeTagBase, public StrongPointerTagBase {
 			public:
 				typedef typename _MA::xscope_ss_const_iterator_type::iterator_category iterator_category;
 				typedef typename _MA::xscope_ss_const_iterator_type::value_type value_type;
@@ -575,7 +575,7 @@ namespace mse {
 				typename _MA::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 				friend class /*_Myt*/array<_Ty, _Size>;
 			};
-			class xscope_iterator : public _MA::random_access_iterator_base, public XScopeTagBase {
+			class xscope_iterator : public _MA::random_access_iterator_base, public XScopeTagBase, public StrongPointerTagBase {
 			public:
 				typedef typename _MA::xscope_ss_iterator_type::iterator_category iterator_category;
 				typedef typename _MA::xscope_ss_iterator_type::value_type value_type;
