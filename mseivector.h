@@ -20,7 +20,7 @@ namespace mse {
 	class ivector {
 	public:
 		typedef mse::ivector<_Ty, _A> _Myt;
-		typedef mse::msevector<_Ty, _A> _MV;
+		typedef mse::us::msevector<_Ty, _A> _MV;
 
 		typedef typename _MV::allocator_type allocator_type;
 		typedef typename _MV::value_type value_type;

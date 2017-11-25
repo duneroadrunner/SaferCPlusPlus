@@ -272,11 +272,11 @@ int main(int argc, char* argv[])
 #endif // !MSE_MSTDVECTOR_DISABLED
 
 	{
-		/*****************************/
-		/*   msevector<>::ipointer   */
-		/*****************************/
+		/*********************************/
+		/*   us::msevector<>::ipointer   */
+		/*********************************/
 
-		/* mse::msevector<> is another vector that is highly compatible with std::vector<>. But mse::msevector<> also
+		/* mse::us::msevector<> is another vector that is highly compatible with std::vector<>. But mse::us::msevector<> also
 		supports a new type of iterator called "ipointer". ipointers make more (intuitive) sense than standard vector
 		iterators. Upon insert or delete, ipointers continue to point to the same item, not (necessarily) the same
 		position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted. They
@@ -284,15 +284,15 @@ int main(int argc, char* argv[])
 
 #ifdef MSVC2010_COMPATIBLE
 		int a1[4] = { 1, 2, 3, 4 };
-		mse::msevector<int> v1(a1, a1+4);
+		mse::us::msevector<int> v1(a1, a1+4);
 #else /*MSVC2010_COMPATIBLE*/
-		mse::msevector<int> v1 = { 1, 2, 3, 4 };
+		mse::us::msevector<int> v1 = { 1, 2, 3, 4 };
 #endif /*MSVC2010_COMPATIBLE*/
 
-		mse::msevector<int> v = v1;
+		mse::us::msevector<int> v = v1;
 
 		{
-			mse::msevector<int>::ipointer ip1 = v.ibegin();
+			mse::us::msevector<int>::ipointer ip1 = v.ibegin();
 			ip1 += 2;
 			assert(3 == (*ip1));
 			auto ip2 = v.ibegin(); /* ibegin() returns an ipointer */
@@ -300,7 +300,7 @@ int main(int argc, char* argv[])
 			assert(3 == (*ip1)); /* ip1 continues to point to the same item, not the same position */
 			ip1--;
 			assert(2 == (*ip1));
-			for (mse::msevector<int>::cipointer cip = v.cibegin(); v.ciend() != cip; cip++) {
+			for (mse::us::msevector<int>::cipointer cip = v.cibegin(); v.ciend() != cip; cip++) {
 				/* You might imagine what would happen if cip were a regular vector iterator. */
 				v.insert(v.ibegin(), (*cip));
 			}
@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
 		{
 			/* This code block is equivalent to the previous code block, but uses ipointer's more "readable" interface
 			that might make the code a little more clear to those less familiar with C++ syntax. */
-			mse::msevector<int>::ipointer ip_vit1 = v.ibegin();
+			mse::us::msevector<int>::ipointer ip_vit1 = v.ibegin();
 			ip_vit1.advance(2);
 			assert(3 == ip_vit1.item());
 			auto ip_vit2 = v.ibegin();
@@ -317,7 +317,7 @@ int main(int argc, char* argv[])
 			assert(3 == ip_vit1.item());
 			ip_vit1.set_to_previous();
 			assert(2 == ip_vit1.item());
-			mse::msevector<int>::cipointer cip(v);
+			mse::us::msevector<int>::cipointer cip(v);
 			for (cip.set_to_beginning(); cip.points_to_an_item(); cip.set_to_next()) {
 				v.insert_before(v.ibegin(), (*cip));
 			}
@@ -326,10 +326,10 @@ int main(int argc, char* argv[])
 		/* Btw, ipointers are compatible with stl algorithms, like any other stl iterators. */
 		std::sort(v.ibegin(), v.iend());
 
-		/* And just to be clear, mse::msevector<> retains its original (high performance) stl::vector iterators. */
+		/* And just to be clear, mse::us::msevector<> retains its original (high performance) stl::vector iterators. */
 		std::sort(v.begin(), v.end());
 
-		/* mse::msevector<> also provides "safe" (bounds checked) versions of the original stl::vector iterators. */
+		/* mse::us::msevector<> also provides "safe" (bounds checked) versions of the original stl::vector iterators. */
 		std::sort(v.ss_begin(), v.ss_end());
 
 		/* mse::ivector<> is another vector for when safety and "correctness" are more of a priority than performance
@@ -344,7 +344,7 @@ int main(int argc, char* argv[])
 			object. There are limitations on when they can be used, but unlike the other msevector iterators,
 			those restrictions ensure that they won't be used to access the vector after it's been deallocated. */
 
-			mse::TXScopeObj<mse::msevector<int>> vector1_scpobj = mse::msevector<int>{ 1, 2, 3 };
+			mse::TXScopeObj<mse::us::msevector<int>> vector1_scpobj = mse::us::msevector<int>{ 1, 2, 3 };
 
 			auto scp_ss_iter1 = mse::make_xscope_iterator(&vector1_scpobj);
 			scp_ss_iter1.set_to_beginning();
@@ -365,7 +365,7 @@ int main(int argc, char* argv[])
 			class CContainer1 {
 			public:
 				CContainer1() : m_vector({ 1, 2, 3 }) {}
-				mse::msevector<int> m_vector;
+				mse::us::msevector<int> m_vector;
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
 			auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member(container1_scpobj.m_vector, &container1_scpobj);
@@ -479,17 +479,17 @@ int main(int argc, char* argv[])
 #endif // !MSE_MSTDARRAY_DISABLED
 
 	{
-		/******************/
-		/*   msearray<>   */
-		/******************/
+		/**********************/
+		/*   us::msearray<>   */
+		/**********************/
 
-		/* mse::msearray<> is another array implementation that's not quite as safe as mse::mstd::array<> in the sense
+		/* mse::us::msearray<> is another array implementation that's not quite as safe as mse::mstd::array<> in the sense
 		that its iterators are not "lifespan aware" (i.e. could be used to access an array after it's been deallocated).
-		And it provides both "safe" (bounds-checked) and unsafe iterators. Basically, mse::msearray<> is a compromise
+		And it provides both "safe" (bounds-checked) and unsafe iterators. Basically, mse::us::msearray<> is a compromise
 		between performance and safety. */
 
-		mse::msearray<int, 3> a1 = { 1, 2, 3 };
-		mse::msearray<int, 3> a2 = { 11, 12, 13 };
+		mse::us::msearray<int, 3> a1 = { 1, 2, 3 };
+		mse::us::msearray<int, 3> a2 = { 11, 12, 13 };
 
 		//bool bres1 = (a1.begin() == a2.end());
 		/* The previous commented out line would result in "undefined behavior. */
@@ -518,7 +518,7 @@ int main(int argc, char* argv[])
 			object. There are limitations on when they can be used, but unlike the other msearray iterators,
 			those restrictions ensure that they won't be used to access the array after it's been deallocated. */
 
-			mse::TXScopeObj<mse::msearray<int, 3>> array1_scpobj = mse::msearray<int, 3>{ 1, 2, 3 };
+			mse::TXScopeObj<mse::us::msearray<int, 3>> array1_scpobj = mse::us::msearray<int, 3>{ 1, 2, 3 };
 
 			auto scp_ss_iter1 = mse::make_xscope_iterator(&array1_scpobj);
 			scp_ss_iter1.set_to_beginning();
@@ -539,7 +539,7 @@ int main(int argc, char* argv[])
 			class CContainer1 {
 			public:
 				CContainer1() : m_array({ 1, 2, 3 }) {}
-				mse::msearray<int, 3> m_array;
+				mse::us::msearray<int, 3> m_array;
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
 			auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
@@ -1496,7 +1496,7 @@ int main(int argc, char* argv[])
 		mse::mstd::vector<H> h_mstdvec;
 		h_mstdvec.resize(1);
 		auto h_mstdvec_iter = h_mstdvec.begin();
-		mse::msevector<H> h_msevec;
+		mse::us::msevector<H> h_msevec;
 		h_msevec.resize(1);
 		auto h_msevec_ipointer = h_msevec.ibegin();
 		auto h_msevec_ssiter = h_msevec.ss_begin();
@@ -1625,7 +1625,7 @@ int main(int argc, char* argv[])
 		mse::mstd::vector<A> a_mstdvec;
 		a_mstdvec.resize(1);
 		auto a_mstdvec_iter = a_mstdvec.begin();
-		mse::msevector<A> a_msevec;
+		mse::us::msevector<A> a_msevec;
 		a_msevec.resize(1);
 		auto a_msevec_ipointer = a_msevec.ibegin();
 		auto a_msevec_ssiter = a_msevec.ss_begin();
@@ -1684,7 +1684,7 @@ int main(int argc, char* argv[])
 		/******************************/
 
 		mse::mstd::array<int, 4> mstd_array1 { 1, 2, 3, 4 };
-		mse::msearray<int, 5> msearray2 { 5, 6, 7, 8, 9 };
+		mse::us::msearray<int, 5> msearray2 { 5, 6, 7, 8, 9 };
 		mse::mstd::vector<int> mstd_vec1 { 10, 11, 12, 13, 14 };
 		class B {
 		public:

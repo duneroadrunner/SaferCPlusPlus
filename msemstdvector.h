@@ -43,7 +43,7 @@ namespace mse {
 		class vector {
 		public:
 			typedef mse::mstd::vector<_Ty, _A> _Myt;
-			typedef mse::msevector<_Ty, _A> _MV;
+			typedef mse::us::msevector<_Ty, _A> _MV;
 
 			typedef typename _MV::allocator_type allocator_type;
 			typedef typename _MV::value_type value_type;
@@ -618,10 +618,10 @@ namespace mse {
 			class xscope_structure_change_lock_guard : public XScopeTagBase {
 			public:
 				xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<vector>& owner_ptr)
-					: m_MV_xscope_structure_change_lock_guard(mse::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+					: m_MV_xscope_structure_change_lock_guard(mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 				xscope_structure_change_lock_guard(const mse::TXScopeItemFixedPointer<vector>& owner_ptr)
-					: m_MV_xscope_structure_change_lock_guard(mse::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+					: m_MV_xscope_structure_change_lock_guard(mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 				auto xscope_ptr_to_element(size_type _P) const {
@@ -636,15 +636,15 @@ namespace mse {
 				}
 				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
-				typename mse::msevector<_Ty>::xscope_structure_change_lock_guard m_MV_xscope_structure_change_lock_guard;
+				typename mse::us::msevector<_Ty>::xscope_structure_change_lock_guard m_MV_xscope_structure_change_lock_guard;
 			};
 			class xscope_const_structure_change_lock_guard : public XScopeTagBase {
 			public:
 				xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<vector>& owner_ptr)
-					: m_MV_xscope_const_structure_change_lock_guard(mse::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
+					: m_MV_xscope_const_structure_change_lock_guard(mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 				xscope_const_structure_change_lock_guard(const mse::TXScopeItemFixedConstPointer<vector>& owner_ptr)
-					: m_MV_xscope_const_structure_change_lock_guard(mse::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
+					: m_MV_xscope_const_structure_change_lock_guard(mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 				auto xscope_ptr_to_element(size_type _P) const {
@@ -659,7 +659,7 @@ namespace mse {
 				}
 				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			private:
-				typename mse::msevector<_Ty>::xscope_const_structure_change_lock_guard m_MV_xscope_const_structure_change_lock_guard;
+				typename mse::us::msevector<_Ty>::xscope_const_structure_change_lock_guard m_MV_xscope_const_structure_change_lock_guard;
 			};
 
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
@@ -722,7 +722,7 @@ namespace std {
 		return (_Left.swap(_Right));
 	}
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
-	void swap(mse::mstd::vector<_Ty, _A>& _Left, mse::msevector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	void swap(mse::mstd::vector<_Ty, _A>& _Left, mse::us::msevector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap vectors
 		return (_Left.swap(_Right));
 	}
@@ -738,7 +738,7 @@ namespace std {
 		return (_Right.swap(_Left));
 	}
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
-	void swap(mse::msevector<_Ty, _A, _TStateMutex>& _Left, mse::mstd::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	void swap(mse::us::msevector<_Ty, _A, _TStateMutex>& _Left, mse::mstd::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap vectors
 		return (_Right.swap(_Left));
 	}

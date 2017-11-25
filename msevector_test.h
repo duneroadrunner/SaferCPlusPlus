@@ -111,7 +111,7 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_1)
 		msev_int msevec_test_1()
 		{
-			msevector<int> v1; // Empty vector of integers.
+			us::msevector<int> v1; // Empty vector of integers.
 
 			EXAM_CHECK(v1.empty() == true);
 			EXAM_CHECK(v1.size() == 0);
@@ -125,8 +125,8 @@ namespace mse {
 			EXAM_CHECK(v1[0] == 42);
 
 			{
-				msevector<msevector<int> > vect(10);
-				msevector<msevector<int> >::iterator it(vect.begin()), end(vect.end());
+				us::msevector<us::msevector<int> > vect(10);
+				us::msevector<us::msevector<int> >::iterator it(vect.begin()), end(vect.end());
 				for (; it != end; ++it) {
 					EXAM_CHECK((*it).empty());
 					EXAM_CHECK((*it).size() == 0);
@@ -141,10 +141,10 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_2)
 		msev_int msevec_test_2()
 		{
-			msevector<double> v1; // Empty vector of doubles.
+			us::msevector<double> v1; // Empty vector of doubles.
 			v1.push_back(32.1);
 			v1.push_back(40.5);
-			msevector<double> v2; // Another empty vector of doubles.
+			us::msevector<double> v2; // Another empty vector of doubles.
 			v2.push_back(3.56);
 
 			EXAM_CHECK(v1.size() == 2);
@@ -178,7 +178,7 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_3)
 		msev_int msevec_test_3()
 		{
-			typedef msevector<char> vec_type;
+			typedef us::msevector<char> vec_type;
 
 			vec_type v1; // Empty vector of characters.
 			v1.push_back('h');
@@ -219,7 +219,7 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_4)
 		msev_int msevec_test_4()
 		{
-			msevector<int> v(4);
+			us::msevector<int> v(4);
 
 			v[0] = 1;
 			v[1] = 4;
@@ -248,9 +248,9 @@ namespace mse {
 			int array[] = { 1, 4, 9, 16 };
 
 #ifdef MSVC2010_COMPATIBLE
-			msevector<int> v(array, array + 4);
+			us::msevector<int> v(array, array + 4);
 #else /*MSVC2010_COMPATIBLE*/
-			msevector<int> v = { 1, 4, 9, 16 };
+			us::msevector<int> v = { 1, 4, 9, 16 };
 #endif /*MSVC2010_COMPATIBLE*/
 
 			EXAM_CHECK(v.size() == 4);
@@ -269,11 +269,11 @@ namespace mse {
 			int array[] = { 1, 4, 9, 16, 25, 36 };
 
 #ifdef MSVC2010_COMPATIBLE
-			msevector<int> v(array, array + 6);
+			us::msevector<int> v(array, array + 6);
 #else /*MSVC2010_COMPATIBLE*/
-			msevector<int> v = { 1, 4, 9, 16, 25, 36 };
+			us::msevector<int> v = { 1, 4, 9, 16, 25, 36 };
 #endif /*MSVC2010_COMPATIBLE*/
-			msevector<int>::iterator vit;
+			us::msevector<int>::iterator vit;
 
 			EXAM_CHECK(v.size() == 6);
 			EXAM_CHECK(v[0] == 1);
@@ -319,11 +319,11 @@ namespace mse {
 			int array2[] = { 9, 16 };
 
 #ifdef MSVC2010_COMPATIBLE
-			msevector<int> v(array1, array1 + 3);
+			us::msevector<int> v(array1, array1 + 3);
 #else /*MSVC2010_COMPATIBLE*/
-			msevector<int> v = { 1, 4, 25 };
+			us::msevector<int> v = { 1, 4, 25 };
 #endif /*MSVC2010_COMPATIBLE*/
-			msevector<int>::iterator vit;
+			us::msevector<int>::iterator vit;
 			vit = v.insert(v.begin(), 0); // Insert before first element.
 			EXAM_CHECK(*vit == 0);
 
@@ -367,7 +367,7 @@ namespace mse {
 
 			/*
 			{
-			msevector<float> vf(2.0f, 3.0f);
+			us::msevector<float> vf(2.0f, 3.0f);
 			EXAM_CHECK( vf.size() == 2 );
 			EXAM_CHECK( vf.front() == 3.0f );
 			EXAM_CHECK( vf.back() == 3.0f );
@@ -386,7 +386,7 @@ namespace mse {
 		msev_int capacity()
 		{
 			{
-				msevector<int> v;
+				us::msevector<int> v;
 
 				EXAM_CHECK(v.capacity() == 0);
 				v.push_back(42);
@@ -397,7 +397,7 @@ namespace mse {
 
 			{
 				//Test that used to generate an assertion when using __debug_alloc.
-				msevector<TestStruct> va;
+				us::msevector<TestStruct> va;
 				va.reserve(1);
 				va.reserve(2);
 			}
@@ -408,8 +408,8 @@ namespace mse {
 		//int EXAM_IMPL(msevector_test::at)
 		msev_int at()
 		{
-			msevector<int> v;
-			msevector<int> const& cv = v;
+			us::msevector<int> v;
+			us::msevector<int> const& cv = v;
 
 			v.push_back(10);
 			EXAM_CHECK(v.at(0) == 10);
@@ -437,9 +437,9 @@ namespace mse {
 		//int EXAM_IMPL(msevector_test::pointer)
 		msev_int pointer()
 		{
-			msevector<int *> v1;
-			msevector<int *> v2 = v1;
-			msevector<int *> v3;
+			us::msevector<int *> v1;
+			us::msevector<int *> v2 = v1;
+			us::msevector<int *> v3;
 
 			v3.insert(v3.end(), v1.begin(), v1.end());
 
@@ -449,19 +449,19 @@ namespace mse {
 		//int EXAM_IMPL(msevector_test::auto_ref)
 		msev_int auto_ref()
 		{
-			msevector<int> ref;
+			us::msevector<int> ref;
 			for (int i = 0; i < 5; ++i) {
 				ref.push_back(i);
 			}
 
-			msevector<msevector<int> > v_v_int(1, ref);
+			us::msevector<us::msevector<int> > v_v_int(1, ref);
 			v_v_int.push_back(v_v_int[0]);
 			v_v_int.push_back(ref);
 			v_v_int.push_back(v_v_int[0]);
 			v_v_int.push_back(v_v_int[0]);
 			v_v_int.push_back(ref);
 
-			msevector<msevector<int> >::iterator vvit(v_v_int.begin()), vvitEnd(v_v_int.end());
+			us::msevector<us::msevector<int> >::iterator vvit(v_v_int.begin()), vvitEnd(v_v_int.end());
 			for (; vvit != vvitEnd; ++vvit) {
 				EXAM_CHECK(*vvit == ref);
 			}
@@ -489,7 +489,7 @@ namespace mse {
 			StackAllocator<int> stack2(buf2, buf2 + sizeof(buf2));
 
 			{
-				typedef msevector<int, StackAllocator<int> > VectorInt;
+				typedef us::msevector<int, StackAllocator<int> > VectorInt;
 				VectorInt vint1(10, 0, stack1);
 				VectorInt vint1Cpy(vint1);
 
@@ -539,7 +539,7 @@ namespace mse {
 		//int EXAM_IMPL(msevector_test::optimizations_check)
 		msev_int optimizations_check()
 		{
-			msevector<Point> v1(1);
+			us::msevector<Point> v1(1);
 			EXAM_REQUIRE(v1.size() == 1);
 
 			v1[0].x = 1;
@@ -548,15 +548,15 @@ namespace mse {
 #ifndef MSVC2010_COMPATIBLE
 #if !(defined(GPP_COMPATIBLE))
 			EXAM_CHECK(std::is_trivially_copyable<Point>::value == true);
-			EXAM_CHECK(std::is_trivially_copyable<msevector<Point>::const_iterator>::value == true);
+			EXAM_CHECK(std::is_trivially_copyable<us::msevector<Point>::const_iterator>::value == true);
 			EXAM_CHECK(std::is_trivially_copyable<PointEx>::value == true);
-			EXAM_CHECK(std::is_trivially_copyable<msevector<PointEx>::const_iterator>::value == true);
+			EXAM_CHECK(std::is_trivially_copyable<us::msevector<PointEx>::const_iterator>::value == true);
 #endif /*!(GPP_COMPATIBLE)*/
 #endif /*MSVC2010_COMPATIBLE*/
 
-			//msevector<PointEx> v2(v1.begin(), v1.end()); // non-trivial 
+			//us::msevector<PointEx> v2(v1.begin(), v1.end()); // non-trivial 
 			std::vector<PointEx> v2a(v1.begin(), v1.end()); // non-trivial 
-			msevector<PointEx> v2 = v2a;
+			us::msevector<PointEx> v2 = v2a;
 			EXAM_REQUIRE(v2.size() == 1);
 			EXAM_CHECK(v2[0].builtFromBase == true);
 			EXAM_CHECK(v2[0].x == 1);
@@ -575,9 +575,9 @@ namespace mse {
 
 			v2[1].builtFromBase = false; // change it
 
-			//msevector<PointEx> v3(v2.begin(), v2.end()); // should be trivial copy ctor
+			//us::msevector<PointEx> v3(v2.begin(), v2.end()); // should be trivial copy ctor
 			std::vector<PointEx> v3a(v2.begin(), v2.end()); // should be trivial copy ctor
-			msevector<PointEx> v3 = v3a;
+			us::msevector<PointEx> v3 = v3a;
 			EXAM_REQUIRE(v3.size() == 2);
 			EXAM_CHECK(v3[0].x == 1);
 			EXAM_CHECK(v3[0].y == 2);
@@ -594,7 +594,7 @@ namespace mse {
 		{
 			int array[] = { 1, 2, 3, 4, 5 };
 			{
-				msevector<int> v(3, 1);
+				us::msevector<int> v(3, 1);
 
 #ifdef MSVC2010_COMPATIBLE
 				v.assign(array, array + 5);
@@ -607,7 +607,7 @@ namespace mse {
 				EXAM_CHECK(v.size() == 5);
 			}
 			{
-				msevector<int> v(7, 1);
+				us::msevector<int> v(7, 1);
 				int array[] = { 1, 2, 3, 4, 5 };
 
 #ifdef MSVC2010_COMPATIBLE
@@ -621,7 +621,7 @@ namespace mse {
 				EXAM_CHECK(v.size() == 5);
 			}
 			{
-				msevector<int> v(3, 1);
+				us::msevector<int> v(3, 1);
 				v.reserve(7);
 
 #ifdef MSVC2010_COMPATIBLE
@@ -641,8 +641,8 @@ namespace mse {
 		//int EXAM_IMPL(msevector_test::iterators)
 		msev_int iterators()
 		{
-			msevector<int> vint(10, 0);
-			msevector<int> const& crvint = vint;
+			us::msevector<int> vint(10, 0);
+			us::msevector<int> const& crvint = vint;
 
 			EXAM_CHECK(vint.begin() == vint.begin());
 			EXAM_CHECK(crvint.begin() == vint.begin());
@@ -676,8 +676,8 @@ namespace mse {
 		*/
 		class IncompleteClass
 		{
-			msevector<IncompleteClass> instances;
-			typedef msevector<IncompleteClass>::iterator it;
+			us::msevector<IncompleteClass> instances;
+			typedef us::msevector<IncompleteClass>::iterator it;
 		};
 
 #if defined (STLPORT)
@@ -712,7 +712,7 @@ namespace mse {
 			// representation making executable crash on msevector destructor invocation.
 			// We prefer a simple memory leak, internal corruption should be reveal
 			// by size or capacity checks.
-			typedef msevector<int, NotSTLportAllocator<int> > V;
+			typedef us::msevector<int, NotSTLportAllocator<int> > V;
 			V *pv1 = new V(1, 1);
 			V *pv2 = new V(10, 2);
 
@@ -786,7 +786,7 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_1)
 		msev_int msevec_test_m1()
 		{
-			msevector<int> v1; // Empty vector of integers.
+			us::msevector<int> v1; // Empty vector of integers.
 
 			EXAM_CHECK(v1.empty() == true);
 			EXAM_CHECK(v1.size() == 0);
@@ -800,9 +800,9 @@ namespace mse {
 			EXAM_CHECK(v1[0] == 42);
 
 			{
-				msevector<msevector<int> > vect(10);
-				//msevector<msevector<int> >::iterator it(vect.begin()), end(vect.end());
-				msevector<msevector<int> >::cipointer it(vect);
+				us::msevector<us::msevector<int> > vect(10);
+				//us::msevector<us::msevector<int> >::iterator it(vect.begin()), end(vect.end());
+				us::msevector<us::msevector<int> >::cipointer it(vect);
 				for (; it.points_to_an_item(); it.set_to_next()) {
 					EXAM_CHECK((*it).empty());
 					EXAM_CHECK((*it).size() == 0);
@@ -817,10 +817,10 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_2)
 		msev_int msevec_test_m2()
 		{
-			msevector<double> v1; // Empty vector of doubles.
+			us::msevector<double> v1; // Empty vector of doubles.
 			v1.push_back(32.1);
 			v1.push_back(40.5);
-			msevector<double> v2; // Another empty vector of doubles.
+			us::msevector<double> v2; // Another empty vector of doubles.
 			v2.push_back(3.56);
 
 			EXAM_CHECK(v1.size() == 2);
@@ -854,7 +854,7 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_3)
 		msev_int msevec_test_m3()
 		{
-			typedef msevector<char> vec_type;
+			typedef us::msevector<char> vec_type;
 
 			vec_type v1; // Empty vector of characters.
 			v1.push_back('h');
@@ -884,7 +884,7 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_4)
 		msev_int msevec_test_m4()
 		{
-			msevector<int> v(4);
+			us::msevector<int> v(4);
 
 			v[0] = 1;
 			v[1] = 4;
@@ -913,9 +913,9 @@ namespace mse {
 			int array[] = { 1, 4, 9, 16 };
 
 #ifdef MSVC2010_COMPATIBLE
-			msevector<int> v(array, array + 4);
+			us::msevector<int> v(array, array + 4);
 #else /*MSVC2010_COMPATIBLE*/
-			msevector<int> v = { 1, 4, 9, 16 };
+			us::msevector<int> v = { 1, 4, 9, 16 };
 #endif /*MSVC2010_COMPATIBLE*/
 
 			EXAM_CHECK(v.size() == 4);
@@ -934,12 +934,12 @@ namespace mse {
 			int array[] = { 1, 4, 9, 16, 25, 36 };
 
 #ifdef MSVC2010_COMPATIBLE
-			msevector<int> v(array, array + 6);
+			us::msevector<int> v(array, array + 6);
 #else /*MSVC2010_COMPATIBLE*/
-			msevector<int> v = { 1, 4, 9, 16, 25, 36 };
+			us::msevector<int> v = { 1, 4, 9, 16, 25, 36 };
 #endif /*MSVC2010_COMPATIBLE*/
-			msevector<int>::ipointer vit(v);
-			//msevector<int>::iterator vit;
+			us::msevector<int>::ipointer vit(v);
+			//us::msevector<int>::iterator vit;
 
 			EXAM_CHECK(v.size() == 6);
 			EXAM_CHECK(v[0] == 1);
@@ -977,7 +977,7 @@ namespace mse {
 
 			vit.set_to_beginning();
 			vit.set_to_next();
-			msevector<int>::ipointer vit2(v);
+			us::msevector<int>::ipointer vit2(v);
 			vit2.set_to_end_marker();
 			vit2.set_to_previous();
 			v.erase(vit, vit2); // Erase all but first and last.
@@ -997,15 +997,15 @@ namespace mse {
 			int array2[] = { 9, 16 };
 
 #ifdef MSVC2010_COMPATIBLE
-			msevector<int> v(array1, array1 + 3);
+			us::msevector<int> v(array1, array1 + 3);
 #else /*MSVC2010_COMPATIBLE*/
-			msevector<int> v = { 1, 4, 25 };
+			us::msevector<int> v = { 1, 4, 25 };
 #endif /*MSVC2010_COMPATIBLE*/
-			msevector<int>::ipointer vit(v);
+			us::msevector<int>::ipointer vit(v);
 			vit.set_to_beginning();
 			v.insert_before(vit, 0); // Insert before first element.
 			vit.set_to_beginning();
-			//msevector<int>::iterator vit;
+			//us::msevector<int>::iterator vit;
 			//vit = v.insert(v.begin(), 0); // Insert before first element.
 			EXAM_CHECK(*vit == 0);
 
@@ -1060,7 +1060,7 @@ namespace mse {
 
 			/*
 			{
-			msevector<float> vf(2.0f, 3.0f);
+			us::msevector<float> vf(2.0f, 3.0f);
 			EXAM_CHECK( vf.size() == 2 );
 			EXAM_CHECK( vf.front() == 3.0f );
 			EXAM_CHECK( vf.back() == 3.0f );
@@ -1680,7 +1680,7 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_1)
 		msev_int msevec_test_ss1()
 		{
-			mse::msevector<int> v1; // Empty vector of integers.
+			mse::us::msevector<int> v1; // Empty vector of integers.
 
 			EXAM_CHECK(v1.empty() == true);
 			EXAM_CHECK(v1.size() == 0);
@@ -1694,9 +1694,9 @@ namespace mse {
 			EXAM_CHECK(v1[0] == 42);
 
 			{
-				mse::msevector<mse::msevector<int> > vect(10);
-				mse::msevector<mse::msevector<int> >::ss_iterator_type it(vect.ss_begin()), end(vect.ss_end());
-				//mse::msevector<mse::msevector<int> >::cipointer it(vect);
+				mse::us::msevector<mse::us::msevector<int> > vect(10);
+				mse::us::msevector<mse::us::msevector<int> >::ss_iterator_type it(vect.ss_begin()), end(vect.ss_end());
+				//mse::us::msevector<mse::us::msevector<int> >::cipointer it(vect);
 				for (; vect.ss_end() != it; it++) {
 					EXAM_CHECK((*it).empty());
 					EXAM_CHECK((*it).size() == 0);
@@ -1711,10 +1711,10 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_2)
 		msev_int msevec_test_ss2()
 		{
-			mse::msevector<double> v1; // Empty vector of doubles.
+			mse::us::msevector<double> v1; // Empty vector of doubles.
 			v1.push_back(32.1);
 			v1.push_back(40.5);
-			mse::msevector<double> v2; // Another empty vector of doubles.
+			mse::us::msevector<double> v2; // Another empty vector of doubles.
 			v2.push_back(3.56);
 
 			EXAM_CHECK(v1.size() == 2);
@@ -1748,7 +1748,7 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_3)
 		msev_int msevec_test_ss3()
 		{
-			typedef mse::msevector<char> vec_type;
+			typedef mse::us::msevector<char> vec_type;
 
 			vec_type v1; // Empty vector of characters.
 			v1.push_back('h');
@@ -1775,7 +1775,7 @@ namespace mse {
 		//int EXAM_IMPL(vector_test::vec_test_4)
 		msev_int msevec_test_ss4()
 		{
-			mse::msevector<int> v(4);
+			mse::us::msevector<int> v(4);
 
 			v[0] = 1;
 			v[1] = 4;
@@ -1803,8 +1803,8 @@ namespace mse {
 		{
 			int array[] = { 1, 4, 9, 16 };
 
-			mse::msevector<int> v(array, array + 4);
-			//mse::msevector<int> v = { 1, 4, 9, 16 };
+			mse::us::msevector<int> v(array, array + 4);
+			//mse::us::msevector<int> v = { 1, 4, 9, 16 };
 
 			EXAM_CHECK(v.size() == 4);
 
@@ -1821,10 +1821,10 @@ namespace mse {
 		{
 			int array[] = { 1, 4, 9, 16, 25, 36 };
 
-			mse::msevector<int> v(array, array + 6);
-			//mse::msevector<int> v = { 1, 4, 9, 16, 25, 36 };
-			//mse::msevector<int>::ipointer vit(v);
-			mse::msevector<int>::ss_iterator_type vit;
+			mse::us::msevector<int> v(array, array + 6);
+			//mse::us::msevector<int> v = { 1, 4, 9, 16, 25, 36 };
+			//mse::us::msevector<int>::ipointer vit(v);
+			mse::us::msevector<int>::ss_iterator_type vit;
 
 			EXAM_CHECK(v.size() == 6);
 			EXAM_CHECK(v[0] == 1);
@@ -1863,7 +1863,7 @@ namespace mse {
 
 			//vit.set_to_beginning();
 			//vit.set_to_next();
-			//mse::msevector<int>::ipointer vit2(v);
+			//mse::us::msevector<int>::ipointer vit2(v);
 			//vit2.set_to_end_marker();
 			//vit2.set_to_previous();
 			//v.erase(vit, vit2); // Erase all but first and last.
@@ -1882,13 +1882,13 @@ namespace mse {
 			int array1[] = { 1, 4, 25 };
 			int array2[] = { 9, 16 };
 
-			mse::msevector<int> v(array1, array1 + 3);
-			//mse::msevector<int> v = { 1, 4, 25 };
-			//mse::msevector<int>::ipointer vit(v);
+			mse::us::msevector<int> v(array1, array1 + 3);
+			//mse::us::msevector<int> v = { 1, 4, 25 };
+			//mse::us::msevector<int>::ipointer vit(v);
 			//vit.set_to_beginning();
 			//v.insert_before(vit, 0); // Insert before first element.
 			//vit.set_to_beginning();
-			mse::msevector<int>::ss_iterator_type vit;
+			mse::us::msevector<int>::ss_iterator_type vit;
 			vit = v.insert(v.ss_begin(), 0); // Insert before first element.
 			EXAM_CHECK(*vit == 0);
 
@@ -1960,7 +1960,7 @@ namespace mse {
 
 			/*
 			{
-			mse::msevector<float> vf(2.0f, 3.0f);
+			mse::us::msevector<float> vf(2.0f, 3.0f);
 			EXAM_CHECK( vf.size() == 2 );
 			EXAM_CHECK( vf.front() == 3.0f );
 			EXAM_CHECK( vf.back() == 3.0f );
@@ -1969,7 +1969,7 @@ namespace mse {
 
 			{
 				v.assign({3, 1, 4, 1, 5});
-				mse::msevector<int> v2(v.begin(), v.end());
+				mse::us::msevector<int> v2(v.begin(), v.end());
 				std::sort(v2.begin(), v2.end());
 				std::reverse(v2.begin(), v2.end());
 				v2.assign(v.begin(), v.end());
@@ -1983,7 +1983,7 @@ namespace mse {
 				EXAM_CHECK(v2[2] == 4);
 
 				v.assign({ 3, 1, 4, 1, 5 });
-				mse::msevector<int> v3(v.ss_begin(), v.ss_end());
+				mse::us::msevector<int> v3(v.ss_begin(), v.ss_end());
 				std::sort(v3.ss_begin(), v3.ss_end());
 				std::reverse(v3.ss_begin(), v3.ss_end());
 				v3.assign(v.ss_begin(), v.ss_end());

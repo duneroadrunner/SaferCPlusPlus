@@ -735,39 +735,39 @@ namespace mse {
 
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const xscope_array_iterator<array<_Ty, _Size> >& iter_cref) {
-			return mse::unsafe_make_xscope_pointer_to(*iter_cref);
+			return mse::us::unsafe_make_xscope_pointer_to(*iter_cref);
 		}
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeItemFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
-			return mse::unsafe_make_xscope_pointer_to((*ptr)[_P]);
+			return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
-			return mse::unsafe_make_xscope_pointer_to((*ptr)[_P]);
+			return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const xscope_array_const_iterator<array<_Ty, _Size> >& iter_cref) {
-			return mse::unsafe_make_xscope_const_pointer_to(*iter_cref);
+			return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
 		}
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedConstPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
-			return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
-			return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
-			return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
-			return mse::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
+			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 	}
@@ -830,7 +830,7 @@ namespace std {
 		return (_Left.swap(_Right));
 	}
 	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::us::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap arrays
 		return (_Left.swap(_Right));
 	}
@@ -841,7 +841,7 @@ namespace std {
 		return (_Right.swap(_Left));
 	}
 	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::msearray<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	void swap(mse::us::msearray<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap arrays
 		return (_Right.swap(_Left));
 	}

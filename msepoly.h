@@ -542,9 +542,9 @@ namespace mse {
 #if !defined(MSE_MSTDVECTOR_DISABLED)
 			typename mse::mstd::vector<_Ty>::iterator,
 #endif // !defined(MSE_MSTDVECTOR_DISABLED)
-			typename mse::msevector<_Ty>::iterator,
-			typename mse::msevector<_Ty>::ipointer,
-			typename mse::msevector<_Ty>::ss_iterator_type,
+			typename mse::us::msevector<_Ty>::iterator,
+			typename mse::us::msevector<_Ty>::ipointer,
+			typename mse::us::msevector<_Ty>::ss_iterator_type,
 			mse::TAsyncSharedReadWritePointer<_Ty>,
 			mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>,
 			std::shared_ptr<_Ty>,
@@ -583,9 +583,9 @@ namespace mse {
 #if !defined(MSE_MSTDVECTOR_DISABLED)
 		TPolyPointerBase(const typename mse::mstd::vector<_Ty>::iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::iterator>(p); }
 #endif // !defined(MSE_MSTDVECTOR_DISABLED)
-		TPolyPointerBase(const typename mse::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::iterator>(p); }
-		TPolyPointerBase(const typename mse::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::ipointer>(p); }
-		TPolyPointerBase(const typename mse::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::msevector<_Ty>::ss_iterator_type>(p); }
+		TPolyPointerBase(const typename mse::us::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::iterator>(p); }
+		TPolyPointerBase(const typename mse::us::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ipointer>(p); }
+		TPolyPointerBase(const typename mse::us::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ss_iterator_type>(p); }
 		TPolyPointerBase(const mse::TAsyncSharedReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWritePointer<_Ty>>(p); }
 		TPolyPointerBase(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>(p); }
 		TPolyPointerBase(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
@@ -700,9 +700,9 @@ namespace mse {
 #if !defined(MSE_MSTDVECTOR_DISABLED)
 			typename mse::mstd::vector<_Ty>::const_iterator,
 #endif // !defined(MSE_MSTDVECTOR_DISABLED)
-			typename mse::msevector<_Ty>::const_iterator,
-			typename mse::msevector<_Ty>::cipointer,
-			typename mse::msevector<_Ty>::ss_const_iterator_type,
+			typename mse::us::msevector<_Ty>::const_iterator,
+			typename mse::us::msevector<_Ty>::cipointer,
+			typename mse::us::msevector<_Ty>::ss_const_iterator_type,
 			mse::TAsyncSharedReadWriteConstPointer<_Ty>,
 			mse::TAsyncSharedReadWritePointer<_Ty>,
 			mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>,
@@ -765,9 +765,9 @@ namespace mse {
 		TPolyConstPointerBase(const typename mse::mstd::vector<_Ty>::const_iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::const_iterator>(p); }
 		TPolyConstPointerBase(const typename mse::mstd::vector<_Ty>::iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::const_iterator>(p); }
 #endif // !defined(MSE_MSTDVECTOR_DISABLED)
-		TPolyConstPointerBase(const typename mse::msevector<_Ty>::const_iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::const_iterator>(p); }
-		TPolyConstPointerBase(const typename mse::msevector<_Ty>::cipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::cipointer>(p); }
-		TPolyConstPointerBase(const typename mse::msevector<_Ty>::ss_const_iterator_type& p) { m_pointer.template set<typename mse::msevector<_Ty>::ss_const_iterator_type>(p); }
+		TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::const_iterator& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::const_iterator>(p); }
+		TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::cipointer& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::cipointer>(p); }
+		TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::ss_const_iterator_type& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ss_const_iterator_type>(p); }
 		TPolyConstPointerBase(const mse::TAsyncSharedReadWriteConstPointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWriteConstPointer<_Ty>>(p); }
 		TPolyConstPointerBase(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>(p); }
 		TPolyConstPointerBase(const std::shared_ptr<const _Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
@@ -776,9 +776,9 @@ namespace mse {
 		TPolyConstPointerBase(const mse::TXScopeAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(p); }
 		TPolyConstPointerBase(const mse::TAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(p); }
 
-		TPolyConstPointerBase(const typename mse::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::msevector<_Ty>::const_iterator>(p); }
-		TPolyConstPointerBase(const typename mse::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::msevector<_Ty>::cipointer>(p); }
-		TPolyConstPointerBase(const typename mse::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::msevector<_Ty>::ss_const_iterator_type>(p); }
+		TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::iterator& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::const_iterator>(p); }
+		TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::cipointer>(p); }
+		TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ss_const_iterator_type>(p); }
 		TPolyConstPointerBase(const mse::TAsyncSharedReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWritePointer<_Ty>>(p); }
 		TPolyConstPointerBase(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>(p); }
 		TPolyConstPointerBase(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
@@ -871,8 +871,8 @@ namespace mse {
 	};
 
 
-	template <typename _Ty> using TRandomAccessIteratorStdBase = typename mse::msearray<_Ty, 0>::random_access_iterator_base;
-	template <typename _Ty> using TRandomAccessConstIteratorStdBase = typename mse::msearray<_Ty, 0>::random_access_const_iterator_base;
+	template <typename _Ty> using TRandomAccessIteratorStdBase = typename mse::us::msearray<_Ty, 0>::random_access_iterator_base;
+	template <typename _Ty> using TRandomAccessConstIteratorStdBase = typename mse::us::msearray<_Ty, 0>::random_access_const_iterator_base;
 
 	template <typename _Ty>
 	class TCommonRandomAccessIteratorInterface : public TRandomAccessIteratorStdBase<_Ty> {
@@ -1392,7 +1392,7 @@ namespace mse {
 		}
 	private:
 		std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t>> m_access_lease_obj_shptr;
-		msevector<ras_ar_t> m_ra_sections;
+		us::msevector<ras_ar_t> m_ra_sections;
 	};
 
 	template <typename _TAccessRequester>
@@ -1723,7 +1723,7 @@ namespace mse {
 				mse::mstd::vector<A> a_mstdvec;
 				a_mstdvec.resize(1);
 				auto a_mstdvec_iter = a_mstdvec.begin();
-				mse::msevector<A> a_msevec;
+				mse::us::msevector<A> a_msevec;
 				a_msevec.resize(1);
 				auto a_msevec_ipointer = a_msevec.ibegin();
 				auto a_msevec_ssiter = a_msevec.ss_begin();

@@ -216,7 +216,7 @@ void msetl_example2() {
 		auto xscp_nii_ar_ifptr = mse::xscope_pointer_to_array_element<std::string, 5>(nii_ar_iter1);
 		auto nii_ar_res1 = (*xscp_nii_ar_ifptr);
 
-		mse::TXScopeObj<mse::msearray<std::string, 5> > xscp_msear1 = mse::msearray<std::string, 5>({ "0", "1", "2", "3", "4" });
+		mse::TXScopeObj<mse::us::msearray<std::string, 5> > xscp_msear1 = mse::us::msearray<std::string, 5>({ "0", "1", "2", "3", "4" });
 		auto msear_iter1 = mse::make_xscope_iterator(&xscp_msear1);
 		msear_iter1 += 2;
 		auto xscp_msear_ifptr = mse::xscope_pointer_to_array_element<std::string, 5>(msear_iter1);
@@ -500,7 +500,7 @@ void msetl_example2() {
 		{
 			mse::mstd::string mstd_string1;
 			mse::TUserDeclaredAsyncShareableObj<std::string> aso1;
-			//mse::TUserDeclaredAsyncShareableObj<mse::msearray<std::string, 3>> aso2;
+			//mse::TUserDeclaredAsyncShareableObj<mse::us::msearray<std::string, 3>> aso2;
 			mse::TUserDeclaredAsyncShareableObj<mse::nii_array<std::string, 3>> aso3;
 
 			mse::TAccessControlledReadWriteObj<mse::TUserDeclaredAsyncShareableObj<std::string>> aco1;

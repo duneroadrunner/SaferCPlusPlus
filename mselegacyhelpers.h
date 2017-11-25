@@ -80,34 +80,34 @@ namespace mse {
 
 			_Ty m_value;
 		};
-		template <typename _Ty> using TVectorRefcfptrWrapper = TOpaqueWrapper<mse::TRefCountingFixedPointer<mse::msevector<_Ty>>>;
+		template <typename _Ty> using TVectorRefcfptrWrapper = TOpaqueWrapper<mse::TRefCountingFixedPointer<mse::us::msevector<_Ty>>>;
 
 		/* This data type was motivated by the need for a direct substitute for native pointers targeting dynamically
 		allocated (native) arrays, which can kind of play a dual role as a reference to the array object and/or as an
 		iterator. I'm not sure about this implementation though. We could base it on an mse::ivector::ipointer
 		instead... */
 		template <typename _Ty>
-		class TIPointerWithBundledVector : private TVectorRefcfptrWrapper<_Ty>, public mse::msevector<_Ty>::ipointer {
+		class TIPointerWithBundledVector : private TVectorRefcfptrWrapper<_Ty>, public mse::us::msevector<_Ty>::ipointer {
 		public:
-			typedef typename mse::msevector<_Ty>::ipointer ipointer_base_class;
-			typedef typename mse::msevector<_Ty>::size_type size_type;
+			typedef typename mse::us::msevector<_Ty>::ipointer ipointer_base_class;
+			typedef typename mse::us::msevector<_Ty>::size_type size_type;
 
-			TIPointerWithBundledVector() : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>())
+			TIPointerWithBundledVector() : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::us::msevector<_Ty>>())
 				, ipointer_base_class(*vector_refcptr()) {}
 			TIPointerWithBundledVector(const std::nullptr_t& src) : TIPointerWithBundledVector() {}
 			TIPointerWithBundledVector(const TIPointerWithBundledVector& src) : TVectorRefcfptrWrapper<_Ty>(src.vector_refcptr())
 				, ipointer_base_class(*vector_refcptr()) {
 				ipointer_base_class::operator=(src);
 			}
-			TIPointerWithBundledVector(_XSTD initializer_list<_Ty> _Ilist) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>(_Ilist))
+			TIPointerWithBundledVector(_XSTD initializer_list<_Ty> _Ilist) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::us::msevector<_Ty>>(_Ilist))
 				, ipointer_base_class(*vector_refcptr()) {}
-			explicit TIPointerWithBundledVector(size_type _N) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>(_N))
+			explicit TIPointerWithBundledVector(size_type _N) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::us::msevector<_Ty>>(_N))
 				, ipointer_base_class(*vector_refcptr()) {}
-			explicit TIPointerWithBundledVector(size_type _N, const _Ty& _V) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>(_N, _V))
+			explicit TIPointerWithBundledVector(size_type _N, const _Ty& _V) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::us::msevector<_Ty>>(_N, _V))
 				, ipointer_base_class(*vector_refcptr()) {}
 			/*
 			template <class... Args>
-			TIPointerWithBundledVector(Args&&... args) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::msevector<_Ty>>(std::forward<Args>(args)...))
+			TIPointerWithBundledVector(Args&&... args) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::us::msevector<_Ty>>(std::forward<Args>(args)...))
 				, ipointer_base_class(*vector_refcptr()) {}
 				*/
 
@@ -150,9 +150,9 @@ namespace mse {
 			}
 
 		private:
-			mse::TRefCountingFixedPointer<mse::msevector<_Ty>>& vector_refcptr() { return (*this).value(); }
-			const mse::TRefCountingFixedPointer<mse::msevector<_Ty>>& vector_refcptr() const { return (*this).value(); }
-			//mse::TRefCountingFixedPointer<mse::msevector<_Ty>> m_vector_refcptr;
+			mse::TRefCountingFixedPointer<mse::us::msevector<_Ty>>& vector_refcptr() { return (*this).value(); }
+			const mse::TRefCountingFixedPointer<mse::us::msevector<_Ty>>& vector_refcptr() const { return (*this).value(); }
+			//mse::TRefCountingFixedPointer<mse::us::msevector<_Ty>> m_vector_refcptr;
 		};
 
 		template <class X, class... Args>

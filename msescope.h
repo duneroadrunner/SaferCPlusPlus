@@ -366,6 +366,19 @@ namespace mse {
 		friend class TXScopeOwnerPointer<_TROy>;
 	};
 
+	template<typename _Ty>
+	class TXScopeItemFixedPointer;
+	template<typename _Ty>
+	class TXScopeItemFixedConstPointer;
+
+	namespace us {
+		/* A couple of unsafe functions for internal use. */
+		template<typename _Ty>
+		TXScopeItemFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref);
+		template<typename _Ty>
+		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref);
+	}
+
 	/* While TXScopeFixedPointer<> points to a TXScopeObj<>, TXScopeItemFixedPointer<> is intended to be able to point to a
 	TXScopeObj<>, any member of a TXScopeObj<>, or various other items with scope lifetime that, for various reasons, aren't
 	declared as TXScopeObj<>. */
@@ -399,7 +412,7 @@ namespace mse {
 		friend TXScopeItemFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty2> &lease_pointer);
 		template<class _TTargetType, class _Ty2>
 		friend TXScopeItemFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeItemFixedPointer<_Ty2> &lease_pointer);
-		template<class _Ty2> friend TXScopeItemFixedPointer<_Ty2> unsafe_make_xscope_pointer_to(_Ty2& ref);
+		template<class _Ty2> friend TXScopeItemFixedPointer<_Ty2> us::unsafe_make_xscope_pointer_to(_Ty2& ref);
 	};
 
 	template<typename _Ty>
@@ -449,19 +462,21 @@ namespace mse {
 		friend TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedPointer<_Ty2> &lease_pointer);
 		template<class _TTargetType, class _Ty2>
 		friend TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedConstPointer<_Ty2> &lease_pointer);
-		template<class _Ty2> friend TXScopeItemFixedConstPointer<_Ty2> unsafe_make_xscope_const_pointer_to(const _Ty2& cref);
+		template<class _Ty2> friend TXScopeItemFixedConstPointer<_Ty2> us::unsafe_make_xscope_const_pointer_to(const _Ty2& cref);
 	};
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
-	/* A couple of unsafe functions for internal use. */
-	template<typename _Ty>
-	TXScopeItemFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref) {
-		return TXScopeItemFixedPointer<_Ty>(&ref);
-	}
-	template<typename _Ty>
-	TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref) {
-		return TXScopeItemFixedConstPointer<_Ty>(&cref);
+	namespace us {
+		/* A couple of unsafe functions for internal use. */
+		template<typename _Ty>
+		TXScopeItemFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref) {
+			return TXScopeItemFixedPointer<_Ty>(&ref);
+		}
+		template<typename _Ty>
+		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref) {
+			return TXScopeItemFixedConstPointer<_Ty>(&cref);
+		}
 	}
 
 	/* TXScopeOwnerPointer is meant to be much like boost::scoped_ptr<>. Instead of taking a native pointer,
@@ -718,7 +733,7 @@ namespace mse {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
 		auto xscope_ptr() const {
-			return mse::unsafe_make_xscope_pointer_to(*m_stored_ptr);
+			return mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr);
 		}
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 	private:
@@ -732,7 +747,7 @@ namespace mse {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
 		auto xscope_ptr() const {
-			return mse::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
+			return mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
 		}
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 	private:
@@ -744,7 +759,7 @@ namespace mse {
 	public:
 		TXScopeStrongNotNullPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
 		auto xscope_ptr() const {
-			return mse::unsafe_make_xscope_pointer_to(*m_stored_ptr);
+			return mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr);
 		}
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 	private:
@@ -756,7 +771,7 @@ namespace mse {
 	public:
 		TXScopeStrongNotNullConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
 		auto xscope_ptr() const {
-			return mse::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
+			return mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
 		}
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 	private:
