@@ -786,7 +786,7 @@ usage example:
         mse::mstd::vector<H> h_mstdvec;
         h_mstdvec.resize(1);
         auto h_mstdvec_iter = h_mstdvec.begin();
-        mse::msevector<H> h_msevec;
+        mse::us::msevector<H> h_msevec;
         h_msevec.resize(1);
         auto h_msevec_ipointer = h_msevec.ibegin();
         auto h_msevec_ssiter = h_msevec.ss_begin();
@@ -919,7 +919,7 @@ usage example:
         mse::mstd::vector<A> a_mstdvec;
         a_mstdvec.resize(1);
         auto a_mstdvec_iter = a_mstdvec.begin();
-        mse::msevector<A> a_msevec;
+        mse::us::msevector<A> a_msevec;
         a_msevec.resize(1);
         auto a_msevec_ipointer = a_msevec.ibegin();
         auto a_msevec_ssiter = a_msevec.ss_begin();
@@ -1295,7 +1295,7 @@ The library provides a number of vector types. Probably the two most essential a
 
 The standard library vector iterators are designed so that they can be (unsafely) implemented as just pointers. But this makes them prone to being invalidated as a side effect of insertion, deletion and resize operations on the vector. This also means that they behave differently from list iterators, so algorithms that work on lists won't necessarily work on vectors. So the library includes [ivector<>](#ivector), whose iterators behave like list iterators. That is, they don't get invalidated by insert/delete/resize vector operations unless the element they were pointing to is deleted, and after any such operation, they will continue to point to the same item, which may then be in a different position in the vector.
 
-And finally, for those whose are willing to sacrifice some safety for performance there is [msevector<>](#msevector). This vector is not memory-safe in the way that the other vectors are. It may be useful in cases where you want more control over the safety-performance trade-off. It supports a variety of iterator types - the traditional (unsafe) iterators, a bounds-checked version of the traditional iterator, and iterators that, like ivector<>'s iterators, behave like list iterators.
+And finally, for those whose are willing to sacrifice some safety for performance there is [us::msevector<>](#msevector). This vector is not memory-safe in the way that the other vectors are. It may be useful in cases where you want more control over the safety-performance trade-off. It supports a variety of iterator types - the traditional (unsafe) iterators, a bounds-checked version of the traditional iterator, and iterators that, like ivector<>'s iterators, behave like list iterators.
 
 The vectors, except ivector<>, also support scope iterators which have the same syntax and behavior as the arrays' [scope iterators](#xscope_iterator). ivector<> support for scope iterators will be added in the future.
 
@@ -1319,13 +1319,13 @@ usage example:
         /* mse::msevector is not quite as safe as mse::mstd::vector in the following way: */
         
         std::vector<int>::iterator sv1_it;
-        mse::msevector<int>::ss_iterator_type msev1_it; // bounds checked iterator just like mse::mstd::vector<int>::iterator
+        mse::us::msevector<int>::ss_iterator_type msev1_it; // bounds checked iterator just like mse::mstd::vector<int>::iterator
         mse::mstd::vector<int>::iterator mv1_it;
         {
             std::vector<int> sv1 = { 1, 2, 3 };
             sv1_it = sv1.begin();
             
-            mse::msevector<int> msev1 = { 1, 2, 3 };
+            mse::us::msevector<int> msev1 = { 1, 2, 3 };
             msev1_it = msev1.ss_begin();
             
             mse::mstd::vector<int> mv1 = { 1, 2, 3 };
@@ -1407,11 +1407,11 @@ usage example:
 
 ### msevector
 
-msevector<> is not memory-safe in the way that the other vectors are. It can be used in cases where you want more control over the safety-performance trade-off.  
+us::msevector<> is not memory-safe in the way that the other vectors are. It can be used in cases where you want more control over the safety-performance trade-off.  
 
-In addition to the (high performance) standard vector iterator, msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. Algorithms that work when applied to list iterators will work when applied to ipointers. This can be useful as Bjarne famously [points out](https://www.youtube.com/watch?v=YQs6IC-vgmo), for cache-coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate. You can read a short article comparing ipointers with some existing alternatives [here](http://www.codeproject.com/Articles/1087021/Stable-Iterators-for-Cplusplus-Vectors-and-Why-You).  
+In addition to the (high performance) standard vector iterator, us::msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. Algorithms that work when applied to list iterators will work when applied to ipointers. This can be useful as Bjarne famously [points out](https://www.youtube.com/watch?v=YQs6IC-vgmo), for cache-coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate. You can read a short article comparing ipointers with some existing alternatives [here](http://www.codeproject.com/Articles/1087021/Stable-Iterators-for-Cplusplus-Vectors-and-Why-You).  
 
-msevector<> also provides a safer bounds-checked version of the standard vector iterator. Note that none of these iterators are safe against the situation where the vector is deleted before an iterator is finished using it.
+us::msevector<> also provides a safer bounds-checked version of the standard vector iterator. Note that none of these iterators are safe against the situation where the vector is deleted before an iterator is finished using it.
 
 usage example:
 
@@ -1419,10 +1419,10 @@ usage example:
     
     int main(int argc, char* argv[]) {
         
-        mse::msevector<int> v1 = { 1, 2, 3, 4 };
-        mse::msevector<int> v = v1;
+        mse::us::msevector<int> v1 = { 1, 2, 3, 4 };
+        mse::us::msevector<int> v = v1;
         {
-            mse::msevector<int>::ipointer ip1 = v.ibegin();
+            mse::us::msevector<int>::ipointer ip1 = v.ibegin();
             ip1 += 2;
             assert(3 == (*ip1));
             auto ip2 = v.ibegin(); /* ibegin() returns an ipointer */
@@ -1430,7 +1430,7 @@ usage example:
             assert(3 == (*ip1)); /* ip1 continues to point to the same item, not the same position */
             ip1--;
             assert(2 == (*ip1));
-            for (mse::msevector<int>::cipointer cip = v.cibegin(); v.ciend() != cip; cip++) {
+            for (mse::us::msevector<int>::cipointer cip = v.cibegin(); v.ciend() != cip; cip++) {
                 /* You might imagine what would happen if cip were a regular vector iterator. */
                 v.insert(v.ibegin(), (*cip));
             }
@@ -1439,7 +1439,7 @@ usage example:
         {
             /* This code block is equivalent to the previous code block, but uses ipointer's more "readable" interface
             that might make the code a little more clear to those less familiar with C++ syntax. */
-            mse::msevector<int>::ipointer ip_vit1 = v.ibegin();
+            mse::us::msevector<int>::ipointer ip_vit1 = v.ibegin();
             ip_vit1.advance(2);
             assert(3 == ip_vit1.item());
             auto ip_vit2 = v.ibegin();
@@ -1447,7 +1447,7 @@ usage example:
             assert(3 == ip_vit1.item());
             ip_vit1.set_to_previous();
             assert(2 == ip_vit1.item());
-            mse::msevector<int>::cipointer cip(v);
+            mse::us::msevector<int>::cipointer cip(v);
             for (cip.set_to_beginning(); cip.points_to_an_item(); cip.set_to_next()) {
                 v.insert_before(v.ibegin(), (*cip));
             }
@@ -1456,10 +1456,10 @@ usage example:
         /* Btw, ipointers are compatible with stl algorithms, like any other stl iterators. */
         std::sort(v.ibegin(), v.iend());
     
-        /* And just to be clear, mse::msevector<> retains its original (high performance) stl vector iterators. */
+        /* And just to be clear, mse::us::msevector<> retains its original (high performance) stl vector iterators. */
         std::sort(v.begin(), v.end());
     
-        /* mse::msevector<> also provides "safe" (bounds checked) versions of the original stl vector iterators. */
+        /* mse::us::msevector<> also provides "safe" (bounds checked) versions of the original stl vector iterators. */
         std::sort(v.ss_begin(), v.ss_end());
     }
 
@@ -1526,7 +1526,7 @@ usage example:
 
 ### Arrays
 
-The library provides a few array types - [mstd::array<>](#array), [nii_array<>](#nii_array) and [msearray<>](#msearray) - which have properties similar to their corresponding [vector](#vectors) types. mstd::array<> is simply a memory-safe drop-in replacement for std::array<>. nii_array<> is designed to be safely shared between asynchronous threads. And msearray<> is not memory-safe in the way the other arrays are, and is provided for cases where more control over the safety-preformance trade-off is desired.
+The library provides a few array types - [mstd::array<>](#array), [nii_array<>](#nii_array) and [us::msearray<>](#msearray) - which have properties similar to their corresponding [vector](#vectors) types. mstd::array<> is simply a memory-safe drop-in replacement for std::array<>. nii_array<> is designed to be safely shared between asynchronous threads. And us::msearray<> is not memory-safe in the way the other arrays are, and is provided for cases where more control over the safety-preformance trade-off is desired.
 
 Note that these arrays currently do not support using [scope](#scope-pointers) types as the element type even when the array itself is declared as a scope object. It's expected that this will be supported in the future. The (few) cases where this would be an issue is when you want the element type to be a scope pointer or a type with scope pointer members. In those cases, you might use registered and/or refcounting pointers instead. 
 
@@ -1551,13 +1551,13 @@ usage example:
         /* mse::msearray is not quite as safe as mse::mstd::array in the following way: */
     
         std::array<int, 3>::iterator sa1_it;
-        mse::msearray<int, 3>::ss_iterator_type msea1_it; // bounds checked iterator just like mse::mstd::array::iterator
+        mse::us::msearray<int, 3>::ss_iterator_type msea1_it; // bounds checked iterator just like mse::mstd::array::iterator
         mse::mstd::array<int, 3>::iterator ma1_it;
         {
             std::array<int, 3> sa1 = { 1, 2, 3 };
             sa1_it = sa1.begin();
     
-            mse::msearray<int, 3> msea1 = { 1, 2, 3 };
+            mse::us::msearray<int, 3> msea1 = { 1, 2, 3 };
             msea1_it = msea1.ss_begin();
     
             mse::mstd::array<int, 3> ma1 = { 1, 2, 3 };
@@ -1580,7 +1580,7 @@ nii_array<> is just the corresponding array version of [nii_vector](#nii_vector)
 
 ### msearray
 
-msearray<>, like msevector<>, is not memory-safe in the way that the other arrays are. And like msevector<>, msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like msevector<>, msearray<>'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
+us::msearray<>, like us::msevector<>, is not memory-safe in the way that the other arrays are. And like us::msevector<>, us::msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like us::msevector<>, us::msearray<>'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
 
 usage example:
 
@@ -1588,8 +1588,8 @@ usage example:
     #include <array>
     
     int main(int argc, char* argv[]) {
-        mse::msearray<int, 3> a1 = { 1, 2, 3 };
-        mse::msearray<int, 3> a2 = { 11, 12, 13 };
+        mse::us::msearray<int, 3> a1 = { 1, 2, 3 };
+        mse::us::msearray<int, 3> a2 = { 11, 12, 13 };
         
         //bool bres1 = (a1.begin() == a2.end());
         /* The previous commented out line would result in "undefined behavior. */
@@ -1616,7 +1616,7 @@ usage example:
             object. There are limitations on when thay can be used, but unlike the other msearray iterators,
             those restrictions ensure that they won't be used to access the array after it's been deallocated. */
             
-            mse::TXScopeObj<mse::msearray<int, 3>> array1_scpobj = mse::msearray<int, 3>{ 1, 2, 3 };
+            mse::TXScopeObj<mse::us::msearray<int, 3>> array1_scpobj = mse::us::msearray<int, 3>{ 1, 2, 3 };
             
             auto scp_ss_iter1 = mse::make_xscope_iterator(&array1_scpobj);
             scp_ss_iter1.set_to_beginning();
@@ -1638,7 +1638,7 @@ usage example:
             public:
                 CContainer1() : m_array({ 1, 2, 3 }) {}
                 
-                mse::msearray<int, 3> m_array;
+                mse::us::msearray<int, 3> m_array;
             };
             mse::TXScopeObj<CContainer1> container1_scpobj;
             auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
@@ -1650,7 +1650,7 @@ usage example:
 
 ### xscope_iterator
 
-The implementation of, for example, mstd::array<> iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct that is not itself a scope object, and may not be used as a function return value. mstd::array<>, nii_array<> and msearray<> all support scope iterators.
+The implementation of, for example, mstd::array<> iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct that is not itself a scope object, and may not be used as a function return value. mstd::array<>, nii_array<> and us::msearray<> all support scope iterators.
 
 usage example:
 
@@ -1695,7 +1695,7 @@ usage example:
 
 ### xscope_pointer_to_array_element()
 
-You can use this function to obtain a scope pointer to an array element. You can pass it ethier an xscope_iterator or a scope pointer to an array and an index. mstd::array<>, nii_array<> and msearray<> are supported.
+You can use this function to obtain a scope pointer to an array element. You can pass it ethier an xscope_iterator or a scope pointer to an array and an index. mstd::array<>, nii_array<> and us::msearray<> are supported.
 
 usage example:
 
