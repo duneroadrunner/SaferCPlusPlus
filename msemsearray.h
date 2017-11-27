@@ -750,6 +750,29 @@ namespace mse {
 	};
 	/* Template specializations that construct mse::msearrays of different sizes are located later in the file. */
 
+	template<class _StateMutex>
+	class destructor_lock_guard1 {
+	public:
+		explicit destructor_lock_guard1(_StateMutex& _Mtx) : _MyStateMutex(_Mtx) {
+			try {
+				_Mtx.lock();
+			}
+			catch (...) {
+				/* It may not be safe to continue if the object is destroyed while the object state is locked (and presumably
+				in use) by another part of the code. */
+				std::cerr << "\n\nFatal Error: mse::destructor_lock_guard1() failed \n\n";
+				std::terminate();
+			}
+		}
+		~destructor_lock_guard1() _NOEXCEPT {
+			_MyStateMutex.unlock();
+		}
+		destructor_lock_guard1(const destructor_lock_guard1&) = delete;
+		destructor_lock_guard1& operator=(const destructor_lock_guard1&) = delete;
+	private:
+		_StateMutex& _MyStateMutex;
+	};
+
 	typedef 
 #if !defined(NDEBUG) || defined(MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT)
 		non_thread_safe_mutex
@@ -815,7 +838,7 @@ namespace mse {
 		}
 
 		~nii_array() {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			mse::destructor_lock_guard1<_TStateMutex> lock1(m_mutex1);
 
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			valid_if_Ty_is_not_an_xscope_type();

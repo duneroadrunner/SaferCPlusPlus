@@ -16,6 +16,11 @@ namespace mse {
 #define _NOEXCEPT
 #endif /*_NOEXCEPT*/
 
+	class ivector_range_error : public std::range_error {
+	public:
+		using std::range_error::range_error;
+	};
+
 	template<class _Ty, class _A = std::allocator<_Ty> >
 	class ivector {
 	public:
@@ -69,11 +74,12 @@ namespace mse {
 		void clear() { m_shptr->clear(); }
 		void swap(_MV& _X) { m_shptr->swap(_X); }
 		void swap(_Myt& _X) { m_shptr->swap(_X.msevector()); }
+		void swap(mse::nii_vector<_Ty, _A>& _X) { m_shptr->swap(_X); }
+		void swap(std::vector<_Ty, _A>& _X) { m_shptr->swap(_X); }
 
 		ivector(_XSTD initializer_list<typename _MV::value_type> _Ilist, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Ilist, _Al)) {}
 		_Myt& operator=(_XSTD initializer_list<typename _MV::value_type> _Ilist) { m_shptr->operator=(_Ilist); return (*this); }
 		void assign(_XSTD initializer_list<typename _MV::value_type> _Ilist) { m_shptr->assign(_Ilist); }
-		typename _MV::iterator insert(typename _MV::const_iterator _Where, _XSTD initializer_list<typename _MV::value_type> _Ilist) { return m_shptr->insert(_Where, _Ilist); }
 
 		size_type capacity() const _NOEXCEPT{ return m_shptr->capacity(); }
 		void shrink_to_fit() { m_shptr->shrink_to_fit(); }
@@ -87,6 +93,9 @@ namespace mse {
 		typename _MV::const_reference front() const { return m_shptr->front(); }
 		typename _MV::reference back() { return m_shptr->back(); }
 		typename _MV::const_reference back() const { return m_shptr->back(); }
+
+		class xscope_cipointer;
+		class xscope_ipointer;
 
 		class cipointer : public _MV::random_access_const_iterator_base {
 		public:
@@ -142,6 +151,10 @@ namespace mse {
 			bool operator>=(const cipointer& _Right) const { return (msevector_cipointer() >= _Right.msevector_cipointer()); }
 			void set_to_const_item_pointer(const cipointer& _Right_cref) { msevector_cipointer().set_to_const_item_pointer(_Right_cref.msevector_cipointer()); }
 			msev_size_t position() const { return msevector_cipointer().position(); }
+			auto target_container_ptr() const -> decltype(msevector_cipointer().target_container_ptr()) {
+				return msevector_cipointer().target_container_ptr();
+			}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		private:
 			cipointer(const std::shared_ptr<_MV>& msevector_shptr) : m_msevector_cshptr(msevector_shptr), m_cipointer(*msevector_shptr) {}
 			std::shared_ptr<const _MV> m_msevector_cshptr;
@@ -210,6 +223,10 @@ namespace mse {
 			bool operator>(const ipointer& _Right) const { return (msevector_ipointer() > _Right.msevector_ipointer()); }
 			bool operator>=(const ipointer& _Right) const { return (msevector_ipointer() >= _Right.msevector_ipointer()); }
 			void set_to_item_pointer(const ipointer& _Right_cref) { msevector_ipointer().set_to_item_pointer(_Right_cref.msevector_ipointer()); }
+			auto target_container_ptr() const -> decltype(msevector_ipointer().target_container_ptr()) {
+				return msevector_ipointer().target_container_ptr();
+			}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 			msev_size_t position() const { return msevector_ipointer().position(); }
 		private:
 			std::shared_ptr<_MV> m_msevector_shptr;
@@ -321,7 +338,262 @@ namespace mse {
 		}
 		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for ivectors
 			return ((*m_shptr) < (*(_Right.m_shptr)));
+		}
+
+		/* These static functions are just used to obtain a (base class) reference to an
+		object of a (possibly) derived class. */
+		static _MV& _MV_ref(_MV& obj) { return obj; }
+		static const _MV& _MV_cref(const _MV& obj) { return obj; }
+
+		class xscope_cipointer : public _MV::random_access_iterator_base, public XScopeTagBase {
+		public:
+			typedef typename _MV::cipointer::iterator_category iterator_category;
+			typedef typename _MV::cipointer::value_type value_type;
+			typedef typename _MV::cipointer::difference_type difference_type;
+			typedef typename _MV::difference_type distance_type;	// retained
+			typedef typename _MV::cipointer::pointer pointer;
+			typedef typename _MV::cipointer::reference reference;
+
+			xscope_cipointer(const mse::TXScopeFixedConstPointer<ivector>& owner_ptr)
+				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+			xscope_cipointer(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
+				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+			xscope_cipointer(const mse::TXScopeItemFixedConstPointer<ivector>& owner_ptr)
+				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+			xscope_cipointer(const mse::TXScopeItemFixedPointer<ivector>& owner_ptr)
+				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+			xscope_cipointer(const xscope_cipointer& src_cref) : m_xscope_cipointer(src_cref.m_xscope_cipointer) {}
+			xscope_cipointer(const xscope_ipointer& src_cref) : m_xscope_cipointer(src_cref.m_xscope_ipointer) {}
+			~xscope_cipointer() {}
+			const typename _MV::cipointer& msevector_cipointer() const {
+				return m_xscope_cipointer;
 			}
+			typename _MV::cipointer& msevector_cipointer() {
+				return m_xscope_cipointer;
+			}
+			const typename _MV::cipointer& mvssci() const { return msevector_cipointer(); }
+			typename _MV::cipointer& mvssci() { return msevector_cipointer(); }
+
+			void reset() { msevector_cipointer().reset(); }
+			bool points_to_an_item() const { return msevector_cipointer().points_to_an_item(); }
+			bool points_to_end_marker() const { return msevector_cipointer().points_to_end_marker(); }
+			bool points_to_beginning() const { return msevector_cipointer().points_to_beginning(); }
+			/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+			bool has_next_item_or_end_marker() const { return msevector_cipointer().has_next_item_or_end_marker(); }
+			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
+			bool has_next() const { return msevector_cipointer().has_next(); }
+			bool has_previous() const { return msevector_cipointer().has_previous(); }
+			void set_to_beginning() { msevector_cipointer().set_to_beginning(); }
+			void set_to_end_marker() { msevector_cipointer().set_to_end_marker(); }
+			void set_to_next() { msevector_cipointer().set_to_next(); }
+			void set_to_previous() { msevector_cipointer().set_to_previous(); }
+			xscope_cipointer& operator ++() { msevector_cipointer().operator ++(); return (*this); }
+			xscope_cipointer operator++(int) { xscope_cipointer _Tmp = *this; ++*this; return (_Tmp); }
+			xscope_cipointer& operator --() { msevector_cipointer().operator --(); return (*this); }
+			xscope_cipointer operator--(int) { xscope_cipointer _Tmp = *this; --*this; return (_Tmp); }
+			void advance(typename _MV::difference_type n) { msevector_cipointer().advance(n); }
+			void regress(typename _MV::difference_type n) { msevector_cipointer().regress(n); }
+			xscope_cipointer& operator +=(difference_type n) { msevector_cipointer().operator +=(n); return (*this); }
+			xscope_cipointer& operator -=(difference_type n) { msevector_cipointer().operator -=(n); return (*this); }
+			xscope_cipointer operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			xscope_cipointer operator-(difference_type n) const { return ((*this) + (-n)); }
+			typename _MV::difference_type operator-(const xscope_cipointer& _Right_cref) const { return msevector_cipointer() - (_Right_cref.msevector_cipointer()); }
+			typename _MV::const_reference operator*() const { return msevector_cipointer().operator*(); }
+			typename _MV::const_reference item() const { return operator*(); }
+			typename _MV::const_reference previous_item() const { return msevector_cipointer().previous_item(); }
+			typename _MV::const_pointer operator->() const { return msevector_cipointer().operator->(); }
+			typename _MV::const_reference operator[](typename _MV::difference_type _Off) const { return msevector_cipointer()[_Off]; }
+			xscope_cipointer& operator=(const xscope_cipointer& _Right_cref) {
+				msevector_cipointer().operator=(_Right_cref.msevector_cipointer());
+				return (*this);
+			}
+			xscope_cipointer& operator=(const xscope_ipointer& _Right_cref) {
+				msevector_cipointer().operator=(_Right_cref.msevector_ipointer());
+				return (*this);
+			}
+			xscope_cipointer& operator=(const typename _Myt::cipointer& _Right_cref) {
+				//msevector_cipointer().operator=(_Right_cref.msevector_reg_ss_const_iterator_type());
+				if (!(_Right_cref.target_container_ptr())
+					|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
+					MSE_THROW(ivector_range_error("invalid assignment - mse::mstd::vector<>::xscope_cipointer"));
+				}
+				(*this).set_to_beginning();
+				(*this) += _Right_cref.position();
+				return (*this);
+			}
+			xscope_cipointer& operator=(const typename _Myt::ipointer& _Right_cref) {
+				//msevector_cipointer().operator=(_Right_cref.msevector_reg_ss_iterator_type());
+				if (!(_Right_cref.target_container_ptr())
+					|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
+					MSE_THROW(ivector_range_error("invalid assignment - mse::mstd::vector<>::xscope_cipointer"));
+				}
+				(*this).set_to_beginning();
+				(*this) += _Right_cref.position();
+				return (*this);
+			}
+			bool operator==(const xscope_cipointer& _Right_cref) const { return msevector_cipointer().operator==(_Right_cref.msevector_cipointer()); }
+			bool operator!=(const xscope_cipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
+			bool operator<(const xscope_cipointer& _Right) const { return (msevector_cipointer() < _Right.msevector_cipointer()); }
+			bool operator<=(const xscope_cipointer& _Right) const { return (msevector_cipointer() <= _Right.msevector_cipointer()); }
+			bool operator>(const xscope_cipointer& _Right) const { return (msevector_cipointer() > _Right.msevector_cipointer()); }
+			bool operator>=(const xscope_cipointer& _Right) const { return (msevector_cipointer() >= _Right.msevector_cipointer()); }
+			void set_to_const_item_pointer(const xscope_cipointer& _Right_cref) { msevector_cipointer().set_to_const_item_pointer(_Right_cref.msevector_cipointer()); }
+			msear_size_t position() const { return msevector_cipointer().position(); }
+			auto target_container_ptr() const -> decltype(msevector_cipointer().target_container_ptr()) {
+				return msevector_cipointer().target_container_ptr();
+			}
+			void xscope_tag() const {}
+			void xscope_ipointer_tag() const {}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		private:
+			typename _MV::xscope_cipointer m_xscope_cipointer;
+			friend class /*_Myt*/ivector<_Ty>;
+		};
+		class xscope_ipointer : public _MV::random_access_iterator_base, public XScopeTagBase {
+		public:
+			typedef typename _MV::ipointer::iterator_category iterator_category;
+			typedef typename _MV::ipointer::value_type value_type;
+			typedef typename _MV::ipointer::difference_type difference_type;
+			typedef typename _MV::difference_type distance_type;	// retained
+			typedef typename _MV::ipointer::pointer pointer;
+			typedef typename _MV::ipointer::reference reference;
+
+			xscope_ipointer(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
+				: m_xscope_ipointer(mse::make_xscope_pointer_to_member(_MV_ref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+			xscope_ipointer(const mse::TXScopeItemFixedPointer<ivector>& owner_ptr)
+				: m_xscope_ipointer(mse::make_xscope_pointer_to_member(_MV_ref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+			xscope_ipointer(const xscope_ipointer& src_cref) : m_xscope_ipointer(src_cref.m_xscope_ipointer) {}
+			~xscope_ipointer() {}
+			const typename _MV::ipointer& msevector_ipointer() const {
+				return m_xscope_ipointer;
+			}
+			typename _MV::ipointer& msevector_ipointer() {
+				return m_xscope_ipointer;
+			}
+			const typename _MV::ipointer& mvssi() const { return msevector_ipointer(); }
+			typename _MV::ipointer& mvssi() { return msevector_ipointer(); }
+
+			void reset() { msevector_ipointer().reset(); }
+			bool points_to_an_item() const { return msevector_ipointer().points_to_an_item(); }
+			bool points_to_end_marker() const { return msevector_ipointer().points_to_end_marker(); }
+			bool points_to_beginning() const { return msevector_ipointer().points_to_beginning(); }
+			/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+			bool has_next_item_or_end_marker() const { return msevector_ipointer().has_next_item_or_end_marker(); }
+			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
+			bool has_next() const { return msevector_ipointer().has_next(); }
+			bool has_previous() const { return msevector_ipointer().has_previous(); }
+			void set_to_beginning() { msevector_ipointer().set_to_beginning(); }
+			void set_to_end_marker() { msevector_ipointer().set_to_end_marker(); }
+			void set_to_next() { msevector_ipointer().set_to_next(); }
+			void set_to_previous() { msevector_ipointer().set_to_previous(); }
+			xscope_ipointer& operator ++() { msevector_ipointer().operator ++(); return (*this); }
+			xscope_ipointer operator++(int) { xscope_ipointer _Tmp = *this; ++*this; return (_Tmp); }
+			xscope_ipointer& operator --() { msevector_ipointer().operator --(); return (*this); }
+			xscope_ipointer operator--(int) { xscope_ipointer _Tmp = *this; --*this; return (_Tmp); }
+			void advance(typename _MV::difference_type n) { msevector_ipointer().advance(n); }
+			void regress(typename _MV::difference_type n) { msevector_ipointer().regress(n); }
+			xscope_ipointer& operator +=(difference_type n) { msevector_ipointer().operator +=(n); return (*this); }
+			xscope_ipointer& operator -=(difference_type n) { msevector_ipointer().operator -=(n); return (*this); }
+			xscope_ipointer operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			xscope_ipointer operator-(difference_type n) const { return ((*this) + (-n)); }
+			typename _MV::difference_type operator-(const xscope_ipointer& _Right_cref) const { return msevector_ipointer() - (_Right_cref.msevector_ipointer()); }
+			typename _MV::reference operator*() const { return msevector_ipointer().operator*(); }
+			typename _MV::reference item() const { return operator*(); }
+			typename _MV::reference previous_item() const { return msevector_ipointer().previous_item(); }
+			typename _MV::pointer operator->() const { return msevector_ipointer().operator->(); }
+			typename _MV::reference operator[](typename _MV::difference_type _Off) const { return msevector_ipointer()[_Off]; }
+			xscope_ipointer& operator=(const xscope_ipointer& _Right_cref) {
+				msevector_ipointer().operator=(_Right_cref.msevector_ipointer());
+				return (*this);
+			}
+			xscope_ipointer& operator=(const typename _Myt::ipointer& _Right_cref) {
+				//msevector_ipointer().operator=(_Right_cref.msevector_reg_ss_iterator_type());
+				if (!(_Right_cref.target_container_ptr())
+					|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
+					MSE_THROW(ivector_range_error("invalid assignment - mse::mstd::vector<>::xscope_ipointer"));
+				}
+				(*this).set_to_beginning();
+				(*this) += _Right_cref.position();
+				return (*this);
+			}
+			bool operator==(const xscope_ipointer& _Right_cref) const { return msevector_ipointer().operator==(_Right_cref.msevector_ipointer()); }
+			bool operator!=(const xscope_ipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
+			bool operator<(const xscope_ipointer& _Right) const { return (msevector_ipointer() < _Right.msevector_ipointer()); }
+			bool operator<=(const xscope_ipointer& _Right) const { return (msevector_ipointer() <= _Right.msevector_ipointer()); }
+			bool operator>(const xscope_ipointer& _Right) const { return (msevector_ipointer() > _Right.msevector_ipointer()); }
+			bool operator>=(const xscope_ipointer& _Right) const { return (msevector_ipointer() >= _Right.msevector_ipointer()); }
+			void set_to_item_pointer(const xscope_ipointer& _Right_cref) { msevector_ipointer().set_to_item_pointer(_Right_cref.msevector_ipointer()); }
+			msear_size_t position() const { return msevector_ipointer().position(); }
+			auto target_container_ptr() const -> decltype(msevector_ipointer().target_container_ptr()) {
+				return msevector_ipointer().target_container_ptr();
+			}
+			void xscope_tag() const {}
+			void xscope_ipointer_tag() const {}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		private:
+			typename _MV::xscope_ipointer m_xscope_ipointer;
+			friend class /*_Myt*/ivector<_Ty>;
+			friend class xscope_cipointer;
+		};
+
+		/* For each (scope) vector instance, only one instance of xscope_structure_change_lock_guard may exist at any one
+		time. While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+		individual elements in the vector do not become invalid by preventing any operation that might resize the vector
+		or increase its capacity. Any attempt to execute such an operation would result in an exception. */
+		class xscope_structure_change_lock_guard : public XScopeTagBase {
+		public:
+			xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
+				: m_MV_xscope_structure_change_lock_guard(mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+			xscope_structure_change_lock_guard(const mse::TXScopeItemFixedPointer<ivector>& owner_ptr)
+				: m_MV_xscope_structure_change_lock_guard(mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+			auto xscope_ptr_to_element(size_type _P) const {
+				return m_MV_xscope_structure_change_lock_guard.xscope_ptr_to_element(_P);
+			}
+			auto xscope_ptr_to_element(const xscope_ipointer& iter) const {
+				assert(std::addressof(*(iter.target_container_ptr())) == std::addressof(*target_container_ptr()));
+				return xscope_ptr_to_element(iter.position());
+			}
+			auto target_container_ptr() const {
+				return m_MV_xscope_structure_change_lock_guard.target_container_ptr();
+			}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		private:
+			typename mse::us::msevector<_Ty>::xscope_structure_change_lock_guard m_MV_xscope_structure_change_lock_guard;
+		};
+		class xscope_const_structure_change_lock_guard : public XScopeTagBase {
+		public:
+			xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<ivector>& owner_ptr)
+				: m_MV_xscope_const_structure_change_lock_guard(mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+			xscope_const_structure_change_lock_guard(const mse::TXScopeItemFixedConstPointer<ivector>& owner_ptr)
+				: m_MV_xscope_const_structure_change_lock_guard(mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+			auto xscope_ptr_to_element(size_type _P) const {
+				return m_MV_xscope_const_structure_change_lock_guard.xscope_ptr_to_element(_P);
+			}
+			auto xscope_ptr_to_element(const xscope_cipointer& citer) const {
+				assert(std::addressof(*(citer.target_container_ptr())) == std::addressof(*target_container_ptr()));
+				return xscope_ptr_to_element(citer.position());
+			}
+			auto target_container_ptr() const {
+				return m_MV_xscope_const_structure_change_lock_guard.target_container_ptr();
+			}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		private:
+			typename mse::us::msevector<_Ty>::xscope_const_structure_change_lock_guard m_MV_xscope_const_structure_change_lock_guard;
+		};
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
 		std::shared_ptr<_MV> m_shptr;
@@ -347,5 +619,104 @@ namespace mse {
 			return (!(_Left < _Right));
 		}
 
+	/* For each (scope) vector instance, only one instance of xscope_structure_change_lock_guard may exist at any one
+	time. While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+	individual elements in the vector do not become invalid by preventing any operation that might resize the vector
+	or increase its capacity. Any attempt to execute such an operation would result in an exception. */
+	template<class _Ty, class _A = std::allocator<_Ty> >
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedPointer<ivector<_Ty, _A> >& owner_ptr) {
+		return typename ivector<_Ty, _A>::xscope_structure_change_lock_guard(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, class _A = std::allocator<_Ty> >
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedPointer<ivector<_Ty, _A> >& owner_ptr) {
+		return typename ivector<_Ty, _A>::xscope_structure_change_lock_guard(owner_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, class _A = std::allocator<_Ty> >
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedConstPointer<ivector<_Ty, _A> >& owner_ptr) {
+		return ivector<_Ty, _A>::xscope_const_structure_change_lock_guard(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, class _A = std::allocator<_Ty> >
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedConstPointer<ivector<_Ty, _A> >& owner_ptr) {
+		return ivector<_Ty, _A>::xscope_const_structure_change_lock_guard(owner_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	template<class _Ty> using xscope_ivector_cipointer = typename ivector<_Ty>::xscope_cipointer;
+	template<class _Ty> using xscope_ivector_ipointer = typename ivector<_Ty>::xscope_ipointer;
+
+	template<class _Ty>
+	xscope_ivector_cipointer<_Ty> make_xscope_cipointer(const mse::TXScopeFixedConstPointer<ivector<_Ty>>& owner_ptr) {
+		return xscope_ivector_cipointer<_Ty>(owner_ptr);
+	}
+	template<class _Ty>
+	xscope_ivector_cipointer<_Ty> make_xscope_cipointer(const mse::TXScopeFixedPointer<ivector<_Ty>>& owner_ptr) {
+		return xscope_ivector_cipointer<_Ty>(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty>
+	xscope_ivector_cipointer<_Ty> make_xscope_cipointer(const mse::TXScopeItemFixedConstPointer<ivector<_Ty>>& owner_ptr) {
+		return xscope_ivector_cipointer<_Ty>(owner_ptr);
+	}
+	template<class _Ty>
+	xscope_ivector_cipointer<_Ty> make_xscope_cipointer(const mse::TXScopeItemFixedPointer<ivector<_Ty>>& owner_ptr) {
+		return xscope_ivector_cipointer<_Ty>(owner_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	template<class _Ty>
+	xscope_ivector_ipointer<_Ty> make_xscope_ipointer(const mse::TXScopeFixedPointer<ivector<_Ty>>& owner_ptr) {
+		return xscope_ivector_ipointer<_Ty>(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty>
+	xscope_ivector_ipointer<_Ty> make_xscope_ipointer(const mse::TXScopeItemFixedPointer<ivector<_Ty>>& owner_ptr) {
+		return xscope_ivector_ipointer<_Ty>(owner_ptr);
+	}
+#endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
+
 }
+
+namespace std {
+
+	template<class _Ty, class _A = std::allocator<_Ty> >
+	void swap(mse::ivector<_Ty, _A>& _Left, mse::ivector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap vectors
+		return (_Left.swap(_Right));
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::ivector<_Ty, _A>& _Left, mse::nii_vector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap vectors
+		return (_Left.swap(_Right));
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::ivector<_Ty, _A>& _Left, mse::us::msevector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap vectors
+		return (_Left.swap(_Right));
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::ivector<_Ty, _A>& _Left, std::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap vectors
+		return (_Left.swap(_Right));
+	}
+
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::nii_vector<_Ty, _A, _TStateMutex>& _Left, mse::ivector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap vectors
+		return (_Right.swap(_Left));
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::us::msevector<_Ty, _A, _TStateMutex>& _Left, mse::ivector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap vectors
+		return (_Right.swap(_Left));
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(std::vector<_Ty, _A>& _Left, mse::ivector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap vectors
+		return (_Right.swap(_Left));
+	}
+}
+
 #endif /*ndef MSEIVECTOR_H*/
