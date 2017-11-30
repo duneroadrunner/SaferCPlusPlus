@@ -1441,7 +1441,8 @@ int main(int argc, char* argv[])
 		/* mse::TXScopeOwnerPointer<> will allocate a scope object on the heap (and deallocate it at the
 		end of the scope). */
 		mse::TXScopeOwnerPointer<A> xscp_a_ownerptr(7);
-		int res4 = B::foo2(&(*xscp_a_ownerptr));
+		int res4 = B::foo2(xscp_a_ownerptr);
+		int res4b = B::foo2(&(*xscp_a_ownerptr));
 
 		/* You can use the "mse::make_pointer_to_member()" function to obtain a safe pointer to a member of
 		an xscope object. */

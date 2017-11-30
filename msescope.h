@@ -67,6 +67,10 @@ namespace mse {
 		void xscope_tag() const {}
 	};
 
+	/* The purpose of this template function is just to produce a compile error on attempts to instantiate with a scope type. */
+	template<class _Ty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _Ty>::value), void>::type>
+	void T_valid_if_not_an_xscope_type() {}
+
 #ifdef MSE_SCOPEPOINTER_DISABLED
 	template<typename _Ty> using TXScopePointer = _Ty*;
 	template<typename _Ty> using TXScopeConstPointer = const _Ty*;
@@ -366,6 +370,56 @@ namespace mse {
 		friend class TXScopeOwnerPointer<_TROy>;
 	};
 
+	/* TXScopeOwnerPointer is meant to be much like boost::scoped_ptr<>. Instead of taking a native pointer,
+	TXScopeOwnerPointer just forwards it's constructor arguments to the constructor of the TXScopeObj<_Ty>.
+	TXScopeOwnerPointers are meant to be allocated on the stack only. Unfortunately there's really no way to
+	enforce this, which makes this data type less intrinsically safe than say, "reference counting" pointers.
+	*/
+	template<typename _Ty>
+	class TXScopeOwnerPointer : public XScopeTagBase, public StrongPointerTagBase {
+	public:
+		TXScopeOwnerPointer(TXScopeOwnerPointer<_Ty>&& src_ref) = default;
+
+		template <class... Args>
+		TXScopeOwnerPointer(Args&&... args) {
+			TXScopeObj<_Ty>* new_ptr = new TXScopeObj<_Ty>(std::forward<Args>(args)...);
+			m_ptr = new_ptr;
+		}
+		virtual ~TXScopeOwnerPointer() {
+			assert(m_ptr);
+			delete m_ptr;
+
+			/* At the moment TXScopeOwnerPointer<> doesn't support types that are already scope types. */
+			T_valid_if_not_an_xscope_type<_Ty>();
+		}
+
+		TXScopeObj<_Ty>& operator*() const {
+			return (*m_ptr);
+		}
+		TXScopeObj<_Ty>* operator->() const {
+			return m_ptr;
+		}
+
+		template <class... Args>
+		static TXScopeOwnerPointer make(Args&&... args) {
+			return TXScopeOwnerPointer(std::forward<Args>(args)...);
+		}
+
+		void xscope_tag() const {}
+
+	private:
+		TXScopeOwnerPointer(const TXScopeOwnerPointer<_Ty>& src_cref) = delete;
+		TXScopeOwnerPointer<_Ty>& operator=(const TXScopeOwnerPointer<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeObj<_Ty>* m_ptr = nullptr;
+	};
+
+	template <class X, class... Args>
+	TXScopeOwnerPointer<X> make_xscope_owner(Args&&... args) {
+		return TXScopeOwnerPointer<X>::make(std::forward<Args>(args)...);
+	}
+
 	template<typename _Ty>
 	class TXScopeItemFixedPointer;
 	template<typename _Ty>
@@ -390,6 +444,13 @@ namespace mse {
 		TXScopeItemFixedPointer(const TXScopeItemFixedPointer<_Ty2>& src_cref) : TXScopePointerBase<_Ty>(static_cast<const TXScopePointerBase<_Ty2>&>(src_cref)) {}
 
 		TXScopeItemFixedPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TXScopeItemFixedPointer(std::addressof(*src_cref)) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TXScopeItemFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopeItemFixedPointer(static_cast<const TXScopeFixedPointer<_Ty>&>(src_cref)) {}
+
+		//TXScopeItemFixedPointer(const TXScopeOwnerPointer<_Ty>& src_cref) : TXScopeItemFixedPointer(&(*src_cref)) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TXScopeItemFixedPointer(const TXScopeOwnerPointer<_Ty2>& src_cref) : TXScopeItemFixedPointer(&(*src_cref)) {}
+
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		//TXScopeItemFixedPointer(const TXScopeWeakFixedPointer<_Ty, _Ty2>& src_cref) : TXScopeItemFixedPointer(std::addressof(*src_cref)) {}
 
@@ -428,11 +489,15 @@ namespace mse {
 
 		TXScopeItemFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) : TXScopeItemFixedConstPointer(std::addressof(*src_cref)) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeItemFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : TXScopeItemFixedConstPointer(std::addressof(*src_cref)) {}
+		TXScopeItemFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : TXScopeItemFixedConstPointer(static_cast<const TXScopeFixedConstPointer<_Ty>&>(src_cref)) {}
 
 		TXScopeItemFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TXScopeItemFixedConstPointer(std::addressof(*src_cref)) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeItemFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopeItemFixedConstPointer(std::addressof(*src_cref)) {}
+		TXScopeItemFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopeItemFixedConstPointer(static_cast<const TXScopeFixedPointer<_Ty>&>(src_cref)) {}
+
+		//TXScopeItemFixedConstPointer(const TXScopeOwnerPointer<_Ty>& src_cref) : TXScopeItemFixedConstPointer(&(*src_cref)) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TXScopeItemFixedConstPointer(const TXScopeOwnerPointer<_Ty2>& src_cref) : TXScopeItemFixedConstPointer(&(*src_cref)) {}
 
 		virtual ~TXScopeItemFixedConstPointer() {}
 
@@ -477,53 +542,6 @@ namespace mse {
 		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref) {
 			return TXScopeItemFixedConstPointer<_Ty>(&cref);
 		}
-	}
-
-	/* TXScopeOwnerPointer is meant to be much like boost::scoped_ptr<>. Instead of taking a native pointer,
-	TXScopeOwnerPointer just forwards it's constructor arguments to the constructor of the TXScopeObj<_Ty>.
-	TXScopeOwnerPointers are meant to be allocated on the stack only. Unfortunately there's really no way to
-	enforce this, which makes this data type less intrinsically safe than say, "reference counting" pointers.
-	*/
-	template<typename _Ty>
-	class TXScopeOwnerPointer : public XScopeTagBase, public StrongPointerTagBase {
-	public:
-		TXScopeOwnerPointer(TXScopeOwnerPointer<_Ty>&& src_ref) = default;
-
-		template <class... Args>
-		TXScopeOwnerPointer(Args&&... args) {
-			TXScopeObj<_Ty>* new_ptr = new TXScopeObj<_Ty>(std::forward<Args>(args)...);
-			m_ptr = new_ptr;
-		}
-		virtual ~TXScopeOwnerPointer() {
-			assert(m_ptr);
-			delete m_ptr;
-		}
-
-		TXScopeObj<_Ty>& operator*() const {
-			return (*m_ptr);
-		}
-		TXScopeObj<_Ty>* operator->() const {
-			return m_ptr;
-		}
-
-		template <class... Args>
-		static TXScopeOwnerPointer make(Args&&... args) {
-			return TXScopeOwnerPointer(std::forward<Args>(args)...);
-		}
-
-		void xscope_tag() const {}
-
-	private:
-		TXScopeOwnerPointer(const TXScopeOwnerPointer<_Ty>& src_cref) = delete;
-		TXScopeOwnerPointer<_Ty>& operator=(const TXScopeOwnerPointer<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeObj<_Ty>* m_ptr = nullptr;
-	};
-
-	template <class X, class... Args>
-	TXScopeOwnerPointer<X> make_xscope_owner(Args&&... args) {
-		return TXScopeOwnerPointer<X>::make(std::forward<Args>(args)...);
 	}
 
 
@@ -834,24 +852,6 @@ namespace mse {
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-	template<class _Ty>
-	class IsNotAnXScopeType {
-	public:
-		IsNotAnXScopeType() {}
-		~IsNotAnXScopeType() {
-			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
-			valid_if_Ty_is_not_an_xscope_type();
-		}
-	private:
-		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
-		(intended) compile error. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
-		void valid_if_Ty_is_not_an_xscope_type() const {}
-	};
-
-
 	/* shorter aliases */
 	template<typename _Ty> using sfp = TXScopeFixedPointer<_Ty>;
 	template<typename _Ty> using sfcp = TXScopeFixedConstPointer<_Ty>;
@@ -943,6 +943,7 @@ namespace mse {
 				mse::TXScopeItemFixedConstPointer<A> rfcp = &cscope_a;
 
 				mse::TXScopeOwnerPointer<A> A_scpoptr(11);
+				B::foo2(A_scpoptr);
 				B::foo2(&*A_scpoptr);
 				if (A_scpoptr->b == (&*A_scpoptr)->b) {
 				}
@@ -988,7 +989,8 @@ namespace mse {
 				int res2 = B::foo2(&a_scpobj);
 				int res3 = B::foo3(&a_scpobj);
 				mse::TXScopeOwnerPointer<A> a_scpoptr(7);
-				int res4 = B::foo2(&(*a_scpoptr));
+				int res4 = B::foo2(a_scpoptr);
+				int res4b = B::foo2(&(*a_scpoptr));
 
 				/* You can use the "mse::make_xscope_pointer_to_member()" function to obtain a safe pointer to a member of
 				an xscope object. */
@@ -1050,6 +1052,7 @@ namespace mse {
 				mse::TXScopeFixedConstPointer<A> rfcp = &cscope_a;
 
 				mse::TXScopeOwnerPointer<A> A_scpoptr(11);
+				B::foo2(A_scpoptr);
 				B::foo2(&*A_scpoptr);
 				if (A_scpoptr->b == (&*A_scpoptr)->b) {
 				}
