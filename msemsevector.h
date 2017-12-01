@@ -1279,7 +1279,9 @@ namespace mse {
 		/* This vector is safely "async shareable" if the elements it contains are also "async shareable". */
 		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
 		component to the enable_if<> condition. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
+			(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()) || (std::is_arithmetic<_Ty2>::value)
+			), void>::type>
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:

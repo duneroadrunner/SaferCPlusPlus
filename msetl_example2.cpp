@@ -147,7 +147,7 @@ void msetl_example2() {
 			int m_i;
 		};
 		/* Here we're declaring that A can be safely shared between asynchronous threads. */
-		typedef mse::TUserDeclaredAsyncShareableObj<A> shareable_A_t;
+		typedef mse::us::TUserDeclaredAsyncShareableObj<A> shareable_A_t;
 
 		/* When the element type of an nii_vector<> is marked as "async shareable", the nii_vector<> itself is
 		(automatically) marked as async shareable as well and can be safely shared between asynchronous threads
@@ -252,7 +252,7 @@ void msetl_example2() {
 			mse::nii_string s = "some text ";
 		};
 		/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
-		typedef mse::TUserDeclaredAsyncShareableObj<A> ShareableA;
+		typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
 
 		class B {
 		public:
@@ -499,11 +499,11 @@ void msetl_example2() {
 		}
 		{
 			mse::mstd::string mstd_string1;
-			mse::TUserDeclaredAsyncShareableObj<std::string> aso1;
-			//mse::TUserDeclaredAsyncShareableObj<mse::us::msearray<std::string, 3>> aso2;
-			mse::TUserDeclaredAsyncShareableObj<mse::nii_array<std::string, 3>> aso3;
+			mse::us::TUserDeclaredAsyncShareableObj<std::string> aso1;
+			//mse::us::TUserDeclaredAsyncShareableObj<mse::us::msearray<std::string, 3>> aso2;
+			mse::us::TUserDeclaredAsyncShareableObj<mse::nii_array<std::string, 3>> aso3;
 
-			mse::TAccessControlledReadWriteObj<mse::TUserDeclaredAsyncShareableObj<std::string>> aco1;
+			mse::TAccessControlledReadWriteObj<mse::us::TUserDeclaredAsyncShareableObj<std::string>> aco1;
 			auto asxwp_ar = mse::make_asyncsharedv2xwpreadwrite(aco1.exclusive_writelock_ptr());
 			mse::TAccessControlledReadWriteObj<mse::nii_array<mse::nii_string, 3>> aco2;
 			//mse::TAccessControlledReadWriteObj<mse::nii_array<std::string, 3>> aco3;

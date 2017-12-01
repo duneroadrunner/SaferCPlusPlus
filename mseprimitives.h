@@ -132,6 +132,8 @@ namespace mse {
 		CBool& operator &=(const CBool &x) { assert_initialized(); m_val &= x.m_val; return (*this); }
 		CBool& operator ^=(const CBool &x) { assert_initialized(); m_val ^= x.m_val; return (*this); }
 
+		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
 		bool m_val;
 
 #ifdef MSE_CHECK_USE_BEFORE_SET
@@ -411,6 +413,8 @@ namespace mse {
 			return tmp;   // return old value
 		}
 
+		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
 		//_Ty m_val;
 	};
 }
@@ -684,6 +688,8 @@ namespace mse {
 			operator--(); // pre-decrement
 			return tmp;   // return old value
 		}
+
+		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 		//_Ty m_val;
 

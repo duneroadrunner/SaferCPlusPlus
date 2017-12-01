@@ -1527,7 +1527,9 @@ namespace mse {
 		/* This array is safely "async shareable" if the elements it contains are also "async shareable". */
 		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
 		component to the enable_if<> condition. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
+			(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()) || (std::is_arithmetic<_Ty2>::value)
+			), void>::type>
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
@@ -3144,7 +3146,9 @@ namespace mse {
 		}
 	};
 
-	template<typename _TROy> using TUserDeclaredAsyncShareableObj = TAsyncShareableObj<_TROy>;
+	namespace us {
+		template<typename _TROy> using TUserDeclaredAsyncShareableObj = mse::TAsyncShareableObj<_TROy>;
+	}
 
 
 	template<class _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledReadWriteObj;
@@ -3412,7 +3416,7 @@ namespace mse {
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
 		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
 		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>

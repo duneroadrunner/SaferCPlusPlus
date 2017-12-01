@@ -1007,7 +1007,7 @@ namespace mse {
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
 		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
 		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
@@ -1055,7 +1055,7 @@ namespace mse {
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
 		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
 		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
@@ -1113,7 +1113,7 @@ namespace mse {
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
 		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
 		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
