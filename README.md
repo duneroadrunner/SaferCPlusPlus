@@ -65,10 +65,9 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     5. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
 12. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
 13. [Asynchronously shared objects](#asynchronously-shared-objects)
-    1. [TAsyncSharedReadWriteAccessRequester](#tasyncsharedreadwriteaccessrequester)
-        1. [TAsyncSharedReadOnlyAccessRequester](#tasyncsharedreadonlyaccessrequester)
-    2. [TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester](#tasyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwriteaccessrequester)
-    3. [TStdSharedImmutableFixedPointer](#tstdsharedimmutablefixedpointer)
+    1. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
+        1. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
+    2. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
 14. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [Quarantined types](#quarantined-types)
@@ -85,9 +84,8 @@ You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/Saf
     4. [xscope_iterator](#xscope_iterator)
     5. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
 17. [Compatibility considerations](#compatibility-considerations)
-18. [On thread safety](#on-thread-safety)
-19. [Practical limitations](#practical-limitations)
-20. [Questions and comments](#questions-and-comments)
+18. [Practical limitations](#practical-limitations)
+19. [Questions and comments](#questions-and-comments)
 
 
 
@@ -1057,23 +1055,33 @@ And of course the library remains perfectly compatible with (the less safe) trad
 
 
 ### Asynchronously shared objects
-One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, when one party (thread) is modifying an object, you want to ensure that no other party accesses it. So we provide TAsyncSharedReadWriteAccessRequester that (like std::shared_ptr) possesses shared ownership of an object to be shared among asynchronous threads, and provides (const and non-const smart) pointers that can be used to safely access the object. For more information and examples, see [this article](http://www.codeproject.com/Articles/1106491/Sharing-Objects-Between-Threads-in-Cplusplus-the-S). At the moment, these data types cannot target types that cannot act as a base class. If you want to share an int, bool or size_t, use the [safer substitutes](#primitives) that can act as base classes. And as a rule of thumb, if you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing), even when that means foregoing the use of some of the elements in this library. Ideally, prefer a POD ("plain old data") data type with no member functions and no mutable members.
+One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, while one thread is modifying an object, you want to ensure that no other thread accesses it. But you also want to do it in a way that allows for maximum utilization of the shared object. To this end the library provides "access requesters". Access requesters provide "lock pointers" on demand that are used to safely access the shared object.
 
-### TAsyncSharedReadWriteAccessRequester
+In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases the library provides "immutable fixed pointers", which can be thought of as sort of a safer version std::shared_ptr<>.
+
+In order to ensure safety, shared objects can only be accessed through lock pointers or immutable fixed pointers. If you have an existing object that you only want to share part of the time, you can swap (using std::swap() for example) the object with a shared object when it's time to share it, and swap it back when you're done sharing.
+
+Note that not all types are safe to share between threads. For example, because of its iterators, `mstd::vector<int>` is not safe to share between threads. (And neither is `std::vector<int>`.) `nii_vector<int>` on the other hand is. Trying to share the former using access requesters or immutable fixed pointers would result in a compile error.
+
+Access requesters and immutable fixed pointers know which of the library's types are safe to share. But they can't automatically deduce whether or not a user-defined type is safe to share. So in order to share a user-defined type, you need to "declare" that it is safely shareable by wrapping it with the `us::TUserDeclaredAsyncShareableObj<>` template. Otherwise you'll get a compile error. A type that is safe to share should have no `mutable` qualified members or indirect members (i.e. pointers/references) that are not protected by a thread-safety mechanism. And no member functions that access unprotected `mutable` or indirect members. (Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
+
+### TAsyncSharedV2ReadWriteAccessRequester
+
 Use the writelock_ptr() and readlock_ptr() member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock for as long as they exist. Their locks are released when the pointers are destroyed (generally when they go out of scope).  
 
-Use mse::make_asyncsharedreadwrite<>() to obtain a TAsyncSharedReadWriteAccessRequester. TAsyncSharedReadWriteAccessRequester can be copied and passed-by-value as a parameter (to another thread, generally).
+Use mse::make_asyncsharedv2readwrite<>() to obtain a TAsyncSharedV2ReadWriteAccessRequester. TAsyncSharedV2ReadWriteAccessRequester can be copied and passed-by-value as a parameter (to another thread, generally).
 
 Non-blocking try_writelock_ptr() and try_readlock_ptr() member functions are also available. As are the limited-blocking try_writelock_ptr_for(), try_readlock_ptr_for(), try_writelock_ptr_until() and try_readlock_ptr_until().
 
-### TAsyncSharedReadOnlyAccessRequester
-Same as TAsyncSharedReadWriteAccessRequester, but only supports readlock_ptr(), not writelock_ptr(). You can use mse::make_asyncsharedreadonly<>() to obtain a TAsyncSharedReadOnlyAccessRequester. TAsyncSharedReadOnlyAccessRequester can also be copy constructed from a TAsyncSharedReadWriteAccessRequester.
+Note that while a "write-lock" pointer will not simultaneously co-exist with any lock pointer to the same shared object in any other thread, it can co-exist with (read- and/or write-) lock pointers in the same thread. This means that lock pointers have ["upgrade lock"](http://www.boost.org/doc/libs/1_65_1/doc/html/thread/synchronization.html#thread.synchronization.mutex_concepts.upgrade_lockable) functionality. That is, for example, a thread that holds a read lock on a shared object (via read-lock pointer) can, at some later point, additionally obtain a write lock (via write-lock pointer) without surrendering the original read lock. It can then release the write lock (by allowing the write-lock pointer to go out of scope), again without surrendering the original read lock. Systems based on traditional "readers-writer" locks would require you to surrender the read lock before attempting to obtain a write lock, allowing another thread to potentially (and undesirably) obtain a write lock in between.
 
-### TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester
-A peculiarity of C++ is that a "const" object is not necessarily guaranteed to be unmodifiable. Specifically in cases where the object has "mutable" members. So, out of an abundance of prudence TAsyncSharedReadWriteAccessRequester and TAsyncSharedReadOnlyAccessRequester do not allow for the simultaneous existence of multiple "readlock_ptr"s. But sometimes you really want to allow for multiple simultaneous readers. So we provide these versions with unwieldy names to remind you of the potential dangers of shared objects with mutable members. Ideally, at some point in the future, we'd be able to determine at compile-time whether or not a type has mutable members.
+One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. Prudent practice would avoid deadlock by using the non-blocking try_writelock_ptr(), or time-out limited try_writelock_ptr_for() member functions to obtain the write-lock pointer. Currently, this dead-lock scenario is not detected by the access requester (or its underlying mutex). It is intended that in the near future, this dead-lock scenario will be detected and an exception will be thrown (or whatever user-specified behavior).
 
-### TStdSharedImmutableFixedPointer
-For "read-only" situations when you need, or want, the shared object to be managed by std::shared_ptrs we provide a slightly safety-enhanced wrapper for std::shared_ptr. The wrapper enforces "const"ness and tries to ensure that it points to a validly allocated object. Use mse::make_stdsharedimmutable<>() to construct an mse::TStdSharedImmutableFixedPointer. And again, beware of sharing objects with mutable members.  
+### TAsyncSharedV2ReadOnlyAccessRequester
+Same as TAsyncSharedV2ReadWriteAccessRequester, but only supports readlock_ptr(), not writelock_ptr(). You can use mse::make_asyncsharedv2readonly<>() to obtain a TAsyncSharedV2ReadOnlyAccessRequester. TAsyncSharedV2ReadOnlyAccessRequester can also be copy constructed from a TAsyncSharedV2ReadWriteAccessRequester.
+
+### TAsyncSharedV2ImmutableFixedPointer
+In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases you can use TAsyncSharedV2ImmutableFixedPointer<>, which can be thought of as sort of a safer version std::shared_ptr<>. Use mse::make_asyncsharedv2immutable<>() to obtain a TAsyncSharedV2ImmutableFixedPointer<>.
 
 usage example:
 
@@ -1107,30 +1115,33 @@ usage example:
 		class A {
 		public:
 			A(int x) : b(x) {}
-			A(const A& _X) : b(_X.b) {}
 			virtual ~A() {}
-			A& operator=(const A& _X) { b = _X.b; return (*this); }
 	
 			int b = 3;
-			std::string s = "some text ";
+			mse::nii_string s = "some text ";
 		};
+		/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
+		typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+	
 		class B {
 		public:
-			static double foo1(mse::TAsyncSharedReadWriteAccessRequester<A> A_ashar) {
+			static double foo1(mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA> A_ashar) {
 				auto t1 = std::chrono::high_resolution_clock::now();
-				/* mse::TAsyncSharedReadWriteAccessRequester<A>::writelock_ptr() will block until it can obtain a write lock. */
+				/* mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA>::writelock_ptr() will block until it can obtain a write lock. */
 				auto ptr1 = A_ashar.writelock_ptr(); // while ptr1 exists it holds a (write) lock on the shared object
 				auto t2 = std::chrono::high_resolution_clock::now();
 				std::this_thread::sleep_for(std::chrono::seconds(1));
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 				auto timespan_in_seconds = time_span.count();
 				auto thread_id = std::this_thread::get_id();
+				//std::cout << "thread_id: " << thread_id << ", time to acquire write pointer: " << timespan_in_seconds << " seconds.";
+				//std::cout << std::endl;
 	
 				ptr1->s = std::to_string(timespan_in_seconds);
 				return timespan_in_seconds;
 			}
-			static int foo2(std::shared_ptr<const A> A_shptr) {
-				return A_shptr->b;
+			static int foo2(mse::TAsyncSharedV2ImmutableFixedPointer<ShareableA> A_immptr) {
+				return A_immptr->b;
 			}
 		protected:
 			~B() {}
@@ -1141,11 +1152,19 @@ usage example:
 		std::cout << std::endl;
 	
 		{
+			/* This block contains a simple example demonstrating the use of mse::TAsyncSharedReadWriteAccessRequester
+			to safely share an object between threads. */
+	
 			std::cout << "TAsyncSharedReadWrite:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedreadwrite<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedv2readwrite<ShareableA>(7);
 			ash_access_requester.writelock_ptr()->b = 11;
 			int res1 = ash_access_requester.readlock_ptr()->b;
+	
+			{
+				auto ptr1 = ash_access_requester.writelock_ptr();
+				auto ptr2 = ash_access_requester.writelock_ptr();
+			}
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
@@ -1158,19 +1177,19 @@ usage example:
 			}
 			std::cout << std::endl;
 	
-			/* Btw, mse::TAsyncSharedReadOnlyAccessRequester<>s can be copy constructed from 
-			mse::TAsyncSharedReadWriteAccessRequester<>s */
-			mse::TAsyncSharedReadOnlyAccessRequester<A> ash_read_only_access_requester(ash_access_requester);
+			/* Btw, mse::TAsyncSharedV2ReadOnlyAccessRequester<>s can be copy constructed from
+			mse::TAsyncSharedV2ReadWriteAccessRequester<>s */
+			mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA> ash_read_only_access_requester(ash_access_requester);
 		}
 		{
 			std::cout << "TAsyncSharedReadOnly:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedreadonly<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedv2readonly<ShareableA>(7);
 			int res1 = ash_access_requester.readlock_ptr()->b;
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedReadOnlyAccessRequester<A>>, ash_access_requester));
+				futures.emplace_back(std::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -1180,15 +1199,21 @@ usage example:
 			std::cout << std::endl;
 		}
 		{
-			std::cout << "TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWrite:";
+			std::cout << "TAsyncSharedV2ReadWriteAccessRequester:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedv2readwrite<ShareableA>(7);
 			ash_access_requester.writelock_ptr()->b = 11;
 			int res1 = ash_access_requester.readlock_ptr()->b;
 	
+			{
+				auto ptr3 = ash_access_requester.readlock_ptr();
+				auto ptr1 = ash_access_requester.writelock_ptr();
+				auto ptr2 = ash_access_requester.writelock_ptr();
+			}
+	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<A>>, ash_access_requester));
+				futures.emplace_back(std::async(J::foo7<mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -1198,14 +1223,14 @@ usage example:
 			std::cout << std::endl;
 		}
 		{
-			std::cout << "TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnly:";
+			std::cout << "TAsyncSharedV2ReadOnlyAccessRequester:";
 			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly<A>(7);
+			auto ash_access_requester = mse::make_asyncsharedv2readonly<ShareableA>(7);
 			int res1 = ash_access_requester.readlock_ptr()->b;
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(H::foo7<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<A>>, ash_access_requester));
+				futures.emplace_back(std::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -1216,30 +1241,32 @@ usage example:
 		}
 		{
 			/* Just demonstrating the existence of the "try" versions. */
-			auto access_requester = mse::make_asyncsharedreadwrite<std::string>("some text");
+			auto access_requester = mse::make_asyncsharedv2readwrite<mse::nii_string>("some text");
 			auto writelock_ptr1 = access_requester.try_writelock_ptr();
 			if (writelock_ptr1) {
 				// lock request succeeded
 				int q = 5;
 			}
-			auto readlock_ptr2 = access_requester.try_readlock_ptr_for(std::chrono::seconds(10));
-			auto writelock_ptr3 = access_requester.try_writelock_ptr_until(std::chrono::steady_clock::now() + std::chrono::seconds(10));
+			auto readlock_ptr2 = access_requester.try_readlock_ptr_for(std::chrono::seconds(1));
+			auto writelock_ptr3 = access_requester.try_writelock_ptr_until(std::chrono::steady_clock::now() + std::chrono::seconds(1));
 		}
 		{
-			/* For simple "read-only" scenarios where you need, or want, the shared object to be managed by std::shared_ptrs,
-			TStdSharedImmutableFixedPointer is a "safety enhanced" wrapper for std::shared_ptr. And again, beware of
-			sharing objects with mutable members. */
-			auto read_only_sh_ptr = mse::make_stdsharedimmutable<A>(5);
-			int res1 = read_only_sh_ptr->b;
+			/* For scenarios where the shared object is immutable (i.e. is never modified), you can get away without using locks
+			or access requesters. */
+			auto A_immptr = mse::make_asyncsharedv2immutable<ShareableA>(5);
+			int res1 = A_immptr->b;
+			std::shared_ptr<const ShareableA> A_shptr(A_immptr);
 	
 			std::list<std::future<int>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(B::foo2, read_only_sh_ptr));
+				futures.emplace_back(std::async(B::foo2, A_immptr));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
 				int res2 = (*it).get();
 			}
+	
+			auto A_b_safe_cptr = mse::make_const_pointer_to_member(A_immptr->b, A_immptr);
 		}
 	}
 
@@ -1348,7 +1375,9 @@ usage example:
 
 Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed to be safely shareable between asynchronous threads. To that end, it does not support "implicit" iterators. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the nii_vector<>. So for example, instead of a "begin()" member function that takes no parameters, nii_vector<> has an "ss_begin(...)" (static template) member function that actually requires a pointer to the vector to passed as a parameter.  
 
-Note that in cases when you only need the vector to be shared between threads part of the time, you can swap between, for example, (non-shareable) mstd::vector<>s and (shareable) nii_vector<>s when you need.
+Note that in cases when you only need the vector to be shared between threads part of the time, you can swap between, for example, (non-shareable) mstd::vector<>s and (shareable) nii_vector<>s when you need.  
+
+Also note that an nii_vector<> will be (automatically) marked as [safely shareable](#asynchronously-shared-objects) only if its element type is known or declared to be safely shareable.
 
 usage example:
 
@@ -1725,10 +1754,6 @@ People have asked why the primitive C++ types can't be used as base classes - ht
 But while substitute classes cannot be 100% compatible substitutes for their corresponding primitives, they can still be mostly compatible. And if you're writing new code or maintaining existing code, it should be considered good coding practice to ensure that your code is compatible with C++'s conversion rules for classes and not dependent on the "chaotic" legacy conversion rules of primitive types.
 
 If you are using legacy code or libraries where it's not practical to update the code, it shouldn't be a problem to continue using primitive types there and the safer substitute classes elsewhere in the code. The safer substitute classes generally have no problem interacting with primitive types, although in some cases you may need to do some explicit type casting. [Registered pointers](#registered-pointers) can be cast to raw pointers, and, for example, [CInt](#primitives) can participate in arithmetic operations with regular ints.
-
-### On thread safety
-The choice to not include thread safety mechanisms in most of the types in this library is a deliberate one. If the goal is code safety, then we strongly discourage the casual sharing of objects between asynchronous threads (i.e. without the proper safety mechanisms). The practice of sharing objects between asynchronous threads can be prone to severe and insidious bugs that are particularly adept at evading exposure during testing. In cases where it's not practical to avoid the practice, we suggest doing so only in the context of some kind of system that comprehensively ensures against inadvertent unsafe access. For most straight-forward cases you can use the [asynchronous sharing data types](#asynchronously-shared-objects) in this library. And as a rule of thumb, if you have to share data between asynchronous threads, prefer the simplest possible packaging of that data (or one specifically designed for asynchronous sharing), even when that means foregoing the use of some of the elements in this library. Ideally, prefer a POD ("plain old data") data type with no member functions and no mutable members.  
-To be clear, we are not discouraging asynchronous programming, or even inter-thread communication in general. Just the "casual" sharing of objects between asynchronous threads.
 
 ### Practical limitations
 
