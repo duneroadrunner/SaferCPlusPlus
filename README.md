@@ -1059,7 +1059,7 @@ One situation where safety mechanisms are particularly important is when sharing
 
 In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases the library provides "immutable fixed pointers", which can be thought of as sort of a safer version std::shared_ptr<>.
 
-In order to ensure safety, shared objects can only be accessed through lock pointers or immutable fixed pointers. If you have an existing object that you only want to share part of the time, you can swap (with std::swap() for example) the object with a shared object when it's time to share it, and swap it back when you're done sharing.
+In order to ensure safety, shared objects can only be accessed through lock pointers or immutable fixed pointers. If you have an existing object that you only want to share part of the time, you can swap (using std::swap() for example) the object with a shared object when it's time to share it, and swap it back when you're done sharing.
 
 Note that not all types are safe to share between threads. For example, because of its iterators, mstd::vector<int> is not safe to share between threads. (And neither is std::vector<int>.) nii_vector<int> on the other hand is. Trying to share the former using access requesters or immutable fixed pointers would result in a compile error.
 
