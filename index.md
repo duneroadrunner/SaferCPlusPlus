@@ -1,28 +1,32 @@
-Nov 2017
+Dec 2017
 
 ### Overview
 
-"SaferCPlusPlus" is essentially a collection of safe data types that are compatible with, and can substitute for, common unsafe native C++ types. Currently these include:
+"SaferCPlusPlus" is essentially a collection of safe data types that are compatible with, and can substitute for, common unsafe native C++ types. You can use as much or as little of the collection as you like, but it is extensive enough to enable the elimination of the large majority of potentially unsafe memory accesses.
 
-- A [fast](#simple-benchmarks), safe general [replacement for native pointers](#registered-pointers).
+The library includes things like:
 
-- A faster, smaller, safer [reference counting pointer](#reference-counting-pointers) that can substitute for std::shared_ptr in situations where the target is not shared between asynchronous threads. Including [safe parameter passing](#safely-passing-parameters-by-reference) by reference.
+- Drop-in replacements for [std::vector<>](#vector) and [std::array<>](#array).
 
-- A "[scope pointer](#scope-pointers)" for target objects allocated on the stack, or whose "owning" pointer is allocated on the stack. By default, not quite as safe as the other smart pointers in this library, but with zero runtime overhead.
-
-- An almost completely [safe implementation](#vector) of std::vector<> - bounds checked, iterator checked and memory managed.
-
-- A couple of [other](#vectors) highly compatible vectors that address the issue of unnecessary iterator invalidation upon insert, erase or reallocation.
-
-- An almost completely [safe implementation](#array) of std::array<> - bounds checked, iterator checked and "lifespan aware".
-
-- [Replacements](#primitives) for the native "int", "size_t" and "bool" types that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.
+- Drop-in [replacements](#primitives) for int, size_t and bool that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.
 
 - Data types for safe, simple [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
 
-Tested with msvc2015, g++5.3 and clang++3.8 (as of Nov 2017). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
+- Replacements for native pointers/references with various compatibilty and performance trade-offs. 
+
+C++ is (famously) not a memory-safe language. But the danger is limited to a finite subset of language elements. To be sure, the subset is large and includes key elements like pointers and arrays. But if you could somehow replace those elements with memory-safe substitutes, then you could essentially turn C++ into a memory-safe language. Right? So the question becomes:
+
+Is C++ powerful enough to enable the construction of safe, compatible substitutes for its own unsafe elements?
+
+Since the advent of C++11, the answer appears to be largely "yes". Sort of. There are some elements whose interface cannot be fully mimicked syntactically. C++ references in particular, as overloading of the "dot" operator is not yet supported. But even in that case, it's no sweat to create an alternative with equivalent functionality, with slightly different syntax.
+
+So it seems like a reasonable strategy to pursue memory safety in C++ by simply replacing unsafe elements with memory-safe substitutes. (Note that this includes the unsafe [`this`](#practical-limitations) pointer.) The nice thing about this strategy is that it can be adopted partially and incrementally with corresponding partial and incremental safety benefits.
+
+An important consideration for many C++ applications is performance. Preferably high and deterministic. This library strives for minimal run-time overhead and does not resort to garbage collection. To this end, the library provides extensive support for the strategy of using [scope lifetimes](#scope-pointers) to achieve memory safety with no run-time overhead.
 
 You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action. You can also check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) where you can compare traditional C++ and SaferCPlusPlus implementations of the same algorithms.
+
+Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
 
 ### Table of contents
