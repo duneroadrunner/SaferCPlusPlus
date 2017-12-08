@@ -536,11 +536,11 @@ namespace mse {
 		/* A couple of unsafe functions for internal use. */
 		template<typename _Ty>
 		TXScopeItemFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref) {
-			return TXScopeItemFixedPointer<_Ty>(&ref);
+			return TXScopeItemFixedPointer<_Ty>(std::addressof(ref));
 		}
 		template<typename _Ty>
 		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref) {
-			return TXScopeItemFixedConstPointer<_Ty>(&cref);
+			return TXScopeItemFixedConstPointer<_Ty>(std::addressof(cref));
 		}
 	}
 
