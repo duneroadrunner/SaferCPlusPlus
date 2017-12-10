@@ -30,6 +30,7 @@
 #include "mseprimitives.h"
 #endif // MSE_MSEVECTOR_USE_MSE_PRIMITIVES
 
+#include "msemsearray.h"
 #include <vector>
 #include <assert.h>
 #include <memory>

@@ -31,6 +31,7 @@
 #endif // MSE_MSEARRAY_USE_MSE_PRIMITIVES
 
 #include "msescope.h"
+#include "mseoptional.h"
 #include <array>
 #include <assert.h>
 #include <memory>

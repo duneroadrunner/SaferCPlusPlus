@@ -8,9 +8,6 @@
 #ifndef MSETL_H
 #define MSETL_H
 
-#include "mseprimitives.h"
-#include "msemsevector.h"
-#include "msemstdvector.h"
-#include "mseivector.h"
+#include "msepoly.h"
 
 #endif /*ndef MSETL_H*/
