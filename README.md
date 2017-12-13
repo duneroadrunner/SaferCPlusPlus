@@ -160,9 +160,265 @@ So, perhaps as expected, you could think of the comparison between SaferCPlusPlu
 
 ### SaferCPlusPlus versus the Core Guidelines Checkers
 
-At the time of this writing (Nov 2016), the Core Guidelines Checkers were still a work in progress and so didn't yet provide any memory safety guarantees for your code. But the goal is that at some point the Checkers (the Lifetimes Checker in particular) will be able to detect all potentially unsafe memory operations, with a reasonable proportion of false positives (apparently "under 10%" is the goal). That should be a big boon for C++ memory safety and performance if/when that is achieved. But even then there will still be the issue of how best to address the false (and true) positive concerns of the checkers. Often, appeasing static code verifiers will seem to require major code changes and/or a significant performance penalty. In those cases, SaferCPlusPlus is well suited to ensure memory safety with straightforward code modifications and minimal performance cost.
+At this point (Dec 2017) the key difference between the Core Guidelines and SaferCPlusPlus is that the Core Guidelines does not achieve the same degree of memory safety.
 
-In the mean time, SaferCPlusPlus is, in general, not a substitute for, or incompatible with static analyzers. You are encouraged to use both.  
+Both are based on the "subset of a superset" idea. That is, many feel that the C++ language has accumulated too much (legacy) junk and it's better to stick to a nice subset of the language, augmented by additional libraries and tools. The subset that SaferCPlusPlus chose was the one that excludes elements that can potentially access invalid (or uninitialized) memory (like native pointers, `std::shared_ptr<>`, `std::array<>`, etc.). The subset that the Core Guidelines chose does include potentially unsafe elements (like native pointers and all of the standard library). 
+
+At one point the premise was that those unsafe elements would be made safe via a static analysis tool that would detect any unsafe uses of unsafe elements, along with a reasonable proportion of false positives. It now seems that that premise may have been a little too optimistic. 
+
+Consider this (simplified) example where we're passing a shared object by reference to a member function:
+
+    #include "gsl/gsl"
+    #include <mutex>
+    #include <memory>
+    #include <vector>
+    #include <iostream>
+    
+    // just an example class to be used as a shared object
+    class CGA {
+    public:
+        std::vector<int> m_vec;
+    };
+    
+    class CGB {
+    public:
+        void foo1(gsl::not_null<CGA*> obj_ptr) {
+            // just some code that actually uses obj_ptr
+            std::cout << obj_ptr->m_vec.size();
+        }
+    
+        // just a static function that returns an std::shared_ptr<> to a presumably (but not actually) shared object
+        static auto sharedptr_to_shared_obj() {
+            return std::make_shared<CGA>();
+        }
+    };
+    
+    int main()
+    {
+        std::mutex mutex1;
+        CGB b;
+        {
+            /* An example of the Core Guidelines sanctioned way of passing a shared object to a function
+            by reference. */
+    
+            // first, store a copy of the std::shared_ptr<> in local scope
+            std::shared_ptr<CGA> sharedobj_ptr = CGB::sharedptr_to_shared_obj();
+            // then obtain a raw pointer to the object
+            auto raw_ptr = sharedobj_ptr.get();
+    
+            {
+                /* We're locking mutex1 to make sure no other threads access the object while the function is executing. */
+                std::lock_guard<std::mutex> lock_guard1(mutex1);
+    
+                /* The local copy of the std::shared_ptr<> will ensure that the object will not be deallocated
+                before the function is finished executing. */
+                b.foo1(raw_ptr);
+            }
+        }
+    
+        return 0;
+    }
+
+The shared object is meant to represent an object that may be shared among threads, though for brevity we don't actually use more than one thread in the example.
+
+The code is Core Guidelines compliant (as we understand it) and the Core Guidelines static checkers (in msvc2017) have no complaints.
+
+Now consider a scenario where a programmer decides, in the member function, to store a copy of the pointer parameter (perhaps to implement some kind of cache to increase performance or whatever).
+
+    #include "gsl/gsl"
+    #include <mutex>
+    #include <memory>
+    #include <vector>
+    #include <iostream>
+    
+    // just an example class to be used as a shared object
+    class CGA {
+    public:
+        std::vector<int> m_vec;
+    };
+    
+    // a class that stores a reference to the last object passed to its foo1() member function 
+    class CGB {
+    public:
+        void foo1(gsl::not_null<CGA*> obj_ptr) {
+            m_last_used = obj_ptr; // storing a reference to the object
+    
+            // just some code that actually uses obj_ptr
+            std::cout << obj_ptr->m_vec.size();
+        }
+    
+        // just a static function that returns an std::shared_ptr<> to a presumably (but not actually) shared object
+        static auto sharedptr_to_shared_obj() {
+            return std::make_shared<CGA>();
+        }
+    
+        CGA* m_last_used = nullptr;
+    };
+    
+    int main()
+    {
+        std::mutex mutex1;
+        CGB b;
+        {
+            /* An example of the Core Guidelines sanctioned way of passing a shared object to a function
+            by reference. */
+    
+            // first, store a copy of the std::shared_ptr<> in local scope
+            std::shared_ptr<CGA> sharedobj_ptr = CGB::sharedptr_to_shared_obj();
+            // then obtain a raw pointer to the object
+            auto raw_ptr = sharedobj_ptr.get();
+    
+            {
+                /* We're locking mutex1 to make sure no other threads access the object while the function is executing. */
+                std::lock_guard<std::mutex> lock_guard1(mutex1);
+    
+                /* The local copy of the std::shared_ptr<> will ensure that the object will not be deallocated
+                before the function is finished executing. */
+                b.foo1(raw_ptr);
+            }
+        }
+        if (b.m_last_used) {
+            /* The problem is that the function could have stored a reference to the object that will outlive
+            the object and/or the period when it is safe (from data races) to access the shared object. */
+    
+            std::cout << b.m_last_used->m_vec.size();
+    
+            /* As of Dec 2017, the (msvc2017) Core Guidelines checkers do not catch these problems. */
+        }
+    
+        return 0;
+    }
+
+Unfortunately, the changes make the code unsafe. The stored (raw) pointer can be used to (invalidly) access an object after it has been deallocated. This new unsafe program is, in essence, not Core Guidelines compliant. The Core Guidelines would have the function parameter be changed from a `gsl::not_null<CGA *>` to a `gsl::not_null< std::shared_ptr<CGA> >` and the pointer stored as an `std::shared_ptr<CGA>` rather than a raw pointer.
+
+The problem is that, at this point, the Core Guidelines static checkers don't issue any complaints for this new unsafe version of the program. So even if the code becomes theoretically not Core Guidelines compliant, it's easy for a programmer to not realize it.
+
+And while using `std::shared_ptr<>`s instead of raw pointers would address the premature deallocation issue, there is still the problem that the stored pointer to the shared object could be used to access the object outside of the period when the thread holds a lock on the mutex, potentially resulting in an unsafe "data race" condition. At this point the Core Guidelines don't really offer anything concrete to address the data race issue.
+
+We can compare all this to what happens in the corresponding SaferCPlusPlus compliant implementation:
+
+    #include <vector>
+    #include <iostream>
+    #include "msetl/msepoly.h"
+    
+    // just an example class to be used as a shared object
+    class CMA {
+    public:
+        /* nii_vector<> is just a vector that is safe (from data races) to share among threads (unlike std::vector<>). */
+        mse::nii_vector<int> m_vec;
+    };
+    /* Here ShareableCMA is just a version of the user-defined CMA class that has been declared as safe
+    to share among threads. */
+    typedef mse::us::TUserDeclaredAsyncShareableObj<CMA> ShareableCMA;
+    
+    // a class that attempts to store a reference to the last object passed to its foo1() member function 
+    class CMB {
+    public:
+        template <class _TShareableCMAPointer>
+        void foo1(_TShareableCMAPointer obj_ptr) {
+            /* If obj_ptr is of "scope pointer" type, the following line will result in a compile error 
+             because scope pointers cannot be safely stored in a type that can outlive the scope. */
+    
+            m_last_used = mse::TNullableAnyPointer<ShareableCMA>(obj_ptr); // storing a reference to the object
+    
+            // just some code that actually uses obj_ptr
+            std::cout << obj_ptr->m_vec.size();
+        }
+    
+        // just a static function that returns a safe pointer to a presumably (but not actually) shared object
+        static auto lock_pointer_to_shared_obj() {
+            auto access_requester =  mse::make_asyncsharedreadwrite<ShareableCMA>();
+            return access_requester.writelock_ptr();
+        }
+    
+        /* TNullableAnyPointer<> can essentially hold a pointer of any type, similar to the way std::any can
+        hold an object of any type. */
+        mse::TNullableAnyPointer<ShareableCMA> m_last_used = nullptr;
+    };
+    
+    int main()
+    {
+        CMB b;
+        {
+            /* An example of a SaferCPlusPlus sanctioned way of passing a shared object to a function
+            by reference. */
+    
+            /* Here we're using a "strong pointer store" to hold a copy of the (shared owner) pointer to the
+            shared object, in this case a "lock pointer", in the local scope. */
+            auto xscope_writelock_ptr_store = mse::make_xscope_strong_pointer_store(CMB::lock_pointer_to_shared_obj());
+    
+            /* Since the local copy of the "lock pointer" ensures that it will be safe to access the shared object
+            for the duration of the scope, we can obtain a "zero overhead" scope pointer to the shared object. */
+            auto xscp_ptr = xscope_writelock_ptr_store.xscope_ptr();
+    
+            b.foo1(xscp_ptr);
+        }
+        if (b.m_last_used) {
+            std::cout << b.m_last_used->m_vec.size();
+        }
+    
+        return 0;
+    }
+
+With SaferCPlusPlus, the unsafe code results in a compile error. Instead of using raw pointers, "scope pointers" (which have no extra run-time overhead) are used, which means that the pointer has "scope lifetime" and that it will not outlive its target object. So attempting the to store the scope pointer (or any scope object) in a data type that could potentially outlive the scope results in a compile error.
+
+And if we want the program to compile and run safely:
+
+    #include <vector>
+    #include <iostream>
+    #include "msetl/msepoly.h"
+    
+    // just an example class to be used as a shared object
+    class CMA {
+    public:
+        /* nii_vector<> is just a vector that is safe (from data races) to share among threads (unlike std::vector<>). */
+        mse::nii_vector<int> m_vec;
+    };
+    /* Here ShareableCMA is just a version of the user-defined CMA class that has been declared as safe
+    to share among threads. */
+    typedef mse::us::TUserDeclaredAsyncShareableObj<CMA> ShareableCMA;
+    
+    // a class that stores a reference to the last object passed to its foo1() member function 
+    class CMB {
+    public:
+        template <class _TShareableCMAPointer>
+        void foo1(_TShareableCMAPointer obj_ptr) {
+            m_last_used = mse::TNullableAnyPointer<ShareableCMA>(obj_ptr); // storing a reference to the object
+    
+            // just some code that actually uses obj_ptr
+            std::cout << obj_ptr->m_vec.size();
+        }
+    
+        // just a static function that returns a safe pointer to a presumably (but not actually) shared object
+        static auto lock_pointer_to_shared_obj() {
+            auto access_requester =  mse::make_asyncsharedreadwrite<ShareableCMA>();
+            return access_requester.writelock_ptr();
+        }
+    
+        /* TNullableAnyPointer<> can essentially hold a pointer of any type, similar to the way std::any can
+        hold an object of any type. */
+        mse::TNullableAnyPointer<ShareableCMA> m_last_used = nullptr;
+    };
+    
+    int main()
+    {
+        CMB b;
+        {
+            /* An example of a SaferCPlusPlus sanctioned way of passing a shared object to a function
+            by (strong) reference. */
+    
+            b.foo1(CMB::lock_pointer_to_shared_obj());
+        }
+        if (b.m_last_used) {
+            /* Like all conformant SaferCPlusPlus code, the stored object reference is safe. In this case the stored
+            pointer holds shared ownership of both the target object's lifespan and "write access lock". */
+            std::cout << b.m_last_used->m_vec.size();
+        }
+    
+        return 0;
+    }
+
+Instead of `std::shared_ptr<>`s, we use "lock pointers". Like `std::shared_ptr<>`s, lock pointers have shared ownership of their target's lifespan, but unlike `std::shared_ptr<>`s, lock pointers also hold a lock that prevents any other thread from accessing the target object in a manner that could result in a data race.  
 
 ### Getting started on safening existing code
 
