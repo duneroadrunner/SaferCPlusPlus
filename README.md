@@ -35,10 +35,10 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
 3. [Setup and dependencies](#setup-and-dependencies)
 4. Comparisons
     1. [SaferCPlusPlus versus Clang/LLVM Sanitizers](#safercplusplus-versus-clangllvm-sanitizers)
-    2. [SaferCPlusPlus versus Checked C](#safercplusplus-versus-checked-c)
-    3. [SaferCPlusPlus versus Ironclad C++](#safercplusplus-versus-ironclad-c)
-    4. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
-    5. [SaferCPlusPlus versus the Core Guidelines Checkers](#safercplusplus-versus-the-core-guidelines-checkers)
+    2. [SaferCPlusPlus versus the Core Guidelines Checkers](#safercplusplus-versus-the-core-guidelines-checkers)
+    3. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
+    4. [SaferCPlusPlus versus Checked C](#safercplusplus-versus-checked-c)
+    5. [SaferCPlusPlus versus Ironclad C++](#safercplusplus-versus-ironclad-c)
 5. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
 6. [Registered pointers](#registered-pointers)
     1. [TRegisteredPointer](#tregisteredpointer)
@@ -124,39 +124,6 @@ The Clang/LLVM compiler provides a set of "sanitizers" (adopted by gcc) that add
 - Clang's ThreadSanitizer tries to detect data race bugs, while SaferCPlusPlus provides [data types](#asynchronously-shared-objects) that eliminate the possibility of data race bugs (and a superset we call "object race" bugs).
 
 Clang/LLVM Sanitizers are intended for debugging purposes, not to be used in deployed executables. As such, by design, some of their debugging convenience features themselves introduce [opportunities](http://seclists.org/oss-sec/2016/q1/363) for malicious exploitation. SaferCPlusPlus on the other hand, is designed to be used in deployed executables, as well as for debugging and testing. And that's reflected in its performance, security and "completeness of solution". So it's not really SaferCPlusPlus "versus" Clang/LLVM Sanitizers. They are not incompatible, and there's no reason you couldn't use both simultaneously, although there would be significant redundancies.
-
-### SaferCPlusPlus versus Checked C
-
-"Checked C", like SaferCPlusPlus, takes the approach of extending the language with safer elements that can directly substitute for unsafe native elements. In chapter 9 of their [spec](https://github.com/Microsoft/checkedc/releases/download/v0.5-final/checkedc-v0.5.pdf), there is an extensive survey of existing (and historical) efforts to address C/C++ memory safety. There they make the argument for the (heretofore neglected) "language extension" approach (basically citing performance, compatibility and the support for granular mixing of safe and unsafe code), that applies to SaferCPlusPlus as well.
-
-Checked C and SaferCPlusPlus are more complementary than competitive. Checked C targets low-level system C code and basically only addresses the array bounds checking issue, including pointer arithmetic, where SaferCPlusPlus skews more toward C++ code and legacy code that would benefit from being converted to modern C++. It seems that Checked C is not yet ready for deployment (as of Sep 2016), but one could imagine both solutions being used, with little contention, in projects that have both low-level system type code and higher-level application type code.
-
-### SaferCPlusPlus versus Ironclad C++
-
-SaferCPlusPlus and Ironclad C++ are very similar. The main difference is probably that Ironclad uses garbage collection while SaferCPlusPlus does not. They are not incompatible, both libraries could be used in the same project. Unfortunately, Ironclad seems to be no longer under active development.  
-
-While both solutions address the pointer/reference safety issue, SaferCPlusPlus also provides safer replacements for int and size_t, and data types for safely sharing objects between asynchronous threads.  
-
-There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu/~santosh.nagarakatte/papers/ironclad-oopsla2013.pdf). It's a beneficial read even for those not planning on adopting Ironclad, as the the approach has much in common with SaferCPlusPlus.  
-
-### SaferCPlusPlus versus Rust
-
-SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the (loose) correspondence between Rust and SaferCPlusPlus elements:
-
-Rust | SaferCPlusPlus
----- | --------------
-non-reassignable reference | scope pointer
-reassignable (mut) reference | registered pointer
-Box<> | scope owner pointer
-Rc<> | reference counting pointer
-Arc<> | shared immutable pointer
-Arc< Mutex<> > | access requester
-
-Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to (among other things) help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. This can result in a little run-time overhead that a Rust implementation might tend to avoid. But perhaps unintuitively, this tends to have little effect on performance in practice. In part because there is often opportunity for the compiler optimizer to discard redundant run-time overhead, but mainly because with both SaferCPlusPlus and Rust, it's usually the case that the vast majority of pointer/reference instances end up spending their entire existence targeting a single object with "scope lifetime" (which incurs no run-time overhead in either solution). In practice, we observe that in both cases, the largest contributor to run-time overhead actually tends to be bounds checking of vectors and arrays.
-
-A sample [subset of "The Computer Language Benchmark Game"](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) showed SaferCPlusPlus translations of C++ implementations to be, on average, about 30% slower than the original, with wide variation. At the time of this writing (Feb 2017), the Rust implementations of the same subset were reported as also, on average, about 30% slower than the C++ implementations, with very wide variation. For various reasons, these benchmarks should not be considered an accurate measure of intrinsic language performance. (The underperformance versus C++ probably being overstated in both cases.) But we can probably take away two things from these results - i) SaferCPlusPlus and Rust are both at least within the same order of magnitude of C++, in terms of performance, and ii) any theoretical performance difference between SaferCPlusPlus and Rust due to extra run-time checks on pointers/references is, in practice, not significant relative to the observed performance variation due to other factors.
-
-So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.  
 
 ### SaferCPlusPlus versus the Core Guidelines Checkers
 
@@ -419,6 +386,39 @@ And if we want the program to compile and run safely:
     }
 
 Instead of `std::shared_ptr<>`s, we use "lock pointers". Like `std::shared_ptr<>`s, lock pointers have shared ownership of their target's lifespan, but unlike `std::shared_ptr<>`s, lock pointers also hold a lock that prevents any other thread from accessing the target object in a manner that could result in a data race.  
+
+### SaferCPlusPlus versus Rust
+
+SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the (loose) correspondence between Rust and SaferCPlusPlus elements:
+
+Rust | SaferCPlusPlus
+---- | --------------
+non-reassignable reference | scope pointer
+reassignable (mut) reference | registered pointer
+Box<> | scope owner pointer
+Rc<> | reference counting pointer
+Arc<> | shared immutable pointer
+Arc< Mutex<> > | access requester
+
+Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to (among other things) help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. This can result in a little run-time overhead that a Rust implementation might tend to avoid. But perhaps unintuitively, this tends to have little effect on performance in practice. In part because there is often opportunity for the compiler optimizer to discard redundant run-time overhead, but mainly because with both SaferCPlusPlus and Rust, it's usually the case that the vast majority of pointer/reference instances end up spending their entire existence targeting a single object with "scope lifetime" (which incurs no run-time overhead in either solution). In practice, we observe that in both cases, the largest contributor to run-time overhead actually tends to be bounds checking of vectors and arrays.
+
+A sample [subset of "The Computer Language Benchmark Game"](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) showed SaferCPlusPlus translations of C++ implementations to be, on average, about 30% slower than the original, with wide variation. At the time of this writing (Feb 2017), the Rust implementations of the same subset were reported as also, on average, about 30% slower than the C++ implementations, with very wide variation. For various reasons, these benchmarks should not be considered an accurate measure of intrinsic language performance. (The underperformance versus C++ probably being overstated in both cases.) But we can probably take away two things from these results - i) SaferCPlusPlus and Rust are both at least within the same order of magnitude of C++, in terms of performance, and ii) any theoretical performance difference between SaferCPlusPlus and Rust due to extra run-time checks on pointers/references is, in practice, not significant relative to the observed performance variation due to other factors.
+
+So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.  
+
+### SaferCPlusPlus versus Checked C
+
+"Checked C", like SaferCPlusPlus, takes the approach of extending the language with safer elements that can directly substitute for unsafe native elements. In chapter 9 of their [spec](https://github.com/Microsoft/checkedc/releases/download/v0.5-final/checkedc-v0.5.pdf), there is an extensive survey of existing (and historical) efforts to address C/C++ memory safety. There they make the argument for the (heretofore neglected) "language extension" approach (basically citing performance, compatibility and the support for granular mixing of safe and unsafe code), that applies to SaferCPlusPlus as well.
+
+Checked C and SaferCPlusPlus are more complementary than competitive. Checked C targets low-level system C code and basically only addresses the array bounds checking issue, including pointer arithmetic, where SaferCPlusPlus skews more toward C++ code and legacy code that would benefit from being converted to modern C++. It seems that Checked C is not yet ready for deployment (as of Sep 2016), but one could imagine both solutions being used, with little contention, in projects that have both low-level system type code and higher-level application type code.
+
+### SaferCPlusPlus versus Ironclad C++
+
+SaferCPlusPlus and Ironclad C++ are very similar. The main difference is probably that Ironclad uses garbage collection while SaferCPlusPlus does not. They are not incompatible, both libraries could be used in the same project. Unfortunately, Ironclad seems to be no longer under active development.  
+
+While both solutions address the pointer/reference safety issue, SaferCPlusPlus also provides safer replacements for int and size_t, and data types for safely sharing objects between asynchronous threads.  
+
+There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu/~santosh.nagarakatte/papers/ironclad-oopsla2013.pdf). It's a beneficial read even for those not planning on adopting Ironclad, as the the approach has much in common with SaferCPlusPlus.  
 
 ### Getting started on safening existing code
 
