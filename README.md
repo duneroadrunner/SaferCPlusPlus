@@ -194,6 +194,7 @@ The code is Core Guidelines compliant (as we understand it) and the Core Guideli
 
 Now consider a scenario where a programmer decides, in the member function, to store a copy of the pointer parameter (perhaps to implement some kind of cache to increase performance or whatever).
 
+```cpp
     #include "gsl/gsl"
     #include <mutex>
     #include <memory>
@@ -257,6 +258,7 @@ Now consider a scenario where a programmer decides, in the member function, to s
     
         return 0;
     }
+```
 
 Unfortunately, the changes make the code unsafe. The stored (raw) pointer can be used to (invalidly) access an object after it has been deallocated. This new unsafe program is, in essence, not Core Guidelines compliant. The Core Guidelines would have the function parameter be changed from a `gsl::not_null<CGA *>` to a `gsl::not_null< std::shared_ptr<CGA> >` and the pointer stored as an `std::shared_ptr<CGA>` rather than a raw pointer.
 
@@ -266,6 +268,7 @@ And while using `std::shared_ptr<>`s instead of raw pointers would address the p
 
 We can compare all this to what happens in the corresponding SaferCPlusPlus compliant implementation:
 
+```cpp
     #include <vector>
     #include <iostream>
     #include "msetl/msepoly.h"
@@ -328,11 +331,13 @@ We can compare all this to what happens in the corresponding SaferCPlusPlus comp
     
         return 0;
     }
+```
 
 With SaferCPlusPlus, the unsafe code results in a compile error. Instead of using raw pointers, "scope pointers" (which have no extra run-time overhead) are used, which means that the pointer has "scope lifetime" and that it will not outlive its target object. So attempting the to store the scope pointer (or any scope object) in a data type that could potentially outlive the scope results in a compile error.
 
 And if we want the program to compile and run safely:
 
+```cpp
     #include <vector>
     #include <iostream>
     #include "msetl/msepoly.h"
@@ -386,6 +391,7 @@ And if we want the program to compile and run safely:
     
         return 0;
     }
+```
 
 Instead of `std::shared_ptr<>`s, we use "lock pointers". Like `std::shared_ptr<>`s, lock pointers have shared ownership of their target's lifespan, but unlike `std::shared_ptr<>`s, lock pointers also hold a lock that prevents any other thread from accessing the target object in a manner that could result in a data race.  
 
