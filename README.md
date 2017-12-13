@@ -135,6 +135,7 @@ At one point the premise was that those unsafe elements would be made safe via a
 
 Consider this (simplified) example where we're passing a shared object by reference to a member function:
 
+```cpp
     #include "gsl/gsl"
     #include <mutex>
     #include <memory>
@@ -185,6 +186,7 @@ Consider this (simplified) example where we're passing a shared object by refere
     
         return 0;
     }
+```
 
 The shared object is meant to represent an object that may be shared among threads, though for brevity we don't actually use more than one thread in the example.
 
@@ -1585,7 +1587,7 @@ The standard library vector iterators are designed so that they can be (unsafely
 
 And finally, for those whose are willing to sacrifice some safety for performance there is [us::msevector<>](#msevector). This vector is not memory-safe in the way that the other vectors are. It may be useful in cases where you want more control over the safety-performance trade-off. It supports a variety of iterator types - the traditional (unsafe) iterators, a bounds-checked version of the traditional iterator, and iterators that, like ivector<>'s iterators, behave like list iterators.
 
-The vectors, except ivector<>, also support scope iterators which have the same syntax and behavior as the arrays' [scope iterators](#xscope_iterator). ivector<> support for scope iterators will be added in the future.
+The vectors also support scope iterators which have the same syntax and behavior as the arrays' [scope iterators](#xscope_iterator). And remember that you can use [`TRandomAccessSection<>`](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
 ### vector
 
@@ -1819,6 +1821,8 @@ usage example:
 The library provides a few array types - [mstd::array<>](#array), [nii_array<>](#nii_array) and [us::msearray<>](#msearray) - which have properties similar to their corresponding [vector](#vectors) types. mstd::array<> is simply a memory-safe drop-in replacement for std::array<>. nii_array<> is designed to be safely shared between asynchronous threads. And us::msearray<> is not memory-safe in the way the other arrays are, and is provided for cases where more control over the safety-preformance trade-off is desired.
 
 Note that these arrays currently do not support using [scope](#scope-pointers) types as the element type even when the array itself is declared as a scope object. It's expected that this will be supported in the future. The (few) cases where this would be an issue is when you want the element type to be a scope pointer or a type with scope pointer members. In those cases, you might use registered and/or refcounting pointers instead. 
+
+And remember that you can use [`TRandomAccessSection<>`](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
 ### array
 
