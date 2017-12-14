@@ -460,7 +460,7 @@ And if at some point you feel that these new elements involve a lot of typing, n
 
 Registered pointers come in two flavors - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TRelaxedRegisteredPointer<>`](#trelaxedregisteredpointer). They are both very similar. `TRegisteredPointer<>` emphasizes speed and safety a bit more, while `TRelaxedRegisteredPointer<>` emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, `TRelaxedRegisteredPointer<>` may be more convenient.
 
-Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer [substitutes](#primitives) for int, bool and size_t that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer [substitutes](#primitives) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead.  
 
@@ -872,7 +872,7 @@ usage example:
 ### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
 
 ### Scope pointers
-Scope pointers point to scope objects. Scope objects are essentially objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So the object is destroyed when it, or its owner, goes out of scope. In C++ at the moment, there isn't really a good way for a program to determine at compile time whether an object is allocated on the stack or not, so in order to exploit the properties of stack allocated objects, the library needs you to explicitly declare when an object is stack allocated. You do this by wrapping the type in the mse::TXScopeObj<> (transparent) wrapper template.
+Scope pointers point to scope objects. Scope objects are essentially objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So the object is destroyed when it, or its owner, goes out of scope. In C++ at the moment, there isn't really a good way for a program to determine at compile time whether an object is allocated on the stack or not, so in order to exploit the properties of stack allocated objects, the library needs you to explicitly declare when an object is stack allocated. You do this by wrapping the type in the `mse::TXScopeObj<>` (transparent) wrapper template.
 
 Note that you do not need to do this for all objects allocated on the stack. Just the ones for which you want to obtain a scope pointer. The reason you might want a scope pointer, as opposed to say, a registered pointer, is that, by default, scope pointers have no run-time overhead. In fact, it is expected that ultimately, scope pointers will be by far the most commonly used of the pointers provided by the library. 
 
@@ -881,25 +881,26 @@ In the future we expect that there will be a "compile helper tool" to verify tha
 - Objects of scope type (types whose name starts with "TXScope" or "xscope") must be global or (non-static) automatic local variables.
 	- Basically global or allocated on the stack.
 - Scope types must not be used as members of classes or structs that are not themselves scope types.
-	- Note that you can use the mse::make_pointer_to_member() function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
+	- Note that you can use the `mse::make_pointer_to_member()` function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
 - Scope types must not be used as base classes of classes that are not themselves scope types.
 	- There probably isn't much motivation to do that anyway.
 - Note that scope pointers are themselves scope objects and must adhere to the same restrictions.
-- Non-owning scope pointers (scope pointers other than TXScopeOwnerPointer<>s) should not be used as a function return value.
-	- Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [xscope_chosen_pointer()](#xscope_chosen_pointer) function.
+- Non-owning scope pointers (scope pointers other than `TXScopeOwnerPointer<>`s) should not be used as a function return value.
+	- Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen_pointer()`](#xscope_chosen_pointer) function.
 
 Failure to adhere to the rules for scope objects could result in unsafe code. Currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. Again, at some point the restrictions will be fully enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural.
 
-In lieu of full compile-time enforcement, run-time checking is available to enforce safety and help detect misuses of scope pointers. Run-time checking in debug mode is enabled by defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For int, bool and size_t use the safer [substitutes](#primitives) that can act as base classes. 
+In lieu of full compile-time enforcement, run-time checking is available to enforce safety and help detect misuses of scope pointers. Run-time checking in debug mode is enabled by defining `MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED`. Additionally defining `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#primitives) that can act as base classes. 
 
-Generally, there are two types of scope pointers you might use, [TXScopeOwnerPointer](#txscopeownerpointer) and [TXScopeItemFixedPointer](#txscopeitemfixedpointer). TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to also include "declaration scope".)
-TXScopeItemFixedPointer is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is primarily intended for the purpose of passing scope objects by reference as function arguments. 
+Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPointer<>`](#txscopeownerpointer) and [`TXScopeItemFixedPointer<>`](#txscopeitemfixedpointer). `TXScopeOwnerPointer<>` is similar to `boost::scoped_ptr<>` in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to also include "declaration scope".)
+`TXScopeItemFixedPointer<>` is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is primarily intended for the purpose of passing scope objects by reference as function arguments. 
 
 ### TXScopeItemFixedPointer
-TXScopeItemFixedPointer is primarily intended to be used to pass scope objects by reference as function arguments. It should not be used as a function return type, as that could be unsafe. And as with any other scope object, it should not be used as a member of any class or struct that is not itself a scope object (though attempting to do so would generally produce a compile error).  
+`TXScopeItemFixedPointer<>` is primarily intended to be used to pass scope objects by reference as function arguments. It should not be used as a function return type, as that could be unsafe. And as with any other scope object, it should not be used as a member of any class or struct that is not itself a scope object (though attempting to do so would generally produce a compile error).  
 
 usage example:
 
+```cpp
     #include "msescope.h"
     
     int main(int argc, char* argv[]) {
@@ -925,14 +926,16 @@ usage example:
         int res2 = B::foo2(&a_scpobj);
         int res3 = B::foo3(&a_scpobj);
     }
+```
 
 ### TXScopeItemFixedConstPointer
 
 ### TXScopeOwnerPointer
-TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, as a scope object, TXScopeOwnerPointer should not be used as a member of any class or struct that is not iself a scope object. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
+`TXScopeOwnerPointer<>` is similar to `boost::scoped_ptr<>` in functionality, but more limited in intended use. In particular, as a scope object, `TXScopeOwnerPointer<>` should not be used as a member of any class or struct that is not iself a scope object. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
 
 usage example:
 
+```cpp
     #include "msescope.h"
     
     int main(int argc, char* argv[]) {
@@ -957,16 +960,18 @@ usage example:
         int res4 = B::foo2(xscp_a_ownerptr);
         int res4b = B::foo2(&(*xscp_a_ownerptr));
     }
+```
 
 ### TXScopeFixedPointer
-TXScopeFixedPointer is the actual type of the pointer value returned by the "&" (ampersand) operator of an object declared as a "scope" object (by virtue of being wrapped in the TXScopeObj<> transparent wrapper template). Generally, you don't need to use this type directly. TXScopeFixedPointer implicitly converts to a TXScopeItemFixedPointer, which can point to both explicitly declared and implicit scope objects. So generally you would just use the latter.
+`TXScopeFixedPointer<>` is the actual type of the pointer value returned by the `&` (ampersand) operator of an object declared as a "scope" object (by virtue of being wrapped in the `TXScopeObj<>` transparent wrapper template). Generally, you don't need to use this type directly. `TXScopeFixedPointer<>` implicitly converts to a `TXScopeItemFixedPointer<>`, which can point to both explicitly declared and implicit scope objects. So generally you would just use the latter.
 
 ### TXScopeFixedConstPointer
 
 ### make_xscope_strong_pointer_store()
 
-make_xscope_strong_pointer_store() returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Currently supported strong pointers include [reference counting pointers](#reference-counting-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
+`make_xscope_strong_pointer_store()` returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Currently supported strong pointers include [reference counting pointers](#reference-counting-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
 
+```cpp
     #include "msescope.h"
     #include "mserefcounting.h"
     
@@ -996,15 +1001,17 @@ make_xscope_strong_pointer_store() returns a scope object that holds a copy of t
         mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
         A res7 = *xscp_cptr2;
     }
+```
 
 ### xscope_chosen_pointer()
 
-Currently there's a rule against using non-owning scope pointers as function return values due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the xscope_chosen_pointer() function instead.
+Currently there's a rule against using non-owning scope pointers as function return values due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the `xscope_chosen_pointer()` function instead.
 
-In essence, the xscope_chosen_pointer() function simply takes two scope pointers as input parameters and returns one of them. Which of the pointers is returned is determined by a (user supplied) "chooser" function that is passed, as the first parameter, to xscope_chosen_pointer(). The "chooser" function returns a bool and takes the two scope pointers as its first two parameters. If the chooser function returns false then the first scope pointer is returned, otherwise the second is returned.
+In essence, the `xscope_chosen_pointer()` function simply takes two scope pointers as input parameters and returns one of them. Which of the pointers is returned is determined by a (user supplied) "chooser" function that is passed, as the first parameter, to `xscope_chosen_pointer()`. The "chooser" function returns a bool and takes the two scope pointers as its first two parameters. If the chooser function returns false then the first scope pointer is returned, otherwise the second is returned.
 
-So consider, for example, a "min" function that takes two scope pointers and returns a scope pointer to the lesser of the two target (scope) objects. The implementation of this function would be straightforward if returning non-owning scope pointers was permitted. The following example demonstrates the same functionality using xscope_chosen_pointer() instead. It isn't necessarily super-pretty, but anyway the need to return a scope pointer generally isn't that common.
+So consider, for example, a "min" function that takes two scope pointers and returns a scope pointer to the lesser of the two target (scope) objects. The implementation of this function would be straightforward if returning non-owning scope pointers was permitted. The following example demonstrates the same functionality using `xscope_chosen_pointer()` instead. It isn't necessarily super-pretty, but anyway the need to return a scope pointer generally isn't that common.
 
+```cpp
     #include "msescope.h"
     
     int main(int argc, char* argv[]) {
@@ -1031,13 +1038,14 @@ So consider, for example, a "min" function that takes two scope pointers and ret
 
         assert(5 == xscp_min_ptr1->b);
     }
-
+```
 
 ### make_pointer_to_member()
-If you need a safe pointer to a member of a class/struct, you could declare the member itself to be a registered object (or a reference counting pointer). But often a preferable option is to use make_pointer_to_member(). This function takes the member you want to target, and a safe pointer to the containing class/struct, and combines them to create a safe pointer to the member. The actual type of the returned pointer varies depending on the types of the parameters passed.
+If you need a safe pointer to a member of a class/struct, you could declare the member itself to be a registered object (or a reference counting pointer). But often a preferable option is to use `make_pointer_to_member()`. This function takes the member you want to target, and a safe pointer to the containing class/struct, and combines them to create a safe pointer to the member. The actual type of the returned pointer varies depending on the types of the parameters passed.
 
 usage example:
 
+```cpp
     /* Including "msepoly.h" is not required to use mse::make_pointer_to_member(). It just happens to include all the
     other include files used by this example. */
     #include "msepoly.h"
@@ -1139,18 +1147,19 @@ usage example:
             //(*h_string1_stdshared_const_ptr) = "some new text";
         }
     }
-
+```
 
 ### Poly pointers
 Poly pointers are "chameleon" pointers that can be constructed from, and retain the safety features of many of the pointer types in this library. If you're writing a function and you'd like it to be able to accept different types of safe pointer parameters, you can "templatize" your function. Alternatively, you can declare your pointer parameters as poly pointers.  
 
-Note that poly pointers support only basic facilities common to all the covered pointer and iterator types, providing essentially the functionality of a C++ reference. For example, this means no assignment operator, and no "operator bool()". Where null pointer values are desired you might consider using mse::optional<> or std::optional<> instead.  
+Note that poly pointers support only basic facilities common to all the covered pointer and iterator types, providing essentially the functionality of a C++ reference. For example, this means no assignment operator, and no `operator bool()`. Where null pointer values are desired you might consider using `mse::optional<>` or `std::optional<>` instead.  
 
 ### TXScopePolyPointer, TXScopePolyConstPointer
-Scope poly pointers are primarily intended to be used in function parameter declarations. In particular, as they can be constructed from a scope pointer (TXScopeFixedPointer or TXScopeFixedConstPointer), they must observe the same usage restrictions.
+Scope poly pointers are primarily intended to be used in function parameter declarations. In particular, as they can be constructed from a scope pointer (`TXScopeFixedPointer<>` or `TXScopeFixedConstPointer<>`), they must observe the same usage restrictions.
 
 usage example:
 
+```cpp
     #include "msepoly.h"
     
     void main() {
@@ -1244,18 +1253,19 @@ usage example:
             auto res_using_member_mstdvec_iter_anyptr_via_const_poly = B::foo4(b_member_a_mstdvec_iter_anyptr);
         }
     }
+```
 
 ### TPolyPointer, TPolyConstPointer
 These poly pointers do not support construction from scope pointers, and thus are not bound by the same usage restrictions. For example, these poly pointers may be used as a member of a class or struct.
 
 ### TXScopeAnyPointer, TXScopeAnyConstPointer, TAnyPointer, TAnyConstPointer
-"Any" pointers are also “chameleon” pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by [make_pointer_to_member()](#make_pointer_to_member) to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the scope poly pointer usage example.  
+"Any" pointers are also “chameleon” pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by [`make_pointer_to_member()`](#make_pointer_to_member) to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the scope poly pointer usage example.  
 
-"Any" pointers can also be used as function arguments. The choice between using poly pointers versus "any" pointers is similar to the choice between [std::variant and std::any](http://www.boost.org/doc/libs/1_63_0/doc/html/variant/misc.html#variant.versus-any). 
+"Any" pointers can also be used as function arguments. The choice between using poly pointers versus "any" pointers is similar to the choice between [`std::variant` and `std::any`](http://www.boost.org/doc/libs/1_63_0/doc/html/variant/misc.html#variant.versus-any). 
 
 ### TXScopeAnyRandomAccessIterator, TXScopeAnyRandomAccessConstIterator, TAnyRandomAccessIterator, TAnyRandomAccessConstIterator
 
-In modern C++ (and SaferCPlusPlus), arrays of different sizes are actually different types, with incompatible iterators. So, for example, if you wanted to make a function that accepts the iterators of arrays of varying size, you would generally do that by "templatizing" the function. Alternatively, you could use an "any random access iterator" which is a "chameleon" iterator that can be constructed from basically any iterator that supports operator\[\] (the "square bracket" operator).
+In modern C++ (and SaferCPlusPlus), arrays of different sizes are actually different types, with incompatible iterators. So, for example, if you wanted to make a function that accepts the iterators of arrays of varying size, you would generally do that by "templatizing" the function. Alternatively, you could use an "any random access iterator" which is a "chameleon" iterator that can be constructed from basically any iterator that supports `operator[]` (the "square bracket" operator).
 
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
@@ -1263,6 +1273,7 @@ A "random access section" is basically a convenient interface to access a (conti
 
 usage example:
 
+```cpp
     #include "msepoly.h"
     
     int main(int argc, char* argv[]) {
@@ -1322,15 +1333,16 @@ usage example:
         B::foo3(ra_section2);
         auto res6 = B::foo4(ra_section2);
     }
+```
 
 ### Safely passing parameters by reference
 As has been shown, you can use [registered pointers](#registered-pointers), [reference counting pointers](#reference-counting-pointers), [scope pointers](#scope-pointers) and/or various iterators to safely pass parameters by reference. When writing a function for general use that takes parameters by reference, you can either require a specific (safe) reference type for its reference parameters, or allow the caller some flexibility as to which reference type they use. 
 
-One way to allow your function to accept any reference type is to make your function into a function template. The benefits of this approach are that it requires no extra run-time overhead, and it intrinsically supports legacy (unsafe, native) pointer types when needed. This approach is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example. Or you can read a slightly out-of-date article about it [here](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+One way to allow your function to accept any reference type is to make your function into a function template. The benefits of this approach are that it requires no extra run-time overhead, and it intrinsically supports legacy (unsafe, native) pointer types when needed. This approach is demonstrated in the [`TRefCountingOfRegisteredPointer<>`](#trefcountingofregisteredpointer) usage example. Or you can read a slightly out-of-date article about it [here](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 Another option is to use [poly pointers](#poly-pointers) instead. They can also enable your function to accept a variety of reference types, without "templatizing" your function, but with a small run-time overhead.
 
-Another choice is to require that reference parameters be passed using scope pointers. This approach, by default, has no more run-time overhead than using native pointers/references. And note that scope pointers can be obtained from reference counting pointers and pointers to shared objects (using [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)), but not registered pointers. And legacy (native) pointers would not be supported either. Generally, you would use scope pointer parameters in cases where you are adopting a "scopecentric" style of programming (similar to the Rust language), and trying to avoid use of (unsafe) legacy elements.
+Another choice is to require that reference parameters be passed using scope pointers. This approach, by default, has no more run-time overhead than using native pointers/references. And note that scope pointers can be obtained from reference counting pointers and pointers to shared objects (using [`make_xscope_strong_pointer_store()`](#make_xscope_strong_pointer_store)), but not registered pointers. And legacy (native) pointers would not be supported either. Generally, you would use scope pointer parameters in cases where you are adopting a "scopecentric" style of programming (similar to the Rust language), and trying to avoid use of (unsafe) legacy elements.
 
 And of course the library remains perfectly compatible with (the less safe) traditional C++ references if you prefer. 
 
@@ -1338,9 +1350,9 @@ And of course the library remains perfectly compatible with (the less safe) trad
 ### Asynchronously shared objects
 One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, while one thread is modifying an object, you want to ensure that no other thread accesses it. But you also want to do it in a way that allows for maximum utilization of the shared object. To this end the library provides "access requesters". Access requesters provide "lock pointers" on demand that are used to safely access the shared object.
 
-In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases the library provides "immutable fixed pointers", which can be thought of as sort of a safer version std::shared_ptr<>.
+In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases the library provides "immutable fixed pointers", which can be thought of as sort of a safer version `std::shared_ptr<>`.
 
-In order to ensure safety, shared objects can only be accessed through lock pointers or immutable fixed pointers. If you have an existing object that you only want to share part of the time, you can swap (using std::swap() for example) the object with a shared object when it's time to share it, and swap it back when you're done sharing.
+In order to ensure safety, shared objects can only be accessed through lock pointers or immutable fixed pointers. If you have an existing object that you only want to share part of the time, you can swap (using `std::swap()` for example) the object with a shared object when it's time to share it, and swap it back when you're done sharing.
 
 Note that not all types are safe to share between threads. For example, because of its iterators, `mstd::vector<int>` is not safe to share between threads. (And neither is `std::vector<int>`.) `nii_vector<int>` on the other hand is. Trying to share the former using access requesters or immutable fixed pointers would result in a compile error.
 
@@ -1348,24 +1360,25 @@ Access requesters and immutable fixed pointers know which of the library's types
 
 ### TAsyncSharedV2ReadWriteAccessRequester
 
-Use the writelock_ptr() and readlock_ptr() member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock for as long as they exist. Their locks are released when the pointers are destroyed (generally when they go out of scope).  
+Use the `writelock_ptr()` and `readlock_ptr()` member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock for as long as they exist. Their locks are released when the pointers are destroyed (generally when they go out of scope).  
 
-Use mse::make_asyncsharedv2readwrite<>() to obtain a TAsyncSharedV2ReadWriteAccessRequester. TAsyncSharedV2ReadWriteAccessRequester can be copied and passed-by-value as a parameter (to another thread, generally).
+Use `mse::make_asyncsharedv2readwrite<>()` to obtain a `TAsyncSharedV2ReadWriteAccessRequester<>`. `TAsyncSharedV2ReadWriteAccessRequester<>` can be copied and passed-by-value as a parameter (to another thread, generally).
 
-Non-blocking try_writelock_ptr() and try_readlock_ptr() member functions are also available. As are the limited-blocking try_writelock_ptr_for(), try_readlock_ptr_for(), try_writelock_ptr_until() and try_readlock_ptr_until().
+Non-blocking `try_writelock_ptr()` and `try_readlock_ptr()` member functions are also available. As are the limited-blocking `try_writelock_ptr_for()`, `try_readlock_ptr_for()`, `try_writelock_ptr_until()` and `try_readlock_ptr_until()`.
 
 Note that while a "write-lock" pointer will not simultaneously co-exist with any lock pointer to the same shared object in any other thread, it can co-exist with (read- and/or write-) lock pointers in the same thread. This means that lock pointers have ["upgrade lock"](http://www.boost.org/doc/libs/1_65_1/doc/html/thread/synchronization.html#thread.synchronization.mutex_concepts.upgrade_lockable) functionality. That is, for example, a thread that holds a read lock on a shared object (via read-lock pointer) can, at some later point, additionally obtain a write lock (via write-lock pointer) without surrendering the original read lock. It can then release the write lock (by allowing the write-lock pointer to go out of scope), again without surrendering the original read lock. Systems based on traditional "readers-writer" locks would require you to surrender the read lock before attempting to obtain a write lock, allowing another thread to potentially (and undesirably) obtain a write lock in between.
 
-One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. Prudent practice would avoid deadlock by using the non-blocking try_writelock_ptr(), or time-out limited try_writelock_ptr_for() member functions to obtain the write-lock pointer. Currently, this dead-lock scenario is not detected by the access requester (or its underlying mutex). It is intended that in the near future, this dead-lock scenario will be detected and an exception will be thrown (or whatever user-specified behavior).
+One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. Prudent practice would avoid deadlock by using the non-blocking `try_writelock_ptr()`, or time-out limited `try_writelock_ptr_for()` member functions to obtain the write-lock pointer. Currently, this dead-lock scenario is not detected by the access requester (or its underlying mutex). It is intended that in the near future, this dead-lock scenario will be detected and an exception will be thrown (or whatever user-specified behavior).
 
 ### TAsyncSharedV2ReadOnlyAccessRequester
-Same as TAsyncSharedV2ReadWriteAccessRequester, but only supports readlock_ptr(), not writelock_ptr(). You can use mse::make_asyncsharedv2readonly<>() to obtain a TAsyncSharedV2ReadOnlyAccessRequester. TAsyncSharedV2ReadOnlyAccessRequester can also be copy constructed from a TAsyncSharedV2ReadWriteAccessRequester.
+Same as `TAsyncSharedV2ReadWriteAccessRequester<>`, but only supports `readlock_ptr()`, not `writelock_ptr()`. You can use `mse::make_asyncsharedv2readonly<>()` to obtain a `TAsyncSharedV2ReadOnlyAccessRequester<>`. `TAsyncSharedV2ReadOnlyAccessRequester<>` can also be copy constructed from a `TAsyncSharedV2ReadWriteAccessRequester<>`.
 
 ### TAsyncSharedV2ImmutableFixedPointer
-In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases you can use TAsyncSharedV2ImmutableFixedPointer<>, which can be thought of as sort of a safer version std::shared_ptr<>. Use mse::make_asyncsharedv2immutable<>() to obtain a TAsyncSharedV2ImmutableFixedPointer<>.
+In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases you can use `TAsyncSharedV2ImmutableFixedPointer<>`, which can be thought of as sort of a safer version `std::shared_ptr<>`. Use `mse::make_asyncsharedv2immutable<>()` to obtain a `TAsyncSharedV2ImmutableFixedPointer<>`.
 
 usage example:
 
+```cpp
 	#include "mseasyncshared.h"
 	#include <ctime>
 	#include <ratio>
@@ -1550,15 +1563,16 @@ usage example:
 			auto A_b_safe_cptr = mse::make_const_pointer_to_member(A_immptr->b, A_immptr);
 		}
 	}
-
+```
 
 ### Primitives
 
 ### CInt, CSize_t and CBool
-These classes are meant to behave like, and be compatible with their native counterparts. In debug mode, they check for "use before initialization", and in release mode, they use default initialization to help ensure deterministic behavior. Upon value assignment, CInt and CSize_t will check to ensure that the value fits within the type's range. CSize_t's `-=` operator checks that the operation evaluates to a positive value. And unlike its native counterpart, arithmetic operations involving CSize_t that could evaluate to a negative number are returned as a (signed) CInt.
+These classes are meant to behave like, and be compatible with their native counterparts. In debug mode, they check for "use before initialization", and in release mode, they use default initialization to help ensure deterministic behavior. Upon value assignment, `CInt` and `CSize_t` will check to ensure that the value fits within the type's range. `CSize_t`'s `-=` operator checks that the operation evaluates to a positive value. And unlike its native counterpart, arithmetic operations involving `CSize_t` that could evaluate to a negative number are returned as a (signed) `CInt`.
 
 usage example:
 
+```cpp
     #include "mseprimitives.h"
     
     int main(int argc, char* argv[]) {
@@ -1581,8 +1595,9 @@ usage example:
             }
         }
     }
+```
 
-Note that while CInt and CSize_t have no problem interacting with native signed integers, they do not implicitly play well with size_t or native unsigned integers. We'd be generally wary of using native unsigned integer types due to the implicit conversion/promotion rules between signed and unsigned native integers. But if you need to obtain a size_t from a CSize_t, you can do so explicitly using the mse::as_a_size_t() function. If you want to construct a CSize_t (or CInt) from a native unsigned integer type, you'd need to first cast it to a size_t, or a signed integer.  
+Note that while `CInt` and `CSize_t` have no problem interacting with native signed integers, they do not implicitly play well with `size_t` or native unsigned integers. We'd be generally wary of using native unsigned integer types due to the implicit conversion/promotion rules between signed and unsigned native integers. But if you need to obtain a `size_t` from a `CSize_t`, you can do so explicitly using the `mse::as_a_size_t()` function. If you want to construct a `CSize_t` (or `CInt`) from a native unsigned integer type, you'd need to first cast it to a `size_t`, or a signed integer.  
 
 Also see the section on "[compatibility considerations](#compatibility-considerations)".
 
