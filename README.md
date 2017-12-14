@@ -1615,20 +1615,21 @@ Integer types with more comprehensive range checking can be found here: https://
 
 ### Vectors
 
-The library provides a number of vector types. Probably the two most essential are [mstd::vector<>](#vector) and [nii_vector<>](#nii_vector). mstd::vector<> is simply a memory-safe drop-in replacement for std::vector<>. Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed for safe sharing among asynchronous threads.
+The library provides a number of vector types. Probably the two most essential are [`mstd::vector<>`](#vector) and [`nii_vector<>`](#nii_vector). `mstd::vector<>` is simply a memory-safe drop-in replacement for `std::vector<>`. Due to their iterators, vectors are not, in general, safe to share among threads. `nii_vector<>` is designed for safe sharing among asynchronous threads.
 
-The standard library vector iterators are designed so that they can be (unsafely) implemented as just pointers. But this makes them prone to being invalidated as a side effect of insertion, deletion and resize operations on the vector. This also means that they behave differently from list iterators, so algorithms that work on lists won't necessarily work on vectors. So the library includes [ivector<>](#ivector), whose iterators behave like list iterators. That is, they don't get invalidated by insert/delete/resize vector operations unless the element they were pointing to is deleted, and after any such operation, they will continue to point to the same item, which may then be in a different position in the vector.
+The standard library vector iterators are designed so that they can be (unsafely) implemented as just pointers. But this makes them prone to being invalidated as a side effect of insertion, deletion and resize operations on the vector. This also means that they behave differently from list iterators, so algorithms that work on lists won't necessarily work on vectors. So the library includes [`ivector<>`](#ivector), whose iterators behave like list iterators. That is, they don't get invalidated by insert/delete/resize vector operations unless the element they were pointing to is deleted, and after any such operation, they will continue to point to the same item, which may then be in a different position in the vector.
 
-And finally, for those whose are willing to sacrifice some safety for performance there is [us::msevector<>](#msevector). This vector is not memory-safe in the way that the other vectors are. It may be useful in cases where you want more control over the safety-performance trade-off. It supports a variety of iterator types - the traditional (unsafe) iterators, a bounds-checked version of the traditional iterator, and iterators that, like ivector<>'s iterators, behave like list iterators.
+And finally, for those whose are willing to sacrifice some safety for performance there is [`us::msevector<>`](#msevector). This vector is not memory-safe in the way that the other vectors are. It may be useful in cases where you want more control over the safety-performance trade-off. It supports a variety of iterator types - the traditional (unsafe) iterators, a bounds-checked version of the traditional iterator, and iterators that, like `ivector<>`'s iterators, behave like list iterators.
 
 The vectors also support scope iterators which have the same syntax and behavior as the arrays' [scope iterators](#xscope_iterator). And remember that you can use [`TRandomAccessSection<>`](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
 ### vector
 
-mstd::vector<> is a memory-safe drop-in replacement for std::vector<>.
+`mstd::vector<>` is a memory-safe drop-in replacement for `std::vector<>`.
 
 usage example:
 
+```cpp
     #include "msemstdvector.h"
     #include <vector>
     
@@ -1666,17 +1667,19 @@ usage example:
             // In the future an exception may be throw in debug builds.
         }
     }
+```
 
 ### nii_vector
 
-Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed to be safely shareable between asynchronous threads. To that end, it does not support "implicit" iterators. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the nii_vector<>. So for example, instead of a "begin()" member function that takes no parameters, nii_vector<> has an "ss_begin(...)" (static template) member function that actually requires a pointer to the vector to passed as a parameter.  
+Due to their iterators, vectors are not, in general, safe to share among threads. `nii_vector<>` is designed to be safely shareable between asynchronous threads. To that end, it does not support "implicit" iterators. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the `nii_vector<>`. So for example, instead of a `begin()` member function that takes no parameters, `nii_vector<>` has an `ss_begin(...)` (static template) member function that actually requires a pointer to the vector to passed as a parameter.  
 
-Note that in cases when you only need the vector to be shared between threads part of the time, you can swap between, for example, (non-shareable) mstd::vector<>s and (shareable) nii_vector<>s when you need.  
+Note that in cases when you only need the vector to be shared between threads part of the time, you can swap between, for example, (non-shareable) `mstd::vector<>`s and (shareable) `nii_vector<>`s when you need.  
 
-Also note that an nii_vector<> will be (automatically) marked as [safely shareable](#asynchronously-shared-objects) only if its element type is known or declared to be safely shareable.
+Also note that an `nii_vector<>` will be (automatically) marked as [safely shareable](#asynchronously-shared-objects) only if its element type is known or declared to be safely shareable.
 
 usage example:
 
+```cpp
     #include "msemsevector.h"
     #include "mseregistered.h"
     
@@ -1730,17 +1733,19 @@ usage example:
         shareable nii_vector<>. Note that vector swaps are intrinsically fast operations. */
         vo2.swap(*(access_requester2.writelock_ptr()));
     }
+```
 
 ### msevector
 
-us::msevector<> is not memory-safe in the way that the other vectors are. It can be used in cases where you want more control over the safety-performance trade-off.  
+`us::msevector<>` is not memory-safe in the way that the other vectors are. It can be used in cases where you want more control over the safety-performance trade-off.  
 
-In addition to the (high performance) standard vector iterator, us::msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. Algorithms that work when applied to list iterators will work when applied to ipointers. This can be useful as Bjarne famously [points out](https://www.youtube.com/watch?v=YQs6IC-vgmo), for cache-coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate. You can read a short article comparing ipointers with some existing alternatives [here](http://www.codeproject.com/Articles/1087021/Stable-Iterators-for-Cplusplus-Vectors-and-Why-You).  
+In addition to the (high performance) standard vector iterator, `us::msevector<>` also supports a new kind of iterator, called `ipointer`, that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. Algorithms that work when applied to list iterators will work when applied to ipointers. This can be useful as Bjarne famously [points out](https://www.youtube.com/watch?v=YQs6IC-vgmo), for cache-coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate. You can read a short article comparing ipointers with some existing alternatives [here](http://www.codeproject.com/Articles/1087021/Stable-Iterators-for-Cplusplus-Vectors-and-Why-You).  
 
-us::msevector<> also provides a safer bounds-checked version of the standard vector iterator. Note that none of these iterators are safe against the situation where the vector is deleted before an iterator is finished using it.
+`us::msevector<>` also provides a safer bounds-checked version of the standard vector iterator. Note that none of these iterators are safe against the situation where the vector is deleted before an iterator is finished using it.
 
 usage example:
 
+```cpp
     #include "msemsevector.h"
     
     int main(int argc, char* argv[]) {
@@ -1788,9 +1793,11 @@ usage example:
         /* mse::us::msevector<> also provides "safe" (bounds checked) versions of the original stl vector iterators. */
         std::sort(v.ss_begin(), v.ss_end());
     }
+```
 
-ipointers support all the standard iterator operators, but also have member functions with "friendlier" names including:
+`ipointer`s support all the standard iterator operators, but also have member functions with "friendlier" names including:
 
+```cpp
     bool points_to_an_item() const;
     bool points_to_end_marker() const;
     bool points_to_beginning() const;
@@ -1809,13 +1816,15 @@ ipointers support all the standard iterator operators, but also have member func
     reference previous_item() const;
     CSize_t position() const;
     void reset();
+```
 
 ### ivector
 
-ivector is for cases when safety and correctness are higher priorities than compatibility and performance. ivector drops support for the (problematic) standard vector iterator, replacing it with [ipointer](#msevector).
+`ivector<>` is for cases when safety and correctness are higher priorities than compatibility and performance. `ivector<>` drops support for the (problematic) standard vector iterator, replacing it with [`ipointer`](#msevector).
 
 usage example:
 
+```cpp
     #include "mseivector.h"
     
     int main(int argc, char* argv[]) {
@@ -1824,13 +1833,15 @@ usage example:
         std::sort(iv.begin(), iv.end());
         mse::ivector<int>::ipointer ivip = iv.begin();
     }
+```
 
 ### make_xscope_vector_size_change_lock_guard()
 
-The make_xscope_vector_size_change_lock_guard() function is used, indirectly, to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the make_xscope_vector_size_change_lock_guard() function to create an "xscope_structure_change_lock_guard" object. You can obtain scope pointers to elements in the corresponding vector via its xscope_ptr_to_element() member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. mstd::vector and msevector are supported. nii_vector is not supported because the mechanism required to ensure memory safety would either compromise thread safety or require costly synchronization operations.
+The `make_xscope_vector_size_change_lock_guard()` function is used, indirectly, to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the `make_xscope_vector_size_change_lock_guard()` function to create an `xscope_structure_change_lock_guard` object. You can obtain scope pointers to elements in the corresponding vector via its `xscope_ptr_to_element()` member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. `mstd::vector<>` and `us::msevector<>` are supported. `nii_vector<>` is not supported because the mechanism required to ensure memory safety would either compromise thread safety or require costly synchronization operations.
 
 usage example:
 
+```cpp
     #include "msemstdvector.h"
     
     int main(int argc, char* argv[]) {
@@ -1849,10 +1860,11 @@ usage example:
         // the vector is no longer "size change locked"
         vector1_scpobj.push_back(4);
     }
+```
 
 ### Arrays
 
-The library provides a few array types - [mstd::array<>](#array), [nii_array<>](#nii_array) and [us::msearray<>](#msearray) - which have properties similar to their corresponding [vector](#vectors) types. mstd::array<> is simply a memory-safe drop-in replacement for std::array<>. nii_array<> is designed to be safely shared between asynchronous threads. And us::msearray<> is not memory-safe in the way the other arrays are, and is provided for cases where more control over the safety-preformance trade-off is desired.
+The library provides a few array types - [`mstd::array<>`](#array), [`nii_array<>`](#nii_array) and [`us::msearray<>`](#msearray) - which have properties similar to their corresponding [vector](#vectors) types. `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. `nii_array<>` is designed to be safely shared between asynchronous threads. And `us::msearray<>` is not memory-safe in the way the other arrays are, and is provided for cases where more control over the safety-preformance trade-off is desired.
 
 Note that these arrays currently do not support using [scope](#scope-pointers) types as the element type even when the array itself is declared as a scope object. It's expected that this will be supported in the future. The (few) cases where this would be an issue is when you want the element type to be a scope pointer or a type with scope pointer members. In those cases, you might use registered and/or refcounting pointers instead. 
 
@@ -1860,10 +1872,11 @@ And remember that you can use [`TRandomAccessSection<>`](#txscoperandomaccesssec
 
 ### array
 
-mstd::array<> is a memory-safe drop-in replacement for std::array<>. Note that the current implementation requires "mseregistered.h".  
+`mstd::array<>` is a memory-safe drop-in replacement for `std::array<>`. Note that the current implementation requires "`mseregistered.h`".  
 
 usage example:
 
+```cpp
     #include "msemstdarray.h"
     #include "msemsearray.h"
     #include <array>
@@ -1901,17 +1914,19 @@ usage example:
             // expected exception
         }
     }
+```
 
 ### nii_array
 
-nii_array<> is just the corresponding array version of [nii_vector](#nii_vector). It is designed such that it can be safely shared between asynchronous threads.
+`nii_array<>` is just the corresponding array version of [`nii_vector<>`](#nii_vector). It is designed such that it can be safely shared between asynchronous threads.
 
 ### msearray
 
-us::msearray<>, like us::msevector<>, is not memory-safe in the way that the other arrays are. And like us::msevector<>, us::msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like us::msevector<>, us::msearray<>'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
+`us::msearray<>`, like `us::msevector<>`, is not memory-safe in the way that the other arrays are. And like `us::msevector<>`, `us::msearray<>` provides a safer iterator, in addition to the (high performance) standard iterator. Like `us::msevector<>`, `us::msearray<>`'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
 
 usage example:
 
+```cpp
     #include "msemsearray.h"
     #include <array>
     
@@ -1975,13 +1990,15 @@ usage example:
             auto res3 = *scp_ss_citer4;
         }
     }
+```
 
 ### xscope_iterator
 
-The implementation of, for example, mstd::array<> iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct that is not itself a scope object, and may not be used as a function return value. mstd::array<>, nii_array<> and us::msearray<> all support scope iterators.
+The implementation of, for example, `mstd::array<>` iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct that is not itself a scope object, and may not be used as a function return value. `mstd::array<>`, `nii_array<>` and `us::msearray<>` all support scope iterators.
 
 usage example:
 
+```cpp
     #include "msemstdarray.h"
     
     int main(int argc, char* argv[]) {
@@ -2020,13 +2037,15 @@ usage example:
         scp_iter4++;
         auto res3 = *scp_iter4;
     }
+```
 
 ### xscope_pointer_to_array_element()
 
-You can use this function to obtain a scope pointer to an array element. You can pass it ethier an xscope_iterator or a scope pointer to an array and an index. mstd::array<>, nii_array<> and us::msearray<> are supported.
+You can use this function to obtain a scope pointer to an array element. You can pass it ethier an xscope_iterator or a scope pointer to an array and an index. `mstd::array<>`, `nii_array<>` and `us::msearray<>` are supported.
 
 usage example:
 
+```cpp
     #include "msemstdarray.h"
     
     int main(int argc, char* argv[]) {
@@ -2045,20 +2064,22 @@ usage example:
         auto scp_cptr2 = mse::mstd::xscope_const_pointer_to_array_element<int, 3>(&array1_scpobj, 2/*element index*/);
         auto res2 = *scp_cptr2;
     }
+```
 
 ### Compatibility considerations
 People have asked why the primitive C++ types can't be used as base classes - http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
 
 But while substitute classes cannot be 100% compatible substitutes for their corresponding primitives, they can still be mostly compatible. And if you're writing new code or maintaining existing code, it should be considered good coding practice to ensure that your code is compatible with C++'s conversion rules for classes and not dependent on the "chaotic" legacy conversion rules of primitive types.
 
-If you are using legacy code or libraries where it's not practical to update the code, it shouldn't be a problem to continue using primitive types there and the safer substitute classes elsewhere in the code. The safer substitute classes generally have no problem interacting with primitive types, although in some cases you may need to do some explicit type casting. [Registered pointers](#registered-pointers) can be cast to raw pointers, and, for example, [CInt](#primitives) can participate in arithmetic operations with regular ints.
+If you are using legacy code or libraries where it's not practical to update the code, it shouldn't be a problem to continue using primitive types there and the safer substitute classes elsewhere in the code. The safer substitute classes generally have no problem interacting with primitive types, although in some cases you may need to do some explicit type casting. [Registered pointers](#registered-pointers) can be cast to raw pointers, and, for example, [`CInt`](#primitives) can participate in arithmetic operations with regular `int`s.
 
 ### Practical limitations
 
 The degree of memory safety that can be achieved is a function of the degree to which use of C++'s (memory) unsafe elements is avoided. Unfortunately, there is not yet a tool to automatically identify such uses. But if, in the future, there is significant demand for such a tool, it shouldn't be a particulary difficult thing to develop. Certainly trivial compared to some of the existing static analysis tools.
 
-Note that one of C++'s more subtle unsafe elements is the implicit "this" pointer when accessing member variables from member functions. Consider this example:
+Note that one of C++'s more subtle unsafe elements is the implicit `this` pointer when accessing member variables from member functions. Consider this example:
 
+```cpp
     #include "msescope.h"
     #include "msemstdvector.h"
     
@@ -2082,9 +2103,11 @@ Note that one of C++'s more subtle unsafe elements is the implicit "this" pointe
         auto iter = vec1.begin();
         iter->foo1(&vec1);
     }
+```
 
-The above example contains unchecked accesses to deallocated memory via an implicit and explicit "this" pointer. The "this" pointer (implicit or explicit) is a native pointer, and like any other native pointer, is unsafe and can/should be replaced with a safer substitute:
+The above example contains unchecked accesses to deallocated memory via an implicit and explicit `this` pointer. The `this` pointer (implicit or explicit) is a native pointer, and like any other native pointer, is unsafe and can/should be replaced with a safer substitute:
 
+```cpp
     #include "msescope.h"
     #include "msemstdvector.h"
     
@@ -2107,12 +2130,13 @@ The above example contains unchecked accesses to deallocated memory via an impli
         auto iter = vec1.begin();
         iter->foo2(iter, &vec1);
     }
+```
 
-So, technically, achieving complete memory safety requires passing a safe "this" pointer parameter as an argument to every member function that accesses a member variable. (I.e. No non-static member functions.)
+So, technically, achieving complete memory safety requires passing a safe `this` pointer parameter as an argument to every member function that accesses a member variable. (I.e. No non-static member functions.)
 
 Another couple of potential pitfalls are the potential misuse of "scope" pointers, and the sharing of objects with unprotected mutable members between asynchronous threads, as explained in the corresponding documentation. The library data types do what they can to prevent such misuse, but are ultimately limited in their enforcement capabilities. These shortcomings could also be addressed in the future with a reasonably straightforward "code checker" tool to detect the potential problems.
 
-And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with one of the safe vectors (msevector or ivector) that support list-style iterators, often with a [performance benefit](#msevector).
+And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with one of the safe vectors (`ivector<>` or `us::msevector<>`) that support list-style iterators, often with a [performance benefit](#msevector).
 
 ### Questions and comments
 If you have questions or comments you can create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
