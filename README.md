@@ -397,7 +397,9 @@ Instead of `std::shared_ptr<>`s, we use "lock pointers". Like `std::shared_ptr<>
 
 ### SaferCPlusPlus versus Rust
 
-SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the (loose) correspondence between Rust and SaferCPlusPlus elements:
+C++ and Rust differ significantly in many ways, but SaferCPlusPlus is primarily concerned with addressing memory safety so here we'll consider only that aspect. Given that, what's most notable is the similarities between SaferCPlusPlus and Rust, considering they were developed independently. 
+
+Probably the main issue when it comes to memory safety is the relationship between pointers/references and object deallocation. So it's interesting that Rust and SaferCPlusPlus decided on roughly corresponding sets of (safe) pointer/reference types:
 
 Rust | SaferCPlusPlus
 ---- | --------------
@@ -406,13 +408,19 @@ reassignable (mut) reference | registered pointer
 Box<> | scope owner pointer
 Rc<> | reference counting pointer
 Arc<> | shared immutable pointer
-Arc< Mutex<> > | access requester
+Arc< RwLock<> > | access requester
 
-Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to (among other things) help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. This can result in a little run-time overhead that a Rust implementation might tend to avoid. But perhaps unintuitively, this tends to have little effect on performance in practice. In part because there is often opportunity for the compiler optimizer to discard redundant run-time overhead, but mainly because with both SaferCPlusPlus and Rust, it's usually the case that the vast majority of pointer/reference instances end up spending their entire existence targeting a single object with "scope lifetime" (which incurs no run-time overhead in either solution). In practice, we observe that in both cases, the largest contributor to run-time overhead actually tends to be bounds checking of vectors and arrays.
+Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++.
 
-A sample [subset of "The Computer Language Benchmark Game"](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) showed SaferCPlusPlus translations of C++ implementations to be, on average, about 30% slower than the original, with wide variation. At the time of this writing (Feb 2017), the Rust implementations of the same subset were reported as also, on average, about 30% slower than the C++ implementations, with very wide variation. For various reasons, these benchmarks should not be considered an accurate measure of intrinsic language performance. (The underperformance versus C++ probably being overstated in both cases.) But we can probably take away two things from these results - i) SaferCPlusPlus and Rust are both at least within the same order of magnitude of C++, in terms of performance, and ii) any theoretical performance difference between SaferCPlusPlus and Rust due to extra run-time checks on pointers/references is, in practice, not significant relative to the observed performance variation due to other factors.
+The most commonly used reference type, the non-reassignable (non-mut) reference in Rust and the scope pointer in SaferCPlusPlus, incurs no run-time overhead in both cases, which is a primary reason for the excellent performance of both solutions. 
 
-So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.  
+Reassignable (mut) references occur much less frequently, but still have no run-time overhead in Rust. Since SaferCPlusPlus does not (yet) have a "borrow checker", it has to resort to run-time checks to ensure memory safety in this case. But in exchange for the overhead, SaferCPlusPlus' registered pointers get essentially all the flexibility of native pointers (minus pointer arithmetic).
+
+Probably the biggest difference though, is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the "exclusivity of mutable references") the way Rust does. With respect to memory safety, the benefit of this restriction is that it ensures that objects with "arbitrary lifespan" (like an element in a (resizable) vector) are not deallocated while other references to that object still exist.
+
+But most objects do not have "arbitrary lifespan". (Both Rust and SaferCPlusPlus encourage most objects to have "scope lifespan".) So most of the time, from a memory safety perspective, this restriction is not necessary. It's hard to evaluate the cost of this restriction. There's arguably some ergonomic cost, but one concrete example might be the fact that in Rust, mutable "reference counting" targets need to be wrapped in a `Cell` or `RefCell` (which introduces run-time overhead and/or the possibility of a panic). But in Rust, this restriction is about more than just memory safety, and whether or not the overall benefits of the restriction outweigh the costs seems to be a matter of varied opinion.
+
+So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.
 
 ### SaferCPlusPlus versus Checked C
 
