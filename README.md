@@ -395,6 +395,52 @@ And if we want the program to compile and run safely:
 
 Instead of `std::shared_ptr<>`s, we use "lock pointers". Like `std::shared_ptr<>`s, lock pointers have shared ownership of their target's lifespan, but unlike `std::shared_ptr<>`s, lock pointers also hold a lock that prevents any other thread from accessing the target object in a manner that could result in a data race.  
 
+Now, let's consider the Core Guidelines' decision to standardize on `std::shared_ptr<>` with, for example, its rule "F.27"":
+
+[`F.27: Use a shared_ptr<T> to share ownership`](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rf-shared_ptr)
+
+Uses of reference counting pointers can be divided into two categories - ones where the object is shared between asynchronous threads, and ones where it isn't.
+
+For the latter case, `std::shared_ptr<>`s are unnecessarily costly due to their thread-safe reference counting mechanism. For the former case, they are insufficiently safe. While they possess shared ownership of the object's lifespan to automatically ensure that dereferences do not access deallocated memory, they have no mechanism to automatically ensure dereferences do not inappropriately access memory that is being used by another thread. (I.e. They protect against "use-after-free" bugs, but not "data race" bugs.)
+
+So why choose a pointer type that is unsuitable for both use cases rather than two different pointer types that are more suitable for each case? Perhaps because they didn't want to force developers to make separate interfaces and implementations for each of the two use cases? But that doesn't really make sense as there are perfectly good ways in C++ to have a single interface and implementation support different pointer types. In cases where you're only dealing with one type of pointer at a time (which would be the vast majority of cases) you can just make the function in question a function template. In the rare cases where you might be dealing with both types of pointers at the same time, you could use a polymorphic pointer. (Basically the pointer specialized versions of `std::variant<>` and/or `std::any<>`.) The SaferCPlusPlus library provides such [polymorphic pointers](#poly-pointers).
+
+The nice thing about the way SaferCPlusPlus does shared ownership is that it conforms to the "only pay for what you use" principle. Standardizing on `std::shared_ptr<>`s not only makes you pay for features that you may not be using, but it prevents you from accessing essential (safety) features when you need them, no matter how much they are worth to you.
+
+The following table considers all pointer use cases, partitioned into relevant categories, and compares the pointer types prescribed for each use case by the Core Guidelines and SaferCPlusPlus, noting safety and performance issues. Note that the "[scope](#scope-pointers)" adjective is used to indicate that the item will be deallocated at the end of the execution scope (sometimes called "block") in which it was declared. (I.e. basically a "local variable".):
+
+Pointer use case | Core Guidelines | SaferCPlusPlus
+----------------- | --------------- | --------------
+strong pointer to mutable object shared between threads 		| shared_ptr [A]	| [lock pointer](#asynchronously-shared-objects)
+strong pointer to mutable object shared within a thread 		| shared_ptr [a]	| [refcounting pointer](#reference-counting-pointers)
+strong pointer to immutable object shared between threads 		| shared_ptr 		| [async immutable pointer](#tasyncsharedv2immutablefixedpointer)
+strong pointer to immutable object shared within a thread 		| shared_ptr [a]	| refcounting pointer
+scope reference to mutable object shared between threads 		| raw pointer [A]	| [scope pointer](#scope-pointers)
+scope reference to shared object (other) 				| raw pointer		| scope pointer
+non-scope (weak) reference to object shared between threads 		| weak_ptr 		| not yet supported directly
+non-scope (weak) reference to object shared within a thread 		| weak_ptr [Da]		| [registered pointer](#registered-pointers) [b]
+unique strong pointer with scope lifetime 				| unique_ptr 		| scope owner pointer
+unique strong pointer with non-scope lifetime 				| unique_ptr [C]	| refcounting pointer
+scope reference to uniquely owned object 				| raw pointer 		| scope pointer
+non-scope (weak) reference to uniquely owned object 			| raw pointer [BC]	| registered pointer [b]
+scope pointer to scope object 						| raw pointer 		| scope pointer
+non-scope pointer to scope object 					| raw pointer [B]	| registered pointer [b] (discouraged)
+```
+potential safety issues:
+[A] data race
+[B] use-after-free and/or use-after-scope
+[C] use-after-move
+[D] inadvertent use of (unsafe) raw pointer instead of (safe) weak_ptr is likely and currently not caught by checkers
+
+performance issues:
+[a] thread-safety mechanism
+[b] expensive assignment (including when done at construction)
+
+Note it is assumed that `gsl::not_null<>` and `const` will be used where appropriate.
+```
+
+It's interesting to note that, despite the fact that they were designed independently, the set of pointer types provided by SaferCPlusPlus roughly correspond to those of the [Rust](#safercplusplus-versus-rust) language. Which perhaps makes sense as both use the strategy of, as much as possible, exploiting scope lifetimes to achieve memory safety without extra run-time overhead. And both prioritize memory safety (and data race safety) without resorting to garbage collection.
+
 ### SaferCPlusPlus versus Rust
 
 C++ and Rust differ significantly in many ways, but SaferCPlusPlus is primarily concerned with addressing memory safety so here we'll consider only that aspect. Given that, what's most notable is the similarities between SaferCPlusPlus and Rust, considering they were developed independently. 
