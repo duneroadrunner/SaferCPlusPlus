@@ -412,19 +412,7 @@ The following table considers all pointer use cases, partitioned into relevant c
 Pointer use case | Core Guidelines | SaferCPlusPlus
 ----------------- | --------------- | --------------
 strong pointer to mutable object shared between threads 		| shared_ptr [A]	| [lock pointer](#asynchronously-shared-objects)
-strong pointer to mutable object shared within a thread 		| shared_ptr [a]	| [refcounting pointer](#reference-counting-pointers)
-strong pointer to immutable object shared between threads 		| shared_ptr 		| [async immutable pointer](#tasyncsharedv2immutablefixedpointer)
-strong pointer to immutable object shared within a thread 		| shared_ptr [a]	| refcounting pointer
-scope reference to mutable object shared between threads 		| raw pointer [A]	| [scope pointer](#scope-pointers)
-scope reference to shared object (other) 				| raw pointer		| scope pointer
-non-scope (weak) reference to object shared between threads 		| weak_ptr 		| not yet supported directly
-non-scope (weak) reference to object shared within a thread 		| weak_ptr [Da]		| [registered pointer](#registered-pointers) [b]
-unique strong pointer with scope lifetime 				| unique_ptr 		| scope owner pointer
-unique strong pointer with non-scope lifetime 				| unique_ptr [C]	| refcounting pointer
-scope reference to uniquely owned object 				| raw pointer 		| scope pointer
-non-scope (weak) reference to uniquely owned object 			| raw pointer [BC]	| registered pointer [b]
-scope pointer to scope object 						| raw pointer 		| scope pointer
-non-scope pointer to scope object 					| raw pointer [B]	| registered pointer [b] (discouraged)
+
 ```
 potential safety issues:
 [A] data race
