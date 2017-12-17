@@ -425,6 +425,7 @@ scope reference to uniquely owned object 				| raw pointer 		| scope pointer
 non-scope (weak) reference to uniquely owned object 			| raw pointer [BC]	| registered pointer [b]
 scope pointer to scope object 						| raw pointer 		| scope pointer
 non-scope pointer to scope object 					| raw pointer [B]	| registered pointer [b] (discouraged)
+
 ```
 potential safety issues:
 [A] data race
