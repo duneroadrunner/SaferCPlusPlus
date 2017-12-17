@@ -395,9 +395,57 @@ And if we want the program to compile and run safely:
 
 Instead of `std::shared_ptr<>`s, we use "lock pointers". Like `std::shared_ptr<>`s, lock pointers have shared ownership of their target's lifespan, but unlike `std::shared_ptr<>`s, lock pointers also hold a lock that prevents any other thread from accessing the target object in a manner that could result in a data race.  
 
+Now, let's consider the Core Guidelines' decision to standardize on `std::shared_ptr<>` with, for example, its rule "F.27"":
+
+[`F.27: Use a shared_ptr<T> to share ownership`](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rf-shared_ptr)
+
+Uses of reference counting pointers can be divided into two categories - ones where the object is shared between asynchronous threads, and ones where it isn't.
+
+For the latter case, `std::shared_ptr<>`s are unnecessarily costly due to their thread-safe reference counting mechanism. For the former case, they are insufficiently safe. While they possess shared ownership of the object's lifespan to automatically ensure that dereferences do not access deallocated memory, they have no mechanism to automatically ensure dereferences do not inappropriately access memory that is being used by another thread. (I.e. They protect against "use-after-free" bugs, but not "data race" bugs.)
+
+So why choose a pointer type that is unsuitable for both use cases rather than two different pointer types that are more suitable for each case? Perhaps because they didn't want to force developers to make separate interfaces and implementations for each of the two use cases? But that doesn't really make sense as there are perfectly good ways in C++ to have a single interface and implementation support different pointer types. In cases where you're only dealing with one type of pointer at a time (which would be the vast majority of cases) you can just make the function in question a function template. In the rare cases where you might be dealing with both types of pointers at the same time, you could use a polymorphic pointer. (Basically the pointer specialized versions of `std::variant<>` and/or `std::any<>`.) The SaferCPlusPlus library provides such [polymorphic pointers](#poly-pointers).
+
+The nice thing about the way SaferCPlusPlus does shared ownership is that it conforms to the "only pay for what you use" principle. Standardizing on `std::shared_ptr<>`s not only makes you pay for features that you may not be using, but it prevents you from accessing essential (safety) features when you need them, no matter how much they are worth to you.
+
+The following table considers all pointer use cases, partitioned into relevant categories, and compares the pointer types prescribed for each use case by the Core Guidelines and SaferCPlusPlus, noting safety and performance issues. Note that the "[scope](#scope-pointers)" adjective is used to indicate that the item will be deallocated at the end of the execution scope (sometimes called "block") in which it was declared. (I.e. basically a "local variable".):
+
+Pointer use case | Core Guidelines | SaferCPlusPlus
+----------------- | --------------- | --------------
+strong pointer to mutable object shared between threads 		| shared_ptr [A]	| [lock pointer](#asynchronously-shared-objects)
+strong pointer to mutable object shared within a thread 		| shared_ptr [a]	| [refcounting pointer](#reference-counting-pointers)
+strong pointer to immutable object shared between threads 		| shared_ptr 		| [async immutable pointer](#tasyncsharedv2immutablefixedpointer)
+strong pointer to immutable object shared within a thread 		| shared_ptr [a]	| refcounting pointer
+scope reference to mutable object shared between threads 		| raw pointer [A]	| [scope pointer](#scope-pointers)
+scope reference to shared object (other) 				| raw pointer		| scope pointer
+non-scope (weak) reference to object shared between threads 		| weak_ptr 		| not yet supported directly
+non-scope (weak) reference to object shared within a thread 		| weak_ptr [Da]		| [registered pointer](#registered-pointers) [b]
+unique strong pointer with scope lifetime 				| unique_ptr 		| scope owner pointer
+unique strong pointer with non-scope lifetime 				| unique_ptr [C]	| refcounting pointer
+scope reference to uniquely owned object 				| raw pointer 		| scope pointer
+non-scope (weak) reference to uniquely owned object 			| raw pointer [BC]	| registered pointer [b]
+scope pointer to scope object 						| raw pointer 		| scope pointer
+non-scope pointer to scope object 					| raw pointer [B]	| registered pointer [b] (discouraged)
+```
+potential safety issues:
+[A] data race
+[B] use-after-free and/or use-after-scope
+[C] use-after-move
+[D] inadvertent use of (unsafe) raw pointer instead of (safe) weak_ptr is likely and currently not caught by checkers
+
+performance issues:
+[a] thread-safety mechanism
+[b] expensive assignment (including when done at construction)
+
+Note it is assumed that `gsl::not_null<>` and `const` will be used where appropriate.
+```
+
+It's interesting to note that, despite the fact that they were designed independently, the set of pointer types provided by SaferCPlusPlus roughly correspond to those of the [Rust](#safercplusplus-versus-rust) language. Which perhaps makes sense as both use the strategy of, as much as possible, exploiting scope lifetimes to achieve memory safety without extra run-time overhead. And both prioritize memory safety (and data race safety) without resorting to garbage collection.
+
 ### SaferCPlusPlus versus Rust
 
-SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the (loose) correspondence between Rust and SaferCPlusPlus elements:
+C++ and Rust differ significantly in many ways, but SaferCPlusPlus is primarily concerned with addressing memory safety so here we'll consider only that aspect. Given that, what's most notable is the similarities between SaferCPlusPlus and Rust, considering they were developed independently. 
+
+Probably the main issue when it comes to memory safety is the relationship between pointers/references and object deallocation. So it's interesting that Rust and SaferCPlusPlus decided on roughly corresponding sets of (safe) pointer/reference types:
 
 Rust | SaferCPlusPlus
 ---- | --------------
@@ -406,13 +454,19 @@ reassignable (mut) reference | registered pointer
 Box<> | scope owner pointer
 Rc<> | reference counting pointer
 Arc<> | shared immutable pointer
-Arc< Mutex<> > | access requester
+Arc< RwLock<> > | access requester
 
-Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to (among other things) help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. This can result in a little run-time overhead that a Rust implementation might tend to avoid. But perhaps unintuitively, this tends to have little effect on performance in practice. In part because there is often opportunity for the compiler optimizer to discard redundant run-time overhead, but mainly because with both SaferCPlusPlus and Rust, it's usually the case that the vast majority of pointer/reference instances end up spending their entire existence targeting a single object with "scope lifetime" (which incurs no run-time overhead in either solution). In practice, we observe that in both cases, the largest contributor to run-time overhead actually tends to be bounds checking of vectors and arrays.
+Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++.
 
-A sample [subset of "The Computer Language Benchmark Game"](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) showed SaferCPlusPlus translations of C++ implementations to be, on average, about 30% slower than the original, with wide variation. At the time of this writing (Feb 2017), the Rust implementations of the same subset were reported as also, on average, about 30% slower than the C++ implementations, with very wide variation. For various reasons, these benchmarks should not be considered an accurate measure of intrinsic language performance. (The underperformance versus C++ probably being overstated in both cases.) But we can probably take away two things from these results - i) SaferCPlusPlus and Rust are both at least within the same order of magnitude of C++, in terms of performance, and ii) any theoretical performance difference between SaferCPlusPlus and Rust due to extra run-time checks on pointers/references is, in practice, not significant relative to the observed performance variation due to other factors.
+The most commonly used reference type, the non-reassignable (non-mut) reference in Rust and the scope pointer in SaferCPlusPlus, incurs no run-time overhead in both cases, which is a primary reason for the excellent performance of both solutions. 
 
-So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.  
+Reassignable (mut) references occur much less frequently, but still have no run-time overhead in Rust. Since SaferCPlusPlus does not (yet) have a "borrow checker", it has to resort to run-time checks to ensure memory safety in this case. But in exchange for the overhead, SaferCPlusPlus' registered pointers get essentially all the flexibility of native pointers (minus pointer arithmetic).
+
+Probably the biggest difference though, is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the "exclusivity of mutable references") the way Rust does. With respect to memory safety, the benefit of this restriction is that it ensures that objects with "arbitrary lifespan" (like an element in a (resizable) vector) are not deallocated while other references to that object still exist.
+
+But most objects do not have "arbitrary lifespan". (Both Rust and SaferCPlusPlus encourage most objects to have "scope lifespan".) So most of the time, from a memory safety perspective, this restriction is not necessary. It's hard to evaluate the cost of this restriction. There's arguably some ergonomic cost, but one concrete example might be the fact that in Rust, mutable "reference counting" targets need to be wrapped in a `Cell` or `RefCell` (which introduces run-time overhead and/or the possibility of a panic). But in Rust, this restriction is about more than just memory safety, and whether or not the overall benefits of the restriction outweigh the costs seems to be a matter of varied opinion.
+
+So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.
 
 ### SaferCPlusPlus versus Checked C
 
@@ -2067,7 +2121,7 @@ usage example:
 ```
 
 ### Compatibility considerations
-People have asked why the primitive C++ types can't be used as base classes - http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
+People have [asked](http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c) why the primitive C++ types can't be used as base classes. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
 
 But while substitute classes cannot be 100% compatible substitutes for their corresponding primitives, they can still be mostly compatible. And if you're writing new code or maintaining existing code, it should be considered good coding practice to ensure that your code is compatible with C++'s conversion rules for classes and not dependent on the "chaotic" legacy conversion rules of primitive types.
 
