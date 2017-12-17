@@ -395,7 +395,7 @@ And if we want the program to compile and run safely:
 
 Instead of `std::shared_ptr<>`s, we use "lock pointers". Like `std::shared_ptr<>`s, lock pointers have shared ownership of their target's lifespan, but unlike `std::shared_ptr<>`s, lock pointers also hold a lock that prevents any other thread from accessing the target object in a manner that could result in a data race.  
 
-Now, let's consider the Core Guidelines' decision to standardize on `std::shared_ptr<>` with, for example, its rule "F.27"":
+Now, let's consider the Core Guidelines' decision to standardize on `std::shared_ptr<>` with, for example, its rule "F.27":
 
 [`F.27: Use a shared_ptr<T> to share ownership`](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rf-shared_ptr)
 
@@ -411,7 +411,6 @@ The following table considers all pointer use cases, partitioned into relevant c
 
 Pointer use case | Core Guidelines | SaferCPlusPlus
 ----------------- | --------------- | --------------
-strong pointer to mutable object shared between threads 		| shared_ptr [A]	| [lock pointer](#asynchronously-shared-objects)
 strong pointer to mutable object shared between threads 		| shared_ptr [A]	| [lock pointer](#asynchronously-shared-objects)
 strong pointer to mutable object shared within a thread 		| shared_ptr [a]	| [refcounting pointer](#reference-counting-pointers)
 strong pointer to immutable object shared between threads 		| shared_ptr 		| [async immutable pointer](#tasyncsharedv2immutablefixedpointer)
