@@ -260,7 +260,7 @@ Now consider a scenario where a programmer decides, in the member function, to s
     }
 ```
 
-Unfortunately, the changes make the code unsafe. The stored (raw) pointer can be used to (invalidly) access an object after it has been deallocated. This new unsafe program is, in essence, not Core Guidelines compliant. The Core Guidelines would have the function parameter be changed from a `gsl::not_null<CGA *>` to a `gsl::not_null< std::shared_ptr<CGA> >` and the pointer stored as an `std::shared_ptr<CGA>` rather than a raw pointer.
+Unfortunately, the changes make the code unsafe. The stored (raw) pointer can be used to (invalidly) access an object after it has been deallocated. This new unsafe program is, in essence, not Core Guidelines compliant. The Core Guidelines would have the function parameter be changed from a `gsl::not_null<CGA *>` to a `gsl::not_null< std::shared_ptr<CGA> >` and the pointer stored as an `std::shared_ptr<CGA>` (or `std::weak_ptr<CGA>`) rather than a raw pointer.
 
 The problem is that, at this point, the Core Guidelines static checkers don't issue any complaints for this new unsafe version of the program. So even if the code becomes theoretically not Core Guidelines compliant, it's easy for a programmer to not realize it.
 
