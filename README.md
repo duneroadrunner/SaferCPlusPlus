@@ -419,7 +419,7 @@ scope reference to mutable object shared between threads 		| raw pointer [A]	| [
 scope reference to shared object (other) 				| raw pointer		| scope pointer
 non-scope (weak) reference to object shared between threads 		| weak_ptr 		| not yet supported directly
 non-scope (weak) reference to object shared within a thread 		| weak_ptr [Da]		| [registered pointer](#registered-pointers) [b]
-unique strong pointer with scope lifetime 				| unique_ptr 		| scope owner pointer
+unique strong pointer with scope lifetime 				| unique_ptr 		| [scope owner pointer](#txscopeownerpointer)
 unique strong pointer with non-scope lifetime 				| unique_ptr [C]	| refcounting pointer
 scope reference to uniquely owned object 				| raw pointer 		| scope pointer
 non-scope (weak) reference to uniquely owned object 			| raw pointer [BC]	| registered pointer [b]
@@ -434,7 +434,7 @@ potential safety issues:
 [D] inadvertent use of (unsafe) raw pointer instead of (safe) weak_ptr is likely and currently not caught by checkers
 
 performance issues:
-[a] thread-safety mechanism
+[a] unnecessary thread-safety mechanism
 [b] expensive assignment (including when done at construction)
 
 Note it is assumed that `gsl::not_null<>` and `const` will be used where appropriate.
