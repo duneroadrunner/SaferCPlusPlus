@@ -940,10 +940,10 @@ In the future we expect that there will be a "compile helper tool" to verify tha
 - Scope types must not be used as base classes of classes that are not themselves scope types.
 	- There probably isn't much motivation to do that anyway.
 - Note that scope pointers are themselves scope objects and must adhere to the same restrictions.
-- Non-owning scope pointers (scope pointers other than `TXScopeOwnerPointer<>`s) should not be used as a function return value.
+- Non-owning scope pointers (scope pointers other than `TXScopeOwnerPointer<>`s), or any object containing non-owning scope pointers, should not be used as a function return value.
 	- Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen_pointer()`](#xscope_chosen_pointer) function.
 
-Failure to adhere to the rules for scope objects could result in unsafe code. Currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. Again, at some point the restrictions will be fully enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural.
+Failure to adhere to the rules for scope objects could result in unsafe code. Currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. Again, at some point the restrictions will be fully enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is due to the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond their scope, so that a scope pointer cannot outlive its target scope object.
 
 In lieu of full compile-time enforcement, run-time checking is available to enforce safety and help detect misuses of scope pointers. Run-time checking in debug mode is enabled by defining `MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED`. Additionally defining `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#primitives) that can act as base classes. 
 
