@@ -35,10 +35,10 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
 3. [Setup and dependencies](#setup-and-dependencies)
 4. Comparisons
     1. [SaferCPlusPlus versus Clang/LLVM Sanitizers](#safercplusplus-versus-clangllvm-sanitizers)
-    2. [SaferCPlusPlus versus Checked C](#safercplusplus-versus-checked-c)
-    3. [SaferCPlusPlus versus Ironclad C++](#safercplusplus-versus-ironclad-c)
-    4. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
-    5. [SaferCPlusPlus versus the Core Guidelines Checkers](#safercplusplus-versus-the-core-guidelines-checkers)
+    2. [SaferCPlusPlus versus the Core Guidelines Checkers](#safercplusplus-versus-the-core-guidelines-checkers)
+    3. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
+    4. [SaferCPlusPlus versus Checked C](#safercplusplus-versus-checked-c)
+    5. [SaferCPlusPlus versus Ironclad C++](#safercplusplus-versus-ironclad-c)
 5. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
 6. [Registered pointers](#registered-pointers)
     1. [TRegisteredPointer](#tregisteredpointer)
@@ -125,6 +125,350 @@ The Clang/LLVM compiler provides a set of "sanitizers" (adopted by gcc) that add
 
 Clang/LLVM Sanitizers are intended for debugging purposes, not to be used in deployed executables. As such, by design, some of their debugging convenience features themselves introduce [opportunities](http://seclists.org/oss-sec/2016/q1/363) for malicious exploitation. SaferCPlusPlus on the other hand, is designed to be used in deployed executables, as well as for debugging and testing. And that's reflected in its performance, security and "completeness of solution". So it's not really SaferCPlusPlus "versus" Clang/LLVM Sanitizers. They are not incompatible, and there's no reason you couldn't use both simultaneously, although there would be significant redundancies.
 
+### SaferCPlusPlus versus the Core Guidelines Checkers
+
+At this point (Dec 2017) the key difference between the Core Guidelines and SaferCPlusPlus is that the Core Guidelines does not achieve the same degree of memory safety.
+
+Both are based on the "subset of a superset" idea. That is, many feel that the C++ language has accumulated too much (legacy) junk and it's better to stick to a nice subset of the language, augmented by additional libraries and tools. The subset that SaferCPlusPlus chose was the one that excludes elements that can potentially access invalid (or uninitialized) memory (like native pointers, `std::shared_ptr<>`, `std::array<>`, etc.). The subset that the Core Guidelines chose does include potentially unsafe elements (like native pointers and all of the standard library). 
+
+At one point the premise was that those unsafe elements would be made safe via a static analysis tool that would detect any unsafe uses of unsafe elements, along with a reasonable proportion of false positives. It now seems that that premise may have been a little too optimistic. 
+
+Consider this (simplified) example where we're passing a shared object by reference to a member function:
+
+```cpp
+    #include "gsl/gsl"
+    #include <mutex>
+    #include <memory>
+    #include <vector>
+    #include <iostream>
+    
+    // just an example class to be used as a shared object
+    class CGA {
+    public:
+        std::vector<int> m_vec;
+    };
+    
+    class CGB {
+    public:
+        void foo1(gsl::not_null<CGA*> obj_ptr) {
+            // just some code that actually uses obj_ptr
+            std::cout << obj_ptr->m_vec.size();
+        }
+    
+        // just a static function that returns an std::shared_ptr<> to a presumably (but not actually) shared object
+        static auto sharedptr_to_shared_obj() {
+            return std::make_shared<CGA>();
+        }
+    };
+    
+    int main()
+    {
+        std::mutex mutex1;
+        CGB b;
+        {
+            /* An example of the Core Guidelines sanctioned way of passing a shared object to a function
+            by reference. */
+    
+            // first, store a copy of the std::shared_ptr<> in local scope
+            std::shared_ptr<CGA> sharedobj_ptr = CGB::sharedptr_to_shared_obj();
+            // then obtain a raw pointer to the object
+            auto raw_ptr = sharedobj_ptr.get();
+    
+            {
+                /* We're locking mutex1 to make sure no other threads access the object while the function is executing. */
+                std::lock_guard<std::mutex> lock_guard1(mutex1);
+    
+                /* The local copy of the std::shared_ptr<> will ensure that the object will not be deallocated
+                before the function is finished executing. */
+                b.foo1(raw_ptr);
+            }
+        }
+    
+        return 0;
+    }
+```
+
+The shared object is meant to represent an object that may be shared among threads, though for brevity we don't actually use more than one thread in the example.
+
+The code is Core Guidelines compliant (as we understand it) and the Core Guidelines static checkers (in msvc2017) have no complaints.
+
+Now consider a scenario where a programmer decides, in the member function, to store a copy of the pointer parameter (perhaps to implement some kind of cache to increase performance or whatever).
+
+```cpp
+    #include "gsl/gsl"
+    #include <mutex>
+    #include <memory>
+    #include <vector>
+    #include <iostream>
+    
+    // just an example class to be used as a shared object
+    class CGA {
+    public:
+        std::vector<int> m_vec;
+    };
+    
+    // a class that stores a reference to the last object passed to its foo1() member function 
+    class CGB {
+    public:
+        void foo1(gsl::not_null<CGA*> obj_ptr) {
+            m_last_used = obj_ptr; // storing a reference to the object
+    
+            // just some code that actually uses obj_ptr
+            std::cout << obj_ptr->m_vec.size();
+        }
+    
+        // just a static function that returns an std::shared_ptr<> to a presumably (but not actually) shared object
+        static auto sharedptr_to_shared_obj() {
+            return std::make_shared<CGA>();
+        }
+    
+        CGA* m_last_used = nullptr;
+    };
+    
+    int main()
+    {
+        std::mutex mutex1;
+        CGB b;
+        {
+            /* An example of the Core Guidelines sanctioned way of passing a shared object to a function
+            by reference. */
+    
+            // first, store a copy of the std::shared_ptr<> in local scope
+            std::shared_ptr<CGA> sharedobj_ptr = CGB::sharedptr_to_shared_obj();
+            // then obtain a raw pointer to the object
+            auto raw_ptr = sharedobj_ptr.get();
+    
+            {
+                /* We're locking mutex1 to make sure no other threads access the object while the function is executing. */
+                std::lock_guard<std::mutex> lock_guard1(mutex1);
+    
+                /* The local copy of the std::shared_ptr<> will ensure that the object will not be deallocated
+                before the function is finished executing. */
+                b.foo1(raw_ptr);
+            }
+        }
+        if (b.m_last_used) {
+            /* The problem is that the function could have stored a reference to the object that will outlive
+            the object and/or the period when it is safe (from data races) to access the shared object. */
+    
+            std::cout << b.m_last_used->m_vec.size();
+    
+            /* As of Dec 2017, the (msvc2017) Core Guidelines checkers do not catch these problems. */
+        }
+    
+        return 0;
+    }
+```
+
+Unfortunately, the changes make the code unsafe. The stored (raw) pointer can be used to (invalidly) access an object after it has been deallocated. This new unsafe program is, in essence, not Core Guidelines compliant. The Core Guidelines would have the function parameter be changed from a `gsl::not_null<CGA *>` to a `gsl::not_null< std::shared_ptr<CGA> >` and the pointer stored as an `std::shared_ptr<CGA>` (or `std::weak_ptr<CGA>`) rather than a raw pointer.
+
+The problem is that, at this point, the Core Guidelines static checkers don't issue any complaints for this new unsafe version of the program. So even if the code becomes theoretically not Core Guidelines compliant, it's easy for a programmer to not realize it.
+
+And while using `std::shared_ptr<>`s instead of raw pointers would address the premature deallocation issue, there is still the problem that the stored pointer to the shared object could be used to access the object outside of the period when the thread holds a lock on the mutex, potentially resulting in an unsafe "data race" condition. At this point the Core Guidelines don't really offer anything concrete to address the data race issue.
+
+We can compare all this to what happens in the corresponding SaferCPlusPlus compliant implementation:
+
+```cpp
+    #include <vector>
+    #include <iostream>
+    #include "msetl/msepoly.h"
+    
+    // just an example class to be used as a shared object
+    class CMA {
+    public:
+        /* nii_vector<> is just a vector that is safe (from data races) to share among threads (unlike std::vector<>). */
+        mse::nii_vector<int> m_vec;
+    };
+    /* Here ShareableCMA is just a version of the user-defined CMA class that has been declared as safe
+    to share among threads. */
+    typedef mse::us::TUserDeclaredAsyncShareableObj<CMA> ShareableCMA;
+    
+    // a class that attempts to store a reference to the last object passed to its foo1() member function 
+    class CMB {
+    public:
+        template <class _TShareableCMAPointer>
+        void foo1(_TShareableCMAPointer obj_ptr) {
+            /* If obj_ptr is of "scope pointer" type, the following line will result in a compile error 
+             because scope pointers cannot be safely stored in a type that can outlive the scope. */
+    
+            m_last_used = mse::TNullableAnyPointer<ShareableCMA>(obj_ptr); // storing a reference to the object
+    
+            // just some code that actually uses obj_ptr
+            std::cout << obj_ptr->m_vec.size();
+        }
+    
+        // just a static function that returns a safe pointer to a presumably (but not actually) shared object
+        static auto lock_pointer_to_shared_obj() {
+            auto access_requester =  mse::make_asyncsharedreadwrite<ShareableCMA>();
+            return access_requester.writelock_ptr();
+        }
+    
+        /* TNullableAnyPointer<> can essentially hold a pointer of any type, similar to the way std::any can
+        hold an object of any type. */
+        mse::TNullableAnyPointer<ShareableCMA> m_last_used = nullptr;
+    };
+    
+    int main()
+    {
+        CMB b;
+        {
+            /* An example of a SaferCPlusPlus sanctioned way of passing a shared object to a function
+            by reference. */
+    
+            /* Here we're using a "strong pointer store" to hold a copy of the (shared owner) pointer to the
+            shared object, in this case a "lock pointer", in the local scope. */
+            auto xscope_writelock_ptr_store = mse::make_xscope_strong_pointer_store(CMB::lock_pointer_to_shared_obj());
+    
+            /* Since the local copy of the "lock pointer" ensures that it will be safe to access the shared object
+            for the duration of the scope, we can obtain a "zero overhead" scope pointer to the shared object. */
+            auto xscp_ptr = xscope_writelock_ptr_store.xscope_ptr();
+    
+            b.foo1(xscp_ptr);
+        }
+        if (b.m_last_used) {
+            std::cout << b.m_last_used->m_vec.size();
+        }
+    
+        return 0;
+    }
+```
+
+With SaferCPlusPlus, the unsafe code results in a compile error. Instead of using raw pointers, "scope pointers" (which have no extra run-time overhead) are used, which means that the pointer has "scope lifetime" and that it will not outlive its target object. So attempting the to store the scope pointer (or any scope object) in a data type that could potentially outlive the scope results in a compile error.
+
+And if we want the program to compile and run safely:
+
+```cpp
+    #include <vector>
+    #include <iostream>
+    #include "msetl/msepoly.h"
+    
+    // just an example class to be used as a shared object
+    class CMA {
+    public:
+        /* nii_vector<> is just a vector that is safe (from data races) to share among threads (unlike std::vector<>). */
+        mse::nii_vector<int> m_vec;
+    };
+    /* Here ShareableCMA is just a version of the user-defined CMA class that has been declared as safe
+    to share among threads. */
+    typedef mse::us::TUserDeclaredAsyncShareableObj<CMA> ShareableCMA;
+    
+    // a class that stores a reference to the last object passed to its foo1() member function 
+    class CMB {
+    public:
+        template <class _TShareableCMAPointer>
+        void foo1(_TShareableCMAPointer obj_ptr) {
+            m_last_used = mse::TNullableAnyPointer<ShareableCMA>(obj_ptr); // storing a reference to the object
+    
+            // just some code that actually uses obj_ptr
+            std::cout << obj_ptr->m_vec.size();
+        }
+    
+        // just a static function that returns a safe pointer to a presumably (but not actually) shared object
+        static auto lock_pointer_to_shared_obj() {
+            auto access_requester =  mse::make_asyncsharedreadwrite<ShareableCMA>();
+            return access_requester.writelock_ptr();
+        }
+    
+        /* TNullableAnyPointer<> can essentially hold a pointer of any type, similar to the way std::any can
+        hold an object of any type. */
+        mse::TNullableAnyPointer<ShareableCMA> m_last_used = nullptr;
+    };
+    
+    int main()
+    {
+        CMB b;
+        {
+            /* An example of a SaferCPlusPlus sanctioned way of passing a shared object to a function
+            by (strong) reference. */
+    
+            b.foo1(CMB::lock_pointer_to_shared_obj());
+        }
+        if (b.m_last_used) {
+            /* Like all conformant SaferCPlusPlus code, the stored object reference is safe. In this case the stored
+            pointer holds shared ownership of both the target object's lifespan and "write access lock". */
+            std::cout << b.m_last_used->m_vec.size();
+        }
+    
+        return 0;
+    }
+```
+
+Instead of `std::shared_ptr<>`s, we use "lock pointers". Like `std::shared_ptr<>`s, lock pointers have shared ownership of their target's lifespan, but unlike `std::shared_ptr<>`s, lock pointers also hold a lock that prevents any other thread from accessing the target object in a manner that could result in a data race.  
+
+Now, let's consider the Core Guidelines' decision to standardize on `std::shared_ptr<>` with, for example, its rule "F.27":
+
+[`F.27: Use a shared_ptr<T> to share ownership`](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rf-shared_ptr)
+
+Uses of reference counting pointers can be divided into two categories - ones where the object is shared between asynchronous threads, and ones where it isn't.
+
+For the latter case, `std::shared_ptr<>`s are unnecessarily costly due to their thread-safe reference counting mechanism. For the former case, they are insufficiently safe. While they possess shared ownership of the object's lifespan to automatically ensure that dereferences do not access deallocated memory, they have no mechanism to automatically ensure dereferences do not inappropriately access memory that is being used by another thread. (I.e. They protect against "use-after-free" bugs, but not "data race" bugs.)
+
+So why choose a pointer type that is unsuitable for both use cases rather than two different pointer types that are more suitable for each case? Perhaps because they didn't want to force developers to make separate interfaces and implementations for each of the two use cases? But that doesn't really make sense as there are perfectly good ways in C++ to have a single interface and implementation support different pointer types. In cases where you're only dealing with one type of pointer at a time (which would be the vast majority of cases) you can just make the function in question a function template. In the rare cases where you might be dealing with both types of pointers at the same time, you could use a polymorphic pointer. (Basically the pointer specialized versions of `std::variant<>` and/or `std::any<>`.) The SaferCPlusPlus library provides such [polymorphic pointers](#poly-pointers).
+
+The nice thing about the way SaferCPlusPlus does shared ownership is that it conforms to the "only pay for what you use" principle. Standardizing on `std::shared_ptr<>`s not only makes you pay for features that you may not be using, but it prevents you from accessing essential (safety) features when you need them, no matter how much they are worth to you.
+
+The following table considers all pointer use cases, partitioned into relevant categories, and compares the pointer types prescribed for each use case by the Core Guidelines and SaferCPlusPlus, noting safety and performance issues. Note that the "[scope](#scope-pointers)" adjective is used to indicate that the item will be deallocated at the end of the execution scope (sometimes called "block") in which it was declared. (I.e. basically a "local variable".):
+
+Pointer use case | Core Guidelines | SaferCPlusPlus
+----------------- | --------------- | --------------
+strong pointer to mutable object shared between threads 		| shared_ptr [A]	| [lock pointer](#asynchronously-shared-objects)
+strong pointer to mutable object shared within a thread 		| shared_ptr [a]	| [refcounting pointer](#reference-counting-pointers)
+strong pointer to immutable object shared between threads 		| shared_ptr 		| [async immutable pointer](#tasyncsharedv2immutablefixedpointer)
+strong pointer to immutable object shared within a thread 		| shared_ptr [a]	| refcounting pointer
+scope reference to mutable object shared between threads 		| raw pointer [A]	| [scope pointer](#scope-pointers)
+scope reference to shared object (other) 				| raw pointer		| scope pointer
+non-scope (weak) reference to object shared between threads 		| weak_ptr 		| not yet supported directly
+non-scope (weak) reference to object shared within a thread 		| weak_ptr [Da]		| [registered pointer](#registered-pointers) [b]
+unique strong pointer with scope lifetime 				| unique_ptr 		| [scope owner pointer](#txscopeownerpointer)
+unique strong pointer with non-scope lifetime 				| unique_ptr [C]	| refcounting pointer
+scope reference to uniquely owned object 				| raw pointer 		| scope pointer
+non-scope (weak) reference to uniquely owned object 			| raw pointer [BC]	| registered pointer [b]
+scope pointer to scope object 						| raw pointer 		| scope pointer
+non-scope pointer to scope object 					| raw pointer [B]	| registered pointer [b] (discouraged)
+
+```
+potential safety issues:
+[A] data race
+[B] use-after-free and/or use-after-scope
+[C] use-after-move
+[D] inadvertent use of (unsafe) raw pointer instead of (safe) weak_ptr is likely and currently not caught by checkers
+
+performance issues:
+[a] unnecessary thread-safety mechanism
+[b] expensive assignment (including when done at construction)
+
+Note it is assumed that `gsl::not_null<>` and `const` will be used where appropriate.
+```
+
+It's interesting to note that, despite the fact that they were designed independently, the set of pointer types provided by SaferCPlusPlus roughly correspond to those of the [Rust](#safercplusplus-versus-rust) language. Which perhaps makes sense as both use the strategy of, as much as possible, exploiting scope lifetimes to achieve memory safety without extra run-time overhead. And both prioritize memory safety (and data race safety) without resorting to garbage collection.
+
+### SaferCPlusPlus versus Rust
+
+C++ and Rust differ significantly in many ways, but SaferCPlusPlus is primarily concerned with addressing memory safety so here we'll consider only that aspect. Given that, what's most notable is the similarities between SaferCPlusPlus and Rust, considering they were developed independently. 
+
+Probably the main issue when it comes to memory safety is the relationship between pointers/references and object deallocation. So it's interesting that Rust and SaferCPlusPlus decided on roughly corresponding sets of (safe) pointer/reference types:
+
+Rust | SaferCPlusPlus
+---- | --------------
+non-reassignable reference | scope pointer
+reassignable (mut) reference | registered pointer
+Box<> | scope owner pointer
+Rc<> | reference counting pointer
+Arc<> | shared immutable pointer
+Arc< RwLock<> > | access requester
+
+Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++.
+
+The most commonly used reference type, the non-reassignable (non-mut) reference in Rust and the scope pointer in SaferCPlusPlus, incurs no run-time overhead in both cases, which is a primary reason for the excellent performance of both solutions. 
+
+Reassignable (mut) references occur much less frequently, but still have no run-time overhead in Rust. Since SaferCPlusPlus does not (yet) have a "borrow checker", it has to resort to run-time checks to ensure memory safety in this case. But in exchange for the overhead, SaferCPlusPlus' registered pointers get essentially all the flexibility of native pointers (minus pointer arithmetic).
+
+Probably the biggest difference though, is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the "exclusivity of mutable references") the way Rust does. With respect to memory safety, the benefit of this restriction is that it ensures that objects with "arbitrary lifespan" (like an element in a (resizable) vector) are not deallocated while other references to that object still exist.
+
+But most objects do not have "arbitrary lifespan". (Both Rust and SaferCPlusPlus encourage most objects to have "scope lifespan".) So most of the time, from a memory safety perspective, this restriction is not necessary. It's hard to evaluate the cost of this restriction. There's arguably some ergonomic cost, but one concrete example might be the fact that in Rust, mutable "reference counting" targets need to be wrapped in a `Cell` or `RefCell` (which introduces run-time overhead and/or the possibility of a panic). But in Rust, this restriction is about more than just memory safety, and whether or not the overall benefits of the restriction outweigh the costs seems to be a matter of varied opinion.
+
+So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.
+
 ### SaferCPlusPlus versus Checked C
 
 "Checked C", like SaferCPlusPlus, takes the approach of extending the language with safer elements that can directly substitute for unsafe native elements. In chapter 9 of their [spec](https://github.com/Microsoft/checkedc/releases/download/v0.5-final/checkedc-v0.5.pdf), there is an extensive survey of existing (and historical) efforts to address C/C++ memory safety. There they make the argument for the (heretofore neglected) "language extension" approach (basically citing performance, compatibility and the support for granular mixing of safe and unsafe code), that applies to SaferCPlusPlus as well.
@@ -139,52 +483,29 @@ While both solutions address the pointer/reference safety issue, SaferCPlusPlus 
 
 There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu/~santosh.nagarakatte/papers/ironclad-oopsla2013.pdf). It's a beneficial read even for those not planning on adopting Ironclad, as the the approach has much in common with SaferCPlusPlus.  
 
-### SaferCPlusPlus versus Rust
-
-SaferCPlusPlus and Rust both rely on a combination of compile-time code restrictions and run-time checks to achieve memory safety. Rust leans heavily toward the former and SaferCPlusPlus a little more toward the latter. It's probably the similarities between SaferCPlusPlus and Rust that's most notable, considering they were developed independently. Indeed, if you are a Rust programmer you might be more comfortable using SaferCPlusPlus than traditional C++ once you realize the (loose) correspondence between Rust and SaferCPlusPlus elements:
-
-Rust | SaferCPlusPlus
----- | --------------
-non-reassignable reference | scope pointer
-reassignable (mut) reference | registered pointer
-Box<> | scope owner pointer
-Rc<> | reference counting pointer
-Arc<> | shared immutable pointer
-Arc< Mutex<> > | access requester
-
-Probably the main difference between Rust and SaferCPlusPlus is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the exclusivity of mutable references) the way Rust does. Rust uses this restriction to (among other things) help ensure that dynamic objects are not deallocated while other references to that object still exist. SaferCPlusPlus, on the other hand, deals with this issue by having the pointer/reference itself "know" if its target dynamic object is still valid. This can result in a little run-time overhead that a Rust implementation might tend to avoid. But perhaps unintuitively, this tends to have little effect on performance in practice. In part because there is often opportunity for the compiler optimizer to discard redundant run-time overhead, but mainly because with both SaferCPlusPlus and Rust, it's usually the case that the vast majority of pointer/reference instances end up spending their entire existence targeting a single object with "scope lifetime" (which incurs no run-time overhead in either solution). In practice, we observe that in both cases, the largest contributor to run-time overhead actually tends to be bounds checking of vectors and arrays.
-
-A sample [subset of "The Computer Language Benchmark Game"](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) showed SaferCPlusPlus translations of C++ implementations to be, on average, about 30% slower than the original, with wide variation. At the time of this writing (Feb 2017), the Rust implementations of the same subset were reported as also, on average, about 30% slower than the C++ implementations, with very wide variation. For various reasons, these benchmarks should not be considered an accurate measure of intrinsic language performance. (The underperformance versus C++ probably being overstated in both cases.) But we can probably take away two things from these results - i) SaferCPlusPlus and Rust are both at least within the same order of magnitude of C++, in terms of performance, and ii) any theoretical performance difference between SaferCPlusPlus and Rust due to extra run-time checks on pointers/references is, in practice, not significant relative to the observed performance variation due to other factors.
-
-So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.  
-
-### SaferCPlusPlus versus the Core Guidelines Checkers
-
-At the time of this writing (Nov 2016), the Core Guidelines Checkers were still a work in progress and so didn't yet provide any memory safety guarantees for your code. But the goal is that at some point the Checkers (the Lifetimes Checker in particular) will be able to detect all potentially unsafe memory operations, with a reasonable proportion of false positives (apparently "under 10%" is the goal). That should be a big boon for C++ memory safety and performance if/when that is achieved. But even then there will still be the issue of how best to address the false (and true) positive concerns of the checkers. Often, appeasing static code verifiers will seem to require major code changes and/or a significant performance penalty. In those cases, SaferCPlusPlus is well suited to ensure memory safety with straightforward code modifications and minimal performance cost.
-
-In the mean time, SaferCPlusPlus is, in general, not a substitute for, or incompatible with static analyzers. You are encouraged to use both.  
-
 ### Getting started on safening existing code
 
-The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [mse::mstd::vector](#vector) and [mse::mstd::array](#array).
+The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#vector) and [`mse::mstd::array<>`](#array).
 
-The header files you'll need to include in your source file are "msemstdvector.h" and "msemstdarray.h". Those include files have additional dependencies on "msemsevector.h", "msemsearray.h", and possibly "mseprimitives.h".
+The header files you'll need to include in your source file are "`msemstdvector.h`" and "`msemstdarray.h`". Those include files have additional dependencies on "`msemsevector.h`", "`msemsearray.h`", "`msescope.h`", and possibly "`mseprimitives.h`".
 
-Statistically speaking, doing this should already catch a significant chunk of potential memory bugs. By default, an exception will be thrown upon any attempt to access invalid memory. If your project is not using C++ exceptions, you'll probably want to override the default exception behavior by defining the MSE_CUSTOM_THROW_DEFINITION() preprocessor macro prior to inclusion of the header files. For example:
+Statistically speaking, doing this should already catch a significant chunk of potential memory bugs. By default, an exception will be thrown upon any attempt to access invalid memory. If your project is not using C++ exceptions, you'll probably want to override the default exception behavior by defining the `MSE_CUSTOM_THROW_DEFINITION()` preprocessor macro prior to inclusion of the header files. For example:
 
+```cpp
     #define MSE_CUSTOM_THROW_DEFINITION(x) std::cerr << std::endl << x.what(); exit(-11)
+```
 
 will cause the error description to be written to stderr before program termination.
 
-The next most effective thing to do, in terms of improving memory safety, is probably to replace calls to new/malloc and delete/free. The direct substitutes provided in the library (for items not shared between threads) are mse::registered_new() and mse::registered_delete(). The pointer type returned by mse::registered_new() is an [mse::TRegisteredPointer<>](#tregisteredpointer). If you need this pointer to interact with legacy interfaces, it can be explicitly cast to a corresponding native pointer. If explicit casting is too inconvenient for your situation, you may instead use mse::relaxedregistered_new() to obtain an [mse::TRelaxedRegisteredPointer<>](#trelaxedregisteredpointer), which implicitly converts to a corresponding native pointer. But ultimately you're going to want to minimize the amount of casting to (unsafe) native pointers by updating your (function) interfaces to accomodate these safe pointers directly. (See the "[Safely passing parameters by reference](#safely-passing-parameters-by-reference)" section.)
+The next most effective thing to do, in terms of improving memory safety, is probably to replace calls to `new`/`malloc` and `delete`/`free`. The direct substitutes provided in the library (for items not shared between threads) are `mse::registered_new()` and `mse::registered_delete()`. The pointer type returned by `mse::registered_new()` is an [`mse::TRegisteredPointer<>`](#tregisteredpointer). If you need this pointer to interact with legacy interfaces, it can be explicitly cast to a corresponding native pointer. If explicit casting is too inconvenient for your situation, you may instead use `mse::relaxedregistered_new()` to obtain an [`mse::TRelaxedRegisteredPointer<>`](#trelaxedregisteredpointer), which implicitly converts to a corresponding native pointer. But ultimately you're going to want to minimize the amount of casting to (unsafe) native pointers by updating your (function) interfaces to accomodate these safe pointers directly. (See the "[Safely passing parameters by reference](#safely-passing-parameters-by-reference)" section.)
 
 Based on reported vulnerabilities, these two things alone should catch most memory bugs.
 
-While the library provides these direct substitutes for new/malloc and delete/free, they are usually not the optimal solution. In most cases, you can instead use [mse::TXScopeOwnerPointer<>](#txscopeownerpointer) or [TRefCountingNotNullPointer<>](#trefcountingnotnullpointer), which are faster and automatically deallocate the item for you.
+While the library provides these direct substitutes for `new`/`malloc` and `delete`/`free`, they are usually not the optimal solution. In most cases, you can instead use [`mse::TXScopeOwnerPointer<>`](#txscopeownerpointer) or [`TRefCountingNotNullPointer<>`](#trefcountingnotnullpointer), which are faster and automatically deallocate the item for you.
 
 For items shared between asynchronous threads, use one of the [data types designed for safe asynchronous sharing](#asynchronously-shared-objects).
 
-After that, it's just a matter of replacing the remaining unsafe elements in your code (generally native pointers and references) with the safer substitute that works best. You might want to leave C++ references for last, because a) they seem to be empirically (if not theoretically) less prone to bugs than pointers, and b) the library does not provide a directly compatible substitute (although [TRegisteredRefWrapper<>](#tregisteredrefwrapper) can be used in some situations), so references generally have to be substituted with pointers, which involves the extra bit of work of changing your dots to arrows.
+After that, it's just a matter of replacing the remaining unsafe elements in your code (generally native pointers and references) with the safer substitute that works best. You might want to leave C++ references for last, because a) they seem to be empirically (if not theoretically) less prone to bugs than pointers, and b) the library does not provide a directly compatible substitute (although [`TRegisteredRefWrapper<>`](#tregisteredrefwrapper) can be used in some situations), so references generally have to be substituted with pointers, which involves the extra bit of work of changing your dots to arrows.
 
 And if at some point you feel that these new elements involve a lot of typing, note that many of the elements have short aliases that can be used instead. Just search for "shorter aliases" in the header files. Or, of course, you can create your own to suit your preferences.
 
@@ -192,9 +513,9 @@ And if at some point you feel that these new elements involve a lot of typing, n
 
 "Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap. In most cases, they can be used as a compatible, direct substitute for native pointers, making it straightforward to update legacy code (to be safer).
 
-Registered pointers come in two flavors - [TRegisteredPointer](#tregisteredpointer) and [TRelaxedRegisteredPointer](#trelaxedregisteredpointer). They are both very similar. TRegisteredPointer emphasizes speed and safety a bit more, while TRelaxedRegisteredPointer emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, TRelaxedRegisteredPointer may be more convenient.
+Registered pointers come in two flavors - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TRelaxedRegisteredPointer<>`](#trelaxedregisteredpointer). They are both very similar. `TRegisteredPointer<>` emphasizes speed and safety a bit more, while `TRelaxedRegisteredPointer<>` emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, `TRelaxedRegisteredPointer<>` may be more convenient.
 
-Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer [substitutes](#primitives) for int, bool and size_t that can act as base classes. Also note that these registered pointers are not thread safe. While we [do not encourage](#on-thread-safety) the casual sharing of objects between asynchronous threads, if you need to do so consider using the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer [substitutes](#primitives) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead.  
 
@@ -203,6 +524,7 @@ Although registered pointers are more general and flexible, it's expected that [
 
 usage example:
 
+```cpp
     #include "mseregistered.h"
     
     int main(int argc, char* argv[]) {
@@ -236,16 +558,17 @@ usage example:
         a_ptr = mse::registered_new<CA>(3); // heap allocation
         mse::registered_delete<CA>(a_ptr);
     }
-
+```
 
 ### TRegisteredNotNullPointer
-Same as TRegisteredPointer, but cannot be constructed to a null value.
+Same as `TRegisteredPointer<>`, but cannot be constructed to a null value.
 
 ### TRegisteredFixedPointer
-Same as TRegisteredNotNullPointer, but cannot be retargeted after construction (basically a "const TRegisteredNotNullPointer"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.  
+Same as `TRegisteredNotNullPointer<>`, but cannot be retargeted after construction (basically a "`const TRegisteredNotNullPointer<>`"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.  
 
 usage example:
 
+```cpp
     #include "mseregistered.h"
     
     int main(int argc, char* argv[]) {
@@ -272,15 +595,17 @@ usage example:
     
         mse::registered_delete<CA>(in2_reg_ptr);
     }
+```
 
 ### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
-TRegisteredPointer&lt;X&gt; does implicitly convert to TRegisteredPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
+`TRegisteredPointer<X>` does implicitly convert to `TRegisteredPointer<const X>`. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
 ### TRegisteredRefWrapper
-Just a registered version of [std::reference_wrapper](http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).  
+Just a registered version of [`std::reference_wrapper<>`](http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).  
 
 usage example:
 
+```cpp
     #include "mseprimitives.h"
     #include "mseregistered.h"
 
@@ -298,11 +623,13 @@ usage example:
         ++(mse::CInt&)bar;
         std::cout << foo << '\n';
     }
+```
 
 ### TRelaxedRegisteredPointer
 
 usage example:
 
+```cpp
     #include "mserelaxedregistered.h"
     
     int main(int argc, char* argv[]) {
@@ -334,7 +661,7 @@ usage example:
         mse::relaxed_registered_delete<D>(d_ptr);
     
     }
-
+```
 
 ### TRelaxedRegisteredNotNullPointer
 
@@ -396,17 +723,18 @@ std::weak_ptr: | 0.17701 seconds.
 
 The interesting thing here is that checking for nullptr seems to have gotten a lot slower between msvc2013 and msvc2015. But anyway, my guess is that pointer dereferencing is such a fast operation (std::weak_ptr aside) that outside of critical inner loops, the overhead of checking for nullptr would generally be probably pretty modest.  
 
-Also note that [mse::TRefCountingNotNullPointer](#trefcountingnotnullpointer) and [mse::TRefCountingFixedPointer](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked. mse::TRegisteredPointer's safety mechanisms are not compatible with the techniques used by the benchmark to isolate dereferencing performance, but mse::TRegisteredPointer's dereferencing performance would be expected to be essentially identical to that of mse::TRelaxedRegisteredPointer. By default, [scope pointers](#scope-pointers) have identical performance to native pointers.
+Also note that [`mse::TRefCountingNotNullPointer<>`](#trefcountingnotnullpointer) and [`mse::TRefCountingFixedPointer<>`](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked. `mse::TRegisteredPointer<>`'s safety mechanisms are not compatible with the techniques used by the benchmark to isolate dereferencing performance, but `mse::TRegisteredPointer<>`'s dereferencing performance would be expected to be essentially identical to that of `mse::TRelaxedRegisteredPointer<>`. By default, [scope pointers](#scope-pointers) have identical performance to native pointers.
 
 ### Reference counting pointers
 
-If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is std::shared_ptr, which is notable for its thread-safe reference counting that can be handy when you're sharing an object among asynchronous threads, but is unnecessarily costly when you aren't. So we provide fast reference counting pointers that [forego](#on-thread-safety) any thread safety mechanisms. In addition to being substantially faster (and smaller) than std::shared_ptr, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use mse::make_refcounting&lt;&gt;() instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is `std::shared_ptr<>`, which is notable for its thread-safe reference counting that can be handy when you're sharing an object among asynchronous threads, but is unnecessarily costly when you aren't. So we provide fast reference counting pointers that forego any thread safety mechanisms. In addition to being substantially faster (and smaller) than `std::shared_ptr<>`, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use `mse::make_refcounting<>()` instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 
 ### TRefCountingPointer
 
 usage example:
 
+```cpp
 	#include "mserefcounting.h"
 	
 	int main(int argc, char* argv[]) {
@@ -446,27 +774,28 @@ usage example:
 			B::foo1(rcfpvector.front(), rcfpvector);
 		}
 	}
-
+```
 
 ### TRefCountingNotNullPointer
 
-Same as TRefCountingPointer, but cannot be constructed to or assigned a null value. Because TRefCountingNotNullPointer controls the lifetime of its target it, should be always safe to assume that it points to a validly allocated object.
+Same as `TRefCountingPointer<>`, but cannot be constructed to or assigned a null value. Because `TRefCountingNotNullPointer<>` controls the lifetime of its target it, should be always safe to assume that it points to a validly allocated object.
 
 ### TRefCountingFixedPointer
 
-Same as TRefCountingNotNullPointer, but cannot be retargeted after construction (basically a "const TRefCountingNotNullPointer"). It is a recommended type to be used for safe parameter passing by reference.
+Same as `TRefCountingNotNullPointer<>`, but cannot be retargeted after construction (basically a "`const TRefCountingNotNullPointer<>`"). It is a recommended type to be used for safe parameter passing by reference.
 
 ### TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer
 
-TRefCountingPointer&lt;X&gt; actually does implicitly convert to TRefCountingPointer&lt;const X&gt;. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
+`TRefCountingPointer<X>` actually does implicitly convert to `TRefCountingPointer<const X>`. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
 
 ### TRefCountingOfRegisteredPointer
 
-TRefCountingOfRegisteredPointer is simply an alias for TRefCountingPointer&lt;TRegisteredObj&lt;_Ty&gt;&gt;. TRegisteredObj&lt;_Ty&gt; is meant to behave much like, and be compatible with a _Ty. The reason why we might want to use it is because the &amp; ("address of") operator of TRegisteredObj&lt;_Ty&gt; returns a [TRegisteredFixedPointer&lt;_Ty&gt;](#tregisteredfixedpointer) rather than a raw pointer, and TRegisteredPointers can serve as safe "weak pointers".  
+`TRefCountingOfRegisteredPointer<>` is simply an alias for `TRefCountingPointer< TRegisteredObj<_Ty> >`. `TRegisteredObj<_Ty>` is meant to behave much like, and be compatible with a `_Ty`. The reason why we might want to use it is because the `&` ("address of") operator of `TRegisteredObj<_Ty>` returns a [`TRegisteredFixedPointer<_Ty>`](#tregisteredfixedpointer) rather than a raw pointer, and `TRegisteredPointer<>`s can serve as safe "weak pointers".  
 
 usage example:  
 
+```cpp
     #include "mserefcountingofregistered.h"
     
     class H {
@@ -524,6 +853,7 @@ usage example:
             assert(-1 == res2);
         }
     }
+```
 
 ### TRefCountingOfRegisteredNotNullPointer, TRefCountingOfRegisteredFixedPointer
 
@@ -531,10 +861,11 @@ usage example:
 
 ### TRefCountingOfRelaxedRegisteredPointer
 
-TRefCountingOfRelaxedRegisteredPointer is simply an alias for TRefCountingPointer&lt;TRelaxedRegisteredObj&lt;_Ty&gt;&gt;. Generally you should prefer to just use TRefCountingOfRegisteredPointer, but if you need a "weak pointer" to refer to a type before it's fully defined then you can use this type. An example of such a situation is when you have so-called "cyclic references".  
+`TRefCountingOfRelaxedRegisteredPointer<>` is simply an alias for `TRefCountingPointer< TRelaxedRegisteredObj<_Ty> >`. Generally you should prefer to just use `TRefCountingOfRegisteredPointer<>`, but if you need a "weak pointer" to refer to a type before it's fully defined then you can use this type. An example of such a situation is when you have so-called "cyclic references".  
 
 usage example:  
 
+```cpp
     #include "mserefcountingofrelaxedregistered.h"
     
     int main(int argc, char* argv[]) {
@@ -589,13 +920,14 @@ usage example:
         }
         assert(0 == node_counter);
     }
+```
 
 ### TRefCountingOfRelaxedRegisteredNotNullPointer, TRefCountingOfRelaxedRegisteredFixedPointer
 
 ### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
 
 ### Scope pointers
-Scope pointers point to scope objects. Scope objects are essentially objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So the object is destroyed when it, or its owner, goes out of scope. In C++ at the moment, there isn't really a good way for a program to determine at compile time whether an object is allocated on the stack or not, so in order to exploit the properties of stack allocated objects, the library needs you to explicitly declare when an object is stack allocated. You do this by wrapping the type in the mse::TXScopeObj<> (transparent) wrapper template.
+Scope pointers point to scope objects. Scope objects are essentially objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So the object is destroyed when it, or its owner, goes out of scope. In C++ at the moment, there isn't really a good way for a program to determine at compile time whether an object is allocated on the stack or not, so in order to exploit the properties of stack allocated objects, the library needs you to explicitly declare when an object is stack allocated. You do this by wrapping the type in the `mse::TXScopeObj<>` (transparent) wrapper template.
 
 Note that you do not need to do this for all objects allocated on the stack. Just the ones for which you want to obtain a scope pointer. The reason you might want a scope pointer, as opposed to say, a registered pointer, is that, by default, scope pointers have no run-time overhead. In fact, it is expected that ultimately, scope pointers will be by far the most commonly used of the pointers provided by the library. 
 
@@ -604,25 +936,26 @@ In the future we expect that there will be a "compile helper tool" to verify tha
 - Objects of scope type (types whose name starts with "TXScope" or "xscope") must be global or (non-static) automatic local variables.
 	- Basically global or allocated on the stack.
 - Scope types must not be used as members of classes or structs that are not themselves scope types.
-	- Note that you can use the mse::make_pointer_to_member() function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
+	- Note that you can use the `mse::make_pointer_to_member()` function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
 - Scope types must not be used as base classes of classes that are not themselves scope types.
 	- There probably isn't much motivation to do that anyway.
 - Note that scope pointers are themselves scope objects and must adhere to the same restrictions.
-- Non-owning scope pointers (scope pointers other than TXScopeOwnerPointer<>s) should not be used as a function return value.
-	- Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [xscope_chosen_pointer()](#xscope_chosen_pointer) function.
+- Non-owning scope pointers (scope pointers other than `TXScopeOwnerPointer<>`s), or any object containing non-owning scope pointers, should not be used as a function return value.
+	- Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen_pointer()`](#xscope_chosen_pointer) function.
 
-Failure to adhere to the rules for scope objects could result in unsafe code. Currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. Again, at some point the restrictions will be fully enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural.
+Failure to adhere to the rules for scope objects could result in unsafe code. Currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. Again, at some point the restrictions will be fully enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is due to the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond their scope, so that a scope pointer cannot outlive its target scope object.
 
-In lieu of full compile-time enforcement, run-time checking is available to enforce safety and help detect misuses of scope pointers. Run-time checking in debug mode is enabled by defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For int, bool and size_t use the safer [substitutes](#primitives) that can act as base classes. 
+In lieu of full compile-time enforcement, run-time checking is available to enforce safety and help detect misuses of scope pointers. Run-time checking in debug mode is enabled by defining `MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED`. Additionally defining `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#primitives) that can act as base classes. 
 
-Generally, there are two types of scope pointers you might use, [TXScopeOwnerPointer](#txscopeownerpointer) and [TXScopeItemFixedPointer](#txscopeitemfixedpointer). TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to also include "declaration scope".)
-TXScopeItemFixedPointer is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is primarily intended for the purpose of passing scope objects by reference as function arguments. 
+Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPointer<>`](#txscopeownerpointer) and [`TXScopeItemFixedPointer<>`](#txscopeitemfixedpointer). `TXScopeOwnerPointer<>` is similar to `boost::scoped_ptr<>` in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to also include "declaration scope".)
+`TXScopeItemFixedPointer<>` is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is primarily intended for the purpose of passing scope objects by reference as function arguments. 
 
 ### TXScopeItemFixedPointer
-TXScopeItemFixedPointer is primarily intended to be used to pass scope objects by reference as function arguments. It should not be used as a function return type, as that could be unsafe. And as with any other scope object, it should not be used as a member of any class or struct that is not itself a scope object (though attempting to do so would generally produce a compile error).  
+`TXScopeItemFixedPointer<>` is primarily intended to be used to pass scope objects by reference as function arguments. It should not be used as a function return type, as that could be unsafe. And as with any other scope object, it should not be used as a member of any class or struct that is not itself a scope object (though attempting to do so would generally produce a compile error).  
 
 usage example:
 
+```cpp
     #include "msescope.h"
     
     int main(int argc, char* argv[]) {
@@ -648,14 +981,16 @@ usage example:
         int res2 = B::foo2(&a_scpobj);
         int res3 = B::foo3(&a_scpobj);
     }
+```
 
 ### TXScopeItemFixedConstPointer
 
 ### TXScopeOwnerPointer
-TXScopeOwnerPointer is similar to boost::scoped_ptr in functionality, but more limited in intended use. In particular, as a scope object, TXScopeOwnerPointer should not be used as a member of any class or struct that is not iself a scope object. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
+`TXScopeOwnerPointer<>` is similar to `boost::scoped_ptr<>` in functionality, but more limited in intended use. In particular, as a scope object, `TXScopeOwnerPointer<>` should not be used as a member of any class or struct that is not iself a scope object. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
 
 usage example:
 
+```cpp
     #include "msescope.h"
     
     int main(int argc, char* argv[]) {
@@ -680,16 +1015,18 @@ usage example:
         int res4 = B::foo2(xscp_a_ownerptr);
         int res4b = B::foo2(&(*xscp_a_ownerptr));
     }
+```
 
 ### TXScopeFixedPointer
-TXScopeFixedPointer is the actual type of the pointer value returned by the "&" (ampersand) operator of an object declared as a "scope" object (by virtue of being wrapped in the TXScopeObj<> transparent wrapper template). Generally, you don't need to use this type directly. TXScopeFixedPointer implicitly converts to a TXScopeItemFixedPointer, which can point to both explicitly declared and implicit scope objects. So generally you would just use the latter.
+`TXScopeFixedPointer<>` is the actual type of the pointer value returned by the `&` (ampersand) operator of an object declared as a "scope" object (by virtue of being wrapped in the `TXScopeObj<>` transparent wrapper template). Generally, you don't need to use this type directly. `TXScopeFixedPointer<>` implicitly converts to a `TXScopeItemFixedPointer<>`, which can point to both explicitly declared and implicit scope objects. So generally you would just use the latter.
 
 ### TXScopeFixedConstPointer
 
 ### make_xscope_strong_pointer_store()
 
-make_xscope_strong_pointer_store() returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Currently supported strong pointers include [reference counting pointers](#reference-counting-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
+`make_xscope_strong_pointer_store()` returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Currently supported strong pointers include [reference counting pointers](#reference-counting-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
 
+```cpp
     #include "msescope.h"
     #include "mserefcounting.h"
     
@@ -719,15 +1056,17 @@ make_xscope_strong_pointer_store() returns a scope object that holds a copy of t
         mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
         A res7 = *xscp_cptr2;
     }
+```
 
 ### xscope_chosen_pointer()
 
-Currently there's a rule against using non-owning scope pointers as function return values due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the xscope_chosen_pointer() function instead.
+Currently there's a rule against using non-owning scope pointers as function return values due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the `xscope_chosen_pointer()` function instead.
 
-In essence, the xscope_chosen_pointer() function simply takes two scope pointers as input parameters and returns one of them. Which of the pointers is returned is determined by a (user supplied) "chooser" function that is passed, as the first parameter, to xscope_chosen_pointer(). The "chooser" function returns a bool and takes the two scope pointers as its first two parameters. If the chooser function returns false then the first scope pointer is returned, otherwise the second is returned.
+In essence, the `xscope_chosen_pointer()` function simply takes two scope pointers as input parameters and returns one of them. Which of the pointers is returned is determined by a (user supplied) "chooser" function that is passed, as the first parameter, to `xscope_chosen_pointer()`. The "chooser" function returns a bool and takes the two scope pointers as its first two parameters. If the chooser function returns false then the first scope pointer is returned, otherwise the second is returned.
 
-So consider, for example, a "min" function that takes two scope pointers and returns a scope pointer to the lesser of the two target (scope) objects. The implementation of this function would be straightforward if returning non-owning scope pointers was permitted. The following example demonstrates the same functionality using xscope_chosen_pointer() instead. It isn't necessarily super-pretty, but anyway the need to return a scope pointer generally isn't that common.
+So consider, for example, a "min" function that takes two scope pointers and returns a scope pointer to the lesser of the two target (scope) objects. The implementation of this function would be straightforward if returning non-owning scope pointers was permitted. The following example demonstrates the same functionality using `xscope_chosen_pointer()` instead. It isn't necessarily super-pretty, but anyway the need to return a scope pointer generally isn't that common.
 
+```cpp
     #include "msescope.h"
     
     int main(int argc, char* argv[]) {
@@ -754,13 +1093,14 @@ So consider, for example, a "min" function that takes two scope pointers and ret
 
         assert(5 == xscp_min_ptr1->b);
     }
-
+```
 
 ### make_pointer_to_member()
-If you need a safe pointer to a member of a class/struct, you could declare the member itself to be a registered object (or a reference counting pointer). But often a preferable option is to use make_pointer_to_member(). This function takes the member you want to target, and a safe pointer to the containing class/struct, and combines them to create a safe pointer to the member. The actual type of the returned pointer varies depending on the types of the parameters passed.
+If you need a safe pointer to a member of a class/struct, you could declare the member itself to be a registered object (or a reference counting pointer). But often a preferable option is to use `make_pointer_to_member()`. This function takes the member you want to target, and a safe pointer to the containing class/struct, and combines them to create a safe pointer to the member. The actual type of the returned pointer varies depending on the types of the parameters passed.
 
 usage example:
 
+```cpp
     /* Including "msepoly.h" is not required to use mse::make_pointer_to_member(). It just happens to include all the
     other include files used by this example. */
     #include "msepoly.h"
@@ -862,18 +1202,19 @@ usage example:
             //(*h_string1_stdshared_const_ptr) = "some new text";
         }
     }
-
+```
 
 ### Poly pointers
 Poly pointers are "chameleon" pointers that can be constructed from, and retain the safety features of many of the pointer types in this library. If you're writing a function and you'd like it to be able to accept different types of safe pointer parameters, you can "templatize" your function. Alternatively, you can declare your pointer parameters as poly pointers.  
 
-Note that poly pointers support only basic facilities common to all the covered pointer and iterator types, providing essentially the functionality of a C++ reference. For example, this means no assignment operator, and no "operator bool()". Where null pointer values are desired you might consider using mse::optional<> or std::optional<> instead.  
+Note that poly pointers support only basic facilities common to all the covered pointer and iterator types, providing essentially the functionality of a C++ reference. For example, this means no assignment operator, and no `operator bool()`. Where null pointer values are desired you might consider using `mse::optional<>` or `std::optional<>` instead.  
 
 ### TXScopePolyPointer, TXScopePolyConstPointer
-Scope poly pointers are primarily intended to be used in function parameter declarations. In particular, as they can be constructed from a scope pointer (TXScopeFixedPointer or TXScopeFixedConstPointer), they must observe the same usage restrictions.
+Scope poly pointers are primarily intended to be used in function parameter declarations. In particular, as they can be constructed from a scope pointer (`TXScopeFixedPointer<>` or `TXScopeFixedConstPointer<>`), they must observe the same usage restrictions.
 
 usage example:
 
+```cpp
     #include "msepoly.h"
     
     void main() {
@@ -967,18 +1308,19 @@ usage example:
             auto res_using_member_mstdvec_iter_anyptr_via_const_poly = B::foo4(b_member_a_mstdvec_iter_anyptr);
         }
     }
+```
 
 ### TPolyPointer, TPolyConstPointer
 These poly pointers do not support construction from scope pointers, and thus are not bound by the same usage restrictions. For example, these poly pointers may be used as a member of a class or struct.
 
 ### TXScopeAnyPointer, TXScopeAnyConstPointer, TAnyPointer, TAnyConstPointer
-"Any" pointers are also “chameleon” pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by [make_pointer_to_member()](#make_pointer_to_member) to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the scope poly pointer usage example.  
+"Any" pointers are also “chameleon” pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by [`make_pointer_to_member()`](#make_pointer_to_member) to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the scope poly pointer usage example.  
 
-"Any" pointers can also be used as function arguments. The choice between using poly pointers versus "any" pointers is similar to the choice between [std::variant and std::any](http://www.boost.org/doc/libs/1_63_0/doc/html/variant/misc.html#variant.versus-any). 
+"Any" pointers can also be used as function arguments. The choice between using poly pointers versus "any" pointers is similar to the choice between [`std::variant` and `std::any`](http://www.boost.org/doc/libs/1_63_0/doc/html/variant/misc.html#variant.versus-any). 
 
 ### TXScopeAnyRandomAccessIterator, TXScopeAnyRandomAccessConstIterator, TAnyRandomAccessIterator, TAnyRandomAccessConstIterator
 
-In modern C++ (and SaferCPlusPlus), arrays of different sizes are actually different types, with incompatible iterators. So, for example, if you wanted to make a function that accepts the iterators of arrays of varying size, you would generally do that by "templatizing" the function. Alternatively, you could use an "any random access iterator" which is a "chameleon" iterator that can be constructed from basically any iterator that supports operator\[\] (the "square bracket" operator).
+In modern C++ (and SaferCPlusPlus), arrays of different sizes are actually different types, with incompatible iterators. So, for example, if you wanted to make a function that accepts the iterators of arrays of varying size, you would generally do that by "templatizing" the function. Alternatively, you could use an "any random access iterator" which is a "chameleon" iterator that can be constructed from basically any iterator that supports `operator[]` (the "square bracket" operator).
 
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
@@ -986,6 +1328,7 @@ A "random access section" is basically a convenient interface to access a (conti
 
 usage example:
 
+```cpp
     #include "msepoly.h"
     
     int main(int argc, char* argv[]) {
@@ -1045,15 +1388,16 @@ usage example:
         B::foo3(ra_section2);
         auto res6 = B::foo4(ra_section2);
     }
+```
 
 ### Safely passing parameters by reference
 As has been shown, you can use [registered pointers](#registered-pointers), [reference counting pointers](#reference-counting-pointers), [scope pointers](#scope-pointers) and/or various iterators to safely pass parameters by reference. When writing a function for general use that takes parameters by reference, you can either require a specific (safe) reference type for its reference parameters, or allow the caller some flexibility as to which reference type they use. 
 
-One way to allow your function to accept any reference type is to make your function into a function template. The benefits of this approach are that it requires no extra run-time overhead, and it intrinsically supports legacy (unsafe, native) pointer types when needed. This approach is demonstrated in the [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer) usage example. Or you can read a slightly out-of-date article about it [here](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+One way to allow your function to accept any reference type is to make your function into a function template. The benefits of this approach are that it requires no extra run-time overhead, and it intrinsically supports legacy (unsafe, native) pointer types when needed. This approach is demonstrated in the [`TRefCountingOfRegisteredPointer<>`](#trefcountingofregisteredpointer) usage example. Or you can read a slightly out-of-date article about it [here](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 Another option is to use [poly pointers](#poly-pointers) instead. They can also enable your function to accept a variety of reference types, without "templatizing" your function, but with a small run-time overhead.
 
-Another choice is to require that reference parameters be passed using scope pointers. This approach, by default, has no more run-time overhead than using native pointers/references. And note that scope pointers can be obtained from reference counting pointers and pointers to shared objects (using [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)), but not registered pointers. And legacy (native) pointers would not be supported either. Generally, you would use scope pointer parameters in cases where you are adopting a "scopecentric" style of programming (similar to the Rust language), and trying to avoid use of (unsafe) legacy elements.
+Another choice is to require that reference parameters be passed using scope pointers. This approach, by default, has no more run-time overhead than using native pointers/references. And note that scope pointers can be obtained from reference counting pointers and pointers to shared objects (using [`make_xscope_strong_pointer_store()`](#make_xscope_strong_pointer_store)), but not registered pointers. And legacy (native) pointers would not be supported either. Generally, you would use scope pointer parameters in cases where you are adopting a "scopecentric" style of programming (similar to the Rust language), and trying to avoid use of (unsafe) legacy elements.
 
 And of course the library remains perfectly compatible with (the less safe) traditional C++ references if you prefer. 
 
@@ -1061,9 +1405,9 @@ And of course the library remains perfectly compatible with (the less safe) trad
 ### Asynchronously shared objects
 One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, while one thread is modifying an object, you want to ensure that no other thread accesses it. But you also want to do it in a way that allows for maximum utilization of the shared object. To this end the library provides "access requesters". Access requesters provide "lock pointers" on demand that are used to safely access the shared object.
 
-In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases the library provides "immutable fixed pointers", which can be thought of as sort of a safer version std::shared_ptr<>.
+In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases the library provides "immutable fixed pointers", which can be thought of as sort of a safer version `std::shared_ptr<>`.
 
-In order to ensure safety, shared objects can only be accessed through lock pointers or immutable fixed pointers. If you have an existing object that you only want to share part of the time, you can swap (using std::swap() for example) the object with a shared object when it's time to share it, and swap it back when you're done sharing.
+In order to ensure safety, shared objects can only be accessed through lock pointers or immutable fixed pointers. If you have an existing object that you only want to share part of the time, you can swap (using `std::swap()` for example) the object with a shared object when it's time to share it, and swap it back when you're done sharing.
 
 Note that not all types are safe to share between threads. For example, because of its iterators, `mstd::vector<int>` is not safe to share between threads. (And neither is `std::vector<int>`.) `nii_vector<int>` on the other hand is. Trying to share the former using access requesters or immutable fixed pointers would result in a compile error.
 
@@ -1071,24 +1415,25 @@ Access requesters and immutable fixed pointers know which of the library's types
 
 ### TAsyncSharedV2ReadWriteAccessRequester
 
-Use the writelock_ptr() and readlock_ptr() member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock for as long as they exist. Their locks are released when the pointers are destroyed (generally when they go out of scope).  
+Use the `writelock_ptr()` and `readlock_ptr()` member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock for as long as they exist. Their locks are released when the pointers are destroyed (generally when they go out of scope).  
 
-Use mse::make_asyncsharedv2readwrite<>() to obtain a TAsyncSharedV2ReadWriteAccessRequester. TAsyncSharedV2ReadWriteAccessRequester can be copied and passed-by-value as a parameter (to another thread, generally).
+Use `mse::make_asyncsharedv2readwrite<>()` to obtain a `TAsyncSharedV2ReadWriteAccessRequester<>`. `TAsyncSharedV2ReadWriteAccessRequester<>` can be copied and passed-by-value as a parameter (to another thread, generally).
 
-Non-blocking try_writelock_ptr() and try_readlock_ptr() member functions are also available. As are the limited-blocking try_writelock_ptr_for(), try_readlock_ptr_for(), try_writelock_ptr_until() and try_readlock_ptr_until().
+Non-blocking `try_writelock_ptr()` and `try_readlock_ptr()` member functions are also available. As are the limited-blocking `try_writelock_ptr_for()`, `try_readlock_ptr_for()`, `try_writelock_ptr_until()` and `try_readlock_ptr_until()`.
 
 Note that while a "write-lock" pointer will not simultaneously co-exist with any lock pointer to the same shared object in any other thread, it can co-exist with (read- and/or write-) lock pointers in the same thread. This means that lock pointers have ["upgrade lock"](http://www.boost.org/doc/libs/1_65_1/doc/html/thread/synchronization.html#thread.synchronization.mutex_concepts.upgrade_lockable) functionality. That is, for example, a thread that holds a read lock on a shared object (via read-lock pointer) can, at some later point, additionally obtain a write lock (via write-lock pointer) without surrendering the original read lock. It can then release the write lock (by allowing the write-lock pointer to go out of scope), again without surrendering the original read lock. Systems based on traditional "readers-writer" locks would require you to surrender the read lock before attempting to obtain a write lock, allowing another thread to potentially (and undesirably) obtain a write lock in between.
 
-One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. Prudent practice would avoid deadlock by using the non-blocking try_writelock_ptr(), or time-out limited try_writelock_ptr_for() member functions to obtain the write-lock pointer. Currently, this dead-lock scenario is not detected by the access requester (or its underlying mutex). It is intended that in the near future, this dead-lock scenario will be detected and an exception will be thrown (or whatever user-specified behavior).
+One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. Prudent practice would avoid deadlock by using the non-blocking `try_writelock_ptr()`, or time-out limited `try_writelock_ptr_for()` member functions to obtain the write-lock pointer. Currently, this dead-lock scenario is not detected by the access requester (or its underlying mutex). It is intended that in the near future, this dead-lock scenario will be detected and an exception will be thrown (or whatever user-specified behavior).
 
 ### TAsyncSharedV2ReadOnlyAccessRequester
-Same as TAsyncSharedV2ReadWriteAccessRequester, but only supports readlock_ptr(), not writelock_ptr(). You can use mse::make_asyncsharedv2readonly<>() to obtain a TAsyncSharedV2ReadOnlyAccessRequester. TAsyncSharedV2ReadOnlyAccessRequester can also be copy constructed from a TAsyncSharedV2ReadWriteAccessRequester.
+Same as `TAsyncSharedV2ReadWriteAccessRequester<>`, but only supports `readlock_ptr()`, not `writelock_ptr()`. You can use `mse::make_asyncsharedv2readonly<>()` to obtain a `TAsyncSharedV2ReadOnlyAccessRequester<>`. `TAsyncSharedV2ReadOnlyAccessRequester<>` can also be copy constructed from a `TAsyncSharedV2ReadWriteAccessRequester<>`.
 
 ### TAsyncSharedV2ImmutableFixedPointer
-In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases you can use TAsyncSharedV2ImmutableFixedPointer<>, which can be thought of as sort of a safer version std::shared_ptr<>. Use mse::make_asyncsharedv2immutable<>() to obtain a TAsyncSharedV2ImmutableFixedPointer<>.
+In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases you can use `TAsyncSharedV2ImmutableFixedPointer<>`, which can be thought of as sort of a safer version `std::shared_ptr<>`. Use `mse::make_asyncsharedv2immutable<>()` to obtain a `TAsyncSharedV2ImmutableFixedPointer<>`.
 
 usage example:
 
+```cpp
 	#include "mseasyncshared.h"
 	#include <ctime>
 	#include <ratio>
@@ -1273,15 +1618,16 @@ usage example:
 			auto A_b_safe_cptr = mse::make_const_pointer_to_member(A_immptr->b, A_immptr);
 		}
 	}
-
+```
 
 ### Primitives
 
 ### CInt, CSize_t and CBool
-These classes are meant to behave like, and be compatible with their native counterparts. In debug mode, they check for "use before initialization", and in release mode, they use default initialization to help ensure deterministic behavior. Upon value assignment, CInt and CSize_t will check to ensure that the value fits within the type's range. CSize_t's `-=` operator checks that the operation evaluates to a positive value. And unlike its native counterpart, arithmetic operations involving CSize_t that could evaluate to a negative number are returned as a (signed) CInt.
+These classes are meant to behave like, and be compatible with their native counterparts. In debug mode, they check for "use before initialization", and in release mode, they use default initialization to help ensure deterministic behavior. Upon value assignment, `CInt` and `CSize_t` will check to ensure that the value fits within the type's range. `CSize_t`'s `-=` operator checks that the operation evaluates to a positive value. And unlike its native counterpart, arithmetic operations involving `CSize_t` that could evaluate to a negative number are returned as a (signed) `CInt`.
 
 usage example:
 
+```cpp
     #include "mseprimitives.h"
     
     int main(int argc, char* argv[]) {
@@ -1304,8 +1650,9 @@ usage example:
             }
         }
     }
+```
 
-Note that while CInt and CSize_t have no problem interacting with native signed integers, they do not implicitly play well with size_t or native unsigned integers. We'd be generally wary of using native unsigned integer types due to the implicit conversion/promotion rules between signed and unsigned native integers. But if you need to obtain a size_t from a CSize_t, you can do so explicitly using the mse::as_a_size_t() function. If you want to construct a CSize_t (or CInt) from a native unsigned integer type, you'd need to first cast it to a size_t, or a signed integer.  
+Note that while `CInt` and `CSize_t` have no problem interacting with native signed integers, they do not implicitly play well with `size_t` or native unsigned integers. We'd be generally wary of using native unsigned integer types due to the implicit conversion/promotion rules between signed and unsigned native integers. But if you need to obtain a `size_t` from a `CSize_t`, you can do so explicitly using the `mse::as_a_size_t()` function. If you want to construct a `CSize_t` (or `CInt`) from a native unsigned integer type, you'd need to first cast it to a `size_t`, or a signed integer.  
 
 Also see the section on "[compatibility considerations](#compatibility-considerations)".
 
@@ -1323,20 +1670,21 @@ Integer types with more comprehensive range checking can be found here: https://
 
 ### Vectors
 
-The library provides a number of vector types. Probably the two most essential are [mstd::vector<>](#vector) and [nii_vector<>](#nii_vector). mstd::vector<> is simply a memory-safe drop-in replacement for std::vector<>. Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed for safe sharing among asynchronous threads.
+The library provides a number of vector types. Probably the two most essential are [`mstd::vector<>`](#vector) and [`nii_vector<>`](#nii_vector). `mstd::vector<>` is simply a memory-safe drop-in replacement for `std::vector<>`. Due to their iterators, vectors are not, in general, safe to share among threads. `nii_vector<>` is designed for safe sharing among asynchronous threads.
 
-The standard library vector iterators are designed so that they can be (unsafely) implemented as just pointers. But this makes them prone to being invalidated as a side effect of insertion, deletion and resize operations on the vector. This also means that they behave differently from list iterators, so algorithms that work on lists won't necessarily work on vectors. So the library includes [ivector<>](#ivector), whose iterators behave like list iterators. That is, they don't get invalidated by insert/delete/resize vector operations unless the element they were pointing to is deleted, and after any such operation, they will continue to point to the same item, which may then be in a different position in the vector.
+The standard library vector iterators are designed so that they can be (unsafely) implemented as just pointers. But this makes them prone to being invalidated as a side effect of insertion, deletion and resize operations on the vector. This also means that they behave differently from list iterators, so algorithms that work on lists won't necessarily work on vectors. So the library includes [`ivector<>`](#ivector), whose iterators behave like list iterators. That is, they don't get invalidated by insert/delete/resize vector operations unless the element they were pointing to is deleted, and after any such operation, they will continue to point to the same item, which may then be in a different position in the vector.
 
-And finally, for those whose are willing to sacrifice some safety for performance there is [us::msevector<>](#msevector). This vector is not memory-safe in the way that the other vectors are. It may be useful in cases where you want more control over the safety-performance trade-off. It supports a variety of iterator types - the traditional (unsafe) iterators, a bounds-checked version of the traditional iterator, and iterators that, like ivector<>'s iterators, behave like list iterators.
+And finally, for those whose are willing to sacrifice some safety for performance there is [`us::msevector<>`](#msevector). This vector is not memory-safe in the way that the other vectors are. It may be useful in cases where you want more control over the safety-performance trade-off. It supports a variety of iterator types - the traditional (unsafe) iterators, a bounds-checked version of the traditional iterator, and iterators that, like `ivector<>`'s iterators, behave like list iterators.
 
-The vectors, except ivector<>, also support scope iterators which have the same syntax and behavior as the arrays' [scope iterators](#xscope_iterator). ivector<> support for scope iterators will be added in the future.
+The vectors also support scope iterators which have the same syntax and behavior as the arrays' [scope iterators](#xscope_iterator). And remember that you can use [`TRandomAccessSection<>`](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
 ### vector
 
-mstd::vector<> is a memory-safe drop-in replacement for std::vector<>.
+`mstd::vector<>` is a memory-safe drop-in replacement for `std::vector<>`.
 
 usage example:
 
+```cpp
     #include "msemstdvector.h"
     #include <vector>
     
@@ -1374,17 +1722,19 @@ usage example:
             // In the future an exception may be throw in debug builds.
         }
     }
+```
 
 ### nii_vector
 
-Due to their iterators, vectors are not, in general, safe to share among threads. nii_vector<> is designed to be safely shareable between asynchronous threads. To that end, it does not support "implicit" iterators. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the nii_vector<>. So for example, instead of a "begin()" member function that takes no parameters, nii_vector<> has an "ss_begin(...)" (static template) member function that actually requires a pointer to the vector to passed as a parameter.  
+Due to their iterators, vectors are not, in general, safe to share among threads. `nii_vector<>` is designed to be safely shareable between asynchronous threads. To that end, it does not support "implicit" iterators. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the `nii_vector<>`. So for example, instead of a `begin()` member function that takes no parameters, `nii_vector<>` has an `ss_begin(...)` (static template) member function that actually requires a pointer to the vector to passed as a parameter.  
 
-Note that in cases when you only need the vector to be shared between threads part of the time, you can swap between, for example, (non-shareable) mstd::vector<>s and (shareable) nii_vector<>s when you need.  
+Note that in cases when you only need the vector to be shared between threads part of the time, you can swap between, for example, (non-shareable) `mstd::vector<>`s and (shareable) `nii_vector<>`s when you need.  
 
-Also note that an nii_vector<> will be (automatically) marked as [safely shareable](#asynchronously-shared-objects) only if its element type is known or declared to be safely shareable.
+Also note that an `nii_vector<>` will be (automatically) marked as [safely shareable](#asynchronously-shared-objects) only if its element type is known or declared to be safely shareable.
 
 usage example:
 
+```cpp
     #include "msemsevector.h"
     #include "mseregistered.h"
     
@@ -1438,17 +1788,19 @@ usage example:
         shareable nii_vector<>. Note that vector swaps are intrinsically fast operations. */
         vo2.swap(*(access_requester2.writelock_ptr()));
     }
+```
 
 ### msevector
 
-us::msevector<> is not memory-safe in the way that the other vectors are. It can be used in cases where you want more control over the safety-performance trade-off.  
+`us::msevector<>` is not memory-safe in the way that the other vectors are. It can be used in cases where you want more control over the safety-performance trade-off.  
 
-In addition to the (high performance) standard vector iterator, us::msevector<> also supports a new kind of iterator, called "ipointer", that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. Algorithms that work when applied to list iterators will work when applied to ipointers. This can be useful as Bjarne famously [points out](https://www.youtube.com/watch?v=YQs6IC-vgmo), for cache-coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate. You can read a short article comparing ipointers with some existing alternatives [here](http://www.codeproject.com/Articles/1087021/Stable-Iterators-for-Cplusplus-Vectors-and-Why-You).  
+In addition to the (high performance) standard vector iterator, `us::msevector<>` also supports a new kind of iterator, called `ipointer`, that acts more like a list iterator in the sense that it points to an item rather than a position, and like a list iterator, it is not invalidated by insertions or deletions occurring elsewhere in the container, even if a "reallocation" occurs. Algorithms that work when applied to list iterators will work when applied to ipointers. This can be useful as Bjarne famously [points out](https://www.youtube.com/watch?v=YQs6IC-vgmo), for cache-coherency reasons, in most cases vectors should be used in place of lists, even when lists are conceptually more appropriate. You can read a short article comparing ipointers with some existing alternatives [here](http://www.codeproject.com/Articles/1087021/Stable-Iterators-for-Cplusplus-Vectors-and-Why-You).  
 
-us::msevector<> also provides a safer bounds-checked version of the standard vector iterator. Note that none of these iterators are safe against the situation where the vector is deleted before an iterator is finished using it.
+`us::msevector<>` also provides a safer bounds-checked version of the standard vector iterator. Note that none of these iterators are safe against the situation where the vector is deleted before an iterator is finished using it.
 
 usage example:
 
+```cpp
     #include "msemsevector.h"
     
     int main(int argc, char* argv[]) {
@@ -1496,9 +1848,11 @@ usage example:
         /* mse::us::msevector<> also provides "safe" (bounds checked) versions of the original stl vector iterators. */
         std::sort(v.ss_begin(), v.ss_end());
     }
+```
 
-ipointers support all the standard iterator operators, but also have member functions with "friendlier" names including:
+`ipointer`s support all the standard iterator operators, but also have member functions with "friendlier" names including:
 
+```cpp
     bool points_to_an_item() const;
     bool points_to_end_marker() const;
     bool points_to_beginning() const;
@@ -1517,13 +1871,15 @@ ipointers support all the standard iterator operators, but also have member func
     reference previous_item() const;
     CSize_t position() const;
     void reset();
+```
 
 ### ivector
 
-ivector is for cases when safety and correctness are higher priorities than compatibility and performance. ivector drops support for the (problematic) standard vector iterator, replacing it with [ipointer](#msevector).
+`ivector<>` is for cases when safety and correctness are higher priorities than compatibility and performance. `ivector<>` drops support for the (problematic) standard vector iterator, replacing it with [`ipointer`](#msevector).
 
 usage example:
 
+```cpp
     #include "mseivector.h"
     
     int main(int argc, char* argv[]) {
@@ -1532,13 +1888,15 @@ usage example:
         std::sort(iv.begin(), iv.end());
         mse::ivector<int>::ipointer ivip = iv.begin();
     }
+```
 
 ### make_xscope_vector_size_change_lock_guard()
 
-The make_xscope_vector_size_change_lock_guard() function is used, indirectly, to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the make_xscope_vector_size_change_lock_guard() function to create an "xscope_structure_change_lock_guard" object. You can obtain scope pointers to elements in the corresponding vector via its xscope_ptr_to_element() member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. mstd::vector and msevector are supported. nii_vector is not supported because the mechanism required to ensure memory safety would either compromise thread safety or require costly synchronization operations.
+The `make_xscope_vector_size_change_lock_guard()` function is used, indirectly, to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the `make_xscope_vector_size_change_lock_guard()` function to create an `xscope_structure_change_lock_guard` object. You can obtain scope pointers to elements in the corresponding vector via its `xscope_ptr_to_element()` member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. `mstd::vector<>` and `us::msevector<>` are supported. `nii_vector<>` is not supported because the mechanism required to ensure memory safety would either compromise thread safety or require costly synchronization operations.
 
 usage example:
 
+```cpp
     #include "msemstdvector.h"
     
     int main(int argc, char* argv[]) {
@@ -1557,19 +1915,23 @@ usage example:
         // the vector is no longer "size change locked"
         vector1_scpobj.push_back(4);
     }
+```
 
 ### Arrays
 
-The library provides a few array types - [mstd::array<>](#array), [nii_array<>](#nii_array) and [us::msearray<>](#msearray) - which have properties similar to their corresponding [vector](#vectors) types. mstd::array<> is simply a memory-safe drop-in replacement for std::array<>. nii_array<> is designed to be safely shared between asynchronous threads. And us::msearray<> is not memory-safe in the way the other arrays are, and is provided for cases where more control over the safety-preformance trade-off is desired.
+The library provides a few array types - [`mstd::array<>`](#array), [`nii_array<>`](#nii_array) and [`us::msearray<>`](#msearray) - which have properties similar to their corresponding [vector](#vectors) types. `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. `nii_array<>` is designed to be safely shared between asynchronous threads. And `us::msearray<>` is not memory-safe in the way the other arrays are, and is provided for cases where more control over the safety-preformance trade-off is desired.
 
 Note that these arrays currently do not support using [scope](#scope-pointers) types as the element type even when the array itself is declared as a scope object. It's expected that this will be supported in the future. The (few) cases where this would be an issue is when you want the element type to be a scope pointer or a type with scope pointer members. In those cases, you might use registered and/or refcounting pointers instead. 
 
+And remember that you can use [`TRandomAccessSection<>`](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
+
 ### array
 
-mstd::array<> is a memory-safe drop-in replacement for std::array<>. Note that the current implementation requires "mseregistered.h".  
+`mstd::array<>` is a memory-safe drop-in replacement for `std::array<>`. Note that the current implementation requires "`mseregistered.h`".  
 
 usage example:
 
+```cpp
     #include "msemstdarray.h"
     #include "msemsearray.h"
     #include <array>
@@ -1607,17 +1969,19 @@ usage example:
             // expected exception
         }
     }
+```
 
 ### nii_array
 
-nii_array<> is just the corresponding array version of [nii_vector](#nii_vector). It is designed such that it can be safely shared between asynchronous threads.
+`nii_array<>` is just the corresponding array version of [`nii_vector<>`](#nii_vector). It is designed such that it can be safely shared between asynchronous threads.
 
 ### msearray
 
-us::msearray<>, like us::msevector<>, is not memory-safe in the way that the other arrays are. And like us::msevector<>, us::msearray<> provides a safer iterator, in addition to the (high performance) standard iterator. Like us::msevector<>, us::msearray<>'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
+`us::msearray<>`, like `us::msevector<>`, is not memory-safe in the way that the other arrays are. And like `us::msevector<>`, `us::msearray<>` provides a safer iterator, in addition to the (high performance) standard iterator. Like `us::msevector<>`, `us::msearray<>`'s safe iterator also supports the more "readable" interface. In cases where the msearray is declared as a scope object, you can also use a "scope" version of the safe iterator. The restrictions on when and how scope iterators can be used ensure that they won't be used to access the array after it's been deallocated.  
 
 usage example:
 
+```cpp
     #include "msemsearray.h"
     #include <array>
     
@@ -1681,13 +2045,15 @@ usage example:
             auto res3 = *scp_ss_citer4;
         }
     }
+```
 
 ### xscope_iterator
 
-The implementation of, for example, mstd::array<> iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct that is not itself a scope object, and may not be used as a function return value. mstd::array<>, nii_array<> and us::msearray<> all support scope iterators.
+The implementation of, for example, `mstd::array<>` iterators uses [registered pointers](#registered-pointers) to ensure that iterators are not used to access array elements after the array has been deallocated. This incurs a slight run-time cost. So just as the library provides [scope pointers](#scope-pointers) without run-time cost, scope iterators for arrays are also provided. Scope iterators have usage restrictions similar to scope pointers. For example, they can only target arrays declared as scope objects, and may not be used as a member of any class or struct that is not itself a scope object, and may not be used as a function return value. `mstd::array<>`, `nii_array<>` and `us::msearray<>` all support scope iterators.
 
 usage example:
 
+```cpp
     #include "msemstdarray.h"
     
     int main(int argc, char* argv[]) {
@@ -1726,13 +2092,15 @@ usage example:
         scp_iter4++;
         auto res3 = *scp_iter4;
     }
+```
 
 ### xscope_pointer_to_array_element()
 
-You can use this function to obtain a scope pointer to an array element. You can pass it ethier an xscope_iterator or a scope pointer to an array and an index. mstd::array<>, nii_array<> and us::msearray<> are supported.
+You can use this function to obtain a scope pointer to an array element. You can pass it ethier an xscope_iterator or a scope pointer to an array and an index. `mstd::array<>`, `nii_array<>` and `us::msearray<>` are supported.
 
 usage example:
 
+```cpp
     #include "msemstdarray.h"
     
     int main(int argc, char* argv[]) {
@@ -1751,20 +2119,22 @@ usage example:
         auto scp_cptr2 = mse::mstd::xscope_const_pointer_to_array_element<int, 3>(&array1_scpobj, 2/*element index*/);
         auto res2 = *scp_cptr2;
     }
+```
 
 ### Compatibility considerations
-People have asked why the primitive C++ types can't be used as base classes - http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
+People have [asked](http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c) why the primitive C++ types can't be used as base classes. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
 
 But while substitute classes cannot be 100% compatible substitutes for their corresponding primitives, they can still be mostly compatible. And if you're writing new code or maintaining existing code, it should be considered good coding practice to ensure that your code is compatible with C++'s conversion rules for classes and not dependent on the "chaotic" legacy conversion rules of primitive types.
 
-If you are using legacy code or libraries where it's not practical to update the code, it shouldn't be a problem to continue using primitive types there and the safer substitute classes elsewhere in the code. The safer substitute classes generally have no problem interacting with primitive types, although in some cases you may need to do some explicit type casting. [Registered pointers](#registered-pointers) can be cast to raw pointers, and, for example, [CInt](#primitives) can participate in arithmetic operations with regular ints.
+If you are using legacy code or libraries where it's not practical to update the code, it shouldn't be a problem to continue using primitive types there and the safer substitute classes elsewhere in the code. The safer substitute classes generally have no problem interacting with primitive types, although in some cases you may need to do some explicit type casting. [Registered pointers](#registered-pointers) can be cast to raw pointers, and, for example, [`CInt`](#primitives) can participate in arithmetic operations with regular `int`s.
 
 ### Practical limitations
 
 The degree of memory safety that can be achieved is a function of the degree to which use of C++'s (memory) unsafe elements is avoided. Unfortunately, there is not yet a tool to automatically identify such uses. But if, in the future, there is significant demand for such a tool, it shouldn't be a particulary difficult thing to develop. Certainly trivial compared to some of the existing static analysis tools.
 
-Note that one of C++'s more subtle unsafe elements is the implicit "this" pointer when accessing member variables from member functions. Consider this example:
+Note that one of C++'s more subtle unsafe elements is the implicit `this` pointer when accessing member variables from member functions. Consider this example:
 
+```cpp
     #include "msescope.h"
     #include "msemstdvector.h"
     
@@ -1788,9 +2158,11 @@ Note that one of C++'s more subtle unsafe elements is the implicit "this" pointe
         auto iter = vec1.begin();
         iter->foo1(&vec1);
     }
+```
 
-The above example contains unchecked accesses to deallocated memory via an implicit and explicit "this" pointer. The "this" pointer (implicit or explicit) is a native pointer, and like any other native pointer, is unsafe and can/should be replaced with a safer substitute:
+The above example contains unchecked accesses to deallocated memory via an implicit and explicit `this` pointer. The `this` pointer (implicit or explicit) is a native pointer, and like any other native pointer, is unsafe and can/should be replaced with a safer substitute:
 
+```cpp
     #include "msescope.h"
     #include "msemstdvector.h"
     
@@ -1813,12 +2185,13 @@ The above example contains unchecked accesses to deallocated memory via an impli
         auto iter = vec1.begin();
         iter->foo2(iter, &vec1);
     }
+```
 
-So, technically, achieving complete memory safety requires passing a safe "this" pointer parameter as an argument to every member function that accesses a member variable. (I.e. No non-static member functions.)
+So, technically, achieving complete memory safety requires passing a safe `this` pointer parameter as an argument to every member function that accesses a member variable. (I.e. No non-static member functions.)
 
 Another couple of potential pitfalls are the potential misuse of "scope" pointers, and the sharing of objects with unprotected mutable members between asynchronous threads, as explained in the corresponding documentation. The library data types do what they can to prevent such misuse, but are ultimately limited in their enforcement capabilities. These shortcomings could also be addressed in the future with a reasonably straightforward "code checker" tool to detect the potential problems.
 
-And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with one of the safe vectors (msevector or ivector) that support list-style iterators, often with a [performance benefit](#msevector).
+And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with one of the safe vectors (`ivector<>` or `us::msevector<>`) that support list-style iterators, often with a [performance benefit](#msevector).
 
 ### Questions and comments
 If you have questions or comments you can create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
