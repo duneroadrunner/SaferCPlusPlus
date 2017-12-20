@@ -67,6 +67,11 @@ namespace mse {
 		void xscope_tag() const {}
 	};
 
+	class XScopeContainsAccessibleAddressOfOperatorTagBase {
+	public:
+		void xscope_contains_accessible_address_of_operator_tag() const {}
+	};
+
 	/* The purpose of this template function is just to produce a compile error on attempts to instantiate with a scope type. */
 	template<class _Ty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _Ty>::value), void>::type>
 	void T_valid_if_not_an_xscope_type() {}
@@ -318,7 +323,7 @@ namespace mse {
 	class to enforce safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause
 	mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 	template<typename _TROy>
-	class TXScopeObj : public TXScopeObjBase<_TROy>, public XScopeTagBase {
+	class TXScopeObj : public TXScopeObjBase<_TROy>, public XScopeContainsAccessibleAddressOfOperatorTagBase {
 	public:
 		TXScopeObj(const TXScopeObj& _X) : TXScopeObjBase<_TROy>(_X) {}
 		explicit TXScopeObj(TXScopeObj&& _X) : TXScopeObjBase<_TROy>(std::forward<decltype(_X)>(_X)) {

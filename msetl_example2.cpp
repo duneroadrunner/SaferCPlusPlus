@@ -4,6 +4,8 @@
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+#define MSE_FORCE_PRIMITIVE_ASSIGN_RANGE_CHECK_ENABLED
+#define MSE_SELF_TESTS
 
 #include "msetl_example2.h"
 //include "msetl.h"
@@ -144,7 +146,7 @@ void msetl_example2() {
 		class A {
 		public:
 			A() {}
-			int m_i;
+			int m_i = 0;
 		};
 		/* Here we're declaring that A can be safely shared between asynchronous threads. */
 		typedef mse::us::TUserDeclaredAsyncShareableObj<A> shareable_A_t;
@@ -234,6 +236,10 @@ void msetl_example2() {
 		bool b1 = (mstdv1 == mstdv1);
 		std::swap(niiv1, mstdv1);
 		std::swap(mstdv1, niiv1);
+	}
+
+	{
+		mse::COptionalTest1::s_test1();
 	}
 
 	{
