@@ -1400,7 +1400,10 @@ namespace mse {
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 
 	template <class _Ty>
-	class xscope_optional : public mse::us::impl::optional<_Ty>, public XScopeTagBase {
+	class xscope_optional : public mse::us::impl::optional<_Ty>, public XScopeTagBase
+		, public std::conditional<std::is_base_of<ContainsAccessibleScopeAddressOfOperatorTagBase, _Ty>::value, ContainsAccessibleScopeAddressOfOperatorTagBase, DoesNotContainAccessibleScopeAddressOfOperatorTagBase>::type
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+	{
 	public:
 		typedef mse::us::impl::optional<_Ty> base_class;
 		typedef typename base_class::value_type value_type;
@@ -1455,7 +1458,7 @@ namespace mse {
 		void valid_if_Ty_does_not_inherit_from_XScopeTagBase() const {}
 
 #ifndef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		xscope_optional(xscope_optional&& src_ref) : TXScopeNotNullPointer<_Ty>(src_ref) {}
+		xscope_optional(xscope_optional&& src_ref) : base_class(src_ref) {}
 #endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 		void* operator new(size_t size) { return ::operator new(size); }
 

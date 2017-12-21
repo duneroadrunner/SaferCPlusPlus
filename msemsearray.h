@@ -1364,7 +1364,7 @@ namespace mse {
 			return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_end<_TArrayPointer>(owner_ptr)));
 		}
 
-		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeTagBase, public StrongPointerTagBase {
+		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
 		public:
 			xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 			xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
@@ -1443,7 +1443,7 @@ namespace mse {
 			friend class /*_Myt*/nii_array<_Ty, _Size>;
 			friend class xscope_ss_iterator_type;
 		};
-		class xscope_ss_iterator_type : public ss_iterator_type, public XScopeTagBase, public StrongPointerTagBase {
+		class xscope_ss_iterator_type : public ss_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
 		public:
 			xscope_ss_iterator_type(const mse::TXScopeFixedPointer<nii_array>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -1814,7 +1814,7 @@ namespace mse {
 
 			class xscope_ss_iterator_type;
 
-			class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeTagBase, public StrongPointerTagBase {
+			class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
 			public:
 				xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 				xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
@@ -1893,7 +1893,7 @@ namespace mse {
 				friend class /*_Myt*/msearray<_Ty, _Size>;
 				friend class xscope_ss_iterator_type;
 			};
-			class xscope_ss_iterator_type : public ss_iterator_type, public XScopeTagBase, public StrongPointerTagBase {
+			class xscope_ss_iterator_type : public ss_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
 			public:
 				xscope_ss_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -2303,7 +2303,9 @@ namespace mse {
 	template <typename _TRAContainerPointer> class TRAConstIteratorBase;
 
 	template <typename _TRAContainerPointer>
-	class TRAIteratorBase : public random_access_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())> {
+	class TRAIteratorBase : public random_access_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())>
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, XScopeContainsNonOwningScopeReferenceTagBase, XScopeDoesNotContainNonOwningScopeReferenceTagBase>::type
+	{
 	public:
 		typedef decltype((*std::declval<_TRAContainerPointer>())[0]) reference_t;
 		typedef typename mse::us::msearray<int, 0>::difference_type difference_t;
@@ -2443,7 +2445,9 @@ namespace mse {
 	};
 
 	template <typename _TRAContainerPointer>
-	class TRAConstIteratorBase : public random_access_const_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())> {
+	class TRAConstIteratorBase : public random_access_const_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())>
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, XScopeContainsNonOwningScopeReferenceTagBase, XScopeDoesNotContainNonOwningScopeReferenceTagBase>::type
+	{
 	public:
 		typedef typename std::remove_reference<decltype((*std::declval<_TRAContainerPointer>())[0])>::type element_t;
 		typedef decltype((*std::declval<_TRAContainerPointer>())[0]) reference_t;
@@ -2588,7 +2592,9 @@ namespace mse {
 	template <typename _TRAIterator> class TRASectionConstIteratorBase;
 
 	template <typename _TRAIterator>
-	class TRASectionIteratorBase : public random_access_iterator_base_from_ra_iterator<_TRAIterator> {
+	class TRASectionIteratorBase : public random_access_iterator_base_from_ra_iterator<_TRAIterator>
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+	{
 	public:
 		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
 		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
@@ -2742,7 +2748,9 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	class TRASectionConstIteratorBase : public random_access_const_iterator_base_from_ra_iterator<_TRAIterator> {
+	class TRASectionConstIteratorBase : public random_access_const_iterator_base_from_ra_iterator<_TRAIterator>
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+	{
 	public:
 		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
 		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
@@ -2910,7 +2918,9 @@ namespace mse {
 	class TRandomAccessConstSection;
 
 	template <typename _TRAIterator>
-	class TRandomAccessSectionBase {
+	class TRandomAccessSectionBase
+		: public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+	{
 	public:
 		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
 		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
@@ -3009,7 +3019,9 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	class TRandomAccessConstSectionBase {
+	class TRandomAccessConstSectionBase
+		: public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+	{
 	public:
 		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
 		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;

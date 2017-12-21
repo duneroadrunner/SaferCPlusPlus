@@ -414,7 +414,7 @@ namespace mse {
 			static _MV& _MV_ref(_MV& obj) { return obj; }
 			static const _MV& _MV_cref(const _MV& obj) { return obj; }
 
-			class xscope_const_iterator : public _MV::random_access_iterator_base, public XScopeTagBase {
+			class xscope_const_iterator : public _MV::random_access_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase {
 			public:
 				typedef typename _MV::xscope_ss_const_iterator_type::iterator_category iterator_category;
 				typedef typename _MV::xscope_ss_const_iterator_type::value_type value_type;
@@ -521,7 +521,7 @@ namespace mse {
 				typename _MV::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 				friend class /*_Myt*/vector<_Ty>;
 			};
-			class xscope_iterator : public _MV::random_access_iterator_base, public XScopeTagBase {
+			class xscope_iterator : public _MV::random_access_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase {
 			public:
 				typedef typename _MV::xscope_ss_iterator_type::iterator_category iterator_category;
 				typedef typename _MV::xscope_ss_iterator_type::value_type value_type;

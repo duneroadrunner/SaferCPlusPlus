@@ -67,10 +67,15 @@ namespace mse {
 		void xscope_tag() const {}
 	};
 
-	class XScopeContainsAccessibleAddressOfOperatorTagBase {
-	public:
-		void xscope_contains_accessible_address_of_operator_tag() const {}
-	};
+	class ContainsAccessibleScopeAddressOfOperatorTagBase {};
+	class DoesNotContainAccessibleScopeAddressOfOperatorTagBase {};
+	class XScopeContainsAccessibleAddressOfOperatorTagBase : public ContainsAccessibleScopeAddressOfOperatorTagBase, public XScopeTagBase {};
+	class XScopeDoesNotContainAccessibleAddressOfTagBase : public DoesNotContainAccessibleScopeAddressOfOperatorTagBase, public XScopeTagBase {};
+
+	class ContainsNonOwningScopeReferenceTagBase {};
+	class DoesNotContainNonOwningScopeReferenceTagBase {};
+	class XScopeContainsNonOwningScopeReferenceTagBase : public ContainsNonOwningScopeReferenceTagBase, public XScopeTagBase {};
+	class XScopeDoesNotContainNonOwningScopeReferenceTagBase : public DoesNotContainNonOwningScopeReferenceTagBase, public XScopeTagBase {};
 
 	/* The purpose of this template function is just to produce a compile error on attempts to instantiate with a scope type. */
 	template<class _Ty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _Ty>::value), void>::type>
@@ -127,7 +132,7 @@ namespace mse {
 
 	/* Use TXScopeFixedPointer instead. */
 	template<typename _Ty>
-	class TXScopePointer : public TXScopePointerBase<_Ty>, public XScopeTagBase, public StrongPointerTagBase {
+	class TXScopePointer : public TXScopePointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
 	public:
 	private:
 		TXScopePointer() : TXScopePointerBase<_Ty>() {}
@@ -164,7 +169,7 @@ namespace mse {
 
 	/* Use TXScopeFixedConstPointer instead. */
 	template<typename _Ty>
-	class TXScopeConstPointer : public TXScopeConstPointerBase<const _Ty>, public XScopeTagBase, public StrongPointerTagBase {
+	class TXScopeConstPointer : public TXScopeConstPointerBase<const _Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
 	public:
 	private:
 		TXScopeConstPointer() : TXScopeConstPointerBase<const _Ty>() {}
@@ -323,7 +328,9 @@ namespace mse {
 	class to enforce safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause
 	mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 	template<typename _TROy>
-	class TXScopeObj : public TXScopeObjBase<_TROy>, public XScopeContainsAccessibleAddressOfOperatorTagBase {
+	class TXScopeObj : public TXScopeObjBase<_TROy>, public XScopeTagBase, public ContainsAccessibleScopeAddressOfOperatorTagBase
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+	{
 	public:
 		TXScopeObj(const TXScopeObj& _X) : TXScopeObjBase<_TROy>(_X) {}
 		explicit TXScopeObj(TXScopeObj&& _X) : TXScopeObjBase<_TROy>(std::forward<decltype(_X)>(_X)) {
@@ -381,7 +388,9 @@ namespace mse {
 	enforce this, which makes this data type less intrinsically safe than say, "reference counting" pointers.
 	*/
 	template<typename _Ty>
-	class TXScopeOwnerPointer : public XScopeTagBase, public StrongPointerTagBase {
+	class TXScopeOwnerPointer : public XScopeTagBase, public StrongPointerTagBase
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+	{
 	public:
 		TXScopeOwnerPointer(TXScopeOwnerPointer<_Ty>&& src_ref) = default;
 
@@ -442,7 +451,7 @@ namespace mse {
 	TXScopeObj<>, any member of a TXScopeObj<>, or various other items with scope lifetime that, for various reasons, aren't
 	declared as TXScopeObj<>. */
 	template<typename _Ty>
-	class TXScopeItemFixedPointer : public TXScopePointerBase<_Ty>, public XScopeTagBase, public StrongPointerTagBase {
+	class TXScopeItemFixedPointer : public TXScopePointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
 	public:
 		TXScopeItemFixedPointer(const TXScopeItemFixedPointer& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -482,7 +491,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TXScopeItemFixedConstPointer : public TXScopeConstPointerBase<_Ty>, public XScopeTagBase, public StrongPointerTagBase {
+	class TXScopeItemFixedConstPointer : public TXScopeConstPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
 	public:
 		TXScopeItemFixedConstPointer(const TXScopeItemFixedConstPointer<_Ty>& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -556,7 +565,7 @@ namespace mse {
 	TXScopeWeakFixedPointer to store a copy of the scope pointer along with the pointer targeting the
 	member. */
 	template <class _TTargetType, class _TLeasePointerType>
-	class TXScopeWeakFixedPointer : public XScopeTagBase {
+	class TXScopeWeakFixedPointer : public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		TXScopeWeakFixedPointer(const TXScopeWeakFixedPointer&) = default;
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
@@ -616,7 +625,7 @@ namespace mse {
 	}
 
 	template <class _TTargetType, class _TLeasePointerType>
-	class TXScopeWeakFixedConstPointer : public XScopeTagBase {
+	class TXScopeWeakFixedConstPointer : public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		TXScopeWeakFixedConstPointer(const TXScopeWeakFixedConstPointer&) = default;
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>

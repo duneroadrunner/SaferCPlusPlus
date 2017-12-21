@@ -347,7 +347,7 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TXScopeAnyPointer : public TAnyPointerBase<_Ty>, public XScopeTagBase {
+	class TXScopeAnyPointer : public TAnyPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef TAnyPointerBase<_Ty> base_class;
 		TXScopeAnyPointer(const TAnyPointerBase<_Ty>& src) : base_class(src) {}
@@ -461,7 +461,7 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TXScopeAnyConstPointer : public TAnyConstPointerBase<_Ty>, public XScopeTagBase {
+	class TXScopeAnyConstPointer : public TAnyConstPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef TAnyConstPointerBase<_Ty> base_class;
 		TXScopeAnyConstPointer(const TAnyConstPointerBase<_Ty>& src) : base_class(src) {}
@@ -632,7 +632,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TXScopePolyPointer : public TPolyPointerBase<_Ty>, public XScopeTagBase {
+	class TXScopePolyPointer : public TPolyPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef TPolyPointerBase<_Ty> base_class;
 
@@ -824,7 +824,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TXScopePolyConstPointer : public TPolyConstPointerBase<_Ty>, public XScopeTagBase {
+	class TXScopePolyConstPointer : public TPolyConstPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef TPolyConstPointerBase<_Ty> base_class;
 		//TXScopePolyConstPointer(const TPolyConstPointerBase<_Ty>& src) : base_class(src) {}
@@ -1002,7 +1002,7 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessIterator : public TAnyRandomAccessIteratorBase<_Ty>, public XScopeTagBase {
+	class TXScopeAnyRandomAccessIterator : public TAnyRandomAccessIteratorBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef TAnyRandomAccessIteratorBase<_Ty> base_class;
 
@@ -1159,7 +1159,7 @@ namespace mse {
 	};
 
 	template <typename _Ty>
-	class TXScopeAnyRandomAccessConstIterator : public TAnyRandomAccessConstIteratorBase<_Ty>, public XScopeTagBase {
+	class TXScopeAnyRandomAccessConstIterator : public TAnyRandomAccessConstIteratorBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef TAnyRandomAccessConstIteratorBase<_Ty> base_class;
 
