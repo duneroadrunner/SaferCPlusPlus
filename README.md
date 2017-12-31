@@ -419,12 +419,12 @@ scope reference to mutable object shared between threads 		| raw pointer [A]	| [
 scope reference to shared object (other) 				| raw pointer		| scope pointer
 non-scope (weak) reference to object shared between threads 		| weak_ptr 		| not yet supported directly
 non-scope (weak) reference to object shared within a thread 		| weak_ptr [Da]		| [registered pointer](#registered-pointers) [b]
-unique strong pointer with scope lifetime 				| unique_ptr 		| [scope owner pointer](#txscopeownerpointer)
+unique strong pointer with scope lifetime 				| unique_ptr [C] 	| [scope owner pointer](#txscopeownerpointer)
 unique strong pointer with non-scope lifetime 				| unique_ptr [C]	| refcounting pointer
-scope reference to uniquely owned object 				| raw pointer 		| scope pointer
+scope reference to uniquely owned object 				| raw pointer [C] 	| scope pointer
 non-scope (weak) reference to uniquely owned object 			| raw pointer [BC]	| registered pointer [b]
-scope pointer to scope object 						| raw pointer 		| scope pointer
-non-scope pointer to scope object 					| raw pointer [B]	| registered pointer [b] (discouraged)
+scope reference to scope object / local variable 			| raw pointer 		| scope pointer
+pointer to scope object / local variable (other) 			| raw pointer [B]	| registered pointer [b] (discouraged)
 
 ```
 potential safety issues:
@@ -438,6 +438,7 @@ performance issues:
 [b] expensive assignment (including when done at construction)
 
 Note it is assumed that `gsl::not_null<>` and `const` will be used where appropriate.
+And in many cases (raw) references could/would be used in place of raw pointers, but the same safety issues apply.
 ```
 
 It's interesting to note that, despite the fact that they were designed independently, the set of pointer types provided by SaferCPlusPlus roughly correspond to those of the [Rust](#safercplusplus-versus-rust) language. Which perhaps makes sense as both use the strategy of, as much as possible, exploiting scope lifetimes to achieve memory safety without extra run-time overhead. And both prioritize memory safety (and data race safety) without resorting to garbage collection.
