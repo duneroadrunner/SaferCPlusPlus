@@ -68,14 +68,39 @@ namespace mse {
 	};
 
 	class ContainsAccessibleScopeAddressOfOperatorTagBase {};
-	class DoesNotContainAccessibleScopeAddressOfOperatorTagBase {};
-	class XScopeContainsAccessibleAddressOfOperatorTagBase : public ContainsAccessibleScopeAddressOfOperatorTagBase, public XScopeTagBase {};
-	class XScopeDoesNotContainAccessibleAddressOfTagBase : public DoesNotContainAccessibleScopeAddressOfOperatorTagBase, public XScopeTagBase {};
+	//class DoesNotContainAccessibleScopeAddressOfOperatorTagBase {};
+	//class XScopeContainsAccessibleAddressOfOperatorTagBase : public ContainsAccessibleScopeAddressOfOperatorTagBase, public XScopeTagBase {};
+	//class XScopeDoesNotContainAccessibleAddressOfTagBase : public DoesNotContainAccessibleScopeAddressOfOperatorTagBase, public XScopeTagBase {};
 
 	class ContainsNonOwningScopeReferenceTagBase {};
-	class DoesNotContainNonOwningScopeReferenceTagBase {};
+	//class DoesNotContainNonOwningScopeReferenceTagBase {};
 	class XScopeContainsNonOwningScopeReferenceTagBase : public ContainsNonOwningScopeReferenceTagBase, public XScopeTagBase {};
-	class XScopeDoesNotContainNonOwningScopeReferenceTagBase : public DoesNotContainNonOwningScopeReferenceTagBase, public XScopeTagBase {};
+	//class XScopeDoesNotContainNonOwningScopeReferenceTagBase : public DoesNotContainNonOwningScopeReferenceTagBase, public XScopeTagBase {};
+
+	template<typename _Ty>
+	class TPlaceHolder_msescope {};
+	template<typename _Ty>
+	class TPlaceHolder2_msescope {};
+
+	template<typename T>
+	struct HasXScopeReturnableTagMethod
+	{
+		template<typename U, void(U::*)() const> struct SFINAE {};
+		template<typename U> static char Test(SFINAE<U, &U::xscope_returnable_tag>*);
+		template<typename U> static int Test(...);
+		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+	};
+
+	/*
+	template<typename T>
+	struct HasXScopeNotReturnableTagMethod
+	{
+		template<typename U, void(U::*)() const> struct SFINAE {};
+		template<typename U> static char Test(SFINAE<U, &U::xscope_not_returnable_tag>*);
+		template<typename U> static int Test(...);
+		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+	};
+	*/
 
 	/* The purpose of this template function is just to produce a compile error on attempts to instantiate with a scope type. */
 	template<class _Ty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _Ty>::value), void>::type>
@@ -328,8 +353,9 @@ namespace mse {
 	class to enforce safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause
 	mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 	template<typename _TROy>
-	class TXScopeObj : public TXScopeObjBase<_TROy>, public XScopeTagBase, public ContainsAccessibleScopeAddressOfOperatorTagBase
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+	class TXScopeObj : public TXScopeObjBase<_TROy>
+		, public std::conditional<std::is_base_of<XScopeTagBase, _TROy>::value, TPlaceHolder_msescope<TXScopeObj<_TROy> >, XScopeTagBase>::type
+		, public std::conditional<std::is_base_of<ContainsAccessibleScopeAddressOfOperatorTagBase, _TROy>::value, TPlaceHolder2_msescope<TXScopeObj<_TROy> >, ContainsAccessibleScopeAddressOfOperatorTagBase>::type
 	{
 	public:
 		TXScopeObj(const TXScopeObj& _X) : TXScopeObjBase<_TROy>(_X) {}
@@ -365,6 +391,14 @@ namespace mse {
 			return this;
 		}
 		void xscope_tag() const {}
+		//void xscope_contains_accessible_scope_address_of_operator_tag() const {}
+		/* This type can be safely used as a function return value if _Ty is also safely returnable. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (
+			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
+			), void>::type>
+		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
 		/* While there are legitimate cases where one could use a scope pointer to an r-value
@@ -389,7 +423,7 @@ namespace mse {
 	*/
 	template<typename _Ty>
 	class TXScopeOwnerPointer : public XScopeTagBase, public StrongPointerTagBase
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeOwnerPointer<_Ty> > >::type
 	{
 	public:
 		TXScopeOwnerPointer(TXScopeOwnerPointer<_Ty>&& src_ref) = default;
@@ -420,6 +454,13 @@ namespace mse {
 		}
 
 		void xscope_tag() const {}
+		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
+			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
+			), void>::type>
+			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
 		TXScopeOwnerPointer(const TXScopeOwnerPointer<_Ty>& src_cref) = delete;
@@ -556,6 +597,86 @@ namespace mse {
 		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref) {
 			return TXScopeItemFixedConstPointer<_Ty>(std::addressof(cref));
 		}
+	}
+
+
+	template<typename _TROy>
+	class TXScopeReturnable : public _TROy {
+	public:
+		MSE_USING(TXScopeReturnable, _TROy);
+		TXScopeReturnable(const TXScopeReturnable& _X) : _TROy(_X) {}
+		TXScopeReturnable(TXScopeReturnable&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
+		virtual ~TXScopeReturnable() {
+			/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
+			valid_if_TROy_is_marked_as_returnable();
+			valid_if_TROy_is_an_xscope_type();
+		}
+
+		template<class _Ty2>
+		TXScopeReturnable& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		template<class _Ty2>
+		TXScopeReturnable& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
+
+		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+
+	private:
+
+		/* If _TROy is not "marked" as safe to use as a function return value, then the following member function
+		will not instantiate, causing an (intended) compile error. */
+		template<class = typename std::enable_if<(!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
+			/*&& (!std::integral_constant<bool, HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
+			&& (std::integral_constant<bool, HasXScopeReturnableTagMethod<_TROy>::Has>()), void>::type>
+		void valid_if_TROy_is_marked_as_returnable() const {}
+
+		template<class = typename std::enable_if<std::is_base_of<XScopeTagBase, _TROy>::value, void>::type>
+		void valid_if_TROy_is_an_xscope_type() const {}
+
+		TXScopeReturnable* operator&() {
+			return this;
+		}
+		const TXScopeReturnable* operator&() const {
+			return this;
+		}
+	};
+
+	namespace us {
+		template<typename _TROy>
+		class TXScopeUserDeclaredReturnable : public _TROy {
+		public:
+			MSE_USING(TXScopeUserDeclaredReturnable, _TROy);
+			TXScopeUserDeclaredReturnable(const TXScopeUserDeclaredReturnable& _X) : _TROy(_X) {}
+			TXScopeUserDeclaredReturnable(TXScopeUserDeclaredReturnable&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
+			virtual ~TXScopeUserDeclaredReturnable() {
+				/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
+				valid_if_TROy_is_not_marked_as_unreturnable();
+				valid_if_TROy_is_an_xscope_type();
+			}
+
+			template<class _Ty2>
+			TXScopeUserDeclaredReturnable& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			template<class _Ty2>
+			TXScopeUserDeclaredReturnable& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
+
+			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+
+		private:
+
+			/* If _TROy is "marked" as not safe to use as a function return value, then the following member function
+			will not instantiate, causing an (intended) compile error. */
+			template<class = typename std::enable_if<(!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
+				/*&& (!std::integral_constant<bool, HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/, void>::type>
+			void valid_if_TROy_is_not_marked_as_unreturnable() const {}
+
+			template<class = typename std::enable_if<std::is_base_of<XScopeTagBase, _TROy>::value, void>::type>
+			void valid_if_TROy_is_an_xscope_type() const {}
+
+			TXScopeUserDeclaredReturnable* operator&() {
+				return this;
+			}
+			const TXScopeUserDeclaredReturnable* operator&() const {
+				return this;
+			}
+		};
 	}
 
 
@@ -759,7 +880,9 @@ namespace mse {
 	/* TXScopeStrongPointerStore et al are types that store a strong pointer (like a refcounting pointer), and let you
 	obtain a corresponding scope pointer. */
 	template<typename _TStrongPointer, class = is_valid_if_strong_pointer<_TStrongPointer> >
-	class TXScopeStrongPointerStore : public XScopeTagBase {
+	class TXScopeStrongPointerStore : public XScopeTagBase
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeStrongPointerStore<_TStrongPointer> > >::type
+	{
 	public:
 		TXScopeStrongPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
@@ -768,12 +891,23 @@ namespace mse {
 			return mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr);
 		}
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
+
+		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
+			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
+			), void>::type>
+		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
 	private:
 		_TStrongPointer m_stored_ptr;
 	};
 
 	template<typename _TStrongPointer, class = is_valid_if_strong_pointer<_TStrongPointer> >
-	class TXScopeStrongConstPointerStore : public XScopeTagBase {
+	class TXScopeStrongConstPointerStore : public XScopeTagBase
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeStrongConstPointerStore<_TStrongPointer> > >::type
+	{
 	public:
 		TXScopeStrongConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
@@ -782,30 +916,61 @@ namespace mse {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
 		}
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
+
+		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
+			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
+			), void>::type>
+		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
 	private:
 		_TStrongPointer m_stored_ptr;
 	};
 
 	template<typename _TStrongPointer, class = is_valid_if_strong_pointer<_TStrongPointer> >
-	class TXScopeStrongNotNullPointerStore : public XScopeTagBase {
+	class TXScopeStrongNotNullPointerStore : public XScopeTagBase
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeStrongNotNullPointerStore<_TStrongPointer> > >::type
+	{
 	public:
 		TXScopeStrongNotNullPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
 		auto xscope_ptr() const {
 			return mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr);
 		}
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
+
+		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
+			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
+			), void>::type>
+		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
 	private:
 		_TStrongPointer m_stored_ptr;
 	};
 
 	template<typename _TStrongPointer, class = is_valid_if_strong_pointer<_TStrongPointer> >
-	class TXScopeStrongNotNullConstPointerStore : public XScopeTagBase {
+	class TXScopeStrongNotNullConstPointerStore : public XScopeTagBase
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeStrongNotNullConstPointerStore<_TStrongPointer> > >::type
+	{
 	public:
 		TXScopeStrongNotNullConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
 		auto xscope_ptr() const {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
 		}
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
+
+		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
+		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
+		component to the enable_if<> condition. */
+		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
+			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
+			), void>::type>
+		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
 	private:
 		_TStrongPointer m_stored_ptr;
 	};

@@ -19,11 +19,17 @@ namespace mse {
 		template<class _Elem, class _Traits = std::char_traits<_Elem>, class _Alloc = std::allocator<_Elem> >
 		class basic_string : public std::basic_string<_Elem, _Traits, _Alloc> {
 		public:
+			typedef std::basic_string<_Elem, _Traits, _Alloc> base_class;
+			using base_class::base_class;
+
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		};
 
 		class string : public basic_string<char> {
 		public:
+			typedef basic_string<char> base_class;
+			using base_class::base_class;
+
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 		};
 	}

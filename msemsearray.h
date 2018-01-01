@@ -2304,7 +2304,7 @@ namespace mse {
 
 	template <typename _TRAContainerPointer>
 	class TRAIteratorBase : public random_access_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())>
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, XScopeContainsNonOwningScopeReferenceTagBase, XScopeDoesNotContainNonOwningScopeReferenceTagBase>::type
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, XScopeContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRAIteratorBase<_TRAContainerPointer> > >::type
 	{
 	public:
 		typedef decltype((*std::declval<_TRAContainerPointer>())[0]) reference_t;
@@ -2446,7 +2446,7 @@ namespace mse {
 
 	template <typename _TRAContainerPointer>
 	class TRAConstIteratorBase : public random_access_const_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())>
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, XScopeContainsNonOwningScopeReferenceTagBase, XScopeDoesNotContainNonOwningScopeReferenceTagBase>::type
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, XScopeContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRAConstIteratorBase<_TRAContainerPointer> > >::type
 	{
 	public:
 		typedef typename std::remove_reference<decltype((*std::declval<_TRAContainerPointer>())[0])>::type element_t;
@@ -2593,7 +2593,7 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	class TRASectionIteratorBase : public random_access_iterator_base_from_ra_iterator<_TRAIterator>
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRASectionIteratorBase<_TRAIterator> > >::type
 	{
 	public:
 		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
@@ -2749,7 +2749,7 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	class TRASectionConstIteratorBase : public random_access_const_iterator_base_from_ra_iterator<_TRAIterator>
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRASectionConstIteratorBase<_TRAIterator> > >::type
 	{
 	public:
 		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
@@ -2919,7 +2919,7 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	class TRandomAccessSectionBase
-		: public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+		: public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRandomAccessSectionBase<_TRAIterator> > >::type
 	{
 	public:
 		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
@@ -3020,7 +3020,7 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	class TRandomAccessConstSectionBase
-		: public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, DoesNotContainNonOwningScopeReferenceTagBase>::type
+		: public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRandomAccessConstSectionBase<_TRAIterator> > >::type
 	{
 	public:
 		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
