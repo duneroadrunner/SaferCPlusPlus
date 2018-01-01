@@ -399,11 +399,11 @@ Now, let's consider the Core Guidelines' decision to standardize on `std::shared
 
 [`F.27: Use a shared_ptr<T> to share ownership`](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rf-shared_ptr)
 
-Uses of reference counting pointers can be divided into two categories - ones where the object is shared between asynchronous threads, and ones where it isn't.
+Uses of reference counting pointers can be divided into two categories - one where the object is shared between asynchronous threads, and one where it isn't.
 
 For the latter case, `std::shared_ptr<>`s are unnecessarily costly due to their thread-safe reference counting mechanism. For the former case, they are insufficiently safe. While they possess shared ownership of the object's lifespan to automatically ensure that dereferences do not access deallocated memory, they have no mechanism to automatically ensure dereferences do not inappropriately access memory that is being used by another thread. (I.e. They protect against "use-after-free" bugs, but not "data race" bugs.)
 
-So why choose a pointer type that is unsuitable for both use cases rather than two different pointer types that are more suitable for each case? Perhaps because they didn't want to force developers to make separate interfaces and implementations for each of the two use cases? But that doesn't really make sense as there are perfectly good ways in C++ to have a single interface and implementation support different pointer types. In cases where you're only dealing with one type of pointer at a time (which would be the vast majority of cases) you can just make the function in question a function template. In the rare cases where you might be dealing with both types of pointers at the same time, you could use a polymorphic pointer. (Basically the pointer specialized versions of `std::variant<>` and/or `std::any<>`.) The SaferCPlusPlus library provides such [polymorphic pointers](#poly-pointers).
+So why choose a pointer type that is unsuitable for both use cases rather than two different pointer types that are more suitable for each case? Perhaps because they didn't want to force developers to make separate interfaces and implementations for each of the two use case categories? But that doesn't really make sense as there are perfectly good ways in C++ to have a single interface and implementation support different pointer types. In cases where you're only dealing with one type of pointer at a time (which would be the vast majority of cases) you can just make the function in question a function template. For other cases, you can use polymorphic pointers. (Basically the pointer specialized versions of `std::variant<>` and/or `std::any<>`.) The SaferCPlusPlus library provides such [polymorphic pointers](#poly-pointers).
 
 The nice thing about the way SaferCPlusPlus does shared ownership is that it conforms to the "only pay for what you use" principle. Standardizing on `std::shared_ptr<>`s not only makes you pay for features that you may not be using, but it prevents you from accessing essential (safety) features when you need them, no matter how much they are worth to you.
 
@@ -419,12 +419,12 @@ scope reference to mutable object shared between threads 		| raw pointer [A]	| [
 scope reference to shared object (other) 				| raw pointer		| scope pointer
 non-scope (weak) reference to object shared between threads 		| weak_ptr 		| not yet supported directly
 non-scope (weak) reference to object shared within a thread 		| weak_ptr [Da]		| [registered pointer](#registered-pointers) [b]
-unique strong pointer with scope lifetime 				| unique_ptr 		| [scope owner pointer](#txscopeownerpointer)
+unique strong pointer with scope lifetime 				| unique_ptr [C] 	| [scope owner pointer](#txscopeownerpointer)
 unique strong pointer with non-scope lifetime 				| unique_ptr [C]	| refcounting pointer
-scope reference to uniquely owned object 				| raw pointer 		| scope pointer
+scope reference to uniquely owned object 				| raw pointer [C] 	| scope pointer
 non-scope (weak) reference to uniquely owned object 			| raw pointer [BC]	| registered pointer [b]
-scope pointer to scope object 						| raw pointer 		| scope pointer
-non-scope pointer to scope object 					| raw pointer [B]	| registered pointer [b] (discouraged)
+scope reference to scope object / local variable 			| raw pointer 		| scope pointer
+pointer to scope object / local variable (other) 			| raw pointer [B]	| registered pointer [b] (discouraged)
 
 ```
 potential safety issues:
@@ -438,6 +438,7 @@ performance issues:
 [b] expensive assignment (including when done at construction)
 
 Note it is assumed that `gsl::not_null<>` and `const` will be used where appropriate.
+And in many cases (raw) references could/would be used in place of raw pointers, but the same safety issues apply.
 ```
 
 It's interesting to note that, despite the fact that they were designed independently, the set of pointer types provided by SaferCPlusPlus roughly correspond to those of the [Rust](#safercplusplus-versus-rust) language. Which perhaps makes sense as both use the strategy of, as much as possible, exploiting scope lifetimes to achieve memory safety without extra run-time overhead. And both prioritize memory safety (and data race safety) without resorting to garbage collection.
@@ -465,7 +466,7 @@ Reassignable (mut) references occur much less frequently, but still have no run-
 
 Probably the biggest difference though, is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the "exclusivity of mutable references") the way Rust does. With respect to memory safety, the benefit of this restriction is that it ensures that objects with "arbitrary lifespan" (like an element in a (resizable) vector) are not deallocated while other references to that object still exist.
 
-But most objects do not have "arbitrary lifespan". (Both Rust and SaferCPlusPlus encourage most objects to have "scope lifespan".) So most of the time, from a memory safety perspective, this restriction is not necessary. It's hard to evaluate the cost of this restriction. There's arguably some ergonomic cost, but one concrete example might be the fact that in Rust, mutable "reference counting" targets need to be wrapped in a `Cell` or `RefCell` (which introduces run-time overhead and/or the possibility of a panic). But in Rust, this restriction is about more than just memory safety, and whether or not the overall benefits of the restriction outweigh the costs seems to be a matter of varied opinion.
+But most objects do not have "arbitrary lifespan". (Both Rust and SaferCPlusPlus encourage most objects to have "scope lifespan".) So most of the time, from a memory safety perspective, this restriction is not necessary. It's hard to evaluate the cost of this restriction. There's arguably some ergonomic cost, but one concrete example might be the fact that in Rust, mutable "reference counting" targets need to be wrapped in a `Cell` or `RefCell` (which introduces run-time overhead and/or the possibility of a panic). But in Rust, this restriction is about more than just memory safety, and whether or not the overall benefits of the restriction outweigh the costs is probably situation dependent.
 
 So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.
 
