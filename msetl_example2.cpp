@@ -56,12 +56,14 @@
 #pragma clang diagnostic ignored "-Wtautological-compare"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wunused-local-typedefs"
 //pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif /*__GNUC__*/
 #endif /*__clang__*/
@@ -174,6 +176,99 @@ void msetl_example2() {
 	}
 
 	{
+		/****************/
+		/*  optional<>  */
+		/****************/
+
+		mse::COptionalTest1::s_test1();
+	}
+
+	{
+		/*************************/
+		/*  TXScopeReturnable<>  */
+		/*************************/
+
+		class CB {
+		public:
+			/* While there is a rule against using scope types as function return types, you can usually just use the
+			underlying (non-scope) type of the scope object as the return type. */
+			static mse::mstd::string foo1() {
+				mse::TXScopeObj<mse::mstd::string> xscp_string1("some text");
+				return xscp_string1;
+			}
+
+			/* In the less common case where the scope type doesn't have an underlying non-scope type, it may be safe
+			to return the scope object. But in order to use a scope type as a function return value, it must be
+			wrapped in the transparent mse::TXScopeReturnable<> wrapper template, which will induce a compile error
+			if it deems the scope type potentially unsafe to use as a return type. */
+			static mse::TXScopeReturnable<mse::xscope_optional<mse::mstd::string> > foo2() {
+				mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
+				return xscp_returnable_obj1;
+			}
+		};
+
+		mse::TXScopeObj<mse::mstd::string> xscp_res1(CB::foo1());
+		mse::xscope_optional<mse::mstd::string> xscp_res2(CB::foo2());
+
+		typedef mse::TXScopeObj<mse::mstd::string> xscope_string_t;
+		xscope_string_t xscp_str1 = "some text";
+		/* TXScopeReturnable<> deems xscope_string_t to be an acceptable return type because it doesn't contain
+		any scope pointers. */
+		mse::TXScopeReturnable<xscope_string_t> xscpr_str1("some text");
+
+		typedef decltype(&xscp_str1) xscope_string_ptr_t;
+		/* TXScopeReturnable<> deems xscope_string_ptr_t to be an unsafe return type because it is (or contains)
+		a scope pointer. So the next line would result in a compile error. */
+		//mse::TXScopeReturnable<xscope_string_ptr_t> xscpr_sfptr1 = &xscp_str1;
+	}
+
+	{
+		/* Defining your own scope types. */
+
+		/* It is uncommon to need to define your own scope types. In general, if you want to use a type as a scope
+		type, you can just wrap it with the mse::TXScopeObj<> template. */
+
+		/* But in cases where you're going to use a scope type as a member of a class or struct, that class or
+		struct must itself be a scope type. Improperly defining a scope type could result in unsafe code. */
+
+		/* Scope types need to publicly inherit from mse::XScopeTagBase. And by convention, be named with a prefix
+		indicating that it's a scope type. */
+		class xscope_my_type1 : public mse::XScopeTagBase {
+		public:
+			xscope_my_type1(const mse::xscope_optional<mse::mstd::string>& xscp_maybe_string)
+				: m_xscp_maybe_string1(xscp_maybe_string) {}
+
+			/* If your scope type does not contain any non-owning scope pointers, then it should be safe to use
+			as a function return type. You can "mark" it as such by adding the following member function. If the
+			type does contain non-owning scope pointers, then doing so could result in unsafe code. */
+			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
+			mse::xscope_optional<mse::mstd::string> m_xscp_maybe_string1;
+		};
+
+		/* If your type contains or owns any non-owning scope pointers, then it must also publicly inherit
+		from mse::ContainsNonOwningScopeReferenceTagBase. If your type contains or owns any item that can be
+		independently targeted by scope pointers (i.e. basically has a '&' ("address of" operator) that yeilds
+		a scope pointer), then it must also publicly inherit from mse::ReferenceableByScopePointerTagBase.
+		Failure to do so could result in unsafe code. */
+		class xscope_my_type2 : public mse::XScopeTagBase, public mse::ContainsNonOwningScopeReferenceTagBase
+			, public mse::ReferenceableByScopePointerTagBase
+		{
+		public:
+			typedef mse::TXScopeItemFixedConstPointer<mse::mstd::string> xscope_string_ptr_t;
+
+			xscope_my_type2(const mse::xscope_optional<xscope_string_ptr_t>& xscp_maybe_string_ptr) : m_xscp_maybe_string_ptr(xscp_maybe_string_ptr) {}
+
+			/* This item (potentially) contains a non-owning scope pointer. */
+			mse::xscope_optional<xscope_string_ptr_t> m_xscp_maybe_string_ptr;
+
+			/* This item owns an object that can be independently targeted by scope pointers. That is,
+			&(*m_xscp_string_owner_ptr) yields a scope pointer. */
+			mse::TXScopeOwnerPointer<mse::mstd::string> m_xscp_string_owner_ptr;
+		};
+	}
+
+	{
 		class CA {
 		public:
 			std::string m_s1;
@@ -236,10 +331,6 @@ void msetl_example2() {
 		bool b1 = (mstdv1 == mstdv1);
 		std::swap(niiv1, mstdv1);
 		std::swap(mstdv1, niiv1);
-	}
-
-	{
-		mse::COptionalTest1::s_test1();
 	}
 
 	{

@@ -67,15 +67,12 @@ namespace mse {
 		void xscope_tag() const {}
 	};
 
-	class ContainsAccessibleScopeAddressOfOperatorTagBase {};
-	//class DoesNotContainAccessibleScopeAddressOfOperatorTagBase {};
-	//class XScopeContainsAccessibleAddressOfOperatorTagBase : public ContainsAccessibleScopeAddressOfOperatorTagBase, public XScopeTagBase {};
-	//class XScopeDoesNotContainAccessibleAddressOfTagBase : public DoesNotContainAccessibleScopeAddressOfOperatorTagBase, public XScopeTagBase {};
+	/* Note that objects not derived from ReferenceableByScopePointerTagBase might still be targeted by a scope pointer via
+	make_pointer_to_member(). */
+	class ReferenceableByScopePointerTagBase {};
 
 	class ContainsNonOwningScopeReferenceTagBase {};
-	//class DoesNotContainNonOwningScopeReferenceTagBase {};
 	class XScopeContainsNonOwningScopeReferenceTagBase : public ContainsNonOwningScopeReferenceTagBase, public XScopeTagBase {};
-	//class XScopeDoesNotContainNonOwningScopeReferenceTagBase : public DoesNotContainNonOwningScopeReferenceTagBase, public XScopeTagBase {};
 
 	template<typename _Ty>
 	class TPlaceHolder_msescope {};
@@ -355,7 +352,7 @@ namespace mse {
 	template<typename _TROy>
 	class TXScopeObj : public TXScopeObjBase<_TROy>
 		, public std::conditional<std::is_base_of<XScopeTagBase, _TROy>::value, TPlaceHolder_msescope<TXScopeObj<_TROy> >, XScopeTagBase>::type
-		, public std::conditional<std::is_base_of<ContainsAccessibleScopeAddressOfOperatorTagBase, _TROy>::value, TPlaceHolder2_msescope<TXScopeObj<_TROy> >, ContainsAccessibleScopeAddressOfOperatorTagBase>::type
+		, public std::conditional<std::is_base_of<ReferenceableByScopePointerTagBase, _TROy>::value, TPlaceHolder2_msescope<TXScopeObj<_TROy> >, ReferenceableByScopePointerTagBase>::type
 	{
 	public:
 		TXScopeObj(const TXScopeObj& _X) : TXScopeObjBase<_TROy>(_X) {}

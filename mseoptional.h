@@ -1399,7 +1399,7 @@ namespace mse {
 
 	template <class _Ty>
 	class xscope_optional : public mse::us::impl::optional<_Ty>, public XScopeTagBase
-		, public std::conditional<std::is_base_of<ContainsAccessibleScopeAddressOfOperatorTagBase, _Ty>::value, ContainsAccessibleScopeAddressOfOperatorTagBase, TPlaceHolder_msescope<xscope_optional<_Ty> > >::type
+		, public std::conditional<std::is_base_of<ReferenceableByScopePointerTagBase, _Ty>::value, ReferenceableByScopePointerTagBase, TPlaceHolder_msescope<xscope_optional<_Ty> > >::type
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder2_msescope<xscope_optional<_Ty> > >::type
 	{
 	public:
@@ -1414,42 +1414,48 @@ namespace mse {
 		explicit xscope_optional(_Ty2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 
 		xscope_optional& operator=(nullopt_t) noexcept {
-			valid_if_Ty_is_not_marked_as_unreturnable();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
 			base_class::clear();
 			return *this;
 		}
 		xscope_optional& operator=(const xscope_optional& rhs) {
-			valid_if_Ty_is_not_marked_as_unreturnable();
+			valid_if_Ty_is_not_marked_as_unreturnable<_Ty>();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
 			base_class::operator=(rhs);
 			return *this;
 		}
 		xscope_optional& operator=(xscope_optional&& rhs) noexcept(std::is_nothrow_move_assignable<_Ty>::value && std::is_nothrow_move_constructible<_Ty>::value) {
-			valid_if_Ty_is_not_marked_as_unreturnable();
+			valid_if_Ty_is_not_marked_as_unreturnable<_Ty>();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
 			base_class::operator=(std::forward<base_class>(rhs));
 			return *this;
 		}
 		template <class U>
 		auto operator=(U&& v) -> typename std::enable_if<std::is_same<typename std::decay<U>::type, _Ty>::value, xscope_optional&>::type {
-			valid_if_Ty_is_not_marked_as_unreturnable();
+			valid_if_Ty_is_not_marked_as_unreturnable<_Ty>();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
 			base_class::operator=(std::forward<U>(v));
 			return *this;
 		}
 		template <class... Args>
 		void emplace(Args&&... args) {
-			valid_if_Ty_is_not_marked_as_unreturnable();
+			valid_if_Ty_is_not_marked_as_unreturnable<_Ty>();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
 			base_class::emplace(std::forward<Args>(args)...);
 		}
 		template <class U, class... Args>
 		void emplace(std::initializer_list<U> il, Args&&... args) {
-			valid_if_Ty_is_not_marked_as_unreturnable();
+			valid_if_Ty_is_not_marked_as_unreturnable<_Ty>();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
 			base_class::emplace(il, std::forward<Args>(args)...);
 		}
 		void reset() noexcept {
-			valid_if_Ty_is_not_marked_as_unreturnable();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
 			base_class::reset();
 		}
 		void swap(xscope_optional<_Ty>& rhs) noexcept(std::is_nothrow_move_constructible<_Ty>::value && noexcept(std::swap(std::declval<_Ty&>(), std::declval<_Ty&>()))) {
-			valid_if_Ty_is_not_marked_as_unreturnable();
+			valid_if_Ty_is_not_marked_as_unreturnable<_Ty>();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
 			base_class::swap(rhs);
 		}
 
@@ -1464,8 +1470,22 @@ namespace mse {
 	private:
 		/* If _Ty is "marked" as not safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class = typename std::enable_if<(!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty>::value), void>::type>
+		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty2>::value), void>::type>
 		void valid_if_Ty_is_not_marked_as_unreturnable() const {}
+
+		/* If _Ty is "marked" as containing an accessible "scope address of" operator, then the following member function
+		will not instantiate, causing an (intended) compile error. */
+		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (!std::is_base_of<ReferenceableByScopePointerTagBase, _Ty2>::value)
+			, void>::type>
+		void valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
+
+		/* If _Ty is a scope type, then the following member function will not instantiate, causing an
+		(intended) compile error. */
+		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
+			void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		void* operator new(size_t size) { return ::operator new(size); }
 
