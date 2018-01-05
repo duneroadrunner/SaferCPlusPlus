@@ -409,6 +409,7 @@ The nice thing about the way SaferCPlusPlus does shared ownership is that it con
 
 The following table considers all pointer use cases, partitioned into relevant categories, and compares the pointer types prescribed for each use case by the Core Guidelines and SaferCPlusPlus, noting safety and performance issues. Note that the "[scope](#scope-pointers)" adjective is used to indicate that the item will be deallocated at the end of the execution scope (sometimes called "block") in which it was declared. (I.e. basically a "local variable".):
 
+#### Pointer use case comparison table
 Pointer use case | Core Guidelines | SaferCPlusPlus
 ----------------- | --------------- | --------------
 strong pointer to mutable object shared between threads 		| shared_ptr [A]	| [lock pointer](#asynchronously-shared-objects)
@@ -932,19 +933,22 @@ Scope pointers point to scope objects. Scope objects are essentially objects tha
 
 Note that you do not need to do this for all objects allocated on the stack. Just the ones for which you want to obtain a scope pointer. The reason you might want a scope pointer, as opposed to say, a registered pointer, is that, by default, scope pointers have no run-time overhead. In fact, it is expected that ultimately, scope pointers will be by far the most commonly used of the pointers provided by the library. 
 
-In the future we expect that there will be a "compile helper tool" to verify that objects declared as scope objects are indeed allocated on the stack. For now, be careful to follow these rules:
+In the future we expect that there will be a "compile helper tool" to verify that objects declared as scope objects are indeed allocated on the stack and used properly. For now, be careful to follow these rules:
 
-- Objects of scope type (types whose name starts with "TXScope" or "xscope") must be global or (non-static) automatic local variables.
+- Objects of scope type (types whose name starts with "TXScope" or "xscope") must be global or local (non-static) automatic variables.
 	- Basically global or allocated on the stack.
-- Scope types must not be used as members of classes or structs that are not themselves scope types.
-	- Note that you can use the `mse::make_pointer_to_member()` function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
-- Scope types must not be used as base classes of classes that are not themselves scope types.
-	- There probably isn't much motivation to do that anyway.
 - Note that scope pointers are themselves scope objects and must adhere to the same restrictions.
-- Non-owning scope pointers (scope pointers other than `TXScopeOwnerPointer<>`s), or any object containing non-owning scope pointers, should not be used as a function return value.
-	- Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen_pointer()`](#xscope_chosen_pointer) function.
+- Do not use scope types as members of classes or structs.
+	- Note that you can use the [`mse::make_pointer_to_member()`](#make_pointer_to_member) function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
+	- In the uncommon cases that you really want to use a scope type as a member of a class or struct, that class or struct must itself be a scope type. User defined scope types must adhere to the [rules](#defining-your-own-scope-types) of scope types.
+- Do not use scope types as base classes.
+	- There probably isn't much motivation to do this anyway.
+	- In the uncommon cases that you really want to use a scope type as a base class/struct, the derived class/struct must itself be a scope type. User defined scope types must adhere to the [rules](#defining-your-own-scope-types) of scope types.
+- Do not use scope types as function return types.
+	- In the uncommon cases that you really want to use a scope type as a function return type, it must be wrapped in the [`mse::TXScopeReturnable<>`](txscopereturnable) transparent template wrapper.
+	- `mse::TXScopeReturnable<>` will not accept non-owning scope pointer types. Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen_pointer()`](#xscope_chosen_pointer) function.
 
-Failure to adhere to the rules for scope objects could result in unsafe code. Currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. Again, at some point the restrictions will be fully enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is due to the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond their scope, so that a scope pointer cannot outlive its target scope object.
+Failure to adhere to the rules for scope objects could result in unsafe code. Currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. Again, at some point the restrictions will be fully enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is premised on the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond the scope in which they are declared, so that a scope pointer cannot outlive its target scope object.
 
 In lieu of full compile-time enforcement, run-time checking is available to enforce safety and help detect misuses of scope pointers. Run-time checking in debug mode is enabled by defining `MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED`. Additionally defining `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#primitives) that can act as base classes. 
 
@@ -1094,6 +1098,102 @@ So consider, for example, a "min" function that takes two scope pointers and ret
 
         assert(5 == xscp_min_ptr1->b);
     }
+```
+### optional, xscope_optional
+
+`mse::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScope<mse::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
+
+### TXScopeReturnable
+
+The safety of non-owning scope pointers is premised on the fact that they will not outlive the scope in which they are declared. So returning a non-owning scope pointer, or any object that contains or owns a non-owning scope pointer, from a function would be potentially unsafe. 
+
+However, it could be safe to return a scope object if that object does not contain or own any non-owning scope pointers. The `TXScopeReturnable<>` transparent wrapper template is used to verify that a scope type does not contain or own any non-owning scope pointers. It will cause a compile error if it deems that it may be unsafe to return the given scope type.
+
+So the rule is that scope types may only be used as function return types if they are wrapped in the `TXScopeReturnable<>` transparent wrapper template.
+
+usage example:
+```
+#include "msescope.h"
+#include "mseoptional.h"
+
+int main(int argc, char* argv[]) {
+	class CB {
+	public:
+		/* While there is a rule against using scope types as function return types, you can usually just use the
+		underlying (non-scope) type of the scope object as the return type. */
+		static mse::mstd::string foo1() {
+			mse::TXScopeObj<mse::mstd::string> xscp_string1("some text");
+			return xscp_string1;
+		}
+
+		/* In the less common case where the scope type doesn't have an underlying non-scope type, it may be safe
+		to return the scope object. But in order to use a scope type as a function return value, it must be
+		wrapped in the transparent mse::TXScopeReturnable<> wrapper template, which will induce a compile error
+		if it deems the scope type potentially unsafe to use as a return type. */
+		static mse::TXScopeReturnable<mse::xscope_optional<mse::mstd::string> > foo2() {
+			mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
+			return xscp_returnable_obj1;
+		}
+	};
+
+	mse::TXScopeObj<mse::mstd::string> xscp_res1(CB::foo1());
+	mse::xscope_optional<mse::mstd::string> xscp_res2(CB::foo2());
+}
+```
+
+### Defining your own scope types
+
+example:
+```
+#include "msescope.h"
+#include "mseoptional.h"
+
+int main(int argc, char* argv[]) {
+
+		/* Defining your own scope types. */
+
+		/* It is (intended to be) uncommon to need to define your own scope types. In general, if you want to use a
+		type as a scope type, you can just wrap it with the mse::TXScopeObj<> template. */
+
+		/* But in cases where you're going to use a scope type as a member of a class or struct, that class or
+		struct must itself be a scope type. Improperly defining a scope type could result in unsafe code. */
+
+		/* Scope types need to publicly inherit from mse::XScopeTagBase. And by convention, be named with a prefix
+		indicating that it's a scope type. */
+		class xscope_my_type1 : public mse::XScopeTagBase {
+		public:
+			xscope_my_type1(const mse::xscope_optional<mse::mstd::string>& xscp_maybe_string)
+				: m_xscp_maybe_string1(xscp_maybe_string) {}
+
+			/* If your scope type does not contain any non-owning scope pointers, then it should be safe to use
+			as a function return type. You can "mark" it as such by adding the following member function. If the
+			type does contain non-owning scope pointers, then doing so could result in unsafe code. */
+			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
+			mse::xscope_optional<mse::mstd::string> m_xscp_maybe_string1;
+		};
+
+		/* If your type contains or owns any non-owning scope pointers, then it must also publicly inherit
+		from mse::ContainsNonOwningScopeReferenceTagBase. If your type contains or owns any item that can be
+		independently targeted by scope pointers (i.e. basically has a '&' ("address of" operator) that yeilds
+		a scope pointer), then it must also publicly inherit from mse::ReferenceableByScopePointerTagBase.
+		Failure to do so could result in unsafe code. */
+		class xscope_my_type2 : public mse::XScopeTagBase, public mse::ContainsNonOwningScopeReferenceTagBase
+			, public mse::ReferenceableByScopePointerTagBase
+		{
+		public:
+			typedef mse::TXScopeItemFixedConstPointer<mse::mstd::string> xscope_string_ptr_t;
+
+			xscope_my_type2(const mse::xscope_optional<xscope_string_ptr_t>& xscp_maybe_string_ptr) : m_xscp_maybe_string_ptr(xscp_maybe_string_ptr) {}
+
+			/* This item (potentially) contains a non-owning scope pointer. */
+			mse::xscope_optional<xscope_string_ptr_t> m_xscp_maybe_string_ptr;
+
+			/* This item owns an object that can be independently targeted by scope pointers. That is,
+			&(*m_xscp_string_owner_ptr) yields a scope pointer. */
+			mse::TXScopeOwnerPointer<mse::mstd::string> m_xscp_string_owner_ptr;
+		};
+}
 ```
 
 ### make_pointer_to_member()
