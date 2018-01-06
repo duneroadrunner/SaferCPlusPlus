@@ -225,8 +225,8 @@ void msetl_example2() {
 	{
 		/* Defining your own scope types. */
 
-		/* It is uncommon to need to define your own scope types. In general, if you want to use a type as a scope
-		type, you can just wrap it with the mse::TXScopeObj<> template. */
+		/* It is (intended to be) uncommon to need to define your own scope types. In general, if you want to use a
+		type as a scope type, you can just wrap it with the mse::TXScopeObj<> template. */
 
 		/* But in cases where you're going to use a scope type as a member of a class or struct, that class or
 		struct must itself be a scope type. Improperly defining a scope type could result in unsafe code. */

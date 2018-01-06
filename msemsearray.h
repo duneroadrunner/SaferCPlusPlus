@@ -2702,7 +2702,6 @@ namespace mse {
 
 		TXScopeRASectionIterator* operator&() { return this; }
 		const TXScopeRASectionIterator* operator&() const { return this; }
-
 	};
 
 	template <typename _TRAIterator>
@@ -2861,7 +2860,6 @@ namespace mse {
 
 		TXScopeRASectionConstIterator* operator&() { return this; }
 		const TXScopeRASectionConstIterator* operator&() const { return this; }
-
 	};
 
 	template <typename _TRAIterator>
@@ -2905,6 +2903,163 @@ namespace mse {
 			return (*this);
 		}
 	};
+
+	template <typename _TRAIterator>
+	class TNiiRandomAccessConstSectionBase;
+	template <typename _TRAIterator>
+	class TXScopeNiiRandomAccessSection;
+	template <typename _TRAIterator>
+	class TXScopeNiiRandomAccessConstSection;
+	template <typename _TRAIterator>
+	class TNiiRandomAccessSection;
+	template <typename _TRAIterator>
+	class TNiiRandomAccessConstSection;
+
+	template <typename _TRAIterator>
+	class TNiiRandomAccessSectionBase
+		: public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TNiiRandomAccessSectionBase<_TRAIterator> > >::type
+	{
+	public:
+		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
+		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
+		typedef typename std::add_lvalue_reference<typename std::add_const<element_t>::type>::type const_reference_t;
+		typedef typename mse::us::msearray<element_t, 0>::size_type size_type;
+		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+
+		TNiiRandomAccessSectionBase(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
+		//TNiiRandomAccessSectionBase(const TNiiRandomAccessSectionBase& src) = default;
+		template <typename _TRAIterator1>
+		TNiiRandomAccessSectionBase(const TNiiRandomAccessSectionBase<_TRAIterator1>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
+
+		reference_t operator[](size_type _P) const {
+			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TNiiRandomAccessSectionBase")); }
+			return m_start_iter[difference_t(_P)];
+		}
+		size_type size() const {
+			return m_count;
+		}
+
+	private:
+		TNiiRandomAccessSectionBase<_TRAIterator>* operator&() { return this; }
+		const TNiiRandomAccessSectionBase<_TRAIterator>* operator&() const { return this; }
+
+		_TRAIterator m_start_iter;
+		const size_type m_count = 0;
+
+		friend class TXScopeNiiRandomAccessSection<_TRAIterator>;
+		template<typename _TRAIterator1> friend class TNiiRandomAccessConstSectionBase;
+		template<typename _TRAIterator1> friend class TNiiRandomAccessSectionBase;
+	};
+
+	template <typename _TRAIterator>
+	class TXScopeNiiRandomAccessSection : public TNiiRandomAccessSectionBase<_TRAIterator>, public XScopeTagBase {
+	public:
+		typedef TNiiRandomAccessSectionBase<_TRAIterator> base_class;
+
+		//TXScopeNiiRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter,count) {}
+		//TXScopeNiiRandomAccessSection(const TXScopeNiiRandomAccessSection& src) = default;
+		//TXScopeNiiRandomAccessSection(const TNiiRandomAccessSectionBase<_TRAIterator>& src) : base_class(src) {}
+
+		MSE_USING(TXScopeNiiRandomAccessSection, base_class);
+
+	private:
+		//TXScopeNiiRandomAccessSection<_TRAIterator>& operator=(const TXScopeNiiRandomAccessSection<_TRAIterator>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeNiiRandomAccessSection<_TRAIterator>* operator&() { return this; }
+		const TXScopeNiiRandomAccessSection<_TRAIterator>* operator&() const { return this; }
+	};
+
+	template <typename _TRAIterator>
+	class TNiiRandomAccessSection : public TNiiRandomAccessSectionBase<_TRAIterator> {
+	public:
+		typedef TNiiRandomAccessSectionBase<_TRAIterator> base_class;
+		typedef typename base_class::size_type size_type;
+
+		template <class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TRAIterator>::value)>>
+		TNiiRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRAIterator1>
+		TNiiRandomAccessSection(const TNiiRandomAccessSectionBase<_TRAIterator1>& src) : base_class(src) {}
+
+		friend class TXScopeNiiRandomAccessSection<_TRAIterator>;
+		friend class TXScopeNiiRandomAccessConstSection<_TRAIterator>;
+		friend class TNiiRandomAccessConstSection<_TRAIterator>;
+	};
+
+	template <typename _TRAIterator>
+	class TNiiRandomAccessConstSectionBase
+		: public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TNiiRandomAccessConstSectionBase<_TRAIterator> > >::type
+	{
+	public:
+		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
+		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
+		typedef typename std::add_lvalue_reference<typename std::add_const<element_t>::type>::type const_reference_t;
+		typedef typename mse::us::msearray<element_t, 0>::size_type size_type;
+		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+
+		TNiiRandomAccessConstSectionBase(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
+		//TNiiRandomAccessConstSectionBase(const TNiiRandomAccessConstSectionBase& src) = default;
+		template <typename _TRAIterator1>
+		TNiiRandomAccessConstSectionBase(const TNiiRandomAccessConstSectionBase<_TRAIterator1>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
+		//TNiiRandomAccessConstSectionBase(const TNiiRandomAccessSectionBase<_TRAIterator>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
+		template <typename _TRAIterator1>
+		TNiiRandomAccessConstSectionBase(const TNiiRandomAccessSectionBase<_TRAIterator1>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
+
+		const_reference_t operator[](size_type _P) const {
+			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TNiiRandomAccessConstSectionBase")); }
+			return m_start_iter[difference_t(_P)];
+		}
+		size_type size() const {
+			return m_count;
+		}
+
+	private:
+		TNiiRandomAccessConstSectionBase<_TRAIterator>* operator&() { return this; }
+		const TNiiRandomAccessConstSectionBase<_TRAIterator>* operator&() const { return this; }
+
+		_TRAIterator m_start_iter;
+		const size_type m_count = 0;
+
+		friend class TXScopeNiiRandomAccessConstSection<_TRAIterator>;
+		template<typename _TRAIterator1> friend class TNiiRandomAccessConstSectionBase;
+	};
+
+	template <typename _TRAIterator>
+	class TXScopeNiiRandomAccessConstSection : public TNiiRandomAccessConstSectionBase<_TRAIterator>, public XScopeTagBase {
+	public:
+		typedef TNiiRandomAccessConstSectionBase<_TRAIterator> base_class;
+
+		//TXScopeNiiRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		//TXScopeNiiRandomAccessConstSection(const TXScopeNiiRandomAccessConstSection& src) = default;
+		//TXScopeNiiRandomAccessConstSection(const TNiiRandomAccessConstSectionBase<_TRAIterator>& src) : base_class(src) {}
+		//TXScopeNiiRandomAccessConstSection(const TNiiRandomAccessSectionBase<_TRAIterator>& src) : base_class(src) {}
+
+		MSE_USING(TXScopeNiiRandomAccessConstSection, base_class);
+
+	private:
+		//TXScopeNiiRandomAccessConstSection<_TRAIterator>& operator=(const TXScopeNiiRandomAccessConstSection<_TRAIterator>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeNiiRandomAccessConstSection<_TRAIterator>* operator&() { return this; }
+		const TXScopeNiiRandomAccessConstSection<_TRAIterator>* operator&() const { return this; }
+	};
+
+	template <typename _TRAIterator>
+	class TNiiRandomAccessConstSection : public TNiiRandomAccessConstSectionBase<_TRAIterator> {
+	public:
+		typedef TNiiRandomAccessConstSectionBase<_TRAIterator> base_class;
+		typedef typename base_class::size_type size_type;
+
+		template <class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TRAIterator>::value)>>
+		TNiiRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRAIterator1>
+		TNiiRandomAccessConstSection(const TNiiRandomAccessConstSection<_TRAIterator1>& src) : base_class(src) {}
+		template <typename _TRAIterator1>
+		TNiiRandomAccessConstSection(const TNiiRandomAccessSectionBase<_TRAIterator1>& src) : base_class(src) {}
+
+		friend class TXScopeNiiRandomAccessConstSection<_TRAIterator>;
+	};
+
 
 	template <typename _TRAIterator>
 	class TRandomAccessConstSectionBase;
