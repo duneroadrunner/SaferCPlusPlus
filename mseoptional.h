@@ -1460,8 +1460,6 @@ namespace mse {
 		}
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
 			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
 			), void>::type>

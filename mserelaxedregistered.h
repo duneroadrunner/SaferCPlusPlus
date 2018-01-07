@@ -658,7 +658,9 @@ namespace mse {
 	destruction so that TRelaxedRegisteredPointers will avoid referencing destroyed objects. Note that TRelaxedRegisteredObj can be used with
 	objects allocated on the stack. */
 	template<typename _TROFLy>
-	class TRelaxedRegisteredObj : public _TROFLy {
+	class TRelaxedRegisteredObj : public _TROFLy
+		, public std::conditional<!std::is_convertible<_TROFLy*, NotAsyncShareableTagBase*>::value, NotAsyncShareableTagBase, TPlaceHolder_msepointerbasics<TRelaxedRegisteredObj<_TROFLy> > >::type
+	{
 	public:
 		MSE_USING(TRelaxedRegisteredObj, _TROFLy);
 		TRelaxedRegisteredObj(const TRelaxedRegisteredObj& _X) : _TROFLy(_X) {}

@@ -550,7 +550,9 @@ namespace mse {
 	destruction so that TRegisteredPointers will avoid referencing destroyed objects. Note that TRegisteredObj can be used with
 	objects allocated on the stack. */
 	template<typename _TROy, int _Tn>
-	class TRegisteredObj : public _TROy {
+	class TRegisteredObj : public _TROy
+		, public std::conditional<!std::is_convertible<_TROy*, NotAsyncShareableTagBase*>::value, NotAsyncShareableTagBase, TPlaceHolder_msepointerbasics<TRegisteredObj<_TROy, _Tn> > >::type
+	{
 	public:
 		MSE_USING(TRegisteredObj, _TROy);
 		TRegisteredObj(const TRegisteredObj& _X) : _TROy(_X) {}
@@ -780,7 +782,7 @@ namespace mse {
 
 #ifdef MSEREGISTEREDREFWRAPPER
 	template <class _TRRWy, int _TRRWn = sc_default_cache_size>
-	class TRegisteredRefWrapper {
+	class TRegisteredRefWrapper : public NotAsyncShareableTagBase {
 	public:
 		// types
 		typedef TRegisteredObj<_TRRWy, _TRRWn> type;

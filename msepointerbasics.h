@@ -99,12 +99,19 @@ namespace mse {
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
 
+	class NotAsyncShareableTagBase {};
+
+	template<typename _Ty>
+	class TPlaceHolder_msepointerbasics {};
+	template<typename _Ty>
+	class TPlaceHolder2_msepointerbasics {};
+
 	template<typename _Ty>
 	class TPointerID {};
 
 	/* TPointer is just a wrapper for native pointers that can act as a base class. */
 	template<typename _Ty, typename _TID = TPointerID<_Ty>>
-	class TPointer {
+	class TPointer : public NotAsyncShareableTagBase {
 	public:
 		TPointer() : m_ptr(nullptr) {}
 		TPointer(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
@@ -178,7 +185,7 @@ namespace mse {
 	};
 
 	template<typename _Ty, typename _TID = TPointerID<_Ty>>
-	class TPointerForLegacy {
+	class TPointerForLegacy : public NotAsyncShareableTagBase {
 	public:
 		TPointerForLegacy() : m_ptr(nullptr) {}
 		TPointerForLegacy(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
@@ -253,7 +260,7 @@ namespace mse {
 	using TSaferPtrForLegacy = TPointerForLegacy<_Ty>;
 #else /*MSE_SAFERPTR_DISABLED*/
 
-	class CSaferPtrBase {
+	class CSaferPtrBase : public NotAsyncShareableTagBase {
 	public:
 		/* setToNull() needs to be available even when the smart pointer is const, because the object it points to may become
 		invalid (deleted). */
@@ -420,7 +427,7 @@ namespace mse {
 	TSyncWeakFixedPointer to store a copy of the registered pointer along with the pointer targeting the
 	member. */
 	template <class _TTargetType, class _TLeasePointerType>
-	class TSyncWeakFixedPointer {
+	class TSyncWeakFixedPointer : public NotAsyncShareableTagBase {
 	public:
 		TSyncWeakFixedPointer(const TSyncWeakFixedPointer&) = default;
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
@@ -477,7 +484,7 @@ namespace mse {
 	}
 
 	template <class _TTargetType, class _TLeasePointerType>
-	class TSyncWeakFixedConstPointer {
+	class TSyncWeakFixedConstPointer : public NotAsyncShareableTagBase {
 	public:
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedConstPointer&) = default;
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
@@ -549,6 +556,7 @@ namespace mse {
 	public:
 		void strong_pointer_tag() const {}
 	};
+	class StrongPointerNotAsyncShareableTagBase : public StrongPointerTagBase, public NotAsyncShareableTagBase {};
 
 	template <typename T> struct is_shared_ptr : std::false_type {};
 	template <typename T> struct is_shared_ptr<std::shared_ptr<T> > : std::true_type {};
@@ -569,7 +577,7 @@ namespace mse {
 	TStrongFixedPointer to store a copy of the owning (refcounting) pointer along with the pointer targeting the
 	member. */
 	template <class _TTargetType, class _TLeaseType>
-	class TStrongFixedPointer : public StrongPointerTagBase {
+	class TStrongFixedPointer : public StrongPointerNotAsyncShareableTagBase {
 	public:
 		TStrongFixedPointer(const TStrongFixedPointer&) = default;
 		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
@@ -630,7 +638,7 @@ namespace mse {
 	}
 
 	template <class _TTargetType, class _TLeaseType>
-	class TStrongFixedConstPointer : public StrongPointerTagBase {
+	class TStrongFixedConstPointer : public StrongPointerNotAsyncShareableTagBase {
 	public:
 		TStrongFixedConstPointer(const TStrongFixedConstPointer&) = default;
 		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>

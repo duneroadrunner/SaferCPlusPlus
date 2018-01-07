@@ -1364,7 +1364,7 @@ namespace mse {
 			return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_end<_TArrayPointer>(owner_ptr)));
 		}
 
-		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
+		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 		public:
 			xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 			xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
@@ -1443,7 +1443,7 @@ namespace mse {
 			friend class /*_Myt*/nii_array<_Ty, _Size>;
 			friend class xscope_ss_iterator_type;
 		};
-		class xscope_ss_iterator_type : public ss_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
+		class xscope_ss_iterator_type : public ss_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 		public:
 			xscope_ss_iterator_type(const mse::TXScopeFixedPointer<nii_array>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -1526,8 +1526,6 @@ namespace mse {
 		}
 
 		/* This array is safely "async shareable" if the elements it contains are also "async shareable". */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
 			(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()) || (std::is_arithmetic<_Ty2>::value)
 			), void>::type>
@@ -1536,8 +1534,6 @@ namespace mse {
 	private:
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
@@ -1814,7 +1810,7 @@ namespace mse {
 
 			class xscope_ss_iterator_type;
 
-			class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
+			class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 			public:
 				xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 				xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
@@ -1893,7 +1889,7 @@ namespace mse {
 				friend class /*_Myt*/msearray<_Ty, _Size>;
 				friend class xscope_ss_iterator_type;
 			};
-			class xscope_ss_iterator_type : public ss_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
+			class xscope_ss_iterator_type : public ss_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 			public:
 				xscope_ss_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -3298,11 +3294,11 @@ namespace mse {
 
 	private:
 
-		/* If _TROy is "marked" as not safe to share among threads (via the presence of the "not_async_shareable_tag()" member
-		function), then the following member function will not instantiate, causing an (intended) compile error. */
+		/* If _TROy is "marked" as not safe to share among threads, then the following member function will not
+		instantiate, causing an (intended) compile error. */
 		template<class = typename std::enable_if<(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_TROy>::Has>()) || (
-			(!std::integral_constant<bool, HasNotAsyncShareableTagMethod_msemsearray<_TROy>::Has>())
-			/*&& (!is_std_array<_TROy>::value)*/
+			(!std::is_convertible<_TROy*, NotAsyncShareableTagBase*>::value)
+			/*(!std::integral_constant<bool, HasNotAsyncShareableTagMethod_msemsearray<_TROy>::Has>())*/
 				), void>::type>
 		void valid_if_TROy_is_not_marked_as_unshareable() const {}
 
@@ -3585,8 +3581,6 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 

@@ -97,7 +97,7 @@ namespace mse {
 		class xscope_cipointer;
 		class xscope_ipointer;
 
-		class cipointer : public _MV::random_access_const_iterator_base {
+		class cipointer : public _MV::random_access_const_iterator_base, public NotAsyncShareableTagBase {
 		public:
 			typedef typename _MV::mm_const_iterator_type::iterator_category iterator_category;
 			typedef typename _MV::mm_const_iterator_type::value_type value_type;

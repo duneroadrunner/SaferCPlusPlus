@@ -154,7 +154,7 @@ namespace mse {
 
 	/* Use TXScopeFixedPointer instead. */
 	template<typename _Ty>
-	class TXScopePointer : public TXScopePointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
+	class TXScopePointer : public TXScopePointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 	public:
 	private:
 		TXScopePointer() : TXScopePointerBase<_Ty>() {}
@@ -191,7 +191,7 @@ namespace mse {
 
 	/* Use TXScopeFixedConstPointer instead. */
 	template<typename _Ty>
-	class TXScopeConstPointer : public TXScopeConstPointerBase<const _Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
+	class TXScopeConstPointer : public TXScopeConstPointerBase<const _Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 	public:
 	private:
 		TXScopeConstPointer() : TXScopeConstPointerBase<const _Ty>() {}
@@ -390,8 +390,6 @@ namespace mse {
 		void xscope_tag() const {}
 		//void xscope_contains_accessible_scope_address_of_operator_tag() const {}
 		/* This type can be safely used as a function return value if _Ty is also safely returnable. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (
 			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
 			), void>::type>
@@ -419,7 +417,7 @@ namespace mse {
 	enforce this, which makes this data type less intrinsically safe than say, "reference counting" pointers.
 	*/
 	template<typename _Ty>
-	class TXScopeOwnerPointer : public XScopeTagBase, public StrongPointerTagBase
+	class TXScopeOwnerPointer : public XScopeTagBase, public StrongPointerNotAsyncShareableTagBase
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeOwnerPointer<_Ty> > >::type
 	{
 	public:
@@ -452,8 +450,6 @@ namespace mse {
 
 		void xscope_tag() const {}
 		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
 			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
 			), void>::type>
@@ -489,7 +485,7 @@ namespace mse {
 	TXScopeObj<>, any member of a TXScopeObj<>, or various other items with scope lifetime that, for various reasons, aren't
 	declared as TXScopeObj<>. */
 	template<typename _Ty>
-	class TXScopeItemFixedPointer : public TXScopePointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
+	class TXScopeItemFixedPointer : public TXScopePointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 	public:
 		TXScopeItemFixedPointer(const TXScopeItemFixedPointer& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -529,7 +525,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TXScopeItemFixedConstPointer : public TXScopeConstPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerTagBase {
+	class TXScopeItemFixedConstPointer : public TXScopeConstPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 	public:
 		TXScopeItemFixedConstPointer(const TXScopeItemFixedConstPointer<_Ty>& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -890,8 +886,6 @@ namespace mse {
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
 			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
 			), void>::type>
@@ -915,8 +909,6 @@ namespace mse {
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
 			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
 			), void>::type>
@@ -938,8 +930,6 @@ namespace mse {
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
 			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
 			), void>::type>
@@ -961,8 +951,6 @@ namespace mse {
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
 			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
 			), void>::type>

@@ -59,8 +59,10 @@ namespace mse {
 
 #ifdef MSEPOINTERBASICS_H
 	typedef StrongPointerTagBase AsyncSharedStrongPointerTagBase;
+	class AsyncSharedStrongPointerNotAsyncShareableTagBase : public AsyncSharedStrongPointerTagBase, public NotAsyncShareableTagBase {};
 #else // MSEPOINTERBASICS_H
 	class AsyncSharedStrongPointerTagBase {};
+	class AsyncSharedStrongPointerNotAsyncShareableTagBase : public AsyncSharedStrongPointerTagBase {};
 #endif // MSEPOINTERBASICS_H
 
 	class asyncshared_runtime_error : public std::runtime_error { public:
@@ -596,7 +598,7 @@ namespace mse {
 	template<typename _TAccessLease> class TAsyncSharedV2ReadWriteConstPointer;
 
 	template<typename _TAccessLease>
-	class TAsyncSharedV2ReadWritePointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedV2ReadWritePointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedV2ReadWritePointer(const TAsyncSharedV2ReadWritePointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedV2ReadWritePointer(TAsyncSharedV2ReadWritePointer&& src) = default;
@@ -654,7 +656,7 @@ namespace mse {
 	};
 
 	template<typename _TAccessLease>
-	class TAsyncSharedV2ReadWriteConstPointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedV2ReadWriteConstPointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedV2ReadWriteConstPointer(const TAsyncSharedV2ReadWriteConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedV2ReadWriteConstPointer(TAsyncSharedV2ReadWriteConstPointer&& src) = default;
@@ -711,7 +713,7 @@ namespace mse {
 	};
 
 	template<typename _TAccessLease>
-	class TAsyncSharedV2ExclusiveReadWritePointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedV2ExclusiveReadWritePointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedV2ExclusiveReadWritePointer(const TAsyncSharedV2ExclusiveReadWritePointer& src) = delete;
 		TAsyncSharedV2ExclusiveReadWritePointer(TAsyncSharedV2ExclusiveReadWritePointer&& src) = default;
@@ -873,7 +875,7 @@ namespace mse {
 
 
 	template<typename _TAccessLease>
-	class TAsyncSharedV2ReadOnlyConstPointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedV2ReadOnlyConstPointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedV2ReadOnlyConstPointer(const TAsyncSharedV2ReadOnlyConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedV2ReadOnlyConstPointer(TAsyncSharedV2ReadOnlyConstPointer&& src) = default;
@@ -1018,15 +1020,11 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
@@ -1068,15 +1066,11 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
@@ -1128,15 +1122,11 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		/* There appears to be a bug in the msvc 2015 compiler that can be worked around by adding a redundant
-		component to the enable_if<> condition. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
@@ -1243,7 +1233,7 @@ namespace mse {
 	template<typename _Ty> class TAsyncSharedReadWriteConstPointer;
 
 	template<typename _Ty>
-	class TAsyncSharedReadWritePointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedReadWritePointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedReadWritePointer(const TAsyncSharedReadWriteAccessRequester<_Ty>& src);
 		TAsyncSharedReadWritePointer(const TAsyncSharedReadWritePointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
@@ -1301,7 +1291,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedReadWriteConstPointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedReadWriteConstPointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedReadWriteConstPointer(const TAsyncSharedReadWriteConstPointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedReadWriteConstPointer(TAsyncSharedReadWriteConstPointer&& src) = default;
@@ -1358,7 +1348,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedExclusiveReadWritePointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedExclusiveReadWritePointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedExclusiveReadWritePointer(const TAsyncSharedExclusiveReadWritePointer& src) = delete;
 		TAsyncSharedExclusiveReadWritePointer(TAsyncSharedExclusiveReadWritePointer&& src) = default;
@@ -1519,7 +1509,7 @@ namespace mse {
 
 
 	template<typename _Ty>
-	class TAsyncSharedReadOnlyConstPointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedReadOnlyConstPointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedReadOnlyConstPointer(const TAsyncSharedReadOnlyConstPointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedReadOnlyConstPointer(TAsyncSharedReadOnlyConstPointer&& src) = default;
@@ -1639,7 +1629,7 @@ namespace mse {
 	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer;
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer&& src) = default;
@@ -1696,7 +1686,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer&& src) = default;
@@ -1753,7 +1743,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer& src) = delete;
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer&& src) = default;
@@ -1910,7 +1900,7 @@ namespace mse {
 
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer&& src) = default;
@@ -2031,7 +2021,7 @@ namespace mse {
 	points to a validly allocated object. Use mse::make_stdsharedimmutable<>() to construct an
 	mse::TStdSharedImmutableFixedPointer. And again, beware of sharing objects with mutable members. */
 	template<typename _Ty>
-	class TStdSharedImmutableFixedPointer : public std::shared_ptr<const _Ty>, public AsyncSharedStrongPointerTagBase {
+	class TStdSharedImmutableFixedPointer : public std::shared_ptr<const _Ty>, public AsyncSharedStrongPointerNotAsyncShareableTagBase {
 	public:
 		TStdSharedImmutableFixedPointer(const TStdSharedImmutableFixedPointer& src_cref) : std::shared_ptr<const _Ty>(src_cref) {}
 		virtual ~TStdSharedImmutableFixedPointer() {}
