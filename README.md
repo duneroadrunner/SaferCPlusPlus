@@ -60,6 +60,7 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
     4. [xscope_chosen_pointer()](#xscope_chosen_pointer)
+    5. [TXScopeReturnable](#txscopereturnable)
 10. [make_pointer_to_member()](#make_pointer_to_member)
 11. [Poly pointers](#poly-pointers)
     1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
@@ -87,9 +88,10 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     3. [msearray](#msearray)
     4. [xscope_iterator](#xscope_iterator)
     5. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
-17. [Compatibility considerations](#compatibility-considerations)
-18. [Practical limitations](#practical-limitations)
-19. [Questions and comments](#questions-and-comments)
+17. [optional](#optional-xscope_optional)
+18. [Compatibility considerations](#compatibility-considerations)
+19. [Practical limitations](#practical-limitations)
+20. [Questions and comments](#questions-and-comments)
 
 
 
@@ -1099,9 +1101,6 @@ So consider, for example, a "min" function that takes two scope pointers and ret
         assert(5 == xscp_min_ptr1->b);
     }
 ```
-### optional, xscope_optional
-
-`mse::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScope<mse::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
 
 ### TXScopeReturnable
 
@@ -1498,7 +1497,7 @@ One way to allow your function to accept any reference type is to make your func
 
 Another option is to use [poly pointers](#poly-pointers) instead. They can also enable your function to accept a variety of reference types, without "templatizing" your function, but with a small run-time overhead.
 
-Another choice is to require that reference parameters be passed using scope pointers. This approach, by default, has no more run-time overhead than using native pointers/references. And note that scope pointers can be obtained from reference counting pointers and pointers to shared objects (using [`make_xscope_strong_pointer_store()`](#make_xscope_strong_pointer_store)), but not registered pointers. And legacy (native) pointers would not be supported either. Generally, you would use scope pointer parameters in cases where you are adopting a "scopecentric" style of programming (similar to the Rust language), and trying to avoid use of (unsafe) legacy elements.
+Another choice is to require that reference parameters be passed using scope pointers. This approach, by default, has no more run-time overhead than using native pointers/references. And note that scope pointers can be obtained from reference counting pointers and pointers to shared objects (using [`make_xscope_strong_pointer_store()`](#make_xscope_strong_pointer_store)), but not registered pointers. And legacy (native) pointers would not be supported either. (Although if you're in a pinch, `mse::us::unsafe_make_xscope_pointer_to()` can produce an (unsafe) scope pointer to any object.) Generally, you would use scope pointer parameters in cases where you are adopting a "scopecentric" style of programming (similar to the Rust language), and trying to avoid use of (unsafe) legacy elements.
 
 And of course the library remains perfectly compatible with (the less safe) traditional C++ references if you prefer. 
 
@@ -2221,6 +2220,10 @@ usage example:
         auto res2 = *scp_cptr2;
     }
 ```
+
+### optional, xscope_optional
+
+`mse::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScope<mse::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
 
 ### Compatibility considerations
 People have [asked](http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c) why the primitive C++ types can't be used as base classes. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
