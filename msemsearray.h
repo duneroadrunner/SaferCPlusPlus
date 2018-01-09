@@ -3518,24 +3518,24 @@ namespace mse {
 		TAccessControlledReadWritePointer<_Ty, _TAccessMutex> writelock_ptr() {
 			return TAccessControlledReadWritePointer<_Ty, _TAccessMutex>(*this);
 		}
-		mse::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> try_writelock_ptr() {
-			mse::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWritePointer<_Ty, _TAccessMutex>(*this, std::try_to_lock));
+		mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> try_writelock_ptr() {
+			mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWritePointer<_Ty, _TAccessMutex>(*this, std::try_to_lock));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
 			return retval;
 		}
 		template<class _Rep, class _Period>
-		mse::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			mse::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWritePointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Rel_time));
+		mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWritePointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Rel_time));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
 			return retval;
 		}
 		template<class _Clock, class _Duration>
-		mse::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			mse::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWritePointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Abs_time));
+		mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWritePointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Abs_time));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
@@ -3544,24 +3544,24 @@ namespace mse {
 		TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex> readlock_ptr() {
 			return TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>(*this);
 		}
-		mse::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> try_readlock_ptr() {
-			mse::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>(*this, std::try_to_lock));
+		mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> try_readlock_ptr() {
+			mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>(*this, std::try_to_lock));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
 			return retval;
 		}
 		template<class _Rep, class _Period>
-		mse::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			mse::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Rel_time));
+		mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Rel_time));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
 			return retval;
 		}
 		template<class _Clock, class _Duration>
-		mse::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			mse::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Abs_time));
+		mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Abs_time));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
