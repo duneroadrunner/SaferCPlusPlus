@@ -2223,7 +2223,7 @@ usage example:
 
 ### optional, xscope_optional
 
-`mse::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScope<mse::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
+`mse::mstd::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScope<mse::mstd::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
 
 ### Compatibility considerations
 People have [asked](http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c) why the primitive C++ types can't be used as base classes. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
