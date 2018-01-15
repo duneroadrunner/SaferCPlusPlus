@@ -10,6 +10,7 @@
 
 #include "mseoptional.h"
 #include "msemsearray.h"
+#include "msemsevector.h"
 #ifndef MSE_ASYNCSHARED_NO_XSCOPE_DEPENDENCE
 #include "msescope.h"
 #endif // !MSE_ASYNCSHARED_NO_XSCOPE_DEPENDENCE
@@ -21,6 +22,7 @@
 #include <ctime>
 #include <ratio>
 #include <chrono>
+#include <vector>
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_ASYNCSHAREDPOINTER_DISABLED
@@ -1171,6 +1173,222 @@ namespace mse {
 		return TStrongFixedConstPointer<_TTargetType, TAsyncSharedV2ImmutableFixedPointer<_Ty>>::make(target, lease_pointer);
 	}
 #endif // defined(MSEPOINTERBASICS_H)
+
+	namespace us {
+		namespace impl {
+
+			template <typename _TRAIterator>
+			class TAsyncSplitterRandomAccessSection
+				: public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TAsyncSplitterRandomAccessSection<_TRAIterator> > >::type
+			{
+			public:
+				typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
+				typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
+				typedef typename std::add_lvalue_reference<typename std::add_const<element_t>::type>::type const_reference_t;
+				typedef typename mse::us::msearray<element_t, 0>::size_type size_type;
+				typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+
+				TAsyncSplitterRandomAccessSection(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
+
+				reference_t operator[](size_type _P) const {
+					if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TAsyncSplitterRandomAccessSection")); }
+					return m_start_iter[difference_t(_P)];
+				}
+				size_type size() const {
+					return m_count;
+				}
+
+				/* We will mark this type as safely "async shareable" if the elements it contains are also "async shareable"
+				and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
+				to ensure safe "async shareability". */
+				template<class element_t2 = element_t, class = typename std::enable_if<(std::is_same<element_t2, element_t>::value)
+					&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<element_t2>::Has>()) || (std::is_arithmetic<element_t2>::value))
+					&& (std::is_base_of<StrongPointerTagBase, _TRAIterator>::value)
+					, void>::type>
+					void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
+			private:
+				TAsyncSplitterRandomAccessSection(const TAsyncSplitterRandomAccessSection& src) = default;
+				template <typename _TRAIterator1>
+				TAsyncSplitterRandomAccessSection(const TAsyncSplitterRandomAccessSection<_TRAIterator1>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
+
+				TAsyncSplitterRandomAccessSection<_TRAIterator>* operator&() { return this; }
+				const TAsyncSplitterRandomAccessSection<_TRAIterator>* operator&() const { return this; }
+
+				_TRAIterator m_start_iter;
+				const size_type m_count = 0;
+
+				template <typename _TExclusiveWritelockPtr>
+				friend class TAsyncRASectionSplitterXWP;
+			};
+		}
+	}
+
+	template <typename _TRAIterator>
+	class TAsyncSplitterRASectionReadWriteAccessRequester {
+	public:
+		typedef mse::us::impl::TAsyncSplitterRandomAccessSection<_TRAIterator> splitter_ra_section_t;
+		typedef decltype(std::declval<splitter_ra_section_t>().size()) size_type;
+
+		TAsyncSplitterRASectionReadWriteAccessRequester(const TAsyncSplitterRASectionReadWriteAccessRequester& src_cref) = default;
+
+		typedef TRandomAccessSection<TRAIterator<TAsyncSharedV2ReadWritePointer<std::shared_ptr<splitter_ra_section_t> > > > rw_ra_section_t;
+		rw_ra_section_t writelock_ra_section() {
+			return rw_ra_section_t(TRAIterator<decltype(m_splitter_ra_section_access_requester.writelock_ptr())>(m_splitter_ra_section_access_requester.writelock_ptr()), m_count);
+		}
+		mse::mstd::optional<rw_ra_section_t> try_writelock_ra_section() {
+			auto maybe_wl_ptr = m_splitter_ra_section_access_requester.try_writelock_ptr();
+			if (!(maybe_wl_ptr.has_value())) {
+				return{};
+			}
+			auto& wl_ptr = maybe_wl_ptr.value();
+			return mse::mstd::optional<rw_ra_section_t>(rw_ra_section_t(TRAIterator<decltype(wl_ptr)>(wl_ptr), wl_ptr->size()));
+		}
+		template<class _Rep, class _Period>
+		mse::mstd::optional<rw_ra_section_t> try_writelock_ra_section_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			auto abs_time = std::chrono::system_clock::now() + _Rel_time;
+			return try_writelock_ra_section_until(abs_time);
+		}
+		template<class _Clock, class _Duration>
+		mse::mstd::optional<rw_ra_section_t> try_writelock_ra_section_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			auto maybe_wl_ptr = m_splitter_ra_section_access_requester.try_writelock_ptr_until(_Abs_time);
+			if (!(maybe_wl_ptr.has_value())) {
+				return{};
+			}
+			auto& wl_ptr = maybe_wl_ptr.value();
+			return mse::mstd::optional<rw_ra_section_t>(rw_ra_section_t(TRAIterator<decltype(wl_ptr)>(wl_ptr), wl_ptr->size()));
+		}
+
+		typedef TRandomAccessSection<TRAIterator<TAsyncSharedV2ReadWriteConstPointer<splitter_ra_section_t> > > rwc_ra_section_t;
+		rwc_ra_section_t readlock_ra_section() {
+			return rwc_ra_section_t(TRAIterator<decltype(m_splitter_ra_section_access_requester.writelock_ptr())>(m_splitter_ra_section_access_requester.readlock_ptr()), m_count);
+		}
+		mse::mstd::optional<rwc_ra_section_t> try_readlock_ra_section() {
+			auto maybe_rl_ptr = m_splitter_ra_section_access_requester.try_readlock_ptr();
+			if (!(maybe_rl_ptr.has_value())) {
+				return{};
+			}
+			auto& rl_ptr = maybe_rl_ptr.value();
+			return mse::mstd::optional<rwc_ra_section_t>(rwc_ra_section_t(TRAIterator<decltype(rl_ptr)>(rl_ptr), rl_ptr->size()));
+		}
+		template<class _Rep, class _Period>
+		mse::mstd::optional<rwc_ra_section_t> try_readlock_ra_section_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			auto abs_time = std::chrono::system_clock::now() + _Rel_time;
+			return try_readlock_ra_section_until(abs_time);
+		}
+		template<class _Clock, class _Duration>
+		mse::mstd::optional<rwc_ra_section_t> try_readlock_ra_section_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			auto maybe_rl_ptr = m_splitter_ra_section_access_requester.try_readlock_ptr_until(_Abs_time);
+			if (!(maybe_rl_ptr.has_value())) {
+				return{};
+			}
+			auto& rl_ptr = maybe_rl_ptr.value();
+			return mse::mstd::optional<rwc_ra_section_t>(rwc_ra_section_t(TRAIterator<decltype(rl_ptr)>(rl_ptr), rl_ptr->size()));
+		}
+
+		/* Note that an exclusive_writelock_ra_section cannot coexist with any other lock_ra_sections (targeting the same object), including ones in
+		the same thread. Thus, using exclusive_writelock_ra_sections without sufficient care introduces the potential for exceptions (in a way
+		that sticking to (regular) writelock_ra_sections doesn't). */
+		typedef TRandomAccessSection<TRAIterator<TAsyncSharedV2ExclusiveReadWritePointer<splitter_ra_section_t> > > xrw_ra_section_t;
+		xrw_ra_section_t exclusive_writelock_ra_section() {
+			return xrw_ra_section_t(TRAIterator<decltype(m_splitter_ra_section_access_requester.writelock_ptr())>(m_splitter_ra_section_access_requester.exclusive_writelock_ptr()), m_count);
+		}
+
+		template <class... Args>
+		static TAsyncSplitterRASectionReadWriteAccessRequester make(Args&&... args) {
+			return TAsyncSplitterRASectionReadWriteAccessRequester(std::forward<Args>(args)...);
+		}
+
+		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
+	private:
+
+		TAsyncSplitterRASectionReadWriteAccessRequester(const _TRAIterator& start_iter, size_type count) : m_count(count)
+			, m_splitter_ra_section_access_requester(make_asyncsharedv2readwrite<splitter_ra_section_t>(start_iter, count)) {}
+
+		TAsyncSplitterRASectionReadWriteAccessRequester<_TRAIterator>* operator&() { return this; }
+		const TAsyncSplitterRASectionReadWriteAccessRequester<_TRAIterator>* operator&() const { return this; }
+
+		const size_type m_count = 0;
+		mse::TAsyncSharedV2ReadWriteAccessRequester<splitter_ra_section_t> m_splitter_ra_section_access_requester;
+	};
+
+	template <class X, class... Args>
+	TAsyncSplitterRASectionReadWriteAccessRequester<X> make_asyncsplitterrasectionreadwrite(Args&&... args) {
+		return TAsyncSplitterRASectionReadWriteAccessRequester<X>::make(std::forward<Args>(args)...);
+	}
+
+	template <typename _TAccessLease>
+	class TSplitterAccessLeaseObj {
+	public:
+		TSplitterAccessLeaseObj(_TAccessLease&& access_lease)
+			: m_access_lease(std::forward<_TAccessLease>(access_lease)) {}
+		const _TAccessLease& cref() const {
+			return m_access_lease;
+		}
+	private:
+		_TAccessLease m_access_lease;
+	};
+
+	template <typename _TExclusiveWritelockPtr>
+	class TAsyncRASectionSplitterXWP {
+	public:
+		typedef _TExclusiveWritelockPtr exclusive_writelock_ptr_t;
+		typedef typename std::remove_reference<decltype(*(std::declval<exclusive_writelock_ptr_t>()))>::type _TContainer;
+		typedef typename std::remove_reference<decltype(std::declval<_TContainer>()[0])>::type element_t;
+		typedef mse::TRAIterator<_TContainer*> ra_iterator_t;
+		typedef decltype(mse::make_strong_iterator(std::declval<ra_iterator_t>(), std::declval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
+		typedef TAsyncSplitterRASectionReadWriteAccessRequester<strong_ra_iterator_t> ras_ar_t;
+
+		template<typename _TList>
+		TAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, const _TList& section_sizes)
+			: m_access_lease_obj_shptr(std::make_shared<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> >(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr))) {
+			size_t cummulative_size = 0;
+			//auto section_begin_it = m_access_lease_obj_shptr->cref()->begin();
+			auto section_begin_it = ra_iterator_t(std::addressof(*(m_access_lease_obj_shptr->cref())));
+			for (const auto& section_size : section_sizes) {
+				if (0 > section_size) { MSE_THROW(std::range_error("invalid section size - TAsyncRASectionSplitterXWP() - TAsyncRASectionSplitterXWP")); }
+
+				auto it1 = mse::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
+				auto ras_ar1 = mse::make_asyncsplitterrasectionreadwrite<strong_ra_iterator_t>(it1, section_size);
+				m_ra_sections.push_back(ras_ar1);
+
+				cummulative_size += section_size;
+				section_begin_it += section_size;
+			}
+			if (m_access_lease_obj_shptr->cref()->size() > cummulative_size) {
+				auto section_size = m_access_lease_obj_shptr->cref()->size() - cummulative_size;
+				auto it1 = mse::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
+				auto ras_ar1 = mse::make_asyncsplitterrasectionreadwrite<strong_ra_iterator_t>(it1, section_size);
+				m_ra_sections.push_back(ras_ar1);
+			}
+		}
+		TAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, size_t split_index)
+			: TAsyncRASectionSplitterXWP(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr), std::array<size_t, 1>{ {split_index}}) {}
+		ras_ar_t ra_section_access_requester(size_t index) const {
+			return m_ra_sections.at(index);
+		}
+		ras_ar_t first_ra_section_access_requester() const {
+			return m_ra_sections.at(0);
+		}
+		ras_ar_t second_ra_section_access_requester() const {
+			return m_ra_sections.at(1);
+		}
+	private:
+		std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > m_access_lease_obj_shptr;
+		std::vector<ras_ar_t> m_ra_sections;
+	};
+
+	template <typename _TAccessRequester>
+	class TAsyncRASectionSplitter : public TAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_writelock_ptr())> {
+	public:
+		typedef TAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_writelock_ptr())> base_class;
+
+		template<typename _TList>
+		TAsyncRASectionSplitter(_TAccessRequester& ar, const _TList& section_sizes) : base_class(ar.exclusive_writelock_ptr(), section_sizes) {}
+
+		TAsyncRASectionSplitter(_TAccessRequester& ar, size_t split_index) : base_class(ar.exclusive_writelock_ptr(), split_index) {}
+	};
 
 
 	/* TAsyncSharedReadWriteAccessRequester, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester,

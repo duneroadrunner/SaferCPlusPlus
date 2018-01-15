@@ -3891,7 +3891,10 @@ namespace mse {
 	target container is owned by reference counting pointers or "lock" pointers, you can use TStrongFixedIterator<> to weld an
 	owning pointer (aka "lease") to the iterator to prevent the target container from being deallocated prematurely. */
 	template <class _TIterator, class _TLeaseType>
-	class TStrongFixedIterator : public _TIterator {
+	class TStrongFixedIterator : public _TIterator
+		/* add StrongPointerNotAsyncShareableTagBase as a base class iff it is not already a base class */
+		, public std::conditional<std::is_base_of<StrongPointerNotAsyncShareableTagBase, _TIterator>::value, TPlaceHolder_msepointerbasics<TStrongFixedIterator<_TIterator, _TLeaseType> >, StrongPointerNotAsyncShareableTagBase>::type
+	{
 	public:
 		typedef _TIterator base_class;
 		TStrongFixedIterator(const TStrongFixedIterator&) = default;
@@ -3918,7 +3921,7 @@ namespace mse {
 	};
 
 	template <class _Ty, class _TLeaseType>
-	class TStrongFixedIterator<_Ty*, _TLeaseType> : public TSaferPtrForLegacy<_Ty> {
+	class TStrongFixedIterator<_Ty*, _TLeaseType> : public TSaferPtrForLegacy<_Ty>, public StrongPointerTagBase {
 	public:
 		typedef TSaferPtrForLegacy<_Ty> _TIterator;
 		typedef _TIterator base_class;
