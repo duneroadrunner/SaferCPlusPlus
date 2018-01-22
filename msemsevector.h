@@ -346,14 +346,12 @@ namespace mse {
 			/*m_debug_size = size();*/
 		}
 
-		void swap(_Myt& _Other) /*_NOEXCEPT_OP(_NOEXCEPT_OP(_Swap_adl(this->m_vector[0], _Other.m_vector[0])))*/
-		{	// swap contents with _Other
+		void swap(_Myt& _Other) {	// swap contents with _Other
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
 			m_vector.swap(_Other.m_vector);
 		}
 
-		void swap(_MV& _Other) /*_NOEXCEPT_OP(_NOEXCEPT_OP(_Swap_adl(this->m_vector[0], _Other[0])))*/
-		{	// swap contents with _Other
+		void swap(_MV& _Other) {	// swap contents with _Other
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
 			m_vector.swap(_Other);
 		}
@@ -554,11 +552,13 @@ namespace mse {
 			return (*this);
 			}
 			*/
+			/*
 			Tss_const_iterator_type& operator=(const Tss_const_iterator_type& _Right_cref) {
 				((*this).m_owner_cptr) = _Right_cref.m_owner_cptr;
 				(*this).m_index = _Right_cref.m_index;
 				return (*this);
 			}
+			*/
 			bool operator==(const Tss_const_iterator_type& _Right_cref) const {
 				if (this->m_owner_cptr != _Right_cref.m_owner_cptr) { MSE_THROW(nii_vector_range_error("invalid argument - Tss_const_iterator_type& operator==(const Tss_const_iterator_type& _Right) - Tss_const_iterator_type - nii_vector")); }
 				return (_Right_cref.m_index == m_index);
@@ -715,11 +715,13 @@ namespace mse {
 			return (*this);
 			}
 			*/
+			/*
 			Tss_iterator_type& operator=(const Tss_iterator_type& _Right_cref) {
 				((*this).m_owner_ptr) = _Right_cref.m_owner_ptr;
 				(*this).m_index = _Right_cref.m_index;
 				return (*this);
 			}
+			*/
 			bool operator==(const Tss_iterator_type& _Right_cref) const {
 				if (this->m_owner_ptr != _Right_cref.m_owner_ptr) { MSE_THROW(nii_vector_range_error("invalid argument - Tss_iterator_type& operator==(const Tss_iterator_type& _Right) - Tss_iterator_type - nii_vector")); }
 				return (_Right_cref.m_index == m_index);
