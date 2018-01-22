@@ -73,6 +73,7 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     1. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
         1. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
     2. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
+    3. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
 14. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [Quarantined types](#quarantined-types)
@@ -947,7 +948,7 @@ In the future we expect that there will be a "compile helper tool" to verify tha
 	- There probably isn't much motivation to do this anyway.
 	- In the uncommon cases that you really want to use a scope type as a base class/struct, the derived class/struct must itself be a scope type. User defined scope types must adhere to the [rules](#defining-your-own-scope-types) of scope types.
 - Do not use scope types as function return types.
-	- In the uncommon cases that you really want to use a scope type as a function return type, it must be wrapped in the [`mse::TXScopeReturnable<>`](txscopereturnable) transparent template wrapper.
+	- In the uncommon cases that you really want to use a scope type as a function return type, it must be wrapped in the [`mse::TXScopeReturnable<>`](#txscopereturnable) transparent template wrapper.
 	- `mse::TXScopeReturnable<>` will not accept non-owning scope pointer types. Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen_pointer()`](#xscope_chosen_pointer) function.
 
 Failure to adhere to the rules for scope objects could result in unsafe code. Currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. Again, at some point the restrictions will be fully enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is premised on the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond the scope in which they are declared, so that a scope pointer cannot outlive its target scope object.
@@ -1111,7 +1112,7 @@ However, it could be safe to return a scope object if that object does not conta
 So the rule is that scope types may only be used as function return types if they are wrapped in the `TXScopeReturnable<>` transparent wrapper template.
 
 usage example:
-```
+```cpp
 #include "msescope.h"
 #include "mseoptional.h"
 
@@ -1143,7 +1144,7 @@ int main(int argc, char* argv[]) {
 ### Defining your own scope types
 
 example:
-```
+```cpp
 #include "msescope.h"
 #include "mseoptional.h"
 
@@ -1720,6 +1721,153 @@ usage example:
 	}
 ```
 
+### TAsyncRASectionSplitter
+
+`TAsyncRASectionSplitter<>` is used for situations where you want to allow multiple threads to concurrently access and/or modify different parts of an array or vector. You specify how you want the array/vector partitioned, and the `TAsyncRASectionSplitter<>` will provide a set of access requesters used to obtain access to each partition. Instead of the usual "lock pointers", these access requesters return "lock [random access section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)s".
+
+usage example:
+```cpp
+#include "msemstdvector.h"
+#include "mseasyncshared.h"
+
+class J {
+public:
+	/* This function takes a "random access section" (which is like an "array_view" or gsl::span) as its parameter. */
+	template<class _TStringRASection>
+	static void foo8(_TStringRASection ra_section) {
+		size_t delay_in_milliseconds = 3000/*arbitrary*/;
+		if (1 <= ra_section.size()) {
+			delay_in_milliseconds /= ra_section.size();
+		}
+		for (size_t i = 0; i < ra_section.size(); i += 1) {
+			auto now1 = std::chrono::system_clock::now();
+			auto tt = std::chrono::system_clock::to_time_t(now1);
+
+			/* Just trying to obtain a string with the current time and date. The standard library doesn't yet
+			seem to provide a safe, portable way to do this. */
+#ifdef _MSC_VER
+			static const size_t buffer_size = 64;
+			char buffer[buffer_size];
+			buffer[0] = '\0';
+			ctime_s(buffer, buffer_size, &tt);
+#else /*_MSC_VER*/
+			auto buffer = ctime(&tt);
+#endif /*_MSC_VER*/
+
+			std::string now_str(buffer);
+			ra_section[i] = now_str;
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(delay_in_milliseconds));
+		}
+	}
+
+	/* This function just obtains a writelock_ra_section from the given "splitter access requester" and calls the given
+	function with the writelock_ra_section as the first argument. */
+	template<class _TAsyncSplitterRASectionReadWriteAccessRequester, class _TFunction, class... Args>
+	static void invoke_with_writelock_ra_section1(_TAsyncSplitterRASectionReadWriteAccessRequester ar, _TFunction function1, Args&&... args) {
+		function1(ar.writelock_ra_section(), args...);
+	}
+};
+
+void main(int argc, char* argv[]) {
+	/* This block demonstrates safely allowing different threads to (simultaneously) modify different
+	sections of a vector. (We use vectors in this example, but it works just as well with arrays.) */
+
+	static const size_t num_sections = 10;
+	static const size_t section_size = 5;
+	const size_t num_elements = num_sections * section_size;
+
+	typedef mse::nii_vector<mse::nii_string> async_shareable_vector1_t;
+	typedef mse::mstd::vector<mse::nii_string> nonshareable_vector1_t;
+	/* Let's say we have a vector. */
+	nonshareable_vector1_t vector1;
+	vector1.resize(num_elements);
+	{
+		size_t count = 0;
+		for (auto& item_ref : vector1) {
+			count += 1;
+			item_ref = "text" + std::to_string(count);
+		}
+	}
+
+	/* Only access controlled objects can be shared with other threads, so we'll make an access controlled vector and
+	(temporarily) swap it with our original one. */
+	auto ash_access_requester = mse::make_asyncsharedv2readwrite<async_shareable_vector1_t>();
+	std::swap(vector1, (*(ash_access_requester.writelock_ptr())));
+
+	{
+		/* Now, we're going to use the access requester to obtain two new access requesters that provide access to
+		(newly created) "random access section" objects which are used to access (disjoint) sections of the vector.
+		We need to specify the position where we want to split the vector. Here we specify that it be split at index
+		"num_elements / 2", right down the middle. */
+		auto ra_rection_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, num_elements / 2);
+		auto ar1 = ra_rection_split1.first_ra_section_access_requester();
+		auto ar2 = ra_rection_split1.second_ra_section_access_requester();
+
+		/* The J::foo8 template function is just an example function that operates on containers of strings. In our case the
+		containers will be the random access sections we just created. We'll create an instance of the function here. */
+		auto& my_foo8_function_ref = J::foo8<decltype(ar1.writelock_ra_section())>;
+		typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
+
+		/* We want to execute the my_foo8 function in a separate thread. The function takes a "random access section"
+		as an argument. But as we're not allowed to pass random access sections between threads, we must pass an
+		access requester instead. The "J::invoke_with_writelock_ra_section1" template function is just a helper
+		function that will obtain a (writelock) random access section from the access requester, then call the given
+		function, in this case my_foo8, with that random access section. So here we'll use it to create a proxy
+		function that we can execute directly in a separate thread and will accept an access requester as a
+		parameter. */
+		auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar1), my_foo8_function_type>;
+
+		std::list<std::thread> threads;
+		/* So this thread will modify the first section of the vector. */
+		threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref));
+		/* While this thread modifies the other section. */
+		threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref));
+
+		{
+			int count = 1;
+			for (auto it = threads.begin(); threads.end() != it; it++, count++) {
+				(*it).join();
+			}
+		}
+	}
+	{
+		/* Ok, now let's do it again, but instead of splitting the vector into two sections, let's split it into more sections: */
+		/* First we create a list of a the sizes of each section. We'll use a vector here, but any iteratable container will work. */
+		mse::mstd::vector<size_t> section_sizes;
+		for (size_t i = 0; i < num_sections; i += 1) {
+			section_sizes.push_back(section_size);
+		}
+
+		/* Just as before, TAsyncRASectionSplitter<> will generate a new access requester for each section. */
+		auto ra_rection_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, section_sizes);
+		auto ar0 = ra_rection_split1.ra_section_access_requester(0);
+
+		auto& my_foo8_function_ref = J::foo8<decltype(ar0.writelock_ra_section())>;
+		typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
+		auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
+
+		std::list<std::thread> threads;
+		for (size_t i = 0; i < num_sections; i += 1) {
+			auto ar = ra_rection_split1.ra_section_access_requester(i);
+			threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
+		}
+
+		{
+			int count = 1;
+			for (auto it = threads.begin(); threads.end() != it; it++, count++) {
+				(*it).join();
+			}
+		}
+	}
+
+	/* Now that we're done sharing the (controlled access) vector, we can swap it back to our original vector. */
+	std::swap(vector1, (*(ash_access_requester.writelock_ptr())));
+	auto first_element_value = vector1[0];
+	auto last_element_value = vector1.back();
+}
+```
+
 ### Primitives
 
 ### CInt, CSize_t and CBool
@@ -2223,7 +2371,7 @@ usage example:
 
 ### optional, xscope_optional
 
-`mse::mstd::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScope<mse::mstd::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
+`mse::mstd::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScopeObj<mse::mstd::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
 
 ### Compatibility considerations
 People have [asked](http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c) why the primitive C++ types can't be used as base classes. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
