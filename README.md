@@ -1,4 +1,4 @@
-Dec 2017
+Jan 2018
 
 ### Overview
 
@@ -67,7 +67,7 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     2. [TPolyPointer](#tpolypointer-tpolyconstpointer)
     3. [TAnyPointer](#txscopeanypointer-txscopeanyconstpointer-tanypointer-tanyconstpointer)
     4. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
-    5. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
+    5. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
 12. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
 13. [Asynchronously shared objects](#asynchronously-shared-objects)
     1. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
@@ -89,11 +89,11 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     3. [msearray](#msearray)
     4. [xscope_iterator](#xscope_iterator)
     5. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
-17. [optional](#optional-xscope_optional)
-18. [Compatibility considerations](#compatibility-considerations)
-19. [Practical limitations](#practical-limitations)
-20. [Questions and comments](#questions-and-comments)
-
+17. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
+18. [optional](#optional-xscope_optional)
+19. [Compatibility considerations](#compatibility-considerations)
+20. [Practical limitations](#practical-limitations)
+21. [Questions and comments](#questions-and-comments)
 
 
 ### Use cases
@@ -1423,9 +1423,9 @@ These poly pointers do not support construction from scope pointers, and thus ar
 
 In modern C++ (and SaferCPlusPlus), arrays of different sizes are actually different types, with incompatible iterators. So, for example, if you wanted to make a function that accepts the iterators of arrays of varying size, you would generally do that by "templatizing" the function. Alternatively, you could use an "any random access iterator" which is a "chameleon" iterator that can be constructed from basically any iterator that supports `operator[]` (the "square bracket" operator).
 
-### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
+### TXScopeAnyRandomAccessSection, TXScopeAnyRandomAccessConstSection, TAnyRandomAccessSection, TAnyRandomAccessConstSection
 
-A "random access section" is basically a convenient interface to access a (contiguous) subsection of an existing array or vector. (Also monikered as "array view" or "span" if you're familiar with those.) It's constructed by specifying an iterator to the start of the section, and the length of the section.
+`TAnyRandomAccessSection<_Ty>` is essentially just an alias for `TRandomAccessSection<TAnyRandomAccessIterator<_Ty> >`. Like `TAnyRandomAccessIterator<>`, it can be used to enable a function to accept, as a parameter, "[random access section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)s" that reference vectors or arrays of varying size.
 
 usage example:
 
@@ -1447,19 +1447,19 @@ usage example:
                 const_ra_iter1--;
                 return const_ra_iter1[2];
             }
-            static void foo3(mse::TXScopeRandomAccessSection<int> ra_section) {
-                for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
+            static void foo3(mse::TXScopeAnyRandomAccessSection<int> ra_section) {
+                for (mse::TXScopeAnyRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
                     ra_section[i] = 0;
                 }
             }
-            static int foo4(mse::TXScopeRandomAccessConstSection<int> const_ra_section) {
+            static int foo4(mse::TXScopeAnyRandomAccessConstSection<int> const_ra_section) {
                 int retval = 0;
-                for (mse::TXScopeRandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
+                for (mse::TXScopeAnyRandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
                     retval += const_ra_section[i];
                 }
                 return retval;
             }
-            static int foo5(mse::TXScopeRandomAccessConstSection<int> const_ra_section) {
+            static int foo5(mse::TXScopeAnyRandomAccessConstSection<int> const_ra_section) {
                 int retval = 0;
                 for (const auto& const_item : const_ra_section) {
                     retval += const_item;
@@ -1481,10 +1481,10 @@ usage example:
         B::foo1(++vec1.begin());
         auto res4 = B::foo2(vec1.begin());
     
-        mse::TXScopeRandomAccessSection<int> ra_section1(array_iter1, 2);
+        mse::TXScopeAnyRandomAccessSection<int> ra_section1(array_iter1, 2);
         B::foo3(ra_section1);
     
-        mse::TXScopeRandomAccessSection<int> ra_section2(++vec1.begin(), 3);
+        mse::TXScopeAnyRandomAccessSection<int> ra_section2(++vec1.begin(), 3);
         auto res5 = B::foo5(ra_section2);
         B::foo3(ra_section2);
         auto res6 = B::foo4(ra_section2);
@@ -2368,6 +2368,10 @@ usage example:
         auto res2 = *scp_cptr2;
     }
 ```
+
+### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
+
+A "random access section" is basically a convenient interface to access a (contiguous) subsection of an existing array or vector. (Also monikered as "array view" or "span" if you're familiar with those.) It's constructed by specifying an iterator to the start of the section, and the length of the section.
 
 ### optional, xscope_optional
 
