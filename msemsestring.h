@@ -995,7 +995,7 @@ namespace std {
 		hash<mse::us::impl::basic_string_view<_CharT, _Traits> >::operator()(
 			const mse::us::impl::basic_string_view<_CharT, _Traits> __val) const _NOEXCEPT
 	{
-		return __do_string_hash(__val.data(), __val.data() + __val.size());
+		return mse::us::impl::__do_string_hash(__val.data(), __val.data() + __val.size());
 	}
 }
 

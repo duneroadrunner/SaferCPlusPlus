@@ -1752,18 +1752,22 @@ int main(int argc, char* argv[])
 		++mstd_array_scpiter3;
 		B::foo1(mstd_array_scpiter3);
 
-		mse::TXScopeAnyRandomAccessSection<int> ra_section1(mstd_array_iter1, 2);
+		mse::TXScopeAnyRandomAccessSection<int> xscp_ra_section1(mstd_array_iter1, 2);
+		B::foo3(xscp_ra_section1);
+
+		mse::TXScopeAnyRandomAccessSection<int> xscp_ra_section2(++mstd_vec1.begin(), 3);
+		auto res6 = B::foo5(xscp_ra_section2);
+		B::foo3(xscp_ra_section2);
+		auto res7 = B::foo4(xscp_ra_section2);
+
+		auto xscp_ra_section1_xscp_iter1 = xscp_ra_section1.xscope_begin();
+		auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
+		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
+		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+
+		mse::TRandomAccessSection<decltype(mstd_array_iter1)> ra_section1(mstd_array_iter1, 2);
 		B::foo3(ra_section1);
 
-		mse::TXScopeAnyRandomAccessSection<int> ra_section2(++mstd_vec1.begin(), 3);
-		auto res6 = B::foo5(ra_section2);
-		B::foo3(ra_section2);
-		auto res7 = B::foo4(ra_section2);
-
-		auto ra_section1_iter1 = ra_section1.begin();
-		auto ra_section1_iter2 = ra_section1.end();
-		auto res8 = ra_section1_iter2 - ra_section1_iter1;
-		bool res9 = (ra_section1_iter1 < ra_section1_iter2);
 		int q = 5;
 	}
 
