@@ -685,7 +685,7 @@ namespace mse {
 		template<class = typename std::enable_if<(!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
 			/*&& (!std::integral_constant<bool, HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
 			&& (std::integral_constant<bool, HasXScopeReturnableTagMethod<_TROy>::Has>()), void>::type>
-		void valid_if_TROy_is_marked_as_returnable() const {}
+			void valid_if_TROy_is_marked_as_returnable() const {}
 
 		template<class = typename std::enable_if<std::is_base_of<XScopeTagBase, _TROy>::value, void>::type>
 		void valid_if_TROy_is_an_xscope_type() const {}
@@ -724,7 +724,7 @@ namespace mse {
 			will not instantiate, causing an (intended) compile error. */
 			template<class = typename std::enable_if<(!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
 				/*&& (!std::integral_constant<bool, HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/, void>::type>
-			void valid_if_TROy_is_not_marked_as_unreturnable() const {}
+				void valid_if_TROy_is_not_marked_as_unreturnable() const {}
 
 			template<class = typename std::enable_if<std::is_base_of<XScopeTagBase, _TROy>::value, void>::type>
 			void valid_if_TROy_is_an_xscope_type() const {}
@@ -860,7 +860,36 @@ namespace mse {
 	bool TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator==(const TXScopeWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }
 	template <class _TTargetType, class _TLeasePointerType>
 	bool TXScopeWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator!=(const TXScopeWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
+}
 
+namespace std {
+	template <class _TTargetType, class _TLeaseType>
+	struct hash<mse::TXScopeWeakFixedPointer<_TTargetType, _TLeaseType> > {	// hash functor
+		typedef mse::TXScopeWeakFixedPointer<_TTargetType, _TLeaseType> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeWeakFixedPointer<_TTargetType, _TLeaseType>& _Keyval) const {
+			const _TTargetType* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _TTargetType *>()(ptr1));
+		}
+	};
+	template <class _TTargetType, class _TLeaseType>
+	struct hash<mse::TXScopeWeakFixedConstPointer<_TTargetType, _TLeaseType> > {	// hash functor
+		typedef mse::TXScopeWeakFixedConstPointer<_TTargetType, _TLeaseType> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeWeakFixedConstPointer<_TTargetType, _TLeaseType>& _Keyval) const {
+			const _TTargetType* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _TTargetType *>()(ptr1));
+		}
+	};
+}
+
+namespace mse {
 	template<class _TTargetType, class _Ty>
 	TXScopeItemFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeItemFixedPointer<_Ty> &lease_pointer) {
 		return TXScopeItemFixedPointer<_TTargetType>(std::addressof(target));
