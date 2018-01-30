@@ -591,7 +591,73 @@ namespace mse {
 			return TXScopeItemFixedConstPointer<_Ty>(std::addressof(cref));
 		}
 	}
+}
 
+namespace std {
+	template<class _Ty>
+	struct hash<mse::TXScopeOwnerPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeOwnerPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeOwnerPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TXScopeItemFixedPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeItemFixedPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeItemFixedPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TXScopeFixedPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeFixedPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeFixedPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+
+	template<class _Ty>
+	struct hash<mse::TXScopeItemFixedConstPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeItemFixedConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeItemFixedConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TXScopeFixedConstPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeFixedConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeFixedConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+}
+
+namespace mse {
 
 	template<typename _TROy>
 	class TXScopeReturnable : public _TROy {

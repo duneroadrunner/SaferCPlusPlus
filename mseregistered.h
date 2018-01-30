@@ -20,6 +20,10 @@
 #pragma warning( disable : 4100 4456 4189 )
 #endif /*_MSC_VER*/
 
+#ifndef _NOEXCEPT
+#define _NOEXCEPT
+#endif /*_NOEXCEPT*/
+
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_REGISTEREDPOINTER_DISABLED
@@ -761,6 +765,85 @@ namespace mse {
 		auto a = static_cast<const TRegisteredObj<_Ty, _Tn>*>(regPtrRef);
 		delete a;
 	}
+}
+
+namespace std {
+	template<class _Ty>
+	struct hash<mse::TRegisteredPointer<_Ty> > {	// hash functor
+		typedef mse::TRegisteredPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRegisteredPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRegisteredNotNullPointer<_Ty> > {	// hash functor
+		typedef mse::TRegisteredNotNullPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRegisteredNotNullPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRegisteredFixedPointer<_Ty> > {	// hash functor
+		typedef mse::TRegisteredFixedPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRegisteredFixedPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+
+	template<class _Ty>
+	struct hash<mse::TRegisteredConstPointer<_Ty> > {	// hash functor
+		typedef mse::TRegisteredConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRegisteredConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRegisteredNotNullConstPointer<_Ty> > {	// hash functor
+		typedef mse::TRegisteredNotNullConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRegisteredNotNullConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRegisteredFixedConstPointer<_Ty> > {	// hash functor
+		typedef mse::TRegisteredFixedConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRegisteredFixedConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+}
+
+namespace mse {
 
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/

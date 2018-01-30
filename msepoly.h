@@ -222,6 +222,19 @@ namespace mse {
 		}
 	};
 
+	template <class _TPointer>
+	bool operator_bool_helper1(std::true_type, const _TPointer& ptr_cref) {
+		return bool(ptr_cref);
+	}
+	template <class _TPointer>
+	bool operator_bool_helper1(std::false_type, const _TPointer& ptr_cref) {
+		/* We need to return the result of conversion to bool, but in this case the "pointer" type, _TPointer, is not convertible
+		to bool. Presumably because _TPointer is actually an iterator type. Unfortunately there isn't a good way, in general, to
+		determine if an iterator points to a valid item. */
+		assert(false);
+		return false;
+	}
+
 	template<typename... Ts>
 	struct tdp_pointer_variant_helper;
 
@@ -235,7 +248,6 @@ namespace mse {
 				return tdp_pointer_variant_helper<Ts...>::arrow_operator(id, data);
 			}
 		}
-
 		inline static const void* const_arrow_operator(size_t id, const void * data) {
 			if (id == typeid(F).hash_code()) {
 				return (reinterpret_cast<const F*>(data))->operator->();
@@ -244,11 +256,21 @@ namespace mse {
 				return tdp_pointer_variant_helper<Ts...>::const_arrow_operator(id, data);
 			}
 		}
+		inline static bool bool_operator(size_t id, const void * data) {
+			if (id == typeid(F).hash_code()) {
+				//return bool(*(reinterpret_cast<const F*>(data)));
+				return operator_bool_helper1<F>(typename std::is_convertible<F, bool>::type(), *(reinterpret_cast<const F*>(data)));
+			}
+			else {
+				return tdp_pointer_variant_helper<Ts...>::bool_operator(id, data);
+			}
+		}
 	};
 
 	template<> struct tdp_pointer_variant_helper<> {
 		inline static void* arrow_operator(size_t id, const void * data) { return nullptr; }
 		inline static const void* const_arrow_operator(size_t id, const void * data) { return nullptr; }
+		inline static bool bool_operator(size_t id, const void * data) { return false; }
 	};
 
 	template<typename... Ts>
@@ -263,6 +285,9 @@ namespace mse {
 		}
 		const void* const_arrow_operator() const {
 			return pointer_helper_t::const_arrow_operator((*this).type_id, &((*this).data));
+		}
+		bool bool_operator() const {
+			return pointer_helper_t::bool_operator((*this).type_id, &((*this).data));
 		}
 	};
 
@@ -288,6 +313,7 @@ namespace mse {
 		virtual ~TCommonPointerInterface() {}
 		virtual _Ty& operator*() const = 0;
 		virtual _Ty* operator->() const = 0;
+		virtual operator bool() const = 0;
 	};
 
 	template <typename _Ty, typename _TPointer1>
@@ -302,6 +328,10 @@ namespace mse {
 		_Ty* operator->() const {
 			//return m_pointer.operator->();
 			return std::addressof(*m_pointer);
+		}
+		operator bool() const {
+			//return bool(m_pointer);
+			return operator_bool_helper1<_TPointer1>(typename std::is_convertible<_TPointer1, bool>::type(), m_pointer);
 		}
 
 		_TPointer1 m_pointer;
@@ -319,10 +349,10 @@ namespace mse {
 		TAnyPointerBase(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
 
 		_Ty& operator*() const {
-			return (*(*common_pointer_interface_const_ptr()));
+			return (*(*common_pointer_interface_ptr()));
 		}
 		_Ty* operator->() const {
-			return common_pointer_interface_const_ptr()->operator->();
+			return std::addressof(*(*common_pointer_interface_ptr()));
 		}
 		template <typename _Ty2>
 		bool operator ==(const _Ty2& _Right_cref) const {
@@ -332,10 +362,14 @@ namespace mse {
 		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 	protected:
+		operator bool() const {
+			return bool(*common_pointer_interface_ptr());
+		}
+
 		TAnyPointerBase<_Ty>* operator&() { return this; }
 		const TAnyPointerBase<_Ty>* operator&() const { return this; }
 
-		const TCommonPointerInterface<_Ty>* common_pointer_interface_const_ptr() const {
+		const TCommonPointerInterface<_Ty>* common_pointer_interface_ptr() const {
 			auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_pointer.storage_address());
 			assert(nullptr != retval);
 			return retval;
@@ -369,8 +403,12 @@ namespace mse {
 
 		TXScopeAnyPointer<_Ty>* operator&() { return this; }
 		const TXScopeAnyPointer<_Ty>* operator&() const { return this; }
+
+		friend struct std::hash<mse::TXScopeAnyPointer<_Ty> >;
 	};
 
+	/* The intended semantics of "any" pointers is that they always contain a valid pointer (or iterator) to a valid
+	object. If you need a "null" state, consider using optional<> (or mse::TNullableAnyPointer<>). */
 	template <typename _Ty>
 	class TAnyPointer : public TAnyPointerBase<_Ty> {
 	public:
@@ -395,6 +433,8 @@ namespace mse {
 	protected:
 		TAnyPointer<_Ty>* operator&() { return this; }
 		const TAnyPointer<_Ty>* operator&() const { return this; }
+
+		friend struct std::hash<mse::TAnyPointer<_Ty> >;
 	};
 
 	template <typename _Ty>
@@ -403,6 +443,7 @@ namespace mse {
 		virtual ~TCommonConstPointerInterface() {}
 		virtual const _Ty& operator*() const = 0;
 		virtual const _Ty* operator->() const = 0;
+		virtual operator bool() const = 0;
 	};
 
 	template <typename _Ty, typename _TConstPointer1>
@@ -417,6 +458,10 @@ namespace mse {
 		const _Ty* operator->() const {
 			//return m_const_pointer.operator->();
 			return std::addressof(*m_const_pointer);
+		}
+		operator bool() const {
+			//return bool(m_const_pointer);
+			return operator_bool_helper1<_TConstPointer1>(typename std::is_convertible<_TConstPointer1, bool>::type(), m_const_pointer);
 		}
 
 		_TConstPointer1 m_const_pointer;
@@ -438,7 +483,10 @@ namespace mse {
 			return (*(*common_pointer_interface_const_ptr()));
 		}
 		const _Ty* operator->() const {
-			return common_pointer_interface_const_ptr()->operator->();
+			return std::addressof(*(*common_pointer_interface_const_ptr()));
+		}
+		operator bool() const {
+			return bool(*common_pointer_interface_const_ptr());
 		}
 		template <typename _Ty2>
 		bool operator ==(const _Ty2& _Right_cref) const {
@@ -484,6 +532,8 @@ namespace mse {
 
 		TXScopeAnyConstPointer<_Ty>* operator&() { return this; }
 		const TXScopeAnyConstPointer<_Ty>* operator&() const { return this; }
+
+		friend struct std::hash<mse::TXScopeAnyConstPointer<_Ty> >;
 	};
 
 	template <typename _Ty>
@@ -511,8 +561,63 @@ namespace mse {
 	protected:
 		TAnyConstPointer<_Ty>* operator&() { return this; }
 		const TAnyConstPointer<_Ty>* operator&() const { return this; }
-	};
 
+		friend struct std::hash<mse::TAnyConstPointer<_Ty> >;
+	};
+}
+
+namespace std {
+	template<class _Ty>
+	struct hash<mse::TXScopeAnyPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeAnyPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeAnyPointer<_Ty>& _Keyval) const {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TAnyPointer<_Ty> > {	// hash functor
+		typedef mse::TAnyPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TAnyPointer<_Ty>& _Keyval) const {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TXScopeAnyConstPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeAnyConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeAnyConstPointer<_Ty>& _Keyval) const {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TAnyConstPointer<_Ty> > {	// hash functor
+		typedef mse::TAnyConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TAnyConstPointer<_Ty>& _Keyval) const {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+}
+
+namespace mse {
 
 	template<typename _Ty>
 	class TPolyPointerID {};
@@ -622,6 +727,9 @@ namespace mse {
 		}
 
 	protected:
+		operator bool() const {
+			return m_pointer.bool_operator();
+		}
 
 		TPolyPointerBase<_Ty>* operator&() { return this; }
 		const TPolyPointerBase<_Ty>* operator&() const { return this; }
@@ -656,8 +764,12 @@ namespace mse {
 
 		TXScopePolyPointer<_Ty>* operator&() { return this; }
 		const TXScopePolyPointer<_Ty>* operator&() const { return this; }
+
+		friend struct std::hash<mse::TXScopePolyPointer<_Ty> >;
 	};
 
+	/* The intended semantics of poly pointers is that they always contain a valid pointer (or iterator) to a valid
+	object. If you need a "null" state, consider using optional<>. */
 	template<typename _Ty>
 	class TPolyPointer : public TPolyPointerBase<_Ty> {
 	public:
@@ -684,6 +796,8 @@ namespace mse {
 	private:
 		TPolyPointer<_Ty>* operator&() { return this; }
 		const TPolyPointer<_Ty>* operator&() const { return this; }
+
+		friend struct std::hash<mse::TPolyPointer<_Ty> >;
 	};
 
 	template<typename _Ty>
@@ -817,6 +931,10 @@ namespace mse {
 		}
 
 	protected:
+		operator bool() const {
+			return m_pointer.bool_operator();
+		}
+
 		TPolyConstPointerBase<_Ty>* operator&() { return this; }
 		const TPolyConstPointerBase<_Ty>* operator&() const { return this; }
 
@@ -847,6 +965,8 @@ namespace mse {
 
 		TXScopePolyConstPointer<_Ty>* operator&() { return this; }
 		const TXScopePolyConstPointer<_Ty>* operator&() const { return this; }
+
+		friend struct std::hash<mse::TXScopePolyConstPointer<_Ty> >;
 	};
 
 	template<typename _Ty>
@@ -874,8 +994,63 @@ namespace mse {
 	private:
 		TPolyConstPointer<_Ty>* operator&() { return this; }
 		const TPolyConstPointer<_Ty>* operator&() const { return this; }
-	};
 
+		friend struct std::hash<mse::TPolyConstPointer<_Ty> >;
+	};
+}
+
+namespace std {
+	template<class _Ty>
+	struct hash<mse::TXScopePolyPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopePolyPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopePolyPointer<_Ty>& _Keyval) const {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TPolyPointer<_Ty> > {	// hash functor
+		typedef mse::TPolyPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TPolyPointer<_Ty>& _Keyval) const {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TXScopePolyConstPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopePolyConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopePolyConstPointer<_Ty>& _Keyval) const {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TPolyConstPointer<_Ty> > {	// hash functor
+		typedef mse::TPolyConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TPolyConstPointer<_Ty>& _Keyval) const {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+}
+
+namespace mse {
 
 	template <typename _Ty> using TRandomAccessIteratorStdBase = typename mse::us::msearray<_Ty, 0>::random_access_iterator_base;
 	template <typename _Ty> using TRandomAccessConstIteratorStdBase = typename mse::us::msearray<_Ty, 0>::random_access_const_iterator_base;
@@ -1368,27 +1543,31 @@ namespace mse {
 		bool m_is_null = false;
 	};
 
+	/* The intended semantics of TNullableAnyPointer<> is that it always contains either an std::nullptr_t or a
+	valid pointer (or iterator) to a valid object. TNullableAnyPointer<> is primarily designed for compatibility
+	with legacy code. For other use cases you might prefer optional<TAnyPointer<> > instead. */
 	template <typename _Ty>
 	class TNullableAnyPointer : public TAnyPointer<_Ty> {
 	public:
-		TNullableAnyPointer() : TAnyPointer<_Ty>(mse::TRegisteredPointer<_Ty>()), m_is_null(true) {}
+		typedef TAnyPointer<_Ty> base_class;
+		TNullableAnyPointer() : base_class(mse::TRegisteredPointer<_Ty>()), m_is_null(true) {}
 		TNullableAnyPointer(const std::nullptr_t& src) : TNullableAnyPointer() {}
-		TNullableAnyPointer(const TNullableAnyPointer& src) : TAnyPointer<_Ty>(src) {}
-		TNullableAnyPointer(const TAnyPointer<_Ty>& src) : TAnyPointer<_Ty>(src) {}
+		TNullableAnyPointer(const TNullableAnyPointer& src) : base_class(src) {}
+		TNullableAnyPointer(const base_class& src) : base_class(src) {}
 
 		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
 			(!std::is_convertible<_TRandomAccessIterator1, TNullableAnyPointer>::value)
-			&& (!std::is_base_of<TAnyPointer<_Ty>, _TRandomAccessIterator1>::value)
+			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
 			//&& (!std::integral_constant<bool, HasXScopeIteratorTagMethod_poly<_TRandomAccessIterator1>::Has>())
 			//&& (!std::integral_constant<bool, HasXScopeSSIteratorTypeTagMethod_poly<_TRandomAccessIterator1>::Has>())
 			&& (!std::is_base_of<XScopeTagBase, _TRandomAccessIterator1>::value)
 			, void>::type>
-			TNullableAnyPointer(const _TRandomAccessIterator1& random_access_iterator) : TAnyPointer<_Ty>(random_access_iterator) {}
+			TNullableAnyPointer(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {}
 
 		friend void swap(TNullableAnyPointer& first, TNullableAnyPointer& second) {
-			std::swap(static_cast<TAnyPointer<_Ty>&>(first), static_cast<TAnyPointer<_Ty>&>(second));
+			std::swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 			std::swap(first.m_is_null, second.m_is_null);
 		}
 
@@ -1412,7 +1591,24 @@ namespace mse {
 		const TNullableAnyPointer<_Ty>* operator&() const { return this; }
 		bool m_is_null = false;
 	};
+}
 
+namespace std {
+	template<class _Ty>
+	struct hash<mse::TNullableAnyPointer<_Ty> > {	// hash functor
+		typedef mse::TNullableAnyPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TNullableAnyPointer<_Ty>& _Keyval) const {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+}
+
+namespace mse {
 
 	/* shorter aliases */
 	template<typename _Ty> using pp = TPolyPointer<_Ty>;

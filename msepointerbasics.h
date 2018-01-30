@@ -550,7 +550,36 @@ namespace mse {
 	TSyncWeakFixedConstPointer<_TTargetType, _Ty> make_const_pointer_to_member(const _TTargetType& target, const _Ty &lease_pointer) {
 		return TSyncWeakFixedConstPointer<_TTargetType, _Ty>::make(target, lease_pointer);
 	}
+}
 
+namespace std {
+	template <class _TTargetType, class _TLeaseType>
+	struct hash<mse::TSyncWeakFixedPointer<_TTargetType, _TLeaseType> > {	// hash functor
+		typedef mse::TSyncWeakFixedPointer<_TTargetType, _TLeaseType> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TSyncWeakFixedPointer<_TTargetType, _TLeaseType>& _Keyval) const {
+			const _TTargetType* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _TTargetType *>()(ptr1));
+		}
+	};
+	template <class _TTargetType, class _TLeaseType>
+	struct hash<mse::TSyncWeakFixedConstPointer<_TTargetType, _TLeaseType> > {	// hash functor
+		typedef mse::TSyncWeakFixedConstPointer<_TTargetType, _TLeaseType> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TSyncWeakFixedConstPointer<_TTargetType, _TLeaseType>& _Keyval) const {
+			const _TTargetType* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _TTargetType *>()(ptr1));
+		}
+	};
+}
+
+namespace mse {
 
 	class StrongPointerTagBase {
 	public:
@@ -694,6 +723,33 @@ namespace mse {
 	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }
 	template <class _TTargetType, class _TLeaseType>
 	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
+}
+
+namespace std {
+	template <class _TTargetType, class _TLeaseType>
+	struct hash<mse::TStrongFixedPointer<_TTargetType, _TLeaseType> > {	// hash functor
+		typedef mse::TStrongFixedPointer<_TTargetType, _TLeaseType> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TStrongFixedPointer<_TTargetType, _TLeaseType>& _Keyval) const {
+			const _TTargetType* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _TTargetType *>()(ptr1));
+		}
+	};
+	template <class _TTargetType, class _TLeaseType>
+	struct hash<mse::TStrongFixedConstPointer<_TTargetType, _TLeaseType> > {	// hash functor
+		typedef mse::TStrongFixedConstPointer<_TTargetType, _TLeaseType> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TStrongFixedConstPointer<_TTargetType, _TLeaseType>& _Keyval) const {
+			const _TTargetType* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _TTargetType *>()(ptr1));
+		}
+	};
 }
 
 #ifdef __clang__

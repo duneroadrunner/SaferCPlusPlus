@@ -39,6 +39,10 @@
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
 
+#ifndef _NOEXCEPT
+#define _NOEXCEPT
+#endif /*_NOEXCEPT*/
+
 namespace mse {
 
 #ifdef MSE_REFCOUNTINGPOINTER_DISABLED
@@ -61,7 +65,8 @@ namespace mse {
 	class RefCStrongPointerTagBase {};
 #endif // MSEPOINTERBASICS_H
 
-	class refcounting_null_dereference_error : public std::logic_error { public:
+	class refcounting_null_dereference_error : public std::logic_error {
+	public:
 		using std::logic_error::logic_error;
 	};
 
@@ -327,7 +332,7 @@ namespace mse {
 			return *this;
 		}
 		TRefCountingConstPointer& operator=(const TRefCountingPointer<X>& r) {
-			/*if (this != &r) */{
+			/*if (this != &r) */ {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
 			}
@@ -480,6 +485,85 @@ namespace mse {
 		//TRefCountingFixedConstPointer<_Ty>* operator&() { return this; }
 		//const TRefCountingFixedConstPointer<_Ty>* operator&() const { return this; }
 	};
+}
+
+namespace std {
+	template<class _Ty>
+	struct hash<mse::TRefCountingPointer<_Ty> > {	// hash functor
+		typedef mse::TRefCountingPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRefCountingPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRefCountingNotNullPointer<_Ty> > {	// hash functor
+		typedef mse::TRefCountingNotNullPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRefCountingNotNullPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRefCountingFixedPointer<_Ty> > {	// hash functor
+		typedef mse::TRefCountingFixedPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRefCountingFixedPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+
+	template<class _Ty>
+	struct hash<mse::TRefCountingConstPointer<_Ty> > {	// hash functor
+		typedef mse::TRefCountingConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRefCountingConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRefCountingNotNullConstPointer<_Ty> > {	// hash functor
+		typedef mse::TRefCountingNotNullConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRefCountingNotNullConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRefCountingFixedConstPointer<_Ty> > {	// hash functor
+		typedef mse::TRefCountingFixedConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRefCountingFixedConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+}
+
+namespace mse {
 
 #endif /*MSE_REFCOUNTINGPOINTER_DISABLED*/
 

@@ -52,6 +52,10 @@ native GetCurrentThreadId(). */
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
 
+#ifndef _NOEXCEPT
+#define _NOEXCEPT
+#endif /*_NOEXCEPT*/
+
 namespace mse {
 
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
@@ -701,6 +705,86 @@ namespace mse {
 	void relaxed_registered_delete(const TRelaxedRegisteredConstPointer<_Ty>& regPtrRef) {
 		regPtrRef.relaxed_registered_delete();
 	}
+}
+
+namespace std {
+	template<class _Ty>
+	struct hash<mse::TRelaxedRegisteredPointer<_Ty> > {	// hash functor
+		typedef mse::TRelaxedRegisteredPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRelaxedRegisteredPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRelaxedRegisteredNotNullPointer<_Ty> > {	// hash functor
+		typedef mse::TRelaxedRegisteredNotNullPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRelaxedRegisteredNotNullPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRelaxedRegisteredFixedPointer<_Ty> > {	// hash functor
+		typedef mse::TRelaxedRegisteredFixedPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRelaxedRegisteredFixedPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+
+	template<class _Ty>
+	struct hash<mse::TRelaxedRegisteredConstPointer<_Ty> > {	// hash functor
+		typedef mse::TRelaxedRegisteredConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRelaxedRegisteredConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRelaxedRegisteredNotNullConstPointer<_Ty> > {	// hash functor
+		typedef mse::TRelaxedRegisteredNotNullConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRelaxedRegisteredNotNullConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TRelaxedRegisteredFixedConstPointer<_Ty> > {	// hash functor
+		typedef mse::TRelaxedRegisteredFixedConstPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TRelaxedRegisteredFixedConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+}
+
+namespace mse {
+
 #endif /*MSE_REGISTEREDPOINTER_DISABLED*/
 
 #if defined(MSE_REGISTEREDPOINTER_DISABLED)
