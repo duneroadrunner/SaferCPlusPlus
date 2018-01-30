@@ -145,7 +145,20 @@ namespace mse {
 		void assert_initialized() const {}
 #endif // MSE_CHECK_USE_BEFORE_SET
 	};
+}
 
+namespace std {
+	template<>
+	struct hash<mse::CBool> {	// hash functor
+		typedef mse::CBool argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::CBool& _Keyval) const _NOEXCEPT {
+			return (hash<bool>()(_Keyval));
+		}
+	};
+}
+
+namespace mse {
 
 	template<typename _TDestination, typename _TSource>
 	MSE_CONSTEXPR static bool sg_can_exceed_upper_bound() {
@@ -234,8 +247,8 @@ namespace mse {
 
 	class CInt : public TIntBase1<MSE_CINT_BASE_INTEGER_TYPE> {
 	public:
-		typedef MSE_CINT_BASE_INTEGER_TYPE _Ty;
-		typedef TIntBase1<_Ty> _Myt;
+		typedef MSE_CINT_BASE_INTEGER_TYPE base_int_type;
+		typedef TIntBase1<base_int_type> _Myt;
 
 		// Constructs zero.
 		CInt() : _Myt() {}
@@ -246,42 +259,42 @@ namespace mse {
 
 		// Assignment operator
 		CInt& operator=(const CInt &x) { (*this).note_value_assignment(); m_val = x.m_val; return (*this); }
-		//CInt& operator=(const _Ty &x) { (*this).note_value_assignment(); m_val = x; return (*this); }
+		//CInt& operator=(const base_int_type &x) { (*this).note_value_assignment(); m_val = x; return (*this); }
 
-		CInt& operator=(long long x) { assign_check_range<long long>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CInt& operator=(long x) { assign_check_range<long>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CInt& operator=(int x) { assign_check_range<int>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CInt& operator=(short x) { assign_check_range<short>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CInt& operator=(char x) { assign_check_range<char>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CInt& operator=(size_t x) { assign_check_range<size_t>(x); m_val = static_cast<_Ty>(x); return (*this); }
+		CInt& operator=(long long x) { assign_check_range<long long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		CInt& operator=(long x) { assign_check_range<long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		CInt& operator=(int x) { assign_check_range<int>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		CInt& operator=(short x) { assign_check_range<short>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		CInt& operator=(char x) { assign_check_range<char>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		CInt& operator=(size_t x) { assign_check_range<size_t>(x); m_val = static_cast<base_int_type>(x); return (*this); }
 		//CInt& operator=(CSize_t x) { assign_check_range<size_t>(x.as_a_size_t()); m_val = x.as_a_size_t(); return (*this); }
 		/* We would have liked to have assignment operators for the unsigned primitive integer types, but one of them could
 		potentially clash with the size_t assignment operator. */
-		//CInt& operator=(unsigned long long x) { assign_check_range<unsigned long long>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		//CInt& operator=(unsigned long x) { assign_check_range<unsigned long>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		//CInt& operator=(unsigned int x) { assign_check_range<unsigned int>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		//CInt& operator=(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		//CInt& operator=(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<_Ty>(x); return (*this); }
+		//CInt& operator=(unsigned long long x) { assign_check_range<unsigned long long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		//CInt& operator=(unsigned long x) { assign_check_range<unsigned long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		//CInt& operator=(unsigned int x) { assign_check_range<unsigned int>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		//CInt& operator=(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		//CInt& operator=(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<base_int_type>(x); return (*this); }
 
 		// Constructors from primitive integer types
-		//CInt(_Ty   x) { m_val = x; }
-		CInt(long long  x) { assign_check_range<long long>(x); m_val = static_cast<_Ty>(x); }
-		CInt(long  x) { assign_check_range< long>(x); m_val = static_cast<_Ty>(x); }
-		CInt(int   x) { assign_check_range<int>(x); m_val = static_cast<_Ty>(x); }
-		CInt(short x) { assign_check_range<short>(x); m_val = static_cast<_Ty>(x); }
-		CInt(char x) { assign_check_range<char>(x); m_val = static_cast<_Ty>(x); }
-		CInt(size_t   x) { assign_check_range<size_t>(x); m_val = static_cast<_Ty>(x); }
+		//CInt(base_int_type   x) { m_val = x; }
+		CInt(long long  x) { assign_check_range<long long>(x); m_val = static_cast<base_int_type>(x); }
+		CInt(long  x) { assign_check_range< long>(x); m_val = static_cast<base_int_type>(x); }
+		CInt(int   x) { assign_check_range<int>(x); m_val = static_cast<base_int_type>(x); }
+		CInt(short x) { assign_check_range<short>(x); m_val = static_cast<base_int_type>(x); }
+		CInt(char x) { assign_check_range<char>(x); m_val = static_cast<base_int_type>(x); }
+		CInt(size_t   x) { assign_check_range<size_t>(x); m_val = static_cast<base_int_type>(x); }
 		//CInt(CSize_t   x) { assign_check_range<size_t>(x.as_a_size_t()); m_val = x.as_a_size_t(); }
 		/* We would have liked to have constructors for the unsigned primitive integer types, but one of them could
 		potentially clash with the size_t constructor. */
-		//CInt(unsigned long long  x) { assign_check_range<unsigned long long>(x); m_val = static_cast<_Ty>(x); }
-		//CInt(unsigned long  x) { assign_check_range<unsigned long>(x); m_val = static_cast<_Ty>(x); }
-		//CInt(unsigned int   x) { assign_check_range<unsigned int>(x); m_val = static_cast<_Ty>(x); }
-		//CInt(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<_Ty>(x); }
-		//CInt(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<_Ty>(x); }
+		//CInt(unsigned long long  x) { assign_check_range<unsigned long long>(x); m_val = static_cast<base_int_type>(x); }
+		//CInt(unsigned long  x) { assign_check_range<unsigned long>(x); m_val = static_cast<base_int_type>(x); }
+		//CInt(unsigned int   x) { assign_check_range<unsigned int>(x); m_val = static_cast<base_int_type>(x); }
+		//CInt(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<base_int_type>(x); }
+		//CInt(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<base_int_type>(x); }
 
 		// Casts to primitive integer types
-		operator _Ty() const { (*this).assert_initialized(); return m_val; }
+		operator base_int_type() const { (*this).assert_initialized(); return m_val; }
 
 		CInt operator ~() const { (*this).assert_initialized(); return CInt(~m_val); }
 		CInt& operator |=(const CInt &x) { (*this).assert_initialized(); m_val |= x.m_val; return (*this); }
@@ -397,7 +410,7 @@ namespace mse {
 		}
 		CInt& operator --() {
 			(*this).assert_initialized();
-			if (0 <= std::numeric_limits<_Ty>::lowest()) {
+			if (0 <= std::numeric_limits<base_int_type>::lowest()) {
 				(*this).assert_initialized();
 				(*this) = (*this) - 1; return (*this);
 			}
@@ -415,7 +428,7 @@ namespace mse {
 
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
-		//_Ty m_val;
+		//base_int_type m_val;
 	};
 }
 
@@ -429,41 +442,41 @@ namespace std {
 
 	template<> class numeric_limits<mse::CInt> {	// limits for type int
 	public:
-		typedef MSE_CINT_BASE_INTEGER_TYPE _Ty;
+		typedef MSE_CINT_BASE_INTEGER_TYPE base_int_type;
 
-		static constexpr _Ty(min)() _THROW0()
+		static constexpr base_int_type(min)() _THROW0()
 		{	// return minimum value
 			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::min();
 		}
-		static constexpr _Ty(max)() _THROW0()
+		static constexpr base_int_type(max)() _THROW0()
 		{	// return maximum value
 			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::max();
 		}
-		static constexpr _Ty lowest() _THROW0()
+		static constexpr base_int_type lowest() _THROW0()
 		{	// return most negative value
 			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::lowest();
 		}
-		static constexpr _Ty epsilon() _THROW0()
+		static constexpr base_int_type epsilon() _THROW0()
 		{	// return smallest effective increment from 1.0
 			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::epsilon();
 		}
-		static constexpr _Ty round_error() _THROW0()
+		static constexpr base_int_type round_error() _THROW0()
 		{	// return largest rounding error
 			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::round_error();
 		}
-		static constexpr _Ty denorm_min() _THROW0()
+		static constexpr base_int_type denorm_min() _THROW0()
 		{	// return minimum denormalized value
 			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::denorm_min();
 		}
-		static constexpr _Ty infinity() _THROW0()
+		static constexpr base_int_type infinity() _THROW0()
 		{	// return positive infinity
 			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::infinity();
 		}
-		static constexpr _Ty quiet_NaN() _THROW0()
+		static constexpr base_int_type quiet_NaN() _THROW0()
 		{	// return non-signaling NaN
 			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::quiet_NaN();
 		}
-		static constexpr _Ty signaling_NaN() _THROW0()
+		static constexpr base_int_type signaling_NaN() _THROW0()
 		{	// return signaling NaN
 			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::signaling_NaN();
 		}
@@ -491,6 +504,15 @@ namespace std {
 		_STCONS(int, min_exponent10, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::min_exponent10);
 		_STCONS(int, radix, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::radix);
 	};
+
+	template<>
+	struct hash<mse::CInt> {	// hash functor
+		typedef mse::CInt argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::CInt& _Keyval) const _NOEXCEPT {
+			return (hash<mse::CInt::base_int_type>()(_Keyval));
+		}
+	};
 }
 
 namespace mse {
@@ -501,9 +523,9 @@ namespace mse {
 	function to get a size_t when necessary. */
 	class CSize_t : public TIntBase1<size_t> {
 	public:
-		typedef size_t _Ty;
+		typedef size_t base_int_type;
 		typedef int _T_signed_primitive_integer_type;
-		typedef TIntBase1<_Ty> _Myt;
+		typedef TIntBase1<base_int_type> _Myt;
 
 		// Constructs zero.
 		CSize_t() : _Myt() {}
@@ -514,39 +536,39 @@ namespace mse {
 
 		// Assignment operator
 		CSize_t& operator=(const CSize_t &x) { m_val = x.m_val; return (*this); }
-		//CSize_t& operator=(const _Ty &x) { m_val = x; return (*this); }
+		//CSize_t& operator=(const base_int_type &x) { m_val = x; return (*this); }
 
-		CSize_t& operator=(long long x) { assign_check_range<long long>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CSize_t& operator=(long x) { assign_check_range<long>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CSize_t& operator=(int x) { assign_check_range<int>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CSize_t& operator=(short x) { assign_check_range<short>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CSize_t& operator=(char x) { assign_check_range<char>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CSize_t& operator=(size_t x) { assign_check_range<size_t>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		CSize_t& operator=(CInt x) { assign_check_range<MSE_CINT_BASE_INTEGER_TYPE>(x); m_val = static_cast<_Ty>(x); return (*this); }
+		CSize_t& operator=(long long x) { assign_check_range<long long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		CSize_t& operator=(long x) { assign_check_range<long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		CSize_t& operator=(int x) { assign_check_range<int>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		CSize_t& operator=(short x) { assign_check_range<short>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		CSize_t& operator=(char x) { assign_check_range<char>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		CSize_t& operator=(size_t x) { assign_check_range<size_t>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		CSize_t& operator=(CInt x) { assign_check_range<MSE_CINT_BASE_INTEGER_TYPE>(x); m_val = static_cast<base_int_type>(x); return (*this); }
 		/* We would have liked to have assignment operators for the unsigned primitive integer types, but one of them could
 		potentially clash with the size_t assignment operator. */
-		//CSize_t& operator=(unsigned long long x) { assign_check_range<unsigned long long>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		//CSize_t& operator=(unsigned long x) { assign_check_range<unsigned long>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		//CSize_t& operator=(unsigned int x) { assign_check_range<unsigned int>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		//CSize_t& operator=(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<_Ty>(x); return (*this); }
-		//CSize_t& operator=(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<_Ty>(x); return (*this); }
+		//CSize_t& operator=(unsigned long long x) { assign_check_range<unsigned long long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		//CSize_t& operator=(unsigned long x) { assign_check_range<unsigned long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		//CSize_t& operator=(unsigned int x) { assign_check_range<unsigned int>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		//CSize_t& operator=(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		//CSize_t& operator=(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<base_int_type>(x); return (*this); }
 
 		// Constructors from primitive integer types
-		//explicit CSize_t(_Ty   x) { m_val = x; }
-		explicit CSize_t(long long  x) { assign_check_range<long long>(x); m_val = static_cast<_Ty>(x); }
-		explicit CSize_t(long  x) { assign_check_range< long>(x); m_val = static_cast<_Ty>(x); }
-		explicit CSize_t(int   x) { assign_check_range<int>(x); m_val = static_cast<_Ty>(x); }
-		explicit CSize_t(short x) { assign_check_range<short>(x); m_val = static_cast<_Ty>(x); }
-		explicit CSize_t(char x) { assign_check_range<char>(x); m_val = static_cast<_Ty>(x); }
-		CSize_t(size_t   x) { assign_check_range<size_t>(x); m_val = static_cast<_Ty>(x); }
-		/*explicit */CSize_t(CInt   x) { assign_check_range<MSE_CINT_BASE_INTEGER_TYPE>(x); m_val = static_cast<_Ty>(x); }
+		//explicit CSize_t(base_int_type   x) { m_val = x; }
+		explicit CSize_t(long long  x) { assign_check_range<long long>(x); m_val = static_cast<base_int_type>(x); }
+		explicit CSize_t(long  x) { assign_check_range< long>(x); m_val = static_cast<base_int_type>(x); }
+		explicit CSize_t(int   x) { assign_check_range<int>(x); m_val = static_cast<base_int_type>(x); }
+		explicit CSize_t(short x) { assign_check_range<short>(x); m_val = static_cast<base_int_type>(x); }
+		explicit CSize_t(char x) { assign_check_range<char>(x); m_val = static_cast<base_int_type>(x); }
+		CSize_t(size_t   x) { assign_check_range<size_t>(x); m_val = static_cast<base_int_type>(x); }
+		/*explicit */CSize_t(CInt   x) { assign_check_range<MSE_CINT_BASE_INTEGER_TYPE>(x); m_val = static_cast<base_int_type>(x); }
 		/* We would have liked to have constructors for the unsigned primitive integer types, but one of them could
 		potentially clash with the size_t constructor. */
-		//explicit CSize_t(unsigned long long  x) { assign_check_range<unsigned long long>(x); m_val = static_cast<_Ty>(x); }
-		//explicit CSize_t(unsigned long  x) { assign_check_range<unsigned long>(x); m_val = static_cast<_Ty>(x); }
-		//explicit CSize_t(unsigned int   x) { assign_check_range<unsigned int>(x); m_val = static_cast<_Ty>(x); }
-		//explicit CSize_t(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<_Ty>(x); }
-		//explicit CSize_t(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<_Ty>(x); }
+		//explicit CSize_t(unsigned long long  x) { assign_check_range<unsigned long long>(x); m_val = static_cast<base_int_type>(x); }
+		//explicit CSize_t(unsigned long  x) { assign_check_range<unsigned long>(x); m_val = static_cast<base_int_type>(x); }
+		//explicit CSize_t(unsigned int   x) { assign_check_range<unsigned int>(x); m_val = static_cast<base_int_type>(x); }
+		//explicit CSize_t(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<base_int_type>(x); }
+		//explicit CSize_t(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<base_int_type>(x); }
 
 		// Casts to primitive integer types
 		operator CInt() const { (*this).assert_initialized(); return CInt(m_val); }
@@ -566,7 +588,7 @@ namespace mse {
 		CSize_t& operator +=(const CSize_t &x) { (*this).assert_initialized(); m_val += x.m_val; return (*this); }
 		CSize_t& operator -=(const CSize_t &x) {
 			(*this).assert_initialized();
-			//assert(0 <= std::numeric_limits<_Ty>::lowest());
+			//assert(0 <= std::numeric_limits<base_int_type>::lowest());
 			if (x.m_val > m_val) {
 				MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
 			}
@@ -676,7 +698,7 @@ namespace mse {
 			return tmp;   // return old value
 		}
 		CSize_t& operator --() { (*this).assert_initialized();
-			if (0 <= std::numeric_limits<_Ty>::lowest()) { (*this).assert_initialized();
+			if (0 <= std::numeric_limits<base_int_type>::lowest()) { (*this).assert_initialized();
 				(*this) = (*this) - 1; return (*this);
 			}
 			else { (*this).assert_initialized();
@@ -691,7 +713,7 @@ namespace mse {
 
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
-		//_Ty m_val;
+		//base_int_type m_val;
 
 		friend size_t as_a_size_t(CSize_t n);
 	};
@@ -708,41 +730,41 @@ namespace std {
 
 	template<> class numeric_limits<mse::CSize_t> {	// limits for type int
 	public:
-		typedef size_t _Ty;
+		typedef size_t base_int_type;
 
-		static constexpr _Ty(min)() _THROW0()
+		static constexpr base_int_type(min)() _THROW0()
 		{	// return minimum value
 			return numeric_limits<size_t>::min();
 		}
-		static constexpr _Ty(max)() _THROW0()
+		static constexpr base_int_type(max)() _THROW0()
 		{	// return maximum value
 			return numeric_limits<size_t>::max();
 		}
-		static constexpr _Ty lowest() _THROW0()
+		static constexpr base_int_type lowest() _THROW0()
 		{	// return most negative value
 			return numeric_limits<size_t>::lowest();
 		}
-		static constexpr _Ty epsilon() _THROW0()
+		static constexpr base_int_type epsilon() _THROW0()
 		{	// return smallest effective increment from 1.0
 			return numeric_limits<size_t>::epsilon();
 		}
-		static constexpr _Ty round_error() _THROW0()
+		static constexpr base_int_type round_error() _THROW0()
 		{	// return largest rounding error
 			return numeric_limits<size_t>::round_error();
 		}
-		static constexpr _Ty denorm_min() _THROW0()
+		static constexpr base_int_type denorm_min() _THROW0()
 		{	// return minimum denormalized value
 			return numeric_limits<size_t>::denorm_min();
 		}
-		static constexpr _Ty infinity() _THROW0()
+		static constexpr base_int_type infinity() _THROW0()
 		{	// return positive infinity
 			return numeric_limits<size_t>::infinity();
 		}
-		static constexpr _Ty quiet_NaN() _THROW0()
+		static constexpr base_int_type quiet_NaN() _THROW0()
 		{	// return non-signaling NaN
 			return numeric_limits<size_t>::quiet_NaN();
 		}
-		static constexpr _Ty signaling_NaN() _THROW0()
+		static constexpr base_int_type signaling_NaN() _THROW0()
 		{	// return signaling NaN
 			return numeric_limits<size_t>::signaling_NaN();
 		}
@@ -769,6 +791,15 @@ namespace std {
 		_STCONS(int, min_exponent, numeric_limits<size_t>::min_exponent);
 		_STCONS(int, min_exponent10, numeric_limits<size_t>::min_exponent10);
 		_STCONS(int, radix, numeric_limits<size_t>::radix);
+	};
+
+	template<>
+	struct hash<mse::CSize_t> {	// hash functor
+		typedef mse::CSize_t argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::CSize_t& _Keyval) const _NOEXCEPT {
+			return (hash<mse::CSize_t::base_int_type>()(mse::as_a_size_t(_Keyval)));
+		}
 	};
 }
 
