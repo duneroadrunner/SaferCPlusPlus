@@ -3054,13 +3054,34 @@ namespace mse {
 		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
 			return subsection(pos1, n1).equal(TRandomAccessConstSectionBase<_TRAIterator>(s, n2));
 		}
-
 		bool operator==(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const {
 			return equal(sv);
 		}
 		bool operator!=(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const {
 			return !((*this) == sv);
 		}
+
+		bool lexicographical_compare(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+			return std::lexicographical_compare(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin(), sv.xscope_cend());
+		}
+		bool lexicographical_compare(size_type pos1, size_type n1, TRandomAccessConstSectionBase<_TRAIterator> sv) const {
+			return subsection(pos1, n1).lexicographical_compare(sv);
+		}
+		bool lexicographical_compare(size_type pos1, size_type n1, TRandomAccessConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
+		}
+		template <typename _TRAIterator2>
+		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+			return subsection(pos1, n1).lexicographical_compare(TRandomAccessConstSectionBase<_TRAIterator>(s, n2));
+		}
+		bool operator<(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const {
+			return lexicographical_compare(sv);
+		}
+		bool operator>(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const {
+			return sv.lexicographical_compare(*this);
+		}
+		bool operator<=(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const { return !((*this) > sv); }
+		bool operator>=(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const { return !((*this) < sv); }
 
 		template <typename _TRAIterator2>
 		size_type copy(_TRAIterator2 target_iter, size_type n, size_type pos = 0) const {
@@ -3564,13 +3585,34 @@ namespace mse {
 		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
 			return subsection(pos1, n1).equal(TRandomAccessConstSectionBase<_TRAIterator>(s, n2));
 		}
-
 		bool operator==(const TRandomAccessConstSectionBase& sv) const {
 			return equal(sv);
 		}
 		bool operator!=(const TRandomAccessConstSectionBase& sv) const {
 			return !((*this) == sv);
 		}
+
+		bool lexicographical_compare(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+			return std::lexicographical_compare(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin(), sv.xscope_cend());
+		}
+		bool lexicographical_compare(size_type pos1, size_type n1, TRandomAccessConstSectionBase<_TRAIterator> sv) const {
+			return subsection(pos1, n1).lexicographical_compare(sv);
+		}
+		bool lexicographical_compare(size_type pos1, size_type n1, TRandomAccessConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
+		}
+		template <typename _TRAIterator2>
+		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+			return subsection(pos1, n1).lexicographical_compare(TRandomAccessConstSectionBase<_TRAIterator>(s, n2));
+		}
+		bool operator<(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const {
+			return lexicographical_compare(sv);
+		}
+		bool operator>(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const {
+			return sv.lexicographical_compare(*this);
+		}
+		bool operator<=(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const { return !((*this) > sv); }
+		bool operator>=(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const { return !((*this) < sv); }
 
 		template <typename _TRAIterator2>
 		size_type copy(_TRAIterator2 target_iter, size_type n, size_type pos = 0) const {
