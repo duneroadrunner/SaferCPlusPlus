@@ -3408,6 +3408,8 @@ namespace mse {
 				: TRandomAccessSection<_TRAIterator>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
 		}
 
+		/* These are here because some standard algorithms require them. Prefer the "xscope_" prefixed versions to
+		acknowledge that scope iterators are returned. */
 		auto begin() const { return (*this).xscope_cbegin(); }
 		auto cbegin() const { return (*this).xscope_cbegin(); }
 		auto end() const { return (*this).xscope_cend(); }
@@ -3448,17 +3450,39 @@ namespace mse {
 
 		typedef TRASectionIterator<_TRAIterator> iterator;
 		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
-		iterator begin() const { return iterator((*this).m_start_iter, (*this).m_count); }
+		iterator begin() { return iterator((*this).m_start_iter, (*this).m_count); }
+		const_iterator begin() const { return cbegin(); }
 		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
-		iterator end() const {
+		iterator end() {
 			auto retval(iterator((*this).m_start_iter, (*this).m_count));
 			retval += (*this).m_count;
 			return retval;
 		}
+		const_iterator end() const { return cend(); }
 		const_iterator cend() const {
 			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
 			retval += (*this).m_count;
 			return retval;
+		}
+		typedef std::reverse_iterator<iterator> reverse_iterator;
+		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+		reverse_iterator rbegin() {	// return iterator for beginning of reversed mutable sequence
+			return (reverse_iterator(end()));
+		}
+		const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (const_reverse_iterator(end()));
+		}
+		reverse_iterator rend() {	// return iterator for end of reversed mutable sequence
+			return (reverse_iterator(begin()));
+		}
+		const_reverse_iterator rend() const {	// return iterator for end of reversed nonmutable sequence
+			return (const_reverse_iterator(begin()));
+		}
+		const_reverse_iterator crbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (rbegin());
+		}
+		const_reverse_iterator crend() const {	// return iterator for end of reversed nonmutable sequence
+			return (rend());
 		}
 
 		friend class TXScopeRandomAccessSection<_TRAIterator>;
@@ -3806,6 +3830,8 @@ namespace mse {
 				: TRandomAccessConstSection<_TRAIterator>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
 		}
 
+		/* These are here because some standard algorithms require them. Prefer the "xscope_" prefixed versions to
+		acknowledge that scope iterators are returned. */
 		auto begin() const { return (*this).xscope_cbegin(); }
 		auto cbegin() const { return (*this).xscope_cbegin(); }
 		auto end() const { return (*this).xscope_cend(); }
@@ -3846,6 +3872,19 @@ namespace mse {
 			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
 			retval += (*this).m_count;
 			return retval;
+		}
+		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+		const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (const_reverse_iterator(end()));
+		}
+		const_reverse_iterator rend() const {	// return iterator for end of reversed nonmutable sequence
+			return (const_reverse_iterator(begin()));
+		}
+		const_reverse_iterator crbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (rbegin());
+		}
+		const_reverse_iterator crend() const {	// return iterator for end of reversed nonmutable sequence
+			return (rend());
 		}
 
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
