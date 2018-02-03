@@ -830,7 +830,7 @@ namespace mse {
 	public:
 		typedef std::array<_Ty, _Size> std_array;
 		typedef std_array _MA;
-		typedef nii_array<_Ty, _Size> _Myt;
+		typedef nii_array _Myt;
 
 		nii_array() {}
 		nii_array(_MA&& _X) : m_array(std::forward<decltype(_X)>(_X)) {}
@@ -1401,12 +1401,13 @@ namespace mse {
 
 		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 		public:
-			xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-			xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xscope_ss_const_iterator_type(const mse::TXScopeItemFixedConstPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-			xscope_ss_const_iterator_type(const mse::TXScopeItemFixedPointer<nii_array>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+			template <typename _TXScopePointer, class = typename std::enable_if<
+				std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<nii_array> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<nii_array> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedConstPointer<nii_array> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<nii_array> >::value
+				, void>::type>
+			xscope_ss_const_iterator_type(const _TXScopePointer& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 
 			xscope_ss_const_iterator_type(const xscope_ss_const_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
 			xscope_ss_const_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
@@ -1480,10 +1481,11 @@ namespace mse {
 		};
 		class xscope_ss_iterator_type : public ss_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 		public:
-			xscope_ss_iterator_type(const mse::TXScopeFixedPointer<nii_array>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xscope_ss_iterator_type(const mse::TXScopeItemFixedPointer<nii_array>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+			template <typename _TXScopePointer, class = typename std::enable_if<
+				std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<nii_array> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<nii_array> >::value
+				, void>::type>
+			xscope_ss_iterator_type(const _TXScopePointer& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 
 			xscope_ss_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_iterator_type(src_cref) {}
 			~xscope_ss_iterator_type() {}
@@ -1698,6 +1700,73 @@ namespace mse {
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
+}
+
+namespace std {
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmismatched-tags"
+#endif /*__clang__*/
+
+	template<class _Ty, size_t _Size>
+	struct tuple_size<mse::nii_array<_Ty, _Size> >
+		: integral_constant<size_t, _Size>
+	{	// struct to determine number of elements in array
+	};
+
+	template<size_t _Idx, class _Ty, size_t _Size>
+	struct tuple_element<_Idx, mse::nii_array<_Ty, _Size> >
+	{	// struct to determine type of element _Idx in array
+		static_assert(_Idx < _Size, "array index out of bounds");
+
+		typedef _Ty type;
+	};
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif /*__clang__*/
+
+	// TUPLE INTERFACE TO array
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN _Ty& get(mse::nii_array<_Ty, _Size>& _Arr) _NOEXCEPT
+	{	// return element at _Idx in array _Arr
+		static_assert(_Idx < _Size, "array index out of bounds");
+		return (std::get<_Idx>(_Arr.contained_array()));
+	}
+
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN const _Ty& get(const mse::nii_array<_Ty, _Size>& _Arr) _NOEXCEPT
+	{	// return element at _Idx in array _Arr
+		static_assert(_Idx < _Size, "array index out of bounds");
+		return (std::get<_Idx>(_Arr.contained_array()));
+	}
+
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN _Ty&& get(mse::nii_array<_Ty, _Size>&& _Arr) _NOEXCEPT
+	{	// return element at _Idx in array _Arr
+		static_assert(_Idx < _Size, "array index out of bounds");
+		return (_STD move(std::get<_Idx>(_Arr.contained_array())));
+	}
+
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT
+	{
+		_Left.swap(_Right);
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap arrays
+		return (_Right.swap(_Left));
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, array<_Ty, _Size>& _Right) _NOEXCEPT
+	{
+		_Left.swap(_Right);
+	}
+}
+
+namespace mse {
 
 	namespace us {
 		/* msearray<> is an unsafe extension of nii_array<> that provides the traditional begin() and end() (non-static)
@@ -1847,12 +1916,13 @@ namespace mse {
 
 			class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 			public:
-				xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-				xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_ss_const_iterator_type(const mse::TXScopeItemFixedConstPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-				xscope_ss_const_iterator_type(const mse::TXScopeItemFixedPointer<msearray>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+				template <typename _TXScopePointer, class = typename std::enable_if<
+					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<msearray> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<msearray> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedConstPointer<msearray> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<msearray> >::value
+					, void>::type>
+				xscope_ss_const_iterator_type(const _TXScopePointer& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 
 				xscope_ss_const_iterator_type(const xscope_ss_const_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
 				xscope_ss_const_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
@@ -1926,10 +1996,11 @@ namespace mse {
 			};
 			class xscope_ss_iterator_type : public ss_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 			public:
-				xscope_ss_iterator_type(const mse::TXScopeFixedPointer<msearray>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_ss_iterator_type(const mse::TXScopeItemFixedPointer<msearray>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+				template <typename _TXScopePointer, class = typename std::enable_if<
+					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<msearray> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<msearray> >::value
+					, void>::type>
+				xscope_ss_iterator_type(const _TXScopePointer& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 
 				xscope_ss_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_iterator_type(src_cref) {}
 				~xscope_ss_iterator_type() {}
@@ -2189,20 +2260,6 @@ namespace std {
 #endif /*__clang__*/
 
 	template<class _Ty, size_t _Size>
-	struct tuple_size<mse::nii_array<_Ty, _Size> >
-		: integral_constant<size_t, _Size>
-	{	// struct to determine number of elements in array
-	};
-
-	template<size_t _Idx, class _Ty, size_t _Size>
-	struct tuple_element<_Idx, mse::nii_array<_Ty, _Size> >
-	{	// struct to determine type of element _Idx in array
-		static_assert(_Idx < _Size, "array index out of bounds");
-
-		typedef _Ty type;
-	};
-
-	template<class _Ty, size_t _Size>
 	struct tuple_size<mse::us::msearray<_Ty, _Size> >
 		: integral_constant<size_t, _Size>
 	{	// struct to determine number of elements in array
@@ -2219,34 +2276,6 @@ namespace std {
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif /*__clang__*/
-
-	// TUPLE INTERFACE TO array
-	template<size_t _Idx, class _Ty, size_t _Size>
-	_CONST_FUN _Ty& get(mse::nii_array<_Ty, _Size>& _Arr) _NOEXCEPT
-	{	// return element at _Idx in array _Arr
-		static_assert(_Idx < _Size, "array index out of bounds");
-		return (std::get<_Idx>(_Arr.contained_array()));
-	}
-
-	template<size_t _Idx, class _Ty, size_t _Size>
-	_CONST_FUN const _Ty& get(const mse::nii_array<_Ty, _Size>& _Arr) _NOEXCEPT
-	{	// return element at _Idx in array _Arr
-		static_assert(_Idx < _Size, "array index out of bounds");
-		return (std::get<_Idx>(_Arr.contained_array()));
-	}
-
-	template<size_t _Idx, class _Ty, size_t _Size>
-	_CONST_FUN _Ty&& get(mse::nii_array<_Ty, _Size>&& _Arr) _NOEXCEPT
-	{	// return element at _Idx in array _Arr
-		static_assert(_Idx < _Size, "array index out of bounds");
-		return (_STD move(std::get<_Idx>(_Arr.contained_array())));
-	}
-
-	template<class _Ty, size_t _Size>
-	void swap(mse::nii_array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size>& _Right) _NOEXCEPT
-	{
-		_Left.swap(_Right);
-	}
 
 	// TUPLE INTERFACE TO array
 	template<size_t _Idx, class _Ty, size_t _Size>
@@ -2270,37 +2299,21 @@ namespace std {
 		return (_STD move(std::get<_Idx>(_Arr.contained_array())));
 	}
 
-	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(mse::us::msearray<_Ty, _Size, _TStateMutex>& _Left, mse::us::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT
 	{
 		_Left.swap(_Right);
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT
-	{
-		_Left.swap(_Right);
-	}
-	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
-	{	// swap arrays
-		return (_Right.swap(_Left));
-	}
-	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(array<_Ty, _Size>& _Left, mse::us::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap arrays
 		return (_Right.swap(_Left));
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, array<_Ty, _Size>& _Right) _NOEXCEPT
-	{
-		_Left.swap(_Right);
-	}
-	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(mse::us::msearray<_Ty, _Size, _TStateMutex>& _Left, array<_Ty, _Size>& _Right) _NOEXCEPT
 	{
 		_Left.swap(_Right);
 	}
-
 }
 
 namespace mse {
@@ -3024,6 +3037,9 @@ namespace mse {
 		size_type length() const _NOEXCEPT {
 			return (*this).size();
 		}
+		size_type max_size() const _NOEXCEPT {	// return maximum possible length of sequence
+			return static_cast<size_type>((std::numeric_limits<difference_t>::max)());
+		}
 		bool empty() const _NOEXCEPT {
 			return (0 == (*this).size());
 		}
@@ -3085,10 +3101,19 @@ namespace mse {
 
 		template <typename _TRAIterator2>
 		size_type copy(_TRAIterator2 target_iter, size_type n, size_type pos = 0) const {
-			auto begin_citer = (*this).xscope_cbegin();
-			begin_citer += pos;
-			auto end_citer = begin_citer + n;
-			std::copy(begin_citer, end_citer, target_iter);
+			if (pos + n > (*this).size()) {
+				if (pos >= (*this).size()) {
+					return 0;
+				}
+				else {
+					n = (*this).size() - pos;
+				}
+			}
+			for (size_type i = 0; i < n; i += 1) {
+				(*target_iter) = (*this)[i];
+				++target_iter;
+			}
+			return n;
 		}
 
 		void remove_prefix(size_type n) _NOEXCEPT {
@@ -3555,6 +3580,9 @@ namespace mse {
 		size_type length() const _NOEXCEPT {
 			return (*this).size();
 		}
+		size_type max_size() const _NOEXCEPT {	// return maximum possible length of sequence
+			return static_cast<size_type>((std::numeric_limits<difference_t>::max)());
+		}
 		bool empty() const _NOEXCEPT {
 			return (0 == (*this).size());
 		}
@@ -3616,10 +3644,19 @@ namespace mse {
 
 		template <typename _TRAIterator2>
 		size_type copy(_TRAIterator2 target_iter, size_type n, size_type pos = 0) const {
-			auto begin_citer = (*this).xscope_cbegin();
-			begin_citer += pos;
-			auto end_citer = begin_citer + n;
-			std::copy(begin_citer, end_citer, target_iter);
+			if (pos + n > (*this).size()) {
+				if (pos >= (*this).size()) {
+					return 0;
+				}
+				else {
+					n = (*this).size() - pos;
+				}
+			}
+			for (size_type i = 0; i < n; i += 1) {
+				(*target_iter) = (*this)[i];
+				++target_iter;
+			}
+			return n;
 		}
 
 		void remove_prefix(size_type n) _NOEXCEPT {

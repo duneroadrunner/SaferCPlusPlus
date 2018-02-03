@@ -42,7 +42,7 @@ namespace mse {
 		template<class _Ty, class _A = std::allocator<_Ty> >
 		class vector {
 		public:
-			typedef mse::mstd::vector<_Ty, _A> _Myt;
+			typedef vector _Myt;
 			typedef mse::us::msevector<_Ty, _A> _MV;
 
 			typedef typename _MV::allocator_type allocator_type;
@@ -423,16 +423,14 @@ namespace mse {
 				typedef typename _MV::xscope_ss_const_iterator_type::pointer pointer;
 				typedef typename _MV::xscope_ss_const_iterator_type::reference reference;
 
-				xscope_const_iterator(const mse::TXScopeFixedConstPointer<vector>& owner_ptr)
+				template <typename _TXScopePointer, class = typename std::enable_if<
+					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<vector> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<vector> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedConstPointer<vector> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<vector> >::value
+					, void>::type>
+				xscope_const_iterator(const _TXScopePointer& owner_ptr)
 					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
-				xscope_const_iterator(const mse::TXScopeFixedPointer<vector>& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<vector>& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
-				xscope_const_iterator(const mse::TXScopeItemFixedPointer<vector>& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 				xscope_const_iterator(const xscope_const_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_const_iterator) {}
 				xscope_const_iterator(const xscope_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_iterator) {}
@@ -530,12 +528,12 @@ namespace mse {
 				typedef typename _MV::xscope_ss_iterator_type::pointer pointer;
 				typedef typename _MV::xscope_ss_iterator_type::reference reference;
 
-				xscope_iterator(const mse::TXScopeFixedPointer<vector>& owner_ptr)
+				template <typename _TXScopePointer, class = typename std::enable_if<
+					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<vector> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<vector> >::value
+					, void>::type>
+				xscope_iterator(const _TXScopePointer& owner_ptr)
 					: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member(_MV_ref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_iterator(const mse::TXScopeItemFixedPointer<vector>& owner_ptr)
-					: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member(_MV_ref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 				xscope_iterator(const xscope_iterator& src_cref) : m_xscope_ss_iterator(src_cref.m_xscope_ss_iterator) {}
 				~xscope_iterator() {}

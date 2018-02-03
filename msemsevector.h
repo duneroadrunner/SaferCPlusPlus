@@ -1120,12 +1120,13 @@ namespace mse {
 
 		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase {
 		public:
-			xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<nii_vector>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-			xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<nii_vector>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xscope_ss_const_iterator_type(const mse::TXScopeItemFixedConstPointer<nii_vector>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-			xscope_ss_const_iterator_type(const mse::TXScopeItemFixedPointer<nii_vector>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+			template <typename _TXScopePointer, class = typename std::enable_if<
+				std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<nii_vector> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<nii_vector> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedConstPointer<nii_vector> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<nii_vector> >::value
+				, void>::type>
+			xscope_ss_const_iterator_type(const _TXScopePointer& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 
 			xscope_ss_const_iterator_type(const xscope_ss_const_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
 			xscope_ss_const_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
@@ -1199,10 +1200,11 @@ namespace mse {
 		};
 		class xscope_ss_iterator_type : public ss_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase {
 		public:
-			xscope_ss_iterator_type(const mse::TXScopeFixedPointer<nii_vector>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xscope_ss_iterator_type(const mse::TXScopeItemFixedPointer<nii_vector>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+			template <typename _TXScopePointer, class = typename std::enable_if<
+				std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<nii_vector> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<nii_vector> >::value
+				, void>::type>
+			xscope_ss_iterator_type(const _TXScopePointer& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 
 			xscope_ss_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_iterator_type(src_cref) {}
 			~xscope_ss_iterator_type() {}
@@ -1399,7 +1401,28 @@ namespace mse {
 		const nii_vector<_Ty, _A, _TStateMutex>& _Right) {	// test if _Left >= _Right for vectors
 		return (!(_Left < _Right));
 	}
+}
 
+namespace std {
+
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::nii_vector<_Ty, _A, _TStateMutex>& _Left, mse::nii_vector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT
+	{
+		_Left.swap(_Right);
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(vector<_Ty, _A>& _Left, mse::nii_vector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap vectors
+		return (_Right.swap(_Left));
+	}
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::nii_vector<_Ty, _A, _TStateMutex>& _Left, vector<_Ty, _A>& _Right) _NOEXCEPT
+	{
+		_Left.swap(_Right);
+	}
+}
+
+namespace mse {
 
 	namespace us {
 		/* msevector<> is an unsafe extension of nii_vector<> that provides the traditional begin() and end() (non-static)
@@ -3413,12 +3436,13 @@ namespace mse {
 
 			class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase {
 			public:
-				xscope_ss_const_iterator_type(const mse::TXScopeFixedConstPointer<msevector>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-				xscope_ss_const_iterator_type(const mse::TXScopeFixedPointer<msevector>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-	#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_ss_const_iterator_type(const mse::TXScopeItemFixedConstPointer<msevector>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-				xscope_ss_const_iterator_type(const mse::TXScopeItemFixedPointer<msevector>& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-	#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+				template <typename _TXScopePointer, class = typename std::enable_if<
+					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<msevector> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<msevector> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedConstPointer<msevector> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<msevector> >::value
+					, void>::type>
+				xscope_ss_const_iterator_type(const _TXScopePointer& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
 
 				xscope_ss_const_iterator_type(const xscope_ss_const_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
 				xscope_ss_const_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
@@ -3492,10 +3516,11 @@ namespace mse {
 			};
 			class xscope_ss_iterator_type : public ss_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase {
 			public:
-				xscope_ss_iterator_type(const mse::TXScopeFixedPointer<msevector>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
-	#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_ss_iterator_type(const mse::TXScopeItemFixedPointer<msevector>& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
-	#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+				template <typename _TXScopePointer, class = typename std::enable_if<
+					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<msevector> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<msevector> >::value
+					, void>::type>
+				xscope_ss_iterator_type(const _TXScopePointer& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
 
 				xscope_ss_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_iterator_type(src_cref) {}
 				~xscope_ss_iterator_type() {}

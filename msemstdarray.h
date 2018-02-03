@@ -128,7 +128,7 @@ namespace mse {
 		template<class _Ty, size_t _Size >
 		class array {
 		public:
-			typedef mse::mstd::array<_Ty, _Size> _Myt;
+			typedef array _Myt;
 			typedef mse::nii_array<_Ty, _Size> _MA;
 
 			typedef typename _MA::value_type value_type;
@@ -477,16 +477,14 @@ namespace mse {
 				typedef typename _MA::xscope_ss_const_iterator_type::pointer pointer;
 				typedef typename _MA::xscope_ss_const_iterator_type::reference reference;
 
-				xscope_const_iterator(const mse::TXScopeFixedConstPointer<array>& owner_ptr)
+				template <typename _TXScopePointer, class = typename std::enable_if<
+					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<array> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<array> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedConstPointer<array> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<array> >::value
+					, void>::type>
+				xscope_const_iterator(const _TXScopePointer& owner_ptr)
 					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
-				xscope_const_iterator(const mse::TXScopeFixedPointer<array>& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<array>& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
-				xscope_const_iterator(const mse::TXScopeItemFixedPointer<array>& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 				xscope_const_iterator(const xscope_const_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_const_iterator) {}
 				xscope_const_iterator(const xscope_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_iterator) {}
@@ -584,12 +582,12 @@ namespace mse {
 				typedef typename _MA::xscope_ss_iterator_type::pointer pointer;
 				typedef typename _MA::xscope_ss_iterator_type::reference reference;
 
-				xscope_iterator(const mse::TXScopeFixedPointer<array>& owner_ptr)
+				template <typename _TXScopePointer, class = typename std::enable_if<
+					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<array> >::value
+					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<array> >::value
+					, void>::type>
+				xscope_iterator(const _TXScopePointer& owner_ptr)
 					: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member(_MA_ref((*owner_ptr).m_nii_array), owner_ptr)) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_iterator(const mse::TXScopeItemFixedPointer<array>& owner_ptr)
-					: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member(_MA_ref((*owner_ptr).m_nii_array), owner_ptr)) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 				xscope_iterator(const xscope_iterator& src_cref) : m_xscope_ss_iterator(src_cref.m_xscope_ss_iterator) {}
 				~xscope_iterator() {}
@@ -824,23 +822,23 @@ namespace std {
 	{	// swap arrays
 		return (_Left.swap(_Right));
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap arrays
 		return (_Left.swap(_Right));
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::us::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap arrays
 		return (_Left.swap(_Right));
 	}
 
-	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap arrays
 		return (_Right.swap(_Left));
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(mse::us::msearray<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap arrays
 		return (_Right.swap(_Left));
