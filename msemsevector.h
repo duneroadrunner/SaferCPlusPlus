@@ -227,12 +227,12 @@ namespace mse {
 		}
 		_Myt& operator=(_Myt&& _X) {
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
-			m_vector.operator=(std::forward<std_vector>(_X));
+			m_vector.operator=(std::forward<std_vector>(_X.contained_vector()));
 			return (*this);
 		}
 		_Myt& operator=(const _Myt& _X) {
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
-			m_vector.operator=(static_cast<const std_vector&>(_X));
+			m_vector.operator=(_X.contained_vector());
 			return (*this);
 		}
 
@@ -243,8 +243,7 @@ namespace mse {
 			valid_if_Ty_is_not_an_xscope_type();
 		}
 
-		operator const _MV() const { return contained_vector(); }
-		operator _MV() { return contained_vector(); }
+		operator _MV() const { return this->contained_basic_string(); }
 
 		void reserve(size_type _Count)
 		{	// determine new minimum length of allocated storage

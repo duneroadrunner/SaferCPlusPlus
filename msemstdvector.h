@@ -54,10 +54,8 @@ namespace mse {
 			typedef typename _MV::reference reference;
 			typedef typename _MV::const_reference const_reference;
 
-			const _MV& msevector() const { return (*m_shptr); }
-			_MV& msevector() { return (*m_shptr); }
-			operator const _MV() const { return msevector(); }
-			operator _MV() { return msevector(); }
+			operator mse::nii_vector<_Ty, _A>() const { return msevector(); }
+			operator std::vector<_Ty, _A>() const { return msevector(); }
 
 			explicit vector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
 			explicit vector(size_type _N) : m_shptr(std::make_shared<_MV>(_N)) {}
@@ -409,11 +407,6 @@ namespace mse {
 				return ((*m_shptr) < (*(_Right.m_shptr)));
 			}
 
-			/* These static functions are just used to obtain a (base class) reference to an
-			object of a (possibly) derived class. */
-			static _MV& _MV_ref(_MV& obj) { return obj; }
-			static const _MV& _MV_cref(const _MV& obj) { return obj; }
-
 			class xscope_const_iterator : public _MV::random_access_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase {
 			public:
 				typedef typename _MV::xscope_ss_const_iterator_type::iterator_category iterator_category;
@@ -430,7 +423,7 @@ namespace mse {
 					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<vector> >::value
 					, void>::type>
 				xscope_const_iterator(const _TXScopePointer& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(*((*owner_ptr).m_shptr), owner_ptr)) {}
 
 				xscope_const_iterator(const xscope_const_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_const_iterator) {}
 				xscope_const_iterator(const xscope_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_iterator) {}
@@ -533,7 +526,7 @@ namespace mse {
 					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<vector> >::value
 					, void>::type>
 				xscope_iterator(const _TXScopePointer& owner_ptr)
-					: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member(_MV_ref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+					: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member(*((*owner_ptr).m_shptr), owner_ptr)) {}
 
 				xscope_iterator(const xscope_iterator& src_cref) : m_xscope_ss_iterator(src_cref.m_xscope_ss_iterator) {}
 				~xscope_iterator() {}
@@ -663,6 +656,9 @@ namespace mse {
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 		private:
+			const _MV& msevector() const { return (*m_shptr); }
+			_MV& msevector() { return (*m_shptr); }
+
 			std::shared_ptr<_MV> m_shptr;
 		};
 

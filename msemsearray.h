@@ -878,8 +878,7 @@ namespace mse {
 			valid_if_Ty_is_not_an_xscope_type();
 		}
 
-		operator const _MA() const { return contained_array(); }
-		operator _MA() { return contained_array(); }
+		operator _MA() const { return contained_array(); }
 
 		_CONST_FUN typename std_array::const_reference operator[](msear_size_t _P) const {
 			return (*this).at(msear_as_a_size_t(_P));

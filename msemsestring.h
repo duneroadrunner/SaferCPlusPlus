@@ -38,21 +38,6 @@ namespace mse {
     template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
-#if 0
-	/* These do not have safe implementations yet. Presumably, safe implementations will resemble those of the vectors. */
-
-	template<class _Elem, class _Traits = std::char_traits<_Elem>, class _Alloc = std::allocator<_Elem> >
-	class nii_basic_string : public std::basic_string<_Elem, _Traits, _Alloc> {
-	public:
-		typedef std::basic_string<_Elem, _Traits, _Alloc> base_class;
-		MSE_MSESTRING_USING(nii_basic_string, base_class);
-
-		/* This placeholder implementation is actually not safe to share asynchronously (due to its unsafe iterators), but
-		the eventual implementation will be.*/
-		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
-	};
-#endif
-
 	class nii_basic_string_range_error : public std::range_error {
 	public:
 		using std::range_error::range_error;
@@ -75,11 +60,12 @@ namespace mse {
 	like ss_begin<>(...) and ss_end<>(...) which take a pointer parameter and return a (bounds-checked) iterator that
 	inherits the safety of the given pointer. nii_basic_string<> also supports "scope" iterators which are safe without any
 	run-time overhead. nii_basic_string<> is a data type that is eligible to be shared between asynchronous threads. */
+	/* Default template parameter values are specified in the forward declaration. */
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
 	class nii_basic_string {
 	public:
 		typedef std::basic_string<_Ty, _Traits, _A> std_basic_string;
-		typedef std_basic_string _MV;
+		typedef std_basic_string _MBS;
 		typedef nii_basic_string _Myt;
 		typedef std_basic_string base_class;
 
@@ -101,18 +87,9 @@ namespace mse {
 		typedef typename std_basic_string::reverse_iterator reverse_iterator;
 		typedef typename std_basic_string::const_reverse_iterator const_reverse_iterator;
 
-		explicit nii_basic_string(const _A& _Al = _A())
-			: m_basic_string(_Al) {
-			/*m_debug_size = size();*/
-		}
-		explicit nii_basic_string(size_type _N)
-			: m_basic_string(msev_as_a_size_t(_N)) {
-			/*m_debug_size = size();*/
-		}
-		explicit nii_basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A())
-			: m_basic_string(msev_as_a_size_t(_N), _V, _Al) {
-			/*m_debug_size = size();*/
-		}
+		explicit nii_basic_string(const _A& _Al = _A()) : m_basic_string(_Al) { /*m_debug_size = size();*/ }
+		//explicit nii_basic_string(size_type _N) : m_basic_string(msev_as_a_size_t(_N)) { /*m_debug_size = size();*/ }
+		explicit nii_basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_basic_string(msev_as_a_size_t(_N), _V, _Al) { /*m_debug_size = size();*/ }
 		nii_basic_string(std_basic_string&& _X) : m_basic_string(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
 		nii_basic_string(const std_basic_string& _X) : m_basic_string(_X) { /*m_debug_size = size();*/ }
 		nii_basic_string(_Myt&& _X) : m_basic_string(std::forward<decltype(_X.contained_basic_string())>(_X.contained_basic_string())) { /*m_debug_size = size();*/ }
@@ -124,26 +101,33 @@ namespace mse {
 		template<class _Iter
 			//, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type
 			, class = _mse_RequireInputIter<_Iter> >
-			nii_basic_string(const _Iter& _First, const _Iter& _Last) : m_basic_string(_First, _Last) { /*m_debug_size = size();*/ }
+		nii_basic_string(const _Iter& _First, const _Iter& _Last) : m_basic_string(_First, _Last) { /*m_debug_size = size();*/ }
 		template<class _Iter
 			//, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type
 			, class = _mse_RequireInputIter<_Iter> >
 			//nii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : m_basic_string(_First, _Last, _Al) { /*m_debug_size = size();*/ }
-			nii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : m_basic_string(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+		nii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : m_basic_string(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+		nii_basic_string(const _Ty* const _Ptr) : m_basic_string(_Ptr) { /*m_debug_size = size();*/ }
+		nii_basic_string(const _Ty* const _Ptr, const size_type _Count) : m_basic_string(_Ptr, _Count) { /*m_debug_size = size();*/ }
+		nii_basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_basic_string(_X.contained_basic_string(), _Roff, npos, _Al) { /*m_debug_size = size();*/ }
+		nii_basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_basic_string(_X.contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
+
+		/*
 		_Myt& operator=(const std_basic_string& _X) {
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
 			m_basic_string.operator =(_X);
-			/*m_debug_size = size();*/
+			//m_debug_size = size();
 			return (*this);
 		}
+		*/
 		_Myt& operator=(_Myt&& _X) {
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
-			m_basic_string.operator=(std::forward<std_basic_string>(_X));
+			m_basic_string.operator=(std::forward<std_basic_string>(_X.contained_basic_string()));
 			return (*this);
 		}
 		_Myt& operator=(const _Myt& _X) {
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
-			m_basic_string.operator=(static_cast<const std_basic_string&>(_X));
+			m_basic_string.operator=(_X.contained_basic_string());
 			return (*this);
 		}
 
@@ -154,8 +138,7 @@ namespace mse {
 			valid_if_Ty_is_not_an_xscope_type();
 		}
 
-		operator const _MV() const { return contained_basic_string(); }
-		operator _MV() { return contained_basic_string(); }
+		operator _MBS() const { return contained_basic_string(); }
 
 		void reserve(size_type _Count)
 		{	// determine new minimum length of allocated storage
@@ -263,7 +246,7 @@ namespace mse {
 			m_basic_string.swap(_Other.m_basic_string);
 		}
 
-		void swap(_MV& _Other) {	// swap contents with _Other
+		void swap(_MBS& _Other) {	// swap contents with _Other
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
 			m_basic_string.swap(_Other);
 		}
@@ -1241,7 +1224,7 @@ namespace mse {
 			return (*this);
 		}
 		nii_basic_string& operator+=(const nii_basic_string& _Right) {
-			m_basic_string.append(_Right);
+			m_basic_string.append(_Right.contained_basic_string());
 			return (*this);
 		}
 #if 0//_HAS_CXX17
@@ -1261,13 +1244,13 @@ namespace mse {
 		}
 
 		nii_basic_string& replace(const size_type _Off, const size_type _N0, const nii_basic_string& _Right) {
-			m_basic_string.replace(_Off, _N0, _Right);
+			m_basic_string.replace(_Off, _N0, _Right.contained_basic_string());
 			return (*this);
 		}
 
 		nii_basic_string& replace(const size_type _Off, size_type _N0,
 			const nii_basic_string& _Right, const size_type _Roff, size_type _Count = npos) {
-			m_basic_string.replace(_Right, _Roff, _Count);
+			m_basic_string.replace(_Right.contained_basic_string(), _Roff, _Count);
 			return (*this);
 		}
 
@@ -1327,7 +1310,7 @@ namespace mse {
 		}
 
 		template<class _Iter, class = typename std::enable_if<mse::_mse_Is_iterator<_Iter>::value>::type>
-			nii_basic_string& replace(const const_iterator _First, const const_iterator _Last,
+		nii_basic_string& replace(const const_iterator _First, const const_iterator _Last,
 				const _Iter _First2, const _Iter _Last2) {
 			const nii_basic_string _Right(_First2, _Last2, get_allocator());
 			replace(_First, _Last, _Right);
@@ -1365,16 +1348,16 @@ namespace mse {
 #endif /* _HAS_CXX17 */
 
 		int compare(const nii_basic_string& _Right) const _NOEXCEPT {
-			return m_basic_string.compare(_Right);
+			return m_basic_string.compare(_Right.contained_basic_string());
 		}
 
 		int compare(size_type _Off, size_type _N0, const nii_basic_string& _Right) const {
-			return m_basic_string.compare(_Off, _N0, _Right);
+			return m_basic_string.compare(_Off, _N0, _Right.contained_basic_string());
 		}
 
 		int compare(const size_type _Off, const size_type _N0, const nii_basic_string& _Right,
 			const size_type _Roff, const size_type _Count = npos) const {
-			return m_basic_string.compare(_Off, _N0, _Right, _Roff, _Count);
+			return m_basic_string.compare(_Off, _N0, _Right.contained_basic_string(), _Roff, _Count);
 		}
 
 		int compare(const _Ty * const _Ptr) const _NOEXCEPT {
@@ -1401,7 +1384,7 @@ namespace mse {
 #endif /* _HAS_CXX17 */
 
 		size_type find(const nii_basic_string& _Right, const size_type _Off = 0) const _NOEXCEPT {
-			return m_basic_string.find(_Right, _Off);
+			return m_basic_string.find(_Right.contained_basic_string(), _Off);
 		}
 
 		size_type find(const _Ty * const _Ptr, const size_type _Off, const size_type _Count) const _NOEXCEPT {
@@ -1426,7 +1409,7 @@ namespace mse {
 #endif /* _HAS_CXX17 */
 
 		size_type rfind(const nii_basic_string& _Right, const size_type _Off = npos) const _NOEXCEPT {
-			return m_basic_string.rfind(_Right, _Off);
+			return m_basic_string.rfind(_Right.contained_basic_string(), _Off);
 		}
 
 		size_type rfind(const _Ty * const _Ptr, const size_type _Off, const size_type _Count) const _NOEXCEPT {
@@ -1451,7 +1434,7 @@ namespace mse {
 #endif /* _HAS_CXX17 */
 
 		size_type find_first_of(const nii_basic_string& _Right, const size_type _Off = 0) const _NOEXCEPT {
-			return m_basic_string.find_first_of(_Right, _Off);
+			return m_basic_string.find_first_of(_Right.contained_basic_string(), _Off);
 		}
 
 		size_type find_first_of(const _Ty * const _Ptr, const size_type _Off,
@@ -1477,7 +1460,7 @@ namespace mse {
 #endif /* _HAS_CXX17 */
 
 		size_type find_last_of(const nii_basic_string& _Right, size_type _Off = npos) const _NOEXCEPT {
-			return m_basic_string.find_last_of(_Right, _Off);
+			return m_basic_string.find_last_of(_Right.contained_basic_string(), _Off);
 		}
 
 		size_type find_last_of(const _Ty * const _Ptr, const size_type _Off,
@@ -1504,7 +1487,7 @@ namespace mse {
 #endif /* _HAS_CXX17 */
 
 		size_type find_first_not_of(const nii_basic_string& _Right, const size_type _Off = 0) const _NOEXCEPT {
-			return m_basic_string.find_first_not_of(_Right, _Off);
+			return m_basic_string.find_first_not_of(_Right.contained_basic_string(), _Off);
 		}
 
 		size_type find_first_not_of(const _Ty * const _Ptr, const size_type _Off,
@@ -1531,7 +1514,7 @@ namespace mse {
 #endif /* _HAS_CXX17 */
 
 		size_type find_last_not_of(const nii_basic_string& _Right, const size_type _Off = npos) const _NOEXCEPT {
-			return m_basic_string.find_last_not_of(_Right, _Off);
+			return m_basic_string.find_last_not_of(_Right.contained_basic_string(), _Off);
 		}
 
 		size_type find_last_not_of(const _Ty * const _Ptr, const size_type _Off,
@@ -1567,6 +1550,23 @@ namespace mse {
 		nii_basic_string substr(const size_type _Off = 0, const size_type _Count = npos) const {
 			//return (nii_basic_string(*this, _Off, _Count, get_allocator()));
 			return (nii_basic_string(m_basic_string.substr(_Off, _Count)));
+		}
+
+		template<typename _TThisPointer>
+		static std::basic_istream<_Ty, _Traits>& getline(std::basic_istream<_Ty, _Traits>&& _Istr, _TThisPointer this_ptr, const _Ty _Delim) {
+			return std::getline(std::forward<decltype(_Istr)>(_Istr), (*this_ptr).contained_basic_string(), _Delim);
+		}
+		template<typename _TThisPointer>
+		static std::basic_istream<_Ty, _Traits>& getline(std::basic_istream<_Ty, _Traits>&& _Istr, _TThisPointer this_ptr) {
+			return std::getline(std::forward<decltype(_Istr)>(_Istr), (*this_ptr).contained_basic_string());
+		}
+		template<typename _TThisPointer>
+		static std::basic_istream<_Ty, _Traits>& getline(std::basic_istream<_Ty, _Traits>& _Istr, _TThisPointer this_ptr, const _Ty _Delim) {
+			return std::getline(_Istr, (*this_ptr).contained_basic_string(), _Delim);
+		}
+		template<typename _TThisPointer>
+		static std::basic_istream<_Ty, _Traits>& getline(std::basic_istream<_Ty, _Traits>& _Istr, _TThisPointer this_ptr) {
+			return std::getline(_Istr, (*this_ptr).contained_basic_string());
 		}
 
 		/* This basic_string is safely "async shareable" if the elements it contains are also "async shareable". */
@@ -1659,8 +1659,8 @@ namespace mse {
 		}
 
 
-		const _MV& contained_basic_string() const { return m_basic_string; }
-		_MV& contained_basic_string() { return m_basic_string; }
+		const _MBS& contained_basic_string() const { return m_basic_string; }
+		_MBS& contained_basic_string() { return m_basic_string; }
 
 		std_basic_string m_basic_string;
 		_TStateMutex m_mutex1;
@@ -1668,6 +1668,17 @@ namespace mse {
 		friend class xscope_ss_const_iterator_type;
 		friend class xscope_ss_iterator_type;
 		//friend class us::msebasic_string<_Ty, _Traits, _A, _TStateMutex>;
+
+		friend struct std::hash<nii_basic_string>;
+		friend std::basic_istream<_Ty, _Traits>& operator>>(std::basic_istream<_Ty, _Traits>&& _Istr, nii_basic_string& _Str) {
+			return std::forward<decltype(_Istr)>(_Istr) >> _Str.contained_basic_string();
+		}
+		friend std::basic_istream<_Ty, _Traits>& operator>>(std::basic_istream<_Ty, _Traits>& _Istr, nii_basic_string& _Str) {
+			return _Istr >> _Str.contained_basic_string();
+		}
+		friend std::basic_ostream<_Ty, _Traits>& operator<<(std::basic_ostream<_Ty, _Traits>& _Ostr, const nii_basic_string& _Str) {
+			return _Ostr << _Str.contained_basic_string();
+		}
 	};
 
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
@@ -1806,71 +1817,37 @@ namespace std {
 
 	template<class _Elem, class _Traits, class _Alloc>
 	struct hash<mse::nii_basic_string<_Elem, _Traits, _Alloc> > {	// hash functor for mse::nii_basic_string
+		typedef typename mse::nii_basic_string<_Elem, _Traits, _Alloc>::base_class basic_string_t;
 		using argument_type = mse::nii_basic_string<_Elem, _Traits, _Alloc>;
 		using result_type = size_t;
 
 		size_t operator()(const mse::nii_basic_string<_Elem, _Traits, _Alloc>& _Keyval) const _NOEXCEPT {
-			std::hash<basic_string<_Elem, _Traits, _Alloc> > basic_string_hash1;
-			basic_string<_Elem, _Traits, _Alloc> basic_string1;
-			_Keyval.swap(basic_string1);
-			auto retval = basic_string_hash1(basic_string1);
-			_Keyval.swap(basic_string1);
+			auto retval = m_bs_hash(_Keyval.contained_basic_string());
 			return retval;
 		}
+
+		hash<basic_string_t> m_bs_hash;
 	};
 
 	template<class _Elem, class _Traits, class _Alloc>
-	inline basic_istream<_Elem, _Traits>& operator>>(basic_istream<_Elem, _Traits>&& _Istr,
-			mse::nii_basic_string<_Elem, _Traits, _Alloc>& _Str) {	// extract a string
-		std::basic_string<_Elem, _Traits, _Alloc> basic_string1; _Str.swap(basic_string1);
-		auto& retval = _Istr >> basic_string1;
-		_Str.swap(basic_string1);
-		return retval;
-	}
-	template<class _Elem, class _Traits, class _Alloc>
 	inline basic_istream<_Elem, _Traits>& getline(basic_istream<_Elem, _Traits>&& _Istr,
 			mse::nii_basic_string<_Elem, _Traits, _Alloc>& _Str, const _Elem _Delim) {	// get characters into string, discard delimiter
-		std::basic_string<_Elem, _Traits, _Alloc> basic_string1; _Str.swap(basic_string1);
-		auto& retval = getline(_Istr, basic_string1, _Delim);
-		_Str.swap(basic_string1);
-		return retval;
+		return _Str.getline(std::forward<decltype(_Istr)>(_Istr), &_Str, _Delim);
 	}
 	template<class _Elem, class _Traits, class _Alloc>
 	inline basic_istream<_Elem, _Traits>& getline(basic_istream<_Elem, _Traits>&& _Istr,
 			mse::nii_basic_string<_Elem, _Traits, _Alloc>& _Str) {	// get characters into string, discard newline
-		std::basic_string<_Elem, _Traits, _Alloc> basic_string1; _Str.swap(basic_string1);
-		auto& retval = getline(_Istr, basic_string1);
-		_Str.swap(basic_string1);
-		return retval;
-	}
-	template<class _Elem, class _Traits, class _Alloc>
-	inline basic_istream<_Elem, _Traits>& operator>>(basic_istream<_Elem, _Traits>& _Istr,
-			mse::nii_basic_string<_Elem, _Traits, _Alloc>& _Str) {	// extract a string
-		std::basic_string<_Elem, _Traits, _Alloc> basic_string1; _Str.swap(basic_string1);
-		auto& retval = _Istr >> basic_string1;
-		_Str.swap(basic_string1);
-		return retval;
+		return _Str.getline(std::forward<decltype(_Istr)>(_Istr), &_Str);
 	}
 	template<class _Elem, class _Traits, class _Alloc>
 	inline basic_istream<_Elem, _Traits>& getline(basic_istream<_Elem, _Traits>& _Istr,
 			mse::nii_basic_string<_Elem, _Traits, _Alloc>& _Str, const _Elem _Delim) {	// get characters into string, discard delimiter
-		std::basic_string<_Elem, _Traits, _Alloc> basic_string1; _Str.swap(basic_string1);
-		auto& retval = getline(_Istr, basic_string1, _Delim);
-		_Str.swap(basic_string1);
-		return retval;
+		return _Str.getline(_Istr, &_Str, _Delim);
 	}
 	template<class _Elem, class _Traits, class _Alloc>
 	inline basic_istream<_Elem, _Traits>& getline(basic_istream<_Elem, _Traits>& _Istr,
 			mse::nii_basic_string<_Elem, _Traits, _Alloc>& _Str) {	// get characters into string, discard newline
-		std::basic_string<_Elem, _Traits, _Alloc> basic_string1; _Str.swap(basic_string1);
-		auto& retval = getline(_Istr, basic_string1);
-		_Str.swap(basic_string1);
-		return retval;
-	}
-	template<class _Elem, class _Traits, class _Alloc>
-	inline basic_ostream<_Elem, _Traits>& operator<<(basic_ostream<_Elem, _Traits>& _Ostr,
-			const mse::nii_basic_string<_Elem, _Traits, _Alloc>& _Str) {
-		return _Ostr << _Str.operator const std::basic_string<_Elem, _Traits, _Alloc>();
+		return _Str.getline(_Istr, &_Str);
 	}
 
 	template<class _Ty, class _Traits, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
@@ -1892,26 +1869,10 @@ namespace std {
 
 namespace mse {
 
-	class nii_string : public nii_basic_string<char> {
-	public:
-		MSE_MSESTRING_USING(nii_string, nii_basic_string<char>);
-		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
-	};
-	class nii_wstring : public nii_basic_string<wchar_t> {
-	public:
-		MSE_MSESTRING_USING(nii_wstring, nii_basic_string<wchar_t>);
-		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
-	};
-	class nii_u16string : public nii_basic_string<char16_t> {
-	public:
-		MSE_MSESTRING_USING(nii_u16string, nii_basic_string<char16_t>);
-		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
-	};
-	class nii_u32string : public nii_basic_string<char32_t> {
-	public:
-		MSE_MSESTRING_USING(nii_u32string, nii_basic_string<char32_t>);
-		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
-	};
+	using nii_string = nii_basic_string<char>;
+	using nii_wstring = nii_basic_string<wchar_t>;
+	using nii_u16string = nii_basic_string<char16_t>;
+	using nii_u32string = nii_basic_string<char32_t>;
 
 
 	template<class _Elem, class _Traits = std::char_traits<_Elem>, class _Alloc = std::allocator<_Elem> >

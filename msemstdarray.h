@@ -139,10 +139,8 @@ namespace mse {
 			typedef typename _MA::reference reference;
 			typedef typename _MA::const_reference const_reference;
 
-			const _MA& as_nii_array() const { return m_nii_array; }
-			_MA& as_nii_array() { return m_nii_array; }
-			operator const _MA() const { return as_nii_array(); }
-			operator _MA() { return as_nii_array(); }
+			operator _MA() const { return as_nii_array(); }
+			operator std::array<_Ty, _Size>() const { return as_nii_array(); }
 
 			array() {}
 			array(_MA&& _X) : m_nii_array(std::forward<decltype(_X)>(_X)) {}
@@ -217,8 +215,6 @@ namespace mse {
 			array(const std::array<_Ty, _Size>& _X) {
 				m_nii_array.m_array = _X;
 			}
-			operator const std::array<_Ty, _Size>() const { return as_nii_array(); }
-			operator std::array<_Ty, _Size>() { return as_nii_array(); }
 
 
 			class reg_ss_iterator_type : public _MA::template Tss_iterator_type<mse::TRegisteredPointer<_MA>> {
@@ -463,11 +459,6 @@ namespace mse {
 				return (m_nii_array < _Right.m_nii_array);
 			}
 
-			/* These static functions are just used to obtain a (base class) reference to an
-			object of a (possibly) derived class. */
-			static _MA& _MA_ref(_MA& obj) { return obj; }
-			static const _MA& _MA_cref(const _MA& obj) { return obj; }
-
 			class xscope_const_iterator : public _MA::random_access_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 			public:
 				typedef typename _MA::xscope_ss_const_iterator_type::iterator_category iterator_category;
@@ -484,7 +475,7 @@ namespace mse {
 					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<array> >::value
 					, void>::type>
 				xscope_const_iterator(const _TXScopePointer& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(_MA_cref((*owner_ptr).m_nii_array), owner_ptr)) {}
+					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member((*owner_ptr).m_nii_array, owner_ptr)) {}
 
 				xscope_const_iterator(const xscope_const_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_const_iterator) {}
 				xscope_const_iterator(const xscope_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_iterator) {}
@@ -587,7 +578,7 @@ namespace mse {
 					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<array> >::value
 					, void>::type>
 				xscope_iterator(const _TXScopePointer& owner_ptr)
-					: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member(_MA_ref((*owner_ptr).m_nii_array), owner_ptr)) {}
+					: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member((*owner_ptr).m_nii_array, owner_ptr)) {}
 
 				xscope_iterator(const xscope_iterator& src_cref) : m_xscope_ss_iterator(src_cref.m_xscope_ss_iterator) {}
 				~xscope_iterator() {}
@@ -667,6 +658,9 @@ namespace mse {
 
 		private:
 			mse::TRegisteredObj<_MA> m_nii_array;
+
+			const _MA& as_nii_array() const { return m_nii_array; }
+			_MA& as_nii_array() { return m_nii_array; }
 
 			template<size_t _Idx, class _Tz, size_t _Size2>
 			friend _CONST_FUN _Tz& std::get(mse::mstd::array<_Tz, _Size2>& _Arr) _NOEXCEPT;
