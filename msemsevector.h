@@ -154,6 +154,20 @@ namespace mse {
 		//_mse_Is_iterator<_InIter>::value
 	>::type;
 
+	template<class T, class EqualTo>
+	struct HasOrInheritsLessThanOperator_msemsevector_impl
+	{
+		template<class U, class V>
+		static auto test(U*) -> decltype(std::declval<U>() < std::declval<V>(), bool(true));
+		template<typename, typename>
+		static auto test(...)->std::false_type;
+
+		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+	};
+	template<class T, class EqualTo = T>
+	struct HasOrInheritsLessThanOperator_msemsevector : HasOrInheritsLessThanOperator_msemsevector_impl<
+		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
 
 	namespace us {
 		template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
@@ -314,12 +328,13 @@ namespace mse {
 			m_vector.assign(msev_as_a_size_t(_N), _X);
 			/*m_debug_size = size();*/
 		}
+
 		template<class _Iter>
-		void smoke_check_source_iterators(const _Iter& _First, const _Iter& _Last) {
+		void smoke_check_source_iterators_helper(std::true_type, const _Iter& _First, const _Iter& _Last) {
 			if (_Last < _First)/*comparison operations should also verify that safe iterators point to the same container*/ {
 				MSE_THROW(nii_vector_range_error("invalid arguments - void smoke_check_source_iterators() const - nii_vector"));
 			} else if ((!(*this).empty()) && (_First < _Last)) {
-#ifndef MSE_NII_VECTOR_SUPPRESS_SOURCE_ITER_ALIAS_CHECK
+#ifdef MSE_NII_VECTOR_ENABLE_SOURCE_ITER_ALIAS_CHECK
 				/* check for overlap between source and target sequences */
 				auto start_of_this_ptr = std::addressof(*begin());
 				auto end_of_this_ptr = std::addressof(*(end() - 1)) + 1;
@@ -328,8 +343,14 @@ namespace mse {
 				if ((end_of_this_ptr > _First_ptr) && (start_of_this_ptr < _Last_ptr)) {
 					MSE_THROW(nii_vector_range_error("invalid arguments - void smoke_check_source_iterators() const - nii_vector"));
 				}
-#endif // !MSE_NII_VECTOR_SUPPRESS_SOURCE_ITER_ALIAS_CHECK
+#endif // !MSE_NII_VECTOR_ENABLE_SOURCE_ITER_ALIAS_CHECK
 			}
+		}
+		template<class _Iter>
+		void smoke_check_source_iterators_helper(std::false_type, const _Iter&, const _Iter&) {}
+		template<class _Iter>
+		void smoke_check_source_iterators(const _Iter& _First, const _Iter& _Last) {
+			smoke_check_source_iterators_helper(typename HasOrInheritsLessThanOperator_msemsevector<_Iter>::type(), _First, _Last);
 		}
 
 		template<class ..._Valty>
@@ -773,6 +794,10 @@ namespace mse {
 		typedef Tss_const_reverse_iterator_type<msev_pointer<const _Myt>> ss_const_reverse_iterator_type;
 
 	private:
+		/* ss_iterator_type is bounds checked, but not safe against "use-after-free", so the member functions that
+		involve ss_iterator_type are made publicly inaccessible. They are used by friend type us::msevector<>,
+		which is in turn used by mstd::vector<>. */
+
 		ss_iterator_type ss_begin() {	// return std_vector::iterator for beginning of mutable sequence
 			ss_iterator_type retval(this);
 			retval.set_to_beginning();
@@ -978,6 +1003,10 @@ namespace mse {
 		}
 
 	public:
+		/* Here we provide static versions of the member functions that return iterators. As static member functions do
+		not have access to a "this" pointer, these functions require a pointer to the container to be passed as the first
+		argument. Any returned iterator will contain a copy of the supplied pointer and inherit its safety properties. */
+
 		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
 		static Tss_iterator_type<_TVectorPointer> ss_begin(const _TVectorPointer& owner_ptr)
 		{	// return iterator for beginning of mutable sequence
@@ -1028,95 +1057,162 @@ namespace mse {
 			return (Tss_const_reverse_iterator_type<_TVectorPointer>(ss_end<_TVectorPointer>(owner_ptr)));
 		}
 
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_iterator_type<_TVectorPointer> insert(const Tss_const_iterator_type<_TVectorPointer>& _P, _Ty&& _X) {
-			return (emplace(_P, std::forward<decltype(_X)>(_X)));
+		template<typename _TVectorPointer1>
+		static void s_assert_valid_index(const _TVectorPointer1& this_ptr, size_type index) {
+			if ((*this_ptr).size() < index) { MSE_THROW(nii_vector_range_error("invalid index - void assert_valid_index() const - nii_vector")); }
 		}
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_iterator_type<_TVectorPointer> insert(const Tss_const_iterator_type<_TVectorPointer>& pos, const _Ty& _X = _Ty()) {
-			//if (std::addressof(*(pos.target_container_ptr())) != this) { MSE_THROW(nii_vector_range_error("invalid arguments - void insert() - nii_vector")); }
-			pos.assert_valid_index();
-			msev_size_t original_pos = pos.position();
-			typename std_vector::const_iterator _P = pos.target_container_ptr()->m_vector.cbegin() + pos.position();
-			(*(pos.target_container_ptr())).insert(_P, _X);
-			Tss_iterator_type<_TVectorPointer> retval = ss_begin(pos.target_container_ptr());
+
+		template<typename _TVectorPointer1>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, size_type pos, _Ty&& _X) {
+			return (emplace(this_ptr, pos, std::forward<decltype(_X)>(_X)));
+		}
+		template<typename _TVectorPointer1>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, size_type pos, const _Ty& _X = _Ty()) {
+			s_assert_valid_index(this_ptr, pos);
+			msev_size_t original_pos = pos;
+			typename std_vector::const_iterator _P = (*this_ptr).m_vector.cbegin() + difference_type(pos);
+			(*this_ptr).insert(_P, _X);
+			Tss_iterator_type<_TVectorPointer1> retval = ss_begin(this_ptr);
 			retval.advance(msev_int(original_pos));
 			return retval;
 		}
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_iterator_type<_TVectorPointer> insert(const Tss_const_iterator_type<_TVectorPointer>& pos, size_type _M, const _Ty& _X) {
-			//if (std::addressof(*(pos.target_container_ptr())) != this) { MSE_THROW(nii_vector_range_error("invalid arguments - void insert() - nii_vector")); }
-			pos.assert_valid_index();
-			msev_size_t original_pos = pos.position();
-			typename std_vector::const_iterator _P = pos.target_container_ptr()->m_vector.cbegin() + pos.position();
-			(*(pos.target_container_ptr())).insert(_P, _M, _X);
-			Tss_iterator_type<_TVectorPointer> retval = ss_begin(pos.target_container_ptr());
+		template<typename _TVectorPointer1>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, size_type pos, size_type _M, const _Ty& _X) {
+			s_assert_valid_index(this_ptr, pos);
+			msev_size_t original_pos = pos;
+			typename std_vector::const_iterator _P = (*this_ptr).m_vector.cbegin() + difference_type(pos);
+			(*this_ptr).insert(_P, _M, _X);
+			Tss_iterator_type<_TVectorPointer1> retval = ss_begin(this_ptr);
 			retval.advance(msev_int(original_pos));
 			return retval;
 		}
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type
-			, class _Iter, class = _mse_RequireInputIter<_Iter> >
-		static Tss_iterator_type<_TVectorPointer> insert(const Tss_const_iterator_type<_TVectorPointer>& pos, const _Iter& _First, const _Iter& _Last) {
-			//if (std::addressof(*(pos.target_container_ptr())) != this) { MSE_THROW(nii_vector_range_error("invalid arguments - void insert() - nii_vector")); }
-			pos.assert_valid_index();
-			msev_size_t original_pos = pos.position();
-			typename std_vector::const_iterator _P = pos.target_container_ptr()->m_vector.cbegin() + pos.position();
-			(*(pos.target_container_ptr())).insert(_P, _First, _Last);
-			Tss_iterator_type<_TVectorPointer> retval = ss_begin(pos.target_container_ptr());
+		template<typename _TVectorPointer1, class _Iter, class = _mse_RequireInputIter<_Iter> >
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, size_type pos, const _Iter& _First, const _Iter& _Last) {
+			s_assert_valid_index(this_ptr, pos);
+			msev_size_t original_pos = pos;
+			typename std_vector::const_iterator _P = (*this_ptr).m_vector.cbegin() + difference_type(pos);
+			(*this_ptr).insert(_P, _First, _Last);
+			Tss_iterator_type<_TVectorPointer1> retval = ss_begin(this_ptr);
 			retval.advance(msev_int(original_pos));
 			return retval;
 		}
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_iterator_type<_TVectorPointer> insert(const Tss_const_iterator_type<_TVectorPointer>& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist) {
-			//if (std::addressof(*(pos.target_container_ptr())) != this) { MSE_THROW(nii_vector_range_error("invalid arguments - void insert() - nii_vector")); }
-			pos.assert_valid_index();
-			msev_size_t original_pos = pos.position();
-			typename std_vector::const_iterator _P = pos.target_container_ptr()->m_vector.cbegin() + pos.position();
-			(*(pos.target_container_ptr())).insert(_P, _Ilist);
-			Tss_iterator_type<_TVectorPointer> retval = ss_begin(pos.target_container_ptr());
+		template<typename _TVectorPointer1>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, size_type pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist) {
+			s_assert_valid_index(this_ptr, pos);
+			msev_size_t original_pos = pos;
+			typename std_vector::const_iterator _P = (*this_ptr).m_vector.cbegin() + difference_type(pos);
+			(*this_ptr).insert(_P, _Ilist);
+			Tss_iterator_type<_TVectorPointer1> retval = ss_begin(this_ptr);
 			retval.advance(msev_int(original_pos));
 			return retval;
 		}
-		template<typename _TVectorPointer, class ..._Valty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_iterator_type<_TVectorPointer> emplace(const Tss_const_iterator_type<_TVectorPointer>& pos, _Valty&& ..._Val)
+		template<typename _TVectorPointer1, class ..._Valty>
+		static Tss_iterator_type<_TVectorPointer1> emplace(_TVectorPointer1 this_ptr, size_type pos, _Valty&& ..._Val)
 		{	// insert by moving _Val at _Where
-			//if (std::addressof(*(pos.target_container_ptr())) != this) { MSE_THROW(nii_vector_range_error("invalid arguments - void emplace() - nii_vector")); }
-			pos.assert_valid_index();
-			msev_size_t original_pos = pos.position();
-			typename std_vector::const_iterator _P = pos.target_container_ptr()->m_vector.cbegin() + pos.position();
-			(*(pos.target_container_ptr())).emplace(_P, std::forward<_Valty>(_Val)...);
-			Tss_iterator_type<_TVectorPointer> retval = ss_begin(pos.target_container_ptr());
+			s_assert_valid_index(this_ptr, pos);
+			msev_size_t original_pos = pos;
+			typename std_vector::const_iterator _P = (*this_ptr).m_vector.cbegin() + difference_type(pos);
+			(*this_ptr).emplace(_P, std::forward<_Valty>(_Val)...);
+			Tss_iterator_type<_TVectorPointer1> retval = ss_begin(this_ptr);
 			retval.advance(msev_int(original_pos));
 			return retval;
 		}
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_iterator_type<_TVectorPointer> erase(const Tss_const_iterator_type<_TVectorPointer>& pos) {
-			//if (std::addressof(*(pos.target_container_ptr())) != this) { MSE_THROW(nii_vector_range_error("invalid arguments - void erase() - nii_vector")); }
-			if (!pos.points_to_an_item()) { MSE_THROW(nii_vector_range_error("invalid arguments - void erase() - nii_vector")); }
-			auto pos_index = pos.position();
+		template<typename _TVectorPointer1>
+		static Tss_iterator_type<_TVectorPointer1> erase(_TVectorPointer1 this_ptr, size_type pos) {
+			s_assert_valid_index(this_ptr, pos);
+			auto pos_index = pos;
 
-			typename std_vector::const_iterator _P = pos.target_container_ptr()->m_vector.cbegin() + pos.position();
-			(*(pos.target_container_ptr())).erase(_P);
+			typename std_vector::const_iterator _P = (*this_ptr).m_vector.cbegin() + difference_type(pos);
+			(*this_ptr).erase(_P);
 
-			Tss_iterator_type<_TVectorPointer> retval = ss_begin(pos.target_container_ptr());
-			retval.advance(typename Tss_iterator_type<_TVectorPointer>::difference_type(pos_index));
+			Tss_iterator_type<_TVectorPointer1> retval = ss_begin(this_ptr);
+			retval.advance(typename Tss_iterator_type<_TVectorPointer1>::difference_type(pos_index));
 			return retval;
 		}
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_iterator_type<_TVectorPointer> erase(const Tss_const_iterator_type<_TVectorPointer>& start, Tss_const_iterator_type<_TVectorPointer> end) {
-			if (std::addressof(*(start.target_container_ptr())) != std::addressof(*(end.target_container_ptr()))) { MSE_THROW(nii_vector_range_error("invalid arguments - void erase() - nii_vector")); }
-			if (start.position() > end.position()) { MSE_THROW(nii_vector_range_error("invalid arguments - void erase() - nii_vector")); }
-			auto pos_index = start.position();
+		template<typename _TVectorPointer1>
+		static Tss_iterator_type<_TVectorPointer1> erase(_TVectorPointer1 this_ptr, size_type start, size_type end) {
+			if (start > end) { MSE_THROW(nii_vector_range_error("invalid arguments - void erase() - nii_vector")); }
+			auto pos_index = start;
 
-			typename std_vector::const_iterator _F = start.target_container_ptr()->m_vector.cbegin() + start.position();
-			typename std_vector::const_iterator _L = end.target_container_ptr()->m_vector.cbegin() + end.position();
-			(*(start.target_container_ptr())).erase(_F, _L);
+			typename std_vector::const_iterator _F = (*this_ptr).m_vector.cbegin() + difference_type(start);
+			typename std_vector::const_iterator _L = (*this_ptr).m_vector.cbegin() + difference_type(end);
+			(*this_ptr).erase(_F, _L);
 
-			Tss_iterator_type<_TVectorPointer> retval = ss_begin(start.target_container_ptr());
-			retval.advance(typename Tss_iterator_type<_TVectorPointer>::difference_type(pos_index));
+			Tss_iterator_type<_TVectorPointer1> retval = ss_begin(this_ptr);
+			retval.advance(typename Tss_iterator_type<_TVectorPointer1>::difference_type(pos_index));
 			return retval;
 		}
 
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, const Tss_const_iterator_type<_TVectorPointer2>& pos, _Ty&& _X) {
+			return insert(this_ptr, pos.position(), std::forward<decltype(_X)>(_X));
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, const Tss_const_iterator_type<_TVectorPointer2>& pos, const _Ty& _X = _Ty()) {
+			return insert(this_ptr, pos.position(), _X);
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, const Tss_const_iterator_type<_TVectorPointer2>& pos, size_type _M, const _Ty& _X) {
+			return insert(this_ptr, pos.position(), _M, _X);
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type
+			, class _Iter, class = _mse_RequireInputIter<_Iter> >
+			static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, const Tss_const_iterator_type<_TVectorPointer2>& pos, const _Iter& _First, const _Iter& _Last) {
+			return insert(this_ptr, pos.position(), _First, _Last);
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, const Tss_const_iterator_type<_TVectorPointer2>& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist) {
+			return insert(this_ptr, pos.position(), _Ilist);
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class ..._Valty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> emplace(_TVectorPointer1 this_ptr, const Tss_const_iterator_type<_TVectorPointer2>& pos, _Valty&& ..._Val) {
+			return emplace(this_ptr, pos.position(), std::forward<_Valty>(_Val)...);
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> erase(_TVectorPointer1 this_ptr, const Tss_const_iterator_type<_TVectorPointer2>& pos) {
+			return erase(this_ptr, pos.position());
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> erase(_TVectorPointer1 this_ptr, const Tss_const_iterator_type<_TVectorPointer2>& start, const Tss_const_iterator_type<_TVectorPointer2>& end) {
+			return erase(this_ptr, start.position(), end.position());
+		}
+
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, const Tss_iterator_type<_TVectorPointer2>& pos, _Ty&& _X) {
+			return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), std::forward<decltype(_X)>(_X));
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, const Tss_iterator_type<_TVectorPointer2>& pos, const _Ty& _X = _Ty()) {
+			return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _X);
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, const Tss_iterator_type<_TVectorPointer2>& pos, size_type _M, const _Ty& _X) {
+			return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _M, _X);
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type
+			, class _Iter, class = _mse_RequireInputIter<_Iter> >
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, const Tss_iterator_type<_TVectorPointer2>& pos, const _Iter& _First, const _Iter& _Last) {
+			return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _First, _Last);
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> insert(_TVectorPointer1 this_ptr, const Tss_iterator_type<_TVectorPointer2>& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist) {
+			return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _Ilist);
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class ..._Valty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> emplace(_TVectorPointer1 this_ptr, const Tss_iterator_type<_TVectorPointer2>& pos, _Valty&& ..._Val) {
+			return emplace(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), std::forward<_Valty>(_Val)...);
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> erase(_TVectorPointer1 this_ptr, const Tss_iterator_type<_TVectorPointer2>& pos) {
+			return erase(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos));
+		}
+		template<typename _TVectorPointer1, typename _TVectorPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer2>::value), void>::type>
+		static Tss_iterator_type<_TVectorPointer1> erase(_TVectorPointer1 this_ptr, const Tss_iterator_type<_TVectorPointer2>& start, const Tss_iterator_type<_TVectorPointer2>& end) {
+			return erase(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(start), Tss_const_iterator_type<_TVectorPointer2>(end));
+		}
+
+		/* While ss_iterator_type is not, in general, safe against "use-after-free", a "scope" version of it would be.
+		So here we provide such an iterator type. */
 		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase {
 		public:
 			template <typename _TXScopePointer, class = typename std::enable_if<
