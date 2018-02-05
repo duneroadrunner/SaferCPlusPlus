@@ -32,7 +32,7 @@
 #include <ratio>
 #include <chrono>
 //include <thread>
-#include <sstream>
+//include <sstream>
 #include <future>
 
 /* This block of includes is required for the mse::TRegisteredRefWrapper example */
@@ -137,15 +137,15 @@ void msetl_example2() {
 		mse::TRegisteredPointer<nii_vector1_t> vo1_regptr1 = &rg_vo1;
 
 		/* nii_vector<> does not have member functions like "begin(void)" that return "implicit" iterators. It does have
-		(template) member functions like "ss_begin" which take a (safe) pointer to the nii_vector<> as a parameter and
-		return a (safe) iterator. */
+		(static template) member functions like "ss_begin" which take a (safe) pointer to the nii_vector<> as a parameter
+		and return a (safe) iterator. */
 		auto iter1 = rg_vo1.ss_begin(vo1_regptr1);
 		auto citer1 = rg_vo1.ss_cend(vo1_regptr1);
 		citer1 = iter1;
-		rg_vo1.emplace(citer1, "some other text");
-		rg_vo1.insert(citer1, "some other text");
+		rg_vo1.emplace(vo1_regptr1, citer1, "some other text");
+		rg_vo1.insert(vo1_regptr1, citer1, "some other text");
 		mse::nii_string str1 = "some other text";
-		rg_vo1.insert(citer1, str1);
+		rg_vo1.insert(vo1_regptr1, citer1, str1);
 
 		class A {
 		public:
@@ -333,6 +333,144 @@ void msetl_example2() {
 		bool b1 = (mstdv1 == mstdv1);
 		std::swap(niiv1, mstdv1);
 		std::swap(mstdv1, niiv1);
+	}
+
+	{
+		std::string str1 = "some text";
+		mse::nii_string nii_str1 = "some text";
+		std::cout << str1;
+		std::cout << nii_str1;
+		/*
+		std::cin >> nii_str1;
+		std::cin >> str1;
+		std::getline(std::cin, nii_str1, ',');
+		std::getline(std::cin, nii_str1);
+		std::getline(std::cin, str1);
+		*/
+		auto str2 = str1 + str1;
+		str2.replace(1, 2, str1);
+		str2.compare(str1);
+		auto nii_str2 = nii_str1 + nii_str1;
+		nii_str2.replace(1, 2, nii_str1);
+		nii_str2.compare(nii_str1);
+
+		std::string str3 = "some text";
+		//str2.copy(str3.data(), 5);
+		mse::TXScopeObj<mse::nii_string> xscp_nii_str3 = "some text";
+		auto nii_str3_xscpiter1 = mse::make_xscope_iterator(&xscp_nii_str3);
+		nii_str2.copy(nii_str3_xscpiter1, 5);
+
+		mse::TRegisteredObj<mse::nii_string> reg_nii_str3 = "some text";
+		nii_str2.copy(reg_nii_str3.ss_begin(&reg_nii_str3), 5);
+
+		str2 = str2.substr(1);
+		nii_str2 = nii_str2.substr(1);
+	}
+	{
+		std::string str1 = "some text";
+		mse::us::impl::basic_string_view<char> sv1(str1.c_str());
+		auto res1 = sv1.find('m');
+		//std::hash<std::string> str_hash;
+		//std::hash<std::shared_ptr<std::string> > shp_hash;
+		{
+			std::hash<mse::TRefCountingPointer<std::string> > refc_hash;
+			mse::TRefCountingPointer<std::string> refcptr1 = mse::make_refcounting<std::string>("some text");
+			auto refc_hash_val = refc_hash(refcptr1);
+			std::hash<mse::TAnyPointer<std::string> > any_hash;
+			mse::TAnyPointer<std::string> anyptr1 = refcptr1;
+			auto any_hash_val1 = any_hash(anyptr1);
+		}
+		{
+			std::hash<mse::TRefCountingConstPointer<std::string> > refcc_hash;
+			mse::TRefCountingConstPointer<std::string> refccptr1 = mse::make_refcounting<std::string>("some text");
+			auto refcc_hash_val = refcc_hash(refccptr1);
+			std::hash<mse::TAnyConstPointer<std::string> > anyc_hash;
+			mse::TAnyConstPointer<std::string> anycptr1 = refccptr1;
+			auto anyc_hash_val = anyc_hash(anycptr1);
+		}
+		{
+			std::hash<mse::TRefCountingOfRegisteredPointer<std::string> > refc_hash;
+			mse::TRefCountingOfRegisteredPointer<std::string> refcptr1 = mse::make_refcounting<std::string>("some text");
+			auto refc_hash_val = refc_hash(refcptr1);
+			std::hash<mse::TAnyPointer<std::string> > any_hash;
+			mse::TAnyPointer<std::string> anyptr1 = refcptr1;
+			auto any_hash_val1 = any_hash(anyptr1);
+		}
+		{
+			std::hash<mse::CBool> msebool_hash;
+			mse::CBool msebool1 = true;
+			auto msebool_hash_val = msebool_hash(msebool1);
+		}
+		{
+			std::hash<mse::CInt> mseint_hash;
+			mse::CInt mseint1 = 5;
+			auto mseint_hash_val = mseint_hash(mseint1);
+		}
+		{
+			std::hash<mse::CSize_t> mseint_hash;
+			mse::CSize_t mseint1 = 7;
+			auto mseint_hash_val = mseint_hash(mseint1);
+		}
+		{
+			std::hash<std::string> stdstring_hash;
+			std::string stdstring1 = "some text";
+			auto stdstring_hash_val = stdstring_hash(stdstring1);
+		}
+		{
+			std::hash<mse::nii_string> msenii_string_hash;
+			mse::nii_string msenii_string1 = "some text";
+			auto msenii_string_hash_val = msenii_string_hash(msenii_string1);
+		}
+	}
+	{
+		{
+			typedef mse::mstd::vector<mse::mstd::string> string_vector;
+			typedef mse::TRegisteredObj<string_vector> reg_string_vector;
+			reg_string_vector v1;
+			v1.resize(7);
+			mse::TRandomAccessSection<decltype(v1.begin())> ras1(v1.begin(), v1.size());
+			auto ras2 = ras1;
+			auto ras3(ras1);
+			ras1.swap(ras2);
+			std::swap(ras1, ras2);
+			auto res2 = ras1.equal(ras2);
+			auto res3 = ras1.equal(&v1);
+			auto res4 = ras1.lexicographical_compare(ras2);
+		}
+		{
+			typedef mse::nii_vector<mse::nii_string> string_nii_vector;
+			auto ar1 = mse::make_asyncsharedv2readwrite<string_nii_vector>();
+			auto nii_v1_wlptr = ar1.writelock_ptr();
+			(*nii_v1_wlptr).resize(7);
+			auto first_iter = string_nii_vector::ss_begin(nii_v1_wlptr);
+
+			mse::TRandomAccessSection<decltype(first_iter)> ras1(first_iter, (*nii_v1_wlptr).size());
+			auto ras2 = ras1;
+			auto ras3(ras1);
+			//ras1.swap(ras2);
+			//std::swap(ras1, ras2);
+			auto res2 = ras1.equal(ras2);
+			auto res3 = ras1.equal(nii_v1_wlptr);
+		}
+		{
+			class CA {
+			private:
+				bool operator==(const CA& rhs) const { return true; }
+			};
+			typedef mse::mstd::vector<CA> CA_vector;
+			typedef mse::TRegisteredObj<CA_vector> reg_CA_vector;
+			reg_CA_vector v1;
+			v1.resize(7);
+			mse::TRandomAccessSection<decltype(v1.begin())> ras1(v1.begin(), v1.size());
+			auto ras2 = ras1;
+			auto ras3(ras1);
+			ras1.swap(ras2);
+			std::swap(ras1, ras2);
+			//auto res2 = ras1.equal(ras2);
+			//auto res3 = ras1.equal(&v1);
+		}
+
+		int q = 5;
 	}
 
 	{
