@@ -99,7 +99,8 @@ namespace mse {
 	};
 	*/
 
-	/* The purpose of this template function is just to produce a compile error on attempts to instantiate with a scope type. */
+	/* The purpose of these template functions are just to produce a compile error on attempts to instantiate
+	when certain conditions are not met. */
 	template<class _Ty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _Ty>::value), void>::type>
 	void T_valid_if_not_an_xscope_type() {}
 
@@ -425,22 +426,16 @@ namespace mse {
 
 		template <class... Args>
 		TXScopeOwnerPointer(Args&&... args) {
-			TXScopeObj<_Ty>* new_ptr = new TXScopeObj<_Ty>(std::forward<Args>(args)...);
-			m_ptr = new_ptr;
-		}
-		virtual ~TXScopeOwnerPointer() {
-			assert(m_ptr);
-			delete m_ptr;
-
-			/* At the moment TXScopeOwnerPointer<> doesn't support types that are already scope types. */
-			T_valid_if_not_an_xscope_type<_Ty>();
+			/* In the case where there is exactly one argument and its type is derived from this type, we want to
+			act like a move constructor here. We use a helper function to check for this case and act accordingly. */
+			constructor_helper1(std::forward<Args>(args)...);
 		}
 
 		TXScopeObj<_Ty>& operator*() const {
 			return (*m_ptr);
 		}
 		TXScopeObj<_Ty>* operator->() const {
-			return m_ptr;
+			return std::addressof(*m_ptr);
 		}
 
 		template <class... Args>
@@ -456,11 +451,42 @@ namespace mse {
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
+		/* construction helper functions */
+		template <class... Args>
+		void initialize(Args&&... args) {
+			/* We can't use std::make_unique<> because TXScopeObj<>'s "operator new()" is private and inaccessible to
+			std::make_unique<> (which is not a friend of TXScopeObj<> like we are). */
+			auto new_ptr = new TXScopeObj<_Ty>(std::forward<Args>(args)...);
+			m_ptr.reset(new_ptr);
+		}
+		template <class _TSoleArg>
+		void constructor_helper2(std::true_type, _TSoleArg&& sole_arg) {
+			/* The sole parameter is derived from, or of this type, so we're going to consider the constructor
+			a move constructor. */
+			m_ptr = std::forward<decltype(sole_arg.m_ptr)>(sole_arg.m_ptr);
+		}
+		template <class _TSoleArg>
+		void constructor_helper2(std::false_type, _TSoleArg&& sole_arg) {
+			/* The sole parameter is not derived from, or of this type, so the constructor is not a move
+			constructor. */
+			initialize(std::forward<decltype(sole_arg)>(sole_arg));
+		}
+		template <class... Args>
+		void constructor_helper1(Args&&... args) {
+			initialize(std::forward<Args>(args)...);
+		}
+		template <class _TSoleArg>
+		void constructor_helper1(_TSoleArg&& sole_arg) {
+			/* The constructor was given exactly one parameter. If the parameter is derived from, or of this type,
+			then we're going to consider the constructor a move constructor. */
+			constructor_helper2(typename std::is_base_of<TXScopeOwnerPointer, _TSoleArg>::type(), std::forward<decltype(sole_arg)>(sole_arg));
+		}
+
 		TXScopeOwnerPointer(const TXScopeOwnerPointer<_Ty>& src_cref) = delete;
 		TXScopeOwnerPointer<_Ty>& operator=(const TXScopeOwnerPointer<_Ty>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
-		TXScopeObj<_Ty>* m_ptr = nullptr;
+		std::unique_ptr<TXScopeObj<_Ty> > m_ptr = nullptr;
 	};
 
 	template <class X, class... Args>
