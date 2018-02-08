@@ -60,7 +60,12 @@ namespace mse {
 			explicit vector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
 			explicit vector(size_type _N) : m_shptr(std::make_shared<_MV>(_N)) {}
 			explicit vector(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
-			vector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X.msevector())>(_X.msevector()))) {}
+			vector(_Myt&& _X) : m_shptr(std::make_shared<_MV>()) {
+				static_assert(typename std::is_rvalue_reference<decltype(_X)>::type(), "");
+				/* It would be more efficient to just move _X.m_shptr into m_shptr, but that would leave _X in what we
+				would consider an invalid state. */
+				msevector() = std::move(_X.msevector());
+			}
 			vector(const _Myt& _X) : m_shptr(std::make_shared<_MV>(_X.msevector())) {}
 			vector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X)>(_X))) {}
 			vector(const _MV& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
@@ -74,10 +79,16 @@ namespace mse {
 			template<class _Iter, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type>
 			vector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MV>(_First, _Last, _Al)) {}
 
-			_Myt& operator=(_MV&& _X) { m_shptr->operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			_Myt& operator=(const _MV& _X) { m_shptr->operator=(_X); return (*this); }
-			_Myt& operator=(_Myt&& _X) { m_shptr->operator=(std::forward<decltype(_X.msevector())>(_X.msevector())); return (*this); }
-			_Myt& operator=(const _Myt& _X) { m_shptr->operator=(_X.msevector()); return (*this); }
+			_Myt& operator=(_MV&& _X) { msevector() = (std::forward<decltype(_X)>(_X)); return (*this); }
+			_Myt& operator=(const _MV& _X) { msevector() = (_X); return (*this); }
+			_Myt& operator=(_Myt&& _X) {
+				static_assert(typename std::is_rvalue_reference<decltype(_X)>::type(), "");
+				/* It would be more efficient to just move _X.m_shptr into m_shptr, but that would leave _X in what we
+				would consider an invalid state. */
+				msevector() = std::move(_X.msevector());
+				return (*this);
+			}
+			_Myt& operator=(const _Myt& _X) { msevector() = (_X.msevector()); return (*this); }
 			void reserve(size_type _Count) { m_shptr->reserve(_Count); }
 			void resize(size_type _N, const _Ty& _X = _Ty()) { m_shptr->resize(_N, _X); }
 			typename _MV::const_reference operator[](size_type _P) const { return m_shptr->operator[](_P); }
@@ -96,7 +107,7 @@ namespace mse {
 			void swap(std::vector<_Ty, _A>& _X) { m_shptr->swap(_X); }
 
 			vector(_XSTD initializer_list<typename _MV::value_type> _Ilist, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Ilist, _Al)) {}
-			_Myt& operator=(_XSTD initializer_list<typename _MV::value_type> _Ilist) { m_shptr->operator=(_Ilist); return (*this); }
+			_Myt& operator=(_XSTD initializer_list<typename _MV::value_type> _Ilist) { msevector() = (_Ilist); return (*this); }
 			void assign(_XSTD initializer_list<typename _MV::value_type> _Ilist) { m_shptr->assign(_Ilist); }
 
 			size_type capacity() const _NOEXCEPT { return m_shptr->capacity(); }
