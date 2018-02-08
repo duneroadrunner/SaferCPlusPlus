@@ -25,20 +25,6 @@ namespace mse {
 
 	namespace mstd {
 
-#if 0
-		/* These do not have safe implementations yet. Presumably, safe implementations will resemble those of the vectors. */
-
-		template<class _Elem, class _Traits = std::char_traits<_Elem>, class _Alloc = std::allocator<_Elem> >
-		class basic_string : public std::basic_string<_Elem, _Traits, _Alloc> {
-		public:
-			typedef std::basic_string<_Elem, _Traits, _Alloc> base_class;
-			using base_class::base_class;
-
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
-		};
-#endif //0
-
-
 #ifdef MSE_MSTDSTRING_DISABLED
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> > using basic_string = std::basic_string<_Ty, _Traits, _A>;
 
@@ -1320,15 +1306,10 @@ namespace mse {
 
 #endif /*MSE_MSTDSTRING_DISABLED*/
 
-
-
-		class string : public basic_string<char> {
-		public:
-			typedef basic_string<char> base_class;
-			using base_class::base_class;
-
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
-		};
+		using string = basic_string<char>;
+		using wstring = basic_string<wchar_t>;
+		using u16string = basic_string<char16_t>;
+		using u32string = basic_string<char32_t>;
 	}
 }
 
