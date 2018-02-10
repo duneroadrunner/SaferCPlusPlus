@@ -1970,6 +1970,23 @@ namespace mse {
 	using nii_u16string = nii_basic_string<char16_t>;
 	using nii_u32string = nii_basic_string<char32_t>;
 
+	inline namespace literals {
+		inline namespace string_literals {
+			inline mse::nii_basic_string<char> operator "" _niis(const char *__str, size_t __len) _NOEXCEPT {
+				return mse::nii_basic_string<char>(__str, __len);
+			}
+			inline mse::nii_basic_string<wchar_t> operator "" _niis(const wchar_t *__str, size_t __len) _NOEXCEPT {
+				return mse::nii_basic_string<wchar_t>(__str, __len);
+			}
+			inline mse::nii_basic_string<char16_t> operator "" _niis(const char16_t *__str, size_t __len) _NOEXCEPT {
+				return mse::nii_basic_string<char16_t>(__str, __len);
+			}
+			inline mse::nii_basic_string<char32_t> operator "" _niis(const char32_t *__str, size_t __len) _NOEXCEPT {
+				return mse::nii_basic_string<char32_t>(__str, __len);
+			}
+		}
+	}
+
 
 	namespace us {
 
@@ -5411,6 +5428,25 @@ namespace std {
 }
 
 namespace mse {
+
+	template <typename _TRAIterator>
+	class TStringSectionBase : public TRandomAccessSectionBase<_TRAIterator> {
+	public:
+		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
+
+		typedef typename base_class::element_t element_t;
+		typedef typename base_class::reference_t reference_t;
+		typedef typename base_class::const_reference_t const_reference_t;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_t difference_t;
+		static const size_type npos = size_type(-1);
+
+		typedef std::char_traits<element_t> _Traits;
+
+		MSE_MSESTRING_USING(TStringSectionBase, base_class);
+
+	};
+
 	template <typename _TRandomAccessSection>
 	class TStringSectionFunctionaltyWrapper : public _TRandomAccessSection {
 	public:
