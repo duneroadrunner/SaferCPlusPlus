@@ -2350,19 +2350,19 @@ namespace mse {
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, XScopeContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRAIteratorBase<_TRAContainerPointer> > >::type
 	{
 	public:
-		typedef decltype((*std::declval<_TRAContainerPointer>())[0]) reference_t;
-		typedef typename mse::us::msearray<int, 0>::difference_type difference_t;
+		typedef decltype((*std::declval<_TRAContainerPointer>())[0]) reference;
+		typedef typename mse::us::msearray<int, 0>::difference_type difference_type;
 		typedef typename mse::us::msearray<int, 0>::size_type size_type;
 
 	private:
 		const _TRAContainerPointer m_ra_container_pointer;
-		difference_t m_index = 0;
+		difference_type m_index = 0;
 
 	public:
 		TRAIteratorBase(const TRAIteratorBase& src)
 			: m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
 		TRAIteratorBase(_TRAContainerPointer ra_container_pointer, size_type index = 0)
-			: m_ra_container_pointer(ra_container_pointer), m_index(difference_t(index)) {}
+			: m_ra_container_pointer(ra_container_pointer), m_index(difference_type(index)) {}
 
 		auto operator*() const {
 			return (*m_ra_container_pointer)[m_index];
@@ -2370,21 +2370,21 @@ namespace mse {
 		auto operator->() const {
 			return std::addressof((*m_ra_container_pointer)[m_index]);
 		}
-		reference_t operator[](difference_t _Off) const { return (*m_ra_container_pointer)[size_type(m_index + _Off)]; }
-		TRAIteratorBase& operator +=(difference_t x) {
+		reference operator[](difference_type _Off) const { return (*m_ra_container_pointer)[size_type(m_index + _Off)]; }
+		TRAIteratorBase& operator +=(difference_type x) {
 			m_index += (x);
 			return (*this);
 		}
-		TRAIteratorBase& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TRAIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TRAIteratorBase& operator ++() { operator +=(1); return (*this); }
 		TRAIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRAIteratorBase& operator --() { operator -=(1); return (*this); }
 		TRAIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TRAIteratorBase operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TRAIteratorBase operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRAIteratorBase& _Right_cref) const {
-			if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_t operator-() - TRAIteratorBase")); }
+		TRAIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TRAIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRAIteratorBase& _Right_cref) const {
+			if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRAIteratorBase")); }
 			return m_index - _Right_cref.m_index;
 		}
 		bool operator ==(const TRAIteratorBase& _Right_cref) const {
@@ -2408,7 +2408,7 @@ namespace mse {
 	public:
 		typedef TRAIteratorBase<_TRAContainerPointer> base_class;
 
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		typedef typename base_class::size_type size_type;
 
 		TXScopeRAIterator(const TRAIteratorBase<_TRAContainerPointer>& src)
@@ -2416,19 +2416,19 @@ namespace mse {
 		TXScopeRAIterator(_TRAContainerPointer ra_container_pointer, size_type index = 0)
 			: base_class(ra_container_pointer, index) {}
 
-		TXScopeRAIterator& operator +=(difference_t x) {
+		TXScopeRAIterator& operator +=(difference_type x) {
 			base_class::operator +=(x);
 			return (*this);
 		}
-		TXScopeRAIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TXScopeRAIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TXScopeRAIterator& operator ++() { operator +=(1); return (*this); }
 		TXScopeRAIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TXScopeRAIterator& operator --() { operator -=(1); return (*this); }
 		TXScopeRAIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TXScopeRAIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TXScopeRAIterator operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		TXScopeRAIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TXScopeRAIterator operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
@@ -2452,8 +2452,8 @@ namespace mse {
 	public:
 		typedef TRAIteratorBase<_TRAContainerPointer> base_class;
 
-		typedef typename base_class::reference_t reference_t;
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::difference_type difference_type;
 		typedef typename base_class::size_type size_type;
 
 		TRAIterator(const TRAIterator& src)
@@ -2468,19 +2468,19 @@ namespace mse {
 			TRAIterator(_TRAContainerPointer1 ra_container_pointer, size_type index = 0)
 			: base_class(ra_container_pointer, index) {}
 
-		TRAIterator& operator +=(difference_t x) {
+		TRAIterator& operator +=(difference_type x) {
 			base_class::operator +=(x);
 			return (*this);
 		}
-		TRAIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TRAIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TRAIterator& operator ++() { operator +=(1); return (*this); }
 		TRAIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRAIterator& operator --() { operator -=(1); return (*this); }
 		TRAIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TRAIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TRAIterator operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		TRAIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TRAIterator operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
@@ -2495,15 +2495,15 @@ namespace mse {
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, XScopeContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRAConstIteratorBase<_TRAContainerPointer> > >::type
 	{
 	public:
-		typedef typename std::remove_reference<decltype((*std::declval<_TRAContainerPointer>())[0])>::type element_t;
-		typedef decltype((*std::declval<_TRAContainerPointer>())[0]) reference_t;
-		typedef typename std::add_lvalue_reference<typename std::add_const<element_t>::type>::type const_reference_t;
+		typedef typename std::remove_reference<decltype((*std::declval<_TRAContainerPointer>())[0])>::type value_type;
+		typedef decltype((*std::declval<_TRAContainerPointer>())[0]) reference;
+		typedef typename std::add_lvalue_reference<typename std::add_const<value_type>::type>::type const_reference;
 		typedef typename mse::us::msearray<int, 0>::size_type size_type;
-		typedef typename mse::us::msearray<int, 0>::difference_type difference_t;
+		typedef typename mse::us::msearray<int, 0>::difference_type difference_type;
 
 	private:
 		const _TRAContainerPointer m_ra_container_pointer;
-		difference_t m_index = 0;
+		difference_type m_index = 0;
 
 	public:
 		TRAConstIteratorBase(const TRAConstIteratorBase& src)
@@ -2511,29 +2511,29 @@ namespace mse {
 		TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>& src)
 			: m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
 		TRAConstIteratorBase(_TRAContainerPointer ra_container_pointer, size_type index = 0)
-			: m_ra_container_pointer(ra_container_pointer), m_index(difference_t(index)) {}
+			: m_ra_container_pointer(ra_container_pointer), m_index(difference_type(index)) {}
 
-		auto operator*() -> const_reference_t const {
+		auto operator*() -> const_reference const {
 			return (*m_ra_container_pointer)[m_index];
 		}
-		auto operator->() -> typename std::add_pointer<typename std::add_const<element_t>::type>::type const {
+		auto operator->() -> typename std::add_pointer<typename std::add_const<value_type>::type>::type const {
 			return std::addressof((*m_ra_container_pointer)[m_index]);
 		}
-		const_reference_t operator[](difference_t _Off) const { return (*m_ra_container_pointer)[size_type(m_index + _Off)]; }
-		TRAConstIteratorBase& operator +=(difference_t x) {
+		const_reference operator[](difference_type _Off) const { return (*m_ra_container_pointer)[size_type(m_index + _Off)]; }
+		TRAConstIteratorBase& operator +=(difference_type x) {
 			m_index += (x);
 			return (*this);
 		}
-		TRAConstIteratorBase& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TRAConstIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TRAConstIteratorBase& operator ++() { operator +=(1); return (*this); }
 		TRAConstIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRAConstIteratorBase& operator --() { operator -=(1); return (*this); }
 		TRAConstIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TRAConstIteratorBase operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TRAConstIteratorBase operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRAConstIteratorBase& _Right_cref) const {
-			if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_t operator-() - TRAConstIteratorBase")); }
+		TRAConstIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TRAConstIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRAConstIteratorBase& _Right_cref) const {
+			if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRAConstIteratorBase")); }
 			return m_index - _Right_cref.m_index;
 		}
 		bool operator ==(const TRAConstIteratorBase& _Right_cref) const {
@@ -2556,7 +2556,7 @@ namespace mse {
 	public:
 		typedef TRAConstIteratorBase<_TRAContainerPointer> base_class;
 
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		typedef typename base_class::size_type size_type;
 
 		TXScopeRAConstIterator(const TRAConstIteratorBase<_TRAContainerPointer>& src)
@@ -2564,19 +2564,19 @@ namespace mse {
 		TXScopeRAConstIterator(_TRAContainerPointer ra_container_pointer, size_type index = 0)
 			: base_class(ra_container_pointer, index) {}
 
-		TXScopeRAConstIterator& operator +=(difference_t x) {
+		TXScopeRAConstIterator& operator +=(difference_type x) {
 			base_class::operator +=(x);
 			return (*this);
 		}
-		TXScopeRAConstIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TXScopeRAConstIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TXScopeRAConstIterator& operator ++() { operator +=(1); return (*this); }
 		TXScopeRAConstIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TXScopeRAConstIterator& operator --() { operator -=(1); return (*this); }
 		TXScopeRAConstIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TXScopeRAConstIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TXScopeRAConstIterator operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		TXScopeRAConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TXScopeRAConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
@@ -2600,7 +2600,7 @@ namespace mse {
 	public:
 		typedef TRAConstIteratorBase<_TRAContainerPointer> base_class;
 
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		typedef typename base_class::size_type size_type;
 
 		TRAConstIterator(const TRAConstIterator& src)
@@ -2615,19 +2615,19 @@ namespace mse {
 			TRAConstIterator(_TRAContainerPointer1 ra_container_pointer, size_type index = 0)
 			: base_class(ra_container_pointer, index) {}
 
-		TRAConstIterator& operator +=(difference_t x) {
+		TRAConstIterator& operator +=(difference_type x) {
 			base_class::operator +=(x);
 			return (*this);
 		}
-		TRAConstIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TRAConstIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TRAConstIterator& operator ++() { operator +=(1); return (*this); }
 		TRAConstIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRAConstIterator& operator --() { operator -=(1); return (*this); }
 		TRAConstIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TRAConstIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TRAConstIterator operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		TRAConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TRAConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
@@ -2645,23 +2645,23 @@ namespace mse {
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRASectionIteratorBase<_TRAIterator> > >::type
 	{
 	public:
-		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
-		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+		typedef decltype(std::declval<_TRAIterator>()[0]) reference;
+		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
 		typedef typename mse::us::msearray<int, 0>::size_type size_type;
 
 	private:
 		const _TRAIterator m_ra_iterator;
 		const size_type m_count = 0;
-		difference_t m_index = 0;
+		difference_type m_index = 0;
 
 	public:
 		TRASectionIteratorBase(const TRASectionIteratorBase& src)
 			: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
 		TRASectionIteratorBase(_TRAIterator ra_iterator, size_type count, size_type index = 0)
-			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_t(index)) {}
+			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(index)) {}
 
-		void bounds_check(difference_t index) const {
-			if ((0 > index) || (difference_t(m_count) <= index)) {
+		void bounds_check(difference_type index) const {
+			if ((0 > index) || (difference_type(m_count) <= index)) {
 				MSE_THROW(msearray_range_error("out of bounds index - void bounds_check() - TRASectionIteratorBase"));
 			}
 		}
@@ -2676,24 +2676,24 @@ namespace mse {
 			dereference_bounds_check();
 			return std::addressof(m_ra_iterator[m_index]);
 		}
-		reference_t operator[](difference_t _Off) const {
+		reference operator[](difference_type _Off) const {
 			bounds_check(_Off);
 			return m_ra_iterator[_Off];
 		}
-		TRASectionIteratorBase& operator +=(difference_t x) {
+		TRASectionIteratorBase& operator +=(difference_type x) {
 			m_index += (x);
 			return (*this);
 		}
-		TRASectionIteratorBase& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TRASectionIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TRASectionIteratorBase& operator ++() { operator +=(1); return (*this); }
 		TRASectionIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRASectionIteratorBase& operator --() { operator -=(1); return (*this); }
 		TRASectionIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TRASectionIteratorBase operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TRASectionIteratorBase operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRASectionIteratorBase& _Right_cref) const {
-			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_t operator-() - TRASectionIteratorBase")); }
+		TRASectionIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TRASectionIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRASectionIteratorBase& _Right_cref) const {
+			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRASectionIteratorBase")); }
 			return m_index - _Right_cref.m_index;
 		}
 		bool operator ==(const TRASectionIteratorBase& _Right_cref) const {
@@ -2717,7 +2717,7 @@ namespace mse {
 	public:
 		typedef TRASectionIteratorBase<_TRAIterator> base_class;
 
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		typedef typename base_class::size_type size_type;
 
 		TXScopeRASectionIterator(const TRASectionIteratorBase<_TRAIterator>& src)
@@ -2725,19 +2725,19 @@ namespace mse {
 		TXScopeRASectionIterator(_TRAIterator ra_iterator, size_type count, size_type index = 0)
 			: base_class(ra_iterator, count, index) {}
 
-		TXScopeRASectionIterator& operator +=(difference_t x) {
+		TXScopeRASectionIterator& operator +=(difference_type x) {
 			base_class::operator +=(x);
 			return (*this);
 		}
-		TXScopeRASectionIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TXScopeRASectionIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TXScopeRASectionIterator& operator ++() { operator +=(1); return (*this); }
 		TXScopeRASectionIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TXScopeRASectionIterator& operator --() { operator -=(1); return (*this); }
 		TXScopeRASectionIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TXScopeRASectionIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TXScopeRASectionIterator operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) const {
+		TXScopeRASectionIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TXScopeRASectionIterator operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
@@ -2761,7 +2761,7 @@ namespace mse {
 	public:
 		typedef TRASectionIteratorBase<_TRAIterator> base_class;
 
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		typedef typename base_class::size_type size_type;
 
 		TRASectionIterator(const TRASectionIterator& src)
@@ -2772,19 +2772,19 @@ namespace mse {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
-		TRASectionIterator& operator +=(difference_t x) {
+		TRASectionIterator& operator +=(difference_type x) {
 			base_class::operator +=(x);
 			return (*this);
 		}
-		TRASectionIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TRASectionIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TRASectionIterator& operator ++() { operator +=(1); return (*this); }
 		TRASectionIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRASectionIterator& operator --() { operator -=(1); return (*this); }
 		TRASectionIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TRASectionIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TRASectionIterator operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) const {
+		TRASectionIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TRASectionIterator operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
@@ -2799,16 +2799,16 @@ namespace mse {
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRASectionConstIteratorBase<_TRAIterator> > >::type
 	{
 	public:
-		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
-		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
-		typedef typename std::add_lvalue_reference<typename std::add_const<element_t>::type>::type const_reference_t;
+		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type value_type;
+		typedef decltype(std::declval<_TRAIterator>()[0]) reference;
+		typedef typename std::add_lvalue_reference<typename std::add_const<value_type>::type>::type const_reference;
 		typedef typename mse::us::msearray<int, 0>::size_type size_type;
-		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
 
 	private:
 		const _TRAIterator m_ra_iterator;
 		const size_type m_count = 0;
-		difference_t m_index = 0;
+		difference_type m_index = 0;
 
 	public:
 		TRASectionConstIteratorBase(const TRASectionConstIteratorBase& src)
@@ -2816,42 +2816,42 @@ namespace mse {
 		TRASectionConstIteratorBase(const TRASectionIteratorBase<_TRAIterator>& src)
 			: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
 		TRASectionConstIteratorBase(_TRAIterator ra_iterator, size_type count, size_type index = 0)
-			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_t(index)) {}
+			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(index)) {}
 
-		void bounds_check(difference_t index) const {
-			if ((0 > index) || (difference_t(m_count) <= index)) {
+		void bounds_check(difference_type index) const {
+			if ((0 > index) || (difference_type(m_count) <= index)) {
 				MSE_THROW(msearray_range_error("out of bounds index - void bounds_check() - TRASectionConstIteratorBase"));
 			}
 		}
 		void dereference_bounds_check() const {
 			bounds_check(m_index);
 		}
-		auto operator*() -> const_reference_t const {
+		auto operator*() -> const_reference const {
 			dereference_bounds_check();
 			return m_ra_iterator[m_index];
 		}
-		auto operator->() -> typename std::add_pointer<typename std::add_const<element_t>::type>::type const {
+		auto operator->() -> typename std::add_pointer<typename std::add_const<value_type>::type>::type const {
 			dereference_bounds_check();
 			return std::addressof(m_ra_iterator[m_index]);
 		}
-		const_reference_t operator[](difference_t _Off) const {
+		const_reference operator[](difference_type _Off) const {
 			bounds_check(_Off);
 			return m_ra_iterator[_Off];
 		}
-		TRASectionConstIteratorBase& operator +=(difference_t x) {
+		TRASectionConstIteratorBase& operator +=(difference_type x) {
 			m_index += (x);
 			return (*this);
 		}
-		TRASectionConstIteratorBase& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TRASectionConstIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TRASectionConstIteratorBase& operator ++() { operator +=(1); return (*this); }
 		TRASectionConstIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRASectionConstIteratorBase& operator --() { operator -=(1); return (*this); }
 		TRASectionConstIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TRASectionConstIteratorBase operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TRASectionConstIteratorBase operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRASectionConstIteratorBase& _Right_cref) const {
-			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_t operator-() - TRASectionConstIteratorBase")); }
+		TRASectionConstIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TRASectionConstIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRASectionConstIteratorBase& _Right_cref) const {
+			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRASectionConstIteratorBase")); }
 			return m_index - _Right_cref.m_index;
 		}
 		bool operator ==(const TRASectionConstIteratorBase& _Right_cref) const {
@@ -2874,7 +2874,7 @@ namespace mse {
 	public:
 		typedef TRASectionConstIteratorBase<_TRAIterator> base_class;
 
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		typedef typename base_class::size_type size_type;
 
 		TXScopeRASectionConstIterator(const TRASectionConstIteratorBase<_TRAIterator>& src)
@@ -2882,19 +2882,19 @@ namespace mse {
 		TXScopeRASectionConstIterator(_TRAIterator ra_iterator, size_type count, size_type index = 0)
 			: base_class(ra_iterator, count, index) {}
 
-		TXScopeRASectionConstIterator& operator +=(difference_t x) {
+		TXScopeRASectionConstIterator& operator +=(difference_type x) {
 			base_class::operator +=(x);
 			return (*this);
 		}
-		TXScopeRASectionConstIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TXScopeRASectionConstIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TXScopeRASectionConstIterator& operator ++() { operator +=(1); return (*this); }
 		TXScopeRASectionConstIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TXScopeRASectionConstIterator& operator --() { operator -=(1); return (*this); }
 		TXScopeRASectionConstIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TXScopeRASectionConstIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TXScopeRASectionConstIterator operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
+		TXScopeRASectionConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TXScopeRASectionConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
@@ -2918,7 +2918,7 @@ namespace mse {
 	public:
 		typedef TRASectionConstIteratorBase<_TRAIterator> base_class;
 
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		typedef typename base_class::size_type size_type;
 
 		TRASectionConstIterator(const TRASectionConstIterator& src) : base_class(src) {}
@@ -2929,19 +2929,19 @@ namespace mse {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
-		TRASectionConstIterator& operator +=(difference_t x) {
+		TRASectionConstIterator& operator +=(difference_type x) {
 			base_class::operator +=(x);
 			return (*this);
 		}
-		TRASectionConstIterator& operator -=(difference_t x) { operator +=(-x); return (*this); }
+		TRASectionConstIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TRASectionConstIterator& operator ++() { operator +=(1); return (*this); }
 		TRASectionConstIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRASectionConstIterator& operator --() { operator -=(1); return (*this); }
 		TRASectionConstIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
-		TRASectionConstIterator operator+(difference_t n) const { auto retval = (*this); retval += n; return retval; }
-		TRASectionConstIterator operator-(difference_t n) const { return ((*this) + (-n)); }
-		difference_t operator-(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
+		TRASectionConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+		TRASectionConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
+		difference_type operator-(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
@@ -2998,11 +2998,11 @@ namespace mse {
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRandomAccessSectionBase<_TRAIterator> > >::type
 	{
 	public:
-		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
-		typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
-		typedef typename std::add_lvalue_reference<typename std::add_const<element_t>::type>::type const_reference_t;
-		typedef typename mse::us::msearray<element_t, 0>::size_type size_type;
-		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type value_type;
+		typedef decltype(std::declval<_TRAIterator>()[0]) reference;
+		typedef typename std::add_lvalue_reference<typename std::add_const<value_type>::type>::type const_reference;
+		typedef typename mse::us::msearray<value_type, 0>::size_type size_type;
+		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
 		static const size_type npos = size_type(-1);
 
 		//TRandomAccessSectionBase(const TRandomAccessSectionBase& src) = default;
@@ -3015,19 +3015,19 @@ namespace mse {
 			: m_start_iter(iter_from_lone_param1(typename std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::type(), param))
 			, m_count(count_from_lone_param1(typename std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::type(), param)) {}
 
-		reference_t operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TRandomAccessSectionBase")); }
-			return m_start_iter[difference_t(_P)];
+		reference operator[](size_type _P) const {
+			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TRandomAccessSectionBase")); }
+			return m_start_iter[difference_type(_P)];
 		}
-		reference_t at(size_type _P) const {
+		reference at(size_type _P) const {
 			return (*this)[_P];
 		}
-		reference_t front() const {
-			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - reference_t front() const - TRandomAccessSectionBase")); }
+		reference front() const {
+			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - reference front() const - TRandomAccessSectionBase")); }
 			return (*this)[0];
 		}
-		reference_t back() const {
-			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - reference_t back() const - TRandomAccessSectionBase")); }
+		reference back() const {
+			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - reference back() const - TRandomAccessSectionBase")); }
 			return (*this)[(*this).size() - 1];
 		}
 		size_type size() const _NOEXCEPT {
@@ -3037,7 +3037,7 @@ namespace mse {
 			return (*this).size();
 		}
 		size_type max_size() const _NOEXCEPT {	// return maximum possible length of sequence
-			return static_cast<size_type>((std::numeric_limits<difference_t>::max)());
+			return static_cast<size_type>((std::numeric_limits<difference_type>::max)());
 		}
 		bool empty() const _NOEXCEPT {
 			return (0 == (*this).size());
@@ -3141,7 +3141,7 @@ namespace mse {
 			}
 			return (cit - (*this).xscope_cbegin());
 		}
-		size_type find(const element_t& c, size_type pos = 0) const _NOEXCEPT {
+		size_type find(const value_type& c, size_type pos = 0) const _NOEXCEPT {
 			if ((*this).size() <= 1) {
 				return npos;
 			}
@@ -3158,7 +3158,7 @@ namespace mse {
 			}
 			return (cit - (*this).xscope_cbegin());
 		}
-		size_type rfind(const element_t& c, size_type pos = npos) const _NOEXCEPT {
+		size_type rfind(const value_type& c, size_type pos = npos) const _NOEXCEPT {
 			if ((*this).size() <= 1) {
 				return npos;
 			}
@@ -3186,7 +3186,7 @@ namespace mse {
 			}
 			return (cit - (*this).xscope_cbegin());
 		}
-		size_type find_first_of(const element_t& c, size_type pos = 0) const _NOEXCEPT {
+		size_type find_first_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
 			return find(c, pos);
 		}
 		size_type find_last_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
@@ -3210,14 +3210,14 @@ namespace mse {
 			}
 			return npos;
 		}
-		size_type find_last_of(const element_t& c, size_type pos = npos) const _NOEXCEPT {
+		size_type find_last_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
 			return rfind(c, pos);
 		}
 		size_type find_first_not_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
 			if ((1 > s.size()) || (1 > (*this).size())) {
 				return npos;
 			}
-			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&s](const element_t& domain_element_cref) {
+			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&s](const value_type& domain_element_cref) {
 				for (const auto& search_element_cref : s) {
 					if (domain_element_cref == search_element_cref) {
 						return true;
@@ -3231,11 +3231,11 @@ namespace mse {
 			}
 			return (cit - (*this).xscope_cbegin());
 		}
-		size_type find_first_not_of(const element_t& c, size_type pos = 0) const _NOEXCEPT {
+		size_type find_first_not_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
 			if (1 > (*this).size()) {
 				return npos;
 			}
-			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&c](const element_t& domain_element_cref) {
+			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&c](const value_type& domain_element_cref) {
 				if (domain_element_cref == c) {
 					return true;
 				}
@@ -3268,7 +3268,7 @@ namespace mse {
 			}
 			return npos;
 		}
-		size_type find_last_not_of(const element_t& c, size_type pos = npos) const _NOEXCEPT {
+		size_type find_last_not_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
 			if (1 > (*this).size()) {
 				return npos;
 			}
@@ -3291,13 +3291,13 @@ namespace mse {
 		bool starts_with(const TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
 			return (size() >= s.size()) && equal(0, s.size(), s);
 		}
-		bool starts_with(const element_t& c) const _NOEXCEPT {
+		bool starts_with(const value_type& c) const _NOEXCEPT {
 			return (!empty()) && (front() == c);
 		}
 		bool ends_with(const TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
 			return (size() >= s.size()) && equal(size() - s.size(), npos, s);
 		}
-		bool ends_with(const element_t& c) const _NOEXCEPT {
+		bool ends_with(const value_type& c) const _NOEXCEPT {
 			return (!empty()) && (back() == c);
 		}
 
@@ -3429,11 +3429,11 @@ namespace mse {
 	class TXScopeRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator>, public XScopeTagBase {
 	public:
 		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
-		typedef typename base_class::element_t element_t;
-		typedef typename base_class::reference_t reference_t;
-		typedef typename base_class::const_reference_t const_reference_t;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		static const size_type npos = size_type(-1);
 
 		//TXScopeRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter,count) {}
@@ -3472,11 +3472,11 @@ namespace mse {
 	class TRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator> {
 	public:
 		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
-		typedef typename base_class::element_t element_t;
-		typedef typename base_class::reference_t reference_t;
-		typedef typename base_class::const_reference_t const_reference_t;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		static const size_type npos = size_type(-1);
 
 		TRandomAccessSection(const TRandomAccessSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -3540,11 +3540,11 @@ namespace mse {
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRandomAccessConstSectionBase<_TRAIterator> > >::type
 	{
 	public:
-		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type element_t;
-		//typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
-		typedef typename std::add_lvalue_reference<typename std::add_const<element_t>::type>::type const_reference_t;
-		typedef typename mse::us::msearray<element_t, 0>::size_type size_type;
-		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type value_type;
+		//typedef decltype(std::declval<_TRAIterator>()[0]) reference;
+		typedef typename std::add_lvalue_reference<typename std::add_const<value_type>::type>::type const_reference;
+		typedef typename mse::us::msearray<value_type, 0>::size_type size_type;
+		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
 		static const size_type npos = size_type(-1);
 
 		//TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) = default;
@@ -3558,19 +3558,19 @@ namespace mse {
 			: m_start_iter(TRandomAccessSectionBase<_TRAIterator>::iter_from_lone_param1(typename std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::type(), param))
 			, m_count(TRandomAccessSectionBase<_TRAIterator>::count_from_lone_param1(typename std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::type(), param)) {}
 
-		const_reference_t operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TRandomAccessConstSectionBase")); }
-			return m_start_iter[difference_t(_P)];
+		const_reference operator[](size_type _P) const {
+			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TRandomAccessConstSectionBase")); }
+			return m_start_iter[difference_type(_P)];
 		}
-		const_reference_t at(size_type _P) const {
+		const_reference at(size_type _P) const {
 			return (*this)[_P];
 		}
-		const_reference_t front() const {
-			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - const_reference_t front() const - TRandomAccessConstSectionBase")); }
+		const_reference front() const {
+			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - const_reference front() const - TRandomAccessConstSectionBase")); }
 			return (*this)[0];
 		}
-		const_reference_t back() const {
-			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - const_reference_t back() const - TRandomAccessConstSectionBase")); }
+		const_reference back() const {
+			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - const_reference back() const - TRandomAccessConstSectionBase")); }
 			return (*this)[(*this).size() - 1];
 		}
 		size_type size() const _NOEXCEPT {
@@ -3580,7 +3580,7 @@ namespace mse {
 			return (*this).size();
 		}
 		size_type max_size() const _NOEXCEPT {	// return maximum possible length of sequence
-			return static_cast<size_type>((std::numeric_limits<difference_t>::max)());
+			return static_cast<size_type>((std::numeric_limits<difference_type>::max)());
 		}
 		bool empty() const _NOEXCEPT {
 			return (0 == (*this).size());
@@ -3684,7 +3684,7 @@ namespace mse {
 			}
 			return (cit - (*this).xscope_cbegin());
 		}
-		size_type find(const element_t& c, size_type pos = 0) const _NOEXCEPT {
+		size_type find(const value_type& c, size_type pos = 0) const _NOEXCEPT {
 			if ((*this).size() <= 1) {
 				return npos;
 			}
@@ -3701,7 +3701,7 @@ namespace mse {
 			}
 			return (cit - (*this).xscope_cbegin());
 		}
-		size_type rfind(const element_t& c, size_type pos = npos) const _NOEXCEPT {
+		size_type rfind(const value_type& c, size_type pos = npos) const _NOEXCEPT {
 			if ((*this).size() <= 1) {
 				return npos;
 			}
@@ -3729,7 +3729,7 @@ namespace mse {
 			}
 			return (cit - (*this).xscope_cbegin());
 		}
-		size_type find_first_of(const element_t& c, size_type pos = 0) const _NOEXCEPT {
+		size_type find_first_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
 			return find(c, pos);
 		}
 		size_type find_last_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
@@ -3753,14 +3753,14 @@ namespace mse {
 			}
 			return npos;
 		}
-		size_type find_last_of(const element_t& c, size_type pos = npos) const _NOEXCEPT {
+		size_type find_last_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
 			return rfind(c, pos);
 		}
 		size_type find_first_not_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
 			if ((1 > s.size()) || (1 > (*this).size())) {
 				return npos;
 			}
-			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&s](const element_t& domain_element_cref) {
+			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&s](const value_type& domain_element_cref) {
 				for (const auto& search_element_cref : s) {
 					if (domain_element_cref == search_element_cref) {
 						return true;
@@ -3774,11 +3774,11 @@ namespace mse {
 			}
 			return (cit - (*this).xscope_cbegin());
 		}
-		size_type find_first_not_of(const element_t& c, size_type pos = 0) const _NOEXCEPT {
+		size_type find_first_not_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
 			if (1 > (*this).size()) {
 				return npos;
 			}
-			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&c](const element_t& domain_element_cref) {
+			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&c](const value_type& domain_element_cref) {
 				if (domain_element_cref == c) {
 					return true;
 				}
@@ -3811,7 +3811,7 @@ namespace mse {
 			}
 			return npos;
 		}
-		size_type find_last_not_of(const element_t& c, size_type pos = npos) const _NOEXCEPT {
+		size_type find_last_not_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
 			if (1 > (*this).size()) {
 				return npos;
 			}
@@ -3834,13 +3834,13 @@ namespace mse {
 		bool starts_with(const TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
 			return (size() >= s.size()) && equal(0, s.size(), s);
 		}
-		bool starts_with(const element_t& c) const _NOEXCEPT {
+		bool starts_with(const value_type& c) const _NOEXCEPT {
 			return (!empty()) && (front() == c);
 		}
 		bool ends_with(const TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
 			return (size() >= s.size()) && equal(size() - s.size(), npos, s);
 		}
-		bool ends_with(const element_t& c) const _NOEXCEPT {
+		bool ends_with(const value_type& c) const _NOEXCEPT {
 			return (!empty()) && (back() == c);
 		}
 
@@ -3884,10 +3884,10 @@ namespace mse {
 	class TXScopeRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator>, public XScopeTagBase {
 	public:
 		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
-		typedef typename base_class::element_t element_t;
-		typedef typename base_class::const_reference_t const_reference_t;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		static const size_type npos = size_type(-1);
 
 		//TXScopeRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
@@ -3927,10 +3927,10 @@ namespace mse {
 	class TRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator> {
 	public:
 		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
-		typedef typename base_class::element_t element_t;
-		typedef typename base_class::const_reference_t const_reference_t;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		static const size_type npos = size_type(-1);
 
 		template <class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TRAIterator>::value)>>

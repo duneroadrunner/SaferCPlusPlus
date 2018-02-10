@@ -5429,19 +5429,17 @@ namespace std {
 
 namespace mse {
 
-	template <typename _TRAIterator>
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename TRandomAccessSectionBase<_TRAIterator>::value_type> >
 	class TStringSectionBase : public TRandomAccessSectionBase<_TRAIterator> {
 	public:
 		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
 
-		typedef typename base_class::element_t element_t;
-		typedef typename base_class::reference_t reference_t;
-		typedef typename base_class::const_reference_t const_reference_t;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_t difference_t;
+		typedef typename base_class::difference_type difference_type;
 		static const size_type npos = size_type(-1);
-
-		typedef std::char_traits<element_t> _Traits;
 
 		MSE_MSESTRING_USING(TStringSectionBase, base_class);
 
