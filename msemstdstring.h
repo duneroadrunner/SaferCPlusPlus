@@ -425,7 +425,7 @@ namespace mse {
 				return ((*m_shptr) < (*(_Right.m_shptr)));
 			}
 
-			basic_string& append(const std::initializer_list<_Ty>& _Ilist) {
+			basic_string& append(std::initializer_list<_Ty> _Ilist) {
 				msebasic_string().append(_Ilist);
 				return (*this);
 			}
@@ -468,7 +468,7 @@ namespace mse {
 				return (*this);
 			}
 
-			basic_string& operator+=(const std::initializer_list<_Ty>& _Ilist) {
+			basic_string& operator+=(std::initializer_list<_Ty> _Ilist) {
 				msebasic_string().append(_Ilist);
 				return (*this);
 			}

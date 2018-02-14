@@ -18,6 +18,8 @@
 #include "mseasyncshared.h"
 #include "mseany.h"
 #include "msemstdarray.h"
+#include "msemsestring.h"
+#include "msemstdstring.h"
 #include <memory>
 #include <iostream>
 #include <utility>
@@ -1492,6 +1494,79 @@ namespace mse {
 	public:
 		typedef TRandomAccessConstSection<TAnyRandomAccessConstIterator<_Ty>> base_class;
 		MSE_USING(TAnyRandomAccessConstSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+	};
+
+
+	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	class TXScopeAnyStringSection : public TXScopeStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> {
+	public:
+		typedef TXScopeStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> base_class;
+		MSE_USING(TXScopeAnyStringSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+	};
+
+	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	class TAnyStringSection : public TStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> {
+	public:
+		typedef TStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> base_class;
+		MSE_USING(TAnyStringSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+	};
+
+	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	class TXScopeAnyStringConstSection : public TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> {
+	public:
+		typedef TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
+		MSE_USING(TXScopeAnyStringConstSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+	};
+
+	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	class TAnyStringConstSection : public TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> {
+	public:
+		typedef TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
+		MSE_USING(TAnyStringConstSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+	};
+
+	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	class TXScopeAnyNRPStringSection : public TXScopeNRPStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> {
+	public:
+		typedef TXScopeNRPStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> base_class;
+		MSE_USING(TXScopeAnyNRPStringSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+	};
+
+	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	class TAnyNRPStringSection : public TNRPStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> {
+	public:
+		typedef TNRPStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> base_class;
+		MSE_USING(TAnyNRPStringSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+	};
+
+	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	class TXScopeAnyNRPStringConstSection : public TXScopeNRPStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> {
+	public:
+		typedef TXScopeNRPStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
+		MSE_USING(TXScopeAnyNRPStringConstSection, base_class);
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+	};
+
+	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	class TAnyNRPStringConstSection : public TNRPStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> {
+	public:
+		typedef TNRPStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
+		MSE_USING(TAnyNRPStringConstSection, base_class);
 
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};

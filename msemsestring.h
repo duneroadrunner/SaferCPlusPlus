@@ -1268,7 +1268,7 @@ namespace mse {
 			return (m_basic_string < _Right.m_basic_string);
 		}
 
-		nii_basic_string& append(const std::initializer_list<_Ty>& _Ilist) {
+		nii_basic_string& append(std::initializer_list<_Ty> _Ilist) {
 			m_basic_string.append(_Ilist);
 			return (*this);
 		}
@@ -1311,7 +1311,7 @@ namespace mse {
 			return (*this);
 		}
 
-		nii_basic_string& operator+=(const std::initializer_list<_Ty>& _Ilist) {
+		nii_basic_string& operator+=(std::initializer_list<_Ty> _Ilist) {
 			m_basic_string.append(_Ilist);
 			return (*this);
 		}
@@ -5429,7 +5429,16 @@ namespace std {
 
 namespace mse {
 
-	template <typename _TRAIterator, class _Traits = std::char_traits<typename TRandomAccessSectionBase<_TRAIterator>::value_type> >
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type> >
+	class TXScopeStringSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type> >
+	class TXScopeStringConstSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type> >
+	class TStringSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type> >
+	class TStringConstSection;
+
+	template <typename _TRAIterator, class _Traits>
 	class TStringSectionBase : public TRandomAccessSectionBase<_TRAIterator> {
 	public:
 		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
@@ -5441,13 +5450,649 @@ namespace mse {
 		typedef typename base_class::difference_type difference_type;
 		static const size_type npos = size_type(-1);
 
-		MSE_MSESTRING_USING(TStringSectionBase, base_class);
+		//MSE_MSESTRING_USING(TStringSectionBase, base_class);
 
+		TStringSectionBase(const TStringSectionBase& src) : base_class(src) {}
+		TStringSectionBase(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TStringSectionBase(const _TRALoneParam& param) : base_class(param) {}
+
+		template<size_t Tn>
+		explicit TStringSectionBase(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		explicit TStringSectionBase(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
+			/* "Const" string sections are more appropriate for use with const native arrays, including string literals. */
+			if ((1 <= (*this).size()) && (0 == (*this).back())) {
+				/* We presume that the argument is a string literal, and remove the terminating null. */
+				(*this).remove_suffix(1);
+			}
+			else {
+				/* The last character does not seem to a null terminator, so presumably the argument is not a string
+				literal. */
+			}
+		}
+
+		typedef typename base_class::xscope_iterator xscope_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+
+		friend std::basic_ostream<value_type, _Traits>& operator<<(std::basic_ostream<value_type, _Traits>& _Ostr, const TStringSectionBase& _Str) {
+			/* todo: consider optimizing */
+			for (const auto& elem_cref : _Str) {
+				_Ostr << elem_cref;
+			}
+			return _Ostr;
+		}
 	};
 
-	template <typename _TRandomAccessSection>
-	class TStringSectionFunctionaltyWrapper : public _TRandomAccessSection {
+	template <typename _TRAIterator, class _Traits>
+	class TXScopeStringSection : public TStringSectionBase<_TRAIterator, _Traits>, public XScopeTagBase {
 	public:
+		typedef TStringSectionBase<_TRAIterator, _Traits> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+
+		//TXScopeStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter,count) {}
+		//TXScopeStringSection(const TXScopeStringSection& src) = default;
+		//TXScopeStringSection(const TStringSectionBase<_TRAIterator, _Traits>& src) : base_class(src) {}
+
+		MSE_USING(TXScopeStringSection, base_class);
+
+		TXScopeStringSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeStringSection xscope_subsection() const - TXScopeStringSection")))
+				: TXScopeStringSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+		TStringSection<_TRAIterator, _Traits> subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TStringSection<_TRAIterator, _Traits> subsection() const - TXScopeStringSection")))
+				: TStringSection<_TRAIterator, _Traits>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+
+		typedef typename base_class::xscope_iterator xscope_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+
+	private:
+		//TXScopeStringSection<_TRAIterator, _Traits>& operator=(const TXScopeStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeStringSection<_TRAIterator, _Traits>* operator&() { return this; }
+		const TXScopeStringSection<_TRAIterator, _Traits>* operator&() const { return this; }
+	};
+
+	template <typename _TRAIterator, class _Traits>
+	class TStringSection : public TStringSectionBase<_TRAIterator, _Traits> {
+	public:
+		typedef TStringSectionBase<_TRAIterator, _Traits> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+
+		TStringSection(const TStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		TStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TStringSection(const _TRALoneParam& param) : base_class(param) {}
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
+		template<size_t Tn>
+		TStringSection(value_type(&native_array)[Tn]) : base_class(native_array) {}
+		virtual ~TStringSection() {
+			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
+		}
+
+		TStringSection subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TStringSection subsection() const - TStringSection")))
+				: TStringSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+
+		typedef TRASectionIterator<_TRAIterator> iterator;
+		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
+		iterator begin() { return iterator((*this).m_start_iter, (*this).m_count); }
+		const_iterator begin() const { return cbegin(); }
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+		iterator end() {
+			auto retval(iterator((*this).m_start_iter, (*this).m_count));
+			retval += (*this).m_count;
+			return retval;
+		}
+		const_iterator end() const { return cend(); }
+		const_iterator cend() const {
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+			retval += (*this).m_count;
+			return retval;
+		}
+		typedef std::reverse_iterator<iterator> reverse_iterator;
+		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+		reverse_iterator rbegin() {	// return iterator for beginning of reversed mutable sequence
+			return (reverse_iterator(end()));
+		}
+		const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (const_reverse_iterator(end()));
+		}
+		reverse_iterator rend() {	// return iterator for end of reversed mutable sequence
+			return (reverse_iterator(begin()));
+		}
+		const_reverse_iterator rend() const {	// return iterator for end of reversed nonmutable sequence
+			return (const_reverse_iterator(begin()));
+		}
+		const_reverse_iterator crbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (rbegin());
+		}
+		const_reverse_iterator crend() const {	// return iterator for end of reversed nonmutable sequence
+			return (rend());
+		}
+
+		friend class TXScopeStringSection<_TRAIterator, _Traits>;
+		friend class TXScopeStringConstSection<_TRAIterator, _Traits>;
+		friend class TStringConstSection<_TRAIterator, _Traits>;
+	};
+
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename TRandomAccessConstSectionBase<_TRAIterator>::value_type> >
+	class TStringConstSectionBase : public TRandomAccessConstSectionBase<_TRAIterator> {
+	public:
+		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
+
+		typedef typename base_class::value_type value_type;
+		//typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+
+		//MSE_MSESTRING_USING(TStringConstSectionBase, base_class);
+
+		TStringConstSectionBase(const TStringConstSectionBase& src) : base_class(src) {}
+		TStringConstSectionBase(const TStringSectionBase<_TRAIterator, _Traits>& src) : base_class(src) {}
+		TStringConstSectionBase(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TStringConstSectionBase(const _TRALoneParam& param) : base_class(param) {}
+
+		template<size_t Tn>
+		explicit TStringConstSectionBase(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		explicit TStringConstSectionBase(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
+			if ((1 <= (*this).size()) && (0 == (*this).back())) {
+				/* We presume that the argument is a string literal, and remove the terminating null. */
+				(*this).remove_suffix(1);
+			}
+			else {
+				/* The last character does not seem to a null terminator, so presumably the argument is not a string
+				literal. */
+			}
+		}
+
+		//typedef typename base_class::xscope_iterator xscope_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+
+		friend std::basic_ostream<value_type, _Traits>& operator<<(std::basic_ostream<value_type, _Traits>& _Ostr, const TStringConstSectionBase& _Str) {
+			/* todo: consider optimizing */
+			for (const auto& elem_cref : _Str) {
+				_Ostr << elem_cref;
+			}
+			return _Ostr;
+		}
+	};
+
+	template <typename _TRAIterator, class _Traits>
+	class TXScopeStringConstSection : public TStringConstSectionBase<_TRAIterator, _Traits>, public XScopeTagBase {
+	public:
+		typedef TStringConstSectionBase<_TRAIterator, _Traits> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+
+		//TXScopeStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		//TXScopeStringConstSection(const TXScopeStringConstSection& src) = default;
+		//TXScopeStringConstSection(const TStringConstSectionBase<_TRAIterator, _Traits>& src) : base_class(src) {}
+		//TXScopeStringConstSection(const TStringSectionBase<_TRAIterator, _Traits>& src) : base_class(src) {}
+
+		MSE_USING(TXScopeStringConstSection, base_class);
+
+		TXScopeStringConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeStringConstSection xscope_subsection() const - TXScopeStringConstSection")))
+				: TXScopeStringConstSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+		TStringConstSection<_TRAIterator, _Traits> subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TStringConstSection<_TRAIterator, _Traits> subsection() const - TXScopeStringConstSection")))
+				: TStringConstSection<_TRAIterator, _Traits>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+
+		//typedef typename base_class::xscope_iterator xscope_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+
+	private:
+		//TXScopeStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeStringConstSection<_TRAIterator, _Traits>* operator&() { return this; }
+		const TXScopeStringConstSection<_TRAIterator, _Traits>* operator&() const { return this; }
+	};
+
+	template <typename _TRAIterator, class _Traits>
+	class TStringConstSection : public TStringConstSectionBase<_TRAIterator, _Traits> {
+	public:
+		typedef TStringConstSectionBase<_TRAIterator, _Traits> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+
+		TStringConstSection(const TStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		TStringConstSection(const TStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const TStringSectionBase<_TRAIterator, _Traits>&>(src)) {}
+		TStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TStringConstSection(const _TRALoneParam& param) : base_class(param) {}
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
+		template<size_t Tn>
+		TStringConstSection(const value_type(&native_array)[Tn]) : base_class(native_array) {}
+		virtual ~TStringConstSection() {
+			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
+		}
+
+		TStringConstSection subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TStringConstSection subsection() const - TStringConstSection")))
+				: TStringConstSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+
+		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
+		const_iterator begin() const { return cbegin(); }
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+		const_iterator end() const {
+			return cend();
+		}
+		const_iterator cend() const {
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+			retval += (*this).m_count;
+			return retval;
+		}
+		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+		const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (const_reverse_iterator(end()));
+		}
+		const_reverse_iterator rend() const {	// return iterator for end of reversed nonmutable sequence
+			return (const_reverse_iterator(begin()));
+		}
+		const_reverse_iterator crbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (rbegin());
+		}
+		const_reverse_iterator crend() const {	// return iterator for end of reversed nonmutable sequence
+			return (rend());
+		}
+
+		friend class TXScopeStringConstSection<_TRAIterator, _Traits>;
+	};
+
+
+
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type> >
+	class TXScopeNRPStringSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type> >
+	class TXScopeNRPStringConstSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type> >
+	class TNRPStringSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type> >
+	class TNRPStringConstSection;
+
+	template <typename _TRAIterator, class _Traits>
+	class TXScopeNRPStringSection : public TXScopeStringSection<_TRAIterator, _Traits> {
+	public:
+		typedef TXScopeStringSection<_TRAIterator, _Traits> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+
+		//MSE_USING(TXScopeNRPStringSection, base_class);
+		TXScopeNRPStringSection(const TXScopeNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		TXScopeNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TXScopeNRPStringSection(const _TRALoneParam& param) : base_class(param) {}
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
+		template<size_t Tn>
+		TXScopeNRPStringSection(value_type(&native_array)[Tn]) : base_class(native_array) {}
+		virtual ~TXScopeNRPStringSection() {
+			valid_if_TRAIterator_is_not_a_native_pointer();
+		}
+
+		TXScopeNRPStringSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeNRPStringSection xscope_subsection() const - TXScopeNRPStringSection")))
+				: TXScopeNRPStringSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+		TNRPStringSection<_TRAIterator> subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TNRPStringSection<_TRAIterator> subsection() const - TXScopeNRPStringSection")))
+				: TNRPStringSection<_TRAIterator>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+
+		typedef typename base_class::xscope_iterator xscope_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+
+	private:
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
+
+		//TXScopeNRPStringSection<_TRAIterator>& operator=(const TXScopeNRPStringSection<_TRAIterator>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeNRPStringSection<_TRAIterator>* operator&() { return this; }
+		const TXScopeNRPStringSection<_TRAIterator>* operator&() const { return this; }
+	};
+
+	template <typename _TRAIterator, class _Traits>
+	class TNRPStringSection : public TStringSection<_TRAIterator, _Traits> {
+	public:
+		typedef TStringSection<_TRAIterator, _Traits> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+
+		TNRPStringSection(const TNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		TNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TNRPStringSection(const _TRALoneParam& param) : base_class(param) {}
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
+		template<size_t Tn>
+		TNRPStringSection(value_type(&native_array)[Tn]) : base_class(native_array) {}
+		virtual ~TNRPStringSection() {
+			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
+			valid_if_TRAIterator_is_not_a_native_pointer();
+		}
+
+		TNRPStringSection subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TNRPStringSection subsection() const - TNRPStringSection")))
+				: TNRPStringSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+
+		typedef TRASectionIterator<_TRAIterator> iterator;
+		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
+		iterator begin() { return iterator((*this).m_start_iter, (*this).m_count); }
+		const_iterator begin() const { return cbegin(); }
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+		iterator end() {
+			auto retval(iterator((*this).m_start_iter, (*this).m_count));
+			retval += (*this).m_count;
+			return retval;
+		}
+		const_iterator end() const { return cend(); }
+		const_iterator cend() const {
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+			retval += (*this).m_count;
+			return retval;
+		}
+		typedef std::reverse_iterator<iterator> reverse_iterator;
+		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+		reverse_iterator rbegin() {	// return iterator for beginning of reversed mutable sequence
+			return (reverse_iterator(end()));
+		}
+		const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (const_reverse_iterator(end()));
+		}
+		reverse_iterator rend() {	// return iterator for end of reversed mutable sequence
+			return (reverse_iterator(begin()));
+		}
+		const_reverse_iterator rend() const {	// return iterator for end of reversed nonmutable sequence
+			return (const_reverse_iterator(begin()));
+		}
+		const_reverse_iterator crbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (rbegin());
+		}
+		const_reverse_iterator crend() const {	// return iterator for end of reversed nonmutable sequence
+			return (rend());
+		}
+
+	private:
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
+
+		friend class TXScopeNRPStringSection<_TRAIterator>;
+		friend class TXScopeNRPStringConstSection<_TRAIterator>;
+		friend class TNRPStringConstSection<_TRAIterator>;
+	};
+
+	template <typename _TRAIterator, class _Traits>
+	class TXScopeNRPStringConstSection : public TXScopeStringConstSection<_TRAIterator, _Traits> {
+	public:
+		typedef TXScopeStringConstSection<_TRAIterator, _Traits> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+
+		//MSE_USING(TXScopeNRPStringConstSection, base_class);
+
+		TXScopeNRPStringConstSection(const TXScopeNRPStringConstSection& src) : base_class(src) {}
+		TXScopeNRPStringConstSection(const TNRPStringConstSection<_TRAIterator>& src) : base_class(src) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		TXScopeNRPStringConstSection(const TXScopeNRPStringSection<_TRAIterator, _Traits>& src) : base_class(src) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		TXScopeNRPStringConstSection(const TNRPStringSection<_TRAIterator, _Traits>& src) : base_class(src) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		TXScopeNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TXScopeNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {}
+
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		explicit TXScopeNRPStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
+			if ((1 <= (*this).size()) && (0 == (*this).back())) {
+				/* We presume that the argument is a string literal, and remove the terminating null. */
+				(*this).remove_suffix(1);
+			}
+			else {
+				/* The last character does not seem to a null terminator, so presumably the argument is not a string
+				literal. */
+			}
+		}
+
+		TXScopeNRPStringConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeNRPStringConstSection xscope_subsection() const - TXScopeNRPStringConstSection")))
+				: TXScopeNRPStringConstSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+		TNRPStringConstSection<_TRAIterator> subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TNRPStringConstSection<_TRAIterator> subsection() const - TXScopeNRPStringConstSection")))
+				: TNRPStringConstSection<_TRAIterator>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+
+		//typedef typename base_class::xscope_iterator xscope_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+
+	private:
+		/* Construction from a const native array is publicly supported (only) because string literals are const
+		native arrays. We do not want construction from a non-const native array to be publicly supported. */
+		template<size_t Tn>
+		explicit TXScopeNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+
+		//TXScopeNRPStringConstSection<_TRAIterator>& operator=(const TXScopeNRPStringConstSection<_TRAIterator>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeNRPStringConstSection<_TRAIterator>* operator&() { return this; }
+		const TXScopeNRPStringConstSection<_TRAIterator>* operator&() const { return this; }
+	};
+
+	template <typename _TRAIterator, class _Traits>
+	class TNRPStringConstSection : public TStringConstSection<_TRAIterator, _Traits> {
+	public:
+		typedef TStringConstSection<_TRAIterator, _Traits> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+
+		TNRPStringConstSection(const TNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		TNRPStringConstSection(const TNRPStringSection<_TRAIterator>& src) : base_class(static_cast<const TNRPStringSection<_TRAIterator>&>(src)) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		TNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {}
+
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		explicit TNRPStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
+			if ((1 <= (*this).size()) && (0 == (*this).back())) {
+				/* We presume that the argument is a string literal, and remove the terminating null. */
+				(*this).remove_suffix(1);
+			}
+			else {
+				/* The last character does not seem to a null terminator, so presumably the argument is not a string
+				literal. */
+			}
+		}
+
+		virtual ~TNRPStringConstSection() {
+			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
+		}
+
+		TNRPStringConstSection subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TNRPStringConstSection subsection() const - TNRPStringConstSection")))
+				: TNRPStringConstSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
+
+		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
+		const_iterator begin() const { return cbegin(); }
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+		const_iterator end() const {
+			return cend();
+		}
+		const_iterator cend() const {
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+			retval += (*this).m_count;
+			return retval;
+		}
+		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+		const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (const_reverse_iterator(end()));
+		}
+		const_reverse_iterator rend() const {	// return iterator for end of reversed nonmutable sequence
+			return (const_reverse_iterator(begin()));
+		}
+		const_reverse_iterator crbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (rbegin());
+		}
+		const_reverse_iterator crend() const {	// return iterator for end of reversed nonmutable sequence
+			return (rend());
+		}
+
+	private:
+		/* Construction from a const native array is publicly supported (only) because string literals are const
+		native arrays. We do not want construction from a non-const native array to be publicly supported. */
+		template<size_t Tn>
+		explicit TNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+
+		friend class TXScopeNRPStringConstSection<_TRAIterator>;
+	};
+
+
+
+
+
+
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename TRandomAccessSectionBase<_TRAIterator>::value_type> >
+	class TNRPStringSectionBase : public TRandomAccessSectionBase<_TRAIterator> {
+	public:
+		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
+
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+
+		//MSE_MSESTRING_USING(TNRPStringSectionBase, base_class);
+
+		TNRPStringSectionBase(const TNRPStringSectionBase& src) : base_class(src) {}
+		TNRPStringSectionBase(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TNRPStringSectionBase(const _TRALoneParam& param) : base_class(param) {}
+		virtual ~TNRPStringSectionBase() {
+			valid_if_TRAIterator_is_not_a_native_pointer();
+		}
+
+	private:
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
+
+		friend std::basic_ostream<value_type, _Traits>& operator<<(std::basic_ostream<value_type, _Traits>& _Ostr, const TNRPStringSectionBase& _Str) {
+			/* todo: consider optimizing */
+			for (const auto& elem_cref : _Str) {
+				_Ostr << elem_cref;
+			}
+			return _Ostr;
+		}
+	};
+
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename TRandomAccessConstSectionBase<_TRAIterator>::value_type> >
+	class TNRPStringConstSectionBase : public TRandomAccessConstSectionBase<_TRAIterator> {
+	public:
+		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
+
+		typedef typename base_class::value_type value_type;
+		//typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+
+		//MSE_MSESTRING_USING(TNRPStringConstSectionBase, base_class);
+
+		TNRPStringConstSectionBase(const TNRPStringConstSectionBase& src) : base_class(src) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		TNRPStringConstSectionBase(const TNRPStringSectionBase<_TRAIterator, _Traits>& src) : base_class(src) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		TNRPStringConstSectionBase(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TNRPStringConstSectionBase(const _TRALoneParam& param) : base_class(param) {}
+
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		explicit TNRPStringConstSectionBase(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
+			if ((1 <= (*this).size()) && (0 == (*this).back())) {
+				/* We presume that the argument is a string literal, and remove the terminating null. */
+				(*this).remove_suffix(1);
+			}
+			else {
+				/* The last character does not seem to a null terminator, so presumably the argument is not a string
+				literal. */
+			}
+		}
+
+	private:
+		/* Construction from a const native array is publicly supported (only) because string literals are const
+		native arrays. We do not want construction from a non-const native array to be publicly supported. */
+		template<size_t Tn>
+		explicit TNRPStringConstSectionBase(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+
+		friend std::basic_ostream<value_type, _Traits>& operator<<(std::basic_ostream<value_type, _Traits>& _Ostr, const TNRPStringConstSectionBase& _Str) {
+			/* todo: consider optimizing */
+			for (const auto& elem_cref : _Str) {
+				_Ostr << elem_cref;
+			}
+			return _Ostr;
+		}
 	};
 }
 
