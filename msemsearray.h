@@ -3946,6 +3946,7 @@ namespace mse {
 		size_type m_count = 0;
 
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
+		friend class TRandomAccessConstSection<_TRAIterator>;
 		template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
 	};
 
@@ -4006,7 +4007,7 @@ namespace mse {
 		static const size_type npos = size_type(-1);
 
 		TRandomAccessConstSection(const TRandomAccessConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
-		TRandomAccessConstSection(const TRandomAccessSection<_TRAIterator>& src) : base_class(static_cast<const TRandomAccessSectionBase<_TRAIterator>&>(src)) {}
+		TRandomAccessConstSection(const TRandomAccessSection<_TRAIterator>& src) : base_class(static_cast<const base_class&>(src)) {}
 		TRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
 		TRandomAccessConstSection(const _TRALoneParam& param) : base_class(param) {}
