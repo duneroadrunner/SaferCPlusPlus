@@ -4727,7 +4727,8 @@ namespace mse {
 			}
 
 
-			inline size_t _Hash_bytes(const unsigned char *_First, size_t _Count) _NOEXCEPT
+			template <typename _TRAIterator>
+			inline size_t T_Hash_bytes(const _TRAIterator/*unsigned char **/_First, size_t _Count) /*_NOEXCEPT*/
 			{	// FNV-1a hash function for bytes in [_First, _First + _Count)
 #if defined(_WIN64) || defined(__x86_64__) || defined(__LP64__) || defined(_LP64) /* todo: make this portable */
 				//static_assert(sizeof(size_t) == 8, "This code is for 64-bit size_t.");
@@ -4758,7 +4759,7 @@ namespace mse {
 				l_size_type num_bytes = (__e - __p) * sizeof(value_type);
 
 				if (true) {
-					return _Hash_bytes(__p, num_bytes);
+					return T_Hash_bytes(__p, num_bytes);
 				}
 				else {
 					//return __murmur2_or_cityhash<size_t>()(__p, (__e - __p) * sizeof(value_type));
@@ -5460,6 +5461,7 @@ namespace mse {
 		template <typename _TRALoneParam>
 		TXScopeStringSection(const _TRALoneParam& param) : base_class(param) {}
 
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
 		explicit TXScopeStringSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
@@ -5479,19 +5481,25 @@ namespace mse {
 		TXScopeStringSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
 		}
+		TXScopeStringSection xscope_substr(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection(pos, n);
+		}
 		TStringSection<_TRAIterator, _Traits> subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
+		}
+		TStringSection<_TRAIterator, _Traits> substr(size_type pos = 0, size_type n = npos) const {
+			return subsection(pos, n);
 		}
 
 		typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
 	private:
-		//TXScopeStringSection<_TRAIterator>& operator=(const TXScopeStringSection<_TRAIterator>& _Right_cref) = delete;
+		//TXScopeStringSection<_TRAIterator, _Traits>& operator=(const TXScopeStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
-		TXScopeStringSection<_TRAIterator>* operator&() { return this; }
-		const TXScopeStringSection<_TRAIterator>* operator&() const { return this; }
+		TXScopeStringSection<_TRAIterator, _Traits>* operator&() { return this; }
+		const TXScopeStringSection<_TRAIterator, _Traits>* operator&() const { return this; }
 
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TXScopeStringSection& _Str) {
 			/* todo: consider optimizing */
@@ -5520,6 +5528,7 @@ namespace mse {
 		template <typename _TRALoneParam>
 		TStringSection(const _TRALoneParam& param) : base_class(param) {}
 
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
 		explicit TStringSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
@@ -5543,14 +5552,17 @@ namespace mse {
 		TStringSection subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
 		}
+		TStringSection substr(size_type pos = 0, size_type n = npos) const {
+			return subsection(pos, n);
+		}
 
 		typedef typename base_class::iterator iterator;
 		typedef typename base_class::const_iterator const_iterator;
 		typedef typename base_class::reverse_iterator reverse_iterator;
 		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
 
-		friend class TXScopeStringSection<_TRAIterator>;
-		friend class TXScopeStringConstSection<_TRAIterator>;
+		friend class TXScopeStringSection<_TRAIterator, _Traits>;
+		friend class TXScopeStringConstSection<_TRAIterator, _Traits>;
 		friend class TStringConstSection<_TRAIterator, _Traits>;
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TStringSection& _Str) {
 			/* todo: consider optimizing */
@@ -5583,12 +5595,12 @@ namespace mse {
 		template <typename _TRALoneParam>
 		TXScopeStringConstSection(const _TRALoneParam& param) : base_class(param) {}
 
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
 		explicit TXScopeStringConstSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		explicit TXScopeStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
-			/* "Const" string sections are more appropriate for use with const native arrays, including string literals. */
 			if ((1 <= (*this).size()) && (0 == (*this).back())) {
 				/* We presume that the argument is a string literal, and remove the terminating null. */
 				(*this).remove_suffix(1);
@@ -5602,19 +5614,25 @@ namespace mse {
 		TXScopeStringConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
 		}
+		TXScopeStringConstSection xscope_substr(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection(pos, n);
+		}
 		TStringConstSection<_TRAIterator, _Traits> subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
+		}
+		TStringConstSection<_TRAIterator, _Traits> substr(size_type pos = 0, size_type n = npos) const {
+			return subsection(pos, n);
 		}
 
 		//typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
 	private:
-		//TXScopeStringConstSection<_TRAIterator>& operator=(const TXScopeStringConstSection<_TRAIterator>& _Right_cref) = delete;
+		//TXScopeStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
-		TXScopeStringConstSection<_TRAIterator>* operator&() { return this; }
-		const TXScopeStringConstSection<_TRAIterator>* operator&() const { return this; }
+		TXScopeStringConstSection<_TRAIterator, _Traits>* operator&() { return this; }
+		const TXScopeStringConstSection<_TRAIterator, _Traits>* operator&() const { return this; }
 
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TXScopeStringConstSection& _Str) {
 			/* todo: consider optimizing */
@@ -5643,12 +5661,12 @@ namespace mse {
 		template <typename _TRALoneParam>
 		TStringConstSection(const _TRALoneParam& param) : base_class(param) {}
 
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
 		explicit TStringConstSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		explicit TStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
-			/* "Const" string sections are more appropriate for use with const native arrays, including string literals. */
 			if ((1 <= (*this).size()) && (0 == (*this).back())) {
 				/* We presume that the argument is a string literal, and remove the terminating null. */
 				(*this).remove_suffix(1);
@@ -5666,13 +5684,16 @@ namespace mse {
 		TStringConstSection subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
 		}
+		TStringConstSection substr(size_type pos = 0, size_type n = npos) const {
+			return subsection(pos, n);
+		}
 
 		//typedef typename base_class::iterator iterator;
 		typedef typename base_class::const_iterator const_iterator;
 		//typedef typename base_class::reverse_iterator reverse_iterator;
 		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
 
-		friend class TXScopeStringConstSection<_TRAIterator>;
+		friend class TXScopeStringConstSection<_TRAIterator, _Traits>;
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TStringConstSection& _Str) {
 			/* todo: consider optimizing */
 			for (const auto& elem_cref : _Str) {
@@ -5681,9 +5702,63 @@ namespace mse {
 			return _Ostr;
 		}
 	};
+}
 
-	/* "NRP" string sections are just versions of the regular string sections that don't support raw pointers (for extra
-	safety). */
+namespace std {
+
+	template<class _TRAIterator, class _Traits>
+	struct hash<mse::TXScopeStringSection<_TRAIterator, _Traits> > {	// hash functor for mse::TXScopeStringSection
+		using argument_type = mse::TXScopeStringSection<_TRAIterator, _Traits>;
+		using result_type = size_t;
+
+		size_t operator()(const mse::TXScopeStringSection<_TRAIterator, _Traits>& _Keyval) const /*_NOEXCEPT*/ {
+			/* todo: optimize */
+			auto retval = mse::us::impl::T_Hash_bytes(_Keyval.xscope_cbegin(), _Keyval.length());
+			return retval;
+		}
+	};
+
+	template<class _TRAIterator, class _Traits>
+	struct hash<mse::TStringSection<_TRAIterator, _Traits> > {	// hash functor for mse::TStringSection
+		using argument_type = mse::TStringSection<_TRAIterator, _Traits>;
+		using result_type = size_t;
+
+		size_t operator()(const mse::TStringSection<_TRAIterator, _Traits>& _Keyval) const /*_NOEXCEPT*/ {
+			/* todo: optimize */
+			auto retval = mse::us::impl::T_Hash_bytes(_Keyval.cbegin(), _Keyval.length());
+			return retval;
+		}
+	};
+
+	template<class _TRAIterator, class _Traits>
+	struct hash<mse::TXScopeStringConstSection<_TRAIterator, _Traits> > {	// hash functor for mse::TXScopeStringConstSection
+		using argument_type = mse::TXScopeStringConstSection<_TRAIterator, _Traits>;
+		using result_type = size_t;
+
+		size_t operator()(const mse::TXScopeStringConstSection<_TRAIterator, _Traits>& _Keyval) const /*_NOEXCEPT*/ {
+			/* todo: optimize */
+			auto retval = mse::us::impl::T_Hash_bytes(_Keyval.xscope_cbegin(), _Keyval.length());
+			return retval;
+		}
+	};
+
+	template<class _TRAIterator, class _Traits>
+	struct hash<mse::TStringConstSection<_TRAIterator, _Traits> > {	// hash functor for mse::TStringConstSection
+		using argument_type = mse::TStringConstSection<_TRAIterator, _Traits>;
+		using result_type = size_t;
+
+		size_t operator()(const mse::TStringConstSection<_TRAIterator, _Traits>& _Keyval) const /*_NOEXCEPT*/ {
+			/* todo: optimize */
+			auto retval = mse::us::impl::T_Hash_bytes(_Keyval.cbegin(), _Keyval.length());
+			return retval;
+		}
+	};
+}
+
+namespace mse {
+
+	/* "NRP" string sections are just versions of the regular string sections that don't support raw pointers or
+	std::basic_string_view<> iterators (for extra safety). */
 	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
 	class TXScopeNRPStringSection;
 	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
@@ -5692,6 +5767,17 @@ namespace mse {
 	class TNRPStringSection;
 	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
 	class TNRPStringConstSection;
+
+	template<class _TRAIterator, class = typename std::enable_if<(!std::is_pointer<_TRAIterator>::value), void>::type>
+	void T_valid_if_not_a_native_pointer_msemsestring() {}
+
+	/* The following template function will instantiate iff the given iterator is not an std::basic_string<>::iterator
+	(or const_iterator). */
+	template<class _TRAIterator, class = typename std::enable_if<
+		(!std::is_same<_TRAIterator, typename std::basic_string<typename std::remove_const<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>::type>::iterator>::value)
+		&& (!std::is_same<_TRAIterator, typename std::basic_string<typename std::remove_const<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>::type>::const_iterator>::value)
+		, void>::type>
+	void T_valid_if_not_an_std_basic_string_iterator_msemsestring() {}
 
 	template <typename _TRAIterator, class _Traits>
 	class TXScopeNRPStringSection : public TXScopeStringSection<_TRAIterator, _Traits> {
@@ -5711,18 +5797,24 @@ namespace mse {
 		TXScopeNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
 		TXScopeNRPStringSection(const _TRALoneParam& param) : base_class(param) {}
-		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
-		template<size_t Tn>
-		TXScopeNRPStringSection(value_type(&native_array)[Tn]) : base_class(native_array) {}
+
 		virtual ~TXScopeNRPStringSection() {
+			/* Note: Use TXScopeNRPStringConstSection instead if referencing a string literal. */
 			valid_if_TRAIterator_is_not_a_native_pointer();
+			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
 		}
 
 		TXScopeNRPStringSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
 		}
-		TNRPStringSection<_TRAIterator> subsection(size_type pos = 0, size_type n = npos) const {
+		TXScopeNRPStringSection xscope_substr(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection(pos, n);
+		}
+		TNRPStringSection<_TRAIterator, _Traits> subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
+		}
+		TNRPStringSection<_TRAIterator, _Traits> substr(size_type pos = 0, size_type n = npos) const {
+			return subsection(pos, n);
 		}
 
 		typedef typename base_class::xscope_iterator xscope_iterator;
@@ -5732,11 +5824,11 @@ namespace mse {
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
-		//TXScopeNRPStringSection<_TRAIterator>& operator=(const TXScopeNRPStringSection<_TRAIterator>& _Right_cref) = delete;
+		//TXScopeNRPStringSection<_TRAIterator, _Traits>& operator=(const TXScopeNRPStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
-		TXScopeNRPStringSection<_TRAIterator>* operator&() { return this; }
-		const TXScopeNRPStringSection<_TRAIterator>* operator&() const { return this; }
+		TXScopeNRPStringSection<_TRAIterator, _Traits>* operator&() { return this; }
+		const TXScopeNRPStringSection<_TRAIterator, _Traits>* operator&() const { return this; }
 
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TXScopeNRPStringSection& _Str) {
 			return _Ostr << static_cast<const base_class&>(_Str);
@@ -5760,16 +5852,18 @@ namespace mse {
 		TNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
 		TNRPStringSection(const _TRALoneParam& param) : base_class(param) {}
-		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
-		template<size_t Tn>
-		TNRPStringSection(value_type(&native_array)[Tn]) : base_class(native_array) {}
 		virtual ~TNRPStringSection() {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
+			/* Note: Use TNRPStringConstSection instead if referencing a string literal. */
 			valid_if_TRAIterator_is_not_a_native_pointer();
+			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
 		}
 
 		TNRPStringSection subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
+		}
+		TNRPStringSection substr(size_type pos = 0, size_type n = npos) const {
+			return subsection(pos, n);
 		}
 
 		typedef typename base_class::iterator iterator;
@@ -5781,9 +5875,9 @@ namespace mse {
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
-		friend class TXScopeNRPStringSection<_TRAIterator>;
-		friend class TXScopeNRPStringConstSection<_TRAIterator>;
-		friend class TNRPStringConstSection<_TRAIterator>;
+		friend class TXScopeNRPStringSection<_TRAIterator, _Traits>;
+		friend class TXScopeNRPStringConstSection<_TRAIterator, _Traits>;
+		friend class TNRPStringConstSection<_TRAIterator, _Traits>;
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TNRPStringSection& _Str) {
 			return _Ostr << static_cast<const base_class&>(_Str);
 		}
@@ -5803,7 +5897,7 @@ namespace mse {
 		//MSE_USING(TXScopeNRPStringConstSection, base_class);
 
 		TXScopeNRPStringConstSection(const TXScopeNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
-		TXScopeNRPStringConstSection(const TNRPStringConstSection<_TRAIterator>& src) : base_class(static_cast<const base_class&>(src)) {}
+		TXScopeNRPStringConstSection(const TNRPStringConstSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const base_class&>(src)) {}
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
 		TXScopeNRPStringConstSection(const TXScopeNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TXScopeNRPStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
@@ -5825,11 +5919,21 @@ namespace mse {
 			}
 		}
 
+		virtual ~TXScopeNRPStringConstSection() {
+			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
+		}
+
 		TXScopeNRPStringConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
 		}
-		TNRPStringConstSection<_TRAIterator> subsection(size_type pos = 0, size_type n = npos) const {
+		TXScopeNRPStringConstSection xscope_substr(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection(pos, n);
+		}
+		TNRPStringConstSection<_TRAIterator, _Traits> subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
+		}
+		TNRPStringConstSection<_TRAIterator, _Traits> substr(size_type pos = 0, size_type n = npos) const {
+			return subsection(pos, n);
 		}
 
 		//typedef typename base_class::xscope_iterator xscope_iterator;
@@ -5843,11 +5947,11 @@ namespace mse {
 		template<size_t Tn>
 		explicit TXScopeNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
-		//TXScopeNRPStringConstSection<_TRAIterator>& operator=(const TXScopeNRPStringConstSection<_TRAIterator>& _Right_cref) = delete;
+		//TXScopeNRPStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeNRPStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
-		TXScopeNRPStringConstSection<_TRAIterator>* operator&() { return this; }
-		const TXScopeNRPStringConstSection<_TRAIterator>* operator&() const { return this; }
+		TXScopeNRPStringConstSection<_TRAIterator, _Traits>* operator&() { return this; }
+		const TXScopeNRPStringConstSection<_TRAIterator, _Traits>* operator&() const { return this; }
 
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TXScopeNRPStringConstSection& _Str) {
 			return _Ostr << static_cast<const base_class&>(_Str);
@@ -5867,7 +5971,7 @@ namespace mse {
 
 		TNRPStringConstSection(const TNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
-		TNRPStringConstSection(const TNRPStringSection<_TRAIterator>& src) : base_class(static_cast<const typename TNRPStringSection<_TRAIterator>::base_class&>(src)) {}
+		TNRPStringConstSection(const TNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TNRPStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
 		TNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
@@ -5887,10 +5991,14 @@ namespace mse {
 
 		virtual ~TNRPStringConstSection() {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
+			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
 		}
 
 		TNRPStringConstSection subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
+		}
+		TNRPStringConstSection substr(size_type pos = 0, size_type n = npos) const {
+			return subsection(pos, n);
 		}
 
 		//typedef typename base_class::iterator iterator;
@@ -5906,11 +6014,45 @@ namespace mse {
 		template<size_t Tn>
 		explicit TNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
-		friend class TXScopeNRPStringConstSection<_TRAIterator>;
+		friend class TXScopeNRPStringConstSection<_TRAIterator, _Traits>;
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TNRPStringConstSection& _Str) {
 			return _Ostr << static_cast<const base_class&>(_Str);
 		}
 	};
+}
+
+namespace std {
+
+	template <typename _TRAIterator, class _Traits>
+	struct hash<mse::TXScopeNRPStringSection<_TRAIterator, _Traits> > : public hash<mse::TXScopeStringSection<_TRAIterator, _Traits> > {
+		typedef hash<mse::TXScopeStringSection<_TRAIterator, _Traits> > base_class;
+		typedef typename base_class::argument_type argument_type;
+		typedef typename base_class::result_type result_type;
+	};
+
+	template <typename _TRAIterator, class _Traits>
+	struct hash<mse::TNRPStringSection<_TRAIterator, _Traits> > : public hash<mse::TStringSection<_TRAIterator, _Traits> > {
+		typedef hash<mse::TNRPStringSection<_TRAIterator, _Traits> > base_class;
+		typedef typename base_class::argument_type argument_type;
+		typedef typename base_class::result_type result_type;
+	};
+
+	template <typename _TRAIterator, class _Traits>
+	struct hash<mse::TXScopeNRPStringConstSection<_TRAIterator, _Traits> > : public hash<mse::TXScopeStringConstSection<_TRAIterator, _Traits> > {
+		typedef hash<mse::TXScopeStringConstSection<_TRAIterator, _Traits> > base_class;
+		typedef typename base_class::argument_type argument_type;
+		typedef typename base_class::result_type result_type;
+	};
+
+	template <typename _TRAIterator, class _Traits>
+	struct hash<mse::TNRPStringConstSection<_TRAIterator, _Traits> > : public hash<mse::TStringConstSection<_TRAIterator, _Traits> > {
+		typedef hash<mse::TStringConstSection<_TRAIterator, _Traits> > base_class;
+		typedef typename base_class::argument_type argument_type;
+		typedef typename base_class::result_type result_type;
+	};
+}
+
+namespace mse {
 }
 
 #endif /*ndef MSEMSESTRING_H*/

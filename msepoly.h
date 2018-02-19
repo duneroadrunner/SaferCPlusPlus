@@ -1500,46 +1500,79 @@ namespace mse {
 
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
-	class TXScopeAnyStringSection : public TXScopeStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> {
-	public:
-		typedef TXScopeStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> base_class;
-		MSE_USING(TXScopeAnyStringSection, base_class);
-
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
-	};
+	using TXScopeAnyStringSection = TXScopeStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits>;
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
-	class TAnyStringSection : public TStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> {
-	public:
-		typedef TStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> base_class;
-		MSE_USING(TAnyStringSection, base_class);
-
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
-	};
+	using TAnyStringSection = TStringSection<TAnyRandomAccessIterator<_Ty>, _Traits>;
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
-	class TXScopeAnyStringConstSection : public TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> {
-	public:
-		typedef TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
-		MSE_USING(TXScopeAnyStringConstSection, base_class);
-
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
-	};
+	using TXScopeAnyStringConstSection = TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits>;
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
-	class TAnyStringConstSection : public TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> {
-	public:
-		typedef TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
-		MSE_USING(TAnyStringConstSection, base_class);
+	using TAnyStringConstSection = TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits>;
 
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+	template<typename _Ty, typename _TRALoneParam, class = typename std::enable_if<
+		(!std::is_same<std::basic_string<_Ty>, typename std::remove_const<_TRALoneParam>::type>::value), void>::type>
+	void T_valid_if_not_an_std_basic_string_msepoly() {}
+
+	template<class T, class EqualTo>
+	struct IsDereferenceable_msemsepoly_impl
+	{
+		template<class U, class V>
+		static auto test(U*) -> decltype((*std::declval<U>()) == (*std::declval<V>()), bool(true));
+		template<typename, typename>
+		static auto test(...)->std::false_type;
+
+		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
 	};
+	template<class T, class EqualTo = T>
+	struct IsDereferenceable_msemsepoly : IsDereferenceable_msemsepoly_impl<
+		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+	template<typename _Ty, typename _TPtr>
+	void T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper(std::true_type) {
+		T_valid_if_not_an_std_basic_string_msepoly<_Ty, typename std::remove_reference<decltype(*std::declval<_TPtr>())>::type>();
+	}
+	template<typename _Ty, typename _TRALoneParam>
+	void T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper(std::false_type) {}
+
+	template<typename _Ty, typename _TRALoneParam>
+	void T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly() {
+		T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper<_Ty, _TRALoneParam>(typename IsDereferenceable_msemsepoly<_TRALoneParam>::type());
+	}
+
+	template<typename _Ty, typename _TRALoneParam>
+	void T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly() {
+		T_valid_if_not_a_native_pointer_msemsestring<_TRALoneParam>();
+		T_valid_if_not_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
+		T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
+	}
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
 	class TXScopeAnyNRPStringSection : public TXScopeNRPStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> {
 	public:
 		typedef TXScopeNRPStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> base_class;
-		MSE_USING(TXScopeAnyNRPStringSection, base_class);
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+
+		//MSE_USING(TXScopeAnyNRPStringSection, base_class);
+		TXScopeAnyNRPStringSection(const TXScopeAnyNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		TXScopeAnyNRPStringSection(const base_class& src) : base_class(src) {}
+		template <typename _TRAIterator>
+		TXScopeAnyNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
+			/* Note: Use TXScopeAnyNRPStringConstSection instead if referencing a string literal. */
+			T_valid_if_not_a_native_pointer_msemsestring<_TRAIterator>();
+			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
+		}
+		template <typename _TRALoneParam>
+		TXScopeAnyNRPStringSection(const _TRALoneParam& param) : base_class(param) {
+			T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
+		}
 
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
@@ -1548,7 +1581,27 @@ namespace mse {
 	class TAnyNRPStringSection : public TNRPStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> {
 	public:
 		typedef TNRPStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> base_class;
-		MSE_USING(TAnyNRPStringSection, base_class);
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+
+		//MSE_USING(TAnyNRPStringSection, base_class);
+		TAnyNRPStringSection(const TAnyNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		TAnyNRPStringSection(const base_class& src) : base_class(src) {}
+		template <typename _TRAIterator>
+		TAnyNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
+			/* Note: Use TXScopeAnyNRPStringConstSection instead if referencing a string literal. */
+			T_valid_if_not_a_native_pointer_msemsestring<_TRAIterator>();
+			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
+		}
+		template <typename _TRALoneParam>
+		TAnyNRPStringSection(const _TRALoneParam& param) : base_class(param) {
+			T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
+		}
 
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
@@ -1557,19 +1610,139 @@ namespace mse {
 	class TXScopeAnyNRPStringConstSection : public TXScopeNRPStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TXScopeNRPStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
-		MSE_USING(TXScopeAnyNRPStringConstSection, base_class);
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+
+		//MSE_USING(TXScopeAnyNRPStringConstSection, base_class);
+		TXScopeAnyNRPStringConstSection(const TXScopeAnyNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		TXScopeAnyNRPStringConstSection(const base_class& src) : base_class(src) {}
+		template <typename _TRAIterator>
+		TXScopeAnyNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
+			T_valid_if_not_a_native_pointer_msemsestring<_TRAIterator>();
+			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
+		}
+		template <typename _TRALoneParam>
+		TXScopeAnyNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {
+			T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
+		}
+
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		explicit TXScopeAnyNRPStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
 
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
+	private:
+		/* Construction from a const native array is publicly supported (only) because string literals are const
+		native arrays. We do not want construction from a non-const native array to be publicly supported. */
+		template<size_t Tn>
+		explicit TXScopeAnyNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array) {}
 	};
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
 	class TAnyNRPStringConstSection : public TNRPStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TNRPStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
-		MSE_USING(TAnyNRPStringConstSection, base_class);
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+
+		//MSE_USING(TAnyNRPStringConstSection, base_class);
+		TAnyNRPStringConstSection(const TAnyNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		TAnyNRPStringConstSection(const base_class& src) : base_class(src) {}
+		template <typename _TRAIterator>
+		TAnyNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
+			T_valid_if_not_a_native_pointer_msemsestring<_TRAIterator>();
+			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
+		}
+		template <typename _TRALoneParam>
+		TAnyNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {
+			T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
+		}
+
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		explicit TAnyNRPStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
 
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
+	private:
+		/* Construction from a const native array is publicly supported (only) because string literals are const
+		native arrays. We do not want construction from a non-const native array to be publicly supported. */
+		template<size_t Tn>
+		explicit TAnyNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array) {}
 	};
+}
+
+namespace std {
+
+	template <typename _Ty, class _Traits>
+	struct hash<mse::TXScopeAnyNRPStringSection<_Ty, _Traits> > : public hash<mse::TXScopeNRPStringSection<mse::TXScopeAnyRandomAccessIterator<_Ty>, _Traits> > {
+	typedef hash<mse::TXScopeNRPStringSection<mse::TXScopeAnyRandomAccessIterator<_Ty>, _Traits> > base_class;
+	typedef typename base_class::argument_type argument_type;
+	typedef typename base_class::result_type result_type;
+	};
+
+	template <typename _Ty, class _Traits>
+	struct hash<mse::TAnyNRPStringSection<_Ty, _Traits> > : public hash<mse::TNRPStringSection<mse::TAnyRandomAccessIterator<_Ty>, _Traits> > {
+	typedef hash<mse::TAnyNRPStringSection<mse::TAnyRandomAccessIterator<_Ty>, _Traits> > base_class;
+	typedef typename base_class::argument_type argument_type;
+	typedef typename base_class::result_type result_type;
+	};
+
+	template <typename _Ty, class _Traits>
+	struct hash<mse::TXScopeAnyNRPStringConstSection<_Ty, _Traits> > : public hash<mse::TXScopeNRPStringConstSection<mse::TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> > {
+	typedef hash<mse::TXScopeNRPStringConstSection<mse::TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> > base_class;
+	typedef typename base_class::argument_type argument_type;
+	typedef typename base_class::result_type result_type;
+	};
+
+	template <typename _Ty, class _Traits>
+	struct hash<mse::TAnyNRPStringConstSection<_Ty, _Traits> > : public hash<mse::TNRPStringConstSection<mse::TAnyRandomAccessConstIterator<_Ty>, _Traits> > {
+	typedef hash<mse::TNRPStringConstSection<mse::TAnyRandomAccessConstIterator<_Ty>, _Traits> > base_class;
+	typedef typename base_class::argument_type argument_type;
+	typedef typename base_class::result_type result_type;
+	};
+}
+
+namespace mse {
+
+	namespace mstd {
+		template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+		using basic_string_view = mse::TAnyStringConstSection<_Ty, _Traits>;
+
+		template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+		using xscope_basic_string_view = mse::TXScopeAnyStringConstSection<_Ty, _Traits>;
+
+		typedef basic_string_view<char>     string_view;
+		typedef basic_string_view<char16_t> u16string_view;
+		typedef basic_string_view<char32_t> u32string_view;
+		typedef basic_string_view<wchar_t>  wstring_view;
+		typedef xscope_basic_string_view<char>     xscope_string_view;
+		typedef xscope_basic_string_view<char16_t> xscope_u16string_view;
+		typedef xscope_basic_string_view<char32_t> xscope_u32string_view;
+		typedef xscope_basic_string_view<wchar_t>  xscope_wstring_view;
+	}
+
+	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	using nrp_basic_string_view = TAnyNRPStringConstSection<_Ty, _Traits>;
+
+	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	using xscope_nrp_basic_string_view = TXScopeAnyNRPStringConstSection<_Ty, _Traits>;
+
+	typedef nrp_basic_string_view<char>     nrp_string_view;
+	typedef nrp_basic_string_view<char16_t> nrp_u16string_view;
+	typedef nrp_basic_string_view<char32_t> nrp_u32string_view;
+	typedef nrp_basic_string_view<wchar_t>  nrp_wstring_view;
+	typedef xscope_nrp_basic_string_view<char>     xscope_nrp_string_view;
+	typedef xscope_nrp_basic_string_view<char16_t> xscope_nrp_u16string_view;
+	typedef xscope_nrp_basic_string_view<char32_t> xscope_nrp_u32string_view;
+	typedef xscope_nrp_basic_string_view<wchar_t>  xscope_nrp_wstring_view;
 
 
 	template <typename _Ty>
