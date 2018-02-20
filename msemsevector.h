@@ -1007,54 +1007,68 @@ namespace mse {
 		not have access to a "this" pointer, these functions require a pointer to the container to be passed as the first
 		argument. Any returned iterator will contain a copy of the supplied pointer and inherit its safety properties. */
 
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_iterator_type<_TVectorPointer> ss_begin(const _TVectorPointer& owner_ptr)
-		{	// return iterator for beginning of mutable sequence
-			Tss_iterator_type<_TVectorPointer> retval(owner_ptr);
+		template<typename _TVectorPointer>
+		static auto ss_begin(const _TVectorPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+				, Tss_const_iterator_type<_TVectorPointer>, Tss_iterator_type<_TVectorPointer> >::type return_type;
+			return_type retval(owner_ptr);
 			retval.set_to_beginning();
 			return retval;
 		}
 
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_iterator_type<_TVectorPointer> ss_end(const _TVectorPointer& owner_ptr)
-		{	// return iterator for end of mutable sequence
-			Tss_iterator_type<_TVectorPointer> retval(owner_ptr);
+		template<typename _TVectorPointer>
+		static auto ss_end(const _TVectorPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+				, Tss_const_iterator_type<_TVectorPointer>, Tss_iterator_type<_TVectorPointer> >::type return_type;
+			return_type retval(owner_ptr);
 			retval.set_to_end_marker();
 			return retval;
 		}
 
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_const_iterator_type<_TVectorPointer> ss_cbegin(const _TVectorPointer& owner_ptr)
-		{	// return iterator for beginning of nonmutable sequence
+		template<typename _TVectorPointer>
+		static auto ss_cbegin(const _TVectorPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 			Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr);
 			retval.set_to_beginning();
 			return retval;
 		}
 
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_const_iterator_type<_TVectorPointer> ss_cend(const _TVectorPointer& owner_ptr)
-		{	// return iterator for end of nonmutable sequence
+		template<typename _TVectorPointer>
+		static auto ss_cend(const _TVectorPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 			Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr);
 			retval.set_to_end_marker();
 			return retval;
 		}
 
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_reverse_iterator_type<_TVectorPointer> ss_rbegin(const _TVectorPointer& owner_ptr)
-		{	// return iterator for beginning of reversed mutable sequence
-			return (Tss_reverse_iterator_type<_TVectorPointer>(ss_end<_TVectorPointer>(owner_ptr)));
+		template<typename _TVectorPointer>
+		static auto ss_rbegin(const _TVectorPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+				, Tss_const_reverse_iterator_type<_TVectorPointer>, Tss_reverse_iterator_type<_TVectorPointer> >::type return_type;
+			return return_type(ss_end<_TVectorPointer>(owner_ptr));
 		}
 
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_reverse_iterator_type<_TVectorPointer> ss_rend(const _TVectorPointer& owner_ptr)
-		{	// return iterator for end of reversed mutable sequence
-			return (Tss_reverse_iterator_type<_TVectorPointer>(ss_cbegin<_TVectorPointer>(owner_ptr)));
+		template<typename _TVectorPointer>
+		static auto ss_rend(const _TVectorPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+				, Tss_const_reverse_iterator_type<_TVectorPointer>, Tss_reverse_iterator_type<_TVectorPointer> >::type return_type;
+			return return_type(ss_begin<_TVectorPointer>(owner_ptr));
 		}
 
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
-		static Tss_const_reverse_iterator_type<_TVectorPointer> ss_crbegin(const _TVectorPointer& owner_ptr)
-		{	// return iterator for beginning of reversed nonmutable sequence
-			return (Tss_const_reverse_iterator_type<_TVectorPointer>(ss_end<_TVectorPointer>(owner_ptr)));
+		template<typename _TVectorPointer>
+		static auto ss_crbegin(const _TVectorPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+			return (Tss_const_reverse_iterator_type<_TVectorPointer>(ss_cend<_TVectorPointer>(owner_ptr)));
+		}
+
+		template<typename _TVectorPointer>
+		static auto ss_crend(const _TVectorPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+			return (Tss_const_reverse_iterator_type<_TVectorPointer>(ss_crbegin<_TVectorPointer>(owner_ptr)));
 		}
 
 		template<typename _TVectorPointer1>

@@ -1348,54 +1348,68 @@ namespace mse {
 		typedef Tss_reverse_iterator_type<msear_pointer<_Myt>> ss_reverse_iterator_type;
 		typedef Tss_const_reverse_iterator_type<msear_pointer<const _Myt>> ss_const_reverse_iterator_type;
 
-		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type>
-		static Tss_iterator_type<_TArrayPointer> ss_begin(const _TArrayPointer& owner_ptr)
-		{	// return iterator for beginning of mutable sequence
-			Tss_iterator_type<_TArrayPointer> retval(owner_ptr);
+		template<typename _TArrayPointer>
+		static auto ss_begin(const _TArrayPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+				, Tss_const_iterator_type<_TArrayPointer>, Tss_iterator_type<_TArrayPointer> >::type return_type;
+			return_type retval(owner_ptr);
 			retval.set_to_beginning();
 			return retval;
 		}
 
-		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type>
-		static Tss_iterator_type<_TArrayPointer> ss_end(const _TArrayPointer& owner_ptr)
-		{	// return iterator for end of mutable sequence
-			Tss_iterator_type<_TArrayPointer> retval(owner_ptr);
+		template<typename _TArrayPointer>
+		static auto ss_end(const _TArrayPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+				, Tss_const_iterator_type<_TArrayPointer>, Tss_iterator_type<_TArrayPointer> >::type return_type;
+			return_type retval(owner_ptr);
 			retval.set_to_end_marker();
 			return retval;
 		}
 
-		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type>
-		static Tss_const_iterator_type<_TArrayPointer> ss_cbegin(const _TArrayPointer& owner_ptr)
-		{	// return iterator for beginning of nonmutable sequence
+		template<typename _TArrayPointer>
+		static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 			Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr);
 			retval.set_to_beginning();
 			return retval;
 		}
 
-		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type>
-		static Tss_const_iterator_type<_TArrayPointer> ss_cend(const _TArrayPointer& owner_ptr)
-		{	// return iterator for end of nonmutable sequence
+		template<typename _TArrayPointer>
+		static auto ss_cend(const _TArrayPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 			Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr);
 			retval.set_to_end_marker();
 			return retval;
 		}
 
-		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type>
-		static Tss_reverse_iterator_type<_TArrayPointer> ss_rbegin(const _TArrayPointer& owner_ptr)
-		{	// return iterator for beginning of reversed mutable sequence
-			return (Tss_reverse_iterator_type<_TArrayPointer>(ss_end<_TArrayPointer>(owner_ptr)));
+		template<typename _TArrayPointer>
+		static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+				, Tss_const_reverse_iterator_type<_TArrayPointer>, Tss_reverse_iterator_type<_TArrayPointer> >::type return_type;
+			return return_type(ss_end<_TArrayPointer>(owner_ptr));
 		}
 
-		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type>
-		static Tss_reverse_iterator_type<_TArrayPointer> ss_rend(const _TArrayPointer& owner_ptr)
-		{	// return iterator for end of reversed mutable sequence
-			return (Tss_reverse_iterator_type<_TArrayPointer>(ss_cbegin<_TArrayPointer>(owner_ptr)));
+		template<typename _TArrayPointer>
+		static auto ss_rend(const _TArrayPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+				, Tss_const_reverse_iterator_type<_TArrayPointer>, Tss_reverse_iterator_type<_TArrayPointer> >::type return_type;
+			return return_type(ss_begin<_TArrayPointer>(owner_ptr));
 		}
 
-		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type>
-		static Tss_const_reverse_iterator_type<_TArrayPointer> ss_crbegin(const _TArrayPointer& owner_ptr)
-		{	// return iterator for beginning of reversed nonmutable sequence
-			return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_end<_TArrayPointer>(owner_ptr)));
+		template<typename _TArrayPointer>
+		static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_cend<_TArrayPointer>(owner_ptr)));
+		}
+
+		template<typename _TArrayPointer>
+		static auto ss_crend(const _TArrayPointer& owner_ptr) {
+			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_crbegin<_TArrayPointer>(owner_ptr)));
 		}
 
 		class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {

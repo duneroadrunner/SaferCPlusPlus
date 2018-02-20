@@ -1506,10 +1506,45 @@ namespace mse {
 	using TAnyStringSection = TStringSection<TAnyRandomAccessIterator<_Ty>, _Traits>;
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
-	using TXScopeAnyStringConstSection = TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits>;
+	class TXScopeAnyStringConstSection : public TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> {
+	public:
+		typedef TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+
+		MSE_USING(TXScopeAnyStringConstSection, base_class);
+		TXScopeAnyStringConstSection() : base_class(&s_default_string_ref()) {}
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
+	private:
+		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
+	};
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
-	using TAnyStringConstSection = TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits>;
+	class TAnyStringConstSection : public TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> {
+	public:
+		typedef TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+
+		MSE_USING(TAnyStringConstSection, base_class);
+		TAnyStringConstSection() : base_class(&s_default_string_ref()) {}
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
+	private:
+		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
+	};
+
 
 	template<typename _Ty, typename _TRALoneParam, class = typename std::enable_if<
 		(!std::is_same<std::basic_string<_Ty>, typename std::remove_const<_TRALoneParam>::type>::value), void>::type>
@@ -1629,6 +1664,7 @@ namespace mse {
 		TXScopeAnyNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {
 			T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
 		}
+		TXScopeAnyNRPStringConstSection() : base_class(&s_default_string_ref()) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		explicit TXScopeAnyNRPStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
@@ -1640,6 +1676,8 @@ namespace mse {
 		native arrays. We do not want construction from a non-const native array to be publicly supported. */
 		template<size_t Tn>
 		explicit TXScopeAnyNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array) {}
+
+		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
 	};
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
@@ -1665,6 +1703,7 @@ namespace mse {
 		TAnyNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {
 			T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
 		}
+		TAnyNRPStringConstSection() : base_class(&s_default_string_ref()) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		explicit TAnyNRPStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
@@ -1676,6 +1715,8 @@ namespace mse {
 		native arrays. We do not want construction from a non-const native array to be publicly supported. */
 		template<size_t Tn>
 		explicit TAnyNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array) {}
+
+		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
 	};
 }
 
