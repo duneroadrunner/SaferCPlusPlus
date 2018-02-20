@@ -5510,6 +5510,16 @@ namespace mse {
 		}
 	};
 
+	template <typename _TRAIterator>
+	auto make_xscope_string_section(const _TRAIterator& start_iter, typename TXScopeStringSection<_TRAIterator>::size_type count) {
+		return TXScopeStringSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_string_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TXScopeStringSection<_TRAIterator>(param);
+	}
+
 	template <typename _TRAIterator, class _Traits>
 	class TStringSection : public TRandomAccessSection<_TRAIterator> {
 	public:
@@ -5572,6 +5582,16 @@ namespace mse {
 			return _Ostr;
 		}
 	};
+
+	template <typename _TRAIterator>
+	auto make_string_section(const _TRAIterator& start_iter, typename TStringSection<_TRAIterator>::size_type count) {
+		return TStringSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_string_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TStringSection<_TRAIterator>(param);
+	}
 
 	template <typename _TRAIterator, class _Traits>
 	class TXScopeStringConstSection : public TXScopeRandomAccessConstSection<_TRAIterator> {
@@ -5643,6 +5663,16 @@ namespace mse {
 		}
 	};
 
+	template <typename _TRAIterator>
+	auto make_xscope_string_const_section(const _TRAIterator& start_iter, typename TXScopeStringConstSection<_TRAIterator>::size_type count) {
+		return TXScopeStringConstSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_string_const_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TXScopeStringConstSection<_TRAIterator>(param);
+	}
+
 	template <typename _TRAIterator, class _Traits>
 	class TStringConstSection : public TRandomAccessConstSection<_TRAIterator> {
 	public:
@@ -5702,6 +5732,16 @@ namespace mse {
 			return _Ostr;
 		}
 	};
+
+	template <typename _TRAIterator>
+	auto make_string_const_section(const _TRAIterator& start_iter, typename TStringConstSection<_TRAIterator>::size_type count) {
+		return TStringConstSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_string_const_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TStringConstSection<_TRAIterator>(param);
+	}
 }
 
 namespace std {
@@ -5835,6 +5875,16 @@ namespace mse {
 		}
 	};
 
+	template <typename _TRAIterator>
+	auto make_xscope_nrp_string_section(const _TRAIterator& start_iter, typename TXScopeNRPStringSection<_TRAIterator>::size_type count) {
+		return TXScopeNRPStringSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_nrp_string_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TXScopeNRPStringSection<_TRAIterator>(param);
+	}
+
 	template <typename _TRAIterator, class _Traits>
 	class TNRPStringSection : public TStringSection<_TRAIterator, _Traits> {
 	public:
@@ -5882,6 +5932,16 @@ namespace mse {
 			return _Ostr << static_cast<const base_class&>(_Str);
 		}
 	};
+
+	template <typename _TRAIterator>
+	auto make_nrp_string_section(const _TRAIterator& start_iter, typename TNRPStringSection<_TRAIterator>::size_type count) {
+		return TNRPStringSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_nrp_string_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TNRPStringSection<_TRAIterator>(param);
+	}
 
 	template <typename _TRAIterator, class _Traits>
 	class TXScopeNRPStringConstSection : public TXScopeStringConstSection<_TRAIterator, _Traits> {
@@ -5958,6 +6018,16 @@ namespace mse {
 		}
 	};
 
+	template <typename _TRAIterator>
+	auto make_xscope_nrp_string_const_section(const _TRAIterator& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count) {
+		return TXScopeNRPStringConstSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_nrp_string_const_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TXScopeNRPStringConstSection<_TRAIterator>(param);
+	}
+
 	template <typename _TRAIterator, class _Traits>
 	class TNRPStringConstSection : public TStringConstSection<_TRAIterator, _Traits> {
 	public:
@@ -6019,6 +6089,16 @@ namespace mse {
 			return _Ostr << static_cast<const base_class&>(_Str);
 		}
 	};
+
+	template <typename _TRAIterator>
+	auto make_nrp_string_const_section(const _TRAIterator& start_iter, typename TNRPStringConstSection<_TRAIterator>::size_type count) {
+		return TNRPStringConstSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_nrp_string_const_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TNRPStringConstSection<_TRAIterator>(param);
+	}
 }
 
 namespace std {

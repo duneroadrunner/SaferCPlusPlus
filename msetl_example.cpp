@@ -1765,7 +1765,7 @@ int main(int argc, char* argv[])
 		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
 		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
 
-		mse::TRandomAccessSection<decltype(mstd_array_iter1)> ra_section1(mstd_array_iter1, 2);
+		auto ra_section1 = mse::make_random_access_section(mstd_array_iter1, 2);
 		B::foo3(ra_section1);
 
 		int q = 5;

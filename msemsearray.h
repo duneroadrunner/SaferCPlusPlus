@@ -3029,10 +3029,7 @@ namespace mse {
 		TRandomAccessSectionBase(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
 		template <typename _TRALoneParam>
 		TRandomAccessSectionBase(const _TRALoneParam& param)
-			/* _TRALoneParam being either another TRandomAccessSectionBase<>, a "random access" container, or a pointer to "random
-			access" container is supported. Different initialization implementations are required for each case. */
-			: m_start_iter(iter_from_lone_param1(typename std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::type(), param))
-			, m_count(count_from_lone_param1(typename std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::type(), param)) {}
+			: m_start_iter(s_iter_from_lone_param(param)), m_count(s_count_from_lone_param(param)) {}
 		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
 		TRandomAccessSectionBase(value_type(&native_array)[Tn]) : m_start_iter(native_array), m_count(Tn) {}
@@ -3379,6 +3376,17 @@ namespace mse {
 			return retval;
 		}
 
+		template <typename _TRALoneParam>
+		static auto s_iter_from_lone_param(const _TRALoneParam& param) {
+			/* _TRALoneParam being either another TRandomAccessSectionBase<>, a "random access" container, or a pointer to "random
+			access" container is supported. Different initialization implementations are required for each case. */
+			return s_iter_from_lone_param1(typename std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::type(), param);
+		}
+		template <typename _TRALoneParam>
+		static auto s_count_from_lone_param(const _TRALoneParam& param) {
+			return s_count_from_lone_param1(typename std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::type(), param);
+		}
+
 	protected:
 		TRandomAccessSectionBase subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
@@ -3389,13 +3397,13 @@ namespace mse {
 	private:
 		/* construction helper functions */
 		template <typename _TRAPointer>
-		static _TRAIterator iter_from_ptr_helper3(std::true_type, const _TRAPointer& ptr) {
+		static auto s_iter_from_ptr_helper3(std::true_type, const _TRAPointer& ptr) {
 			/* The parameter seems to be a pointer to a container with a (static) "ss_begin()" member function. So we'll use
 			that function to obtain the iterator we need. */
 			return (*ptr).ss_begin(ptr);
 		}
 		template <typename _TRAPointer>
-		static _TRAIterator iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
+		static auto s_iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
 			/* The target container object, doesn't seem to have a "begin()" or (static) "ss_begin()" method. So here we're
 			going to assume that the iterator can simply be constructed from the container pointer (as would be the case when
 			the iterator is of type "mse::TRAIterator<_TRAPointer>"). This may not always be a good assumption. If you get a
@@ -3403,46 +3411,46 @@ namespace mse {
 			return _TRAIterator(ptr);
 		}
 		template <typename _TRAPointer>
-		static _TRAIterator iter_from_ptr_helper2(std::true_type, const _TRAPointer& ptr) {
+		static auto s_iter_from_ptr_helper2(std::true_type, const _TRAPointer& ptr) {
 			/* The parameter seems to be a pointer to a container with a "begin()" member function. So we'll use that function to
 			obtain the iterator we need. */
 			return (*ptr).begin();
 		}
 		template <typename _TRAPointer>
-		static _TRAIterator iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
+		static auto s_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
 			/* The parameter seems to be a pointer, but its target doesn't seem to have an accessible "begin()" member
 			function. */
-			return iter_from_ptr_helper3(typename HasOrInheritsStaticSSBeginMethod_msemsearray<decltype(*ptr)>::type(), ptr);
+			return s_iter_from_ptr_helper3(typename HasOrInheritsStaticSSBeginMethod_msemsearray<decltype(*ptr)>::type(), ptr);
 		}
 		template <typename _TRALoneParam>
-		static _TRAIterator iter_from_lone_param2(std::true_type, const _TRALoneParam& ra_container) {
+		static auto s_iter_from_lone_param2(std::true_type, const _TRALoneParam& ra_container) {
 			/* The parameter seems to be a container with a "begin()" member function. So we'll use that function to obtain the
 			iterator we need. */
 			return ra_container.begin();
 		}
 		template <typename _TRALoneParam>
-		static _TRAIterator iter_from_lone_param2(std::false_type, const _TRALoneParam& ptr) {
+		static auto s_iter_from_lone_param2(std::false_type, const _TRALoneParam& ptr) {
 			/* The parameter doesn't seem to be a container with a "begin()" member function. Here we'll assume that it is a pointer to
 			a supported container. If you get a compile error here, then construction from the given parameter type isn't supported. */
-			return iter_from_ptr_helper2(typename HasOrInheritsBeginMethod_msemsearray<decltype(*ptr)>::type(), ptr);
+			return s_iter_from_ptr_helper2(typename HasOrInheritsBeginMethod_msemsearray<decltype(*ptr)>::type(), ptr);
 		}
 		template <typename _TRALoneParam>
-		static _TRAIterator iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
+		static auto s_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
 			/* The parameter is another "random access section". */
 			return ra_section.m_start_iter;
 		}
 		template <typename _TRALoneParam>
-		static _TRAIterator iter_from_lone_param1(std::false_type, const _TRALoneParam& param) {
+		static auto s_iter_from_lone_param1(std::false_type, const _TRALoneParam& param) {
 			/* The parameter is not a "random access section". */
-			return iter_from_lone_param2(typename HasOrInheritsBeginMethod_msemsearray<_TRALoneParam>::type(), param);
+			return s_iter_from_lone_param2(typename HasOrInheritsBeginMethod_msemsearray<_TRALoneParam>::type(), param);
 		}
 		template <typename _TRALoneParam>
-		static size_type count_from_lone_param3(std::true_type, const _TRALoneParam& native_array) {
+		static auto s_count_from_lone_param3(std::true_type, const _TRALoneParam& native_array) {
 			/* The parameter seems to be a native array. */
 			return mse::native_array_size_msemsearray(native_array);
 		}
 		template <typename _TRALoneParam>
-		static size_type count_from_lone_param3(std::false_type, const _TRALoneParam& ptr) {
+		static auto s_count_from_lone_param3(std::false_type, const _TRALoneParam& ptr) {
 			/* The parameter doesn't seem to be a container with a "begin()" member function or a native array. Here we'll
 			assume that it is a pointer to a container with a size() member function. If you get a compile error here, then
 			construction from the given parameter type isn't supported. In particular, "char *" pointers to null terminated
@@ -3450,24 +3458,24 @@ namespace mse {
 			return (*ptr).size();
 		}
 		template <typename _TRALoneParam>
-		static size_type count_from_lone_param2(std::true_type, const _TRALoneParam& ra_container) {
+		static auto s_count_from_lone_param2(std::true_type, const _TRALoneParam& ra_container) {
 			/* The parameter seems to be a container with a "begin()" member function. We'll assume it has a "size()" member function too. */
 			return ra_container.size();
 		}
 		template <typename _TRALoneParam>
-		static size_type count_from_lone_param2(std::false_type, const _TRALoneParam& param) {
+		static auto s_count_from_lone_param2(std::false_type, const _TRALoneParam& param) {
 			/* The parameter doesn't seem to be a container with a "begin()" member function. */
-			return count_from_lone_param3(typename mse::IsNativeArray_msemsearray<_TRALoneParam>::type(), param);
+			return s_count_from_lone_param3(typename mse::IsNativeArray_msemsearray<_TRALoneParam>::type(), param);
 		}
 		template <typename _TRALoneParam>
-		static size_type count_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
+		static auto s_count_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
 			/* The parameter is another "random access section". */
 			return ra_section.m_count;
 		}
 		template <typename _TRALoneParam>
-		static size_type count_from_lone_param1(std::false_type, const _TRALoneParam& param) {
+		static auto s_count_from_lone_param1(std::false_type, const _TRALoneParam& param) {
 			/* The parameter is not a "random access section". */
-			return count_from_lone_param2(typename HasOrInheritsBeginMethod_msemsearray<_TRALoneParam>::type(), param);
+			return s_count_from_lone_param2(typename HasOrInheritsBeginMethod_msemsearray<_TRALoneParam>::type(), param);
 		}
 
 		TRandomAccessSectionBase<_TRAIterator>* operator&() { return this; }
@@ -3529,6 +3537,16 @@ namespace mse {
 		TXScopeRandomAccessSection<_TRAIterator>* operator&() { return this; }
 		const TXScopeRandomAccessSection<_TRAIterator>* operator&() const { return this; }
 	};
+
+	template <typename _TRAIterator>
+	auto make_xscope_random_access_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessSection<_TRAIterator>::size_type count) {
+		return TXScopeRandomAccessSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_random_access_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TXScopeRandomAccessSection<_TRAIterator>(param);
+	}
 
 	template <typename _TRAIterator>
 	class TRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator> {
@@ -3601,6 +3619,16 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
+	auto make_random_access_section(const _TRAIterator& start_iter, typename TRandomAccessSection<_TRAIterator>::size_type count) {
+		return TRandomAccessSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_random_access_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TRandomAccessSection<_TRAIterator>(param);
+	}
+
+	template <typename _TRAIterator>
 	class TRandomAccessConstSectionBase : public RandomAccessConstSectionTag
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRandomAccessConstSectionBase<_TRAIterator> > >::type
 	{
@@ -3620,10 +3648,10 @@ namespace mse {
 		TRandomAccessConstSectionBase(const _TRALoneParam& param)
 			/* _TRALoneParam being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
 			supported. Different initialization implementations are required for each of the two cases. */
-			: m_start_iter(TRandomAccessSectionBase<_TRAIterator>::iter_from_lone_param1(typename std::conditional<
+			: m_start_iter(TRandomAccessSectionBase<_TRAIterator>::s_iter_from_lone_param1(typename std::conditional<
 				std::is_base_of<RandomAccessConstSectionTag, _TRALoneParam>::value || std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::value
 				, std::true_type, std::false_type>::type(), param))
-			, m_count(TRandomAccessSectionBase<_TRAIterator>::count_from_lone_param1(typename std::conditional<
+			, m_count(TRandomAccessSectionBase<_TRAIterator>::s_count_from_lone_param1(typename std::conditional<
 				std::is_base_of<RandomAccessConstSectionTag, _TRALoneParam>::value || std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::value
 				, std::true_type, std::false_type>::type(), param)) {}
 
@@ -3931,6 +3959,21 @@ namespace mse {
 			return retval;
 		}
 
+		template <typename _TRALoneParam>
+		static auto s_iter_from_lone_param(const _TRALoneParam& param) {
+			/* _TRALoneParam being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
+			supported. Different initialization implementations are required for each of the two cases. */
+			return TRandomAccessSectionBase<_TRAIterator>::s_iter_from_lone_param1(typename std::conditional<
+				std::is_base_of<RandomAccessConstSectionTag, _TRALoneParam>::value || std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::value
+				, std::true_type, std::false_type>::type(), param);
+		}
+		template <typename _TRALoneParam>
+		static auto s_count_from_lone_param(const _TRALoneParam& param) {
+			return TRandomAccessSectionBase<_TRAIterator>::s_count_from_lone_param1(typename std::conditional<
+				std::is_base_of<RandomAccessConstSectionTag, _TRALoneParam>::value || std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::value
+				, std::true_type, std::false_type>::type(), param);
+		}
+
 	protected:
 		TRandomAccessConstSectionBase subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
@@ -3997,6 +4040,16 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
+	auto make_xscope_random_access_const_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
+		return TXScopeRandomAccessConstSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_random_access_const_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TXScopeRandomAccessConstSection<_TRAIterator>(param);
+	}
+
+	template <typename _TRAIterator>
 	class TRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator> {
 	public:
 		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
@@ -4048,6 +4101,16 @@ namespace mse {
 
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
 	};
+
+	template <typename _TRAIterator>
+	auto make_random_access_const_section(const _TRAIterator& start_iter, typename TRandomAccessConstSection<_TRAIterator>::size_type count) {
+		return TRandomAccessConstSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_random_access_const_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TRandomAccessConstSection<_TRAIterator>(param);
+	}
 
 
 	template <class N>
