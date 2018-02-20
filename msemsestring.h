@@ -5446,6 +5446,11 @@ namespace mse {
 
 	/* "String sections" are essentially "random access sections" that support the string output stream operator ("<<").
 	So a const string section is the functional equivalent of an std::string_view, with a very similar interface. */
+	template <typename _TRAIterator>
+	class TStringConstSectionBase;
+	template <typename _TRAIterator>
+	class TStringSectionBase;
+
 	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
 	class TXScopeStringSection;
 	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
@@ -5455,10 +5460,158 @@ namespace mse {
 	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
 	class TStringConstSection;
 
-	template <typename _TRAIterator, class _Traits>
-	class TXScopeStringSection : public TXScopeRandomAccessSection<_TRAIterator> {
+	template <typename _TRAIterator>
+	class TStringSectionBase : public TRandomAccessSectionBase<_TRAIterator> {
 	public:
-		typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
+		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+
+		TStringSectionBase(const TStringSectionBase& src) : base_class(static_cast<const base_class&>(src)) {}
+		TStringSectionBase(const base_class& src) : base_class(src) {}
+		TStringSectionBase(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TStringSectionBase(const _TRALoneParam& param) : base_class(param) {}
+
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
+		template<size_t Tn>
+		TStringSectionBase(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		TStringSectionBase(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
+			/* "Const" string sections are more appropriate for use with const native arrays, including string literals. */
+			if ((1 <= (*this).size()) && (0 == (*this).back())) {
+				/* We presume that the argument is a string literal, and remove the terminating null. */
+				(*this).remove_suffix(1);
+			}
+			else {
+				/* The last character does not seem to a null terminator, so presumably the argument is not a string
+				literal. */
+			}
+		}
+
+		bool equal(const TStringConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+			return base_class::equal(sv);
+		}
+		bool equal(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv) const {
+			return subsection(pos1, n1).equal(sv);
+		}
+		bool equal(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
+		}
+		template <typename _TRAIterator2>
+		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+			return subsection(pos1, n1).equal(TStringConstSectionBase<_TRAIterator>(s, n2));
+		}
+		bool operator==(const TStringConstSectionBase<_TRAIterator>& sv) const {
+			return equal(sv);
+		}
+		bool operator!=(const TStringConstSectionBase<_TRAIterator>& sv) const {
+			return !((*this) == sv);
+		}
+
+		bool lexicographical_compare(const TStringConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+			return base_class::lexicographical_compare(sv);
+		}
+		bool lexicographical_compare(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv) const {
+			return subsection(pos1, n1).lexicographical_compare(sv);
+		}
+		bool lexicographical_compare(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
+		}
+		template <typename _TRAIterator2>
+		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+			return subsection(pos1, n1).lexicographical_compare(TStringConstSectionBase<_TRAIterator>(s, n2));
+		}
+		bool operator<(const TStringConstSectionBase<_TRAIterator>& sv) const {
+			return lexicographical_compare(sv);
+		}
+		bool operator>(const TStringConstSectionBase<_TRAIterator>& sv) const {
+			return sv.lexicographical_compare(*this);
+		}
+		bool operator<=(const TStringConstSectionBase<_TRAIterator>& sv) const { return !((*this) > sv); }
+		bool operator>=(const TStringConstSectionBase<_TRAIterator>& sv) const { return !((*this) < sv); }
+
+		int compare(const TStringConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+			return base_class::compare(sv);
+		}
+		int compare(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv) const {
+			return subsection(pos1, n1).compare(sv);
+		}
+		int compare(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+			return subsection(pos1, n1).compare(sv.subsection(pos2, n2));
+		}
+		template <typename _TRAIterator2>
+		int compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+			return subsection(pos1, n1).compare(TStringConstSectionBase<_TRAIterator>(s, n2));
+		}
+
+		size_type find(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+			return base_class::find(s, pos);
+		}
+		size_type rfind(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+			return base_class::rfind(s, pos);
+		}
+		size_type find_first_of(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+			return base_class::find_first_of(s, pos);
+		}
+		size_type find_last_of(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+			return base_class::find_last_of(s, pos);
+		}
+		size_type find_first_not_of(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+			return base_class::find_first_not_of(s, pos);
+		}
+		size_type find_last_not_of(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+			return base_class::find_last_not_of(s, pos);
+		}
+
+		bool starts_with(const TStringConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+			return base_class::starts_with(s);
+		}
+		bool ends_with(const TStringConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+			return base_class::ends_with(s);
+		}
+
+		typedef typename base_class::xscope_iterator xscope_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+
+	protected:
+		TStringSectionBase subsection(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+
+		typedef typename base_class::iterator iterator;
+		typedef typename base_class::const_iterator const_iterator;
+		iterator begin() { return base_class::begin(); }
+		const_iterator cbegin() const { return base_class::cbegin(); }
+		iterator end() { return base_class::end(); }
+		const_iterator cend() const { return base_class::cend(); }
+
+		friend class TXScopeStringSection<_TRAIterator>;
+		friend class TStringSection<_TRAIterator>;
+		template<typename _TRAIterator1> friend class TXScopeTStringConstSectionBase;
+		template<typename _TRAIterator1> friend class TXScopeTStringSectionBase;
+		template<typename _TRAIterator1> friend class TStringConstSectionBase;
+		template<typename _TRAIterator1> friend class TStringSectionBase;
+
+		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TStringSectionBase& _Str) {
+			/* todo: consider optimizing */
+			for (const auto& elem_cref : _Str) {
+				_Ostr << elem_cref;
+			}
+			return _Ostr;
+		}
+	};
+
+	template <typename _TRAIterator, class _Traits>
+	class TXScopeStringSection : public TStringSectionBase<_TRAIterator> {
+	public:
+		typedef TStringSectionBase<_TRAIterator> base_class;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::reference reference;
 		typedef typename base_class::const_reference const_reference;
@@ -5477,20 +5630,10 @@ namespace mse {
 
 		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
-		explicit TXScopeStringSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+		TXScopeStringSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
-		explicit TXScopeStringSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
-			/* "Const" string sections are more appropriate for use with const native arrays, including string literals. */
-			if ((1 <= (*this).size()) && (0 == (*this).back())) {
-				/* We presume that the argument is a string literal, and remove the terminating null. */
-				(*this).remove_suffix(1);
-			}
-			else {
-				/* The last character does not seem to a null terminator, so presumably the argument is not a string
-				literal. */
-			}
-		}
+		TXScopeStringSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {}
 
 		TXScopeStringSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
@@ -5508,6 +5651,13 @@ namespace mse {
 		typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
+		/* These are here because some standard algorithms require them. Prefer the "xscope_" prefixed versions to
+		acknowledge that scope iterators are returned. */
+		auto begin() const { return (*this).xscope_cbegin(); }
+		auto cbegin() const { return (*this).xscope_cbegin(); }
+		auto end() const { return (*this).xscope_cend(); }
+		auto cend() const { return (*this).xscope_cend(); }
+
 	private:
 		//TXScopeStringSection<_TRAIterator, _Traits>& operator=(const TXScopeStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
@@ -5516,11 +5666,9 @@ namespace mse {
 		const TXScopeStringSection<_TRAIterator, _Traits>* operator&() const { return this; }
 
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TXScopeStringSection& _Str) {
-			/* todo: consider optimizing */
-			for (const auto& elem_cref : _Str) {
-				_Ostr << elem_cref;
-			}
+			_Ostr << static_cast<const base_class&>(_Str);
 			return _Ostr;
+
 		}
 	};
 
@@ -5535,9 +5683,9 @@ namespace mse {
 	}
 
 	template <typename _TRAIterator, class _Traits>
-	class TStringSection : public TRandomAccessSection<_TRAIterator> {
+	class TStringSection : public TStringSectionBase<_TRAIterator> {
 	public:
-		typedef TRandomAccessSection<_TRAIterator> base_class;
+		typedef TStringSectionBase<_TRAIterator> base_class;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::reference reference;
 		typedef typename base_class::const_reference const_reference;
@@ -5554,20 +5702,10 @@ namespace mse {
 
 		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
-		explicit TStringSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+		TStringSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
-		explicit TStringSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
-			/* "Const" string sections are more appropriate for use with const native arrays, including string literals. */
-			if ((1 <= (*this).size()) && (0 == (*this).back())) {
-				/* We presume that the argument is a string literal, and remove the terminating null. */
-				(*this).remove_suffix(1);
-			}
-			else {
-				/* The last character does not seem to a null terminator, so presumably the argument is not a string
-				literal. */
-			}
-		}
+		TStringSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {}
 
 		virtual ~TStringSection() {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
@@ -5582,17 +5720,38 @@ namespace mse {
 
 		typedef typename base_class::iterator iterator;
 		typedef typename base_class::const_iterator const_iterator;
-		typedef typename base_class::reverse_iterator reverse_iterator;
-		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
+		iterator begin() { return base_class::begin(); }
+		const_iterator begin() const { return cbegin(); }
+		const_iterator cbegin() const { return base_class::cbegin(); }
+		iterator end() { return base_class::end(); }
+		const_iterator end() const { return cend(); }
+		const_iterator cend() const { return base_class::cend(); }
+		typedef std::reverse_iterator<iterator> reverse_iterator;
+		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+		reverse_iterator rbegin() {	// return iterator for beginning of reversed mutable sequence
+			return (reverse_iterator(end()));
+		}
+		const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (const_reverse_iterator(end()));
+		}
+		reverse_iterator rend() {	// return iterator for end of reversed mutable sequence
+			return (reverse_iterator(begin()));
+		}
+		const_reverse_iterator rend() const {	// return iterator for end of reversed nonmutable sequence
+			return (const_reverse_iterator(begin()));
+		}
+		const_reverse_iterator crbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (rbegin());
+		}
+		const_reverse_iterator crend() const {	// return iterator for end of reversed nonmutable sequence
+			return (rend());
+		}
 
 		friend class TXScopeStringSection<_TRAIterator, _Traits>;
 		friend class TXScopeStringConstSection<_TRAIterator, _Traits>;
 		friend class TStringConstSection<_TRAIterator, _Traits>;
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TStringSection& _Str) {
-			/* todo: consider optimizing */
-			for (const auto& elem_cref : _Str) {
-				_Ostr << elem_cref;
-			}
+			_Ostr << static_cast<const base_class&>(_Str);
 			return _Ostr;
 		}
 	};
@@ -5607,10 +5766,158 @@ namespace mse {
 		return TStringSection<_TRAIterator>(param);
 	}
 
-	template <typename _TRAIterator, class _Traits>
-	class TXScopeStringConstSection : public TXScopeRandomAccessConstSection<_TRAIterator> {
+	template <typename _TRAIterator>
+	class TStringConstSectionBase : public TRandomAccessConstSectionBase<_TRAIterator> {
 	public:
-		typedef TXScopeRandomAccessConstSection<_TRAIterator> base_class;
+		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
+		typedef typename base_class::value_type value_type;
+		//typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		static const size_type npos = size_type(-1);
+		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+
+		TStringConstSectionBase(const TStringConstSectionBase& src) : base_class(static_cast<const base_class&>(src)) {}
+		TStringConstSectionBase(const TStringSectionBase<_TRAIterator>& src) : base_class(static_cast<const base_class&>(src)) {}
+		TStringConstSectionBase(const base_class& src) : base_class(src) {}
+		TStringConstSectionBase(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TStringConstSectionBase(const _TRALoneParam& param) : base_class(param) {}
+
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
+		template<size_t Tn>
+		TStringConstSectionBase(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		TStringConstSectionBase(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
+			/* "Const" string sections are more appropriate for use with const native arrays, including string literals. */
+			if ((1 <= (*this).size()) && (0 == (*this).back())) {
+				/* We presume that the argument is a string literal, and remove the terminating null. */
+				(*this).remove_suffix(1);
+			}
+			else {
+				/* The last character does not seem to a null terminator, so presumably the argument is not a string
+				literal. */
+			}
+		}
+
+		bool equal(const TStringConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+			return base_class::equal(sv);
+		}
+		bool equal(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv) const {
+			return subsection(pos1, n1).equal(sv);
+		}
+		bool equal(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
+		}
+		template <typename _TRAIterator2>
+		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+			return subsection(pos1, n1).equal(TStringConstSectionBase<_TRAIterator>(s, n2));
+		}
+		bool operator==(const TStringConstSectionBase<_TRAIterator>& sv) const {
+			return equal(sv);
+		}
+		bool operator!=(const TStringConstSectionBase<_TRAIterator>& sv) const {
+			return !((*this) == sv);
+		}
+
+		bool lexicographical_compare(const TStringConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+			return base_class::lexicographical_compare(sv);
+		}
+		bool lexicographical_compare(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv) const {
+			return subsection(pos1, n1).lexicographical_compare(sv);
+		}
+		bool lexicographical_compare(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
+		}
+		template <typename _TRAIterator2>
+		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+			return subsection(pos1, n1).lexicographical_compare(TStringConstSectionBase<_TRAIterator>(s, n2));
+		}
+		bool operator<(const TStringConstSectionBase<_TRAIterator>& sv) const {
+			return lexicographical_compare(sv);
+		}
+		bool operator>(const TStringConstSectionBase<_TRAIterator>& sv) const {
+			return sv.lexicographical_compare(*this);
+		}
+		bool operator<=(const TStringConstSectionBase<_TRAIterator>& sv) const { return !((*this) > sv); }
+		bool operator>=(const TStringConstSectionBase<_TRAIterator>& sv) const { return !((*this) < sv); }
+
+		int compare(const TStringConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+			return base_class::compare(sv);
+		}
+		int compare(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv) const {
+			return subsection(pos1, n1).compare(sv);
+		}
+		int compare(size_type pos1, size_type n1, TStringConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+			return subsection(pos1, n1).compare(sv.subsection(pos2, n2));
+		}
+		template <typename _TRAIterator2>
+		int compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+			return subsection(pos1, n1).compare(TStringConstSectionBase<_TRAIterator>(s, n2));
+		}
+
+		size_type find(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+			return base_class::find(s, pos);
+		}
+		size_type rfind(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+			return base_class::rfind(s, pos);
+		}
+		size_type find_first_of(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+			return base_class::find_first_of(s, pos);
+		}
+		size_type find_last_of(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+			return base_class::find_last_of(s, pos);
+		}
+		size_type find_first_not_of(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+			return base_class::find_first_not_of(s, pos);
+		}
+		size_type find_last_not_of(const TStringConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+			return base_class::find_last_not_of(s, pos);
+		}
+
+		bool starts_with(const TStringConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+			return base_class::starts_with(s);
+		}
+		bool ends_with(const TStringConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+			return base_class::ends_with(s);
+		}
+
+		//typedef typename base_class::xscope_iterator xscope_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+
+	protected:
+		TStringConstSectionBase subsection(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+
+		typedef typename base_class::const_iterator const_iterator;
+		const_iterator cbegin() const { return base_class::cbegin(); }
+		const_iterator cend() const { return base_class::cend(); }
+		const_iterator begin() const { return cbegin(); }
+		const_iterator end() const { return cend(); }
+
+		friend class TXScopeStringConstSection<_TRAIterator>;
+		friend class TStringConstSection<_TRAIterator>;
+		template<typename _TRAIterator1> friend class TXScopeTStringConstSectionBase;
+		template<typename _TRAIterator1> friend class TXScopeTStringSectionBase;
+		template<typename _TRAIterator1> friend class TStringConstSectionBase;
+		template<typename _TRAIterator1> friend class TStringSectionBase;
+
+		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TStringConstSectionBase& _Str) {
+			/* todo: consider optimizing */
+			for (const auto& elem_cref : _Str) {
+				_Ostr << elem_cref;
+			}
+			return _Ostr;
+		}
+	};
+
+	template <typename _TRAIterator, class _Traits>
+	class TXScopeStringConstSection : public TStringConstSectionBase<_TRAIterator> {
+	public:
+		typedef TStringConstSectionBase<_TRAIterator> base_class;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
@@ -5631,19 +5938,10 @@ namespace mse {
 
 		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
-		explicit TXScopeStringConstSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+		TXScopeStringConstSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
-		explicit TXScopeStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
-			if ((1 <= (*this).size()) && (0 == (*this).back())) {
-				/* We presume that the argument is a string literal, and remove the terminating null. */
-				(*this).remove_suffix(1);
-			}
-			else {
-				/* The last character does not seem to a null terminator, so presumably the argument is not a string
-				literal. */
-			}
-		}
+		TXScopeStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {}
 
 		TXScopeStringConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
@@ -5661,6 +5959,13 @@ namespace mse {
 		//typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
+		/* These are here because some standard algorithms require them. Prefer the "xscope_" prefixed versions to
+		acknowledge that scope iterators are returned. */
+		auto begin() const { return (*this).xscope_cbegin(); }
+		auto cbegin() const { return (*this).xscope_cbegin(); }
+		auto end() const { return (*this).xscope_cend(); }
+		auto cend() const { return (*this).xscope_cend(); }
+
 	private:
 		//TXScopeStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
@@ -5669,10 +5974,7 @@ namespace mse {
 		const TXScopeStringConstSection<_TRAIterator, _Traits>* operator&() const { return this; }
 
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TXScopeStringConstSection& _Str) {
-			/* todo: consider optimizing */
-			for (const auto& elem_cref : _Str) {
-				_Ostr << elem_cref;
-			}
+			_Ostr << static_cast<const base_class&>(_Str);
 			return _Ostr;
 		}
 	};
@@ -5688,9 +5990,9 @@ namespace mse {
 	}
 
 	template <typename _TRAIterator, class _Traits>
-	class TStringConstSection : public TRandomAccessConstSection<_TRAIterator> {
+	class TStringConstSection : public TStringConstSectionBase<_TRAIterator> {
 	public:
-		typedef TRandomAccessConstSection<_TRAIterator> base_class;
+		typedef TStringConstSectionBase<_TRAIterator> base_class;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
@@ -5707,19 +6009,10 @@ namespace mse {
 
 		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
-		explicit TStringConstSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+		TStringConstSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
-		explicit TStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
-			if ((1 <= (*this).size()) && (0 == (*this).back())) {
-				/* We presume that the argument is a string literal, and remove the terminating null. */
-				(*this).remove_suffix(1);
-			}
-			else {
-				/* The last character does not seem to a null terminator, so presumably the argument is not a string
-				literal. */
-			}
-		}
+		TStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {}
 
 		virtual ~TStringConstSection() {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
@@ -5732,17 +6025,28 @@ namespace mse {
 			return subsection(pos, n);
 		}
 
-		//typedef typename base_class::iterator iterator;
 		typedef typename base_class::const_iterator const_iterator;
-		//typedef typename base_class::reverse_iterator reverse_iterator;
-		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
+		const_iterator begin() const { return cbegin(); }
+		const_iterator cbegin() const { return base_class::cbegin(); }
+		const_iterator end() const { return cend(); }
+		const_iterator cend() const { return base_class::cend(); }
+		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+		const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (const_reverse_iterator(end()));
+		}
+		const_reverse_iterator rend() const {	// return iterator for end of reversed nonmutable sequence
+			return (const_reverse_iterator(begin()));
+		}
+		const_reverse_iterator crbegin() const {	// return iterator for beginning of reversed nonmutable sequence
+			return (rbegin());
+		}
+		const_reverse_iterator crend() const {	// return iterator for end of reversed nonmutable sequence
+			return (rend());
+		}
 
 		friend class TXScopeStringConstSection<_TRAIterator, _Traits>;
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TStringConstSection& _Str) {
-			/* todo: consider optimizing */
-			for (const auto& elem_cref : _Str) {
-				_Ostr << elem_cref;
-			}
+			_Ostr << static_cast<const base_class&>(_Str);
 			return _Ostr;
 		}
 	};

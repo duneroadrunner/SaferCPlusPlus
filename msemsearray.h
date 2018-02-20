@@ -3408,6 +3408,21 @@ namespace mse {
 				: TRandomAccessSectionBase((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
 		}
 
+		typedef TRASectionIterator<_TRAIterator> iterator;
+		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
+		iterator begin() { return iterator((*this).m_start_iter, (*this).m_count); }
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+		iterator end() {
+			auto retval(iterator((*this).m_start_iter, (*this).m_count));
+			retval += (*this).m_count;
+			return retval;
+		}
+		const_iterator cend() const {
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+			retval += (*this).m_count;
+			return retval;
+		}
+
 	private:
 		/* construction helper functions */
 		template <typename _TRAPointer>
@@ -3590,22 +3605,14 @@ namespace mse {
 				: TRandomAccessSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
 		}
 
-		typedef TRASectionIterator<_TRAIterator> iterator;
-		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
-		iterator begin() { return iterator((*this).m_start_iter, (*this).m_count); }
+		typedef typename base_class::iterator iterator;
+		typedef typename base_class::const_iterator const_iterator;
+		iterator begin() { return base_class::begin(); }
 		const_iterator begin() const { return cbegin(); }
-		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
-		iterator end() {
-			auto retval(iterator((*this).m_start_iter, (*this).m_count));
-			retval += (*this).m_count;
-			return retval;
-		}
+		const_iterator cbegin() const { return base_class::cbegin(); }
+		iterator end() { return base_class::end(); }
 		const_iterator end() const { return cend(); }
-		const_iterator cend() const {
-			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
-			retval += (*this).m_count;
-			return retval;
-		}
+		const_iterator cend() const { return base_class::cend(); }
 		typedef std::reverse_iterator<iterator> reverse_iterator;
 		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 		reverse_iterator rbegin() {	// return iterator for beginning of reversed mutable sequence
@@ -3995,6 +4002,14 @@ namespace mse {
 					: TRandomAccessConstSectionBase((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
 		}
 
+		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+		const_iterator cend() const {
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+			retval += (*this).m_count;
+			return retval;
+		}
+
 	private:
 		TRandomAccessConstSectionBase<_TRAIterator>* operator&() { return this; }
 		const TRandomAccessConstSectionBase<_TRAIterator>* operator&() const { return this; }
@@ -4090,15 +4105,9 @@ namespace mse {
 
 		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
 		const_iterator begin() const { return cbegin(); }
-		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
-		const_iterator end() const {
-			return cend();
-		}
-		const_iterator cend() const {
-			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
-			retval += (*this).m_count;
-			return retval;
-		}
+		const_iterator cbegin() const { return base_class::cbegin(); }
+		const_iterator end() const { return cend(); }
+		const_iterator cend() const { return base_class::cend(); }
 		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 		const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
 			return (const_reverse_iterator(end()));
