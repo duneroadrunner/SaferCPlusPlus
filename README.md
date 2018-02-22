@@ -2372,9 +2372,60 @@ usage example:
 
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
-A "random access section" is basically a convenient interface to access a (contiguous) subsection of an existing array or vector. (Essentially an "array view" or "span" if you're familiar with those.) It's constructed by specifying an iterator to the start of the section, and the length of the section. It supports most of the member functions and operators that [std::basic_string_view](http://en.cppreference.com/w/cpp/string/basic_string_view) does, except that the "[substr()](http://en.cppreference.com/w/cpp/string/basic_string_view/substr)" member function is named "subsection()" and instead of the "[compare()](http://en.cppreference.com/w/cpp/string/basic_string_view/compare)" member function, it has a corresponding "equal()" member function.
+A "random access section" is basically a convenient interface to access a (contiguous) subsection of an existing array or vector. (Essentially an "array view" or "span" if you're familiar with those.) You construct them, using the `make_random_access_section()` functions, by specifying an iterator to the start of the section, and the length of the section. Random access sections support most of the member functions and operators that [std::basic_string_view](http://en.cppreference.com/w/cpp/string/basic_string_view) does, except that the "[substr()](http://en.cppreference.com/w/cpp/string/basic_string_view/substr)" member function is named "subsection()".
 
 Note that for convenience, random access sections can be constructed from just a (safe) pointer to a supported container object, but in some cases the exact type of the resulting random access section may not be obvious. Constructing instead from a specified iterator and length should avoid any ambiguity.
+
+usage example:
+
+```cpp
+    #include "msemsearray.h" //random access sections are defined in this file
+    #include "msemstdarray.h"
+    #include "msemstdvector.h"
+    
+    class J {
+    public:
+        template<class _TRASection>
+        static void foo13(_TRASection ra_section) {
+            for (_TRASection::size_type i = 0; i < ra_section.size(); i += 1) {
+                ra_section[i] = 0;
+            }
+        }
+        template<class _TRAConstSection>
+        static int foo14(_TRAConstSection const_ra_section) {
+            int retval = 0;
+            for (_TRAConstSection::size_type i = 0; i < const_ra_section.size(); i += 1) {
+                retval += const_ra_section[i];
+            }
+            return retval;
+        }
+        template<class _TRAConstSection>
+        static int foo15(_TRAConstSection const_ra_section) {
+            int retval = 0;
+            for (const auto& const_item : const_ra_section) {
+                retval += const_item;
+            }
+            return retval;
+        }
+    };
+
+    void main(int argc, char* argv[]) {
+        mse::mstd::array<int, 4> mstd_array1{ 1, 2, 3, 4 };
+        mse::mstd::vector<int> mstd_vec1{ 10, 11, 12, 13, 14 };
+
+        auto xscp_ra_section1 = mse::make_xscope_random_access_section(mstd_array1.begin(), 2);
+        J::foo13(xscp_ra_section1);
+
+        auto ra_const_section2 = mse::make_random_access_const_section(++mstd_vec1.begin(), 3);
+        auto res6 = J::foo15(ra_const_section2);
+        auto res7 = J::foo14(ra_const_section2);
+
+        auto xscp_ra_section1_xscp_iter1 = xscp_ra_section1.xscope_begin();
+        auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
+        auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
+        bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+    }
+```
 
 ### optional, xscope_optional
 
