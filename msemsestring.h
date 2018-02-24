@@ -5460,8 +5460,10 @@ namespace mse {
 	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
 	class TStringConstSection;
 
+	class StringSectionTag {};
+
 	template <typename _TRAIterator>
-	class TStringSectionBase : public TRandomAccessSectionBase<_TRAIterator> {
+	class TStringSectionBase : public TRandomAccessSectionBase<_TRAIterator>, public StringSectionTag {
 	public:
 		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
 		typedef typename base_class::value_type value_type;
@@ -5588,8 +5590,10 @@ namespace mse {
 		typedef typename base_class::iterator iterator;
 		typedef typename base_class::const_iterator const_iterator;
 		iterator begin() { return base_class::begin(); }
+		const_iterator begin() const { return cbegin(); }
 		const_iterator cbegin() const { return base_class::cbegin(); }
 		iterator end() { return base_class::end(); }
+		const_iterator end() const { return cend(); }
 		const_iterator cend() const { return base_class::cend(); }
 
 		friend class TXScopeStringSection<_TRAIterator>;
@@ -5653,9 +5657,11 @@ namespace mse {
 
 		/* These are here because some standard algorithms require them. Prefer the "xscope_" prefixed versions to
 		acknowledge that scope iterators are returned. */
-		auto begin() const { return (*this).xscope_cbegin(); }
+		auto begin() { return (*this).xscope_begin(); }
+		auto begin() const { return cbegin(); }
 		auto cbegin() const { return (*this).xscope_cbegin(); }
-		auto end() const { return (*this).xscope_cend(); }
+		auto end() { return (*this).xscope_end(); }
+		auto end() const { return cend(); }
 		auto cend() const { return (*this).xscope_cend(); }
 
 	private:
@@ -5990,7 +5996,7 @@ namespace mse {
 	}
 
 	template <typename _TRAIterator, class _Traits>
-	class TStringConstSection : public TStringConstSectionBase<_TRAIterator> {
+	class TStringConstSection : public TStringConstSectionBase<_TRAIterator>, public StringSectionTag {
 	public:
 		typedef TStringConstSectionBase<_TRAIterator> base_class;
 		typedef typename base_class::value_type value_type;

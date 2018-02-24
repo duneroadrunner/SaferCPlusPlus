@@ -32,7 +32,7 @@
 #include <ratio>
 #include <chrono>
 //include <thread>
-//include <sstream>
+#include <sstream>
 #include <future>
 
 /* This block of includes is required for the mse::TRegisteredRefWrapper example */
@@ -117,6 +117,29 @@ public:
 	template<class _TAsyncSplitterRASectionReadWriteAccessRequester, class _TFunction, class... Args>
 	static void invoke_with_writelock_ra_section1(_TAsyncSplitterRASectionReadWriteAccessRequester ar, _TFunction function1, Args&&... args) {
 		function1(ar.writelock_ra_section(), args...);
+	}
+
+	template<class _TRASection>
+	static void foo13(_TRASection ra_section) {
+		for (typename _TRASection::size_type i = 0; i < ra_section.size(); i += 1) {
+			ra_section[i] = 0;
+		}
+	}
+	template<class _TRAConstSection>
+	static int foo14(_TRAConstSection const_ra_section) {
+		int retval = 0;
+		for (typename _TRAConstSection::size_type i = 0; i < const_ra_section.size(); i += 1) {
+			retval += const_ra_section[i];
+		}
+		return retval;
+	}
+	template<class _TRAConstSection>
+	static int foo15(_TRAConstSection const_ra_section) {
+		int retval = 0;
+		for (const auto& const_item : const_ra_section) {
+			retval += const_item;
+		}
+		return retval;
 	}
 };
 
@@ -271,91 +294,81 @@ void msetl_example2() {
 	}
 
 	{
-		class CA {
-		public:
-			std::string m_s1;
-		};
-		mse::TXScopeObj<CA> xscp_obj1;
-		mse::TXScopeItemFixedPointer<CA> xscp_ifptr1 = &xscp_obj1;
-		mse::TXScopeItemFixedPointer<std::string> xscp_ifptr2 = mse::make_xscope_pointer_to_member(xscp_obj1.m_s1, &xscp_obj1);
-		mse::TXScopePolyPointer<CA> xscp_polyptr1 = xscp_ifptr1;
-		mse::TXScopePolyPointer<std::string> xscp_polyptr2 = xscp_ifptr2;
+		/****************************/
+		/*  TRandomAccessSection<>  */
+		/****************************/
 
-		auto refc_ptr1 = mse::make_refcounting<std::string>("some text");
-		mse::TXScopeRefCountingConstStore<std::string> xscp_refc_cstore(refc_ptr1);
-		auto xscp_cptr1 = xscp_refc_cstore.xscope_ptr();
-		mse::TXScopeItemFixedConstPointer<std::string> xscp_cptr2 = xscp_cptr1;
-		std::string res1 = *xscp_cptr2;
-		mse::TXScopeRefCountingNotNullStore<std::string> xscp_refcnn_store(refc_ptr1);
-		auto xscp_ptr3 = xscp_refcnn_store.xscope_ptr();
-		(*xscp_ptr3) = "some other text";
-		mse::TXScopeItemFixedConstPointer<std::string> xscp_cptr4 = xscp_ptr3;
-		std::string res2 = *xscp_cptr4;
+		/* "Random access sections" are basically objects that provide access to a (contiguous) subsection of an
+		existing array or vector. Their interface is largely the same as std::basic_string_view<>, but are generally
+		constructed using "make_random_access_section()" functions. */
 
-		const auto& min_pointer_indicator = [](const decltype(xscp_cptr2)& a, const decltype(xscp_cptr4)& b) { return ((*b) < (*a)); };
-		auto res5 = mse::xscope_chosen_pointer(min_pointer_indicator, xscp_cptr2, xscp_cptr4);
+		mse::mstd::array<int, 4> mstd_array1{ 1, 2, 3, 4 };
+		mse::mstd::vector<int> mstd_vec1{ 10, 11, 12, 13, 14 };
 
-		mse::TXScopeObj<std::string> xscp_obj2;
-		auto xscp_fptr1 = &xscp_obj2;
-		auto xscp_fptr2 = &xscp_obj2;
-		const auto& bool_min_function2_cref = [](const decltype(xscp_fptr1)& a, const decltype(xscp_fptr2)& b, bool c) { return !(((*a) < (*b)) || c); };
-		auto res6 = mse::xscope_chosen_pointer(bool_min_function2_cref, xscp_fptr1, xscp_fptr2, false);
+		auto xscp_ra_section1 = mse::make_xscope_random_access_section(mstd_array1.begin(), 2);
+		J::foo13(xscp_ra_section1);
 
-		mse::nii_vector<std::string> niiv1;
-		mse::nii_vector<mse::TRegisteredObj<std::string> > niiv2;
-		//mse::nii_vector<mse::TXScopeObj<std::string> > niiv3;
+		auto ra_const_section2 = mse::make_random_access_const_section(++mstd_vec1.begin(), 3);
+		auto res6 = J::foo15(ra_const_section2);
+		auto res7 = J::foo14(ra_const_section2);
 
-		mse::nii_array<std::string, 5> niiar1;
-		mse::nii_array<mse::TRegisteredObj<std::string>, 5> niiar2;
-		//mse::nii_array<mse::TXScopeObj<std::string>, 5> niiar3;
-
-		mse::TXScopeObj<mse::nii_array<std::string, 5> > xscp_nii_ar1 = mse::nii_array<std::string, 5>({ "0", "1", "2", "3", "4"});
-		auto nii_ar_iter1 = mse::make_xscope_iterator(&xscp_nii_ar1);
-		nii_ar_iter1 += 2;
-		auto xscp_nii_ar_ifptr = mse::xscope_pointer_to_array_element<std::string, 5>(nii_ar_iter1);
-		auto nii_ar_res1 = (*xscp_nii_ar_ifptr);
-
-		mse::TXScopeObj<mse::us::msearray<std::string, 5> > xscp_msear1 = mse::us::msearray<std::string, 5>({ "0", "1", "2", "3", "4" });
-		auto msear_iter1 = mse::make_xscope_iterator(&xscp_msear1);
-		msear_iter1 += 2;
-		auto xscp_msear_ifptr = mse::xscope_pointer_to_array_element<std::string, 5>(msear_iter1);
-		auto msear_res1 = (*xscp_msear_ifptr);
-
-		mse::TXScopeObj<mse::mstd::array<std::string, 5> > xscp_mstd_ar1 = mse::mstd::array<std::string, 5>({ "0", "1", "2", "3", "4" });
-		auto mstd_ar_iter1 = mse::make_xscope_iterator(&xscp_mstd_ar1);
-		mstd_ar_iter1 = xscp_mstd_ar1.begin();
-		mstd_ar_iter1 += 2;
-		auto xscp_mstd_ar_ifptr = mse::mstd::xscope_pointer_to_array_element<std::string, 5>(mstd_ar_iter1);
-		auto mstd_ar_res1 = (*xscp_mstd_ar_ifptr);
-
-		mse::mstd::vector<std::string> mstdv1;
-		mstdv1.swap(niiv1);
-		bool b1 = (mstdv1 == mstdv1);
-		std::swap(niiv1, mstdv1);
-		std::swap(mstdv1, niiv1);
+		auto xscp_ra_section1_xscp_iter1 = xscp_ra_section1.xscope_begin();
+		auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
+		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
+		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
 	}
 
 	{
+		/******************/
+		/*  mstd::string  */
+		/*  & nii_string  */
+		/******************/
+
 		std::string str1 = "some text";
 		mse::nii_string nii_str1 = "some text";
+		mse::us::msestring msestr1 = "some text";
+		mse::mstd::string mstdstr1 = "some text";
+
 		std::cout << str1;
 		std::cout << nii_str1;
-		/*
-		std::cin >> nii_str1;
-		std::cin >> str1;
-		std::getline(std::cin, nii_str1, ',');
-		std::getline(std::cin, nii_str1);
-		std::getline(std::cin, str1);
-		*/
+		std::cout << msestr1;
+		std::cout << mstdstr1;
+
+		{
+			std::string str2 = "some text";
+			mse::nii_string nii_str2 = "some text";
+			mse::us::msestring msestr2 = "some text";
+			mse::mstd::string mstdstr2 = "some text";
+
+			std::string stringvalues = "125 320 512 750 333, 125 \n320, 512 \n750, 333 \n125, 320 \n512, 750 \n333, \n";
+			std::istringstream iss(stringvalues);
+			iss >> mstdstr2;
+			iss >> msestr2;
+			iss >> nii_str2;
+			iss >> str2;
+			std::getline(iss, mstdstr2, ',');
+			std::getline(iss, mstdstr2);
+			std::getline(iss, msestr2, ',');
+			std::getline(iss, msestr2);
+			std::getline(iss, nii_str2, ',');
+			std::getline(iss, nii_str2);
+			std::getline(iss, str2);
+		}
+
 		auto str2 = str1 + str1;
 		str2.replace(1, 2, str1);
 		str2.compare(str1);
 		auto nii_str2 = nii_str1 + nii_str1;
 		nii_str2.replace(1, 2, nii_str1);
 		nii_str2.compare(nii_str1);
+		auto msestr2 = msestr1 + msestr1;
+		msestr2.replace(1, 2, msestr1);
+		msestr2.compare(msestr1);
+		auto mstdstr2 = mstdstr1 + mstdstr1;
+		mstdstr2.replace(1, 2, mstdstr1);
+		mstdstr2.compare(mstdstr1);
 
 		std::string str3 = "some text";
-		//str2.copy(str3.data(), 5);
 		mse::TXScopeObj<mse::nii_string> xscp_nii_str3 = "some text";
 		auto nii_str3_xscpiter1 = mse::make_xscope_iterator(&xscp_nii_str3);
 		nii_str2.copy(nii_str3_xscpiter1, 5);
@@ -365,112 +378,118 @@ void msetl_example2() {
 
 		str2 = str2.substr(1);
 		nii_str2 = nii_str2.substr(1);
-	}
-	{
-		std::string str1 = "some text";
-		mse::us::impl::basic_string_view<char> sv1(str1.c_str());
-		auto res1 = sv1.find('m');
-		//std::hash<std::string> str_hash;
-		//std::hash<std::shared_ptr<std::string> > shp_hash;
+		msestr2 = msestr2.substr(1);
+		mstdstr2 = mstdstr2.substr(1);
+
+		std::swap(nii_str1, nii_str2);
+		std::swap(str1, nii_str1);
+
+		std::swap(msestr1, msestr2);
+		std::swap(str1, msestr1);
+		std::swap(msestr1, nii_str1);
+		std::swap(nii_str1, msestr1);
+
+		std::swap(mstdstr1, mstdstr2);
+		std::swap(str1, mstdstr1);
+		std::swap(mstdstr1, nii_str1);
+		std::swap(nii_str1, mstdstr1);
+
 		{
-			std::hash<mse::TRefCountingPointer<std::string> > refc_hash;
-			mse::TRefCountingPointer<std::string> refcptr1 = mse::make_refcounting<std::string>("some text");
-			auto refc_hash_val = refc_hash(refcptr1);
-			std::hash<mse::TAnyPointer<std::string> > any_hash;
-			mse::TAnyPointer<std::string> anyptr1 = refcptr1;
-			auto any_hash_val1 = any_hash(anyptr1);
+			using namespace std::literals;
+			auto stdstr5 = "some text"s;
 		}
 		{
-			std::hash<mse::TRefCountingConstPointer<std::string> > refcc_hash;
-			mse::TRefCountingConstPointer<std::string> refccptr1 = mse::make_refcounting<std::string>("some text");
-			auto refcc_hash_val = refcc_hash(refccptr1);
-			std::hash<mse::TAnyConstPointer<std::string> > anyc_hash;
-			mse::TAnyConstPointer<std::string> anycptr1 = refccptr1;
-			auto anyc_hash_val = anyc_hash(anycptr1);
+			using namespace mse::mstd::literals;
+			auto mstdstr5 = "some text"_mstds;
 		}
 		{
-			std::hash<mse::TRefCountingOfRegisteredPointer<std::string> > refc_hash;
-			mse::TRefCountingOfRegisteredPointer<std::string> refcptr1 = mse::make_refcounting<std::string>("some text");
-			auto refc_hash_val = refc_hash(refcptr1);
-			std::hash<mse::TAnyPointer<std::string> > any_hash;
-			mse::TAnyPointer<std::string> anyptr1 = refcptr1;
-			auto any_hash_val1 = any_hash(anyptr1);
-		}
-		{
-			std::hash<mse::CBool> msebool_hash;
-			mse::CBool msebool1 = true;
-			auto msebool_hash_val = msebool_hash(msebool1);
-		}
-		{
-			std::hash<mse::CInt> mseint_hash;
-			mse::CInt mseint1 = 5;
-			auto mseint_hash_val = mseint_hash(mseint1);
-		}
-		{
-			std::hash<mse::CSize_t> mseint_hash;
-			mse::CSize_t mseint1 = 7;
-			auto mseint_hash_val = mseint_hash(mseint1);
-		}
-		{
-			std::hash<std::string> stdstring_hash;
-			std::string stdstring1 = "some text";
-			auto stdstring_hash_val = stdstring_hash(stdstring1);
-		}
-		{
-			std::hash<mse::nii_string> msenii_string_hash;
-			mse::nii_string msenii_string1 = "some text";
-			auto msenii_string_hash_val = msenii_string_hash(msenii_string1);
+			using namespace mse::literals;
+			auto niistr5 = "some text"_niis;
 		}
 	}
+
 	{
-		{
-			typedef mse::mstd::vector<mse::mstd::string> string_vector;
-			typedef mse::TRegisteredObj<string_vector> reg_string_vector;
-			reg_string_vector v1;
-			v1.resize(7);
-			mse::TRandomAccessSection<decltype(v1.begin())> ras1(v1.begin(), v1.size());
-			auto ras2 = ras1;
-			auto ras3(ras1);
-			ras1.swap(ras2);
-			std::swap(ras1, ras2);
-			auto res2 = ras1.equal(ras2);
-			auto res3 = ras1.equal(&v1);
-			auto res4 = ras1.lexicographical_compare(ras2);
-		}
-		{
-			typedef mse::nii_vector<mse::nii_string> string_nii_vector;
-			auto ar1 = mse::make_asyncsharedv2readwrite<string_nii_vector>();
-			auto nii_v1_wlptr = ar1.writelock_ptr();
-			(*nii_v1_wlptr).resize(7);
-			auto first_iter = string_nii_vector::ss_begin(nii_v1_wlptr);
+		/**********************/
+		/*  TStringSection<>  */
+		/**********************/
 
-			mse::TRandomAccessSection<decltype(first_iter)> ras1(first_iter, (*nii_v1_wlptr).size());
-			auto ras2 = ras1;
-			auto ras3(ras1);
-			//ras1.swap(ras2);
-			//std::swap(ras1, ras2);
-			auto res2 = ras1.equal(ras2);
-			auto res3 = ras1.equal(nii_v1_wlptr);
-		}
+		/* "String sections" are the string specialized versions of "random access sections", basically providing the
+		functionality of std::string_view but supporting construction from any (safe) iterator type, not just raw
+		pointer iterators. */
+
+		mse::mstd::string mstring1("some text");
+		auto string_section1 = mse::make_string_section(mstring1.begin() + 1, 7);
+		auto string_section2 = string_section1.substr(4, 3);
+		assert(mse::mstd::string(string_section2) == "tex");
+
+		/* Unlike std::string_view, string sections are available in "non-const" versions. */
+		string_section2[0] = 'T';
+		std::cout << string_section2;
+		assert(mstring1 == "some Text");
+	}
+
+	{
+		/*************************/
+		/*  TAnyStringSection<>  */
+		/*************************/
+
+		/* "Any" string sections are basically polymorphic string sections that can hold the value of any string
+		section type. They can be used as function parameter types to enable functions to accept any type of string
+		section. */
+
+		mse::mstd::string mstring1("some text");
+		mse::TAnyStringSection<char> any_string_section1(mstring1.begin()+5, 3);
+
+		auto string_literal = "some text";
+		mse::TAnyStringConstSection<char> any_string_const_section2(string_literal+5, 3);
+
+		typedef mse::TRegisteredObj<mse::nii_string> reg_nii_string_t;
+		reg_nii_string_t reg_nii_string3("some other text");
+		/* This is a different type of (safe) iterator to a different type of string. */
+		auto iter = reg_nii_string_t::ss_begin(&reg_nii_string3);
+
+		/* Resulting in a different type of string section. */
+		auto string_section3 = mse::make_string_section(iter+11, 3);
+
+		mse::TAnyStringSection<char> any_string_section3 = string_section3;
+		assert(any_string_section1 == any_string_section3);
+		assert(mse::mstd::string(any_string_section1) == "tex");
+		any_string_section1 = string_section3;
+		any_string_section1[1] = 'E';
+	}
+
+	{
+		/***********************/
+		/*  mstd::string_view  */
+		/***********************/
+
+		/* std::string_view stores an (unsafe) pointer iterator into its target string. mse::mstd::string_view can
+		instead store any type of string iterator, including memory safe iterators. So for example, when assigned
+		from an mse::mstd::string, mse::mstd::string_view will hold one of mse::mstd::string's safe (strong) iterators
+		(obtained with a call to the string's cbegin() member function). Consequently, the mse::mstd::string_view will
+		be safe against "use-after-free" bugs to which std::string_view is so prone. */
+		mse::mstd::string_view msv1;
 		{
-			class CA {
-			private:
-				bool operator==(const CA& rhs) const { return true; }
-			};
-			typedef mse::mstd::vector<CA> CA_vector;
-			typedef mse::TRegisteredObj<CA_vector> reg_CA_vector;
-			reg_CA_vector v1;
-			v1.resize(7);
-			mse::TRandomAccessSection<decltype(v1.begin())> ras1(v1.begin(), v1.size());
-			auto ras2 = ras1;
-			auto ras3(ras1);
-			ras1.swap(ras2);
-			std::swap(ras1, ras2);
-			//auto res2 = ras1.equal(ras2);
-			//auto res3 = ras1.equal(&v1);
+			mse::mstd::string mstring1("some text");
+			msv1 = mstring1;
+		}
+		try {
+			/* This is not undefined (or unsafe) behavior. Either an exception will be thrown or it will just work. */
+			auto ch1 = msv1[3];
+			assert('e' == ch1);
+		}
+		catch (...) {
+			/* At present, no exception will be thrown. Instead, the lifespan of the string data is extended to match
+			that of the mstd::string_view. In the future, an exception may be thrown in debug builds. */
+			std::cerr << "potentially expected exception" << std::endl;
 		}
 
-		int q = 5;
+		mse::mstd::string mstring2("some other text");
+		/* With std::string_view, you specify a string subrange with a raw pointer iterator and a length. With
+		mse::mstd::string_view you are not restricted to (unsafe) raw pointer iterators. You can use memory safe
+		iterators like those provided by mse::mstd::string. */
+		auto msv2 = mse::mstd::string_view(mstring2.cbegin()+5, 7);
+		assert(msv2 == "other t");
 	}
 
 	{

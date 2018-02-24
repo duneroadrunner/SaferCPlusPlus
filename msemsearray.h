@@ -2470,17 +2470,14 @@ namespace mse {
 		typedef typename base_class::difference_type difference_type;
 		typedef typename base_class::size_type size_type;
 
-		TRAIterator(const TRAIterator& src)
-			: base_class(src) {}
+		TRAIterator(const TRAIterator& src) : base_class(src) {}
 
-		template <typename _TRAContainerPointer1, class = typename std::enable_if<
-			//(!std::is_convertible<_TRAContainerPointer1, TPolyPointer>::value)
-			//&& (!std::is_base_of<TPolyConstPointer<_Ty>, _TRAContainerPointer1>::value)
-			//&& (!std::integral_constant<bool, HasXScopeTagMethod_poly<_TRAContainerPointer1>::Has>())
-			/*&&*/ (!std::is_base_of<XScopeTagBase, _TRAContainerPointer1>::value)
-			, void>::type>
-			TRAIterator(_TRAContainerPointer1 ra_container_pointer, size_type index = 0)
-			: base_class(ra_container_pointer, index) {}
+		template <typename _TRAContainerPointer1>
+		TRAIterator(_TRAContainerPointer1 ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {}
+
+		virtual ~TRAIterator() {
+			mse::T_valid_if_not_an_xscope_type<_TRAContainerPointer>();
+		}
 
 		TRAIterator& operator +=(difference_type x) {
 			base_class::operator +=(x);
@@ -2617,17 +2614,14 @@ namespace mse {
 		typedef typename base_class::difference_type difference_type;
 		typedef typename base_class::size_type size_type;
 
-		TRAConstIterator(const TRAConstIterator& src)
-			: base_class(src) {}
+		TRAConstIterator(const TRAConstIterator& src) : base_class(src) {}
 
-		template <typename _TRAContainerPointer1, class = typename std::enable_if<
-			//(!std::is_convertible<_TRAContainerPointer1, TPolyPointer>::value)
-			//&& (!std::is_base_of<TPolyConstPointer<_Ty>, _TRAContainerPointer1>::value)
-			//&& (!std::integral_constant<bool, HasXScopeTagMethod_poly<_TRAContainerPointer1>::Has>())
-			/*&&*/ (!std::is_base_of<XScopeTagBase, _TRAContainerPointer1>::value)
-			, void>::type>
-			TRAConstIterator(_TRAContainerPointer1 ra_container_pointer, size_type index = 0)
-			: base_class(ra_container_pointer, index) {}
+		template <typename _TRAContainerPointer1>
+		TRAConstIterator(_TRAContainerPointer1 ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {}
+
+		virtual ~TRAConstIterator() {
+			mse::T_valid_if_not_an_xscope_type<_TRAContainerPointer>();
+		}
 
 		TRAConstIterator& operator +=(difference_type x) {
 			base_class::operator +=(x);
@@ -2650,6 +2644,32 @@ namespace mse {
 			return (*this);
 		}
 	};
+
+	template <typename _TRAContainerPointer>
+	using TXScopeRandomAccessIterator = TXScopeRAIterator<_TRAContainerPointer>;
+	template <typename _TRAContainerPointer>
+	using TRandomAccessIterator = TRAIterator<_TRAContainerPointer>;
+	template <typename _TRAContainerPointer>
+	using TXScopeRandomAccessConstIterator = TXScopeRAConstIterator<_TRAContainerPointer>;
+	template <typename _TRAContainerPointer>
+	using TRandomAccessConstIterator = TRAConstIterator<_TRAContainerPointer>;
+
+	template <typename _TRAContainerPointer>
+	auto make_xscope_random_access_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXScopeRandomAccessIterator<_TRAContainerPointer>::size_type index = 0) {
+		return TXScopeRandomAccessIterator<_TRAContainerPointer>(ra_container_pointer, index);
+	}
+	template <typename _TRAContainerPointer>
+	auto make_random_access_iterator(const _TRAContainerPointer& ra_container_pointer, typename TRandomAccessIterator<_TRAContainerPointer>::size_type index = 0) {
+		return TRandomAccessIterator<_TRAContainerPointer>(ra_container_pointer, index);
+	}
+	template <typename _TRAContainerPointer>
+	auto make_xscope_random_access_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXScopeRandomAccessConstIterator<_TRAContainerPointer>::size_type index = 0) {
+		return TXScopeRandomAccessConstIterator<_TRAContainerPointer>(ra_container_pointer, index);
+	}
+	template <typename _TRAContainerPointer>
+	auto make_random_access_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TRandomAccessConstIterator<_TRAContainerPointer>::size_type index = 0) {
+		return TRandomAccessConstIterator<_TRAContainerPointer>(ra_container_pointer, index);
+	}
 
 
 	template <typename _TRAIterator> class TRASectionConstIteratorBase;
@@ -3037,6 +3057,7 @@ namespace mse {
 		typedef typename mse::us::msearray<value_type, 0>::size_type size_type;
 		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
 		static const size_type npos = size_type(-1);
+		typedef _TRAIterator ra_iterator_type;
 
 		//TRandomAccessSectionBase(const TRandomAccessSectionBase& src) = default;
 		TRandomAccessSectionBase(const TRandomAccessSectionBase& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
@@ -3411,12 +3432,14 @@ namespace mse {
 		typedef TRASectionIterator<_TRAIterator> iterator;
 		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
 		iterator begin() { return iterator((*this).m_start_iter, (*this).m_count); }
+		const_iterator begin() const { return cbegin(); }
 		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
 		iterator end() {
 			auto retval(iterator((*this).m_start_iter, (*this).m_count));
 			retval += (*this).m_count;
 			return retval;
 		}
+		const_iterator end() const { return cend(); }
 		const_iterator cend() const {
 			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
 			retval += (*this).m_count;
@@ -3554,9 +3577,11 @@ namespace mse {
 
 		/* These are here because some standard algorithms require them. Prefer the "xscope_" prefixed versions to
 		acknowledge that scope iterators are returned. */
-		auto begin() const { return (*this).xscope_cbegin(); }
+		auto begin() { return (*this).xscope_begin(); }
+		auto begin() const { return cbegin(); }
 		auto cbegin() const { return (*this).xscope_cbegin(); }
-		auto end() const { return (*this).xscope_cend(); }
+		auto end() { return (*this).xscope_end(); }
+		auto end() const { return cend(); }
 		auto cend() const { return (*this).xscope_cend(); }
 
 	private:
@@ -3660,6 +3685,7 @@ namespace mse {
 		typedef typename mse::us::msearray<value_type, 0>::size_type size_type;
 		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
 		static const size_type npos = size_type(-1);
+		typedef _TRAIterator ra_iterator_type;
 
 		//TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) = default;
 		TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
@@ -4004,11 +4030,13 @@ namespace mse {
 
 		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
 		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+		const_iterator begin() const { return cbegin(); }
 		const_iterator cend() const {
 			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
 			retval += (*this).m_count;
 			return retval;
 		}
+		const_iterator end() const { return cend(); }
 
 	private:
 		TRandomAccessConstSectionBase<_TRAIterator>* operator&() { return this; }
@@ -4020,6 +4048,10 @@ namespace mse {
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
 		friend class TRandomAccessConstSection<_TRAIterator>;
 		template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
+		/* We're friending TRandomAccessSectionBase<> because at the moment we're using its "constructor
+		helper" (static) member functions, instead of duplicating them here, and those functions will need access to
+		the private data members of this class. */
+		template<typename _TRAIterator1> friend class TRandomAccessSectionBase;
 	};
 
 	template <typename _TRAIterator>

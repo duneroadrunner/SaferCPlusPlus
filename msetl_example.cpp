@@ -1680,9 +1680,14 @@ int main(int argc, char* argv[])
 	}
 
 	{
-		/******************************/
-		/*  TAnyRandomAccessIterator  */
-		/******************************/
+		/*********************************/
+		/*  TAnyRandomAccessIterator<>   */
+		/*  & TAnyRandomAccessSection<>  */
+		/*********************************/
+
+		/* Like TAnyPointer<>, TAnyRandomAccessIterator<> and TAnyRandomAccessSection<> are polymorphic iterators and
+		"sections" that can be used to enable functions to take as arguments any type of iterator or section of any
+		random access container (like an array or vector). */
 
 		mse::mstd::array<int, 4> mstd_array1 { 1, 2, 3, 4 };
 		mse::us::msearray<int, 5> msearray2 { 5, 6, 7, 8, 9 };
@@ -1767,6 +1772,8 @@ int main(int argc, char* argv[])
 
 		auto ra_section1 = mse::make_random_access_section(mstd_array_iter1, 2);
 		B::foo3(ra_section1);
+		auto ra_const_section2 = mse::make_random_access_const_section(mstd_vec1.cbegin(), 2);
+		B::foo4(ra_const_section2);
 
 		int q = 5;
 	}

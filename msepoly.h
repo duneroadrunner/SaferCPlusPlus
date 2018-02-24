@@ -1755,10 +1755,32 @@ namespace mse {
 
 	namespace mstd {
 		template <typename _Ty, class _Traits = std::char_traits<_Ty> >
-		using basic_string_view = mse::TAnyStringConstSection<_Ty, _Traits>;
+		class basic_string_view : public TAnyStringConstSection<_Ty, _Traits> {
+		public:
+			typedef TAnyStringConstSection<_Ty, _Traits> base_class;
+			typedef typename base_class::value_type value_type;
+			typedef typename base_class::const_reference const_reference;
+			typedef typename base_class::size_type size_type;
+			typedef typename base_class::difference_type difference_type;
+			static const size_type npos = size_type(-1);
+
+			MSE_USING(basic_string_view, base_class);
+			explicit basic_string_view(const char* sz) : base_class(sz, _Traits::length(sz)) {}
+		};
 
 		template <typename _Ty, class _Traits = std::char_traits<_Ty> >
-		using xscope_basic_string_view = mse::TXScopeAnyStringConstSection<_Ty, _Traits>;
+		class xscope_basic_string_view : public TXScopeAnyStringConstSection<_Ty, _Traits> {
+		public:
+			typedef TXScopeAnyStringConstSection<_Ty, _Traits> base_class;
+			typedef typename base_class::value_type value_type;
+			typedef typename base_class::const_reference const_reference;
+			typedef typename base_class::size_type size_type;
+			typedef typename base_class::difference_type difference_type;
+			static const size_type npos = size_type(-1);
+
+			MSE_USING(xscope_basic_string_view, base_class);
+			explicit xscope_basic_string_view(const char* sz) : base_class(sz, _Traits::length(sz)) {}
+		};
 
 		typedef basic_string_view<char>     string_view;
 		typedef basic_string_view<char16_t> u16string_view;

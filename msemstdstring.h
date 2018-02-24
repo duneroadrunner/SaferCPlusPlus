@@ -85,6 +85,14 @@ namespace mse {
 			basic_string(const _Ty* const _Ptr, const size_type _Count) : m_shptr(std::make_shared<_MBS>(_Ptr, _Count)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, npos, _Al)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, _Count, _Al)) {}
+			/* construct from mse::string_view and "string sections". */
+			template <typename _Ty2, class = typename std::enable_if<std::is_base_of<StringSectionTag, _Ty2>::value, void>::type>
+			basic_string(const _Ty2& string_section) : m_shptr(std::make_shared<_MBS>()) {
+				reserve(string_section.length());
+				for (const auto& char_ref : string_section) {
+					push_back(char_ref);
+				}
+			}
 
 			_Myt& operator=(_MBS&& _X) { msebasic_string() = (std::forward<decltype(_X)>(_X)); return (*this); }
 			_Myt& operator=(const _MBS& _X) { msebasic_string() = (_X); return (*this); }
