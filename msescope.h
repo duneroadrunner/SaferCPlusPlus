@@ -114,6 +114,7 @@ namespace mse {
 	template<typename _TROy> using TXScopeObj = _TROy;
 	template<typename _Ty> using TXScopeItemFixedPointer = _Ty*;
 	template<typename _Ty> using TXScopeItemFixedConstPointer = const _Ty*;
+	template<typename _TROy> using TXScopeReturnable = _TROy;
 
 #else /*MSE_SCOPEPOINTER_DISABLED*/
 
@@ -412,88 +413,6 @@ namespace mse {
 		friend class TXScopeOwnerPointer<_TROy>;
 	};
 
-	/* TXScopeOwnerPointer is meant to be much like boost::scoped_ptr<>. Instead of taking a native pointer,
-	TXScopeOwnerPointer just forwards it's constructor arguments to the constructor of the TXScopeObj<_Ty>.
-	TXScopeOwnerPointers are meant to be allocated on the stack only. Unfortunately there's really no way to
-	enforce this, which makes this data type less intrinsically safe than say, "reference counting" pointers.
-	*/
-	template<typename _Ty>
-	class TXScopeOwnerPointer : public XScopeTagBase, public StrongPointerNotAsyncShareableTagBase
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeOwnerPointer<_Ty> > >::type
-	{
-	public:
-		TXScopeOwnerPointer(TXScopeOwnerPointer<_Ty>&& src_ref) = default;
-
-		template <class... Args>
-		TXScopeOwnerPointer(Args&&... args) {
-			/* In the case where there is exactly one argument and its type is derived from this type, we want to
-			act like a move constructor here. We use a helper function to check for this case and act accordingly. */
-			constructor_helper1(std::forward<Args>(args)...);
-		}
-
-		TXScopeObj<_Ty>& operator*() const {
-			return (*m_ptr);
-		}
-		TXScopeObj<_Ty>* operator->() const {
-			return std::addressof(*m_ptr);
-		}
-
-		template <class... Args>
-		static TXScopeOwnerPointer make(Args&&... args) {
-			return TXScopeOwnerPointer(std::forward<Args>(args)...);
-		}
-
-		void xscope_tag() const {}
-		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
-			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
-			), void>::type>
-			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
-
-	private:
-		/* construction helper functions */
-		template <class... Args>
-		void initialize(Args&&... args) {
-			/* We can't use std::make_unique<> because TXScopeObj<>'s "operator new()" is private and inaccessible to
-			std::make_unique<> (which is not a friend of TXScopeObj<> like we are). */
-			auto new_ptr = new TXScopeObj<_Ty>(std::forward<Args>(args)...);
-			m_ptr.reset(new_ptr);
-		}
-		template <class _TSoleArg>
-		void constructor_helper2(std::true_type, _TSoleArg&& sole_arg) {
-			/* The sole parameter is derived from, or of this type, so we're going to consider the constructor
-			a move constructor. */
-			m_ptr = std::forward<decltype(sole_arg.m_ptr)>(sole_arg.m_ptr);
-		}
-		template <class _TSoleArg>
-		void constructor_helper2(std::false_type, _TSoleArg&& sole_arg) {
-			/* The sole parameter is not derived from, or of this type, so the constructor is not a move
-			constructor. */
-			initialize(std::forward<decltype(sole_arg)>(sole_arg));
-		}
-		template <class... Args>
-		void constructor_helper1(Args&&... args) {
-			initialize(std::forward<Args>(args)...);
-		}
-		template <class _TSoleArg>
-		void constructor_helper1(_TSoleArg&& sole_arg) {
-			/* The constructor was given exactly one parameter. If the parameter is derived from, or of this type,
-			then we're going to consider the constructor a move constructor. */
-			constructor_helper2(typename std::is_base_of<TXScopeOwnerPointer, _TSoleArg>::type(), std::forward<decltype(sole_arg)>(sole_arg));
-		}
-
-		TXScopeOwnerPointer(const TXScopeOwnerPointer<_Ty>& src_cref) = delete;
-		TXScopeOwnerPointer<_Ty>& operator=(const TXScopeOwnerPointer<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		std::unique_ptr<TXScopeObj<_Ty> > m_ptr = nullptr;
-	};
-
-	template <class X, class... Args>
-	TXScopeOwnerPointer<X> make_xscope_owner(Args&&... args) {
-		return TXScopeOwnerPointer<X>::make(std::forward<Args>(args)...);
-	}
-
 	template<typename _Ty>
 	class TXScopeItemFixedPointer;
 	template<typename _Ty>
@@ -603,35 +522,9 @@ namespace mse {
 		friend TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedConstPointer<_Ty2> &lease_pointer);
 		template<class _Ty2> friend TXScopeItemFixedConstPointer<_Ty2> us::unsafe_make_xscope_const_pointer_to(const _Ty2& cref);
 	};
-
-#endif /*MSE_SCOPEPOINTER_DISABLED*/
-
-	namespace us {
-		/* A couple of unsafe functions for internal use. */
-		template<typename _Ty>
-		TXScopeItemFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref) {
-			return TXScopeItemFixedPointer<_Ty>(std::addressof(ref));
-		}
-		template<typename _Ty>
-		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref) {
-			return TXScopeItemFixedConstPointer<_Ty>(std::addressof(cref));
-		}
-	}
 }
 
 namespace std {
-	template<class _Ty>
-	struct hash<mse::TXScopeOwnerPointer<_Ty> > {	// hash functor
-		typedef mse::TXScopeOwnerPointer<_Ty> argument_type;
-		typedef size_t result_type;
-		size_t operator()(const mse::TXScopeOwnerPointer<_Ty>& _Keyval) const _NOEXCEPT {
-			const _Ty* ptr1 = nullptr;
-			if (_Keyval) {
-				ptr1 = std::addressof(*_Keyval);
-			}
-			return (hash<const _Ty *>()(ptr1));
-		}
-	};
 	template<class _Ty>
 	struct hash<mse::TXScopeItemFixedPointer<_Ty> > {	// hash functor
 		typedef mse::TXScopeItemFixedPointer<_Ty> argument_type;
@@ -723,6 +616,129 @@ namespace mse {
 			return this;
 		}
 	};
+
+#endif /*MSE_SCOPEPOINTER_DISABLED*/
+
+	/* TXScopeOwnerPointer is meant to be much like boost::scoped_ptr<>. Instead of taking a native pointer,
+	TXScopeOwnerPointer just forwards it's constructor arguments to the constructor of the TXScopeObj<_Ty>.
+	TXScopeOwnerPointers are meant to be allocated on the stack only. Unfortunately there's really no way to
+	enforce this, which makes this data type less intrinsically safe than say, "reference counting" pointers.
+	*/
+	template<typename _Ty>
+	class TXScopeOwnerPointer : public XScopeTagBase, public StrongPointerNotAsyncShareableTagBase
+		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeOwnerPointer<_Ty> > >::type
+	{
+	public:
+		TXScopeOwnerPointer(TXScopeOwnerPointer<_Ty>&& src_ref) = default;
+
+		template <class... Args>
+		TXScopeOwnerPointer(Args&&... args) {
+			/* In the case where there is exactly one argument and its type is derived from this type, we want to
+			act like a move constructor here. We use a helper function to check for this case and act accordingly. */
+			constructor_helper1(std::forward<Args>(args)...);
+		}
+
+		TXScopeObj<_Ty>& operator*() const {
+			return (*m_ptr);
+		}
+		TXScopeObj<_Ty>* operator->() const {
+			return std::addressof(*m_ptr);
+		}
+
+#ifdef MSE_SCOPEPOINTER_DISABLED
+		operator _Ty*() const {
+			return std::addressof(*(*this));
+		}
+		operator const _Ty*() const {
+			return std::addressof(*(*this));
+		}
+#endif /*MSE_SCOPEPOINTER_DISABLED*/
+
+		template <class... Args>
+		static TXScopeOwnerPointer make(Args&&... args) {
+			return TXScopeOwnerPointer(std::forward<Args>(args)...);
+		}
+
+		void xscope_tag() const {}
+		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
+			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
+			), void>::type>
+			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
+	private:
+		/* construction helper functions */
+		template <class... Args>
+		void initialize(Args&&... args) {
+			/* We can't use std::make_unique<> because TXScopeObj<>'s "operator new()" is private and inaccessible to
+			std::make_unique<> (which is not a friend of TXScopeObj<> like we are). */
+			auto new_ptr = new TXScopeObj<_Ty>(std::forward<Args>(args)...);
+			m_ptr.reset(new_ptr);
+		}
+		template <class _TSoleArg>
+		void constructor_helper2(std::true_type, _TSoleArg&& sole_arg) {
+			/* The sole parameter is derived from, or of this type, so we're going to consider the constructor
+			a move constructor. */
+			m_ptr = std::forward<decltype(sole_arg.m_ptr)>(sole_arg.m_ptr);
+		}
+		template <class _TSoleArg>
+		void constructor_helper2(std::false_type, _TSoleArg&& sole_arg) {
+			/* The sole parameter is not derived from, or of this type, so the constructor is not a move
+			constructor. */
+			initialize(std::forward<decltype(sole_arg)>(sole_arg));
+		}
+		template <class... Args>
+		void constructor_helper1(Args&&... args) {
+			initialize(std::forward<Args>(args)...);
+		}
+		template <class _TSoleArg>
+		void constructor_helper1(_TSoleArg&& sole_arg) {
+			/* The constructor was given exactly one parameter. If the parameter is derived from, or of this type,
+			then we're going to consider the constructor a move constructor. */
+			constructor_helper2(typename std::is_base_of<TXScopeOwnerPointer, _TSoleArg>::type(), std::forward<decltype(sole_arg)>(sole_arg));
+		}
+
+		TXScopeOwnerPointer(const TXScopeOwnerPointer<_Ty>& src_cref) = delete;
+		TXScopeOwnerPointer<_Ty>& operator=(const TXScopeOwnerPointer<_Ty>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		std::unique_ptr<TXScopeObj<_Ty> > m_ptr = nullptr;
+	};
+
+	template <class X, class... Args>
+	TXScopeOwnerPointer<X> make_xscope_owner(Args&&... args) {
+		return TXScopeOwnerPointer<X>::make(std::forward<Args>(args)...);
+	}
+}
+
+namespace std {
+	template<class _Ty>
+	struct hash<mse::TXScopeOwnerPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeOwnerPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeOwnerPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+}
+
+namespace mse {
+
+	namespace us {
+		/* A couple of unsafe functions for internal use. */
+		template<typename _Ty>
+		TXScopeItemFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref) {
+			return TXScopeItemFixedPointer<_Ty>(std::addressof(ref));
+		}
+		template<typename _Ty>
+		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref) {
+			return TXScopeItemFixedConstPointer<_Ty>(std::addressof(cref));
+		}
+	}
 
 	namespace us {
 		template<typename _TROy>

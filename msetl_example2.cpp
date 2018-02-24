@@ -7,6 +7,8 @@
 #define MSE_FORCE_PRIMITIVE_ASSIGN_RANGE_CHECK_ENABLED
 #define MSE_SELF_TESTS
 
+//efine MSE_SAFER_SUBSTITUTES_DISABLED /* This will replace all the classes with their native/standard counterparts. */
+
 #include "msetl_example2.h"
 //include "msetl.h"
 #include "mseregistered.h"
@@ -195,7 +197,7 @@ void msetl_example2() {
 		/* mstd::vector<>s, for example, are not safely shareable between threads. But if its element type is
 		safely shareable, then the contents of the mse::mstd::vector<>, can be swapped with a corresponding
 		shareable nii_vector<>. Note that vector swaps are intrinsically fast operations. */
-		vo2.swap(*(access_requester2.writelock_ptr()));
+		std::swap(vo2, *(access_requester2.writelock_ptr()));
 
 		int q = 5;
 	}
@@ -420,7 +422,8 @@ void msetl_example2() {
 		mse::mstd::string mstring1("some text");
 		auto string_section1 = mse::make_string_section(mstring1.begin() + 1, 7);
 		auto string_section2 = string_section1.substr(4, 3);
-		assert(mse::mstd::string(string_section2) == "tex");
+		assert(string_section2.front() == 't');
+		assert(string_section2.back() == 'x');
 
 		/* Unlike std::string_view, string sections are available in "non-const" versions. */
 		string_section2[0] = 'T';
@@ -453,7 +456,8 @@ void msetl_example2() {
 
 		mse::TAnyStringSection<char> any_string_section3 = string_section3;
 		assert(any_string_section1 == any_string_section3);
-		assert(mse::mstd::string(any_string_section1) == "tex");
+		assert(any_string_section1.front() == 't');
+		assert(any_string_section1.back() == 'x');
 		any_string_section1 = string_section3;
 		any_string_section1[1] = 'E';
 	}
@@ -473,6 +477,7 @@ void msetl_example2() {
 			mse::mstd::string mstring1("some text");
 			msv1 = mstring1;
 		}
+#ifndef MSE_MSTDSTRING_DISABLED
 		try {
 			/* This is not undefined (or unsafe) behavior. Either an exception will be thrown or it will just work. */
 			auto ch1 = msv1[3];
@@ -483,6 +488,7 @@ void msetl_example2() {
 			that of the mstd::string_view. In the future, an exception may be thrown in debug builds. */
 			std::cerr << "potentially expected exception" << std::endl;
 		}
+#endif //!MSE_MSTDSTRING_DISABLED
 
 		mse::mstd::string mstring2("some other text");
 		/* With std::string_view, you specify a string subrange with a raw pointer iterator and a length. With

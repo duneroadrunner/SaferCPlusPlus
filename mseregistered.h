@@ -745,26 +745,6 @@ namespace mse {
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
 		return (*this).m_ptr;
 	}
-
-#endif /*MSE_REGISTEREDPOINTER_DISABLED*/
-
-	/* registered_new is intended to be analogous to std::make_shared */
-	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
-	TRegisteredPointer<_Ty, _Tn> registered_new(Args&&... args) {
-		return new TRegisteredObj<_Ty, _Tn>(std::forward<Args>(args)...);
-	}
-	template <class _Ty, int _Tn = sc_default_cache_size>
-	void registered_delete(const TRegisteredPointer<_Ty, _Tn>& regPtrRef) {
-		//auto a = dynamic_cast<TRegisteredObj<_Ty, _Tn> *>((_Ty*)regPtrRef);
-		auto a = static_cast<TRegisteredObj<_Ty, _Tn>*>(regPtrRef);
-		delete a;
-	}
-	template <class _Ty, int _Tn = sc_default_cache_size>
-	void registered_delete(const TRegisteredConstPointer<_Ty, _Tn>& regPtrRef) {
-		//auto a = dynamic_cast<TRegisteredObj<_Ty, _Tn> *>((_Ty*)regPtrRef);
-		auto a = static_cast<const TRegisteredObj<_Ty, _Tn>*>(regPtrRef);
-		delete a;
-	}
 }
 
 namespace std {
@@ -844,6 +824,26 @@ namespace std {
 }
 
 namespace mse {
+
+#endif /*MSE_REGISTEREDPOINTER_DISABLED*/
+
+	/* registered_new is intended to be analogous to std::make_shared */
+	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
+	TRegisteredPointer<_Ty, _Tn> registered_new(Args&&... args) {
+		return new TRegisteredObj<_Ty, _Tn>(std::forward<Args>(args)...);
+	}
+	template <class _Ty, int _Tn = sc_default_cache_size>
+	void registered_delete(const TRegisteredPointer<_Ty, _Tn>& regPtrRef) {
+		//auto a = dynamic_cast<TRegisteredObj<_Ty, _Tn> *>((_Ty*)regPtrRef);
+		auto a = static_cast<TRegisteredObj<_Ty, _Tn>*>(regPtrRef);
+		delete a;
+	}
+	template <class _Ty, int _Tn = sc_default_cache_size>
+	void registered_delete(const TRegisteredConstPointer<_Ty, _Tn>& regPtrRef) {
+		//auto a = dynamic_cast<TRegisteredObj<_Ty, _Tn> *>((_Ty*)regPtrRef);
+		auto a = static_cast<const TRegisteredObj<_Ty, _Tn>*>(regPtrRef);
+		delete a;
+	}
 
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
