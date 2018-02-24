@@ -533,7 +533,7 @@ usage example:
 ```cpp
     #include "mseregistered.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         class CA {
         public:
             CA(int x) : m_x(x) {}
@@ -577,7 +577,7 @@ usage example:
 ```cpp
     #include "mseregistered.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         class CA {
         public:
             CA(std::string str) : m_str(str) {}
@@ -615,7 +615,7 @@ usage example:
     #include "mseprimitives.h"
     #include "mseregistered.h"
 
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         /* This example originally comes from http://www.cplusplus.com/reference/functional/reference_wrapper/. */
         mse::TRegisteredObj<mse::CInt> a(10), b(20), c(30);
         // an array of "references":
@@ -638,7 +638,7 @@ usage example:
 ```cpp
     #include "mserelaxedregistered.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
     
         /* One case where you may need to use mse::TRelaxedRegisteredPointer<> even when not dealing with legacy code is when
         you need a reference to a class before it is fully defined. For example, when you have two classes that mutually
@@ -665,7 +665,6 @@ usage example:
         d_ptr->m_c_ptr = &regobjfl_c;
     
         mse::relaxed_registered_delete<D>(d_ptr);
-    
     }
 ```
 
@@ -743,7 +742,7 @@ usage example:
 ```cpp
 	#include "mserefcounting.h"
 	
-	int main(int argc, char* argv[]) {
+	void main(int argc, char* argv[]) {
 		class A {
 		public:
 			A() {}
@@ -827,7 +826,7 @@ usage example:
         ~H() {}
     };
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         class A {
         public:
             A() {}
@@ -874,7 +873,7 @@ usage example:
 ```cpp
     #include "mserefcountingofrelaxedregistered.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
     
         /* Here we demonstrate using TRelaxedRegisteredFixedPointer<> as a safe "weak_ptr" to prevent "cyclic references" from
         becoming memory leaks. */
@@ -967,7 +966,7 @@ usage example:
 ```cpp
     #include "msescope.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         class A {
         public:
             A(int x) : b(x) {}
@@ -1002,7 +1001,7 @@ usage example:
 ```cpp
     #include "msescope.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         class A {
         public:
             A(int x) : b(x) {}
@@ -1039,7 +1038,7 @@ usage example:
     #include "msescope.h"
     #include "mserefcounting.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         class A {
         public:
             A(int x) : b(x) {}
@@ -1078,7 +1077,7 @@ So consider, for example, a "min" function that takes two scope pointers and ret
 ```cpp
     #include "msescope.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         class A {
         public:
             A(int x) : b(x) {}
@@ -1117,7 +1116,7 @@ usage example:
 #include "msescope.h"
 #include "mseoptional.h"
 
-int main(int argc, char* argv[]) {
+void main(int argc, char* argv[]) {
 	class CB {
 	public:
 		/* While there is a rule against using scope types as function return types, you can usually just use the
@@ -1149,7 +1148,7 @@ example:
 #include "msescope.h"
 #include "mseoptional.h"
 
-int main(int argc, char* argv[]) {
+void main(int argc, char* argv[]) {
 
 		/* Defining your own scope types. */
 
@@ -1433,7 +1432,7 @@ usage example:
 ```cpp
     #include "msepoly.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         mse::mstd::array<int, 4> array1 { 1, 2, 3, 4 };
         mse::mstd::array<int, 5> array2 { 5, 6, 7, 8, 9 };
         mse::mstd::vector<int> vec1 { 10, 11, 12, 13, 14 };
@@ -1560,7 +1559,7 @@ usage example:
 		~H() {}
 	};
 	
-	int main(int argc, char* argv[]) {
+	void main(int argc, char* argv[]) {
 		/* The TAsyncShared data types are used to safely share objects between asynchronous threads. */
 	
 		class A {
@@ -1879,7 +1878,7 @@ usage example:
 ```cpp
     #include "mseprimitives.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
     
         mse::CInt i = 5;
         i -= 17;
@@ -1937,7 +1936,7 @@ usage example:
     #include "msemstdvector.h"
     #include <vector>
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
     
         mse::mstd::vector<int> mv;
         std::vector<int> sv;
@@ -1987,7 +1986,7 @@ usage example:
     #include "msemsevector.h"
     #include "mseregistered.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
     
         /* nii_vector<> is a safe vector designed for safe sharing between asynchronous threads. */
     
@@ -2052,7 +2051,7 @@ usage example:
 ```cpp
     #include "msemsevector.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         
         mse::us::msevector<int> v1 = { 1, 2, 3, 4 };
         mse::us::msevector<int> v = v1;
@@ -2131,7 +2130,7 @@ usage example:
 ```cpp
     #include "mseivector.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
     
         mse::ivector<int> iv = { 1, 2, 3, 4 };
         std::sort(iv.begin(), iv.end());
@@ -2148,7 +2147,7 @@ usage example:
 ```cpp
     #include "msemstdvector.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
     
         /* Here we're declaring an vector as a scope object. */
         mse::TXScopeObj<mse::mstd::vector<int>> vector1_scpobj = mse::mstd::vector<int>{ 1, 2, 3 };
@@ -2185,7 +2184,7 @@ usage example:
     #include "msemsearray.h"
     #include <array>
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
     
         mse::mstd::array<int, 3> ma;
         std::array<int, 3> sa;
@@ -2234,7 +2233,7 @@ usage example:
     #include "msemsearray.h"
     #include <array>
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         mse::us::msearray<int, 3> a1 = { 1, 2, 3 };
         mse::us::msearray<int, 3> a2 = { 11, 12, 13 };
         
@@ -2305,7 +2304,7 @@ usage example:
 ```cpp
     #include "msemstdarray.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
         /* If the array is declared as a "scope" object (which basically indicates that it is declared
         on the stack), then you can use "scope" iterators. While there are limitations on when they can
         be used, scope iterators would be the preferred iterator type where performance is a priority
@@ -2352,7 +2351,7 @@ usage example:
 ```cpp
     #include "msemstdarray.h"
     
-    int main(int argc, char* argv[]) {
+    void main(int argc, char* argv[]) {
     
         /* Here we're declaring an array as a scope object. */
         mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
@@ -2372,9 +2371,60 @@ usage example:
 
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
-A "random access section" is basically a convenient interface to access a (contiguous) subsection of an existing array or vector. (Essentially an "array view" or "span" if you're familiar with those.) It's constructed by specifying an iterator to the start of the section, and the length of the section. It supports most of the member functions and operators that [std::basic_string_view](http://en.cppreference.com/w/cpp/string/basic_string_view) does, except that the "[substr()](http://en.cppreference.com/w/cpp/string/basic_string_view/substr)" member function is named "subsection()" and instead of the "[compare()](http://en.cppreference.com/w/cpp/string/basic_string_view/compare)" member function, it has a corresponding "equal()" member function.
+A "random access section" is basically a convenient interface to access a (contiguous) subsection of an existing array or vector. (Essentially an "array view" or "span" if you're familiar with those.) You construct them, using the `make_random_access_section()` functions, by specifying an iterator to the start of the section, and the length of the section. Random access sections support most of the member functions and operators that [std::basic_string_view](http://en.cppreference.com/w/cpp/string/basic_string_view) does, except that the "[substr()](http://en.cppreference.com/w/cpp/string/basic_string_view/substr)" member function is named "subsection()".
 
 Note that for convenience, random access sections can be constructed from just a (safe) pointer to a supported container object, but in some cases the exact type of the resulting random access section may not be obvious. Constructing instead from a specified iterator and length should avoid any ambiguity.
+
+usage example:
+
+```cpp
+    #include "msemsearray.h" //random access sections are defined in this file
+    #include "msemstdarray.h"
+    #include "msemstdvector.h"
+    
+    class J {
+    public:
+        template<class _TRASection>
+        static void foo13(_TRASection ra_section) {
+            for (_TRASection::size_type i = 0; i < ra_section.size(); i += 1) {
+                ra_section[i] = 0;
+            }
+        }
+        template<class _TRAConstSection>
+        static int foo14(_TRAConstSection const_ra_section) {
+            int retval = 0;
+            for (_TRAConstSection::size_type i = 0; i < const_ra_section.size(); i += 1) {
+                retval += const_ra_section[i];
+            }
+            return retval;
+        }
+        template<class _TRAConstSection>
+        static int foo15(_TRAConstSection const_ra_section) {
+            int retval = 0;
+            for (const auto& const_item : const_ra_section) {
+                retval += const_item;
+            }
+            return retval;
+        }
+    };
+
+    void main(int argc, char* argv[]) {
+        mse::mstd::array<int, 4> mstd_array1{ 1, 2, 3, 4 };
+        mse::mstd::vector<int> mstd_vec1{ 10, 11, 12, 13, 14 };
+
+        auto xscp_ra_section1 = mse::make_xscope_random_access_section(mstd_array1.begin(), 2);
+        J::foo13(xscp_ra_section1);
+
+        auto ra_const_section2 = mse::make_random_access_const_section(++mstd_vec1.begin(), 3);
+        auto res6 = J::foo15(ra_const_section2);
+        auto res7 = J::foo14(ra_const_section2);
+
+        auto xscp_ra_section1_xscp_iter1 = xscp_ra_section1.xscope_begin();
+        auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
+        auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
+        bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+    }
+```
 
 ### optional, xscope_optional
 
