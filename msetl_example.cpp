@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 /*
-This example file has become quite large and holds examples for many data types. Your best bet is probably to use a find/search to
-get to the data type your interested in.
+This example file has become quite large (and has spilled into msetl_example2.cpp) and holds examples for many data
+types. Your best bet is probably to use a find/search to get to the data type your interested in.
 */
 
 
@@ -151,7 +151,6 @@ int main(int argc, char* argv[])
 	mse::msevector_test msevector_test;
 	msevector_test.run_all();
 
-#ifndef MSE_MSTDVECTOR_DISABLED
 	{
 		/**********************/
 		/*   mstd::vector<>   */
@@ -179,6 +178,7 @@ int main(int argc, char* argv[])
 		mse::mstd::vector<double> v3 = { 4.0, 5.0, 360 };
 		mse::mstd::vector<double> v4;
 #endif /*MSVC2010_COMPATIBLE*/
+#ifndef MSE_MSTDVECTOR_DISABLED
 		try {
 			v4.insert(v4.begin(), v2.begin(), v3.begin());
 		}
@@ -186,6 +186,7 @@ int main(int argc, char* argv[])
 			std::cerr << "expected exception" << std::endl;
 			/* The exception is triggered by a comparision of incompatible "safe" iterators. */
 		}
+#endif // !MSE_MSTDVECTOR_DISABLED
 
 		/* And of course the iterators can be used with the standard algorithms, just like those of std::vector. */
 		std::sort(v3.begin(), v3.end());
@@ -203,6 +204,8 @@ int main(int argc, char* argv[])
 		}
 		auto vi_it = vvi[0].begin();
 		vvi.clear();
+
+#ifndef MSE_MSTDVECTOR_DISABLED
 		try {
 			/* At this point, the vint_type object is cleared from vvi, but it has not been deallocated/destructed yet because it
 			"knows" that there is an iterator, namely vi_it, that is still referencing it. At the moment, std::shared_ptrs are being
@@ -218,6 +221,7 @@ int main(int argc, char* argv[])
 			/* At present, no exception will be thrown. In the future, an exception may be thrown in debug builds. */
 			std::cerr << "potentially expected exception" << std::endl;
 		}
+#endif // !MSE_MSTDVECTOR_DISABLED
 	}
 
 	{
@@ -238,7 +242,7 @@ int main(int argc, char* argv[])
 
 		std::sort(scp_iter1, scp_iter2);
 
-		auto scp_citer3 = mse::make_xscope_const_iterator(&vector1_scpobj);
+		auto scp_citer3 = mse::mstd::make_xscope_const_iterator(&vector1_scpobj);
 		scp_citer3 = scp_iter1;
 		scp_citer3 = vector1_scpobj.cbegin();
 		scp_citer3 += 2;
@@ -268,8 +272,6 @@ int main(int argc, char* argv[])
 		}
 		vector1_scpobj.push_back(4);
 	}
-
-#endif // !MSE_MSTDVECTOR_DISABLED
 
 	{
 		/*********************************/
@@ -385,7 +387,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-#ifndef MSE_MSTDARRAY_DISABLED
 	{
 		/*********************/
 		/*   mstd::array<>   */
@@ -398,6 +399,8 @@ int main(int argc, char* argv[])
 
 		mse::mstd::array<int, 3> a1 = { 1, 2, 3 };
 		mse::mstd::array<int, 3> a2 = { 11, 12, 13 };
+
+#ifndef MSE_MSTDARRAY_DISABLED
 		try {
 			for (auto it1 = a1.begin(); it1 != a2.end(); it1++) {
 				/* It's not going to make it here. The invalid iterator comparison will throw an exception. */
@@ -423,6 +426,7 @@ int main(int argc, char* argv[])
 		catch (...) {
 			std::cerr << "expected exception" << std::endl;
 		}
+#endif // !MSE_MSTDARRAY_DISABLED
 
 		/* And of course the iterators can be used with the standard algorithms, just like those of std::array. */
 		std::sort(a2.begin(), a2.end());
@@ -445,7 +449,7 @@ int main(int argc, char* argv[])
 
 			std::sort(scp_array_iter1, scp_array_iter2);
 
-			auto scp_array_citer3 = mse::make_xscope_const_iterator(&array1_scpobj);
+			auto scp_array_citer3 = mse::mstd::make_xscope_const_iterator(&array1_scpobj);
 			scp_array_citer3 = scp_array_iter1;
 			scp_array_citer3 = array1_scpobj.cbegin();
 			scp_array_citer3 += 2;
@@ -456,7 +460,8 @@ int main(int argc, char* argv[])
 			scope object. */
 			class CContainer1 {
 			public:
-				mse::mstd::array<int, 3> m_array = { 1, 2, 3 };
+				CContainer1() : m_array{ 1, 2, 3 } {}
+				mse::mstd::array<int, 3> m_array/* = { 1, 2, 3 }*/;
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
 			auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
@@ -476,7 +481,6 @@ int main(int argc, char* argv[])
 		mse::mstd::array_test testobj1;
 		testobj1.test1();
 	}
-#endif // !MSE_MSTDARRAY_DISABLED
 
 	{
 		/**********************/

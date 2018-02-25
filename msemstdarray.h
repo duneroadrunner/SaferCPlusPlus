@@ -24,6 +24,11 @@
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_MSTDARRAY_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+#ifdef MSE_MSTDVECTOR_DISABLED
+/* At the moment, the implementation of "disabled" mstd::vector<> is dependent on the implementation of disabled mstd::array<>,
+so you can't disable mstd::vector<> without also disabling mstd::array<>. */
+#define MSE_MSTDARRAY_DISABLED
+#endif /*MSE_MSTDVECTOR_DISABLED*/
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
