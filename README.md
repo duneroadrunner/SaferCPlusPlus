@@ -2492,7 +2492,7 @@ From an interface perspective, you might think of strings roughly as glorified v
 
 ### TXScopeStringSection, TXScopeStringConstSection, TStringSection, TStringConstSection
 
-"String sections" are string specialized versions of "[random access sections](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)". 
+"String sections" are string specialized versions of "[random access sections](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)". 
 
 usage example:
 
