@@ -1491,6 +1491,51 @@ usage example:
     }
 ```
 
+### TXScopeAnyStringSection, TXScopeAnyStringConstSection, TAnyStringSection, TAnyStringConstSection
+
+`TAnyStringSection<_Ty>` is essentially just an alias for `TAnyStringSection<TAnyRandomAccessIterator<_Ty> >`. Like [`TAnyRandomAccessSection<_Ty>`](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection), it can be used to enable a function to accept, as a parameter, any type of "[string section](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)".
+
+usage example:
+
+```cpp
+    #include "msepoly.h" // TAnyStringSection<> is defined in this header
+    #include "msemstdstring.h"
+    #include "msemsestring.h"
+    #include "mseregistered.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        /* "Any" string sections are basically polymorphic string sections that can hold the value of any string
+        section type. They can be used as function parameter types to enable functions to accept any type of string
+        section. */
+    
+        mse::mstd::string mstring1("some text");
+        mse::TAnyStringSection<char> any_string_section1(mstring1.begin()+5, 3);
+    
+        auto string_literal = "some text";
+        mse::TAnyStringConstSection<char> any_string_const_section2(string_literal+5, 3);
+    
+        typedef mse::TRegisteredObj<mse::nii_string> reg_nii_string_t;
+        reg_nii_string_t reg_nii_string3("some other text");
+        /* This is a different type of (safe) iterator to a different type of string. */
+        auto iter = reg_nii_string_t::ss_begin(&reg_nii_string3);
+    
+        /* Resulting in a different type of string section. */
+        auto string_section3 = mse::make_string_section(iter+11, 3);
+    
+        mse::TAnyStringSection<char> any_string_section3 = string_section3;
+        assert(any_string_section1 == any_string_section3);
+        assert(any_string_section1.front() == 't');
+        assert(any_string_section1.back() == 'x');
+        any_string_section1 = string_section3;
+        any_string_section1[1] = 'E';
+    }
+```
+
+### TXScopeAnyNRPStringSection, TXScopeAnyNRPStringConstSection, TAnyNRPStringSection, TAnyNRPStringConstSection
+
+`TAnyNRPStringSection<>` is just a version of [`TAnyStringSection<>`](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection) that, for enhanced safety, doesn't support construction from unsafe raw pointer iterators or (unsafe) `std::string` iterators.
+
 ### Safely passing parameters by reference
 As has been shown, you can use [registered pointers](#registered-pointers), [reference counting pointers](#reference-counting-pointers), [scope pointers](#scope-pointers) and/or various iterators to safely pass parameters by reference. When writing a function for general use that takes parameters by reference, you can either require a specific (safe) reference type for its reference parameters, or allow the caller some flexibility as to which reference type they use. 
 
@@ -2425,6 +2470,96 @@ usage example:
         bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
     }
 ```
+
+### Strings
+
+From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A couple of string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#string) is simply a memory-safe drop-in replacement for std::string. Due to their iterators, strings are not, in general, safe to share among threads. [`nii_string`](#nii_string) is designed for safe sharing among asynchronous threads. 
+
+### string
+
+`mstd::string` is a memory-safe drop-in replacement for `std::string`. As with the standard library, `mstd::string` is defined as an alias for `mstd::basic_string<char>`. The `mstd::wstring`, `mstd::u16string` and `mstd::u32string` aliases are also present.
+
+### nii_string
+
+`nii_string` is a string type designed to be safely shareable between asynchronous threads. See the corresponding [`nii_vector<>`](#nii_vector) for more information. Like `mstd::string`, `nii_string` is defined as an alias of `nii_basic_string<char>`. The `nii_wstring`, `nii_u16string` and `nii_u32string` aliases are also present.
+
+### TXScopeStringSection, TXScopeStringConstSection, TStringSection, TStringConstSection
+
+"String sections" are string specialized versions of "[random access sections](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)". 
+
+usage example:
+
+```cpp
+    #include "msemsestring.h" // make_string_section() is defined in this header
+    #include "msemstdstring.h"
+    
+    void main(int argc, char* argv[]) {
+
+        /* "String sections" are the string specialized versions of "random access sections", basically providing the
+        functionality of std::string_view but supporting construction from any (safe) iterator type, not just raw
+        pointer iterators. */
+    
+        mse::mstd::string mstring1("some text");
+        auto string_section1 = mse::make_string_section(mstring1.begin() + 1, 7);
+        auto string_section2 = string_section1.substr(4, 3);
+        assert(string_section2.front() == 't');
+        assert(string_section2.back() == 'x');
+    
+        /* Unlike std::string_view, string sections are available in "non-const" versions. */
+        string_section2[0] = 'T';
+        std::cout << string_section2;
+        assert(mstring1 == "some Text");
+    }
+```
+
+### string_view
+
+`std::string_view` is, in a way, a problematic addition to the standard library in the sense that it has an intrinsically unsafe interface. That is, its constructors support only (unsafe) raw pointer iterator parameters. In contrast, the standard library generally uses iterator types which allow for the option of a memory safe implementation. So to enable memory safe use, this library's version, `mstd::string_view`, generalizes the interface to support construction from safe iterator types. So while technically `mstd::string_view` can act as a drop-in replacement for `std::string_view`, it is designed to be used with safe iterator types, not unsafe raw pointer iterators.
+
+Like `std::string_view`, `mstd::string_view` is defined as an alias for `mstd::basic_string_view<char>`. The `mstd::wstring_view`, `mstd::u16string_view` and `mstd::u32string_view` aliases are also present. Note that `mstd::basic_string_view<>` is in fact just a slightly augmented version of [`TAnyStringConstSection<>`](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection).
+
+usage example:
+
+```cpp
+    #include "msepoly.h" // mstd::string_view is defined in this header
+    #include "msemstdstring.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        /* std::string_view stores an (unsafe) pointer iterator into its target string. mse::mstd::string_view can
+        instead store any type of string iterator, including memory safe iterators. So for example, when assigned
+        from an mse::mstd::string, mse::mstd::string_view will hold one of mse::mstd::string's safe (strong) iterators
+        (obtained with a call to the string's cbegin() member function). Consequently, the mse::mstd::string_view will
+        be safe against "use-after-free" bugs to which std::string_view is so prone. */
+    
+        mse::mstd::string_view msv1;
+        {
+            mse::mstd::string mstring1("some text");
+            msv1 = mstring1;
+        }
+        try {
+            /* This is not undefined (or unsafe) behavior. Either an exception will be thrown or it will just work. */
+            auto ch1 = msv1[3];
+            assert('e' == ch1);
+        }
+        catch (...) {
+            /* At present, no exception will be thrown. Instead, the lifespan of the string data is extended to match
+            that of the mstd::string_view. In the future, an exception may be thrown in debug builds. */
+            std::cerr << "potentially expected exception" << std::endl;
+        }
+    
+        mse::mstd::string mstring2("some other text");
+        /* With std::string_view, you specify a string subrange with a raw pointer iterator and a length. With
+        mse::mstd::string_view you are not restricted to (unsafe) raw pointer iterators. You can use memory safe
+        iterators like those provided by mse::mstd::string. */
+        auto msv2 = mse::mstd::string_view(mstring2.cbegin()+5, 7);
+        assert(msv2 == "other t");
+    }
+```
+
+### nrp_string_view
+
+`mse::nrp_string_view` is just a version of [`mse::mstd::string_view`](#string_view) that, for enhanced safety, does not support construction from unsafe raw pointer iterators or (unsafe) `std::string` iterators.
 
 ### optional, xscope_optional
 
