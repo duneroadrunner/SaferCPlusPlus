@@ -6,7 +6,9 @@ Jan 2018
 
 The library includes things like:
 
-- Drop-in replacements for [std::vector<>](#vector) and [std::array<>](#array).
+- Drop-in replacements for [std::vector<>](#vector), [std::array<>](#array) and [std::string](#string).
+
+- Replacements for the "use-after-free" prone [std::string_view](#nrp_string_view).
 
 - Drop-in [replacements](#primitives) for int, size_t and bool that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.
 
