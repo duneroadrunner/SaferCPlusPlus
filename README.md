@@ -68,6 +68,8 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     3. [TAnyPointer](#txscopeanypointer-txscopeanyconstpointer-tanypointer-tanyconstpointer)
     4. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
     5. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
+    6. [TAnyStringSection](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection)
+    7. [TAnyNRPStringSection](#txscopeanynrpstringsection-txscopeanynrpstringconstsection-tanynrpstringsection-tanynrpstringconstsection)
 12. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
 13. [Asynchronously shared objects](#asynchronously-shared-objects)
     1. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
@@ -90,10 +92,15 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     4. [xscope_iterator](#xscope_iterator)
     5. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
 17. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
-18. [optional](#optional-xscope_optional)
-19. [Compatibility considerations](#compatibility-considerations)
-20. [Practical limitations](#practical-limitations)
-21. [Questions and comments](#questions-and-comments)
+18. [Strings](#strings)
+    1. [mstd::string](#string)
+    2. [nii_string](#nii_string)
+    3. [mstd::string_view](#string_view)
+    4. [nrp_string_view](#nrp_string_view)
+19. [optional](#optional-xscope_optional)
+20. [Compatibility considerations](#compatibility-considerations)
+21. [Practical limitations](#practical-limitations)
+22. [Questions and comments](#questions-and-comments)
 
 
 ### Use cases
