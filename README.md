@@ -6,7 +6,9 @@ Jan 2018
 
 The library includes things like:
 
-- Drop-in replacements for [std::vector<>](#vector) and [std::array<>](#array).
+- Drop-in replacements for [std::vector<>](#vector), [std::array<>](#array) and [std::string](#string).
+
+- Replacements for the "use-after-free" prone [std::string_view](#nrp_string_view).
 
 - Drop-in [replacements](#primitives) for int, size_t and bool that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.
 
@@ -2385,11 +2387,12 @@ usage example:
         scope object. */
         class CContainer1 {
         public:
-            mse::mstd::array<int, 3> m_array = { 1, 2, 3 };
+            CContainer1() : m_vector({ 1, 2, 3 }) {}
+            mse::mstd::array<int, 3> m_array;
         };
         mse::TXScopeObj<CContainer1> container1_scpobj;
         auto container1_m_array_scpptr = mse::mstd::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
-        auto scp_iter4 = mse::make_xscope_iterator(container1_m_array_scpptr);
+        auto scp_iter4 = mse::mstd::make_xscope_iterator(container1_m_array_scpptr);
         scp_iter4++;
         auto res3 = *scp_iter4;
     }
