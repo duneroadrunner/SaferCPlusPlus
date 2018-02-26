@@ -86,13 +86,8 @@ namespace mse {
 			basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, npos, _Al)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, _Count, _Al)) {}
 			/* construct from mse::string_view and "string sections". */
-			template <typename _Ty2, class = typename std::enable_if<std::is_base_of<StringSectionTag, _Ty2>::value, void>::type>
-			basic_string(const _Ty2& string_section) : m_shptr(std::make_shared<_MBS>()) {
-				reserve(string_section.length());
-				for (const auto& char_ref : string_section) {
-					push_back(char_ref);
-				}
-			}
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			basic_string(const _TStringSection& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
 
 			_Myt& operator=(_MBS&& _X) { msebasic_string() = (std::forward<decltype(_X)>(_X)); return (*this); }
 			_Myt& operator=(const _MBS& _X) { msebasic_string() = (_X); return (*this); }
@@ -112,7 +107,11 @@ namespace mse {
 			void push_back(const _Ty& _X) { m_shptr->push_back(_X); }
 			void pop_back() { m_shptr->pop_back(); }
 			void assign(_It _F, _It _L) { m_shptr->assign(_F, _L); }
+			template<class _Iter>
+			void assign(const _Iter& _First, const _Iter& _Last) { m_shptr->assign(_First, _Last); }
 			void assign(size_type _N, const _Ty& _X = _Ty()) { m_shptr->assign(_N, _X); }
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			void assign(const _TStringSection& _X) { m_shptr->assign(_X); }
 			template<class ..._Valty>
 			void emplace_back(_Valty&& ..._Val) { m_shptr->emplace_back(std::forward<_Valty>(_Val)...); }
 			void clear() { m_shptr->clear(); }
@@ -370,7 +369,7 @@ namespace mse {
 			template<class _Iter
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
 				, class = _mse_RequireInputIter<_Iter> >
-				iterator insert_before(const const_iterator &pos, const _Iter &start, const _Iter &end) {
+			iterator insert_before(const const_iterator &pos, const _Iter &start, const _Iter &end) {
 				auto res = m_shptr->insert_before(pos.msebasic_string_ss_const_iterator_type(), start, end);
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
 				return retval;
@@ -378,7 +377,7 @@ namespace mse {
 			template<class _Iter
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
 				, class = _mse_RequireInputIter<_Iter> >
-				iterator insert_before_inclusive(const const_iterator &pos, const _Iter &first, const _Iter &last) {
+			iterator insert_before_inclusive(const const_iterator &pos, const _Iter &first, const _Iter &last) {
 				auto end = last; end++;
 				return insert_before(pos, first, end);
 			}
@@ -387,14 +386,28 @@ namespace mse {
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
 				return retval;
 			}
-			void insert_before(msev_size_t pos, const _Ty& _X = _Ty()) {
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			iterator insert_before(const const_iterator &pos, const _TStringSection& _X) {	// insert initializer_list
+				auto res = m_shptr->insert_before(pos.msebasic_string_ss_const_iterator_type(), _X);
+				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
+				return retval;
+			}
+			basic_string& insert_before(msev_size_t pos, const _Ty& _X = _Ty()) {
 				m_shptr->insert_before(pos, _X);
+				return *this;
 			}
-			void insert_before(msev_size_t pos, size_type _M, const _Ty& _X) {
+			basic_string& insert_before(msev_size_t pos, size_type _M, const _Ty& _X) {
 				m_shptr->insert_before(pos, _M, _X);
+				return *this;
 			}
-			void insert_before(msev_size_t pos, _XSTD initializer_list<typename _MBS::value_type> _Ilist) {	// insert initializer_list
+			basic_string& insert_before(msev_size_t pos, _XSTD initializer_list<typename _MBS::value_type> _Ilist) {	// insert initializer_list
 				m_shptr->insert_before(pos, _Ilist);
+				return *this;
+			}
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			basic_string& insert_before(msev_size_t pos, const _TStringSection& _X) {
+				m_shptr->insert_before(pos, _X);
+				return *this;
 			}
 			/* These insert() functions are just aliases for their corresponding insert_before() functions. */
 			iterator insert(const const_iterator &pos, size_type _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
@@ -406,6 +419,8 @@ namespace mse {
 				iterator insert(const const_iterator &pos, const _Iter &start, const _Iter &end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, const _Ty* start, const _Ty* end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, _XSTD initializer_list<typename _MBS::value_type> _Ilist) { return insert_before(pos, _Ilist); }
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			iterator insert(const const_iterator &pos, const _TStringSection& _X) { return insert_before(pos, _X); }
 			template<class ..._Valty>
 			iterator emplace(const const_iterator &pos, _Valty&& ..._Val) {
 				auto res = m_shptr->emplace(pos.msebasic_string_ss_const_iterator_type(), std::forward<_Valty>(_Val)...);
@@ -1119,19 +1134,17 @@ namespace mse {
 			_Ans += _Right;
 			return (_Ans);
 		}
-		/*
 		template<class _Elem, class _Traits, class _Alloc>
-		inline basic_string<_Elem, _Traits, _Alloc> operator+(_In_z_ const _Elem * const _Left,
-		const basic_string<_Elem, _Traits, _Alloc>& _Right) {	// return NTCTS + string
-		using _String_type = basic_string<_Elem, _Traits, _Alloc>;
-		using _Size_type = typename _String_type::size_type;
-		_String_type _Ans;
-		_Ans.reserve(_Convert_size<_Size_type>(_Traits::length(_Left) + _Right.size()));
-		_Ans += _Left;
-		_Ans += _Right;
-		return (_Ans);
+		inline basic_string<_Elem, _Traits, _Alloc> operator+(const _Elem * const _Left,
+			const basic_string<_Elem, _Traits, _Alloc>& _Right) {	// return NTCTS + string
+			using _String_type = basic_string<_Elem, _Traits, _Alloc>;
+			using _Size_type = typename _String_type::size_type;
+			_String_type _Ans;
+			_Ans.reserve(_Size_type(_Traits::length(_Left) + _Right.size()));
+			_Ans += _Left;
+			_Ans += _Right;
+			return (_Ans);
 		}
-		*/
 		template<class _Elem, class _Traits, class _Alloc>
 		inline basic_string<_Elem, _Traits, _Alloc> operator+(const _Elem _Left,
 			const basic_string<_Elem, _Traits, _Alloc>& _Right) {	// return character + string
@@ -1141,19 +1154,17 @@ namespace mse {
 			_Ans += _Right;
 			return (_Ans);
 		}
-		/*
 		template<class _Elem, class _Traits, class _Alloc>
 		inline basic_string<_Elem, _Traits, _Alloc> operator+(const basic_string<_Elem, _Traits, _Alloc>& _Left,
-		_In_z_ const _Elem * const _Right) {	// return string + NTCTS
-		using _String_type = basic_string<_Elem, _Traits, _Alloc>;
-		using _Size_type = typename _String_type::size_type;
-		_String_type _Ans;
-		_Ans.reserve(_Convert_size<_Size_type>(_Left.size() + _Traits::length(_Right)));
-		_Ans += _Left;
-		_Ans += _Right;
-		return (_Ans);
+			const _Elem * const _Right) {	// return string + NTCTS
+			using _String_type = basic_string<_Elem, _Traits, _Alloc>;
+			using _Size_type = typename _String_type::size_type;
+			_String_type _Ans;
+			_Ans.reserve(_Size_type(_Left.size() + _Traits::length(_Right)));
+			_Ans += _Left;
+			_Ans += _Right;
+			return (_Ans);
 		}
-		*/
 		template<class _Elem, class _Traits, class _Alloc>
 		inline basic_string<_Elem, _Traits, _Alloc> operator+(const basic_string<_Elem, _Traits, _Alloc>& _Left,
 			const _Elem _Right) {	// return string + character

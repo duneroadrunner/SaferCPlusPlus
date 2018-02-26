@@ -60,6 +60,25 @@ namespace mse {
 	};
 
 
+	/* "String sections" are essentially "random access sections" that support the string output stream operator ("<<").
+	So a const string section is the functional equivalent of an std::string_view, with a very similar interface. */
+
+	class StringSectionTag {};
+
+	template <typename _TRAIterator>
+	class TStringConstSectionBase;
+	template <typename _TRAIterator>
+	class TStringSectionBase;
+
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
+	class TXScopeStringSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
+	class TXScopeStringConstSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
+	class TStringSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
+	class TStringConstSection;
+
 	namespace us {
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
 		class msebasic_string;
@@ -121,6 +140,8 @@ namespace mse {
 		nii_basic_string(const _Ty* const _Ptr, const size_type _Count) : m_basic_string(_Ptr, _Count) { /*m_debug_size = size();*/ }
 		nii_basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_basic_string(_X.contained_basic_string(), _Roff, npos, _Al) { /*m_debug_size = size();*/ }
 		nii_basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_basic_string(_X.contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
+		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+		explicit nii_basic_string(const _TStringSection& _X) : m_basic_string(_X.cbegin(), _X.cend()) { /*m_debug_size = size();*/ }
 
 		/*
 		_Myt& operator=(const std_basic_string& _X) {
@@ -217,6 +238,12 @@ namespace mse {
 		void assign(size_type _N, const _Ty& _X = _Ty()) {
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
 			m_basic_string.assign(msev_as_a_size_t(_N), _X);
+			/*m_debug_size = size();*/
+		}
+		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+		void assign(const _TStringSection& _X) {
+			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			m_basic_string.assign(_X.cbegin(), _X.cend());
 			/*m_debug_size = size();*/
 		}
 
@@ -757,7 +784,7 @@ namespace mse {
 			end++; // this should include some checks
 			(*this).assign(first, end);
 		}
-		ss_iterator_type insert_before(const ss_const_iterator_type &pos, size_type _M, const _Ty& _X) {
+		ss_iterator_type insert_before(const ss_const_iterator_type &pos, size_type _M, _Ty _X) {
 			if (pos.m_owner_cptr != this) { MSE_THROW(nii_basic_string_range_error("invalid argument - void insert_before() - nii_basic_string")); }
 			pos.assert_valid_index();
 			msev_size_t original_pos = pos.position();
@@ -767,21 +794,11 @@ namespace mse {
 			retval.advance(msev_int(original_pos));
 			return retval;
 		}
-		ss_iterator_type insert_before(const ss_const_iterator_type &pos, _Ty&& _X) {
-			if (pos.m_owner_cptr != this) { MSE_THROW(nii_basic_string_range_error("invalid argument - void insert_before() - nii_basic_string")); }
-			pos.assert_valid_index();
-			msev_size_t original_pos = pos.position();
-			typename std_basic_string::const_iterator _P = pos.target_container_ptr()->m_basic_string.cbegin() + pos.position();
-			(*this).insert(_P, std::forward<decltype(_X)>(_X));
-			ss_iterator_type retval = ss_begin();
-			retval.advance(msev_int(original_pos));
-			return retval;
-		}
-		ss_iterator_type insert_before(const ss_const_iterator_type &pos, const _Ty& _X = _Ty()) { return (*this).insert(pos, 1, _X); }
+		ss_iterator_type insert_before(const ss_const_iterator_type &pos, _Ty _X) { return (*this).insert(pos, 1, _X); }
 		template<class _Iter
 			//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename std_basic_string::iterator>::type
 			, class = _mse_RequireInputIter<_Iter> >
-			ss_iterator_type insert_before(const ss_const_iterator_type &pos, const _Iter &start, const _Iter &end) {
+		ss_iterator_type insert_before(const ss_const_iterator_type &pos, const _Iter &start, const _Iter &end) {
 			if (pos.m_owner_cptr != this) { MSE_THROW(nii_basic_string_range_error("invalid argument - ss_iterator_type insert_before() - nii_basic_string")); }
 			//if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(nii_basic_string_range_error("invalid arguments - void insert_before(const ss_const_iterator_type &pos, const ss_const_iterator_type &start, const ss_const_iterator_type &end) - nii_basic_string")); }
 			pos.assert_valid_index();
@@ -830,6 +847,18 @@ namespace mse {
 			retval.advance(msev_int(original_pos));
 			return retval;
 		}
+		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+		ss_iterator_type insert_before(const ss_const_iterator_type &pos, const _TStringSection& _X) {
+			if (pos.m_owner_ptr != this) { MSE_THROW(nii_basic_string_range_error("invalid arguments - void insert_before() - nii_basic_string")); }
+			pos.assert_valid_index();
+			msev_size_t original_pos = pos.position();
+			typename std_basic_string::const_iterator _P = pos.target_container_ptr()->m_basic_string.cbegin() + pos.position();
+			(*this).insert(_P, _X);
+			ss_iterator_type retval = ss_begin();
+			retval.advance(msev_int(original_pos));
+			return retval;
+		}
+
 		/* These insert() functions are just aliases for their corresponding insert_before() functions. */
 		/*
 		ss_iterator_type insert(const ss_const_iterator_type &pos, size_type _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
@@ -969,48 +998,46 @@ namespace mse {
 		}
 
 		template<typename _TBasicStringPointer1>
-		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, size_type pos, _Ty&& _X) {
-			return (emplace(this_ptr, pos, std::forward<decltype(_X)>(_X)));
-		}
-		template<typename _TBasicStringPointer1>
-		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, size_type pos, const _Ty& _X = _Ty()) {
+		static auto& insert(_TBasicStringPointer1 this_ptr, size_type pos, _Ty _X) {
 			s_assert_valid_index(this_ptr, pos);
-			msev_size_t original_pos = pos;
 			typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
 			(*this_ptr).insert(_P, _X);
-			Tss_iterator_type<_TBasicStringPointer1> retval = ss_begin(this_ptr);
-			retval.advance(msev_int(original_pos));
-			return retval;
+			return *this_ptr;
 		}
 		template<typename _TBasicStringPointer1>
-		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, size_type pos, size_type _M, const _Ty& _X) {
+		static auto& insert(_TBasicStringPointer1 this_ptr, size_type pos, size_type _M, _Ty _X) {
 			s_assert_valid_index(this_ptr, pos);
-			msev_size_t original_pos = pos;
 			typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
 			(*this_ptr).insert(_P, _M, _X);
-			Tss_iterator_type<_TBasicStringPointer1> retval = ss_begin(this_ptr);
-			retval.advance(msev_int(original_pos));
-			return retval;
+			return *this_ptr;
 		}
 		template<typename _TBasicStringPointer1, class _Iter, class = _mse_RequireInputIter<_Iter> >
-		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, size_type pos, const _Iter& _First, const _Iter& _Last) {
+		static auto& insert(_TBasicStringPointer1 this_ptr, size_type pos, const _Iter& _First, const _Iter& _Last) {
 			s_assert_valid_index(this_ptr, pos);
-			msev_size_t original_pos = pos;
 			typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
 			(*this_ptr).insert(_P, _First, _Last);
-			Tss_iterator_type<_TBasicStringPointer1> retval = ss_begin(this_ptr);
-			retval.advance(msev_int(original_pos));
-			return retval;
+			return *this_ptr;
 		}
 		template<typename _TBasicStringPointer1>
-		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, size_type pos, _XSTD initializer_list<typename std_basic_string::value_type> _Ilist) {
+		static auto& insert(_TBasicStringPointer1 this_ptr, size_type pos, const _Ty* const s, size_type count) {
 			s_assert_valid_index(this_ptr, pos);
-			msev_size_t original_pos = pos;
+			typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
+			(*this_ptr).insert(_P, s, count);
+			return *this_ptr;
+		}
+		template<typename _TBasicStringPointer1>
+		static auto& insert(_TBasicStringPointer1 this_ptr, size_type pos, _XSTD initializer_list<typename std_basic_string::value_type> _Ilist) {
+			s_assert_valid_index(this_ptr, pos);
 			typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
 			(*this_ptr).insert(_P, _Ilist);
-			Tss_iterator_type<_TBasicStringPointer1> retval = ss_begin(this_ptr);
-			retval.advance(msev_int(original_pos));
-			return retval;
+			return *this_ptr;
+		}
+		template<typename _TBasicStringPointer1, typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+		static auto& insert(_TBasicStringPointer1 this_ptr, size_type pos, const _TStringSection& _X) {
+			s_assert_valid_index(this_ptr, pos);
+			typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
+			(*this_ptr).insert(_P, _X);
+			return *this_ptr;
 		}
 		template<typename _TBasicStringPointer1, class ..._Valty>
 		static Tss_iterator_type<_TBasicStringPointer1> emplace(_TBasicStringPointer1 this_ptr, size_type pos, _Valty&& ..._Val)
@@ -1050,26 +1077,47 @@ namespace mse {
 		}
 
 		template<typename _TBasicStringPointer1, typename _TBasicStringPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TBasicStringPointer2>::value), void>::type>
-		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, const Tss_const_iterator_type<_TBasicStringPointer2>& pos, _Ty&& _X) {
-			return insert(this_ptr, pos.position(), std::forward<decltype(_X)>(_X));
+		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, const Tss_const_iterator_type<_TBasicStringPointer2>& pos, _Ty _X) {
+			msev_size_t original_pos = pos;
+			insert(this_ptr, pos.position(), _X);
+			Tss_iterator_type<_TBasicStringPointer1> retval = ss_begin(this_ptr);
+			retval.advance(msev_int(original_pos));
+			return retval;
 		}
 		template<typename _TBasicStringPointer1, typename _TBasicStringPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TBasicStringPointer2>::value), void>::type>
-		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, const Tss_const_iterator_type<_TBasicStringPointer2>& pos, const _Ty& _X = _Ty()) {
-			return insert(this_ptr, pos.position(), _X);
-		}
-		template<typename _TBasicStringPointer1, typename _TBasicStringPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TBasicStringPointer2>::value), void>::type>
-		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, const Tss_const_iterator_type<_TBasicStringPointer2>& pos, size_type _M, const _Ty& _X) {
-			return insert(this_ptr, pos.position(), _M, _X);
+		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, const Tss_const_iterator_type<_TBasicStringPointer2>& pos, size_type _M, _Ty _X) {
+			msev_size_t original_pos = pos;
+			insert(this_ptr, pos.position(), _M, _X);
+			Tss_iterator_type<_TBasicStringPointer1> retval = ss_begin(this_ptr);
+			retval.advance(msev_int(original_pos));
+			return retval;
 		}
 		template<typename _TBasicStringPointer1, typename _TBasicStringPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TBasicStringPointer2>::value), void>::type
 			, class _Iter, class = _mse_RequireInputIter<_Iter> >
 			static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, const Tss_const_iterator_type<_TBasicStringPointer2>& pos, const _Iter& _First, const _Iter& _Last) {
-			return insert(this_ptr, pos.position(), _First, _Last);
+			msev_size_t original_pos = pos;
+			insert(this_ptr, pos.position(), _First, _Last);
+			Tss_iterator_type<_TBasicStringPointer1> retval = ss_begin(this_ptr);
+			retval.advance(msev_int(original_pos));
+			return retval;
 		}
 		template<typename _TBasicStringPointer1, typename _TBasicStringPointer2, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TBasicStringPointer2>::value), void>::type>
 		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, const Tss_const_iterator_type<_TBasicStringPointer2>& pos, _XSTD initializer_list<typename std_basic_string::value_type> _Ilist) {
-			return insert(this_ptr, pos.position(), _Ilist);
+			msev_size_t original_pos = pos;
+			insert(this_ptr, pos.position(), _Ilist);
+			Tss_iterator_type<_TBasicStringPointer1> retval = ss_begin(this_ptr);
+			retval.advance(msev_int(original_pos));
+			return retval;
 		}
+		template<typename _TBasicStringPointer1, typename _TBasicStringPointer2, typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+		static Tss_iterator_type<_TBasicStringPointer1> insert(_TBasicStringPointer1 this_ptr, const Tss_const_iterator_type<_TBasicStringPointer2>& pos, const _TStringSection& _X) {
+			msev_size_t original_pos = pos;
+			insert(this_ptr, pos.position(), _X);
+			Tss_iterator_type<_TBasicStringPointer1> retval = ss_begin(this_ptr);
+			retval.advance(msev_int(original_pos));
+			return retval;
+		}
+
 		template<typename _TBasicStringPointer1, typename _TBasicStringPointer2, class ..._Valty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TBasicStringPointer2>::value), void>::type>
 		static Tss_iterator_type<_TBasicStringPointer1> emplace(_TBasicStringPointer1 this_ptr, const Tss_const_iterator_type<_TBasicStringPointer2>& pos, _Valty&& ..._Val) {
 			return emplace(this_ptr, pos.position(), std::forward<_Valty>(_Val)...);
@@ -1717,16 +1765,13 @@ namespace mse {
 		}
 
 
-		typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, _Ty&& _X) {
-			return (emplace(_P, std::forward<decltype(_X)>(_X)));
-		}
-		typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, const _Ty& _X = _Ty()) {
+		typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, _Ty _X) {
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
 			typename std_basic_string::iterator retval = m_basic_string.insert(_P, _X);
 			/*m_debug_size = size();*/
 			return retval;
 		}
-		typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, size_type _M, const _Ty& _X) {
+		typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, size_type _M, _Ty _X) {
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
 			typename std_basic_string::iterator retval = m_basic_string.insert(_P, msev_as_a_size_t(_M), _X);
 			/*m_debug_size = size();*/
@@ -1741,11 +1786,21 @@ namespace mse {
 			/*m_debug_size = size();*/
 			return retval;
 		}
+		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+		typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, const _TStringSection& _X) {
+			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			/* todo: optimize? In most cases a temporary copy shouldn't be necessary, but what about when the string section
+			refers to a section of the target string? */
+			const _Myt temp_nii_str(_X);
+			typename std_basic_string::iterator retval = m_basic_string.insert(_P, temp_nii_str.m_basic_string.cbegin(), temp_nii_str.m_basic_string.cend());
+			/*m_debug_size = size();*/
+			return retval;
+		}
 		template<class ..._Valty>
 		typename std_basic_string::iterator emplace(typename std_basic_string::const_iterator _Where, _Valty&& ..._Val)
 		{	// insert by moving _Val at _Where
 			std::lock_guard<_TStateMutex> lock1(m_mutex1);
-			auto retval = m_basic_string.emplace(_Where, std::forward<_Valty>(_Val)...);
+			auto retval = m_basic_string.insert(_Where, std::forward<_Valty>(_Val)...);
 			/*m_debug_size = size();*/
 			return retval;
 		}
@@ -1826,19 +1881,17 @@ namespace mse {
 		return (_Ans);
 	}
 
-	/*
 	template<class _Elem, class _Traits, class _Alloc>
-	inline nii_basic_string<_Elem, _Traits, _Alloc> operator+(_In_z_ const _Elem * const _Left,
+	inline nii_basic_string<_Elem, _Traits, _Alloc> operator+(const _Elem * const _Left,
 			const nii_basic_string<_Elem, _Traits, _Alloc>& _Right) {	// return NTCTS + string
 		using _String_type = nii_basic_string<_Elem, _Traits, _Alloc>;
 		using _Size_type = typename _String_type::size_type;
 		_String_type _Ans;
-		_Ans.reserve(_Convert_size<_Size_type>(_Traits::length(_Left) + _Right.size()));
+		_Ans.reserve(_Size_type(_Traits::length(_Left) + _Right.size()));
 		_Ans += _Left;
 		_Ans += _Right;
 		return (_Ans);
 	}
-	*/
 
 	template<class _Elem, class _Traits, class _Alloc>
 	inline nii_basic_string<_Elem, _Traits, _Alloc> operator+(const _Elem _Left,
@@ -1850,19 +1903,17 @@ namespace mse {
 		return (_Ans);
 	}
 
-	/*
 	template<class _Elem, class _Traits, class _Alloc>
 	inline nii_basic_string<_Elem, _Traits, _Alloc> operator+(const nii_basic_string<_Elem, _Traits, _Alloc>& _Left,
-			_In_z_ const _Elem * const _Right) {	// return string + NTCTS
+			const _Elem * const _Right) {	// return string + NTCTS
 		using _String_type = nii_basic_string<_Elem, _Traits, _Alloc>;
 		using _Size_type = typename _String_type::size_type;
 		_String_type _Ans;
-		_Ans.reserve(_Convert_size<_Size_type>(_Left.size() + _Traits::length(_Right)));
+		_Ans.reserve(_Size_type(_Left.size() + _Traits::length(_Right)));
 		_Ans += _Left;
 		_Ans += _Right;
 		return (_Ans);
 	}
-	*/
 
 	template<class _Elem, class _Traits, class _Alloc>
 	inline nii_basic_string<_Elem, _Traits, _Alloc> operator+(const nii_basic_string<_Elem, _Traits, _Alloc>& _Left,
@@ -2066,6 +2117,8 @@ namespace mse {
 			msebasic_string(const _Ty* const _Ptr, const size_type _Count) : base_class(_Ptr, _Count), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			msebasic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : base_class(_X, _Roff, npos, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			msebasic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(_X, _Roff, _Count, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			msebasic_string(const _TStringSection& _X) : base_class(_X), m_mmitset(*this) { /*m_debug_size = size();*/ }
 
 			_Myt& operator=(const base_class& _X) {
 				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
@@ -2235,6 +2288,13 @@ namespace mse {
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
 			}
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			void assign(const _TStringSection& _X) {
+				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				base_class::assign(_X);
+				/*m_debug_size = size();*/
+				m_mmitset.reset();
+			}
 			typename base_class::iterator insert(typename base_class::const_iterator _P, _Ty&& _X) {
 				return (emplace(_P, std::forward<decltype(_X)>(_X)));
 			}
@@ -2390,6 +2450,36 @@ namespace mse {
 				/*return retval;*/
 			}
 #endif /*!(defined(GPP4P8_COMPATIBLE))*/
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			typename base_class::iterator insert(typename base_class::const_iterator _P, const _TStringSection& _X) {
+				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				if (m_mmitset.is_empty()) {
+					typename base_class::iterator retval = base_class::insert(_P, _X);
+					/*m_debug_size = size();*/
+					return retval;
+				}
+				else {
+					msev_int di = std::distance(base_class::cbegin(), _P);
+					msev_size_t d = msev_size_t(di);
+					if ((0 > di) || ((*this).size() < msev_size_t(di))) { MSE_THROW(msebasic_string_range_error("index out of range - typename base_class::iterator insert() - msebasic_string")); }
+
+					auto original_size = msev_size_t((*this).size());
+					auto original_capacity = msev_size_t((*this).capacity());
+
+					typename base_class::iterator retval = base_class::insert(_P, _X);
+					/*m_debug_size = size();*/
+
+					assert((original_size + _X.length()) == msev_size_t((*this).size()));
+					assert(di == std::distance(base_class::begin(), retval));
+					m_mmitset.shift_inclusive_range(d, original_size, msev_int(_X.length()));
+					auto new_capacity = msev_size_t((*this).capacity());
+					bool realloc_occured = (new_capacity != original_capacity);
+					if (realloc_occured) {
+						m_mmitset.sync_iterators_to_index();
+					}
+					return retval;
+				}
+			}
 
 			template<class ..._Valty>
 			void emplace_back(_Valty&& ..._Val)
@@ -3612,7 +3702,7 @@ namespace mse {
 			template<class _Iter
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
 				, class = _mse_RequireInputIter<_Iter> >
-				void insert_before(const mm_const_iterator_type &pos, const _Iter &start, const _Iter &end) {
+			void insert_before(const mm_const_iterator_type &pos, const _Iter &start, const _Iter &end) {
 				if (pos.m_owner_cptr != this) { MSE_THROW(msebasic_string_range_error("invalid arguments - void insert_before() - msebasic_string")); }
 				//if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(msebasic_string_range_error("invalid arguments - void insert_before(const mm_const_iterator_type &pos, const mm_const_iterator_type &start, const mm_const_iterator_type &end) - msebasic_string")); }
 				typename base_class::const_iterator _P = pos;
@@ -3621,7 +3711,7 @@ namespace mse {
 			template<class _Iter
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
 				, class = _mse_RequireInputIter<_Iter> >
-				void insert_before_inclusive(const mm_const_iterator_type &pos, const _Iter &first, const _Iter &last) {
+			void insert_before_inclusive(const mm_const_iterator_type &pos, const _Iter &first, const _Iter &last) {
 				if (pos.m_owner_cptr != this) { MSE_THROW(msebasic_string_range_error("invalid arguments - void insert_before() - msebasic_string")); }
 				if (first.m_owner_cptr != last.m_owner_cptr) { MSE_THROW(msebasic_string_range_error("invalid arguments - void insert_before_inclusive(const mm_const_iterator_type &pos, const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msebasic_string")); }
 				if (!(last.points_to_item())) { MSE_THROW(msebasic_string_range_error("invalid argument - void insert_before_inclusive(const mm_const_iterator_type &pos, const mm_const_iterator_type &first, const mm_const_iterator_type &last) - msebasic_string")); }
@@ -3634,6 +3724,12 @@ namespace mse {
 				if (pos.m_owner_cptr != this) { MSE_THROW(msebasic_string_range_error("invalid arguments - void insert_before() - msebasic_string")); }
 				typename base_class::const_iterator _P = pos;
 				(*this).insert(_P, _Ilist);
+			}
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			void insert_before(const mm_const_iterator_type &pos, const _TStringSection& _X) {
+				if (pos.m_owner_cptr != this) { MSE_THROW(msebasic_string_range_error("invalid arguments - void insert_before() - msebasic_string")); }
+				typename base_class::const_iterator _P = pos;
+				(*this).insert(_P, _X);
 			}
 			ipointer insert_before(const cipointer &pos, size_type _M, const _Ty& _X) {
 				msev_size_t original_pos = pos.position();
@@ -3660,13 +3756,20 @@ namespace mse {
 			template<class _Iter
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
 				, class = _mse_RequireInputIter<_Iter> >
-				ipointer insert_before_inclusive(const cipointer &pos, const _Iter &first, const _Iter &last) {
+			ipointer insert_before_inclusive(const cipointer &pos, const _Iter &first, const _Iter &last) {
 				auto end = last; end++;
 				return insert_before(pos, first, end);
 			}
 			ipointer insert_before(const cipointer &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
 				msev_size_t original_pos = pos.position();
 				(*this).insert_before(pos.const_item_pointer(), _Ilist);
+				ipointer retval(*this); retval.advance(msev_int(original_pos));
+				return retval;
+			}
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			ipointer insert_before(const cipointer &pos, const _TStringSection& _X) {
+				msev_size_t original_pos = pos.position();
+				(*this).insert_before(pos.const_item_pointer(), _X);
 				ipointer retval(*this); retval.advance(msev_int(original_pos));
 				return retval;
 			}
@@ -3686,6 +3789,11 @@ namespace mse {
 				typename base_class::const_iterator _P = (*this).begin() + msev_as_a_size_t(pos);
 				(*this).insert(_P, _Ilist);
 			}
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			void insert_before(msev_size_t pos, const _TStringSection& _X) {
+				typename base_class::const_iterator _P = (*this).begin() + msev_as_a_size_t(pos);
+				(*this).insert(_P, _X);
+			}
 			/* These insert() functions are just aliases for their corresponding insert_before() functions. */
 			ipointer insert(const cipointer &pos, size_type _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
 			ipointer insert(const cipointer &pos, _Ty&& _X) { return insert_before(pos, std::forward<decltype(_X)>(_X)); }
@@ -3693,8 +3801,10 @@ namespace mse {
 			template<class _Iter
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
 				, class = _mse_RequireInputIter<_Iter> >
-				ipointer insert(const cipointer &pos, const _Iter &start, const _Iter &end) { return insert_before(pos, start, end); }
+			ipointer insert(const cipointer &pos, const _Iter &start, const _Iter &end) { return insert_before(pos, start, end); }
 			ipointer insert(const cipointer &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) { return insert_before(pos, _Ilist); }
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			ipointer insert(const cipointer &pos, const _TStringSection& _X) { return insert_before(pos, _X); }
 			template<class ..._Valty>
 #if !(defined(GPP4P8_COMPATIBLE))
 			void emplace(const mm_const_iterator_type &pos, _Valty&& ..._Val)
@@ -5446,21 +5556,6 @@ namespace mse {
 
 	/* "String sections" are essentially "random access sections" that support the string output stream operator ("<<").
 	So a const string section is the functional equivalent of an std::string_view, with a very similar interface. */
-	template <typename _TRAIterator>
-	class TStringConstSectionBase;
-	template <typename _TRAIterator>
-	class TStringSectionBase;
-
-	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
-	class TXScopeStringSection;
-	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
-	class TXScopeStringConstSection;
-	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
-	class TStringSection;
-	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
-	class TStringConstSection;
-
-	class StringSectionTag {};
 
 	template <typename _TRAIterator>
 	class TStringSectionBase : public TRandomAccessSectionBase<_TRAIterator>, public StringSectionTag {
@@ -5605,8 +5700,8 @@ namespace mse {
 
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TStringSectionBase& _Str) {
 			/* todo: consider optimizing */
-			for (const auto& elem_cref : _Str) {
-				_Ostr << elem_cref;
+			for (size_t i = 0; i < _Str.length(); i += 1) {
+				_Ostr << _Str[i];
 			}
 			return _Ostr;
 		}
@@ -5913,8 +6008,8 @@ namespace mse {
 
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TStringConstSectionBase& _Str) {
 			/* todo: consider optimizing */
-			for (const auto& elem_cref : _Str) {
-				_Ostr << elem_cref;
+			for (size_t i = 0; i < _Str.length(); i += 1) {
+				_Ostr << _Str[i];
 			}
 			return _Ostr;
 		}
