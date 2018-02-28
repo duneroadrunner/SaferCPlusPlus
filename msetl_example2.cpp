@@ -518,13 +518,13 @@ void msetl_example2() {
 			std::cout << sv;
 		}
 		{
-			/* Memory safe substitutes for std::string and std::string_view eliminate the danger. */
+			/* Dealing with an std::string temporary. */
 
 			std::string s = "Hellooooooooooooooo ";
 			/* mse::nrp_string_view doesn't std::string directly. */
 			//mse::nrp_string_view sv = s + "World\n";	 // <-- compile error
 
-			/* But you could convert the std::string temporary into a (safe) mse::mstd::string. */
+			/* But you can convert the std::string temporary into a (safe) mse::mstd::string. */
 			mse::nrp_string_view sv = mse::mstd::string(s + "World\n");
 			std::cout << sv;
 		}
