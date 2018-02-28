@@ -521,7 +521,7 @@ void msetl_example2() {
 			/* Dealing with an std::string temporary. */
 
 			std::string s = "Hellooooooooooooooo ";
-			/* mse::nrp_string_view doesn't std::string directly. */
+			/* mse::nrp_string_view doesn't support std::string directly. */
 			//mse::nrp_string_view sv = s + "World\n";	 // <-- compile error
 
 			/* But you can convert the std::string temporary into a (safe) mse::mstd::string. */
@@ -559,7 +559,7 @@ void msetl_example2() {
 
 			//auto xscope_pointer2 = &(mse::TXScopeObj< mse::nii_string >(s + "World\n"));	 // <-- compile error
 
-			/* Trying to (unsafely) obtain a "scope" pointer from a temporay is not going to work. */
+			/* Trying to (unsafely) obtain a "scope" pointer from a temporary is not going to work. */
 		}
 	}
 

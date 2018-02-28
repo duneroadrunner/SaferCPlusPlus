@@ -5793,7 +5793,7 @@ namespace mse {
 		auto cend() const { return (*this).xscope_cend(); }
 
 	private:
-		//TXScopeStringSection<_TRAIterator, _Traits>& operator=(const TXScopeStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
+		TXScopeStringSection<_TRAIterator, _Traits>& operator=(const TXScopeStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		TXScopeStringSection<_TRAIterator, _Traits>* operator&() { return this; }
@@ -6103,7 +6103,7 @@ namespace mse {
 		auto cend() const { return (*this).xscope_cend(); }
 
 	private:
-		//TXScopeStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
+		TXScopeStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		TXScopeStringConstSection<_TRAIterator, _Traits>* operator&() { return this; }

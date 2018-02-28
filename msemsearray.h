@@ -3631,7 +3631,7 @@ namespace mse {
 		auto cend() const { return (*this).xscope_cend(); }
 
 	private:
-		//TXScopeRandomAccessSection<_TRAIterator>& operator=(const TXScopeRandomAccessSection<_TRAIterator>& _Right_cref) = delete;
+		TXScopeRandomAccessSection<_TRAIterator>& operator=(const TXScopeRandomAccessSection<_TRAIterator>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		TXScopeRandomAccessSection<_TRAIterator>* operator&() { return this; }
@@ -4171,7 +4171,7 @@ namespace mse {
 		auto cend() const { return (*this).xscope_cend(); }
 
 	private:
-		//TXScopeRandomAccessConstSection<_TRAIterator>& operator=(const TXScopeRandomAccessConstSection<_TRAIterator>& _Right_cref) = delete;
+		TXScopeRandomAccessConstSection<_TRAIterator>& operator=(const TXScopeRandomAccessConstSection<_TRAIterator>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		TXScopeRandomAccessConstSection<_TRAIterator>* operator&() { return this; }
