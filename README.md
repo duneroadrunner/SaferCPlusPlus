@@ -98,8 +98,9 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     1. [mstd::string](#string)
     2. [nii_string](#nii_string)
     3. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
-    4. [mstd::string_view](#string_view)
-    5. [nrp_string_view](#nrp_string_view)
+    4. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
+    5. [mstd::string_view](#string_view)
+    6. [nrp_string_view](#nrp_string_view)
 19. [optional](#optional-xscope_optional)
 20. [Compatibility considerations](#compatibility-considerations)
 21. [Practical limitations](#practical-limitations)
@@ -2522,6 +2523,10 @@ usage example:
         assert(mstring1 == "some Text");
     }
 ```
+
+### TXScopeNRPStringSection, TXScopeNRPStringConstSection, TNRPStringSection, TNRPStringConstSection
+
+`TNRPStringSection<>` is just a version of [`TStringSection<>`](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection) that, for enhanced safety, does not support construction from unsafe raw pointer iterators or (unsafe) `std::string` iterators. Use the `make_nrp_string_section()` functions to create them.
 
 ### string_view
 
