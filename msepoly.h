@@ -1550,20 +1550,6 @@ namespace mse {
 		(!std::is_same<std::basic_string<_Ty>, typename std::remove_const<_TRALoneParam>::type>::value), void>::type>
 	void T_valid_if_not_an_std_basic_string_msepoly() {}
 
-	template<class T, class EqualTo>
-	struct IsDereferenceable_msemsepoly_impl
-	{
-		template<class U, class V>
-		static auto test(U*) -> decltype((*std::declval<U>()) == (*std::declval<V>()), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
-
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct IsDereferenceable_msemsepoly : IsDereferenceable_msemsepoly_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
 	template<typename _Ty, typename _TPtr>
 	void T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper(std::true_type) {
 		T_valid_if_not_an_std_basic_string_msepoly<_Ty, typename std::remove_reference<decltype(*std::declval<_TPtr>())>::type>();
@@ -1573,14 +1559,14 @@ namespace mse {
 
 	template<typename _Ty, typename _TRALoneParam>
 	void T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly() {
-		T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper<_Ty, _TRALoneParam>(typename IsDereferenceable_msemsepoly<_TRALoneParam>::type());
+		T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper<_Ty, _TRALoneParam>(typename IsDereferenceable_msemsearray<_TRALoneParam>::type());
 	}
 
 	template<typename _Ty, typename _TRALoneParam>
 	void T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly() {
 		T_valid_if_not_a_native_pointer_msemsestring<_TRALoneParam>();
-		T_valid_if_not_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
-		T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
+		//T_valid_if_not_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
+		//T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
 	}
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
@@ -1725,29 +1711,29 @@ namespace std {
 	template <typename _Ty, class _Traits>
 	struct hash<mse::TXScopeAnyNRPStringSection<_Ty, _Traits> > : public hash<mse::TXScopeNRPStringSection<mse::TXScopeAnyRandomAccessIterator<_Ty>, _Traits> > {
 	typedef hash<mse::TXScopeNRPStringSection<mse::TXScopeAnyRandomAccessIterator<_Ty>, _Traits> > base_class;
-	typedef typename base_class::argument_type argument_type;
-	typedef typename base_class::result_type result_type;
+	//typedef typename base_class::argument_type argument_type;
+	//typedef typename base_class::result_type result_type;
 	};
 
 	template <typename _Ty, class _Traits>
 	struct hash<mse::TAnyNRPStringSection<_Ty, _Traits> > : public hash<mse::TNRPStringSection<mse::TAnyRandomAccessIterator<_Ty>, _Traits> > {
 	typedef hash<mse::TAnyNRPStringSection<mse::TAnyRandomAccessIterator<_Ty>, _Traits> > base_class;
-	typedef typename base_class::argument_type argument_type;
-	typedef typename base_class::result_type result_type;
+	//typedef typename base_class::argument_type argument_type;
+	//typedef typename base_class::result_type result_type;
 	};
 
 	template <typename _Ty, class _Traits>
 	struct hash<mse::TXScopeAnyNRPStringConstSection<_Ty, _Traits> > : public hash<mse::TXScopeNRPStringConstSection<mse::TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> > {
 	typedef hash<mse::TXScopeNRPStringConstSection<mse::TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> > base_class;
-	typedef typename base_class::argument_type argument_type;
-	typedef typename base_class::result_type result_type;
+	//typedef typename base_class::argument_type argument_type;
+	//typedef typename base_class::result_type result_type;
 	};
 
 	template <typename _Ty, class _Traits>
 	struct hash<mse::TAnyNRPStringConstSection<_Ty, _Traits> > : public hash<mse::TNRPStringConstSection<mse::TAnyRandomAccessConstIterator<_Ty>, _Traits> > {
 	typedef hash<mse::TNRPStringConstSection<mse::TAnyRandomAccessConstIterator<_Ty>, _Traits> > base_class;
-	typedef typename base_class::argument_type argument_type;
-	typedef typename base_class::result_type result_type;
+	//typedef typename base_class::argument_type argument_type;
+	//typedef typename base_class::result_type result_type;
 	};
 }
 

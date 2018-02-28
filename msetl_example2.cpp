@@ -475,7 +475,7 @@ void msetl_example2() {
 		mse::mstd::string_view msv1;
 		{
 			mse::mstd::string mstring1("some text");
-			msv1 = mstring1;
+			msv1 = mse::mstd::string_view(mstring1);
 		}
 #ifndef MSE_MSTDSTRING_DISABLED
 		try {
@@ -496,6 +496,60 @@ void msetl_example2() {
 		iterators like those provided by mse::mstd::string. */
 		auto msv2 = mse::mstd::string_view(mstring2.cbegin()+5, 7);
 		assert(msv2 == "other t");
+
+		/* mse::mstd::string_view is actually discourged in favor mse::nrp_string_view, which doesn't support
+		construction from unsafe raw pointer iterators. */
+	}
+
+	{
+		/* Common string_view bug. */
+		{
+			std::string s = "Hellooooooooooooooo ";
+			//std::string_view sv = s + "World\n";
+			//std::cout << sv;
+		}
+		{
+			/* Memory safe substitutes for std::string and std::string_view eliminate the danger. */
+
+			mse::mstd::string s = "Hellooooooooooooooo ";
+			mse::nrp_string_view sv = s + "World\n";
+			/* This is safe because the lifespan of the temporary string data is extended (via reference counting) to
+			match that of sv. */
+			std::cout << sv;
+		}
+		{
+			/* Memory safety can also be achieved without extra run-time overhead. */
+
+			/* nii_string is a safe string type (with no extra run-time overhead). */
+			mse::nii_string s = "Hellooooooooooooooo ";
+
+			//mse::nrp_string_view sv = s + "World\n";	 // <-- compile error
+
+			/* nrp_string_view will not (unsafely) construct from a naked nii_string (temporary or otherwise). */
+
+			/* TXScopeObj<> is a transparent "annotation" template wrapper indicating that the object has "scope lifetime"
+			(i.e. is declared on the stack). The wrapper, to the extent possible, enforces the claim. */
+			mse::TXScopeObj< mse::nii_string > xscope_s2 = s + "World\n";
+
+			/* xscope_pointer is not a raw pointer. It is an "annotated" pointer indicating its target has scope lifetime.
+			The '&' operator is overloaded. */
+			auto xscope_pointer = &xscope_s2;
+
+			/* Here we create a safe "string_view"-like object we call a "string section". This version has no extra
+			run-time overhead. The "xscope_" prefix indicates that this version also has scope lifetime (enforced to the
+			extent possible). */
+			auto xscope_sv = mse::make_xscope_string_const_section(xscope_pointer);
+
+			std::cout << xscope_sv;
+
+			/* The preceding block, while a little more verbose, is memory safe without extra run-time overhead. */
+
+			/* And just to be clear: */
+
+			//auto xscope_pointer2 = &(mse::TXScopeObj< mse::nii_string >(s + "World\n"));	 // <-- compile error
+
+			/* Trying to (unsafely) obtain a "scope" pointer from a temporay is not going to work. */
+		}
 	}
 
 	{

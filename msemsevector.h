@@ -428,8 +428,24 @@ namespace mse {
 			return m_vector.data();
 		}
 
-		class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
-		class random_access_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+		//class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
+		//class random_access_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+		class random_access_const_iterator_base {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = typename _Myt::value_type;
+			using difference_type = typename _Myt::difference_type;
+			using pointer = typename _Myt::const_pointer;
+			using reference = typename _Myt::const_reference;
+		};
+		class random_access_iterator_base {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = typename _Myt::value_type;
+			using difference_type = typename _Myt::difference_type;
+			using pointer = typename _Myt::pointer;
+			using reference = typename _Myt::reference;
+		};
 
 		class xscope_ss_const_iterator_type;
 		class xscope_ss_iterator_type;
@@ -2190,8 +2206,24 @@ namespace mse {
 				return base_class::contained_vector().crend();
 			}
 
-			class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
-			class random_access_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+			//class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
+			//class random_access_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+			class random_access_const_iterator_base {
+			public:
+				using iterator_category = std::random_access_iterator_tag;
+				using value_type = typename _Myt::_Myt::value_type;
+				using difference_type = typename _Myt::_Myt::difference_type;
+				using pointer = typename _Myt::_Myt::const_pointer;
+				using reference = typename _Myt::_Myt::const_reference;
+			};
+			class random_access_iterator_base {
+			public:
+				using iterator_category = std::random_access_iterator_tag;
+				using value_type = typename _Myt::_Myt::value_type;
+				using difference_type = typename _Myt::_Myt::difference_type;
+				using pointer = typename _Myt::_Myt::pointer;
+				using reference = typename _Myt::_Myt::reference;
+			};
 
 			/* mm_const_iterator_type acts much like a list iterator. */
 			class mm_const_iterator_type : public random_access_const_iterator_base {

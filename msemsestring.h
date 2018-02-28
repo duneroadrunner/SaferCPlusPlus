@@ -347,8 +347,24 @@ namespace mse {
 			return m_basic_string.data();
 		}
 
-		class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
-		class random_access_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+		//class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
+		//class random_access_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+		class random_access_const_iterator_base {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = typename _Myt::value_type;
+			using difference_type = typename _Myt::difference_type;
+			using pointer = typename _Myt::const_pointer;
+			using reference = typename _Myt::const_reference;
+		};
+		class random_access_iterator_base {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = typename _Myt::value_type;
+			using difference_type = typename _Myt::difference_type;
+			using pointer = typename _Myt::pointer;
+			using reference = typename _Myt::reference;
+		};
 
 		class xscope_ss_const_iterator_type;
 		class xscope_ss_iterator_type;
@@ -2756,8 +2772,24 @@ namespace mse {
 				return base_class::contained_basic_string().crend();
 			}
 
-			class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
-			class random_access_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+			//class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
+			//class random_access_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+			class random_access_const_iterator_base {
+			public:
+				using iterator_category = std::random_access_iterator_tag;
+				using value_type = typename _Myt::value_type;
+				using difference_type = typename _Myt::difference_type;
+				using pointer = typename _Myt::const_pointer;
+				using reference = typename _Myt::const_reference;
+			};
+			class random_access_iterator_base {
+			public:
+				using iterator_category = std::random_access_iterator_tag;
+				using value_type = typename _Myt::value_type;
+				using difference_type = typename _Myt::difference_type;
+				using pointer = typename _Myt::pointer;
+				using reference = typename _Myt::reference;
+			};
 
 			/* mm_const_iterator_type acts much like a list iterator. */
 			class mm_const_iterator_type : public random_access_const_iterator_base {
@@ -5538,7 +5570,7 @@ namespace std {
 	// [string.view.hash]
 	template<class _CharT, class _Traits>
 	struct _LIBCPP_TEMPLATE_VIS hash<mse::us::impl::basic_string_view<_CharT, _Traits> >
-		: public unary_function<mse::us::impl::basic_string_view<_CharT, _Traits>, size_t>
+		/*: public std::unary_function<mse::us::impl::basic_string_view<_CharT, _Traits>, size_t>*/
 	{
 		size_t operator()(const mse::us::impl::basic_string_view<_CharT, _Traits> __val) const _NOEXCEPT;
 	};
@@ -5721,6 +5753,7 @@ namespace mse {
 
 		//MSE_USING(TXScopeStringSection, base_class);
 		TXScopeStringSection(const TXScopeStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
 		TXScopeStringSection(const TStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		TXScopeStringSection(const base_class& src) : base_class(src) {}
 		TXScopeStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
@@ -6029,9 +6062,11 @@ namespace mse {
 		//MSE_USING(TXScopeStringConstSection, base_class);
 
 		TXScopeStringConstSection(const TXScopeStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
 		TXScopeStringConstSection(const TStringConstSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TStringConstSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		TXScopeStringConstSection(const TXScopeStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TXScopeStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		TXScopeStringConstSection(const base_class& src) : base_class(src) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
 		TXScopeStringConstSection(const TStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		TXScopeStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
@@ -6252,6 +6287,8 @@ namespace mse {
 
 		//MSE_USING(TXScopeNRPStringSection, base_class);
 		TXScopeNRPStringSection(const TXScopeNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
+		TXScopeNRPStringSection(const TNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const base_class&>(src)) {}
 		TXScopeNRPStringSection(const base_class& src) : base_class(src) {}
 		TXScopeNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
@@ -6376,10 +6413,12 @@ namespace mse {
 		//MSE_USING(TXScopeNRPStringConstSection, base_class);
 
 		TXScopeNRPStringConstSection(const TXScopeNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
 		TXScopeNRPStringConstSection(const TNRPStringConstSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const base_class&>(src)) {}
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
 		TXScopeNRPStringConstSection(const TXScopeNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TXScopeNRPStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
-		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)
+			&& (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
 		TXScopeNRPStringConstSection(const TNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TNRPStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
 		TXScopeNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}

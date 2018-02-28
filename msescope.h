@@ -389,6 +389,8 @@ namespace mse {
 		const TXScopeFixedConstPointer<_TROy> operator&() const & {
 			return this;
 		}
+		const TXScopeFixedPointer<_TROy> mse_xscope_fptr() & { return this; }
+		const TXScopeFixedConstPointer<_TROy> mse_xscope_fptr() const & { return this; }
 		void xscope_tag() const {}
 		//void xscope_contains_accessible_scope_address_of_operator_tag() const {}
 		/* This type can be safely used as a function return value if _Ty is also safely returnable. */
@@ -407,11 +409,18 @@ namespace mse {
 		const TXScopeFixedConstPointer<_TROy> operator&() const && {
 			return this;
 		}
+		const TXScopeFixedPointer<_TROy> mse_xscope_fptr() && { return this; }
+		const TXScopeFixedConstPointer<_TROy> mse_xscope_fptr() const && { return this; }
 
 		void* operator new(size_t size) { return ::operator new(size); }
 
 		friend class TXScopeOwnerPointer<_TROy>;
 	};
+
+	template<typename _Ty>
+	auto xscope_fptr_to(const _Ty& _X) {
+		return _X.mse_xscope_fptr();
+	}
 
 	template<typename _Ty>
 	class TXScopeItemFixedPointer;
