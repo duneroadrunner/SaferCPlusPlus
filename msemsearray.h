@@ -3518,6 +3518,19 @@ namespace mse {
 			return mse::make_random_access_iterator(ptr, 0);
 		}
 		template <typename _TRALoneParam>
+		static auto s_iter_from_lone_param3(std::true_type, const _TRALoneParam& native_array) {
+			/* Apparently the lone parameter is a native array. */
+			return native_array;
+		}
+		template <typename _TRALoneParam>
+		static auto s_iter_from_lone_param3(std::false_type, const _TRALoneParam& ptr) {
+			/* The parameter doesn't seem to be a container with a "begin()" member function or a native array. Here we'll assume
+			that it is a pointer to a supported container. If you get a compile error here, then construction from the given
+			parameter type isn't supported. */
+			mse::T_valid_if_is_dereferenceable<_TRALoneParam>();
+			return s_iter_from_ptr_helper2(typename std::is_base_of<mse::XScopeTagBase, _TRALoneParam>::type(), ptr);
+		}
+		template <typename _TRALoneParam>
 		static auto s_iter_from_lone_param2(std::true_type, const _TRALoneParam& ra_container) {
 			/* The parameter seems to be a container with a "begin()" member function. So we'll use that function to obtain the
 			iterator we need. */
@@ -3525,10 +3538,8 @@ namespace mse {
 		}
 		template <typename _TRALoneParam>
 		static auto s_iter_from_lone_param2(std::false_type, const _TRALoneParam& ptr) {
-			/* The parameter doesn't seem to be a container with a "begin()" member function. Here we'll assume that it is a pointer to
-			a supported container. If you get a compile error here, then construction from the given parameter type isn't supported. */
-			mse::T_valid_if_is_dereferenceable<_TRALoneParam>();
-			return s_iter_from_ptr_helper2(typename std::is_base_of<mse::XScopeTagBase, _TRALoneParam>::type(), ptr);
+			/* The parameter doesn't seem to be a container with a "begin()" member function. */
+			return s_iter_from_lone_param3(typename mse::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 		}
 		template <typename _TRALoneParam>
 		static auto s_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
@@ -4092,6 +4103,19 @@ namespace mse {
 			return mse::make_random_access_const_iterator(ptr, 0);
 		}
 		template <typename _TRALoneParam>
+		static auto s_iter_from_lone_param3(std::true_type, const _TRALoneParam& native_array) {
+			/* Apparently the lone parameter is a native array. */
+			return native_array;
+		}
+		template <typename _TRALoneParam>
+		static auto s_iter_from_lone_param3(std::false_type, const _TRALoneParam& ptr) {
+			/* The parameter doesn't seem to be a container with a "begin()" member function or a native array. Here we'll assume
+			that it is a pointer to a supported container. If you get a compile error here, then construction from the given
+			parameter type isn't supported. */
+			mse::T_valid_if_is_dereferenceable<_TRALoneParam>();
+			return s_iter_from_ptr_helper2(typename std::is_base_of<mse::XScopeTagBase, _TRALoneParam>::type(), ptr);
+		}
+		template <typename _TRALoneParam>
 		static auto s_iter_from_lone_param2(std::true_type, const _TRALoneParam& ra_container) {
 			/* The parameter seems to be a container with a "begin()" member function. So we'll use that function to obtain the
 			iterator we need. */
@@ -4099,10 +4123,8 @@ namespace mse {
 		}
 		template <typename _TRALoneParam>
 		static auto s_iter_from_lone_param2(std::false_type, const _TRALoneParam& ptr) {
-			/* The parameter doesn't seem to be a container with a "begin()" member function. Here we'll assume that it is a pointer to
-			a supported container. If you get a compile error here, then construction from the given parameter type isn't supported. */
-			mse::T_valid_if_is_dereferenceable<_TRALoneParam>();
-			return s_iter_from_ptr_helper2(typename std::is_base_of<mse::XScopeTagBase, _TRALoneParam>::type(), ptr);
+			/* The parameter doesn't seem to be a container with a "begin()" member function. */
+			return s_iter_from_lone_param3(typename mse::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 		}
 		template <typename _TRALoneParam>
 		static auto s_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {

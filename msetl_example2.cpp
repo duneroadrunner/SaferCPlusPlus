@@ -549,7 +549,7 @@ void msetl_example2() {
 			/* Here we create a safe "string_view"-like object we call a "string section". This version has no extra
 			run-time overhead. The "xscope_" prefix indicates that this version also has scope lifetime (enforced to the
 			extent possible). */
-			auto xscope_sv = mse::make_xscope_string_const_section(xscope_pointer);
+			auto xscope_sv = mse::make_xscope_nrp_string_const_section(xscope_pointer);
 
 			std::cout << xscope_sv;
 
