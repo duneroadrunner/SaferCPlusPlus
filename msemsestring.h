@@ -379,15 +379,14 @@ namespace mse {
 		template<typename _TVectorConstPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorConstPointer>::value), void>::type>
 		class Tss_const_iterator_type : public random_access_const_iterator_base {
 		public:
-			typedef typename std::iterator_traits<typename std_basic_string::const_iterator>::iterator_category iterator_category;
-			typedef typename std::iterator_traits<typename std_basic_string::const_iterator>::value_type value_type;
-			//typedef typename std::iterator_traits<typename std_basic_string::const_iterator>::difference_type difference_type;
-			typedef msev_int difference_type;
-			typedef typename std::iterator_traits<typename std_basic_string::const_iterator>::pointer const_pointer;
-			typedef typename std::iterator_traits<typename std_basic_string::const_iterator>::reference const_reference;
-
-			typedef typename std::iterator_traits<typename std_basic_string::const_iterator>::pointer pointer;
-			typedef typename std::iterator_traits<typename std_basic_string::const_iterator>::reference reference;
+			typedef random_access_const_iterator_base base_class;
+			typedef typename base_class::iterator_category iterator_category;
+			typedef typename base_class::value_type value_type;
+			typedef typename base_class::difference_type difference_type;
+			typedef typename base_class::pointer pointer;
+			typedef typename base_class::reference reference;
+			typedef const pointer const_pointer;
+			typedef const reference const_reference;
 
 			//template<class = typename std::enable_if<std::is_default_constructible<_TVectorConstPointer>::value, void>::type>
 			template<class _TVectorConstPointer2 = _TVectorConstPointer, class = typename std::enable_if<(std::is_same<_TVectorConstPointer2, _TVectorConstPointer>::value) && (std::is_default_constructible<_TVectorConstPointer>::value), void>::type>
@@ -546,15 +545,16 @@ namespace mse {
 		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
 		class Tss_iterator_type : public random_access_iterator_base {
 		public:
-			typedef typename std::iterator_traits<typename std_basic_string::iterator>::iterator_category iterator_category;
-			typedef typename std::iterator_traits<typename std_basic_string::iterator>::value_type value_type;
-			//typedef typename std::iterator_traits<typename std_basic_string::iterator>::difference_type difference_type;
-			typedef msev_int difference_type;
-			typedef typename std::iterator_traits<typename std_basic_string::iterator>::pointer pointer;
-			typedef typename std::iterator_traits<typename std_basic_string::iterator>::reference reference;
-			typedef difference_type distance_type;	// retained
+			typedef random_access_iterator_base base_class;
+			typedef typename base_class::iterator_category iterator_category;
+			typedef typename base_class::value_type value_type;
+			typedef typename base_class::difference_type difference_type;
+			typedef typename base_class::pointer pointer;
+			typedef typename base_class::reference reference;
+			typedef const pointer const_pointer;
+			typedef const reference const_reference;
 
-													//template<class = typename std::enable_if<std::is_default_constructible<_TVectorPointer>::value, void>::type>
+			//template<class = typename std::enable_if<std::is_default_constructible<_TVectorPointer>::value, void>::type>
 			template<class _TVectorPointer2 = _TVectorPointer, class = typename std::enable_if<(std::is_same<_TVectorPointer2, _TVectorPointer>::value) && (std::is_default_constructible<_TVectorPointer>::value), void>::type>
 			Tss_iterator_type() {}
 
@@ -5773,10 +5773,11 @@ namespace mse {
 		TXScopeStringSection xscope_substr(size_type pos = 0, size_type n = npos) const {
 			return xscope_subsection(pos, n);
 		}
-		TStringSection<_TRAIterator, _Traits> subsection(size_type pos = 0, size_type n = npos) const {
+		typedef typename std::conditional<std::is_base_of<XScopeTagBase, _TRAIterator>::value, TXScopeStringSection, TStringSection<_TRAIterator, _Traits> >::type subsection_t;
+		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
 		}
-		TStringSection<_TRAIterator, _Traits> substr(size_type pos = 0, size_type n = npos) const {
+		subsection_t substr(size_type pos = 0, size_type n = npos) const {
 			return subsection(pos, n);
 		}
 
@@ -6085,10 +6086,11 @@ namespace mse {
 		TXScopeStringConstSection xscope_substr(size_type pos = 0, size_type n = npos) const {
 			return xscope_subsection(pos, n);
 		}
-		TStringConstSection<_TRAIterator, _Traits> subsection(size_type pos = 0, size_type n = npos) const {
+		typedef typename std::conditional<std::is_base_of<XScopeTagBase, _TRAIterator>::value, TXScopeStringConstSection, TStringConstSection<_TRAIterator, _Traits> >::type subsection_t;
+		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
 		}
-		TStringConstSection<_TRAIterator, _Traits> substr(size_type pos = 0, size_type n = npos) const {
+		subsection_t substr(size_type pos = 0, size_type n = npos) const {
 			return subsection(pos, n);
 		}
 

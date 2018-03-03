@@ -418,6 +418,10 @@ namespace mse {
 	};
 
 	template<typename _Ty>
+	auto xscope_fptr_to(_Ty&& _X) {
+		return _X.mse_xscope_fptr();
+	}
+	template<typename _Ty>
 	auto xscope_fptr_to(const _Ty& _X) {
 		return _X.mse_xscope_fptr();
 	}
@@ -588,43 +592,86 @@ namespace std {
 namespace mse {
 
 	template<typename _TROy>
-	class TXScopeReturnable : public _TROy {
+	class TReturnable : public _TROy {
 	public:
-		MSE_USING(TXScopeReturnable, _TROy);
-		TXScopeReturnable(const TXScopeReturnable& _X) : _TROy(_X) {}
-		TXScopeReturnable(TXScopeReturnable&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
-		virtual ~TXScopeReturnable() {
+		MSE_USING(TReturnable, _TROy);
+		TReturnable(const TReturnable& _X) : _TROy(_X) {}
+		TReturnable(TReturnable&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
+		virtual ~TReturnable() {
 			/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
-			valid_if_TROy_is_marked_as_returnable();
-			valid_if_TROy_is_an_xscope_type();
+			valid_if_TROy_is_marked_as_returnable_or_not_xscope_type();
 		}
 
 		template<class _Ty2>
-		TXScopeReturnable& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TReturnable& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		template<class _Ty2>
-		TXScopeReturnable& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
+		TReturnable& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
 
+		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 
 	private:
 
 		/* If _TROy is not "marked" as safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class = typename std::enable_if<(!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
-			/*&& (!std::integral_constant<bool, HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
-			&& (std::integral_constant<bool, HasXScopeReturnableTagMethod<_TROy>::Has>()), void>::type>
-			void valid_if_TROy_is_marked_as_returnable() const {}
+		template<class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TROy>::value) || (
+				(!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
+				/*&& (!std::integral_constant<bool, HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
+				&& (std::integral_constant<bool, HasXScopeReturnableTagMethod<_TROy>::Has>())
+			), void>::type>
+		void valid_if_TROy_is_marked_as_returnable_or_not_xscope_type() const {}
 
-		template<class = typename std::enable_if<std::is_base_of<XScopeTagBase, _TROy>::value, void>::type>
-		void valid_if_TROy_is_an_xscope_type() const {}
+		TReturnable* operator&() {
+			return this;
+		}
+		const TReturnable* operator&() const {
+			return this;
+		}
+	};
 
+	template<typename _TROy>
+	class TXScopeReturnable : public TReturnable<_TROy>
+		, public std::conditional<std::is_base_of<XScopeTagBase, _TROy>::value, TPlaceHolder_msescope<TXScopeObj<_TROy> >, XScopeTagBase>::type
+	{
+	public:
+		typedef TReturnable<_TROy> base_class;
+		MSE_USING(TXScopeReturnable, base_class);
+		TXScopeReturnable(const TXScopeReturnable& _X) : base_class(_X) {}
+		TXScopeReturnable(TXScopeReturnable&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+
+		template<class _Ty2>
+		TXScopeReturnable& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		template<class _Ty2>
+		TXScopeReturnable& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+
+		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
+		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+
+	private:
 		TXScopeReturnable* operator&() {
 			return this;
 		}
 		const TXScopeReturnable* operator&() const {
 			return this;
 		}
+
+		void* operator new(size_t size) { return ::operator new(size); }
 	};
+
+	template<typename _Ty>
+	static void z__returnable_noop(const _Ty&) {}
+
+	template<typename _Ty>
+	const _Ty& returnable(const _Ty& _X) {
+		z__returnable_noop<mse::TReturnable<_Ty> >(_X);
+		return _X;
+	}
+
+	template<typename _Ty>
+	_Ty&& returnable(_Ty&& _X) {
+		z__returnable_noop<mse::TReturnable<typename std::remove_reference<_Ty>::type> >(_X);
+		return std::forward<decltype(_X)>(_X);
+	}
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
@@ -1144,23 +1191,48 @@ namespace mse {
 	instead of one of the pointers given as an input parameter (which is fine).) So the xscope_chosen_pointer() template is the
 	sanctioned way of creating a function that returns a non-owning scope pointer. */
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	const TXScopeItemFixedConstPointer<_Ty>& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b, Args&&... args) {
+	const auto& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	const TXScopeItemFixedPointer<_Ty>& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b, Args&&... args) {
+	const auto& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	const TXScopeFixedConstPointer<_Ty>& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b, Args&&... args) {
+	const auto& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	const TXScopeFixedPointer<_Ty>& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b, Args&&... args) {
+	const auto& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	template<typename _Ty>
+	const auto& xscope_chosen_pointer(bool choose_the_second, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b) {
+		return choose_the_second ? b : a;
+	}
+	template<typename _Ty>
+	const auto& xscope_chosen_pointer(bool choose_the_second, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b) {
+		return choose_the_second ? b : a;
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<typename _Ty>
+	const auto& xscope_chosen_pointer(bool choose_the_second, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b) {
+		return choose_the_second ? b : a;
+	}
+	template<typename _Ty>
+	const auto& xscope_chosen_pointer(bool choose_the_second, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b) {
+		return choose_the_second ? b : a;
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	/* Just the generalization xscope_chosen_pointer(). */
+	template<typename _Ty>
+	const auto& chosen(bool choose_the_second, const _Ty& a, const _Ty& b) {
+		return choose_the_second ? b : a;
+	}
 
 	/* shorter aliases */
 	template<typename _Ty> using sfp = TXScopeFixedPointer<_Ty>;

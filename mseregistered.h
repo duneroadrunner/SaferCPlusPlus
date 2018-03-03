@@ -576,11 +576,23 @@ namespace mse {
 		TRegisteredFixedConstPointer<_TROy, _Tn> operator&() const {
 			return this;
 		}
+		TRegisteredFixedPointer<_TROy> mse_registered_fptr() { return this; }
+		TRegisteredFixedConstPointer<_TROy> mse_registered_fptr() const { return this; }
 
 		TRPTracker<_Tn>& mseRPManager() const { return m_mseRPManager; }
 
+	private:
 		mutable TRPTracker<_Tn> m_mseRPManager;
 	};
+
+	template<typename _Ty>
+	auto registered_fptr_to(_Ty&& _X) {
+		return _X.mse_registered_fptr();
+	}
+	template<typename _Ty>
+	auto registered_fptr_to(const _Ty& _X) {
+		return _X.mse_registered_fptr();
+	}
 
 	template<typename _Ty, int _Tn>
 	TRegisteredPointer<_Ty, _Tn>::TRegisteredPointer() : TSaferPtr<TRegisteredObj<_Ty, _Tn>>() {}

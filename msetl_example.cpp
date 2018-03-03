@@ -135,12 +135,6 @@ public:
 		return mse::make_pointer_to_member(safe_this->m_string1, safe_this);
 	}
 
-	template<class _TPointer>
-	static bool min_pointer_indicator(const _TPointer& a_ptr, const _TPointer& b_ptr) {
-		return ((*b_ptr) < (*a_ptr));
-	}
-#define XSCOPE_MIN1(a_ptr, b_ptr) mse::xscope_chosen_pointer(&H::min_pointer_indicator<decltype(a_ptr)>, a_ptr, b_ptr)
-
 	mse::nii_string m_string1 = "initial text";
 };
 /* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
@@ -1467,17 +1461,16 @@ int main(int argc, char* argv[])
 		mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
 		A res7 = *xscp_cptr2;
 
-		/* Use xscope_chosen_pointer() when you otherwise would have returned a non-owning scope pointer. Here we use
-		it to implement "min(a, b)" functionality with scope pointers. */
+		/* Technically, you're not allowed to return a non-owning scope pointer from a function. Pretty much the only time
+		you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be
+		a "min(a, b)" function which takes two objects by reference and returns the reference to the lesser of the two
+		objects. The library provides the xscope_chosen_pointer() function which takes a bool and two scope pointers, and
+		returns one of the scope pointers depending on the value of the bool. You could use this function to implement the
+		equivalent of a min(a, b) function like so: */
 		auto xscp_a_ptr5 = &a_scpobj;
 		auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
-		auto xscp_min_ptr1 = mse::xscope_chosen_pointer(
-			[](decltype(xscp_a_ptr5) a_ptr, decltype(xscp_a_ptr6) b_ptr) { return ((*b_ptr) < (*a_ptr)); },
-			xscp_a_ptr5, xscp_a_ptr6);
+		auto xscp_min_ptr1 = mse::xscope_chosen_pointer((xscp_a_ptr6 < xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
 		assert(5 == xscp_min_ptr1->b);
-
-		auto xscp_min_ptr2 = mse::xscope_chosen_pointer(&H::min_pointer_indicator<decltype(xscp_a_ptr5)>, xscp_a_ptr5, xscp_a_ptr6);
-		auto xscp_min_ptr3 = XSCOPE_MIN1(xscp_a_ptr5, xscp_a_ptr6);
 
 		mse::CXScpPtrTest1::s_test1();
 	}

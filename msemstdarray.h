@@ -246,12 +246,14 @@ namespace mse {
 
 			class const_iterator : public _MA::random_access_const_iterator_base {
 			public:
-				typedef typename reg_ss_const_iterator_type::iterator_category iterator_category;
-				typedef typename reg_ss_const_iterator_type::value_type value_type;
-				typedef typename reg_ss_const_iterator_type::difference_type difference_type;
-				typedef typename _MA::difference_type distance_type;	// retained
-				typedef typename reg_ss_const_iterator_type::pointer pointer;
-				typedef typename reg_ss_const_iterator_type::reference reference;
+				typedef typename _MA::random_access_const_iterator_base base_class;
+				typedef typename base_class::iterator_category iterator_category;
+				typedef typename base_class::value_type value_type;
+				typedef typename base_class::difference_type difference_type;
+				typedef typename base_class::pointer pointer;
+				typedef typename base_class::reference reference;
+				typedef const pointer const_pointer;
+				typedef const reference const_reference;
 
 				const_iterator() {}
 				const_iterator(const const_iterator& src_cref) = default;
@@ -322,12 +324,14 @@ namespace mse {
 			};
 			class iterator : public _MA::random_access_iterator_base {
 			public:
-				typedef typename reg_ss_iterator_type::iterator_category iterator_category;
-				typedef typename reg_ss_iterator_type::value_type value_type;
-				typedef typename reg_ss_iterator_type::difference_type difference_type;
-				typedef typename _MA::difference_type distance_type;	// retained
-				typedef typename reg_ss_iterator_type::pointer pointer;
-				typedef typename reg_ss_iterator_type::reference reference;
+				typedef typename _MA::random_access_iterator_base base_class;
+				typedef typename base_class::iterator_category iterator_category;
+				typedef typename base_class::value_type value_type;
+				typedef typename base_class::difference_type difference_type;
+				typedef typename base_class::pointer pointer;
+				typedef typename base_class::reference reference;
+				typedef const pointer const_pointer;
+				typedef const reference const_reference;
 
 				iterator() {}
 				iterator(const iterator& src_cref) = default;
@@ -464,14 +468,16 @@ namespace mse {
 				return (m_nii_array < _Right.m_nii_array);
 			}
 
-			class xscope_const_iterator : public _MA::random_access_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+			class xscope_const_iterator : public _MA::random_access_const_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 			public:
-				typedef typename _MA::xscope_ss_const_iterator_type::iterator_category iterator_category;
-				typedef typename _MA::xscope_ss_const_iterator_type::value_type value_type;
-				typedef typename _MA::xscope_ss_const_iterator_type::difference_type difference_type;
-				typedef typename _MA::difference_type distance_type;	// retained
-				typedef typename _MA::xscope_ss_const_iterator_type::pointer pointer;
-				typedef typename _MA::xscope_ss_const_iterator_type::reference reference;
+				typedef typename _MA::random_access_const_iterator_base base_class;
+				typedef typename base_class::iterator_category iterator_category;
+				typedef typename base_class::value_type value_type;
+				typedef typename base_class::difference_type difference_type;
+				typedef typename base_class::pointer pointer;
+				typedef typename base_class::reference reference;
+				typedef const pointer const_pointer;
+				typedef const reference const_reference;
 
 				template <typename _TXScopePointer, class = typename std::enable_if<
 					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<array> >::value
@@ -571,12 +577,14 @@ namespace mse {
 			};
 			class xscope_iterator : public _MA::random_access_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 			public:
-				typedef typename _MA::xscope_ss_iterator_type::iterator_category iterator_category;
-				typedef typename _MA::xscope_ss_iterator_type::value_type value_type;
-				typedef typename _MA::xscope_ss_iterator_type::difference_type difference_type;
-				typedef typename _MA::difference_type distance_type;	// retained
-				typedef typename _MA::xscope_ss_iterator_type::pointer pointer;
-				typedef typename _MA::xscope_ss_iterator_type::reference reference;
+				typedef typename _MA::random_access_iterator_base base_class;
+				typedef typename base_class::iterator_category iterator_category;
+				typedef typename base_class::value_type value_type;
+				typedef typename base_class::difference_type difference_type;
+				typedef typename base_class::pointer pointer;
+				typedef typename base_class::reference reference;
+				typedef const pointer const_pointer;
+				typedef const reference const_reference;
 
 				template <typename _TXScopePointer, class = typename std::enable_if<
 					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<array> >::value

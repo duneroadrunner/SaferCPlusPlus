@@ -686,10 +686,23 @@ namespace mse {
 			return TRelaxedRegisteredFixedConstPointer<_TROFLy>(this);
 			//return this;
 		}
+		TRelaxedRegisteredFixedPointer<_TROFLy> mse_relaxed_registered_fptr() { return TRelaxedRegisteredFixedPointer<_TROFLy>(this); }
+		TRelaxedRegisteredFixedConstPointer<_TROFLy> mse_relaxed_registered_fptr() const { return TRelaxedRegisteredFixedConstPointer<_TROFLy>(this); }
+
 		CSPTracker* trackerPtr() const { return m_tracker_notifier.trackerPtr(); }
 
+	private:
 		CTrackerNotifier m_tracker_notifier;
 	};
+
+	template<typename _Ty>
+	auto relaxed_registered_fptr_to(_Ty&& _X) {
+		return _X.mse_relaxed_registered_fptr();
+	}
+	template<typename _Ty>
+	auto relaxed_registered_fptr_to(const _Ty& _X) {
+		return _X.mse_relaxed_registered_fptr();
+	}
 
 	/* See registered_new(). */
 	template <class _Ty, class... Args>

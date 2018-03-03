@@ -723,6 +723,16 @@ namespace mse {
 	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }
 	template <class _TTargetType, class _TLeaseType>
 	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
+
+
+	template<typename _Ty, class = typename std::enable_if<(!std::is_pointer<_Ty>::value), void>::type>
+	void T_valid_if_not_raw_pointer_msepointerbasics() {}
+
+	template<typename _Ty>
+	auto pointer_to(const _Ty& _X) {
+		T_valid_if_not_raw_pointer_msepointerbasics<decltype(&_X)>();
+		return &_X;
+	}
 }
 
 namespace std {

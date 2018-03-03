@@ -121,6 +121,13 @@ public:
 		function1(ar.writelock_ra_section(), args...);
 	}
 
+	template<typename _TParam>
+	static auto foo10(_TParam param) {
+		auto l_obj = param;
+		/* Functions that could return a scope type need to wrap their return value with the returnable() function. */
+		return mse::returnable(mse::pointer_to(l_obj));
+	}
+
 	template<class _TRASection>
 	static void foo13(_TRASection ra_section) {
 		for (typename _TRASection::size_type i = 0; i < ra_section.size(); i += 1) {
@@ -198,8 +205,6 @@ void msetl_example2() {
 		safely shareable, then the contents of the mse::mstd::vector<>, can be swapped with a corresponding
 		shareable nii_vector<>. Note that vector swaps are intrinsically fast operations. */
 		std::swap(vo2, *(access_requester2.writelock_ptr()));
-
-		int q = 5;
 	}
 
 	{
@@ -211,26 +216,44 @@ void msetl_example2() {
 	}
 
 	{
-		/*************************/
-		/*  TXScopeReturnable<>  */
-		/*************************/
+		/**********************/
+		/*  returnable()      */
+		/*  && TReturnable<>  */
+		/**********************/
+
+		/* The returnable() function just returns its argument and verifies that it is of a type that is safe to return
+		from a function (basically, doesn't contain any scope pointers). If not it will induce a compile error. Functions
+		that do or could return scope types should wrap their return value with this function. 
+
+		TReturnable<> is a transparent template wrapper that verifies that the type is safe to use as a function return
+		type. If not it will induce a compile error. Functions that do or could return scope types and do not use the 
+		"auto" return type should wrap their return type with this function. You can also use TXScopeReturnable<> which
+		additionally ensures that the return type is a scope type. */
 
 		class CB {
 		public:
-			/* While there is a rule against using scope types as function return types, you can usually just use the
-			underlying (non-scope) type of the scope object as the return type. */
+			/* It's generally not necessary for a function return type to be a scope type. Even if the return value
+			is of a scope type, you can usually just use the underlying (non-scope) type of the scope object as the
+			return type. */
 			static mse::mstd::string foo1() {
 				mse::TXScopeObj<mse::mstd::string> xscp_string1("some text");
-				return xscp_string1;
+				return mse::returnable(xscp_string1);
 			}
 
 			/* In the less common case where the scope type doesn't have an underlying non-scope type, it may be safe
 			to return the scope object. But in order to use a scope type as a function return value, it must be
-			wrapped in the transparent mse::TXScopeReturnable<> wrapper template, which will induce a compile error
-			if it deems the scope type potentially unsafe to use as a return type. */
+			wrapped in the transparent mse::TReturnable<> or mse::TXScopeReturnable<> wrapper template, which will
+			induce a compile error if it deems the scope type potentially unsafe to use as a return type. */
 			static mse::TXScopeReturnable<mse::xscope_optional<mse::mstd::string> > foo2() {
 				mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
-				return xscp_returnable_obj1;
+				return mse::returnable(xscp_returnable_obj1);
+			}
+
+			/* "auto" return types don't need to be wrapped, but the return value needs to be wrapped with the
+			returnable() function. */
+			static auto foo3() {
+				mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
+				return mse::returnable(xscp_returnable_obj1);
 			}
 		};
 
@@ -242,11 +265,17 @@ void msetl_example2() {
 		/* TXScopeReturnable<> deems xscope_string_t to be an acceptable return type because it doesn't contain
 		any scope pointers. */
 		mse::TXScopeReturnable<xscope_string_t> xscpr_str1("some text");
+		auto xscp_rstr1 = mse::returnable(xscp_str1);
 
 		typedef decltype(&xscp_str1) xscope_string_ptr_t;
 		/* TXScopeReturnable<> deems xscope_string_ptr_t to be an unsafe return type because it is (or contains)
 		a scope pointer. So the next line would result in a compile error. */
 		//mse::TXScopeReturnable<xscope_string_ptr_t> xscpr_sfptr1 = &xscp_str1;
+		//auto xscp_rstr_ptr1 = mse::returnable(&xscp_str1);
+	
+		mse::TRegisteredObj<mse::mstd::string> reg_str1 = "some text";
+		auto reg_ptr_res1 = J::foo10(reg_str1);
+		//auto xscp_ptr_res1 = J::foo10(xscp_str1);
 	}
 
 	{
@@ -518,25 +547,10 @@ void msetl_example2() {
 			std::cout << sv;
 		}
 		{
-			/* Dealing with an std::string temporary. */
-
-			std::string s = "Hellooooooooooooooo ";
-			/* mse::nrp_string_view doesn't support std::string directly. */
-			//mse::nrp_string_view sv = s + "World\n";	 // <-- compile error
-
-			/* But you can convert the std::string temporary into a (safe) mse::mstd::string. */
-			mse::nrp_string_view sv = mse::mstd::string(s + "World\n");
-			std::cout << sv;
-		}
-		{
 			/* Memory safety can also be achieved without extra run-time overhead. */
 
 			/* nii_string is a safe string type (with no extra run-time overhead). */
 			mse::nii_string s = "Hellooooooooooooooo ";
-
-			//mse::nrp_string_view sv = s + "World\n";	 // <-- compile error
-
-			/* nrp_string_view will not (unsafely) construct from a naked nii_string (temporary or otherwise). */
 
 			/* TXScopeObj<> is a transparent "annotation" template wrapper indicating that the object has "scope lifetime"
 			(i.e. is declared on the stack). The wrapper, to the extent possible, enforces the claim. */
@@ -557,9 +571,11 @@ void msetl_example2() {
 
 			/* And just to be clear: */
 
-			//auto xscope_pointer2 = &(mse::TXScopeObj< mse::nii_string >(s + "World\n"));	 // <-- compile error
+			/* You can't construct a string section directly from a naked nii_string (temporary or otherwise). */
+			//auto xscope_sv2 = mse::make_xscope_nrp_string_const_section(s + "World\n");	 // <-- compile error
 
-			/* Trying to (unsafely) obtain a "scope" pointer from a temporary is not going to work. */
+			/* And trying to (unsafely) obtain a "scope" pointer from a temporary is not going to work. */
+			//auto xscope_pointer2 = &(mse::TXScopeObj< mse::nii_string >(s + "World\n"));	 // <-- compile error
 		}
 	}
 

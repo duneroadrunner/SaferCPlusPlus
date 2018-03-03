@@ -460,15 +460,14 @@ namespace mse {
 		template<typename _TVectorConstPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorConstPointer>::value), void>::type>
 		class Tss_const_iterator_type : public random_access_const_iterator_base {
 		public:
-			typedef typename std::iterator_traits<typename std_vector::const_iterator>::iterator_category iterator_category;
-			typedef typename std::iterator_traits<typename std_vector::const_iterator>::value_type value_type;
-			//typedef typename std::iterator_traits<typename std_vector::const_iterator>::difference_type difference_type;
-			typedef msev_int difference_type;
-			typedef typename std::iterator_traits<typename std_vector::const_iterator>::pointer const_pointer;
-			typedef typename std::iterator_traits<typename std_vector::const_iterator>::reference const_reference;
-
-			typedef typename std::iterator_traits<typename std_vector::const_iterator>::pointer pointer;
-			typedef typename std::iterator_traits<typename std_vector::const_iterator>::reference reference;
+			typedef random_access_const_iterator_base base_class;
+			typedef typename base_class::iterator_category iterator_category;
+			typedef typename base_class::value_type value_type;
+			typedef typename base_class::difference_type difference_type;
+			typedef typename base_class::pointer pointer;
+			typedef typename base_class::reference reference;
+			typedef const pointer const_pointer;
+			typedef const reference const_reference;
 
 			//template<class = typename std::enable_if<std::is_default_constructible<_TVectorConstPointer>::value, void>::type>
 			template<class _TVectorConstPointer2 = _TVectorConstPointer, class = typename std::enable_if<(std::is_same<_TVectorConstPointer2, _TVectorConstPointer>::value) && (std::is_default_constructible<_TVectorConstPointer>::value), void>::type>
@@ -627,13 +626,14 @@ namespace mse {
 		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
 		class Tss_iterator_type : public random_access_iterator_base {
 		public:
-			typedef typename std::iterator_traits<typename std_vector::iterator>::iterator_category iterator_category;
-			typedef typename std::iterator_traits<typename std_vector::iterator>::value_type value_type;
-			//typedef typename std::iterator_traits<typename std_vector::iterator>::difference_type difference_type;
-			typedef msev_int difference_type;
-			typedef typename std::iterator_traits<typename std_vector::iterator>::pointer pointer;
-			typedef typename std::iterator_traits<typename std_vector::iterator>::reference reference;
-			typedef difference_type distance_type;	// retained
+			typedef random_access_iterator_base base_class;
+			typedef typename base_class::iterator_category iterator_category;
+			typedef typename base_class::value_type value_type;
+			typedef typename base_class::difference_type difference_type;
+			typedef typename base_class::pointer pointer;
+			typedef typename base_class::reference reference;
+			typedef const pointer const_pointer;
+			typedef const reference const_reference;
 
 			//template<class = typename std::enable_if<std::is_default_constructible<_TVectorPointer>::value, void>::type>
 			template<class _TVectorPointer2 = _TVectorPointer, class = typename std::enable_if<(std::is_same<_TVectorPointer2, _TVectorPointer>::value) && (std::is_default_constructible<_TVectorPointer>::value), void>::type>
