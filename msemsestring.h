@@ -5846,6 +5846,12 @@ namespace mse {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
+		TXScopeStringSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+		TXScopeStringSection<_TRAIterator> xscope_substr(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection(pos, n);
+		}
 		TStringSection subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
 		}
@@ -6156,6 +6162,12 @@ namespace mse {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
+		TXScopeStringConstSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+		TXScopeStringConstSection<_TRAIterator> xscope_substr(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection(pos, n);
+		}
 		TStringConstSection subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
 		}

@@ -1172,6 +1172,31 @@ namespace mse {
 	TStrongFixedConstPointer<_TTargetType, TAsyncSharedV2ImmutableFixedPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedV2ImmutableFixedPointer<_Ty> &lease_pointer) {
 		return TStrongFixedConstPointer<_TTargetType, TAsyncSharedV2ImmutableFixedPointer<_Ty>>::make(target, lease_pointer);
 	}
+
+	template<class _Ty, class _TMemberObjectPointer>
+	static auto make_pointer_to_member_v2(const typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::writelock_ptr_t &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return TStrongFixedPointer<_TTarget, typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::writelock_ptr_t>::make((*lease_pointer).*member_object_ptr, lease_pointer);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	static auto make_const_pointer_to_member_v2(const typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::readlock_ptr_t &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return TStrongFixedConstPointer<_TTarget, typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::readlock_ptr_t>::make((*lease_pointer).*member_object_ptr, lease_pointer);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	static auto make_const_pointer_to_member_v2(const typename TAsyncSharedV2ReadOnlyAccessRequester<_Ty>::readlock_ptr_t &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return TStrongFixedConstPointer<_TTarget, typename TAsyncSharedV2ReadOnlyAccessRequester<_Ty>::readlock_ptr_t>::make((*lease_pointer).*member_object_ptr, lease_pointer);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	static auto make_const_pointer_to_member_v2(const TAsyncSharedV2ImmutableFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return TStrongFixedConstPointer<_TTarget, TAsyncSharedV2ImmutableFixedPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
+	}
 #endif // defined(MSEPOINTERBASICS_H)
 
 	namespace us {

@@ -131,8 +131,8 @@ public:
 	/* A member function that provides a safe pointer/reference to a class/struct member is going to need to
 	take a safe version of the "this" pointer as a parameter. */
 	template<class this_type>
-	static auto safe_pointer_to_member_string1(this_type safe_this) -> decltype(mse::make_pointer_to_member(safe_this->m_string1, safe_this)) {
-		return mse::make_pointer_to_member(safe_this->m_string1, safe_this);
+	static auto safe_pointer_to_member_string1(this_type safe_this) {
+		return mse::make_pointer_to_member_v2(safe_this, &H::m_string1);
 	}
 
 	mse::nii_string m_string1 = "initial text";
@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
 			mse::mstd::vector<int> m_vector;
 		};
 		mse::TXScopeObj<CContainer1> container1_scpobj;
-		auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member(container1_scpobj.m_vector, &container1_scpobj);
+		auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_vector);
 		auto scp_citer4 = mse::mstd::make_xscope_iterator(container1_m_vector_scpptr);
 		scp_citer4 = (*container1_m_vector_scpptr).begin();
 		scp_citer4++;
@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
 				mse::us::msevector<int> m_vector;
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
-			auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member(container1_scpobj.m_vector, &container1_scpobj);
+			auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_vector);
 			auto scp_ss_citer4 = mse::make_xscope_iterator(container1_m_vector_scpptr);
 			scp_ss_citer4++;
 			auto res3 = *scp_ss_citer4;
@@ -458,7 +458,7 @@ int main(int argc, char* argv[])
 				mse::mstd::array<int, 3> m_array/* = { 1, 2, 3 }*/;
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
-			auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+			auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_array);
 			auto scp_iter4 = mse::mstd::make_xscope_iterator(container1_m_array_scpptr);
 			scp_iter4 = (*container1_m_array_scpptr).begin();
 			scp_iter4++;
@@ -540,7 +540,7 @@ int main(int argc, char* argv[])
 				mse::us::msearray<int, 3> m_array;
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
-			auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+			auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_array);
 			auto scp_ss_citer4 = mse::make_xscope_iterator(container1_m_array_scpptr);
 			scp_ss_citer4++;
 			auto res3 = *scp_ss_citer4;
@@ -784,12 +784,12 @@ int main(int argc, char* argv[])
 			member itself a registered object. */
 			mse::TRegisteredPointer<std::string> reg_s_registered_ptr1 = &(E_registered_ptr1->reg_s);
 
-			/* Or you can use the "mse::make_pointer_to_member()" function. */
-			auto s2_safe_ptr1 = mse::make_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
+			/* Or you can use the "mse::make_pointer_to_member_v2()" function. */
+			auto s2_safe_ptr1 = mse::make_pointer_to_member_v2(E_registered_ptr1, &E::s2);
 			(*s2_safe_ptr1) = "some new text";
-			auto s2_safe_const_ptr1 = mse::make_const_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
+			auto s2_safe_const_ptr1 = mse::make_const_pointer_to_member_v2(E_registered_ptr1, &E::s2);
 
-			/* The return type of mse::make_pointer_to_member() depends on the type of the parameters passed
+			/* The return type of mse::make_pointer_to_member_v2() depends on the type of the parameters passed
 			to it. In this case, the type of s2_safe_ptr1 is mse::TSyncWeakFixedPointer<std::string, 
 			mse::TRegisteredPointer<E>>. s2_safe_ptr1 here is essentially a pointer to "E.s2"
 			(string member of class E) with a registered pointer to E to in its pocket. It uses the registered
@@ -1254,13 +1254,13 @@ int main(int argc, char* argv[])
 				rcfpvector.push_back(A_refcountingfixed_ptr1);
 			}
 
-			/* You can use the "mse::make_pointer_to_member()" function to obtain a safe pointer to a member of
+			/* You can use the "mse::make_pointer_to_member_v2()" function to obtain a safe pointer to a member of
 			an object owned by a refcounting pointer. */
-			auto s_safe_ptr1 = mse::make_pointer_to_member(rcfpvector.front()->s, rcfpvector.front());
+			auto s_safe_ptr1 = mse::make_pointer_to_member_v2(rcfpvector.front(), &A::s);
 			(*s_safe_ptr1) = "some new text";
-			auto s_safe_const_ptr1 = mse::make_const_pointer_to_member(rcfpvector.front()->s, rcfpvector.front());
+			auto s_safe_const_ptr1 = mse::make_const_pointer_to_member_v2(rcfpvector.front(), &A::s);
 
-			/* The return type of mse::make_pointer_to_member() depends on the type of the parameters passed
+			/* The return type of mse::make_pointer_to_member_v2() depends on the type of the parameters passed
 			to it. In this case, the type of s_safe_ptr1 is mse::TStrongFixedPointer<std::string,
 			mse::TRefCountingFixedPointer<A>>. s_safe_ptr1 here is essentially a pointer to 
 			rcfpvector.front()->s with a copy of rcfpvector.front() welded to it to make sure that the
@@ -1442,14 +1442,14 @@ int main(int argc, char* argv[])
 		int res4 = B::foo2(xscp_a_ownerptr);
 		int res4b = B::foo2(&(*xscp_a_ownerptr));
 
-		/* You can use the "mse::make_pointer_to_member()" function to obtain a safe pointer to a member of
+		/* You can use the "mse::make_pointer_to_member_v2()" function to obtain a safe pointer to a member of
 		an xscope object. */
-		auto xscp_s_ptr1 = mse::make_pointer_to_member((a_scpobj.s), (&a_scpobj));
+		auto xscp_s_ptr1 = mse::make_pointer_to_member_v2((&a_scpobj), &A::s);
 		(*xscp_s_ptr1) = "some new text";
-		auto xscp_s_const_ptr1 = mse::make_const_pointer_to_member((a_scpobj.s), (&a_scpobj));
+		auto xscp_s_const_ptr1 = mse::make_const_pointer_to_member_v2((&a_scpobj), &A::s);
 
-		/* The return type of mse::make_pointer_to_member() depends on the type of the parameters passed
-		to it. In this case, the type of xscp_s_ptr1 is mse::TXScopeItemFixedPointer<A>>. */
+		/* The return type of mse::make_pointer_to_member_v2() depends on the type of the parameters passed
+		to it. In this case, the type of xscp_s_ptr1 is mse::TXScopeItemFixedPointer<A>. */
 
 		auto res5 = H::foo6(xscp_s_ptr1, xscp_s_const_ptr1);
 
@@ -1461,27 +1461,67 @@ int main(int argc, char* argv[])
 		mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
 		A res7 = *xscp_cptr2;
 
-		/* Technically, you're not allowed to return a non-owning scope pointer from a function. Pretty much the only time
-		you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be
-		a "min(a, b)" function which takes two objects by reference and returns the reference to the lesser of the two
-		objects. The library provides the xscope_chosen_pointer() function which takes a bool and two scope pointers, and
-		returns one of the scope pointers depending on the value of the bool. You could use this function to implement the
-		equivalent of a min(a, b) function like so: */
+		/* Technically, you're not allowed to return a non-owning scope pointer from a function. (The returnable() function
+		wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer
+		is one of the input parameters. An example might be a "min(a, b)" function which takes two objects by reference and
+		returns the reference to the lesser of the two objects. The library provides the xscope_chosen_pointer() function
+		which takes a bool and two scope pointers, and returns one of the scope pointers depending on the value of the
+		bool. You could use this function to implement the equivalent of a min(a, b) function like so: */
 		auto xscp_a_ptr5 = &a_scpobj;
 		auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
 		auto xscp_min_ptr1 = mse::xscope_chosen_pointer((xscp_a_ptr6 < xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
 		assert(5 == xscp_min_ptr1->b);
+
+		{
+			/***********************/
+			/*  xscope_ifptr_to()  */
+			/***********************/
+
+			/* Scope pointers cannot (currently) be retargeted after construction. If you need a pointer that will point to
+			multiple different scope objects over its lifespan, you can use a registered pointer. This means that the target
+			objects will also need to be registered objects. If the object is a registered scope object, then the '&'
+			operator will will return a registered pointer. But at some point we're going to need a scope pointer to the
+			base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. */
+
+			typedef mse::TXScopeObj<mse::nii_string> xscp_nstring_t;
+			typedef mse::TXScopeItemFixedPointer<mse::nii_string> xscp_nstring_ptr_t;
+			class CB {
+			public:
+				static void foo1(xscp_nstring_ptr_t xscope_ptr1) {
+					std::cout << *xscope_ptr1;
+				}
+			};
+			typedef mse::TRegisteredObj< xscp_nstring_t > regxscp_nstring_t;
+			typedef mse::TRegisteredPointer<xscp_nstring_t> regxscp_nstring_ptr_t;
+			regxscp_nstring_t regxscp_nstring1("some text");
+			regxscp_nstring_ptr_t registered_ptr1 = &regxscp_nstring1;
+
+			auto xscope_ptr1 = mse::xscope_ifptr_to(*registered_ptr1);
+			CB::foo1(xscope_ptr1);
+
+			regxscp_nstring_t regxscp_nstring2("some other text");
+			registered_ptr1 = &regxscp_nstring2;
+			CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
+
+			{
+				regxscp_nstring_t regxscp_nstring3("other text");
+				registered_ptr1 = &regxscp_nstring3;
+				CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
+			}
+			/* Attempting to dereference registered_ptr1 here would result in an exception . */
+			//*registered_ptr1;
+		}
 
 		mse::CXScpPtrTest1::s_test1();
 	}
 
 	{
 		/******************************/
-		/*  make_pointer_to_member()  */
+		/*  make_pointer_to_member_v2()  */
 		/******************************/
 
 		/* If you have a safe pointer to an object, you can get a safe pointer to a member of that object 
-		using the make_pointer_to_member() function. */
+		using the make_pointer_to_member_v2() function. */
 
 		/* To demonstrate, first we'll declare some objects such that we can obtain safe pointers to those
 		objects. For better or worse, this library provides a bunch of different safe pointers types. */
@@ -1505,33 +1545,33 @@ int main(int argc, char* argv[])
 		auto h_stdshared_const_ptr = mse::make_stdsharedimmutable<H>();
 
 		{
-			/* So here's how you get a safe pointer to a member of the object using mse::make_pointer_to_member(). */
-			auto h_string1_scpptr = mse::make_pointer_to_member(h_scpobj.m_string1, &h_scpobj);
+			/* So here's how you get a safe pointer to a member of the object using mse::make_pointer_to_member_v2(). */
+			auto h_string1_scpptr = mse::make_pointer_to_member_v2(&h_scpobj, &H::m_string1);
 			(*h_string1_scpptr) = "some new text";
-			auto h_string1_scp_const_ptr = mse::make_const_pointer_to_member(h_scpobj.m_string1, &h_scpobj);
+			auto h_string1_scp_const_ptr = mse::make_const_pointer_to_member_v2(&h_scpobj, &H::m_string1);
 
-			auto h_string1_refcptr = mse::make_pointer_to_member(h_refcptr->m_string1, h_refcptr);
+			auto h_string1_refcptr = mse::make_pointer_to_member_v2(h_refcptr, &H::m_string1);
 			(*h_string1_refcptr) = "some new text";
 
-			auto h_string1_regptr = mse::make_pointer_to_member(h_regobj.m_string1, &h_regobj);
+			auto h_string1_regptr = mse::make_pointer_to_member_v2(&h_regobj, &H::m_string1);
 			(*h_string1_regptr) = "some new text";
 
-			auto h_string1_rlxregptr = mse::make_pointer_to_member(h_rlxregobj.m_string1, &h_rlxregobj);
+			auto h_string1_rlxregptr = mse::make_pointer_to_member_v2(&h_rlxregobj, &H::m_string1);
 			(*h_string1_rlxregptr) = "some new text";
 
-			auto h_string1_mstdvec_iter = mse::make_pointer_to_member(h_mstdvec_iter->m_string1, h_mstdvec_iter);
+			auto h_string1_mstdvec_iter = mse::make_pointer_to_member_v2(h_mstdvec_iter, &H::m_string1);
 			(*h_string1_mstdvec_iter) = "some new text";
 
-			auto h_string1_msevec_ipointer = mse::make_pointer_to_member(h_msevec_ipointer->m_string1, h_msevec_ipointer);
+			auto h_string1_msevec_ipointer = mse::make_pointer_to_member_v2(h_msevec_ipointer, &H::m_string1);
 			(*h_string1_msevec_ipointer) = "some new text";
 
-			auto h_string1_msevec_ssiter = mse::make_pointer_to_member(h_msevec_ssiter->m_string1, h_msevec_ssiter);
+			auto h_string1_msevec_ssiter = mse::make_pointer_to_member_v2(h_msevec_ssiter, &H::m_string1);
 			(*h_string1_msevec_ssiter) = "some new text";
 
-			auto h_string1_writelock_ptr = mse::make_pointer_to_member(h_writelock_ptr->m_string1, h_writelock_ptr);
+			auto h_string1_writelock_ptr = mse::make_pointer_to_member_v2(h_writelock_ptr, &H::m_string1);
 			(*h_string1_writelock_ptr) = "some new text";
 
-			auto h_string1_stdshared_const_ptr = mse::make_pointer_to_member(h_stdshared_const_ptr->m_string1, h_stdshared_const_ptr);
+			auto h_string1_stdshared_const_ptr = mse::make_pointer_to_member_v2(h_stdshared_const_ptr, &H::m_string1);
 			//(*h_string1_stdshared_const_ptr) = "some new text";
 		}
 
@@ -1630,9 +1670,9 @@ int main(int argc, char* argv[])
 
 		/* And note that safe pointers to member elements need to be wrapped in an mse::TXScopeAnyPointer<> for
 		mse::TXScopePolyPointer<> to accept them. */
-		auto b_member_a_refc_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_refcptr->b, a_refcptr));
-		auto b_member_a_reg_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_regobj.b, &a_regobj));
-		auto b_member_a_mstdvec_iter_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_mstdvec_iter->b, a_mstdvec_iter));
+		auto b_member_a_refc_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(a_refcptr, &A::b));
+		auto b_member_a_reg_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(&a_regobj, &A::b));
+		auto b_member_a_mstdvec_iter_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(a_mstdvec_iter, &A::b));
 
 		{
 			/* All of these safe pointer types happily convert to an mse::TXScopePolyPointer<>. */

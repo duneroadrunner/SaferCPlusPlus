@@ -116,6 +116,12 @@ namespace mse {
 	template<typename _Ty> using TXScopeItemFixedConstPointer = const _Ty*;
 	template<typename _TROy> using TXScopeReturnable = _TROy;
 
+	template<typename _Ty> auto xscope_ifptr_to(_Ty&& _X) { return &_X; }
+	template<typename _Ty> auto xscope_ifptr_to(const _Ty& _X) { return &_X; }
+
+	template<typename _Ty> const _Ty& returnable(const _Ty& _X) { return _X; }
+	template<typename _Ty> _Ty&& returnable(_Ty&& _X) { return std::forward<decltype(_X)>(_X); }
+
 #else /*MSE_SCOPEPOINTER_DISABLED*/
 
 #ifdef MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
@@ -153,6 +159,9 @@ namespace mse {
 	template<typename _Ty> class TXScopeFixedPointer;
 	template<typename _Ty> class TXScopeFixedConstPointer;
 	template<typename _Ty> class TXScopeOwnerPointer;
+
+	template<typename _Ty> class TXScopeItemFixedPointer;
+	template<typename _Ty> class TXScopeItemFixedConstPointer;
 
 	/* Use TXScopeFixedPointer instead. */
 	template<typename _Ty>
@@ -389,8 +398,8 @@ namespace mse {
 		const TXScopeFixedConstPointer<_TROy> operator&() const & {
 			return this;
 		}
-		const TXScopeFixedPointer<_TROy> mse_xscope_fptr() & { return this; }
-		const TXScopeFixedConstPointer<_TROy> mse_xscope_fptr() const & { return this; }
+		const TXScopeItemFixedPointer<_TROy> mse_xscope_ifptr() & { return &(*this); }
+		const TXScopeItemFixedConstPointer<_TROy> mse_xscope_ifptr() const & { return &(*this); }
 		void xscope_tag() const {}
 		//void xscope_contains_accessible_scope_address_of_operator_tag() const {}
 		/* This type can be safely used as a function return value if _Ty is also safely returnable. */
@@ -409,8 +418,8 @@ namespace mse {
 		const TXScopeFixedConstPointer<_TROy> operator&() const && {
 			return this;
 		}
-		const TXScopeFixedPointer<_TROy> mse_xscope_fptr() && { return this; }
-		const TXScopeFixedConstPointer<_TROy> mse_xscope_fptr() const && { return this; }
+		const TXScopeItemFixedPointer<_TROy> mse_xscope_ifptr() && { return &(*this); }
+		const TXScopeItemFixedConstPointer<_TROy> mse_xscope_ifptr() const && { return &(*this); }
 
 		void* operator new(size_t size) { return ::operator new(size); }
 
@@ -418,18 +427,13 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	auto xscope_fptr_to(_Ty&& _X) {
-		return _X.mse_xscope_fptr();
+	auto xscope_ifptr_to(_Ty&& _X) {
+		return _X.mse_xscope_ifptr();
 	}
 	template<typename _Ty>
-	auto xscope_fptr_to(const _Ty& _X) {
-		return _X.mse_xscope_fptr();
+	auto xscope_ifptr_to(const _Ty& _X) {
+		return _X.mse_xscope_ifptr();
 	}
-
-	template<typename _Ty>
-	class TXScopeItemFixedPointer;
-	template<typename _Ty>
-	class TXScopeItemFixedConstPointer;
 
 	namespace us {
 		/* A couple of unsafe functions for internal use. */
@@ -479,6 +483,9 @@ namespace mse {
 		friend TXScopeItemFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty2> &lease_pointer);
 		template<class _TTargetType, class _Ty2>
 		friend TXScopeItemFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeItemFixedPointer<_Ty2> &lease_pointer);
+		template<class _Ty2, class _TMemberObjectPointer>
+		friend auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+			->TXScopeItemFixedPointer<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>;
 		template<class _Ty2> friend TXScopeItemFixedPointer<_Ty2> us::unsafe_make_xscope_pointer_to(_Ty2& ref);
 	};
 
@@ -534,6 +541,16 @@ namespace mse {
 		template<class _TTargetType, class _Ty2>
 		friend TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedConstPointer<_Ty2> &lease_pointer);
 		template<class _Ty2> friend TXScopeItemFixedConstPointer<_Ty2> us::unsafe_make_xscope_const_pointer_to(const _Ty2& cref);
+
+		template<class _Ty2, class _TMemberObjectPointer>
+		friend auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+			-> TXScopeItemFixedConstPointer<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>;
+		template<class _Ty2, class _TMemberObjectPointer>
+		friend auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+			->TXScopeItemFixedConstPointer<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>;
+		template<class _Ty2, class _TMemberObjectPointer>
+		friend auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+			->TXScopeItemFixedConstPointer<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>;
 	};
 }
 
@@ -1060,6 +1077,89 @@ namespace mse {
 		return make_xscope_const_pointer_to_member(target, lease_pointer);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+		-> TXScopeItemFixedPointer<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type> {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return TXScopeItemFixedPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+		-> TXScopeItemFixedConstPointer<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type> {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return TXScopeItemFixedConstPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+		-> TXScopeItemFixedConstPointer<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type> {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return TXScopeItemFixedConstPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+		-> TXScopeItemFixedConstPointer<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type> {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return TXScopeItemFixedConstPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_xscope_pointer_to_member_v2(const TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_pointer_to_member_v2(TXScopeItemFixedPointer<_Ty>(lease_pointer), member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_xscope_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_pointer_to_member_v2(TXScopeItemFixedConstPointer<_Ty>(lease_pointer), member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_const_pointer_to_member_v2(TXScopeItemFixedPointer<_Ty>(lease_pointer), member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_const_pointer_to_member_v2(TXScopeItemFixedConstPointer<_Ty>(lease_pointer), member_object_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_const_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_const_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_const_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_const_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_pointer_to_member_v2(const TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_const_pointer_to_member_v2(const TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_const_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_const_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_const_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
 #endif // !MSE_SCOPE_DISABLE_MAKE_POINTER_TO_MEMBER
 
 

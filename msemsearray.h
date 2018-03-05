@@ -3712,6 +3712,10 @@ namespace mse {
 	auto random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
 		return ra_section.subsection(std::get<0>(start_and_length), std::get<1>(start_and_length));
 	}
+	template<typename _Ty>
+	auto xscope_random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
+		return ra_section.xscope_subsection(std::get<0>(start_and_length), std::get<1>(start_and_length));
+	}
 
 	template <typename _TRAIterator>
 	class TRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator> {
@@ -3735,6 +3739,11 @@ namespace mse {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
+		TXScopeRandomAccessSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessSection xscope_subsection() const - TRandomAccessSection")))
+				: TXScopeRandomAccessSection<_TRAIterator>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
 		TRandomAccessSection subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection subsection() const - TRandomAccessSection")))
@@ -4284,6 +4293,11 @@ namespace mse {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
+		TXScopeRandomAccessConstSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessConstSection xscope_subsection() const - TRandomAccessSection")))
+				: TXScopeRandomAccessConstSection<_TRAIterator>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+		}
 		TRandomAccessConstSection subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection subsection() const - TRandomAccessConstSection")))

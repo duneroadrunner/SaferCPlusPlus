@@ -347,6 +347,17 @@ void msetl_example2() {
 		auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
 		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
 		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+
+		/* Like non-owning scope pointers, scope sections may not be used as a function return value. (The returnable()
+		function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the
+		returned section is constructed from one of the input parameters. Let's consider a simple example of a
+		"first_half()" function that takes a scope section and returns a scope section spanning the first half of the
+		section. The library provides the random_access_subsection() function which takes a random access section and a
+		tuple containing a start index and a length and returns a random access section spanning the indicated
+		subsection.  You could use this function to implement the equivalent of a "first_half()" function like so: */
+
+		auto xscp_ra_section3 = mse::random_access_subsection(xscp_ra_section1, std::make_tuple(0, xscp_ra_section1.length()/2));
+		assert(xscp_ra_section3.length() == 1);
 	}
 
 	{
@@ -458,6 +469,22 @@ void msetl_example2() {
 		string_section2[0] = 'T';
 		std::cout << string_section2;
 		assert(mstring1 == "some Text");
+		std::cout << string_section2;
+
+		/* The (run-time overhead free) scope (and const) versions. */
+		typedef mse::TXScopeObj< mse::nii_string > xscope_nii_string_t;
+		xscope_nii_string_t xscp_nstring1("some text");
+		auto xscp_citer1 = mse::make_xscope_const_iterator(&xscp_nstring1);
+		auto xscp_string_section1 = mse::make_xscope_string_const_section(xscp_citer1 + 1, 7);
+		auto xscp_string_section2 = xscp_string_section1.xscope_substr(4, 3);
+		assert(xscp_string_section2.front() == 't');
+		assert(xscp_string_section2.back() == 'x');
+
+		/* Btw, the random_access_subsection() function works on string sections just like any other random access sections. */
+		auto string_section3 = mse::random_access_subsection(string_section1, std::make_tuple(0, string_section1.length() / 2));
+		assert(string_section3.length() == 3);
+		auto xscp_string_section4 = mse::xscope_random_access_subsection(string_section1, std::make_tuple(0, string_section1.length() / 2));
+		auto xscp_string_section5 = mse::xscope_random_access_subsection(xscp_string_section1, std::make_tuple(0, string_section1.length() / 2));
 	}
 
 	{
@@ -538,6 +565,7 @@ void msetl_example2() {
 			//std::cout << sv;
 		}
 		{
+#ifndef MSE_MSTDSTRING_DISABLED
 			/* Memory safe substitutes for std::string and std::string_view eliminate the danger. */
 
 			mse::mstd::string s = "Hellooooooooooooooo ";
@@ -545,7 +573,8 @@ void msetl_example2() {
 			/* This is safe because the lifespan of the temporary string data is extended (via reference counting) to
 			match that of sv. */
 			std::cout << sv;
-		}
+#endif /*!MSE_MSTDSTRING_DISABLED*/
+	}
 		{
 			/* Memory safety can also be achieved without extra run-time overhead. */
 

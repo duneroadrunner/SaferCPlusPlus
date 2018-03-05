@@ -253,11 +253,10 @@ namespace mse {
 	};
 
 #ifdef MSE_SAFERPTR_DISABLED
-	template<typename _Ty>
-	using TSaferPtr = TPointer<_Ty>;
+	template<typename _Ty> using TSaferPtr = TPointer<_Ty>;
+	template<typename _Ty> using TSaferPtrForLegacy = TPointerForLegacy<_Ty>;
 
-	template<typename _Ty>
-	using TSaferPtrForLegacy = TPointerForLegacy<_Ty>;
+	template<typename _Ty> auto pointer_to(const _Ty& _X) { return &_X; }
 #else /*MSE_SAFERPTR_DISABLED*/
 
 	class CSaferPtrBase : public NotAsyncShareableTagBase {
@@ -418,6 +417,15 @@ namespace mse {
 		void assert_initialized() const {}
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 	};
+
+	template<typename _Ty, class = typename std::enable_if<(!std::is_pointer<_Ty>::value), void>::type>
+	void T_valid_if_not_raw_pointer_msepointerbasics() {}
+
+	template<typename _Ty>
+	auto pointer_to(const _Ty& _X) {
+		T_valid_if_not_raw_pointer_msepointerbasics<decltype(&_X)>();
+		return &_X;
+	}
 #endif /*MSE_SAFERPTR_DISABLED*/
 
 
@@ -549,6 +557,33 @@ namespace mse {
 	template<class _TTargetType, class _Ty>
 	TSyncWeakFixedConstPointer<_TTargetType, _Ty> make_const_pointer_to_member(const _TTargetType& target, const _Ty &lease_pointer) {
 		return TSyncWeakFixedConstPointer<_TTargetType, _Ty>::make(target, lease_pointer);
+	}
+
+	template<class _Ty, class _Ty2, class = typename std::enable_if<std::is_same<_Ty, _Ty2>::value>::type>
+	static void T_valid_if_same_msepointerbasics() {}
+	template<class _TLeasePointer, class _TMemberObjectPointer>
+	static void make_pointer_to_member_v2_checks_msepointerbasics(const _TLeasePointer &/*lease_pointer*/, const _TMemberObjectPointer& member_object_ptr) {
+		/* Check for possible problematic parameters. */
+		if (!member_object_ptr) { MSE_THROW("null member_object_ptr - make_pointer_to_member_v2_checks_msepointerbasics()"); }
+		/*
+		typedef typename std::remove_reference<decltype(*lease_pointer)>::type _TLeaseTarget;
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		_TTarget _TLeaseTarget::* l_member_object_ptr = member_object_ptr;
+		typedef typename std::remove_reference<decltype(l_member_object_ptr)>::type _TMemberObjectPointer2;
+		T_valid_if_same_msepointerbasics<const _TMemberObjectPointer2, const _TMemberObjectPointer>();
+		*/
+	}
+	template<class _TLeasePointer, class _TMemberObjectPointer>
+	static auto make_pointer_to_member_v2(const _TLeasePointer &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return mse::TSyncWeakFixedPointer<_TTarget, _TLeasePointer>::make((*lease_pointer).*member_object_ptr, lease_pointer);
+	}
+	template<class _TLeasePointer, class _TMemberObjectPointer>
+	static auto make_const_pointer_to_member_v2(const _TLeasePointer &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return mse::TSyncWeakFixedConstPointer<_TTarget, _TLeasePointer>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 }
 
@@ -723,16 +758,6 @@ namespace mse {
 	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }
 	template <class _TTargetType, class _TLeaseType>
 	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
-
-
-	template<typename _Ty, class = typename std::enable_if<(!std::is_pointer<_Ty>::value), void>::type>
-	void T_valid_if_not_raw_pointer_msepointerbasics() {}
-
-	template<typename _Ty>
-	auto pointer_to(const _Ty& _X) {
-		T_valid_if_not_raw_pointer_msepointerbasics<decltype(&_X)>();
-		return &_X;
-	}
 }
 
 namespace std {
