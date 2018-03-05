@@ -26,6 +26,7 @@
 #include <cassert>
 
 #include <typeinfo>
+#include <typeindex>
 #include <type_traits>
 #include <new>
 
@@ -90,17 +91,17 @@ namespace mse {
 
 	template<typename F, typename... Ts>
 	struct tdp_variant_helper<F, Ts...> {
-		inline static void destroy(size_t id, void * data)
+		inline static void destroy(std::type_index id, void * data)
 		{
-			if (id == typeid(F).hash_code())
+			if (id == std::type_index(typeid(F)))
 				reinterpret_cast<F*>(data)->~F();
 			else
 				tdp_variant_helper<Ts...>::destroy(id, data);
 		}
 
-		inline static void move(size_t old_t, void * old_v, void * new_v)
+		inline static void move(std::type_index old_t, void * old_v, void * new_v)
 		{
-			if (old_t == typeid(F).hash_code()) {
+			if (old_t == std::type_index(typeid(F))) {
 				::new (new_v) F(TDP_VARIANT_STD_MOVE(*reinterpret_cast<F*>(old_v)));
 			}
 			else {
@@ -108,9 +109,9 @@ namespace mse {
 			}
 		}
 
-		inline static void copy(size_t old_t, const void * old_v, void * new_v)
+		inline static void copy(std::type_index old_t, const void * old_v, void * new_v)
 		{
-			if (old_t == typeid(F).hash_code())
+			if (old_t == std::type_index(typeid(F)))
 				::new (new_v) F(*reinterpret_cast<const F*>(old_v));
 			else
 				tdp_variant_helper<Ts...>::copy(old_t, old_v, new_v);
@@ -118,9 +119,9 @@ namespace mse {
 	};
 
 	template<> struct tdp_variant_helper<> {
-		inline static void destroy(size_t id, void * data) { }
-		inline static void move(size_t old_t, void * old_v, void * new_v) { }
-		inline static void copy(size_t old_t, const void * old_v, void * new_v) { }
+		inline static void destroy(std::type_index id, void * data) { }
+		inline static void move(std::type_index old_t, void * old_v, void * new_v) { }
+		inline static void copy(std::type_index old_t, const void * old_v, void * new_v) { }
 	};
 
 	template<typename... Ts>
@@ -133,11 +134,11 @@ namespace mse {
 
 		using helper_t = tdp_variant_helper<Ts...>;
 
-		static inline size_t invalid_type() {
-			return typeid(void).hash_code();
+		static inline std::type_index invalid_type() {
+			return std::type_index(typeid(void));
 		}
 
-		size_t type_id;
+		std::type_index type_id;
 		data_t data;
 	public:
 		tdp_variant() : type_id(invalid_type()) {   }
@@ -179,7 +180,7 @@ namespace mse {
 
 		template<typename T>
 		bool is() const {
-			return (type_id == typeid(T).hash_code());
+			return (type_id == std::type_index(typeid(T)));
 		}
 
 		bool valid() const {
@@ -194,14 +195,14 @@ namespace mse {
 			type_id = invalid_type();
 			helper_t::destroy(held_type_id, &data);
 			::new (&data) T(TDP_VARIANT_STD_FORWARD(Args) (args)...);
-			type_id = typeid(T).hash_code();
+			type_id = std::type_index(typeid(T));
 		}
 
 		template<typename T>
 		const T& get() const
 		{
 			// It is a dynamic_cast-like behaviour
-			if (type_id == typeid(T).hash_code())
+			if (type_id == std::type_index(typeid(T)))
 				return *reinterpret_cast<const T*>(&data);
 			else
 				MSE_THROW(std::bad_cast());
@@ -211,7 +212,7 @@ namespace mse {
 		T& get()
 		{
 			// It is a dynamic_cast-like behaviour
-			if (type_id == typeid(T).hash_code())
+			if (type_id == std::type_index(typeid(T)))
 				return *reinterpret_cast<T*>(&data);
 			else
 				MSE_THROW(std::bad_cast());
@@ -242,24 +243,24 @@ namespace mse {
 
 	template<typename F, typename... Ts>
 	struct tdp_pointer_variant_helper<F, Ts...> {
-		inline static void* arrow_operator(size_t id, const void * data) {
-			if (id == typeid(F).hash_code()) {
+		inline static void* arrow_operator(std::type_index id, const void * data) {
+			if (id == std::type_index(typeid(F))) {
 				return (reinterpret_cast<const F*>(data))->operator->();
 			}
 			else {
 				return tdp_pointer_variant_helper<Ts...>::arrow_operator(id, data);
 			}
 		}
-		inline static const void* const_arrow_operator(size_t id, const void * data) {
-			if (id == typeid(F).hash_code()) {
+		inline static const void* const_arrow_operator(std::type_index id, const void * data) {
+			if (id == std::type_index(typeid(F))) {
 				return (reinterpret_cast<const F*>(data))->operator->();
 			}
 			else {
 				return tdp_pointer_variant_helper<Ts...>::const_arrow_operator(id, data);
 			}
 		}
-		inline static bool bool_operator(size_t id, const void * data) {
-			if (id == typeid(F).hash_code()) {
+		inline static bool bool_operator(std::type_index id, const void * data) {
+			if (id == std::type_index(typeid(F))) {
 				//return bool(*(reinterpret_cast<const F*>(data)));
 				return operator_bool_helper1<F>(typename std::is_convertible<F, bool>::type(), *(reinterpret_cast<const F*>(data)));
 			}
@@ -270,9 +271,9 @@ namespace mse {
 	};
 
 	template<> struct tdp_pointer_variant_helper<> {
-		inline static void* arrow_operator(size_t id, const void * data) { return nullptr; }
-		inline static const void* const_arrow_operator(size_t id, const void * data) { return nullptr; }
-		inline static bool bool_operator(size_t id, const void * data) { return false; }
+		inline static void* arrow_operator(std::type_index id, const void * data) { return nullptr; }
+		inline static const void* const_arrow_operator(std::type_index id, const void * data) { return nullptr; }
+		inline static bool bool_operator(std::type_index id, const void * data) { return false; }
 	};
 
 	template<typename... Ts>
