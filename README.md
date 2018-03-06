@@ -61,8 +61,9 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     1. [TXScopeItemFixedPointer](#txscopeitemfixedpointer)
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
-    4. [xscope_chosen_pointer()](#xscope_chosen_pointer)
-    5. [TXScopeReturnable](#txscopereturnable)
+    4. [xscope_ifptr_to()](#xscope_ifptr_to)
+    5. [xscope_chosen_pointer()](#xscope_chosen_pointer)
+    6. [TXScopeReturnable](#txscopereturnable)
 10. [make_pointer_to_member()](#make_pointer_to_member)
 11. [Poly pointers](#poly-pointers)
     1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
@@ -1045,6 +1046,8 @@ usage example:
 
 `make_xscope_strong_pointer_store()` returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Currently supported strong pointers include [reference counting pointers](#reference-counting-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
 
+usage example:
+
 ```cpp
     #include "msescope.h"
     #include "mserefcounting.h"
@@ -1074,6 +1077,48 @@ usage example:
         int res6 = B::foo3(xscp_cptr1);
         mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
         A res7 = *xscp_cptr2;
+    }
+```
+
+### xscope_ifptr_to()
+
+Scope pointers cannot (currently) be retargeted after construction. If you need a pointer that will point to multiple different scope objects over its lifespan, you can use a registered pointer. This means that the target objects will also need to be registered objects. If the object is a registered scope object, then the '&' operator will will return a registered pointer. But at some point we're going to need a scope pointer to the base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. 
+
+usage example:
+
+```cpp
+    #include "msescope.h"
+    #include "mseregistered.h"
+    #include "msemsestring.h"
+    
+    void main(int argc, char* argv[]) {
+        typedef mse::TXScopeObj<mse::nii_string> xscp_nstring_t;
+        typedef mse::TXScopeItemFixedPointer<mse::nii_string> xscp_nstring_ptr_t;
+        class CB {
+        public:
+            static void foo1(xscp_nstring_ptr_t xscope_ptr1) {
+                std::cout << *xscope_ptr1;
+            }
+        };
+        typedef mse::TRegisteredObj< xscp_nstring_t > regxscp_nstring_t;
+        typedef mse::TRegisteredPointer< xscp_nstring_t > regxscp_nstring_ptr_t;
+        regxscp_nstring_t regxscp_nstring1("some text");
+        regxscp_nstring_ptr_t registered_ptr1 = &regxscp_nstring1;
+
+        auto xscope_ptr1 = mse::xscope_ifptr_to(*registered_ptr1);
+        CB::foo1(xscope_ptr1);
+
+        regxscp_nstring_t regxscp_nstring2("some other text");
+        registered_ptr1 = &regxscp_nstring2;
+        CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
+
+        {
+            regxscp_nstring_t regxscp_nstring3("other text");
+            registered_ptr1 = &regxscp_nstring3;
+            CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
+        }
+        /* Attempting to dereference registered_ptr1 here would result in an exception . */
+        //*registered_ptr1;
     }
 ```
 
