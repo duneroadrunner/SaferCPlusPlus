@@ -1165,7 +1165,7 @@ The safety of non-owning scope pointers is premised on the fact that they will n
 
 The `returnable()` function just returns its argument and verifies that it is of a type that is safe to return from a function (basically, doesn't contain any scope pointers). If not it will induce a compile error. Functions that do or could return scope types should wrap their return value with this function. 
 
-`TReturnable<>` is a transparent template wrapper that verifies that the type is safe to use as a function return type. If not it will induce a compile error. Functions that do or could return scope types and do not use the "auto" return type should wrap their return type with this function. Alternatively, you can use `TXScopeReturnable<>` which additionally ensures that the return type is a scope type. */
+`TReturnable<>` is a transparent template wrapper that verifies that the type is safe to use as a function return type. If not it will induce a compile error. Functions that do or could return scope types and do not use the "auto" return type should wrap their return type with this function. Alternatively, you can use `TXScopeReturnable<>` which additionally ensures that the return type is a scope type. 
 
 usage example:
 
