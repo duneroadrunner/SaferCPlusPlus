@@ -64,7 +64,7 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     4. [xscope_ifptr_to()](#xscope_ifptr_to)
     5. [xscope_chosen_pointer()](#xscope_chosen_pointer)
     6. [TXScopeReturnable](#txscopereturnable)
-10. [make_pointer_to_member()](#make_pointer_to_member)
+10. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
 11. [Poly pointers](#poly-pointers)
     1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
     2. [TPolyPointer](#tpolypointer-tpolyconstpointer)
@@ -1252,8 +1252,8 @@ void main(int argc, char* argv[]) {
 }
 ```
 
-### make_pointer_to_member()
-If you need a safe pointer to a member of a class/struct, you could declare the member itself to be a registered object (or a reference counting pointer). But often a preferable option is to use `make_pointer_to_member()`. This function takes the member you want to target, and a safe pointer to the containing class/struct, and combines them to create a safe pointer to the member. The actual type of the returned pointer varies depending on the types of the parameters passed.
+### make_pointer_to_member_v2()
+If you need a safe pointer to a member of a class/struct, you could declare the member itself to be a registered object (or a reference counting pointer). But often a preferable option is to use `make_pointer_to_member_v2()`. This function takes a safe pointer to the containing class/struct and a "[pointer-to-member](http://en.cppreference.com/w/cpp/language/pointer#Pointers_to_members)" indicating the member to the you want to target, and combines them to create a safe pointer to the member. The actual type of the returned pointer varies depending on the types of the parameters passed.
 
 usage example:
 
@@ -1267,11 +1267,11 @@ usage example:
         /* A member function that provides a safe pointer/reference to a class/struct member is going to need to
         take a safe version of the "this" pointer as a parameter. */
         template<class this_type>
-        static auto safe_pointer_to_member_string1(this_type safe_this) -> decltype(mse::make_pointer_to_member(safe_this->m_string1, safe_this)) {
-            return mse::make_pointer_to_member(safe_this->m_string1, safe_this);
+        static auto safe_pointer_to_member_string1(this_type safe_this) {
+            return mse::make_pointer_to_member_v2(safe_this, &H::m_string1);
         }
     
-        std::string m_string1 = "initial text";
+        mse::nii_string m_string1 = "initial text";
     };
     
     void main() {
@@ -1292,38 +1292,38 @@ usage example:
         auto h_msevec_ssiter = h_msevec.ss_begin();
     
         /* And don't forget the safe async sharing pointers. */
-        auto h_access_requester = mse::make_asyncsharedreadwrite<H>();
+        auto h_access_requester = mse::make_asyncsharedv2readwrite<ShareableH>();
         auto h_writelock_ptr = h_access_requester.writelock_ptr();
         auto h_stdshared_const_ptr = mse::make_stdsharedimmutable<H>();
     
         {
-            /* So here's how you get a safe pointer to a member of the object using mse::make_pointer_to_member(). */
-            auto h_string1_scpptr = mse::make_pointer_to_member(h_scpobj.m_string1, &h_scpobj);
+            /* So here's how you get a safe pointer to a member of the object using mse::make_pointer_to_member_v2(). */
+            auto h_string1_scpptr = mse::make_pointer_to_member_v2(&h_scpobj, &H::m_string1);
             (*h_string1_scpptr) = "some new text";
-            auto h_string1_scp_const_ptr = mse::make_const_pointer_to_member(h_scpobj.m_string1, &h_scpobj);
+            auto h_string1_scp_const_ptr = mse::make_const_pointer_to_member_v2(&h_scpobj, &H::m_string1);
     
-            auto h_string1_refcptr = mse::make_pointer_to_member(h_refcptr->m_string1, h_refcptr);
+            auto h_string1_refcptr = mse::make_pointer_to_member_v2(h_refcptr, &H::m_string1);
             (*h_string1_refcptr) = "some new text";
     
-            auto h_string1_regptr = mse::make_pointer_to_member(h_regobj.m_string1, &h_regobj);
+            auto h_string1_regptr = mse::make_pointer_to_member_v2(&h_regobj, &H::m_string1);
             (*h_string1_regptr) = "some new text";
     
-            auto h_string1_rlxregptr = mse::make_pointer_to_member(h_rlxregobj.m_string1, &h_rlxregobj);
+            auto h_string1_rlxregptr = mse::make_pointer_to_member_v2(&h_rlxregobj, &H::m_string1);
             (*h_string1_rlxregptr) = "some new text";
     
-            auto h_string1_mstdvec_iter = mse::make_pointer_to_member(h_mstdvec_iter->m_string1, h_mstdvec_iter);
+            auto h_string1_mstdvec_iter = mse::make_pointer_to_member_v2(h_mstdvec_iter, &H::m_string1);
             (*h_string1_mstdvec_iter) = "some new text";
     
-            auto h_string1_msevec_ipointer = mse::make_pointer_to_member(h_msevec_ipointer->m_string1, h_msevec_ipointer);
+            auto h_string1_msevec_ipointer = mse::make_pointer_to_member_v2(h_msevec_ipointer, &H::m_string1);
             (*h_string1_msevec_ipointer) = "some new text";
     
-            auto h_string1_msevec_ssiter = mse::make_pointer_to_member(h_msevec_ssiter->m_string1, h_msevec_ssiter);
+            auto h_string1_msevec_ssiter = mse::make_pointer_to_member_v2(h_msevec_ssiter, &H::m_string1);
             (*h_string1_msevec_ssiter) = "some new text";
     
-            auto h_string1_writelock_ptr = mse::make_pointer_to_member(h_writelock_ptr->m_string1, h_writelock_ptr);
+            auto h_string1_writelock_ptr = mse::make_pointer_to_member_v2(h_writelock_ptr, &H::m_string1);
             (*h_string1_writelock_ptr) = "some new text";
     
-            auto h_string1_stdshared_const_ptr = mse::make_pointer_to_member(h_stdshared_const_ptr->m_string1, h_stdshared_const_ptr);
+            auto h_string1_stdshared_const_ptr = mse::make_pointer_to_member_v2(h_stdshared_const_ptr, &H::m_string1);
             //(*h_string1_stdshared_const_ptr) = "some new text";
         }
     
