@@ -2565,6 +2565,17 @@ usage example:
         auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
         auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
         bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+        
+        /* Like non-owning scope pointers, scope sections may not be used as a function return value. (The returnable()
+        function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the
+        returned section is constructed from one of the input parameters. Let's consider a simple example of a
+        "first_half()" function that takes a scope section and returns a scope section spanning the first half of the
+        section. The library provides the random_access_subsection() function which takes a random access section and a
+        tuple containing a start index and a length and returns a random access section spanning the indicated
+        subsection.  You could use this function to implement the equivalent of a "first_half()" function like so: */
+        
+        auto xscp_ra_section3 = mse::random_access_subsection(xscp_ra_section1, std::make_tuple(0, xscp_ra_section1.length()/2));
+        assert(xscp_ra_section3.length() == 1);
     }
 ```
 
