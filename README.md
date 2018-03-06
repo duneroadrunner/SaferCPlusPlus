@@ -61,9 +61,10 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     1. [TXScopeItemFixedPointer](#txscopeitemfixedpointer)
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
-    4. [xscope_chosen_pointer()](#xscope_chosen_pointer)
-    5. [TXScopeReturnable](#txscopereturnable)
-10. [make_pointer_to_member()](#make_pointer_to_member)
+    4. [xscope_ifptr_to()](#xscope_ifptr_to)
+    5. [xscope_chosen_pointer()](#xscope_chosen_pointer)
+    6. [returnable()](#returnable)
+10. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
 11. [Poly pointers](#poly-pointers)
     1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
     2. [TPolyPointer](#tpolypointer-tpolyconstpointer)
@@ -1045,6 +1046,8 @@ usage example:
 
 `make_xscope_strong_pointer_store()` returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Currently supported strong pointers include [reference counting pointers](#reference-counting-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
 
+usage example:
+
 ```cpp
     #include "msescope.h"
     #include "mserefcounting.h"
@@ -1077,18 +1080,61 @@ usage example:
     }
 ```
 
+### xscope_ifptr_to()
+
+Scope pointers cannot (currently) be retargeted after construction. If you need a pointer that will point to multiple different scope objects over its lifespan, you can use a registered pointer. This means that the target objects will also need to be registered objects. If the object is a registered scope object, then the '&' operator will will return a registered pointer. But at some point we're going to need a scope pointer to the base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. 
+
+usage example:
+
+```cpp
+    #include "msescope.h"
+    #include "mseregistered.h"
+    #include "msemsestring.h"
+    
+    void main(int argc, char* argv[]) {
+        typedef mse::TXScopeObj<mse::nii_string> xscp_nstring_t;
+        typedef mse::TXScopeItemFixedPointer<mse::nii_string> xscp_nstring_ptr_t;
+        class CB {
+        public:
+            static void foo1(xscp_nstring_ptr_t xscope_ptr1) {
+                std::cout << *xscope_ptr1;
+            }
+        };
+        typedef mse::TRegisteredObj< xscp_nstring_t > regxscp_nstring_t;
+        typedef mse::TRegisteredPointer< xscp_nstring_t > regxscp_nstring_ptr_t;
+        regxscp_nstring_t regxscp_nstring1("some text");
+        regxscp_nstring_ptr_t registered_ptr1 = &regxscp_nstring1;
+
+        auto xscope_ptr1 = mse::xscope_ifptr_to(*registered_ptr1);
+        CB::foo1(xscope_ptr1);
+
+        regxscp_nstring_t regxscp_nstring2("some other text");
+        registered_ptr1 = &regxscp_nstring2;
+        CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
+
+        {
+            regxscp_nstring_t regxscp_nstring3("other text");
+            registered_ptr1 = &regxscp_nstring3;
+            CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
+        }
+        /* Attempting to dereference registered_ptr1 here would result in an exception . */
+        //*registered_ptr1;
+    }
+```
+
 ### xscope_chosen_pointer()
 
 Currently there's a rule against using non-owning scope pointers as function return values due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the `xscope_chosen_pointer()` function instead.
 
-In essence, the `xscope_chosen_pointer()` function simply takes two scope pointers as input parameters and returns one of them. Which of the pointers is returned is determined by a (user supplied) "chooser" function that is passed, as the first parameter, to `xscope_chosen_pointer()`. The "chooser" function returns a bool and takes the two scope pointers as its first two parameters. If the chooser function returns false then the first scope pointer is returned, otherwise the second is returned.
+In essence, the `xscope_chosen_pointer()` function simply takes a bool and two scope pointers as input parameters and returns one of the pointers. If the bool is false then the first scope pointer is returned, otherwise the second is returned.
 
-So consider, for example, a "min" function that takes two scope pointers and returns a scope pointer to the lesser of the two target (scope) objects. The implementation of this function would be straightforward if returning non-owning scope pointers was permitted. The following example demonstrates the same functionality using `xscope_chosen_pointer()` instead. It isn't necessarily super-pretty, but anyway the need to return a scope pointer generally isn't that common.
+So consider, for example, a "min" function that takes two scope pointers and returns a scope pointer to the lesser of the two target (scope) objects. The implementation of this function would be straightforward if returning non-owning scope pointers was permitted. The following example demonstrates the same functionality using `xscope_chosen_pointer()` instead. 
 
 ```cpp
     #include "msescope.h"
     
     void main(int argc, char* argv[]) {
+    
         class A {
         public:
             A(int x) : b(x) {}
@@ -1101,55 +1147,94 @@ So consider, for example, a "min" function that takes two scope pointers and ret
     
         mse::TXScopeObj<A> a_scpobj(5);
         mse::TXScopeOwnerPointer<A> xscp_a_ownerptr(7);
+    
+        /* Technically, you're not allowed to return a non-owning scope pointer from a function. (The returnable() function
+        wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer
+        is one of the input parameters. An example might be a "min(a, b)" function which takes two objects by reference and
+        returns the reference to the lesser of the two objects. The library provides the xscope_chosen_pointer() function
+        which takes a bool and two scope pointers, and returns one of the scope pointers depending on the value of the
+        bool. You could use this function to implement the equivalent of a min(a, b) function like so: */
         auto xscp_a_ptr5 = &a_scpobj;
         auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
-    
-        /* Use xscope_chosen_pointer() when you otherwise would have returned a non-owning scope pointer. Here we use
-        it to implement "min(a, b)" functionality with scope pointers. */
-        auto xscp_min_ptr1 = mse::xscope_chosen_pointer(
-            [](decltype(xscp_a_ptr5) a_ptr, decltype(xscp_a_ptr6) b_ptr) { return ((*b_ptr) < (*a_ptr)); },
-            xscp_a_ptr5, xscp_a_ptr6);
-
+        auto xscp_min_ptr1 = mse::xscope_chosen_pointer((xscp_a_ptr6 < xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
         assert(5 == xscp_min_ptr1->b);
     }
 ```
 
-### TXScopeReturnable
+### returnable()
 
-The safety of non-owning scope pointers is premised on the fact that they will not outlive the scope in which they are declared. So returning a non-owning scope pointer, or any object that contains or owns a non-owning scope pointer, from a function would be potentially unsafe. 
+The safety of non-owning scope pointers is premised on the fact that they will not outlive the scope in which they are declared. So returning a non-owning scope pointer, or any object that contains or owns a non-owning scope pointer, from a function would be potentially unsafe. However, it could be safe to return a scope object if that object does not contain or own any non-owning scope pointers.
 
-However, it could be safe to return a scope object if that object does not contain or own any non-owning scope pointers. The `TXScopeReturnable<>` transparent wrapper template is used to verify that a scope type does not contain or own any non-owning scope pointers. It will cause a compile error if it deems that it may be unsafe to return the given scope type.
+The `returnable()` function just returns its argument and verifies that it is of a type that is safe to return from a function (basically, doesn't contain any scope pointers). If not it will induce a compile error. Functions that do or could return scope types should wrap their return value with this function. 
 
-So the rule is that scope types may only be used as function return types if they are wrapped in the `TXScopeReturnable<>` transparent wrapper template.
+`TReturnable<>` is a transparent template wrapper that verifies that the type is safe to use as a function return type. If not it will induce a compile error. Functions that do or could return scope types and do not use the "auto" return type should wrap their return type with this function. Alternatively, you can use `TXScopeReturnable<>` which additionally ensures that the return type is a scope type. 
 
 usage example:
+
 ```cpp
-#include "msescope.h"
-#include "mseoptional.h"
-
-void main(int argc, char* argv[]) {
-	class CB {
-	public:
-		/* While there is a rule against using scope types as function return types, you can usually just use the
-		underlying (non-scope) type of the scope object as the return type. */
-		static mse::mstd::string foo1() {
-			mse::TXScopeObj<mse::mstd::string> xscp_string1("some text");
-			return xscp_string1;
-		}
-
-		/* In the less common case where the scope type doesn't have an underlying non-scope type, it may be safe
-		to return the scope object. But in order to use a scope type as a function return value, it must be
-		wrapped in the transparent mse::TXScopeReturnable<> wrapper template, which will induce a compile error
-		if it deems the scope type potentially unsafe to use as a return type. */
-		static mse::TXScopeReturnable<mse::xscope_optional<mse::mstd::string> > foo2() {
-			mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
-			return xscp_returnable_obj1;
-		}
-	};
-
-	mse::TXScopeObj<mse::mstd::string> xscp_res1(CB::foo1());
-	mse::xscope_optional<mse::mstd::string> xscp_res2(CB::foo2());
-}
+    #include "msescope.h"
+    #include "mseregistered.h"
+    #include "msemstdstring.h"
+    #include "mseoptional.h"
+    
+    class J {
+    public:
+        template<typename _TParam>
+        static auto foo10(_TParam param) {
+            auto l_obj = param;
+            /* Functions that could return a scope type need to wrap their return value with the returnable() function. */
+            return mse::returnable(mse::pointer_to(l_obj));
+        }
+    };
+    
+    void main() {
+        class CB {
+        public:
+            /* It's generally not necessary for a function return type to be a scope type. Even if the return value
+            is of a scope type, you can usually just use the underlying (non-scope) type of the scope object as the
+            return type. */
+            static mse::mstd::string foo1() {
+                mse::TXScopeObj<mse::mstd::string> xscp_string1("some text");
+                return mse::returnable(xscp_string1);
+            }
+    
+            /* In the less common case where the scope type doesn't have an underlying non-scope type, it may be safe
+            to return the scope object. But in order to use a scope type as a function return value, it must be
+            wrapped in the transparent mse::TReturnable<> or mse::TXScopeReturnable<> wrapper template, which will
+            induce a compile error if it deems the scope type potentially unsafe to use as a return type. */
+            static mse::TXScopeReturnable<mse::xscope_optional<mse::mstd::string> > foo2() {
+                mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
+                return mse::returnable(xscp_returnable_obj1);
+            }
+    
+            /* "auto" return types don't need to be wrapped, but the return value needs to be wrapped with the
+            returnable() function. */
+            static auto foo3() {
+                mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
+                return mse::returnable(xscp_returnable_obj1);
+            }
+        };
+    
+        mse::TXScopeObj<mse::mstd::string> xscp_res1(CB::foo1());
+        mse::xscope_optional<mse::mstd::string> xscp_res2(CB::foo2());
+    
+        typedef mse::TXScopeObj<mse::mstd::string> xscope_string_t;
+        xscope_string_t xscp_str1 = "some text";
+        /* TXScopeReturnable<> deems xscope_string_t to be an acceptable return type because it doesn't contain
+        any scope pointers. */
+        mse::TXScopeReturnable<xscope_string_t> xscpr_str1("some text");
+        auto xscp_rstr1 = mse::returnable(xscp_str1);
+    
+        typedef decltype(&xscp_str1) xscope_string_ptr_t;
+        /* TXScopeReturnable<> deems xscope_string_ptr_t to be an unsafe return type because it is (or contains)
+        a scope pointer. So the next line would result in a compile error. */
+        //mse::TXScopeReturnable<xscope_string_ptr_t> xscpr_sfptr1 = &xscp_str1;
+        //auto xscp_rstr_ptr1 = mse::returnable(&xscp_str1);
+    
+        mse::TRegisteredObj<mse::mstd::string> reg_str1 = "some text";
+        auto reg_ptr_res1 = J::foo10(reg_str1);
+        //auto xscp_ptr_res1 = J::foo10(xscp_str1); // <-- would induce a compile error inside J::foo10() 
+    }
 ```
 
 ### Defining your own scope types
@@ -1207,8 +1292,8 @@ void main(int argc, char* argv[]) {
 }
 ```
 
-### make_pointer_to_member()
-If you need a safe pointer to a member of a class/struct, you could declare the member itself to be a registered object (or a reference counting pointer). But often a preferable option is to use `make_pointer_to_member()`. This function takes the member you want to target, and a safe pointer to the containing class/struct, and combines them to create a safe pointer to the member. The actual type of the returned pointer varies depending on the types of the parameters passed.
+### make_pointer_to_member_v2()
+If you need a safe pointer to a member of a class/struct, you could declare the member itself to be a registered object (or a reference counting pointer). But often a preferable option is to use `make_pointer_to_member_v2()`. This function takes a safe pointer to the containing class/struct and a "[pointer-to-member](http://en.cppreference.com/w/cpp/language/pointer#Pointers_to_members)" indicating the member to the you want to target, and combines them to create a safe pointer to the member. The actual type of the returned pointer varies depending on the types of the parameters passed.
 
 usage example:
 
@@ -1222,11 +1307,11 @@ usage example:
         /* A member function that provides a safe pointer/reference to a class/struct member is going to need to
         take a safe version of the "this" pointer as a parameter. */
         template<class this_type>
-        static auto safe_pointer_to_member_string1(this_type safe_this) -> decltype(mse::make_pointer_to_member(safe_this->m_string1, safe_this)) {
-            return mse::make_pointer_to_member(safe_this->m_string1, safe_this);
+        static auto safe_pointer_to_member_string1(this_type safe_this) {
+            return mse::make_pointer_to_member_v2(safe_this, &H::m_string1);
         }
     
-        std::string m_string1 = "initial text";
+        mse::nii_string m_string1 = "initial text";
     };
     
     void main() {
@@ -1247,38 +1332,38 @@ usage example:
         auto h_msevec_ssiter = h_msevec.ss_begin();
     
         /* And don't forget the safe async sharing pointers. */
-        auto h_access_requester = mse::make_asyncsharedreadwrite<H>();
+        auto h_access_requester = mse::make_asyncsharedv2readwrite<ShareableH>();
         auto h_writelock_ptr = h_access_requester.writelock_ptr();
         auto h_stdshared_const_ptr = mse::make_stdsharedimmutable<H>();
     
         {
-            /* So here's how you get a safe pointer to a member of the object using mse::make_pointer_to_member(). */
-            auto h_string1_scpptr = mse::make_pointer_to_member(h_scpobj.m_string1, &h_scpobj);
+            /* So here's how you get a safe pointer to a member of the object using mse::make_pointer_to_member_v2(). */
+            auto h_string1_scpptr = mse::make_pointer_to_member_v2(&h_scpobj, &H::m_string1);
             (*h_string1_scpptr) = "some new text";
-            auto h_string1_scp_const_ptr = mse::make_const_pointer_to_member(h_scpobj.m_string1, &h_scpobj);
+            auto h_string1_scp_const_ptr = mse::make_const_pointer_to_member_v2(&h_scpobj, &H::m_string1);
     
-            auto h_string1_refcptr = mse::make_pointer_to_member(h_refcptr->m_string1, h_refcptr);
+            auto h_string1_refcptr = mse::make_pointer_to_member_v2(h_refcptr, &H::m_string1);
             (*h_string1_refcptr) = "some new text";
     
-            auto h_string1_regptr = mse::make_pointer_to_member(h_regobj.m_string1, &h_regobj);
+            auto h_string1_regptr = mse::make_pointer_to_member_v2(&h_regobj, &H::m_string1);
             (*h_string1_regptr) = "some new text";
     
-            auto h_string1_rlxregptr = mse::make_pointer_to_member(h_rlxregobj.m_string1, &h_rlxregobj);
+            auto h_string1_rlxregptr = mse::make_pointer_to_member_v2(&h_rlxregobj, &H::m_string1);
             (*h_string1_rlxregptr) = "some new text";
     
-            auto h_string1_mstdvec_iter = mse::make_pointer_to_member(h_mstdvec_iter->m_string1, h_mstdvec_iter);
+            auto h_string1_mstdvec_iter = mse::make_pointer_to_member_v2(h_mstdvec_iter, &H::m_string1);
             (*h_string1_mstdvec_iter) = "some new text";
     
-            auto h_string1_msevec_ipointer = mse::make_pointer_to_member(h_msevec_ipointer->m_string1, h_msevec_ipointer);
+            auto h_string1_msevec_ipointer = mse::make_pointer_to_member_v2(h_msevec_ipointer, &H::m_string1);
             (*h_string1_msevec_ipointer) = "some new text";
     
-            auto h_string1_msevec_ssiter = mse::make_pointer_to_member(h_msevec_ssiter->m_string1, h_msevec_ssiter);
+            auto h_string1_msevec_ssiter = mse::make_pointer_to_member_v2(h_msevec_ssiter, &H::m_string1);
             (*h_string1_msevec_ssiter) = "some new text";
     
-            auto h_string1_writelock_ptr = mse::make_pointer_to_member(h_writelock_ptr->m_string1, h_writelock_ptr);
+            auto h_string1_writelock_ptr = mse::make_pointer_to_member_v2(h_writelock_ptr, &H::m_string1);
             (*h_string1_writelock_ptr) = "some new text";
     
-            auto h_string1_stdshared_const_ptr = mse::make_pointer_to_member(h_stdshared_const_ptr->m_string1, h_stdshared_const_ptr);
+            auto h_string1_stdshared_const_ptr = mse::make_pointer_to_member_v2(h_stdshared_const_ptr, &H::m_string1);
             //(*h_string1_stdshared_const_ptr) = "some new text";
         }
     
@@ -1554,7 +1639,7 @@ One way to allow your function to accept any reference type is to make your func
 
 Another option is to use [poly pointers](#poly-pointers) instead. They can also enable your function to accept a variety of reference types, without "templatizing" your function, but with a small run-time overhead.
 
-Another choice is to require that reference parameters be passed using scope pointers. This approach, by default, has no more run-time overhead than using native pointers/references. And note that scope pointers can be obtained from reference counting pointers and pointers to shared objects (using [`make_xscope_strong_pointer_store()`](#make_xscope_strong_pointer_store)), but not registered pointers. And legacy (native) pointers would not be supported either. (Although if you're in a pinch, `mse::us::unsafe_make_xscope_pointer_to()` can produce an (unsafe) scope pointer to any object.) Generally, you would use scope pointer parameters in cases where you are adopting a "scopecentric" style of programming (similar to the Rust language), and trying to avoid use of (unsafe) legacy elements.
+Another choice is to require that reference parameters be passed using scope pointers. This approach, by default, has no more run-time overhead than using native pointers/references. And note that scope pointers can be obtained from reference counting pointers and pointers to shared objects (using [`make_xscope_strong_pointer_store()`](#make_xscope_strong_pointer_store)), and registered pointers when they are pointing to scope objects. Legacy (native) pointers though, would not be supported. (Although if you're in a pinch, `mse::us::unsafe_make_xscope_pointer_to()` can produce an (unsafe) scope pointer to any object.) Generally, you would use scope pointer parameters in cases where you are adopting a "scopecentric" style of programming (similar to the Rust language), and trying to avoid use of (unsafe) legacy elements.
 
 And of course the library remains perfectly compatible with (the less safe) traditional C++ references if you prefer. 
 
@@ -2480,6 +2565,17 @@ usage example:
         auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
         auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
         bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+        
+        /* Like non-owning scope pointers, scope sections may not be used as a function return value. (The returnable()
+        function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the
+        returned section is constructed from one of the input parameters. Let's consider a simple example of a
+        "first_half()" function that takes a scope section and returns a scope section spanning the first half of the
+        section. The library provides the random_access_subsection() function which takes a random access section and a
+        tuple containing a start index and a length and returns a random access section spanning the indicated
+        subsection.  You could use this function to implement the equivalent of a "first_half()" function like so: */
+        
+        auto xscp_ra_section3 = mse::random_access_subsection(xscp_ra_section1, std::make_tuple(0, xscp_ra_section1.length()/2));
+        assert(xscp_ra_section3.length() == 1);
     }
 ```
 
