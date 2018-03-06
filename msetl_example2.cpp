@@ -574,7 +574,7 @@ void msetl_example2() {
 			match that of sv. */
 			std::cout << sv;
 #endif /*!MSE_MSTDSTRING_DISABLED*/
-	}
+		}
 		{
 			/* Memory safety can also be achieved without extra run-time overhead. */
 
@@ -605,6 +605,40 @@ void msetl_example2() {
 
 			/* And trying to (unsafely) obtain a "scope" pointer from a temporary is not going to work. */
 			//auto xscope_pointer2 = &(mse::TXScopeObj< mse::nii_string >(s + "World\n"));	 // <-- compile error
+		}
+		{
+			std::string s = "Hellooooooooooooooo ";
+			auto sv = mse::make_nrp_string_const_section(mse::make_refcounting<std::string>(s + "World\n"));
+			std::cout << sv;
+		}
+		{
+			std::string s = "Hellooooooooooooooo ";
+			auto sv = mse::mknscs(mse::mkrclp(s + "World\n"));
+			std::cout << sv;
+		}
+		{
+#ifndef MSE_REGISTEREDPOINTER_DISABLED
+			std::string s = "Hellooooooooooooooo ";
+			auto sv = mse::make_nrp_string_const_section(&mse::TRegisteredObj<std::string>(s + "World\n"));
+			try {
+				std::cout << sv;
+			}
+			catch (...) {
+				std::cout << "expected exception\n";
+			}
+#endif //!MSE_REGISTEREDPOINTER_DISABLED
+		}
+		{
+#ifndef MSE_REGISTEREDPOINTER_DISABLED
+			std::string s = "Hellooooooooooooooo ";
+			auto sv = mse::mknscs(&mse::mkrolp(s + "World\n"));
+			try {
+				std::cout << sv;
+			}
+			catch (...) {
+				std::cout << "expected exception\n";
+			}
+#endif //!MSE_REGISTEREDPOINTER_DISABLED
 		}
 	}
 

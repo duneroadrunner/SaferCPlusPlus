@@ -6605,6 +6605,16 @@ namespace std {
 }
 
 namespace mse {
+
+	/* shorter aliases */
+	template <typename... Args>
+	auto mknss(Args&&... args) -> decltype(make_nrp_string_section(std::forward<Args>(args)...)) {
+		return make_nrp_string_section(std::forward<Args>(args)...);
+	}
+	template <typename... Args>
+	auto mknscs(Args&&... args) -> decltype(make_nrp_string_const_section(std::forward<Args>(args)...)) {
+		return make_nrp_string_const_section(std::forward<Args>(args)...);
+	}
 }
 
 #endif /*ndef MSEMSESTRING_H*/

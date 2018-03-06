@@ -1570,7 +1570,7 @@ namespace mse {
 #endif /*!defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REGISTEREDPOINTER_DISABLED)*/
 #ifndef MSE_MSTDSTRING_DISABLED
 		T_valid_if_not_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
-		T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
+		//T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
 #endif /*!MSE_MSTDSTRING_DISABLED*/
 	}
 

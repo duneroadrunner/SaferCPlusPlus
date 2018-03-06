@@ -927,6 +927,17 @@ namespace mse {
 	template <class _Ty, int _Tn = sc_default_cache_size>
 	void rdelete(const TRegisteredPointer<_Ty, _Tn>& regPtrRef) { registered_delete<_Ty, _Tn>(regPtrRef); }
 
+	/* These functions create a registered object assuming the type is the same as the lone parameter, so you don't need
+	to explicitly specify it. */
+	template <typename _TLoneParam>
+	auto mkrolp(const _TLoneParam& lone_param) {
+		return TRegisteredObj<_TLoneParam>(lone_param);
+	}
+	template <typename _TLoneParam>
+	auto mkrolp(_TLoneParam&& lone_param) {
+		return TRegisteredObj<_TLoneParam>(std::forward<decltype(lone_param)>(lone_param));
+	}
+
 	/* deprecated aliases */
 	template<class _TTargetType, class _TLeasePointerType> using swkfp = TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>;
 	template<class _TTargetType, class _TLeasePointerType> using swkfcp = TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;

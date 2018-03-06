@@ -705,6 +705,19 @@ namespace mse {
 	TStrongFixedConstPointer<_TTargetType, std::shared_ptr<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const std::shared_ptr<_Ty> &lease_pointer) {
 		return TStrongFixedConstPointer<_TTargetType, std::shared_ptr<_Ty>>::make(target, lease_pointer);
 	}
+
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_pointer_to_member_v2(const std::shared_ptr<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return TStrongFixedPointer<_TTarget, std::shared_ptr<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_const_pointer_to_member_v2(const std::shared_ptr<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		return TStrongFixedConstPointer<_TTarget, std::shared_ptr<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
+	}
 #endif // MSEPOINTERBASICS_H
 
 
@@ -743,6 +756,21 @@ namespace mse {
 	template<typename _Ty> using refcnncp = TRefCountingNotNullConstPointer<_Ty>;
 	template<typename _Ty> using refcfp = TRefCountingFixedPointer<_Ty>;
 	template<typename _Ty> using refcfcp = TRefCountingFixedConstPointer<_Ty>;
+
+	template <class X, class... Args>
+	auto mkrc(Args&&... args) {
+		return make_refcounting<X>(std::forward<Args>(args)...);
+	}
+
+	/* These functions assume the type is the same as the lone parameter, so you don't need to explicitly specify it. */
+	template <typename _TLoneParam>
+	auto mkrclp(const _TLoneParam& lone_param) {
+		return make_refcounting<_TLoneParam>(lone_param);
+	}
+	template <typename _TLoneParam>
+	auto mkrclp(_TLoneParam&& lone_param) {
+		return make_refcounting<_TLoneParam>(std::forward<decltype(lone_param)>(lone_param));
+	}
 
 	/* deprecated aliases */
 	template<class _TTargetType, class _TLeaseType> using strfp = TStrongFixedPointer<_TTargetType, _TLeaseType>;
