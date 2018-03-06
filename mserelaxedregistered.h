@@ -29,17 +29,22 @@ former purpose could be satisfied with a faster, safer, "header file only" set o
 //include <typeinfo>      // std::bad_cast
 #include <stdexcept>
 
+#if defined(_MSC_VER) && (defined(_WIN32) || defined(_WIN64)) 
+/* Jan 2016: For some reason std::this_thread::get_id() seems to be really slow in windows. So we're replacing it with the
+native GetCurrentThreadId(). */
+#define MSE_USE_WINDOWS_THREADID
+#endif /*_MSC_VER && (_WIN32 || _WIN64)*/
 
-#ifdef _MSC_VER
+#ifdef MSE_USE_WINDOWS_THREADID
 /* Jan 2016: For some reason std::this_thread::get_id() seems to be really slow in windows. So we're replacing it with the
 native GetCurrentThreadId(). */
 #define MSE_THREAD_ID_TYPE unsigned long /*DWORD*/
 #define MSE_GET_CURRENT_THREAD_ID CSPTrackerMap::mseWindowsGetCurrentThreadId()
-#else /*_MSC_VER*/
+#else /*MSE_USE_WINDOWS_THREADID*/
 #include <thread>         // std::thread, MSE_THREAD_ID_TYPE, MSE_GET_CURRENT_THREAD_ID
 #define MSE_THREAD_ID_TYPE std::thread::id
 #define MSE_GET_CURRENT_THREAD_ID std::this_thread::get_id()
-#endif /*_MSC_VER*/
+#endif /*MSE_USE_WINDOWS_THREADID*/
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_REGISTEREDPOINTER_DISABLED
@@ -183,9 +188,9 @@ namespace mse {
 				}
 			}
 		}
-#ifdef _MSC_VER
+#ifdef MSE_USE_WINDOWS_THREADID
 		static MSE_THREAD_ID_TYPE mseWindowsGetCurrentThreadId();
-#endif /*_MSC_VER*/
+#endif /*MSE_USE_WINDOWS_THREADID*/
 
 
 		MSE_THREAD_ID_TYPE m_first_thread_id;

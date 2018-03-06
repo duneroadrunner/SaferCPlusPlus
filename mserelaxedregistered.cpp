@@ -10,9 +10,9 @@ complete prohibition of sharing relaxed registered pointers between threads. */
 
 #include "mserelaxedregistered.h"
 
-#ifdef _MSC_VER
+#ifdef MSE_USE_WINDOWS_THREADID
 #include "windows.h"
-#endif /*_MSC_VER*/
+#endif /*MSE_USE_WINDOWS_THREADID*/
 
 #ifdef _MSC_VER
 #pragma warning( push )  
@@ -200,11 +200,11 @@ namespace mse {
 		removeObjectFromFastStorage1(fs1_obj_index);
 	}
 
-#ifdef _MSC_VER
+#ifdef MSE_USE_WINDOWS_THREADID
 	MSE_THREAD_ID_TYPE CSPTrackerMap::mseWindowsGetCurrentThreadId() {
 		return GetCurrentThreadId();
 	}
-#endif /*_MSC_VER*/
+#endif /*MSE_USE_WINDOWS_THREADID*/
 
 	CSPTrackerMap gSPTrackerMap;
 }
