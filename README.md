@@ -1119,7 +1119,7 @@ usage example:
             registered_ptr1 = &regxscp_nstring3;
             CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
         }
-        /* Attempting to dereference registered_ptr1 here would result in an exception . */
+        /* Attempting to dereference registered_ptr1 here would result in an exception. */
         //*registered_ptr1;
     }
 ```
@@ -2584,7 +2584,7 @@ usage example:
         "first_half()" function that takes a scope section and returns a scope section spanning the first half of the
         section. The library provides the random_access_subsection() function which takes a random access section and a
         tuple containing a start index and a length and returns a random access section spanning the indicated
-        subsection.  You could use this function to implement the equivalent of a "first_half()" function like so: */
+        subsection. You could use this function to implement the equivalent of a "first_half()" function like so: */
         
         auto xscp_ra_section3 = mse::random_access_subsection(xscp_ra_section1, std::make_tuple(0, xscp_ra_section1.length()/2));
         assert(xscp_ra_section3.length() == 1);
