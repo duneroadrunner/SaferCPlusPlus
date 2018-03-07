@@ -1293,7 +1293,7 @@ void main(int argc, char* argv[]) {
 ```
 
 ### make_pointer_to_member_v2()
-If you need a safe pointer to a member of a class/struct, you could declare the member itself to be a registered object (or a reference counting pointer). But often a preferable option is to use `make_pointer_to_member_v2()`. This function takes a safe pointer to the containing class/struct and a "[pointer-to-member](http://en.cppreference.com/w/cpp/language/pointer#Pointers_to_members)" indicating the member to the you want to target, and combines them to create a safe pointer to the member. The actual type of the returned pointer varies depending on the types of the parameters passed.
+If you need a safe pointer to a member of a class/struct, you could declare the member itself to be a registered object (or a reference counting pointer). But often a preferable option is to use `make_pointer_to_member_v2()`. This function takes a safe pointer to the containing class/struct and a "[pointer-to-member](http://en.cppreference.com/w/cpp/language/pointer#Pointers_to_members)" indicating the member you want to target, and combines them to create a safe pointer to the member. The actual type of the returned pointer varies depending on the types of the parameters passed.
 
 usage example:
 
