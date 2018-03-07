@@ -116,8 +116,8 @@ namespace mse {
 	template<typename _Ty> using TXScopeItemFixedConstPointer = const _Ty*;
 	template<typename _TROy> using TXScopeReturnable = _TROy;
 
-	template<typename _Ty> auto xscope_ifptr_to(_Ty&& _X) { return &_X; }
-	template<typename _Ty> auto xscope_ifptr_to(const _Ty& _X) { return &_X; }
+	template<typename _Ty> auto xscope_ifptr_to(_Ty&& _X) { return std::addressof(_X); }
+	template<typename _Ty> auto xscope_ifptr_to(const _Ty& _X) { return std::addressof(_X); }
 
 	template<typename _Ty> const _Ty& returnable(const _Ty& _X) { return _X; }
 	template<typename _Ty> _Ty&& returnable(_Ty&& _X) { return std::forward<decltype(_X)>(_X); }
