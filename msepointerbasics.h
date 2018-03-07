@@ -255,8 +255,6 @@ namespace mse {
 #ifdef MSE_SAFERPTR_DISABLED
 	template<typename _Ty> using TSaferPtr = TPointer<_Ty>;
 	template<typename _Ty> using TSaferPtrForLegacy = TPointerForLegacy<_Ty>;
-
-	template<typename _Ty> auto pointer_to(const _Ty& _X) { return &_X; }
 #else /*MSE_SAFERPTR_DISABLED*/
 
 	class CSaferPtrBase : public NotAsyncShareableTagBase {
@@ -417,6 +415,11 @@ namespace mse {
 		void assert_initialized() const {}
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 	};
+#endif /*MSE_SAFERPTR_DISABLED*/
+
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+	template<typename _Ty> auto pointer_to(const _Ty& _X) { return &_X; }
+#else /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
 	template<typename _Ty, class = typename std::enable_if<(!std::is_pointer<_Ty>::value), void>::type>
 	void T_valid_if_not_raw_pointer_msepointerbasics() {}
@@ -426,7 +429,7 @@ namespace mse {
 		T_valid_if_not_raw_pointer_msepointerbasics<decltype(&_X)>();
 		return &_X;
 	}
-#endif /*MSE_SAFERPTR_DISABLED*/
+#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
 
 	template <class _TTargetType, class _TLeasePointerType> class TSyncWeakFixedConstPointer;

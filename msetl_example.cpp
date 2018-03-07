@@ -1516,9 +1516,9 @@ int main(int argc, char* argv[])
 	}
 
 	{
-		/******************************/
+		/*********************************/
 		/*  make_pointer_to_member_v2()  */
-		/******************************/
+		/*********************************/
 
 		/* If you have a safe pointer to an object, you can get a safe pointer to a member of that object 
 		using the make_pointer_to_member_v2() function. */
@@ -1542,7 +1542,7 @@ int main(int argc, char* argv[])
 		/* And don't forget the safe async sharing pointers. */
 		auto h_access_requester = mse::make_asyncsharedv2readwrite<ShareableH>();
 		auto h_writelock_ptr = h_access_requester.writelock_ptr();
-		auto h_stdshared_const_ptr = mse::make_stdsharedimmutable<H>();
+		auto h_shared_immutable_ptr = mse::make_asyncsharedv2immutable<ShareableH>();
 
 		{
 			/* So here's how you get a safe pointer to a member of the object using mse::make_pointer_to_member_v2(). */
@@ -1571,7 +1571,7 @@ int main(int argc, char* argv[])
 			auto h_string1_writelock_ptr = mse::make_pointer_to_member_v2(h_writelock_ptr, &H::m_string1);
 			(*h_string1_writelock_ptr) = "some new text";
 
-			auto h_string1_stdshared_const_ptr = mse::make_pointer_to_member_v2(h_stdshared_const_ptr, &H::m_string1);
+			auto h_string1_stdshared_const_ptr = mse::make_pointer_to_member_v2(h_shared_immutable_ptr, &H::m_string1);
 			//(*h_string1_stdshared_const_ptr) = "some new text";
 		}
 
@@ -1603,7 +1603,7 @@ int main(int argc, char* argv[])
 			auto h_string1_writelock_ptr = H::safe_pointer_to_member_string1(h_writelock_ptr);
 			(*h_string1_writelock_ptr) = "some new text";
 
-			auto h_string1_stdshared_const_ptr = H::safe_pointer_to_member_string1(h_stdshared_const_ptr);
+			auto h_string1_stdshared_const_ptr = H::safe_pointer_to_member_string1(h_shared_immutable_ptr);
 			//(*h_string1_stdshared_const_ptr) = "some new text";
 		}
 	}
