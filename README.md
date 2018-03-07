@@ -95,6 +95,7 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     3. [msearray](#msearray)
     4. [xscope_iterator](#xscope_iterator)
     5. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
+17. [for_each() specializations](#for_each-specializations)
 17. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
 18. [Strings](#strings)
     1. [mstd::string](#string)
@@ -2515,6 +2516,12 @@ usage example:
         auto res2 = *scp_cptr2;
     }
 ```
+
+### for_each() specializations
+
+`std::for_each()` template specializations for the library's safe iterators are not yet implemented, but are hopefully coming soon. In theory, using `std::for_each()` could provide a performance benefit over regular "ranged-based loops", as it eliminates the need for bounds checking of the loop iterator. Note that the specialization for `mstd::vector<>` will hold a "[size change lock guard](#make_xscope_vector_size_change_lock_guard)", preventing the size of the vector from being changed during iteration.
+
+Also, parallel execution policies, will only be supported for specializations using the async shared iterators provided in the library.
 
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
