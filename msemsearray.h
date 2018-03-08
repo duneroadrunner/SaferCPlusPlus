@@ -922,7 +922,7 @@ namespace mse {
 
 		operator _MA() const { return contained_array(); }
 
-		_CONST_FUN typename std_array::const_reference operator[](msear_size_t _P) const {
+		typename std_array::const_reference operator[](msear_size_t _P) const {
 			return (*this).at(msear_as_a_size_t(_P));
 		}
 		typename std_array::reference operator[](msear_size_t _P) {
@@ -983,12 +983,12 @@ namespace mse {
 			m_array.swap(_Other);
 		}
 
-		_CONST_FUN size_type size() const _NOEXCEPT
+		size_type size() const _NOEXCEPT
 		{	// return length of sequence
 			return m_array.size();
 		}
 
-		_CONST_FUN size_type max_size() const _NOEXCEPT
+		size_type max_size() const _NOEXCEPT
 		{	// return maximum possible length of sequence
 			return m_array.max_size();
 		}
@@ -1003,7 +1003,7 @@ namespace mse {
 			return m_array.at(msear_as_a_size_t(_Pos));
 		}
 
-		_CONST_FUN const_reference at(msear_size_t _Pos) const
+		const_reference at(msear_size_t _Pos) const
 		{	// subscript nonmutable sequence with checking
 			return m_array.at(msear_as_a_size_t(_Pos));
 		}
@@ -2437,12 +2437,12 @@ namespace mse {
 		TRAIteratorBase() {}
 
 		TRAIteratorBase(const TRAIteratorBase& src) : m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
-		TRAIteratorBase(_TRAContainerPointer ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(index)) {}
+		TRAIteratorBase(_TRAContainerPointer ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
 
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
 		TRAIteratorBase(const TRAIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAIteratorBase(_Ty2 ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(index)) {}
+		TRAIteratorBase(_Ty2 ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
 
 		auto operator*() const -> reference {
 			return (*m_ra_container_pointer)[m_index];
@@ -2450,7 +2450,7 @@ namespace mse {
 		auto operator->() const -> typename std::add_pointer<value_type>::type {
 			return std::addressof((*m_ra_container_pointer)[m_index]);
 		}
-		reference operator[](difference_type _Off) const { return (*m_ra_container_pointer)[size_type(m_index + _Off)]; }
+		reference operator[](difference_type _Off) const { return (*m_ra_container_pointer)[m_index + _Off]; }
 		TRAIteratorBase& operator +=(difference_type x) {
 			m_index += (x);
 			return (*this);
@@ -2630,14 +2630,14 @@ namespace mse {
 		TRAConstIteratorBase() {}
 		TRAConstIteratorBase(const TRAConstIteratorBase& src) : m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
 		TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>& src) : m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
-		TRAConstIteratorBase(_TRAContainerPointer ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(index)) {}
+		TRAConstIteratorBase(_TRAContainerPointer ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
 
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
 		TRAConstIteratorBase(const TRAConstIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
 		TRAConstIteratorBase(const TRAIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAConstIteratorBase(_Ty2 ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(index)) {}
+		TRAConstIteratorBase(_Ty2 ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
 
 		auto operator*() const -> const_reference {
 			return (*m_ra_container_pointer)[m_index];
@@ -2645,7 +2645,7 @@ namespace mse {
 		auto operator->() const -> typename std::add_pointer<typename std::add_const<value_type>::type>::type {
 			return std::addressof((*m_ra_container_pointer)[m_index]);
 		}
-		const_reference operator[](difference_type _Off) const { return (*m_ra_container_pointer)[size_type(m_index + _Off)]; }
+		const_reference operator[](difference_type _Off) const { return (*m_ra_container_pointer)[(m_index + _Off)]; }
 		TRAConstIteratorBase& operator +=(difference_type x) {
 			m_index += (x);
 			return (*this);
@@ -2863,10 +2863,10 @@ namespace mse {
 		TRASectionIteratorBase(const TRASectionIteratorBase& src)
 			: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
 		TRASectionIteratorBase(_TRAIterator ra_iterator, size_type count, size_type index = 0)
-			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(index)) {}
+			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
 
 		void bounds_check(difference_type index) const {
-			if ((0 > index) || (difference_type(m_count) <= index)) {
+			if ((0 > index) || (difference_type(mse::as_a_size_t(m_count)) <= index)) {
 				MSE_THROW(msearray_range_error("out of bounds index - void bounds_check() - TRASectionIteratorBase"));
 			}
 		}
@@ -3035,10 +3035,10 @@ namespace mse {
 		TRASectionConstIteratorBase(const TRASectionIteratorBase<_TRAIterator>& src)
 			: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
 		TRASectionConstIteratorBase(_TRAIterator ra_iterator, size_type count, size_type index = 0)
-			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(index)) {}
+			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
 
 		void bounds_check(difference_type index) const {
-			if ((0 > index) || (difference_type(m_count) <= index)) {
+			if ((0 > index) || (difference_type(mse::as_a_size_t(m_count)) <= index)) {
 				MSE_THROW(msearray_range_error("out of bounds index - void bounds_check() - TRASectionConstIteratorBase"));
 			}
 		}
@@ -3268,7 +3268,7 @@ namespace mse {
 		typedef typename std::add_lvalue_reference<typename std::add_const<value_type>::type>::type const_reference;
 		typedef typename mse::us::msearray<value_type, 0>::size_type size_type;
 		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef _TRAIterator ra_iterator_type;
 
 		//TRandomAccessSectionBase(const TRandomAccessSectionBase& src) = default;
@@ -3283,7 +3283,7 @@ namespace mse {
 
 		reference operator[](size_type _P) const {
 			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TRandomAccessSectionBase")); }
-			return m_start_iter[difference_type(_P)];
+			return m_start_iter[difference_type(mse::as_a_size_t(_P))];
 		}
 		reference at(size_type _P) const {
 			return (*this)[_P];
@@ -3614,12 +3614,12 @@ namespace mse {
 		xscope_const_iterator xscope_cbegin() const { return xscope_const_iterator((*this).m_start_iter, (*this).m_count); }
 		xscope_iterator xscope_end() const {
 			auto retval(xscope_iterator((*this).m_start_iter, (*this).m_count));
-			retval += (*this).m_count;
+			retval += mse::as_a_size_t((*this).m_count);
 			return retval;
 		}
 		xscope_const_iterator xscope_cend() const {
 			auto retval(xscope_const_iterator((*this).m_start_iter, (*this).m_count));
-			retval += (*this).m_count;
+			retval += mse::as_a_size_t((*this).m_count);
 			return retval;
 		}
 
@@ -3638,7 +3638,7 @@ namespace mse {
 		TRandomAccessSectionBase subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSectionBase subsection() const - TRandomAccessSectionBase")))
-				: TRandomAccessSectionBase((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+				: TRandomAccessSectionBase((*this).m_start_iter + mse::as_a_size_t(pos), std::min(mse::as_a_size_t(n), mse::as_a_size_t((*this).size()) - mse::as_a_size_t(pos)));
 		}
 
 		typedef TRASectionIterator<_TRAIterator> iterator;
@@ -3648,13 +3648,13 @@ namespace mse {
 		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
 		iterator end() {
 			auto retval(iterator((*this).m_start_iter, (*this).m_count));
-			retval += (*this).m_count;
+			retval += mse::as_a_size_t((*this).m_count);
 			return retval;
 		}
 		const_iterator end() const { return cend(); }
 		const_iterator cend() const {
 			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
-			retval += (*this).m_count;
+			retval += mse::as_a_size_t((*this).m_count);
 			return retval;
 		}
 
@@ -3760,7 +3760,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 
 		//TXScopeRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter,count) {}
 		//TXScopeRandomAccessSection(const TXScopeRandomAccessSection& src) = default;
@@ -3773,13 +3773,13 @@ namespace mse {
 		TXScopeRandomAccessSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessSection xscope_subsection() const - TXScopeRandomAccessSection")))
-				: TXScopeRandomAccessSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+				: TXScopeRandomAccessSection((*this).m_start_iter + mse::as_a_size_t(pos), std::min(mse::as_a_size_t(n), mse::as_a_size_t((*this).size()) - mse::as_a_size_t(pos)));
 		}
 		typedef typename std::conditional<std::is_base_of<XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessSection, TRandomAccessSection<_TRAIterator> >::type subsection_t;
 		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection<_TRAIterator> subsection() const - TXScopeRandomAccessSection")))
-				: TRandomAccessSection<_TRAIterator>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+				: TRandomAccessSection<_TRAIterator>((*this).m_start_iter + mse::as_a_size_t(pos), std::min(mse::as_a_size_t(n), mse::as_a_size_t((*this).size()) - mse::as_a_size_t(pos)));
 		}
 
 		typedef typename base_class::xscope_iterator xscope_iterator;
@@ -3830,7 +3830,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 
 		TRandomAccessSection(const TRandomAccessSection& src) : base_class(static_cast<const base_class&>(src)) {}
 		TRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
@@ -3846,12 +3846,12 @@ namespace mse {
 		TXScopeRandomAccessSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessSection xscope_subsection() const - TRandomAccessSection")))
-				: TXScopeRandomAccessSection<_TRAIterator>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+				: TXScopeRandomAccessSection<_TRAIterator>((*this).m_start_iter + mse::as_a_size_t(pos), std::min(mse::as_a_size_t(n), mse::as_a_size_t((*this).size()) - mse::as_a_size_t(pos)));
 		}
 		TRandomAccessSection subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection subsection() const - TRandomAccessSection")))
-				: TRandomAccessSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+				: TRandomAccessSection((*this).m_start_iter + mse::as_a_size_t(pos), std::min(mse::as_a_size_t(n), mse::as_a_size_t((*this).size()) - mse::as_a_size_t(pos)));
 		}
 
 		typedef typename base_class::iterator iterator;
@@ -3908,7 +3908,7 @@ namespace mse {
 		typedef typename std::add_lvalue_reference<typename std::add_const<value_type>::type>::type const_reference;
 		typedef typename mse::us::msearray<value_type, 0>::size_type size_type;
 		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef _TRAIterator ra_iterator_type;
 
 		//TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) = default;
@@ -3924,7 +3924,7 @@ namespace mse {
 
 		const_reference operator[](size_type _P) const {
 			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TRandomAccessConstSectionBase")); }
-			return m_start_iter[difference_type(_P)];
+			return m_start_iter[difference_type(mse::msear_as_a_size_t(_P))];
 		}
 		const_reference at(size_type _P) const {
 			return (*this)[_P];
@@ -4222,7 +4222,7 @@ namespace mse {
 		xscope_const_iterator xscope_end() const { return (*this).xscope_cend(); }
 		xscope_const_iterator xscope_cend() const {
 			auto retval(xscope_const_iterator((*this).m_start_iter, (*this).m_count));
-			retval += (*this).m_count;
+			retval += mse::as_a_size_t((*this).m_count);
 			return retval;
 		}
 
@@ -4245,7 +4245,7 @@ namespace mse {
 		TRandomAccessConstSectionBase subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSectionBase subsection() const - TRandomAccessConstSectionBase")))
-					: TRandomAccessConstSectionBase((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+					: TRandomAccessConstSectionBase((*this).m_start_iter + mse::as_a_size_t(pos), std::min(mse::as_a_size_t(n), mse::as_a_size_t((*this).size()) - mse::as_a_size_t(pos)));
 		}
 
 		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
@@ -4253,7 +4253,7 @@ namespace mse {
 		const_iterator begin() const { return cbegin(); }
 		const_iterator cend() const {
 			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
-			retval += (*this).m_count;
+			retval += mse::as_a_size_t((*this).m_count);
 			return retval;
 		}
 		const_iterator end() const { return cend(); }
@@ -4327,7 +4327,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 
 		//TXScopeRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		//TXScopeRandomAccessConstSection(const TXScopeRandomAccessConstSection& src) = default;
@@ -4341,13 +4341,13 @@ namespace mse {
 		TXScopeRandomAccessConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessConstSection xscope_subsection() const - TXScopeRandomAccessConstSection")))
-				: TXScopeRandomAccessConstSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+				: TXScopeRandomAccessConstSection((*this).m_start_iter + mse::as_a_size_t(pos), std::min(mse::as_a_size_t(n), mse::as_a_size_t((*this).size()) - mse::as_a_size_t(pos)));
 		}
 		typedef typename std::conditional<std::is_base_of<XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSection, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
 		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection<_TRAIterator> subsection() const - TXScopeRandomAccessConstSection")))
-				: TRandomAccessConstSection<_TRAIterator>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+				: TRandomAccessConstSection<_TRAIterator>((*this).m_start_iter + mse::as_a_size_t(pos), std::min(mse::as_a_size_t(n), mse::as_a_size_t((*this).size()) - mse::as_a_size_t(pos)));
 		}
 
 		//typedef typename base_class::xscope_iterator xscope_iterator;
@@ -4386,7 +4386,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 
 		TRandomAccessConstSection(const TRandomAccessConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
 		TRandomAccessConstSection(const TRandomAccessSection<_TRAIterator>& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -4400,12 +4400,12 @@ namespace mse {
 		TXScopeRandomAccessConstSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessConstSection xscope_subsection() const - TRandomAccessSection")))
-				: TXScopeRandomAccessConstSection<_TRAIterator>((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+				: TXScopeRandomAccessConstSection<_TRAIterator>((*this).m_start_iter + mse::as_a_size_t(pos), std::min(mse::as_a_size_t(n), mse::as_a_size_t((*this).size()) - mse::as_a_size_t(pos)));
 		}
 		TRandomAccessConstSection subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection subsection() const - TRandomAccessConstSection")))
-				: TRandomAccessConstSection((*this).m_start_iter + pos, std::min(n, (*this).size() - pos));
+				: TRandomAccessConstSection((*this).m_start_iter + mse::as_a_size_t(pos), std::min(mse::as_a_size_t(n), mse::as_a_size_t((*this).size()) - mse::as_a_size_t(pos)));
 		}
 
 		typedef TRASectionConstIterator<_TRAIterator> const_iterator;

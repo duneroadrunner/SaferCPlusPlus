@@ -1211,13 +1211,13 @@ namespace mse {
 				typedef decltype(std::declval<_TRAIterator>()[0]) reference_t;
 				typedef typename std::add_lvalue_reference<typename std::add_const<element_t>::type>::type const_reference_t;
 				typedef typename mse::us::msearray<element_t, 0>::size_type size_type;
-				typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_t;
+				typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
 
 				TAsyncSplitterRandomAccessSection(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
 
 				reference_t operator[](size_type _P) const {
 					if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TAsyncSplitterRandomAccessSection")); }
-					return m_start_iter[difference_t(_P)];
+					return m_start_iter[difference_type(mse::as_a_size_t(_P))];
 				}
 				size_type size() const {
 					return m_count;

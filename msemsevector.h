@@ -3394,7 +3394,7 @@ namespace mse {
 			typename base_class::const_iterator const_iterator_from_ss_const_iterator_type(const ss_const_iterator_type& ss_citer) const {
 				assert(ss_citer.target_container_ptr() == this);
 				typename base_class::const_iterator retval = (*this).cbegin();
-				retval += ss_citer.position();
+				retval += mse::as_a_size_t(ss_citer.position());
 				return retval;
 			}
 

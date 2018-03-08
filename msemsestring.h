@@ -108,7 +108,7 @@ namespace mse {
 		typedef typename std_basic_string::const_pointer const_pointer;
 		typedef typename std_basic_string::reference reference;
 		typedef typename std_basic_string::const_reference const_reference;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 
 		typedef typename std_basic_string::iterator iterator;
 		typedef typename std_basic_string::const_iterator const_iterator;
@@ -137,7 +137,7 @@ namespace mse {
 			//nii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : m_basic_string(_First, _Last, _Al) { /*m_debug_size = size();*/ }
 		nii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : m_basic_string(_First, _Last, _Al) { /*m_debug_size = size();*/ }
 		nii_basic_string(const _Ty* const _Ptr) : m_basic_string(_Ptr) { /*m_debug_size = size();*/ }
-		nii_basic_string(const _Ty* const _Ptr, const size_type _Count) : m_basic_string(_Ptr, _Count) { /*m_debug_size = size();*/ }
+		nii_basic_string(const _Ty* const _Ptr, const size_type _Count) : m_basic_string(_Ptr, mse::as_a_size_t(_Count)) { /*m_debug_size = size();*/ }
 		nii_basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_basic_string(_X.contained_basic_string(), _Roff, npos, _Al) { /*m_debug_size = size();*/ }
 		nii_basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_basic_string(_X.contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
 		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
@@ -1430,7 +1430,7 @@ namespace mse {
 		}
 
 		nii_basic_string& replace(const size_type _Off, const size_type _N0, const nii_basic_string& _Right) {
-			m_basic_string.replace(_Off, _N0, _Right.contained_basic_string());
+			m_basic_string.replace(mse::as_a_size_t(_Off), mse::as_a_size_t(_N0), _Right.contained_basic_string());
 			return (*this);
 		}
 
@@ -1727,7 +1727,7 @@ namespace mse {
 				}
 			}
 			for (size_type i = 0; i < n; i += 1) {
-				(*target_iter) = m_basic_string[i];
+				(*target_iter) = m_basic_string[mse::as_a_size_t(i)];
 				++target_iter;
 			}
 			return n;
@@ -1735,7 +1735,7 @@ namespace mse {
 
 		nii_basic_string substr(const size_type _Off = 0, const size_type _Count = npos) const {
 			//return (nii_basic_string(*this, _Off, _Count, get_allocator()));
-			return (nii_basic_string(m_basic_string.substr(_Off, _Count)));
+			return (nii_basic_string(m_basic_string.substr(mse::as_a_size_t(_Off), mse::as_a_size_t(_Count))));
 		}
 
 		static nii_basic_string& _Myt_ref(nii_basic_string& nbs_ref) {
@@ -2107,7 +2107,7 @@ namespace mse {
 			typedef typename base_class::const_pointer const_pointer;
 			typedef typename base_class::reference reference;
 			typedef typename base_class::const_reference const_reference;
-			static const size_type npos = size_type(-1);
+			static const size_t npos = size_t(-1);
 
 			typedef typename base_class::_MBS::iterator iterator;
 			typedef typename base_class::_MBS::const_iterator const_iterator;
@@ -5614,7 +5614,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef typename std::remove_const<value_type>::type nonconst_value_type;
 
 		TStringSectionBase(const TStringSectionBase& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -5764,7 +5764,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef typename std::remove_const<value_type>::type nonconst_value_type;
 
 		//MSE_USING(TXScopeStringSection, base_class);
@@ -5842,7 +5842,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef typename std::remove_const<value_type>::type nonconst_value_type;
 
 		TStringSection(const TStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -5932,7 +5932,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef typename std::remove_const<value_type>::type nonconst_value_type;
 
 		TStringConstSectionBase(const TStringConstSectionBase& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -6079,7 +6079,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef typename std::remove_const<value_type>::type nonconst_value_type;
 
 		//MSE_USING(TXScopeStringConstSection, base_class);
@@ -6157,7 +6157,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef typename std::remove_const<value_type>::type nonconst_value_type;
 
 		TStringConstSection(const TStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -6312,7 +6312,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef typename std::remove_const<value_type>::type nonconst_value_type;
 
 		//MSE_USING(TXScopeNRPStringSection, base_class);
@@ -6380,7 +6380,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef typename std::remove_const<value_type>::type nonconst_value_type;
 
 		TNRPStringSection(const TNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -6437,7 +6437,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef typename std::remove_const<value_type>::type nonconst_value_type;
 
 		//MSE_USING(TXScopeNRPStringConstSection, base_class);
@@ -6524,7 +6524,7 @@ namespace mse {
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::difference_type difference_type;
-		static const size_type npos = size_type(-1);
+		static const size_t npos = size_t(-1);
 		typedef typename std::remove_const<value_type>::type nonconst_value_type;
 
 		TNRPStringConstSection(const TNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}

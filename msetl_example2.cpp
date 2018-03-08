@@ -9,6 +9,9 @@
 #define MSE_FORCE_PRIMITIVE_ASSIGN_RANGE_CHECK_ENABLED
 #define MSE_SELF_TESTS
 
+//define MSE_MSEVECTOR_USE_MSE_PRIMITIVES 1
+//define MSE_MSEARRAY_USE_MSE_PRIMITIVES 1
+
 #include "msetl_example2.h"
 //include "msetl.h"
 #include "mseregistered.h"
@@ -91,7 +94,7 @@ public:
 	static void foo8(_TStringRASection ra_section) {
 		size_t delay_in_milliseconds = 3000/*arbitrary*/;
 		if (1 <= ra_section.size()) {
-			delay_in_milliseconds /= ra_section.size();
+			delay_in_milliseconds /= mse::as_a_size_t(ra_section.size());
 		}
 		for (size_t i = 0; i < ra_section.size(); i += 1) {
 			auto now1 = std::chrono::system_clock::now();

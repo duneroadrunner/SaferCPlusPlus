@@ -53,7 +53,7 @@ namespace mse {
 			typedef typename _MBS::const_pointer const_pointer;
 			typedef typename _MBS::reference reference;
 			typedef typename _MBS::const_reference const_reference;
-			static const size_type npos = size_type(-1);
+			static const size_t npos = size_t(-1);
 
 			operator mse::nii_basic_string<_Ty, _Traits, _A>() const { return msebasic_string(); }
 			operator std::basic_string<_Ty, _Traits, _A>() const { return msebasic_string(); }

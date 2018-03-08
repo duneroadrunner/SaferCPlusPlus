@@ -190,16 +190,16 @@ namespace mse {
 			_Myt& operator=(const _MA& _X) { m_nii_array.operator=(_X); return (*this); }
 			_Myt& operator=(_Myt&& _X) { m_nii_array.operator=(std::forward<decltype(_X.as_nii_array())>(_X.as_nii_array())); return (*this); }
 			_Myt& operator=(const _Myt& _X) { m_nii_array.operator=(_X.as_nii_array()); return (*this); }
-			_CONST_FUN typename _MA::const_reference operator[](size_type _P) const { return m_nii_array.operator[](_P); }
+			typename _MA::const_reference operator[](size_type _P) const { return m_nii_array.operator[](_P); }
 			typename _MA::reference operator[](size_type _P) { return m_nii_array.operator[](_P); }
 			void fill(const _Ty& _Value) { m_nii_array.fill(_Value); }
 			void swap(_MA& _X) { m_nii_array.swap(_X); }
 			void swap(_Myt& _X) { m_nii_array.swap(_X.as_nii_array()); }
 
-			_CONST_FUN size_type size() const _NOEXCEPT { return m_nii_array.size(); }
-			_CONST_FUN size_type max_size() const _NOEXCEPT { return m_nii_array.max_size(); }
+			size_type size() const _NOEXCEPT { return m_nii_array.size(); }
+			size_type max_size() const _NOEXCEPT { return m_nii_array.max_size(); }
 			_CONST_FUN bool empty() const _NOEXCEPT { return m_nii_array.empty(); }
-			_CONST_FUN typename _MA::const_reference at(size_type _Pos) const { return m_nii_array.at(_Pos); }
+			typename _MA::const_reference at(size_type _Pos) const { return m_nii_array.at(_Pos); }
 			typename _MA::reference at(size_type _Pos) { return m_nii_array.at(_Pos); }
 			typename _MA::reference front() { return m_nii_array.front(); }
 			_CONST_FUN typename _MA::const_reference front() const { return m_nii_array.front(); }
