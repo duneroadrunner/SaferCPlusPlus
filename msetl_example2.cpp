@@ -205,6 +205,8 @@ void msetl_example2() {
 		safely shareable, then the contents of the mse::mstd::vector<>, can be swapped with a corresponding
 		shareable nii_vector<>. Note that vector swaps are intrinsically fast operations. */
 		std::swap(vo2, *(access_requester2.writelock_ptr()));
+
+		//std::for_each(vo2.begin(), vo2.end(), [](mse::nii_string& ns) { ns.append("z"); });
 	}
 
 	{
@@ -227,8 +229,8 @@ void msetl_example2() {
 
 		TReturnable<> is a transparent template wrapper that verifies that the type is safe to use as a function return
 		type. If not it will induce a compile error. Functions that do or could return scope types and do not use the 
-		"auto" return type should wrap their return type with this function. You can also use TXScopeReturnable<> which
-		additionally ensures that the return type is a scope type. */
+		"auto" return type should wrap their return type with this function. Alternatively, you can use
+		TXScopeReturnable<> which additionally ensures that the return type is a scope type. */
 
 		class CB {
 		public:
@@ -275,7 +277,7 @@ void msetl_example2() {
 	
 		mse::TRegisteredObj<mse::mstd::string> reg_str1 = "some text";
 		auto reg_ptr_res1 = J::foo10(reg_str1);
-		//auto xscp_ptr_res1 = J::foo10(xscp_str1);
+		//auto xscp_ptr_res1 = J::foo10(xscp_str1); // <-- would induce a compile error inside J::foo10() 
 	}
 
 	{
@@ -354,7 +356,7 @@ void msetl_example2() {
 		"first_half()" function that takes a scope section and returns a scope section spanning the first half of the
 		section. The library provides the random_access_subsection() function which takes a random access section and a
 		tuple containing a start index and a length and returns a random access section spanning the indicated
-		subsection.  You could use this function to implement the equivalent of a "first_half()" function like so: */
+		subsection. You could use this function to implement the equivalent of a "first_half()" function like so: */
 
 		auto xscp_ra_section3 = mse::random_access_subsection(xscp_ra_section1, std::make_tuple(0, xscp_ra_section1.length()/2));
 		assert(xscp_ra_section3.length() == 1);

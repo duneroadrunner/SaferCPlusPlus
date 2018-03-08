@@ -376,7 +376,7 @@ namespace mse {
 		class Tss_iterator_type;
 
 		/* Tss_const_iterator_type is a bounds checked const_iterator. */
-		template<typename _TVectorConstPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorConstPointer>::value), void>::type>
+		template<typename _TBasicStringConstPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TBasicStringConstPointer>::value), void>::type>
 		class Tss_const_iterator_type : public random_access_const_iterator_base {
 		public:
 			typedef random_access_const_iterator_base base_class;
@@ -388,14 +388,16 @@ namespace mse {
 			typedef const pointer const_pointer;
 			typedef const reference const_reference;
 
-			//template<class = typename std::enable_if<std::is_default_constructible<_TVectorConstPointer>::value, void>::type>
-			template<class _TVectorConstPointer2 = _TVectorConstPointer, class = typename std::enable_if<(std::is_same<_TVectorConstPointer2, _TVectorConstPointer>::value) && (std::is_default_constructible<_TVectorConstPointer>::value), void>::type>
+			//template<class = typename std::enable_if<std::is_default_constructible<_TBasicStringConstPointer>::value, void>::type>
+			template<class _TBasicStringConstPointer2 = _TBasicStringConstPointer, class = typename std::enable_if<(std::is_same<_TBasicStringConstPointer2, _TBasicStringConstPointer>::value) && (std::is_default_constructible<_TBasicStringConstPointer>::value), void>::type>
 			Tss_const_iterator_type() {}
 
-			Tss_const_iterator_type(const _TVectorConstPointer& owner_cptr) : m_owner_cptr(owner_cptr) {}
+			Tss_const_iterator_type(const _TBasicStringConstPointer& owner_cptr) : m_owner_cptr(owner_cptr) {}
 
 			Tss_const_iterator_type(const Tss_const_iterator_type& src) = default;
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TVectorConstPointer>::value, void>::type>
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value, void>::type>
+			Tss_const_iterator_type(const Tss_const_iterator_type<_Ty2>& src) : m_owner_cptr(src.target_container_ptr()), m_index(src.position()) {}
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value, void>::type>
 			Tss_const_iterator_type(const Tss_iterator_type<_Ty2, void>& src) : m_owner_cptr(src.target_container_ptr()), m_index(src.position()) {}
 
 			void assert_valid_index() const {
@@ -489,30 +491,7 @@ namespace mse {
 				return std::addressof((*m_owner_cptr).at(msev_as_a_size_t((*this).m_index)));
 			}
 			const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
-			/*
-			Tss_const_iterator_type& operator=(const typename std_basic_string::const_iterator& _Right_cref)
-			{
-			msev_int d = std::distance<typename std_basic_string::iterator>(m_owner_cptr->cbegin(), _Right_cref);
-			if ((0 <= d) && (m_owner_cptr->size() >= d)) {
-			if (m_owner_cptr->size() == d) {
-			assert(m_owner_cptr->cend() == _Right_cref);
-			}
-			m_index = msev_size_t(d);
-			std_basic_string::const_iterator::operator=(_Right_cref);
-			}
-			else {
-			MSE_THROW(nii_basic_string_range_error("doesn't seem to be a valid assignment value - Tss_const_iterator_type& operator=(const typename std_basic_string::const_iterator& _Right_cref) - Tss_const_iterator_type - nii_basic_string"));
-			}
-			return (*this);
-			}
-			*/
-			/*
-			Tss_const_iterator_type& operator=(const Tss_const_iterator_type& _Right_cref) {
-			((*this).m_owner_cptr) = _Right_cref.m_owner_cptr;
-			(*this).m_index = _Right_cref.m_index;
-			return (*this);
-			}
-			*/
+
 			bool operator==(const Tss_const_iterator_type& _Right_cref) const {
 				if (this->m_owner_cptr != _Right_cref.m_owner_cptr) { MSE_THROW(nii_basic_string_range_error("invalid argument - Tss_const_iterator_type& operator==(const Tss_const_iterator_type& _Right) - Tss_const_iterator_type - nii_basic_string")); }
 				return (_Right_cref.m_index == m_index);
@@ -528,21 +507,51 @@ namespace mse {
 			void set_to_const_item_pointer(const Tss_const_iterator_type& _Right_cref) {
 				(*this) = _Right_cref;
 			}
+
+			template<class _Ty2 = _TBasicStringConstPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TBasicStringConstPointer>::value)
+				&& (mse::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
+				void assignment_helper1(std::true_type, const Tss_const_iterator_type& _Right_cref) {
+				((*this).m_owner_cptr) = _Right_cref.m_owner_cptr;
+				(*this).m_index = _Right_cref.m_index;
+			}
+			void assignment_helper1(std::false_type, const Tss_const_iterator_type& _Right_cref) {
+				if (std::addressof(*((*this).m_owner_cptr)) != std::addressof(*(_Right_cref.m_owner_cptr))
+					|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_owner_cptr))>::type, typename std::remove_const<decltype(*(_Right_cref.m_owner_cptr))>::type>::value)) {
+					/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
+					example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
+					pointing to the same container. */
+					MSE_THROW(nii_basic_string_range_error("invalid argument - Tss_const_iterator_type& operator=(const Tss_const_iterator_type& _Right) - Tss_const_iterator_type - nii_basic_string"));
+				}
+				(*this).m_index = _Right_cref.m_index;
+			}
+			Tss_const_iterator_type& operator=(const Tss_const_iterator_type& _Right_cref) {
+				assignment_helper1(typename mse::HasOrInheritsAssignmentOperator_msemsearray<_TBasicStringConstPointer>::type(), _Right_cref);
+				return (*this);
+			}
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value, void>::type>
+			Tss_const_iterator_type& operator=(const Tss_const_iterator_type<_Ty2>& _Right_cref) {
+				return (*this) = Tss_const_iterator_type(_Right_cref);
+			}
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value, void>::type>
+			Tss_const_iterator_type& operator=(const Tss_iterator_type<_Ty2, void>& _Right_cref) {
+				return (*this) = Tss_const_iterator_type(_Right_cref);
+			}
+
 			msev_size_t position() const {
 				return m_index;
 			}
-			_TVectorConstPointer target_container_ptr() const {
+			_TBasicStringConstPointer target_container_ptr() const {
 				return m_owner_cptr;
 			}
 
 		private:
-			_TVectorConstPointer m_owner_cptr;
+			_TBasicStringConstPointer m_owner_cptr;
 			msev_size_t m_index = 0;
 
 			friend class /*_Myt*/nii_basic_string<_Ty>;
 		};
 		/* Tss_iterator_type is a bounds checked iterator. */
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type>
+		template<typename _TBasicStringPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TBasicStringPointer>::value), void>::type>
 		class Tss_iterator_type : public random_access_iterator_base {
 		public:
 			typedef random_access_iterator_base base_class;
@@ -554,11 +563,15 @@ namespace mse {
 			typedef const pointer const_pointer;
 			typedef const reference const_reference;
 
-			//template<class = typename std::enable_if<std::is_default_constructible<_TVectorPointer>::value, void>::type>
-			template<class _TVectorPointer2 = _TVectorPointer, class = typename std::enable_if<(std::is_same<_TVectorPointer2, _TVectorPointer>::value) && (std::is_default_constructible<_TVectorPointer>::value), void>::type>
+			//template<class = typename std::enable_if<std::is_default_constructible<_TBasicStringPointer>::value, void>::type>
+			template<class _TBasicStringPointer2 = _TBasicStringPointer, class = typename std::enable_if<(std::is_same<_TBasicStringPointer2, _TBasicStringPointer>::value) && (std::is_default_constructible<_TBasicStringPointer>::value), void>::type>
 			Tss_iterator_type() {}
 
-			Tss_iterator_type(const _TVectorPointer& owner_ptr) : m_owner_ptr(owner_ptr) {}
+			Tss_iterator_type(const _TBasicStringPointer& owner_ptr) : m_owner_ptr(owner_ptr) {}
+
+			Tss_iterator_type(const Tss_iterator_type& src) = default;
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringPointer>::value, void>::type>
+			Tss_iterator_type(const Tss_iterator_type<_Ty2>& src) : m_owner_ptr(src.target_container_ptr()), m_index(src.position()) {}
 
 			void reset() { set_to_end_marker(); }
 			bool points_to_an_item() const {
@@ -653,30 +666,7 @@ namespace mse {
 				return std::addressof((*m_owner_ptr).at(msev_as_a_size_t((*this).m_index)));
 			}
 			reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
-			/*
-			Tss_iterator_type& operator=(const typename std_basic_string::iterator& _Right_cref)
-			{
-			msev_int d = std::distance<typename std_basic_string::iterator>(m_owner_ptr->begin(), _Right_cref);
-			if ((0 <= d) && (m_owner_ptr->size() >= d)) {
-			if (m_owner_ptr->size() == d) {
-			assert(m_owner_ptr->end() == _Right_cref);
-			}
-			m_index = msev_size_t(d);
-			(*this).m_base_iterator.operator=(_Right_cref);
-			}
-			else {
-			MSE_THROW(nii_basic_string_range_error("doesn't seem to be a valid assignment value - Tss_iterator_type& operator=(const typename std_basic_string::iterator& _Right_cref) - Tss_const_iterator_type - nii_basic_string"));
-			}
-			return (*this);
-			}
-			*/
-			/*
-			Tss_iterator_type& operator=(const Tss_iterator_type& _Right_cref) {
-			((*this).m_owner_ptr) = _Right_cref.m_owner_ptr;
-			(*this).m_index = _Right_cref.m_index;
-			return (*this);
-			}
-			*/
+
 			bool operator==(const Tss_iterator_type& _Right_cref) const {
 				if (this->m_owner_ptr != _Right_cref.m_owner_ptr) { MSE_THROW(nii_basic_string_range_error("invalid argument - Tss_iterator_type& operator==(const Tss_iterator_type& _Right) - Tss_iterator_type - nii_basic_string")); }
 				return (_Right_cref.m_index == m_index);
@@ -692,17 +682,43 @@ namespace mse {
 			void set_to_item_pointer(const Tss_iterator_type& _Right_cref) {
 				(*this) = _Right_cref;
 			}
+
+			template<class _Ty2 = _TBasicStringPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TBasicStringPointer>::value)
+				&& (mse::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
+				void assignment_helper1(std::true_type, const Tss_iterator_type& _Right_cref) {
+				((*this).m_owner_ptr) = _Right_cref.m_owner_ptr;
+				(*this).m_index = _Right_cref.m_index;
+			}
+			void assignment_helper1(std::false_type, const Tss_iterator_type& _Right_cref) {
+				if (std::addressof(*((*this).m_owner_ptr)) != std::addressof(*(_Right_cref.m_owner_ptr))
+					|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_owner_ptr))>::type, typename std::remove_const<decltype(*(_Right_cref.m_owner_ptr))>::type>::value)) {
+					/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
+					example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
+					pointing to the same container. */
+					MSE_THROW(nii_basic_string_range_error("invalid argument - Tss_iterator_type& operator=(const Tss_iterator_type& _Right) - Tss_iterator_type - nii_basic_string"));
+				}
+				(*this).m_index = _Right_cref.m_index;
+			}
+			Tss_iterator_type& operator=(const Tss_iterator_type& _Right_cref) {
+				assignment_helper1(typename mse::HasOrInheritsAssignmentOperator_msemsearray<_TBasicStringPointer>::type(), _Right_cref);
+				return (*this);
+			}
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringPointer>::value, void>::type>
+			Tss_iterator_type& operator=(const Tss_iterator_type<_Ty2>& _Right_cref) {
+				return (*this) = Tss_iterator_type(_Right_cref);
+			}
+
 			msev_size_t position() const {
 				return m_index;
 			}
-			_TVectorPointer target_container_ptr() const {
+			_TBasicStringPointer target_container_ptr() const {
 				return m_owner_ptr;
 			}
 			/*
-			operator Tss_const_iterator_type<_TVectorPointer>() const {
-			Tss_const_iterator_type<_TVectorPointer> retval;
+			operator Tss_const_iterator_type<_TBasicStringPointer>() const {
+			Tss_const_iterator_type<_TBasicStringPointer> retval;
 			if (nullptr != m_owner_ptr) {
-			retval = m_owner_ptr->ss_cbegin<_TVectorPointer>(m_owner_ptr);
+			retval = m_owner_ptr->ss_cbegin<_TBasicStringPointer>(m_owner_ptr);
 			retval.advance(msev_int(m_index));
 			}
 			return retval;
@@ -710,11 +726,11 @@ namespace mse {
 			*/
 		private:
 			//msev_pointer<_Myt> m_owner_ptr = nullptr;
-			_TVectorPointer m_owner_ptr;
+			_TBasicStringPointer m_owner_ptr;
 			msev_size_t m_index = 0;
 
 			friend class /*_Myt*/nii_basic_string<_Ty>;
-			template<typename _TVectorConstPointer, class/* = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorConstPointer>::value), void>::type*/>
+			template<typename _TBasicStringConstPointer, class/* = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TBasicStringConstPointer>::value), void>::type*/>
 			friend class Tss_const_iterator_type;
 		};
 

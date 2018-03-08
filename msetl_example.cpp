@@ -1508,7 +1508,7 @@ int main(int argc, char* argv[])
 				registered_ptr1 = &regxscp_nstring3;
 				CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
 			}
-			/* Attempting to dereference registered_ptr1 here would result in an exception . */
+			/* Attempting to dereference registered_ptr1 here would result in an exception. */
 			//*registered_ptr1;
 		}
 
