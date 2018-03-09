@@ -137,7 +137,7 @@ namespace mse {
 			//nii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : m_basic_string(_First, _Last, _Al) { /*m_debug_size = size();*/ }
 		nii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : m_basic_string(_First, _Last, _Al) { /*m_debug_size = size();*/ }
 		nii_basic_string(const _Ty* const _Ptr) : m_basic_string(_Ptr) { /*m_debug_size = size();*/ }
-		nii_basic_string(const _Ty* const _Ptr, const size_type _Count) : m_basic_string(_Ptr, mse::as_a_size_t(_Count)) { /*m_debug_size = size();*/ }
+		nii_basic_string(const _Ty* const _Ptr, const size_type _Count) : m_basic_string(_Ptr, mse::msev_as_a_size_t(_Count)) { /*m_debug_size = size();*/ }
 		nii_basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_basic_string(_X.contained_basic_string(), _Roff, npos, _Al) { /*m_debug_size = size();*/ }
 		nii_basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_basic_string(_X.contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
 		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
@@ -1430,7 +1430,7 @@ namespace mse {
 		}
 
 		nii_basic_string& replace(const size_type _Off, const size_type _N0, const nii_basic_string& _Right) {
-			m_basic_string.replace(mse::as_a_size_t(_Off), mse::as_a_size_t(_N0), _Right.contained_basic_string());
+			m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string());
 			return (*this);
 		}
 
@@ -1727,7 +1727,7 @@ namespace mse {
 				}
 			}
 			for (size_type i = 0; i < n; i += 1) {
-				(*target_iter) = m_basic_string[mse::as_a_size_t(i)];
+				(*target_iter) = m_basic_string[mse::msev_as_a_size_t(i)];
 				++target_iter;
 			}
 			return n;
@@ -1735,7 +1735,7 @@ namespace mse {
 
 		nii_basic_string substr(const size_type _Off = 0, const size_type _Count = npos) const {
 			//return (nii_basic_string(*this, _Off, _Count, get_allocator()));
-			return (nii_basic_string(m_basic_string.substr(mse::as_a_size_t(_Off), mse::as_a_size_t(_Count))));
+			return (nii_basic_string(m_basic_string.substr(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_Count))));
 		}
 
 		static nii_basic_string& _Myt_ref(nii_basic_string& nbs_ref) {

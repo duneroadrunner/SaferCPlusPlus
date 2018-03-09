@@ -1217,7 +1217,7 @@ namespace mse {
 
 				reference_t operator[](size_type _P) const {
 					if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t operator[](size_type _P) - TAsyncSplitterRandomAccessSection")); }
-					return m_start_iter[difference_type(mse::as_a_size_t(_P))];
+					return m_start_iter[difference_type(mse::msear_as_a_size_t(_P))];
 				}
 				size_type size() const {
 					return m_count;
@@ -1416,6 +1416,40 @@ namespace mse {
 	};
 
 
+	/* mse:::thread is currently publicly derived from std::thread for reasons of implementation convenience. Expect that
+	in the future it will not be. */
+	class thread : public std::thread {
+	public:
+		typedef std::thread base_class;
+
+		thread() _NOEXCEPT {}
+
+		template<class _Fn, class... _Args, class = typename std::enable_if<!std::is_same<typename std::decay<_Fn>::type, thread>::value>::type>
+		explicit thread(_Fn&& _Fx, _Args&&... _Ax) : base_class(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {
+			valid_if_shareable(std::forward<_Args>(_Ax)...);
+		}
+
+		thread(thread&& _Other) _NOEXCEPT : base_class(std::forward<decltype(static_cast<base_class&&>(_Other))>(static_cast<base_class&&>(_Other))) {}
+
+		thread& operator=(thread&& _Other) _NOEXCEPT {
+			base_class::operator=(std::forward<decltype(_Other)>(_Other));
+			return *this;
+		}
+
+		thread(const thread&) = delete;
+		thread& operator=(const thread&) = delete;
+
+	private:
+		template<class _Ty, class... _Args>
+		void valid_if_shareable(const _Ty& arg1, _Args&&... _Ax) {
+			mse::async_shareable(arg1);
+			valid_if_shareable(std::forward<_Args>(_Ax)...);
+		}
+		void valid_if_shareable() {}
+	};
+
+	
+	
 	/* TAsyncSharedReadWriteAccessRequester, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester,
 	and TStdSharedImmutableFixedPointer are deprecated. */
 
