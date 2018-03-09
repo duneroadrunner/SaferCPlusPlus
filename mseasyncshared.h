@@ -23,6 +23,7 @@
 #include <ratio>
 #include <chrono>
 #include <vector>
+#include <future>
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_ASYNCSHAREDPOINTER_DISABLED
@@ -1416,37 +1417,61 @@ namespace mse {
 	};
 
 
-	/* mse:::thread is currently publicly derived from std::thread for reasons of implementation convenience. Expect that
-	in the future it will not be. */
-	class thread : public std::thread {
-	public:
-		typedef std::thread base_class;
+	namespace mstd {
+		/*
+		template<class _Ty>
+		static void T_s_valid_if_shareable() {}
 
-		thread() _NOEXCEPT {}
-
-		template<class _Fn, class... _Args, class = typename std::enable_if<!std::is_same<typename std::decay<_Fn>::type, thread>::value>::type>
-		explicit thread(_Fn&& _Fx, _Args&&... _Ax) : base_class(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {
-			valid_if_shareable(std::forward<_Args>(_Ax)...);
-		}
-
-		thread(thread&& _Other) _NOEXCEPT : base_class(std::forward<decltype(static_cast<base_class&&>(_Other))>(static_cast<base_class&&>(_Other))) {}
-
-		thread& operator=(thread&& _Other) _NOEXCEPT {
-			base_class::operator=(std::forward<decltype(_Other)>(_Other));
-			return *this;
-		}
-
-		thread(const thread&) = delete;
-		thread& operator=(const thread&) = delete;
-
-	private:
 		template<class _Ty, class... _Args>
-		void valid_if_shareable(const _Ty& arg1, _Args&&... _Ax) {
+		static void T_s_valid_if_shareable(const _Ty& arg1, _Args&&... _Ax) {
 			mse::async_shareable(arg1);
-			valid_if_shareable(std::forward<_Args>(_Ax)...);
+			T_s_valid_if_shareable(std::forward<_Args>(_Ax)...);
 		}
-		void valid_if_shareable() {}
-	};
+		*/
+
+		/* thread is currently publicly derived from std::thread for reasons of implementation convenience. Expect that
+		in the future it will not be. */
+		class thread : public std::thread {
+		public:
+			typedef std::thread base_class;
+
+			thread() _NOEXCEPT {}
+
+			template<class _Fn, class... _Args, class = typename std::enable_if<!std::is_same<typename std::decay<_Fn>::type, thread>::value>::type>
+			explicit thread(_Fn&& _Fx, _Args&&... _Ax) : base_class(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {
+				s_valid_if_shareable(std::forward<_Args>(_Ax)...);
+			}
+
+			thread(thread&& _Other) _NOEXCEPT : base_class(std::forward<decltype(static_cast<base_class&&>(_Other))>(static_cast<base_class&&>(_Other))) {}
+
+			thread& operator=(thread&& _Other) _NOEXCEPT {
+				base_class::operator=(std::forward<decltype(_Other)>(_Other));
+				return *this;
+			}
+
+			thread(const thread&) = delete;
+			thread& operator=(const thread&) = delete;
+
+			template<class _Ty, class... _Args>
+			static void s_valid_if_shareable(const _Ty& arg1, _Args&&... _Ax) {
+				mse::async_shareable(arg1);
+				s_valid_if_shareable(std::forward<_Args>(_Ax)...);
+			}
+			static void s_valid_if_shareable() {}
+		};
+
+		template<class _Fty, class... _ArgTypes>
+		inline auto async(std::launch _Policy, _Fty&& _Fnarg, _ArgTypes&&... _Args) {
+			thread::s_valid_if_shareable(std::forward<_ArgTypes>(_Args)...);
+			return (std::async(_Policy, std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...));
+		}
+
+		template<class _Fty, class... _ArgTypes>
+		inline auto async(_Fty&& _Fnarg, _ArgTypes&&... _Args) {
+			thread::s_valid_if_shareable(std::forward<_ArgTypes>(_Args)...);
+			return (std::async(std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...));
+		}
+	}
 
 	
 	

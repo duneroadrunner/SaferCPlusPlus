@@ -710,7 +710,7 @@ void msetl_example2() {
 
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(B::foo1, mse::async_shareable(ash_access_requester)));
+				futures.emplace_back(mse::mstd::async(B::foo1, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -731,7 +731,7 @@ void msetl_example2() {
 
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, mse::async_shareable(ash_access_requester)));
+				futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -755,7 +755,7 @@ void msetl_example2() {
 
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(J::foo7<mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA>>, mse::async_shareable(ash_access_requester)));
+				futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -772,7 +772,7 @@ void msetl_example2() {
 
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, mse::async_shareable(ash_access_requester)));
+				futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -801,7 +801,7 @@ void msetl_example2() {
 
 			std::list<std::future<int>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(B::foo2, mse::async_shareable(A_immptr)));
+				futures.emplace_back(mse::mstd::async(B::foo2, A_immptr));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -859,11 +859,11 @@ void msetl_example2() {
 				parameter. */
 				auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar1), my_foo8_function_type>;
 
-				std::list<mse::thread> threads;
+				std::list<mse::mstd::thread> threads;
 				/* So this thread will modify the first section of the vector. */
-				threads.emplace_back(mse::thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref));
+				threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref));
 				/* While this thread modifies the other section. */
-				threads.emplace_back(mse::thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref));
+				threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref));
 
 				{
 					int count = 1;
@@ -889,10 +889,10 @@ void msetl_example2() {
 				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
 				auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
 
-				std::list<mse::thread> threads;
+				std::list<mse::mstd::thread> threads;
 				for (size_t i = 0; i < num_sections; i += 1) {
 					auto ar = ra_rection_split1.ra_section_access_requester(i);
-					threads.emplace_back(mse::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
+					threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
 				}
 
 				{

@@ -4493,13 +4493,13 @@ namespace mse {
 
 	template<typename _Ty>
 	const _Ty& async_shareable(const _Ty& _X) {
-		//T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
+		T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
 		return _X;
 	}
 
 	template<typename _Ty>
 	_Ty&& async_shareable(_Ty&& _X) {
-		//T_valid_if_is_marked_as_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+		T_valid_if_is_marked_as_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
 		return std::forward<decltype(_X)>(_X);
 	}
 
