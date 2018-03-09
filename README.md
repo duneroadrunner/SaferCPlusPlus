@@ -1965,11 +1965,11 @@ void main(int argc, char* argv[]) {
 		parameter. */
 		auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar1), my_foo8_function_type>;
 
-		std::list<std::thread> threads;
+		std::list<mse::mstd::thread> threads;
 		/* So this thread will modify the first section of the vector. */
-		threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref));
+		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref));
 		/* While this thread modifies the other section. */
-		threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref));
+		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref));
 
 		{
 			int count = 1;
@@ -1994,10 +1994,10 @@ void main(int argc, char* argv[]) {
 		typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
 		auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
 
-		std::list<std::thread> threads;
+		std::list<mse::mstd::thread> threads;
 		for (size_t i = 0; i < num_sections; i += 1) {
 			auto ar = ra_rection_split1.ra_section_access_requester(i);
-			threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
+			threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
 		}
 
 		{
