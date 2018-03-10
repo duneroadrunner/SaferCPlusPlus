@@ -730,6 +730,15 @@ namespace mse {
 		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
 	};
 
+	template<typename T>
+	struct HasAsyncPassableTagMethod_msemsearray
+	{
+		template<typename U, void(U::*)() const> struct SFINAE {};
+		template<typename U> static char Test(SFINAE<U, &U::async_passable_tag>*);
+		template<typename U> static int Test(...);
+		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+	};
+
 	template<class T, class EqualTo>
 	struct HasOrInheritsAssignmentOperator_msemsearray_impl
 	{
@@ -4483,23 +4492,74 @@ namespace mse {
 		}
 	};
 
+	/* TAsyncPassableObj is intended as a transparent wrapper for other classes/objects. */
+	template<typename _TROy>
+	class TAsyncPassableObj : public _TROy {
+	public:
+		MSE_USING(TAsyncPassableObj, _TROy);
+		TAsyncPassableObj(const TAsyncPassableObj& _X) : _TROy(_X) {}
+		TAsyncPassableObj(TAsyncPassableObj&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
+		virtual ~TAsyncPassableObj() {
+			/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
+			valid_if_TROy_is_not_marked_as_unpassable();
+		}
+
+		template<class _Ty2>
+		TAsyncPassableObj& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		template<class _Ty2>
+		TAsyncPassableObj& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
+
+		void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+
+	private:
+
+		/* If _TROy is "marked" as not safe to pass among threads, then the following member function will not
+		instantiate, causing an (intended) compile error. */
+		template<class = typename std::enable_if<(std::integral_constant<bool, HasAsyncPassableTagMethod_msemsearray<_TROy>::Has>()) || (
+			(!std::is_convertible<_TROy*, NotAsyncPassableTagBase*>::value)
+			/*(!std::integral_constant<bool, HasNotAsyncPassableTagMethod_msemsearray<_TROy>::Has>())*/
+			), void>::type>
+		void valid_if_TROy_is_not_marked_as_unpassable() const {}
+
+		TAsyncPassableObj* operator&() {
+			return this;
+		}
+		const TAsyncPassableObj* operator&() const {
+			return this;
+		}
+	};
+
 	namespace us {
 		template<typename _TROy> using TUserDeclaredAsyncShareableObj = mse::TAsyncShareableObj<_TROy>;
+		template<typename _TROy> using TUserDeclaredAsyncPassableObj = mse::TAsyncPassableObj<_TROy>;
 	}
 
 	template<class _Ty, class = typename std::enable_if<(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty>::Has>())
 		|| (std::is_arithmetic<_Ty>::value) || (std::is_function<typename std::remove_reference<_Ty>::type>::value), void>::type>
 	void T_valid_if_is_marked_as_shareable_msemsearray() {}
-
 	template<typename _Ty>
 	const _Ty& async_shareable(const _Ty& _X) {
 		T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
 		return _X;
 	}
-
 	template<typename _Ty>
 	_Ty&& async_shareable(_Ty&& _X) {
 		T_valid_if_is_marked_as_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+		return std::forward<decltype(_X)>(_X);
+	}
+
+	template<class _Ty, class = typename std::enable_if<(std::integral_constant<bool, HasAsyncPassableTagMethod_msemsearray<_Ty>::Has>())
+		|| (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty>::Has>()) || (std::is_arithmetic<_Ty>::value)
+		|| (std::is_function<typename std::remove_reference<_Ty>::type>::value), void>::type>
+	void T_valid_if_is_marked_as_passable_or_shareable_msemsearray() {}
+	template<typename _Ty>
+	const _Ty& async_passable(const _Ty& _X) {
+		T_valid_if_is_marked_as_passable_or_shareable_msemsearray<_Ty>();
+		return _X;
+	}
+	template<typename _Ty>
+	_Ty&& async_passable(_Ty&& _X) {
+		T_valid_if_is_marked_as_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
 		return std::forward<decltype(_X)>(_X);
 	}
 

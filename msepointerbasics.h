@@ -100,6 +100,7 @@ namespace mse {
 
 
 	class NotAsyncShareableTagBase {};
+	class NotAsyncPassableTagBase {};
 
 	template<typename _Ty>
 	class TPlaceHolder_msepointerbasics {};
