@@ -1681,11 +1681,11 @@ And currently, any type declared as safely shareable must also satisfy the crite
 
 ### thread
 
-`mstd::thread` is just an implementation of `std::thread` that verifies that the arguments passed are of a type that is marked as safe to pass between threads. 
+`mstd::thread` is just an implementation of `std::thread` that verifies that the arguments passed are of a type that is designated as safe to pass between threads. 
 
 ### async()
 
-`mstd::async()` is just an implementation of `std::async()` that verifies that the arguments passed are of a type that is marked as safe to share among threads. 
+`mstd::async()` is just an implementation of `std::async()` that verifies that the arguments passed are of a type that is designated as safe to share among threads. 
 
 ### TAsyncSharedV2ReadWriteAccessRequester
 
