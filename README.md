@@ -76,6 +76,10 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
 12. [pointer_to()](#pointer_to)
 12. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
 13. [Asynchronously shared objects](#asynchronously-shared-objects)
+    1. [TUserDeclaredAsyncPassableObj](#tuserdeclaredasyncpassableobj)
+    1. [TUserDeclaredAsyncShareableObj](#tuserdeclaredasyncshareableobj)
+    1. [thread](#thread)
+    1. [async()](#async)
     1. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
         1. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
     2. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
@@ -1659,7 +1663,29 @@ In order to ensure safety, shared objects can only be accessed through lock poin
 
 Note that not all types are safe to share between threads. For example, because of its iterators, `mstd::vector<int>` is not safe to share between threads. (And neither is `std::vector<int>`.) `nii_vector<int>` on the other hand is. Trying to share the former using access requesters or immutable fixed pointers would result in a compile error.
 
-Access requesters and immutable fixed pointers know which of the library's types are safe to share. But they can't automatically deduce whether or not a user-defined type is safe to share. So in order to share a user-defined type, you need to "declare" that it is safely shareable by wrapping it with the `us::TUserDeclaredAsyncShareableObj<>` template. Otherwise you'll get a compile error. A type that is safe to share should have no `mutable` qualified members or indirect members (i.e. pointers/references) that are not protected by a thread-safety mechanism. And no member functions that access unprotected `mutable` or indirect members. (Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
+### TUserDeclaredAsyncPassableObj
+
+When passing an argument to a function that will be executed in another thread using the library, the argument must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely passable to another thread, but can't automatically deduce whether or not a user-defined type is safe to pass. So in order to pass a user-defined type, you need to "declare" that it is safely passable by wrapping it with the `us::TUserDeclaredAsyncPassableObj<>` template. Otherwise you'll get a compile error. A type that is safe to pass should have no indirect members (i.e. pointers/references) whose target is not protected by a thread-safety mechanism. (Mis)using `us::TUserDeclaredAsyncPassableObj<>` to indicate that a user-defined type is safely passable when that type does not meet these criteria could result in unsafe code.
+
+### TUserDeclaredAsyncShareableObj
+
+As with passing objects between threads, when using the library to share an object between threads, the object must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely shareable, but can't automatically deduce whether or not a user-defined type is safe to share. So in order to share a user-defined type, you need to "declare" that it is safely shareable by wrapping it with the `us::TUserDeclaredAsyncShareableObj<>` template.
+
+As with objects that are passed between threads, a type that is safe to share should have no indirect members (i.e. pointers/references) whose target is not protected by a thread-safety mechanism. 
+
+In addition, safely shareable types should not have any `mutable` qualified members that are not protected by a thread-safety mechanism.
+
+And currently, any type declared as safely shareable must also satisfy the criteria for being safely passable. That is, safe shareability must imply safe passability.
+
+(Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
+
+### thread
+
+`mstd::thread` is just an implementation of `std::thread` that verifies that the arguments passed are of a type that is marked as safe to pass between threads. 
+
+### async()
+
+`mstd::async()` is just an implementation of `std::async()` that verifies that the arguments passed are of a type that is marked as safe to share among threads. 
 
 ### TAsyncSharedV2ReadWriteAccessRequester
 
