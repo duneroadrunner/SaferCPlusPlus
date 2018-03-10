@@ -1669,7 +1669,7 @@ When passing an argument to a function that will be executed in another thread u
 
 ### TUserDeclaredAsyncShareableObj
 
-As with passing objects between threads, when using the library to share an object between threads, the object must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely shareable, but can't automatically deduce whether or not a user-defined type is safe to share. So in order to share a user-defined type, you need to "declare" that it is safely shareable by wrapping it with the `us::TUserDeclaredAsyncShareableObj<>` template.
+As with passing objects between threads, when using the library to share an object among threads, the object must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely shareable, but can't automatically deduce whether or not a user-defined type is safe to share. So in order to share a user-defined type, you need to "declare" that it is safely shareable by wrapping it with the `us::TUserDeclaredAsyncShareableObj<>` template.
 
 As with objects that are passed between threads, a type that is safe to share should have no indirect members (i.e. pointers/references) whose target is not protected by a thread-safety mechanism. 
 
@@ -1685,7 +1685,7 @@ And currently, any type declared as safely shareable must also satisfy the crite
 
 ### async()
 
-`mstd::async()` is just an implementation of `std::async()` that verifies that the arguments passed are of a type that is designated as safe to share among threads. 
+`mstd::async()` is just an implementation of `std::async()` that verifies that the arguments passed are of a type that is designated as safe to pass between threads. 
 
 ### TAsyncSharedV2ReadWriteAccessRequester
 
