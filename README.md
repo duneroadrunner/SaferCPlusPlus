@@ -75,11 +75,16 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     7. [TAnyNRPStringSection](#txscopeanynrpstringsection-txscopeanynrpstringconstsection-tanynrpstringsection-tanynrpstringconstsection)
 12. [pointer_to()](#pointer_to)
 12. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
-13. [Asynchronously shared objects](#asynchronously-shared-objects)
-    1. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
-        1. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
-    2. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
-    3. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
+13. [Multithreading](#multithreading)
+    1. [TUserDeclaredAsyncPassableObj](#tuserdeclaredasyncpassableobj)
+    2. [thread](#thread)
+    3. [async()](#async)
+    4. [Asynchronously shared objects](#asynchronously-shared-objects)
+        1. [TUserDeclaredAsyncShareableObj](#tuserdeclaredasyncshareableobj)
+        2. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
+        3. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
+        4. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
+        5. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
 14. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [Quarantined types](#quarantined-types)
@@ -96,18 +101,18 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     4. [xscope_iterator](#xscope_iterator)
     5. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
 17. [for_each() specializations](#for_each-specializations)
-17. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
-18. [Strings](#strings)
+18. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
+19. [Strings](#strings)
     1. [mstd::string](#string)
     2. [nii_string](#nii_string)
     3. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
     4. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
     5. [mstd::string_view](#string_view)
     6. [nrp_string_view](#nrp_string_view)
-19. [optional](#optional-xscope_optional)
-20. [Compatibility considerations](#compatibility-considerations)
-21. [Practical limitations](#practical-limitations)
-22. [Questions and comments](#questions-and-comments)
+20. [optional](#optional-xscope_optional)
+21. [Compatibility considerations](#compatibility-considerations)
+22. [Practical limitations](#practical-limitations)
+23. [Questions and comments](#questions-and-comments)
 
 
 ### Use cases
@@ -1649,6 +1654,19 @@ Another choice is to require that reference parameters be passed using scope poi
 
 And of course the library remains perfectly compatible with (the less safe) traditional C++ references if you prefer. 
 
+### Multithreading
+
+### TUserDeclaredAsyncPassableObj
+
+When passing an argument to a function that will be executed in another thread using the library, the argument must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely passable to another thread, but can't automatically deduce whether or not a user-defined type is safe to pass. So in order to pass a user-defined type, you need to "declare" that it is safely passable by wrapping it with the `us::TUserDeclaredAsyncPassableObj<>` template. Otherwise you'll get a compile error. A type that is safe to pass should have no indirect members (i.e. pointers/references) whose target is not protected by a thread-safety mechanism. (Mis)using `us::TUserDeclaredAsyncPassableObj<>` to indicate that a user-defined type is safely passable when that type does not meet these criteria could result in unsafe code.
+
+### thread
+
+`mstd::thread` is just an implementation of `std::thread` that verifies that the arguments passed are of a type that is designated as safe to pass between threads. 
+
+### async()
+
+`mstd::async()` is just an implementation of `std::async()` that verifies that the arguments passed are of a type that is designated as safe to pass between threads. 
 
 ### Asynchronously shared objects
 One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, while one thread is modifying an object, you want to ensure that no other thread accesses it. But you also want to do it in a way that allows for maximum utilization of the shared object. To this end the library provides "access requesters". Access requesters provide "lock pointers" on demand that are used to safely access the shared object.
@@ -1659,7 +1677,17 @@ In order to ensure safety, shared objects can only be accessed through lock poin
 
 Note that not all types are safe to share between threads. For example, because of its iterators, `mstd::vector<int>` is not safe to share between threads. (And neither is `std::vector<int>`.) `nii_vector<int>` on the other hand is. Trying to share the former using access requesters or immutable fixed pointers would result in a compile error.
 
-Access requesters and immutable fixed pointers know which of the library's types are safe to share. But they can't automatically deduce whether or not a user-defined type is safe to share. So in order to share a user-defined type, you need to "declare" that it is safely shareable by wrapping it with the `us::TUserDeclaredAsyncShareableObj<>` template. Otherwise you'll get a compile error. A type that is safe to share should have no `mutable` qualified members or indirect members (i.e. pointers/references) that are not protected by a thread-safety mechanism. And no member functions that access unprotected `mutable` or indirect members. (Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
+### TUserDeclaredAsyncShareableObj
+
+As with passing objects between threads, when using the library to share an object among threads, the object must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely shareable, but can't automatically deduce whether or not a user-defined type is safe to share. So in order to share a user-defined type, you need to "declare" that it is safely shareable by wrapping it with the `us::TUserDeclaredAsyncShareableObj<>` template.
+
+As with objects that are passed between threads, a type that is safe to share should have no indirect members (i.e. pointers/references) whose target is not protected by a thread-safety mechanism. 
+
+In addition, safely shareable types should not have any `mutable` qualified members that are not protected by a thread-safety mechanism.
+
+And currently, any type declared as safely shareable must also satisfy the criteria for being safely passable. That is, safe shareability must imply safe passability.
+
+(Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
 
 ### TAsyncSharedV2ReadWriteAccessRequester
 
@@ -1765,7 +1793,7 @@ usage example:
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(B::foo1, ash_access_requester));
+				futures.emplace_back(mse::mstd::async(B::foo1, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -1786,7 +1814,7 @@ usage example:
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
+				futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -1810,7 +1838,7 @@ usage example:
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(J::foo7<mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA>>, ash_access_requester));
+				futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -1827,7 +1855,7 @@ usage example:
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
+				futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -1856,7 +1884,7 @@ usage example:
 	
 			std::list<std::future<int>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(std::async(B::foo2, A_immptr));
+				futures.emplace_back(mse::mstd::async(B::foo2, A_immptr));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -1965,11 +1993,11 @@ void main(int argc, char* argv[]) {
 		parameter. */
 		auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar1), my_foo8_function_type>;
 
-		std::list<std::thread> threads;
+		std::list<mse::mstd::thread> threads;
 		/* So this thread will modify the first section of the vector. */
-		threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref));
+		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref));
 		/* While this thread modifies the other section. */
-		threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref));
+		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref));
 
 		{
 			int count = 1;
@@ -1994,10 +2022,10 @@ void main(int argc, char* argv[]) {
 		typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
 		auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
 
-		std::list<std::thread> threads;
+		std::list<mse::mstd::thread> threads;
 		for (size_t i = 0; i < num_sections; i += 1) {
 			auto ar = ra_rection_split1.ra_section_access_requester(i);
-			threads.emplace_back(std::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
+			threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
 		}
 
 		{
