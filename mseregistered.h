@@ -568,6 +568,8 @@ namespace mse {
 			mseRPManager().onObjectDestruction();
 		}
 
+		TRegisteredObj& operator=(TRegisteredObj&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TRegisteredObj& operator=(const TRegisteredObj& _X) { _TROy::operator=(_X); return (*this); }
 		template<class _Ty2>
 		TRegisteredObj& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		template<class _Ty2>

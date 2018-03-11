@@ -104,6 +104,11 @@ namespace mse {
 	template<class _Ty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _Ty>::value), void>::type>
 	void T_valid_if_not_an_xscope_type() {}
 
+	template<class _Ty>
+	void T_valid_if_not_an_xscope_type(const _Ty&) {
+		T_valid_if_not_an_xscope_type<_Ty>();
+	}
+
 #ifdef MSE_SCOPEPOINTER_DISABLED
 	template<typename _Ty> using TXScopePointer = _Ty*;
 	template<typename _Ty> using TXScopeConstPointer = const _Ty*;
@@ -121,6 +126,7 @@ namespace mse {
 
 	template<typename _Ty> const _Ty& returnable(const _Ty& _X) { return _X; }
 	template<typename _Ty> _Ty&& returnable(_Ty&& _X) { return std::forward<decltype(_X)>(_X); }
+	template<typename _TROy> using TNonXScopeObj = _TROy;
 
 #else /*MSE_SCOPEPOINTER_DISABLED*/
 
@@ -139,7 +145,11 @@ namespace mse {
 	class TXScopeObjBase : public _TROz {
 	public:
 		MSE_SCOPE_USING(TXScopeObjBase, _TROz);
+		TXScopeObjBase(const TXScopeObjBase& _X) : _TROz(_X) {}
+		TXScopeObjBase(TXScopeObjBase&& _X) : _TROz(std::forward<decltype(_X)>(_X)) {}
 
+		TXScopeObjBase& operator=(TXScopeObjBase&& _X) { _TROz::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TXScopeObjBase& operator=(const TXScopeObjBase& _X) { _TROz::operator=(_X); return (*this); }
 		template<class _Ty2>
 		TXScopeObjBase& operator=(_Ty2&& _X) { _TROz::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		template<class _Ty2>
@@ -384,6 +394,7 @@ namespace mse {
 			TXScopeObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
 			return (*this);
 		}
+		TXScopeObj& operator=(const TXScopeObj& _X) { TXScopeObjBase<_TROy>::operator=(_X); return (*this); }
 		template<class _Ty2>
 		TXScopeObj& operator=(_Ty2&& _X) {
 			TXScopeObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
@@ -690,7 +701,37 @@ namespace mse {
 		return std::forward<decltype(_X)>(_X);
 	}
 
+	template<typename _TROy>
+	class TNonXScopeObj : public _TROy {
+	public:
+		MSE_USING(TNonXScopeObj, _TROy);
+		TNonXScopeObj(const TNonXScopeObj& _X) : _TROy(_X) {}
+		TNonXScopeObj(TNonXScopeObj&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
+		virtual ~TNonXScopeObj() {
+			mse::T_valid_if_not_an_xscope_type<_TROy>();
+		}
+
+		TNonXScopeObj& operator=(TNonXScopeObj&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TNonXScopeObj& operator=(const TNonXScopeObj& _X) { _TROy::operator=(_X); return (*this); }
+		template<class _Ty2>
+		TNonXScopeObj& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		//TNonXScopeObj& operator=(_Ty2&& _X) { static_cast<_TROy&>(*this) = (std::forward<decltype(_X)>(_X)); return (*this); }
+		template<class _Ty2>
+		TNonXScopeObj& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
+
+		auto operator&() {
+			return &(static_cast<_TROy&>(*this));
+		}
+		auto operator&() const {
+			return &(static_cast<const _TROy&>(*this));
+		}
+	};
+
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
+
+	/* TMemberObj is a transparent wrapper that can be used to wrap class/struct members to ensure that they are not scope
+	types. This might be particularly relevant when the member type is, or is derived from, a template parameter. */
+	template<typename _TROy> using TMemberObj = TNonXScopeObj<_TROy>;
 
 	/* TXScopeOwnerPointer is meant to be much like boost::scoped_ptr<>. Instead of taking a native pointer,
 	TXScopeOwnerPointer just forwards it's constructor arguments to the constructor of the TXScopeObj<_Ty>.
