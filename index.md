@@ -435,6 +435,7 @@ The nice thing about the way SaferCPlusPlus does shared ownership is that it con
 The following table considers all pointer use cases, partitioned into relevant categories, and compares the pointer types prescribed for each use case by the Core Guidelines and SaferCPlusPlus, noting safety and performance issues. Note that the "[scope](#scope-pointers)" adjective is used to indicate that the item will be deallocated at the end of the execution scope (sometimes called "block") in which it was declared. (I.e. basically a "local variable".):
 
 #### Pointer use case comparison table
+
 Pointer use case | Core Guidelines | SaferCPlusPlus
 ----------------- | --------------- | --------------
 strong pointer to mutable object shared between threads 		| shared_ptr [A]	| [lock pointer](#asynchronously-shared-objects)
