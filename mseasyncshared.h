@@ -1428,7 +1428,7 @@ namespace mse {
 
 			template<class _Fn, class... _Args, class = typename std::enable_if<!std::is_same<typename std::decay<_Fn>::type, thread>::value>::type>
 			explicit thread(_Fn&& _Fx, _Args&&... _Ax) : base_class(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {
-				s_valid_if_passable(std::forward<_Args>(_Ax)...);
+				s_valid_if_passable(std::forward<_Args>(_Ax)...); // ensure that the function arguments are of a safely passable type
 			}
 
 			thread(thread&& _Other) _NOEXCEPT : base_class(std::forward<decltype(static_cast<base_class&&>(_Other))>(static_cast<base_class&&>(_Other))) {}
@@ -1451,13 +1451,19 @@ namespace mse {
 
 		template<class _Fty, class... _ArgTypes>
 		inline auto async(std::launch _Policy, _Fty&& _Fnarg, _ArgTypes&&... _Args) {
+			// ensure that the function arguments are of a safely passable type
 			thread::s_valid_if_passable(std::forward<_ArgTypes>(_Args)...);
+			// ensure that the function return value is of a safely passable type
+			mse::T_valid_if_is_marked_as_passable_or_shareable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
 			return (std::async(_Policy, std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...));
 		}
 
 		template<class _Fty, class... _ArgTypes>
 		inline auto async(_Fty&& _Fnarg, _ArgTypes&&... _Args) {
+			// ensure that the function arguments are of a safely passable type
 			thread::s_valid_if_passable(std::forward<_ArgTypes>(_Args)...);
+			// ensure that the function return value is of a safely passable type
+			mse::T_valid_if_is_marked_as_passable_or_shareable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
 			return (std::async(std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...));
 		}
 	}

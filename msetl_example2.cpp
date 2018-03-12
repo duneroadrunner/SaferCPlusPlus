@@ -841,9 +841,9 @@ void msetl_example2() {
 				(newly created) "random access section" objects which are used to access (disjoint) sections of the vector.
 				We need to specify the position where we want to split the vector. Here we specify that it be split at index
 				"num_elements / 2", right down the middle. */
-				auto ra_rection_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, num_elements / 2);
-				auto ar1 = ra_rection_split1.first_ra_section_access_requester();
-				auto ar2 = ra_rection_split1.second_ra_section_access_requester();
+				auto ra_section_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, num_elements / 2);
+				auto ar1 = ra_section_split1.first_ra_section_access_requester();
+				auto ar2 = ra_section_split1.second_ra_section_access_requester();
 
 				/* The J::foo8 template function is just an example function that operates on containers of strings. In our case the
 				containers will be the random access sections we just created. We'll create an instance of the function here. */
@@ -882,8 +882,8 @@ void msetl_example2() {
 				}
 
 				/* Just as before, TAsyncRASectionSplitter<> will generate a new access requester for each section. */
-				auto ra_rection_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, section_sizes);
-				auto ar0 = ra_rection_split1.ra_section_access_requester(0);
+				auto ra_section_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, section_sizes);
+				auto ar0 = ra_section_split1.ra_section_access_requester(0);
 
 				auto& my_foo8_function_ref = J::foo8<decltype(ar0.writelock_ra_section())>;
 				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
@@ -891,7 +891,7 @@ void msetl_example2() {
 
 				std::list<mse::mstd::thread> threads;
 				for (size_t i = 0; i < num_sections; i += 1) {
-					auto ar = ra_rection_split1.ra_section_access_requester(i);
+					auto ar = ra_section_split1.ra_section_access_requester(i);
 					threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
 				}
 
