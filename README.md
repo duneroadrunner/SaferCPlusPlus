@@ -1,4 +1,4 @@
-Jan 2018
+Mar 2018
 
 ### Overview
 
@@ -28,7 +28,7 @@ An important consideration for many C++ applications is performance. Preferably 
 
 You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action. You can also check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) where you can compare traditional C++ and SaferCPlusPlus implementations of the same algorithms.
 
-Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
+Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Mar 2018). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
 
 ### Table of contents
@@ -63,7 +63,9 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Dec 2017). Support 
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
     4. [xscope_ifptr_to()](#xscope_ifptr_to)
     5. [xscope_chosen_pointer()](#xscope_chosen_pointer)
-    6. [returnable()](#returnable)
+    6. [Conformance helpers](#conformance-helpers)
+        1. [returnable()](#returnable)
+        2. [TMemberObj](#tmemberobj)
 10. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
 11. [Poly pointers](#poly-pointers)
     1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
@@ -433,6 +435,7 @@ The nice thing about the way SaferCPlusPlus does shared ownership is that it con
 The following table considers all pointer use cases, partitioned into relevant categories, and compares the pointer types prescribed for each use case by the Core Guidelines and SaferCPlusPlus, noting safety and performance issues. Note that the "[scope](#scope-pointers)" adjective is used to indicate that the item will be deallocated at the end of the execution scope (sometimes called "block") in which it was declared. (I.e. basically a "local variable".):
 
 #### Pointer use case comparison table
+
 Pointer use case | Core Guidelines | SaferCPlusPlus
 ----------------- | --------------- | --------------
 strong pointer to mutable object shared between threads 		| shared_ptr [A]	| [lock pointer](#asynchronously-shared-objects)
@@ -1168,6 +1171,10 @@ So consider, for example, a "min" function that takes two scope pointers and ret
     }
 ```
 
+### Conformance helpers
+
+As mentioned, in the future we expect that there will be a "compile helper tool" to verify that scope objects are not misused. Until then, a couple of "conformance helpers" are provided that can be used to help catch inadvertent misuse.
+
 ### returnable()
 
 The safety of non-owning scope pointers is premised on the fact that they will not outlive the scope in which they are declared. So returning a non-owning scope pointer, or any object that contains or owns a non-owning scope pointer, from a function would be potentially unsafe. However, it could be safe to return a scope object if that object does not contain or own any non-owning scope pointers.
@@ -1243,6 +1250,10 @@ usage example:
         //auto xscp_ptr_res1 = J::foo10(xscp_str1); // <-- would induce a compile error inside J::foo10() 
     }
 ```
+
+### TMemberObj
+
+Scope types have built in protection that prevents them from being allocated dynamically. But those protections are circumvented if a scope type is used as a member of a class or struct. So `TMemberObj<>` is a transparent wrapper that can be used to wrap class/struct member types to ensure that they are not scope types. This is particularly relevant in cases when the member type is, or is derived from, a template parameter.
 
 ### Defining your own scope types
 
