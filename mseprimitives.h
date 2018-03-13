@@ -78,6 +78,10 @@ be done at run time, at significant cost. So by default we disable range checks 
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
 
+#ifndef _NOEXCEPT
+#define _NOEXCEPT
+#endif /*_NOEXCEPT*/
+
 
 #ifndef MSE_CINT_BASE_INTEGER_TYPE
 #if SIZE_MAX <= ULONG_MAX

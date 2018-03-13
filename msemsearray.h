@@ -42,10 +42,10 @@
 #include <stdexcept>
 #include <type_traits>
 #include <shared_mutex>
+#include <algorithm>
 #ifdef MSE_SELF_TESTS
 #include <iostream>
 #include <string>
-#include <algorithm>
 #include <iterator>
 #endif // MSE_SELF_TESTS
 
