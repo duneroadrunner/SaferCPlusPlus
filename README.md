@@ -1667,6 +1667,8 @@ And of course the library remains perfectly compatible with (the less safe) trad
 
 ### Multithreading
 
+Note that the library requires and enforces that objects shared or passed between threads may only be of types identified as safe for such operations. Also, remember that any input to, or output from a function not via its interface (i.e function parameters or return value) is technically unsafe. Specifically, directly accessing global variables, or accessing variables via lambda capture (by reference or otherwise). This particularly applies when the function in question is executed asynchronously.
+
 ### TUserDeclaredAsyncPassableObj
 
 When passing an argument to a function that will be executed in another thread using the library, the argument must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely passable to another thread, but can't automatically deduce whether or not a user-defined type is safe to pass. So in order to pass a user-defined type, you need to "declare" that it is safely passable by wrapping it with the `us::TUserDeclaredAsyncPassableObj<>` template. Otherwise you'll get a compile error. A type that is safe to pass should have no indirect members (i.e. pointers/references) whose target is not protected by a thread-safety mechanism. (Mis)using `us::TUserDeclaredAsyncPassableObj<>` to indicate that a user-defined type is safely passable when that type does not meet these criteria could result in unsafe code.
@@ -1677,7 +1679,7 @@ When passing an argument to a function that will be executed in another thread u
 
 ### async()
 
-`mstd::async()` is just an implementation of `std::async()` that verifies that the arguments passed are of a type that is designated as safe to pass between threads. 
+`mstd::async()` is just an implementation of `std::async()` that verifies that the arguments and return value passed are of a type that is designated as safe to pass between threads. 
 
 ### Asynchronously shared objects
 One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, while one thread is modifying an object, you want to ensure that no other thread accesses it. But you also want to do it in a way that allows for maximum utilization of the shared object. To this end the library provides "access requesters". Access requesters provide "lock pointers" on demand that are used to safely access the shared object.
