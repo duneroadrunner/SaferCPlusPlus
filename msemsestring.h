@@ -372,7 +372,7 @@ namespace mse {
 		/* The reason we specify the default parameter in the definition instead of this forward declaration is that there seems to be a
 		bug in clang (3.8.0) such that if we don't specify the default parameter in the definition it seems to subsequently behave as if
 		one were never specified. g++ and msvc don't seem to have the same issue. */
-		template<typename _TVectorPointer, class/* = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TVectorPointer>::value), void>::type*/>
+		template<typename _TBasicStringPointer, class/* = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TBasicStringPointer>::value), void>::type*/>
 		class Tss_iterator_type;
 
 		/* Tss_const_iterator_type is a bounds checked const_iterator. */
@@ -393,7 +393,9 @@ namespace mse {
 			Tss_const_iterator_type() {}
 
 			Tss_const_iterator_type(const _TBasicStringConstPointer& owner_cptr) : m_owner_cptr(owner_cptr) {}
+			Tss_const_iterator_type(_TBasicStringConstPointer&& owner_cptr) : m_owner_cptr(std::forward<decltype(owner_cptr)>(owner_cptr)) {}
 
+			Tss_const_iterator_type(Tss_const_iterator_type&& src) = default;
 			Tss_const_iterator_type(const Tss_const_iterator_type& src) = default;
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value, void>::type>
 			Tss_const_iterator_type(const Tss_const_iterator_type<_Ty2>& src) : m_owner_cptr(src.target_container_ptr()), m_index(src.position()) {}
@@ -544,6 +546,11 @@ namespace mse {
 				return m_owner_cptr;
 			}
 
+			/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
+			template<class _Ty2 = _TBasicStringConstPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TBasicStringConstPointer>::value)
+				&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())), void>::type>
+				void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
 		private:
 			_TBasicStringConstPointer m_owner_cptr;
 			msev_size_t m_index = 0;
@@ -568,7 +575,9 @@ namespace mse {
 			Tss_iterator_type() {}
 
 			Tss_iterator_type(const _TBasicStringPointer& owner_ptr) : m_owner_ptr(owner_ptr) {}
+			Tss_iterator_type(_TBasicStringPointer&& owner_ptr) : m_owner_ptr(std::forward<decltype(owner_ptr)>(owner_ptr)) {}
 
+			Tss_iterator_type(Tss_iterator_type&& src) = default;
 			Tss_iterator_type(const Tss_iterator_type& src) = default;
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringPointer>::value, void>::type>
 			Tss_iterator_type(const Tss_iterator_type<_Ty2>& src) : m_owner_ptr(src.target_container_ptr()), m_index(src.position()) {}
@@ -724,6 +733,12 @@ namespace mse {
 			return retval;
 			}
 			*/
+
+			/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
+			template<class _Ty2 = _TBasicStringPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TBasicStringPointer>::value)
+				&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())), void>::type>
+				void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
 		private:
 			//msev_pointer<_Myt> m_owner_ptr = nullptr;
 			_TBasicStringPointer m_owner_ptr;

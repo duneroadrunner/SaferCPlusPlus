@@ -910,22 +910,7 @@ void msetl_example2() {
 
 			int q = 5;
 		}
-		{
-			mse::mstd::string mstd_string1;
-			mse::us::TUserDeclaredAsyncShareableObj<std::string> aso1;
-			//mse::us::TUserDeclaredAsyncShareableObj<mse::us::msearray<std::string, 3>> aso2;
-			mse::us::TUserDeclaredAsyncShareableObj<mse::nii_array<std::string, 3>> aso3;
-
-			mse::TAccessControlledReadWriteObj<mse::us::TUserDeclaredAsyncShareableObj<std::string>> aco1;
-			auto asxwp_ar = mse::make_asyncsharedv2xwpreadwrite(aco1.exclusive_writelock_ptr());
-			mse::TAccessControlledReadWriteObj<mse::nii_array<mse::nii_string, 3>> aco2;
-			//mse::TAccessControlledReadWriteObj<mse::nii_array<std::string, 3>> aco3;
-
-			auto as_ar = mse::make_asyncsharedv2readwrite<mse::nii_string>("some text");
-			//auto as_ar2 = mse::make_asyncsharedv2readwrite<std::string>("some text");
-		}
 	}
-
 }
 
 

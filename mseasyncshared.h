@@ -735,7 +735,7 @@ namespace mse {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointer")); }
 			return std::addressof(*((*m_shptr).cref()));
 		}
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 	private:
 		TAsyncSharedV2ExclusiveReadWritePointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1) {}
 		TAsyncSharedV2ExclusiveReadWritePointer(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> shptr, std::try_to_lock_t) : m_shptr(shptr), m_unique_lock(shptr->m_mutex1, std::defer_lock) {
@@ -1379,8 +1379,8 @@ namespace mse {
 				auto ras_ar1 = mse::make_asyncsplitterrasectionreadwrite<strong_ra_iterator_t>(it1, section_size);
 				m_ra_sections.push_back(ras_ar1);
 
-				cummulative_size += section_size;
-				section_begin_it += section_size;
+				cummulative_size += mse::msev_as_a_size_t(section_size);
+				section_begin_it += mse::msev_as_a_size_t(section_size);
 			}
 			if (m_access_lease_obj_shptr->cref()->size() > cummulative_size) {
 				auto section_size = m_access_lease_obj_shptr->cref()->size() - cummulative_size;
