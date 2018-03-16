@@ -1454,8 +1454,9 @@ int main(int argc, char* argv[])
 		auto res5 = H::foo6(xscp_s_ptr1, xscp_s_const_ptr1);
 
 		/* Using mse::make_xscope_strong_pointer_store(), you can obtain a scope pointer from a refcounting pointer. */
-		auto refc_ptr1 = mse::make_refcounting<A>(11);
-		auto xscp_refc_cstore = mse::make_xscope_strong_pointer_store(refc_ptr1);
+		/* Let's make it a const refcounting pointer, just for variety. */
+		mse::TRefCountingFixedConstPointer<A> refc_cptr1 = mse::make_refcounting<A>(11);
+		auto xscp_refc_cstore = mse::make_xscope_strong_pointer_store(refc_cptr1);
 		auto xscp_cptr1 = xscp_refc_cstore.xscope_ptr();
 		int res6 = B::foo3(xscp_cptr1);
 		mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;

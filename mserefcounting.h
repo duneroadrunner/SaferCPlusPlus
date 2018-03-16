@@ -744,6 +744,14 @@ namespace mse {
 	TXScopeRefCountingNotNullConstStore<_Ty> make_xscope_strong_pointer_store(const TRefCountingNotNullConstPointer<_Ty>& stored_ptr) {
 		return TXScopeRefCountingNotNullConstStore<_Ty>(stored_ptr);
 	}
+	template<typename _Ty>
+	TXScopeRefCountingNotNullStore<_Ty> make_xscope_strong_pointer_store(const TRefCountingFixedPointer<_Ty>& stored_ptr) {
+		return TXScopeRefCountingNotNullStore<_Ty>(stored_ptr);
+	}
+	template<typename _Ty>
+	TXScopeRefCountingNotNullConstStore<_Ty> make_xscope_strong_pointer_store(const TRefCountingFixedConstPointer<_Ty>& stored_ptr) {
+		return TXScopeRefCountingNotNullConstStore<_Ty>(stored_ptr);
+	}
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 
 #endif // MSESCOPE_H_
