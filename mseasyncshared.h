@@ -1089,6 +1089,145 @@ namespace mse {
 		return TAsyncSharedV2ReadOnlyAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
+	template<typename _TAccessLease>
+	class TXScopeAsyncSharedV2ReadWritePointer : public TAsyncSharedV2ReadWritePointer<_TAccessLease>, public XScopeTagBase {
+	public:
+		TXScopeAsyncSharedV2ReadWritePointer(const TXScopeAsyncSharedV2ReadWritePointer& src) = default;
+		TXScopeAsyncSharedV2ReadWritePointer(TXScopeAsyncSharedV2ReadWritePointer&& src) = default;
+		virtual ~TXScopeAsyncSharedV2ReadWritePointer() {}
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+	private:
+		typedef TAsyncSharedV2ReadWritePointer<_TAccessLease> base_class;
+		TXScopeAsyncSharedV2ReadWritePointer(const base_class& src) : base_class(src) {}
+		TXScopeAsyncSharedV2ReadWritePointer(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		void* operator new(size_t size) { return ::operator new(size); }
+		TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>* operator&() { return this; }
+		const TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>* operator&() const { return this; }
+	};
+
+	template<typename _TAccessLease>
+	class TXScopeAsyncSharedV2ReadWriteConstPointer : public TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>, public XScopeTagBase {
+	public:
+		TXScopeAsyncSharedV2ReadWriteConstPointer(const TXScopeAsyncSharedV2ReadWriteConstPointer& src) = default;
+		TXScopeAsyncSharedV2ReadWriteConstPointer(TXScopeAsyncSharedV2ReadWriteConstPointer&& src) = default;
+		virtual ~TXScopeAsyncSharedV2ReadWriteConstPointer() {}
+
+		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+	private:
+		typedef TAsyncSharedV2ReadWriteConstPointer<_TAccessLease> base_class;
+		TXScopeAsyncSharedV2ReadWriteConstPointer(const base_class& src) : base_class(src) {}
+		TXScopeAsyncSharedV2ReadWriteConstPointer(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		void* operator new(size_t size) { return ::operator new(size); }
+		TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>* operator&() { return this; }
+		const TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>* operator&() const { return this; }
+	};
+
+	template<typename _TAccessLease>
+	class TXScopeAsyncSharedV2ExclusiveReadWritePointer : public TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>, public XScopeTagBase {
+	public:
+		//TXScopeAsyncSharedV2ExclusiveReadWritePointer(const TXScopeAsyncSharedV2ExclusiveReadWritePointer& src) = default;
+		TXScopeAsyncSharedV2ExclusiveReadWritePointer(TXScopeAsyncSharedV2ExclusiveReadWritePointer&& src) = default;
+		virtual ~TXScopeAsyncSharedV2ExclusiveReadWritePointer() {}
+
+		void xscope_async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+	private:
+		typedef TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease> base_class;
+		//TXScopeAsyncSharedV2ExclusiveReadWritePointer(const base_class& src) : base_class(src) {}
+		TXScopeAsyncSharedV2ExclusiveReadWritePointer(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		void* operator new(size_t size) { return ::operator new(size); }
+		TXScopeAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>* operator&() { return this; }
+		const TXScopeAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>* operator&() const { return this; }
+	};
+
+	template <typename _Ty>
+	class TXScopeAsyncSharedV2ReadWriteAccessRequester
+		: public TAsyncSharedV2XWPReadWriteAccessRequester<decltype(std::declval<mse::TAccessControlledReadWriteObj<_Ty> >().exclusive_writelock_ptr())>
+		, public XScopeTagBase {
+	public:
+		typedef TAsyncSharedV2XWPReadWriteAccessRequester<decltype(std::declval<mse::TAccessControlledReadWriteObj<_Ty> >().exclusive_writelock_ptr())> base_class;
+		typedef decltype(std::declval<mse::TAccessControlledReadWriteObj<_Ty> >().exclusive_writelock_ptr()) _TExclusiveWritePointer;
+		typedef TXScopeAsyncSharedV2ReadWritePointer<_TExclusiveWritePointer> writelock_ptr_t;
+		typedef TXScopeAsyncSharedV2ReadWriteConstPointer<_TExclusiveWritePointer> readlock_ptr_t;
+		typedef mse::TXScopeFixedPointer<mse::TAccessControlledReadWriteObj<_Ty> > ac_obj_xscpptr_t;
+
+		TXScopeAsyncSharedV2ReadWriteAccessRequester(const TXScopeAsyncSharedV2ReadWriteAccessRequester& src_cref) = default;
+
+		~TXScopeAsyncSharedV2ReadWriteAccessRequester() {
+			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+			valid_if_Ty_is_marked_as_shareable();
+		}
+
+		auto xscope_writelock_ptr() {
+			return writelock_ptr_t(base_class::writelock_ptr());
+		}
+		auto xscope_try_writelock_ptr() {
+			auto res1 = base_class::try_writelock_ptr();
+			mse::mstd::optional<writelock_ptr_t> retval = res1.has_value() ? writelock_ptr_t(res1.value()) : mse::mstd::optional<writelock_ptr_t>{};
+			return retval;
+		}
+		template<class _Rep, class _Period>
+		auto xscope_try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			auto res1 = base_class::try_writelock_ptr_for(_Rel_time);
+			mse::mstd::optional<writelock_ptr_t> retval = res1.has_value() ? writelock_ptr_t(res1.value()) : mse::mstd::optional<writelock_ptr_t>{};
+			return retval;
+		}
+		template<class _Clock, class _Duration>
+		auto xscope_try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			auto res1 = base_class::try_writelock_ptr_until(_Abs_time);
+			mse::mstd::optional<writelock_ptr_t> retval = res1.has_value() ? writelock_ptr_t(res1.value()) : mse::mstd::optional<writelock_ptr_t>{};
+			return retval;
+		}
+		auto xscope_readlock_ptr() {
+			return readlock_ptr_t(base_class::xscope_readlock_ptr());
+		}
+		auto xscope_try_readlock_ptr() {
+			auto res1 = base_class::try_readlock_ptr();
+			mse::mstd::optional<readlock_ptr_t> retval = res1.has_value() ? readlock_ptr_t(res1.value()) : mse::mstd::optional<readlock_ptr_t>{};
+			return retval;
+		}
+		template<class _Rep, class _Period>
+		auto xscope_try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			auto res1 = base_class::try_readlock_ptr_for(_Rel_time);
+			mse::mstd::optional<readlock_ptr_t> retval = res1.has_value() ? readlock_ptr_t(res1.value()) : mse::mstd::optional<readlock_ptr_t>{};
+			return retval;
+		}
+		template<class _Clock, class _Duration>
+		auto xscope_try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			auto res1 = base_class::try_readlock_ptr_until(_Abs_time);
+			mse::mstd::optional<readlock_ptr_t> retval = res1.has_value() ? readlock_ptr_t(res1.value()) : mse::mstd::optional<readlock_ptr_t>{};
+			return retval;
+		}
+		/* Note that an exclusive_writelock_ptr cannot coexist with any other lock_ptrs (targeting the same object), including ones in
+		the same thread. Thus, using exclusive_writelock_ptrs without sufficient care introduces the potential for exceptions (in a way
+		that sticking to (regular) writelock_ptrs doesn't). */
+		auto xscope_exclusive_writelock_ptr() {
+			return TXScopeAsyncSharedV2ExclusiveReadWritePointer<_TExclusiveWritePointer>(base_class::exclusive_writelock_ptr());
+		}
+
+		static TXScopeAsyncSharedV2ReadWriteAccessRequester make(ac_obj_xscpptr_t&& xscpptr) {
+			return TXScopeAsyncSharedV2ReadWriteAccessRequester((*xscpptr).exclusive_writelock_ptr());
+		}
+
+		void xscope_async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
+	private:
+		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
+		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
+		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
+		void valid_if_Ty_is_marked_as_shareable() const {}
+
+		TXScopeAsyncSharedV2ReadWriteAccessRequester(_TExclusiveWritePointer&& xwptr) : base_class(make_asyncsharedv2xwpreadwrite(std::forward<decltype(xwptr)>(xwptr))) {}
+
+		void* operator new(size_t size) { return ::operator new(size); }
+		TXScopeAsyncSharedV2ReadWriteAccessRequester<_Ty>* operator&() { return this; }
+		const TXScopeAsyncSharedV2ReadWriteAccessRequester<_Ty>* operator&() const { return this; }
+	};
+
 
 	/* For situations where the shared object is immutable (i.e. is never modified), you don't even need locks or access requesters. */
 	template<typename _Ty>
@@ -1468,7 +1607,92 @@ namespace mse {
 		}
 	}
 
-	
+	/* xscope_thread is currently publicly derived from mstd::thread for reasons of implementation convenience. Expect that
+	in the future it will not be. */
+	class xscope_thread : public mstd::thread, public XScopeTagBase {
+	public:
+		typedef mstd::thread base_class;
+
+		xscope_thread() _NOEXCEPT {}
+
+		template<class _Fn, class... _Args, class = typename std::enable_if<!std::is_same<typename std::decay<_Fn>::type, xscope_thread>::value>::type>
+		explicit xscope_thread(_Fn&& _Fx, _Args&&... _Ax) : base_class(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {
+			s_valid_if_xscope_passable(std::forward<_Args>(_Ax)...); // ensure that the function arguments are of a safely passable type
+		}
+
+		xscope_thread& operator=(xscope_thread&& _Other) = delete;
+
+		xscope_thread(const xscope_thread&) = delete;
+		xscope_thread& operator=(const xscope_thread&) = delete;
+
+		~xscope_thread() {
+			if ((*this).joinable()) {
+				(*this).join();
+			}
+		}
+
+		template<class _Ty, class... _Args>
+		static void s_valid_if_xscope_passable(const _Ty& arg1, _Args&&... _Ax) {
+			mse::xscope_async_passable(arg1);
+			s_valid_if_xscope_passable(std::forward<_Args>(_Ax)...);
+		}
+		static void s_valid_if_xscope_passable() {}
+
+	private:
+		xscope_thread(xscope_thread&& _Other) _NOEXCEPT : base_class(std::forward<decltype(static_cast<base_class&&>(_Other))>(static_cast<base_class&&>(_Other))) {}
+
+		void* operator new(size_t size) { return ::operator new(size); }
+		auto operator&() { return this; }
+		auto operator&() const { return this; }
+		friend class xscope_thread_carrier;
+	};
+
+	class xscope_thread_carrier : public XScopeTagBase {
+	public:
+		typedef size_t handle_t;
+
+		template<class _Fn, class... _Args, class = typename std::enable_if<!std::is_same<typename std::decay<_Fn>::type, xscope_thread>::value>::type>
+		handle_t new_thread(_Fn&& _Fx, _Args&&... _Ax) {
+			m_xscope_thread_map.emplace(m_next_available_handle, std::forward<decltype(xscope_thread())>(xscope_thread(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...)));
+			auto retval = m_next_available_handle;
+			m_next_available_handle += 1;
+			return retval;
+		}
+
+		auto xscope_ptr(const handle_t& handle) {
+			auto it = m_xscope_thread_map.find(handle);
+			mse::xscope_optional<mse::TXScopeItemFixedPointer<xscope_thread> > retval = (m_xscope_thread_map.end() == it)
+				? mse::xscope_optional<mse::TXScopeItemFixedPointer<xscope_thread> >{} : mse::us::unsafe_make_xscope_pointer_to((*it).second);
+			return retval;
+		}
+		auto xscope_ptr(const handle_t& handle) const {
+			auto cit = m_xscope_thread_map.find(handle);
+			mse::xscope_optional<mse::TXScopeItemFixedConstPointer<xscope_thread> > retval = (m_xscope_thread_map.cend() == cit)
+				? mse::xscope_optional<mse::TXScopeItemFixedConstPointer<xscope_thread> >{} : mse::us::unsafe_make_xscope_const_pointer_to((*cit).second);
+			return retval;
+		}
+		auto xscope_ptr_at(const handle_t& handle) {
+			return mse::us::unsafe_make_xscope_pointer_to(m_xscope_thread_map.at(handle));
+		}
+		auto xscope_ptr_at(const handle_t& handle) const {
+			return mse::us::unsafe_make_xscope_const_pointer_to(m_xscope_thread_map.at(handle));
+		}
+
+	private:
+		class movable_xscope_thread : public xscope_thread {
+		public:
+			movable_xscope_thread(xscope_thread&& _Other) _NOEXCEPT : xscope_thread(std::forward<decltype(static_cast<base_class&&>(_Other))>(static_cast<base_class&&>(_Other))) {}
+			movable_xscope_thread(movable_xscope_thread&& _Other) _NOEXCEPT = default;
+		};
+
+		void* operator new(size_t size) { return ::operator new(size); }
+		auto operator&() { return this; }
+		auto operator&() const { return this; }
+
+		handle_t m_next_available_handle = 0;
+		std::map<handle_t, movable_xscope_thread> m_xscope_thread_map;
+	};
+
 	
 	/* TAsyncSharedReadWriteAccessRequester, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester,
 	and TStdSharedImmutableFixedPointer are deprecated. */

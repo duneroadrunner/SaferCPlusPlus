@@ -889,16 +889,32 @@ void msetl_example2() {
 				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
 				auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
 
-				std::list<mse::mstd::thread> threads;
-				for (size_t i = 0; i < num_sections; i += 1) {
-					auto ar = ra_section_split1.ra_section_access_requester(i);
-					threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
+				if (true) {
+					/* Here we demonstrate scope threads. Scope threads don't support being copied or moved. Unlike mstd::thread,
+					scope threads can share objects declared on the stack (which is not utilized here), and in their destructor,
+					scope thread objects will wait until their thread finishes its execution (i.e "join" the thread), blocking if
+					necessary. Often rather than declaring scope thread objects directly, you'll create and manage multiple scope
+					threads with an "xscope_thread_carrier". An xscope_thread_carrier is just a simple container that holds scope
+					threads. */
+					mse::xscope_thread_carrier xscope_threads;
+					for (size_t i = 0; i < num_sections; i += 1) {
+						auto ar = ra_section_split1.ra_section_access_requester(i);
+						xscope_threads.new_thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref);
+					}
+					/* The scope will not end until all the scope threads have finished executing. */
 				}
+				else {
+					std::list<mse::mstd::thread> threads;
+					for (size_t i = 0; i < num_sections; i += 1) {
+						auto ar = ra_section_split1.ra_section_access_requester(i);
+						threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
+					}
 
-				{
-					int count = 1;
-					for (auto it = threads.begin(); threads.end() != it; it++, count++) {
-						(*it).join();
+					{
+						int count = 1;
+						for (auto it = threads.begin(); threads.end() != it; it++, count++) {
+							(*it).join();
+						}
 					}
 				}
 			}

@@ -739,6 +739,24 @@ namespace mse {
 		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
 	};
 
+	template<typename T>
+	struct HasXScopeAsyncShareableTagMethod_msescope
+	{
+		template<typename U, void(U::*)() const> struct SFINAE {};
+		template<typename U> static char Test(SFINAE<U, &U::xscope_async_shareable_tag>*);
+		template<typename U> static int Test(...);
+		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+	};
+
+	template<typename T>
+	struct HasXScopeAsyncPassableTagMethod_msescope
+	{
+		template<typename U, void(U::*)() const> struct SFINAE {};
+		template<typename U> static char Test(SFINAE<U, &U::xscope_async_passable_tag>*);
+		template<typename U> static int Test(...);
+		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+	};
+
 	template<class T, class EqualTo>
 	struct HasOrInheritsAssignmentOperator_msemsearray_impl
 	{
@@ -4605,6 +4623,39 @@ namespace mse {
 	template<typename _Ty>
 	_Ty&& async_passable(_Ty&& _X) {
 		T_valid_if_is_marked_as_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+		return std::forward<decltype(_X)>(_X);
+	}
+
+	template<class _Ty, class = typename std::enable_if<(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty>::Has>())
+		|| (std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msescope<_Ty>::Has>())
+		|| (std::is_arithmetic<_Ty>::value) || (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
+		|| (std::is_same<_Ty, void>::value), void>::type>
+		void T_valid_if_is_marked_as_xscope_shareable_msescope() {}
+	template<typename _Ty>
+	const _Ty& xscope_async_shareable(const _Ty& _X) {
+		T_valid_if_is_marked_as_xscope_shareable_msescope<_Ty>();
+		return _X;
+	}
+	template<typename _Ty>
+	_Ty&& xscope_async_shareable(_Ty&& _X) {
+		T_valid_if_is_marked_as_xscope_shareable_msescope<typename std::remove_reference<_Ty>::type>();
+		return std::forward<decltype(_X)>(_X);
+	}
+
+	template<class _Ty, class = typename std::enable_if<(std::integral_constant<bool, HasAsyncPassableTagMethod_msemsearray<_Ty>::Has>())
+		|| (std::integral_constant<bool, HasXScopeAsyncPassableTagMethod_msescope<_Ty>::Has>()) || (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty>::Has>())
+		|| (std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msescope<_Ty>::Has>()) || (std::is_arithmetic<_Ty>::value)
+		|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
+		|| (std::is_same<_Ty, void>::value), void>::type>
+		void T_valid_if_is_marked_as_xscope_passable_or_shareable_msescope() {}
+	template<typename _Ty>
+	const _Ty& xscope_async_passable(const _Ty& _X) {
+		T_valid_if_is_marked_as_xscope_passable_or_shareable_msescope<_Ty>();
+		return _X;
+	}
+	template<typename _Ty>
+	_Ty&& xscope_async_passable(_Ty&& _X) {
+		T_valid_if_is_marked_as_xscope_passable_or_shareable_msescope<typename std::remove_reference<_Ty>::type>();
 		return std::forward<decltype(_X)>(_X);
 	}
 
