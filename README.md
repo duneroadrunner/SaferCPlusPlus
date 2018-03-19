@@ -1317,7 +1317,7 @@ If you need a safe pointer to a member of a class/struct, you could declare the 
 usage example:
 
 ```cpp
-    /* Including "msepoly.h" is not required to use mse::make_pointer_to_member(). It just happens to include all the
+    /* Including "msepoly.h" is not required to use mse::make_pointer_to_member_v2(). It just happens to include all the
     other include files used by this example. */
     #include "msepoly.h"
     
