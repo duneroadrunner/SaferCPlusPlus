@@ -4661,141 +4661,140 @@ namespace mse {
 
 	class recursive_shared_timed_mutex;
 
-	template<class _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledReadWriteObj;
-	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledReadWriteConstPointer;
+	template<class _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledObj;
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledConstPointer;
 
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
-	class TAccessControlledReadWritePointer {
+	class TAccessControlledPointer {
 	public:
-		TAccessControlledReadWritePointer(const TAccessControlledReadWriteObj<_Ty, _TAccessMutex>& src);
-		TAccessControlledReadWritePointer(const TAccessControlledReadWritePointer& src) : m_obj_ptr(src.m_obj_ptr), m_write_lock(src.m_obj_ptr->m_mutex1) {}
-		TAccessControlledReadWritePointer(TAccessControlledReadWritePointer&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
-		virtual ~TAccessControlledReadWritePointer() {}
+		TAccessControlledPointer(const TAccessControlledPointer& src) : m_obj_ptr(src.m_obj_ptr), m_write_lock(src.m_obj_ptr->m_mutex1) {}
+		TAccessControlledPointer(TAccessControlledPointer&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
+		virtual ~TAccessControlledPointer() {}
 
 		operator bool() const {
-			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWritePointer")); }
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledPointer")); }
 			return (nullptr != m_obj_ptr);
 		}
 		auto& operator*() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWritePointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledPointer")); }
 			return (*m_obj_ptr).m_obj;
 		}
 		auto operator->() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWritePointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledPointer")); }
 			return std::addressof((*m_obj_ptr).m_obj);
 		}
 	private:
-		TAccessControlledReadWritePointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr) : m_obj_ptr(obj_ptr), m_write_lock(obj_ptr->m_mutex1) {}
-		TAccessControlledReadWritePointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t) : m_obj_ptr(obj_ptr), m_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
+		TAccessControlledPointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr) : m_obj_ptr(obj_ptr), m_write_lock(obj_ptr->m_mutex1) {}
+		TAccessControlledPointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t) : m_obj_ptr(obj_ptr), m_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
 			if (!m_write_lock.try_lock()) {
 				m_obj_ptr = nullptr;
 			}
 		}
 		template<class _Rep, class _Period>
-		TAccessControlledReadWritePointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(obj_ptr), m_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
+		TAccessControlledPointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(obj_ptr), m_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
 			if (!m_write_lock.try_lock_for(_Rel_time)) {
 				m_obj_ptr = nullptr;
 			}
 		}
 		template<class _Clock, class _Duration>
-		TAccessControlledReadWritePointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(obj_ptr), m_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
+		TAccessControlledPointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(obj_ptr), m_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
 			if (!m_write_lock.try_lock_until(_Abs_time)) {
 				m_obj_ptr = nullptr;
 			}
 		}
-		TAccessControlledReadWritePointer<_Ty, _TAccessMutex>& operator=(const TAccessControlledReadWritePointer<_Ty, _TAccessMutex>& _Right_cref) = delete;
-		TAccessControlledReadWritePointer<_Ty, _TAccessMutex>& operator=(TAccessControlledReadWritePointer<_Ty, _TAccessMutex>&& _Right) = delete;
+		TAccessControlledPointer<_Ty, _TAccessMutex>& operator=(const TAccessControlledPointer<_Ty, _TAccessMutex>& _Right_cref) = delete;
+		TAccessControlledPointer<_Ty, _TAccessMutex>& operator=(TAccessControlledPointer<_Ty, _TAccessMutex>&& _Right) = delete;
 
-		TAccessControlledReadWritePointer<_Ty, _TAccessMutex>* operator&() { return this; }
-		const TAccessControlledReadWritePointer<_Ty, _TAccessMutex>* operator&() const { return this; }
+		TAccessControlledPointer<_Ty, _TAccessMutex>* operator&() { return this; }
+		const TAccessControlledPointer<_Ty, _TAccessMutex>* operator&() const { return this; }
 		bool is_valid() const {
 			bool retval = (nullptr != m_obj_ptr);
 			return retval;
 		}
 
-		TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* m_obj_ptr = nullptr;
+		TAccessControlledObj<_Ty, _TAccessMutex>* m_obj_ptr = nullptr;
 		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
 		/* Note, the default mutex used here, non_thread_safe_recursive_shared_timed_mutex, like std::recursive_mutex, supports
 		being locked multiple times simultaneously, even when using std::unique_lock<>. */
 		std::unique_lock<_TWrappedAccessMutex> m_write_lock;
 
-		friend class TAccessControlledReadWriteObj<_Ty, _TAccessMutex>;
-		friend class TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>;
+		friend class TAccessControlledObj<_Ty, _TAccessMutex>;
+		friend class TAccessControlledConstPointer<_Ty, _TAccessMutex>;
 	};
 
 	template<typename _Ty, class _TAccessMutex>
-	class TAccessControlledReadWriteConstPointer {
+	class TAccessControlledConstPointer {
 	public:
-		TAccessControlledReadWriteConstPointer(const TAccessControlledReadWriteConstPointer& src) : m_obj_ptr(src.m_obj_ptr), m_read_lock(src.m_obj_ptr->m_mutex1) {}
-		TAccessControlledReadWriteConstPointer(TAccessControlledReadWriteConstPointer&& src) = default;
-		TAccessControlledReadWriteConstPointer(const TAccessControlledReadWritePointer<_Ty, _TAccessMutex>& src) : m_obj_ptr(src.m_obj_ptr), m_read_lock(src.m_obj_ptr->m_mutex1) {}
-		virtual ~TAccessControlledReadWriteConstPointer() {}
+		TAccessControlledConstPointer(const TAccessControlledConstPointer& src) : m_obj_ptr(src.m_obj_ptr), m_read_lock(src.m_obj_ptr->m_mutex1) {}
+		TAccessControlledConstPointer(TAccessControlledConstPointer&& src) = default;
+		TAccessControlledConstPointer(const TAccessControlledPointer<_Ty, _TAccessMutex>& src) : m_obj_ptr(src.m_obj_ptr), m_read_lock(src.m_obj_ptr->m_mutex1) {}
+		virtual ~TAccessControlledConstPointer() {}
 
 		operator bool() const {
-			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWriteConstPointer")); }
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledConstPointer")); }
 			return (nullptr != m_obj_ptr);
 		}
 		const _Ty& operator*() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWriteConstPointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledConstPointer")); }
 			return (*m_obj_ptr).m_obj;
 		}
 		const _Ty* operator->() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledReadWriteConstPointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledConstPointer")); }
 			return std::addressof((*m_obj_ptr).m_obj);
 		}
 	private:
-		TAccessControlledReadWriteConstPointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr) : m_obj_ptr(obj_ptr), m_read_lock(obj_ptr->m_mutex1) {}
-		TAccessControlledReadWriteConstPointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t) : m_obj_ptr(obj_ptr), m_read_lock(obj_ptr->m_mutex1, std::defer_lock) {
+		TAccessControlledConstPointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr) : m_obj_ptr(obj_ptr), m_read_lock(obj_ptr->m_mutex1) {}
+		TAccessControlledConstPointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t) : m_obj_ptr(obj_ptr), m_read_lock(obj_ptr->m_mutex1, std::defer_lock) {
 			if (!m_read_lock.try_lock()) {
 				m_obj_ptr = nullptr;
 			}
 		}
 		template<class _Rep, class _Period>
-		TAccessControlledReadWriteConstPointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(obj_ptr), m_read_lock(obj_ptr->m_mutex1, std::defer_lock) {
+		TAccessControlledConstPointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(obj_ptr), m_read_lock(obj_ptr->m_mutex1, std::defer_lock) {
 			if (!m_read_lock.try_lock_for(_Rel_time)) {
 				m_obj_ptr = nullptr;
 			}
 		}
 		template<class _Clock, class _Duration>
-		TAccessControlledReadWriteConstPointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(obj_ptr), m_read_lock(obj_ptr->m_mutex1, std::defer_lock) {
+		TAccessControlledConstPointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(obj_ptr), m_read_lock(obj_ptr->m_mutex1, std::defer_lock) {
 			if (!m_read_lock.try_lock_until(_Abs_time)) {
 				m_obj_ptr = nullptr;
 			}
 		}
-		TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>& operator=(const TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>& _Right_cref) = delete;
-		TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>& operator=(TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>&& _Right) = delete;
+		TAccessControlledConstPointer<_Ty, _TAccessMutex>& operator=(const TAccessControlledConstPointer<_Ty, _TAccessMutex>& _Right_cref) = delete;
+		TAccessControlledConstPointer<_Ty, _TAccessMutex>& operator=(TAccessControlledConstPointer<_Ty, _TAccessMutex>&& _Right) = delete;
 
-		TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>* operator&() { return this; }
-		const TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>* operator&() const { return this; }
+		TAccessControlledConstPointer<_Ty, _TAccessMutex>* operator&() { return this; }
+		const TAccessControlledConstPointer<_Ty, _TAccessMutex>* operator&() const { return this; }
 		bool is_valid() const {
 			bool retval = (nullptr != m_obj_ptr);
 			return retval;
 		}
 
-		TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* m_obj_ptr = nullptr;
+		TAccessControlledObj<_Ty, _TAccessMutex>* m_obj_ptr = nullptr;
 		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
 		std::shared_lock<_TWrappedAccessMutex> m_read_lock;
 
-		friend class TAccessControlledReadWriteObj<_Ty, _TAccessMutex>;
+		friend class TAccessControlledObj<_Ty, _TAccessMutex>;
 	};
 
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
-	class TAccessControlledExclusiveReadWritePointer {
+	class TAccessControlledExclusivePointer {
 	public:
-		TAccessControlledExclusiveReadWritePointer(const TAccessControlledExclusiveReadWritePointer& src) = delete;
-		TAccessControlledExclusiveReadWritePointer(TAccessControlledExclusiveReadWritePointer&& src) = default;
-		virtual ~TAccessControlledExclusiveReadWritePointer() {}
+		TAccessControlledExclusivePointer(const TAccessControlledExclusivePointer& src) = delete;
+		TAccessControlledExclusivePointer(TAccessControlledExclusivePointer&& src) = default;
+		virtual ~TAccessControlledExclusivePointer() {}
 
 		operator bool() const {
-			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusiveReadWritePointer")); }
+			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusivePointer")); }
 			return (nullptr != m_obj_ptr);
 		}
 		auto& operator*() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusiveReadWritePointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusivePointer")); }
 			return (*m_obj_ptr).m_obj;
 		}
 		auto operator->() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusiveReadWritePointer")); }
+			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusivePointer")); }
 			return std::addressof((*m_obj_ptr).m_obj);
 		}
 
@@ -4809,50 +4808,50 @@ namespace mse {
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
-		TAccessControlledExclusiveReadWritePointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr) : m_obj_ptr(obj_ptr), m_exclusive_write_lock(obj_ptr->m_mutex1) {}
-		TAccessControlledExclusiveReadWritePointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t) : m_obj_ptr(obj_ptr), m_exclusive_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
+		TAccessControlledExclusivePointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr) : m_obj_ptr(obj_ptr), m_exclusive_write_lock(obj_ptr->m_mutex1) {}
+		TAccessControlledExclusivePointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t) : m_obj_ptr(obj_ptr), m_exclusive_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
 			if (!m_exclusive_write_lock.try_lock()) {
 				m_obj_ptr = nullptr;
 			}
 		}
 		template<class _Rep, class _Period>
-		TAccessControlledExclusiveReadWritePointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(obj_ptr), m_exclusive_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
+		TAccessControlledExclusivePointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(obj_ptr), m_exclusive_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
 			if (!m_exclusive_write_lock.try_lock_for(_Rel_time)) {
 				m_obj_ptr = nullptr;
 			}
 		}
 		template<class _Clock, class _Duration>
-		TAccessControlledExclusiveReadWritePointer(TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(obj_ptr), m_exclusive_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
+		TAccessControlledExclusivePointer(TAccessControlledObj<_Ty, _TAccessMutex>* obj_ptr, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(obj_ptr), m_exclusive_write_lock(obj_ptr->m_mutex1, std::defer_lock) {
 			if (!m_exclusive_write_lock.try_lock_until(_Abs_time)) {
 				m_obj_ptr = nullptr;
 			}
 		}
-		TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex>& operator=(const TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex>& _Right_cref) = delete;
-		TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex>& operator=(TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex>&& _Right) = delete;
+		TAccessControlledExclusivePointer<_Ty, _TAccessMutex>& operator=(const TAccessControlledExclusivePointer<_Ty, _TAccessMutex>& _Right_cref) = delete;
+		TAccessControlledExclusivePointer<_Ty, _TAccessMutex>& operator=(TAccessControlledExclusivePointer<_Ty, _TAccessMutex>&& _Right) = delete;
 
-		TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex>* operator&() { return this; }
-		const TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex>* operator&() const { return this; }
+		TAccessControlledExclusivePointer<_Ty, _TAccessMutex>* operator&() { return this; }
+		const TAccessControlledExclusivePointer<_Ty, _TAccessMutex>* operator&() const { return this; }
 		bool is_valid() const {
 			bool retval = (nullptr != m_obj_ptr);
 			return retval;
 		}
 
-		TAccessControlledReadWriteObj<_Ty, _TAccessMutex>* m_obj_ptr = nullptr;
+		TAccessControlledObj<_Ty, _TAccessMutex>* m_obj_ptr = nullptr;
 		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
 		unique_nonrecursive_lock<_TWrappedAccessMutex> m_exclusive_write_lock;
 
-		friend class TAccessControlledReadWriteObj<_Ty, _TAccessMutex>;
-		//friend class TAccessControlledReadWriteExclusiveConstPointer<_Ty, _TAccessMutex>;
+		friend class TAccessControlledObj<_Ty, _TAccessMutex>;
+		//friend class TAccessControlledExclusiveConstPointer<_Ty, _TAccessMutex>;
 	};
 
 	template<class _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TAccessControlledReadWriteObj {
+	class TAccessControlledObj {
 	public:
-		TAccessControlledReadWriteObj(const TAccessControlledReadWriteObj& src_cref) : m_obj(src_cref.m_obj) {}
+		TAccessControlledObj(const TAccessControlledObj& src_cref) : m_obj(src_cref.m_obj) {}
 
 		template <class... Args>
-		TAccessControlledReadWriteObj(Args&&... args) : m_obj(std::forward<Args>(args)...) {}
-		~TAccessControlledReadWriteObj() {
+		TAccessControlledObj(Args&&... args) : m_obj(std::forward<Args>(args)...) {}
+		~TAccessControlledObj() {
 			try {
 				m_mutex1.nonrecursive_lock();
 				//m_mutex1.nonrecursive_unlock();
@@ -4860,7 +4859,7 @@ namespace mse {
 			catch (...) {
 				/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object (in
 				this thread). */
-				std::cerr << "\n\nFatal Error: mse::TAccessControlledReadWriteObj<> destructed with outstanding references in the same thread \n\n";
+				std::cerr << "\n\nFatal Error: mse::TAccessControlledObj<> destructed with outstanding references in the same thread \n\n";
 				std::terminate();
 			}
 
@@ -4868,63 +4867,63 @@ namespace mse {
 			valid_if_Ty_is_marked_as_shareable();
 		}
 
-		TAccessControlledReadWritePointer<_Ty, _TAccessMutex> writelock_ptr() {
-			return TAccessControlledReadWritePointer<_Ty, _TAccessMutex>(*this);
+		TAccessControlledPointer<_Ty, _TAccessMutex> pointer() {
+			return TAccessControlledPointer<_Ty, _TAccessMutex>(this);
 		}
-		mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> try_writelock_ptr() {
-			mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWritePointer<_Ty, _TAccessMutex>(*this, std::try_to_lock));
+		mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> try_pointer() {
+			mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> retval(TAccessControlledPointer<_Ty, _TAccessMutex>(this, std::try_to_lock));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
 			return retval;
 		}
 		template<class _Rep, class _Period>
-		mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWritePointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Rel_time));
+		mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> try_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> retval(TAccessControlledPointer<_Ty, _TAccessMutex>(this, std::try_to_lock, _Rel_time));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
 			return retval;
 		}
 		template<class _Clock, class _Duration>
-		mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			mse::mstd::optional<TAccessControlledReadWritePointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWritePointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Abs_time));
+		mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> try_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> retval(TAccessControlledPointer<_Ty, _TAccessMutex>(this, std::try_to_lock, _Abs_time));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
 			return retval;
 		}
-		TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex> readlock_ptr() {
-			return TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>(*this);
+		TAccessControlledConstPointer<_Ty, _TAccessMutex> const_pointer() {
+			return TAccessControlledConstPointer<_Ty, _TAccessMutex>(this);
 		}
-		mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> try_readlock_ptr() {
-			mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>(*this, std::try_to_lock));
+		mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> try_const_pointer() {
+			mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledConstPointer<_Ty, _TAccessMutex>(this, std::try_to_lock));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
 			return retval;
 		}
 		template<class _Rep, class _Period>
-		mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Rel_time));
+		mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> try_const_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+			mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledConstPointer<_Ty, _TAccessMutex>(this, std::try_to_lock, _Rel_time));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
 			return retval;
 		}
 		template<class _Clock, class _Duration>
-		mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			mse::mstd::optional<TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>(*this, std::try_to_lock, _Abs_time));
+		mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> try_const_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+			mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledConstPointer<_Ty, _TAccessMutex>(this, std::try_to_lock, _Abs_time));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
 			return retval;
 		}
-		/* Note that an exclusive_writelock_ptr cannot coexist with any other lock_ptrs (targeting the same object), including ones in
-		the same thread. Thus, using exclusive_writelock_ptrs without sufficient care introduces the potential for exceptions (in a way
-		that sticking to (regular) writelock_ptrs doesn't). */
-		TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex> exclusive_writelock_ptr() {
-			return TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex>(this);
+		/* Note that an exclusive_pointer cannot coexist with any other lock_ptrs (targeting the same object), including ones in
+		the same thread. Thus, using exclusive_pointers without sufficient care introduces the potential for exceptions (in a way
+		that sticking to (regular) pointers doesn't). */
+		TAccessControlledExclusivePointer<_Ty, _TAccessMutex> exclusive_pointer() {
+			return TAccessControlledExclusivePointer<_Ty, _TAccessMutex>(this);
 		}
 
 	private:
@@ -4934,8 +4933,8 @@ namespace mse {
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
-		TAccessControlledReadWriteObj* operator&() { return this; }
-		const TAccessControlledReadWriteObj* operator&() const { return this; }
+		TAccessControlledObj* operator&() { return this; }
+		const TAccessControlledObj* operator&() const { return this; }
 
 		_Ty m_obj;
 
@@ -4943,14 +4942,149 @@ namespace mse {
 		_TWrappedAccessMutex m_mutex1;
 
 		//friend class TAccessControlledReadOnlyObj<_Ty, _TAccessMutex>;
-		friend class TAccessControlledReadWritePointer<_Ty, _TAccessMutex>;
-		friend class TAccessControlledReadWriteConstPointer<_Ty, _TAccessMutex>;
-		friend class TAccessControlledExclusiveReadWritePointer<_Ty, _TAccessMutex>;
+		friend class TAccessControlledPointer<_Ty, _TAccessMutex>;
+		friend class TAccessControlledConstPointer<_Ty, _TAccessMutex>;
+		friend class TAccessControlledExclusivePointer<_Ty, _TAccessMutex>;
+	};
+
+	template<class _Ty> using TExclusiveWriterObj = TAccessControlledObj<_Ty, non_thread_safe_shared_mutex>;
+
+
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	class TXScopeAccessControlledPointer;
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	class TXScopeAccessControlledConstPointer;
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	class TXScopeAccessControlledExclusivePointer;
+
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	auto xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	auto xscope_const_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	auto xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
+
+	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+	class TXScopeAccessControlledPointer : public TAccessControlledPointer<_Ty, _TAccessMutex>, public XScopeTagBase {
+	public:
+		typedef TAccessControlledPointer<_Ty, _TAccessMutex> base_class;
+		TXScopeAccessControlledPointer(TXScopeAccessControlledPointer&& src) = default;
+		virtual ~TXScopeAccessControlledPointer() {
+			valid_if_TAccessMutex_is_supported<_TAccessMutex>();
+		}
+
+		template<class _Ty2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_Ty2, _TAccessMutex>::value)
+			&& (std::is_same<_Ty2, non_thread_safe_shared_mutex>::value), void>::type>
+		void xscope_async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
+	private:
+		TXScopeAccessControlledPointer(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		template<class _Ty2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_Ty2, _TAccessMutex>::value) && (
+			/* todo: add other supported mutex types (most mutex types should work) */
+			(std::is_same<_Ty2, non_thread_safe_shared_mutex>::value) || (std::is_same<_Ty2, non_thread_safe_recursive_shared_timed_mutex>::value)
+			), void>::type>
+		void valid_if_TAccessMutex_is_supported() const {}
+
+		void* operator new(size_t size) { return ::operator new(size); }
+		auto operator&() { return this; }
+		auto operator&() const { return this; }
+
+		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
+		friend auto xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
+		friend auto xscope_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
 	};
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	TAccessControlledReadWritePointer<_Ty, _TAccessMutex>::TAccessControlledReadWritePointer(const TAccessControlledReadWriteObj<_Ty, _TAccessMutex>& src) : m_obj_ptr(&src), m_write_lock(src.m_mutex1) {}
+	class TXScopeAccessControlledConstPointer : public TAccessControlledConstPointer<_Ty, _TAccessMutex>, public XScopeTagBase {
+	public:
+		typedef TAccessControlledConstPointer<_Ty, _TAccessMutex> base_class;
+		TXScopeAccessControlledConstPointer(TXScopeAccessControlledConstPointer&& src) = default;
+		virtual ~TXScopeAccessControlledConstPointer() {
+			valid_if_TAccessMutex_is_supported<_TAccessMutex>();
+		}
 
+		template<class _Ty2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_Ty2, _TAccessMutex>::value)
+			&& (std::is_same<_Ty2, non_thread_safe_shared_mutex>::value), void>::type>
+		void xscope_async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
+	private:
+		TXScopeAccessControlledConstPointer(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		template<class _Ty2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_Ty2, _TAccessMutex>::value) && (
+			/* todo: add other supported mutex types (most mutex types should work) */
+			(std::is_same<_Ty2, non_thread_safe_shared_mutex>::value) || (std::is_same<_Ty2, non_thread_safe_recursive_shared_timed_mutex>::value)
+			), void>::type>
+		void valid_if_TAccessMutex_is_supported() const {}
+
+		void* operator new(size_t size) { return ::operator new(size); }
+		auto operator&() { return this; }
+		auto operator&() const { return this; }
+
+		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
+		friend auto xscope_const_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
+		friend auto xscope_const_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+	};
+
+	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+	class TXScopeAccessControlledExclusivePointer : public TAccessControlledExclusivePointer<_Ty, _TAccessMutex>, public XScopeTagBase {
+	public:
+		typedef TAccessControlledExclusivePointer<_Ty, _TAccessMutex> base_class;
+		TXScopeAccessControlledExclusivePointer(TXScopeAccessControlledExclusivePointer&& src) = default;
+		virtual ~TXScopeAccessControlledExclusivePointer() {
+			valid_if_TAccessMutex_is_supported<_TAccessMutex>();
+		}
+
+		template<class _Ty2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_Ty2, _TAccessMutex>::value) && (
+			(std::is_same<_Ty2, non_thread_safe_shared_mutex>::value) || (std::is_same<_Ty2, non_thread_safe_recursive_shared_timed_mutex>::value)
+			), void>::type>
+		void xscope_async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
+	private:
+		TXScopeAccessControlledExclusivePointer(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		template<class _Ty2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_Ty2, _TAccessMutex>::value) && (
+			/* todo: add other supported mutex types (most mutex types should work) */
+			(std::is_same<_Ty2, non_thread_safe_shared_mutex>::value) || (std::is_same<_Ty2, non_thread_safe_recursive_shared_timed_mutex>::value)
+			), void>::type>
+		void valid_if_TAccessMutex_is_supported() const {}
+
+		void* operator new(size_t size) { return ::operator new(size); }
+		auto operator&() { return this; }
+		auto operator&() const { return this; }
+
+		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
+		friend auto xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
+		friend auto xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+	};
+
+	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+	auto xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+		return TXScopeAccessControlledPointer<_Ty, _TAccessMutex>((*aco_xscpptr).pointer());
+	}
+	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+	auto xscope_const_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+		return TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>((*aco_xscpptr).const_pointer());
+	}
+	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+	auto xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+		return TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex>((*aco_xscpptr).exclusive_pointer());
+	}
+	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+	auto xscope_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+		return TXScopeAccessControlledPointer<_Ty, _TAccessMutex>((*aco_xscpptr).pointer());
+	}
+	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+	auto xscope_const_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+		return TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>((*aco_xscpptr).const_pointer());
+	}
+	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+	auto xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+		return TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex>((*aco_xscpptr).exclusive_pointer());
+	}
 
 #ifdef __clang__
 #pragma clang diagnostic push

@@ -153,6 +153,36 @@ public:
 		}
 		return retval;
 	}
+
+	template<class _TAPointer>
+	static void foo17(_TAPointer a_ptr) {
+		{
+			auto now1 = std::chrono::system_clock::now();
+			auto tt = std::chrono::system_clock::to_time_t(now1);
+
+			/* Just trying to obtain a string with the current time and date. The standard library doesn't yet
+			seem to provide a safe, portable way to do this. */
+#ifdef _MSC_VER
+			static const size_t buffer_size = 64;
+			char buffer[buffer_size];
+			buffer[0] = '\0';
+			ctime_s(buffer, buffer_size, &tt);
+#else /*_MSC_VER*/
+			auto buffer = ctime(&tt);
+#endif /*_MSC_VER*/
+
+			std::string now_str(buffer);
+			a_ptr->s = now_str;
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+	}
+	template<class _TConstPointer, class _TPointer>
+	static void foo18(_TConstPointer src_ptr, _TPointer dst_ptr) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		dst_ptr->s = src_ptr->s;
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
 };
 
 void msetl_example2() {
@@ -894,7 +924,7 @@ void msetl_example2() {
 					scope threads can share objects declared on the stack (which is not utilized here), and in their destructor,
 					scope thread objects will wait until their thread finishes its execution (i.e "join" the thread), blocking if
 					necessary. Often rather than declaring scope thread objects directly, you'll create and manage multiple scope
-					threads with an "xscope_thread_carrier". An xscope_thread_carrier is just a simple container that holds scope
+					threads with an "xscope_thread_carrier". An xscope_thread_carrier is just a container that holds scope
 					threads. */
 					mse::xscope_thread_carrier xscope_threads;
 					for (size_t i = 0; i < num_sections; i += 1) {
@@ -925,6 +955,60 @@ void msetl_example2() {
 			auto last_element_value = vector1.back();
 
 			int q = 5;
+		}
+		{
+			/* Here we demonstrate safely sharing an existing stack allocated object among threads. */
+			std::cout << ": xscope_future_carrier<>";
+			std::cout << std::endl;
+
+			/* Only "access controlled" (mutable) objects can be shared between threads. You can make an object "access
+			controlled" by wrapping its type with the mse::TAccessControlledObj<> template wrapper. */
+			mse::TXScopeObj<mse::TAccessControlledObj<ShareableA> > a_xscpacobj(7);
+
+			/* Here we obtain a scope access requester for the access controlled object. */
+			auto xscope_access_requester = mse::make_xscope_asyncsharedv2acoreadwrite<ShareableA>(&a_xscpacobj);
+
+			/* xscope_future_carrier<> is just a container that holds and manages scope futures. */
+			mse::xscope_future_carrier<double> xscope_futures;
+
+			std::list<mse::xscope_future_carrier<double>::handle_t> future_handles;
+			for (size_t i = 0; i < 3; i += 1) {
+				/* You add a future by specifying the async() function and parameters that will return the future value. */
+				auto handle = xscope_futures.new_future(J::foo7<decltype(xscope_access_requester)>, xscope_access_requester);
+
+				/* You need to store the handle of the added future in order to later retrieve its value. */
+				future_handles.emplace_back(handle);
+			}
+			int count = 1;
+			for (auto it = future_handles.begin(); future_handles.end() != it; it++, count++) {
+				std::cout << "thread: " << count << ", time to acquire read pointer: " << xscope_futures.xscope_ptr_at(*it).get() << " seconds.";
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
+		}
+		{
+			/* TExclusiveWriterObj<> is a specialization of TAccessControlledObj<> for which all non-const pointers are
+			exclusive. That is, when a non-const pointer exists, no other pointer may exist. Because of this property,
+			TExclusiveWriterObj<> scope pointers can be safely passed as parameters to scope threads. This might be
+			desirable in certain scenarios where performance is critical and where you might want to avoid the overhead
+			of the thread safety mechanism of access requesters. */
+			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpacobj1(3);
+			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpacobj2(5);
+			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpacobj3(7);
+			typedef decltype(mse::xscope_exclusive_pointer_to_access_controlled_obj(&a_xscpacobj1)) exclusive_pointer_t;
+			typedef decltype(mse::xscope_const_pointer_to_access_controlled_obj(&a_xscpacobj1)) const_pointer_t;
+			{
+				mse::xscope_thread xscp_thread1(J::foo17<exclusive_pointer_t>, mse::xscope_exclusive_pointer_to_access_controlled_obj(&a_xscpacobj1));
+			}
+			{
+				mse::xscope_thread xscp_thread1(J::foo18<const_pointer_t, exclusive_pointer_t>
+					, mse::xscope_const_pointer_to_access_controlled_obj(&a_xscpacobj1)
+					, mse::xscope_exclusive_pointer_to_access_controlled_obj(&a_xscpacobj2));
+
+				mse::xscope_thread xscp_thread2(J::foo18<const_pointer_t, exclusive_pointer_t>
+					, mse::xscope_const_pointer_to_access_controlled_obj(&a_xscpacobj1)
+					, mse::xscope_exclusive_pointer_to_access_controlled_obj(&a_xscpacobj3));
+			}
 		}
 	}
 }
