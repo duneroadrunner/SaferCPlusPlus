@@ -4958,11 +4958,17 @@ namespace mse {
 	class TXScopeAccessControlledExclusivePointer;
 
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
-	auto xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
+	TXScopeAccessControlledPointer<_Ty, _TAccessMutex> xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
-	auto xscope_const_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
+	TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex> xscope_const_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
-	auto xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
+	TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex> xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	TXScopeAccessControlledPointer<_Ty, _TAccessMutex> xscope_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex> xscope_const_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex> xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
 	class TXScopeAccessControlledPointer : public TAccessControlledPointer<_Ty, _TAccessMutex>, public XScopeTagBase {
@@ -4991,9 +4997,9 @@ namespace mse {
 		auto operator&() const { return this; }
 
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
-		friend auto xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+		friend TXScopeAccessControlledPointer<_Ty2, _TAccessMutex2> xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
-		friend auto xscope_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+		friend TXScopeAccessControlledPointer<_Ty2, _TAccessMutex2> xscope_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
 	};
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
@@ -5023,9 +5029,9 @@ namespace mse {
 		auto operator&() const { return this; }
 
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
-		friend auto xscope_const_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+		friend TXScopeAccessControlledConstPointer<_Ty2, _TAccessMutex2> xscope_const_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
-		friend auto xscope_const_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+		friend TXScopeAccessControlledConstPointer<_Ty2, _TAccessMutex2> xscope_const_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
 	};
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
@@ -5056,33 +5062,33 @@ namespace mse {
 		auto operator&() const { return this; }
 
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
-		friend auto xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+		friend TXScopeAccessControlledExclusivePointer<_Ty2, _TAccessMutex2> xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
-		friend auto xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+		friend TXScopeAccessControlledExclusivePointer<_Ty2, _TAccessMutex2> xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
 	};
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	auto xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+	TXScopeAccessControlledPointer<_Ty, _TAccessMutex> xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
 		return TXScopeAccessControlledPointer<_Ty, _TAccessMutex>((*aco_xscpptr).pointer());
 	}
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	auto xscope_const_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+	TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex> xscope_const_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
 		return TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>((*aco_xscpptr).const_pointer());
 	}
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	auto xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+	TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex> xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
 		return TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex>((*aco_xscpptr).exclusive_pointer());
 	}
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	auto xscope_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+	TXScopeAccessControlledPointer<_Ty, _TAccessMutex> xscope_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
 		return TXScopeAccessControlledPointer<_Ty, _TAccessMutex>((*aco_xscpptr).pointer());
 	}
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	auto xscope_const_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+	TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex> xscope_const_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
 		return TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>((*aco_xscpptr).const_pointer());
 	}
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	auto xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
+	TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex> xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr) {
 		return TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex>((*aco_xscpptr).exclusive_pointer());
 	}
 
