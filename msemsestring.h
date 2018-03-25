@@ -9,6 +9,7 @@
 #define MSEMSESTRING_H
 
 #include <string>
+#include <iostream>
 #include "msemsevector.h"
 
 /* for string_view */

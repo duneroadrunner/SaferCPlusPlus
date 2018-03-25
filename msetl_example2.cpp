@@ -966,7 +966,7 @@ void msetl_example2() {
 			mse::TXScopeObj<mse::TAccessControlledObj<ShareableA> > a_xscpacobj(7);
 
 			/* Here we obtain a scope access requester for the access controlled object. */
-			auto xscope_access_requester = mse::make_xscope_asyncsharedv2acoreadwrite<ShareableA>(&a_xscpacobj);
+			auto xscope_access_requester = mse::make_xscope_asyncsharedv2readwrite(&a_xscpacobj);
 
 			/* xscope_future_carrier<> is just a container that holds and manages scope futures. */
 			mse::xscope_future_carrier<double> xscope_futures;
@@ -1009,6 +1009,9 @@ void msetl_example2() {
 					, mse::xscope_const_pointer_to_access_controlled_obj(&a_xscpacobj1)
 					, mse::xscope_exclusive_pointer_to_access_controlled_obj(&a_xscpacobj3));
 			}
+		}
+		{
+			//auto xscope_ar = mse::make_xscope_asyncsharedv2readwrite<mse::nii_string>("some text");
 		}
 	}
 }

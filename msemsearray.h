@@ -740,7 +740,7 @@ namespace mse {
 	};
 
 	template<typename T>
-	struct HasXScopeAsyncShareableTagMethod_msescope
+	struct HasXScopeAsyncShareableTagMethod_msemsearray
 	{
 		template<typename U, void(U::*)() const> struct SFINAE {};
 		template<typename U> static char Test(SFINAE<U, &U::xscope_async_shareable_tag>*);
@@ -4627,7 +4627,7 @@ namespace mse {
 	}
 
 	template<class _Ty, class = typename std::enable_if<(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty>::Has>())
-		|| (std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msescope<_Ty>::Has>())
+		|| (std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msemsearray<_Ty>::Has>())
 		|| (std::is_arithmetic<_Ty>::value) || (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
 		|| (std::is_same<_Ty, void>::value), void>::type>
 		void T_valid_if_is_marked_as_xscope_shareable_msescope() {}
@@ -4644,7 +4644,7 @@ namespace mse {
 
 	template<class _Ty, class = typename std::enable_if<(std::integral_constant<bool, HasAsyncPassableTagMethod_msemsearray<_Ty>::Has>())
 		|| (std::integral_constant<bool, HasXScopeAsyncPassableTagMethod_msescope<_Ty>::Has>()) || (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty>::Has>())
-		|| (std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msescope<_Ty>::Has>()) || (std::is_arithmetic<_Ty>::value)
+		|| (std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msemsearray<_Ty>::Has>()) || (std::is_arithmetic<_Ty>::value)
 		|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
 		|| (std::is_same<_Ty, void>::value), void>::type>
 		void T_valid_if_is_marked_as_xscope_passable_or_shareable_msescope() {}
@@ -4847,7 +4847,11 @@ namespace mse {
 	template<class _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
 	class TAccessControlledObj {
 	public:
-		TAccessControlledObj(const TAccessControlledObj& src_cref) : m_obj(src_cref.m_obj) {}
+		typedef _Ty object_type;
+		typedef _TAccessMutex access_mutex_type;
+
+		TAccessControlledObj(const TAccessControlledObj& src) : m_obj(src.m_obj) {}
+		TAccessControlledObj(TAccessControlledObj&& src) : m_obj(std::forward<decltype(src.m_obj)>(src.m_obj)) {}
 
 		template <class... Args>
 		TAccessControlledObj(Args&&... args) : m_obj(std::forward<Args>(args)...) {}
