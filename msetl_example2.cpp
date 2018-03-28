@@ -986,32 +986,44 @@ void msetl_example2() {
 			}
 			std::cout << std::endl;
 		}
+
 		{
 			/* TExclusiveWriterObj<> is a specialization of TAccessControlledObj<> for which all non-const pointers are
-			exclusive. That is, when a non-const pointer exists, no other pointer may exist. Because of this property,
-			TExclusiveWriterObj<> scope pointers can be safely passed as parameters to scope threads. This might be
-			desirable in certain scenarios where performance is critical and where you might want to avoid the overhead
-			of the thread safety mechanism of access requesters. */
+			exclusive. That is, when a non-const pointer exists, no other pointer may exist. */
 			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpacobj1(3);
 			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpacobj2(5);
 			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpacobj3(7);
-			typedef decltype(mse::xscope_exclusive_pointer_to_access_controlled_obj(&a_xscpacobj1)) exclusive_pointer_t;
-			typedef decltype(mse::xscope_const_pointer_to_access_controlled_obj(&a_xscpacobj1)) const_pointer_t;
+
 			{
-				mse::xscope_thread xscp_thread1(J::foo17<exclusive_pointer_t>, mse::xscope_exclusive_pointer_to_access_controlled_obj(&a_xscpacobj1));
+				/* TXScopeExclusiveWriterObjPointerStore<> is a data type that stores a (non-const, exclusive) pointer
+				of a TExclusiveWriterObj<>. From this data type you can obtain a "scope shareable pointer" which can be
+				safely passed to a scope thread. This is a (little) more cumbersome, more restrictive way of sharing an
+				object than, say, using the library's "access requesters". So generally using access requesters would be
+				preferred. But you might choose to do it this way in certain cases where performance is critical. When
+				using access requesters, each thread obtains the desired lock on a thread-safe mutex. Here we're
+				obtaining the lock before launching the thread(s), so the mutex does not need to be thread-safe, thus
+				saving a little overhead. */
+				auto xscope_xwo_pointer_store1 = mse::make_xscope_exclusive_write_obj_pointer_store<ShareableA>(a_xscpacobj1.pointer());
+
+				typedef decltype(xscope_xwo_pointer_store1.xscope_shareable_pointer()) exclusive_pointer_t;
+				mse::xscope_thread xscp_thread1(J::foo17<exclusive_pointer_t>, xscope_xwo_pointer_store1.xscope_shareable_pointer());
 			}
 			{
+				auto xscope_xwo_const_pointer_store1 = mse::make_xscope_exclusive_write_obj_const_pointer_store<ShareableA>(a_xscpacobj1.const_pointer());
+				auto xscope_xwo_pointer_store2 = mse::make_xscope_exclusive_write_obj_pointer_store<ShareableA>(a_xscpacobj2.pointer());
+				auto xscope_xwo_pointer_store3 = mse::make_xscope_exclusive_write_obj_pointer_store<ShareableA>(a_xscpacobj3.pointer());
+
+				typedef decltype(xscope_xwo_const_pointer_store1.xscope_shareable_pointer()) const_pointer_t;
+				typedef decltype(xscope_xwo_pointer_store2.xscope_shareable_pointer()) exclusive_pointer_t;
+
 				mse::xscope_thread xscp_thread1(J::foo18<const_pointer_t, exclusive_pointer_t>
-					, mse::xscope_const_pointer_to_access_controlled_obj(&a_xscpacobj1)
-					, mse::xscope_exclusive_pointer_to_access_controlled_obj(&a_xscpacobj2));
+					, xscope_xwo_const_pointer_store1.xscope_shareable_pointer()
+					, xscope_xwo_pointer_store2.xscope_shareable_pointer());
 
 				mse::xscope_thread xscp_thread2(J::foo18<const_pointer_t, exclusive_pointer_t>
-					, mse::xscope_const_pointer_to_access_controlled_obj(&a_xscpacobj1)
-					, mse::xscope_exclusive_pointer_to_access_controlled_obj(&a_xscpacobj3));
+					, xscope_xwo_const_pointer_store1.xscope_shareable_pointer()
+					, xscope_xwo_pointer_store3.xscope_shareable_pointer());
 			}
-		}
-		{
-			//auto xscope_ar = mse::make_xscope_asyncsharedv2readwrite<mse::nii_string>("some text");
 		}
 	}
 }

@@ -1220,9 +1220,10 @@ namespace mse {
 		TXScopeStrongPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
-		auto xscope_ptr() const {
+		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr);
 		}
+		void xscope_ptr() const && = delete;
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
@@ -1243,9 +1244,10 @@ namespace mse {
 		TXScopeStrongConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
-		auto xscope_ptr() const {
+		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
 		}
+		void xscope_ptr() const && = delete;
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
@@ -1264,9 +1266,10 @@ namespace mse {
 	{
 	public:
 		TXScopeStrongNotNullPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
-		auto xscope_ptr() const {
+		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr);
 		}
+		void xscope_ptr() const && = delete;
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
@@ -1285,9 +1288,10 @@ namespace mse {
 	{
 	public:
 		TXScopeStrongNotNullConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
-		auto xscope_ptr() const {
+		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
 		}
+		void xscope_ptr() const && = delete;
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
