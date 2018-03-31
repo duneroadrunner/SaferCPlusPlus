@@ -1989,7 +1989,7 @@ void main(int argc, char* argv[]) {
 		(newly created) "random access section" objects which are used to access (disjoint) sections of the vector.
 		We need to specify the position where we want to split the vector. Here we specify that it be split at index
 		"num_elements / 2", right down the middle. */
-		auto ra_rection_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, num_elements / 2);
+		mse::TAsyncRASectionSplitter<decltype(ash_access_requester)> ra_section_split1(ash_access_requester, num_elements / 2);
 		auto ar1 = ra_rection_split1.first_ra_section_access_requester();
 		auto ar2 = ra_rection_split1.second_ra_section_access_requester();
 
@@ -2029,7 +2029,7 @@ void main(int argc, char* argv[]) {
 		}
 
 		/* Just as before, TAsyncRASectionSplitter<> will generate a new access requester for each section. */
-		auto ra_rection_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, section_sizes);
+		mse::TAsyncRASectionSplitter<decltype(ash_access_requester)> ra_section_split1(ash_access_requester, section_sizes);
 		auto ar0 = ra_rection_split1.ra_section_access_requester(0);
 
 		auto& my_foo8_function_ref = J::foo8<decltype(ar0.writelock_ra_section())>;
