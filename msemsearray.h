@@ -51,7 +51,7 @@
 
 #ifdef _MSC_VER
 #pragma warning( push )  
-#pragma warning( disable : 4100 4456 4189 )
+#pragma warning( disable : 4100 4456 4189 4505 )
 #endif /*_MSC_VER*/
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
@@ -5029,6 +5029,15 @@ namespace mse {
 		TXScopeAccessControlledExclusivePointer(TXScopeAccessControlledExclusivePointer&& src) = default;
 
 	private:
+		TXScopeAccessControlledExclusivePointer(TAccessControlledObjBase<_Ty, _TAccessMutex>* obj_ptr) : base_class(obj_ptr) {}
+		TXScopeAccessControlledExclusivePointer(TAccessControlledObjBase<_Ty, _TAccessMutex>* obj_ptr, const std::try_to_lock_t& ttl)
+			: base_class(obj_ptr, ttl) {}
+		template<class _Rep, class _Period>
+		TXScopeAccessControlledExclusivePointer(TAccessControlledObjBase<_Ty, _TAccessMutex>* obj_ptr, const std::try_to_lock_t& ttl, const std::chrono::duration<_Rep, _Period>& _Rel_time)
+			: base_class(obj_ptr, ttl, _Rel_time) {}
+		template<class _Clock, class _Duration>
+		TXScopeAccessControlledExclusivePointer(TAccessControlledObjBase<_Ty, _TAccessMutex>* obj_ptr, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
+			: base_class(obj_ptr, ttl, _Abs_time) {}
 		//TXScopeAccessControlledExclusivePointer(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
 		TXScopeAccessControlledExclusivePointer & operator=(const TXScopeAccessControlledExclusivePointer& _Right_cref) = delete;
@@ -5087,7 +5096,8 @@ namespace mse {
 		TAccessControlledObjBase(TAccessControlledObjBase&& src) : m_obj(std::forward<decltype(src.m_obj)>(src.m_obj)) {}
 
 		template <class... Args>
-		TAccessControlledObjBase(Args&&... args) : m_obj(std::forward<Args>(args)...) {}
+		TAccessControlledObjBase(Args&&... args) : m_obj(constructor_helper1(std::forward<Args>(args)...)) {}
+
 		virtual ~TAccessControlledObjBase() {
 			try {
 				m_mutex1.nonrecursive_lock();
@@ -5224,11 +5234,33 @@ namespace mse {
 		}
 
 	private:
-		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
-		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
-		void valid_if_Ty_is_marked_as_shareable() const {}
+		/* construction helper functions */
+		template <class... Args>
+		_Ty initialize(Args&&... args) {
+			return _Ty(std::forward<Args>(args)...);
+		}
+		template <class _TSoleArg>
+		_Ty constructor_helper2(std::true_type, _TSoleArg&& sole_arg) {
+			/* The sole parameter is derived from, or of this type, so we're going to consider the constructor
+			a move constructor. */
+			return std::forward<decltype(sole_arg.m_obj)>(sole_arg.m_obj);
+		}
+		template <class _TSoleArg>
+		_Ty constructor_helper2(std::false_type, _TSoleArg&& sole_arg) {
+			/* The sole parameter is not derived from, or of this type, so the constructor is not a move
+			constructor. */
+			return initialize(std::forward<decltype(sole_arg)>(sole_arg));
+		}
+		template <class... Args>
+		_Ty constructor_helper1(Args&&... args) {
+			return initialize(std::forward<Args>(args)...);
+		}
+		template <class _TSoleArg>
+		_Ty constructor_helper1(_TSoleArg&& sole_arg) {
+			/* The constructor was given exactly one parameter. If the parameter is derived from, or of this type,
+			then we're going to consider the constructor a move constructor. */
+			return constructor_helper2(typename std::is_base_of<TAccessControlledObjBase, _TSoleArg>::type(), std::forward<decltype(sole_arg)>(sole_arg));
+		}
 
 		TAccessControlledObjBase* operator&() { return this; }
 		const TAccessControlledObjBase* operator&() const { return this; }
@@ -5251,9 +5283,9 @@ namespace mse {
 		typedef _Ty object_type;
 		typedef _TAccessMutex access_mutex_type;
 
-		MSE_USING(TXScopeAccessControlledObj, base_class);
 		TXScopeAccessControlledObj(const TXScopeAccessControlledObj& src) = default;
 		TXScopeAccessControlledObj(TXScopeAccessControlledObj&& src) = default;
+		MSE_USING(TXScopeAccessControlledObj, base_class);
 
 		/* Prefer the "xscope_" prefixed versions to acknowledge that scope iterators are returned. */
 		auto pointer() {
@@ -5309,8 +5341,7 @@ namespace mse {
 
 		TAccessControlledObj(const TAccessControlledObj& src) = default;
 		TAccessControlledObj(TAccessControlledObj&& src) = default;
-		template <class... Args>
-		TAccessControlledObj(Args&&... args) : base_class(std::forward<Args>(args)...) {}
+		MSE_USING(TAccessControlledObj, base_class);
 
 		virtual ~TAccessControlledObj() {
 			T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();

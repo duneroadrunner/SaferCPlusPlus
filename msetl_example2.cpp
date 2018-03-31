@@ -871,7 +871,7 @@ void msetl_example2() {
 				(newly created) "random access section" objects which are used to access (disjoint) sections of the vector.
 				We need to specify the position where we want to split the vector. Here we specify that it be split at index
 				"num_elements / 2", right down the middle. */
-				auto ra_section_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, num_elements / 2);
+				mse::TAsyncRASectionSplitter<decltype(ash_access_requester)> ra_section_split1(ash_access_requester, num_elements / 2);
 				auto ar1 = ra_section_split1.first_ra_section_access_requester();
 				auto ar2 = ra_section_split1.second_ra_section_access_requester();
 
@@ -912,14 +912,14 @@ void msetl_example2() {
 				}
 
 				/* Just as before, TAsyncRASectionSplitter<> will generate a new access requester for each section. */
-				auto ra_section_split1 = mse::TAsyncRASectionSplitter<decltype(ash_access_requester)>(ash_access_requester, section_sizes);
+				mse::TAsyncRASectionSplitter<decltype(ash_access_requester)> ra_section_split1(ash_access_requester, section_sizes);
 				auto ar0 = ra_section_split1.ra_section_access_requester(0);
 
 				auto& my_foo8_function_ref = J::foo8<decltype(ar0.writelock_ra_section())>;
 				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
 				auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
 
-				if (true) {
+				{
 					/* Here we demonstrate scope threads. Scope threads don't support being copied or moved. Unlike mstd::thread,
 					scope threads can share objects declared on the stack (which is not utilized here), and in their destructor,
 					scope thread objects will wait until their thread finishes its execution (i.e "join" the thread), blocking if
@@ -932,20 +932,6 @@ void msetl_example2() {
 						xscope_threads.new_thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref);
 					}
 					/* The scope will not end until all the scope threads have finished executing. */
-				}
-				else {
-					std::list<mse::mstd::thread> threads;
-					for (size_t i = 0; i < num_sections; i += 1) {
-						auto ar = ra_section_split1.ra_section_access_requester(i);
-						threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
-					}
-
-					{
-						int count = 1;
-						for (auto it = threads.begin(); threads.end() != it; it++, count++) {
-							(*it).join();
-						}
-					}
 				}
 			}
 
@@ -961,12 +947,12 @@ void msetl_example2() {
 			std::cout << ": xscope_future_carrier<>";
 			std::cout << std::endl;
 
-			/* Only "access controlled" (mutable) objects can be shared between threads. You can make an object "access
-			controlled" by wrapping its type with the mse::TAccessControlledObj<> template wrapper. */
-			mse::TXScopeObj<mse::TAccessControlledObj<ShareableA> > a_xscpacobj(7);
+			/* (Mutable) objects can be shared between threads only if they are "access controlled". You can make an
+			object "access controlled" by wrapping its type with the mse::TXScopeAccessControlledObj<> template wrapper. */
+			mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj(7);
 
 			/* Here we obtain a scope access requester for the access controlled object. */
-			auto xscope_access_requester = mse::make_xscope_asyncsharedv2readwrite(&a_xscpacobj);
+			auto xscope_access_requester = mse::make_xscope_asyncsharedv2acoreadwrite(&a_xscpacobj);
 
 			/* xscope_future_carrier<> is just a container that holds and manages scope futures. */
 			mse::xscope_future_carrier<double> xscope_futures;
@@ -981,7 +967,7 @@ void msetl_example2() {
 			}
 			int count = 1;
 			for (auto it = future_handles.begin(); future_handles.end() != it; it++, count++) {
-				std::cout << "thread: " << count << ", time to acquire read pointer: " << xscope_futures.xscope_ptr_at(*it).get() << " seconds.";
+				std::cout << "thread: " << count << ", time to acquire read pointer: " << xscope_futures.xscope_ptr_at(*it)->get() << " seconds.";
 				std::cout << std::endl;
 			}
 			std::cout << std::endl;
@@ -1024,6 +1010,100 @@ void msetl_example2() {
 					, xscope_xwo_const_pointer_store1.xscope_shareable_pointer()
 					, xscope_xwo_pointer_store3.xscope_shareable_pointer());
 			}
+		}
+
+		{
+			/* This block is similar to a previous one that demonstrates safely allowing different threads to (simultaneously)
+			modify different sections of a vector. The difference is just that here the shared vector is a pre-existing one
+			declared as a local variable (i.e. on the stack). */
+
+			static const size_t num_sections = 10;
+			static const size_t section_size = 5;
+			const size_t num_elements = num_sections * section_size;
+
+			typedef mse::nii_vector<mse::nii_string> async_shareable_vector1_t;
+			typedef mse::mstd::vector<mse::nii_string> nonshareable_vector1_t;
+			/* Let's say we have a vector. */
+			nonshareable_vector1_t vector1;
+			vector1.resize(num_elements);
+			{
+				size_t count = 0;
+				for (auto& item_ref : vector1) {
+					count += 1;
+					item_ref = "text" + std::to_string(count);
+				}
+			}
+
+			/* Only access controlled objects can be shared with other threads, so we'll make an access controlled vector and
+			(temporarily) swap it with our original one. */
+			mse::TXScopeObj<mse::TXScopeAccessControlledObj<async_shareable_vector1_t> > xscope_acobj;
+			auto xscope_ash_access_requester = mse::make_xscope_asyncsharedv2acoreadwrite(&xscope_acobj);
+			//auto ash_access_requester = mse::make_asyncsharedv2readwrite<async_shareable_vector1_t>();
+			std::swap(vector1, (*(xscope_ash_access_requester.writelock_ptr())));
+
+			{
+				/* Now, we're going to use the access requester to obtain two new access requesters that provide access to
+				(newly created) "random access section" objects which are used to access (disjoint) sections of the vector.
+				We need to specify the position where we want to split the vector. Here we specify that it be split at index
+				"num_elements / 2", right down the middle. */
+				mse::TXScopeAsyncRASectionSplitter<decltype(xscope_ash_access_requester)> xscope_ra_section_split1(xscope_ash_access_requester, num_elements / 2);
+				auto ar1 = xscope_ra_section_split1.first_ra_section_access_requester();
+				auto ar2 = xscope_ra_section_split1.second_ra_section_access_requester();
+
+				/* The J::foo8 template function is just an example function that operates on containers of strings. In our case the
+				containers will be the random access sections we just created. We'll create an instance of the function here. */
+				auto& my_foo8_function_ref = J::foo8<decltype(ar1.writelock_ra_section())>;
+				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
+
+				/* We want to execute the my_foo8 function in a separate thread. The function takes a "random access section"
+				as an argument. But as we're not allowed to pass random access sections between threads, we must pass an
+				access requester instead. The "J::invoke_with_writelock_ra_section1" template function is just a helper
+				function that will obtain a (writelock) random access section from the access requester, then call the given
+				function, in this case my_foo8, with that random access section. So here we'll use it to create a proxy
+				function that we can execute directly in a separate thread and will accept an access requester as a
+				parameter. */
+				auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar1), my_foo8_function_type>;
+
+				mse::xscope_thread_carrier threads;
+				/* So this thread will modify the first section of the vector. */
+				threads.new_thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref);
+				/* While this thread modifies the other section. */
+				threads.new_thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref);
+
+				int q = 5;
+			}
+			{
+				/* Ok, now let's do it again, but instead of splitting the vector into two sections, let's split it into more sections: */
+				/* First we create a list of a the sizes of each section. We'll use a vector here, but any iteratable container will work. */
+				mse::mstd::vector<size_t> section_sizes;
+				for (size_t i = 0; i < num_sections; i += 1) {
+					section_sizes.push_back(section_size);
+				}
+
+				/* Just as before, TXScopeAsyncRASectionSplitter<> will generate a new access requester for each section. */
+				mse::TXScopeAsyncRASectionSplitter<decltype(xscope_ash_access_requester)> xscope_ra_section_split1(xscope_ash_access_requester, section_sizes);
+				auto ar0 = xscope_ra_section_split1.ra_section_access_requester(0);
+
+				auto& my_foo8_function_ref = J::foo8<decltype(ar0.writelock_ra_section())>;
+				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
+				auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
+
+				{
+					mse::xscope_thread_carrier xscope_threads;
+					for (size_t i = 0; i < num_sections; i += 1) {
+						auto ar = xscope_ra_section_split1.ra_section_access_requester(i);
+						xscope_threads.new_thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref);
+					}
+					/* The scope will not end until all the scope threads have finished executing. */
+				}
+			}
+
+			/* Now that we're done sharing the (controlled access) vector, we can swap it back to our original vector. */
+			std::swap(vector1, (*(xscope_ash_access_requester.writelock_ptr())));
+			auto first_element_value = vector1[0];
+			auto last_element_value = vector1.back();
+
+			int q = 5;
 		}
 	}
 }

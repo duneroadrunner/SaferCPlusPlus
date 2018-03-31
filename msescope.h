@@ -321,7 +321,7 @@ namespace mse {
 
 	private:
 		TXScopeFixedPointer(TXScopeObj<_Ty>* ptr) : TXScopeNotNullPointer<_Ty>(ptr) {}
-#ifndef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
+#ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 		/* Disabling public move construction prevents some unsafe operations, like some, but not all,
 		attempts to use a TXScopeFixedPointer<> as a return value. But it also prevents some safe
 		operations too, like initialization via '=' (assignment operator). And the set of prevented
@@ -381,15 +381,11 @@ namespace mse {
 	{
 	public:
 		TXScopeObj(const TXScopeObj& _X) : TXScopeObjBase<_TROy>(_X) {}
-		explicit TXScopeObj(TXScopeObj&& _X) : TXScopeObjBase<_TROy>(std::forward<decltype(_X)>(_X)) {
-#ifndef __clang__
-			/* The idea is that we want to disallow (by causing a compile error) move construction from another TXScopeObj,
-			but allow move construction from an object of the base type, _TROy. But clang3.8 seems to require this move
-			constructor to be compilable, even when move constructing from an object of the base type. g++ and msvc don't
-			seem to have this issue. */
-			valid_if_not_rvalue_reference_of_given_type<TXScopeObj, decltype(_X)>(_X);
-#endif /*!__clang__*/
-		}
+
+#ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
+		explicit TXScopeObj(TXScopeObj&& _X) : TXScopeObjBase<_TROy>(std::forward<decltype(_X)>(_X)) {}
+#endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
+
 		MSE_SCOPE_USING(TXScopeObj, TXScopeObjBase<_TROy>);
 		virtual ~TXScopeObj() {}
 
