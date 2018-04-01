@@ -126,6 +126,7 @@ namespace mse {
 
 			size_type capacity() const _NOEXCEPT { return m_shptr->capacity(); }
 			void shrink_to_fit() { m_shptr->shrink_to_fit(); }
+			size_type length() const _NOEXCEPT { return m_shptr->length(); }
 			size_type size() const _NOEXCEPT { return m_shptr->size(); }
 			size_type max_size() const _NOEXCEPT { return m_shptr->max_size(); }
 			bool empty() const _NOEXCEPT { return m_shptr->empty(); }

@@ -1402,9 +1402,9 @@ int main(int argc, char* argv[])
 #endif // !MSE_PRIMITIVES_DISABLED
 
 	{
-		/*************************/
-		/*  TXScopeFixedPointer  */
-		/*************************/
+		/*****************************/
+		/*  TXScopeItemFixedPointer  */
+		/*****************************/
 
 		/* The "xscope" templates basically allow the programmer to indicate that the target object has "scope
 		lifetime". That is, the object is either allocated on the stack, or its "owner" pointer is allocated on
@@ -1462,7 +1462,7 @@ int main(int argc, char* argv[])
 		mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
 		A res7 = *xscp_cptr2;
 
-		/* Technically, you're not allowed to return a non-owning scope pointer from a function. (The returnable() function
+		/* Technically, you're not allowed to return a non-owning scope pointer from a function. (The return_value() function
 		wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer
 		is one of the input parameters. An example might be a "min(a, b)" function which takes two objects by reference and
 		returns the reference to the lesser of the two objects. The library provides the xscope_chosen_pointer() function
@@ -1472,6 +1472,60 @@ int main(int argc, char* argv[])
 		auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
 		auto xscp_min_ptr1 = mse::xscope_chosen_pointer((xscp_a_ptr6 < xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
 		assert(5 == xscp_min_ptr1->b);
+
+		{
+			/* If you find that there are cases where mse::xscope_chosen_pointer() is insufficiently convenient, a (less
+			preferred) alternative may be to use mse::us::TXScopeReturnableItemFixedPointerFParam<>, which is just a version
+			of mse::TXScopeItemFixedPointer<> that may only be used to declare function parameters and whose value can be
+			used as a function return value. (But note that the type may not be used as a return type. The type may only be
+			used as a function parameter type.) */
+			class CD {
+			public:
+				static auto longest(mse::us::TXScopeReturnableItemFixedPointerFParam<mse::nii_string> string1_xscpptr
+					, mse::us::TXScopeReturnableItemFixedPointerFParam<mse::nii_string> string2_xscpptr) {
+					if (string1_xscpptr->length() > string2_xscpptr->length()) {
+						/* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::nii_string> the next line would have
+						induced a compile error. */
+						return mse::return_value(string1_xscpptr);
+					}
+					else {
+						/* mse::return_value() usually returns its input argument unmolested, but in this case it will return
+						a type different from the input type. This is to prevent any function that receives this return value
+						from, in turn, returning the value, as that might be unsafe. */
+						return mse::return_value(string2_xscpptr);
+					}
+				}
+			};
+
+			mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
+			mse::TXScopeObj<mse::nii_string> xscope_string2 = "abcd";
+			auto longer_string_xscpptr = CD::longest(&xscope_string1, &xscope_string2);
+			auto copy_of_longer_string = *longer_string_xscpptr;
+		}
+
+		{
+			/*****************************************/
+			/*  us::TXScopeItemFixedPointerFParam<>  */
+			/*****************************************/
+
+			/* mse::us::TXScopeItemFixedPointerFParam<> is just a version of mse::TXScopeItemFixedPointer<> that may only be
+			used to declare function parameters. Unike mse::TXScopeItemFixedPointer<>, mse::us::TXScopeItemFixedPointerFParam<>
+			supports construction from (caged) scope pointers to r-value (temporary) objects. Bsaically, if you use 
+			mse::us::TXScopeItemFixedPointerFParam<> in place of mse::TXScopeItemFixedPointer<> in function parameter
+			declarations it will permit the function to accept temporaries by scope reference. */
+
+			class CD {
+			public:
+				static bool second_is_longer(mse::us::TXScopeItemFixedPointerFParam<mse::nii_string> string1_xscpptr
+					, mse::us::TXScopeItemFixedPointerFParam<mse::nii_string> string2_xscpptr) {
+
+					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
+				}
+			};
+
+			mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
+			auto res1 = CD::second_is_longer(&xscope_string1, &(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+		}
 
 		{
 			/***********************/

@@ -127,8 +127,8 @@ public:
 	template<typename _TParam>
 	static auto foo10(_TParam param) {
 		auto l_obj = param;
-		/* Functions that could return a scope type need to wrap their return value with the returnable() function. */
-		return mse::returnable(mse::pointer_to(l_obj));
+		/* Functions that could return a scope type need to wrap their return value with the return_value() function. */
+		return mse::return_value(mse::pointer_to(l_obj));
 	}
 
 	template<class _TRASection>
@@ -252,18 +252,18 @@ void msetl_example2() {
 
 	{
 		/**********************/
-		/*  returnable()      */
-		/*  && TReturnable<>  */
+		/*  return_value()      */
+		/*  && TReturnValue<>  */
 		/**********************/
 
-		/* The returnable() function just returns its argument and verifies that it is of a type that is safe to return
+		/* The return_value() function just returns its argument and verifies that it is of a type that is safe to return
 		from a function (basically, doesn't contain any scope pointers). If not it will induce a compile error. Functions
 		that do or could return scope types should wrap their return value with this function. 
 
-		TReturnable<> is a transparent template wrapper that verifies that the type is safe to use as a function return
+		TReturnValue<> is a transparent template wrapper that verifies that the type is safe to use as a function return
 		type. If not it will induce a compile error. Functions that do or could return scope types and do not use the 
 		"auto" return type should wrap their return type with this function. Alternatively, you can use
-		TXScopeReturnable<> which additionally ensures that the return type is a scope type. */
+		TXScopeReturnValue<> which additionally ensures that the return type is a scope type. */
 
 		class CB {
 		public:
@@ -272,23 +272,23 @@ void msetl_example2() {
 			return type. */
 			static mse::mstd::string foo1() {
 				mse::TXScopeObj<mse::mstd::string> xscp_string1("some text");
-				return mse::returnable(xscp_string1);
+				return mse::return_value(xscp_string1);
 			}
 
 			/* In the less common case where the scope type doesn't have an underlying non-scope type, it may be safe
 			to return the scope object. But in order to use a scope type as a function return value, it must be
-			wrapped in the transparent mse::TReturnable<> or mse::TXScopeReturnable<> wrapper template, which will
+			wrapped in the transparent mse::TReturnValue<> or mse::TXScopeReturnValue<> wrapper template, which will
 			induce a compile error if it deems the scope type potentially unsafe to use as a return type. */
-			static mse::TXScopeReturnable<mse::xscope_optional<mse::mstd::string> > foo2() {
+			static mse::TXScopeReturnValue<mse::xscope_optional<mse::mstd::string> > foo2() {
 				mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
-				return mse::returnable(xscp_returnable_obj1);
+				return mse::return_value(xscp_returnable_obj1);
 			}
 
 			/* "auto" return types don't need to be wrapped, but the return value needs to be wrapped with the
-			returnable() function. */
+			return_value() function. */
 			static auto foo3() {
 				mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
-				return mse::returnable(xscp_returnable_obj1);
+				return mse::return_value(xscp_returnable_obj1);
 			}
 		};
 
@@ -297,16 +297,16 @@ void msetl_example2() {
 
 		typedef mse::TXScopeObj<mse::mstd::string> xscope_string_t;
 		xscope_string_t xscp_str1 = "some text";
-		/* TXScopeReturnable<> deems xscope_string_t to be an acceptable return type because it doesn't contain
+		/* TXScopeReturnValue<> deems xscope_string_t to be an acceptable return type because it doesn't contain
 		any scope pointers. */
-		mse::TXScopeReturnable<xscope_string_t> xscpr_str1("some text");
-		auto xscp_rstr1 = mse::returnable(xscp_str1);
+		mse::TXScopeReturnValue<xscope_string_t> xscpr_str1("some text");
+		auto xscp_rstr1 = mse::return_value(xscp_str1);
 
 		typedef decltype(&xscp_str1) xscope_string_ptr_t;
-		/* TXScopeReturnable<> deems xscope_string_ptr_t to be an unsafe return type because it is (or contains)
+		/* TXScopeReturnValue<> deems xscope_string_ptr_t to be an unsafe return type because it is (or contains)
 		a scope pointer. So the next line would result in a compile error. */
-		//mse::TXScopeReturnable<xscope_string_ptr_t> xscpr_sfptr1 = &xscp_str1;
-		//auto xscp_rstr_ptr1 = mse::returnable(&xscp_str1);
+		//mse::TXScopeReturnValue<xscope_string_ptr_t> xscpr_sfptr1 = &xscp_str1;
+		//auto xscp_rstr_ptr1 = mse::return_value(&xscp_str1);
 	
 		mse::TRegisteredObj<mse::mstd::string> reg_str1 = "some text";
 		auto reg_ptr_res1 = J::foo10(reg_str1);
@@ -383,7 +383,7 @@ void msetl_example2() {
 		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
 		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
 
-		/* Like non-owning scope pointers, scope sections may not be used as a function return value. (The returnable()
+		/* Like non-owning scope pointers, scope sections may not be used as a function return value. (The return_value()
 		function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the
 		returned section is constructed from one of the input parameters. Let's consider a simple example of a
 		"first_half()" function that takes a scope section and returns a scope section spanning the first half of the

@@ -296,6 +296,11 @@ namespace mse {
 			m_basic_string.swap(_Other);
 		}
 
+		size_type length() const _NOEXCEPT
+		{	// return length of sequence
+			return m_basic_string.length();
+		}
+
 		size_type size() const _NOEXCEPT
 		{	// return length of sequence
 			return m_basic_string.size();
