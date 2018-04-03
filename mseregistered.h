@@ -47,8 +47,8 @@ namespace mse {
 	template<typename _TROy, int _Tn = sc_default_cache_size> using TRegisteredObj = _TROy;
 	template <class _TRRWy, int _TRRWn = sc_default_cache_size> using TRegisteredRefWrapper = std::reference_wrapper<_TRRWy>;
 
-	template<typename _Ty> auto registered_fptr_to(_Ty&& _X) { return &_X }
-	template<typename _Ty> auto registered_fptr_to(const _Ty& _X) { return &_X }
+	template<typename _Ty> auto registered_fptr_to(_Ty&& _X) { return &_X; }
+	template<typename _Ty> auto registered_fptr_to(const _Ty& _X) { return &_X; }
 
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
 

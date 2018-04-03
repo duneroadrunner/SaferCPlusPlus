@@ -86,8 +86,8 @@ namespace mse {
 		delete a;
 	}
 
-	template<typename _Ty> auto relaxed_registered_fptr_to(_Ty&& _X) { return &_X }
-	template<typename _Ty> auto relaxed_registered_fptr_to(const _Ty& _X) { return &_X }
+	template<typename _Ty> auto relaxed_registered_fptr_to(_Ty&& _X) { return &_X; }
+	template<typename _Ty> auto relaxed_registered_fptr_to(const _Ty& _X) { return &_X; }
 
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
 
