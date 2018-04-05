@@ -3263,16 +3263,17 @@ namespace mse {
 	};
 
 
-	template <typename _TRAIterator>
-	class TRandomAccessConstSectionBase;
-	template <typename _TRAIterator>
-	class TXScopeRandomAccessSection;
-	template <typename _TRAIterator>
-	class TXScopeRandomAccessConstSection;
-	template <typename _TRAIterator>
-	class TRandomAccessSection;
-	template <typename _TRAIterator>
-	class TRandomAccessConstSection;
+	template <typename _TRAIterator> class TRandomAccessConstSectionBase;
+	template <typename _TRAIterator> class TXScopeRandomAccessSection;
+	template <typename _TRAIterator> class TXScopeRandomAccessConstSection;
+	template <typename _TRAIterator> class TXScopeCagedRandomAccessSectionToRValue;
+	template <typename _TRAIterator> class TXScopeCagedRandomAccessConstSectionToRValue;
+	template <typename _TRAIterator> class TRandomAccessSection;
+	template <typename _TRAIterator> class TRandomAccessConstSection;
+	namespace us {
+		template <typename _TRAIterator> class TXScopeRandomAccessSectionFParam;
+		template <typename _TRAIterator> class TXScopeRandomAccessConstSectionFParam;
+	}
 
 	class RandomAccessSectionTag {};
 	class RandomAccessConstSectionTag {};
@@ -3884,14 +3885,52 @@ namespace mse {
 		const TXScopeRandomAccessSection<_TRAIterator>* operator&() const { return this; }
 	};
 
+	template<typename _TRAIterator>
+	class TXScopeCagedRandomAccessSectionToRValue {
+	public:
+		void xscope_tag() const {}
+
+	private:
+		TXScopeCagedRandomAccessSectionToRValue(const TXScopeCagedRandomAccessSectionToRValue&) = delete;
+		TXScopeCagedRandomAccessSectionToRValue(TXScopeCagedRandomAccessSectionToRValue&&) = delete;
+		TXScopeCagedRandomAccessSectionToRValue(const TXScopeRandomAccessSection<_TRAIterator>& ptr) : m_xscope_ra_section(ptr) {}
+#ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
+		TXScopeCagedRandomAccessSectionToRValue(TXScopeCagedRandomAccessSectionToRValue&& src_ref) : m_xscope_ra_section(src_ref) {}
+#endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
+		TXScopeCagedRandomAccessSectionToRValue<_TRAIterator>& operator=(const TXScopeCagedRandomAccessSectionToRValue<_TRAIterator>& _Right_cref) = delete;
+		void* operator new(size_t size) { return ::operator new(size); }
+
+		TXScopeCagedRandomAccessSectionToRValue<_TRAIterator>* operator&() { return this; }
+		const TXScopeCagedRandomAccessSectionToRValue<_TRAIterator>* operator&() const { return this; }
+
+		TXScopeRandomAccessSection<_TRAIterator> m_xscope_ra_section;
+
+		template <typename _Ty>
+		friend auto make_xscope_random_access_section_helper1(std::true_type, const mse::TXScopeCagedItemFixedPointerToRValue<_Ty>& param);
+		template <typename _TRALoneParam>
+		friend auto make_xscope_random_access_section(const _TRALoneParam& param);
+	};
+
 	template <typename _TRAIterator>
 	auto make_xscope_random_access_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessSection<_TRAIterator>::size_type count) {
 		return TXScopeRandomAccessSection<_TRAIterator>(start_iter, count);
 	}
+	template <typename _Ty>
+	auto make_xscope_random_access_section_helper1(std::true_type, const mse::TXScopeCagedItemFixedPointerToRValue<_Ty>& param) {
+		mse::TXScopeItemFixedPointer<_Ty> adj_param = mse::us::TXScopeItemFixedPointerFParam<_Ty>(param);
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(adj_param))>::type _TRAIterator;
+		mse::TXScopeRandomAccessSection<_TRAIterator> ra_section(adj_param);
+		return mse::TXScopeCagedRandomAccessSectionToRValue<_TRAIterator>(ra_section);
+	}
 	template <typename _TRALoneParam>
-	auto make_xscope_random_access_section(const _TRALoneParam& param) {
+	auto make_xscope_random_access_section_helper1(std::false_type, const _TRALoneParam& param) {
 		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
 		return TXScopeRandomAccessSection<_TRAIterator>(param);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_random_access_section(const _TRALoneParam& param) {
+		return make_xscope_random_access_section_helper1(
+			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedFixedPointerToRValue>::type(), param);
 	}
 	/* This function basically just calls the give section's subsection() member function and returns the value.  */
 	template<typename _Ty>
@@ -4522,6 +4561,60 @@ namespace mse {
 		return TRandomAccessConstSection<_TRAIterator>(param);
 	}
 
+	namespace us {
+
+		template <typename _TRAIterator>
+		class TXScopeRandomAccessSectionFParam : public TXScopeRandomAccessSection<_TRAIterator> {
+		public:
+			typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
+			typedef typename base_class::value_type value_type;
+			typedef typename base_class::reference reference;
+			typedef typename base_class::const_reference const_reference;
+			typedef typename base_class::size_type size_type;
+			typedef typename base_class::difference_type difference_type;
+			static const size_t npos = size_t(-1);
+
+			//MSE_USING(TXScopeRandomAccessSectionFParam, base_class);
+			TXScopeRandomAccessSectionFParam(const TXScopeRandomAccessSectionFParam& src) = default;
+			TXScopeRandomAccessSectionFParam(const _TRAIterator& start_iter, size_type count) : base_class(start_iter,count) {}
+			template <typename _TRALoneParam>
+			TXScopeRandomAccessSectionFParam(const _TRALoneParam& param) : base_class(construction_helper1(typename 
+				std::conditional<mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
+				|| mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedPointerToRValue>::value
+				, std::true_type, std::false_type>::type(), param)) {
+			}
+
+			TXScopeRandomAccessSectionFParam xscope_subsection(size_type pos = 0, size_type n = npos) const {
+				return base_class::xscope_subsection(pos, n);
+			}
+			typedef typename std::conditional<std::is_base_of<XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessSectionFParam, TRandomAccessSection<_TRAIterator> >::type subsection_t;
+			subsection_t subsection(size_type pos = 0, size_type n = npos) const {
+				return base_class::subsection(pos, n);
+			}
+
+			typedef typename base_class::xscope_iterator xscope_iterator;
+			typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+
+		private:
+			template <typename _TRAContainer>
+			mse::TXScopeItemFixedPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedPointerToRValue<_TRAContainer>& caged_xscpptr) {
+				return mse::us::TXScopeItemFixedPointerFParam<_TRAContainer>(caged_xscpptr);
+			}
+			template <typename _TRALoneParam>
+			auto construction_helper1(std::false_type, const _TRALoneParam& param) {
+				return param;
+			}
+
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TXScopeRandomAccessSectionFParam<_TRAIterator>* operator&() { return this; }
+			const TXScopeRandomAccessSectionFParam<_TRAIterator>* operator&() const { return this; }
+		};
+	}
+
 
 	template <class N>
 	struct is_std_array { static const int value = 0; };
@@ -4693,12 +4786,14 @@ namespace mse {
 	TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex> xscope_const_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex> xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
+#ifndef MSE_SCOPEPOINTER_DISABLED
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	TXScopeAccessControlledPointer<_Ty, _TAccessMutex> xscope_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex> xscope_const_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex> xscope_exclusive_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& aco_xscpptr);
+#endif //!MSE_SCOPEPOINTER_DISABLED
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
 	class TAccessControlledPointerBase {
@@ -4794,8 +4889,10 @@ namespace mse {
 		friend class TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>;
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
 		friend TXScopeAccessControlledPointer<_Ty2, _TAccessMutex2> xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+#ifndef MSE_SCOPEPOINTER_DISABLED
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
 		friend TXScopeAccessControlledPointer<_Ty2, _TAccessMutex2> xscope_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+#endif //!MSE_SCOPEPOINTER_DISABLED
 	};
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
@@ -4920,8 +5017,10 @@ namespace mse {
 		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
 		friend TXScopeAccessControlledConstPointer<_Ty2, _TAccessMutex2> xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+#ifndef MSE_SCOPEPOINTER_DISABLED
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
 		friend TXScopeAccessControlledConstPointer<_Ty2, _TAccessMutex2> xscope_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+#endif //!MSE_SCOPEPOINTER_DISABLED
 	};
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
@@ -5050,8 +5149,10 @@ namespace mse {
 		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
 		friend TXScopeAccessControlledExclusivePointer<_Ty2, _TAccessMutex2> xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+#ifndef MSE_SCOPEPOINTER_DISABLED
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
 		friend TXScopeAccessControlledExclusivePointer<_Ty2, _TAccessMutex2> xscope_pointer_to_access_controlled_obj(const TXScopeFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
+#endif //!MSE_SCOPEPOINTER_DISABLED
 	};
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
@@ -5262,8 +5363,10 @@ namespace mse {
 			return constructor_helper2(typename std::is_base_of<TAccessControlledObjBase, _TSoleArg>::type(), std::forward<decltype(sole_arg)>(sole_arg));
 		}
 
-		TAccessControlledObjBase* operator&() { return this; }
-		const TAccessControlledObjBase* operator&() const { return this; }
+#ifndef MSE_SCOPEPOINTER_DISABLED
+		auto operator&() { return this; }
+		auto operator&() const { return this; }
+#endif //!MSE_SCOPEPOINTER_DISABLED
 
 		_Ty m_obj;
 
@@ -5323,8 +5426,10 @@ namespace mse {
 	private:
 		void* operator new(size_t size) { return ::operator new(size); }
 
-		TXScopeAccessControlledObj* operator&() { return this; }
-		const TXScopeAccessControlledObj* operator&() const { return this; }
+#ifndef MSE_SCOPEPOINTER_DISABLED
+		auto operator&() { return this; }
+		auto operator&() const { return this; }
+#endif //!MSE_SCOPEPOINTER_DISABLED
 
 		//friend class TAccessControlledReadOnlyObj<_Ty, _TAccessMutex>;
 		friend class TAccessControlledPointerBase<_Ty, _TAccessMutex>;

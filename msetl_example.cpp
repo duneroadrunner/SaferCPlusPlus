@@ -128,6 +128,17 @@ public:
 		return (*i1ptr) + (*i2ptr);
 	}
 
+	template<class _TPointer1, class _TPointer2>
+	static bool second_is_longer(const _TPointer1& string1_xscpptr, const _TPointer2& string2_xscpptr) {
+		auto l_string1_xscpptr = mse::us::value_from_fparam(string1_xscpptr);
+		auto l_string2_xscpptr = mse::us::value_from_fparam(string2_xscpptr);
+		return (l_string1_xscpptr->length() > l_string2_xscpptr->length()) ? false : true;
+	}
+	template<class _TPointer1, class _TPointer2>
+	static bool second_is_longer_v2(mse::us::TFParam<_TPointer1> string1_xscpptr, mse::us::TFParam<_TPointer2> string2_xscpptr) {
+		return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
+	}
+
 	/* A member function that provides a safe pointer/reference to a class/struct member is going to need to
 	take a safe version of the "this" pointer as a parameter. */
 	template<class this_type>
@@ -1470,7 +1481,7 @@ int main(int argc, char* argv[])
 		bool. You could use this function to implement the equivalent of a min(a, b) function like so: */
 		auto xscp_a_ptr5 = &a_scpobj;
 		auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
-		auto xscp_min_ptr1 = mse::xscope_chosen_pointer((xscp_a_ptr6 < xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
+		auto xscp_min_ptr1 = mse::xscope_chosen_pointer((*xscp_a_ptr6 < *xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
 		assert(5 == xscp_min_ptr1->b);
 
 		{
@@ -1504,27 +1515,43 @@ int main(int argc, char* argv[])
 		}
 
 		{
-			/*****************************************/
-			/*  us::TXScopeItemFixedPointerFParam<>  */
-			/*****************************************/
+			/********************************/
+			/*  us::TFParam<>               */
+			/*  && us::value_from_fparam()  */
+			/********************************/
 
-			/* mse::us::TXScopeItemFixedPointerFParam<> is just a version of mse::TXScopeItemFixedPointer<> that may only be
-			used to declare function parameters. Unike mse::TXScopeItemFixedPointer<>, mse::us::TXScopeItemFixedPointerFParam<>
-			supports construction from (caged) scope pointers to r-value (temporary) objects. Bsaically, if you use 
-			mse::us::TXScopeItemFixedPointerFParam<> in place of mse::TXScopeItemFixedPointer<> in function parameter
-			declarations it will permit the function to accept temporaries by scope reference. */
+			/* us::TFParam<> is just a transparent template wrapper for function parameter declarations. In most cases
+			use of this wrapper is not necessary, but in some cases it enables functionality only available to variables
+			that are function parameters. Specifically, it allows functions to support scope pointer/references to
+			temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually
+			"functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so
+			in the case of function parameters, the us::TFParam<> wrapper enables certain scope pointer/reference types
+			(like TXScopeItemFixedPointer<>, and "random access section" types) to be constructed from their
+			"functionally disabled" counterparts.
+
+			In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the
+			mse::us::TFParam<> wrapper can interfere with that. In those cases you can instead convert parameters to their
+			wrapped type after the fact using the us::value_from_fparam() function. Note that using this function (or the
+			us::TFParam<> wrapper) on anything other than function parameters is unsafe, and currently there is no
+			compile-time enforcement of this restriction.
+
+			us::TXScopeFParam<> and us::xscope_value_from_fparam() can be used for situations when the types are necessarily
+			scope types.
+			*/
 
 			class CD {
 			public:
-				static bool second_is_longer(mse::us::TXScopeItemFixedPointerFParam<mse::nii_string> string1_xscpptr
-					, mse::us::TXScopeItemFixedPointerFParam<mse::nii_string> string2_xscpptr) {
+				static bool second_is_longer(mse::us::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::nii_string> > string1_xscpptr
+					, mse::us::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::nii_string> > string2_xscpptr) {
 
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 			};
 
 			mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
-			auto res1 = CD::second_is_longer(&xscope_string1, &(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+			auto res1 = CD::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+			//auto res1 = CD::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+			auto res2 = H::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
 		}
 
 		{

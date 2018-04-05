@@ -118,7 +118,7 @@ namespace mse {
 		TPointer(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
 		TPointer(const TPointer<_Ty, _TID>& src) : m_ptr(src.m_ptr) { note_value_assignment(); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
-		TPointer(const TPointer<_Ty2, _TID>& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
+		TPointer(const TPointer<_Ty2, TPointerID<_Ty2> >& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 		virtual ~TPointer() {}
 
 		void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
@@ -152,6 +152,12 @@ namespace mse {
 			m_ptr = _Right_cref.m_ptr;
 			return (*this);
 		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
+		TPointer<_Ty, _TID>& operator=(const TPointer<_Ty2, TPointerID<_Ty2> >& _Right_cref) {
+			note_value_assignment();
+			m_ptr = _Right_cref.m_ptr;
+			return (*this);
+		}
 		bool operator==(const _Ty* _Right_cref) const { assert_initialized(); return (_Right_cref == m_ptr); }
 		bool operator!=(const _Ty* _Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref)); }
 		bool operator==(const TPointer<_Ty, _TID> &_Right_cref) const { /*assert_initialized();*/ return (_Right_cref == m_ptr); }
@@ -163,7 +169,7 @@ namespace mse {
 			return (m_ptr != nullptr);
 		}
 
-		explicit operator _Ty*() const {
+		/*explicit */operator _Ty*() const {
 			assert_initialized();
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_ptr) {
@@ -419,7 +425,16 @@ namespace mse {
 #endif /*MSE_SAFERPTR_DISABLED*/
 
 #if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
-	template<typename _Ty> auto pointer_to(const _Ty& _X) { return &_X; }
+	template<typename _Ty> auto pointer_to(_Ty& _X) { return &_X; }
+
+	template<typename _Ty>
+	auto pointer_to(_Ty&& _X) {
+		/* Some compilers (prudently) don't allow to obtain a pointer to an r-value. But since it's safe and supported for
+		the library's safe elements, for compatibility reasons, here we enable you to do it when the those elements are
+		"disabled" (i.e. replaced with their native counterparts). */
+		const _Ty& X2 = _X;
+		return &X2;
+	}
 #else /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
 	template<typename _Ty, class = typename std::enable_if<(!std::is_pointer<_Ty>::value), void>::type>
@@ -429,6 +444,13 @@ namespace mse {
 	auto pointer_to(const _Ty& _X) {
 		T_valid_if_not_raw_pointer_msepointerbasics<decltype(&_X)>();
 		return &_X;
+	}
+
+	template<typename _Ty>
+	auto pointer_to(_Ty&& _X) -> decltype(&std::forward<_Ty>(_X)) {
+		const _Ty& X2 = _X;
+		T_valid_if_not_raw_pointer_msepointerbasics<decltype(&X2)>();
+		return &std::forward<_Ty>(_X);
 	}
 #endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 

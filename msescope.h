@@ -63,8 +63,7 @@ namespace mse {
 	/* This macro roughly simulates constructor inheritance. */
 #define MSE_SCOPE_USING(Derived, Base) MSE_USING(Derived, Base)
 
-	template<typename _Ty>
-	class TScopeID {};
+	template<typename _Ty> class TScopeID {};
 
 	class XScopeTagBase {
 	public:
@@ -103,6 +102,12 @@ namespace mse {
 	};
 	*/
 
+	/* determines if a given type is an instantiation of a given template */
+	template<typename T, template<typename> class TT>
+	struct is_instantiation_of_msescope : std::false_type { };
+	template<typename T, template<typename> class TT>
+	struct is_instantiation_of_msescope<TT<T>, TT> : std::true_type { };
+
 	/* The purpose of these template functions are just to produce a compile error on attempts to instantiate
 	when certain conditions are not met. */
 	template<class _Ty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _Ty>::value), void>::type>
@@ -114,22 +119,30 @@ namespace mse {
 	}
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
+	//TScopeID
 	template<typename _Ty> using TXScopePointer = _Ty*;
 	template<typename _Ty> using TXScopeConstPointer = const _Ty*;
 	template<typename _Ty> using TXScopeNotNullPointer = _Ty*;
 	template<typename _Ty> using TXScopeNotNullConstPointer = const _Ty*;
 	template<typename _Ty> using TXScopeFixedPointer = _Ty*;
 	template<typename _Ty> using TXScopeFixedConstPointer = const _Ty*;
+	template<typename _Ty> using TXScopeCagedFixedPointerToRValue = _Ty*;
+	template<typename _Ty> using TXScopeCagedFixedConstPointerToRValue = const _Ty*;
+	template<typename _TROy> using TXScopeObjBase = _TROy;
 	template<typename _TROy> using TXScopeObj = _TROy;
 	template<typename _Ty> using TXScopeItemFixedPointer = _Ty*;
 	template<typename _Ty> using TXScopeItemFixedConstPointer = const _Ty*;
-	template<typename _TROy> using TXScopeReturnValue = _TROy;
+	template<typename _Ty> using TXScopeCagedItemFixedPointerToRValue = _Ty*;
+	template<typename _Ty> using TXScopeCagedItemFixedConstPointerToRValue = const _Ty*;
+	//template<typename _TROy> using TXScopeReturnValue = _TROy;
+
+	template<typename _TROy> class TXScopeOwnerPointer;
 
 	template<typename _Ty> auto xscope_ifptr_to(_Ty&& _X) { return std::addressof(_X); }
 	template<typename _Ty> auto xscope_ifptr_to(const _Ty& _X) { return std::addressof(_X); }
 
-	template<typename _Ty> const _Ty& return_value(const _Ty& _X) { return _X; }
-	template<typename _Ty> _Ty&& return_value(_Ty&& _X) { return std::forward<decltype(_X)>(_X); }
+	//template<typename _Ty> const _Ty& return_value(const _Ty& _X) { return _X; }
+	//template<typename _Ty> _Ty&& return_value(_Ty&& _X) { return std::forward<decltype(_X)>(_X); }
 	template<typename _TROy> using TNonXScopeObj = _TROy;
 
 #else /*MSE_SCOPEPOINTER_DISABLED*/
@@ -376,62 +389,6 @@ namespace mse {
 		friend class TXScopeObj<_Ty>;
 	};
 
-	template<typename _Ty>
-	class TXScopeCagedFixedPointerToRValue {
-	public:
-		TXScopeCagedFixedPointerToRValue(const TXScopeCagedFixedPointerToRValue& src_cref) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeCagedFixedPointerToRValue(const TXScopeCagedFixedPointerToRValue<_Ty2>& src_cref) : m_xscope_ptr(src_cref.m_xscope_ptr) {}
-		virtual ~TXScopeCagedFixedPointerToRValue() {}
-
-		void xscope_tag() const {}
-
-	private:
-		TXScopeCagedFixedPointerToRValue(const TXScopeFixedPointer<_Ty>& ptr) : m_xscope_ptr(ptr) {}
-#ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		TXScopeCagedFixedPointerToRValue(TXScopeCagedFixedPointerToRValue&& src_ref) : m_xscope_ptr(src_ref) {
-			int q = 5;
-		}
-#endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		TXScopeCagedFixedPointerToRValue<_Ty>& operator=(const TXScopeCagedFixedPointerToRValue<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeCagedFixedPointerToRValue<_Ty>* operator&() { return this; }
-		const TXScopeCagedFixedPointerToRValue<_Ty>* operator&() const { return this; }
-
-		TXScopeFixedPointer<_Ty> m_xscope_ptr;
-
-		friend class TXScopeObj<_Ty>;
-	};
-
-	template<typename _Ty>
-	class TXScopeCagedFixedConstPointerToRValue {
-	public:
-		TXScopeCagedFixedConstPointerToRValue(const TXScopeCagedFixedConstPointerToRValue& src_cref) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeCagedFixedConstPointerToRValue(const TXScopeCagedFixedConstPointerToRValue<_Ty2>& src_cref) : m_xscope_ptr(src_cref.m_xscope_ptr) {}
-		virtual ~TXScopeCagedFixedConstPointerToRValue() {}
-
-		void xscope_tag() const {}
-
-	private:
-		TXScopeCagedFixedConstPointerToRValue(const TXScopeFixedConstPointer<_Ty>& ptr) : m_xscope_ptr(ptr) {}
-#ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		TXScopeCagedFixedConstPointerToRValue(TXScopeCagedFixedConstPointerToRValue&& src_ref) : m_xscope_ptr(src_ref) {
-			int q = 5;
-		}
-#endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		TXScopeCagedFixedConstPointerToRValue<_Ty>& operator=(const TXScopeCagedFixedConstPointerToRValue<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeCagedFixedConstPointerToRValue<_Ty>* operator&() { return this; }
-		const TXScopeCagedFixedConstPointerToRValue<_Ty>* operator&() const { return this; }
-
-		TXScopeFixedConstPointer<_Ty> m_xscope_ptr;
-
-		friend class TXScopeObj<_Ty>;
-	};
-
 	/* TXScopeObj is intended as a transparent wrapper for other classes/objects with "scope lifespans". That is, objects
 	that are either allocated on the stack, or whose "owning" pointer is allocated on the stack. Unfortunately it's not
 	really possible to completely prevent misuse. For example, std::list<TXScopeObj<mse::CInt>> is an improper, and
@@ -476,13 +433,13 @@ namespace mse {
 		const TXScopeItemFixedPointer<_TROy> mse_xscope_ifptr() & { return &(*this); }
 		const TXScopeItemFixedConstPointer<_TROy> mse_xscope_ifptr() const & { return &(*this); }
 
-		const TXScopeCagedItemFixedPointerToRValue<_TROy> operator&() && {
-			return TXScopeItemFixedPointer<_TROy>(TXScopeFixedPointer<_TROy>(this));
+		TXScopeCagedItemFixedConstPointerToRValue<_TROy> operator&() && {
+			return TXScopeItemFixedConstPointer<_TROy>(TXScopeFixedPointer<_TROy>(this));
 		}
-		const TXScopeCagedItemFixedConstPointerToRValue<_TROy> operator&() const && {
+		TXScopeCagedItemFixedConstPointerToRValue<_TROy> operator&() const && {
 			return TXScopeFixedConstPointer<_TROy>(TXScopeConstPointer<_TROy>(this));
 		}
-		const TXScopeCagedItemFixedPointerToRValue<_TROy> mse_xscope_ifptr() && { return &(*this); }
+		const TXScopeCagedItemFixedConstPointerToRValue<_TROy> mse_xscope_ifptr() && { return &(*this); }
 		const TXScopeCagedItemFixedConstPointerToRValue<_TROy> mse_xscope_ifptr() const && { return &(*this); }
 
 		void xscope_tag() const {}
@@ -491,7 +448,7 @@ namespace mse {
 		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (
 			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
 			), void>::type>
-		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
 		void* operator new(size_t size) { return ::operator new(size); }
@@ -621,22 +578,19 @@ namespace mse {
 	template<typename _Ty>
 	class TXScopeCagedItemFixedPointerToRValue : public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 	public:
-		TXScopeCagedItemFixedPointerToRValue(const TXScopeCagedItemFixedPointerToRValue& src_cref) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeCagedItemFixedPointerToRValue(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : m_xscope_ptr(src_cref.m_xscope_ptr) {}
-		virtual ~TXScopeCagedItemFixedPointerToRValue() {}
-
 		void xscope_tag() const {}
 
 	private:
+		TXScopeCagedItemFixedPointerToRValue(const TXScopeCagedItemFixedPointerToRValue&) = delete;
+		TXScopeCagedItemFixedPointerToRValue(TXScopeCagedItemFixedPointerToRValue&&) = default;
 		TXScopeCagedItemFixedPointerToRValue(const TXScopeItemFixedPointer<_Ty>& ptr) : m_xscope_ptr(ptr) {}
 #ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		TXScopeCagedItemFixedPointerToRValue(TXScopeCagedItemFixedPointerToRValue&& src_ref) : m_xscope_ptr(src_ref) {
-			int q = 5;
-		}
+		TXScopeCagedItemFixedPointerToRValue(TXScopeCagedItemFixedPointerToRValue&& src_ref) : m_xscope_ptr(src_ref) {}
 #endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 
-		auto uncaged_pointer() const { return m_xscope_ptr; }
+		auto uncaged_pointer() const {
+			return m_xscope_ptr;
+		}
 
 		TXScopeCagedItemFixedPointerToRValue<_Ty>& operator=(const TXScopeCagedItemFixedPointerToRValue<_Ty>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
@@ -654,19 +608,14 @@ namespace mse {
 	template<typename _Ty>
 	class TXScopeCagedItemFixedConstPointerToRValue : public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 	public:
-		TXScopeCagedItemFixedConstPointerToRValue(const TXScopeCagedItemFixedConstPointerToRValue& src_cref) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeCagedItemFixedConstPointerToRValue(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : m_xscope_ptr(src_cref.m_xscope_ptr) {}
-		virtual ~TXScopeCagedItemFixedConstPointerToRValue() {}
-
 		void xscope_tag() const {}
 
 	private:
+		TXScopeCagedItemFixedConstPointerToRValue(const TXScopeCagedItemFixedConstPointerToRValue& src_cref) = delete;
+		TXScopeCagedItemFixedConstPointerToRValue(TXScopeCagedItemFixedConstPointerToRValue&& src_cref) = default;
 		TXScopeCagedItemFixedConstPointerToRValue(const TXScopeItemFixedConstPointer<_Ty>& ptr) : m_xscope_ptr(ptr) {}
 #ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		TXScopeCagedItemFixedConstPointerToRValue(TXScopeCagedItemFixedConstPointerToRValue&& src_ref) : m_xscope_ptr(src_ref) {
-			int q = 5;
-		}
+		TXScopeCagedItemFixedConstPointerToRValue(TXScopeCagedItemFixedConstPointerToRValue&& src_ref) : m_xscope_ptr(src_ref) {}
 #endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 
 		auto uncaged_pointer() const { return m_xscope_ptr; }
@@ -681,124 +630,8 @@ namespace mse {
 
 		friend class TXScopeObj<_Ty>;
 		template<class _Ty2> friend class us::TXScopeItemFixedConstPointerFParam;
+		template<typename _Ty2> friend auto pointer_to(_Ty2&& _X) -> decltype(&std::forward<_Ty2>(_X));
 	};
-
-	namespace us {
-		/* TXScopeItemFixedPointerFParam<> is just a version of TXScopeItemFixedPointer<> which may only be used for
-		function parameter declations. It has the extra ability to accept (caged) scope pointers to r-value scope objects
-		(i.e. supports temporaries by scope reference). */
-		template<typename _Ty>
-		class TXScopeItemFixedPointerFParam : public TXScopeItemFixedPointer<_Ty> {
-		public:
-			typedef TXScopeItemFixedPointer<_Ty> base_class;
-			MSE_SCOPE_USING(TXScopeItemFixedPointerFParam, base_class);
-
-			TXScopeItemFixedPointerFParam(const TXScopeItemFixedPointerFParam& src_cref) = default;
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedPointerFParam(const TXScopeItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedPointer<_Ty>(static_cast<const TXScopeItemFixedPointer<_Ty2>&>(src_cref)) {}
-
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : TXScopeItemFixedPointer<_Ty>(src_cref.uncaged_pointer()) {}
-
-			virtual ~TXScopeItemFixedPointerFParam() {}
-
-			void xscope_tag() const {}
-
-		private:
-			TXScopeItemFixedPointerFParam<_Ty>& operator=(const TXScopeItemFixedPointerFParam<_Ty>& _Right_cref) = delete;
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TXScopeItemFixedPointerFParam<_Ty>* operator&() { return this; }
-			const TXScopeItemFixedPointerFParam<_Ty>* operator&() const { return this; }
-		};
-
-		template<typename _Ty>
-		class TXScopeItemFixedConstPointerFParam : public TXScopeItemFixedConstPointer<_Ty> {
-		public:
-			typedef TXScopeItemFixedConstPointer<_Ty> base_class;
-			MSE_SCOPE_USING(TXScopeItemFixedConstPointerFParam, base_class);
-
-			TXScopeItemFixedConstPointerFParam(const TXScopeItemFixedConstPointerFParam<_Ty>& src_cref) = default;
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedConstPointerFParam(const TXScopeItemFixedConstPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(static_cast<const TXScopeItemFixedConstPointer<_Ty2>&>(src_cref)) {}
-
-			TXScopeItemFixedConstPointerFParam(const TXScopeItemFixedPointerFParam<_Ty>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedConstPointerFParam(const TXScopeItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(TXScopeItemFixedConstPointer<_Ty2>(src_cref)) {}
-
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref.uncaged_pointer()) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref.uncaged_pointer()) {}
-
-			virtual ~TXScopeItemFixedConstPointerFParam() {}
-
-			void xscope_tag() const {}
-
-		private:
-			TXScopeItemFixedConstPointerFParam<_Ty>& operator=(const TXScopeItemFixedConstPointerFParam<_Ty>& _Right_cref) = delete;
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TXScopeItemFixedConstPointerFParam<_Ty>* operator&() { return this; }
-			const TXScopeItemFixedConstPointerFParam<_Ty>* operator&() const { return this; }
-		};
-
-		/* TXScopeReturnableItemFixedPointerFParam<> is just a version of TXScopeItemFixedPointer<> which may only be used
-		for function parameter declations. Because it may only be used for function parameters, and it doesn't support
-		pointers to temporaries, an object of this type can be use as a function return value. To be clear,
-		TXScopeReturnableItemFixedPointerFParam<> may not be used as a return type. But an object of this type may be used
-		as return value (wrapped in the mse::return_value() function). The function return type should be "auto". */
-		template<typename _Ty>
-		class TXScopeReturnableItemFixedPointerFParam : public TXScopeItemFixedPointer<_Ty> {
-		public:
-			typedef TXScopeItemFixedPointer<_Ty> base_class;
-			MSE_SCOPE_USING(TXScopeReturnableItemFixedPointerFParam, base_class);
-
-			TXScopeReturnableItemFixedPointerFParam(const TXScopeReturnableItemFixedPointerFParam& src_cref) = default;
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeReturnableItemFixedPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedPointer<_Ty>(static_cast<const TXScopeItemFixedPointer<_Ty2>&>(src_cref)) {}
-
-			virtual ~TXScopeReturnableItemFixedPointerFParam() {}
-
-			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
-			void xscope_tag() const {}
-
-		private:
-			TXScopeReturnableItemFixedPointerFParam<_Ty>& operator=(const TXScopeReturnableItemFixedPointerFParam<_Ty>& _Right_cref) = delete;
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TXScopeReturnableItemFixedPointerFParam<_Ty>* operator&() { return this; }
-			const TXScopeReturnableItemFixedPointerFParam<_Ty>* operator&() const { return this; }
-		};
-
-		template<typename _Ty>
-		class TXScopeReturnableItemFixedConstPointerFParam : public TXScopeItemFixedConstPointer<_Ty> {
-		public:
-			typedef TXScopeItemFixedConstPointer<_Ty> base_class;
-			MSE_SCOPE_USING(TXScopeReturnableItemFixedConstPointerFParam, base_class);
-
-			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedConstPointerFParam<_Ty>& src_cref) = default;
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedConstPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(static_cast<const TXScopeItemFixedConstPointer<_Ty2>&>(src_cref)) {}
-
-			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(TXScopeItemFixedConstPointer<_Ty2>(src_cref)) {}
-
-			virtual ~TXScopeReturnableItemFixedConstPointerFParam() {}
-
-			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
-			void xscope_tag() const {}
-
-		private:
-			TXScopeReturnableItemFixedConstPointerFParam<_Ty>& operator=(const TXScopeReturnableItemFixedConstPointerFParam<_Ty>& _Right_cref) = delete;
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TXScopeReturnableItemFixedConstPointerFParam<_Ty>* operator&() { return this; }
-			const TXScopeReturnableItemFixedConstPointerFParam<_Ty>* operator&() const { return this; }
-		};
-
-	}
 }
 
 namespace std {
@@ -856,127 +689,6 @@ namespace std {
 namespace mse {
 
 	template<typename _TROy>
-	class TReturnValue : public _TROy {
-	public:
-		MSE_USING(TReturnValue, _TROy);
-		TReturnValue(const TReturnValue& _X) : _TROy(_X) {}
-		TReturnValue(TReturnValue&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
-		virtual ~TReturnValue() {
-			/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
-			valid_if_TROy_is_marked_as_returnable_or_not_xscope_type();
-		}
-
-		template<class _Ty2>
-		TReturnValue& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		template<class _Ty2>
-		TReturnValue& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
-
-		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
-		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
-
-	private:
-
-		/* If _TROy is not "marked" as safe to use as a function return value, then the following member function
-		will not instantiate, causing an (intended) compile error. */
-		template<class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TROy>::value) || (
-				(!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
-				/*&& (!std::integral_constant<bool, HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
-				&& (std::integral_constant<bool, HasXScopeReturnableTagMethod<_TROy>::Has>())
-			), void>::type>
-		void valid_if_TROy_is_marked_as_returnable_or_not_xscope_type() const {}
-
-		TReturnValue* operator&() {
-			return this;
-		}
-		const TReturnValue* operator&() const {
-			return this;
-		}
-	};
-
-	template<typename _TROy>
-	class TXScopeReturnValue : public TReturnValue<_TROy>
-		, public std::conditional<std::is_base_of<XScopeTagBase, _TROy>::value, TPlaceHolder_msescope<TXScopeObj<_TROy> >, XScopeTagBase>::type
-	{
-	public:
-		typedef TReturnValue<_TROy> base_class;
-		MSE_USING(TXScopeReturnValue, base_class);
-		TXScopeReturnValue(const TXScopeReturnValue& _X) : base_class(_X) {}
-		TXScopeReturnValue(TXScopeReturnValue&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
-
-		template<class _Ty2>
-		TXScopeReturnValue& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		template<class _Ty2>
-		TXScopeReturnValue& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
-
-		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
-		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
-
-	private:
-		TXScopeReturnValue* operator&() {
-			return this;
-		}
-		const TXScopeReturnValue* operator&() const {
-			return this;
-		}
-
-		void* operator new(size_t size) { return ::operator new(size); }
-	};
-
-
-	/* determines if a given type is an instantiation of a given template */
-	template<typename T, template<typename> class TT>
-	struct is_instantiation_of : std::false_type { };
-	template<typename T, template<typename> class TT>
-	struct is_instantiation_of<TT<T>, TT> : std::true_type { };
-
-	template<typename _Ty>
-	const TXScopeItemFixedPointer<_Ty>& return_value_helper2(const us::TXScopeReturnableItemFixedPointerFParam<_Ty>& _X) { return _X; }
-	template<typename _Ty>
-	TXScopeItemFixedPointer<_Ty>&& return_value_helper2(us::TXScopeReturnableItemFixedPointerFParam<_Ty>&& _X) { return std::forward<decltype(_X)>(_X); }
-	template<typename _Ty>
-	const TXScopeItemFixedConstPointer<_Ty>& return_value_helper2(const us::TXScopeReturnableItemFixedConstPointerFParam<_Ty>& _X) { return _X; }
-	template<typename _Ty>
-	TXScopeItemFixedConstPointer<_Ty>&& return_value_helper2(us::TXScopeReturnableItemFixedConstPointerFParam<_Ty>&& _X) { return std::forward<decltype(_X)>(_X); }
-
-	template<typename _Ty>
-	static void z__returnable_noop(const _Ty&) {}
-	template<typename _Ty>
-	const auto& return_value_helper1(std::false_type, const _Ty& _X) {
-		z__returnable_noop<mse::TReturnValue<_Ty> >(_X);
-		return _X;
-	}
-	template<typename _Ty>
-	const auto& return_value_helper1(std::true_type, const _Ty& _X) {
-		return return_value_helper2(_X);
-	}
-	template<typename _Ty>
-	const auto& return_value(const _Ty& _X) {
-		return return_value_helper1(typename is_instantiation_of<_Ty, us::TXScopeReturnableItemFixedPointerFParam>::type(), _X);
-	}
-
-	template<typename _Ty>
-	auto&& return_value_helper1(std::false_type, _Ty&& _X) {
-		z__returnable_noop<mse::TReturnValue<typename std::remove_reference<_Ty>::type> >(_X);
-		return std::forward<decltype(_X)>(_X);
-	}
-	template<typename _Ty>
-	auto&& return_value_helper1(std::true_type, _Ty&& _X) {
-		return return_value_helper2(std::forward<decltype(_X)>(_X));
-	}
-	template<typename _Ty>
-	auto&& return_value(_Ty&& _X) {
-		return return_value_helper1(typename is_instantiation_of<typename std::remove_reference<_Ty>::type
-			, us::TXScopeReturnableItemFixedPointerFParam>::type(), std::forward<decltype(_X)>(_X));
-	}
-
-	/* deprecated aliases */
-	template<typename _TROy> using TReturnable = TReturnValue<_TROy>;
-	template<typename _TROy> using TXScopeReturnable = TXScopeReturnValue<_TROy>;
-	template<typename _Ty> const auto& returnable(const _Ty& _X) { return return_value(_X); }
-	template<typename _Ty> auto&& returnable(_Ty&& _X) { return return_value(std::forward<decltype(_X)>(_X)); }
-
-
-	template<typename _TROy>
 	class TNonXScopeObj : public _TROy {
 	public:
 		MSE_USING(TNonXScopeObj, _TROy);
@@ -1003,6 +715,490 @@ namespace mse {
 	};
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
+
+	namespace us {
+		/* TXScopeItemFixedPointerFParam<> is just a version of TXScopeItemFixedPointer<> which may only be used for
+		function parameter declations. It has the extra ability to accept (caged) scope pointers to r-value scope objects
+		(i.e. supports temporaries by scope reference). */
+
+#ifdef MSE_SCOPEPOINTER_DISABLED
+		template<typename _Ty> using TXScopeItemFixedPointerFParamBase = TPointer<_Ty>;
+		template<typename _Ty> using TXScopeItemFixedConstPointerFParamBase = TPointer<const _Ty>;
+		template<typename _Ty> using TXScopeReturnableItemFixedPointerFParamBase = TPointer<_Ty>;
+		template<typename _Ty> using TXScopeReturnableItemFixedConstPointerFParamBase = TPointer<const _Ty>;
+#else /*MSE_SCOPEPOINTER_DISABLED*/
+		template<typename _Ty> using TXScopeItemFixedPointerFParamBase = TXScopeItemFixedPointer<_Ty>;
+		template<typename _Ty> using TXScopeItemFixedConstPointerFParamBase = TXScopeItemFixedConstPointer<_Ty>;
+		template<typename _Ty> using TXScopeReturnableItemFixedPointerFParamBase = TXScopeItemFixedPointer<_Ty>;
+		template<typename _Ty> using TXScopeReturnableItemFixedConstPointerFParamBase = TXScopeItemFixedConstPointer<_Ty>;
+#endif /*MSE_SCOPEPOINTER_DISABLED*/
+
+		template<typename _Ty>
+		class TXScopeItemFixedPointerFParam : public TXScopeItemFixedPointerFParamBase<_Ty> {
+		public:
+			typedef TXScopeItemFixedPointerFParamBase<_Ty> base_class;
+			MSE_SCOPE_USING(TXScopeItemFixedPointerFParam, base_class);
+
+			TXScopeItemFixedPointerFParam(const TXScopeItemFixedPointerFParam& src_cref) = default;
+
+#ifndef MSE_SCOPEPOINTER_DISABLED
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			TXScopeItemFixedPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : TXScopeItemFixedPointer<_Ty>(src_cref.uncaged_pointer()) {}
+#endif //!MSE_SCOPEPOINTER_DISABLED
+
+			virtual ~TXScopeItemFixedPointerFParam() {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+
+		private:
+			TXScopeItemFixedPointerFParam<_Ty>& operator=(const TXScopeItemFixedPointerFParam<_Ty>& _Right_cref) = delete;
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TXScopeItemFixedPointerFParam<_Ty>* operator&() { return this; }
+			const TXScopeItemFixedPointerFParam<_Ty>* operator&() const { return this; }
+		};
+
+		template<typename _Ty>
+		class TXScopeItemFixedConstPointerFParam : public TXScopeItemFixedConstPointerFParamBase<_Ty> {
+		public:
+			typedef TXScopeItemFixedConstPointerFParamBase<_Ty> base_class;
+			MSE_SCOPE_USING(TXScopeItemFixedConstPointerFParam, base_class);
+
+			TXScopeItemFixedConstPointerFParam(const TXScopeItemFixedConstPointerFParam<_Ty>& src_cref) = default;
+			TXScopeItemFixedConstPointerFParam(const TXScopeItemFixedPointerFParam<_Ty>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref) {}
+
+#ifndef MSE_SCOPEPOINTER_DISABLED
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			TXScopeItemFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref.uncaged_pointer()) {}
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			TXScopeItemFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref.uncaged_pointer()) {}
+#endif //!MSE_SCOPEPOINTER_DISABLED
+
+			virtual ~TXScopeItemFixedConstPointerFParam() {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+
+		private:
+			TXScopeItemFixedConstPointerFParam<_Ty>& operator=(const TXScopeItemFixedConstPointerFParam<_Ty>& _Right_cref) = delete;
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TXScopeItemFixedConstPointerFParam<_Ty>* operator&() { return this; }
+			const TXScopeItemFixedConstPointerFParam<_Ty>* operator&() const { return this; }
+		};
+
+		/* TXScopeReturnableItemFixedPointerFParam<> is just a version of TXScopeItemFixedPointer<> which may only be used
+		for function parameter declations. Because it may only be used for function parameters, and it doesn't support
+		pointers to temporaries, an object of this type can be use as a function return value. To be clear,
+		TXScopeReturnableItemFixedPointerFParam<> may not be used as a return type. But an object of this type may be used
+		as return value (wrapped in the mse::return_value() function). The function return type should be "auto". */
+		template<typename _Ty>
+		class TXScopeReturnableItemFixedPointerFParam : public TXScopeReturnableItemFixedPointerFParamBase<_Ty> {
+		public:
+			typedef TXScopeReturnableItemFixedPointerFParamBase<_Ty> base_class;
+			MSE_SCOPE_USING(TXScopeReturnableItemFixedPointerFParam, base_class);
+
+			TXScopeReturnableItemFixedPointerFParam(const TXScopeReturnableItemFixedPointerFParam& src_cref) = default;
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			TXScopeReturnableItemFixedPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedPointer<_Ty>(static_cast<const TXScopeItemFixedPointer<_Ty2>&>(src_cref)) {}
+
+			virtual ~TXScopeReturnableItemFixedPointerFParam() {}
+
+			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+			void xscope_tag() const {}
+
+		private:
+			TXScopeReturnableItemFixedPointerFParam<_Ty>& operator=(const TXScopeReturnableItemFixedPointerFParam<_Ty>& _Right_cref) = delete;
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TXScopeReturnableItemFixedPointerFParam<_Ty>* operator&() { return this; }
+			const TXScopeReturnableItemFixedPointerFParam<_Ty>* operator&() const { return this; }
+		};
+
+		template<typename _Ty>
+		class TXScopeReturnableItemFixedConstPointerFParam : public TXScopeReturnableItemFixedConstPointerFParamBase<_Ty> {
+		public:
+			typedef TXScopeReturnableItemFixedConstPointerFParamBase<_Ty> base_class;
+			MSE_SCOPE_USING(TXScopeReturnableItemFixedConstPointerFParam, base_class);
+
+			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedConstPointerFParam<_Ty>& src_cref) = default;
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedConstPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(static_cast<const TXScopeItemFixedConstPointer<_Ty2>&>(src_cref)) {}
+
+			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref) {}
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(TXScopeItemFixedConstPointer<_Ty2>(src_cref)) {}
+
+			virtual ~TXScopeReturnableItemFixedConstPointerFParam() {}
+
+			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+			void xscope_tag() const {}
+
+		private:
+			TXScopeReturnableItemFixedConstPointerFParam<_Ty>& operator=(const TXScopeReturnableItemFixedConstPointerFParam<_Ty>& _Right_cref) = delete;
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TXScopeReturnableItemFixedConstPointerFParam<_Ty>* operator&() { return this; }
+			const TXScopeReturnableItemFixedConstPointerFParam<_Ty>* operator&() const { return this; }
+		};
+	}
+
+	namespace us {
+		/* us::TFParam<> is just a transparent template wrapper for function parameter declarations. In most cases
+		use of this wrapper is not necessary, but in some cases it enables functionality only available to variables
+		that are function parameters. Specifically, it allows functions to support scope pointer/references to
+		temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually
+		"functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so
+		in the case of function parameters, the us::TFParam<> wrapper enables certain scope pointer/reference types
+		(like TXScopeItemFixedPointer<>, and "random access section" types) to be constructed from their
+		"functionally disabled" counterparts.
+		*/
+		template<typename _Ty>
+		class TFParam : public _Ty {
+		public:
+			typedef _Ty base_class;
+			MSE_USING(TFParam, _Ty);
+			TFParam(const TFParam& _X) : _Ty(_X) {}
+			TFParam(TFParam&& _X) : _Ty(std::forward<decltype(_X)>(_X)) {}
+
+		private:
+			template<class _Ty2>
+			TFParam& operator=(_Ty2&& _X) { _Ty::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			template<class _Ty2>
+			TFParam& operator=(const _Ty2& _X) { _Ty::operator=(_X); return (*this); }
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TFParam* operator&() { return this; }
+			const TFParam* operator&() const { return this; }
+		};
+
+		template<typename _Ty> using TXScopeFParam = TFParam<_Ty>;
+
+		namespace impl {
+			namespace fparam {
+				template<typename _Ty>
+				auto value_from_fparam_helper1(std::true_type, const _Ty& param) {
+					return param;
+				}
+				template<typename _Ty>
+				auto value_from_fparam_helper1(std::false_type, const _Ty& param) -> typename TFParam<typename std::remove_reference<_Ty>::type>::base_class {
+					return TFParam<typename std::remove_reference<_Ty>::type>(param);
+				}
+
+				template<typename _Ty>
+				auto value_from_fparam_helper1(std::true_type, _Ty&& param) {
+					return std::forward<_Ty>(param);
+				}
+				template<typename _Ty>
+				auto value_from_fparam_helper1(std::false_type, _Ty&& param) -> typename TFParam<typename std::remove_reference<_Ty>::type>::base_class {
+					return TFParam<typename std::remove_reference<_Ty>::type>(std::forward<_Ty>(param));
+				}
+			}
+		}
+
+		template<typename _Ty>
+		auto value_from_fparam(const _Ty& param) {
+			return impl::fparam::value_from_fparam_helper1(typename std::is_same<_Ty, typename TFParam<typename std::remove_reference<_Ty>::type>::base_class>::type(), param);
+		}
+		template<typename _Ty>
+		auto value_from_fparam(_Ty&& param) {
+			return impl::fparam::value_from_fparam_helper1(typename std::is_same<_Ty, typename TFParam<typename std::remove_reference<_Ty>::type>::base_class>::type(), std::forward<_Ty>(param));
+		}
+
+		template<typename _Ty>
+		auto xscope_value_from_fparam(const _Ty& param) {
+			return value_from_fparam(param);
+		}
+		template<typename _Ty>
+		auto xscope_value_from_fparam(_Ty&& param) {
+			return value_from_fparam(std::forward<_Ty>(param));
+		}
+
+		/* Template specializations of TFParam<>. There are a number of them. */
+
+#ifndef MSE_SCOPEPOINTER_DISABLED
+		template<typename _Ty>
+		class TFParam<mse::TXScopeItemFixedConstPointer<_Ty> > : public TXScopeItemFixedConstPointerFParam<_Ty> {
+		public:
+			typedef TXScopeItemFixedConstPointerFParam<_Ty> base_class;
+			MSE_USING(TFParam, base_class);
+			TFParam(const TFParam& _X) : base_class(_X) {}
+			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+
+		private:
+			template<class _Ty2>
+			TFParam& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			template<class _Ty2>
+			TFParam& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TFParam* operator&() { return this; }
+			const TFParam* operator&() const { return this; }
+		};
+
+		template<typename _Ty>
+		class TFParam<const mse::TXScopeItemFixedConstPointer<_Ty> > : public TXScopeItemFixedConstPointerFParam<_Ty> {
+		public:
+			typedef TXScopeItemFixedConstPointerFParam<_Ty> base_class;
+			MSE_USING(TFParam, base_class);
+			TFParam(const TFParam& _X) : base_class(_X) {}
+			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+
+		private:
+			template<class _Ty2>
+			TFParam& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			template<class _Ty2>
+			TFParam& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TFParam* operator&() { return this; }
+			const TFParam* operator&() const { return this; }
+		};
+
+		template<typename _Ty>
+		class TFParam<mse::TXScopeCagedItemFixedConstPointerToRValue<_Ty> > : public TXScopeItemFixedConstPointerFParam<_Ty> {
+		public:
+			typedef TXScopeItemFixedConstPointerFParam<_Ty> base_class;
+			MSE_USING(TFParam, base_class);
+			TFParam(const TFParam& _X) : base_class(_X) {}
+			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+
+		private:
+			template<class _Ty2>
+			TFParam& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			template<class _Ty2>
+			TFParam& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TFParam* operator&() { return this; }
+			const TFParam* operator&() const { return this; }
+		};
+#endif //!MSE_SCOPEPOINTER_DISABLED
+
+		template<typename _Ty>
+		class TFParam<_Ty*> : public TPointer<_Ty> {
+		public:
+			typedef TPointer<_Ty> base_class;
+			MSE_USING(TFParam, base_class);
+			TFParam(const TFParam& _X) : base_class(_X) {}
+			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+
+		private:
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TFParam* operator&() { return this; }
+			const TFParam* operator&() const { return this; }
+		};
+
+		template<typename _Ty>
+		class TFParam<_Ty* const> : public TPointer<_Ty> {
+		public:
+			typedef TPointer<_Ty> base_class;
+			MSE_USING(TFParam, base_class);
+			TFParam(const TFParam& _X) : base_class(_X) {}
+			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+
+		private:
+			template<class _Ty2>
+			TFParam& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			template<class _Ty2>
+			TFParam& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TFParam* operator&() { return this; }
+			const TFParam* operator&() const { return this; }
+		};
+
+		template<typename _Ty>
+		class TFParam<const _Ty*> : public TPointer<const _Ty> {
+		public:
+			typedef TPointer<const _Ty> base_class;
+			MSE_USING(TFParam, base_class);
+			TFParam(const TFParam& _X) : base_class(_X) {}
+			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+
+		private:
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TFParam* operator&() { return this; }
+			const TFParam* operator&() const { return this; }
+		};
+
+		template<typename _Ty>
+		class TFParam<const _Ty* const> : public TPointer<const _Ty> {
+		public:
+			typedef TPointer<const _Ty> base_class;
+			MSE_USING(TFParam, base_class);
+			TFParam(const TFParam& _X) : base_class(_X) {}
+			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+
+		private:
+			template<class _Ty2>
+			TFParam& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			template<class _Ty2>
+			TFParam& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+			void* operator new(size_t size) { return ::operator new(size); }
+
+			TFParam* operator&() { return this; }
+			const TFParam* operator&() const { return this; }
+		};
+	}
+
+	template<typename _TROy>
+	class TReturnValue : public _TROy {
+	public:
+		MSE_USING(TReturnValue, _TROy);
+		TReturnValue(const TReturnValue& _X) : _TROy(_X) {}
+		TReturnValue(TReturnValue&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
+		virtual ~TReturnValue() {
+			/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
+			valid_if_TROy_is_marked_as_returnable_or_not_xscope_type();
+		}
+
+		template<class _Ty2>
+		TReturnValue& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		template<class _Ty2>
+		TReturnValue& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
+
+		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
+		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+
+	private:
+
+		/* If _TROy is not "marked" as safe to use as a function return value, then the following member function
+		will not instantiate, causing an (intended) compile error. */
+		template<class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TROy>::value) || (
+			(!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
+			/*&& (!std::integral_constant<bool, HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
+			&& (std::integral_constant<bool, HasXScopeReturnableTagMethod<_TROy>::Has>())
+			), void>::type>
+		void valid_if_TROy_is_marked_as_returnable_or_not_xscope_type() const {}
+
+		TReturnValue* operator&() { return this; }
+		const TReturnValue* operator&() const { return this; }
+	};
+
+	template<typename _Ty>
+	class TReturnValue<_Ty*> : public TPointer<_Ty> {
+	public:
+		typedef TPointer<_Ty> base_class;
+		MSE_USING(TReturnValue, base_class);
+		TReturnValue(const TReturnValue& _X) : base_class(_X) {}
+		TReturnValue(TReturnValue&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+		virtual ~TReturnValue() {
+			valid_if_safe_pointers_are_disabled();
+		}
+
+		template<class _Ty2>
+		TReturnValue& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		template<class _Ty2>
+		TReturnValue& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
+	private:
+#if !(defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED))
+		template<class _Ty2 = _Ty, class = typename std::enable_if<!(std::is_same<_Ty2, _Ty>::value)>::type>
+#endif /*!(defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED))*/
+		void valid_if_safe_pointers_are_disabled() const {}
+
+		TReturnValue* operator&() { return this; }
+		const TReturnValue* operator&() const { return this; }
+	};
+
+	template<typename _TROy>
+	class TXScopeReturnValue : public TReturnValue<_TROy>
+		, public std::conditional<std::is_base_of<XScopeTagBase, _TROy>::value, TPlaceHolder_msescope<TXScopeReturnValue<_TROy> >, XScopeTagBase>::type
+	{
+	public:
+		typedef TReturnValue<_TROy> base_class;
+		MSE_USING(TXScopeReturnValue, base_class);
+		TXScopeReturnValue(const TXScopeReturnValue& _X) : base_class(_X) {}
+		TXScopeReturnValue(TXScopeReturnValue&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+
+		template<class _Ty2>
+		TXScopeReturnValue& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		template<class _Ty2>
+		TXScopeReturnValue& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+
+		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
+		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+
+	private:
+		TXScopeReturnValue * operator&() {
+			return this;
+		}
+		const TXScopeReturnValue* operator&() const {
+			return this;
+		}
+
+		void* operator new(size_t size) { return ::operator new(size); }
+	};
+
+	template<typename _Ty>
+	TXScopeItemFixedPointer<_Ty> return_value_helper2(const us::TXScopeReturnableItemFixedPointerFParam<_Ty>& _X) { return _X; }
+	template<typename _Ty>
+	TXScopeItemFixedPointer<_Ty> return_value_helper2(us::TXScopeReturnableItemFixedPointerFParam<_Ty>&& _X) { return std::forward<decltype(_X)>(_X); }
+	template<typename _Ty>
+	TXScopeItemFixedConstPointer<_Ty> return_value_helper2(const us::TXScopeReturnableItemFixedConstPointerFParam<_Ty>& _X) { return _X; }
+	template<typename _Ty>
+	TXScopeItemFixedConstPointer<_Ty> return_value_helper2(us::TXScopeReturnableItemFixedConstPointerFParam<_Ty>&& _X) { return std::forward<decltype(_X)>(_X); }
+
+	template<typename _Ty>
+	static void z__returnable_noop(const _Ty&) {}
+	template<typename _Ty>
+	const auto& return_value_helper1(std::false_type, const _Ty& _X) {
+		z__returnable_noop<mse::TReturnValue<_Ty> >(_X);
+		return _X;
+	}
+	template<typename _Ty>
+	const auto& return_value_helper1(std::true_type, const _Ty& _X) {
+		return return_value_helper2(_X);
+	}
+	template<typename _Ty>
+	const auto& return_value(const _Ty& _X) {
+		return return_value_helper1(typename std::conditional<
+			is_instantiation_of_msescope<_Ty, us::TXScopeReturnableItemFixedPointerFParam>::value
+			|| is_instantiation_of_msescope<_Ty, us::TXScopeReturnableItemFixedConstPointerFParam>::value
+			, std::true_type, std::false_type>::type(), _X);
+	}
+
+	template<typename _Ty>
+	auto return_value_helper1(std::false_type, _Ty&& _X) {
+		z__returnable_noop<mse::TReturnValue<typename std::remove_reference<_Ty>::type> >(_X);
+		return std::forward<decltype(_X)>(_X);
+	}
+	template<typename _Ty>
+	auto return_value_helper1(std::true_type, _Ty&& _X) {
+		return return_value_helper2(std::forward<decltype(_X)>(_X));
+	}
+	template<typename _Ty>
+	auto return_value(_Ty&& _X) {
+		return return_value_helper1(typename std::conditional<
+			is_instantiation_of_msescope<typename std::remove_reference<_Ty>::type, us::TXScopeReturnableItemFixedPointerFParam>::value
+			|| is_instantiation_of_msescope<typename std::remove_reference<_Ty>::type, us::TXScopeReturnableItemFixedConstPointerFParam>::value
+			, std::true_type, std::false_type>::type(), std::forward<decltype(_X)>(_X));
+	}
+
+
+	/* deprecated aliases */
+	template<typename _TROy> using TReturnable = TReturnValue<_TROy>;
+	template<typename _TROy> using TXScopeReturnable = TXScopeReturnValue<_TROy>;
+	template<typename _Ty> const auto& returnable(const _Ty& _X) { return return_value(_X); }
+	template<typename _Ty> auto&& returnable(_Ty&& _X) { return return_value(std::forward<decltype(_X)>(_X)); }
+
 
 	/* TMemberObj is a transparent wrapper that can be used to wrap class/struct members to ensure that they are not scope
 	types. This might be particularly relevant when the member type is, or is derived from, a template parameter. */
@@ -1757,7 +1953,7 @@ namespace mse {
 				mse::TXScopeItemFixedConstPointer<A> rfcp = &cscope_a;
 
 				mse::TXScopeOwnerPointer<A> A_scpoptr(11);
-				B::foo2(A_scpoptr);
+				//B::foo2(A_scpoptr);
 				B::foo2(&*A_scpoptr);
 				if (A_scpoptr->b == (&*A_scpoptr)->b) {
 				}
@@ -1803,7 +1999,7 @@ namespace mse {
 				int res2 = B::foo2(&a_scpobj);
 				int res3 = B::foo3(&a_scpobj);
 				mse::TXScopeOwnerPointer<A> a_scpoptr(7);
-				int res4 = B::foo2(a_scpoptr);
+				//int res4 = B::foo2(a_scpoptr);
 				int res4b = B::foo2(&(*a_scpoptr));
 
 				/* You can use the "mse::make_xscope_pointer_to_member()" function to obtain a safe pointer to a member of
@@ -1866,7 +2062,7 @@ namespace mse {
 				mse::TXScopeFixedConstPointer<A> rfcp = &cscope_a;
 
 				mse::TXScopeOwnerPointer<A> A_scpoptr(11);
-				B::foo2(A_scpoptr);
+				//B::foo2(A_scpoptr);
 				B::foo2(&*A_scpoptr);
 				if (A_scpoptr->b == (&*A_scpoptr)->b) {
 				}

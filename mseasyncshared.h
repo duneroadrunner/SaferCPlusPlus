@@ -1655,11 +1655,13 @@ namespace mse {
 		return TXScopeAsyncSharedV2ACOReadWriteAccessRequester<typename TXScopeAccessControlledObj1::object_type, typename TXScopeAccessControlledObj1::access_mutex_type>::make(xscpptr);
 	}
 
+#ifndef MSE_SCOPEPOINTER_DISABLED
 	template <typename TXScopeAccessControlledObj1>
 	auto make_xscope_asyncsharedv2acoreadwrite(const mse::TXScopeFixedPointer<TXScopeAccessControlledObj1>& xscpptr)
 		-> TXScopeAsyncSharedV2ACOReadWriteAccessRequester<typename TXScopeAccessControlledObj1::object_type, typename TXScopeAccessControlledObj1::access_mutex_type> {
 		return TXScopeAsyncSharedV2ACOReadWriteAccessRequester<typename TXScopeAccessControlledObj1::object_type, typename TXScopeAccessControlledObj1::access_mutex_type>::make(xscpptr);
 	}
+#endif //!MSE_SCOPEPOINTER_DISABLED
 
 
 	/* For situations where the shared object is immutable (i.e. is never modified), you don't even need locks or access requesters. */
