@@ -1549,8 +1549,10 @@ int main(int argc, char* argv[])
 			};
 
 			mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
+			/* Here we're using the pointer_to() function to obtain a ("caged") pointer to the temporary scope object. The '&'
+			(ampersand) operator would also work, but would not correspond to valid native C++, as C++ does not support taking
+			the address of an r-value. */
 			auto res1 = CD::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
-			//auto res1 = CD::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
 			auto res2 = H::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
 		}
 

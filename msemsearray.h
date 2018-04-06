@@ -5363,10 +5363,10 @@ namespace mse {
 			return constructor_helper2(typename std::is_base_of<TAccessControlledObjBase, _TSoleArg>::type(), std::forward<decltype(sole_arg)>(sole_arg));
 		}
 
-#ifndef MSE_SCOPEPOINTER_DISABLED
-		auto operator&() { return this; }
-		auto operator&() const { return this; }
-#endif //!MSE_SCOPEPOINTER_DISABLED
+		auto& operator=(TAccessControlledObjBase&& _X) = delete;
+		auto& operator=(const TAccessControlledObjBase& _X) = delete;
+
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		_Ty m_obj;
 
@@ -5386,9 +5386,7 @@ namespace mse {
 		typedef _Ty object_type;
 		typedef _TAccessMutex access_mutex_type;
 
-		TXScopeAccessControlledObj(const TXScopeAccessControlledObj& src) = default;
-		TXScopeAccessControlledObj(TXScopeAccessControlledObj&& src) = default;
-		MSE_USING(TXScopeAccessControlledObj, base_class);
+		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TXScopeAccessControlledObj, base_class);
 
 		/* Prefer the "xscope_" prefixed versions to acknowledge that scope iterators are returned. */
 		auto pointer() {
@@ -5424,12 +5422,7 @@ namespace mse {
 		}
 
 	private:
-		void* operator new(size_t size) { return ::operator new(size); }
-
-#ifndef MSE_SCOPEPOINTER_DISABLED
-		auto operator&() { return this; }
-		auto operator&() const { return this; }
-#endif //!MSE_SCOPEPOINTER_DISABLED
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		//friend class TAccessControlledReadOnlyObj<_Ty, _TAccessMutex>;
 		friend class TAccessControlledPointerBase<_Ty, _TAccessMutex>;
@@ -5444,9 +5437,7 @@ namespace mse {
 		typedef _Ty object_type;
 		typedef _TAccessMutex access_mutex_type;
 
-		TAccessControlledObj(const TAccessControlledObj& src) = default;
-		TAccessControlledObj(TAccessControlledObj&& src) = default;
-		MSE_USING(TAccessControlledObj, base_class);
+		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TAccessControlledObj, base_class);
 
 		virtual ~TAccessControlledObj() {
 			T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
@@ -5485,8 +5476,7 @@ namespace mse {
 		}
 
 	private:
-		TAccessControlledObj* operator&() { return this; }
-		const TAccessControlledObj* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		//friend class TAccessControlledReadOnlyObj<_Ty, _TAccessMutex>;
 		friend class TAccessControlledPointerBase<_Ty, _TAccessMutex>;

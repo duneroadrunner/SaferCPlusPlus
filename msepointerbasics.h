@@ -98,6 +98,30 @@ namespace mse {
 	>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
+#define MSE_USING_ASSIGNMENT_OPERATOR(Base) \
+	template<class _Ty2mse_uao> auto& operator=(_Ty2mse_uao&& _X) { Base::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+	template<class _Ty2mse_uao> auto& operator=(const _Ty2mse_uao& _X) { Base::operator=(_X); return (*this); }
+
+#define MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(ClassName) \
+	ClassName(const ClassName&) = default; \
+	ClassName(ClassName&&) = default;
+
+#define MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Derived, Base) MSE_USING(Derived, Base) MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Derived)
+#define MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(Derived, Base) \
+	MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Derived, Base) MSE_USING_ASSIGNMENT_OPERATOR(Base)
+
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+#define MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
+#else /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+#define MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION	auto operator&() { return this; } auto operator&() const { return this; }
+#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
+#define MSE_DEFAULT_OPERATOR_NEW_DECLARATION	void* operator new(size_t size) { return ::operator new(size); }
+#define MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION	MSE_DEFAULT_OPERATOR_NEW_DECLARATION MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
+
+#define MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(Base)	\
+	MSE_USING_ASSIGNMENT_OPERATOR(Base) MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION
+
 
 	class NotAsyncShareableTagBase {};
 	class NotAsyncPassableTagBase {};
@@ -812,6 +836,7 @@ namespace std {
 		}
 	};
 }
+
 
 #ifdef __clang__
 #pragma clang diagnostic pop

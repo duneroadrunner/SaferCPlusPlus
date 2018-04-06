@@ -858,19 +858,9 @@ namespace mse {
 		class TFParam : public _Ty {
 		public:
 			typedef _Ty base_class;
-			MSE_USING(TFParam, _Ty);
-			TFParam(const TFParam& _X) : _Ty(_X) {}
-			TFParam(TFParam&& _X) : _Ty(std::forward<decltype(_X)>(_X)) {}
-
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 		private:
-			template<class _Ty2>
-			TFParam& operator=(_Ty2&& _X) { _Ty::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			template<class _Ty2>
-			TFParam& operator=(const _Ty2& _X) { _Ty::operator=(_X); return (*this); }
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TFParam* operator&() { return this; }
-			const TFParam* operator&() const { return this; }
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 
 		template<typename _Ty> using TXScopeFParam = TFParam<_Ty>;
@@ -922,66 +912,33 @@ namespace mse {
 		class TFParam<mse::TXScopeItemFixedConstPointer<_Ty> > : public TXScopeItemFixedConstPointerFParam<_Ty> {
 		public:
 			typedef TXScopeItemFixedConstPointerFParam<_Ty> base_class;
-			MSE_USING(TFParam, base_class);
-			TFParam(const TFParam& _X) : base_class(_X) {}
-			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
-
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
-
 		private:
-			template<class _Ty2>
-			TFParam& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			template<class _Ty2>
-			TFParam& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TFParam* operator&() { return this; }
-			const TFParam* operator&() const { return this; }
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 
 		template<typename _Ty>
 		class TFParam<const mse::TXScopeItemFixedConstPointer<_Ty> > : public TXScopeItemFixedConstPointerFParam<_Ty> {
 		public:
 			typedef TXScopeItemFixedConstPointerFParam<_Ty> base_class;
-			MSE_USING(TFParam, base_class);
-			TFParam(const TFParam& _X) : base_class(_X) {}
-			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
-
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
-
 		private:
-			template<class _Ty2>
-			TFParam& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			template<class _Ty2>
-			TFParam& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TFParam* operator&() { return this; }
-			const TFParam* operator&() const { return this; }
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 
 		template<typename _Ty>
 		class TFParam<mse::TXScopeCagedItemFixedConstPointerToRValue<_Ty> > : public TXScopeItemFixedConstPointerFParam<_Ty> {
 		public:
 			typedef TXScopeItemFixedConstPointerFParam<_Ty> base_class;
-			MSE_USING(TFParam, base_class);
-			TFParam(const TFParam& _X) : base_class(_X) {}
-			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
-
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
-
 		private:
-			template<class _Ty2>
-			TFParam& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			template<class _Ty2>
-			TFParam& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TFParam* operator&() { return this; }
-			const TFParam* operator&() const { return this; }
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
@@ -989,92 +946,35 @@ namespace mse {
 		class TFParam<_Ty*> : public TPointer<_Ty> {
 		public:
 			typedef TPointer<_Ty> base_class;
-			MSE_USING(TFParam, base_class);
-			TFParam(const TFParam& _X) : base_class(_X) {}
-			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
-
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 		private:
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TFParam* operator&() { return this; }
-			const TFParam* operator&() const { return this; }
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 
 		template<typename _Ty>
 		class TFParam<_Ty* const> : public TPointer<_Ty> {
 		public:
 			typedef TPointer<_Ty> base_class;
-			MSE_USING(TFParam, base_class);
-			TFParam(const TFParam& _X) : base_class(_X) {}
-			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
-
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 		private:
-			template<class _Ty2>
-			TFParam& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			template<class _Ty2>
-			TFParam& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TFParam* operator&() { return this; }
-			const TFParam* operator&() const { return this; }
-		};
-
-		template<typename _Ty>
-		class TFParam<const _Ty*> : public TPointer<const _Ty> {
-		public:
-			typedef TPointer<const _Ty> base_class;
-			MSE_USING(TFParam, base_class);
-			TFParam(const TFParam& _X) : base_class(_X) {}
-			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
-
-		private:
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TFParam* operator&() { return this; }
-			const TFParam* operator&() const { return this; }
-		};
-
-		template<typename _Ty>
-		class TFParam<const _Ty* const> : public TPointer<const _Ty> {
-		public:
-			typedef TPointer<const _Ty> base_class;
-			MSE_USING(TFParam, base_class);
-			TFParam(const TFParam& _X) : base_class(_X) {}
-			TFParam(TFParam&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
-
-		private:
-			template<class _Ty2>
-			TFParam& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			template<class _Ty2>
-			TFParam& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TFParam* operator&() { return this; }
-			const TFParam* operator&() const { return this; }
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 	}
 
 	template<typename _TROy>
 	class TReturnValue : public _TROy {
 	public:
-		MSE_USING(TReturnValue, _TROy);
-		TReturnValue(const TReturnValue& _X) : _TROy(_X) {}
-		TReturnValue(TReturnValue&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
+		typedef _TROy base_class;
+		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TReturnValue, _TROy);
 		virtual ~TReturnValue() {
 			/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
 			valid_if_TROy_is_marked_as_returnable_or_not_xscope_type();
 		}
 
-		template<class _Ty2>
-		TReturnValue& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		template<class _Ty2>
-		TReturnValue& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
-
 		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 
 	private:
-
 		/* If _TROy is not "marked" as safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TROy>::value) || (
@@ -1084,38 +984,7 @@ namespace mse {
 			), void>::type>
 		void valid_if_TROy_is_marked_as_returnable_or_not_xscope_type() const {}
 
-		TReturnValue* operator&() { return this; }
-		const TReturnValue* operator&() const { return this; }
-	};
-
-	template<typename _Ty>
-	class TReturnValue<_Ty*> : public TPointer<_Ty> {
-	public:
-		typedef TPointer<_Ty> base_class;
-		MSE_USING(TReturnValue, base_class);
-		TReturnValue(const TReturnValue& _X) : base_class(_X) {}
-		TReturnValue(TReturnValue&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
-		virtual ~TReturnValue() {
-			valid_if_safe_pointers_are_disabled();
-		}
-
-		template<class _Ty2>
-		TReturnValue& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		template<class _Ty2>
-		TReturnValue& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
-
-#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
-		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
-#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
-
-	private:
-#if !(defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED))
-		template<class _Ty2 = _Ty, class = typename std::enable_if<!(std::is_same<_Ty2, _Ty>::value)>::type>
-#endif /*!(defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED))*/
-		void valid_if_safe_pointers_are_disabled() const {}
-
-		TReturnValue* operator&() { return this; }
-		const TReturnValue* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template<typename _TROy>
@@ -1124,27 +993,13 @@ namespace mse {
 	{
 	public:
 		typedef TReturnValue<_TROy> base_class;
-		MSE_USING(TXScopeReturnValue, base_class);
-		TXScopeReturnValue(const TXScopeReturnValue& _X) : base_class(_X) {}
-		TXScopeReturnValue(TXScopeReturnValue&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
-
-		template<class _Ty2>
-		TXScopeReturnValue& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		template<class _Ty2>
-		TXScopeReturnValue& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TXScopeReturnValue, base_class);
 
 		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 
 	private:
-		TXScopeReturnValue * operator&() {
-			return this;
-		}
-		const TXScopeReturnValue* operator&() const {
-			return this;
-		}
-
-		void* operator new(size_t size) { return ::operator new(size); }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template<typename _Ty>
@@ -1191,6 +1046,52 @@ namespace mse {
 			|| is_instantiation_of_msescope<typename std::remove_reference<_Ty>::type, us::TXScopeReturnableItemFixedConstPointerFParam>::value
 			, std::true_type, std::false_type>::type(), std::forward<decltype(_X)>(_X));
 	}
+
+	/* Template specializations of TReturnValue<>. */
+
+	template<typename _Ty>
+	class TReturnValue<_Ty*> : public TPointer<_Ty> {
+	public:
+		typedef TPointer<_Ty> base_class;
+		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TReturnValue, base_class);
+		virtual ~TReturnValue() {
+			valid_if_safe_pointers_are_disabled();
+		}
+
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
+	private:
+#if !(defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED))
+		template<class _Ty2 = _Ty, class = typename std::enable_if<!(std::is_same<_Ty2, _Ty>::value)>::type>
+#endif /*!(defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED))*/
+		void valid_if_safe_pointers_are_disabled() const {}
+
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+	};
+
+	template<typename _Ty>
+	class TReturnValue<_Ty* const> : public TPointer<_Ty> {
+	public:
+		typedef TPointer<_Ty> base_class;
+		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TReturnValue, base_class);
+		virtual ~TReturnValue() {
+			valid_if_safe_pointers_are_disabled();
+		}
+
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
+	private:
+#if !(defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED))
+		template<class _Ty2 = _Ty, class = typename std::enable_if<!(std::is_same<_Ty2, _Ty>::value)>::type>
+#endif /*!(defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED))*/
+		void valid_if_safe_pointers_are_disabled() const {}
+
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+	};
 
 
 	/* deprecated aliases */
