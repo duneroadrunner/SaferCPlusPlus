@@ -1526,7 +1526,7 @@ int main(int argc, char* argv[])
 			temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually
 			"functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so
 			in the case of function parameters, the us::TFParam<> wrapper enables certain scope pointer/reference types
-			(like TXScopeItemFixedPointer<>, and "random access section" types) to be constructed from their
+			(like TXScopeItemFixedPointer<>, and "random access section" scope types) to be constructed from their
 			"functionally disabled" counterparts.
 
 			In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the

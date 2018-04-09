@@ -3266,12 +3266,12 @@ namespace mse {
 	template <typename _TRAIterator> class TRandomAccessConstSectionBase;
 	template <typename _TRAIterator> class TXScopeRandomAccessSection;
 	template <typename _TRAIterator> class TXScopeRandomAccessConstSection;
-	template <typename _TRAIterator> class TXScopeCagedRandomAccessSectionToRValue;
+	//template <typename _TRAIterator> class TXScopeCagedRandomAccessSectionToRValue;
 	template <typename _TRAIterator> class TXScopeCagedRandomAccessConstSectionToRValue;
 	template <typename _TRAIterator> class TRandomAccessSection;
 	template <typename _TRAIterator> class TRandomAccessConstSection;
 	namespace us {
-		template <typename _TRAIterator> class TXScopeRandomAccessSectionFParam;
+		//template <typename _TRAIterator> class TXScopeRandomAccessSectionFParam;
 		template <typename _TRAIterator> class TXScopeRandomAccessConstSectionFParam;
 	}
 
@@ -3346,6 +3346,7 @@ namespace mse {
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRandomAccessSectionBase<_TRAIterator> > >::type
 	{
 	public:
+		typedef _TRAIterator iterator_type;
 		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type value_type;
 		typedef decltype(std::declval<_TRAIterator>()[0]) reference;
 		typedef typename std::add_lvalue_reference<typename std::add_const<value_type>::type>::type const_reference;
@@ -3838,6 +3839,7 @@ namespace mse {
 	class TXScopeRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator>, public XScopeTagBase {
 	public:
 		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
+		typedef _TRAIterator iterator_type;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::reference reference;
 		typedef typename base_class::const_reference const_reference;
@@ -3885,67 +3887,11 @@ namespace mse {
 		const TXScopeRandomAccessSection<_TRAIterator>* operator&() const { return this; }
 	};
 
-	template<typename _TRAIterator>
-	class TXScopeCagedRandomAccessSectionToRValue {
-	public:
-		void xscope_tag() const {}
-
-	private:
-		TXScopeCagedRandomAccessSectionToRValue(const TXScopeCagedRandomAccessSectionToRValue&) = delete;
-		TXScopeCagedRandomAccessSectionToRValue(TXScopeCagedRandomAccessSectionToRValue&&) = delete;
-		TXScopeCagedRandomAccessSectionToRValue(const TXScopeRandomAccessSection<_TRAIterator>& ptr) : m_xscope_ra_section(ptr) {}
-#ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		TXScopeCagedRandomAccessSectionToRValue(TXScopeCagedRandomAccessSectionToRValue&& src_ref) : m_xscope_ra_section(src_ref) {}
-#endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		TXScopeCagedRandomAccessSectionToRValue<_TRAIterator>& operator=(const TXScopeCagedRandomAccessSectionToRValue<_TRAIterator>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeCagedRandomAccessSectionToRValue<_TRAIterator>* operator&() { return this; }
-		const TXScopeCagedRandomAccessSectionToRValue<_TRAIterator>* operator&() const { return this; }
-
-		TXScopeRandomAccessSection<_TRAIterator> m_xscope_ra_section;
-
-		template <typename _Ty>
-		friend auto make_xscope_random_access_section_helper1(std::true_type, const mse::TXScopeCagedItemFixedPointerToRValue<_Ty>& param);
-		template <typename _TRALoneParam>
-		friend auto make_xscope_random_access_section(const _TRALoneParam& param);
-	};
-
-	template <typename _TRAIterator>
-	auto make_xscope_random_access_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessSection<_TRAIterator>::size_type count) {
-		return TXScopeRandomAccessSection<_TRAIterator>(start_iter, count);
-	}
-	template <typename _Ty>
-	auto make_xscope_random_access_section_helper1(std::true_type, const mse::TXScopeCagedItemFixedPointerToRValue<_Ty>& param) {
-		mse::TXScopeItemFixedPointer<_Ty> adj_param = mse::us::TXScopeItemFixedPointerFParam<_Ty>(param);
-		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(adj_param))>::type _TRAIterator;
-		mse::TXScopeRandomAccessSection<_TRAIterator> ra_section(adj_param);
-		return mse::TXScopeCagedRandomAccessSectionToRValue<_TRAIterator>(ra_section);
-	}
-	template <typename _TRALoneParam>
-	auto make_xscope_random_access_section_helper1(std::false_type, const _TRALoneParam& param) {
-		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
-		return TXScopeRandomAccessSection<_TRAIterator>(param);
-	}
-	template <typename _TRALoneParam>
-	auto make_xscope_random_access_section(const _TRALoneParam& param) {
-		return make_xscope_random_access_section_helper1(
-			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedFixedPointerToRValue>::type(), param);
-	}
-	/* This function basically just calls the give section's subsection() member function and returns the value.  */
-	template<typename _Ty>
-	auto random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
-		return ra_section.subsection(std::get<0>(start_and_length), std::get<1>(start_and_length));
-	}
-	template<typename _Ty>
-	auto xscope_random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
-		return ra_section.xscope_subsection(std::get<0>(start_and_length), std::get<1>(start_and_length));
-	}
-
 	template <typename _TRAIterator>
 	class TRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator> {
 	public:
 		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
+		typedef _TRAIterator iterator_type;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::reference reference;
 		typedef typename base_class::const_reference const_reference;
@@ -4010,20 +3956,11 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	auto make_random_access_section(const _TRAIterator& start_iter, typename TRandomAccessSection<_TRAIterator>::size_type count) {
-		return TRandomAccessSection<_TRAIterator>(start_iter, count);
-	}
-	template <typename _TRALoneParam>
-	auto make_random_access_section(const _TRALoneParam& param) {
-		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
-		return TRandomAccessSection<_TRAIterator>(param);
-	}
-
-	template <typename _TRAIterator>
 	class TRandomAccessConstSectionBase : public RandomAccessConstSectionTag
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRandomAccessConstSectionBase<_TRAIterator> > >::type
 	{
 	public:
+		typedef _TRAIterator iterator_type;
 		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type value_type;
 		//typedef decltype(std::declval<_TRAIterator>()[0]) reference;
 		typedef typename std::add_lvalue_reference<typename std::add_const<value_type>::type>::type const_reference;
@@ -4444,6 +4381,7 @@ namespace mse {
 	class TXScopeRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator>, public XScopeTagBase {
 	public:
 		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
+		typedef _TRAIterator iterator_type;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
@@ -4490,19 +4428,10 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	auto make_xscope_random_access_const_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
-		return TXScopeRandomAccessConstSection<_TRAIterator>(start_iter, count);
-	}
-	template <typename _TRALoneParam>
-	auto make_xscope_random_access_const_section(const _TRALoneParam& param) {
-		typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
-		return TXScopeRandomAccessConstSection<_TRAIterator>(param);
-	}
-
-	template <typename _TRAIterator>
 	class TRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator> {
 	public:
 		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
+		typedef _TRAIterator iterator_type;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::const_reference const_reference;
 		typedef typename base_class::size_type size_type;
@@ -4551,6 +4480,47 @@ namespace mse {
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
 	};
 
+	namespace impl {
+		namespace ra_section {
+			template <typename _Ty> using mkxsracsh1_TRAIterator = typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(std::declval<mse::TXScopeItemFixedConstPointer<_Ty> >()))>::type;
+			template <typename _Ty> using mkxsracsh1_ReturnType = mse::TXScopeCagedRandomAccessConstSectionToRValue<mkxsracsh1_TRAIterator<_Ty> >;
+
+			template <typename _Ty> auto make_xscope_random_access_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
+				->impl::ra_section::mkxsracsh1_ReturnType<_Ty>;
+			template <typename _TRALoneParam> auto make_xscope_random_access_const_section_helper1(std::false_type, const _TRALoneParam& param);
+		}
+	}
+	template <typename _TRALoneParam> auto make_xscope_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
+		typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+
+	template <typename _TRAIterator>
+	auto make_xscope_random_access_const_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
+		return TXScopeRandomAccessConstSection<_TRAIterator>(start_iter, count);
+	}
+	namespace impl {
+		namespace ra_section {
+			template <typename _Ty>
+			auto make_xscope_random_access_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
+				-> impl::ra_section::mkxsracsh1_ReturnType<_Ty> {
+				mse::TXScopeItemFixedConstPointer<_Ty> adj_param = mse::us::TXScopeItemFixedConstPointerFParam<_Ty>(param);
+				typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(adj_param))>::type _TRAIterator;
+				mse::TXScopeRandomAccessConstSection<_TRAIterator> ra_section(adj_param);
+				return mse::TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>(ra_section);
+			}
+			template <typename _TRALoneParam>
+			auto make_xscope_random_access_const_section_helper1(std::false_type, const _TRALoneParam& param) {
+				typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+				return TXScopeRandomAccessConstSection<_TRAIterator>(param);
+			}
+		}
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
+		typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param)) {
+		return mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
+			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
+	}
+
 	template <typename _TRAIterator>
 	auto make_random_access_const_section(const _TRAIterator& start_iter, typename TRandomAccessConstSection<_TRAIterator>::size_type count) {
 		return TRandomAccessConstSection<_TRAIterator>(start_iter, count);
@@ -4561,38 +4531,107 @@ namespace mse {
 		return TRandomAccessConstSection<_TRAIterator>(param);
 	}
 
+	template <typename _TRAIterator>
+	auto make_xscope_random_access_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessSection<_TRAIterator>::size_type count) {
+		return TXScopeRandomAccessSection<_TRAIterator>(start_iter, count);
+	}
+	namespace impl {
+		namespace ra_section {
+			template <typename _Ty>
+			auto make_xscope_random_access_section_helper1(std::true_type, const mse::TXScopeCagedItemFixedPointerToRValue<_Ty>& param) {
+				return mse::make_xscope_random_access_const_section(param);
+			}
+			template <typename _TRALoneParam>
+			auto make_xscope_random_access_section_helper1(std::false_type, const _TRALoneParam& param) {
+				typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+				return TXScopeRandomAccessSection<_TRAIterator>(param);
+			}
+		}
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_random_access_section(const _TRALoneParam& param) {
+		return mse::impl::ra_section::make_xscope_random_access_section_helper1(
+			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
+	}
+	/* This function basically just calls the give section's subsection() member function and returns the value.  */
+	template<typename _Ty>
+	auto random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
+		return ra_section.subsection(std::get<0>(start_and_length), std::get<1>(start_and_length));
+	}
+	template<typename _Ty>
+	auto xscope_random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
+		return ra_section.xscope_subsection(std::get<0>(start_and_length), std::get<1>(start_and_length));
+	}
+
+	template <typename _TRAIterator>
+	auto make_random_access_section(const _TRAIterator& start_iter, typename TRandomAccessSection<_TRAIterator>::size_type count) {
+		return TRandomAccessSection<_TRAIterator>(start_iter, count);
+	}
+	template <typename _TRALoneParam>
+	auto make_random_access_section(const _TRALoneParam& param) {
+		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		return TRandomAccessSection<_TRAIterator>(param);
+	}
+
+	template<typename _TRAIterator>
+	class TXScopeCagedRandomAccessConstSectionToRValue {
+	public:
+		void xscope_tag() const {}
+
+	private:
+		TXScopeCagedRandomAccessConstSectionToRValue(TXScopeCagedRandomAccessConstSectionToRValue&&) = default;
+		TXScopeCagedRandomAccessConstSectionToRValue(const TXScopeCagedRandomAccessConstSectionToRValue&) = delete;
+		TXScopeCagedRandomAccessConstSectionToRValue(const TXScopeRandomAccessConstSection<_TRAIterator>& ptr) : m_xscope_ra_section(ptr) {}
+
+		auto uncaged_ra_section() const { return m_xscope_ra_section; }
+
+		TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>& operator=(const TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>& _Right_cref) = delete;
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+		TXScopeRandomAccessConstSection<_TRAIterator> m_xscope_ra_section;
+
+		friend class us::TXScopeRandomAccessConstSectionFParam<_TRAIterator>;
+		template <typename _Ty>
+		friend auto impl::ra_section::make_xscope_random_access_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
+			-> impl::ra_section::mkxsracsh1_ReturnType<_Ty>;
+		template <typename _TRALoneParam>
+		friend auto make_xscope_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
+			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+	};
+
 	namespace us {
 
 		template <typename _TRAIterator>
-		class TXScopeRandomAccessSectionFParam : public TXScopeRandomAccessSection<_TRAIterator> {
+		class TXScopeRandomAccessConstSectionFParam : public TXScopeRandomAccessConstSection<_TRAIterator> {
 		public:
-			typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
+			typedef TXScopeRandomAccessConstSection<_TRAIterator> base_class;
+			typedef _TRAIterator iterator_type;
 			typedef typename base_class::value_type value_type;
-			typedef typename base_class::reference reference;
+			//typedef typename base_class::reference reference;
 			typedef typename base_class::const_reference const_reference;
 			typedef typename base_class::size_type size_type;
 			typedef typename base_class::difference_type difference_type;
 			static const size_t npos = size_t(-1);
 
-			//MSE_USING(TXScopeRandomAccessSectionFParam, base_class);
-			TXScopeRandomAccessSectionFParam(const TXScopeRandomAccessSectionFParam& src) = default;
-			TXScopeRandomAccessSectionFParam(const _TRAIterator& start_iter, size_type count) : base_class(start_iter,count) {}
+			//MSE_USING(TXScopeRandomAccessConstSectionFParam, base_class);
+			TXScopeRandomAccessConstSectionFParam(const TXScopeRandomAccessConstSectionFParam& src) = default;
+			TXScopeRandomAccessConstSectionFParam(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 			template <typename _TRALoneParam>
-			TXScopeRandomAccessSectionFParam(const _TRALoneParam& param) : base_class(construction_helper1(typename 
+			TXScopeRandomAccessConstSectionFParam(const _TRALoneParam& param) : base_class(construction_helper1(typename
 				std::conditional<mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
-				|| mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedPointerToRValue>::value
+				|| mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedRandomAccessConstSectionToRValue>::value
 				, std::true_type, std::false_type>::type(), param)) {
 			}
 
-			TXScopeRandomAccessSectionFParam xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			TXScopeRandomAccessConstSectionFParam xscope_subsection(size_type pos = 0, size_type n = npos) const {
 				return base_class::xscope_subsection(pos, n);
 			}
-			typedef typename std::conditional<std::is_base_of<XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessSectionFParam, TRandomAccessSection<_TRAIterator> >::type subsection_t;
+			typedef typename std::conditional<std::is_base_of<XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSectionFParam, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
 			subsection_t subsection(size_type pos = 0, size_type n = npos) const {
 				return base_class::subsection(pos, n);
 			}
 
-			typedef typename base_class::xscope_iterator xscope_iterator;
+			//typedef typename base_class::xscope_iterator xscope_iterator;
 			typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
 			void xscope_not_returnable_tag() const {}
@@ -4600,18 +4639,55 @@ namespace mse {
 
 		private:
 			template <typename _TRAContainer>
-			mse::TXScopeItemFixedPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedPointerToRValue<_TRAContainer>& caged_xscpptr) {
-				return mse::us::TXScopeItemFixedPointerFParam<_TRAContainer>(caged_xscpptr);
+			mse::TXScopeItemFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
+				return mse::us::TXScopeItemFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
+			}
+			mse::TXScopeRandomAccessConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>& caged_xscpsection) {
+				return caged_xscpsection.uncaged_ra_section();
 			}
 			template <typename _TRALoneParam>
 			auto construction_helper1(std::false_type, const _TRALoneParam& param) {
 				return param;
 			}
 
-			void* operator new(size_t size) { return ::operator new(size); }
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+		};
+	}
 
-			TXScopeRandomAccessSectionFParam<_TRAIterator>* operator&() { return this; }
-			const TXScopeRandomAccessSectionFParam<_TRAIterator>* operator&() const { return this; }
+	namespace us {
+		/* Template specializations of TFParam<>. */
+
+		template<typename _Ty>
+		class TFParam<mse::TXScopeRandomAccessConstSection<_Ty> > : public TXScopeRandomAccessConstSectionFParam<_Ty> {
+		public:
+			typedef TXScopeRandomAccessConstSectionFParam<_Ty> base_class;
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+
+		template<typename _Ty>
+		class TFParam<const mse::TXScopeRandomAccessConstSection<_Ty> > : public TXScopeRandomAccessConstSectionFParam<_Ty> {
+		public:
+			typedef TXScopeRandomAccessConstSectionFParam<_Ty> base_class;
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+
+		template<typename _Ty>
+		class TFParam<mse::TXScopeCagedRandomAccessConstSectionToRValue<_Ty> > : public TXScopeRandomAccessConstSectionFParam<_Ty> {
+		public:
+			typedef TXScopeRandomAccessConstSectionFParam<_Ty> base_class;
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 	}
 

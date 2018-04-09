@@ -183,6 +183,13 @@ public:
 		dst_ptr->s = src_ptr->s;
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
+
+	template<class _TRASection1, class _TRASection2>
+	static bool second_is_longer(const _TRASection1& ra_section1, const _TRASection2& ra_section2) {
+		auto l_ra_section1 = mse::us::value_from_fparam(ra_section1);
+		auto l_ra_section2 = mse::us::value_from_fparam(ra_section2);
+		return (l_ra_section1.size() > l_ra_section2.size()) ? false : true;
+	}
 };
 
 void msetl_example2() {
@@ -251,14 +258,14 @@ void msetl_example2() {
 	}
 
 	{
-		/**********************/
-		/*  return_value()      */
+		/***********************/
+		/*  return_value()     */
 		/*  && TReturnValue<>  */
-		/**********************/
+		/***********************/
 
-		/* The return_value() function just returns its argument and verifies that it is of a type that is safe to return
-		from a function (basically, doesn't contain any scope pointers). If not it will induce a compile error. Functions
-		that do or could return scope types should wrap their return value with this function. 
+		/* The return_value() function (generally) just returns its argument and verifies that it is of a type that is safe
+		to return from a function (basically, doesn't contain any scope pointers). If not it will induce a compile error.
+		Functions that do or could return scope types should wrap their return value with this function. 
 
 		TReturnValue<> is a transparent template wrapper that verifies that the type is safe to use as a function return
 		type. If not it will induce a compile error. Functions that do or could return scope types and do not use the 
@@ -393,6 +400,26 @@ void msetl_example2() {
 
 		auto xscp_ra_section3 = mse::random_access_subsection(xscp_ra_section1, std::make_tuple(0, xscp_ra_section1.length()/2));
 		assert(xscp_ra_section3.length() == 1);
+
+		{
+			class CD {
+			public:
+				typedef decltype(mse::make_xscope_random_access_const_section(mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >
+					(mse::nii_vector<int>{ 1, 2, 3})))) xscope_ra_csection_t;
+				static bool second_is_longer(mse::us::TXScopeFParam<xscope_ra_csection_t> ra_csection1
+					, mse::us::TXScopeFParam<xscope_ra_csection_t> ra_csection2) {
+
+					return (ra_csection1.size() > ra_csection2.size()) ? false : true;
+				}
+			};
+
+			mse::TXScopeObj<mse::nii_vector<int> > vector1(mse::nii_vector<int>{ 1, 2, 3});
+			auto ra_csection1 = mse::make_xscope_random_access_const_section(&vector1);
+			auto res1 = CD::second_is_longer(ra_csection1, mse::make_xscope_random_access_const_section(
+				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
+			auto res2 = J::second_is_longer(ra_csection1, mse::make_xscope_random_access_const_section(
+				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
+		}
 	}
 
 	{

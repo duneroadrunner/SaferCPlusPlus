@@ -126,8 +126,6 @@ namespace mse {
 	template<typename _Ty> using TXScopeNotNullConstPointer = const _Ty*;
 	template<typename _Ty> using TXScopeFixedPointer = _Ty*;
 	template<typename _Ty> using TXScopeFixedConstPointer = const _Ty*;
-	template<typename _Ty> using TXScopeCagedFixedPointerToRValue = _Ty*;
-	template<typename _Ty> using TXScopeCagedFixedConstPointerToRValue = const _Ty*;
 	template<typename _TROy> using TXScopeObjBase = _TROy;
 	template<typename _TROy> using TXScopeObj = _TROy;
 	template<typename _Ty> using TXScopeItemFixedPointer = _Ty*;
@@ -185,8 +183,6 @@ namespace mse {
 	template<typename _Ty> class TXScopeNotNullConstPointer;
 	template<typename _Ty> class TXScopeFixedPointer;
 	template<typename _Ty> class TXScopeFixedConstPointer;
-	template<typename _Ty> class TXScopeCagedFixedPointerToRValue;
-	template<typename _Ty> class TXScopeCagedFixedConstPointerToRValue;
 	template<typename _Ty> class TXScopeOwnerPointer;
 
 	template<typename _Ty> class TXScopeItemFixedPointer;
@@ -593,10 +589,7 @@ namespace mse {
 		}
 
 		TXScopeCagedItemFixedPointerToRValue<_Ty>& operator=(const TXScopeCagedItemFixedPointerToRValue<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeCagedItemFixedPointerToRValue<_Ty>* operator&() { return this; }
-		const TXScopeCagedItemFixedPointerToRValue<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		TXScopeItemFixedPointer<_Ty> m_xscope_ptr;
 
@@ -621,10 +614,7 @@ namespace mse {
 		auto uncaged_pointer() const { return m_xscope_ptr; }
 
 		TXScopeCagedItemFixedConstPointerToRValue<_Ty>& operator=(const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeCagedItemFixedConstPointerToRValue<_Ty>* operator&() { return this; }
-		const TXScopeCagedItemFixedConstPointerToRValue<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		TXScopeItemFixedConstPointer<_Ty> m_xscope_ptr;
 
@@ -743,7 +733,7 @@ namespace mse {
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : TXScopeItemFixedPointer<_Ty>(src_cref.uncaged_pointer()) {}
+			TXScopeItemFixedPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
 			virtual ~TXScopeItemFixedPointerFParam() {}
@@ -766,13 +756,13 @@ namespace mse {
 			MSE_SCOPE_USING(TXScopeItemFixedConstPointerFParam, base_class);
 
 			TXScopeItemFixedConstPointerFParam(const TXScopeItemFixedConstPointerFParam<_Ty>& src_cref) = default;
-			TXScopeItemFixedConstPointerFParam(const TXScopeItemFixedPointerFParam<_Ty>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref) {}
+			TXScopeItemFixedConstPointerFParam(const TXScopeItemFixedPointerFParam<_Ty>& src_cref) : base_class(src_cref) {}
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref.uncaged_pointer()) {}
+			TXScopeItemFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref.uncaged_pointer()) {}
+			TXScopeItemFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
 			virtual ~TXScopeItemFixedConstPointerFParam() {}
