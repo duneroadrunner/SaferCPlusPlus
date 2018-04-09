@@ -567,6 +567,39 @@ namespace mse {
 
 		friend struct std::hash<mse::TAnyConstPointer<_Ty> >;
 	};
+
+	namespace us {
+		template<typename _Ty>
+		class TFParam<mse::TXScopeAnyConstPointer<_Ty> > : public TXScopeAnyConstPointer<_Ty> {
+		public:
+			typedef TXScopeAnyConstPointer<_Ty> base_class;
+			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
+
+			template<typename _TRALoneParam>
+			TFParam(_TRALoneParam&& src) : base_class(constructor_helper1(
+#ifndef MSE_SCOPEPOINTER_DISABLED
+				typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type()
+#else //!MSE_SCOPEPOINTER_DISABLED
+				std::false_type()
+#endif //!MSE_SCOPEPOINTER_DISABLED
+				, std::forward<_TRALoneParam>(src))) {}
+
+			template<typename _TRALoneParam>
+			TFParam(const _TRALoneParam& src) : base_class(src) {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			template<typename _Ty2>
+			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
+				return TXScopeItemFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+			}
+			template<typename _TRALoneParam>
+			auto constructor_helper1(std::false_type, _TRALoneParam&& param) { return std::forward<_TRALoneParam>(param); }
+
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+	}
 }
 
 namespace std {
@@ -1003,6 +1036,39 @@ namespace mse {
 
 		friend struct std::hash<mse::TPolyConstPointer<_Ty> >;
 	};
+
+	namespace us {
+		template<typename _Ty>
+		class TFParam<mse::TXScopePolyConstPointer<_Ty> > : public TXScopePolyConstPointer<_Ty> {
+		public:
+			typedef TXScopePolyConstPointer<_Ty> base_class;
+			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
+
+			template<typename _TRALoneParam>
+			TFParam(_TRALoneParam&& src) : base_class(constructor_helper1(
+#ifndef MSE_SCOPEPOINTER_DISABLED
+				typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type()
+#else //!MSE_SCOPEPOINTER_DISABLED
+				std::false_type()
+#endif //!MSE_SCOPEPOINTER_DISABLED
+				, std::forward<_TRALoneParam>(src))) {}
+
+			template<typename _TRALoneParam>
+			TFParam(const _TRALoneParam& src) : base_class(src) {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			template<typename _Ty2>
+			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
+				return TXScopeItemFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+			}
+			template<typename _TRALoneParam>
+			auto constructor_helper1(std::false_type, _TRALoneParam&& param) { return std::forward<_TRALoneParam>(param); }
+
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+	}
 }
 
 namespace std {
@@ -1501,6 +1567,44 @@ namespace mse {
 
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
+
+	namespace us {
+		template<typename _Ty>
+		class TFParam<mse::TXScopeAnyRandomAccessConstSection<_Ty> > : public TXScopeAnyRandomAccessConstSection<_Ty> {
+		public:
+			typedef TXScopeAnyRandomAccessConstSection<_Ty> base_class;
+			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
+
+			template<typename _TRALoneParam>
+			TFParam(_TRALoneParam&& src) : base_class(constructor_helper1(
+#ifndef MSE_SCOPEPOINTER_DISABLED
+				typename std::conditional<
+				mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
+				|| mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedRandomAccessConstSectionToRValue>::value
+				, std::true_type, std::false_type>::type()
+				//typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type()
+#else //!MSE_SCOPEPOINTER_DISABLED
+				std::false_type()
+#endif //!MSE_SCOPEPOINTER_DISABLED
+				, std::forward<_TRALoneParam>(src))) {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			template<typename _Ty2>
+			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
+				return TXScopeItemFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+			}
+			template<typename _TRAIterator>
+			auto constructor_helper1(std::true_type, TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>&& param) {
+				return TXScopeRandomAccessConstSectionFParam<_TRAIterator>(std::forward<decltype(param)>(param));
+			}
+			template<typename _TRALoneParam>
+			auto constructor_helper1(std::false_type, _TRALoneParam&& param) { return std::forward<_TRALoneParam>(param); }
+
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+	}
 
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >

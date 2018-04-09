@@ -858,20 +858,20 @@ namespace mse {
 		namespace impl {
 			namespace fparam {
 				template<typename _Ty>
-				auto value_from_fparam_helper1(std::true_type, const _Ty& param) {
+				auto value_from_fparam_helper1(std::false_type, const _Ty& param) {
 					return param;
 				}
 				template<typename _Ty>
-				auto value_from_fparam_helper1(std::false_type, const _Ty& param) -> typename TFParam<typename std::remove_reference<_Ty>::type>::base_class {
+				auto value_from_fparam_helper1(std::true_type, const _Ty& param) -> typename TFParam<typename std::remove_reference<_Ty>::type>::base_class {
 					return TFParam<typename std::remove_reference<_Ty>::type>(param);
 				}
 
 				template<typename _Ty>
-				auto value_from_fparam_helper1(std::true_type, _Ty&& param) {
+				auto value_from_fparam_helper1(std::false_type, _Ty&& param) {
 					return std::forward<_Ty>(param);
 				}
 				template<typename _Ty>
-				auto value_from_fparam_helper1(std::false_type, _Ty&& param) -> typename TFParam<typename std::remove_reference<_Ty>::type>::base_class {
+				auto value_from_fparam_helper1(std::true_type, _Ty&& param) -> typename TFParam<typename std::remove_reference<_Ty>::type>::base_class {
 					return TFParam<typename std::remove_reference<_Ty>::type>(std::forward<_Ty>(param));
 				}
 			}
@@ -879,11 +879,11 @@ namespace mse {
 
 		template<typename _Ty>
 		auto value_from_fparam(const _Ty& param) {
-			return impl::fparam::value_from_fparam_helper1(typename std::is_same<_Ty, typename TFParam<typename std::remove_reference<_Ty>::type>::base_class>::type(), param);
+			return impl::fparam::value_from_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), param);
 		}
 		template<typename _Ty>
 		auto value_from_fparam(_Ty&& param) {
-			return impl::fparam::value_from_fparam_helper1(typename std::is_same<_Ty, typename TFParam<typename std::remove_reference<_Ty>::type>::base_class>::type(), std::forward<_Ty>(param));
+			return impl::fparam::value_from_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), std::forward<_Ty>(param));
 		}
 
 		template<typename _Ty>

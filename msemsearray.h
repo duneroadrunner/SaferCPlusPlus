@@ -3836,7 +3836,7 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	class TXScopeRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator>, public XScopeTagBase {
+	class TXScopeRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 	public:
 		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
@@ -4378,7 +4378,7 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	class TXScopeRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator>, public XScopeTagBase {
+	class TXScopeRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 	public:
 		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
@@ -4574,7 +4574,7 @@ namespace mse {
 	}
 
 	template<typename _TRAIterator>
-	class TXScopeCagedRandomAccessConstSectionToRValue {
+	class TXScopeCagedRandomAccessConstSectionToRValue : public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 	public:
 		void xscope_tag() const {}
 

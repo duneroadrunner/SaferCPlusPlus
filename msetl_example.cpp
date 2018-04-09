@@ -1546,6 +1546,16 @@ int main(int argc, char* argv[])
 
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
+
+				static bool second_is_longer_any(mse::us::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string1_xscpptr
+					, mse::us::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string2_xscpptr) {
+					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
+				}
+
+				static bool second_is_longer_poly(mse::us::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string1_xscpptr
+					, mse::us::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string2_xscpptr) {
+					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
+				}
 			};
 
 			mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
@@ -1554,6 +1564,8 @@ int main(int argc, char* argv[])
 			the address of an r-value. */
 			auto res1 = CD::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
 			auto res2 = H::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+			auto res3 = CD::second_is_longer_any(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+			auto res4 = CD::second_is_longer_poly(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
 		}
 
 		{
