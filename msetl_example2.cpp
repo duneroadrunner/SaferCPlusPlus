@@ -411,6 +411,11 @@ void msetl_example2() {
 
 					return (ra_csection1.size() > ra_csection2.size()) ? false : true;
 				}
+
+				static bool second_is_longer_any(mse::us::TXScopeFParam<mse::TXScopeAnyRandomAccessConstSection<int> > ra_csection1
+					, mse::us::TXScopeFParam<mse::TXScopeAnyRandomAccessConstSection<int> > ra_csection2) {
+					return (ra_csection1.size() > ra_csection2.size()) ? false : true;
+				}
 			};
 
 			mse::TXScopeObj<mse::nii_vector<int> > vector1(mse::nii_vector<int>{ 1, 2, 3});
@@ -418,6 +423,8 @@ void msetl_example2() {
 			auto res1 = CD::second_is_longer(ra_csection1, mse::make_xscope_random_access_const_section(
 				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
 			auto res2 = J::second_is_longer(ra_csection1, mse::make_xscope_random_access_const_section(
+				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
+			auto res3 = CD::second_is_longer_any(ra_csection1, mse::make_xscope_random_access_const_section(
 				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
 		}
 	}

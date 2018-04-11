@@ -1582,11 +1582,13 @@ namespace mse {
 				mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
 				|| mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedRandomAccessConstSectionToRValue>::value
 				, std::true_type, std::false_type>::type()
-				//typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type()
 #else //!MSE_SCOPEPOINTER_DISABLED
 				std::false_type()
 #endif //!MSE_SCOPEPOINTER_DISABLED
 				, std::forward<_TRALoneParam>(src))) {}
+
+			template<typename _TRALoneParam>
+			TFParam(const _TRALoneParam& src) : base_class(src) {}
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}

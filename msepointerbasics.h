@@ -52,6 +52,11 @@
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4505 )
+#endif /*_MSC_VER*/
+
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-value"
@@ -845,6 +850,10 @@ namespace std {
 #pragma GCC diagnostic pop
 #endif /*__GNUC__*/
 #endif /*__clang__*/
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 #undef MSE_THROW
 
