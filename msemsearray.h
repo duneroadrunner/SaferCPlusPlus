@@ -2511,18 +2511,27 @@ namespace mse {
 
 		TRAIteratorBase(const TRAIteratorBase& src) : m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
 		TRAIteratorBase(TRAIteratorBase&& src) = default;
-		TRAIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-		TRAIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+		//TRAIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+		//TRAIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
 
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
 		TRAIteratorBase(TRAIteratorBase<_Ty2>&& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
 		TRAIteratorBase(const TRAIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
 
-		template<class _Ty2>
-		TRAIteratorBase(const _Ty2& param, size_type index = 0) : m_ra_container_pointer(ra_container_pointer_from_param(
-			typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_Ty2>::type(), param))
-			, m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+		template<class _TRAContainerPointer2>
+		TRAIteratorBase(const _TRAContainerPointer2& param, size_type index) : m_ra_container_pointer(param), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+		template<class _TRAContainerPointer2>
+		TRAIteratorBase(_TRAContainerPointer2&& param, size_type index) : m_ra_container_pointer(std::forward<_TRAContainerPointer2>(param)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+
+		template<class _TLoneParam>
+		TRAIteratorBase(const _TLoneParam& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
+			typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
+			, m_index(index_from_lone_param(typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
+		template<class _TLoneParam>
+		TRAIteratorBase(_TLoneParam&& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
+			typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param)))
+			, m_index(index_from_lone_param(typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
 
 		auto operator*() const -> reference {
 			return (*m_ra_container_pointer)[m_index];
@@ -2574,12 +2583,18 @@ namespace mse {
 
 	private:
 		template<class _TRAIterator>
-		_TRAContainerPointer ra_container_pointer_from_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
+		_TRAContainerPointer ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
 		template<class _Ty2>
-		const _TRAContainerPointer& ra_container_pointer_from_param(std::false_type, const _Ty2& param) { return param; }
+		const _TRAContainerPointer& ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return param; }
 		template<class _Ty2>
-		_TRAContainerPointer ra_container_pointer_from_param(std::false_type, _Ty2&& param) { return std::forward<_Ty2>(param); }
-		
+		_TRAContainerPointer ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return std::forward<_Ty2>(param); }
+		template<class _TRAIterator>
+		auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
+		template<class _Ty2>
+		difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
+		template<class _Ty2>
+		difference_type index_from_lone_param(std::false_type, _Ty2&& param) { return 0; }
+
 		template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
 			&& (mse::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
 			void assignment_helper1(std::true_type, const TRAIteratorBase& _Right_cref) {
@@ -2613,10 +2628,13 @@ namespace mse {
 		typedef const reference const_reference;
 		typedef typename base_class::size_type size_type;
 
+		/*
 		TXScopeRAIterator(const TRAIteratorBase<_TRAContainerPointer>& src) : base_class(src) {}
 		TXScopeRAIterator(TRAIteratorBase<_TRAContainerPointer>&& src) : base_class(std::forward<decltype(src)>(src)) {}
 		TXScopeRAIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {}
 		TXScopeRAIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {}
+		*/
+		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TXScopeRAIterator, base_class);
 
 		TXScopeRAIterator& operator +=(difference_type x) {
 			base_class::operator +=(x);
@@ -2670,8 +2688,12 @@ namespace mse {
 
 		template <typename _TRAContainerPointer1>
 		TRAIterator(const _TRAContainerPointer1& ra_container_pointer, size_type index) : base_class(ra_container_pointer, index) {}
+		template <typename _TRAContainerPointer1>
+		TRAIterator(_TRAContainerPointer1&& ra_container_pointer, size_type index) : base_class(std::forward<_TRAContainerPointer1>(ra_container_pointer), index) {}
 		template <typename _TLoneParam>
 		TRAIterator(const _TLoneParam& lone_param) : base_class(lone_param) {}
+		template <typename _TLoneParam>
+		TRAIterator(_TLoneParam&& lone_param) : base_class(std::forward<_TLoneParam>(lone_param)) {}
 
 		virtual ~TRAIterator() {
 			mse::T_valid_if_not_an_xscope_type<_TRAContainerPointer>();
@@ -2729,8 +2751,8 @@ namespace mse {
 		TRAConstIteratorBase(TRAConstIteratorBase&& src) = default;
 		TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>& src) : m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
 		TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>&& src) : m_ra_container_pointer(std::forward<decltype(src.m_ra_container_pointer)>(src.m_ra_container_pointer)), m_index(src.m_index) {}
-		TRAConstIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-		TRAConstIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+		//TRAConstIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+		//TRAConstIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
 
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
 		TRAConstIteratorBase(TRAConstIteratorBase<_Ty2>&& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
@@ -2742,10 +2764,19 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
 		TRAConstIteratorBase(const TRAIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
 
-		template<class _Ty2>
-		TRAConstIteratorBase(const _Ty2& param, size_type index = 0) : m_ra_container_pointer(ra_container_pointer_from_param(
-			typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_Ty2>::type(), param))
-			, m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+		template<class _TRAContainerPointer2>
+		TRAConstIteratorBase(const _TRAContainerPointer2& param, size_type index) : m_ra_container_pointer(param), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+		template<class _TRAContainerPointer2>
+		TRAConstIteratorBase(_TRAContainerPointer2&& param, size_type index) : m_ra_container_pointer(std::forward<_TRAContainerPointer2>(param)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+
+		template<class _TLoneParam>
+		TRAConstIteratorBase(const _TLoneParam& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
+			typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
+			, m_index(index_from_lone_param(typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
+		template<class _TLoneParam>
+		TRAConstIteratorBase(_TLoneParam&& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
+			typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param)))
+			, m_index(index_from_lone_param(typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
 
 		auto operator*() const -> const_reference {
 			return (*m_ra_container_pointer)[m_index];
@@ -2801,11 +2832,17 @@ namespace mse {
 
 	private:
 		template<class _TRAIterator>
-		_TRAContainerPointer ra_container_pointer_from_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
+		_TRAContainerPointer ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
 		template<class _Ty2>
-		const _TRAContainerPointer& ra_container_pointer_from_param(std::false_type, const _Ty2& param) { return param; }
+		const _TRAContainerPointer& ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return param; }
 		template<class _Ty2>
-		_TRAContainerPointer ra_container_pointer_from_param(std::false_type, _Ty2&& param) { return std::forward<_Ty2>(param); }
+		_TRAContainerPointer ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return std::forward<_Ty2>(param); }
+		template<class _TRAIterator>
+		auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
+		template<class _Ty2>
+		difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
+		template<class _Ty2>
+		difference_type index_from_lone_param(std::false_type, _Ty2&& param) { return 0; }
 
 		template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
 			&& (mse::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
@@ -2902,8 +2939,12 @@ namespace mse {
 
 		template <typename _TRAContainerPointer1>
 		TRAConstIterator(const _TRAContainerPointer1& ra_container_pointer, size_type index) : base_class(ra_container_pointer, index) {}
+		template <typename _TRAContainerPointer1>
+		TRAConstIterator(_TRAContainerPointer1&& ra_container_pointer, size_type index) : base_class(std::forward<_TRAContainerPointer1>(ra_container_pointer), index) {}
 		template <typename _TLoneParam>
 		TRAConstIterator(const _TLoneParam& lone_param) : base_class(lone_param) {}
+		template <typename _TLoneParam>
+		TRAConstIterator(_TLoneParam&& lone_param) : base_class(std::forward<_TLoneParam>(lone_param)) {}
 
 		virtual ~TRAConstIterator() {
 			mse::T_valid_if_not_an_xscope_type<_TRAContainerPointer>();
@@ -2946,16 +2987,39 @@ namespace mse {
 	using TRandomAccessConstIterator = TRAConstIterator<_TRAContainerPointer>;
 
 	template <typename _TRAContainerPointer>
+	auto make_xscope_random_access_iterator(_TRAContainerPointer&& ra_container_pointer, typename TXScopeRandomAccessIterator<_TRAContainerPointer>::size_type index = 0) {
+		typedef typename std::remove_reference<_TRAContainerPointer>::type _TRAContainerPointerRR;
+		return TXScopeRandomAccessIterator<_TRAContainerPointerRR>(std::forward<_TRAContainerPointer>(ra_container_pointer), index);
+	}
+	template <typename _TRAContainerPointer>
 	auto make_xscope_random_access_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXScopeRandomAccessIterator<_TRAContainerPointer>::size_type index = 0) {
 		return TXScopeRandomAccessIterator<_TRAContainerPointer>(ra_container_pointer, index);
+	}
+
+	template <typename _TRAContainerPointer>
+	auto make_random_access_iterator(_TRAContainerPointer&& ra_container_pointer, typename TRandomAccessIterator<_TRAContainerPointer>::size_type index = 0) {
+		typedef typename std::remove_reference<_TRAContainerPointer>::type _TRAContainerPointerRR;
+		return TRandomAccessIterator<_TRAContainerPointerRR>(std::forward<_TRAContainerPointer>(ra_container_pointer), index);
 	}
 	template <typename _TRAContainerPointer>
 	auto make_random_access_iterator(const _TRAContainerPointer& ra_container_pointer, typename TRandomAccessIterator<_TRAContainerPointer>::size_type index = 0) {
 		return TRandomAccessIterator<_TRAContainerPointer>(ra_container_pointer, index);
 	}
+
+	template <typename _TRAContainerPointer>
+	auto make_xscope_random_access_const_iterator(_TRAContainerPointer&& ra_container_pointer, typename TXScopeRandomAccessConstIterator<_TRAContainerPointer>::size_type index = 0) {
+		typedef typename std::remove_reference<_TRAContainerPointer>::type _TRAContainerPointerRR;
+		return TXScopeRandomAccessConstIterator<_TRAContainerPointerRR>(std::forward<_TRAContainerPointer>(ra_container_pointer), index);
+	}
 	template <typename _TRAContainerPointer>
 	auto make_xscope_random_access_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXScopeRandomAccessConstIterator<_TRAContainerPointer>::size_type index = 0) {
 		return TXScopeRandomAccessConstIterator<_TRAContainerPointer>(ra_container_pointer, index);
+	}
+
+	template <typename _TRAContainerPointer>
+	auto make_random_access_const_iterator(_TRAContainerPointer&& ra_container_pointer, typename TRandomAccessConstIterator<_TRAContainerPointer>::size_type index = 0) {
+		typedef typename std::remove_reference<_TRAContainerPointer>::type _TRAContainerPointerRR;
+		return TRandomAccessConstIterator<_TRAContainerPointerRR>(std::forward<_TRAContainerPointer>(ra_container_pointer), index);
 	}
 	template <typename _TRAContainerPointer>
 	auto make_random_access_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TRandomAccessConstIterator<_TRAContainerPointer>::size_type index = 0) {
