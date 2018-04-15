@@ -184,11 +184,13 @@ public:
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
+	/* This function will be used to demonstrate using us::value_from_fparam() to enable template functions to accept scope
+	random access sections that reference temporary objects. */
 	template<class _TRASection1, class _TRASection2>
-	static bool second_is_longer(const _TRASection1& ra_section1, const _TRASection2& ra_section2) {
-		auto l_ra_section1 = mse::us::value_from_fparam(ra_section1);
-		auto l_ra_section2 = mse::us::value_from_fparam(ra_section2);
-		return (l_ra_section1.size() > l_ra_section2.size()) ? false : true;
+	static bool second_is_longer(const _TRASection1& xscope_ra_csection1, const _TRASection2& xscope_ra_csection2) {
+		auto l_xscope_ra_csection1 = mse::us::value_from_fparam(xscope_ra_csection1);
+		auto l_xscope_ra_csection2 = mse::us::value_from_fparam(xscope_ra_csection2);
+		return (l_xscope_ra_csection1.size() > l_xscope_ra_csection2.size()) ? false : true;
 	}
 };
 
@@ -402,29 +404,31 @@ void msetl_example2() {
 		assert(xscp_ra_section3.length() == 1);
 
 		{
+			/* In this block we demonstrate the us::TXScopeFParam<> specializations that enable passing temporary objects to
+			functions expecting scope random access section arguments. */
 			class CD {
 			public:
 				typedef decltype(mse::make_xscope_random_access_const_section(mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >
 					(mse::nii_vector<int>{ 1, 2, 3})))) xscope_ra_csection_t;
-				static bool second_is_longer(mse::us::TXScopeFParam<xscope_ra_csection_t> ra_csection1
-					, mse::us::TXScopeFParam<xscope_ra_csection_t> ra_csection2) {
+				static bool second_is_longer(mse::us::TXScopeFParam<xscope_ra_csection_t> xscope_ra_csection1
+					, mse::us::TXScopeFParam<xscope_ra_csection_t> xscope_ra_csection2) {
 
-					return (ra_csection1.size() > ra_csection2.size()) ? false : true;
+					return (xscope_ra_csection1.size() > xscope_ra_csection2.size()) ? false : true;
 				}
 
-				static bool second_is_longer_any(mse::us::TXScopeFParam<mse::TXScopeAnyRandomAccessConstSection<int> > ra_csection1
-					, mse::us::TXScopeFParam<mse::TXScopeAnyRandomAccessConstSection<int> > ra_csection2) {
-					return (ra_csection1.size() > ra_csection2.size()) ? false : true;
+				static bool second_is_longer_any(mse::us::TXScopeFParam<mse::TXScopeAnyRandomAccessConstSection<int> > xscope_ra_csection1
+					, mse::us::TXScopeFParam<mse::TXScopeAnyRandomAccessConstSection<int> > xscope_ra_csection2) {
+					return (xscope_ra_csection1.size() > xscope_ra_csection2.size()) ? false : true;
 				}
 			};
 
 			mse::TXScopeObj<mse::nii_vector<int> > vector1(mse::nii_vector<int>{ 1, 2, 3});
-			auto ra_csection1 = mse::make_xscope_random_access_const_section(&vector1);
-			auto res1 = CD::second_is_longer(ra_csection1, mse::make_xscope_random_access_const_section(
+			auto xscope_ra_csection1 = mse::make_xscope_random_access_const_section(&vector1);
+			auto res1 = CD::second_is_longer(xscope_ra_csection1, mse::make_xscope_random_access_const_section(
 				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
-			auto res2 = J::second_is_longer(ra_csection1, mse::make_xscope_random_access_const_section(
+			auto res2 = J::second_is_longer(xscope_ra_csection1, mse::make_xscope_random_access_const_section(
 				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
-			auto res3 = CD::second_is_longer_any(ra_csection1, mse::make_xscope_random_access_const_section(
+			auto res3 = CD::second_is_longer_any(xscope_ra_csection1, mse::make_xscope_random_access_const_section(
 				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
 		}
 	}
@@ -554,6 +558,42 @@ void msetl_example2() {
 		assert(string_section3.length() == 3);
 		auto xscp_string_section4 = mse::xscope_random_access_subsection(string_section1, std::make_tuple(0, string_section1.length() / 2));
 		auto xscp_string_section5 = mse::xscope_random_access_subsection(xscp_string_section1, std::make_tuple(0, string_section1.length() / 2));
+
+		{
+			/* In this block we demonstrate the us::TXScopeFParam<> specializations that enable passing temporary objects to
+			functions expecting scope string section arguments. */
+			class CD {
+			public:
+				typedef decltype(mse::make_xscope_string_const_section(mse::pointer_to(mse::TXScopeObj<mse::nii_string>
+					(mse::nii_string{"abc"})))) xscope_string_csection_t;
+				static bool second_is_longer(mse::us::TXScopeFParam<xscope_string_csection_t> xscope_string_csection1
+					, mse::us::TXScopeFParam<xscope_string_csection_t> xscope_string_csection2) {
+
+					return (xscope_string_csection1.size() > xscope_string_csection2.size()) ? false : true;
+				}
+
+				static bool second_is_longer_any(mse::us::TXScopeFParam<mse::TXScopeAnyStringConstSection<> > xscope_string_csection1
+					, mse::us::TXScopeFParam<mse::TXScopeAnyStringConstSection<> > xscope_string_csection2) {
+					return (xscope_string_csection1.size() > xscope_string_csection2.size()) ? false : true;
+				}
+
+				/*
+				static bool second_is_longer_any_ras(mse::us::TXScopeFParam<mse::TXScopeAnyRandomAccessConstSection<char> > xscope_string_csection1
+					, mse::us::TXScopeFParam<mse::TXScopeAnyRandomAccessConstSection<char> > xscope_string_csection2) {
+					return (xscope_string_csection1.size() > xscope_string_csection2.size()) ? false : true;
+				}
+				*/
+			};
+
+			mse::TXScopeObj<mse::nii_string > string1(mse::nii_string{"abc"});
+			auto xscope_string_csection1 = mse::make_xscope_string_const_section(&string1);
+			auto res1 = CD::second_is_longer(xscope_string_csection1, mse::make_xscope_string_const_section(
+				mse::pointer_to(mse::TXScopeObj<mse::nii_string >(mse::nii_string{"abcd"}))));
+			auto res2 = J::second_is_longer(xscope_string_csection1, mse::make_xscope_string_const_section(
+				mse::pointer_to(mse::TXScopeObj<mse::nii_string >(mse::nii_string{"abcd"}))));
+			auto res3 = CD::second_is_longer_any(xscope_string_csection1, mse::make_xscope_string_const_section(
+				mse::pointer_to(mse::TXScopeObj<mse::nii_string >(mse::nii_string{"abcd"}))));
+		}
 	}
 
 	{

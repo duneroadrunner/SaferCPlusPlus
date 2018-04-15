@@ -1609,13 +1609,13 @@ namespace mse {
 	}
 
 
-	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	using TXScopeAnyStringSection = TXScopeStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits>;
 
-	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	using TAnyStringSection = TStringSection<TAnyRandomAccessIterator<_Ty>, _Traits>;
 
-	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	class TXScopeAnyStringConstSection : public TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
@@ -1635,7 +1635,7 @@ namespace mse {
 		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
 	};
 
-	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	class TAnyStringConstSection : public TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
@@ -1654,6 +1654,47 @@ namespace mse {
 	private:
 		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
 	};
+
+	namespace us {
+		template<typename _Ty>
+		class TFParam<mse::TXScopeAnyStringConstSection<_Ty> > : public TXScopeAnyStringConstSection<_Ty> {
+		public:
+			typedef TXScopeAnyStringConstSection<_Ty> base_class;
+			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
+
+			template<typename _TRALoneParam>
+			TFParam(_TRALoneParam&& src) : base_class(constructor_helper1(
+#ifndef MSE_SCOPEPOINTER_DISABLED
+				typename std::conditional<
+				mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
+				|| std::is_base_of<CagedStringSectionTagBase, _TRALoneParam>::value
+				//|| mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedStringConstSectionToRValue>::value
+				, std::true_type, std::false_type>::type()
+#else //!MSE_SCOPEPOINTER_DISABLED
+				std::false_type()
+#endif //!MSE_SCOPEPOINTER_DISABLED
+				, std::forward<_TRALoneParam>(src))) {}
+
+			template<typename _TRALoneParam>
+			TFParam(const _TRALoneParam& src) : base_class(src) {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			template<typename _Ty2>
+			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
+				return TXScopeItemFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+			}
+			template<typename _TRAIterator>
+			auto constructor_helper1(std::true_type, TXScopeCagedStringConstSectionToRValue<_TRAIterator>&& param) {
+				return TXScopeStringConstSectionFParam<_TRAIterator>(std::forward<decltype(param)>(param));
+			}
+			template<typename _TRALoneParam>
+			auto constructor_helper1(std::false_type, _TRALoneParam&& param) { return std::forward<_TRALoneParam>(param); }
+
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+	}
 
 
 	template<typename _Ty, typename _TRALoneParam, class = typename std::enable_if<
@@ -1683,7 +1724,7 @@ namespace mse {
 #endif /*!MSE_MSTDSTRING_DISABLED*/
 	}
 
-	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	class TXScopeAnyNRPStringSection : public TXScopeNRPStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> {
 	public:
 		typedef TXScopeNRPStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> base_class;
@@ -1712,7 +1753,7 @@ namespace mse {
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
 
-	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	class TAnyNRPStringSection : public TNRPStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> {
 	public:
 		typedef TNRPStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> base_class;
@@ -1741,7 +1782,7 @@ namespace mse {
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
 
-	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	class TXScopeAnyNRPStringConstSection : public TXScopeNRPStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TXScopeNRPStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
@@ -1780,7 +1821,7 @@ namespace mse {
 		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
 	};
 
-	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
+	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	class TAnyNRPStringConstSection : public TNRPStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TNRPStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;

@@ -40,6 +40,20 @@ namespace mse {
 		};
 
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
+		class basic_string;
+
+		namespace impl {
+			namespace bs {
+				template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>>
+				std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>&& _Istr, basic_string<_Ty, _Traits, _A>& _Str);
+				template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>>
+				std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>& _Istr, basic_string<_Ty, _Traits, _A>& _Str);
+				template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>>
+				std::basic_ostream<_Ty, _Traits>& out_to_stream(std::basic_ostream<_Ty, _Traits>& _Ostr, const basic_string<_Ty, _Traits, _A>& _Str);
+			}
+		}
+
+		template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty> */>
 		class basic_string {
 		public:
 			typedef basic_string _Myt;
@@ -86,7 +100,7 @@ namespace mse {
 			basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, npos, _Al)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, _Count, _Al)) {}
 			/* construct from mse::string_view and "string sections". */
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
 			basic_string(const _TStringSection& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
 
 			_Myt& operator=(_MBS&& _X) { msebasic_string() = (std::forward<decltype(_X)>(_X)); return (*this); }
@@ -110,7 +124,7 @@ namespace mse {
 			template<class _Iter>
 			void assign(const _Iter& _First, const _Iter& _Last) { m_shptr->assign(_First, _Last); }
 			void assign(size_type _N, const _Ty& _X = _Ty()) { m_shptr->assign(_N, _X); }
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
 			void assign(const _TStringSection& _X) { m_shptr->assign(_X); }
 			template<class ..._Valty>
 			void emplace_back(_Valty&& ..._Val) { m_shptr->emplace_back(std::forward<_Valty>(_Val)...); }
@@ -391,7 +405,7 @@ namespace mse {
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
 				return retval;
 			}
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
 			iterator insert_before(const const_iterator &pos, const _TStringSection& _X) {	// insert initializer_list
 				auto res = m_shptr->insert_before(pos.msebasic_string_ss_const_iterator_type(), _X);
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
@@ -409,7 +423,7 @@ namespace mse {
 				m_shptr->insert_before(pos, _Ilist);
 				return *this;
 			}
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
 			basic_string& insert_before(msev_size_t pos, const _TStringSection& _X) {
 				m_shptr->insert_before(pos, _X);
 				return *this;
@@ -424,7 +438,7 @@ namespace mse {
 				iterator insert(const const_iterator &pos, const _Iter &start, const _Iter &end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, const _Ty* start, const _Ty* end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, _XSTD initializer_list<typename _MBS::value_type> _Ilist) { return insert_before(pos, _Ilist); }
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTag, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
 			iterator insert(const const_iterator &pos, const _TStringSection& _X) { return insert_before(pos, _X); }
 			template<class ..._Valty>
 			iterator emplace(const const_iterator &pos, _Valty&& ..._Val) {
@@ -1104,22 +1118,59 @@ namespace mse {
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 		private:
+			static std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>&& _Istr, basic_string& _Str) {
+				return std::forward<decltype(_Istr)>(_Istr) >> _Str.msebasic_string();
+			}
+			static std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>& _Istr, basic_string& _Str) {
+				return _Istr >> _Str.msebasic_string();
+			}
+			static std::basic_ostream<_Ty, _Traits>& out_to_stream(std::basic_ostream<_Ty, _Traits>& _Ostr, const basic_string& _Str) {
+				return _Ostr << _Str.msebasic_string();
+			}
+
 			const _MBS& msebasic_string() const { return (*m_shptr); }
 			_MBS& msebasic_string() { return (*m_shptr); }
 
 			std::shared_ptr<_MBS> m_shptr;
 
 			friend struct std::hash<basic_string>;
-			friend std::basic_istream<_Ty, _Traits>& operator>>(std::basic_istream<_Ty, _Traits>&& _Istr, basic_string& _Str) {
-				return std::forward<decltype(_Istr)>(_Istr) >> _Str.msebasic_string();
-			}
-			friend std::basic_istream<_Ty, _Traits>& operator>>(std::basic_istream<_Ty, _Traits>& _Istr, basic_string& _Str) {
-				return _Istr >> _Str.msebasic_string();
-			}
-			friend std::basic_ostream<_Ty, _Traits>& operator<<(std::basic_ostream<_Ty, _Traits>& _Ostr, const basic_string& _Str) {
-				return _Ostr << _Str.msebasic_string();
-			}
+			template<class _Ty2, class _Traits2/* = std::char_traits<_Ty2>*/, class _A2/* = std::allocator<_Ty2> */>
+			friend std::basic_istream<_Ty2, _Traits2>& impl::bs::in_from_stream(std::basic_istream<_Ty2, _Traits2>&& _Istr, basic_string<_Ty2, _Traits2, _A2>& _Str);
+			template<class _Ty2, class _Traits2/* = std::char_traits<_Ty2>*/, class _A2/* = std::allocator<_Ty2> */>
+			friend std::basic_istream<_Ty2, _Traits2>& impl::bs::in_from_stream(std::basic_istream<_Ty2, _Traits2>& _Istr, basic_string<_Ty2, _Traits2, _A2>& _Str);
+			template<class _Ty2, class _Traits2/* = std::char_traits<_Ty2>*/, class _A2/* = std::allocator<_Ty2> */>
+			friend std::basic_ostream<_Ty2, _Traits2>& impl::bs::out_to_stream(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const basic_string<_Ty2, _Traits2, _A2>& _Str);
 		};
+
+		namespace impl {
+			namespace bs {
+				template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty> */>
+				std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>&& _Istr, basic_string<_Ty, _Traits, _A>& _Str) {
+					return _Str.in_from_stream(std::forward<decltype(_Istr)>(_Istr), _Str);
+				}
+				template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty> */>
+				std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>& _Istr, basic_string<_Ty, _Traits, _A>& _Str) {
+					return _Str.in_from_stream(_Istr, _Str);
+				}
+				template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty> */>
+				std::basic_ostream<_Ty, _Traits>& out_to_stream(std::basic_ostream<_Ty, _Traits>& _Ostr, const basic_string<_Ty, _Traits, _A>& _Str) {
+					return _Str.out_to_stream(_Ostr, _Str);
+				}
+			}
+		}
+
+		template<class _Ty, class _Traits>
+		std::basic_istream<_Ty, _Traits>& operator>>(std::basic_istream<_Ty, _Traits>&& _Istr, basic_string<_Ty, _Traits>& _Str) {
+			return impl::bs::in_from_stream(std::forward<decltype(_Istr)>(_Istr), _Str);
+		}
+		template<class _Ty, class _Traits>
+		std::basic_istream<_Ty, _Traits>& operator>>(std::basic_istream<_Ty, _Traits>& _Istr, basic_string<_Ty, _Traits>& _Str) {
+			return impl::bs::in_from_stream(_Istr, _Str);
+		}
+		template<class _Ty, class _Traits>
+		std::basic_ostream<_Ty, _Traits>& operator<<(std::basic_ostream<_Ty, _Traits>& _Ostr, const basic_string<_Ty, _Traits>& _Str) {
+			return impl::bs::out_to_stream(_Ostr, _Str);
+		}
 
 		template<class _Ty, class _Traits, class _Alloc> inline bool operator!=(const basic_string<_Ty, _Traits, _Alloc>& _Left, const basic_string<_Ty, _Traits, _Alloc>& _Right) {	// test for basic_string inequality
 			return (!(_Left == _Right));
