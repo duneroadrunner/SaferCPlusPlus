@@ -49,7 +49,7 @@ mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 
 #ifdef NDEBUG
 #ifndef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
-#define MSE_SCOPEPOINTER_DISABLED
+//define MSE_SCOPEPOINTER_DISABLED
 #endif // !MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 #endif // NDEBUG
 
