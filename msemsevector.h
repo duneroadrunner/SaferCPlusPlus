@@ -54,11 +54,18 @@ namespace mse {
 	typedef bool msev_bool; // no added safety benefit to using mse::CBool in this case
 	#define msev_as_a_size_t as_a_size_t
 #else // MSE_MSEVECTOR_USE_MSE_PRIMITIVES
+
+#ifndef MSE_MSEVECTOR_BASE_INTEGER_TYPE
+#if SIZE_MAX <= UINT_MAX
+#define MSE_MSEVECTOR_BASE_INTEGER_TYPE int
+#else // SIZE_MAX <= INT_MAX
 #if SIZE_MAX <= ULONG_MAX
 #define MSE_MSEVECTOR_BASE_INTEGER_TYPE long int
 #else // SIZE_MAX <= ULONG_MAX
 #define MSE_MSEVECTOR_BASE_INTEGER_TYPE long long int
 #endif // SIZE_MAX <= ULONG_MAX
+#endif // SIZE_MAX <= INT_MAX
+#endif // !MSE_MSEVECTOR_BASE_INTEGER_TYPE
 
 	typedef size_t msev_size_t;
 	typedef MSE_MSEVECTOR_BASE_INTEGER_TYPE msev_int;

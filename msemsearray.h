@@ -85,11 +85,18 @@ namespace mse {
 	typedef bool msear_bool; // no added safety benefit to using mse::CBool in this case
 #define msear_as_a_size_t as_a_size_t
 #else // MSE_MSEARRAY_USE_MSE_PRIMITIVES
+
+#ifndef MSE_MSEARRAY_BASE_INTEGER_TYPE
+#if SIZE_MAX <= UINT_MAX
+#define MSE_MSEARRAY_BASE_INTEGER_TYPE int
+#else // SIZE_MAX <= INT_MAX
 #if SIZE_MAX <= ULONG_MAX
 #define MSE_MSEARRAY_BASE_INTEGER_TYPE long int
 #else // SIZE_MAX <= ULONG_MAX
 #define MSE_MSEARRAY_BASE_INTEGER_TYPE long long int
 #endif // SIZE_MAX <= ULONG_MAX
+#endif // SIZE_MAX <= INT_MAX
+#endif // !MSE_MSEARRAY_BASE_INTEGER_TYPE
 
 	typedef size_t msear_size_t;
 	typedef MSE_MSEARRAY_BASE_INTEGER_TYPE msear_int;
@@ -5283,6 +5290,7 @@ namespace mse {
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value) && (
 			/* todo: add other supported mutex types (most mutex types should work) */
 			(std::is_same<_TAccessMutex2, non_thread_safe_shared_mutex>::value) || (std::is_same<_TAccessMutex2, non_thread_safe_recursive_shared_timed_mutex>::value)
+			|| (std::is_same<_TAccessMutex2, std::shared_timed_mutex>::value) || (std::is_same<_TAccessMutex2, std::mutex>::value)
 			), void>::type>
 			void valid_if_TAccessMutex_is_supported() const {}
 

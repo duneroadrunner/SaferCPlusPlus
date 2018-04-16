@@ -84,11 +84,15 @@ be done at run time, at significant cost. So by default we disable range checks 
 
 
 #ifndef MSE_CINT_BASE_INTEGER_TYPE
+#if SIZE_MAX <= UINT_MAX
+#define MSE_CINT_BASE_INTEGER_TYPE int
+#else // SIZE_MAX <= INT_MAX
 #if SIZE_MAX <= ULONG_MAX
 #define MSE_CINT_BASE_INTEGER_TYPE long int
 #else // SIZE_MAX <= ULONG_MAX
 #define MSE_CINT_BASE_INTEGER_TYPE long long int
 #endif // SIZE_MAX <= ULONG_MAX
+#endif // SIZE_MAX <= INT_MAX
 #endif // !MSE_CINT_BASE_INTEGER_TYPE
 
 
@@ -99,15 +103,6 @@ namespace mse {
 		using std::range_error::range_error;
 	};
 
-	/* When the mse primitive replacements are "disabled" they lose their default initialization and may cause problems for
-	code that relies on it. */
-#ifdef MSE_PRIMITIVES_DISABLED
-	typedef bool CBool;
-	typedef MSE_CINT_BASE_INTEGER_TYPE CInt;
-	typedef size_t CSize_t;
-	static size_t as_a_size_t(CSize_t n) { return (n); }
-#else /*MSE_PRIMITIVES_DISABLED*/
-
 #ifndef NDEBUG
 #ifndef MSE_SUPPRESS_CHECK_USE_BEFORE_SET
 #define MSE_CHECK_USE_BEFORE_SET
@@ -115,26 +110,31 @@ namespace mse {
 #endif // !NDEBUG
 
 	/* This class is just meant to act like the "bool" type, except that it has a default intialization value (false). */
-	class CBool {
+	class CNDBool {
 	public:
 		// Constructs zero.
-		CBool() : m_val(false) {}
+		CNDBool() : m_val(false) {}
 
 		// Copy constructor
-		CBool(const CBool &x) : m_val(x.m_val) { note_value_assignment(); };
+		CNDBool(const CNDBool &x) : m_val(x.m_val) { note_value_assignment(); };
 
 		// Assignment operator
-		CBool& operator=(const CBool &x) { note_value_assignment(); m_val = x.m_val; return (*this); }
+		CNDBool& operator=(const CNDBool &x) { note_value_assignment(); m_val = x.m_val; return (*this); }
 
 		// Constructors from primitive boolean types
-		CBool(bool   x) { note_value_assignment(); m_val = x; }
+		CNDBool(bool   x) { note_value_assignment(); m_val = x; }
 
 		// Casts to primitive boolean types
 		operator bool() const { assert_initialized(); return m_val; }
 
-		CBool& operator |=(const CBool &x) { assert_initialized(); m_val |= x.m_val; return (*this); }
-		CBool& operator &=(const CBool &x) { assert_initialized(); m_val &= x.m_val; return (*this); }
-		CBool& operator ^=(const CBool &x) { assert_initialized(); m_val ^= x.m_val; return (*this); }
+		bool operator ==(const CNDBool &x) const { assert_initialized(); return (m_val == x.m_val); }
+		bool operator !=(const CNDBool &x) const { assert_initialized(); return (m_val != x.m_val); }
+		bool operator ==(bool x) const { assert_initialized(); return (m_val == x); }
+		bool operator !=(bool x) const { assert_initialized(); return (m_val != x); }
+
+		CNDBool& operator |=(const CNDBool &x) { assert_initialized(); m_val |= x.m_val; return (*this); }
+		CNDBool& operator &=(const CNDBool &x) { assert_initialized(); m_val &= x.m_val; return (*this); }
+		CNDBool& operator ^=(const CNDBool &x) { assert_initialized(); m_val ^= x.m_val; return (*this); }
 
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
@@ -153,10 +153,10 @@ namespace mse {
 
 namespace std {
 	template<>
-	struct hash<mse::CBool> {	// hash functor
-		typedef mse::CBool argument_type;
+	struct hash<mse::CNDBool> {	// hash functor
+		typedef mse::CNDBool argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::CBool& _Keyval) const _NOEXCEPT {
+		size_t operator()(const mse::CNDBool& _Keyval) const _NOEXCEPT {
 			return (hash<bool>()(_Keyval));
 		}
 	};
@@ -200,7 +200,7 @@ namespace mse {
 			}
 			if (rhs_can_exceed_lower_bound) {
 				/* We're assuming that std::numeric_limits<>::lowest() will never be greater than zero. */
-				if (0 > x) {
+				if (_TSource(0) > x) {
 					if (0 == std::numeric_limits<_TDestination>::lowest()) {
 						MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
 					}
@@ -213,12 +213,70 @@ namespace mse {
 #endif // !MSE_PRIMITIVE_ASSIGN_RANGE_CHECK_DISABLED
 	}
 
-	/* The CInt and CSize_t classes are meant to substitute for standard "int" and "size_t" types. The differences between
+//define MSE_TINT_TYPE_WITH_THE_LOWER_FLOOR(_Ty, _Tz) typename std::conditional<sg_can_exceed_lower_bound<_Tz, _Ty>(), _Ty, _Tz>::type
+
+	template<typename _TBaseInt = MSE_CINT_BASE_INTEGER_TYPE> class TInt;
+
+	typedef TInt<MSE_CINT_BASE_INTEGER_TYPE> CNDInt;
+
+	class CNDSize_t;
+	static size_t as_a_size_t(CNDSize_t n);
+
+	template<typename _Ty> struct next_bigger_native_int_type { typedef _Ty type; };
+	template<> struct next_bigger_native_int_type<char> { typedef short int type; };
+	template<> struct next_bigger_native_int_type<short int> { typedef long int type; };
+	template<> struct next_bigger_native_int_type<long int> { typedef long long int type; };
+	template<> struct next_bigger_native_int_type<unsigned char> { typedef unsigned short int type; };
+	template<> struct next_bigger_native_int_type<unsigned short int> { typedef unsigned long int type; };
+	template<> struct next_bigger_native_int_type<unsigned long int> { typedef unsigned long long int type; };
+
+	template<typename _Ty, typename _Tz> struct range_encompassing_native_int_type { typedef long long int type; };
+	template<> struct range_encompassing_native_int_type<unsigned long long int, unsigned long long int> { typedef unsigned long long int type; };
+	template<> struct range_encompassing_native_int_type<long int, long int> { typedef long int type; };
+	template<> struct range_encompassing_native_int_type<unsigned long int, unsigned long int> { typedef unsigned long int type; };
+	template<> struct range_encompassing_native_int_type<int, int> { typedef int type; };
+	template<> struct range_encompassing_native_int_type<unsigned int, unsigned int> { typedef unsigned int type; };
+	template<> struct range_encompassing_native_int_type<short int, short int> { typedef short int type; };
+	template<> struct range_encompassing_native_int_type<unsigned short int, unsigned short int> { typedef unsigned short int type; };
+
+	template<> struct range_encompassing_native_int_type<unsigned long int, long int> { typedef long int type; };
+	template<> struct range_encompassing_native_int_type<long int, unsigned long int> { typedef long int type; };
+	template<> struct range_encompassing_native_int_type<unsigned int, int> { typedef int type; };
+	template<> struct range_encompassing_native_int_type<int, unsigned int> { typedef int type; };
+	/* to do: add more template specializations or otherwise address the other cases */
+#define MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz) typename range_encompassing_native_int_type<_Ty, _Tz>::type
+
+#ifdef MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
+#define MSE_NATIVE_INT_RESULT_TYPE1(_Ty, _Tz) typename next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
+#define MSE_NATIVE_INT_ADD_RESULT_TYPE1(_Ty, _Tz) typename next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
+#define MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) typename std::conditional<std::is_signed<_Ty>::value || std::is_signed<_Tz>::value \
+, next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type, typename std::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type>::type
+#define MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) typename next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
+#define MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
+#else // MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
+#define MSE_NATIVE_INT_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
+#define MSE_NATIVE_INT_ADD_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
+#define MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) typename std::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
+#define MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
+#define MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
+#endif //MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
+
+template<typename _Ty>
+struct native_int_type { typedef typename std::conditional<std::is_arithmetic<_Ty>::value, TInt<_Ty>, _Ty>::type type; };
+#define MSE_TINT_TYPE(_Ty) typename native_int_type<_Ty>::type
+#define MSE_NATIVE_INT_TYPE(_Ty) MSE_TINT_TYPE(_Ty)::base_int_type
+#define MSE_TINT_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
+#define MSE_TINT_ADD_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_ADD_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
+#define MSE_TINT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
+#define MSE_TINT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
+#define MSE_TINT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
+
+	/* The CNDInt and CNDSize_t classes are meant to substitute for standard "int" and "size_t" types. The differences between
 	the standard types and these classes are that the classes have a default intialization value (zero), and the
 	classes, as much as possible, try to prevent the problematic behaviour of (possibly negative) signed integers
 	being cast (inadvertently) to the unsigned size_t type. For example, the expression (0 > (int)5 - (size_t)7) evaluates
-	(unintuitively) to false, whereas the expression (0 > (CInt)5 - (CSize_t)7) evaluates to true. Also, the classes do
-	some range checking. For example, the code "CSize_t s = -2;" will throw an exception. */
+	(unintuitively) to false, whereas the expression (0 > (CNDInt)5 - (CNDSize_t)7) evaluates to true. Also, the classes do
+	some range checking. For example, the code "CNDSize_t s = -2;" will throw an exception. */
 	template<typename _Ty>
 	class TIntBase1 {
 	public:
@@ -229,7 +287,7 @@ namespace mse {
 		TIntBase1(const TIntBase1 &x) : m_val(x.m_val) { note_value_assignment(); };
 
 		// Constructors from primitive integer types
-		explicit TIntBase1(_Ty   x) { note_value_assignment(); m_val = x; }
+		explicit TIntBase1(_Ty x) : m_val(x) { note_value_assignment(); }
 
 		template<typename _Tz>
 		void assign_check_range(const _Tz &x) {
@@ -248,191 +306,137 @@ namespace mse {
 		void assert_initialized() const {}
 #endif // MSE_CHECK_USE_BEFORE_SET
 	};
+	
 
-	class CInt : public TIntBase1<MSE_CINT_BASE_INTEGER_TYPE> {
+	template<typename _TBaseInt/* = MSE_CINT_BASE_INTEGER_TYPE*/>
+	class TInt : public TIntBase1<_TBaseInt> {
 	public:
-		typedef MSE_CINT_BASE_INTEGER_TYPE base_int_type;
-		typedef TIntBase1<base_int_type> _Myt;
+		typedef TIntBase1<_TBaseInt> base_class;
+		typedef _TBaseInt base_int_type;
 
-		// Constructs zero.
-		CInt() : _Myt() {}
+		TInt() : base_class() {}
+		TInt(const TInt &x) : base_class(x) {};
+		//explicit TInt(const base_class &x) : base_class(x) {};
+		//explicit TInt(const CNDSize_t &x) : base_class(CNDInt(x)) { (*this).template assign_check_range<CNDInt>(CNDInt(x)); };
 
-		// Copy constructor
-		CInt(const CInt &x) : _Myt(x) {};
-		CInt(const _Myt &x) : _Myt(x) {};
+		template<typename _Ty, class = typename std::enable_if<!std::is_same<typename std::remove_reference<
+			typename std::remove_const<_Ty>::type>::type, CNDSize_t>::value, void>::type>
+		TInt(const _Ty& x) : base_class(checked_and_adjusted_x(x)) {}
 
-		// Assignment operator
-		CInt& operator=(const CInt &x) { (*this).note_value_assignment(); m_val = x.m_val; return (*this); }
-		//CInt& operator=(const base_int_type &x) { (*this).note_value_assignment(); m_val = x; return (*this); }
+		TInt& operator=(const TInt &x) { (*this).note_value_assignment(); (*this).m_val = x.m_val; return (*this); }
+		template<typename _Ty>
+		TInt& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = static_cast<base_int_type>(x); return (*this); }
 
-		CInt& operator=(long long x) { assign_check_range<long long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		CInt& operator=(long x) { assign_check_range<long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		CInt& operator=(int x) { assign_check_range<int>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		CInt& operator=(short x) { assign_check_range<short>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		CInt& operator=(char x) { assign_check_range<char>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		CInt& operator=(size_t x) { assign_check_range<size_t>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		//CInt& operator=(CSize_t x) { assign_check_range<size_t>(x.as_a_size_t()); m_val = x.as_a_size_t(); return (*this); }
-		/* We would have liked to have assignment operators for the unsigned primitive integer types, but one of them could
-		potentially clash with the size_t assignment operator. */
-		//CInt& operator=(unsigned long long x) { assign_check_range<unsigned long long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		//CInt& operator=(unsigned long x) { assign_check_range<unsigned long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		//CInt& operator=(unsigned int x) { assign_check_range<unsigned int>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		//CInt& operator=(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		//CInt& operator=(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<base_int_type>(x); return (*this); }
+		operator base_int_type() const { (*this).assert_initialized(); return (*this).m_val; }
 
-		// Constructors from primitive integer types
-		//CInt(base_int_type   x) { m_val = x; }
-		CInt(long long  x) { assign_check_range<long long>(x); m_val = static_cast<base_int_type>(x); }
-		CInt(long  x) { assign_check_range< long>(x); m_val = static_cast<base_int_type>(x); }
-		CInt(int   x) { assign_check_range<int>(x); m_val = static_cast<base_int_type>(x); }
-		CInt(short x) { assign_check_range<short>(x); m_val = static_cast<base_int_type>(x); }
-		CInt(char x) { assign_check_range<char>(x); m_val = static_cast<base_int_type>(x); }
-		CInt(size_t   x) { assign_check_range<size_t>(x); m_val = static_cast<base_int_type>(x); }
-		//CInt(CSize_t   x) { assign_check_range<size_t>(x.as_a_size_t()); m_val = x.as_a_size_t(); }
-		/* We would have liked to have constructors for the unsigned primitive integer types, but one of them could
-		potentially clash with the size_t constructor. */
-		//CInt(unsigned long long  x) { assign_check_range<unsigned long long>(x); m_val = static_cast<base_int_type>(x); }
-		//CInt(unsigned long  x) { assign_check_range<unsigned long>(x); m_val = static_cast<base_int_type>(x); }
-		//CInt(unsigned int   x) { assign_check_range<unsigned int>(x); m_val = static_cast<base_int_type>(x); }
-		//CInt(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<base_int_type>(x); }
-		//CInt(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<base_int_type>(x); }
+		TInt operator ~() const { (*this).assert_initialized(); return TInt(~(*this).m_val); }
+		TInt& operator |=(const TInt &x) { (*this).assert_initialized(); (*this).m_val |= x.m_val; return (*this); }
+		TInt& operator &=(const TInt &x) { (*this).assert_initialized(); (*this).m_val &= x.m_val; return (*this); }
+		TInt& operator ^=(const TInt &x) { (*this).assert_initialized(); (*this).m_val ^= x.m_val; return (*this); }
 
-		// Casts to primitive integer types
-		operator base_int_type() const { (*this).assert_initialized(); return m_val; }
+		auto operator -() const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return -MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val); }
+		TInt& operator +=(const TInt &x) { (*this).assert_initialized(); (*this).m_val += x.m_val; return (*this); }
+		TInt& operator -=(const TInt &x) { (*this).assert_initialized(); (*this).m_val -= x.m_val; return (*this); }
+		TInt& operator *=(const TInt &x) { (*this).assert_initialized(); (*this).m_val *= x.m_val; return (*this); }
+		TInt& operator /=(const TInt &x) { (*this).assert_initialized(); (*this).m_val /= x.m_val; return (*this); }
+		TInt& operator %=(const TInt &x) { (*this).assert_initialized(); (*this).m_val %= x.m_val; return (*this); }
+		TInt& operator >>=(const TInt &x) { (*this).assert_initialized(); (*this).m_val >>= x.m_val; return (*this); }
+		TInt& operator <<=(const TInt &x) { (*this).assert_initialized(); (*this).m_val <<= x.m_val; return (*this); }
 
-		CInt operator ~() const { (*this).assert_initialized(); return CInt(~m_val); }
-		CInt& operator |=(const CInt &x) { (*this).assert_initialized(); m_val |= x.m_val; return (*this); }
-		CInt& operator &=(const CInt &x) { (*this).assert_initialized(); m_val &= x.m_val; return (*this); }
-		CInt& operator ^=(const CInt &x) { (*this).assert_initialized(); m_val ^= x.m_val; return (*this); }
+		auto operator +(const TInt &x) const -> MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val) + MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_int_type, base_int_type)(x.m_val)); }
+		template<typename _Ty2>
+		auto operator +(const TInt<_Ty2> &x) const ->MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt<_Ty2>)((*this).m_val) + MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator +(_Ty2 x) const { (*this).assert_initialized(); return ((*this) + TInt<_Ty2>(x)); }
 
-		CInt operator -() const { (*this).assert_initialized(); return CInt(-m_val); }
-		CInt& operator +=(const CInt &x) { (*this).assert_initialized(); m_val += x.m_val; return (*this); }
-		CInt& operator -=(const CInt &x) { (*this).assert_initialized(); m_val -= x.m_val; return (*this); }
-		CInt& operator *=(const CInt &x) { (*this).assert_initialized(); m_val *= x.m_val; return (*this); }
-		CInt& operator /=(const CInt &x) { (*this).assert_initialized(); m_val /= x.m_val; return (*this); }
-		CInt& operator %=(const CInt &x) { (*this).assert_initialized(); m_val %= x.m_val; return (*this); }
-		CInt& operator >>=(const CInt &x) { (*this).assert_initialized(); m_val >>= x.m_val; return (*this); }
-		CInt& operator <<=(const CInt &x) { (*this).assert_initialized(); m_val <<= x.m_val; return (*this); }
+		auto operator -(const TInt &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val) - MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_int_type, base_int_type)(x.m_val)); }
+		template<typename _Ty2>
+		auto operator -(const TInt<_Ty2> &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>)((*this).m_val) - MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator -(_Ty2 x) const { (*this).assert_initialized(); return ((*this) - TInt<_Ty2>(x)); }
 
-		CInt operator +(const CInt &x) const { (*this).assert_initialized(); return CInt(m_val + x.m_val); }
-		CInt operator +(long long x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
-		CInt operator +(long x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
-		CInt operator +(int x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
-		CInt operator +(short x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
-		CInt operator +(char x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
-		CInt operator +(size_t x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
-		//CInt operator +(CSize_t x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
+		auto operator *(const TInt &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val) * MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(base_int_type, base_int_type)(x.m_val)); }
+		template<typename _Ty2>
+		auto operator *(const TInt<_Ty2> &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>)((*this).m_val) * MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator *(_Ty2 x) const { (*this).assert_initialized(); return ((*this) * TInt<_Ty2>(x)); }
 
-		CInt operator -(const CInt &x) const { (*this).assert_initialized(); return CInt(m_val - x.m_val); }
-		CInt operator -(long long x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
-		CInt operator -(long x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
-		CInt operator -(int x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
-		CInt operator -(short x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
-		CInt operator -(char x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
-		CInt operator -(size_t x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
-		//CInt operator -(CSize_t x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
+		auto operator /(const TInt &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val) / MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_int_type, base_int_type)(x.m_val)); }
+		template<typename _Ty2>
+		auto operator /(const TInt<_Ty2> &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>)((*this).m_val) / MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator /(_Ty2 x) const { (*this).assert_initialized(); return ((*this) / TInt<_Ty2>(x)); }
 
-		CInt operator *(const CInt &x) const { (*this).assert_initialized(); return CInt(m_val * x.m_val); }
-		CInt operator *(long long x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
-		CInt operator *(long x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
-		CInt operator *(int x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
-		CInt operator *(short x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
-		CInt operator *(char x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
-		CInt operator *(size_t x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
-		//CInt operator *(CSize_t x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
+		bool operator <(const TInt &x) const { (*this).assert_initialized(); return (((*this).m_val) < (x.m_val)); }
+		template<typename _Ty2>
+		bool operator <(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) < MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator <(_Ty2 x) const { (*this).assert_initialized(); return ((*this) < TInt<_Ty2>(x)); }
 
-		CInt operator /(const CInt &x) const { (*this).assert_initialized(); return CInt(m_val / x.m_val); }
-		CInt operator /(long long x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
-		CInt operator /(long x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
-		CInt operator /(int x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
-		CInt operator /(short x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
-		CInt operator /(char x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
-		CInt operator /(size_t x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
-		//CInt operator /(CSize_t x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
+		bool operator >(const TInt &x) const { (*this).assert_initialized(); return (((*this).m_val) > (x.m_val)); }
+		template<typename _Ty2>
+		bool operator >(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) > MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator >(_Ty2 x) const { (*this).assert_initialized(); return ((*this) > TInt<_Ty2>(x)); }
 
-		bool operator <(const CInt &x) const { (*this).assert_initialized(); return (m_val < x.m_val); }
-		bool operator <(long long x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
-		bool operator <(long x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
-		bool operator <(int x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
-		bool operator <(short x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
-		bool operator <(char x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
-		bool operator <(size_t x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
-		//bool operator <(CSize_t x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
+		bool operator <=(const TInt &x) const { (*this).assert_initialized(); return (((*this).m_val) <= (x.m_val)); }
+		template<typename _Ty2>
+		bool operator <=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) <= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator <=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) <= TInt<_Ty2>(x)); }
 
-		bool operator >(const CInt &x) const { (*this).assert_initialized(); return (m_val > x.m_val); }
-		bool operator >(long long x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
-		bool operator >(long x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
-		bool operator >(int x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
-		bool operator >(short x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
-		bool operator >(char x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
-		bool operator >(size_t x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
-		//bool operator >(CSize_t x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
+		bool operator >=(const TInt &x) const { (*this).assert_initialized(); return (((*this).m_val) >= (x.m_val)); }
+		template<typename _Ty2>
+		bool operator >=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) >= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator >=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) >= TInt<_Ty2>(x)); }
 
-		bool operator <=(const CInt &x) const { (*this).assert_initialized(); return (m_val <= x.m_val); }
-		bool operator <=(long long x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
-		bool operator <=(long x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
-		bool operator <=(int x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
-		bool operator <=(short x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
-		bool operator <=(char x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
-		bool operator <=(size_t x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
-		//bool operator <=(CSize_t x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
+		bool operator ==(const TInt &x) const { (*this).assert_initialized(); return (((*this).m_val) == (x.m_val)); }
+		template<typename _Ty2>
+		bool operator ==(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) == MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator ==(_Ty2 x) const { (*this).assert_initialized(); return ((*this) == TInt<_Ty2>(x)); }
 
-		bool operator >=(const CInt &x) const { (*this).assert_initialized(); return (m_val >= x.m_val); }
-		bool operator >=(long long x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-		bool operator >=(long x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-		bool operator >=(int x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-		bool operator >=(short x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-		bool operator >=(char x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-		bool operator >=(size_t x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-		//bool operator >=(CSize_t x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-
-		bool operator ==(const CInt &x) const { (*this).assert_initialized(); return (m_val == x.m_val); }
-		bool operator ==(long long x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-		bool operator ==(long x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-		bool operator ==(int x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-		bool operator ==(short x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-		bool operator ==(char x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-		bool operator ==(size_t x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-		//bool operator ==(CSize_t x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-
-		bool operator !=(const CInt &x) const { (*this).assert_initialized(); return (m_val != x.m_val); }
-		bool operator !=(long long x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
-		bool operator !=(long x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
-		bool operator !=(int x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
-		bool operator !=(short x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
-		bool operator !=(char x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
-		bool operator !=(size_t x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
-		//bool operator !=(CSize_t x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
+		bool operator !=(const TInt &x) const { (*this).assert_initialized(); return (((*this).m_val) != (x.m_val)); }
+		template<typename _Ty2>
+		bool operator !=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) != MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator !=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) != TInt<_Ty2>(x)); }
 
 		// INCREMENT/DECREMENT OPERATORS
-		CInt& operator ++() { (*this).assert_initialized(); m_val++; return (*this); }
-		CInt operator ++(int) {
+		TInt& operator ++() { (*this).assert_initialized(); (*this).m_val++; return (*this); }
+		TInt operator ++(int) {
 			(*this).assert_initialized();
-			CInt tmp(*this); // copy
+			TInt tmp(*this); // copy
 			operator++(); // pre-increment
 			return tmp;   // return old value
 		}
-		CInt& operator --() {
+		TInt& operator --() {
 			(*this).assert_initialized();
 			if (0 <= std::numeric_limits<base_int_type>::lowest()) {
-				(*this).assert_initialized();
 				(*this) = (*this) - 1; return (*this);
 			}
 			else {
-				(*this).assert_initialized();
-				m_val--; return (*this);
+				(*this).m_val--; return (*this);
 			}
 		}
-		CInt operator --(int) {
+		TInt operator --(int) {
 			(*this).assert_initialized();
-			CInt tmp(*this); // copy
+			TInt tmp(*this); // copy
 			operator--(); // pre-decrement
 			return tmp;   // return old value
 		}
 
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
-		//base_int_type m_val;
+	private:
+		template<typename _Ty2>
+		auto checked_and_adjusted_x(const _Ty2& x) {
+			(*this).template assign_check_range<_Ty2>(x);
+			return static_cast<base_int_type>(x);
+		}
+
+		template<typename _Ty2> friend class TInt;
 	};
 }
 
@@ -444,153 +448,119 @@ namespace std {
 #define _STCONS(ty, name, val)	static constexpr ty name = static_cast<ty>(val)
 #endif // !_STCONS
 
-	template<> class numeric_limits<mse::CInt> {	// limits for type int
+	template<typename _TBaseInt>
+	class numeric_limits<mse::TInt<_TBaseInt>> {	// limits for type int
 	public:
-		typedef MSE_CINT_BASE_INTEGER_TYPE base_int_type;
+		typedef _TBaseInt base_int_type;
 
 		static constexpr base_int_type(min)() _THROW0()
 		{	// return minimum value
-			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::min();
+			return numeric_limits<_TBaseInt>::min();
 		}
 		static constexpr base_int_type(max)() _THROW0()
 		{	// return maximum value
-			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::max();
+			return numeric_limits<_TBaseInt>::max();
 		}
 		static constexpr base_int_type lowest() _THROW0()
 		{	// return most negative value
-			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::lowest();
+			return numeric_limits<_TBaseInt>::lowest();
 		}
 		static constexpr base_int_type epsilon() _THROW0()
 		{	// return smallest effective increment from 1.0
-			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::epsilon();
+			return numeric_limits<_TBaseInt>::epsilon();
 		}
 		static constexpr base_int_type round_error() _THROW0()
 		{	// return largest rounding error
-			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::round_error();
+			return numeric_limits<_TBaseInt>::round_error();
 		}
 		static constexpr base_int_type denorm_min() _THROW0()
 		{	// return minimum denormalized value
-			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::denorm_min();
+			return numeric_limits<_TBaseInt>::denorm_min();
 		}
 		static constexpr base_int_type infinity() _THROW0()
 		{	// return positive infinity
-			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::infinity();
+			return numeric_limits<_TBaseInt>::infinity();
 		}
 		static constexpr base_int_type quiet_NaN() _THROW0()
 		{	// return non-signaling NaN
-			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::quiet_NaN();
+			return numeric_limits<_TBaseInt>::quiet_NaN();
 		}
 		static constexpr base_int_type signaling_NaN() _THROW0()
 		{	// return signaling NaN
-			return numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::signaling_NaN();
+			return numeric_limits<_TBaseInt>::signaling_NaN();
 		}
-		_STCONS(float_denorm_style, has_denorm, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::has_denorm);
-		_STCONS(bool, has_denorm_loss, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::has_denorm_loss);
-		_STCONS(bool, has_infinity, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::has_infinity);
-		_STCONS(bool, has_quiet_NaN, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::has_quiet_NaN);
-		_STCONS(bool, has_signaling_NaN, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::has_signaling_NaN);
-		_STCONS(bool, is_bounded, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_bounded);
-		_STCONS(bool, is_exact, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_exact);
-		_STCONS(bool, is_iec559, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_iec559);
-		_STCONS(bool, is_integer, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_integer);
-		_STCONS(bool, is_modulo, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_modulo);
-		_STCONS(bool, is_signed, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_signed);
-		_STCONS(bool, is_specialized, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::is_specialized);
-		_STCONS(bool, tinyness_before, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::tinyness_before);
-		_STCONS(bool, traps, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::traps);
-		_STCONS(float_round_style, round_style, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::round_style);
-		_STCONS(int, digits, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::digits);
-		_STCONS(int, digits10, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::digits10);
-		_STCONS(int, max_digits10, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::max_digits10);
-		_STCONS(int, max_exponent, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::max_exponent);
-		_STCONS(int, max_exponent10, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::max_exponent10);
-		_STCONS(int, min_exponent, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::min_exponent);
-		_STCONS(int, min_exponent10, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::min_exponent10);
-		_STCONS(int, radix, numeric_limits<MSE_CINT_BASE_INTEGER_TYPE>::radix);
+		_STCONS(float_denorm_style, has_denorm, numeric_limits<_TBaseInt>::has_denorm);
+		_STCONS(bool, has_denorm_loss, numeric_limits<_TBaseInt>::has_denorm_loss);
+		_STCONS(bool, has_infinity, numeric_limits<_TBaseInt>::has_infinity);
+		_STCONS(bool, has_quiet_NaN, numeric_limits<_TBaseInt>::has_quiet_NaN);
+		_STCONS(bool, has_signaling_NaN, numeric_limits<_TBaseInt>::has_signaling_NaN);
+		_STCONS(bool, is_bounded, numeric_limits<_TBaseInt>::is_bounded);
+		_STCONS(bool, is_exact, numeric_limits<_TBaseInt>::is_exact);
+		_STCONS(bool, is_iec559, numeric_limits<_TBaseInt>::is_iec559);
+		_STCONS(bool, is_integer, numeric_limits<_TBaseInt>::is_integer);
+		_STCONS(bool, is_modulo, numeric_limits<_TBaseInt>::is_modulo);
+		_STCONS(bool, is_signed, numeric_limits<_TBaseInt>::is_signed);
+		_STCONS(bool, is_specialized, numeric_limits<_TBaseInt>::is_specialized);
+		_STCONS(bool, tinyness_before, numeric_limits<_TBaseInt>::tinyness_before);
+		_STCONS(bool, traps, numeric_limits<_TBaseInt>::traps);
+		_STCONS(float_round_style, round_style, numeric_limits<_TBaseInt>::round_style);
+		_STCONS(int, digits, numeric_limits<_TBaseInt>::digits);
+		_STCONS(int, digits10, numeric_limits<_TBaseInt>::digits10);
+		_STCONS(int, max_digits10, numeric_limits<_TBaseInt>::max_digits10);
+		_STCONS(int, max_exponent, numeric_limits<_TBaseInt>::max_exponent);
+		_STCONS(int, max_exponent10, numeric_limits<_TBaseInt>::max_exponent10);
+		_STCONS(int, min_exponent, numeric_limits<_TBaseInt>::min_exponent);
+		_STCONS(int, min_exponent10, numeric_limits<_TBaseInt>::min_exponent10);
+		_STCONS(int, radix, numeric_limits<_TBaseInt>::radix);
 	};
 
-	template<>
-	struct hash<mse::CInt> {	// hash functor
-		typedef mse::CInt argument_type;
+	template<typename _TBaseInt>
+	struct hash<mse::TInt<_TBaseInt>> {	// hash functor
+		typedef mse::TInt<_TBaseInt> argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::CInt& _Keyval) const _NOEXCEPT {
-			return (hash<mse::CInt::base_int_type>()(_Keyval));
+		size_t operator()(const mse::TInt<_TBaseInt>& _Keyval) const _NOEXCEPT {
+			return (hash<typename mse::TInt<_TBaseInt>::base_int_type>()(_Keyval));
 		}
 	};
 }
 
 namespace mse {
-	class CSize_t;
-	static size_t as_a_size_t(CSize_t n);
-
-	/* Note that CSize_t does not have a default conversion to size_t. This is by design. Use the as_a_size_t() member
+	/* Note that CNDSize_t does not have a default conversion to size_t. This is by design. Use the as_a_size_t() member
 	function to get a size_t when necessary. */
-	class CSize_t : public TIntBase1<size_t> {
+	class CNDSize_t : public TIntBase1<size_t> {
 	public:
+		typedef TIntBase1<size_t> base_class;
 		typedef size_t base_int_type;
 		typedef int _T_signed_primitive_integer_type;
-		typedef TIntBase1<base_int_type> _Myt;
 
-		// Constructs zero.
-		CSize_t() : _Myt() {}
+		CNDSize_t() : base_class() {}
+		CNDSize_t(const CNDSize_t &x) : base_class(x) {};
+		//CNDSize_t(const base_class &x) : base_class(x) {};
+		/*explicit */CNDSize_t(CNDInt x) : base_class(static_cast<base_int_type>(x)) { (*this).template assign_check_range<CNDInt>(x); }
 
-		// Copy constructor
-		CSize_t(const CSize_t &x) : _Myt(x) {};
-		CSize_t(const _Myt &x) : _Myt(x) {};
+		template<typename _Ty>
+		CNDSize_t(const _Ty& x) : base_class(static_cast<base_int_type>(x)) { (*this).template assign_check_range<_Ty>(x); }
 
-		// Assignment operator
-		CSize_t& operator=(const CSize_t &x) { m_val = x.m_val; return (*this); }
-		//CSize_t& operator=(const base_int_type &x) { m_val = x; return (*this); }
+		CNDSize_t& operator=(const CNDSize_t &x) { (*this).note_value_assignment(); (*this).m_val = x.m_val; return (*this); }
+		template<typename _Ty>
+		CNDSize_t& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = static_cast<base_int_type>(x); return (*this); }
 
-		CSize_t& operator=(long long x) { assign_check_range<long long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		CSize_t& operator=(long x) { assign_check_range<long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		CSize_t& operator=(int x) { assign_check_range<int>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		CSize_t& operator=(short x) { assign_check_range<short>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		CSize_t& operator=(char x) { assign_check_range<char>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		CSize_t& operator=(size_t x) { assign_check_range<size_t>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		CSize_t& operator=(CInt x) { assign_check_range<MSE_CINT_BASE_INTEGER_TYPE>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		/* We would have liked to have assignment operators for the unsigned primitive integer types, but one of them could
-		potentially clash with the size_t assignment operator. */
-		//CSize_t& operator=(unsigned long long x) { assign_check_range<unsigned long long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		//CSize_t& operator=(unsigned long x) { assign_check_range<unsigned long>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		//CSize_t& operator=(unsigned int x) { assign_check_range<unsigned int>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		//CSize_t& operator=(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-		//CSize_t& operator=(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<base_int_type>(x); return (*this); }
-
-		// Constructors from primitive integer types
-		//explicit CSize_t(base_int_type   x) { m_val = x; }
-		explicit CSize_t(long long  x) { assign_check_range<long long>(x); m_val = static_cast<base_int_type>(x); }
-		explicit CSize_t(long  x) { assign_check_range< long>(x); m_val = static_cast<base_int_type>(x); }
-		explicit CSize_t(int   x) { assign_check_range<int>(x); m_val = static_cast<base_int_type>(x); }
-		explicit CSize_t(short x) { assign_check_range<short>(x); m_val = static_cast<base_int_type>(x); }
-		explicit CSize_t(char x) { assign_check_range<char>(x); m_val = static_cast<base_int_type>(x); }
-		CSize_t(size_t   x) { assign_check_range<size_t>(x); m_val = static_cast<base_int_type>(x); }
-		/*explicit */CSize_t(CInt   x) { assign_check_range<MSE_CINT_BASE_INTEGER_TYPE>(x); m_val = static_cast<base_int_type>(x); }
-		/* We would have liked to have constructors for the unsigned primitive integer types, but one of them could
-		potentially clash with the size_t constructor. */
-		//explicit CSize_t(unsigned long long  x) { assign_check_range<unsigned long long>(x); m_val = static_cast<base_int_type>(x); }
-		//explicit CSize_t(unsigned long  x) { assign_check_range<unsigned long>(x); m_val = static_cast<base_int_type>(x); }
-		//explicit CSize_t(unsigned int   x) { assign_check_range<unsigned int>(x); m_val = static_cast<base_int_type>(x); }
-		//explicit CSize_t(unsigned short x) { assign_check_range<unsigned short>(x); m_val = static_cast<base_int_type>(x); }
-		//explicit CSize_t(unsigned char x) { assign_check_range<unsigned char>(x); m_val = static_cast<base_int_type>(x); }
-
-		// Casts to primitive integer types
-		operator CInt() const { (*this).assert_initialized(); return CInt(m_val); }
+		operator CNDInt() const { (*this).assert_initialized(); return CNDInt(m_val); }
 #ifndef MSVC2010_COMPATIBLE
 		explicit operator size_t() const { (*this).assert_initialized(); return (m_val); }
 #endif /*MSVC2010_COMPATIBLE*/
 		//size_t as_a_size_t() const { (*this).assert_initialized(); return m_val; }
 
-		CSize_t operator ~() const { (*this).assert_initialized(); return (~m_val); }
-		CSize_t& operator |=(const CSize_t &x) { (*this).assert_initialized(); m_val |= x.m_val; return (*this); }
-		CSize_t& operator &=(const CSize_t &x) { (*this).assert_initialized(); m_val &= x.m_val; return (*this); }
-		CSize_t& operator ^=(const CSize_t &x) { (*this).assert_initialized(); m_val ^= x.m_val; return (*this); }
+		CNDSize_t operator ~() const { (*this).assert_initialized(); return (~m_val); }
+		CNDSize_t& operator |=(const CNDSize_t &x) { (*this).assert_initialized(); m_val |= x.m_val; return (*this); }
+		CNDSize_t& operator &=(const CNDSize_t &x) { (*this).assert_initialized(); m_val &= x.m_val; return (*this); }
+		CNDSize_t& operator ^=(const CNDSize_t &x) { (*this).assert_initialized(); m_val ^= x.m_val; return (*this); }
 
-		CInt operator -() const { (*this).assert_initialized(); /* Should unsigned types even support this opperator? */
-			return (-(CInt(m_val)));
+		CNDInt operator -() const { (*this).assert_initialized(); /* Should unsigned types even support this operator? */
+			return (-(CNDInt(m_val)));
 		}
-		CSize_t& operator +=(const CSize_t &x) { (*this).assert_initialized(); m_val += x.m_val; return (*this); }
-		CSize_t& operator -=(const CSize_t &x) {
+		CNDSize_t& operator +=(const CNDSize_t &x) { (*this).assert_initialized(); m_val += x.m_val; return (*this); }
+		CNDSize_t& operator -=(const CNDSize_t &x) {
 			(*this).assert_initialized();
 			//assert(0 <= std::numeric_limits<base_int_type>::lowest());
 			if (x.m_val > m_val) {
@@ -598,119 +568,109 @@ namespace mse {
 			}
 			m_val -= x.m_val; return (*this);
 		}
-		CSize_t& operator *=(const CSize_t &x) { (*this).assert_initialized(); m_val *= x.m_val; return (*this); }
-		CSize_t& operator /=(const CSize_t &x) { (*this).assert_initialized(); m_val /= x.m_val; return (*this); }
-		CSize_t& operator %=(const CSize_t &x) { (*this).assert_initialized(); m_val %= x.m_val; return (*this); }
-		CSize_t& operator >>=(const CSize_t &x) { (*this).assert_initialized(); m_val >>= x.m_val; return (*this); }
-		CSize_t& operator <<=(const CSize_t &x) { (*this).assert_initialized(); m_val <<= x.m_val; return (*this); }
+		CNDSize_t& operator *=(const CNDSize_t &x) { (*this).assert_initialized(); m_val *= x.m_val; return (*this); }
+		CNDSize_t& operator /=(const CNDSize_t &x) { (*this).assert_initialized(); m_val /= x.m_val; return (*this); }
+		CNDSize_t& operator %=(const CNDSize_t &x) { (*this).assert_initialized(); m_val %= x.m_val; return (*this); }
+		CNDSize_t& operator >>=(const CNDSize_t &x) { (*this).assert_initialized(); m_val >>= x.m_val; return (*this); }
+		CNDSize_t& operator <<=(const CNDSize_t &x) { (*this).assert_initialized(); m_val <<= x.m_val; return (*this); }
 
-		CSize_t operator +(const CSize_t &x) const { (*this).assert_initialized(); return (m_val + x.m_val); }
-		CInt operator +(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) + x); }
-		CInt operator +(long long x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
-		CInt operator +(long x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
-		CInt operator +(int x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
-		CInt operator +(short x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
-		CInt operator +(char x) const { (*this).assert_initialized(); return ((*this) + CInt(x)); }
-		CSize_t operator +(size_t x) const { (*this).assert_initialized(); return ((*this) + CSize_t(x)); }
+		CNDSize_t operator +(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val + x.m_val); }
+		CNDSize_t operator +(size_t x) const { (*this).assert_initialized(); return ((*this) + CNDSize_t(x)); }
+		template<typename _Ty2>
+		auto operator +(const TInt<_Ty2> &x) const->MSE_TINT_ADD_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_ADD_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)((*this).m_val) + MSE_TINT_ADD_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator +(_Ty2 x) const { (*this).assert_initialized(); return ((*this) + TInt<_Ty2>(x)); }
 
-		CInt operator -(const CSize_t &x) const { (*this).assert_initialized(); return (CInt(m_val) - CInt(x.m_val)); }
-		CInt operator -(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) - x); }
-		CInt operator -(long long x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
-		CInt operator -(long x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
-		CInt operator -(int x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
-		CInt operator -(short x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
-		CInt operator -(char x) const { (*this).assert_initialized(); return ((*this) - CInt(x)); }
-		CInt operator -(size_t x) const { (*this).assert_initialized(); return ((*this) - CSize_t(x)); }
+		CNDInt operator -(const CNDSize_t &x) const { (*this).assert_initialized(); return (CNDInt(m_val) - CNDInt(x.m_val)); }
+		CNDInt operator -(const CNDInt &x) const { (*this).assert_initialized(); return (CNDInt(m_val) - x); }
+		CNDInt operator -(size_t x) const { (*this).assert_initialized(); return ((*this) - CNDSize_t(x)); }
+		template<typename _Ty2>
+		auto operator -(const TInt<_Ty2> &x) const->MSE_TINT_SUBTRACT_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_SUBTRACT_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)((*this).m_val) - MSE_TINT_SUBTRACT_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator -(_Ty2 x) const { (*this).assert_initialized(); return ((*this) - TInt<_Ty2>(x)); }
 
-		CSize_t operator *(const CSize_t &x) const { (*this).assert_initialized(); return (m_val * x.m_val); }
-		CInt operator *(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) * x); }
-		CInt operator *(long long x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
-		CInt operator *(long x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
-		CInt operator *(int x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
-		CInt operator *(short x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
-		CInt operator *(char x) const { (*this).assert_initialized(); return ((*this) * CInt(x)); }
-		CSize_t operator *(size_t x) const { (*this).assert_initialized(); return ((*this) * CSize_t(x)); }
+		CNDSize_t operator *(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val * x.m_val); }
+		CNDInt operator *(const CNDInt &x) const { (*this).assert_initialized(); return (CNDInt(m_val) * x); }
+		CNDSize_t operator *(size_t x) const { (*this).assert_initialized(); return ((*this) * CNDSize_t(x)); }
+		template<typename _Ty2>
+		auto operator *(const TInt<_Ty2> &x) const->MSE_TINT_MULTIPLY_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_MULTIPLY_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)((*this).m_val) * MSE_TINT_MULTIPLY_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator *(_Ty2 x) const { (*this).assert_initialized(); return ((*this) * TInt<_Ty2>(x)); }
 
-		CSize_t operator /(const CSize_t &x) const { (*this).assert_initialized(); return (m_val / x.m_val); }
-		CInt operator /(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) / x); }
-		CInt operator /(long long x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
-		CInt operator /(long x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
-		CInt operator /(int x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
-		CInt operator /(short x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
-		CInt operator /(char x) const { (*this).assert_initialized(); return ((*this) / CInt(x)); }
-		CSize_t operator /(size_t x) const { (*this).assert_initialized(); return ((*this) / CSize_t(x)); }
+		CNDSize_t operator /(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val / x.m_val); }
+		CNDInt operator /(const CNDInt &x) const { (*this).assert_initialized(); return (CNDInt(m_val) / x); }
+		CNDSize_t operator /(size_t x) const { (*this).assert_initialized(); return ((*this) / CNDSize_t(x)); }
+		template<typename _Ty2>
+		auto operator /(const TInt<_Ty2> &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_DIVIDE_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)((*this).m_val) / MSE_TINT_DIVIDE_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator /(_Ty2 x) const { (*this).assert_initialized(); return ((*this) / TInt<_Ty2>(x)); }
 
-		bool operator <(const CSize_t &x) const { (*this).assert_initialized(); return (m_val < x.m_val); }
-		bool operator <(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) < x); }
-		bool operator <(long long x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
-		bool operator <(long x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
-		bool operator <(int x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
-		bool operator <(short x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
-		bool operator <(char x) const { (*this).assert_initialized(); return ((*this) < CInt(x)); }
-		bool operator <(size_t x) const { (*this).assert_initialized(); return ((*this) < CSize_t(x)); }
+		bool operator <(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val < x.m_val); }
+		bool operator <(const CNDInt &x) const { (*this).assert_initialized(); return (CNDInt(m_val) < x); }
+		bool operator <(size_t x) const { (*this).assert_initialized(); return ((*this) < CNDSize_t(x)); }
+		template<typename _Ty2>
+		bool operator <(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)((*this).m_val) < MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator <(_Ty2 x) const { (*this).assert_initialized(); return ((*this) < TInt<_Ty2>(x)); }
 
-		bool operator >(const CSize_t &x) const { (*this).assert_initialized(); return (m_val > x.m_val); }
-		bool operator >(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) > x); }
-		bool operator >(long long x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
-		bool operator >(long x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
-		bool operator >(int x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
-		bool operator >(short x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
-		bool operator >(char x) const { (*this).assert_initialized(); return ((*this) > CInt(x)); }
-		bool operator >(size_t x) const { (*this).assert_initialized(); return ((*this) > CSize_t(x)); }
+		bool operator >(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val > x.m_val); }
+		bool operator >(const CNDInt &x) const { (*this).assert_initialized(); return (CNDInt(m_val) > x); }
+		bool operator >(size_t x) const { (*this).assert_initialized(); return ((*this) > CNDSize_t(x)); }
+		template<typename _Ty2>
+		bool operator >(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)((*this).m_val) > MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator >(_Ty2 x) const { (*this).assert_initialized(); return ((*this) > TInt<_Ty2>(x)); }
 
-		bool operator <=(const CSize_t &x) const { (*this).assert_initialized(); return (m_val <= x.m_val); }
-		bool operator <=(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) <= x); }
-		bool operator <=(long long x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
-		bool operator <=(long x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
-		bool operator <=(int x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
-		bool operator <=(short x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
-		bool operator <=(char x) const { (*this).assert_initialized(); return ((*this) <= CInt(x)); }
-		bool operator <=(size_t x) const { (*this).assert_initialized(); return ((*this) <= CSize_t(x)); }
+		bool operator <=(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val <= x.m_val); }
+		bool operator <=(const CNDInt &x) const { (*this).assert_initialized(); return (CNDInt(m_val) <= x); }
+		bool operator <=(size_t x) const { (*this).assert_initialized(); return ((*this) <= CNDSize_t(x)); }
+		template<typename _Ty2>
+		bool operator <=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)((*this).m_val) <= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator <=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) <= TInt<_Ty2>(x)); }
 
-		bool operator >=(const CSize_t &x) const { (*this).assert_initialized(); return (m_val >= x.m_val); }
-		bool operator >=(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) >= x); }
-		bool operator >=(long long x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-		bool operator >=(long x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-		bool operator >=(int x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-		bool operator >=(short x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-		bool operator >=(char x) const { (*this).assert_initialized(); return ((*this) >= CInt(x)); }
-		bool operator >=(size_t x) const { (*this).assert_initialized(); return ((*this) >= CSize_t(x)); }
+		bool operator >=(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val >= x.m_val); }
+		bool operator >=(const CNDInt &x) const { (*this).assert_initialized(); return (CNDInt(m_val) >= x); }
+		bool operator >=(size_t x) const { (*this).assert_initialized(); return ((*this) >= CNDSize_t(x)); }
+		template<typename _Ty2>
+		bool operator >=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)((*this).m_val) >= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator >=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) >= TInt<_Ty2>(x)); }
 
-		bool operator ==(const CSize_t &x) const { (*this).assert_initialized(); return (m_val == x.m_val); }
-		bool operator ==(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) == x); }
-		bool operator ==(long long x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-		bool operator ==(long x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-		bool operator ==(int x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-		bool operator ==(short x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-		bool operator ==(char x) const { (*this).assert_initialized(); return ((*this) == CInt(x)); }
-		bool operator ==(size_t x) const { (*this).assert_initialized(); return ((*this) == CSize_t(x)); }
+		bool operator ==(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val == x.m_val); }
+		bool operator ==(const CNDInt &x) const { (*this).assert_initialized(); return (CNDInt(m_val) == x); }
+		bool operator ==(size_t x) const { (*this).assert_initialized(); return ((*this) == CNDSize_t(x)); }
+		template<typename _Ty2>
+		bool operator ==(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)((*this).m_val) == MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator ==(_Ty2 x) const { (*this).assert_initialized(); return ((*this) == TInt<_Ty2>(x)); }
 
-		bool operator !=(const CSize_t &x) const { (*this).assert_initialized(); return (m_val != x.m_val); }
-		bool operator !=(const CInt &x) const { (*this).assert_initialized(); return (CInt(m_val) != x); }
-		bool operator !=(long long x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
-		bool operator !=(long x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
-		bool operator !=(int x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
-		bool operator !=(short x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
-		bool operator !=(char x) const { (*this).assert_initialized(); return ((*this) != CInt(x)); }
-		bool operator !=(size_t x) const { (*this).assert_initialized(); return ((*this) != CSize_t(x)); }
+		bool operator !=(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val != x.m_val); }
+		bool operator !=(const CNDInt &x) const { (*this).assert_initialized(); return (CNDInt(m_val) != x); }
+		bool operator !=(size_t x) const { (*this).assert_initialized(); return ((*this) != CNDSize_t(x)); }
+		template<typename _Ty2>
+		bool operator !=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)((*this).m_val) != MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator !=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) != TInt<_Ty2>(x)); }
 
 		// INCREMENT/DECREMENT OPERATORS
-		CSize_t& operator ++() { (*this).assert_initialized(); m_val++; return (*this); }
-		CSize_t operator ++(int) { (*this).assert_initialized();
-			CSize_t tmp(*this); // copy
+		CNDSize_t& operator ++() { (*this).assert_initialized(); m_val++; return (*this); }
+		CNDSize_t operator ++(int) { (*this).assert_initialized();
+			CNDSize_t tmp(*this); // copy
 			operator++(); // pre-increment
 			return tmp;   // return old value
 		}
-		CSize_t& operator --() { (*this).assert_initialized();
-			if (0 <= std::numeric_limits<base_int_type>::lowest()) { (*this).assert_initialized();
+		CNDSize_t& operator --() { (*this).assert_initialized();
+		(*this).assert_initialized();
+		if (0 <= std::numeric_limits<base_int_type>::lowest()) {
 				(*this) = (*this) - 1; return (*this);
 			}
-			else { (*this).assert_initialized();
+			else {
 				m_val--; return (*this);
 			}
 		}
-		CSize_t operator --(int) { (*this).assert_initialized();
-			CSize_t tmp(*this); // copy
+		CNDSize_t operator --(int) { (*this).assert_initialized();
+			CNDSize_t tmp(*this); // copy
 			operator--(); // pre-decrement
 			return tmp;   // return old value
 		}
@@ -719,9 +679,9 @@ namespace mse {
 
 		//base_int_type m_val;
 
-		friend size_t as_a_size_t(CSize_t n);
+		friend size_t as_a_size_t(CNDSize_t n);
 	};
-	size_t as_a_size_t(CSize_t n) { n.assert_initialized(); return n.m_val; }
+	size_t as_a_size_t(CNDSize_t n) { n.assert_initialized(); return n.m_val; }
 }
 
 namespace std {
@@ -732,7 +692,7 @@ namespace std {
 #define _STCONS(ty, name, val)	static constexpr ty name = (ty)(val)
 #endif // !_STCONS
 
-	template<> class numeric_limits<mse::CSize_t> {	// limits for type int
+	template<> class numeric_limits<mse::CNDSize_t> {	// limits for type int
 	public:
 		typedef size_t base_int_type;
 
@@ -798,80 +758,81 @@ namespace std {
 	};
 
 	template<>
-	struct hash<mse::CSize_t> {	// hash functor
-		typedef mse::CSize_t argument_type;
+	struct hash<mse::CNDSize_t> {	// hash functor
+		typedef mse::CNDSize_t argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::CSize_t& _Keyval) const _NOEXCEPT {
-			return (hash<mse::CSize_t::base_int_type>()(mse::as_a_size_t(_Keyval)));
+		size_t operator()(const mse::CNDSize_t& _Keyval) const _NOEXCEPT {
+			return (hash<mse::CNDSize_t::base_int_type>()(mse::as_a_size_t(_Keyval)));
 		}
 	};
 }
 
 namespace mse {
 
-	inline CInt operator+(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); rhs.assert_initialized(); return CSize_t(lhs) + rhs; }
-	inline CSize_t operator+(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) + rhs; }
-	inline CInt operator+(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) + rhs; }
-	inline CInt operator+(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) + as_a_size_t(rhs); }
-	inline CInt operator+(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs + as_a_size_t(rhs); }
-	inline CInt operator-(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) - rhs; }
-	inline CInt operator-(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) - rhs; }
-	inline CInt operator-(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) - rhs; }
-	inline CInt operator-(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) - as_a_size_t(rhs); }
-	inline CInt operator-(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs - as_a_size_t(rhs); }
-	inline CInt operator*(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) * rhs; }
-	inline CSize_t operator*(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) * rhs; }
-	inline CInt operator*(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) * rhs; }
-	inline CInt operator*(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) * as_a_size_t(rhs); }
-	inline CInt operator*(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs * as_a_size_t(rhs); }
-	inline CInt operator/(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) / rhs; }
-	inline CSize_t operator/(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) / rhs; }
-	inline CInt operator/(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) / rhs; }
-	inline CInt operator/(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) / as_a_size_t(rhs); }
-	inline CInt operator/(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs / as_a_size_t(rhs); }
+	inline bool operator==(bool lhs, CNDBool rhs) { rhs.assert_initialized(); return CNDBool(lhs) == rhs; }
+	inline bool operator!=(bool lhs, CNDBool rhs) { rhs.assert_initialized(); return CNDBool(lhs) != rhs; }
 
-	inline bool operator<(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) < rhs; }
-	inline bool operator<(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) < rhs; }
-	inline bool operator<(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) < rhs; }
-	inline bool operator<(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) < as_a_size_t(rhs); }
-	inline bool operator<(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) < rhs; }
-	inline bool operator<(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) < as_a_size_t(rhs); }
-	inline bool operator<(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs < as_a_size_t(rhs); }
-	inline bool operator>(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) > rhs; }
-	inline bool operator>(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) > rhs; }
-	inline bool operator>(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) > rhs; }
-	inline bool operator>(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) > as_a_size_t(rhs); }
-	inline bool operator>(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) > rhs; }
-	inline bool operator>(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) > as_a_size_t(rhs); }
-	inline bool operator>(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs > as_a_size_t(rhs); }
-	inline bool operator<=(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) <= rhs; }
-	inline bool operator<=(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) <= rhs; }
-	inline bool operator<=(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) <= rhs; }
-	inline bool operator<=(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) <= as_a_size_t(rhs); }
-	inline bool operator<=(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) <= rhs; }
-	inline bool operator<=(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) <= as_a_size_t(rhs); }
-	inline bool operator<=(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs <= as_a_size_t(rhs); }
-	inline bool operator>=(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) >= rhs; }
-	inline bool operator>=(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) >= rhs; }
-	inline bool operator>=(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) >= rhs; }
-	inline bool operator>=(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) >= as_a_size_t(rhs); }
-	inline bool operator>=(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) >= rhs; }
-	inline bool operator>=(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) >= as_a_size_t(rhs); }
-	inline bool operator>=(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs >= as_a_size_t(rhs); }
-	inline bool operator==(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) == rhs; }
-	inline bool operator==(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) == rhs; }
-	inline bool operator==(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) == rhs; }
-	inline bool operator==(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) == as_a_size_t(rhs); }
-	inline bool operator==(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) == rhs; }
-	inline bool operator==(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) == as_a_size_t(rhs); }
-	inline bool operator==(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs == as_a_size_t(rhs); }
-	inline bool operator!=(size_t lhs, const CInt &rhs) { rhs.assert_initialized(); return CSize_t(lhs) != rhs; }
-	inline bool operator!=(size_t lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CSize_t(lhs) != rhs; }
-	inline bool operator!=(int lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) != rhs; }
-	inline bool operator!=(int lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) != as_a_size_t(rhs); }
-	inline bool operator!=(long long lhs, const CInt &rhs) { rhs.assert_initialized(); return CInt(lhs) != rhs; }
-	inline bool operator!=(long long lhs, const CSize_t &rhs) { rhs.assert_initialized(); return CInt(lhs) != as_a_size_t(rhs); }
-	inline bool operator!=(const CInt &lhs, const CSize_t &rhs) { rhs.assert_initialized(); return lhs != as_a_size_t(rhs); }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator+(_Tz lhs, const TInt<_Ty> &rhs) { return rhs + lhs; }
+	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator+(_Tz lhs, const CNDSize_t &rhs) { return rhs + lhs; }
+
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator-(_Tz lhs, const TInt<_Ty> &rhs) { return -(rhs - lhs); }
+	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator-(_Tz lhs, const CNDSize_t &rhs) { return lhs - CNDInt(rhs); }
+
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator*(_Tz lhs, const TInt<_Ty> &rhs) { return rhs * lhs; }
+	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator*(_Tz lhs, const CNDSize_t &rhs) { return rhs * lhs; }
+
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator/(_Tz lhs, const TInt<_Ty> &rhs) { return CNDInt(lhs) / rhs; }
+	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator/(_Tz lhs, const CNDSize_t &rhs) { return CNDInt(lhs) / rhs; }
+
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator<(_Tz lhs, const TInt<_Ty> &rhs) { return rhs > lhs; }
+	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator<(_Tz lhs, const CNDSize_t &rhs) { return rhs > lhs; }
+
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator>(_Tz lhs, const TInt<_Ty> &rhs) { return rhs < lhs; }
+	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator>(_Tz lhs, const CNDSize_t &rhs) { return rhs < lhs; }
+
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator<=(_Tz lhs, const TInt<_Ty> &rhs) { return rhs >= lhs; }
+	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator<=(_Tz lhs, const CNDSize_t &rhs) { return rhs >= lhs; }
+
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator>=(_Tz lhs, const TInt<_Ty> &rhs) { return rhs <= lhs; }
+	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator>=(_Tz lhs, const CNDSize_t &rhs) { return rhs <= lhs; }
+
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator==(_Tz lhs, const TInt<_Ty> &rhs) { return rhs == lhs; }
+	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator==(_Tz lhs, const CNDSize_t &rhs) { return rhs == lhs; }
+
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator!=(_Tz lhs, const TInt<_Ty> &rhs) { return rhs != lhs; }
+	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator!=(_Tz lhs, const CNDSize_t &rhs) { return rhs != lhs; }
+
+#ifdef MSE_PRIMITIVES_DISABLED
+	typedef bool CBool;
+	typedef MSE_CINT_BASE_INTEGER_TYPE CInt;
+	typedef size_t CSize_t;
+	static size_t as_a_size_t(CSize_t n) { return (n); }
+#else /*MSE_PRIMITIVES_DISABLED*/
+
+	typedef CNDBool CBool;
+	typedef CNDInt CInt;
+	typedef CNDSize_t CSize_t;
+
 #endif /*MSE_PRIMITIVES_DISABLED*/
 
 	class CPrimitivesTest1 {
@@ -916,10 +877,7 @@ namespace mse {
 			b3 = (szt1 == szt2);
 			b3 = (szt1 == 17);
 			b3 = (19 == szt1);
-			CBool b4 = (b1 < b2);
-			b4 = (b1 == b2);
-			b4 = (b1 > b3);
-			b4 = (b3 >= b1);
+			CBool b4 = (b1 == b2);
 			b4 = (b3 == b1);
 			b4 = (b1 && b2);
 			b4 = (b1 || b3);
