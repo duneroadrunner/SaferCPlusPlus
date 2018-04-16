@@ -787,7 +787,7 @@ namespace mse {
 
 			TXScopeReturnableItemFixedPointerFParam(const TXScopeReturnableItemFixedPointerFParam& src_cref) = default;
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeReturnableItemFixedPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedPointer<_Ty>(static_cast<const TXScopeItemFixedPointer<_Ty2>&>(src_cref)) {}
+			TXScopeReturnableItemFixedPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeReturnableItemFixedPointerFParamBase<_Ty>(static_cast<const TXScopeItemFixedPointer<_Ty2>&>(src_cref)) {}
 
 			virtual ~TXScopeReturnableItemFixedPointerFParam() {}
 
@@ -810,11 +810,11 @@ namespace mse {
 
 			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedConstPointerFParam<_Ty>& src_cref) = default;
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedConstPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(static_cast<const TXScopeItemFixedConstPointer<_Ty2>&>(src_cref)) {}
+			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedConstPointerFParam<_Ty2>& src_cref) : TXScopeReturnableItemFixedConstPointerFParamBase<_Ty>(static_cast<const TXScopeItemFixedConstPointer<_Ty2>&>(src_cref)) {}
 
-			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(src_cref) {}
+			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty>& src_cref) : TXScopeReturnableItemFixedConstPointerFParamBase<_Ty>(src_cref) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeItemFixedConstPointer<_Ty>(TXScopeItemFixedConstPointer<_Ty2>(src_cref)) {}
+			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeReturnableItemFixedConstPointerFParamBase<_Ty>(TXScopeReturnableItemFixedConstPointerFParamBase<_Ty2>(src_cref)) {}
 
 			virtual ~TXScopeReturnableItemFixedConstPointerFParam() {}
 
