@@ -47,11 +47,7 @@ mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
 #define MSE_SCOPEPOINTER_DISABLED
 #endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
-#ifdef NDEBUG
-#ifndef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
-//define MSE_SCOPEPOINTER_DISABLED
-#endif // !MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
-#endif // NDEBUG
+/* Note that by default, MSE_SCOPEPOINTER_DISABLED is defined in non-debug builds. This is enacted in "msepointerbasics.h". */
 
 #ifndef _NOEXCEPT
 #define _NOEXCEPT

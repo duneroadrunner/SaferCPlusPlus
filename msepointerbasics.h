@@ -39,6 +39,13 @@
 #define MSE_SAFERPTR_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
+#ifdef NDEBUG
+#ifndef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+/* By default we make scope pointers simply an alias for native pointers in non-debug builds. */
+#define MSE_SCOPEPOINTER_DISABLED
+#endif // !MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // NDEBUG
+
 #if defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
 #define MSE_CONSTEXPR
 #else // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
