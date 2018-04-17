@@ -1735,6 +1735,11 @@ namespace mse {
 			return (m_array < _Right.m_array);
 		}
 
+		template<class _Ty2, class _Traits2>
+		std::basic_ostream<_Ty2, _Traits2>& write(std::basic_ostream<_Ty2, _Traits2>& _Ostr) const {
+			return _Ostr.write(reinterpret_cast<const char *>((*this).contained_array().data()), mse::msear_as_a_size_t(sizeof(_Ty) * (*this).size()));
+		}
+
 		/* This array is safely "async shareable" if the elements it contains are also "async shareable". */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
 			(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()) || (std::is_arithmetic<_Ty2>::value)

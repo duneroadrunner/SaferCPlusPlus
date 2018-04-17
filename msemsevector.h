@@ -264,7 +264,7 @@ namespace mse {
 			valid_if_Ty_is_not_an_xscope_type();
 		}
 
-		operator _MV() const { return this->contained_basic_string(); }
+		operator _MV() const { return this->contained_vector(); }
 
 		void reserve(size_type _Count)
 		{	// determine new minimum length of allocated storage
@@ -1442,6 +1442,11 @@ namespace mse {
 		}
 		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for vectors
 			return (m_vector < _Right.m_vector);
+		}
+
+		template<class _Ty2, class _Traits2>
+		std::basic_ostream<_Ty2, _Traits2>& write(std::basic_ostream<_Ty2, _Traits2>& _Ostr) const {
+			return _Ostr.write(reinterpret_cast<const char *>((*this).contained_vector().data()), mse::msev_as_a_size_t(sizeof(_Ty) * (*this).size()));
 		}
 
 		/* This vector is safely "async shareable" if the elements it contains are also "async shareable". */
