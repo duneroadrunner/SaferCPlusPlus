@@ -1736,7 +1736,7 @@ namespace mse {
 		}
 
 		template<class _Ty2, class _Traits2>
-		std::basic_ostream<_Ty2, _Traits2>& write(std::basic_ostream<_Ty2, _Traits2>& _Ostr) const {
+		std::basic_ostream<_Ty2, _Traits2>& write_bytes(std::basic_ostream<_Ty2, _Traits2>& _Ostr) const {
 			return _Ostr.write(reinterpret_cast<const char *>((*this).contained_array().data()), mse::msear_as_a_size_t(sizeof(_Ty) * (*this).size()));
 		}
 
