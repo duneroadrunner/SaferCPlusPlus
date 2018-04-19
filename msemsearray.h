@@ -4846,12 +4846,7 @@ namespace mse {
 			), void>::type>
 			void valid_if_TROy_is_not_marked_as_unshareable() const {}
 
-		TAsyncShareableObj* operator&() {
-			return this;
-		}
-		const TAsyncShareableObj* operator&() const {
-			return this;
-		}
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 	/* TAsyncPassableObj is intended as a transparent wrapper for other classes/objects. */
@@ -4883,12 +4878,7 @@ namespace mse {
 			), void>::type>
 			void valid_if_TROy_is_not_marked_as_unpassable() const {}
 
-		TAsyncPassableObj* operator&() {
-			return this;
-		}
-		const TAsyncPassableObj* operator&() const {
-			return this;
-		}
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 	namespace us {
