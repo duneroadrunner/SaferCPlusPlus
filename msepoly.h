@@ -1124,8 +1124,8 @@ namespace std {
 
 namespace mse {
 
-	template <typename _Ty> using TRandomAccessIteratorStdBase = typename mse::us::msearray<_Ty, 0>::random_access_iterator_base;
-	template <typename _Ty> using TRandomAccessConstIteratorStdBase = typename mse::us::msearray<_Ty, 0>::random_access_const_iterator_base;
+	template <typename _Ty> using TRandomAccessIteratorStdBase = random_access_iterator_base<_Ty>;
+	template <typename _Ty> using TRandomAccessConstIteratorStdBase = random_access_const_iterator_base<_Ty>;
 
 	template <typename _Ty>
 	class TCommonRandomAccessIteratorInterface : public TRandomAccessIteratorStdBase<_Ty> {

@@ -244,9 +244,9 @@ namespace mse {
 			class xscope_const_iterator;
 			class xscope_iterator;
 
-			class const_iterator : public _MA::random_access_const_iterator_base {
+			class const_iterator : public _MA::na_const_iterator_base {
 			public:
-				typedef typename _MA::random_access_const_iterator_base base_class;
+				typedef typename _MA::na_const_iterator_base base_class;
 				typedef typename base_class::iterator_category iterator_category;
 				typedef typename base_class::value_type value_type;
 				typedef typename base_class::difference_type difference_type;
@@ -322,9 +322,9 @@ namespace mse {
 				friend class iterator;
 				friend class xscope_const_iterator;
 			};
-			class iterator : public _MA::random_access_iterator_base {
+			class iterator : public _MA::na_iterator_base {
 			public:
-				typedef typename _MA::random_access_iterator_base base_class;
+				typedef typename _MA::na_iterator_base base_class;
 				typedef typename base_class::iterator_category iterator_category;
 				typedef typename base_class::value_type value_type;
 				typedef typename base_class::difference_type difference_type;
@@ -468,9 +468,9 @@ namespace mse {
 				return (m_nii_array < _Right.m_nii_array);
 			}
 
-			class xscope_const_iterator : public _MA::random_access_const_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+			class xscope_const_iterator : public _MA::na_const_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 			public:
-				typedef typename _MA::random_access_const_iterator_base base_class;
+				typedef typename _MA::na_const_iterator_base base_class;
 				typedef typename base_class::iterator_category iterator_category;
 				typedef typename base_class::value_type value_type;
 				typedef typename base_class::difference_type difference_type;
@@ -575,9 +575,9 @@ namespace mse {
 				typename _MA::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 				friend class /*_Myt*/array<_Ty, _Size>;
 			};
-			class xscope_iterator : public _MA::random_access_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+			class xscope_iterator : public _MA::na_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 			public:
-				typedef typename _MA::random_access_iterator_base base_class;
+				typedef typename _MA::na_iterator_base base_class;
 				typedef typename base_class::iterator_category iterator_category;
 				typedef typename base_class::value_type value_type;
 				typedef typename base_class::difference_type difference_type;

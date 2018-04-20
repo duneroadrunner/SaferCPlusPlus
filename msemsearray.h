@@ -1702,30 +1702,11 @@ namespace mse {
 		}
 		*/
 
-		//class random_access_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
-		//class random_access_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+		//class na_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
+		//class na_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
 
-		typedef mse::random_access_const_iterator_base<_Ty> random_access_const_iterator_base;
-		typedef mse::random_access_iterator_base<_Ty> random_access_iterator_base;
-
-		/*
-		class random_access_const_iterator_base {
-		public:
-			using iterator_category = std::random_access_iterator_tag;
-			using value_type = typename _Myt::value_type;
-			using difference_type = typename _Myt::difference_type;
-			using pointer = typename _Myt::const_pointer;
-			using reference = typename _Myt::const_reference;
-		};
-		class random_access_iterator_base {
-		public:
-			using iterator_category = std::random_access_iterator_tag;
-			using value_type = typename _Myt::value_type;
-			using difference_type = typename _Myt::difference_type;
-			using pointer = typename _Myt::pointer;
-			using reference = typename _Myt::reference;
-		};
-		*/
+		typedef mse::random_access_const_iterator_base<_Ty> na_const_iterator_base;
+		typedef mse::random_access_iterator_base<_Ty> na_iterator_base;
 
 		template<typename _TArrayConstPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayConstPointer>::value), void>::type>
 		using Tss_const_iterator_type = Tnii_array_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
