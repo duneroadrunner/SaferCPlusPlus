@@ -249,6 +249,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="msealgorithm.h" />
     <ClInclude Include="mseany.h" />
     <ClInclude Include="mseasyncshared.h" />
     <ClInclude Include="mseivector.h" />
