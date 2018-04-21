@@ -1801,8 +1801,20 @@ namespace mse {
 		}
 
 		template<class _Ty2, class _Traits2>
+		std::basic_ostream<_Ty2, _Traits2>& write_bytes(std::basic_ostream<_Ty2, _Traits2>& _Ostr, size_type byte_count, const size_type byte_start_offset = 0) const {
+			const auto array_size_in_bytes = mse::msear_as_a_size_t(sizeof(_Ty) * (*this).size());
+			auto byte_ptr = reinterpret_cast<const char *>((*this).contained_array().data());
+			if ((array_size_in_bytes <= byte_start_offset) || (0 >= byte_count)) {
+				return _Ostr;
+			}
+			else {
+				byte_ptr += mse::msear_as_a_size_t(byte_start_offset);
+				return _Ostr.write(byte_ptr, std::min(mse::msear_as_a_size_t(array_size_in_bytes - byte_start_offset), mse::msear_as_a_size_t(byte_count)));
+			}
+		}
+		template<class _Ty2, class _Traits2>
 		std::basic_ostream<_Ty2, _Traits2>& write_bytes(std::basic_ostream<_Ty2, _Traits2>& _Ostr) const {
-			return _Ostr.write(reinterpret_cast<const char *>((*this).contained_array().data()), mse::msear_as_a_size_t(sizeof(_Ty) * (*this).size()));
+			return write_bytes(_Ostr, mse::msear_as_a_size_t(sizeof(_Ty) * (*this).size()));
 		}
 
 		/* This array is safely "async shareable" if the elements it contains are also "async shareable". */
