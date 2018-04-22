@@ -32,7 +32,6 @@
 
 #include "msescope.h"
 #include "mseoptional.h"
-#include "msealgorithm.h"
 #include <array>
 #include <assert.h>
 #include <memory>
@@ -2021,74 +2020,6 @@ namespace std {
 }
 
 namespace mse {
-
-	namespace impl {
-
-		template<class _Pr, class _Ty, size_t _Size, class _TStateMutex>
-		class c_find_if<Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>, _Pr> {
-		public:
-			typedef Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> _InIt;
-			typedef decltype(std::find_if(std::declval<_InIt>(), std::declval<_InIt>(), std::declval<_Pr>())) result_type;
-			result_type result;
-			c_find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred)
-				: result(construction_helper1(_First, _Last, _Pred)) {}
-		private:
-			auto construction_helper1(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
-				auto raw_pair = us::iterator_pair_to_raw_pointers_checked(_First, _Last);
-				/* If (_Last <= _First) the returned raw pointers will both have nullptr value. The C++ spec suggests this'll
-				work just fine. Apparently. */
-				auto raw_result = std::find_if(raw_pair.first, raw_pair.second, _Pred);
-				return _First + (raw_result - raw_pair.first);
-			}
-		};
-
-		/*
-		template<class _Pr>
-		class c_find_if<typename mse::nii_array<int, 3>::xscope_const_iterator, _Pr> {
-		public:
-			typedef typename mse::nii_array<int, 3>::xscope_const_iterator _InIt;
-			typedef decltype(std::find_if(std::declval<_InIt>(), std::declval<_InIt>(), std::declval<_Pr>())) result_type;
-			result_type result;
-			c_find_if(typename mse::nii_array<int, 3>::xscope_const_iterator _First
-				, typename mse::nii_array<int, 3>::xscope_const_iterator _Last, _Pr _Pred)
-				: result(construction_helper1(_First, _Last, _Pred)) {}
-		private:
-			auto construction_helper1(typename mse::nii_array<int, 3>::xscope_const_iterator _First
-				, typename mse::nii_array<int, 3>::xscope_const_iterator _Last, _Pr _Pred) {
-				auto raw_pair = us::iterator_pair_to_raw_pointers(_First, _Last);
-				auto raw_result = std::find_if(raw_pair.first, raw_pair.second, _Pred);
-				return _First + (raw_result - raw_pair.first);
-			}
-		};
-		*/
-
-		/*
-		template<class _Ty, size_t _Size, class _Pr>
-		class c_find_if<typename mse::nii_array<_Ty, _Size>::xscope_const_iterator, _Pr> {
-		public:
-		typedef typename mse::nii_array<_Ty, _Size>::xscope_const_iterator _InIt;
-		typedef decltype(std::find_if(std::declval<_InIt>(), std::declval<_InIt>(), std::declval<_Pr>())) result_type;
-		result_type result;
-		c_find_if(typename mse::nii_array<_Ty, _Size>::xscope_const_iterator _First
-		, typename mse::nii_array<_Ty, _Size>::xscope_const_iterator _Last, _Pr _Pred) {
-		auto raw_pair = us::iterator_pair_to_raw_pointers(_First, _Last);
-		result = std::find_if(raw_pair.first, raw_pair.second, _Pred);
-		}
-		};
-		*/
-
-		/*
-		template<class _Ty, class _Pr>
-		class c_find_if<mse::nii_array<_Ty>::xscope_const_iterator, _Pr> {
-		public:
-		typedef mse::nii_array<_Ty>::xscope_const_iterator _InIt;
-		static _InIt find_if(_InIt _First, _InIt _Last, _Pr _Pred) {
-		auto raw_pair = us::iterator_pair_to_raw_pointers(_First, _Last);
-		return std::find_if(raw_pair.first, raw_pair.second, _Pred);
-		}
-		};
-		*/
-	}
 
 	namespace us {
 		/* msearray<> is an unsafe extension of nii_array<> that provides the traditional begin() and end() (non-static)

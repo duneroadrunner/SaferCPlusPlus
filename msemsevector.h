@@ -1447,7 +1447,7 @@ namespace mse {
 		template<class _Ty2, class _Traits2>
 		std::basic_ostream<_Ty2, _Traits2>& write_bytes(std::basic_ostream<_Ty2, _Traits2>& _Ostr, size_type byte_count, const size_type byte_start_offset = 0) const {
 			const auto array_size_in_bytes = mse::msear_as_a_size_t(sizeof(_Ty) * (*this).size());
-			auto byte_ptr = reinterpret_cast<const char *>((*this).contained_array().data());
+			auto byte_ptr = reinterpret_cast<const char *>((*this).contained_vector().data());
 			if ((array_size_in_bytes <= byte_start_offset) || (0 >= byte_count)) {
 				return _Ostr;
 			}
