@@ -133,7 +133,7 @@ For more information on how to use the safe smart pointers in this library for m
 
 The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Outside of the standard library, there are no other dependencies.  
 
-A couple of notes about compling: With g++ and clang++, you'll need to link to the pthread library (-lpthread). You may also want to use the -Wno-unused flag with g++. With 64-bit builds in msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
+A couple of notes about compling: With g++ and clang++, you'll need to enable thread support (-pthread). With 64-bit builds in msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
 
 ### SaferCPlusPlus versus Clang/LLVM Sanitizers
 
