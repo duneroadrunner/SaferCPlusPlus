@@ -26,7 +26,7 @@ So it seems like a reasonable strategy to pursue memory safety in C++ by simply 
 
 An important consideration for many C++ applications is performance. Preferably high and deterministic. This library strives for minimal run-time overhead and does not resort to garbage collection. To this end, the library provides extensive support for the strategy of using [scope lifetimes](#scope-pointers) to achieve memory safety with no run-time overhead.
 
-You can have a look at [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) to see the library in action. You can also check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame) where you can compare traditional C++ and SaferCPlusPlus implementations of the same algorithms.
+To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
 Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Mar 2018). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
@@ -133,7 +133,7 @@ For more information on how to use the safe smart pointers in this library for m
 
 The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Outside of the standard library, there are no other dependencies.  
 
-A couple of notes about compling: With g++ and clang++, you'll need to link to the pthread library (-lpthread). You may also want to use the -Wno-unused flag with g++. With 64-bit builds in msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
+A couple of notes about compling: With g++ and clang++, you'll need to enable thread support (-pthread). With 64-bit builds in msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
 
 ### SaferCPlusPlus versus Clang/LLVM Sanitizers
 
