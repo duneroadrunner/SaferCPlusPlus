@@ -31,6 +31,7 @@
 #include "mseprimitives.h"
 #include "mselegacyhelpers.h"
 #include "msemstdstring.h"
+#include "msealgorithm.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -748,6 +749,33 @@ void msetl_example2() {
 				std::cout << "expected exception\n";
 			}
 #endif //!MSE_REGISTEREDPOINTER_DISABLED
+		}
+	}
+
+	{
+		/* algorithms */
+
+		mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na1 = mse::nii_array<int, 3>{ 1, 2, 3 };
+		mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na2 = mse::nii_array<int, 3>{ 1, 2, 3 };
+		auto xscope_na1_begin_citer = mse::make_xscope_const_iterator(&xscope_na1);
+		auto xscope_na1_end_citer = mse::make_xscope_const_iterator(&xscope_na1);
+		xscope_na1_end_citer.set_to_end_marker();
+		auto xscope_na2_begin_iter = mse::make_xscope_iterator(&xscope_na2);
+
+		{
+			/* find_if() */
+
+			/*  mse::find_if() is intended to be the same as std:::find_if() but with performance optimizations for some
+			of the library's safe iterators. */
+			auto found_citer1 = mse::find_if(xscope_na1_begin_citer, xscope_na1_end_citer, [](int x) { return 2 == x; });
+			auto res1 = *found_citer1;
+
+			/* These (non-standard) variants of find_if() for random access containers bypass the use of iterators. */
+			auto xscope_optional_xscpptr2 = mse::xscope_ra_const_find_if(&xscope_na1, [](int x) { return 2 == x; });
+			auto res2 = xscope_optional_xscpptr2.value();
+			auto xscope_pointer3 = mse::xscope_ra_const_find_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
+			auto res3 = *xscope_pointer3;
+			int q = 5;
 		}
 	}
 

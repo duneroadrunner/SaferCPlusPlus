@@ -3157,6 +3157,7 @@ namespace mse {
 		typedef const pointer const_pointer;
 		typedef const reference const_reference;
 		typedef typename mse::nii_array<int, 0>::size_type size_type;
+		typedef _TRAIterator iterator_type;
 
 	private:
 		const _TRAIterator m_ra_iterator;
@@ -3233,6 +3234,7 @@ namespace mse {
 		typedef const pointer const_pointer;
 		typedef const reference const_reference;
 		typedef typename base_class::size_type size_type;
+		typedef typename base_class::iterator_type iterator_type;
 
 		TXScopeRASectionIterator(const TRASectionIteratorBase<_TRAIterator>& src)
 			: base_class(src) {}
@@ -3282,6 +3284,7 @@ namespace mse {
 		typedef const pointer const_pointer;
 		typedef const reference const_reference;
 		typedef typename base_class::size_type size_type;
+		typedef typename base_class::iterator_type iterator_type;
 
 		TRASectionIterator(const TRASectionIterator& src)
 			: base_class(src) {}
@@ -3327,6 +3330,7 @@ namespace mse {
 		typedef const pointer const_pointer;
 		typedef const reference const_reference;
 		typedef typename mse::nii_array<int, 0>::size_type size_type;
+		typedef _TRAIterator iterator_type;
 
 	private:
 		const _TRAIterator m_ra_iterator;
@@ -3404,6 +3408,7 @@ namespace mse {
 		typedef const pointer const_pointer;
 		typedef const reference const_reference;
 		typedef typename base_class::size_type size_type;
+		typedef typename base_class::iterator_type iterator_type;
 
 		TXScopeRASectionConstIterator(const TRASectionConstIteratorBase<_TRAIterator>& src)
 			: base_class(src) {}
@@ -3453,6 +3458,7 @@ namespace mse {
 		typedef const pointer const_pointer;
 		typedef const reference const_reference;
 		typedef typename base_class::size_type size_type;
+		typedef typename base_class::iterator_type iterator_type;
 
 		TRASectionConstIterator(const TRASectionConstIterator& src) : base_class(src) {}
 		template <typename _TRAIterator1>
@@ -4086,7 +4092,7 @@ namespace mse {
 		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection<_TRAIterator> subsection() const - TXScopeRandomAccessSection")))
-				: TRandomAccessSection<_TRAIterator>((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+				: subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
 
 		typedef typename base_class::xscope_iterator xscope_iterator;
@@ -4628,7 +4634,7 @@ namespace mse {
 		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection<_TRAIterator> subsection() const - TXScopeRandomAccessConstSection")))
-				: TRandomAccessConstSection<_TRAIterator>((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+				: subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
 
 		//typedef typename base_class::xscope_iterator xscope_iterator;
@@ -4800,13 +4806,14 @@ namespace mse {
 	public:
 		void xscope_tag() const {}
 
-	private:
+	protected:
 		TXScopeCagedRandomAccessConstSectionToRValue(TXScopeCagedRandomAccessConstSectionToRValue&&) = default;
 		TXScopeCagedRandomAccessConstSectionToRValue(const TXScopeCagedRandomAccessConstSectionToRValue&) = delete;
 		TXScopeCagedRandomAccessConstSectionToRValue(const TXScopeRandomAccessConstSection<_TRAIterator>& ptr) : m_xscope_ra_section(ptr) {}
 
 		auto uncaged_ra_section() const { return m_xscope_ra_section; }
 
+	private:
 		TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>& operator=(const TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
