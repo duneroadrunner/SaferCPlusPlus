@@ -128,12 +128,31 @@ public:
 		return (*i1ptr) + (*i2ptr);
 	}
 
-	/* This function will be used to demonstrate using us::value_from_fparam() to enable template functions to accept scope 
+	/* This function will be used to demonstrate using us::as_a_returnable_fparam() to enable template functions to accept scope
+	pointers to temporary objects. */
+	template<class _TPointer1, class _TPointer2>
+	static auto longest(const _TPointer1& string1_xscpptr, const _TPointer2& string2_xscpptr) {
+		auto l_string1_xscpptr = mse::us::as_a_returnable_fparam(string1_xscpptr);
+		auto l_string2_xscpptr = mse::us::as_a_returnable_fparam(string2_xscpptr);
+		if (l_string1_xscpptr->length() > l_string2_xscpptr->length()) {
+			/* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::nii_string> and we tried to return it
+			directly instead of l_string1_xscpptr, it would have induced a compile error. */
+			return mse::return_value(l_string1_xscpptr);
+		}
+		else {
+			/* mse::return_value() usually returns its input argument unmolested, but in this case it will return
+			a type different from the input type. This is to prevent any function that receives this return value
+			from, in turn, returning the value, as that might be unsafe. */
+			return mse::return_value(l_string2_xscpptr);
+		}
+	}
+
+	/* This function will be used to demonstrate using us::as_an_fparam() to enable template functions to accept scope 
 	pointers to temporary objects. */
 	template<class _TPointer1, class _TPointer2>
 	static bool second_is_longer(const _TPointer1& string1_xscpptr, const _TPointer2& string2_xscpptr) {
-		auto l_string1_xscpptr = mse::us::value_from_fparam(string1_xscpptr);
-		auto l_string2_xscpptr = mse::us::value_from_fparam(string2_xscpptr);
+		auto l_string1_xscpptr = mse::us::as_an_fparam(string1_xscpptr);
+		auto l_string2_xscpptr = mse::us::as_an_fparam(string2_xscpptr);
 		return (l_string1_xscpptr->length() > l_string2_xscpptr->length()) ? false : true;
 	}
 
@@ -1477,27 +1496,50 @@ int main(int argc, char* argv[])
 		mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
 		A res7 = *xscp_cptr2;
 
-		/* Technically, you're not allowed to return a non-owning scope pointer from a function. (The return_value() function
-		wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer
-		is one of the input parameters. An example might be a "min(a, b)" function which takes two objects by reference and
-		returns the reference to the lesser of the two objects. The library provides the xscope_chosen_pointer() function
-		which takes a bool and two scope pointers, and returns one of the scope pointers depending on the value of the
+		/* Technically, you're not allowed to return a non-owning scope pointer (or any object containing a scope reference)
+		from a function. (The return_value() function wrapper enforces this.) Pretty much the only time you'd legitimately
+		want to do this is when the returned pointer is one of the input parameters. An example might be a "min(a, b)"
+		function which takes two objects by reference and returns the reference to the lesser of the two objects. The
+		library provides the xscope_chosen() function which takes a bool and two objects of the same type (in this case it
+		will be two scope pointers) and returns one of the objects (scope pointers), which one depending on the value of the
 		bool. You could use this function to implement the equivalent of a min(a, b) function like so: */
 		auto xscp_a_ptr5 = &a_scpobj;
 		auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
-		auto xscp_min_ptr1 = mse::xscope_chosen_pointer((*xscp_a_ptr6 < *xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
+		auto xscp_min_ptr1 = mse::xscope_chosen((*xscp_a_ptr6 < *xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
 		assert(5 == xscp_min_ptr1->b);
 
 		{
-			/* If you find that there are cases where mse::xscope_chosen_pointer() is insufficiently convenient, a (less
-			preferred) alternative may be to use mse::us::TXScopeReturnableItemFixedPointerFParam<>, which is just a version
-			of mse::TXScopeItemFixedPointer<> that may only be used to declare function parameters and whose value can be
-			used as a function return value. (But note that the type may not be used as a return type. The type may only be
-			used as a function parameter type.) */
+			/*************************************/
+			/*  us::TReturnableFParam<>          */
+			/*  && us::as_a_returnable_fparam()  */
+			/*************************************/
+
+			/* A (less preferred) alternative if you want to return a scope pointer (or any object containing a scope
+			reference) input parameter from a function is to wrap the parameter type with the
+			us::TXScopeReturnableFParam<> transparent template wrapper when declaring the parameter. 
+			
+			Normally the return_value() function wrapper will reject (with a compile error) scope pointers as unsafe return
+			values. But if the scope pointer type is wrapped in the us::TXScopeReturnableFParam<> transparent template
+			wrapper, then it will be accepted as a safe return value. Because it's generally safe to return a reference to
+			an object if that reference was passed as an input parameter, right? Note that unlike with us::TXScopeFParam<>,
+			scope reference types wrapped with us::TXScopeReturnableFParam<> will not enable support for references to
+			temporaries, as returning a (scope) reference to a temporary would be unsafe even if the reference was passed as
+			a function parameter. So for scope reference parameters you have to choose between being able to use it as a
+			return value, or supporting references to temporaries. (Or neither.)
+			
+			In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the
+			mse::us::TXScopeReturnableFParam<> wrapper can interfere with that. In those cases you can instead convert
+			parameters to their wrapped type after the fact using the us::xscope_as_a_returnable_fparam() function.
+			Note that using this function (or the us::TXScopeReturnableFParam<> wrapper) on anything other than function
+			parameters is unsafe, and currently there is no compile-time enforcement of this restriction.
+
+			us::TReturnableFParam<> and us::as_a_returnable_fparam() can be used for situations when the type of the
+			input parameter is itself a template parameter and not necessarily always a scope type.
+			*/
 			class CD {
 			public:
-				static auto longest(mse::us::TXScopeReturnableItemFixedPointerFParam<mse::nii_string> string1_xscpptr
-					, mse::us::TXScopeReturnableItemFixedPointerFParam<mse::nii_string> string2_xscpptr) {
+				static auto longest(mse::us::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::nii_string> > string1_xscpptr
+					, mse::us::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::nii_string> > string2_xscpptr) {
 					if (string1_xscpptr->length() > string2_xscpptr->length()) {
 						/* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::nii_string> the next line would have
 						induced a compile error. */
@@ -1505,8 +1547,8 @@ int main(int argc, char* argv[])
 					}
 					else {
 						/* mse::return_value() usually returns its input argument unmolested, but in this case it will return
-						a type different from the input type. This is to prevent any function that receives this return value
-						from, in turn, returning the value, as that might be unsafe. */
+						a type (slightly) different from the input type. This is to prevent any function that receives this
+						return value from, in turn, returning the value, as that might be unsafe. */
 						return mse::return_value(string2_xscpptr);
 					}
 				}
@@ -1516,13 +1558,15 @@ int main(int argc, char* argv[])
 			mse::TXScopeObj<mse::nii_string> xscope_string2 = "abcd";
 			auto longer_string_xscpptr = CD::longest(&xscope_string1, &xscope_string2);
 			auto copy_of_longer_string = *longer_string_xscpptr;
+
+			auto longer_string2_xscpptr = H::longest(&xscope_string1, &xscope_string2);
 		}
 
 		{
-			/********************************/
-			/*  us::TFParam<>               */
-			/*  && us::value_from_fparam()  */
-			/********************************/
+			/***************************/
+			/*  us::TFParam<>          */
+			/*  && us::as_an_fparam()  */
+			/***************************/
 
 			/* us::TFParam<> is just a transparent template wrapper for function parameter declarations. In most cases
 			use of this wrapper is not necessary, but in some cases it enables functionality only available to variables
@@ -1535,11 +1579,11 @@ int main(int argc, char* argv[])
 
 			In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the
 			mse::us::TFParam<> wrapper can interfere with that. In those cases you can instead convert parameters to their
-			wrapped type after the fact using the us::value_from_fparam() function. Note that using this function (or the
+			wrapped type after the fact using the us::as_an_fparam() function. Note that using this function (or the
 			us::TFParam<> wrapper) on anything other than function parameters is unsafe, and currently there is no
 			compile-time enforcement of this restriction.
 
-			us::TXScopeFParam<> and us::xscope_value_from_fparam() can be used for situations when the types are necessarily
+			us::TXScopeFParam<> and us::xscope_as_an_fparam() can be used for situations when the types are necessarily
 			scope types.
 			*/
 

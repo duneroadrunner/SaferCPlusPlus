@@ -185,12 +185,12 @@ public:
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
-	/* This function will be used to demonstrate using us::value_from_fparam() to enable template functions to accept scope
+	/* This function will be used to demonstrate using us::as_an_fparam() to enable template functions to accept scope
 	random access sections that reference temporary objects. */
 	template<class _TRASection1, class _TRASection2>
 	static bool second_is_longer(const _TRASection1& xscope_ra_csection1, const _TRASection2& xscope_ra_csection2) {
-		auto l_xscope_ra_csection1 = mse::us::value_from_fparam(xscope_ra_csection1);
-		auto l_xscope_ra_csection2 = mse::us::value_from_fparam(xscope_ra_csection2);
+		auto l_xscope_ra_csection1 = mse::us::as_an_fparam(xscope_ra_csection1);
+		auto l_xscope_ra_csection2 = mse::us::as_an_fparam(xscope_ra_csection2);
 		return (l_xscope_ra_csection1.size() > l_xscope_ra_csection2.size()) ? false : true;
 	}
 };

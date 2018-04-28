@@ -710,13 +710,9 @@ namespace mse {
 #ifdef MSE_SCOPEPOINTER_DISABLED
 		template<typename _Ty> using TXScopeItemFixedPointerFParamBase = TPointer<_Ty>;
 		template<typename _Ty> using TXScopeItemFixedConstPointerFParamBase = TPointer<const _Ty>;
-		template<typename _Ty> using TXScopeReturnableItemFixedPointerFParamBase = TPointer<_Ty>;
-		template<typename _Ty> using TXScopeReturnableItemFixedConstPointerFParamBase = TPointer<const _Ty>;
 #else /*MSE_SCOPEPOINTER_DISABLED*/
 		template<typename _Ty> using TXScopeItemFixedPointerFParamBase = TXScopeItemFixedPointer<_Ty>;
 		template<typename _Ty> using TXScopeItemFixedConstPointerFParamBase = TXScopeItemFixedConstPointer<_Ty>;
-		template<typename _Ty> using TXScopeReturnableItemFixedPointerFParamBase = TXScopeItemFixedPointer<_Ty>;
-		template<typename _Ty> using TXScopeReturnableItemFixedConstPointerFParamBase = TXScopeItemFixedConstPointer<_Ty>;
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
 		template<typename _Ty>
@@ -739,10 +735,7 @@ namespace mse {
 
 		private:
 			TXScopeItemFixedPointerFParam<_Ty>& operator=(const TXScopeItemFixedPointerFParam<_Ty>& _Right_cref) = delete;
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TXScopeItemFixedPointerFParam<_Ty>* operator&() { return this; }
-			const TXScopeItemFixedPointerFParam<_Ty>* operator&() const { return this; }
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
 
 		template<typename _Ty>
@@ -768,65 +761,7 @@ namespace mse {
 
 		private:
 			TXScopeItemFixedConstPointerFParam<_Ty>& operator=(const TXScopeItemFixedConstPointerFParam<_Ty>& _Right_cref) = delete;
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TXScopeItemFixedConstPointerFParam<_Ty>* operator&() { return this; }
-			const TXScopeItemFixedConstPointerFParam<_Ty>* operator&() const { return this; }
-		};
-
-		/* TXScopeReturnableItemFixedPointerFParam<> is just a version of TXScopeItemFixedPointer<> which may only be used
-		for function parameter declations. Because it may only be used for function parameters, and it doesn't support
-		pointers to temporaries, an object of this type can be use as a function return value. To be clear,
-		TXScopeReturnableItemFixedPointerFParam<> may not be used as a return type. But an object of this type may be used
-		as return value (wrapped in the mse::return_value() function). The function return type should be "auto". */
-		template<typename _Ty>
-		class TXScopeReturnableItemFixedPointerFParam : public TXScopeReturnableItemFixedPointerFParamBase<_Ty> {
-		public:
-			typedef TXScopeReturnableItemFixedPointerFParamBase<_Ty> base_class;
-			MSE_SCOPE_USING(TXScopeReturnableItemFixedPointerFParam, base_class);
-
-			TXScopeReturnableItemFixedPointerFParam(const TXScopeReturnableItemFixedPointerFParam& src_cref) = default;
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeReturnableItemFixedPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeReturnableItemFixedPointerFParamBase<_Ty>(static_cast<const TXScopeItemFixedPointer<_Ty2>&>(src_cref)) {}
-
-			virtual ~TXScopeReturnableItemFixedPointerFParam() {}
-
-			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
-			void xscope_tag() const {}
-
-		private:
-			TXScopeReturnableItemFixedPointerFParam<_Ty>& operator=(const TXScopeReturnableItemFixedPointerFParam<_Ty>& _Right_cref) = delete;
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TXScopeReturnableItemFixedPointerFParam<_Ty>* operator&() { return this; }
-			const TXScopeReturnableItemFixedPointerFParam<_Ty>* operator&() const { return this; }
-		};
-
-		template<typename _Ty>
-		class TXScopeReturnableItemFixedConstPointerFParam : public TXScopeReturnableItemFixedConstPointerFParamBase<_Ty> {
-		public:
-			typedef TXScopeReturnableItemFixedConstPointerFParamBase<_Ty> base_class;
-			MSE_SCOPE_USING(TXScopeReturnableItemFixedConstPointerFParam, base_class);
-
-			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedConstPointerFParam<_Ty>& src_cref) = default;
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedConstPointerFParam<_Ty2>& src_cref) : TXScopeReturnableItemFixedConstPointerFParamBase<_Ty>(static_cast<const TXScopeItemFixedConstPointer<_Ty2>&>(src_cref)) {}
-
-			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty>& src_cref) : TXScopeReturnableItemFixedConstPointerFParamBase<_Ty>(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeReturnableItemFixedConstPointerFParam(const TXScopeReturnableItemFixedPointerFParam<_Ty2>& src_cref) : TXScopeReturnableItemFixedConstPointerFParamBase<_Ty>(TXScopeReturnableItemFixedConstPointerFParamBase<_Ty2>(src_cref)) {}
-
-			virtual ~TXScopeReturnableItemFixedConstPointerFParam() {}
-
-			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
-			void xscope_tag() const {}
-
-		private:
-			TXScopeReturnableItemFixedConstPointerFParam<_Ty>& operator=(const TXScopeReturnableItemFixedConstPointerFParam<_Ty>& _Right_cref) = delete;
-			void* operator new(size_t size) { return ::operator new(size); }
-
-			TXScopeReturnableItemFixedConstPointerFParam<_Ty>* operator&() { return this; }
-			const TXScopeReturnableItemFixedConstPointerFParam<_Ty>* operator&() const { return this; }
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
 	}
 
@@ -854,41 +789,41 @@ namespace mse {
 		namespace impl {
 			namespace fparam {
 				template<typename _Ty>
-				auto value_from_fparam_helper1(std::false_type, const _Ty& param) {
+				auto as_an_fparam_helper1(std::false_type, const _Ty& param) {
 					return param;
 				}
 				template<typename _Ty>
-				auto value_from_fparam_helper1(std::true_type, const _Ty& param) -> typename TFParam<typename std::remove_reference<_Ty>::type>::base_class {
+				auto as_an_fparam_helper1(std::true_type, const _Ty& param) -> typename TFParam<typename std::remove_reference<_Ty>::type>::base_class {
 					return TFParam<typename std::remove_reference<_Ty>::type>(param);
 				}
 
 				template<typename _Ty>
-				auto value_from_fparam_helper1(std::false_type, _Ty&& param) {
+				auto as_an_fparam_helper1(std::false_type, _Ty&& param) {
 					return std::forward<_Ty>(param);
 				}
 				template<typename _Ty>
-				auto value_from_fparam_helper1(std::true_type, _Ty&& param) -> typename TFParam<typename std::remove_reference<_Ty>::type>::base_class {
+				auto as_an_fparam_helper1(std::true_type, _Ty&& param) -> typename TFParam<typename std::remove_reference<_Ty>::type>::base_class {
 					return TFParam<typename std::remove_reference<_Ty>::type>(std::forward<_Ty>(param));
 				}
 			}
 		}
 
 		template<typename _Ty>
-		auto value_from_fparam(const _Ty& param) {
-			return impl::fparam::value_from_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), param);
+		auto as_an_fparam(const _Ty& param) {
+			return impl::fparam::as_an_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), param);
 		}
 		template<typename _Ty>
-		auto value_from_fparam(_Ty&& param) {
-			return impl::fparam::value_from_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), std::forward<_Ty>(param));
+		auto as_an_fparam(_Ty&& param) {
+			return impl::fparam::as_an_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), std::forward<_Ty>(param));
 		}
 
 		template<typename _Ty>
-		auto xscope_value_from_fparam(const _Ty& param) {
-			return value_from_fparam(param);
+		auto xscope_as_an_fparam(const _Ty& param) {
+			return as_an_fparam(param);
 		}
 		template<typename _Ty>
-		auto xscope_value_from_fparam(_Ty&& param) {
-			return value_from_fparam(std::forward<_Ty>(param));
+		auto xscope_as_an_fparam(_Ty&& param) {
+			return as_an_fparam(std::forward<_Ty>(param));
 		}
 
 		/* Template specializations of TFParam<>. There are a number of them. */
@@ -945,6 +880,103 @@ namespace mse {
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
+
+
+		/* us::TReturnableFParam<> is just a transparent template wrapper for function parameter declarations. Like
+		us::FParam<>, in most cases use of this wrapper is not necessary, but in some cases it enables functionality
+		only available to variables that are function parameters. Specifically, us::TReturnableFParam<> "marks"
+		scope pointer/reference parameters as safe to use as the return value of the function, whereas by default,
+		scope pointer/references are not considered safe to use as a return value. Note that unlike us::FParam<>,
+		us::TReturnableFParam<> does not enable the function to accept scope pointer/reference temporaries.
+		*/
+		template<typename _Ty>
+		class TReturnableFParam : public _Ty {
+		public:
+			typedef _Ty base_class;
+			typedef _Ty returnable_fparam_contained_type;
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
+
+			const _Ty& mse_returnable_fparam_contained_value() const { return *this; }
+			_Ty& mse_returnable_fparam_contained_value() { return *this; }
+
+			void returnable_once_tag() const {}
+			void xscope_returnable_tag() const {}
+
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+
+		template<typename _Ty> using TXScopeReturnableFParam = TReturnableFParam<_Ty>;
+
+		namespace impl {
+			namespace returnable_fparam {
+				template<typename _Ty>
+				auto as_a_returnable_fparam_helper1(std::false_type, const _Ty& param) {
+					return param;
+				}
+				template<typename _Ty>
+				auto as_a_returnable_fparam_helper1(std::true_type, const _Ty& param) -> TReturnableFParam<typename std::remove_reference<_Ty>::type> {
+					return TReturnableFParam<typename std::remove_reference<_Ty>::type>(param);
+				}
+
+				template<typename _Ty>
+				auto as_a_returnable_fparam_helper1(std::false_type, _Ty&& param) {
+					return std::forward<_Ty>(param);
+				}
+				template<typename _Ty>
+				auto as_a_returnable_fparam_helper1(std::true_type, _Ty&& param) -> TReturnableFParam<typename std::remove_reference<_Ty>::type> {
+					return TReturnableFParam<typename std::remove_reference<_Ty>::type>(std::forward<_Ty>(param));
+				}
+			}
+		}
+
+		template<typename _Ty>
+		auto as_a_returnable_fparam(const _Ty& param) {
+			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), param);
+		}
+		template<typename _Ty>
+		auto as_a_returnable_fparam(_Ty&& param) {
+			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), std::forward<_Ty>(param));
+		}
+
+		template<typename _Ty>
+		auto xscope_as_a_returnable_fparam(const _Ty& param) {
+			return as_a_returnable_fparam(param);
+		}
+		template<typename _Ty>
+		auto xscope_as_a_returnable_fparam(_Ty&& param) {
+			return as_a_returnable_fparam(std::forward<_Ty>(param));
+		}
+
+		/* Template specializations of TReturnableFParam<>. */
+
+		template<typename _Ty>
+		class TReturnableFParam<_Ty*> : public TPointer<_Ty> {
+		public:
+			typedef TPointer<_Ty> base_class;
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
+
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+
+		template<typename _Ty>
+		class TReturnableFParam<_Ty* const> : public TPointer<_Ty> {
+		public:
+			typedef TPointer<_Ty> base_class;
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
+
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
 	}
 
 	template<typename _TROy>
@@ -961,13 +993,13 @@ namespace mse {
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 
 	private:
-		/* If _TROy is not "marked" as safe to use as a function return value, then the following member function
+		/* If _TROy is not recognized as safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TROy>::value) || (
-			(!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
-			/*&& (!std::integral_constant<bool, HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
-			&& (std::integral_constant<bool, HasXScopeReturnableTagMethod<_TROy>::Has>())
-			), void>::type>
+		template<class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TROy>::value)
+			|| (!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
+			|| ((std::integral_constant<bool, HasXScopeReturnableTagMethod<_TROy>::Has>())
+				/*&& (!std::integral_constant<bool, HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
+				), void>::type>
 		void valid_if_TROy_is_marked_as_returnable_or_not_xscope_type() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -989,47 +1021,49 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	TXScopeItemFixedPointer<_Ty> return_value_helper2(const us::TXScopeReturnableItemFixedPointerFParam<_Ty>& _X) { return _X; }
-	template<typename _Ty>
-	TXScopeItemFixedPointer<_Ty> return_value_helper2(us::TXScopeReturnableItemFixedPointerFParam<_Ty>&& _X) { return std::forward<decltype(_X)>(_X); }
-	template<typename _Ty>
-	TXScopeItemFixedConstPointer<_Ty> return_value_helper2(const us::TXScopeReturnableItemFixedConstPointerFParam<_Ty>& _X) { return _X; }
-	template<typename _Ty>
-	TXScopeItemFixedConstPointer<_Ty> return_value_helper2(us::TXScopeReturnableItemFixedConstPointerFParam<_Ty>&& _X) { return std::forward<decltype(_X)>(_X); }
+	static void z__returnable_noop(const _Ty&) {}
 
 	template<typename _Ty>
-	static void z__returnable_noop(const _Ty&) {}
+	auto return_value_helper12(const _Ty& _X) {
+		return _X.mse_returnable_fparam_contained_value();
+	}
 	template<typename _Ty>
-	const auto& return_value_helper1(std::false_type, const _Ty& _X) {
+	auto return_value_helper12(_Ty&& _X) {
+		return std::forward<decltype(_X.mse_returnable_fparam_contained_value())>(_X.mse_returnable_fparam_contained_value());
+	}
+
+	template<typename _Ty>
+	const auto& return_value_helper11(std::false_type, const _Ty& _X) {
 		z__returnable_noop<mse::TReturnValue<_Ty> >(_X);
 		return _X;
 	}
 	template<typename _Ty>
-	const auto& return_value_helper1(std::true_type, const _Ty& _X) {
-		return return_value_helper2(_X);
+	const auto& return_value_helper11(std::true_type, const _Ty& _X) {
+		return return_value_helper12(_X);
 	}
+
 	template<typename _Ty>
 	const auto& return_value(const _Ty& _X) {
-		return return_value_helper1(typename std::conditional<
-			is_instantiation_of_msescope<_Ty, us::TXScopeReturnableItemFixedPointerFParam>::value
-			|| is_instantiation_of_msescope<_Ty, us::TXScopeReturnableItemFixedConstPointerFParam>::value
+		return return_value_helper11(typename std::conditional<
+			is_instantiation_of_msescope<_Ty, us::TReturnableFParam>::value
+			|| is_instantiation_of_msescope<_Ty, us::TXScopeReturnableFParam>::value
 			, std::true_type, std::false_type>::type(), _X);
 	}
 
 	template<typename _Ty>
-	auto return_value_helper1(std::false_type, _Ty&& _X) {
+	auto return_value_helper11(std::false_type, _Ty&& _X) {
 		z__returnable_noop<mse::TReturnValue<typename std::remove_reference<_Ty>::type> >(_X);
 		return std::forward<decltype(_X)>(_X);
 	}
 	template<typename _Ty>
-	auto return_value_helper1(std::true_type, _Ty&& _X) {
-		return return_value_helper2(std::forward<decltype(_X)>(_X));
+	auto return_value_helper11(std::true_type, _Ty&& _X) {
+		return return_value_helper12(std::forward<decltype(_X)>(_X));
 	}
 	template<typename _Ty>
 	auto return_value(_Ty&& _X) {
-		return return_value_helper1(typename std::conditional<
-			is_instantiation_of_msescope<typename std::remove_reference<_Ty>::type, us::TXScopeReturnableItemFixedPointerFParam>::value
-			|| is_instantiation_of_msescope<typename std::remove_reference<_Ty>::type, us::TXScopeReturnableItemFixedConstPointerFParam>::value
+		return return_value_helper11(typename std::conditional<
+			is_instantiation_of_msescope<_Ty, us::TReturnableFParam>::value
+			|| is_instantiation_of_msescope<_Ty, us::TXScopeReturnableFParam>::value
 			, std::true_type, std::false_type>::type(), std::forward<decltype(_X)>(_X));
 	}
 
@@ -1746,6 +1780,10 @@ namespace mse {
 	/* Just the generalization xscope_chosen_pointer(). */
 	template<typename _Ty>
 	const auto& chosen(bool choose_the_second, const _Ty& a, const _Ty& b) {
+		return choose_the_second ? b : a;
+	}
+	template<typename _Ty>
+	const auto& xscope_chosen(bool choose_the_second, const _Ty& a, const _Ty& b) {
 		return choose_the_second ? b : a;
 	}
 

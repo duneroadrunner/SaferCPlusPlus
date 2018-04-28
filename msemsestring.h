@@ -6410,14 +6410,12 @@ namespace mse {
 		typedef TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator> base_class;
 		TXScopeCagedStringConstSectionToRValue(TXScopeCagedStringConstSectionToRValue&&) = default;
 		TXScopeCagedStringConstSectionToRValue(const TXScopeCagedStringConstSectionToRValue&) = delete;
-		TXScopeCagedStringConstSectionToRValue(const TXScopeStringConstSection<_TRAIterator, _Traits>& ptr) : base_class(ptr)/*, m_xscope_ra_section(ptr)*/ {}
+		TXScopeCagedStringConstSectionToRValue(const TXScopeStringConstSection<_TRAIterator, _Traits>& ptr) : base_class(ptr) {}
 
 		auto uncaged_string_section() const { return TXScopeStringConstSection<_TRAIterator, _Traits>(base_class::uncaged_ra_section()); }
 
 		TXScopeCagedStringConstSectionToRValue<_TRAIterator>& operator=(const TXScopeCagedStringConstSectionToRValue<_TRAIterator>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
-
-		//TXScopeStringConstSection<_TRAIterator> m_xscope_ra_section;
 
 		friend class us::TXScopeStringConstSectionFParam<_TRAIterator>;
 		template <typename _Ty>
