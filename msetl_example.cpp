@@ -128,8 +128,9 @@ public:
 		return (*i1ptr) + (*i2ptr);
 	}
 
-	/* This function will be used to demonstrate using us::as_a_returnable_fparam() to enable template functions to accept scope
-	pointers to temporary objects. */
+	/* This function will be used to demonstrate using us::as_a_returnable_fparam() to enable template functions to return
+	one of their function parameters, potentially of the scope reference variety which would otherwise be rejected (with a
+	compile error) as an unsafe return value. */
 	template<class _TPointer1, class _TPointer2>
 	static auto longest(const _TPointer1& string1_xscpptr, const _TPointer2& string2_xscpptr) {
 		auto l_string1_xscpptr = mse::us::as_a_returnable_fparam(string1_xscpptr);
@@ -154,13 +155,6 @@ public:
 		auto l_string1_xscpptr = mse::us::as_an_fparam(string1_xscpptr);
 		auto l_string2_xscpptr = mse::us::as_an_fparam(string2_xscpptr);
 		return (l_string1_xscpptr->length() > l_string2_xscpptr->length()) ? false : true;
-	}
-
-	/* A member function that provides a safe pointer/reference to a class/struct member is going to need to
-	take a safe version of the "this" pointer as a parameter. */
-	template<class this_type>
-	static auto safe_pointer_to_member_string1(this_type safe_this) {
-		return mse::make_pointer_to_member_v2(safe_this, &H::m_string1);
 	}
 
 	mse::nii_string m_string1 = "initial text";
@@ -1514,18 +1508,18 @@ int main(int argc, char* argv[])
 			/*  && us::as_a_returnable_fparam()  */
 			/*************************************/
 
-			/* A (less preferred) alternative if you want to return a scope pointer (or any object containing a scope
+			/* Another alternative if you want to return a scope pointer (or any object containing a scope
 			reference) input parameter from a function is to wrap the parameter type with the
 			us::TXScopeReturnableFParam<> transparent template wrapper when declaring the parameter. 
 			
 			Normally the return_value() function wrapper will reject (with a compile error) scope pointers as unsafe return
 			values. But if the scope pointer type is wrapped in the us::TXScopeReturnableFParam<> transparent template
 			wrapper, then it will be accepted as a safe return value. Because it's generally safe to return a reference to
-			an object if that reference was passed as an input parameter, right? Note that unlike with us::TXScopeFParam<>,
-			scope reference types wrapped with us::TXScopeReturnableFParam<> will not enable support for references to
-			temporaries, as returning a (scope) reference to a temporary would be unsafe even if the reference was passed as
-			a function parameter. So for scope reference parameters you have to choose between being able to use it as a
-			return value, or supporting references to temporaries. (Or neither.)
+			an object if that reference was passed as an input parameter. Well, as long as the object is not a temporary
+			one. So unlike with us::TXScopeFParam<>, scope reference types wrapped with us::TXScopeReturnableFParam<> will
+			not enable support for references to temporaries, as returning a (scope) reference to a temporary would be
+			unsafe even if the reference was passed as a function parameter. So for scope reference parameters you have to
+			choose between being able to use it as a return value, or supporting references to temporaries. (Or neither.)
 			
 			In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the
 			mse::us::TXScopeReturnableFParam<> wrapper can interfere with that. In those cases you can instead convert
@@ -1553,13 +1547,30 @@ int main(int argc, char* argv[])
 					}
 				}
 			};
-
 			mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
 			mse::TXScopeObj<mse::nii_string> xscope_string2 = "abcd";
 			auto longer_string_xscpptr = CD::longest(&xscope_string1, &xscope_string2);
 			auto copy_of_longer_string = *longer_string_xscpptr;
 
 			auto longer_string2_xscpptr = H::longest(&xscope_string1, &xscope_string2);
+
+			class CE {
+			public:
+				static auto xscope_string_const_section_to_member(mse::us::TXScopeReturnableFParam<mse::TXScopeItemFixedConstPointer<CE> > returnable_this_cpointer) {
+					/* "Pointers to members" based on returnable pointers inherit the "returnability". */
+					auto returnable_cpointer_to_member = mse::make_xscope_const_pointer_to_member_v2(returnable_this_cpointer, &CE::m_string1);
+					/* "scope nrp string const sections" based on returnable pointers (or iterators) inherit the "returnability". */
+					auto returnable_string_const_section = mse::make_xscope_nrp_string_const_section(returnable_cpointer_to_member);
+					/* Subsections of returnable sections inherit the "returnability". */
+					auto returnable_string_const_section2 = returnable_string_const_section.xscope_subsection(1, 3);
+					return mse::return_value(returnable_string_const_section2);
+				}
+			private:
+				mse::nii_string m_string1 = "abcde";
+			};
+
+			mse::TXScopeObj<CE> e_xscpobj;
+			auto xscope_string_const_section1 = mse::TXScopeObj<CE>::xscope_string_const_section_to_member(&e_xscpobj);
 		}
 
 		{
@@ -1715,39 +1726,7 @@ int main(int argc, char* argv[])
 			auto h_string1_writelock_ptr = mse::make_pointer_to_member_v2(h_writelock_ptr, &H::m_string1);
 			(*h_string1_writelock_ptr) = "some new text";
 
-			auto h_string1_stdshared_const_ptr = mse::make_pointer_to_member_v2(h_shared_immutable_ptr, &H::m_string1);
-			//(*h_string1_stdshared_const_ptr) = "some new text";
-		}
-
-		{
-			/* Though the type of the safe pointer to the object member varies depending on how the object was
-			declared, you can make a (templated) accessor function that will return a safe pointer of the
-			appropriate type. */
-			auto h_string1_scpptr = H::safe_pointer_to_member_string1(&h_scpobj);
-			(*h_string1_scpptr) = "some new text";
-
-			auto h_string1_refcptr = H::safe_pointer_to_member_string1(h_refcptr);
-			(*h_string1_refcptr) = "some new text";
-
-			auto h_string1_regptr = H::safe_pointer_to_member_string1(&h_regobj);
-			(*h_string1_regptr) = "some new text";
-
-			auto h_string1_rlxregptr = H::safe_pointer_to_member_string1(&h_rlxregobj);
-			(*h_string1_rlxregptr) = "some new text";
-
-			auto h_string1_mstdvec_iter = H::safe_pointer_to_member_string1(h_mstdvec_iter);
-			(*h_string1_mstdvec_iter) = "some new text";
-
-			auto h_string1_msevec_ipointer = H::safe_pointer_to_member_string1(h_msevec_ipointer);
-			(*h_string1_msevec_ipointer) = "some new text";
-
-			auto h_string1_msevec_ssiter = H::safe_pointer_to_member_string1(h_msevec_ssiter);
-			(*h_string1_msevec_ssiter) = "some new text";
-
-			auto h_string1_writelock_ptr = H::safe_pointer_to_member_string1(h_writelock_ptr);
-			(*h_string1_writelock_ptr) = "some new text";
-
-			auto h_string1_stdshared_const_ptr = H::safe_pointer_to_member_string1(h_shared_immutable_ptr);
+			auto h_string1_stdshared_const_ptr = mse::make_const_pointer_to_member_v2(h_shared_immutable_ptr, &H::m_string1);
 			//(*h_string1_stdshared_const_ptr) = "some new text";
 		}
 	}

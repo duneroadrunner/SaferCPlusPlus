@@ -135,6 +135,18 @@ namespace mse {
 	MSE_USING_ASSIGNMENT_OPERATOR(Base) MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION
 
 
+	class XScopeTagBase { public: void xscope_tag() const {} };
+
+	/* The purpose of these template functions are just to produce a compile error on attempts to instantiate
+	when certain conditions are not met. */
+	template<class _Ty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _Ty>::value), void>::type>
+	void T_valid_if_not_an_xscope_type() {}
+
+	template<class _Ty>
+	void T_valid_if_not_an_xscope_type(const _Ty&) {
+		T_valid_if_not_an_xscope_type<_Ty>();
+	}
+
 	class NotAsyncShareableTagBase {};
 	class NotAsyncPassableTagBase {};
 
@@ -637,12 +649,14 @@ namespace mse {
 	}
 	template<class _TLeasePointer, class _TMemberObjectPointer>
 	static auto make_pointer_to_member_v2(const _TLeasePointer &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		T_valid_if_not_an_xscope_type(lease_pointer);
 		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
 		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return mse::TSyncWeakFixedPointer<_TTarget, _TLeasePointer>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _TLeasePointer, class _TMemberObjectPointer>
 	static auto make_const_pointer_to_member_v2(const _TLeasePointer &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		T_valid_if_not_an_xscope_type(lease_pointer);
 		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
 		make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return mse::TSyncWeakFixedConstPointer<_TTarget, _TLeasePointer>::make((*lease_pointer).*member_object_ptr, lease_pointer);

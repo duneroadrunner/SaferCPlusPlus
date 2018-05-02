@@ -955,7 +955,24 @@ namespace mse {
 		using difference_type = typename _Myt::difference_type;
 		using pointer = typename _Myt::const_pointer;
 		using reference = typename _Myt::const_reference;
+		using const_pointer = typename _Myt::const_pointer;
+		using const_reference = typename _Myt::const_reference;
+		using size_type = typename _Myt::size_type;
 	};
+
+#define MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class) \
+	typedef typename base_class::value_type value_type; \
+	typedef typename base_class::reference reference; \
+	typedef const reference const_reference; \
+	/*typedef typename base_class::pointer pointer;*/ \
+	/*typedef const pointer const_pointer;*/ \
+	typedef typename base_class::size_type size_type; \
+	typedef typename base_class::difference_type difference_type; \
+	typedef typename std::remove_const<value_type>::type nonconst_value_type;
+
+#define MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class) \
+	MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class); \
+	typedef typename base_class::iterator_category iterator_category;
 
 	/* Following are a bunch of template (iterator) classes that, organizationally, should be members of nii_array<>. (And they
 	used to be.) However, being a member of nii_array<> makes them "dependent types", and dependent types do not participate
@@ -2471,6 +2488,20 @@ namespace mse {
 	}
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 
+	/* Overloads for us::TReturnableFParam<>. */
+	template <typename _Ty>
+	auto make_xscope_const_iterator(const us::TReturnableFParam<_Ty>& param) {
+		const _Ty& param_base_ref = param;
+		typedef decltype(make_xscope_const_iterator(param_base_ref)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_xscope_const_iterator(param_base_ref));
+	}
+	template <typename _Ty>
+	auto make_xscope_iterator(const us::TReturnableFParam<_Ty>& param) {
+		const _Ty& param_base_ref = param;
+		typedef decltype(make_xscope_iterator(param_base_ref)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_xscope_iterator(param_base_ref));
+	}
+
 	template<class _TArrayPointer, class size_type = typename std::remove_reference<decltype(*(std::declval<_TArrayPointer>()))>::type::size_type>
 	auto make_xscope_const_iterator(const _TArrayPointer& owner_ptr, size_type index) {
 		return make_xscope_const_iterator(owner_ptr) + index;
@@ -3140,6 +3171,20 @@ namespace mse {
 		return TRandomAccessConstIterator<_TRAContainerPointer>(ra_container_pointer, index);
 	}
 
+	/* Overloads for us::TReturnableFParam<>. */
+	template <typename _Ty, typename _TSize = size_t>
+	auto make_random_access_const_iterator(const us::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) {
+		const _Ty& ra_container_pointer_base_ref = ra_container_pointer;
+		typedef decltype(make_random_access_const_iterator(ra_container_pointer_base_ref, count)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_random_access_const_iterator(ra_container_pointer_base_ref, count));
+	}
+	template <typename _Ty, typename _TSize = size_t>
+	auto make_random_access_iterator(const us::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) {
+		const _Ty& ra_container_pointer_base_ref = ra_container_pointer;
+		typedef decltype(make_random_access_iterator(ra_container_pointer_base_ref, count)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_random_access_iterator(ra_container_pointer_base_ref, count));
+	}
+
 
 	template <typename _TRAIterator> class TRASectionConstIteratorBase;
 
@@ -3506,6 +3551,10 @@ namespace mse {
 	class RandomAccessSectionTag {};
 	class RandomAccessConstSectionTag {};
 
+#define MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class) \
+	MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class); \
+	static const size_t npos = size_t(-1);
+
 	template<class T, class EqualTo>
 	struct HasOrInheritsBeginMethod_msemsearray_impl
 	{
@@ -3575,13 +3624,17 @@ namespace mse {
 	{
 	public:
 		typedef _TRAIterator iterator_type;
+		typedef _TRAIterator ra_iterator_type;
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
+			random_access_iterator_base<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>);
+		/*
 		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type value_type;
 		typedef decltype(std::declval<_TRAIterator>()[0]) reference;
 		typedef typename std::add_lvalue_reference<typename std::add_const<value_type>::type>::type const_reference;
 		typedef typename mse::us::msearray<value_type, 0>::size_type size_type;
 		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
 		static const size_t npos = size_t(-1);
-		typedef _TRAIterator ra_iterator_type;
+		*/
 
 		//TRandomAccessSectionBase(const TRandomAccessSectionBase& src) = default;
 		TRandomAccessSectionBase(const TRandomAccessSectionBase& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
@@ -4068,12 +4121,7 @@ namespace mse {
 	public:
 		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::reference reference;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		static const size_t npos = size_t(-1);
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//TXScopeRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter,count) {}
 		//TXScopeRandomAccessSection(const TXScopeRandomAccessSection& src) = default;
@@ -4120,12 +4168,7 @@ namespace mse {
 	public:
 		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::reference reference;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		static const size_t npos = size_t(-1);
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		TRandomAccessSection(const TRandomAccessSection& src) : base_class(static_cast<const base_class&>(src)) {}
 		TRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
@@ -4189,13 +4232,9 @@ namespace mse {
 	{
 	public:
 		typedef _TRAIterator iterator_type;
-		typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type value_type;
-		//typedef decltype(std::declval<_TRAIterator>()[0]) reference;
-		typedef typename std::add_lvalue_reference<typename std::add_const<value_type>::type>::type const_reference;
-		typedef typename mse::us::msearray<value_type, 0>::size_type size_type;
-		typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
-		static const size_t npos = size_t(-1);
 		typedef _TRAIterator ra_iterator_type;
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
+			random_access_const_iterator_base<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>);
 
 		//TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) = default;
 		TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
@@ -4610,11 +4649,7 @@ namespace mse {
 	public:
 		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		static const size_t npos = size_t(-1);
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//TXScopeRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		//TXScopeRandomAccessConstSection(const TXScopeRandomAccessConstSection& src) = default;
@@ -4660,11 +4695,7 @@ namespace mse {
 	public:
 		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		static const size_t npos = size_t(-1);
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		TRandomAccessConstSection(const TRandomAccessConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
 		TRandomAccessConstSection(const TRandomAccessSection<_TRAIterator>& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -4749,6 +4780,20 @@ namespace mse {
 			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
 	}
 
+	/* Overloads for us::TReturnableFParam<>. */
+	template <typename _TRAIterator>
+	auto make_xscope_random_access_const_section(const us::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
+		const _TRAIterator& start_iter_base_ref = start_iter;
+		typedef decltype(make_xscope_random_access_const_section(start_iter_base_ref, count)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_xscope_random_access_const_section(start_iter_base_ref, count));
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_random_access_const_section(const us::TReturnableFParam<_TRALoneParam>& param) {
+		const _TRALoneParam& param_base_ref = param;
+		typedef decltype(make_xscope_random_access_const_section(param_base_ref)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_xscope_random_access_const_section(param_base_ref));
+	}
+
 	template <typename _TRAIterator>
 	auto make_random_access_const_section(const _TRAIterator& start_iter, typename TRandomAccessConstSection<_TRAIterator>::size_type count) {
 		return TRandomAccessConstSection<_TRAIterator>(start_iter, count);
@@ -4781,6 +4826,21 @@ namespace mse {
 		return mse::impl::ra_section::make_xscope_random_access_section_helper1(
 			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
 	}
+
+	/* Overloads for us::TReturnableFParam<>. */
+	template <typename _TRAIterator>
+	auto make_xscope_random_access_section(const us::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeRandomAccessSection<_TRAIterator>::size_type count) {
+		const _TRAIterator& start_iter_base_ref = start_iter;
+		typedef decltype(make_xscope_random_access_section(start_iter_base_ref, count)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_xscope_random_access_section(start_iter_base_ref, count));
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_random_access_section(const us::TReturnableFParam<_TRALoneParam>& param) {
+		const _TRALoneParam& param_base_ref = param;
+		typedef decltype(make_xscope_random_access_section(param_base_ref)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_xscope_random_access_section(param_base_ref));
+	}
+
 	/* This function basically just calls the give section's subsection() member function and returns the value.  */
 	template<typename _Ty>
 	auto random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
@@ -4789,6 +4849,12 @@ namespace mse {
 	template<typename _Ty>
 	auto xscope_random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
 		return ra_section.xscope_subsection(std::get<0>(start_and_length), std::get<1>(start_and_length));
+	}
+	template<typename _Ty>
+	auto xscope_random_access_subsection(const us::TReturnableFParam<_Ty>& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
+		const _Ty& ra_section_base_ref = ra_section;
+		typedef decltype(xscope_random_access_subsection(ra_section_base_ref, start_and_length)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(xscope_random_access_subsection(ra_section_base_ref, start_and_length));
 	}
 
 	template <typename _TRAIterator>
@@ -4835,12 +4901,7 @@ namespace mse {
 		public:
 			typedef TXScopeRandomAccessConstSection<_TRAIterator> base_class;
 			typedef _TRAIterator iterator_type;
-			typedef typename base_class::value_type value_type;
-			//typedef typename base_class::reference reference;
-			typedef typename base_class::const_reference const_reference;
-			typedef typename base_class::size_type size_type;
-			typedef typename base_class::difference_type difference_type;
-			static const size_t npos = size_t(-1);
+			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 			//MSE_USING(TXScopeRandomAccessConstSectionFParam, base_class);
 			TXScopeRandomAccessConstSectionFParam(const TXScopeRandomAccessConstSectionFParam& src) = default;
@@ -4890,6 +4951,7 @@ namespace mse {
 		class TFParam<mse::TXScopeRandomAccessConstSection<_Ty> > : public TXScopeRandomAccessConstSectionFParam<_Ty> {
 		public:
 			typedef TXScopeRandomAccessConstSectionFParam<_Ty> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
@@ -4901,6 +4963,7 @@ namespace mse {
 		class TFParam<const mse::TXScopeRandomAccessConstSection<_Ty> > : public TXScopeRandomAccessConstSectionFParam<_Ty> {
 		public:
 			typedef TXScopeRandomAccessConstSectionFParam<_Ty> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
@@ -4912,8 +4975,115 @@ namespace mse {
 		class TFParam<mse::TXScopeCagedRandomAccessConstSectionToRValue<_Ty> > : public TXScopeRandomAccessConstSectionFParam<_Ty> {
 		public:
 			typedef TXScopeRandomAccessConstSectionFParam<_Ty> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+
+		/* Template specializations of TReturnableFParam<>. */
+
+		template<typename _Ty>
+		class TReturnableFParam<mse::TXScopeRandomAccessConstSection<_Ty> > : public TXScopeRandomAccessConstSection<_Ty> {
+		public:
+			typedef TXScopeRandomAccessConstSection<_Ty> base_class;
+			typedef typename base_class::iterator_type iterator_type;
+			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
+
+			/* Subsections of TReturnableFParam<mse::TXScopeRandomAccessConstSection<_Ty> > can inherit the "returnability"
+			of the original section. */
+			auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(base_class::xscope_subsection(pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(base_class::xscope_subsection(pos, n));
+			}
+			auto subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(base_class::subsection(pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(base_class::subsection(pos, n));
+			}
+
+			void returnable_once_tag() const {}
+			void xscope_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+
+		template<typename _Ty>
+		class TReturnableFParam<const mse::TXScopeRandomAccessConstSection<_Ty> > : public TXScopeRandomAccessConstSection<_Ty> {
+		public:
+			typedef TXScopeRandomAccessConstSection<_Ty> base_class;
+			typedef typename base_class::iterator_type iterator_type;
+			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
+
+			/* Subsections of TReturnableFParam<const mse::TXScopeRandomAccessConstSection<_Ty> > can inherit the "returnability"
+			of the original section. */
+			auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(base_class::xscope_subsection(pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(base_class::xscope_subsection(pos, n));
+			}
+			auto subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(base_class::subsection(pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(base_class::subsection(pos, n));
+			}
+
+			void returnable_once_tag() const {}
+			void xscope_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+
+		template<typename _Ty>
+		class TReturnableFParam<mse::TXScopeRandomAccessSection<_Ty> > : public TXScopeRandomAccessSection<_Ty> {
+		public:
+			typedef TXScopeRandomAccessSection<_Ty> base_class;
+			typedef typename base_class::iterator_type iterator_type;
+			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
+
+			/* Subsections of TReturnableFParam<mse::TXScopeRandomAccessSection<_Ty> > can inherit the "returnability"
+			of the original section. */
+			auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(base_class::xscope_subsection(pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(base_class::xscope_subsection(pos, n));
+			}
+			auto subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(base_class::subsection(pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(base_class::subsection(pos, n));
+			}
+
+			void returnable_once_tag() const {}
+			void xscope_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+
+		template<typename _Ty>
+		class TReturnableFParam<const mse::TXScopeRandomAccessSection<_Ty> > : public TXScopeRandomAccessSection<_Ty> {
+		public:
+			typedef TXScopeRandomAccessSection<_Ty> base_class;
+			typedef typename base_class::iterator_type iterator_type;
+			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
+
+			/* Subsections of TReturnableFParam<const mse::TXScopeRandomAccessSection<_Ty> > can inherit the "returnability"
+			of the original section. */
+			auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(base_class::xscope_subsection(pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(base_class::xscope_subsection(pos, n));
+			}
+			auto subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(base_class::subsection(pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(base_class::subsection(pos, n));
+			}
+
+			void returnable_once_tag() const {}
+			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);

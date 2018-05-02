@@ -61,10 +61,8 @@ namespace mse {
 
 	template<typename _Ty> class TScopeID {};
 
-	class XScopeTagBase {
-	public:
-		void xscope_tag() const {}
-	};
+	/* moved to msepointerbasics.h */
+	//class XScopeTagBase { public: void xscope_tag() const {} };
 
 	/* Note that objects not derived from ReferenceableByScopePointerTagBase might still be targeted by a scope pointer via
 	make_pointer_to_member(). */
@@ -103,16 +101,6 @@ namespace mse {
 	struct is_instantiation_of_msescope : std::false_type { };
 	template<typename T, template<typename> class TT>
 	struct is_instantiation_of_msescope<TT<T>, TT> : std::true_type { };
-
-	/* The purpose of these template functions are just to produce a compile error on attempts to instantiate
-	when certain conditions are not met. */
-	template<class _Ty, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _Ty>::value), void>::type>
-	void T_valid_if_not_an_xscope_type() {}
-
-	template<class _Ty>
-	void T_valid_if_not_an_xscope_type(const _Ty&) {
-		T_valid_if_not_an_xscope_type<_Ty>();
-	}
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
 	//TScopeID
@@ -979,6 +967,21 @@ namespace mse {
 		};
 	}
 
+	/* If a us::TReturnableFParam<> wrapped reference is used to make a pointer to a member of its target object, then the
+	created pointer to member can inherit the "returnability" of the original wrapped reference. */
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_xscope_pointer_to_member_v2(const us::TReturnableFParam<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		const _Ty& lease_pointer_base_ref = lease_pointer;
+		typedef decltype(make_xscope_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_xscope_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr));
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_xscope_const_pointer_to_member_v2(const us::TReturnableFParam<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		const _Ty& lease_pointer_base_ref = lease_pointer;
+		typedef decltype(make_xscope_const_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_xscope_const_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr));
+	}
+
 	template<typename _TROy>
 	class TReturnValue : public _TROy {
 	public:
@@ -1124,6 +1127,10 @@ namespace mse {
 	/* TMemberObj is a transparent wrapper that can be used to wrap class/struct members to ensure that they are not scope
 	types. This might be particularly relevant when the member type is, or is derived from, a template parameter. */
 	template<typename _TROy> using TMemberObj = TNonXScopeObj<_TROy>;
+
+	/* TBaseClass is a transparent wrapper that can be used to wrap base classes to ensure that they are not scope
+	types. This might be particularly relevant when the base class is, or is derived from, a template parameter. */
+	template<typename _TROy> using TBaseClass = TNonXScopeObj<_TROy>;
 
 	/* TXScopeOwnerPointer is meant to be much like boost::scoped_ptr<>. Instead of taking a native pointer,
 	TXScopeOwnerPointer just forwards it's constructor arguments to the constructor of the TXScopeObj<_Ty>.
