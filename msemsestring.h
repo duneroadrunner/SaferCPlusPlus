@@ -6023,7 +6023,6 @@ namespace mse {
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		TStringConstSectionBase(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
-			/* "Const" string sections are more appropriate for use with const native arrays, including string literals. */
 			if ((1 <= (*this).size()) && (0 == (*this).back())) {
 				/* We presume that the argument is a string literal, and remove the terminating null. */
 				(*this).remove_suffix(1);
@@ -6521,7 +6520,6 @@ namespace mse {
 		public:
 			typedef TXScopeStringConstSection<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
-
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
 			/* Subsections of TReturnableFParam<mse::TXScopeStringConstSection<_Ty> > can inherit the "returnability"
@@ -6552,7 +6550,6 @@ namespace mse {
 		public:
 			typedef TXScopeStringConstSection<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
-
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
 			/* Subsections of TReturnableFParam<const mse::TXScopeStringConstSection<_Ty> > can inherit the "returnability"
@@ -6584,7 +6581,6 @@ namespace mse {
 		public:
 			typedef TXScopeStringSection<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
-
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
 			/* Subsections of TReturnableFParam<mse::TXScopeStringSection<_Ty> > can inherit the "returnability"
@@ -7056,7 +7052,6 @@ namespace mse {
 		public:
 			typedef TXScopeNRPStringConstSection<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
-
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
 			/* Subsections of TReturnableFParam<mse::TXScopeNRPStringConstSection<_Ty> > can inherit the "returnability"
@@ -7088,7 +7083,6 @@ namespace mse {
 		public:
 			typedef TXScopeNRPStringConstSection<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
-
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
 			/* Subsections of TReturnableFParam<const mse::TXScopeNRPStringConstSection<_Ty> > can inherit the "returnability"
@@ -7120,7 +7114,6 @@ namespace mse {
 		public:
 			typedef TXScopeNRPStringSection<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
-
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
 			/* Subsections of TReturnableFParam<mse::TXScopeNRPStringSection<_Ty> > can inherit the "returnability"
@@ -7152,7 +7145,6 @@ namespace mse {
 		public:
 			typedef TXScopeNRPStringSection<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
-
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
 			/* Subsections of TReturnableFParam<const mse::TXScopeNRPStringSection<_Ty> > can inherit the "returnability"

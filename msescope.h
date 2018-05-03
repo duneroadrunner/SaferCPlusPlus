@@ -884,9 +884,6 @@ namespace mse {
 			typedef _Ty returnable_fparam_contained_type;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
-			const _Ty& mse_returnable_fparam_contained_value() const { return *this; }
-			_Ty& mse_returnable_fparam_contained_value() { return *this; }
-
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 
@@ -895,6 +892,17 @@ namespace mse {
 		};
 
 		template<typename _Ty> using TXScopeReturnableFParam = TReturnableFParam<_Ty>;
+
+		template<typename _Ty>
+		auto returnable_fparam_as_original_type(TReturnableFParam<_Ty>&& _X) {
+			return std::forward<_Ty>(_X);
+		}
+		template<typename _Ty>
+		const auto& returnable_fparam_as_original_type(const TReturnableFParam<_Ty>& _X) {
+			const _Ty& _Ty_cref = _X;
+			return _Ty_cref;
+		}
+
 
 		namespace impl {
 			namespace returnable_fparam {
@@ -1028,11 +1036,11 @@ namespace mse {
 
 	template<typename _Ty>
 	auto return_value_helper12(const _Ty& _X) {
-		return _X.mse_returnable_fparam_contained_value();
+		return us::returnable_fparam_as_original_type(_X);
 	}
 	template<typename _Ty>
 	auto return_value_helper12(_Ty&& _X) {
-		return std::forward<decltype(_X.mse_returnable_fparam_contained_value())>(_X.mse_returnable_fparam_contained_value());
+		return us::returnable_fparam_as_original_type(std::forward<decltype(_X)>(_X));
 	}
 
 	template<typename _Ty>
@@ -1047,9 +1055,10 @@ namespace mse {
 
 	template<typename _Ty>
 	const auto& return_value(const _Ty& _X) {
+		typedef typename std::remove_reference<_Ty>::type _Ty_noref;
 		return return_value_helper11(typename std::conditional<
-			is_instantiation_of_msescope<_Ty, us::TReturnableFParam>::value
-			|| is_instantiation_of_msescope<_Ty, us::TXScopeReturnableFParam>::value
+			is_instantiation_of_msescope<_Ty_noref, us::TReturnableFParam>::value
+			|| is_instantiation_of_msescope<_Ty_noref, us::TXScopeReturnableFParam>::value
 			, std::true_type, std::false_type>::type(), _X);
 	}
 
@@ -1064,9 +1073,10 @@ namespace mse {
 	}
 	template<typename _Ty>
 	auto return_value(_Ty&& _X) {
+		typedef typename std::remove_reference<_Ty>::type _Ty_noref;
 		return return_value_helper11(typename std::conditional<
-			is_instantiation_of_msescope<_Ty, us::TReturnableFParam>::value
-			|| is_instantiation_of_msescope<_Ty, us::TXScopeReturnableFParam>::value
+			is_instantiation_of_msescope<_Ty_noref, us::TReturnableFParam>::value
+			|| is_instantiation_of_msescope<_Ty_noref, us::TXScopeReturnableFParam>::value
 			, std::true_type, std::false_type>::type(), std::forward<decltype(_X)>(_X));
 	}
 
