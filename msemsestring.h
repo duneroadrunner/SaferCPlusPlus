@@ -5720,6 +5720,19 @@ namespace mse {
 	/* "String sections" are essentially "random access sections" that support the string output stream operator ("<<").
 	So a const string section is the functional equivalent of an std::string_view, with a very similar interface. */
 
+	namespace impl {
+		namespace ra_section {
+			template <typename _Ty> using mkxsscsh1_TRAIterator = typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(std::declval<mse::TXScopeItemFixedConstPointer<_Ty> >()))>::type;
+			template <typename _Ty> using mkxsscsh1_ReturnType = mse::TXScopeCagedStringConstSectionToRValue<mkxsscsh1_TRAIterator<_Ty> >;
+
+			template <typename _Ty> auto make_xscope_string_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
+				->impl::ra_section::mkxsscsh1_ReturnType<_Ty>;
+			template <typename _TRALoneParam> auto make_xscope_string_const_section_helper1(std::false_type, const _TRALoneParam& param);
+		}
+	}
+	template <typename _TRALoneParam> auto make_xscope_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
+		typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+
 	template <typename _TRASection, typename _TRAConstSection>
 	class TStringSectionBase : public _TRASection, public StringSectionTagBase {
 	public:
@@ -5751,24 +5764,33 @@ namespace mse {
 			}
 		}
 
-		bool equal(const TStringConstSectionBase<_TRASection, _TRAConstSection>& sv) const _NOEXCEPT {
+		template<typename _TRAParam>
+		bool equal(const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_string_const_section(ra_param);
 			return base_class::equal(sv);
 		}
-		bool equal(size_type pos1, size_type n1, TStringConstSectionBase<_TRASection, _TRAConstSection> sv) const {
+		template<typename _TRAParam>
+		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_string_const_section(ra_param);
 			return subsection(pos1, n1).equal(sv);
 		}
-		bool equal(size_type pos1, size_type n1, TStringConstSectionBase<_TRASection, _TRAConstSection> sv, size_type pos2, size_type n2) const {
+		template<typename _TRAParam>
+		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
+			auto sv = mse::make_xscope_string_const_section(ra_param);
 			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			return subsection(pos1, n1).equal(TStringConstSectionBase<_TRASection, _TRAConstSection>(s, n2));
+			auto sv = TStringConstSectionBase<TXScopeRandomAccessSection<_TRAIterator2>, TXScopeRandomAccessConstSection<_TRAIterator2> >(s, n2);
+			return subsection(pos1, n1).equal(sv);
 		}
-		bool operator==(const TStringConstSectionBase<_TRASection, _TRAConstSection>& sv) const {
-			return equal(sv);
+		template<typename _TRAParam>
+		bool operator==(const _TRAParam& ra_param) const {
+			return equal(ra_param);
 		}
-		bool operator!=(const TStringConstSectionBase<_TRASection, _TRAConstSection>& sv) const {
-			return !((*this) == sv);
+		template<typename _TRAParam>
+		bool operator!=(const _TRAParam& ra_param) const {
+			return !((*this) == ra_param);
 		}
 
 		bool lexicographical_compare(const TStringConstSectionBase<_TRASection, _TRAConstSection>& sv) const _NOEXCEPT {
@@ -5885,7 +5907,7 @@ namespace mse {
 		TXScopeStringSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
-		TXScopeStringSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {}
+		TXScopeStringSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
 
 		TXScopeStringSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
@@ -5944,7 +5966,7 @@ namespace mse {
 		TStringSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
-		TStringSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {}
+		TStringSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
 
 		virtual ~TStringSection() {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
@@ -6033,24 +6055,33 @@ namespace mse {
 			}
 		}
 
-		bool equal(const TStringConstSectionBase& sv) const _NOEXCEPT {
+		template<typename _TRAParam>
+		bool equal(const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_string_const_section(ra_param);
 			return base_class::equal(sv);
 		}
-		bool equal(size_type pos1, size_type n1, TStringConstSectionBase sv) const {
+		template<typename _TRAParam>
+		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_string_const_section(ra_param);
 			return subsection(pos1, n1).equal(sv);
 		}
-		bool equal(size_type pos1, size_type n1, TStringConstSectionBase sv, size_type pos2, size_type n2) const {
+		template<typename _TRAParam>
+		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
+			auto sv = mse::make_xscope_string_const_section(ra_param);
 			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			return subsection(pos1, n1).equal(TStringConstSectionBase(s, n2));
+			auto sv = TStringConstSectionBase<TXScopeRandomAccessSection<_TRAIterator2>, TXScopeRandomAccessConstSection<_TRAIterator2> >(s, n2);
+			return subsection(pos1, n1).equal(sv);
 		}
-		bool operator==(const TStringConstSectionBase& sv) const {
-			return equal(sv);
+		template<typename _TRAParam>
+		bool operator==(const _TRAParam& ra_param) const {
+			return equal(ra_param);
 		}
-		bool operator!=(const TStringConstSectionBase& sv) const {
-			return !((*this) == sv);
+		template<typename _TRAParam>
+		bool operator!=(const _TRAParam& ra_param) const {
+			return !((*this) == ra_param);
 		}
 
 		bool lexicographical_compare(const TStringConstSectionBase& sv) const _NOEXCEPT {
@@ -6169,7 +6200,7 @@ namespace mse {
 		TXScopeStringConstSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
-		TXScopeStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {}
+		TXScopeStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
 
 		TXScopeStringConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
 			return base_class::subsection(pos, n);
@@ -6227,7 +6258,7 @@ namespace mse {
 		TStringConstSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
-		TStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {}
+		TStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
 
 		virtual ~TStringConstSection() {
 			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
@@ -6272,19 +6303,6 @@ namespace mse {
 			return _Ostr;
 		}
 	};
-
-	namespace impl {
-		namespace ra_section {
-			template <typename _Ty> using mkxsscsh1_TRAIterator = typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(std::declval<mse::TXScopeItemFixedConstPointer<_Ty> >()))>::type;
-			template <typename _Ty> using mkxsscsh1_ReturnType = mse::TXScopeCagedStringConstSectionToRValue<mkxsscsh1_TRAIterator<_Ty> >;
-
-			template <typename _Ty> auto make_xscope_string_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
-				->impl::ra_section::mkxsscsh1_ReturnType<_Ty>;
-			template <typename _TRALoneParam> auto make_xscope_string_const_section_helper1(std::false_type, const _TRALoneParam& param);
-		}
-	}
-	template <typename _TRALoneParam> auto make_xscope_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
-		typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
 
 	template <typename _TRAIterator>
 	auto make_xscope_string_const_section(const _TRAIterator& start_iter, typename TXScopeStringConstSection<_TRAIterator>::size_type count) {

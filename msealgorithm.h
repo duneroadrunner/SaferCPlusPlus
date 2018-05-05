@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <stdexcept>
 #include "msescope.h"
-#include "msemsearray.h"
 #include "mseoptional.h"
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
@@ -22,6 +21,80 @@
 #endif // MSE_CUSTOM_THROW_DEFINITION
 
 namespace mse {
+
+	/* The declaration of the "make_xscope_iterator()" template functions were moved to here from "msemsearray.h" because
+	they are used by some of the supplementary algorithms. */
+
+	template<class _TArray>
+	auto make_xscope_const_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_const_iterator(owner_ptr);
+	}
+	template<class _TArray>
+	auto make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_const_iterator(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _TArray>
+	auto make_xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_const_iterator(owner_ptr);
+	}
+	template<class _TArray>
+	auto make_xscope_const_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_const_iterator(owner_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	template<class _TArray>
+	auto make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_iterator(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _TArray>
+	auto make_xscope_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+		return typename _TArray::xscope_iterator(owner_ptr);
+	}
+#endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
+
+	/* Overloads for us::TReturnableFParam<>. */
+	template <typename _Ty>
+	auto make_xscope_const_iterator(const us::TReturnableFParam<_Ty>& param) {
+		const _Ty& param_base_ref = param;
+		typedef decltype(make_xscope_const_iterator(param_base_ref)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_xscope_const_iterator(param_base_ref));
+	}
+	template <typename _Ty>
+	auto make_xscope_iterator(const us::TReturnableFParam<_Ty>& param) {
+		const _Ty& param_base_ref = param;
+		typedef decltype(make_xscope_iterator(param_base_ref)) base_return_type;
+		return us::TReturnableFParam<base_return_type>(make_xscope_iterator(param_base_ref));
+	}
+
+	template<class _TArrayPointer, class size_type = typename std::remove_reference<decltype(*(std::declval<_TArrayPointer>()))>::type::size_type>
+	auto make_xscope_const_iterator(const _TArrayPointer& owner_ptr, size_type index) {
+		return make_xscope_const_iterator(owner_ptr) + index;
+	}
+	template<class _TArrayPointer, class size_type = typename std::remove_reference<decltype(*(std::declval<_TArrayPointer>()))>::type::size_type>
+	auto make_xscope_iterator(const _TArrayPointer& owner_ptr, size_type index) {
+		return make_xscope_iterator(owner_ptr) + index;
+	}
+
+	template<class _TArrayPointer>
+	auto make_xscope_begin_const_iterator(const _TArrayPointer& owner_ptr) {
+		return make_xscope_const_iterator(owner_ptr);
+	}
+	template<class _TArrayPointer>
+	auto make_xscope_begin_iterator(const _TArrayPointer& owner_ptr) {
+		return make_xscope_iterator(owner_ptr);
+	}
+
+	template<class _TArrayPointer>
+	auto make_xscope_end_const_iterator(const _TArrayPointer& owner_ptr) {
+		return make_xscope_begin_const_iterator(owner_ptr) + (*owner_ptr).size();
+	}
+	template<class _TArrayPointer>
+	auto make_xscope_end_iterator(const _TArrayPointer& owner_ptr) {
+		return make_xscope_begin_iterator(owner_ptr) + (*owner_ptr).size();
+	}
 
 	namespace impl {
 		namespace us {
@@ -39,7 +112,11 @@ namespace mse {
 				}
 			}
 		}
+	}
 
+	/* find_if() */
+
+	namespace impl {
 		template<class _InIt, class _Pr>
 		class c_find_if {
 		public:
@@ -158,93 +235,76 @@ namespace mse {
 	}
 
 
+	/* equal() */
+
 	namespace impl {
+		/* This is just because msvc complains about std::equal() being unsafe. */
+		template<class _InIt1, class _InIt2>
+		bool m_equal(_InIt1 _First1, const _InIt1& _Last1, _InIt2 _First2) {
+#ifdef _MSC_VER
+			while (_First1 != _Last1) {
+				if (!(*_First1 == *_First2)) {
+					return false;
+				}
+				++_First1; ++_First2;
+			}
+			return true;
+#else // _MSC_VER
+			return std::equal(_First1, _Last1, _First2);
+#endif // _MSC_VER
+		}
 
-		/* Some implementation specializations for nii_array<>.  */
-
-		template<class _Pr, class _Ty, size_t _Size, class _TStateMutex>
-		class c_find_if<Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>, _Pr> {
+		template<class _InIt1, class _InIt2>
+		class c_equal {
 		public:
-			typedef Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> _InIt;
-			typedef decltype(std::find_if(std::declval<_InIt>(), std::declval<_InIt>(), std::declval<_Pr>())) result_type;
+			typedef decltype(m_equal(std::declval<_InIt1>(), std::declval<_InIt1>(), std::declval<_InIt2>())) result_type;
 			result_type result;
-			c_find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred)
-				: result(eval(_First, _Last, _Pred)) {}
+			c_equal(const _InIt1& _First1, const _InIt1& _Last1, _InIt2 _First2) : result(m_equal(_First1, _Last1, _First2)) {}
+		};
+
+		template<class _Container, class _InIt2>
+		class xscope_c_ra_const_equal {
+		public:
+			typedef bool result_type;
+			result_type result;
+			xscope_c_ra_const_equal(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _InIt2 _First2)
+				: result(eval(_XscpPtr, _First2)) {}
 		private:
-			auto eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
-				auto raw_pair = us::iterator_pair_to_raw_pointers_checked(_First, _Last);
-				/* If (_Last <= _First) the returned raw pointers will both have nullptr value. The C++ spec suggests this'll
-				work just fine. Apparently. */
-				auto raw_result = std::find_if(raw_pair.first, raw_pair.second, _Pred);
-				return _First + (raw_result - raw_pair.first);
+			result_type eval(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _InIt2 _First2) {
+				auto xscope_begin_cit = mse::make_xscope_begin_const_iterator(_XscpPtr);
+				auto xscope_end_cit = mse::make_xscope_end_const_iterator(_XscpPtr);
+				return m_equal(xscope_begin_cit, xscope_end_cit, _First2);
 			}
 		};
 
-		template<class _Pr, class _Ty, size_t _Size, class _TStateMutex>
-		class xscope_c_ra_const_find_if<nii_array<_Ty, _Size, _TStateMutex>, _Pr> {
+		template<class _Container, class _InIt2>
+		class xscope_c_ra_const_equal_adapter {
 		public:
-			typedef nii_array<_Ty, _Size, _TStateMutex> _Container;
-			typedef typename std::remove_reference<decltype(std::declval<const _Container>()[0])>::type element_t;
-			typedef mse::xscope_optional<TXScopeItemFixedConstPointer<element_t> > result_type;
-			result_type result;
-
-			typedef TXScopeItemFixedConstPointer<nii_array<_Ty, _Size, _TStateMutex> > container_pointer_t;
-			xscope_c_ra_const_find_if(const container_pointer_t& _XscpPtr, _Pr _Pred)
-				: result(eval(_XscpPtr, _Pred)) {}
-		private:
-			result_type eval(const container_pointer_t& _XscpPtr, _Pr _Pred) {
-				/* Note that since we're returning a (wrapped const) reference, we need to be careful that it refers to an
-				element in the original container, not an (ephemeral) copy. */
-				const auto& array1 = (*_XscpPtr);
-				if (0 >= array1.size()) {
-					return result_type{};
-				}
-				else {
-					auto raw_begin_cit = std::addressof(array1[0]);
-					auto raw_end_cit = raw_begin_cit + msear_as_a_size_t(array1.size());
-					auto raw_result_cit = std::find_if(raw_begin_cit, raw_end_cit, _Pred);
-					if (raw_end_cit == raw_result_cit) {
-						return result_type{};
-					}
-					else {
-						return result_type(mse::us::unsafe_make_xscope_const_pointer_to(*raw_result_cit));
-					}
-				}
-			}
-		};
-
-		template<class _Pr, class _Ty, size_t _Size, class _TStateMutex>
-		class xscope_c_ra_const_find_element_known_to_be_present<nii_array<_Ty, _Size, _TStateMutex>, _Pr> {
-		public:
-			typedef nii_array<_Ty, _Size, _TStateMutex> _Container;
-			typedef typename std::remove_reference<decltype(std::declval<const _Container>()[0])>::type element_t;
-			typedef TXScopeItemFixedConstPointer<element_t> result_type;
+			typedef bool result_type;
 			result_type result;
 
 			typedef TXScopeItemFixedConstPointer<_Container> container_pointer_t;
-			xscope_c_ra_const_find_element_known_to_be_present(const container_pointer_t& _XscpPtr, _Pr _Pred)
-				: result(eval(_XscpPtr, _Pred)) {}
-		private:
-			result_type eval(const container_pointer_t& _XscpPtr, _Pr _Pred) {
-				/* Note that since we're returning a (const) reference, we need to be careful that it refers to an
-				element in the original container, not an (ephemeral) copy. */
-				const auto& array1 = (*_XscpPtr);
-				if (0 >= array1.size()) {
-					MSE_THROW(std::logic_error("element not found - xscope_c_ra_const_find_element_known_to_be_present"));
-				}
-				else {
-					auto raw_begin_cit = std::addressof(array1[0]);
-					auto raw_end_cit = raw_begin_cit + msear_as_a_size_t(array1.size());
-					auto raw_result_cit = std::find_if(raw_begin_cit, raw_end_cit, _Pred);
-					if (raw_end_cit == raw_result_cit) {
-						MSE_THROW(std::logic_error("element not found - xscope_c_ra_const_find_element_known_to_be_present"));
-					}
-					else {
-						return mse::us::unsafe_make_xscope_const_pointer_to(*raw_result_cit);
-					}
-				}
-			}
+			xscope_c_ra_const_equal_adapter(const container_pointer_t& _XscpPtr, _InIt2 _First2)
+				: result(xscope_c_ra_const_equal<_Container, _InIt2>(_XscpPtr, _First2).result) {}
+			explicit xscope_c_ra_const_equal_adapter(const TXScopeItemFixedPointer<_Container>& _XscpPtr, _InIt2 _First2)
+				: result(xscope_c_ra_const_equal<_Container, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
+#ifndef MSE_SCOPEPOINTER_DISABLED
+			explicit xscope_c_ra_const_equal_adapter(const TXScopeFixedConstPointer<_Container>& _XscpPtr, _InIt2 _First2)
+				: result(xscope_c_ra_const_equal<_Container, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
+			explicit xscope_c_ra_const_equal_adapter(const TXScopeFixedPointer<_Container>& _XscpPtr, _InIt2 _First2)
+				: result(xscope_c_ra_const_equal<_Container, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
+#endif //!MSE_SCOPEPOINTER_DISABLED
 		};
+	}
+	template<class _InIt1, class _InIt2>
+	inline _InIt1 equal(const _InIt1& _First1, const _InIt1& _Last1, _InIt2 _First2) {
+		return impl::c_equal<_InIt1, _InIt2>(_First1, _Last1, _First2).result;
+	}
+
+	template<class _XScopeContainerPointer, class _InIt2>
+	inline auto xscope_ra_const_equal(const _XScopeContainerPointer& _XscpPtr, _InIt2 _First2) {
+		typedef typename std::remove_reference<decltype(*std::declval<_XScopeContainerPointer>())>::type _Container;
+		return impl::xscope_c_ra_const_equal_adapter<_Container, _InIt2>(_XscpPtr, _First2).result;
 	}
 }
 
