@@ -1572,6 +1572,7 @@ int main(int argc, char* argv[])
 			mse::TXScopeObj<CE> e_xscpobj;
 			auto xscope_string_const_section1 = mse::TXScopeObj<CE>::xscope_string_const_section_to_member(&e_xscpobj);
 			assert(xscope_string_const_section1 == "bcd");
+			assert(xscope_string_const_section1 == &mse::TXScopeObj<mse::nii_string>("bcd"));
 		}
 
 		{

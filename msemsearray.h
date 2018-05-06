@@ -3815,8 +3815,8 @@ namespace mse {
 		}
 
 		template<typename _TRAParam>
-		bool equal(const _TRAParam& ra_param) const _NOEXCEPT {
-			auto sv = mse::make_xscope_random_access_const_section(ra_param);
+		bool equal(const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			if (size() != sv.size()) {
 				return false;
 			}
@@ -3834,17 +3834,17 @@ namespace mse {
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(ra_param);
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(ra_param);
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = TRandomAccessConstSectionBase<_TRAIterator2>(s, n2);
+			auto sv = TRandomAccessConstSectionBase<_TRAIterator2>(mse::us::xscope_as_an_fparam(s), n2);
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
@@ -3856,27 +3856,40 @@ namespace mse {
 			return !((*this) == ra_param);
 		}
 
-		bool lexicographical_compare(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+		template<typename _TRAParam>
+		bool lexicographical_compare(const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return std::lexicographical_compare(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin(), sv.xscope_cend());
 		}
-		bool lexicographical_compare(size_type pos1, size_type n1, TRandomAccessConstSectionBase<_TRAIterator> sv) const {
+		template<typename _TRAParam>
+		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
-		bool lexicographical_compare(size_type pos1, size_type n1, TRandomAccessConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+		template<typename _TRAParam>
+		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			return subsection(pos1, n1).lexicographical_compare(TRandomAccessConstSectionBase<_TRAIterator>(s, n2));
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(s), n2);
+			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
-		bool operator<(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const {
+		template<typename _TRAParam>
+		bool operator<(const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return lexicographical_compare(sv);
 		}
-		bool operator>(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const {
+		template<typename _TRAParam>
+		bool operator>(const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return sv.lexicographical_compare(*this);
 		}
-		bool operator<=(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const { return !((*this) > sv); }
-		bool operator>=(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const { return !((*this) < sv); }
+		template<typename _TRAParam>
+		bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
+		template<typename _TRAParam>
+		bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
 
 		template <typename _TRAIterator2>
 		size_type copy(_TRAIterator2 target_iter, size_type n, size_type pos = 0) const {
@@ -4292,8 +4305,8 @@ namespace mse {
 		}
 
 		template<typename _TRAParam>
-		bool equal(const _TRAParam& ra_param) const _NOEXCEPT {
-			auto sv = mse::make_xscope_random_access_const_section(ra_param);
+		bool equal(const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			if (size() != sv.size()) {
 				return false;
 			}
@@ -4311,17 +4324,17 @@ namespace mse {
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(ra_param);
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(ra_param);
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(s, n2);
+			auto sv = TRandomAccessConstSectionBase<_TRAIterator2>(mse::us::xscope_as_an_fparam(s), n2);
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
@@ -4333,27 +4346,40 @@ namespace mse {
 			return !((*this) == ra_param);
 		}
 
-		bool lexicographical_compare(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+		template<typename _TRAParam>
+		bool lexicographical_compare(const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return std::lexicographical_compare(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin(), sv.xscope_cend());
 		}
-		bool lexicographical_compare(size_type pos1, size_type n1, TRandomAccessConstSectionBase<_TRAIterator> sv) const {
+		template<typename _TRAParam>
+		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
-		bool lexicographical_compare(size_type pos1, size_type n1, TRandomAccessConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+		template<typename _TRAParam>
+		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			return subsection(pos1, n1).lexicographical_compare(TRandomAccessConstSectionBase<_TRAIterator>(s, n2));
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(s), n2);
+			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
-		bool operator<(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const {
+		template<typename _TRAParam>
+		bool operator<(const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return lexicographical_compare(sv);
 		}
-		bool operator>(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const {
+		template<typename _TRAParam>
+		bool operator>(const _TRAParam& ra_param) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
 			return sv.lexicographical_compare(*this);
 		}
-		bool operator<=(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const { return !((*this) > sv); }
-		bool operator>=(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const { return !((*this) < sv); }
+		template<typename _TRAParam>
+		bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
+		template<typename _TRAParam>
+		bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
 
 		int compare(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
 			size_type rlen = std::min(size(), sv.size());

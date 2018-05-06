@@ -777,7 +777,7 @@ namespace mse {
 		namespace impl {
 			namespace fparam {
 				template<typename _Ty>
-				auto as_an_fparam_helper1(std::false_type, const _Ty& param) {
+				const auto& as_an_fparam_helper1(std::false_type, const _Ty& param) {
 					return param;
 				}
 				template<typename _Ty>
@@ -797,7 +797,7 @@ namespace mse {
 		}
 
 		template<typename _Ty>
-		auto as_an_fparam(const _Ty& param) {
+		auto as_an_fparam(const _Ty& param) -> decltype(impl::fparam::as_an_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), param)) {
 			return impl::fparam::as_an_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), param);
 		}
 		template<typename _Ty>
@@ -806,7 +806,7 @@ namespace mse {
 		}
 
 		template<typename _Ty>
-		auto xscope_as_an_fparam(const _Ty& param) {
+		auto xscope_as_an_fparam(const _Ty& param) -> decltype(as_an_fparam(param)) {
 			return as_an_fparam(param);
 		}
 		template<typename _Ty>
@@ -869,6 +869,28 @@ namespace mse {
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 
+		/* These specializations for native arrays aren't actually meant to be used. They're just needed because when you call
+		as_an_fparam() on a native array, msvc2017 will try to instantiate a TFParam<> with the native array even though it is
+		determined at compile that it will never be used. clang6, for example, doesn't have the same issue. */
+		template<typename _Ty, size_t _Size>
+		class TFParam<const _Ty[_Size]> : public TPointer<const _Ty> {
+		public:
+			typedef TPointer<const _Ty> base_class;
+			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
+			TFParam(const _Ty(&param)[_Size]) : base_class(param) {}
+		private:
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+		};
+		template<typename _Ty, size_t _Size>
+		class TFParam<_Ty[_Size]> : public TPointer<_Ty> {
+		public:
+			typedef TPointer<_Ty> base_class;
+			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
+			TFParam(_Ty(&param)[_Size]) : base_class(param) {}
+		private:
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+		};
+
 
 		/* us::TReturnableFParam<> is just a transparent template wrapper for function parameter declarations. Like
 		us::FParam<>, in most cases use of this wrapper is not necessary, but in some cases it enables functionality
@@ -907,7 +929,7 @@ namespace mse {
 		namespace impl {
 			namespace returnable_fparam {
 				template<typename _Ty>
-				auto as_a_returnable_fparam_helper1(std::false_type, const _Ty& param) {
+				const auto& as_a_returnable_fparam_helper1(std::false_type, const _Ty& param) {
 					return param;
 				}
 				template<typename _Ty>
@@ -927,7 +949,7 @@ namespace mse {
 		}
 
 		template<typename _Ty>
-		auto as_a_returnable_fparam(const _Ty& param) {
+		auto as_a_returnable_fparam(const _Ty& param) -> decltype(impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), param)) {
 			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<XScopeTagBase, _Ty>::type(), param);
 		}
 		template<typename _Ty>
@@ -936,7 +958,7 @@ namespace mse {
 		}
 
 		template<typename _Ty>
-		auto xscope_as_a_returnable_fparam(const _Ty& param) {
+		auto xscope_as_a_returnable_fparam(const _Ty& param) -> decltype(as_a_returnable_fparam(param)) {
 			return as_a_returnable_fparam(param);
 		}
 		template<typename _Ty>
