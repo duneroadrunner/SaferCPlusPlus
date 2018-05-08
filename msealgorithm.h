@@ -55,18 +55,18 @@ namespace mse {
 	}
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 
-	/* Overloads for us::TReturnableFParam<>. */
+	/* Overloads for rsv::TReturnableFParam<>. */
 	template <typename _Ty>
-	auto make_xscope_const_iterator(const us::TReturnableFParam<_Ty>& param) {
+	auto make_xscope_const_iterator(const rsv::TReturnableFParam<_Ty>& param) {
 		const _Ty& param_base_ref = param;
 		typedef decltype(make_xscope_const_iterator(param_base_ref)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_const_iterator(param_base_ref));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_const_iterator(param_base_ref));
 	}
 	template <typename _Ty>
-	auto make_xscope_iterator(const us::TReturnableFParam<_Ty>& param) {
+	auto make_xscope_iterator(const rsv::TReturnableFParam<_Ty>& param) {
 		const _Ty& param_base_ref = param;
 		typedef decltype(make_xscope_iterator(param_base_ref)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_iterator(param_base_ref));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_iterator(param_base_ref));
 	}
 
 	template<class _TArrayPointer, class size_type = typename std::remove_reference<decltype(*(std::declval<_TArrayPointer>()))>::type::size_type>

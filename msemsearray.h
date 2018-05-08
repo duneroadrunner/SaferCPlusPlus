@@ -3191,18 +3191,18 @@ namespace mse {
 		return TRandomAccessConstIterator<_TRAContainerPointer>(ra_container_pointer, index);
 	}
 
-	/* Overloads for us::TReturnableFParam<>. */
+	/* Overloads for rsv::TReturnableFParam<>. */
 	template <typename _Ty, typename _TSize = size_t>
-	auto make_random_access_const_iterator(const us::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) {
+	auto make_random_access_const_iterator(const rsv::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) {
 		const _Ty& ra_container_pointer_base_ref = ra_container_pointer;
 		typedef decltype(make_random_access_const_iterator(ra_container_pointer_base_ref, count)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_random_access_const_iterator(ra_container_pointer_base_ref, count));
+		return rsv::TReturnableFParam<base_return_type>(make_random_access_const_iterator(ra_container_pointer_base_ref, count));
 	}
 	template <typename _Ty, typename _TSize = size_t>
-	auto make_random_access_iterator(const us::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) {
+	auto make_random_access_iterator(const rsv::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) {
 		const _Ty& ra_container_pointer_base_ref = ra_container_pointer;
 		typedef decltype(make_random_access_iterator(ra_container_pointer_base_ref, count)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_random_access_iterator(ra_container_pointer_base_ref, count));
+		return rsv::TReturnableFParam<base_return_type>(make_random_access_iterator(ra_container_pointer_base_ref, count));
 	}
 
 
@@ -3564,7 +3564,7 @@ namespace mse {
 	template <typename _TRAIterator> class TXScopeCagedRandomAccessConstSectionToRValue;
 	template <typename _TRAIterator> class TRandomAccessSection;
 	template <typename _TRAIterator> class TRandomAccessConstSection;
-	namespace us {
+	namespace rsv {
 		//template <typename _TRAIterator> class TXScopeRandomAccessSectionFParam;
 		template <typename _TRAIterator> class TXScopeRandomAccessConstSectionFParam;
 	}
@@ -3748,7 +3748,7 @@ namespace mse {
 			template <typename _Ty>
 			static auto make_xscope_random_access_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
 				-> mkxsracsh1_ReturnType<_Ty> {
-				mse::TXScopeItemFixedConstPointer<_Ty> adj_param = mse::us::TXScopeItemFixedConstPointerFParam<_Ty>(param);
+				mse::TXScopeItemFixedConstPointer<_Ty> adj_param = mse::rsv::TXScopeItemFixedConstPointerFParam<_Ty>(param);
 				typedef typename std::remove_reference<decltype(mse::impl::ra_const_section_helpers::s_iter_from_lone_param(adj_param))>::type _TRAIterator;
 				mse::TXScopeRandomAccessConstSection<_TRAIterator> ra_section(adj_param);
 				return mse::TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>(ra_section);
@@ -3816,7 +3816,7 @@ namespace mse {
 
 		template<typename _TRAParam>
 		bool equal(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			if (size() != sv.size()) {
 				return false;
 			}
@@ -3834,17 +3834,17 @@ namespace mse {
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = TRandomAccessConstSectionBase<_TRAIterator2>(mse::us::xscope_as_an_fparam(s), n2);
+			auto sv = TRandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
@@ -3858,32 +3858,32 @@ namespace mse {
 
 		template<typename _TRAParam>
 		bool lexicographical_compare(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return std::lexicographical_compare(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin(), sv.xscope_cend());
 		}
 		template<typename _TRAParam>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(s), n2);
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool operator<(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool operator>(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return sv.lexicographical_compare(*this);
 		}
 		template<typename _TRAParam>
@@ -4306,7 +4306,7 @@ namespace mse {
 
 		template<typename _TRAParam>
 		bool equal(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			if (size() != sv.size()) {
 				return false;
 			}
@@ -4324,17 +4324,17 @@ namespace mse {
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = TRandomAccessConstSectionBase<_TRAIterator2>(mse::us::xscope_as_an_fparam(s), n2);
+			auto sv = TRandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
@@ -4348,32 +4348,32 @@ namespace mse {
 
 		template<typename _TRAParam>
 		bool lexicographical_compare(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return std::lexicographical_compare(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin(), sv.xscope_cend());
 		}
 		template<typename _TRAParam>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(s), n2);
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool operator<(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool operator>(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 			return sv.lexicographical_compare(*this);
 		}
 		template<typename _TRAParam>
@@ -4859,18 +4859,18 @@ namespace mse {
 			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
 	}
 
-	/* Overloads for us::TReturnableFParam<>. */
+	/* Overloads for rsv::TReturnableFParam<>. */
 	template <typename _TRAIterator>
-	auto make_xscope_random_access_const_section(const us::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
+	auto make_xscope_random_access_const_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
 		const _TRAIterator& start_iter_base_ref = start_iter;
 		typedef decltype(make_xscope_random_access_const_section(start_iter_base_ref, count)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_random_access_const_section(start_iter_base_ref, count));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_random_access_const_section(start_iter_base_ref, count));
 	}
 	template <typename _TRALoneParam>
-	auto make_xscope_random_access_const_section(const us::TReturnableFParam<_TRALoneParam>& param) {
+	auto make_xscope_random_access_const_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
 		const _TRALoneParam& param_base_ref = param;
 		typedef decltype(make_xscope_random_access_const_section(param_base_ref)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_random_access_const_section(param_base_ref));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_random_access_const_section(param_base_ref));
 	}
 
 	template <typename _TRAIterator>
@@ -4906,18 +4906,18 @@ namespace mse {
 			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
 	}
 
-	/* Overloads for us::TReturnableFParam<>. */
+	/* Overloads for rsv::TReturnableFParam<>. */
 	template <typename _TRAIterator>
-	auto make_xscope_random_access_section(const us::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeRandomAccessSection<_TRAIterator>::size_type count) {
+	auto make_xscope_random_access_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeRandomAccessSection<_TRAIterator>::size_type count) {
 		const _TRAIterator& start_iter_base_ref = start_iter;
 		typedef decltype(make_xscope_random_access_section(start_iter_base_ref, count)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_random_access_section(start_iter_base_ref, count));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_random_access_section(start_iter_base_ref, count));
 	}
 	template <typename _TRALoneParam>
-	auto make_xscope_random_access_section(const us::TReturnableFParam<_TRALoneParam>& param) {
+	auto make_xscope_random_access_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
 		const _TRALoneParam& param_base_ref = param;
 		typedef decltype(make_xscope_random_access_section(param_base_ref)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_random_access_section(param_base_ref));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_random_access_section(param_base_ref));
 	}
 
 	/* This function basically just calls the give section's subsection() member function and returns the value.  */
@@ -4930,10 +4930,10 @@ namespace mse {
 		return ra_section.xscope_subsection(std::get<0>(start_and_length), std::get<1>(start_and_length));
 	}
 	template<typename _Ty>
-	auto xscope_random_access_subsection(const us::TReturnableFParam<_Ty>& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
+	auto xscope_random_access_subsection(const rsv::TReturnableFParam<_Ty>& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
 		const _Ty& ra_section_base_ref = ra_section;
 		typedef decltype(xscope_random_access_subsection(ra_section_base_ref, start_and_length)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(xscope_random_access_subsection(ra_section_base_ref, start_and_length));
+		return rsv::TReturnableFParam<base_return_type>(xscope_random_access_subsection(ra_section_base_ref, start_and_length));
 	}
 
 	template <typename _TRAIterator>
@@ -4964,7 +4964,7 @@ namespace mse {
 
 		TXScopeRandomAccessConstSection<_TRAIterator> m_xscope_ra_section;
 
-		friend class us::TXScopeRandomAccessConstSectionFParam<_TRAIterator>;
+		friend class rsv::TXScopeRandomAccessConstSectionFParam<_TRAIterator>;
 		template <typename _Ty>
 		friend auto impl::ra_section::make_xscope_random_access_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
 			-> impl::ra_section::mkxsracsh1_ReturnType<_Ty>;
@@ -4973,7 +4973,7 @@ namespace mse {
 			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
 	};
 
-	namespace us {
+	namespace rsv {
 
 		template <typename _TRAIterator>
 		class TXScopeRandomAccessConstSectionFParam : public TXScopeRandomAccessConstSection<_TRAIterator> {
@@ -5009,7 +5009,7 @@ namespace mse {
 		private:
 			template <typename _TRAContainer>
 			mse::TXScopeItemFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
-				return mse::us::TXScopeItemFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
+				return mse::rsv::TXScopeItemFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
 			}
 			mse::TXScopeRandomAccessConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>& caged_xscpsection) {
 				return caged_xscpsection.uncaged_ra_section();
@@ -5023,7 +5023,7 @@ namespace mse {
 		};
 	}
 
-	namespace us {
+	namespace rsv {
 		/* Template specializations of TFParam<>. */
 
 		template<typename _Ty>

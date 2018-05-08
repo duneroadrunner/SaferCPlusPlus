@@ -128,13 +128,13 @@ public:
 		return (*i1ptr) + (*i2ptr);
 	}
 
-	/* This function will be used to demonstrate using us::as_a_returnable_fparam() to enable template functions to return
+	/* This function will be used to demonstrate using rsv::as_a_returnable_fparam() to enable template functions to return
 	one of their function parameters, potentially of the scope reference variety which would otherwise be rejected (with a
 	compile error) as an unsafe return value. */
 	template<class _TPointer1, class _TPointer2>
 	static auto longest(const _TPointer1& string1_xscpptr, const _TPointer2& string2_xscpptr) {
-		auto l_string1_xscpptr = mse::us::as_a_returnable_fparam(string1_xscpptr);
-		auto l_string2_xscpptr = mse::us::as_a_returnable_fparam(string2_xscpptr);
+		auto l_string1_xscpptr = mse::rsv::as_a_returnable_fparam(string1_xscpptr);
+		auto l_string2_xscpptr = mse::rsv::as_a_returnable_fparam(string2_xscpptr);
 		if (l_string1_xscpptr->length() > l_string2_xscpptr->length()) {
 			/* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::nii_string> and we tried to return it
 			directly instead of l_string1_xscpptr, it would have induced a compile error. */
@@ -148,12 +148,12 @@ public:
 		}
 	}
 
-	/* This function will be used to demonstrate using us::as_an_fparam() to enable template functions to accept scope 
+	/* This function will be used to demonstrate using rsv::as_an_fparam() to enable template functions to accept scope 
 	pointers to temporary objects. */
 	template<class _TPointer1, class _TPointer2>
 	static bool second_is_longer(const _TPointer1& string1_xscpptr, const _TPointer2& string2_xscpptr) {
-		auto l_string1_xscpptr = mse::us::as_an_fparam(string1_xscpptr);
-		auto l_string2_xscpptr = mse::us::as_an_fparam(string2_xscpptr);
+		auto l_string1_xscpptr = mse::rsv::as_an_fparam(string1_xscpptr);
+		auto l_string2_xscpptr = mse::rsv::as_an_fparam(string2_xscpptr);
 		return (l_string1_xscpptr->length() > l_string2_xscpptr->length()) ? false : true;
 	}
 
@@ -1503,37 +1503,37 @@ int main(int argc, char* argv[])
 		assert(5 == xscp_min_ptr1->b);
 
 		{
-			/*************************************/
-			/*  us::TReturnableFParam<>          */
-			/*  && us::as_a_returnable_fparam()  */
-			/*************************************/
+			/**************************************/
+			/*  rsv::TReturnableFParam<>          */
+			/*  && rsv::as_a_returnable_fparam()  */
+			/**************************************/
 
 			/* Another alternative if you want to return a scope pointer (or any object containing a scope
 			reference) input parameter from a function is to wrap the parameter type with the
-			us::TXScopeReturnableFParam<> transparent template wrapper when declaring the parameter. 
+			rsv::TXScopeReturnableFParam<> transparent template wrapper when declaring the parameter. 
 			
 			Normally the return_value() function wrapper will reject (with a compile error) scope pointers as unsafe return
-			values. But if the scope pointer type is wrapped in the us::TXScopeReturnableFParam<> transparent template
+			values. But if the scope pointer type is wrapped in the rsv::TXScopeReturnableFParam<> transparent template
 			wrapper, then it will be accepted as a safe return value. Because it's generally safe to return a reference to
 			an object if that reference was passed as an input parameter. Well, as long as the object is not a temporary
-			one. So unlike with us::TXScopeFParam<>, scope reference types wrapped with us::TXScopeReturnableFParam<> will
+			one. So unlike with rsv::TXScopeFParam<>, scope reference types wrapped with rsv::TXScopeReturnableFParam<> will
 			not enable support for references to temporaries, as returning a (scope) reference to a temporary would be
 			unsafe even if the reference was passed as a function parameter. So for scope reference parameters you have to
 			choose between being able to use it as a return value, or supporting references to temporaries. (Or neither.)
 			
 			In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the
-			mse::us::TXScopeReturnableFParam<> wrapper can interfere with that. In those cases you can instead convert
-			parameters to their wrapped type after the fact using the us::xscope_as_a_returnable_fparam() function.
-			Note that using this function (or the us::TXScopeReturnableFParam<> wrapper) on anything other than function
+			mse::rsv::TXScopeReturnableFParam<> wrapper can interfere with that. In those cases you can instead convert
+			parameters to their wrapped type after the fact using the rsv::xscope_as_a_returnable_fparam() function.
+			Note that using this function (or the rsv::TXScopeReturnableFParam<> wrapper) on anything other than function
 			parameters is unsafe, and currently there is no compile-time enforcement of this restriction.
 
-			us::TReturnableFParam<> and us::as_a_returnable_fparam() can be used for situations when the type of the
+			rsv::TReturnableFParam<> and rsv::as_a_returnable_fparam() can be used for situations when the type of the
 			input parameter is itself a template parameter and not necessarily always a scope type.
 			*/
 			class CD {
 			public:
-				static auto longest(mse::us::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::nii_string> > string1_xscpptr
-					, mse::us::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::nii_string> > string2_xscpptr) {
+				static auto longest(mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::nii_string> > string1_xscpptr
+					, mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::nii_string> > string2_xscpptr) {
 					if (string1_xscpptr->length() > string2_xscpptr->length()) {
 						/* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::nii_string> the next line would have
 						induced a compile error. */
@@ -1556,7 +1556,7 @@ int main(int argc, char* argv[])
 
 			class CE {
 			public:
-				static auto xscope_string_const_section_to_member(mse::us::TXScopeReturnableFParam<mse::TXScopeItemFixedConstPointer<CE> > returnable_this_cpointer) {
+				static auto xscope_string_const_section_to_member(mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedConstPointer<CE> > returnable_this_cpointer) {
 					/* "Pointers to members" based on returnable pointers inherit the "returnability". */
 					auto returnable_cpointer_to_member = mse::make_xscope_const_pointer_to_member_v2(returnable_this_cpointer, &CE::m_string1);
 					/* "scope nrp string const sections" based on returnable pointers (or iterators) inherit the "returnability". */
@@ -1576,45 +1576,45 @@ int main(int argc, char* argv[])
 		}
 
 		{
-			/***************************/
-			/*  us::TFParam<>          */
-			/*  && us::as_an_fparam()  */
-			/***************************/
+			/****************************/
+			/*  rsv::TFParam<>          */
+			/*  && rsv::as_an_fparam()  */
+			/****************************/
 
-			/* us::TFParam<> is just a transparent template wrapper for function parameter declarations. In most cases
+			/* rsv::TFParam<> is just a transparent template wrapper for function parameter declarations. In most cases
 			use of this wrapper is not necessary, but in some cases it enables functionality only available to variables
 			that are function parameters. Specifically, it allows functions to support scope pointer/references to
 			temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually
 			"functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so
-			in the case of function parameters, the us::TFParam<> wrapper enables certain scope pointer/reference types
+			in the case of function parameters, the rsv::TFParam<> wrapper enables certain scope pointer/reference types
 			(like TXScopeItemFixedPointer<>, and "random access section" scope types) to be constructed from their
 			"functionally disabled" counterparts.
 
 			In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the
-			mse::us::TFParam<> wrapper can interfere with that. In those cases you can instead convert parameters to their
-			wrapped type after the fact using the us::as_an_fparam() function. Note that using this function (or the
-			us::TFParam<> wrapper) on anything other than function parameters is unsafe, and currently there is no
+			mse::rsv::TFParam<> wrapper can interfere with that. In those cases you can instead convert parameters to their
+			wrapped type after the fact using the rsv::as_an_fparam() function. Note that using this function (or the
+			rsv::TFParam<> wrapper) on anything other than function parameters is unsafe, and currently there is no
 			compile-time enforcement of this restriction.
 
-			us::TXScopeFParam<> and us::xscope_as_an_fparam() can be used for situations when the types are necessarily
+			rsv::TXScopeFParam<> and rsv::xscope_as_an_fparam() can be used for situations when the types are necessarily
 			scope types.
 			*/
 
 			class CD {
 			public:
-				static bool second_is_longer(mse::us::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::nii_string> > string1_xscpptr
-					, mse::us::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::nii_string> > string2_xscpptr) {
+				static bool second_is_longer(mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::nii_string> > string1_xscpptr
+					, mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::nii_string> > string2_xscpptr) {
 
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 
-				static bool second_is_longer_any(mse::us::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string1_xscpptr
-					, mse::us::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string2_xscpptr) {
+				static bool second_is_longer_any(mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string1_xscpptr
+					, mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string2_xscpptr) {
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 
-				static bool second_is_longer_poly(mse::us::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string1_xscpptr
-					, mse::us::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string2_xscpptr) {
+				static bool second_is_longer_poly(mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string1_xscpptr
+					, mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string2_xscpptr) {
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 			};

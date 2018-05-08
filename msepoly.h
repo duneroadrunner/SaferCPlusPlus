@@ -568,7 +568,7 @@ namespace mse {
 		friend struct std::hash<mse::TAnyConstPointer<_Ty> >;
 	};
 
-	namespace us {
+	namespace rsv {
 		template<typename _Ty>
 		class TFParam<mse::TXScopeAnyConstPointer<_Ty> > : public TXScopeAnyConstPointer<_Ty> {
 		public:
@@ -1037,7 +1037,7 @@ namespace mse {
 		friend struct std::hash<mse::TPolyConstPointer<_Ty> >;
 	};
 
-	namespace us {
+	namespace rsv {
 		template<typename _Ty>
 		class TFParam<mse::TXScopePolyConstPointer<_Ty> > : public TXScopePolyConstPointer<_Ty> {
 		public:
@@ -1568,7 +1568,7 @@ namespace mse {
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	};
 
-	namespace us {
+	namespace rsv {
 		template<typename _Ty>
 		class TFParam<mse::TXScopeAnyRandomAccessConstSection<_Ty> > : public TXScopeAnyRandomAccessConstSection<_Ty> {
 		public:
@@ -1655,7 +1655,7 @@ namespace mse {
 		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
 	};
 
-	namespace us {
+	namespace rsv {
 		template<typename _Ty>
 		class TFParam<mse::TXScopeAnyStringConstSection<_Ty> > : public TXScopeAnyStringConstSection<_Ty> {
 		public:

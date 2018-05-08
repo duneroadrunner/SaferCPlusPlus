@@ -84,7 +84,7 @@ namespace mse {
 	class TStringSection;
 	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
 	class TStringConstSection;
-	namespace us {
+	namespace rsv {
 		//template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
 		//class TXScopeStringSectionFParam;
 		template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
@@ -5766,23 +5766,23 @@ namespace mse {
 
 		template<typename _TRAParam>
 		bool equal(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return base_class::equal(sv);
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
 			auto sv = TStringConstSectionBase<TXScopeRandomAccessSection<_TRAIterator2>
-				, TXScopeRandomAccessConstSection<_TRAIterator2> >(mse::us::as_an_fparam(s), n2);
+				, TXScopeRandomAccessConstSection<_TRAIterator2> >(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
@@ -5796,32 +5796,32 @@ namespace mse {
 
 		template<typename _TRAParam>
 		bool lexicographical_compare(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return base_class::lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(s), n2);
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool operator<(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool operator>(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return sv.lexicographical_compare(*this);
 		}
 		template<typename _TRAParam>
@@ -6071,23 +6071,23 @@ namespace mse {
 
 		template<typename _TRAParam>
 		bool equal(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return base_class::equal(sv);
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
 		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
 			auto sv = TStringConstSectionBase<TXScopeRandomAccessSection<_TRAIterator2>
-				, TXScopeRandomAccessConstSection<_TRAIterator2> >(mse::us::as_an_fparam(s), n2);
+				, TXScopeRandomAccessConstSection<_TRAIterator2> >(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).equal(sv);
 		}
 		template<typename _TRAParam>
@@ -6101,32 +6101,32 @@ namespace mse {
 
 		template<typename _TRAParam>
 		bool lexicographical_compare(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return base_class::lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
 		}
 		template <typename _TRAIterator2>
 		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(s), n2);
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool operator<(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return lexicographical_compare(sv);
 		}
 		template<typename _TRAParam>
 		bool operator>(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_string_const_section(mse::us::xscope_as_an_fparam(ra_param));
+			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return sv.lexicographical_compare(*this);
 		}
 		template<typename _TRAParam>
@@ -6341,7 +6341,7 @@ namespace mse {
 			template <typename _Ty>
 			auto make_xscope_string_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
 				-> impl::ra_section::mkxsscsh1_ReturnType<_Ty> {
-				mse::TXScopeItemFixedConstPointer<_Ty> adj_param = mse::us::TXScopeItemFixedConstPointerFParam<_Ty>(param);
+				mse::TXScopeItemFixedConstPointer<_Ty> adj_param = mse::rsv::TXScopeItemFixedConstPointerFParam<_Ty>(param);
 				typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(adj_param))>::type _TRAIterator;
 				mse::TXScopeStringConstSection<_TRAIterator> ra_section(adj_param);
 				return mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>(ra_section);
@@ -6360,18 +6360,18 @@ namespace mse {
 			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
 	}
 
-	/* Overloads for us::TReturnableFParam<>. */
+	/* Overloads for rsv::TReturnableFParam<>. */
 	template <typename _TRAIterator>
-	auto make_xscope_string_const_section(const us::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeStringConstSection<_TRAIterator>::size_type count) {
-		const _TRAIterator& start_iter_base_ref = start_iter;
+	auto make_xscope_string_const_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeStringConstSection<_TRAIterator>::size_type count) {
+		const typename rsv::TReturnableFParam<_TRAIterator>::base_class& start_iter_base_ref = start_iter;
 		typedef decltype(make_xscope_string_const_section(start_iter_base_ref, count)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_string_const_section(start_iter_base_ref, count));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_string_const_section(start_iter_base_ref, count));
 	}
 	template <typename _TRALoneParam>
-	auto make_xscope_string_const_section(const us::TReturnableFParam<_TRALoneParam>& param) {
-		const _TRALoneParam& param_base_ref = param;
+	auto make_xscope_string_const_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
+		const typename rsv::TReturnableFParam<_TRALoneParam>::base_class& param_base_ref = param;
 		typedef decltype(make_xscope_string_const_section(param_base_ref)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_string_const_section(param_base_ref));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_string_const_section(param_base_ref));
 	}
 
 	template <typename _TRAIterator>
@@ -6407,18 +6407,18 @@ namespace mse {
 			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
 	}
 
-	/* Overloads for us::TReturnableFParam<>. */
+	/* Overloads for rsv::TReturnableFParam<>. */
 	template <typename _TRAIterator>
-	auto make_xscope_string_section(const us::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeStringSection<_TRAIterator>::size_type count) {
-		const _TRAIterator& start_iter_base_ref = start_iter;
+	auto make_xscope_string_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeStringSection<_TRAIterator>::size_type count) {
+		const typename rsv::TReturnableFParam<_TRAIterator>::base_class& start_iter_base_ref = start_iter;
 		typedef decltype(make_xscope_string_section(start_iter_base_ref, count)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_string_section(start_iter_base_ref, count));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_string_section(start_iter_base_ref, count));
 	}
 	template <typename _TRALoneParam>
-	auto make_xscope_string_section(const us::TReturnableFParam<_TRALoneParam>& param) {
-		const _TRALoneParam& param_base_ref = param;
+	auto make_xscope_string_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
+		const typename rsv::TReturnableFParam<_TRALoneParam>::base_class& param_base_ref = param;
 		typedef decltype(make_xscope_string_section(param_base_ref)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_string_section(param_base_ref));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_string_section(param_base_ref));
 	}
 
 	/* This function basically just calls the give section's subsection() member function and returns the value.  */
@@ -6431,10 +6431,10 @@ namespace mse {
 		return ra_section.xscope_subsection(std::get<0>(start_and_length), std::get<1>(start_and_length));
 	}
 	template<typename _Ty>
-	auto xscope_string_subsection(const us::TReturnableFParam<_Ty>& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
+	auto xscope_string_subsection(const rsv::TReturnableFParam<_Ty>& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
 		const _Ty& ra_section_base_ref = ra_section;
 		typedef decltype(xscope_string_subsection(ra_section_base_ref, start_and_length)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(xscope_string_subsection(ra_section_base_ref, start_and_length));
+		return rsv::TReturnableFParam<base_return_type>(xscope_string_subsection(ra_section_base_ref, start_and_length));
 	}
 
 	template <typename _TRAIterator>
@@ -6463,7 +6463,7 @@ namespace mse {
 		TXScopeCagedStringConstSectionToRValue<_TRAIterator>& operator=(const TXScopeCagedStringConstSectionToRValue<_TRAIterator>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		friend class us::TXScopeStringConstSectionFParam<_TRAIterator>;
+		friend class rsv::TXScopeStringConstSectionFParam<_TRAIterator>;
 		template <typename _Ty>
 		friend auto impl::ra_section::make_xscope_string_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
 			->impl::ra_section::mkxsscsh1_ReturnType<_Ty>;
@@ -6472,7 +6472,7 @@ namespace mse {
 			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
 	};
 
-	namespace us {
+	namespace rsv {
 
 		template <typename _TRAIterator, class _Traits>
 		class TXScopeStringConstSectionFParam : public TXScopeStringConstSection<_TRAIterator> {
@@ -6509,7 +6509,7 @@ namespace mse {
 		private:
 			template <typename _TRAContainer>
 			mse::TXScopeItemFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
-				return mse::us::TXScopeItemFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
+				return mse::rsv::TXScopeItemFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
 			}
 			mse::TXScopeStringConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>& caged_xscpsection) {
 				return caged_xscpsection.uncaged_string_section();
@@ -6523,7 +6523,7 @@ namespace mse {
 		};
 	}
 
-	namespace us {
+	namespace rsv {
 		/* Template specializations of TFParam<>. */
 
 		template<typename _Ty>
@@ -6792,9 +6792,9 @@ namespace mse {
 
 		//MSE_USING(TXScopeNRPStringSection, base_class);
 		TXScopeNRPStringSection(const TXScopeNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		TXScopeNRPStringSection(const base_class& src) : base_class(src) {}
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
 		TXScopeNRPStringSection(const TNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const base_class&>(src)) {}
-		TXScopeNRPStringSection(const base_class& src) : base_class(src) {}
 		TXScopeNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
 		TXScopeNRPStringSection(const _TRALoneParam& param) : base_class(param) {}
@@ -6838,26 +6838,27 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	auto make_xscope_nrp_string_section(const _TRAIterator& start_iter, typename TXScopeNRPStringSection<_TRAIterator>::size_type count) {
-		return TXScopeNRPStringSection<_TRAIterator>(start_iter, count);
+		auto xscope_string_section = make_xscope_string_section(start_iter, count);
+		return TXScopeNRPStringSection<typename decltype(xscope_string_section)::iterator_type>(xscope_string_section);
 	}
 	template <typename _TRALoneParam>
 	auto make_xscope_nrp_string_section(const _TRALoneParam& param) {
-		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
-		return TXScopeNRPStringSection<_TRAIterator>(param);
+		auto xscope_string_section = make_xscope_string_section(param);
+		return TXScopeNRPStringSection<typename decltype(xscope_string_section)::iterator_type>(xscope_string_section);
 	}
 
-	/* Overloads for us::TReturnableFParam<>. */
+	/* Overloads for rsv::TReturnableFParam<>. */
 	template <typename _TRAIterator>
-	auto make_xscope_nrp_string_section(const us::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeNRPStringSection<_TRAIterator>::size_type count) {
-		const _TRAIterator& start_iter_base_ref = start_iter;
+	auto make_xscope_nrp_string_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeNRPStringSection<_TRAIterator>::size_type count) {
+		const typename rsv::TReturnableFParam<_TRAIterator>::base_class& start_iter_base_ref = start_iter;
 		typedef decltype(make_xscope_nrp_string_section(start_iter_base_ref, count)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_nrp_string_section(start_iter_base_ref, count));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_nrp_string_section(start_iter_base_ref, count));
 	}
 	template <typename _TRALoneParam>
-	auto make_xscope_nrp_string_section(const us::TReturnableFParam<_TRALoneParam>& param) {
-		const _TRALoneParam& param_base_ref = param;
+	auto make_xscope_nrp_string_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
+		const typename rsv::TReturnableFParam<_TRALoneParam>::base_class& param_base_ref = param;
 		typedef decltype(make_xscope_nrp_string_section(param_base_ref)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_nrp_string_section(param_base_ref));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_nrp_string_section(param_base_ref));
 	}
 
 	template <typename _TRAIterator, class _Traits>
@@ -6904,12 +6905,13 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	auto make_nrp_string_section(const _TRAIterator& start_iter, typename TNRPStringSection<_TRAIterator>::size_type count) {
-		return TNRPStringSection<_TRAIterator>(start_iter, count);
+		auto string_section = make_string_section(start_iter, count);
+		return TNRPStringSection<typename decltype(string_section)::iterator_type>(string_section);
 	}
 	template <typename _TRALoneParam>
 	auto make_nrp_string_section(const _TRALoneParam& param) {
-		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
-		return TNRPStringSection<_TRAIterator>(param);
+		auto string_section = make_string_section(param);
+		return TNRPStringSection<typename decltype(string_section)::iterator_type>(string_section);
 	}
 
 	template <typename _TRAIterator, class _Traits>
@@ -6921,6 +6923,7 @@ namespace mse {
 		//MSE_USING(TXScopeNRPStringConstSection, base_class);
 
 		TXScopeNRPStringConstSection(const TXScopeNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		TXScopeNRPStringConstSection(const base_class& src) : base_class(src) { valid_if_TRAIterator_is_not_a_native_pointer(); }
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
 		TXScopeNRPStringConstSection(const TNRPStringConstSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const base_class&>(src)) {}
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
@@ -6929,9 +6932,13 @@ namespace mse {
 			&& (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
 		TXScopeNRPStringConstSection(const TNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TNRPStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
-		TXScopeNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		TXScopeNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
+			valid_if_TRAIterator_is_not_a_native_pointer();
+		}
 		template <typename _TRALoneParam>
-		TXScopeNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {}
+		TXScopeNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {
+			valid_if_TRAIterator_is_not_a_native_pointer();
+		}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		explicit TXScopeNRPStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
@@ -6942,6 +6949,7 @@ namespace mse {
 			else {
 				/* The last character does not seem to a null terminator, so presumably the argument is not a string
 				literal. */
+				MSE_THROW(std::invalid_argument("attempt to construct from a 'non-string literal' native array - mse::TXScopeNRPStringConstSection<>"));
 			}
 		}
 
@@ -6966,12 +6974,13 @@ namespace mse {
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
 	private:
-		TXScopeNRPStringConstSection(const base_class& src) : base_class(src) {}
-
 		/* Construction from a const native array is publicly supported (only) because string literals are const
 		native arrays. We do not want construction from a non-const native array to be publicly supported. */
 		template<size_t Tn>
 		explicit TXScopeNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
 		//TXScopeNRPStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeNRPStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
 		void* operator new(size_t size) { return ::operator new(size); }
@@ -6986,26 +6995,31 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	auto make_xscope_nrp_string_const_section(const _TRAIterator& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count) {
-		return TXScopeNRPStringConstSection<_TRAIterator>(start_iter, count);
+		auto xscope_string_const_section = make_xscope_string_const_section(start_iter, count);
+		return TXScopeNRPStringConstSection<typename decltype(xscope_string_const_section)::iterator_type>(xscope_string_const_section);
+	}
+	template<typename _Ty, size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+	auto make_xscope_nrp_string_const_section(const _Ty(&presumed_string_literal)[Tn]) {
+		return TXScopeNRPStringConstSection<const _Ty*>(presumed_string_literal);
 	}
 	template <typename _TRALoneParam>
 	auto make_xscope_nrp_string_const_section(const _TRALoneParam& param) {
-		typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
-		return TXScopeNRPStringConstSection<_TRAIterator>(param);
+		auto xscope_string_const_section = make_xscope_string_const_section(param);
+		return TXScopeNRPStringConstSection<typename decltype(xscope_string_const_section)::iterator_type>(xscope_string_const_section);
 	}
 
-	/* Overloads for us::TReturnableFParam<>. */
+	/* Overloads for rsv::TReturnableFParam<>. */
 	template <typename _TRAIterator>
-	auto make_xscope_nrp_string_const_section(const us::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count) {
-		const _TRAIterator& start_iter_base_ref = start_iter;
+	auto make_xscope_nrp_string_const_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count) {
+		const typename rsv::TReturnableFParam<_TRAIterator>::base_class& start_iter_base_ref = start_iter;
 		typedef decltype(make_xscope_nrp_string_const_section(start_iter_base_ref, count)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_nrp_string_const_section(start_iter_base_ref, count));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_nrp_string_const_section(start_iter_base_ref, count));
 	}
 	template <typename _TRALoneParam>
-	auto make_xscope_nrp_string_const_section(const us::TReturnableFParam<_TRALoneParam>& param) {
-		const _TRALoneParam& param_base_ref = param;
+	auto make_xscope_nrp_string_const_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
+		const typename rsv::TReturnableFParam<_TRALoneParam>::base_class& param_base_ref = param;
 		typedef decltype(make_xscope_nrp_string_const_section(param_base_ref)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_nrp_string_const_section(param_base_ref));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_nrp_string_const_section(param_base_ref));
 	}
 
 	template <typename _TRAIterator, class _Traits>
@@ -7015,12 +7029,15 @@ namespace mse {
 		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		TNRPStringConstSection(const TNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		TNRPStringConstSection(const base_class& src) : base_class(src) { valid_if_TRAIterator_is_not_a_native_pointer(); }
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
 		TNRPStringConstSection(const TNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TNRPStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
-		TNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		TNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
+			valid_if_TRAIterator_is_not_a_native_pointer();
+		}
 		template <typename _TRALoneParam>
-		TNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {}
+		TNRPStringConstSection(const _TRALoneParam& param) : base_class(param) { valid_if_TRAIterator_is_not_a_native_pointer(); }
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		explicit TNRPStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
@@ -7031,6 +7048,7 @@ namespace mse {
 			else {
 				/* The last character does not seem to a null terminator, so presumably the argument is not a string
 				literal. */
+				MSE_THROW(std::invalid_argument("attempt to construct from a 'non-string literal' native array - mse::TNRPStringConstSection<>"));
 			}
 		}
 
@@ -7052,12 +7070,13 @@ namespace mse {
 		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
 
 	private:
-		TNRPStringConstSection(const base_class& src) : base_class(src) {}
-
 		/* Construction from a const native array is publicly supported (only) because string literals are const
 		native arrays. We do not want construction from a non-const native array to be publicly supported. */
 		template<size_t Tn>
 		explicit TNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+
+		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
 		friend class TXScopeNRPStringConstSection<_TRAIterator, _Traits>;
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TNRPStringConstSection& _Str) {
@@ -7067,15 +7086,20 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	auto make_nrp_string_const_section(const _TRAIterator& start_iter, typename TNRPStringConstSection<_TRAIterator>::size_type count) {
-		return TNRPStringConstSection<_TRAIterator>(start_iter, count);
+		auto string_const_section = make_string_const_section(start_iter, count);
+		return TNRPStringConstSection<typename decltype(string_const_section)::iterator_type>(string_const_section);
+	}
+	template<typename _Ty, size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+	auto make_nrp_string_const_section(const _Ty(&presumed_string_literal)[Tn]) {
+		return TNRPStringConstSection<const _Ty*>(presumed_string_literal);
 	}
 	template <typename _TRALoneParam>
 	auto make_nrp_string_const_section(const _TRALoneParam& param) {
-		typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
-		return TNRPStringConstSection<_TRAIterator>(param);
+		auto string_const_section = make_string_const_section(param);
+		return TNRPStringConstSection<typename decltype(string_const_section)::iterator_type>(string_const_section);
 	}
 
-	namespace us {
+	namespace rsv {
 #if 0
 		/* Template specializations of TFParam<>. */
 

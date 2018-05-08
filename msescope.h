@@ -173,7 +173,7 @@ namespace mse {
 	template<typename _Ty> class TXScopeItemFixedConstPointer;
 	template<typename _Ty> class TXScopeCagedItemFixedPointerToRValue;
 	template<typename _Ty> class TXScopeCagedItemFixedConstPointerToRValue;
-	namespace us {
+	namespace rsv {
 		template<typename _Ty> class TXScopeItemFixedPointerFParam;
 		template<typename _Ty> class TXScopeItemFixedConstPointerFParam;
 	}
@@ -554,7 +554,7 @@ namespace mse {
 	};
 
 	/* TXScopeCagedItemFixedPointerToRValue<> holds a TXScopeItemFixedPointer<> that points to an r-value which can only be
-	accessed when converted to a us::TXScopeItemFixedPointerFParam<>. */
+	accessed when converted to a rsv::TXScopeItemFixedPointerFParam<>. */
 	template<typename _Ty>
 	class TXScopeCagedItemFixedPointerToRValue : public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 	public:
@@ -578,8 +578,8 @@ namespace mse {
 		TXScopeItemFixedPointer<_Ty> m_xscope_ptr;
 
 		friend class TXScopeObj<_Ty>;
-		template<class _Ty2> friend class us::TXScopeItemFixedPointerFParam;
-		template<class _Ty2> friend class us::TXScopeItemFixedConstPointerFParam;
+		template<class _Ty2> friend class rsv::TXScopeItemFixedPointerFParam;
+		template<class _Ty2> friend class rsv::TXScopeItemFixedConstPointerFParam;
 	};
 
 	template<typename _Ty>
@@ -603,7 +603,7 @@ namespace mse {
 		TXScopeItemFixedConstPointer<_Ty> m_xscope_ptr;
 
 		friend class TXScopeObj<_Ty>;
-		template<class _Ty2> friend class us::TXScopeItemFixedConstPointerFParam;
+		template<class _Ty2> friend class rsv::TXScopeItemFixedConstPointerFParam;
 		template<typename _Ty2> friend auto pointer_to(_Ty2&& _X) -> decltype(&std::forward<_Ty2>(_X));
 	};
 }
@@ -690,7 +690,7 @@ namespace mse {
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
-	namespace us {
+	namespace rsv {
 		/* TXScopeItemFixedPointerFParam<> is just a version of TXScopeItemFixedPointer<> which may only be used for
 		function parameter declations. It has the extra ability to accept (caged) scope pointers to r-value scope objects
 		(i.e. supports temporaries by scope reference). */
@@ -753,13 +753,13 @@ namespace mse {
 		};
 	}
 
-	namespace us {
-		/* us::TFParam<> is just a transparent template wrapper for function parameter declarations. In most cases
+	namespace rsv {
+		/* rsv::TFParam<> is just a transparent template wrapper for function parameter declarations. In most cases
 		use of this wrapper is not necessary, but in some cases it enables functionality only available to variables
 		that are function parameters. Specifically, it allows functions to support scope pointer/references to
 		temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually
 		"functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so
-		in the case of function parameters, the us::TFParam<> wrapper enables certain scope pointer/reference types
+		in the case of function parameters, the rsv::TFParam<> wrapper enables certain scope pointer/reference types
 		(like TXScopeItemFixedPointer<>, and "random access section" types) to be constructed from their
 		"functionally disabled" counterparts.
 		*/
@@ -892,12 +892,12 @@ namespace mse {
 		};
 
 
-		/* us::TReturnableFParam<> is just a transparent template wrapper for function parameter declarations. Like
+		/* rsv::TReturnableFParam<> is just a transparent template wrapper for function parameter declarations. Like
 		us::FParam<>, in most cases use of this wrapper is not necessary, but in some cases it enables functionality
-		only available to variables that are function parameters. Specifically, us::TReturnableFParam<> "marks"
+		only available to variables that are function parameters. Specifically, rsv::TReturnableFParam<> "marks"
 		scope pointer/reference parameters as safe to use as the return value of the function, whereas by default,
 		scope pointer/references are not considered safe to use as a return value. Note that unlike us::FParam<>,
-		us::TReturnableFParam<> does not enable the function to accept scope pointer/reference temporaries.
+		rsv::TReturnableFParam<> does not enable the function to accept scope pointer/reference temporaries.
 		*/
 		template<typename _Ty>
 		class TReturnableFParam : public _Ty {
@@ -997,19 +997,19 @@ namespace mse {
 		};
 	}
 
-	/* If a us::TReturnableFParam<> wrapped reference is used to make a pointer to a member of its target object, then the
+	/* If a rsv::TReturnableFParam<> wrapped reference is used to make a pointer to a member of its target object, then the
 	created pointer to member can inherit the "returnability" of the original wrapped reference. */
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_pointer_to_member_v2(const us::TReturnableFParam<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_xscope_pointer_to_member_v2(const rsv::TReturnableFParam<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		const _Ty& lease_pointer_base_ref = lease_pointer;
 		typedef decltype(make_xscope_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr));
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_const_pointer_to_member_v2(const us::TReturnableFParam<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_xscope_const_pointer_to_member_v2(const rsv::TReturnableFParam<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		const _Ty& lease_pointer_base_ref = lease_pointer;
 		typedef decltype(make_xscope_const_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr)) base_return_type;
-		return us::TReturnableFParam<base_return_type>(make_xscope_const_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr));
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_const_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr));
 	}
 
 	template<typename _TROy>
@@ -1058,11 +1058,11 @@ namespace mse {
 
 	template<typename _Ty>
 	auto return_value_helper12(const _Ty& _X) {
-		return us::returnable_fparam_as_original_type(_X);
+		return rsv::returnable_fparam_as_original_type(_X);
 	}
 	template<typename _Ty>
 	auto return_value_helper12(_Ty&& _X) {
-		return us::returnable_fparam_as_original_type(std::forward<decltype(_X)>(_X));
+		return rsv::returnable_fparam_as_original_type(std::forward<decltype(_X)>(_X));
 	}
 
 	template<typename _Ty>
@@ -1079,8 +1079,8 @@ namespace mse {
 	const auto& return_value(const _Ty& _X) {
 		typedef typename std::remove_reference<_Ty>::type _Ty_noref;
 		return return_value_helper11(typename std::conditional<
-			is_instantiation_of_msescope<_Ty_noref, us::TReturnableFParam>::value
-			|| is_instantiation_of_msescope<_Ty_noref, us::TXScopeReturnableFParam>::value
+			is_instantiation_of_msescope<_Ty_noref, rsv::TReturnableFParam>::value
+			|| is_instantiation_of_msescope<_Ty_noref, rsv::TXScopeReturnableFParam>::value
 			, std::true_type, std::false_type>::type(), _X);
 	}
 
@@ -1097,8 +1097,8 @@ namespace mse {
 	auto return_value(_Ty&& _X) {
 		typedef typename std::remove_reference<_Ty>::type _Ty_noref;
 		return return_value_helper11(typename std::conditional<
-			is_instantiation_of_msescope<_Ty_noref, us::TReturnableFParam>::value
-			|| is_instantiation_of_msescope<_Ty_noref, us::TXScopeReturnableFParam>::value
+			is_instantiation_of_msescope<_Ty_noref, rsv::TReturnableFParam>::value
+			|| is_instantiation_of_msescope<_Ty_noref, rsv::TXScopeReturnableFParam>::value
 			, std::true_type, std::false_type>::type(), std::forward<decltype(_X)>(_X));
 	}
 
