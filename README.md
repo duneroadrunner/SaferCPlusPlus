@@ -2799,6 +2799,16 @@ The above example contains unchecked accesses to deallocated memory via an impli
 
 So, technically, achieving complete memory safety requires passing a safe `this` pointer parameter as an argument to every member function that accesses a member variable. (I.e. Make your member functions `static`.)
 
+And technically, user-defined copy and move constructors are unsafe as they take (technically unsafe) reference parameters and are non-static member functions (that provide access to the unsafe (explicit and implicit) `this` pointer). Same goes for operator overloading. User-defined destructors and default constructors don't have the unsafe reference parameter issue, but still have the `this` pointer issue. While these elements are technically unsafe, empirically (and perhaps intuitively) they seem to be much less prone to memory safety bugs than, say, raw pointers or "non-bounds-checked" containers. Notably, there is one case where even the default copy constructor is problematic. C++ does (at the time of this writing) permit an object to be copy constructed from itself:
+
+```cpp
+    Class1 obj1 = obj1;
+```
+
+This is a problem of accessing unintialized memory rather than unallocated memory, but still, don't do it.
+
+If you do decide to permit functions that take reference parameters, note that `std::move()` (the one in the `<utility>` library, not the one in the `<algorithm>` library) is not really in the spirit of SaferCPlusPlus and could cause problems if applied to certain scope objects. `std::forward<>()` is fine. Basically, just let the compiler decide when a reference is an rvalue reference.
+
 And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with [`ivector<>`](#ivector)s that support list-style iterators, often with a performance benefit.
 
 ### Questions and comments
