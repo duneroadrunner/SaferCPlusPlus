@@ -4946,6 +4946,10 @@ namespace mse {
 		return TRandomAccessSection<_TRAIterator>(param);
 	}
 
+	/* TXScopeCagedRandomAccessConstSectionToRValue<> represents a "random access const section" that refers to a temporary
+	object. The "random access const section" is inaccessible ("caged") by default because it is, in general, unsafe. Its
+	copyability and movability are also restricted. The "random access const section" can only be accessed by certain types
+	and functions (declared as friends) that will ensure that it will be handled safely. */
 	template<typename _TRAIterator>
 	class TXScopeCagedRandomAccessConstSectionToRValue : public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
 	public:

@@ -561,44 +561,45 @@ void msetl_example2() {
 		auto xscp_string_section5 = mse::xscope_random_access_subsection(xscp_string_section1, std::make_tuple(0, string_section1.length() / 2));
 
 		{
-			/* In this block we demonstrate the rsv::TXScopeFParam<> specializations that enable passing temporary objects to
-			functions expecting scope string section arguments. */
+			/* For safety reasons, by default, you can't create a scope string section that references a temporary string. (This
+			is not an issue with non-scope string sections.) However, there is one scenario when that is supported. Namely, when
+			the scope string section is a function parameter and is indicated as such with the rsv::TXScopeFParam<> transparent
+			template wrapper. */
+
 			class CD {
 			public:
-				typedef decltype(mse::make_xscope_string_const_section(mse::pointer_to(mse::TXScopeObj<mse::nii_string>
-					(mse::nii_string{"abc"})))) xscope_string_csection_t;
+				/* For this example function, the parameter type we'll be using is a "const scope string section that references a
+				scope nii_string". It's a rather verbose type to express, and here we use decltype() to express it. But this example
+				function is mostly for demonstration purposes. Generally, as demonstrated in the other example functions, when
+				taking string sections as function parameters, rather than specifying a particular string section type, you would
+				instead either make the function a function template or use a polymorphic string section type which are more concise
+				and give the caller flexibility in terms of the type of string section they can pass. */
+
+				typedef decltype(mse::make_xscope_string_const_section(std::declval<mse::TXScopeItemFixedConstPointer<mse::nii_string> >())) xscope_string_csection_t;
 				static bool second_is_longer(mse::rsv::TXScopeFParam<xscope_string_csection_t> xscope_string_csection1
 					, mse::rsv::TXScopeFParam<xscope_string_csection_t> xscope_string_csection2) {
 
 					return (xscope_string_csection1.size() > xscope_string_csection2.size()) ? false : true;
 				}
 
+				/* Using (the polymorphic) TXScopeAnyStringConstSection<> as the parameter type will allow the caller to pass
+				any type of string section. */
 				static bool second_is_longer_any(mse::rsv::TXScopeFParam<mse::TXScopeAnyStringConstSection<> > xscope_string_csection1
 					, mse::rsv::TXScopeFParam<mse::TXScopeAnyStringConstSection<> > xscope_string_csection2) {
 					return (xscope_string_csection1.size() > xscope_string_csection2.size()) ? false : true;
 				}
-
-				/*
-				static bool second_is_longer_any_ras(mse::rsv::TXScopeFParam<mse::TXScopeAnyRandomAccessConstSection<char> > xscope_string_csection1
-					, mse::rsv::TXScopeFParam<mse::TXScopeAnyRandomAccessConstSection<char> > xscope_string_csection2) {
-					return (xscope_string_csection1.size() > xscope_string_csection2.size()) ? false : true;
-				}
-				*/
 			};
 
 			mse::TXScopeObj<mse::nii_string > string1(mse::nii_string{"abc"});
 			auto xscope_string_csection1 = mse::make_xscope_string_const_section(&string1);
+
+			/* In these function calls, the second parameter is a string section that refers to a temporary string. */
 			auto res1 = CD::second_is_longer(xscope_string_csection1, mse::make_xscope_string_const_section(
 				mse::pointer_to(mse::TXScopeObj<mse::nii_string >(mse::nii_string{"abcd"}))));
 			auto res2 = J::second_is_longer(xscope_string_csection1, mse::make_xscope_string_const_section(
 				mse::pointer_to(mse::TXScopeObj<mse::nii_string >(mse::nii_string{"abcd"}))));
 			auto res3 = CD::second_is_longer_any(xscope_string_csection1, mse::make_xscope_string_const_section(
 				mse::pointer_to(mse::TXScopeObj<mse::nii_string >(mse::nii_string{"abcd"}))));
-
-			auto res4 = mse::make_xscope_nrp_string_const_section(mse::rsv::xscope_as_an_fparam(
-				mse::pointer_to(mse::TXScopeObj<mse::nii_string>(mse::nii_string{ "abcd" }))));
-			auto res5 = mse::make_xscope_string_const_section("abcd");
-			auto res6 = mse::make_xscope_nrp_string_const_section("abcd");
 		}
 	}
 
@@ -685,9 +686,13 @@ void msetl_example2() {
 
 			mse::mstd::string s = "Hellooooooooooooooo ";
 			mse::nrp_string_view sv = s + "World\n";
-			/* This is safe because the lifespan of the temporary string data is extended (via reference counting) to
-			match that of sv. */
-			std::cout << sv;
+			try {
+				/* Currently, the lifespan of the temporary string data is extended (via reference counting) to match that
+				of sv, so this just works and is safe. But in the future there may be an option to have an exception thrown
+				here. */
+				std::cout << sv;
+			}
+			catch(...) {}
 #endif /*!MSE_MSTDSTRING_DISABLED*/
 		}
 		{

@@ -21,6 +21,11 @@
 #include <stdexcept>
 //include <__debug>
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4505 )
+#endif /*_MSC_VER*/
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
@@ -89,6 +94,23 @@ namespace mse {
 		//class TXScopeStringSectionFParam;
 		template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
 		class TXScopeStringConstSectionFParam;
+	}
+
+	/* "NRP" string sections are just versions of the regular string sections that don't support raw pointers or
+	std::basic_string_view<> iterators (for extra safety). */
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
+	class TXScopeNRPStringSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
+	class TXScopeNRPStringConstSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
+	class TXScopeCagedNRPStringConstSectionToRValue;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
+	class TNRPStringSection;
+	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
+	class TNRPStringConstSection;
+	namespace rsv {
+		template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
+		class TXScopeNRPStringConstSectionFParam;
 	}
 
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
@@ -6447,6 +6469,35 @@ namespace mse {
 		return TStringSection<_TRAIterator>(param);
 	}
 
+
+	/* "nrp string sections" are derived from "string sections". Rather than define their own associtaed
+	TXScopeCagedNRPStringConstSectionToRValue<>, for now they just use the TXScopeCagedStringConstSectionToRValue<>
+	associated with their base class "string sections". But this requires TXScopeCagedStringConstSectionToRValue<>
+	to friend the "nrp string sections" make functions. But in order to be declared as friends, they need to be
+	forward declared here (because some of them are in a different namespace from
+	TXScopeCagedStringConstSectionToRValue<>). */
+	template <typename _TRAIterator>
+	auto make_xscope_nrp_string_const_section(const _TRAIterator& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count)
+		-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(start_iter, count))::iterator_type>(make_xscope_string_const_section(start_iter, count)));
+	template<typename _Ty, size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+	auto make_xscope_nrp_string_const_section(const _Ty(&presumed_string_literal)[Tn]) -> decltype(TXScopeNRPStringConstSection<const _Ty*>(presumed_string_literal));
+	namespace impl {
+		namespace ra_section {
+			template <typename _Ty>
+			auto make_xscope_nrp_string_const_section_helper1(std::true_type, const _Ty& param) -> decltype(make_xscope_string_const_section(param));
+			template <typename _TRALoneParam>
+			auto make_xscope_nrp_string_const_section_helper1(std::false_type, const _TRALoneParam& param)
+				-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(param))::iterator_type>(make_xscope_string_const_section(param)));
+		}
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_nrp_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
+		typename std::is_base_of<CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), param));
+
+	/* TXScopeCagedStringConstSectionToRValue<> represents a "string const section" that refers to a temporary string object.
+	The "string const section" is inaccessible ("caged") by default because it is, in general, unsafe. Its copyability and 
+	movability are also restricted. The "string const section" can only be accessed by certain types and functions (declared
+	as friends) that will ensure that it will be handled safely. */
 	template<typename _TRAIterator, class _Traits>
 	class TXScopeCagedStringConstSectionToRValue : public TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>, public CagedStringSectionTagBase {
 	public:
@@ -6470,6 +6521,15 @@ namespace mse {
 		template <typename _TRALoneParam>
 		friend auto make_xscope_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
 			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+
+		/* For now, "nrp string sections" are also using this class rather than creating an "nrp" specific one. So we need to
+		friend their associated elements too. */
+		friend class rsv::TXScopeNRPStringConstSectionFParam<_TRAIterator>;
+		template <typename _Ty>
+		friend auto impl::ra_section::make_xscope_nrp_string_const_section_helper1(std::true_type, const _Ty& param) -> decltype(make_xscope_string_const_section(param));
+		template <typename _TRALoneParam>
+		friend auto make_xscope_nrp_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
+			typename std::is_base_of<CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), param));
 	};
 
 	namespace rsv {
@@ -6521,9 +6581,7 @@ namespace mse {
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
-	}
 
-	namespace rsv {
 		/* Template specializations of TFParam<>. */
 
 		template<typename _Ty>
@@ -6764,14 +6822,6 @@ namespace mse {
 
 	/* "NRP" string sections are just versions of the regular string sections that don't support raw pointers or
 	std::basic_string_view<> iterators (for extra safety). */
-	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
-	class TXScopeNRPStringSection;
-	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
-	class TXScopeNRPStringConstSection;
-	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
-	class TNRPStringSection;
-	template <typename _TRAIterator, class _Traits = std::char_traits<typename std::remove_const<typename std::remove_reference<decltype(*(std::declval<_TRAIterator>()))>::type>::type > >
-	class TNRPStringConstSection;
 
 	template<class _TRAIterator, class = typename std::enable_if<(!std::is_pointer<_TRAIterator>::value), void>::type>
 	void T_valid_if_not_a_native_pointer_msemsestring() {}
@@ -6994,18 +7044,35 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	auto make_xscope_nrp_string_const_section(const _TRAIterator& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count) {
-		auto xscope_string_const_section = make_xscope_string_const_section(start_iter, count);
-		return TXScopeNRPStringConstSection<typename decltype(xscope_string_const_section)::iterator_type>(xscope_string_const_section);
+	auto make_xscope_nrp_string_const_section(const _TRAIterator& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count)
+		-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(start_iter, count))::iterator_type>(make_xscope_string_const_section(start_iter, count))) {
+		return TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(start_iter, count))::iterator_type>(make_xscope_string_const_section(start_iter, count));
 	}
-	template<typename _Ty, size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
-	auto make_xscope_nrp_string_const_section(const _Ty(&presumed_string_literal)[Tn]) {
+	template<typename _Ty, size_t Tn, typename/* = typename std::enable_if<1 <= Tn>::type*/>
+	auto make_xscope_nrp_string_const_section(const _Ty(&presumed_string_literal)[Tn]) -> decltype(TXScopeNRPStringConstSection<const _Ty*>(presumed_string_literal)) {
 		return TXScopeNRPStringConstSection<const _Ty*>(presumed_string_literal);
 	}
+	namespace impl {
+		namespace ra_section {
+			template <typename _Ty>
+			auto make_xscope_nrp_string_const_section_helper1(std::true_type, const _Ty& param) -> decltype(make_xscope_string_const_section(param)) {
+				return make_xscope_string_const_section(param);
+			}
+			template <typename _TRALoneParam>
+			auto make_xscope_nrp_string_const_section_helper1(std::false_type, const _TRALoneParam& param)
+				-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(param))::iterator_type>(make_xscope_string_const_section(param))) {
+
+				return TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(param))::iterator_type>(make_xscope_string_const_section(param));
+			}
+		}
+	}
 	template <typename _TRALoneParam>
-	auto make_xscope_nrp_string_const_section(const _TRALoneParam& param) {
-		auto xscope_string_const_section = make_xscope_string_const_section(param);
-		return TXScopeNRPStringConstSection<typename decltype(xscope_string_const_section)::iterator_type>(xscope_string_const_section);
+	auto make_xscope_nrp_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
+		typename std::is_base_of<CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), param)) {
+
+		return mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(typename std::is_base_of<CagedStringSectionTagBase,
+			decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type()
+			, param);
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
@@ -7100,7 +7167,55 @@ namespace mse {
 	}
 
 	namespace rsv {
-#if 0
+
+		template <typename _TRAIterator, class _Traits>
+		class TXScopeNRPStringConstSectionFParam : public TXScopeNRPStringConstSection<_TRAIterator> {
+		public:
+			typedef TXScopeNRPStringConstSection<_TRAIterator> base_class;
+			typedef _TRAIterator iterator_type;
+			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+
+			//MSE_USING(TXScopeNRPStringConstSectionFParam, base_class);
+			TXScopeNRPStringConstSectionFParam(const TXScopeNRPStringConstSectionFParam& src) = default;
+			TXScopeNRPStringConstSectionFParam(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+			template <typename _TRALoneParam>
+			TXScopeNRPStringConstSectionFParam(const _TRALoneParam& param) : base_class(construction_helper1(typename
+				std::conditional<mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
+				// || mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedStringConstSectionToRValue>::value
+				|| std::is_base_of<CagedStringSectionTagBase, _TRALoneParam>::value
+				, std::true_type, std::false_type>::type(), param)) {
+			}
+
+			TXScopeNRPStringConstSectionFParam xscope_subsection(size_type pos = 0, size_type n = npos) const {
+				return base_class::xscope_subsection(pos, n);
+			}
+			typedef typename std::conditional<std::is_base_of<XScopeTagBase, _TRAIterator>::value, TXScopeNRPStringConstSectionFParam, TNRPStringConstSection<_TRAIterator> >::type subsection_t;
+			subsection_t subsection(size_type pos = 0, size_type n = npos) const {
+				return base_class::subsection(pos, n);
+			}
+
+			//typedef typename base_class::xscope_iterator xscope_iterator;
+			typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+
+		private:
+			template <typename _TRAContainer>
+			mse::TXScopeItemFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
+				return mse::rsv::TXScopeItemFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
+			}
+			mse::TXScopeNRPStringConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>& caged_xscpsection) {
+				return caged_xscpsection.uncaged_string_section();
+			}
+			template <typename _TRALoneParam>
+			auto construction_helper1(std::false_type, const _TRALoneParam& param) {
+				return param;
+			}
+
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+	};
+
 		/* Template specializations of TFParam<>. */
 
 		template<typename _Ty>
@@ -7125,6 +7240,7 @@ namespace mse {
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 
+#if 0
 		template<typename _Ty>
 		class TFParam<mse::TXScopeCagedNRPStringConstSectionToRValue<_Ty> > : public TXScopeNRPStringConstSectionFParam<_Ty> {
 		public:
@@ -7308,5 +7424,9 @@ namespace mse {
 		return make_nrp_string_const_section(std::forward<Args>(args)...);
 	}
 }
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 #endif /*ndef MSEMSESTRING_H*/
