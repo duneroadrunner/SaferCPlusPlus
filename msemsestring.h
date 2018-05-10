@@ -7214,7 +7214,7 @@ namespace mse {
 			}
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
-	};
+		};
 
 		/* Template specializations of TFParam<>. */
 

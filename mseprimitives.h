@@ -361,7 +361,10 @@ struct native_int_type { typedef typename std::conditional<std::is_arithmetic<_T
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator *(_Ty2 x) const { (*this).assert_initialized(); return ((*this) * TInt<_Ty2>(x)); }
 
-		auto operator /(const TInt &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val) / MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_int_type, base_int_type)(x.m_val)); }
+		auto operator /(const TInt &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt) {
+			if (x.m_val == 0) { MSE_THROW(std::domain_error("attempted division by zero - TInt")); }
+			(*this).assert_initialized(); return (MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val) / MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_int_type, base_int_type)(x.m_val));
+		}
 		template<typename _Ty2>
 		auto operator /(const TInt<_Ty2> &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>)((*this).m_val) / MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
@@ -597,7 +600,10 @@ namespace mse {
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator *(_Ty2 x) const { (*this).assert_initialized(); return ((*this) * TInt<_Ty2>(x)); }
 
-		CNDSize_t operator /(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val / x.m_val); }
+		CNDSize_t operator /(const CNDSize_t &x) const {
+			if (x.m_val == 0) { MSE_THROW(std::domain_error("attempted division by zero - CNDSize_t")); }
+			(*this).assert_initialized(); return (m_val / x.m_val);
+		}
 		CNDInt operator /(const CNDInt &x) const { (*this).assert_initialized(); return (CNDInt(m_val) / x); }
 		CNDSize_t operator /(size_t x) const { (*this).assert_initialized(); return ((*this) / CNDSize_t(x)); }
 		template<typename _Ty2>
