@@ -960,7 +960,7 @@ Note that you do not need to do this for all objects allocated on the stack. Jus
 In the future we expect that there will be a "compile helper tool" to verify that objects declared as scope objects are indeed allocated on the stack and used properly. For now, be careful to follow these rules:
 
 - Objects of scope type (types whose name starts with "TXScope" or "xscope") must be global or local (non-static) automatic variables.
-	- Basically global or allocated on the stack.
+	- Basically global or allocated on the stack. (Not that we're condoning or encouraging the use of global variables here. Just acknowledging that the global scope is technically a scope.)
 - Note that scope pointers are themselves scope objects and must adhere to the same restrictions.
 - Do not use scope types as members of classes or structs.
 	- Note that you can use the [`mse::make_xscope_pointer_to_member_v2()`](#make_pointer_to_member_v2) function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
