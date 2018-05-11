@@ -963,7 +963,7 @@ In the future we expect that there will be a "compile helper tool" to verify tha
 	- Basically global or allocated on the stack.
 - Note that scope pointers are themselves scope objects and must adhere to the same restrictions.
 - Do not use scope types as members of classes or structs.
-	- Note that you can use the [`mse::make_pointer_to_member()`](#make_pointer_to_member) function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
+	- Note that you can use the [`mse::make_pointer_to_member_v2()`](#make_pointer_to_member_v2) function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
 	- In the uncommon cases that you really want to use a scope type as a member of a class or struct, that class or struct must itself be a scope type. User defined scope types must adhere to the [rules](#defining-your-own-scope-types) of scope types.
 - Do not use scope types as base classes.
 	- There probably isn't much motivation to do this anyway.
