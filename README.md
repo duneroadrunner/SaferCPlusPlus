@@ -1134,7 +1134,7 @@ usage example:
 
 ### xscope_chosen_pointer()
 
-Currently there's a rule against using non-owning scope pointers as function return values due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the `xscope_chosen_pointer()` function instead.
+Currently there's a rule against using non-owning scope pointers as function return values (enforced by the [`return_value()`](#return_value) function) due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the `xscope_chosen_pointer()` function instead.
 
 In essence, the `xscope_chosen_pointer()` function simply takes a bool and two scope pointers as input parameters and returns one of the pointers. If the bool is false then the first scope pointer is returned, otherwise the second is returned.
 
