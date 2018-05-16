@@ -20,6 +20,15 @@
 #pragma warning( disable : 4100 4456 4189 )
 #endif /*_MSC_VER*/
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 #ifndef _NOEXCEPT
 #define _NOEXCEPT
 #endif /*_NOEXCEPT*/
@@ -984,6 +993,14 @@ namespace mse {
 	}
 #endif // MSEREGISTEREDREFWRAPPER
 
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
 
 #ifdef __clang__
 #pragma clang diagnostic push
