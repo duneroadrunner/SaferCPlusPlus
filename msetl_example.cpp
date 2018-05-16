@@ -1470,13 +1470,13 @@ int main(int argc, char* argv[])
 		int res4 = B::foo2(xscp_a_ownerptr);
 		int res4b = B::foo2(&(*xscp_a_ownerptr));
 
-		/* You can use the "mse::make_pointer_to_member_v2()" function to obtain a safe pointer to a member of
+		/* You can use the "mse::make_xscope_pointer_to_member_v2()" function to obtain a safe pointer to a member of
 		an xscope object. */
-		auto xscp_s_ptr1 = mse::make_pointer_to_member_v2((&a_scpobj), &A::s);
+		auto xscp_s_ptr1 = mse::make_xscope_pointer_to_member_v2((&a_scpobj), &A::s);
 		(*xscp_s_ptr1) = "some new text";
-		auto xscp_s_const_ptr1 = mse::make_const_pointer_to_member_v2((&a_scpobj), &A::s);
+		auto xscp_s_const_ptr1 = mse::make_xscope_const_pointer_to_member_v2((&a_scpobj), &A::s);
 
-		/* The return type of mse::make_pointer_to_member_v2() depends on the type of the parameters passed
+		/* The return type of mse::make_xscope_pointer_to_member_v2() depends on the type of the parameters passed
 		to it. In this case, the type of xscp_s_ptr1 is mse::TXScopeItemFixedPointer<A>. */
 
 		auto res5 = H::foo6(xscp_s_ptr1, xscp_s_const_ptr1);
@@ -1528,8 +1528,9 @@ int main(int argc, char* argv[])
 			parameters is unsafe, and currently there is no compile-time enforcement of this restriction.
 
 			rsv::TReturnableFParam<> and rsv::as_a_returnable_fparam() can be used for situations when the type of the
-			input parameter is itself a template parameter and not necessarily always a scope type.
-			*/
+			input parameter is itself a template parameter and not necessarily always a scope type or treated as a scope
+			type. */
+
 			class CD {
 			public:
 				static auto longest(mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::nii_string> > string1_xscpptr
@@ -1572,7 +1573,6 @@ int main(int argc, char* argv[])
 			mse::TXScopeObj<CE> e_xscpobj;
 			auto xscope_string_const_section1 = mse::TXScopeObj<CE>::xscope_string_const_section_to_member(&e_xscpobj);
 			assert(xscope_string_const_section1 == "bcd");
-			assert(xscope_string_const_section1 == &mse::TXScopeObj<mse::nii_string>("bcd"));
 		}
 
 		{
@@ -1583,16 +1583,16 @@ int main(int argc, char* argv[])
 
 			/* rsv::TFParam<> is just a transparent template wrapper for function parameter declarations. In most cases
 			use of this wrapper is not necessary, but in some cases it enables functionality only available to variables
-			that are function parameters. Specifically, it allows functions to support scope pointer/references to
-			temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually
-			"functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so
-			in the case of function parameters, the rsv::TFParam<> wrapper enables certain scope pointer/reference types
-			(like TXScopeItemFixedPointer<>, and "random access section" scope types) to be constructed from their
-			"functionally disabled" counterparts.
+			that are function parameters. Specifically, it allows functions to support arguments that are scope
+			pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to
+			temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types.
+			Because it's safe to do so in the case of function parameters, the rsv::TFParam<> wrapper enables certain
+			scope pointer/reference types (like TXScopeItemFixedPointer<>, and "random access section" scope types) to
+			be constructed from their "functionally disabled" counterparts.
 
 			In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the
 			mse::rsv::TFParam<> wrapper can interfere with that. In those cases you can instead convert parameters to their
-			wrapped type after the fact using the rsv::as_an_fparam() function. Note that using this function (or the
+			wrapped type after-the-fact using the rsv::as_an_fparam() function. Note that using this function (or the
 			rsv::TFParam<> wrapper) on anything other than function parameters is unsafe, and currently there is no
 			compile-time enforcement of this restriction.
 
@@ -1703,9 +1703,9 @@ int main(int argc, char* argv[])
 
 		{
 			/* So here's how you get a safe pointer to a member of the object using mse::make_pointer_to_member_v2(). */
-			auto h_string1_scpptr = mse::make_pointer_to_member_v2(&h_scpobj, &H::m_string1);
+			auto h_string1_scpptr = mse::make_xscope_pointer_to_member_v2(&h_scpobj, &H::m_string1);
 			(*h_string1_scpptr) = "some new text";
-			auto h_string1_scp_const_ptr = mse::make_const_pointer_to_member_v2(&h_scpobj, &H::m_string1);
+			auto h_string1_scp_const_ptr = mse::make_xscope_const_pointer_to_member_v2(&h_scpobj, &H::m_string1);
 
 			auto h_string1_refcptr = mse::make_pointer_to_member_v2(h_refcptr, &H::m_string1);
 			(*h_string1_refcptr) = "some new text";

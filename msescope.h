@@ -915,14 +915,14 @@ namespace mse {
 
 		template<typename _Ty> using TXScopeReturnableFParam = TReturnableFParam<_Ty>;
 
+
 		template<typename _Ty>
-		auto returnable_fparam_as_original_type(TReturnableFParam<_Ty>&& _X) {
+		auto returnable_fparam_as_base_type(TReturnableFParam<_Ty>&& _X) {
 			return std::forward<_Ty>(_X);
 		}
 		template<typename _Ty>
-		const auto& returnable_fparam_as_original_type(const TReturnableFParam<_Ty>& _X) {
-			const _Ty& _Ty_cref = _X;
-			return _Ty_cref;
+		auto returnable_fparam_as_base_type(const TReturnableFParam<_Ty>& _X) -> const typename TReturnableFParam<_Ty>::base_class& {
+			return _X;
 		}
 
 
@@ -1058,11 +1058,11 @@ namespace mse {
 
 	template<typename _Ty>
 	auto return_value_helper12(const _Ty& _X) {
-		return rsv::returnable_fparam_as_original_type(_X);
+		return rsv::returnable_fparam_as_base_type(_X);
 	}
 	template<typename _Ty>
 	auto return_value_helper12(_Ty&& _X) {
-		return rsv::returnable_fparam_as_original_type(std::forward<decltype(_X)>(_X));
+		return rsv::returnable_fparam_as_base_type(std::forward<decltype(_X)>(_X));
 	}
 
 	template<typename _Ty>
@@ -1816,7 +1816,7 @@ namespace mse {
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-	/* Just the generalization xscope_chosen_pointer(). */
+	/* Just the generalization of xscope_chosen_pointer(). */
 	template<typename _Ty>
 	const auto& chosen(bool choose_the_second, const _Ty& a, const _Ty& b) {
 		return choose_the_second ? b : a;

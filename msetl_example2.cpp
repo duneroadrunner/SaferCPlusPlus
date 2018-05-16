@@ -723,8 +723,11 @@ void msetl_example2() {
 			/* You can't construct a string section directly from a naked nii_string (temporary or otherwise). */
 			//auto xscope_sv2 = mse::make_xscope_nrp_string_const_section(s + "World\n");	 // <-- compile error
 
-			/* And trying to (unsafely) obtain a "scope" pointer from a temporary is not going to work. */
+			/* And you won't be able to store a "scope" pointer to a temporary. */
 			//auto xscope_pointer2 = &(mse::TXScopeObj< mse::nii_string >(s + "World\n"));	 // <-- compile error
+
+			/* Passing a temporary scope string section that references a temporary string as a function argument is
+			supported. But only if the function parameter is declared to support it. */
 		}
 		{
 			std::string s = "Hellooooooooooooooo ";

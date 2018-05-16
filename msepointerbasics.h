@@ -110,9 +110,26 @@ namespace mse {
 	>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
+	template<class T, class EqualTo>
+	struct HasOrInheritsAssignmentOperator_msepointerbasics_impl
+	{
+		template<class U, class V>
+		static auto test(U*) -> decltype(std::declval<U>() = std::declval<V>(), bool(true));
+		template<typename, typename>
+		static auto test(...)->std::false_type;
+
+		static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+	};
+	template<class T, class EqualTo = T>
+	struct HasOrInheritsAssignmentOperator_msepointerbasics : HasOrInheritsAssignmentOperator_msepointerbasics_impl<
+		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
 #define MSE_USING_ASSIGNMENT_OPERATOR(Base) \
-	template<class _Ty2mse_uao> auto& operator=(_Ty2mse_uao&& _X) { Base::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
-	template<class _Ty2mse_uao> auto& operator=(const _Ty2mse_uao& _X) { Base::operator=(_X); return (*this); }
+	template<class _Ty2mse_uao, class _TBase2 = Base, typename = typename std::enable_if<HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value>::type> \
+	auto& operator=(_Ty2mse_uao&& _X) { Base::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+	template<class _Ty2mse_uao, class _TBase2 = Base, typename = typename std::enable_if<HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value>::type> \
+	auto& operator=(const _Ty2mse_uao& _X) { Base::operator=(_X); return (*this); }
 
 #define MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(ClassName) \
 	ClassName(const ClassName&) = default; \
