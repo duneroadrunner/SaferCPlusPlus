@@ -1,4 +1,4 @@
-Mar 2018
+May 2018
 
 ### Overview
 
@@ -28,7 +28,7 @@ An important consideration for many C++ applications is performance. Preferably 
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
-Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Mar 2018). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
+Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of May 2018). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
 
 ### Table of contents
@@ -63,7 +63,9 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Mar 2018). Support 
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
     4. [xscope_ifptr_to()](#xscope_ifptr_to)
     5. [xscope_chosen_pointer()](#xscope_chosen_pointer)
-    6. [Conformance helpers](#conformance-helpers)
+    6. [as_a_returnable_fparam()](#as_a_returnable_fparam)
+    7. [as_an_fparam()](#as_an_fparam)
+    8. [Conformance helpers](#conformance-helpers)
         1. [return_value()](#return_value)
         2. [TMemberObj](#tmemberobj)
 10. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
@@ -102,19 +104,18 @@ Tested with msvc2017, msvc2015, g++5.3 and clang++3.8 (as of Mar 2018). Support 
     3. [msearray](#msearray)
     4. [xscope_iterator](#xscope_iterator)
     5. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
-17. [for_each() specializations](#for_each-specializations)
-18. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
-19. [Strings](#strings)
+17. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
+18. [Strings](#strings)
     1. [mstd::string](#string)
     2. [nii_string](#nii_string)
     3. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
     4. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
     5. [mstd::string_view](#string_view)
     6. [nrp_string_view](#nrp_string_view)
-20. [optional](#optional-xscope_optional)
-21. [Compatibility considerations](#compatibility-considerations)
-22. [Practical limitations](#practical-limitations)
-23. [Questions and comments](#questions-and-comments)
+19. [optional](#optional-xscope_optional)
+20. [Compatibility considerations](#compatibility-considerations)
+21. [Practical limitations](#practical-limitations)
+22. [Questions and comments](#questions-and-comments)
 
 
 ### Use cases
@@ -961,16 +962,16 @@ Note that you do not need to do this for all objects allocated on the stack. Jus
 In the future we expect that there will be a "compile helper tool" to verify that objects declared as scope objects are indeed allocated on the stack and used properly. For now, be careful to follow these rules:
 
 - Objects of scope type (types whose name starts with "TXScope" or "xscope") must be global or local (non-static) automatic variables.
-	- Basically global or allocated on the stack.
+	- Basically global or allocated on the stack. (Not that we're condoning or encouraging the use of global variables here. Just acknowledging that the global scope is technically a scope.)
 - Note that scope pointers are themselves scope objects and must adhere to the same restrictions.
 - Do not use scope types as members of classes or structs.
-	- Note that you can use the [`mse::make_pointer_to_member()`](#make_pointer_to_member) function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
+	- Note that you can use the [`mse::make_xscope_pointer_to_member_v2()`](#make_pointer_to_member_v2) function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
 	- In the uncommon cases that you really want to use a scope type as a member of a class or struct, that class or struct must itself be a scope type. User defined scope types must adhere to the [rules](#defining-your-own-scope-types) of scope types.
 - Do not use scope types as base classes.
 	- There probably isn't much motivation to do this anyway.
 	- In the uncommon cases that you really want to use a scope type as a base class/struct, the derived class/struct must itself be a scope type. User defined scope types must adhere to the [rules](#defining-your-own-scope-types) of scope types.
 - Do not use scope types as function return types.
-	- In the uncommon cases that you really want to use a scope type as a function return type, it must be wrapped in the [`mse::TXScopeReturnValue<>`](#txscopereturnable) transparent template wrapper.
+	- In the uncommon cases that you really want to use a scope type as a function return type, it must be wrapped in the [`mse::TXScopeReturnValue<>`](#return_value) transparent template wrapper.
 	- `mse::TXScopeReturnValue<>` will not accept non-owning scope pointer types. Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen_pointer()`](#xscope_chosen_pointer) function.
 
 Failure to adhere to the rules for scope objects could result in unsafe code. Currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. Again, at some point the restrictions will be fully enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is premised on the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond the scope in which they are declared, so that a scope pointer cannot outlive its target scope object.
@@ -1135,7 +1136,7 @@ usage example:
 
 ### xscope_chosen_pointer()
 
-Currently there's a rule against using non-owning scope pointers as function return values due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the `xscope_chosen_pointer()` function instead.
+Currently there's a rule against using non-owning scope pointers as function return values (enforced by the [`return_value()`](#return_value) function) due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the `xscope_chosen_pointer()` function instead.
 
 In essence, the `xscope_chosen_pointer()` function simply takes a bool and two scope pointers as input parameters and returns one of the pointers. If the bool is false then the first scope pointer is returned, otherwise the second is returned.
 
@@ -1167,9 +1168,150 @@ So consider, for example, a "min" function that takes two scope pointers and ret
         bool. You could use this function to implement the equivalent of a min(a, b) function like so: */
         auto xscp_a_ptr5 = &a_scpobj;
         auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
-        auto xscp_min_ptr1 = mse::xscope_chosen_pointer((xscp_a_ptr6 < xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
+        auto xscp_min_ptr1 = mse::xscope_chosen_pointer((*xscp_a_ptr6 < *xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
         assert(5 == xscp_min_ptr1->b);
     }
+```
+
+### as_a_returnable_fparam()
+
+Another alternative if you want to return a scope pointer (or any object containing a scope reference) input parameter from a function is to wrap the parameter type with the `rsv::TXScopeReturnableFParam<>` transparent template wrapper when declaring the parameter. 
+
+Normally the [`return_value()`](#return_value) function wrapper will reject (with a compile error) scope pointers as unsafe return values. But if the scope pointer type is wrapped in the `rsv::TXScopeReturnableFParam<>` transparent template wrapper, then it will be accepted as a safe return value. Because it's generally safe to return a reference to an object if that reference was passed as an input parameter. Well, as long as the object is not a temporary one. So unlike with [`rsv::TXScopeFParam<>`](#as_an_fparam), scope reference types wrapped with `rsv::TXScopeReturnableFParam<>` will not enable support for references to temporaries, as returning a (scope) reference to a temporary would be unsafe even if the reference was passed as a function parameter. So for scope reference parameters you have to choose between being able to use it as a return value, or supporting references to temporaries. (Or neither.)
+
+In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the `rsv::TXScopeReturnableFParam<>` wrapper can interfere with that. In those cases you can instead convert parameters to their wrapped type after-the-fact using the `rsv::xscope_as_a_returnable_fparam()` function. Note that using this function (or the `rsv::TXScopeReturnableFParam<>` wrapper) on anything other than function parameters is unsafe, and currently there is no compile-time enforcement of this restriction.
+
+`rsv::TReturnableFParam<>` and `rsv::as_a_returnable_fparam()` can be used for situations when the type of the input parameter is itself a template parameter and not necessarily always a scope type or treated as a scope type. 
+
+usage exmaple:
+
+```cpp
+#include "msescope.h"
+#include "msemsestring.h"
+    
+class H {
+public:
+    /* This function will be used to demonstrate using rsv::as_a_returnable_fparam() to enable template functions to return
+    one of their function parameters, potentially of the scope reference variety which would otherwise be rejected (with a
+    compile error) as an unsafe return value. */
+    template<class _TPointer1, class _TPointer2>
+    static auto longest(const _TPointer1& string1_xscpptr, const _TPointer2& string2_xscpptr) {
+        auto l_string1_xscpptr = mse::rsv::as_a_returnable_fparam(string1_xscpptr);
+        auto l_string2_xscpptr = mse::rsv::as_a_returnable_fparam(string2_xscpptr);
+        if (l_string1_xscpptr->length() > l_string2_xscpptr->length()) {
+            /* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::nii_string> and we tried to return it
+            directly instead of l_string1_xscpptr, it would have induced a compile error. */
+            return mse::return_value(l_string1_xscpptr);
+        }
+        else {
+            /* mse::return_value() usually returns its input argument unmolested, but in this case it will return
+            a type different from the input type. This is to prevent any function that receives this return value
+            from, in turn, returning the value, as that might be unsafe. */
+            return mse::return_value(l_string2_xscpptr);
+        }
+    }
+};
+    
+void main(int argc, char* argv[]) {
+    class CD {
+    public:
+        static auto longest(mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::nii_string> > string1_xscpptr
+            , mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::nii_string> > string2_xscpptr) {
+            if (string1_xscpptr->length() > string2_xscpptr->length()) {
+                /* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::nii_string> the next line would have
+                induced a compile error. */
+                return mse::return_value(string1_xscpptr);
+            }
+            else {
+                /* mse::return_value() usually returns its input argument unmolested, but in this case it will return
+                a type (slightly) different from the input type. This is to prevent any function that receives this
+                return value from, in turn, returning the value, as that might be unsafe. */
+                return mse::return_value(string2_xscpptr);
+            }
+        }
+    };
+    mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
+    mse::TXScopeObj<mse::nii_string> xscope_string2 = "abcd";
+    auto longer_string_xscpptr = CD::longest(&xscope_string1, &xscope_string2);
+    auto copy_of_longer_string = *longer_string_xscpptr;
+
+    auto longer_string2_xscpptr = H::longest(&xscope_string1, &xscope_string2);
+
+    class CE {
+    public:
+        static auto xscope_string_const_section_to_member(mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedConstPointer<CE> > returnable_this_cpointer) {
+            /* "Pointers to members" based on returnable pointers inherit the "returnability". */
+            auto returnable_cpointer_to_member = mse::make_xscope_const_pointer_to_member_v2(returnable_this_cpointer, &CE::m_string1);
+            /* "scope nrp string const sections" based on returnable pointers (or iterators) inherit the "returnability". */
+            auto returnable_string_const_section = mse::make_xscope_nrp_string_const_section(returnable_cpointer_to_member);
+            /* Subsections of returnable sections inherit the "returnability". */
+            auto returnable_string_const_section2 = returnable_string_const_section.xscope_subsection(1, 3);
+            return mse::return_value(returnable_string_const_section2);
+        }
+    private:
+        mse::nii_string m_string1 = "abcde";
+    };
+
+    mse::TXScopeObj<CE> e_xscpobj;
+    auto xscope_string_const_section1 = mse::TXScopeObj<CE>::xscope_string_const_section_to_member(&e_xscpobj);
+    assert(xscope_string_const_section1 == "bcd");
+}
+```
+
+### as_an_fparam()
+
+`rsv::TFParam<>` is just a transparent template wrapper for function parameter declarations. In most cases use of this wrapper is not necessary, but in some cases it enables functionality only available to variables that are function parameters. Specifically, it allows functions to support arguments that are scope pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so in the case of function parameters, the `rsv::TFParam<>` wrapper enables certain scope pointer/reference types (like `TXScopeItemFixedPointer<>`, and "[random access section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" scope types) to be constructed from their "functionally disabled" counterparts.
+
+In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the `mse::rsv::TFParam<>` wrapper can interfere with that. In those cases you can instead convert parameters to their wrapped type after-the-fact using the `rsv::as_an_fparam()` function. Note that using this function (or the `rsv::TFParam<>` wrapper) on anything other than function parameters is unsafe, and currently there is no compile-time enforcement of this restriction.
+
+`rsv::TXScopeFParam<>` and `rsv::xscope_as_an_fparam()` can be used for situations when the types are necessarily scope types.
+
+```cpp
+#include "msescope.h"
+#include "msemsestring.h"
+#include "msepoly.h"
+    
+class H {
+public:
+    /* This function will be used to demonstrate using rsv::as_an_fparam() to enable template functions to accept scope 
+    pointers to temporary objects. */
+    template<class _TPointer1, class _TPointer2>
+    static bool second_is_longer(const _TPointer1& string1_xscpptr, const _TPointer2& string2_xscpptr) {
+        auto l_string1_xscpptr = mse::rsv::as_an_fparam(string1_xscpptr);
+        auto l_string2_xscpptr = mse::rsv::as_an_fparam(string2_xscpptr);
+        return (l_string1_xscpptr->length() > l_string2_xscpptr->length()) ? false : true;
+    }
+};
+    
+void main(int argc, char* argv[]) {
+    class CD {
+    public:
+        static bool second_is_longer(mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::nii_string> > string1_xscpptr
+            , mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::nii_string> > string2_xscpptr) {
+
+            return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
+        }
+
+        static bool second_is_longer_any(mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string1_xscpptr
+            , mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string2_xscpptr) {
+            return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
+        }
+
+        static bool second_is_longer_poly(mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string1_xscpptr
+            , mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string2_xscpptr) {
+            return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
+        }
+    };
+
+    mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
+    /* Here we're using the pointer_to() function to obtain a ("caged") pointer to the temporary scope object. The '&'
+    (ampersand) operator would also work, but would not correspond to valid native C++, as C++ does not support taking
+    the address of an r-value. */
+    auto res1 = CD::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+    auto res2 = H::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+    auto res3 = CD::second_is_longer_any(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+    auto res4 = CD::second_is_longer_poly(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+}
 ```
 
 ### Conformance helpers
@@ -1357,9 +1499,9 @@ usage example:
     
         {
             /* So here's how you get a safe pointer to a member of the object using mse::make_pointer_to_member_v2(). */
-            auto h_string1_scpptr = mse::make_pointer_to_member_v2(&h_scpobj, &H::m_string1);
+            auto h_string1_scpptr = mse::make_xscope_pointer_to_member_v2(&h_scpobj, &H::m_string1);
             (*h_string1_scpptr) = "some new text";
-            auto h_string1_scp_const_ptr = mse::make_const_pointer_to_member_v2(&h_scpobj, &H::m_string1);
+            auto h_string1_scp_const_ptr = mse::make_xscope_const_pointer_to_member_v2(&h_scpobj, &H::m_string1);
     
             auto h_string1_refcptr = mse::make_pointer_to_member_v2(h_refcptr, &H::m_string1);
             (*h_string1_refcptr) = "some new text";
@@ -2559,12 +2701,6 @@ usage example:
     }
 ```
 
-### for_each() specializations
-
-`std::for_each()` template specializations for the library's safe iterators are not yet implemented, but are hopefully coming soon. In theory, using `std::for_each()` could provide a performance benefit over regular "ranged-based loops", as it eliminates the need for bounds checking of the loop iterator. Note that the specialization for `mstd::vector<>` will hold a "[size change lock guard](#make_xscope_vector_size_change_lock_guard)", preventing the size of the vector from being changed during iteration.
-
-Also, parallel execution policies, will only be supported for specializations using the async shared iterators provided in the library.
-
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
 A "random access section" is basically a convenient interface to access a (contiguous) subsection of an existing array or vector. (Essentially an "array view" or "span" if you're familiar with those.) You construct them, using the `make_random_access_section()` functions, by specifying an iterator to the start of the section, and the length of the section. Random access sections support most of the member functions and operators that [std::basic_string_view](http://en.cppreference.com/w/cpp/string/basic_string_view) does, except that the "[substr()](http://en.cppreference.com/w/cpp/string/basic_string_view/substr)" member function is named "subsection()".
@@ -2799,15 +2935,13 @@ The above example contains unchecked accesses to deallocated memory via an impli
 
 So, technically, achieving complete memory safety requires passing a safe `this` pointer parameter as an argument to every member function that accesses a member variable. (I.e. Make your member functions `static`.)
 
-And technically, user-defined copy and move constructors are unsafe as they take (technically unsafe) reference parameters and are non-static member functions (that provide access to the unsafe (explicit and implicit) `this` pointer). Same goes for operator overloading. User-defined destructors and default constructors don't have the unsafe reference parameter issue, but still have the `this` pointer issue. While these elements are technically unsafe, empirically (and perhaps intuitively) they seem to be much less prone to memory safety bugs than, say, raw pointers or "non-bounds-checked" containers. Notably, there is one case where even the default copy constructor is problematic. C++ does (at the time of this writing) permit an object to be copy constructed from itself:
+Unfortunately, certain member functions can't be made static. Namely constructors, destructors and member operators. Copy and move constructors and many of the operators have the additional issue of taking (technically unsafe) reference parameters. While these elements are technically unsafe, empirically (and perhaps intuitively) they seem to be much less prone to memory safety bugs than, say, raw pointers or "non-bounds-checked" containers. 
 
-```cpp
-    Class1 obj1 = obj1;
-```
+If all the constructors and destructors (and operators) in the program are compiler-generated defaults (or are otherwise known to be "well behaved") then they would all be perfectly safe. The (theoretical) problem is that user-defined constructors or destructors aren't guaranteed to be "well behaved". Specifically, they could cause objects to be deleted in the middle of their constructor/destructor(/non-static member function) calls. And not just their own object, but, for example, a misbehaving constructor that is called by a parent constructor could cause that parent object to be deleted before its construction is completed. 
 
-This is a problem of accessing unintialized memory rather than unallocated memory, but still, don't do it.
+Again, empirically this doesn't seem to be an issue in practice. But for codebases where user-defined constructors and/or destructors are used/permitted, one strategy for addressing the (theoretical) issue of potential invalidation of the `this` pointer is to use "state lock guards". Basically just checking at run-time that the destructor is not executed while any (non-trivial) non-static member function of the same object is being executed (including another instance of the destructor itself). This mechanism would be required not only for types with user-defined constructors and/or destructors, but also for any type for which a child/ancestor/member object could have a user-defined constructor or destructor. While this technique does involve run-time overhead, it's the kind of overhead that the compiler optimizer should often be able to discard. "State lock guards" can be enabled for the library's container classes with a compile-time directive.
 
-If you do decide to permit functions that take reference parameters, note that `std::move()` (the one in the `<utility>` library, not the one in the `<algorithm>` library) is not really in the spirit of SaferCPlusPlus and could cause problems if applied to certain scope objects. `std::forward<>()` is fine. Basically, just let the compiler decide when a reference is an rvalue reference.
+If you decide to permit functions that take reference parameters, note that `std::move()` (the one in the `<utility>` library, not the one in the `<algorithm>` library) is not really in the spirit of the library and could cause problems if applied to certain scope objects. `std::forward<>()` is fine. Basically, just let the compiler decide when a reference is an rvalue reference.
 
 And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with [`ivector<>`](#ivector)s that support list-style iterators, often with a performance benefit.
 
