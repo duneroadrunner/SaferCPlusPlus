@@ -10,9 +10,10 @@
 
 #include "msemsestring.h"
 
-#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
-#define MSE_MSTDSTRING_DISABLED
-#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+/* Conditional definition of MSE_MSTDSTRING_DISABLED was moved to msemsestring.h. */
+//#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+//#define MSE_MSTDSTRING_DISABLED
+//#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
@@ -102,6 +103,10 @@ namespace mse {
 			/* construct from mse::string_view and "string sections". */
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
 			basic_string(const _TStringSection& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
+
+			virtual ~basic_string() {
+				msebasic_string().note_parent_destruction();
+			}
 
 			_Myt& operator=(_MBS&& _X) { msebasic_string() = (std::forward<decltype(_X)>(_X)); return (*this); }
 			_Myt& operator=(const _MBS& _X) { msebasic_string() = (_X); return (*this); }
@@ -208,10 +213,16 @@ namespace mse {
 				const_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				const_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
 				typename _MBS::difference_type operator-(const const_iterator& _Right_cref) const { return msebasic_string_ss_const_iterator_type() - (_Right_cref.msebasic_string_ss_const_iterator_type()); }
-				typename _MBS::const_reference operator*() const { return msebasic_string_ss_const_iterator_type().operator*(); }
+				typename _MBS::const_reference operator*() const {
+					(*m_msebasic_string_cshptr).assert_parent_not_destroyed();
+					return msebasic_string_ss_const_iterator_type().operator*();
+				}
 				typename _MBS::const_reference item() const { return operator*(); }
 				typename _MBS::const_reference previous_item() const { return msebasic_string_ss_const_iterator_type().previous_item(); }
-				typename _MBS::const_pointer operator->() const { return msebasic_string_ss_const_iterator_type().operator->(); }
+				typename _MBS::const_pointer operator->() const {
+					(*m_msebasic_string_cshptr).assert_parent_not_destroyed();
+					return msebasic_string_ss_const_iterator_type().operator->();
+				}
 				typename _MBS::const_reference operator[](typename _MBS::difference_type _Off) const { return (*(*this + _Off)); }
 				bool operator==(const const_iterator& _Right_cref) const { return msebasic_string_ss_const_iterator_type().operator==(_Right_cref.msebasic_string_ss_const_iterator_type()); }
 				bool operator!=(const const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }

@@ -12,6 +12,16 @@
 #include <iostream>
 #include "msemsevector.h"
 
+#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+#define MSE_MSTDSTRING_DISABLED
+#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+
+#ifndef NDEBUG
+#ifndef MSE_SUPPRESS_MSTD_STRING_CHECK_USE_AFTER_FREE
+#define MSE_MSTD_STRING_CHECK_USE_AFTER_FREE
+#endif // !MSE_SUPPRESS_MSTD_STRING_CHECK_USE_AFTER_FREE
+#endif // !NDEBUG
+
 /* for string_view */
 //include <__config>
 //include <__string>
@@ -2221,6 +2231,15 @@ namespace mse {
 		}
 	}
 
+
+	namespace mstd {
+#ifndef MSE_MSTDSTRING_DISABLED
+		/* forward declaration because mstd::basic_string<> needs to be declared a friend of us::msebasic_string<> (in its current
+		implementation) */
+		template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty> */>
+		class basic_string;
+#endif /*!MSE_MSTDSTRING_DISABLED*/
+	}
 
 	namespace us {
 
@@ -4683,10 +4702,30 @@ namespace mse {
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 		private:
+			/* These are a couple of functions that are basically just here for the convenience of the mstd::basic_string<>
+			implementation, which uses this class. */
+#ifdef MSE_MSTD_STRING_CHECK_USE_AFTER_FREE
+			void note_parent_destruction() { m_parent_destroyed = true; }
+			void assert_parent_not_destroyed() const {
+				/* This assert can fail if, for example, you dereference an mstd::basic_string<> iterator after the basic_string has
+				been destroyed. You can supress this assert by defining MSE_SUPPRESS_MSTD_STRING_CHECK_USE_AFTER_FREE. */
+				assert(!m_parent_destroyed);
+			}
+			bool m_parent_destroyed = false;
+#else // MSE_MSTD_STRING_CHECK_USE_AFTER_FREE
+			void note_parent_destruction() {}
+			void assert_parent_not_destroyed() const {}
+#endif // MSE_MSTD_STRING_CHECK_USE_AFTER_FREE
+
 			mutable mse::non_thread_safe_mutex m_structure_change_mutex;
 
 			auto contained_basic_string() const -> decltype(base_class::contained_basic_string()) { return base_class::contained_basic_string(); }
 			auto contained_basic_string() -> decltype(base_class::contained_basic_string()) { return base_class::contained_basic_string(); }
+
+#ifndef MSE_MSTDSTRING_DISABLED
+			template<class _Ty2, class _Traits2/* = std::char_traits<_Ty>*/, class _A2/* = std::allocator<_Ty> */>
+			friend class mse::mstd::basic_string;
+#endif /*!MSE_MSTDSTRING_DISABLED*/
 		};
 
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex> inline bool operator!=(const msebasic_string<_Ty, _Traits, _A, _TStateMutex>& _Left,

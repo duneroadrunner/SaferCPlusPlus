@@ -39,6 +39,16 @@
 #include <climits>       // ULONG_MAX
 #include <stdexcept>
 
+#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+#define MSE_MSTDVECTOR_DISABLED
+#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+
+#ifndef NDEBUG
+#ifndef MSE_SUPPRESS_MSTD_VECTOR_CHECK_USE_AFTER_FREE
+#define MSE_MSTD_VECTOR_CHECK_USE_AFTER_FREE
+#endif // !MSE_SUPPRESS_MSTD_VECTOR_CHECK_USE_AFTER_FREE
+#endif // !NDEBUG
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
@@ -1503,6 +1513,7 @@ namespace mse {
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
+
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
@@ -1638,6 +1649,15 @@ namespace std {
 }
 
 namespace mse {
+
+	namespace mstd {
+#ifndef MSE_MSTDVECTOR_DISABLED
+		/* forward declaration because mstd::vector<> needs to be declared a friend of us::msevector<> (in its current
+		implementation) */
+		template<class _Ty, class _A/* = std::allocator<_Ty> */>
+		class vector;
+#endif /*!MSE_MSTDVECTOR_DISABLED*/
+	}
 
 	namespace us {
 		/* msevector<> is an unsafe extension of nii_vector<> that provides the traditional begin() and end() (non-static)
@@ -4034,10 +4054,30 @@ namespace mse {
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 		private:
+			/* These are a couple of functions that are basically just here for the convenience of the mstd::vector<>
+			implementation, which uses this class. */
+#ifdef MSE_MSTD_VECTOR_CHECK_USE_AFTER_FREE
+			void note_parent_destruction() { m_parent_destroyed = true; }
+			void assert_parent_not_destroyed() const {
+				/* This assert can fail if, for example, you dereference an mstd::vector<> iterator after the vector has
+				been destroyed. You can supress this assert by defining MSE_SUPPRESS_MSTD_VECTOR_CHECK_USE_AFTER_FREE. */
+				assert(!m_parent_destroyed);
+			}
+			bool m_parent_destroyed = false;
+#else // MSE_MSTD_VECTOR_CHECK_USE_AFTER_FREE
+			void note_parent_destruction() {}
+			void assert_parent_not_destroyed() const {}
+#endif // MSE_MSTD_VECTOR_CHECK_USE_AFTER_FREE
+
 			mutable mse::non_thread_safe_mutex m_structure_change_mutex;
 
 			auto contained_vector() const -> decltype(base_class::contained_vector()) { return base_class::contained_vector(); }
 			auto contained_vector() -> decltype(base_class::contained_vector()) { return base_class::contained_vector(); }
+
+#ifndef MSE_MSTDVECTOR_DISABLED
+			template<class _Ty2, class _A2/* = std::allocator<_Ty> */>
+			friend class mse::mstd::vector;
+#endif /*!MSE_MSTDVECTOR_DISABLED*/
 		};
 
 		template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex> inline bool operator!=(const msevector<_Ty, _A, _TStateMutex>& _Left,

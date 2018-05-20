@@ -221,12 +221,12 @@ int main(int argc, char* argv[])
 		auto vi_it = vvi[0].begin();
 		vvi.clear();
 
-#ifndef MSE_MSTDVECTOR_DISABLED
+#if !defined(MSE_MSTDVECTOR_DISABLED) && !defined(MSE_MSTD_VECTOR_CHECK_USE_AFTER_FREE)
 		try {
-			/* At this point, the vint_type object is cleared from vvi, but it has not been deallocated/destructed yet because it
-			"knows" that there is an iterator, namely vi_it, that is still referencing it. At the moment, std::shared_ptrs are being
-			used to achieve this. */
-			auto value = (*vi_it); /* So this is actually ok. vi_it still points to a valid item. */
+			/* At this point, the vint_type object is cleared from vvi, but (with the current library implementation) it has
+			not actually been deallocated/destructed yet because it "knows" that there is an iterator, namely vi_it, that is
+			still referencing it. It will be deallocated when there are no more iterators referencing it. */
+			auto value = (*vi_it); /* In debug mode this will fail an assert. In non-debug mode it'll just work (safely). */
 			assert(5 == value);
 			vint_type vi2;
 			vi_it = vi2.begin();
@@ -234,10 +234,10 @@ int main(int argc, char* argv[])
 			references it. */
 		}
 		catch (...) {
-			/* At present, no exception will be thrown. In the future, an exception may be thrown in debug builds. */
+			/* At present, no exception will be thrown. With future library implementations, maybe. */
 			std::cerr << "potentially expected exception" << std::endl;
 		}
-#endif // !MSE_MSTDVECTOR_DISABLED
+#endif // !defined(MSE_MSTDVECTOR_DISABLED) && !defined(MSE_MSTD_VECTOR_CHECK_USE_AFTER_FREE)
 	}
 
 	{

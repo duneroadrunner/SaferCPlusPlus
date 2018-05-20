@@ -11,9 +11,10 @@
 #include "msemsevector.h"
 #include "msemstdarray.h"
 
-#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
-#define MSE_MSTDVECTOR_DISABLED
-#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+/* Conditional definition of MSE_MSTDVECTOR_DISABLED was moved to msemsevector.h. */
+//#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+//#define MSE_MSTDVECTOR_DISABLED
+//#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
@@ -148,6 +149,10 @@ namespace mse {
 			template<class _Iter, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type>
 			vector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MV>(_First, _Last, _Al)) {}
 
+			virtual ~vector() {
+				msevector().note_parent_destruction();
+			}
+
 			_Myt& operator=(_MV&& _X) { msevector() = (std::forward<decltype(_X)>(_X)); return (*this); }
 			_Myt& operator=(const _MV& _X) { msevector() = (_X); return (*this); }
 			_Myt& operator=(_Myt&& _X) {
@@ -248,10 +253,16 @@ namespace mse {
 				const_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				const_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
 				typename _MV::difference_type operator-(const const_iterator& _Right_cref) const { return msevector_ss_const_iterator_type() - (_Right_cref.msevector_ss_const_iterator_type()); }
-				typename _MV::const_reference operator*() const { return msevector_ss_const_iterator_type().operator*(); }
+				typename _MV::const_reference operator*() const {
+					(*m_msevector_cshptr).assert_parent_not_destroyed();
+					return msevector_ss_const_iterator_type().operator*();
+				}
 				typename _MV::const_reference item() const { return operator*(); }
 				typename _MV::const_reference previous_item() const { return msevector_ss_const_iterator_type().previous_item(); }
-				typename _MV::const_pointer operator->() const { return msevector_ss_const_iterator_type().operator->(); }
+				typename _MV::const_pointer operator->() const {
+					(*m_msevector_cshptr).assert_parent_not_destroyed();
+					return msevector_ss_const_iterator_type().operator->();
+				}
 				typename _MV::const_reference operator[](typename _MV::difference_type _Off) const { return (*(*this + _Off)); }
 				bool operator==(const const_iterator& _Right_cref) const { return msevector_ss_const_iterator_type().operator==(_Right_cref.msevector_ss_const_iterator_type()); }
 				bool operator!=(const const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
@@ -328,10 +339,16 @@ namespace mse {
 				iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				iterator operator-(difference_type n) const { return ((*this) + (-n)); }
 				typename _MV::difference_type operator-(const iterator& _Right_cref) const { return msevector_ss_iterator_type() - (_Right_cref.msevector_ss_iterator_type()); }
-				typename _MV::reference operator*() const { return msevector_ss_iterator_type().operator*(); }
+				typename _MV::reference operator*() const {
+					(*m_msevector_shptr).assert_parent_not_destroyed();
+					return msevector_ss_iterator_type().operator*();
+				}
 				typename _MV::reference item() const { return operator*(); }
 				typename _MV::reference previous_item() const { return msevector_ss_iterator_type().previous_item(); }
-				typename _MV::pointer operator->() const { return msevector_ss_iterator_type().operator->(); }
+				typename _MV::pointer operator->() const {
+					(*m_msevector_shptr).assert_parent_not_destroyed();
+					return msevector_ss_iterator_type().operator->();
+				}
 				typename _MV::reference operator[](typename _MV::difference_type _Off) const { return (*(*this + _Off)); }
 				bool operator==(const iterator& _Right_cref) const { return msevector_ss_iterator_type().operator==(_Right_cref.msevector_ss_iterator_type()); }
 				bool operator!=(const iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }

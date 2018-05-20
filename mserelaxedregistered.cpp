@@ -22,6 +22,9 @@ complete prohibition of sharing relaxed registered pointers between threads. */
 
 namespace mse {
 
+#ifdef MSE_REGISTEREDPOINTER_DISABLED
+#else // MSE_REGISTEREDPOINTER_DISABLED
+
 	bool CSPTracker::registerPointer(const CSaferPtrBase& sp_ref, void *obj_ptr) {
 		if (nullptr == obj_ptr) { return true; }
 		{
@@ -207,6 +210,8 @@ namespace mse {
 #endif /*MSE_USE_WINDOWS_THREADID*/
 
 	CSPTrackerMap gSPTrackerMap;
+
+#endif // MSE_REGISTEREDPOINTER_DISABLED
 }
 
 #ifdef _MSC_VER

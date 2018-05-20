@@ -649,18 +649,17 @@ void msetl_example2() {
 			mse::mstd::string mstring1("some text");
 			msv1 = mse::mstd::string_view(mstring1);
 		}
-#ifndef MSE_MSTDSTRING_DISABLED
+#if !defined(MSE_MSTDSTRING_DISABLED) && !defined(MSE_MSTD_STRING_CHECK_USE_AFTER_FREE)
 		try {
-			/* This is not undefined (or unsafe) behavior. Either an exception will be thrown or it will just work. */
-			auto ch1 = msv1[3];
+			/* This is not undefined (or unsafe) behavior. */
+			auto ch1 = msv1[3]; /* In debug mode this will fail an assert. In non-debug mode it'll just work (safely). */
 			assert('e' == ch1);
 		}
 		catch (...) {
 			/* At present, no exception will be thrown. Instead, the lifespan of the string data is extended to match
-			that of the mstd::string_view. In the future, an exception may be thrown in debug builds. */
-			std::cerr << "potentially expected exception" << std::endl;
+			that of the mstd::string_view. It's possible that in future library implementations, an exception may be thrown. */
 		}
-#endif //!MSE_MSTDSTRING_DISABLED
+#endif //!defined(MSE_MSTDSTRING_DISABLED) && !defined(MSE_MSTD_STRING_CHECK_USE_AFTER_FREE)
 
 		mse::mstd::string mstring2("some other text");
 		/* With std::string_view, you specify a string subrange with a raw pointer iterator and a length. With
@@ -681,19 +680,20 @@ void msetl_example2() {
 			//std::cout << sv;
 		}
 		{
-#ifndef MSE_MSTDSTRING_DISABLED
+#if !defined(MSE_MSTDSTRING_DISABLED) && !defined(MSE_MSTD_STRING_CHECK_USE_AFTER_FREE)
 			/* Memory safe substitutes for std::string and std::string_view eliminate the danger. */
 
 			mse::mstd::string s = "Hellooooooooooooooo ";
 			mse::nrp_string_view sv = s + "World\n";
 			try {
-				/* Currently, the lifespan of the temporary string data is extended (via reference counting) to match that
-				of sv, so this just works and is safe. But in the future there may be an option to have an exception thrown
-				here. */
-				std::cout << sv;
+				/* This is not undefined (or unsafe) behavior. */
+				std::cout << sv; /* In debug mode this will fail an assert. In non-debug mode it'll just work (safely). */
 			}
-			catch(...) {}
-#endif /*!MSE_MSTDSTRING_DISABLED*/
+			catch(...) {
+				/* At present, no exception will be thrown. Instead, the lifespan of the string data is extended to match
+				that of the mse::nrp_string_view. It's possible that in future library implementations, an exception may be thrown. */
+			}
+#endif //!defined(MSE_MSTDSTRING_DISABLED) && !defined(MSE_MSTD_STRING_CHECK_USE_AFTER_FREE)
 		}
 		{
 			/* Memory safety can also be achieved without extra run-time overhead. */

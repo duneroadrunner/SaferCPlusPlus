@@ -779,20 +779,7 @@ namespace mse {
 		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
 	};
 
-	template<class T, class EqualTo>
-	struct HasOrInheritsAssignmentOperator_msemsearray_impl
-	{
-		template<class U, class V>
-		static auto test(U*) -> decltype(std::declval<U>() = std::declval<V>(), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
-
-		static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct HasOrInheritsAssignmentOperator_msemsearray : HasOrInheritsAssignmentOperator_msemsearray_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+	template<class T> using HasOrInheritsAssignmentOperator_msemsearray = HasOrInheritsAssignmentOperator_msepointerbasics<T>;
 
 	template<class T, class EqualTo>
 	struct HasOrInheritsEqualityOperator_msemsearray_impl
