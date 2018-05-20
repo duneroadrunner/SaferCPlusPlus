@@ -2297,10 +2297,13 @@ usage example:
         // (*msev1_it) = 4; // not good
         
         try {
-            (*mv1_it) = 4; // ok
+            /* At this point, mv1's data has not actually been deallocated/destructed yet because it "knows" that there
+	    is an iterator, namely mv1_it, that is still referencing it. It will be deallocated when there are no more
+	    iterators referencing it. */
+	    
+            (*mv1_it) = 4; // In debug mode this will fail an assert. In non-debug mode it'll just work (safely). 
         } catch(...) {
-            // At present, this won't even result in an exception. It'll just work.
-            // In the future an exception may be throw in debug builds.
+            /* At present, no exception will be thrown. With future library implementations, maybe. */
         }
     }
 ```
@@ -2842,14 +2845,13 @@ usage example:
             msv1 = mstring1;
         }
         try {
-            /* This is not undefined (or unsafe) behavior. Either an exception will be thrown or it will just work. */
-            auto ch1 = msv1[3];
+            /* This is not undefined (or unsafe) behavior. */
+            auto ch1 = msv1[3]; /* In debug mode this will fail an assert. In non-debug mode it'll just work (safely). */
             assert('e' == ch1);
         }
         catch (...) {
             /* At present, no exception will be thrown. Instead, the lifespan of the string data is extended to match
-            that of the mstd::string_view. In the future, an exception may be thrown in debug builds. */
-            std::cerr << "potentially expected exception" << std::endl;
+            that of the mstd::string_view. It's possible that in future library implementations, an exception may be thrown. */
         }
     
         mse::mstd::string mstring2("some other text");
