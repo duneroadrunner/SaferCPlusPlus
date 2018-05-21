@@ -30,34 +30,34 @@ To see the library in action, you can check out some [benchmark code](https://gi
 
 Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of May 2018). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
-
 ### Table of contents
 1. [Overview](#overview)
 2. [Use cases](#use-cases)
 3. [Setup and dependencies](#setup-and-dependencies)
-4. Comparisons
+4. [Versioning and deployment philosophy](#versioning-and-deployment-philosophy)
+5. Comparisons
     1. [SaferCPlusPlus versus Clang/LLVM Sanitizers](#safercplusplus-versus-clangllvm-sanitizers)
     2. [SaferCPlusPlus versus the Core Guidelines Checkers](#safercplusplus-versus-the-core-guidelines-checkers)
     3. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
     4. [SaferCPlusPlus versus Checked C](#safercplusplus-versus-checked-c)
     5. [SaferCPlusPlus versus Ironclad C++](#safercplusplus-versus-ironclad-c)
-5. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
-6. [Registered pointers](#registered-pointers)
+6. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
+7. [Registered pointers](#registered-pointers)
     1. [TRegisteredPointer](#tregisteredpointer)
         1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
         2. [TRegisteredFixedPointer](#tregisteredfixedpointer)
         3. [TRegisteredConstPointer](#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer)
         4. [TRegisteredRefWrapper](#tregisteredrefwrapper)
     2. [TRelaxedRegisteredPointer](#trelaxedregisteredpointer)
-7. [Simple benchmarks](#simple-benchmarks)
-8. [Reference counting pointers](#reference-counting-pointers)
+8. [Simple benchmarks](#simple-benchmarks)
+9. [Reference counting pointers](#reference-counting-pointers)
     1. [TRefCountingPointer](#trefcountingpointer)
         1. [TRefCountingNotNullPointer](#trefcountingnotnullpointer)
         2. [TRefCountingFixedPointer](#trefcountingfixedpointer)
         3. [TRefCountingConstPointer](#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer)
     2. [TRefCountingOfRegisteredPointer](#trefcountingofregisteredpointer)
     3. [TRefCountingOfRelaxedRegisteredPointer](#trefcountingofrelaxedregisteredpointer)
-9. [Scope pointers](#scope-pointers)
+10. [Scope pointers](#scope-pointers)
     1. [TXScopeItemFixedPointer](#txscopeitemfixedpointer)
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
@@ -68,8 +68,8 @@ Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of May 201
     8. [Conformance helpers](#conformance-helpers)
         1. [return_value()](#return_value)
         2. [TMemberObj](#tmemberobj)
-10. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
-11. [Poly pointers](#poly-pointers)
+11. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
+12. [Poly pointers](#poly-pointers)
     1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
     2. [TPolyPointer](#tpolypointer-tpolyconstpointer)
     3. [TAnyPointer](#txscopeanypointer-txscopeanyconstpointer-tanypointer-tanyconstpointer)
@@ -77,9 +77,9 @@ Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of May 201
     5. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
     6. [TAnyStringSection](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection)
     7. [TAnyNRPStringSection](#txscopeanynrpstringsection-txscopeanynrpstringconstsection-tanynrpstringsection-tanynrpstringconstsection)
-12. [pointer_to()](#pointer_to)
-12. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
-13. [Multithreading](#multithreading)
+13. [pointer_to()](#pointer_to)
+14. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
+15. [Multithreading](#multithreading)
     1. [TUserDeclaredAsyncPassableObj](#tuserdeclaredasyncpassableobj)
     2. [thread](#thread)
     3. [async()](#async)
@@ -89,33 +89,33 @@ Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of May 201
         3. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
         4. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
         5. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
-14. [Primitives](#primitives)
+16. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [Quarantined types](#quarantined-types)
-15. [Vectors](#vectors)
+17. [Vectors](#vectors)
     1. [mstd::vector](#vector)
     2. [nii_vector](#nii_vector)
     3. [msevector](#msevector)
     4. [ivector](#ivector)
     5. [make_xscope_vector_size_change_lock_guard()](#make_xscope_vector_size_change_lock_guard)
-16. [Arrays](#arrays)
+18. [Arrays](#arrays)
     1. [mstd::array](#array)
     2. [nii_array](#nii_array)
     3. [msearray](#msearray)
     4. [xscope_iterator](#xscope_iterator)
     5. [xscope_pointer_to_array_element()](#xscope_pointer_to_array_element)
-17. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
-18. [Strings](#strings)
+19. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
+20. [Strings](#strings)
     1. [mstd::string](#string)
     2. [nii_string](#nii_string)
     3. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
     4. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
     5. [mstd::string_view](#string_view)
     6. [nrp_string_view](#nrp_string_view)
-19. [optional](#optional-xscope_optional)
-20. [Compatibility considerations](#compatibility-considerations)
-21. [Practical limitations](#practical-limitations)
-22. [Questions and comments](#questions-and-comments)
+21. [optional](#optional-xscope_optional)
+22. [Compatibility considerations](#compatibility-considerations)
+23. [Practical limitations](#practical-limitations)
+24. [Questions and comments](#questions-and-comments)
 
 
 ### Use cases
@@ -137,6 +137,14 @@ The beauty of the library is that it is so small and simple. Using the library g
 Building the example: For those using msvc, project and solution files are included. Otherwise, just create a new project and add all the `.cpp` and `.h` files.
 
 A couple of notes about compling: With g++ and clang++, you'll need to enable thread support (-pthread). With 64-bit builds in msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section.
+
+### Versioning and deployment philosophy
+
+Unlike many other libraries, this library does not maintain "official versions". This is, in part, to avoid the long-standing problem that occurs when, for example, you'd like to use two different libraries in your project, but each of those libraries in turn has a dependency on a different (conflicting) version of a common library (aka "[dependency hell](https://en.wikipedia.org/wiki/Dependency_hell)"). The alternative to maintaining versions is simply a policy of avoiding as much as possible, changes to the library's interface that "break" existing code that uses the library. So, ideally, any code you write using the library should continue to work with future "versions" of the library. Google calls this approach "[living at head](https://www.youtube.com/watch?v=tISy7EJQPzI)". 
+
+One of the goals of the library is to avoid as much as possible, being a "dependency risk". In fact, rather than a third-party library, you're encouraged to think of the library as, in a sense, just part of your project's source code. In that vein, it may not be a bad idea to have your project's code refer to a more personalized namespace alias, rather than the library's default namespace. 
+
+Rather than asking "How do we use the library to make our code safer?", you're instead encouraged to take the mindset of "In order to avoid memory access (and data race, and ub, ...) bugs we are adopting a policy of avoiding (where possible, the many) C++ elements that are prone to such bugs. Safer alternative elements will be used instead. This open source library happens to have implementations of some such elements that we can use instead of writing our own from scratch."
 
 ### SaferCPlusPlus versus Clang/LLVM Sanitizers
 
