@@ -40,7 +40,6 @@ Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of May 201
     2. [SaferCPlusPlus versus the Core Guidelines Checkers](#safercplusplus-versus-the-core-guidelines-checkers)
     3. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
     4. [SaferCPlusPlus versus Checked C](#safercplusplus-versus-checked-c)
-    5. [SaferCPlusPlus versus Ironclad C++](#safercplusplus-versus-ironclad-c)
 6. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
 7. [Registered pointers](#registered-pointers)
     1. [TRegisteredPointer](#tregisteredpointer)
@@ -513,14 +512,6 @@ So, perhaps as expected, you could think of the comparison between SaferCPlusPlu
 "Checked C", like SaferCPlusPlus, takes the approach of extending the language with safer elements that can directly substitute for unsafe native elements. In chapter 9 of their [spec](https://github.com/Microsoft/checkedc/releases/download/v0.5-final/checkedc-v0.5.pdf), there is an extensive survey of existing (and historical) efforts to address C/C++ memory safety. There they make the argument for the (heretofore neglected) "language extension" approach (basically citing performance, compatibility and the support for granular mixing of safe and unsafe code), that applies to SaferCPlusPlus as well.
 
 Checked C and SaferCPlusPlus are more complementary than competitive. Checked C targets low-level system C code and basically only addresses the array bounds checking issue, including pointer arithmetic, where SaferCPlusPlus skews more toward C++ code and legacy code that would benefit from being converted to modern C++. It seems that Checked C is not yet ready for deployment (as of Sep 2016), but one could imagine both solutions being used, with little contention, in projects that have both low-level system type code and higher-level application type code.
-
-### SaferCPlusPlus versus Ironclad C++
-
-SaferCPlusPlus and Ironclad C++ are very similar. The main difference is probably that Ironclad uses garbage collection while SaferCPlusPlus does not. They are not incompatible, both libraries could be used in the same project. Unfortunately, Ironclad seems to be no longer under active development.  
-
-While both solutions address the pointer/reference safety issue, SaferCPlusPlus also provides safer replacements for int and size_t, and data types for safely sharing objects between asynchronous threads.  
-
-There is a comprehensive paper on Ironclad C++ [here](https://www.cs.rutgers.edu/~santosh.nagarakatte/papers/ironclad-oopsla2013.pdf). It's a beneficial read even for those not planning on adopting Ironclad, as the the approach has much in common with SaferCPlusPlus.  
 
 ### Getting started on safening existing code
 
