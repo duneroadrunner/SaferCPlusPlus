@@ -57,6 +57,7 @@ namespace mse {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 

@@ -22,10 +22,12 @@
 
 #ifdef __clang__
 #pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wunused-variable"
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
