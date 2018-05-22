@@ -2936,7 +2936,7 @@ The above example contains unchecked accesses to deallocated memory via an impli
     }
 ```
 
-So, technically, achieving complete memory safety requires passing a safe `this` pointer parameter as an argument to every member function that accesses a member variable. (I.e. Make your member functions `static`.)
+So, technically, achieving complete memory safety requires passing a safe `this` pointer parameter as an argument to every member function that accesses a member variable. (I.e. Make your member functions `static`. Or "[free](https://www.youtube.com/watch?v=nWJHhtmWYcY)".)
 
 Unfortunately, certain member functions can't be made static. Namely constructors, destructors and member operators. Copy and move constructors and many of the operators have the additional issue of taking (technically unsafe) reference parameters. While these elements are technically unsafe, empirically (and perhaps intuitively) they seem to be much less prone to memory safety bugs than, say, raw pointers or "non-bounds-checked" containers. 
 
