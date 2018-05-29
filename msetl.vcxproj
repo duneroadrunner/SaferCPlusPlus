@@ -280,10 +280,6 @@
     <ClCompile Include="msetl_example2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="msetl_blurb.odt" />
-    <None Include="msetl_blurb.pdf" />
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="LICENSE_1_0.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

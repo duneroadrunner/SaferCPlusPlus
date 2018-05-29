@@ -100,10 +100,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="msetl_blurb.pdf" />
-    <None Include="msetl_blurb.odt" />
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="LICENSE_1_0.txt" />
   </ItemGroup>
 </Project>

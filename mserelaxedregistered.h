@@ -29,23 +29,6 @@ former purpose could be satisfied with a faster, safer, "header file only" set o
 //include <typeinfo>      // std::bad_cast
 #include <stdexcept>
 
-#if defined(_MSC_VER) && (defined(_WIN32) || defined(_WIN64)) 
-/* Jan 2016: For some reason std::this_thread::get_id() seems to be really slow in windows. So we're replacing it with the
-native GetCurrentThreadId(). */
-#define MSE_USE_WINDOWS_THREADID
-#endif /*_MSC_VER && (_WIN32 || _WIN64)*/
-
-#ifdef MSE_USE_WINDOWS_THREADID
-/* Jan 2016: For some reason std::this_thread::get_id() seems to be really slow in windows. So we're replacing it with the
-native GetCurrentThreadId(). */
-#define MSE_THREAD_ID_TYPE unsigned long /*DWORD*/
-#define MSE_GET_CURRENT_THREAD_ID CSPTrackerMap::mseWindowsGetCurrentThreadId()
-#else /*MSE_USE_WINDOWS_THREADID*/
-#include <thread>         // std::thread, MSE_THREAD_ID_TYPE, MSE_GET_CURRENT_THREAD_ID
-#define MSE_THREAD_ID_TYPE std::thread::id
-#define MSE_GET_CURRENT_THREAD_ID std::this_thread::get_id()
-#endif /*MSE_USE_WINDOWS_THREADID*/
-
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_REGISTEREDPOINTER_DISABLED
 #endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
@@ -95,16 +78,174 @@ namespace mse {
 		using std::logic_error::logic_error;
 	};
 
+
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4127 )
+#endif /*_MSC_VER*/
+
 	/* CSPTracker is intended to keep track of all pointers, objects and their lifespans in order to ensure that pointers don't
 	end up pointing to deallocated objects. */
 	class CSPTracker {
 	public:
 		CSPTracker() {}
 		~CSPTracker() {}
-		bool registerPointer(const CSaferPtrBase& sp_ref, void *obj_ptr);
-		bool unregisterPointer(const CSaferPtrBase& sp_ref, void *obj_ptr);
-		void onObjectDestruction(void *obj_ptr);
-		void onObjectConstruction(void *obj_ptr);
+		bool registerPointer(const CSaferPtrBase& sp_ref, void *obj_ptr) {
+			if (nullptr == obj_ptr) { return true; }
+			{
+				//std::lock_guard<std::mutex> lock(m_mutex);
+
+				/* check if the object is in "fast storage 1" first */
+				for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
+					if (obj_ptr == m_fs1_objects[i].m_object_ptr) {
+						auto& fs1_object_ref = m_fs1_objects[i];
+						if (sc_fs1_max_pointers == fs1_object_ref.m_num_pointers) {
+							/* Too many pointers. We're gonna move this object to slow storage. */
+							moveObjectFromFastStorage1ToSlowStorage(i);
+							/* Then add the new object-pointer mapping to slow storage. */
+							std::unordered_multimap<void*, const CSaferPtrBase*>::value_type item(obj_ptr, &sp_ref);
+							m_obj_pointer_map.insert(item);
+							return true;
+						}
+						else {
+							/* register the object-pointer mapping in "fast storage 1" */
+							fs1_object_ref.m_pointer_ptrs[fs1_object_ref.m_num_pointers] = (&sp_ref);
+							fs1_object_ref.m_num_pointers += 1;
+							return true;
+						}
+					}
+				}
+
+				/* The object was not in "fast storage 1". Check if it's in "slow storage". */
+				bool object_is_in_slow_storage = false;
+				if (1 <= m_obj_pointer_map.size()) {
+					auto found_it = m_obj_pointer_map.find(obj_ptr);
+					if (m_obj_pointer_map.end() != found_it) {
+						object_is_in_slow_storage = true;
+					}
+				}
+
+				if ((!object_is_in_slow_storage) && (1 <= sc_fs1_max_objects) && (1 <= sc_fs1_max_pointers)) {
+					/* We'll add this object to fast storage. */
+					if (sc_fs1_max_objects == m_num_fs1_objects) {
+						/* Too many objects. We're gonna move the oldest object to slow storage. */
+						moveObjectFromFastStorage1ToSlowStorage(0);
+					}
+					auto& fs1_object_ref = m_fs1_objects[m_num_fs1_objects];
+					fs1_object_ref.m_object_ptr = obj_ptr;
+					fs1_object_ref.m_pointer_ptrs[0] = &sp_ref;
+					fs1_object_ref.m_num_pointers = 1;
+					m_num_fs1_objects += 1;
+					return true;
+				}
+				else {
+					/* Add the mapping to slow storage. */
+					std::unordered_multimap<void*, const CSaferPtrBase*>::value_type item(obj_ptr, &sp_ref);
+					m_obj_pointer_map.insert(item);
+				}
+			}
+			return true;
+		}
+		bool unregisterPointer(const CSaferPtrBase& sp_ref, void *obj_ptr) {
+			if (nullptr == obj_ptr) { return true; }
+			bool retval = false;
+			{
+				//std::lock_guard<std::mutex> lock(m_mutex);
+
+				/* check if the object is in "fast storage 1" first */
+				for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
+					if (obj_ptr == m_fs1_objects[i].m_object_ptr) {
+						auto& fs1_object_ref = m_fs1_objects[i];
+						if (1 == fs1_object_ref.m_num_pointers) {
+							/* Special case code just for speed. */
+							if ((&sp_ref) == fs1_object_ref.m_pointer_ptrs[0]) {
+								fs1_object_ref.m_num_pointers = 0;
+								//removeObjectFromFastStorage1(i);
+							}
+							else {
+								/* We should really never get here. It seems someone's trying to unregister a pointer that does not
+								seem to be registered. */
+								return false;
+							}
+							return true;
+						}
+						else {
+							for (int j = (fs1_object_ref.m_num_pointers - 1); j >= 0; j -= 1) {
+								if ((&sp_ref) == fs1_object_ref.m_pointer_ptrs[j]) {
+									/* Found the mapping for the pointer. We'll now remove it. */
+									for (int k = j; k < (fs1_object_ref.m_num_pointers - 1); k += 1) {
+										fs1_object_ref.m_pointer_ptrs[k] = fs1_object_ref.m_pointer_ptrs[k + 1];
+									}
+									fs1_object_ref.m_num_pointers -= 1;
+
+									if (0 == fs1_object_ref.m_num_pointers) {
+										//removeObjectFromFastStorage1(i);
+									}
+
+									return true;
+								}
+							}
+						}
+						/* We should really never get here. It seems someone's trying to unregister a pointer that does not
+						seem to be registered. */
+						return false;
+					}
+				}
+
+				/* The object was not in "fast storage 1". It's proably in "slow storage". */
+				auto range = m_obj_pointer_map.equal_range(obj_ptr);
+				if (true) {
+					for (auto& it = range.first; range.second != it; it++) {
+						if (((*it).second) == &sp_ref)/*we're comparing "native pointers pointing to smart pointers" here*/ {
+							m_obj_pointer_map.erase(it);
+							retval = true;
+							break;
+						}
+					}
+				}
+			}
+			return retval;
+		}
+		void onObjectDestruction(void *obj_ptr) {
+			if (nullptr == obj_ptr) { assert(false); return; }
+			{
+				//std::lock_guard<std::mutex> lock(m_mutex);
+
+				/* check if the object is in "fast storage 1" first */
+				for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
+					if (obj_ptr == m_fs1_objects[i].m_object_ptr) {
+						auto& fs1_object_ref = m_fs1_objects[i];
+						for (int j = 0; j < fs1_object_ref.m_num_pointers; j += 1) {
+							(*(fs1_object_ref.m_pointer_ptrs[j])).setToNull();
+						}
+						removeObjectFromFastStorage1(i);
+						return;
+					}
+				}
+
+				/* The object was not in "fast storage 1". It's proably in "slow storage". */
+				auto range = m_obj_pointer_map.equal_range(obj_ptr);
+				for (auto it = range.first; range.second != it; it++) {
+					(*((*it).second)).setToNull();
+				}
+				m_obj_pointer_map.erase(obj_ptr);
+			}
+		}
+		void onObjectConstruction(void *obj_ptr) {
+			if (nullptr == obj_ptr) { assert(false); return; }
+			if ((1 <= sc_fs1_max_objects) && (1 <= sc_fs1_max_pointers)) {
+				/* We'll add this object to fast storage. */
+				if (sc_fs1_max_objects == m_num_fs1_objects) {
+					/* Too many objects. We're gonna move the oldest object to slow storage. */
+					moveObjectFromFastStorage1ToSlowStorage(0);
+				}
+				auto& fs1_object_ref = m_fs1_objects[m_num_fs1_objects];
+				fs1_object_ref.m_object_ptr = obj_ptr;
+				fs1_object_ref.m_num_pointers = 0;
+				m_num_fs1_objects += 1;
+				return;
+			}
+		}
 		bool registerPointer(const CSaferPtrBase& sp_ref, const void *obj_ptr) { return (*this).registerPointer(sp_ref, const_cast<void *>(obj_ptr)); }
 		bool unregisterPointer(const CSaferPtrBase& sp_ref, const void *obj_ptr) { return (*this).unregisterPointer(sp_ref, const_cast<void *>(obj_ptr)); }
 		void onObjectDestruction(const void *obj_ptr) { (*this).onObjectDestruction(const_cast<void *>(obj_ptr)); }
@@ -118,18 +259,41 @@ namespace mse {
 
 		bool isEmpty() const { return ((0 == m_num_fs1_objects) && (0 == m_obj_pointer_map.size())); }
 
+	private:
 		/* So this tracker stores the object-pointer mappings in either "fast storage1" or "slow storage". The code for
 		"fast storage1" is ugly. The code for "slow storage" is more readable. */
-		void removeObjectFromFastStorage1(int fs1_obj_index);
-		void moveObjectFromFastStorage1ToSlowStorage(int fs1_obj_index);
-		MSE_CONSTEXPR static const int sc_fs1_max_pointers = 3/* must be at least 1 */;
+		void removeObjectFromFastStorage1(int fs1_obj_index) {
+			for (int j = fs1_obj_index; j < (m_num_fs1_objects - 1); j += 1) {
+				m_fs1_objects[j] = m_fs1_objects[j + 1];
+			}
+			m_num_fs1_objects -= 1;
+		}
+		void moveObjectFromFastStorage1ToSlowStorage(int fs1_obj_index) {
+			auto& fs1_object_ref = m_fs1_objects[fs1_obj_index];
+			/* First we're gonna copy this object to slow storage. */
+			for (int j = 0; j < fs1_object_ref.m_num_pointers; j += 1) {
+				std::unordered_multimap<void*, const CSaferPtrBase*>::value_type item(fs1_object_ref.m_object_ptr, fs1_object_ref.m_pointer_ptrs[j]);
+				m_obj_pointer_map.insert(item);
+			}
+			/* Then we're gonna remove the object from fast storage */
+			removeObjectFromFastStorage1(fs1_obj_index);
+		}
+
+#ifndef MSE_SPTRACKER_FS1_MAX_POINTERS
+#define MSE_SPTRACKER_FS1_MAX_POINTERS 3/* must be at least 1 */
+#endif // !MSE_SPTRACKER_FS1_MAX_POINTERS
+		MSE_CONSTEXPR static const int sc_fs1_max_pointers = MSE_SPTRACKER_FS1_MAX_POINTERS;
 		class CFS1Object {
 		public:
 			void* m_object_ptr;
 			const CSaferPtrBase* m_pointer_ptrs[sc_fs1_max_pointers];
 			int m_num_pointers = 0;
 		};
-		MSE_CONSTEXPR static const int sc_fs1_max_objects = 8/* Arbitrary. The optimal number depends on how slow "slow storage" is. */;
+
+#ifndef MSE_SPTRACKER_FS1_MAX_OBJECTS
+#define MSE_SPTRACKER_FS1_MAX_OBJECTS 8/* Arbitrary. The optimal number depends on how slow "slow storage" is. */
+#endif // !MSE_SPTRACKER_FS1_MAX_OBJECTS
+		MSE_CONSTEXPR static const int sc_fs1_max_objects = MSE_SPTRACKER_FS1_MAX_OBJECTS;
 		CFS1Object m_fs1_objects[sc_fs1_max_objects];
 		int m_num_fs1_objects = 0;
 
@@ -139,68 +303,15 @@ namespace mse {
 		//std::mutex m_mutex;
 	};
 
-	class CSPTrackerMap {
-	public:
-		CSPTrackerMap() {
-			m_first_thread_id = MSE_GET_CURRENT_THREAD_ID;
-			m_first_sp_tracker_pointer = new CSPTracker();
-			//std::unordered_map<MSE_THREAD_ID_TYPE, CSPTracker*>::value_type item(m_first_thread_id, m_first_sp_tracker_pointer);
-			//auto insert_retval = m_tracker_map.insert(item);
-		}
-		~CSPTrackerMap() {
-			delete m_first_sp_tracker_pointer; m_first_sp_tracker_pointer = nullptr;
-			for (auto it = m_tracker_map.begin(); m_tracker_map.end() != it; it++) {
-				delete (*it).second; (*it).second = nullptr;
-			}
-		}
-		CSPTracker& SPTrackerRef(const MSE_THREAD_ID_TYPE &thread_id_cref) {
-			if (thread_id_cref == m_first_thread_id) {
-				return (*m_first_sp_tracker_pointer);
-			}
-			else {
-				std::lock_guard<std::mutex> lock(m_mutex);
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
-				auto found_it = m_tracker_map.find(thread_id_cref);
-				if (m_tracker_map.end() == found_it) {
-					auto new_sp_tracker_ptr = new CSPTracker();
-					std::unordered_map<MSE_THREAD_ID_TYPE, CSPTracker*>::value_type item(thread_id_cref, new_sp_tracker_ptr);
-					auto insert_retval = m_tracker_map.insert(item);
-					number_of_added_trackers_since_last_pruning += 1;
-					if (10000/*arbitrary*/ < number_of_added_trackers_since_last_pruning) {
-						remove_empty_trackers();
-						number_of_added_trackers_since_last_pruning = 0;
-					}
-
-					found_it = insert_retval.first;
-				}
-
-				m_first_thread_id = thread_id_cref;
-				m_first_sp_tracker_pointer = ((*found_it).second);
-
-				return (*((*found_it).second));
-			}
-		}
-		void remove_empty_trackers() {
-			for (auto it = m_tracker_map.begin(); m_tracker_map.end() != it; it++) {
-				if ((*it).second->isEmpty()) {
-					delete ((*it).second); (*it).second = nullptr;
-					m_tracker_map.erase(it);
-				}
-			}
-		}
-#ifdef MSE_USE_WINDOWS_THREADID
-		static MSE_THREAD_ID_TYPE mseWindowsGetCurrentThreadId();
-#endif /*MSE_USE_WINDOWS_THREADID*/
-
-
-		MSE_THREAD_ID_TYPE m_first_thread_id;
-		CSPTracker* m_first_sp_tracker_pointer = nullptr;
-		std::unordered_map<MSE_THREAD_ID_TYPE, CSPTracker*> m_tracker_map;
-		int number_of_added_trackers_since_last_pruning = 0;
-		std::mutex m_mutex;
-	};
-
-	extern CSPTrackerMap gSPTrackerMap;
+	template<typename _Ty>
+	inline CSPTracker& tlSPTracker_ref() {
+		thread_local static CSPTracker tlSPTracker;
+		return tlSPTracker;
+	}
 
 	template<typename _Ty> class TRelaxedRegisteredObj;
 	template<typename _Ty> class TRelaxedRegisteredConstPointer;
@@ -216,41 +327,40 @@ namespace mse {
 	class TRelaxedRegisteredPointer : public TSaferPtrForLegacy<_Ty> {
 	public:
 		TRelaxedRegisteredPointer() : TSaferPtrForLegacy<_Ty>() {
-			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 		}
 		TRelaxedRegisteredPointer(_Ty* ptr) : TSaferPtrForLegacy<_Ty>(ptr) {
-			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_might_not_point_to_a_TRelaxedRegisteredObj = true;
-			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
+			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 		}
 		/* The CSPTracker* parameter is actually kind of redundant. We include it to remove ambiguity in the overloads. */
 		TRelaxedRegisteredPointer(CSPTracker* sp_tracker_ptr, TRelaxedRegisteredObj<_Ty>* ptr) : TSaferPtrForLegacy<_Ty>(ptr) {
 			m_sp_tracker_ptr = sp_tracker_ptr;
-			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
+			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 		}
 		TRelaxedRegisteredPointer(const TRelaxedRegisteredPointer& src_cref) : TSaferPtrForLegacy<_Ty>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
 			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredPointer(const TRelaxedRegisteredPointer<_Ty2>& src_cref) : TSaferPtrForLegacy<_Ty>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
-			//m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
-			m_might_not_point_to_a_TRelaxedRegisteredObj = true;
+			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
+			//m_might_not_point_to_a_TRelaxedRegisteredObj = true;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
 		virtual ~TRelaxedRegisteredPointer() {
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
-			(*m_sp_tracker_ptr).onObjectDestruction(this); /* Just in case there are pointers to this pointer out there. */
 		}
 		TRelaxedRegisteredPointer<_Ty>& operator=(_Ty* ptr) {
 			(*m_sp_tracker_ptr).reserve_space_for_one_more();
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
 			TSaferPtrForLegacy<_Ty>::operator=(ptr);
-			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
+			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 			m_might_not_point_to_a_TRelaxedRegisteredObj = true;
 			return (*this);
 		}
@@ -259,15 +369,7 @@ namespace mse {
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
 			TSaferPtrForLegacy<_Ty>::operator=(_Right_cref);
 			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
-#ifdef NATIVE_PTR_DEBUG_HELPER1
-			if (m_sp_tracker_ptr != _Right_cref.m_sp_tracker_ptr) {
-				/* This indicates that the target object may have been created in a different thread than this pointer. If these
-				threads are asynchronous this can be unsafe. We'll allow it here because in many of these cases the threads are
-				not asynchoronous. Usually because (at least) one of the original threads is deceased. */
-				int q = 7;
-			}
-#endif /*NATIVE_PTR_DEBUG_HELPER1*/
-			(*m_sp_tracker_ptr).registerPointer((*this), _Right_cref);
+			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 			m_might_not_point_to_a_TRelaxedRegisteredObj = _Right_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			return (*this);
 		}
@@ -285,25 +387,10 @@ namespace mse {
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return (*this).m_ptr;
 		}
-		/*Ideally these "address of" operators shouldn't be used. If you want a pointer to a TRelaxedRegisteredPointer<_Ty>,
-		declare the TRelaxedRegisteredPointer<_Ty> as a TRelaxedRegisteredObj<TRelaxedRegisteredPointer<_Ty>> instead. So
-		for example:
-		auto reg_ptr = TRelaxedRegisteredObj<TRelaxedRegisteredPointer<_Ty>>(mse::relaxed_registered_new<_Ty>());
-		auto reg_ptr_to_reg_ptr = &reg_ptr;
-		*/
-		TRelaxedRegisteredPointer<TRelaxedRegisteredPointer<_Ty>> operator&() {
-			return this;
-		}
-		TRelaxedRegisteredPointer<const TRelaxedRegisteredPointer<_Ty>> operator&() const {
-			return this;
-		}
-		TRelaxedRegisteredPointer<_Ty>* real_address() {
-			return this;
-		}
-		const TRelaxedRegisteredPointer<_Ty>* real_address() const {
-			return this;
-		}
 
+		/* In C++, if an object is deleted via a pointer to its base class and the base class' destructor is not virtual,
+		then the (derived) object's destructor won't be called possibly resulting in resource leaks. With registered
+		objects, the destructor not being called also circumvents their memory safety mechanism. */
 		void relaxed_registered_delete() const {
 			if (m_might_not_point_to_a_TRelaxedRegisteredObj) {
 				/* It would be a very strange case to arrive here. For (aggressive) compatibility reasons we allow
@@ -313,10 +400,12 @@ namespace mse {
 				_Ty* a = (*this).m_ptr;
 				(*m_sp_tracker_ptr).onObjectDestruction(a);
 				delete a;
+				(*this).setToNull();
 			}
 			else {
 				auto a = asANativePointerToTRelaxedRegisteredObj();
 				delete a;
+				assert(nullptr == (*this).m_ptr);
 			}
 		}
 
@@ -332,6 +421,8 @@ namespace mse {
 			return static_cast<TRelaxedRegisteredObj<_Ty>*>((*this).m_ptr);
 		}
 
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		CSPTracker* m_sp_tracker_ptr = nullptr;
 		bool m_might_not_point_to_a_TRelaxedRegisteredObj = false;
 
@@ -343,54 +434,53 @@ namespace mse {
 	class TRelaxedRegisteredConstPointer : public TSaferPtrForLegacy<const _Ty> {
 	public:
 		TRelaxedRegisteredConstPointer() : TSaferPtrForLegacy<const _Ty>() {
-			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 		}
 		TRelaxedRegisteredConstPointer(const _Ty* ptr) : TSaferPtrForLegacy<const _Ty>(ptr) {
-			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_might_not_point_to_a_TRelaxedRegisteredObj = true;
-			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
+			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 		}
 		/* The CSPTracker* parameter is actually kind of redundant. We include it to remove ambiguity in the overloads. */
 		TRelaxedRegisteredConstPointer(CSPTracker* sp_tracker_ptr, const TRelaxedRegisteredObj<_Ty>* ptr) : TSaferPtrForLegacy<const _Ty>(ptr) {
 			m_sp_tracker_ptr = sp_tracker_ptr;
-			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
+			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 		}
 		TRelaxedRegisteredConstPointer(const TRelaxedRegisteredConstPointer& src_cref) : TSaferPtrForLegacy<const _Ty>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
 			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredConstPointer(const TRelaxedRegisteredConstPointer<_Ty2>& src_cref) : TSaferPtrForLegacy<const _Ty>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
-			//m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
-			m_might_not_point_to_a_TRelaxedRegisteredObj = true;
+			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
+			//m_might_not_point_to_a_TRelaxedRegisteredObj = true;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
 		TRelaxedRegisteredConstPointer(const TRelaxedRegisteredPointer<_Ty>& src_cref) : TSaferPtrForLegacy<const _Ty>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
 			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRelaxedRegisteredConstPointer(const TRelaxedRegisteredPointer<_Ty2>& src_cref) : TSaferPtrForLegacy<const _Ty>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
+			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
 			m_might_not_point_to_a_TRelaxedRegisteredObj = src_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
 		virtual ~TRelaxedRegisteredConstPointer() {
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
-			(*m_sp_tracker_ptr).onObjectDestruction(this); /* Just in case there are pointers to this pointer out there. */
 		}
 		TRelaxedRegisteredConstPointer<_Ty>& operator=(const _Ty* ptr) {
 			(*m_sp_tracker_ptr).reserve_space_for_one_more();
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
 			TSaferPtrForLegacy<const _Ty>::operator=(ptr);
-			(*m_sp_tracker_ptr).registerPointer((*this), ptr);
+			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 			m_might_not_point_to_a_TRelaxedRegisteredObj = true;
 			return (*this);
 		}
@@ -399,15 +489,7 @@ namespace mse {
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
 			TSaferPtrForLegacy<const _Ty>::operator=(_Right_cref);
 			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
-#ifdef NATIVE_PTR_DEBUG_HELPER1
-			if (m_sp_tracker_ptr != _Right_cref.m_sp_tracker_ptr) {
-				/* This indicates that the target object may have been created in a different thread than this pointer. If these
-				threads are asynchronous this can be unsafe. We'll allow it here because in many of these cases the threads are
-				not asynchoronous. Usually because (at least) one of the original threads is deceased. */
-				int q = 7;
-			}
-#endif /*NATIVE_PTR_DEBUG_HELPER1*/
-			(*m_sp_tracker_ptr).registerPointer((*this), _Right_cref);
+			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 			m_might_not_point_to_a_TRelaxedRegisteredObj = _Right_cref.m_might_not_point_to_a_TRelaxedRegisteredObj;
 			return (*this);
 		}
@@ -432,25 +514,10 @@ namespace mse {
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return (*this).m_ptr;
 		}
-		/*Ideally these "address of" operators shouldn't be used. If you want a pointer to a TRelaxedRegisteredConstPointer<_Ty>,
-		declare the TRelaxedRegisteredConstPointer<_Ty> as a TRelaxedRegisteredObj<TRelaxedRegisteredConstPointer<_Ty>> instead. So
-		for example:
-		auto reg_ptr = TRelaxedRegisteredObj<TRelaxedRegisteredConstPointer<_Ty>>(mse::relaxed_registered_new<_Ty>());
-		auto reg_ptr_to_reg_ptr = &reg_ptr;
-		*/
-		TRelaxedRegisteredPointer<TRelaxedRegisteredConstPointer<_Ty>> operator&() {
-			return this;
-		}
-		TRelaxedRegisteredPointer<const TRelaxedRegisteredConstPointer<_Ty>> operator&() const {
-			return this;
-		}
-		TRelaxedRegisteredConstPointer<_Ty>* real_address() {
-			return this;
-		}
-		const TRelaxedRegisteredConstPointer<_Ty>* real_address() const {
-			return this;
-		}
 
+		/* In C++, if an object is deleted via a pointer to its base class and the base class' destructor is not virtual,
+		then the (derived) object's destructor won't be called possibly resulting in resource leaks. With registered
+		objects, the destructor not being called also circumvents their memory safety mechanism. */
 		void relaxed_registered_delete() const {
 			if (m_might_not_point_to_a_TRelaxedRegisteredObj) {
 				/* It would be a very strange case to arrive here. For (aggressive) compatibility reasons we allow
@@ -460,10 +527,12 @@ namespace mse {
 				const _Ty* a = (*this).m_ptr;
 				(*m_sp_tracker_ptr).onObjectDestruction(a);
 				delete a;
+				(*this).setToNull();
 			}
 			else {
 				auto a = asANativePointerToTRelaxedRegisteredObj();
 				delete a;
+				assert(nullptr == (*this).m_ptr);
 			}
 		}
 
@@ -478,6 +547,8 @@ namespace mse {
 			if (m_might_not_point_to_a_TRelaxedRegisteredObj) { MSE_THROW(relaxedregistered_cannot_verify_cast_error("cannot verify cast validity - mse::TRelaxedRegisteredConstPointer")); }
 			return static_cast<const TRelaxedRegisteredObj<_Ty>*>((*this).m_ptr);
 		}
+
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		CSPTracker* m_sp_tracker_ptr = nullptr;
 		bool m_might_not_point_to_a_TRelaxedRegisteredObj = false;
@@ -563,6 +634,7 @@ namespace mse {
 
 	private:
 		TRelaxedRegisteredNotNullConstPointer(const TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredConstPointer<_Ty>(ptr) {}
+		TRelaxedRegisteredNotNullConstPointer(CSPTracker* sp_tracker_ptr, const TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredConstPointer<_Ty>(sp_tracker_ptr, ptr) {}
 
 		TRelaxedRegisteredNotNullConstPointer<_Ty>* operator&() { return this; }
 		const TRelaxedRegisteredNotNullConstPointer<_Ty>* operator&() const { return this; }
@@ -644,6 +716,7 @@ namespace mse {
 
 	private:
 		TRelaxedRegisteredFixedConstPointer(const TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredNotNullConstPointer<_Ty>(ptr) {}
+		TRelaxedRegisteredFixedConstPointer(CSPTracker* sp_tracker_ptr, const TRelaxedRegisteredObj<_Ty>* ptr) : TRelaxedRegisteredNotNullConstPointer<_Ty>(sp_tracker_ptr, ptr) {}
 		TRelaxedRegisteredFixedConstPointer<_Ty>& operator=(const TRelaxedRegisteredFixedConstPointer<_Ty>& _Right_cref) = delete;
 
 		TRelaxedRegisteredFixedConstPointer<_Ty>* operator&() { return this; }
@@ -652,19 +725,13 @@ namespace mse {
 		friend class TRelaxedRegisteredObj<_Ty>;
 	};
 
-	class CTrackerNotifier {
-	public:
-		CTrackerNotifier() {
-			m_sp_tracker_ptr = &(gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID));
-			(*m_sp_tracker_ptr).onObjectConstruction(this);
-		}
-		~CTrackerNotifier() {
-			(*m_sp_tracker_ptr).onObjectDestruction(this);
-		}
-		CSPTracker* trackerPtr() const { return m_sp_tracker_ptr; }
-
-		CSPTracker* m_sp_tracker_ptr = nullptr;
-	};
+	/* This macro roughly simulates constructor inheritance. */
+#define MSE_RELAXED_REGISTERED_OBJ_USING(Derived, Base) \
+    template<typename ...Args, typename = typename std::enable_if< \
+	std::is_constructible<Base, Args...>::value \
+	&& !is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
+	>::type> \
+    Derived(Args &&...args) : Base(std::forward<Args>(args)...), m_tracker_notifier(*this) {}
 
 	/* TRelaxedRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
 	destruction so that TRelaxedRegisteredPointers will avoid referencing destroyed objects. Note that TRelaxedRegisteredObj can be used with
@@ -674,11 +741,13 @@ namespace mse {
 		, public std::conditional<!std::is_convertible<_TROFLy*, NotAsyncShareableTagBase*>::value, NotAsyncShareableTagBase, TPlaceHolder_msepointerbasics<TRelaxedRegisteredObj<_TROFLy> > >::type
 	{
 	public:
-		MSE_USING(TRelaxedRegisteredObj, _TROFLy);
-		TRelaxedRegisteredObj(const TRelaxedRegisteredObj& _X) : _TROFLy(_X) {}
-		TRelaxedRegisteredObj(TRelaxedRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
+		typedef _TROFLy base_class;
+
+		MSE_RELAXED_REGISTERED_OBJ_USING(TRelaxedRegisteredObj, _TROFLy);
+		TRelaxedRegisteredObj(const TRelaxedRegisteredObj& _X) : _TROFLy(_X), m_tracker_notifier(*this) {}
+		TRelaxedRegisteredObj(TRelaxedRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)), m_tracker_notifier(*this) {}
 		virtual ~TRelaxedRegisteredObj() {
-			//gSPTrackerMap.SPTrackerRef(MSE_GET_CURRENT_THREAD_ID).onObjectDestruction(this);
+			(*trackerPtr()).onObjectDestruction(static_cast<_TROFLy*>(this));
 		}
 
 		template<class _Ty2>
@@ -687,19 +756,24 @@ namespace mse {
 		TRelaxedRegisteredObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
 
 		TRelaxedRegisteredFixedPointer<_TROFLy> operator&() {
-			return TRelaxedRegisteredFixedPointer<_TROFLy>(this);
-			//return this;
+			return TRelaxedRegisteredFixedPointer<_TROFLy>(trackerPtr(), this);
 		}
 		TRelaxedRegisteredFixedConstPointer<_TROFLy> operator&() const {
-			return TRelaxedRegisteredFixedConstPointer<_TROFLy>(this);
-			//return this;
+			return TRelaxedRegisteredFixedConstPointer<_TROFLy>(trackerPtr(), this);
 		}
-		TRelaxedRegisteredFixedPointer<_TROFLy> mse_relaxed_registered_fptr() { return TRelaxedRegisteredFixedPointer<_TROFLy>(this); }
-		TRelaxedRegisteredFixedConstPointer<_TROFLy> mse_relaxed_registered_fptr() const { return TRelaxedRegisteredFixedConstPointer<_TROFLy>(this); }
+		TRelaxedRegisteredFixedPointer<_TROFLy> mse_relaxed_registered_fptr() { return TRelaxedRegisteredFixedPointer<_TROFLy>(trackerPtr(), this); }
+		TRelaxedRegisteredFixedConstPointer<_TROFLy> mse_relaxed_registered_fptr() const { return TRelaxedRegisteredFixedConstPointer<_TROFLy>(trackerPtr(), this); }
 
-		CSPTracker* trackerPtr() const { return m_tracker_notifier.trackerPtr(); }
+		CSPTracker* trackerPtr() const { return &(tlSPTracker_ref<_TROFLy>()); }
 
 	private:
+		class CTrackerNotifier {
+		public:
+			template<typename _TRelaxedRegisteredObj>
+			CTrackerNotifier(_TRelaxedRegisteredObj& obj_ref) {
+				(*(obj_ref.trackerPtr())).onObjectConstruction(static_cast<typename _TRelaxedRegisteredObj::base_class*>(std::addressof(obj_ref)));
+			}
+		};
 		CTrackerNotifier m_tracker_notifier;
 	};
 
@@ -716,7 +790,7 @@ namespace mse {
 	template <class _Ty, class... Args>
 	TRelaxedRegisteredPointer<_Ty> relaxed_registered_new(Args&&... args) {
 		auto a = new TRelaxedRegisteredObj<_Ty>(std::forward<Args>(args)...);
-		return TRelaxedRegisteredPointer<_Ty>((*a).trackerPtr(), a);
+		return &(*a);
 	}
 	template <class _Ty>
 	void relaxed_registered_delete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) {
