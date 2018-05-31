@@ -683,11 +683,11 @@ usage example:
     }
 ```
 
-### TRelaxedRegisteredNotNullPointer
+#### TRelaxedRegisteredNotNullPointer
 
-### TRelaxedRegisteredFixedPointer
+#### TRelaxedRegisteredFixedPointer
 
-### TRelaxedRegisteredConstPointer, TRelaxedRegisteredNotNullConstPointer, TRelaxedRegisteredFixedConstPointer
+#### TRelaxedRegisteredConstPointer, TRelaxedRegisteredNotNullConstPointer, TRelaxedRegisteredFixedConstPointer
 
 ### Simple benchmarks
 
@@ -875,9 +875,9 @@ usage example:
     }
 ```
 
-### TRefCountingOfRegisteredNotNullPointer, TRefCountingOfRegisteredFixedPointer
+#### TRefCountingOfRegisteredNotNullPointer, TRefCountingOfRegisteredFixedPointer
 
-### TRefCountingOfRegisteredConstPointer, TRefCountingOfRegisteredNotNullConstPointer, TRefCountingOfRegisteredFixedConstPointer
+#### TRefCountingOfRegisteredConstPointer, TRefCountingOfRegisteredNotNullConstPointer, TRefCountingOfRegisteredFixedConstPointer
 
 ### TRefCountingOfRelaxedRegisteredPointer
 
@@ -942,9 +942,9 @@ usage example:
     }
 ```
 
-### TRefCountingOfRelaxedRegisteredNotNullPointer, TRefCountingOfRelaxedRegisteredFixedPointer
+#### TRefCountingOfRelaxedRegisteredNotNullPointer, TRefCountingOfRelaxedRegisteredFixedPointer
 
-### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
+#### TRefCountingOfRelaxedRegisteredConstPointer, TRefCountingOfRelaxedRegisteredNotNullConstPointer, TRefCountingOfRelaxedRegisteredFixedConstPointer
 
 ### Scope pointers
 Scope pointers point to scope objects. Scope objects are essentially objects that are allocated on the stack, or whose "owning" pointer is allocated on the stack. So the object is destroyed when it, or its owner, goes out of scope. In C++ at the moment, there isn't really a good way for a program to determine at compile time whether an object is allocated on the stack or not, so in order to exploit the properties of stack allocated objects, the library needs you to explicitly declare when an object is stack allocated. You do this by wrapping the type in the `mse::TXScopeObj<>` (transparent) wrapper template.
@@ -1006,7 +1006,7 @@ usage example:
     }
 ```
 
-### TXScopeItemFixedConstPointer
+#### TXScopeItemFixedConstPointer
 
 ### TXScopeOwnerPointer
 `TXScopeOwnerPointer<>` is similar to `boost::scoped_ptr<>` in functionality, but more limited in intended use. In particular, as a scope object, `TXScopeOwnerPointer<>` should not be used as a member of any class or struct that is not iself a scope object. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its contruction arguments to the object's constructor.  
@@ -1043,7 +1043,7 @@ usage example:
 ### TXScopeFixedPointer
 `TXScopeFixedPointer<>` is the actual type of the pointer value returned by the `&` (ampersand) operator of an object declared as a "scope" object (by virtue of being wrapped in the `TXScopeObj<>` transparent wrapper template). Generally, you don't need to use this type directly. `TXScopeFixedPointer<>` implicitly converts to a `TXScopeItemFixedPointer<>`, which can point to both explicitly declared and implicit scope objects. So generally you would just use the latter.
 
-### TXScopeFixedConstPointer
+#### TXScopeFixedConstPointer
 
 ### make_xscope_strong_pointer_store()
 
