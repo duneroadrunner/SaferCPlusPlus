@@ -4,13 +4,8 @@
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-//define MSE_SAFER_SUBSTITUTES_DISABLED /* This will replace all the classes with their native/standard counterparts. */
 
-#define MSE_FORCE_PRIMITIVE_ASSIGN_RANGE_CHECK_ENABLED
-#define MSE_SELF_TESTS
-
-//define MSE_MSEVECTOR_USE_MSE_PRIMITIVES 1
-//define MSE_MSEARRAY_USE_MSE_PRIMITIVES 1
+#include "msetl_example_defs.h"
 
 #include "msetl_example2.h"
 //include "msetl.h"

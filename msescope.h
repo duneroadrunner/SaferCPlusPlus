@@ -35,12 +35,20 @@
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
-/* Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause relaxed registered pointers to be used to help catch
-misuse of scope pointers in debug mode. Additionally defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause
-mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
+/* MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED is deprecated */
 #ifdef MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
-#include "mserelaxedregistered.h"
+#define MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
 #endif // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
+
+/* Defining MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED will cause "for legacy" registered pointers to be used to help catch
+misuse of scope pointers in debug mode. Defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in
+non-debug modes as well. */
+#ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+#define MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
+#endif // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+#ifdef MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
+#include "mseflregistered.h"
+#endif // MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
 
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
@@ -129,13 +137,13 @@ namespace mse {
 
 #else /*MSE_SCOPEPOINTER_DISABLED*/
 
-#ifdef MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
+#ifdef MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
 
-	template<typename _Ty> using TXScopePointerBase = mse::TRelaxedRegisteredPointer<_Ty>;
-	template<typename _Ty> using TXScopeConstPointerBase = mse::TRelaxedRegisteredConstPointer<_Ty>;
-	template<typename _TROz> using TXScopeObjBase = mse::TRelaxedRegisteredObj<_TROz>;
+	template<typename _Ty> using TXScopePointerBase = mse::us::TFLRegisteredPointer<_Ty>;
+	template<typename _Ty> using TXScopeConstPointerBase = mse::us::TFLRegisteredConstPointer<_Ty>;
+	template<typename _TROz> using TXScopeObjBase = mse::us::TFLRegisteredObj<_TROz>;
 
-#else // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
+#else // MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
 
 	template<typename _Ty> using TXScopePointerBase = TPointerForLegacy<_Ty, TScopeID<const _Ty>>;
 	template<typename _Ty> using TXScopeConstPointerBase = TPointerForLegacy<const _Ty, TScopeID<const _Ty>>;
@@ -155,7 +163,7 @@ namespace mse {
 		TXScopeObjBase& operator=(const _Ty2& _X) { _TROz::operator=(_X); return (*this); }
 	};
 
-#endif // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
+#endif // MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
 
 	template <class _Ty, class _Ty2, class = typename std::enable_if<
 		(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
@@ -372,9 +380,9 @@ namespace mse {
 	/* TXScopeObj is intended as a transparent wrapper for other classes/objects with "scope lifespans". That is, objects
 	that are either allocated on the stack, or whose "owning" pointer is allocated on the stack. Unfortunately it's not
 	really possible to completely prevent misuse. For example, std::list<TXScopeObj<mse::CInt>> is an improper, and
-	dangerous, use of TXScopeObj<>. So we provide the option of using an mse::TRelaxedRegisteredObj as TXScopeObj's base
-	class to enforce safety and to help catch misuse. Defining MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED will cause
-	mse::TRelaxedRegisteredObj to be used in non-debug modes as well. */
+	dangerous, use of TXScopeObj<>. So we provide the option of using an mse::us::TFLRegisteredObj as TXScopeObj's base
+	class to enforce safety and to help catch misuse. Defining MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED will cause
+	mse::us::TFLRegisteredObj to be used in non-debug modes as well. */
 	template<typename _TROy>
 	class TXScopeObj : public TXScopeObjBase<_TROy>
 		, public std::conditional<std::is_base_of<XScopeTagBase, _TROy>::value, TPlaceHolder_msescope<TXScopeObj<_TROy> >, XScopeTagBase>::type

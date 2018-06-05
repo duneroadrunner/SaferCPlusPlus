@@ -39,6 +39,8 @@
 #define MSE_SAFERPTR_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
+/* This is done here rather than in msescope.h because some elements in this file have to know whether or not
+MSE_SCOPEPOINTER_DISABLED will ultimately be defined. */
 #ifdef NDEBUG
 #ifndef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 /* By default we make scope pointers simply an alias for native pointers in non-debug builds. */

@@ -9,41 +9,12 @@ This example file has become quite large (and has spilled into msetl_example2.cp
 types. Your best bet is probably to use a find/search to get to the data type your interested in.
 */
 
-
-//define MSE_SAFER_SUBSTITUTES_DISABLED /* This will replace all the classes with their native/standard counterparts. */
-
-/* Each of the following will replace a subset of the classes with their native/standard counterparts. */
-//define MSE_MSTDVECTOR_DISABLED
-//define MSE_REGISTEREDPOINTER_DISABLED
-//define MSE_SAFERPTR_DISABLED /* MSE_SAFERPTR_DISABLED implies MSE_REGISTEREDPOINTER_DISABLED too. */
-//define MSE_PRIMITIVES_DISABLED
-//define MSE_REFCOUNTINGPOINTER_DISABLED
-//define MSE_SCOPEPOINTER_DISABLED
-
-/* The following adds run-time checks to scope pointers in debug mode */
-//define MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
-//define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED // This adds them to non-debug modes too.
-
-/* The following will result in program termination instead of exceptions being thrown. */
-//define MSE_CUSTOM_THROW_DEFINITION(x) std::cerr << std::endl << x.what(); exit(-11)
-/* Note that MSE_CUSTOM_THROW_DEFINITION(x) can be applied on a "per header file" basis if desired. */
-
-/* The following directs the vectors and arrays to use the safe substitutes for native primitives (like int
-and size_t) in their interface and implementation. This adds a marginal increase in safety. (Mostly due to
-the interface.) */
-//define MSE_MSEVECTOR_USE_MSE_PRIMITIVES 1
-//define MSE_MSEARRAY_USE_MSE_PRIMITIVES 1
-
-/* msvc2015's incomplete support for "constexpr" means that range checks that should be done at compile time would
-be done at run time, at significant cost. So they are disabled by default for that compiler. Here we're "forcing"
-them to be enabled. */
-#define MSE_FORCE_PRIMITIVE_ASSIGN_RANGE_CHECK_ENABLED
-
-#define MSE_SELF_TESTS
+#include "msetl_example_defs.h"
 
 //include "msetl.h"
 #include "mseregistered.h"
 #include "mserelaxedregistered.h"
+#include "mseflregistered.h"
 #include "mserefcounting.h"
 #include "mserefcountingofregistered.h"
 #include "mserefcountingofrelaxedregistered.h"
@@ -872,22 +843,12 @@ int main(int argc, char* argv[])
 				D_relaxedregistered_ptr4 = &relaxedregistered_fd;
 				mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr1 = &relaxedregistered_fd;
 				mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr1 = &relaxedregistered_fd;
-
-				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
-				class GD : public D {};
-				mse::TRelaxedRegisteredObj<GD> relaxedregistered_gd;
-				mse::TRelaxedRegisteredPointer<GD> GD_relaxedregistered_ptr1 = &relaxedregistered_gd;
-				mse::TRelaxedRegisteredPointer<D> D_relaxedregistered_ptr5 = GD_relaxedregistered_ptr1;
-				D_relaxedregistered_ptr5 = GD_relaxedregistered_ptr1;
-				mse::TRelaxedRegisteredFixedPointer<GD> GD_relaxedregistered_fptr1 = &relaxedregistered_gd;
-				D_relaxedregistered_ptr5 = &relaxedregistered_gd;
-				mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr2 = &relaxedregistered_gd;
-				mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr2 = &relaxedregistered_gd;
 			}
 		}
 
 		mse::CRegPtrTest1::s_test1();
 		mse::CRelaxedRegPtrTest1::s_test1();
+		mse::CForLegRegPtrTest1::s_test1();
 
 		{
 			/*************************/

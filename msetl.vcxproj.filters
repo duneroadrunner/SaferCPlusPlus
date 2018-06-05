@@ -92,9 +92,6 @@
     <ClCompile Include="msetl_example.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mserelaxedregistered.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="msetl_example2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
