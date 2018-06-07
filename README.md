@@ -581,6 +581,8 @@ usage example:
     }
 ```
 
+Note that using `mse::register_delete()` to delete an object through a base class pointer will result in a failed assert / thrown exception. In such cases use (the not quite as safe) `mse::us::register_delete()` instead.
+
 ### TRegisteredNotNullPointer
 Same as `TRegisteredPointer<>`, but cannot be constructed to a null value.
 
@@ -682,6 +684,8 @@ usage example:
         mse::relaxed_registered_delete<D>(d_ptr);
     }
 ```
+
+As with registered pointers, if deleting a relaxed registered object via a pointer to its base class you'll need to use the `mse::us::relaxed_register_delete()` function instead.
 
 #### TRelaxedRegisteredNotNullPointer
 
