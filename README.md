@@ -1742,7 +1742,7 @@ usage example:
 
 ### TXScopeAnyStringSection, TXScopeAnyStringConstSection, TAnyStringSection, TAnyStringConstSection
 
-`TAnyStringSection<_Ty>` is essentially just an alias for `TAnyStringSection<TAnyRandomAccessIterator<_Ty> >`. Like [`TAnyRandomAccessSection<_Ty>`](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection), it can be used to enable a function to accept, as a parameter, any type of "[string section](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)".
+`TAnyStringSection<_Ty>` is essentially just an alias for `TStringSection<TAnyRandomAccessIterator<_Ty> >`. Like [`TAnyRandomAccessSection<_Ty>`](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection), it can be used to enable a function to accept, as a parameter, any type of "[string section](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)".
 
 usage example:
 
