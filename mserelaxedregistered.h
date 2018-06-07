@@ -725,15 +725,32 @@ namespace mse {
 	template <class _Ty, class... Args>
 	TRelaxedRegisteredPointer<_Ty> relaxed_registered_new(Args&&... args) {
 		auto a = new TRelaxedRegisteredObj<_Ty>(std::forward<Args>(args)...);
+		tlSAllocRegistry_ref<TRelaxedRegisteredObj<_Ty> >().registerPointer(a);
 		return &(*a);
 	}
 	template <class _Ty>
 	void relaxed_registered_delete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) {
+		auto a = static_cast<TRelaxedRegisteredObj<_Ty>*>(regPtrRef);
+		auto res = tlSAllocRegistry_ref<TRelaxedRegisteredObj<_Ty> >().unregisterPointer(a);
+		if (!res) { assert(false); MSE_THROW(std::invalid_argument("invalid argument, no corresponding allocation found - mse::relaxed_registered_delete() \n- tip: If deleting via base class pointer, use mse::us::relaxed_registered_delete() instead. ")); }
 		regPtrRef.relaxed_registered_delete();
 	}
 	template <class _Ty>
 	void relaxed_registered_delete(const TRelaxedRegisteredConstPointer<_Ty>& regPtrRef) {
+		auto a = static_cast<const TRelaxedRegisteredObj<_Ty>*>(regPtrRef);
+		auto res = tlSAllocRegistry_ref<TRelaxedRegisteredObj<_Ty> >().unregisterPointer(a);
+		if (!res) { assert(false); MSE_THROW(std::invalid_argument("invalid argument, no corresponding allocation found - mse::relaxed_registered_delete() \n- tip: If deleting via base class pointer, use mse::us::relaxed_registered_delete() instead. ")); }
 		regPtrRef.relaxed_registered_delete();
+	}
+	namespace us {
+		template <class _Ty>
+		void relaxed_registered_delete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) {
+			regPtrRef.relaxed_registered_delete();
+		}
+		template <class _Ty>
+		void relaxed_registered_delete(const TRelaxedRegisteredConstPointer<_Ty>& regPtrRef) {
+			regPtrRef.relaxed_registered_delete();
+		}
 	}
 }
 
