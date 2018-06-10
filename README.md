@@ -87,6 +87,7 @@ Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of May 201
         3. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
         4. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
         5. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
+    5. [Scope threads](#scope-threads)
 15. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [Quarantined types](#quarantined-types)
