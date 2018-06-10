@@ -2208,7 +2208,7 @@ Ok, so getting back to scope threads, it would generally not be very common that
 
 Like `xscope_thread`, `xscope_future` and `xscope_async()` are the scope versions of their non-scope counterparts. And similarly, rather than using them directly you would more often use them via an `xscope_future_carrier`, which is just a simple container for creating and managing a set of `xscope_future`s and their associated `xscope_async()` functions.
 
-And finally, the function used to obtain a (scope) [access requester](#tasyncsharedv2readwriteaccessrequester) to an access controlled scope object is `make_xscope_asyncsharedv2acoreadwrite()`. Note that it takes as its argument a scope pointer to the access controlled object, not a scope pointer to the contained object. 
+And finally, the function used to obtain a (scope) [access requester](#tasyncsharedv2readwriteaccessrequester) to an access controlled scope object is `make_xscope_asyncsharedv2acoreadwrite()`. Note that it takes as its argument a scope pointer to the access controlled object, not a scope pointer to the contained object. Btw, scope access requesters are an example of an object type that can be passed to other scope threads, but does not qualify (i.e. would induce a compile error) to be passed to non-scope threads. 
 
 usage example:
 ```cpp
