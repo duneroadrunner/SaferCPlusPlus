@@ -2362,7 +2362,7 @@ usage example:
         an exception on any attempt to access invalid memory. */
         
         
-        /* mse::msevector is not quite as safe as mse::mstd::vector in the following way: */
+        /* mse::us::msevector is not quite as safe as mse::mstd::vector in the following way: */
         
         std::vector<int>::iterator sv1_it;
         mse::us::msevector<int>::ss_iterator_type msev1_it; // bounds checked iterator just like mse::mstd::vector<int>::iterator
