@@ -12,7 +12,7 @@ The library includes things like:
 
 - Drop-in [replacements](#primitives) for int, size_t and bool that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.
 
-- Data types for safe, simple [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
+- Data types for safe [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
 
 - Replacements for native pointers/references with various compatibilty and performance trade-offs. 
 
@@ -87,6 +87,7 @@ Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of May 201
         3. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
         4. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
         5. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
+    5. [Scope threads](#scope-threads)
 15. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [Quarantined types](#quarantined-types)
@@ -130,7 +131,7 @@ For more information on how to use the safe smart pointers in this library for m
 
 ### Setup and dependencies
 
-The beauty of the library is that it is so small and simple. Using the library generally involves copying the include files you want to use into your project, and that's it. Outside of the standard library, there are no other dependencies.  
+Using this (header-only) library generally involves copying the include files you want to use into your project, and that's it. Outside of the standard library, there are no other dependencies.  
 
 Building the example: For those using msvc, project and solution files are included. Otherwise, just create a new project and add all the `.cpp` and `.h` files.
 
@@ -581,6 +582,8 @@ usage example:
     }
 ```
 
+Note that using `mse::register_delete()` to delete an object through a base class pointer will result in a failed assert / thrown exception. In such cases use (the not quite as safe) `mse::us::register_delete()` instead.
+
 ### TRegisteredNotNullPointer
 Same as `TRegisteredPointer<>`, but cannot be constructed to a null value.
 
@@ -682,6 +685,8 @@ usage example:
         mse::relaxed_registered_delete<D>(d_ptr);
     }
 ```
+
+As with registered pointers, if deleting a relaxed registered object via a pointer to its base class you'll need to use the `mse::us::relaxed_register_delete()` function instead.
 
 #### TRelaxedRegisteredNotNullPointer
 
@@ -2191,10 +2196,98 @@ void main(int argc, char* argv[]) {
 }
 ```
 
+### Scope threads
+
+`xscope_thread` is the scope counterpart to [`mstd::thread`](#thread). `xscope_thread` ensures that the actual associated thread doesn't outlive it (and therefore doesn't outlive the scope), blocking in its destructor if necessary. Note that any object shared with an `mstd::thread` necessarily has dynamic allocation (i.e. is allocated on the heap), whereas objects shared with a scope thread can themselves be scope objects (i.e. allocated on the stack). Which would generally be the primary reason for using scope threads over non-scope threads. 
+
+Any data type that qualifies as "[shareable](#tuserdeclaredasyncshareableobj)" (or "[passable](#tuserdeclaredasyncpassableobj)") with non-scope threads also qualifies as shareable (or passable) with scope threads. (But not necessarily the other way around.) But in order to share an existing scope object, that object also has to be an "access controlled" object. You make a type "access controlled" by wrapping it with the `mse::TXScopeAccessControlledObj<>` template wrapper. 
+
+`mse::TXScopeAccessControlledObj<>` provides `xscope_pointer()`, `xscope_const_pointer()` and `xscope_exclusive_pointer()` member functions which you use to obtain (scope) pointers to the contained object. Note that a pointer obtained via `xscope_exclusive_pointer()` may not coexist with any other pointer to the same object, and that the consequences of breaking this rule is immediate program termination upon violation. 
+
+Ok, so getting back to scope threads, it would generally not be very common that you would use `xscope_thread`s directly. More often you would use them indirectly via an `xscope_thread_carrier`, which is just a simple container for creating and managing a set of `xscope_thread`s.
+
+Like `xscope_thread`, `xscope_future` and `xscope_async()` are the scope versions of their non-scope counterparts. And similarly, rather than using them directly you would more often use them via an `xscope_future_carrier`, which is just a simple container for creating and managing a set of `xscope_future`s and their associated `xscope_async()` functions.
+
+And finally, the function used to obtain a (scope) [access requester](#tasyncsharedv2readwriteaccessrequester) to an access controlled scope object is `make_xscope_asyncsharedv2acoreadwrite()`. Note that it takes as its argument a scope pointer to the access controlled object, not a scope pointer to the contained object. Btw, scope access requesters are an example of an object type that can be passed to other scope threads, but does not qualify (i.e. would induce a compile error) to be passed to non-scope threads. 
+
+usage example:
+```cpp
+#include "mseasyncshared.h"
+#include "msescope.h"
+#include "msemsestring.h"
+#include <iostream>
+#include <ctime>
+#include <ratio>
+#include <chrono>
+#include <list>
+
+class J {
+public:
+	template<class _TAsyncSharedReadWriteAccessRequester>
+	static double foo7(_TAsyncSharedReadWriteAccessRequester A_ashar) {
+		auto t1 = std::chrono::high_resolution_clock::now();
+		/* A_ashar.readlock_ptr() will block until it can obtain a read lock. */
+		auto ptr1 = A_ashar.readlock_ptr(); // while ptr1 exists it holds a (read) lock on the shared object
+		auto t2 = std::chrono::high_resolution_clock::now();
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+		auto timespan_in_seconds = time_span.count();
+		auto thread_id = std::this_thread::get_id();
+		//std::cout << "thread_id: " << thread_id << ", time to acquire read pointer: " << timespan_in_seconds << " seconds.";
+		//std::cout << std::endl;
+		return timespan_in_seconds;
+	}
+};
+
+void main(int argc, char* argv[]) {
+
+	/* Here we demonstrate safely sharing an existing stack allocated object among threads. */
+
+	class A {
+	public:
+		A(int x) : b(x) {}
+		virtual ~A() {}
+
+		int b = 3;
+		mse::nii_string s = "some text ";
+	};
+	/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
+	typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+
+	std::cout << ": xscope_future_carrier<>";
+	std::cout << std::endl;
+
+	/* (Mutable) objects can be shared between threads only if they are "access controlled". You can make an
+	object "access controlled" by wrapping its type with the mse::TXScopeAccessControlledObj<> template wrapper. */
+	mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj(7);
+
+	/* Here we obtain a scope access requester for the access controlled object. */
+	auto xscope_access_requester = mse::make_xscope_asyncsharedv2acoreadwrite(&a_xscpacobj);
+
+	/* xscope_future_carrier<> is just a container that holds and manages scope futures. */
+	mse::xscope_future_carrier<double> xscope_futures;
+
+	std::list<mse::xscope_future_carrier<double>::handle_t> future_handles;
+	for (size_t i = 0; i < 3; i += 1) {
+		/* You add a future by specifying the async() function and parameters that will return the future value. */
+		auto handle = xscope_futures.new_future(J::foo7<decltype(xscope_access_requester)>, xscope_access_requester);
+
+		/* You need to store the handle of the added future in order to later retrieve its value. */
+		future_handles.emplace_back(handle);
+	}
+	int count = 1;
+	for (auto it = future_handles.begin(); future_handles.end() != it; it++, count++) {
+		std::cout << "thread: " << count << ", time to acquire read pointer: " << xscope_futures.xscope_ptr_at(*it)->get() << " seconds.";
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
+}
+```
+
 ### Primitives
 
 ### CInt, CSize_t and CBool
-These classes are meant to behave like, and be compatible with their native counterparts. In debug mode, they check for "use before initialization", and in release mode, they use default initialization to help ensure deterministic behavior. Upon value assignment, `CInt` and `CSize_t` will check to ensure that the value fits within the type's range. `CSize_t`'s `-=` operator checks that the operation evaluates to a positive value. And unlike its native counterpart, arithmetic operations involving `CSize_t` that could evaluate to a negative number are returned as a (signed) `CInt`.
+These classes are meant to behave like, and be compatible with their native counterparts. In debug mode, they check for "use before initialization", and in release mode, they use default initialization to help ensure deterministic behavior. Upon value assignment involving a narrowing conversion, `CInt` and `CSize_t` will check to ensure that the value fits within the type's range. They check for division by zero and `CSize_t`'s `-=` operator checks that the operation evaluates to a positive value. And unlike its native counterpart, arithmetic operations involving `CSize_t` that could evaluate to a negative number are returned as a (signed) `CInt`.
 
 usage example:
 
@@ -2224,6 +2317,8 @@ usage example:
 ```
 
 Note that while `CInt` and `CSize_t` have no problem interacting with native signed integers, they do not implicitly play well with `size_t` or native unsigned integers. We'd be generally wary of using native unsigned integer types due to the (unintuitive) implicit conversion/promotion rules between signed and unsigned native integers. But if you need to obtain a `size_t` from a `CSize_t`, you can do so explicitly using the `mse::as_a_size_t()` function.   
+
+Btw, `CInt` is actually just an alias for a specific instantiation of the `TInt<>` template, which can be used to make a safe version of any given integer type. (Eg. `typedef mse::TInt<signed char> my_safe_small_int;`)
 
 Also see the section on "[compatibility considerations](#compatibility-considerations)".
 
@@ -2267,7 +2362,7 @@ usage example:
         an exception on any attempt to access invalid memory. */
         
         
-        /* mse::msevector is not quite as safe as mse::mstd::vector in the following way: */
+        /* mse::us::msevector is not quite as safe as mse::mstd::vector in the following way: */
         
         std::vector<int>::iterator sv1_it;
         mse::us::msevector<int>::ss_iterator_type msev1_it; // bounds checked iterator just like mse::mstd::vector<int>::iterator
