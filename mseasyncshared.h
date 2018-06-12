@@ -2327,10 +2327,10 @@ namespace mse {
 				s_valid_if_passable(std::forward<_Args>(_Ax)...); // ensure that the function arguments are of a safely passable type
 			}
 
-			thread(thread&& _Other) _NOEXCEPT : base_class(std::forward<decltype(static_cast<base_class&&>(_Other))>(static_cast<base_class&&>(_Other))) {}
+			thread(thread&& _Other) _NOEXCEPT : base_class(std::forward<base_class>(_Other)) {}
 
 			thread& operator=(thread&& _Other) _NOEXCEPT {
-				base_class::operator=(std::forward<decltype(_Other)>(_Other));
+				base_class::operator=(std::forward<base_class>(_Other));
 				return *this;
 			}
 
@@ -2364,7 +2364,7 @@ namespace mse {
 		}
 	}
 
-	/* xscope_thread is currently publicly derived from mstd::thread for reasons of implementation convenience. Expect that
+	/* xscope_thread is currently publicly derived from std::thread for reasons of implementation convenience. Expect that
 	in the future it will not be. */
 	class xscope_thread : public std::thread, public XScopeTagBase {
 	public:
@@ -2396,11 +2396,9 @@ namespace mse {
 		static void s_valid_if_xscope_passable() {}
 
 	private:
-		xscope_thread(xscope_thread&& _Other) _NOEXCEPT : base_class(std::forward<decltype(static_cast<base_class&&>(_Other))>(static_cast<base_class&&>(_Other))) {}
+		xscope_thread(xscope_thread&& _Other) _NOEXCEPT : base_class(std::forward<base_class>(_Other)) {}
 
-		void* operator new(size_t size) { return ::operator new(size); }
-		auto operator&() { return this; }
-		auto operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		friend class xscope_thread_carrier;
 	};
 
@@ -2438,13 +2436,11 @@ namespace mse {
 	private:
 		class movable_xscope_thread : public xscope_thread {
 		public:
-			movable_xscope_thread(xscope_thread&& _Other) _NOEXCEPT : xscope_thread(std::forward<decltype(static_cast<xscope_thread&&>(_Other))>(static_cast<xscope_thread&&>(_Other))) {}
+			movable_xscope_thread(xscope_thread&& _Other) _NOEXCEPT : xscope_thread(std::forward<decltype(_Other)>(_Other)) {}
 			movable_xscope_thread(movable_xscope_thread&& _Other) _NOEXCEPT = default;
 		};
 
-		void* operator new(size_t size) { return ::operator new(size); }
-		auto operator&() { return this; }
-		auto operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		handle_t m_next_available_handle = 0;
 		std::map<handle_t, movable_xscope_thread> m_xscope_thread_map;
@@ -2456,7 +2452,7 @@ namespace mse {
 	template<class _Ty> class xscope_future_carrier;
 
 	template<class _Ty>
-	class xscope_future : public std::future<_Ty> {
+	class xscope_future : public std::future<_Ty>, public XScopeTagBase {
 	public:
 		typedef std::future<_Ty> base_class;
 
@@ -2501,9 +2497,7 @@ namespace mse {
 		xscope_future(xscope_future&& _Other) _NOEXCEPT : base_class(std::forward<decltype(_Other)>(_Other)) {}
 		xscope_future(base_class&& _Other) _NOEXCEPT : base_class(std::forward<decltype(_Other)>(_Other)) {}
 
-		void* operator new(size_t size) { return ::operator new(size); }
-		auto operator&() { return this; }
-		auto operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		template<class _Fty, class... _ArgTypes>
 		friend auto xscope_async(std::launch _Policy, _Fty&& _Fnarg, _ArgTypes&&... _Args) -> xscope_future<decltype(std::async(_Policy, std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...).get())>;
@@ -2575,13 +2569,11 @@ namespace mse {
 	private:
 		class movable_xscope_future : public xscope_future<_Ty> {
 		public:
-			movable_xscope_future(xscope_future<_Ty>&& _Other) _NOEXCEPT : xscope_future<_Ty>(std::forward<decltype(static_cast<xscope_future<_Ty>&&>(_Other))>(static_cast<xscope_future<_Ty>&&>(_Other))) {}
+			movable_xscope_future(xscope_future<_Ty>&& _Other) _NOEXCEPT : xscope_future<_Ty>(std::forward<decltype(_Other)>(_Other)) {}
 			movable_xscope_future(movable_xscope_future&& _Other) _NOEXCEPT = default;
 		};
 
-		void* operator new(size_t size) { return ::operator new(size); }
-		auto operator&() { return this; }
-		auto operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		handle_t m_next_available_handle = 0;
 		std::map<handle_t, movable_xscope_future> m_xscope_future_map;

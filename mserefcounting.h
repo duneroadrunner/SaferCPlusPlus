@@ -115,7 +115,11 @@ namespace mse {
 		TRefCountingPointer() : m_ref_with_target_obj_ptr(nullptr) {}
 		TRefCountingPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr) {}
 		~TRefCountingPointer() {
-			release();
+			//release();
+			/* Doing it this way instead of just calling release() protects against potential reentrant destructor
+			calls caused by a misbehaving (user-defined) destructor of the target object. */
+			auto_release keep(m_ref_with_target_obj_ptr);
+			m_ref_with_target_obj_ptr = nullptr;
 
 			/* This is just a no-op function that will cause a compile error when X is not an eligible type. */
 			valid_if_X_is_not_an_xscope_type();
@@ -231,7 +235,6 @@ namespace mse {
 				else {
 					ref_with_target_obj_ptr->decrement();
 				}
-				ref_with_target_obj_ptr = nullptr;
 			}
 		}
 

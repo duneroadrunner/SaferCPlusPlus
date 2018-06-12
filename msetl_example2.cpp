@@ -783,7 +783,6 @@ void msetl_example2() {
 			auto res2 = xscope_optional_xscpptr2.value();
 			auto xscope_pointer3 = mse::xscope_ra_const_find_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
 			auto res3 = *xscope_pointer3;
-			int q = 5;
 		}
 	}
 

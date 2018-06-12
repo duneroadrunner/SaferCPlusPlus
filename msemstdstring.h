@@ -118,6 +118,7 @@ namespace mse {
 				return (*this);
 			}
 			_Myt& operator=(const _Myt& _X) { msebasic_string() = (_X.msebasic_string()); return (*this); }
+			_Myt& operator=(const _Ty* const _Ptr) { msebasic_string() = (_Myt(_Ptr).msebasic_string()); return (*this); }
 			void reserve(size_type _Count) { m_shptr->reserve(_Count); }
 			void resize(size_type _N, const _Ty& _X = _Ty()) { m_shptr->resize(_N, _X); }
 			typename _MBS::const_reference operator[](size_type _P) const { return m_shptr->operator[](_P); }

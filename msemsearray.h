@@ -6028,7 +6028,7 @@ namespace mse {
 	class TXScopeExclusiveWriterObjPointerStore;
 
 	template<typename _Ty>
-	class TXScopeShareablePointer : public XScopeTagBase {
+	class TXScopeShareablePointer : public XScopeTagBase, public ContainsNonOwningScopeReferenceTagBase {
 	public:
 		TXScopeShareablePointer(const TXScopeShareablePointer& src) = delete;
 		TXScopeShareablePointer(TXScopeShareablePointer&& src) = default;
@@ -6051,17 +6051,18 @@ namespace mse {
 		TXScopeShareablePointer& operator=(const TXScopeShareablePointer& _Right_cref) = delete;
 		TXScopeShareablePointer& operator=(TXScopeShareablePointer&& _Right) = delete;
 
-		void* operator new(size_t size) { return ::operator new(size); }
-		auto operator&() { return this; }
-		auto operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		_Ty* m_obj_ptr = nullptr;
 
 		friend class TXScopeExclusiveWriterObjPointerStore<_Ty>;
 	};
 
+	/* TXScopeExclusiveWriterObjPointerStore<> is a data type that stores a (non-const, exclusive) pointer
+	of a TExclusiveWriterObj<>. From this data type you can obtain a "scope shareable pointer" which can be
+	safely passed to a scope thread. */
 	template<typename _Ty>
-	class TXScopeExclusiveWriterObjPointerStore {
+	class TXScopeExclusiveWriterObjPointerStore : public XScopeTagBase, public ContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef decltype(std::declval<TExclusiveWriterObj<_Ty> >().pointer()) pointer_t;
 		TXScopeExclusiveWriterObjPointerStore(pointer_t&& pointer) : m_xwo_pointer(std::forward<decltype(pointer)>(pointer)) {}
@@ -6074,10 +6075,15 @@ namespace mse {
 		void xscope_shareable_pointer() && = delete;
 
 	private:
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
 		pointer_t m_xwo_pointer;
 		bool m_used = false;
 	};
 
+	/* TXScopeExclusiveWriterObjPointerStore<> is a data type that stores a (non-const, exclusive) pointer
+	of a TExclusiveWriterObj<>. From this data type you can obtain a "scope shareable pointer" which can be
+	safely passed to a scope thread. */
 	template<typename _Ty>
 	TXScopeExclusiveWriterObjPointerStore<_Ty> make_xscope_exclusive_write_obj_pointer_store(decltype(std::declval<TExclusiveWriterObj<_Ty> >().pointer()) && stored_ptr) {
 		return TXScopeExclusiveWriterObjPointerStore<_Ty>(std::forward<decltype(stored_ptr)>(stored_ptr));
@@ -6087,7 +6093,7 @@ namespace mse {
 	class TXScopeExclusiveWriterObjConstPointerStore;
 
 	template<typename _Ty>
-	class TXScopeShareableConstPointer : public XScopeTagBase {
+	class TXScopeShareableConstPointer : public XScopeTagBase, public ContainsNonOwningScopeReferenceTagBase {
 	public:
 		TXScopeShareableConstPointer(const TXScopeShareableConstPointer& src) = default;
 		TXScopeShareableConstPointer(TXScopeShareableConstPointer&& src) = default;
@@ -6110,17 +6116,18 @@ namespace mse {
 		TXScopeShareableConstPointer& operator=(const TXScopeShareableConstPointer& _Right_cref) = delete;
 		TXScopeShareableConstPointer& operator=(TXScopeShareableConstPointer&& _Right) = delete;
 
-		void* operator new(size_t size) { return ::operator new(size); }
-		auto operator&() { return this; }
-		auto operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		const _Ty* m_obj_ptr = nullptr;
 
 		friend class TXScopeExclusiveWriterObjConstPointerStore<_Ty>;
 	};
 
+	/* TXScopeExclusiveWriterObjPointerStore<> is a data type that stores a (const, exclusive) pointer
+	of a TExclusiveWriterObj<>. From this data type you can obtain a "scope shareable const pointer" which can be
+	safely passed to a scope thread. */
 	template<typename _Ty>
-	class TXScopeExclusiveWriterObjConstPointerStore {
+	class TXScopeExclusiveWriterObjConstPointerStore : public XScopeTagBase, public ContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef decltype(std::declval<TExclusiveWriterObj<_Ty> >().const_pointer()) pointer_t;
 		TXScopeExclusiveWriterObjConstPointerStore(const pointer_t& pointer) : m_xwo_pointer(std::forward<decltype(pointer)>(pointer)) {}
