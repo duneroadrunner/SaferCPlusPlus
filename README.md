@@ -1,4 +1,4 @@
-May 2018
+Jun 2018
 
 ### Overview
 
@@ -28,7 +28,7 @@ An important consideration for many C++ applications is performance. Preferably 
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
-Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of May 2018). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
+Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of Jun 2018). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
 ### Table of contents
 1. [Overview](#overview)
@@ -3024,11 +3024,49 @@ The above example contains unchecked accesses to deallocated memory via an impli
 
 So, technically, achieving complete memory safety requires passing a safe `this` pointer parameter as an argument to every member function that accesses a member variable. (I.e. Make your member functions `static`. Or "[free](https://www.youtube.com/watch?v=nWJHhtmWYcY)".)
 
-Unfortunately, certain member functions can't be made static. Namely constructors, destructors and member operators. Copy and move constructors and many of the operators have the additional issue of taking (technically unsafe) reference parameters. While these elements are technically unsafe, empirically (and perhaps intuitively) they seem to be much less prone to memory safety bugs than, say, raw pointers or "non-bounds-checked" containers. 
+But certain member functions can't be made static. Namely constructors, destructors and member operators. If all the constructors and destructors in the program are compiler-generated defaults (or are otherwise known to be "well behaved") then they would all be perfectly safe. The (theoretical) problem is that user-defined constructors or destructors aren't guaranteed to be "well behaved". Specifically, in conventional C++ they could cause objects to be deleted in the middle of their constructor/destructor(/non-static member function) calls. And not just their own object, but, for example, a misbehaving constructor that is called by a parent constructor could cause that parent object to be deleted before its construction is completed.
 
-If all the constructors and destructors (and operators) in the program are compiler-generated defaults (or are otherwise known to be "well behaved") then they would all be perfectly safe. The (theoretical) problem is that user-defined constructors or destructors aren't guaranteed to be "well behaved". Specifically, they could cause objects to be deleted in the middle of their constructor/destructor(/non-static member function) calls. And not just their own object, but, for example, a misbehaving constructor that is called by a parent constructor could cause that parent object to be deleted before its construction is completed. 
+Fortunately, with the SaferCPlusPlus subset it's not quite so bad. Let's consider the possibility of an object's `this` pointer being invalidated (i.e. the object being destroyed) while in the middle of executing its constructor. In the SaferCPlusPlus subset there are a limited number of circumstances when a constructor is invoked. One is when a local variable is declared (on the stack). In this case the `this` pointer is intrinsically guaranteed to be valid, not just for the duration of the constructor, but indeed for the duration of the scope. Another case is when calling `make_refcounting<>()`. In this case, no direct or indirect reference to the object (other than the `this` pointer itself) is available until after the constructor has finished executing, so there's no opportunity for the object to be destroyed (and the `this` pointer invalidated) before then. Same goes for `registered_new()`. 
 
-Again, empirically this doesn't seem to be an issue in practice. But for codebases where user-defined constructors and/or destructors are used/permitted, one strategy for addressing the (theoretical) issue of potential invalidation of the `this` pointer is to use "state lock guards". Basically just checking at run-time that the destructor is not executed while any (non-trivial) non-static member function of the same object is being executed (including another instance of the destructor itself). This mechanism would be required not only for types with user-defined constructors and/or destructors, but also for any type for which a child/ancestor/member object could have a user-defined constructor or destructor. While this technique does involve run-time overhead, it's the kind of overhead that the compiler optimizer should often be able to discard. "State lock guards" can be enabled for the library's container classes with a compile-time directive.
+The more complicated case is when a container, like say, `mstd::vector<>` causes the invocation of child object constructors. Consider this example:
+
+```cpp
+#include "msescope.h"
+#include "msemstdvector.h"
+
+class CMisbehaver1 {
+public:
+	template<typename TVectorPtr>
+	CMisbehaver1(TVectorPtr vector_ptr) {
+		vector_ptr->clear(); // potentially dangerous behavior in a constructor
+
+		// codepoint 1
+
+		// is the "this" pointer still valid here?
+
+		this->m_string1 = "some text";
+	}
+	mse::mstd::string m_string1;
+};
+
+void main() {
+	typedef mse::mstd::vector<CMisbehaver1> misb1_vec_t;
+	typedef mse::mstd::vector<misb1_vec_t> misb1_vec_vec_t;
+	mse::TXScopeObj<misb1_vec_vec_t> xs_vv1;
+	xs_vv1.resize(1);
+	xs_vv1[0].emplace_back(&xs_vv1);
+}
+```
+
+It's a little bit tricky, but the `emplace_back()` call on the last line of the `main()` function is going to cause the constructor of `CMisbehaver1` to be invoked. But in its first line, the constructor seemingly causes its parent container to be deleted, making its own `this` pointer invalid.
+
+But because the parent container (i.e. the thing invoking the constructor) is an element of the library, it has run-time checks to ensure that its destructor is not executed while in the middle of one of its (non-static) member functions, like `emplace_back()` (or a contructor or the destructor). So in this case, rather than execute its destructor in the middle of the `emplace_back()` call, the program will terminate.
+
+Because constructors and destructors of dynamically (i.e. heap) allocated objects can only be invoked via elements of the library, those elements can (and do) ensure that the `this` pointer remains valid for the whole constructor/destructor call in all cases.
+
+But by default these run-time checks are only enabled in debug builds. Because i) empirically, this kind of bug seems to be very rare, and ii) code bases may be adhering to other policies that obviate the issue (such as not permitting user-defined constructors/destructors). Defining the `MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT` preprocessor symbol will enable the checks in non-debug builds as well.
+
+While we can ensure that the `this` pointer remains valid in constructors/destructors, we cannot do the same for native reference parameters. This means that technically you would still need to avoid (user-defined) constructors which take native reference parameters, like copy and move constructors, to assure memory safety.
 
 If you decide to permit functions that take reference parameters, note that `std::move()` (the one in the `<utility>` library, not the one in the `<algorithm>` library) is not really in the spirit of the library and could cause problems if applied to certain scope objects. `std::forward<>()` is fine. Basically, just let the compiler decide when a reference is an rvalue reference.
 
