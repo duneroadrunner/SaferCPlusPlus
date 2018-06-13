@@ -28,7 +28,7 @@ An important consideration for many C++ applications is performance. Preferably 
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
-Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of Jun 2018). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
+Tested with msvc2017, msvc2015, g++7.3 & 5.4 and clang++6.0 & 3.8 (as of Jun 2018). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
 ### Table of contents
 1. [Overview](#overview)
