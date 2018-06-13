@@ -506,9 +506,7 @@ Checked C and SaferCPlusPlus are more complementary than competitive. Checked C 
 
 ### Getting started on safening existing code
 
-The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#vector) and [`mse::mstd::array<>`](#array).
-
-The header files you'll need to include in your source file are "`msemstdvector.h`" and "`msemstdarray.h`". Those include files have additional dependencies on "`msemsevector.h`", "`msemsearray.h`", "`msescope.h`", and possibly "`mseprimitives.h`".
+The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#vector) and [`mse::mstd::array<>`](#array). Update for C++17: `std::string_view` seems to be quite [prone](https://github.com/isocpp/CppCoreGuidelines/issues/1038) to use-after-free bugs. You can substitute them with [mse::nrp_string_view](#nrp_string_view).
 
 Statistically speaking, doing this should already catch a significant chunk of potential memory bugs. By default, an exception will be thrown upon any attempt to access invalid memory. If your project is not using C++ exceptions, you'll probably want to override the default exception behavior by defining the `MSE_CUSTOM_THROW_DEFINITION()` preprocessor macro prior to inclusion of the header files. For example:
 
