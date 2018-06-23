@@ -2,6 +2,11 @@
 #ifndef MSEANY_H_
 #define MSEANY_H_
 
+/* The implementation of "any" is based on the open source one from https://github.com/thelink2012/any.
+
+Note that this (pre-C++17) implementation doesn't really support over-aligned types.
+*/
+
 //
 // Implementation of N4562 std::experimental::any (merged into C++17) for C++11 compilers.
 //
@@ -38,7 +43,16 @@ namespace mse
 		{
 			return "bad any cast";
 		}
-};
+	};
+
+	namespace us {
+		namespace impl {
+			template <typename _Ty> class TAnyPointerBaseV1;
+			template <typename _Ty> class TAnyConstPointerBaseV1;
+			template <typename _Ty> class TAnyRandomAccessIteratorBase;
+			template <typename _Ty> class TAnyRandomAccessConstIteratorBase;
+		}
+	}
 
 	class any final
 	{
@@ -171,6 +185,8 @@ namespace mse
 			}
 		}
 
+	private: // Storage and Virtual Method Table
+
 		void* storage_address() noexcept
 		{
 			return empty() ? nullptr : this->vtable->storage_address(storage);
@@ -179,8 +195,6 @@ namespace mse
 		{
 			return empty() ? nullptr : this->vtable->const_storage_address(storage);
 		}
-
-	private: // Storage and Virtual Method Table
 
 		union storage_union
 		{
@@ -401,6 +415,11 @@ namespace mse
 
 			do_construct<ValueType, T>(std::forward<ValueType>(value));
 		}
+
+		template<typename _Ty2> friend class us::impl::TAnyPointerBaseV1;
+		template<typename _Ty2> friend class us::impl::TAnyConstPointerBaseV1;
+		template<typename _Ty2> friend class us::impl::TAnyRandomAccessIteratorBase;
+		template<typename _Ty2> friend class us::impl::TAnyRandomAccessConstIteratorBase;
 	};
 
 

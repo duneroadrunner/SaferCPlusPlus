@@ -303,95 +303,105 @@ namespace mse {
 		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
 	};
 
-	template <typename _Ty> class TAnyPointerBase;
-	template <typename _Ty> class TAnyConstPointerBase;
+	namespace us {
+		namespace impl {
+			template <typename _Ty> class TAnyPointerBaseV1;
+			template <typename _Ty> class TAnyConstPointerBaseV1;
+			template <typename _Ty> using TAnyPointerBase = TAnyPointerBaseV1<_Ty>;
+			template <typename _Ty> using TAnyConstPointerBase = TAnyConstPointerBaseV1<_Ty>;
+		}
+	}
 	template <typename _Ty> class TXScopeAnyPointer;
 	template <typename _Ty> class TAnyPointer;
 	template <typename _Ty> class TXScopeAnyConstPointer;
 	template <typename _Ty> class TAnyConstPointer;
 
+	namespace us {
+		namespace impl {
+			template <typename _Ty>
+			class TCommonPointerInterface {
+			public:
+				virtual ~TCommonPointerInterface() {}
+				virtual _Ty& operator*() const = 0;
+				virtual _Ty* operator->() const = 0;
+				virtual operator bool() const = 0;
+			};
+
+			template <typename _Ty, typename _TPointer1>
+			class TCommonizedPointer : public TCommonPointerInterface<_Ty> {
+			public:
+				TCommonizedPointer(const _TPointer1& pointer) : m_pointer(pointer) {}
+				virtual ~TCommonizedPointer() {}
+
+				_Ty& operator*() const {
+					return (*m_pointer);
+				}
+				_Ty* operator->() const {
+					//return m_pointer.operator->();
+					return std::addressof(*m_pointer);
+				}
+				operator bool() const {
+					//return bool(m_pointer);
+					return operator_bool_helper1<_TPointer1>(typename std::is_convertible<_TPointer1, bool>::type(), m_pointer);
+				}
+
+				_TPointer1 m_pointer;
+			};
+
+			template <typename _Ty>
+			class TAnyPointerBaseV1 {
+			public:
+				TAnyPointerBaseV1(const TAnyPointerBaseV1& src) : m_any_pointer(src.m_any_pointer) {}
+
+				template <typename _TPointer1, class = typename std::enable_if<
+					(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
+					&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
+					, void>::type>
+					TAnyPointerBaseV1(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
+
+				_Ty& operator*() const {
+					return (*(*common_pointer_interface_ptr()));
+				}
+				_Ty* operator->() const {
+					return std::addressof(*(*common_pointer_interface_ptr()));
+				}
+				template <typename _Ty2>
+				bool operator ==(const _Ty2& _Right_cref) const {
+					return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
+				}
+				template <typename _Ty2>
+				bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
+
+			protected:
+				operator bool() const {
+					return bool(*common_pointer_interface_ptr());
+				}
+
+				TAnyPointerBaseV1<_Ty>* operator&() { return this; }
+				const TAnyPointerBaseV1<_Ty>* operator&() const { return this; }
+
+				const TCommonPointerInterface<_Ty>* common_pointer_interface_ptr() const {
+					auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_pointer.storage_address());
+					assert(nullptr != retval);
+					return retval;
+				}
+
+				mse::any m_any_pointer;
+
+				friend class TAnyConstPointerBaseV1<_Ty>;
+			};
+		}
+	}
+
 	template <typename _Ty>
-	class TCommonPointerInterface {
+	class TXScopeAnyPointer : public us::impl::TAnyPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
-		virtual ~TCommonPointerInterface() {}
-		virtual _Ty& operator*() const = 0;
-		virtual _Ty* operator->() const = 0;
-		virtual operator bool() const = 0;
-	};
-
-	template <typename _Ty, typename _TPointer1>
-	class TCommonizedPointer : public TCommonPointerInterface<_Ty> {
-	public:
-		TCommonizedPointer(const _TPointer1& pointer) : m_pointer(pointer) {}
-		virtual ~TCommonizedPointer() {}
-
-		_Ty& operator*() const {
-			return (*m_pointer);
-		}
-		_Ty* operator->() const {
-			//return m_pointer.operator->();
-			return std::addressof(*m_pointer);
-		}
-		operator bool() const {
-			//return bool(m_pointer);
-			return operator_bool_helper1<_TPointer1>(typename std::is_convertible<_TPointer1, bool>::type(), m_pointer);
-		}
-
-		_TPointer1 m_pointer;
-	};
-
-	template <typename _Ty>
-	class TAnyPointerBase {
-	public:
-		TAnyPointerBase(const TAnyPointerBase& src) : m_any_pointer(src.m_any_pointer) {}
+		typedef us::impl::TAnyPointerBase<_Ty> base_class;
+		TXScopeAnyPointer(const us::impl::TAnyPointerBase<_Ty>& src) : base_class(src) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_convertible<_TPointer1, TAnyPointerBase>::value)
-			&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
-			, void>::type>
-		TAnyPointerBase(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
-
-		_Ty& operator*() const {
-			return (*(*common_pointer_interface_ptr()));
-		}
-		_Ty* operator->() const {
-			return std::addressof(*(*common_pointer_interface_ptr()));
-		}
-		template <typename _Ty2>
-		bool operator ==(const _Ty2& _Right_cref) const {
-			return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
-		}
-		template <typename _Ty2>
-		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
-
-	protected:
-		operator bool() const {
-			return bool(*common_pointer_interface_ptr());
-		}
-
-		TAnyPointerBase<_Ty>* operator&() { return this; }
-		const TAnyPointerBase<_Ty>* operator&() const { return this; }
-
-		const TCommonPointerInterface<_Ty>* common_pointer_interface_ptr() const {
-			auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_pointer.storage_address());
-			assert(nullptr != retval);
-			return retval;
-		}
-
-		mse::any m_any_pointer;
-
-		friend class TAnyConstPointerBase<_Ty>;
-	};
-
-	template <typename _Ty>
-	class TXScopeAnyPointer : public TAnyPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
-	public:
-		typedef TAnyPointerBase<_Ty> base_class;
-		TXScopeAnyPointer(const TAnyPointerBase<_Ty>& src) : base_class(src) {}
-
-		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_convertible<_TPointer1, TAnyPointerBase<_Ty>>::value)
-			&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
+			(!std::is_convertible<_TPointer1, us::impl::TAnyPointerBase<_Ty>>::value)
+			&& (!std::is_base_of<us::impl::TAnyConstPointerBase<_Ty>, _TPointer1>::value)
 			, void>::type>
 			TXScopeAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
@@ -399,13 +409,11 @@ namespace mse {
 
 	protected:
 		TXScopeAnyPointer<_Ty>& operator=(const TXScopeAnyPointer<_Ty>& _Right_cref) {
-			base_class::operator=(_Right_cref);
+			base_class::operator=(static_cast<const base_class&>(_Right_cref));
 			return (*this);
 		}
-		void* operator new(size_t size) { return ::operator new(size); }
 
-		TXScopeAnyPointer<_Ty>* operator&() { return this; }
-		const TXScopeAnyPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend struct std::hash<mse::TXScopeAnyPointer<_Ty> >;
 	};
@@ -413,9 +421,9 @@ namespace mse {
 	/* The intended semantics of "any" pointers is that they always contain a valid pointer (or iterator) to a valid
 	object. If you need a "null" state, consider using optional<> (or mse::TNullableAnyPointer<>). */
 	template <typename _Ty>
-	class TAnyPointer : public TAnyPointerBase<_Ty> {
+	class TAnyPointer : public us::impl::TAnyPointerBase<_Ty> {
 	public:
-		typedef TAnyPointerBase<_Ty> base_class;
+		typedef us::impl::TAnyPointerBase<_Ty> base_class;
 		TAnyPointer(const TAnyPointer& src) : base_class(src) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
@@ -427,100 +435,106 @@ namespace mse {
 			TAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		TAnyPointer<_Ty>& operator=(const TAnyPointer<_Ty>& _Right_cref) {
-			base_class::operator=(_Right_cref);
+			base_class::operator=(static_cast<const base_class&>(_Right_cref));
 			return (*this);
 		}
 
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	protected:
-		TAnyPointer<_Ty>* operator&() { return this; }
-		const TAnyPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend struct std::hash<mse::TAnyPointer<_Ty> >;
 	};
 
+	namespace us {
+		namespace impl {
+			template <typename _Ty>
+			class TCommonConstPointerInterface {
+			public:
+				virtual ~TCommonConstPointerInterface() {}
+				virtual const _Ty& operator*() const = 0;
+				virtual const _Ty* operator->() const = 0;
+				virtual operator bool() const = 0;
+			};
+
+			template <typename _Ty, typename _TConstPointer1>
+			class TCommonizedConstPointer : public TCommonConstPointerInterface<_Ty> {
+			public:
+				TCommonizedConstPointer(const _TConstPointer1& const_pointer) : m_const_pointer(const_pointer) {}
+				virtual ~TCommonizedConstPointer() {}
+
+				const _Ty& operator*() const {
+					return (*m_const_pointer);
+				}
+				const _Ty* operator->() const {
+					//return m_const_pointer.operator->();
+					return std::addressof(*m_const_pointer);
+				}
+				operator bool() const {
+					//return bool(m_const_pointer);
+					return operator_bool_helper1<_TConstPointer1>(typename std::is_convertible<_TConstPointer1, bool>::type(), m_const_pointer);
+				}
+
+				_TConstPointer1 m_const_pointer;
+			};
+
+			template <typename _Ty>
+			class TAnyConstPointerBaseV1 {
+			public:
+				TAnyConstPointerBaseV1(const TAnyConstPointerBaseV1& src) : m_any_const_pointer(src.m_any_const_pointer) {}
+				TAnyConstPointerBaseV1(const TAnyPointerBaseV1<_Ty>& src) : m_any_const_pointer(src.m_any_pointer) {}
+
+				template <typename _TPointer1, class = typename std::enable_if<
+					(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
+					&& (!std::is_convertible<TAnyPointerBaseV1<_Ty>, _TPointer1>::value)
+					, void>::type>
+					TAnyConstPointerBaseV1(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
+
+				const _Ty& operator*() const {
+					return (*(*common_pointer_interface_const_ptr()));
+				}
+				const _Ty* operator->() const {
+					return std::addressof(*(*common_pointer_interface_const_ptr()));
+				}
+				operator bool() const {
+					return bool(*common_pointer_interface_const_ptr());
+				}
+				template <typename _Ty2>
+				bool operator ==(const _Ty2& _Right_cref) const {
+					return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
+				}
+				template <typename _Ty2>
+				bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
+
+			protected:
+				TAnyConstPointerBaseV1<_Ty>* operator&() { return this; }
+				const TAnyConstPointerBaseV1<_Ty>* operator&() const { return this; }
+
+				const TCommonPointerInterface<_Ty>* common_pointer_interface_const_ptr() const {
+					/* This use of mse::any::storage_address() brings to mind the fact that the (pre-C++17) implementation
+					of mse::any that we're using does not support over-aligned types. (And therefore neither does this
+					template.) Though it's hard to imagine a reason why a pointer would be declared an over-aligned type. */
+					auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_const_pointer.storage_address());
+					assert(nullptr != retval);
+					return retval;
+				}
+
+				mse::any m_any_const_pointer;
+			};
+		}
+	}
+
 	template <typename _Ty>
-	class TCommonConstPointerInterface {
+	class TXScopeAnyConstPointer : public us::impl::TAnyConstPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
-		virtual ~TCommonConstPointerInterface() {}
-		virtual const _Ty& operator*() const = 0;
-		virtual const _Ty* operator->() const = 0;
-		virtual operator bool() const = 0;
-	};
-
-	template <typename _Ty, typename _TConstPointer1>
-	class TCommonizedConstPointer : public TCommonConstPointerInterface<_Ty> {
-	public:
-		TCommonizedConstPointer(const _TConstPointer1& const_pointer) : m_const_pointer(const_pointer) {}
-		virtual ~TCommonizedConstPointer() {}
-
-		const _Ty& operator*() const {
-			return (*m_const_pointer);
-		}
-		const _Ty* operator->() const {
-			//return m_const_pointer.operator->();
-			return std::addressof(*m_const_pointer);
-		}
-		operator bool() const {
-			//return bool(m_const_pointer);
-			return operator_bool_helper1<_TConstPointer1>(typename std::is_convertible<_TConstPointer1, bool>::type(), m_const_pointer);
-		}
-
-		_TConstPointer1 m_const_pointer;
-	};
-
-	template <typename _Ty>
-	class TAnyConstPointerBase {
-	public:
-		TAnyConstPointerBase(const TAnyConstPointerBase& src) : m_any_const_pointer(src.m_any_const_pointer) {}
-		TAnyConstPointerBase(const TAnyPointerBase<_Ty>& src) : m_any_const_pointer(src.m_any_pointer) {}
+		typedef us::impl::TAnyConstPointerBase<_Ty> base_class;
+		TXScopeAnyConstPointer(const us::impl::TAnyConstPointerBase<_Ty>& src) : base_class(src) {}
+		TXScopeAnyConstPointer(const us::impl::TAnyPointerBase<_Ty>& src) : base_class(src) {}
 
 		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_convertible<_TPointer1, TAnyConstPointerBase>::value)
-			&& (!std::is_convertible<TAnyPointerBase<_Ty>, _TPointer1>::value)
-			, void>::type>
-			TAnyConstPointerBase(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
-
-		const _Ty& operator*() const {
-			return (*(*common_pointer_interface_const_ptr()));
-		}
-		const _Ty* operator->() const {
-			return std::addressof(*(*common_pointer_interface_const_ptr()));
-		}
-		operator bool() const {
-			return bool(*common_pointer_interface_const_ptr());
-		}
-		template <typename _Ty2>
-		bool operator ==(const _Ty2& _Right_cref) const {
-			return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
-		}
-		template <typename _Ty2>
-		bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
-
-	protected:
-		TAnyConstPointerBase<_Ty>* operator&() { return this; }
-		const TAnyConstPointerBase<_Ty>* operator&() const { return this; }
-
-		const TCommonPointerInterface<_Ty>* common_pointer_interface_const_ptr() const {
-			auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_const_pointer.storage_address());
-			assert(nullptr != retval);
-			return retval;
-		}
-
-		mse::any m_any_const_pointer;
-	};
-
-	template <typename _Ty>
-	class TXScopeAnyConstPointer : public TAnyConstPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
-	public:
-		typedef TAnyConstPointerBase<_Ty> base_class;
-		TXScopeAnyConstPointer(const TAnyConstPointerBase<_Ty>& src) : base_class(src) {}
-		TXScopeAnyConstPointer(const TAnyPointerBase<_Ty>& src) : base_class(src) {}
-
-		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_convertible<_TPointer1, TAnyConstPointerBase<_Ty>>::value)
-			&& (!std::is_convertible<_TPointer1, TAnyPointerBase<_Ty>>::value)
+			(!std::is_convertible<_TPointer1, us::impl::TAnyConstPointerBase<_Ty>>::value)
+			&& (!std::is_convertible<_TPointer1, us::impl::TAnyPointerBase<_Ty>>::value)
 			, void>::type>
 		TXScopeAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
@@ -528,21 +542,19 @@ namespace mse {
 
 	protected:
 		TXScopeAnyConstPointer<_Ty>& operator=(const TXScopeAnyConstPointer<_Ty>& _Right_cref) {
-			base_class::operator=(_Right_cref);
+			base_class::operator=(static_cast<const base_class&>(_Right_cref));
 			return (*this);
 		}
-		void* operator new(size_t size) { return ::operator new(size); }
 
-		TXScopeAnyConstPointer<_Ty>* operator&() { return this; }
-		const TXScopeAnyConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend struct std::hash<mse::TXScopeAnyConstPointer<_Ty> >;
 	};
 
 	template <typename _Ty>
-	class TAnyConstPointer : public TAnyConstPointerBase<_Ty> {
+	class TAnyConstPointer : public us::impl::TAnyConstPointerBase<_Ty> {
 	public:
-		typedef TAnyConstPointerBase<_Ty> base_class;
+		typedef us::impl::TAnyConstPointerBase<_Ty> base_class;
 		TAnyConstPointer(const TAnyConstPointer& src) : base_class(src) {}
 		TAnyConstPointer(const TAnyPointer<_Ty>& src) : base_class(src) {}
 
@@ -555,15 +567,14 @@ namespace mse {
 			TAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		TAnyConstPointer<_Ty>& operator=(const TAnyConstPointer<_Ty>& _Right_cref) {
-			base_class::operator=(_Right_cref);
+			base_class::operator=(static_cast<const base_class&>(_Right_cref));
 			return (*this);
 		}
 
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	protected:
-		TAnyConstPointer<_Ty>* operator&() { return this; }
-		const TAnyConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend struct std::hash<mse::TAnyConstPointer<_Ty> >;
 	};
@@ -1124,134 +1135,256 @@ namespace std {
 
 namespace mse {
 
-	template <typename _Ty> using TRandomAccessIteratorStdBase = random_access_iterator_base<_Ty>;
-	template <typename _Ty> using TRandomAccessConstIteratorStdBase = random_access_const_iterator_base<_Ty>;
+	template <typename _Ty> class TAnyRandomAccessIterator;
+	template <typename _Ty> class TAnyRandomAccessConstIterator;
+
+	namespace us {
+		namespace impl {
+			template <typename _Ty> using TRandomAccessIteratorStdBase = random_access_iterator_base<_Ty>;
+			template <typename _Ty> using TRandomAccessConstIteratorStdBase = random_access_const_iterator_base<_Ty>;
+
+			template <typename _Ty>
+			class TCommonRandomAccessIteratorInterface : public TRandomAccessIteratorStdBase<_Ty> {
+			public:
+				typedef TRandomAccessIteratorStdBase<_Ty> base_class;
+
+				virtual ~TCommonRandomAccessIteratorInterface() {}
+				virtual _Ty& operator*() const = 0;
+				virtual _Ty* operator->() const = 0;
+				typedef typename base_class::reference reference_t;
+				typedef typename base_class::difference_type difference_type;
+				virtual reference_t operator[](difference_type _Off) const = 0;
+				virtual void operator +=(difference_type x) = 0;
+				virtual void operator -=(difference_type x) { operator +=(-x); }
+				virtual void operator ++() { operator +=(1); }
+				virtual void operator ++(int) { operator +=(1); }
+				virtual void operator --() { operator -=(1); }
+				virtual void operator --(int) { operator -=(1); }
+				virtual difference_type operator-(const TCommonRandomAccessIteratorInterface& _Right_cref) const = 0;
+				virtual bool operator==(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 == operator-(_Right_cref)); }
+				virtual bool operator!=(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return !(operator==(_Right_cref)); }
+				virtual bool operator<(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				virtual bool operator>(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				virtual bool operator<=(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				virtual bool operator>=(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+			};
+
+			template <typename _Ty, typename _TRandomAccessIterator1>
+			class TCommonizedRandomAccessIterator : public TCommonRandomAccessIteratorInterface<_Ty> {
+			public:
+				TCommonizedRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : m_random_access_iterator(random_access_iterator) {}
+				virtual ~TCommonizedRandomAccessIterator() {}
+
+				_Ty& operator*() const {
+					return (*m_random_access_iterator);
+				}
+				_Ty* operator->() const {
+					return std::addressof(*m_random_access_iterator);
+					//return m_random_access_iterator.operator->();
+				}
+				typename TCommonRandomAccessIteratorInterface<_Ty>::reference_t operator[](typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type _Off) const {
+					return m_random_access_iterator[_Off];
+				}
+				void operator +=(typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type x) { m_random_access_iterator += x; }
+				typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type operator-(const TCommonRandomAccessIteratorInterface<_Ty>& _Right_cref) const {
+					const TCommonizedRandomAccessIterator* crai_ptr = static_cast<const TCommonizedRandomAccessIterator*>(&_Right_cref);
+					assert(crai_ptr);
+					const _TRandomAccessIterator1& _Right_cref_m_random_access_iterator_cref = (*crai_ptr).m_random_access_iterator;
+					return m_random_access_iterator - _Right_cref_m_random_access_iterator_cref;
+				}
+
+				_TRandomAccessIterator1 m_random_access_iterator;
+			};
+
+			template <typename _Ty>
+			class TAnyRandomAccessIteratorBase : public TRandomAccessIteratorStdBase<_Ty> {
+			public:
+				TAnyRandomAccessIteratorBase(const TAnyRandomAccessIteratorBase& src) : m_any_random_access_iterator(src.m_any_random_access_iterator) {}
+				TAnyRandomAccessIteratorBase(_Ty arr[]) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _Ty*>(arr)) {}
+
+				template <typename _TRandomAccessIterator1, class = typename std::enable_if<!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIteratorBase>::value, void>::type>
+				TAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _TRandomAccessIterator1>(random_access_iterator)) {}
+
+				friend void swap(TAnyRandomAccessIteratorBase& first, TAnyRandomAccessIteratorBase& second) {
+					std::swap(first.m_any_random_access_iterator, second.m_any_random_access_iterator);
+				}
+
+				_Ty& operator*() const {
+					return (*(*common_random_access_iterator_interface_ptr()));
+				}
+				_Ty* operator->() const {
+					return common_random_access_iterator_interface_ptr()->operator->();
+				}
+				typedef typename TCommonRandomAccessIteratorInterface<_Ty>::reference_t reference_t;
+				typedef typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type difference_type;
+				reference_t operator[](difference_type _Off) const {
+					return common_random_access_iterator_interface_ptr()->operator[](_Off);
+				}
+				void operator +=(difference_type x) { common_random_access_iterator_interface_ptr()->operator+=(x); }
+				void operator -=(difference_type x) { operator +=(-x); }
+				TAnyRandomAccessIteratorBase& operator ++() { operator +=(1); return (*this); }
+				TAnyRandomAccessIteratorBase operator ++(int) { auto _Tmp = (*this); operator +=(1); return _Tmp; }
+				TAnyRandomAccessIteratorBase& operator --() { operator -=(1); return (*this); }
+				TAnyRandomAccessIteratorBase operator --(int) { auto _Tmp = (*this); operator -=(1); return _Tmp; }
+
+				TAnyRandomAccessIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				TAnyRandomAccessIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const TAnyRandomAccessIteratorBase& _Right_cref) const {
+					return (*common_random_access_iterator_interface_ptr()) - (*(_Right_cref.common_random_access_iterator_interface_ptr()));
+				}
+				bool operator==(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 == operator-(_Right_cref)); }
+				bool operator!=(const TAnyRandomAccessIteratorBase& _Right_cref) const { return !(operator==(_Right_cref)); }
+				bool operator<(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator>(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator<=(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				bool operator>=(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				TAnyRandomAccessIteratorBase& operator=(TAnyRandomAccessIteratorBase _Right) {
+					swap(*this, _Right);
+					return (*this);
+				}
+
+			protected:
+				TAnyRandomAccessIteratorBase<_Ty>* operator&() { return this; }
+				const TAnyRandomAccessIteratorBase<_Ty>* operator&() const { return this; }
+
+				TCommonRandomAccessIteratorInterface<_Ty>* common_random_access_iterator_interface_ptr() {
+					auto retval = reinterpret_cast<TCommonRandomAccessIteratorInterface<_Ty>*>(m_any_random_access_iterator.storage_address());
+					assert(nullptr != retval);
+					return retval;
+				}
+				const TCommonRandomAccessIteratorInterface<_Ty>* common_random_access_iterator_interface_ptr() const {
+					auto retval = reinterpret_cast<const TCommonRandomAccessIteratorInterface<_Ty>*>(m_any_random_access_iterator.storage_address());
+					assert(nullptr != retval);
+					return retval;
+				}
+
+				mse::any m_any_random_access_iterator;
+			};
+
+			template <typename _Ty>
+			class TCommonRandomAccessConstIteratorInterface : public TRandomAccessConstIteratorStdBase<_Ty> {
+			public:
+				typedef TRandomAccessConstIteratorStdBase<_Ty> base_class;
+
+				virtual ~TCommonRandomAccessConstIteratorInterface() {}
+				virtual const _Ty& operator*() const = 0;
+				virtual const _Ty* operator->() const = 0;
+				typedef typename base_class::reference const_reference_t;
+				typedef typename base_class::difference_type difference_type;
+				virtual const_reference_t operator[](difference_type _Off) const = 0;
+				virtual void operator +=(difference_type x) = 0;
+				virtual void operator -=(difference_type x) { operator +=(-x); }
+				virtual void operator ++() { operator +=(1); }
+				virtual void operator ++(int) { operator +=(1); }
+				virtual void operator --() { operator -=(1); }
+				virtual void operator --(int) { operator -=(1); }
+				virtual difference_type operator-(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const = 0;
+				virtual bool operator==(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 == operator-(_Right_cref)); }
+				virtual bool operator!=(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return !(operator==(_Right_cref)); }
+				virtual bool operator<(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				virtual bool operator>(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				virtual bool operator<=(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				virtual bool operator>=(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+			};
+
+			template <typename _Ty, typename _TRandomAccessConstIterator1>
+			class TCommonizedRandomAccessConstIterator : public TCommonRandomAccessConstIteratorInterface<_Ty> {
+			public:
+				TCommonizedRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_random_access_const_iterator(random_access_const_iterator) {}
+				virtual ~TCommonizedRandomAccessConstIterator() {}
+
+				const _Ty& operator*() const {
+					return (*m_random_access_const_iterator);
+				}
+				const _Ty* operator->() const {
+					return std::addressof(*m_random_access_const_iterator);
+					//return m_random_access_const_iterator.operator->();
+				}
+				typename TCommonRandomAccessConstIteratorInterface<_Ty>::const_reference_t operator[](typename TCommonRandomAccessConstIteratorInterface<_Ty>::difference_type _Off) const {
+					return m_random_access_const_iterator[_Off];
+				}
+				void operator +=(typename TCommonRandomAccessConstIteratorInterface<_Ty>::difference_type x) { m_random_access_const_iterator += x; }
+				typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type operator-(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const {
+					const TCommonizedRandomAccessConstIterator* crai_ptr = static_cast<const TCommonizedRandomAccessConstIterator*>(&_Right_cref);
+					assert(crai_ptr);
+					const _TRandomAccessConstIterator1& _Right_cref_m_random_access_const_iterator_cref = (*crai_ptr).m_random_access_const_iterator;
+					return m_random_access_const_iterator - _Right_cref_m_random_access_const_iterator_cref;
+				}
+
+				_TRandomAccessConstIterator1 m_random_access_const_iterator;
+			};
+
+			template <typename _Ty>
+			class TAnyRandomAccessConstIteratorBase : public TRandomAccessConstIteratorStdBase<_Ty> {
+			public:
+				TAnyRandomAccessConstIteratorBase(const TAnyRandomAccessConstIteratorBase& src) : m_any_random_access_const_iterator(src.m_any_random_access_const_iterator) {}
+				TAnyRandomAccessConstIteratorBase(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>(arr)) {}
+
+				template <typename _TRandomAccessConstIterator1, class = typename std::enable_if<!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIteratorBase>::value, void>::type>
+				TAnyRandomAccessConstIteratorBase(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, _TRandomAccessConstIterator1>(random_access_const_iterator)) {}
+
+				friend void swap(TAnyRandomAccessConstIteratorBase& first, TAnyRandomAccessConstIteratorBase& second) {
+					std::swap(first.m_any_random_access_const_iterator, second.m_any_random_access_const_iterator);
+				}
+
+				const _Ty& operator*() const {
+					return (*(*common_random_access_const_iterator_interface_ptr()));
+				}
+				const _Ty* operator->() const {
+					return common_random_access_const_iterator_interface_ptr()->operator->();
+				}
+				typedef typename TCommonRandomAccessConstIteratorInterface<_Ty>::const_reference_t const_reference_t;
+				typedef typename TCommonRandomAccessConstIteratorInterface<_Ty>::difference_type difference_type;
+				const_reference_t operator[](difference_type _Off) const {
+					return common_random_access_const_iterator_interface_ptr()->operator[](_Off);
+				}
+				void operator +=(difference_type x) { common_random_access_const_iterator_interface_ptr()->operator+=(x); };
+				void operator -=(difference_type x) { operator +=(-x); }
+				TAnyRandomAccessConstIteratorBase& operator ++() { operator +=(1); return (*this); }
+				TAnyRandomAccessConstIteratorBase operator ++(int) { auto _Tmp = (*this); operator +=(1); return _Tmp; }
+				TAnyRandomAccessConstIteratorBase& operator --() { operator -=(1); return (*this); }
+				TAnyRandomAccessConstIteratorBase operator --(int) { auto _Tmp = (*this); operator -=(1); return _Tmp; }
+
+				TAnyRandomAccessConstIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				TAnyRandomAccessConstIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const TAnyRandomAccessConstIteratorBase& _Right_cref) const {
+					return (*common_random_access_const_iterator_interface_ptr()) - (*(_Right_cref.common_random_access_const_iterator_interface_ptr()));
+				}
+				bool operator==(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 == operator-(_Right_cref)); }
+				bool operator!=(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return !(operator==(_Right_cref)); }
+				bool operator<(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator>(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator<=(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				bool operator>=(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				TAnyRandomAccessConstIteratorBase& operator=(TAnyRandomAccessConstIteratorBase _Right) {
+					swap(*this, _Right);
+					return (*this);
+				}
+
+			protected:
+				TAnyRandomAccessConstIteratorBase<_Ty>* operator&() { return this; }
+				const TAnyRandomAccessConstIteratorBase<_Ty>* operator&() const { return this; }
+
+				TCommonRandomAccessConstIteratorInterface<_Ty>* common_random_access_const_iterator_interface_ptr() {
+					auto retval = reinterpret_cast<TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());
+					assert(nullptr != retval);
+					return retval;
+				}
+				const TCommonRandomAccessConstIteratorInterface<_Ty>* common_random_access_const_iterator_interface_ptr() const {
+					auto retval = reinterpret_cast<const TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());
+					assert(nullptr != retval);
+					return retval;
+				}
+
+				mse::any m_any_random_access_const_iterator;
+			};
+		}
+	}
 
 	template <typename _Ty>
-	class TCommonRandomAccessIteratorInterface : public TRandomAccessIteratorStdBase<_Ty> {
+	class TXScopeAnyRandomAccessIterator : public us::impl::TAnyRandomAccessIteratorBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
-		typedef TRandomAccessIteratorStdBase<_Ty> base_class;
-
-		virtual ~TCommonRandomAccessIteratorInterface() {}
-		virtual _Ty& operator*() const = 0;
-		virtual _Ty* operator->() const = 0;
-		typedef typename base_class::reference reference_t;
-		typedef typename base_class::difference_type difference_type;
-		virtual reference_t operator[](difference_type _Off) const = 0;
-		virtual void operator +=(difference_type x) = 0;
-		virtual void operator -=(difference_type x) { operator +=(-x); }
-		virtual void operator ++() { operator +=(1); }
-		virtual void operator ++(int) { operator +=(1); }
-		virtual void operator --() { operator -=(1); }
-		virtual void operator --(int) { operator -=(1); }
-		virtual difference_type operator-(const TCommonRandomAccessIteratorInterface& _Right_cref) const = 0;
-		virtual bool operator==(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 == operator-(_Right_cref)); }
-		virtual bool operator!=(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return !(operator==(_Right_cref)); }
-		virtual bool operator<(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		virtual bool operator>(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		virtual bool operator<=(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		virtual bool operator>=(const TCommonRandomAccessIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-	};
-
-	template <typename _Ty, typename _TRandomAccessIterator1>
-	class TCommonizedRandomAccessIterator : public TCommonRandomAccessIteratorInterface<_Ty> {
-	public:
-		TCommonizedRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : m_random_access_iterator(random_access_iterator) {}
-		virtual ~TCommonizedRandomAccessIterator() {}
-
-		_Ty& operator*() const {
-			return (*m_random_access_iterator);
-		}
-		_Ty* operator->() const {
-			return std::addressof(*m_random_access_iterator);
-			//return m_random_access_iterator.operator->();
-		}
-		typename TCommonRandomAccessIteratorInterface<_Ty>::reference_t operator[](typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type _Off) const {
-			return m_random_access_iterator[_Off];
-		}
-		void operator +=(typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type x) { m_random_access_iterator += x; }
-		typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type operator-(const TCommonRandomAccessIteratorInterface<_Ty>& _Right_cref) const {
-			const TCommonizedRandomAccessIterator* crai_ptr = static_cast<const TCommonizedRandomAccessIterator*>(&_Right_cref);
-			assert(crai_ptr);
-			const _TRandomAccessIterator1& _Right_cref_m_random_access_iterator_cref = (*crai_ptr).m_random_access_iterator;
-			return m_random_access_iterator - _Right_cref_m_random_access_iterator_cref;
-		}
-
-		_TRandomAccessIterator1 m_random_access_iterator;
-	};
-
-	template <typename _Ty>
-	class TAnyRandomAccessIterator;
-
-	template <typename _Ty>
-	class TAnyRandomAccessIteratorBase : public TRandomAccessIteratorStdBase<_Ty> {
-	public:
-		TAnyRandomAccessIteratorBase(const TAnyRandomAccessIteratorBase& src) : m_any_random_access_iterator(src.m_any_random_access_iterator) {}
-		TAnyRandomAccessIteratorBase(_Ty arr[]) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _Ty*>(arr)) {}
-
-		template <typename _TRandomAccessIterator1, class = typename std::enable_if<!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIteratorBase>::value, void>::type>
-		TAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _TRandomAccessIterator1>(random_access_iterator)) {}
-
-		friend void swap(TAnyRandomAccessIteratorBase& first, TAnyRandomAccessIteratorBase& second) {
-			std::swap(first.m_any_random_access_iterator, second.m_any_random_access_iterator);
-		}
-
-		_Ty& operator*() const {
-			return (*(*common_random_access_iterator_interface_ptr()));
-		}
-		_Ty* operator->() const {
-			return common_random_access_iterator_interface_ptr()->operator->();
-		}
-		typedef typename TCommonRandomAccessIteratorInterface<_Ty>::reference_t reference_t;
-		typedef typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type difference_type;
-		reference_t operator[](difference_type _Off) const {
-			return common_random_access_iterator_interface_ptr()->operator[](_Off);
-		}
-		void operator +=(difference_type x) { common_random_access_iterator_interface_ptr()->operator+=(x); }
-		void operator -=(difference_type x) { operator +=(-x); }
-		TAnyRandomAccessIteratorBase& operator ++() { operator +=(1); return (*this); }
-		TAnyRandomAccessIteratorBase operator ++(int) { auto _Tmp = (*this); operator +=(1); return _Tmp; }
-		TAnyRandomAccessIteratorBase& operator --() { operator -=(1); return (*this); }
-		TAnyRandomAccessIteratorBase operator --(int) { auto _Tmp = (*this); operator -=(1); return _Tmp; }
-
-		TAnyRandomAccessIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		TAnyRandomAccessIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TAnyRandomAccessIteratorBase& _Right_cref) const {
-			return (*common_random_access_iterator_interface_ptr()) - (*(_Right_cref.common_random_access_iterator_interface_ptr()));
-		}
-		bool operator==(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 == operator-(_Right_cref)); }
-		bool operator!=(const TAnyRandomAccessIteratorBase& _Right_cref) const { return !(operator==(_Right_cref)); }
-		bool operator<(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator>(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator<=(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		bool operator>=(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		TAnyRandomAccessIteratorBase& operator=(TAnyRandomAccessIteratorBase _Right) {
-			swap(*this, _Right);
-			return (*this);
-		}
-
-	protected:
-		TAnyRandomAccessIteratorBase<_Ty>* operator&() { return this; }
-		const TAnyRandomAccessIteratorBase<_Ty>* operator&() const { return this; }
-
-		TCommonRandomAccessIteratorInterface<_Ty>* common_random_access_iterator_interface_ptr() {
-			auto retval = reinterpret_cast<TCommonRandomAccessIteratorInterface<_Ty>*>(m_any_random_access_iterator.storage_address());
-			assert(nullptr != retval);
-			return retval;
-		}
-		const TCommonRandomAccessIteratorInterface<_Ty>* common_random_access_iterator_interface_ptr() const {
-			auto retval = reinterpret_cast<const TCommonRandomAccessIteratorInterface<_Ty>*>(m_any_random_access_iterator.storage_address());
-			assert(nullptr != retval);
-			return retval;
-		}
-
-		mse::any m_any_random_access_iterator;
-	};
-
-	template <typename _Ty>
-	class TXScopeAnyRandomAccessIterator : public TAnyRandomAccessIteratorBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
-	public:
-		typedef TAnyRandomAccessIteratorBase<_Ty> base_class;
+		typedef us::impl::TAnyRandomAccessIteratorBase<_Ty> base_class;
 
 		MSE_USING(TXScopeAnyRandomAccessIterator, base_class);
 
@@ -1276,139 +1409,15 @@ namespace mse {
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	protected:
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeAnyRandomAccessIterator<_Ty>* operator&() { return this; }
-		const TXScopeAnyRandomAccessIterator<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TAnyRandomAccessIterator<_Ty>;
 	};
 
 	template <typename _Ty>
-	class TCommonRandomAccessConstIteratorInterface : public TRandomAccessConstIteratorStdBase<_Ty> {
+	class TXScopeAnyRandomAccessConstIterator : public us::impl::TAnyRandomAccessConstIteratorBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
-		typedef TRandomAccessConstIteratorStdBase<_Ty> base_class;
-
-		virtual ~TCommonRandomAccessConstIteratorInterface() {}
-		virtual const _Ty& operator*() const = 0;
-		virtual const _Ty* operator->() const = 0;
-		typedef typename base_class::reference const_reference_t;
-		typedef typename base_class::difference_type difference_type;
-		virtual const_reference_t operator[](difference_type _Off) const = 0;
-		virtual void operator +=(difference_type x) = 0;
-		virtual void operator -=(difference_type x) { operator +=(-x); }
-		virtual void operator ++() { operator +=(1); }
-		virtual void operator ++(int) { operator +=(1); }
-		virtual void operator --() { operator -=(1); }
-		virtual void operator --(int) { operator -=(1); }
-		virtual difference_type operator-(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const = 0;
-		virtual bool operator==(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 == operator-(_Right_cref)); }
-		virtual bool operator!=(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return !(operator==(_Right_cref)); }
-		virtual bool operator<(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		virtual bool operator>(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		virtual bool operator<=(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		virtual bool operator>=(const TCommonRandomAccessConstIteratorInterface& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-	};
-
-	template <typename _Ty, typename _TRandomAccessConstIterator1>
-	class TCommonizedRandomAccessConstIterator : public TCommonRandomAccessConstIteratorInterface<_Ty> {
-	public:
-		TCommonizedRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_random_access_const_iterator(random_access_const_iterator) {}
-		virtual ~TCommonizedRandomAccessConstIterator() {}
-
-		const _Ty& operator*() const {
-			return (*m_random_access_const_iterator);
-		}
-		const _Ty* operator->() const {
-			return std::addressof(*m_random_access_const_iterator);
-			//return m_random_access_const_iterator.operator->();
-		}
-		typename TCommonRandomAccessConstIteratorInterface<_Ty>::const_reference_t operator[](typename TCommonRandomAccessConstIteratorInterface<_Ty>::difference_type _Off) const {
-			return m_random_access_const_iterator[_Off];
-		}
-		void operator +=(typename TCommonRandomAccessConstIteratorInterface<_Ty>::difference_type x) { m_random_access_const_iterator += x; }
-		typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type operator-(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const {
-			const TCommonizedRandomAccessConstIterator* crai_ptr = static_cast<const TCommonizedRandomAccessConstIterator*>(&_Right_cref);
-			assert(crai_ptr);
-			const _TRandomAccessConstIterator1& _Right_cref_m_random_access_const_iterator_cref = (*crai_ptr).m_random_access_const_iterator;
-			return m_random_access_const_iterator - _Right_cref_m_random_access_const_iterator_cref;
-		}
-
-		_TRandomAccessConstIterator1 m_random_access_const_iterator;
-	};
-
-	template <typename _Ty>
-	class TAnyRandomAccessConstIterator;
-
-	template <typename _Ty>
-	class TAnyRandomAccessConstIteratorBase : public TRandomAccessConstIteratorStdBase<_Ty> {
-	public:
-		TAnyRandomAccessConstIteratorBase(const TAnyRandomAccessConstIteratorBase& src) : m_any_random_access_const_iterator(src.m_any_random_access_const_iterator) {}
-		TAnyRandomAccessConstIteratorBase(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>(arr)) {}
-
-		template <typename _TRandomAccessConstIterator1, class = typename std::enable_if<!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIteratorBase>::value, void>::type>
-		TAnyRandomAccessConstIteratorBase(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, _TRandomAccessConstIterator1>(random_access_const_iterator)) {}
-
-		friend void swap(TAnyRandomAccessConstIteratorBase& first, TAnyRandomAccessConstIteratorBase& second) {
-			std::swap(first.m_any_random_access_const_iterator, second.m_any_random_access_const_iterator);
-		}
-
-		const _Ty& operator*() const {
-			return (*(*common_random_access_const_iterator_interface_ptr()));
-		}
-		const _Ty* operator->() const {
-			return common_random_access_const_iterator_interface_ptr()->operator->();
-		}
-		typedef typename TCommonRandomAccessConstIteratorInterface<_Ty>::const_reference_t const_reference_t;
-		typedef typename TCommonRandomAccessConstIteratorInterface<_Ty>::difference_type difference_type;
-		const_reference_t operator[](difference_type _Off) const {
-			return common_random_access_const_iterator_interface_ptr()->operator[](_Off);
-		}
-		void operator +=(difference_type x) { common_random_access_const_iterator_interface_ptr()->operator+=(x); };
-		void operator -=(difference_type x) { operator +=(-x); }
-		TAnyRandomAccessConstIteratorBase& operator ++() { operator +=(1); return (*this); }
-		TAnyRandomAccessConstIteratorBase operator ++(int) { auto _Tmp = (*this); operator +=(1); return _Tmp; }
-		TAnyRandomAccessConstIteratorBase& operator --() { operator -=(1); return (*this); }
-		TAnyRandomAccessConstIteratorBase operator --(int) { auto _Tmp = (*this); operator -=(1); return _Tmp; }
-
-		TAnyRandomAccessConstIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		TAnyRandomAccessConstIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TAnyRandomAccessConstIteratorBase& _Right_cref) const {
-			return (*common_random_access_const_iterator_interface_ptr()) - (*(_Right_cref.common_random_access_const_iterator_interface_ptr()));
-		}
-		bool operator==(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 == operator-(_Right_cref)); }
-		bool operator!=(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return !(operator==(_Right_cref)); }
-		bool operator<(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator>(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator<=(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		bool operator>=(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		TAnyRandomAccessConstIteratorBase& operator=(TAnyRandomAccessConstIteratorBase _Right) {
-			swap(*this, _Right);
-			return (*this);
-		}
-
-	protected:
-		TAnyRandomAccessConstIteratorBase<_Ty>* operator&() { return this; }
-		const TAnyRandomAccessConstIteratorBase<_Ty>* operator&() const { return this; }
-
-		TCommonRandomAccessConstIteratorInterface<_Ty>* common_random_access_const_iterator_interface_ptr() {
-			auto retval = reinterpret_cast<TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());
-			assert(nullptr != retval);
-			return retval;
-		}
-		const TCommonRandomAccessConstIteratorInterface<_Ty>* common_random_access_const_iterator_interface_ptr() const {
-			auto retval = reinterpret_cast<const TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());
-			assert(nullptr != retval);
-			return retval;
-		}
-
-		mse::any m_any_random_access_const_iterator;
-	};
-
-	template <typename _Ty>
-	class TXScopeAnyRandomAccessConstIterator : public TAnyRandomAccessConstIteratorBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
-	public:
-		typedef TAnyRandomAccessConstIteratorBase<_Ty> base_class;
+		typedef us::impl::TAnyRandomAccessConstIteratorBase<_Ty> base_class;
 
 		MSE_USING(TXScopeAnyRandomAccessConstIterator, base_class);
 
@@ -1433,36 +1442,15 @@ namespace mse {
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	protected:
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeAnyRandomAccessConstIterator<_Ty>* operator&() { return this; }
-		const TXScopeAnyRandomAccessConstIterator<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TAnyRandomAccessConstIterator<_Ty>;
 	};
 
-	template<typename T>
-	struct HasXScopeIteratorTagMethod_poly
-	{
-		template<typename U, void(U::*)() const> struct SFINAE {};
-		template<typename U> static char Test(SFINAE<U, &U::xscope_iterator_tag>*);
-		template<typename U> static int Test(...);
-		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
-	};
-
-	template<typename T>
-	struct HasXScopeSSIteratorTypeTagMethod_poly
-	{
-		template<typename U, void(U::*)() const> struct SFINAE {};
-		template<typename U> static char Test(SFINAE<U, &U::xscope_ss_iterator_type_tag>*);
-		template<typename U> static int Test(...);
-		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
-	};
-
 	template <typename _Ty>
-	class TAnyRandomAccessIterator : public TAnyRandomAccessIteratorBase<_Ty> {
+	class TAnyRandomAccessIterator : public us::impl::TAnyRandomAccessIteratorBase<_Ty> {
 	public:
-		typedef TAnyRandomAccessIteratorBase<_Ty> base_class;
+		typedef us::impl::TAnyRandomAccessIteratorBase<_Ty> base_class;
 		typedef typename base_class::difference_type difference_type;
 
 		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : base_class(src) {}
@@ -1470,8 +1458,6 @@ namespace mse {
 		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
 			(!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<TAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)
-			//&& (!std::integral_constant<bool, HasXScopeIteratorTagMethod_poly<_TRandomAccessIterator1>::Has>())
-			//&& (!std::integral_constant<bool, HasXScopeSSIteratorTypeTagMethod_poly<_TRandomAccessIterator1>::Has>())
 			&& (!std::is_base_of<XScopeTagBase, _TRandomAccessIterator1>::value)
 			, void>::type>
 			TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {}
@@ -1490,14 +1476,13 @@ namespace mse {
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
-		TAnyRandomAccessIterator<_Ty>* operator&() { return this; }
-		const TAnyRandomAccessIterator<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 	template <typename _Ty>
-	class TAnyRandomAccessConstIterator : public TAnyRandomAccessConstIteratorBase<_Ty> {
+	class TAnyRandomAccessConstIterator : public us::impl::TAnyRandomAccessConstIteratorBase<_Ty> {
 	public:
-		typedef TAnyRandomAccessConstIteratorBase<_Ty> base_class;
+		typedef us::impl::TAnyRandomAccessConstIteratorBase<_Ty> base_class;
 		typedef typename base_class::difference_type difference_type;
 
 		TAnyRandomAccessConstIterator(const TAnyRandomAccessConstIterator& src) : base_class(src) {}
@@ -1507,8 +1492,6 @@ namespace mse {
 		template <typename _TRandomAccessConstIterator1, class = typename std::enable_if<
 			(!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIterator<_Ty>>::value)
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
-			//&& (!std::integral_constant<bool, HasXScopeIteratorTagMethod_poly<_TRandomAccessConstIterator1>::Has>())
-			//&& (!std::integral_constant<bool, HasXScopeSSIteratorTypeTagMethod_poly<_TRandomAccessConstIterator1>::Has>())
 			&& (!std::is_base_of<XScopeTagBase, _TRandomAccessConstIterator1>::value)
 			, void>::type>
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : base_class(random_access_const_iterator) {}
@@ -1527,8 +1510,7 @@ namespace mse {
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
-		TAnyRandomAccessConstIterator<_Ty>* operator&() { return this; }
-		const TAnyRandomAccessConstIterator<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 
@@ -1963,8 +1945,6 @@ namespace mse {
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
-			//&& (!std::integral_constant<bool, HasXScopeIteratorTagMethod_poly<_TRandomAccessIterator1>::Has>())
-			//&& (!std::integral_constant<bool, HasXScopeSSIteratorTypeTagMethod_poly<_TRandomAccessIterator1>::Has>())
 			&& (!std::is_base_of<XScopeTagBase, _TRandomAccessIterator1>::value)
 			, void>::type>
 			TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
@@ -2012,8 +1992,6 @@ namespace mse {
 			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
-			//&& (!std::integral_constant<bool, HasXScopeIteratorTagMethod_poly<_TRandomAccessIterator1>::Has>())
-			//&& (!std::integral_constant<bool, HasXScopeSSIteratorTypeTagMethod_poly<_TRandomAccessIterator1>::Has>())
 			&& (!std::is_base_of<XScopeTagBase, _TRandomAccessIterator1>::value)
 			, void>::type>
 			TNullableAnyPointer(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {}
