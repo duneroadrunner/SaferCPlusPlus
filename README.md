@@ -1,4 +1,4 @@
-May 2018
+Jun 2018
 
 ### Overview
 
@@ -28,7 +28,7 @@ An important consideration for many C++ applications is performance. Preferably 
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
-Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of May 2018). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
+Tested with msvc2017, msvc2015, g++7.3 & 5.4 and clang++6.0 & 3.8 (as of Jun 2018). Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016.
 
 ### Table of contents
 1. [Overview](#overview)
@@ -112,16 +112,15 @@ Tested with msvc2017, msvc2015, g++7.2 & 5.3 and clang++6.0 & 3.8 (as of May 201
     5. [mstd::string_view](#string_view)
     6. [nrp_string_view](#nrp_string_view)
 20. [optional](#optional-xscope_optional)
-21. [Compatibility considerations](#compatibility-considerations)
-22. [Practical limitations](#practical-limitations)
-23. [Questions and comments](#questions-and-comments)
+21. [Practical limitations](#practical-limitations)
+22. [Questions and comments](#questions-and-comments)
 
 
 ### Use cases
 
 This library is appropriate for use by two groups of C++ developers - those for whom safety and security are critical, and also everybody else. This library can help eliminate a lot of the opportunities for inadvertently accessing invalid memory or using uninitialized values. It essentially gets you [a lot](#practical-limitations) of the memory safety that you might get from say, Java, while retaining all of the power and most of the performance of C++.  
 
-While using the library can incur a modest performance penalty, because the library elements are [largely compatible](#compatibility-considerations) with their native counterparts, they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.  
+While using the library can incur a modest performance penalty, because the library elements are largely compatible with their native counterparts, they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.  
 
 And note that the safe components of this library can be adopted completely incrementally. New code written with these safe elements will play nicely with existing (unsafe) code, and unsafe elements can be replaced selectively without breaking the existing code. So there is really no excuse for not using the library in pretty much any situation.  
 
@@ -139,13 +138,13 @@ A couple of notes about compling: With g++ and clang++, you'll need to enable th
 
 ### SaferCPlusPlus versus Clang/LLVM Sanitizers
 
-The Clang/LLVM compiler provides a set of "sanitizers" (adopted by gcc) that address C/C++ "code safety" issues. While they address many of the same bugs, the solutions provided by the SaferCPlusPlus library and the Clang/LLVM sanitizers differ in significant ways (as of Sep 2016). Namely:
+The Clang/LLVM compiler provides a set of "sanitizers" (adopted by gcc) that address C/C++ "code safety" issues. While they address many of the same bugs, the solutions provided by the SaferCPlusPlus library and the Clang/LLVM sanitizers differ in significant ways. Namely (as of Sep 2016):
 
 - The Clang/LLVM sanitizers require modifications to the build process, not the code, whereas with SaferCPlusPlus it's the other way around.
-- SaferCPlusPlus can [more completely](https://en.wikipedia.org/wiki/AddressSanitizer#Limitations) solve the problem of invalid memory access, but does so by restricting what qualifies as "proper" SaferCPlusPlus code (eg. no pointer arithmetic).
+- SaferCPlusPlus can [more completely](https://en.wikipedia.org/wiki/AddressSanitizer#Limitations) solve the problem of invalid memory access, but in doing so does not support certain potentially dangerous language features (like pointer arithmetic).
 - When encountering an invalid memory operation at run-time, the Clang/LLVM sanitizers terminate the executable, where SaferCPlusPlus, by default, throws a (catchable) exception, but supports any user-defined action, including program termination. 
 - SaferCPlusPlus is portable C++ code that works on any platform, whereas Clang/LLVM sanitizers are available/maintained on a finite (but at the moment, ample) set of OS-architecture combinations.
-- The Clang/LLVM sanitizers cost more in terms of run-time performance. [~2x slowdown](https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers) for the AddressSanitizer, for example. SaferCPlusPlus generally has substantially [lower performance costs](#simple-benchmarks), mainly because the Clang/LLVM sanitizers cannot assume any cooperation from the source code, so they have to instrument pretty much every allocated piece of memory and check pretty well every pointer dereference.
+- The Clang/LLVM sanitizers cost more in terms of run-time performance. [~2x slowdown](https://github.com/google/sanitizers/wiki/AddressSanitizerPerformanceNumbers) for the AddressSanitizer, for example. SaferCPlusPlus generally has substantially [lower performance costs](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame), mainly because the Clang/LLVM sanitizers cannot assume any cooperation from the source code, so they have to instrument pretty much every allocated piece of memory and check pretty well every pointer dereference.
 - SaferCPlusPlus supports the mixing of "safe" and (high-performance) "unsafe" code at a granular level, where Clang/LLVM Sanitizers apply to entire modules, or as in the case of the MemorySanitizer, all modules, requiring recompilation of any linked libraries.
 - Clang's ThreadSanitizer tries to detect data race bugs, while SaferCPlusPlus provides [data types](#asynchronously-shared-objects) that eliminate the possibility of data race bugs (and a superset we call "object race" bugs).
 
@@ -507,9 +506,7 @@ Checked C and SaferCPlusPlus are more complementary than competitive. Checked C 
 
 ### Getting started on safening existing code
 
-The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#vector) and [`mse::mstd::array<>`](#array).
-
-The header files you'll need to include in your source file are "`msemstdvector.h`" and "`msemstdarray.h`". Those include files have additional dependencies on "`msemsevector.h`", "`msemsearray.h`", "`msescope.h`", and possibly "`mseprimitives.h`".
+The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#vector) and [`mse::mstd::array<>`](#array). Update for C++17: `std::string_view` seems to be quite [prone](https://github.com/isocpp/CppCoreGuidelines/issues/1038) to use-after-free bugs. You can substitute them with [`mse::nrp_string_view`](#nrp_string_view), and your `std::string`s with [`mse::mstd::string`](#string).
 
 Statistically speaking, doing this should already catch a significant chunk of potential memory bugs. By default, an exception will be thrown upon any attempt to access invalid memory. If your project is not using C++ exceptions, you'll probably want to override the default exception behavior by defining the `MSE_CUSTOM_THROW_DEFINITION()` preprocessor macro prior to inclusion of the header files. For example:
 
@@ -537,7 +534,7 @@ And if at some point you feel that these new elements involve a lot of typing, n
 
 Registered pointers come in two flavors - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TRelaxedRegisteredPointer<>`](#trelaxedregisteredpointer). They are both very similar. `TRegisteredPointer<>` emphasizes speed and safety a bit more, while `TRelaxedRegisteredPointer<>` emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, `TRelaxedRegisteredPointer<>` may be more convenient.
 
-Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. [cannot act as base classes](#compatibility-considerations). Fortunately, the library provides safer [substitutes](#primitives) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. The library provides safer [substitutes](#primitives) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
 Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead.  
 
@@ -2202,7 +2199,7 @@ void main(int argc, char* argv[]) {
 
 Any data type that qualifies as "[shareable](#tuserdeclaredasyncshareableobj)" (or "[passable](#tuserdeclaredasyncpassableobj)") with non-scope threads also qualifies as shareable (or passable) with scope threads. (But not necessarily the other way around.) But in order to share an existing scope object, that object also has to be an "access controlled" object. You make a type "access controlled" by wrapping it with the `mse::TXScopeAccessControlledObj<>` template wrapper. 
 
-`mse::TXScopeAccessControlledObj<>` provides `xscope_pointer()`, `xscope_const_pointer()` and `xscope_exclusive_pointer()` member functions which you use to obtain (scope) pointers to the contained object. Note that a pointer obtained via `xscope_exclusive_pointer()` may not coexist with any other pointer to the same object, and that the consequences of breaking this rule is immediate program termination upon violation. 
+`mse::TXScopeAccessControlledObj<>` provides `xscope_pointer()`, `xscope_const_pointer()` and `xscope_exclusive_pointer()` member functions which you use to obtain (scope) pointers to the contained object. Note that a pointer obtained via `xscope_exclusive_pointer()` may not coexist with any other pointer to the same object. Attempting to violate this rule will result in an exception, and attempting to destroy an access controlled object that has outstanding references to it will result in program termination. 
 
 Ok, so getting back to scope threads, it would generally not be very common that you would use `xscope_thread`s directly. More often you would use them indirectly via an `xscope_thread_carrier`, which is just a simple container for creating and managing a set of `xscope_thread`s.
 
@@ -2319,8 +2316,6 @@ usage example:
 Note that while `CInt` and `CSize_t` have no problem interacting with native signed integers, they do not implicitly play well with `size_t` or native unsigned integers. We'd be generally wary of using native unsigned integer types due to the (unintuitive) implicit conversion/promotion rules between signed and unsigned native integers. But if you need to obtain a `size_t` from a `CSize_t`, you can do so explicitly using the `mse::as_a_size_t()` function.   
 
 Btw, `CInt` is actually just an alias for a specific instantiation of the `TInt<>` template, which can be used to make a safe version of any given integer type. (Eg. `typedef mse::TInt<signed char> my_safe_small_int;`)
-
-Also see the section on "[compatibility considerations](#compatibility-considerations)".
 
 ### Quarantined types
 
@@ -2956,13 +2951,6 @@ usage example:
 
 `mse::mstd::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScopeObj<mse::mstd::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
 
-### Compatibility considerations
-People have [asked](http://stackoverflow.com/questions/2143020/why-cant-i-inherit-from-int-in-c) why the primitive C++ types can't be used as base classes. It turns out that really the only reason primitive types weren't made into full-fledged classes is that they inherit these "chaotic" conversion rules from C that can't be fully mimicked by C++ classes, and Bjarne thought it would be too ugly to try to make special case classes that followed different conversion rules.  
-
-But while substitute classes cannot be 100% compatible substitutes for their corresponding primitives, they can still be mostly compatible. And if you're writing new code or maintaining existing code, it should be considered good coding practice to ensure that your code is compatible with C++'s conversion rules for classes and not dependent on the "chaotic" legacy conversion rules of primitive types.
-
-If you are using legacy code or libraries where it's not practical to update the code, it shouldn't be a problem to continue using primitive types there and the safer substitute classes elsewhere in the code. The safer substitute classes generally have no problem interacting with primitive types, although in some cases you may need to do some explicit type casting. [Registered pointers](#registered-pointers) can be cast to raw pointers, and, for example, [`CInt`](#primitives) can participate in arithmetic operations with regular `int`s.
-
 ### Practical limitations
 
 The degree of memory safety that can be achieved is a function of the degree to which use of C++'s (memory) unsafe elements is avoided. Unfortunately, there is not yet a tool to automatically identify such uses. But if, in the future, there is significant demand for such a tool, it shouldn't be a particulary difficult thing to develop. Certainly trivial compared to some of the existing static analysis tools.
@@ -3024,11 +3012,49 @@ The above example contains unchecked accesses to deallocated memory via an impli
 
 So, technically, achieving complete memory safety requires passing a safe `this` pointer parameter as an argument to every member function that accesses a member variable. (I.e. Make your member functions `static`. Or "[free](https://www.youtube.com/watch?v=nWJHhtmWYcY)".)
 
-Unfortunately, certain member functions can't be made static. Namely constructors, destructors and member operators. Copy and move constructors and many of the operators have the additional issue of taking (technically unsafe) reference parameters. While these elements are technically unsafe, empirically (and perhaps intuitively) they seem to be much less prone to memory safety bugs than, say, raw pointers or "non-bounds-checked" containers. 
+But certain member functions can't be made static. Namely constructors, destructors and member operators. If all the constructors and destructors in the program are compiler-generated defaults (or are otherwise known to be "well behaved") then they would all be perfectly safe. The (theoretical) problem is that user-defined constructors or destructors aren't guaranteed to be "well behaved". Specifically, in conventional C++ they could cause objects to be deleted in the middle of their constructor/destructor(/non-static member function) calls. And not just their own object, but, for example, a misbehaving constructor that is called by a parent constructor could cause that parent object to be deleted before its construction is completed.
 
-If all the constructors and destructors (and operators) in the program are compiler-generated defaults (or are otherwise known to be "well behaved") then they would all be perfectly safe. The (theoretical) problem is that user-defined constructors or destructors aren't guaranteed to be "well behaved". Specifically, they could cause objects to be deleted in the middle of their constructor/destructor(/non-static member function) calls. And not just their own object, but, for example, a misbehaving constructor that is called by a parent constructor could cause that parent object to be deleted before its construction is completed. 
+Fortunately, with the SaferCPlusPlus subset it's not quite so bad. Let's consider the possibility of an object's `this` pointer being invalidated (i.e. the object being destroyed) while in the middle of executing its constructor. In the SaferCPlusPlus subset there are a limited number of circumstances when a constructor is invoked. One is when a local variable is declared (on the stack). In this case the `this` pointer is intrinsically guaranteed to be valid, not just for the duration of the constructor, but indeed for the duration of the scope. Another case is when calling `make_refcounting<>()`. In this case, no direct or indirect reference to the object (other than the `this` pointer itself) is available until after the constructor has finished executing, so there's no opportunity for the object to be destroyed (and the `this` pointer invalidated) before then. Same goes for `registered_new()`. 
 
-Again, empirically this doesn't seem to be an issue in practice. But for codebases where user-defined constructors and/or destructors are used/permitted, one strategy for addressing the (theoretical) issue of potential invalidation of the `this` pointer is to use "state lock guards". Basically just checking at run-time that the destructor is not executed while any (non-trivial) non-static member function of the same object is being executed (including another instance of the destructor itself). This mechanism would be required not only for types with user-defined constructors and/or destructors, but also for any type for which a child/ancestor/member object could have a user-defined constructor or destructor. While this technique does involve run-time overhead, it's the kind of overhead that the compiler optimizer should often be able to discard. "State lock guards" can be enabled for the library's container classes with a compile-time directive.
+The more complicated case is when a container, like say, `mstd::vector<>` causes the invocation of child object constructors. Consider this example:
+
+```cpp
+#include "msescope.h"
+#include "msemstdvector.h"
+
+class CMisbehaver1 {
+public:
+	template<typename TVectorPtr>
+	CMisbehaver1(TVectorPtr vector_ptr) {
+		vector_ptr->clear(); // potentially dangerous behavior in a constructor
+
+		// codepoint 1
+
+		// is the "this" pointer still valid here?
+
+		this->m_string1 = "some text";
+	}
+	mse::mstd::string m_string1;
+};
+
+void main() {
+	typedef mse::mstd::vector<CMisbehaver1> misb1_vec_t;
+	typedef mse::mstd::vector<misb1_vec_t> misb1_vec_vec_t;
+	mse::TXScopeObj<misb1_vec_vec_t> xs_vv1;
+	xs_vv1.resize(1);
+	xs_vv1[0].emplace_back(&xs_vv1);
+}
+```
+
+It's a little bit tricky, but the `emplace_back()` call on the last line of the `main()` function is going to cause the constructor of `CMisbehaver1` to be invoked. But in its first line, the constructor seemingly causes its parent container to be deleted, making its own `this` pointer invalid.
+
+But because the parent container (i.e. the thing invoking the constructor) is an element of the library, it has run-time checks to ensure that its destructor is not executed while in the middle of one of its (non-static) member functions, like `emplace_back()` (or a contructor or the destructor). So in this case, rather than execute its destructor in the middle of the `emplace_back()` call, the program will terminate.
+
+Because constructors and destructors of dynamically (i.e. heap) allocated objects can only be invoked via elements of the library, those elements can (and do) ensure that the `this` pointer remains valid for the whole constructor/destructor call in all cases.
+
+But by default these run-time checks are only enabled in debug builds. Because i) empirically, this kind of bug seems to be very rare, and ii) code bases may be adhering to other policies that obviate the issue (such as not permitting user-defined constructors/destructors). Defining the `MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT` preprocessor symbol will enable the checks in non-debug builds as well.
+
+While we can ensure that the `this` pointer remains valid in constructors/destructors, we cannot do the same for native reference parameters. This means that technically you would still need to avoid (user-defined) constructors which take native reference parameters, like copy and move constructors, to assure memory safety.
 
 If you decide to permit functions that take reference parameters, note that `std::move()` (the one in the `<utility>` library, not the one in the `<algorithm>` library) is not really in the spirit of the library and could cause problems if applied to certain scope objects. `std::forward<>()` is fine. Basically, just let the compiler decide when a reference is an rvalue reference.
 
