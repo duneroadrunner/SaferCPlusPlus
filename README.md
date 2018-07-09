@@ -2738,7 +2738,7 @@ But by default these run-time checks are only enabled in debug builds. Because i
 
 While we can ensure that the `this` pointer remains valid in constructors/destructors, we cannot do the same for native reference parameters. This means that technically you would still need to avoid (user-defined) constructors which take native reference parameters, like copy and move constructors, to assure memory safety.
 
-If you decide to permit functions that take reference parameters, note that `std::move()` (the one in the `<utility>` library, not the one in the `<algorithm>` library) is not really in the spirit of the library and could cause problems if applied to certain scope objects. `std::forward<>()` is fine. Basically, just let the compiler decide when a reference is an rvalue reference.
+Also note that explicitly calling `std::move()` (the one in the `<utility>` library, not the one in the `<algorithm>` library) is not really in the spirit of the library and could cause problems if applied to certain scope objects. `std::forward<>()` is fine. Basically, just let the compiler decide when a reference is an rvalue reference.
 
 And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with [`ivector<>`](#ivector)s that support list-style iterators, often with a performance benefit.
 
