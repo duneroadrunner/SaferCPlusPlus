@@ -388,7 +388,7 @@ native pointer (heap): | 0.0394826 seconds.
 [mse::TRefCountingPointer](#trefcountingpointer) (heap): | 0.0493629 seconds.
 mse::TRegisteredPointer (heap): | 0.0573699 seconds.
 std::shared_ptr (heap): | 0.0692405 seconds.
-[mse::TRelaxedRegisteredPointer](#trelaxedregisteredpointer) (heap): | 0.14475 seconds.
+[mse::TRelaxedRegisteredPointer](#trelaxedregisteredpointer) (heap)\*: | 0.14475 seconds.
 
 ##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
 
@@ -398,7 +398,9 @@ mse::TRegisteredPointer (stack): | 0.0270016 seconds.
 native pointer (heap): | 0.0490028 seconds.
 mse::TRegisteredPointer (heap): | 0.0740042 seconds.
 std::shared_ptr (heap): | 0.087005 seconds.
-mse::TRelaxedRegisteredPointer (heap): | 0.142008 seconds.
+mse::TRelaxedRegisteredPointer (heap)\*: | 0.142008 seconds.
+
+\* These benchmarks used an older version of `mse::TRelaxedRegisteredPointer`. The current version would have performance similar to `mse::TRegisteredPointer`.
 
 Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. Interestingly, three of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.  
 
