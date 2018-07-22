@@ -153,10 +153,12 @@ namespace mse {
 		signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
 		*/
 		template <class Y> friend class TRefCountingPointer;
-		template <class Y> TRefCountingPointer(const TRefCountingPointer<Y>& r) {
+		template <class Y, class = typename std::enable_if<std::is_base_of<X, Y>::value, void>::type>
+		TRefCountingPointer(const TRefCountingPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
 		}
-		template <class Y> TRefCountingPointer& operator=(const TRefCountingPointer<Y>& r) {
+		template <class Y, class = typename std::enable_if<std::is_base_of<X, Y>::value, void>::type>
+		TRefCountingPointer& operator=(const TRefCountingPointer<Y>& r) {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
@@ -334,13 +336,6 @@ namespace mse {
 			}
 			return *this;
 		}
-		TRefCountingConstPointer& operator=(const TRefCountingPointer<X>& r) {
-			/*if (this != &r) */ {
-				auto_release keep(m_ref_with_target_obj_ptr);
-				acquire(r.m_ref_with_target_obj_ptr);
-			}
-			return *this;
-		}
 		bool operator<(const TRefCountingConstPointer& r) const {
 			return get() < r.get();
 		}
@@ -358,10 +353,12 @@ namespace mse {
 		signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
 		*/
 		template <class Y> friend class TRefCountingConstPointer;
-		template <class Y> TRefCountingConstPointer(const TRefCountingConstPointer<Y>& r) {
+		template <class Y, class = typename std::enable_if<std::is_base_of<X, Y>::value, void>::type>
+		TRefCountingConstPointer(const TRefCountingConstPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
 		}
-		template <class Y> TRefCountingConstPointer& operator=(const TRefCountingConstPointer<Y>& r) {
+		template <class Y, class = typename std::enable_if<std::is_base_of<X, Y>::value, void>::type>
+		TRefCountingConstPointer& operator=(const TRefCountingConstPointer<Y>& r) {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
