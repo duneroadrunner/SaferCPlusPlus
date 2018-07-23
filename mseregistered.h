@@ -608,6 +608,33 @@ namespace mse {
 		mutable TRPTracker<_Tn> m_mseRPManager;
 	};
 
+	/* template specializations */
+	template<typename _Ty, int _Tn>
+	class TRegisteredObj<_Ty*, _Tn> : public TRegisteredObj<mse::TPointer<_Ty>, _Tn> {
+	public:
+		typedef TRegisteredObj<mse::TPointer<_Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredObj, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredObj<_Ty* const, _Tn> : public TRegisteredObj<const mse::TPointer<_Ty>, _Tn> {
+	public:
+		typedef TRegisteredObj<const mse::TPointer<_Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredObj, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredObj<const _Ty *, _Tn> : public TRegisteredObj<mse::TPointer<const _Ty>, _Tn> {
+	public:
+		typedef TRegisteredObj<mse::TPointer<const _Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredObj, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredObj<const _Ty * const, _Tn> : public TRegisteredObj<const mse::TPointer<const _Ty>, _Tn> {
+	public:
+		typedef TRegisteredObj<const mse::TPointer<const _Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredObj, base_class);
+	};
+
+
 	template<typename _Ty>
 	auto registered_fptr_to(_Ty&& _X) {
 		return _X.mse_registered_fptr();

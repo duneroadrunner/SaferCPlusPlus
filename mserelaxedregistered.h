@@ -672,8 +672,8 @@ namespace mse {
 	destruction so that TRelaxedRegisteredPointers will avoid referencing destroyed objects. Note that TRelaxedRegisteredObj can be used with
 	objects allocated on the stack. */
 	template<typename _TROFLy>
-	class TRelaxedRegisteredObj : public _TROFLy
-		, public std::conditional<!std::is_convertible<_TROFLy*, NotAsyncShareableTagBase*>::value, NotAsyncShareableTagBase, TPlaceHolder_msepointerbasics<TRelaxedRegisteredObj<_TROFLy> > >::type
+	class TRelaxedRegisteredObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, NotAsyncShareableTagBase*>::value) && (!std::is_base_of<NotAsyncShareableTagBase, _TROFLy>::value)
+		, NotAsyncShareableTagBase, TPlaceHolder_msepointerbasics<TRelaxedRegisteredObj<_TROFLy> > >::type
 	{
 	public:
 		typedef _TROFLy base_class;
@@ -711,6 +711,34 @@ namespace mse {
 		};
 		CTrackerNotifier m_tracker_notifier;
 	};
+
+
+	/* template specializations */
+	template<typename _Ty>
+	class TRelaxedRegisteredObj<_Ty*> : public TRelaxedRegisteredObj<mse::TPointer<_Ty>> {
+	public:
+		typedef TRelaxedRegisteredObj<mse::TPointer<_Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredObj, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredObj<_Ty* const> : public TRelaxedRegisteredObj<const mse::TPointer<_Ty>> {
+	public:
+		typedef TRelaxedRegisteredObj<const mse::TPointer<_Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredObj, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredObj<const _Ty *> : public TRelaxedRegisteredObj<mse::TPointer<const _Ty>> {
+	public:
+		typedef TRelaxedRegisteredObj<mse::TPointer<const _Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredObj, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredObj<const _Ty * const> : public TRelaxedRegisteredObj<const mse::TPointer<const _Ty>> {
+	public:
+		typedef TRelaxedRegisteredObj<const mse::TPointer<const _Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredObj, base_class);
+	};
+
 
 	template<typename _Ty>
 	auto relaxed_registered_fptr_to(_Ty&& _X) {
