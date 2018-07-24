@@ -608,32 +608,6 @@ namespace mse {
 		mutable TRPTracker<_Tn> m_mseRPManager;
 	};
 
-	/* template specializations */
-	template<typename _Ty, int _Tn>
-	class TRegisteredObj<_Ty*, _Tn> : public TRegisteredObj<mse::TPointer<_Ty>, _Tn> {
-	public:
-		typedef TRegisteredObj<mse::TPointer<_Ty>, _Tn> base_class;
-		MSE_USING(TRegisteredObj, base_class);
-	};
-	template<typename _Ty, int _Tn>
-	class TRegisteredObj<_Ty* const, _Tn> : public TRegisteredObj<const mse::TPointer<_Ty>, _Tn> {
-	public:
-		typedef TRegisteredObj<const mse::TPointer<_Ty>, _Tn> base_class;
-		MSE_USING(TRegisteredObj, base_class);
-	};
-	template<typename _Ty, int _Tn>
-	class TRegisteredObj<const _Ty *, _Tn> : public TRegisteredObj<mse::TPointer<const _Ty>, _Tn> {
-	public:
-		typedef TRegisteredObj<mse::TPointer<const _Ty>, _Tn> base_class;
-		MSE_USING(TRegisteredObj, base_class);
-	};
-	template<typename _Ty, int _Tn>
-	class TRegisteredObj<const _Ty * const, _Tn> : public TRegisteredObj<const mse::TPointer<const _Ty>, _Tn> {
-	public:
-		typedef TRegisteredObj<const mse::TPointer<const _Ty>, _Tn> base_class;
-		MSE_USING(TRegisteredObj, base_class);
-	};
-
 
 	template<typename _Ty>
 	auto registered_fptr_to(_Ty&& _X) {
@@ -807,6 +781,84 @@ namespace mse {
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
 		return (*this).m_ptr;
 	}
+
+
+	/* template specializations */
+
+	template<typename _Ty, int _Tn>
+	class TRegisteredObj<_Ty*, _Tn> : public TRegisteredObj<mse::TPointer<_Ty>, _Tn> {
+	public:
+		typedef TRegisteredObj<mse::TPointer<_Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredObj, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredObj<_Ty* const, _Tn> : public TRegisteredObj<const mse::TPointer<_Ty>, _Tn> {
+	public:
+		typedef TRegisteredObj<const mse::TPointer<_Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredObj, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredObj<const _Ty *, _Tn> : public TRegisteredObj<mse::TPointer<const _Ty>, _Tn> {
+	public:
+		typedef TRegisteredObj<mse::TPointer<const _Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredObj, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredObj<const _Ty * const, _Tn> : public TRegisteredObj<const mse::TPointer<const _Ty>, _Tn> {
+	public:
+		typedef TRegisteredObj<const mse::TPointer<const _Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredObj, base_class);
+	};
+
+	template<typename _Ty, int _Tn>
+	class TRegisteredPointer<_Ty*, _Tn> : public TRegisteredPointer<mse::TPointer<_Ty>, _Tn> {
+	public:
+		typedef TRegisteredPointer<mse::TPointer<_Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredPointer, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredPointer<_Ty* const, _Tn> : public TRegisteredPointer<const mse::TPointer<_Ty>, _Tn> {
+	public:
+		typedef TRegisteredPointer<const mse::TPointer<_Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredPointer, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredPointer<const _Ty *, _Tn> : public TRegisteredPointer<mse::TPointer<const _Ty>, _Tn> {
+	public:
+		typedef TRegisteredPointer<mse::TPointer<const _Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredPointer, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredPointer<const _Ty * const, _Tn> : public TRegisteredPointer<const mse::TPointer<const _Ty>, _Tn> {
+	public:
+		typedef TRegisteredPointer<const mse::TPointer<const _Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredPointer, base_class);
+	};
+
+	template<typename _Ty, int _Tn>
+	class TRegisteredConstPointer<_Ty*, _Tn> : public TRegisteredConstPointer<mse::TPointer<_Ty>, _Tn> {
+	public:
+		typedef TRegisteredConstPointer<mse::TPointer<_Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredConstPointer, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredConstPointer<_Ty* const, _Tn> : public TRegisteredConstPointer<const mse::TPointer<_Ty>, _Tn> {
+	public:
+		typedef TRegisteredConstPointer<const mse::TPointer<_Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredConstPointer, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredConstPointer<const _Ty *, _Tn> : public TRegisteredConstPointer<mse::TPointer<const _Ty>, _Tn> {
+	public:
+		typedef TRegisteredConstPointer<mse::TPointer<const _Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredConstPointer, base_class);
+	};
+	template<typename _Ty, int _Tn>
+	class TRegisteredConstPointer<const _Ty * const, _Tn> : public TRegisteredConstPointer<const mse::TPointer<const _Ty>, _Tn> {
+	public:
+		typedef TRegisteredConstPointer<const mse::TPointer<const _Ty>, _Tn> base_class;
+		MSE_USING(TRegisteredConstPointer, base_class);
+	};
 }
 
 namespace std {

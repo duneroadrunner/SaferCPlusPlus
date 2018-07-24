@@ -713,33 +713,6 @@ namespace mse {
 	};
 
 
-	/* template specializations */
-	template<typename _Ty>
-	class TRelaxedRegisteredObj<_Ty*> : public TRelaxedRegisteredObj<mse::TPointer<_Ty>> {
-	public:
-		typedef TRelaxedRegisteredObj<mse::TPointer<_Ty>> base_class;
-		MSE_USING(TRelaxedRegisteredObj, base_class);
-	};
-	template<typename _Ty>
-	class TRelaxedRegisteredObj<_Ty* const> : public TRelaxedRegisteredObj<const mse::TPointer<_Ty>> {
-	public:
-		typedef TRelaxedRegisteredObj<const mse::TPointer<_Ty>> base_class;
-		MSE_USING(TRelaxedRegisteredObj, base_class);
-	};
-	template<typename _Ty>
-	class TRelaxedRegisteredObj<const _Ty *> : public TRelaxedRegisteredObj<mse::TPointer<const _Ty>> {
-	public:
-		typedef TRelaxedRegisteredObj<mse::TPointer<const _Ty>> base_class;
-		MSE_USING(TRelaxedRegisteredObj, base_class);
-	};
-	template<typename _Ty>
-	class TRelaxedRegisteredObj<const _Ty * const> : public TRelaxedRegisteredObj<const mse::TPointer<const _Ty>> {
-	public:
-		typedef TRelaxedRegisteredObj<const mse::TPointer<const _Ty>> base_class;
-		MSE_USING(TRelaxedRegisteredObj, base_class);
-	};
-
-
 	template<typename _Ty>
 	auto relaxed_registered_fptr_to(_Ty&& _X) {
 		return _X.mse_relaxed_registered_fptr();
@@ -780,6 +753,85 @@ namespace mse {
 			regPtrRef.relaxed_registered_delete();
 		}
 	}
+
+
+	/* template specializations */
+
+	template<typename _Ty>
+	class TRelaxedRegisteredObj<_Ty*> : public TRelaxedRegisteredObj<mse::TPointer<_Ty>> {
+	public:
+		typedef TRelaxedRegisteredObj<mse::TPointer<_Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredObj, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredObj<_Ty* const> : public TRelaxedRegisteredObj<const mse::TPointer<_Ty>> {
+	public:
+		typedef TRelaxedRegisteredObj<const mse::TPointer<_Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredObj, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredObj<const _Ty *> : public TRelaxedRegisteredObj<mse::TPointer<const _Ty>> {
+	public:
+		typedef TRelaxedRegisteredObj<mse::TPointer<const _Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredObj, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredObj<const _Ty * const> : public TRelaxedRegisteredObj<const mse::TPointer<const _Ty>> {
+	public:
+		typedef TRelaxedRegisteredObj<const mse::TPointer<const _Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredObj, base_class);
+	};
+
+	template<typename _Ty>
+	class TRelaxedRegisteredPointer<_Ty*> : public TRelaxedRegisteredPointer<mse::TPointer<_Ty>> {
+	public:
+		typedef TRelaxedRegisteredPointer<mse::TPointer<_Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredPointer, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredPointer<_Ty* const> : public TRelaxedRegisteredPointer<const mse::TPointer<_Ty>> {
+	public:
+		typedef TRelaxedRegisteredPointer<const mse::TPointer<_Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredPointer, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredPointer<const _Ty *> : public TRelaxedRegisteredPointer<mse::TPointer<const _Ty>> {
+	public:
+		typedef TRelaxedRegisteredPointer<mse::TPointer<const _Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredPointer, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredPointer<const _Ty * const> : public TRelaxedRegisteredPointer<const mse::TPointer<const _Ty>> {
+	public:
+		typedef TRelaxedRegisteredPointer<const mse::TPointer<const _Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredPointer, base_class);
+	};
+
+	template<typename _Ty>
+	class TRelaxedRegisteredConstPointer<_Ty*> : public TRelaxedRegisteredConstPointer<mse::TPointer<_Ty>> {
+	public:
+		typedef TRelaxedRegisteredConstPointer<mse::TPointer<_Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredConstPointer, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredConstPointer<_Ty* const> : public TRelaxedRegisteredConstPointer<const mse::TPointer<_Ty>> {
+	public:
+		typedef TRelaxedRegisteredConstPointer<const mse::TPointer<_Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredConstPointer, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredConstPointer<const _Ty *> : public TRelaxedRegisteredConstPointer<mse::TPointer<const _Ty>> {
+	public:
+		typedef TRelaxedRegisteredConstPointer<mse::TPointer<const _Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredConstPointer, base_class);
+	};
+	template<typename _Ty>
+	class TRelaxedRegisteredConstPointer<const _Ty * const> : public TRelaxedRegisteredConstPointer<const mse::TPointer<const _Ty>> {
+	public:
+		typedef TRelaxedRegisteredConstPointer<const mse::TPointer<const _Ty>> base_class;
+		MSE_USING(TRelaxedRegisteredConstPointer, base_class);
+	};
+
 }
 
 namespace std {
