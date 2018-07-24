@@ -113,6 +113,23 @@ namespace mse {
 		};
 
 		template<class _Ty, size_t _Size >
+		class array;
+	}
+}
+
+namespace std {
+	template<size_t _Idx, class _Tz, size_t _Size2>
+	_CONST_FUN _Tz& get(mse::mstd::array<_Tz, _Size2>& _Arr) _NOEXCEPT;
+	template<size_t _Idx, class _Tz, size_t _Size2>
+	_CONST_FUN const _Tz& get(const mse::mstd::array<_Tz, _Size2>& _Arr) _NOEXCEPT;
+	template<size_t _Idx, class _Tz, size_t _Size2>
+	_CONST_FUN _Tz&& get(mse::mstd::array<_Tz, _Size2>&& _Arr) _NOEXCEPT;
+}
+
+namespace mse {
+	namespace mstd {
+
+		template<class _Ty, size_t _Size >
 		class array {
 		public:
 			typedef array _Myt;

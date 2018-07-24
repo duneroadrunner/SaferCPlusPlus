@@ -43,9 +43,10 @@
 #include <stdexcept>
 #include <type_traits>
 #include <shared_mutex>
+#include <mutex>
 #include <algorithm>
-#ifdef MSE_SELF_TESTS
 #include <iostream>
+#ifdef MSE_SELF_TESTS
 #include <string>
 #include <iterator>
 #endif // MSE_SELF_TESTS
@@ -910,13 +911,33 @@ namespace mse {
 		using reference = decltype(std::declval<_TRAContainer>()[0]);
 	};
 
-	template<class _Ty, size_t _Size, class _TStateMutex/* = default_state_mutex*/>
+	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
 	class nii_array;
 
 	namespace us {
 		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
 		class msearray;
 	}
+}
+
+namespace std {
+
+	template<size_t _Idx, class _Tz, size_t _Size2>
+	_CONST_FUN _Tz& get(mse::nii_array<_Tz, _Size2>& _Arr) _NOEXCEPT;
+	template<size_t _Idx, class _Tz, size_t _Size2>
+	_CONST_FUN const _Tz& get(const mse::nii_array<_Tz, _Size2>& _Arr) _NOEXCEPT;
+	template<size_t _Idx, class _Tz, size_t _Size2>
+	_CONST_FUN _Tz&& get(mse::nii_array<_Tz, _Size2>&& _Arr) _NOEXCEPT;
+
+	template<size_t _Idx, class _Tz, size_t _Size2>
+	_CONST_FUN _Tz& get(mse::us::msearray<_Tz, _Size2>& _Arr) _NOEXCEPT;
+	template<size_t _Idx, class _Tz, size_t _Size2>
+	_CONST_FUN const _Tz& get(const mse::us::msearray<_Tz, _Size2>& _Arr) _NOEXCEPT;
+	template<size_t _Idx, class _Tz, size_t _Size2>
+	_CONST_FUN _Tz&& get(mse::us::msearray<_Tz, _Size2>&& _Arr) _NOEXCEPT;
+}
+
+namespace mse {
 
 
 	template<class _Ty>
@@ -1543,7 +1564,7 @@ namespace mse {
 	like ss_begin<>(...) and ss_end<>(...) which take a pointer parameter and return a (bounds-checked) iterator that
 	inherits the safety of the given pointer. nii_array<> also supports "scope" iterators which are safe without any
 	run-time overhead. nii_array<> is a data type that is eligible to be shared between asynchronous threads. */
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	template<class _Ty, size_t _Size, class _TStateMutex/* = default_state_mutex*/>
 	class nii_array {
 	public:
 		typedef std::array<_Ty, _Size> std_array;
