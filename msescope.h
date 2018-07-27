@@ -696,6 +696,64 @@ namespace mse {
 		}
 	};
 
+
+	/* template specializations */
+
+	template<typename _Ty>
+	class TXScopeObj<_Ty*> : public TXScopeObj<mse::TPointer<_Ty>> {
+	public:
+		typedef TXScopeObj<mse::TPointer<_Ty>> base_class;
+		MSE_USING(TXScopeObj, base_class);
+	};
+	template<typename _Ty>
+	class TXScopeObj<_Ty* const> : public TXScopeObj<const mse::TPointer<_Ty>> {
+	public:
+		typedef TXScopeObj<const mse::TPointer<_Ty>> base_class;
+		MSE_USING(TXScopeObj, base_class);
+	};
+	template<typename _Ty>
+	class TXScopeObj<const _Ty *> : public TXScopeObj<mse::TPointer<const _Ty>> {
+	public:
+		typedef TXScopeObj<mse::TPointer<const _Ty>> base_class;
+		MSE_USING(TXScopeObj, base_class);
+	};
+	template<typename _Ty>
+	class TXScopeObj<const _Ty * const> : public TXScopeObj<const mse::TPointer<const _Ty>> {
+	public:
+		typedef TXScopeObj<const mse::TPointer<const _Ty>> base_class;
+		MSE_USING(TXScopeObj, base_class);
+	};
+
+#ifdef MSEPRIMITIVES_H
+	template<>
+	class TXScopeObj<int> : public TXScopeObj<mse::TInt<int>> {
+	public:
+		typedef TXScopeObj<mse::TInt<int>> base_class;
+		MSE_USING(TXScopeObj, base_class);
+	};
+	template<>
+	class TXScopeObj<const int> : public TXScopeObj<const mse::TInt<int>> {
+	public:
+		typedef TXScopeObj<const mse::TInt<int>> base_class;
+		MSE_USING(TXScopeObj, base_class);
+	};
+
+	template<>
+	class TXScopeObj<size_t> : public TXScopeObj<mse::TInt<size_t>> {
+	public:
+		typedef TXScopeObj<mse::TInt<size_t>> base_class;
+		MSE_USING(TXScopeObj, base_class);
+	};
+	template<>
+	class TXScopeObj<const size_t> : public TXScopeObj<const mse::TInt<size_t>> {
+	public:
+		typedef TXScopeObj<const mse::TInt<size_t>> base_class;
+		MSE_USING(TXScopeObj, base_class);
+	};
+#endif /*MSEPRIMITIVES_H*/
+
+	/* end of template specializations */
+
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
 	namespace rsv {
