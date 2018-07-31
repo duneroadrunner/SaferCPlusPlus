@@ -12,6 +12,7 @@ types. Your best bet is probably to use a find/search to get to the data type yo
 #include "msetl_example_defs.h"
 
 //include "msetl.h"
+#include "mseprimitives.h"
 #include "mseregistered.h"
 #include "mserelaxedregistered.h"
 #include "mseflregistered.h"
@@ -27,7 +28,6 @@ types. Your best bet is probably to use a find/search to get to the data type yo
 #include "msemstdvector.h"
 #include "mseivector.h"
 #include "msevector_test.h"
-#include "mseprimitives.h"
 #include "mselegacyhelpers.h"
 #include "msemstdstring.h"
 #include <algorithm>
@@ -1110,9 +1110,9 @@ int main(int argc, char* argv[])
 				item2_ptr->m_next_item_ptr = item3_ptr;
 				item3_ptr->m_next_item_ptr = item1_ptr;
 				auto t1 = std::chrono::high_resolution_clock::now();
-				mse::TRefCountingPointer<CF>* refc_ptr = &(item1_ptr->m_next_item_ptr);
+				mse::TRefCountingPointer<CF>* refc_ptr = std::addressof(item1_ptr->m_next_item_ptr);
 				for (int i = 0; i < number_of_loops2; i += 1) {
-					refc_ptr = &((*refc_ptr)->m_next_item_ptr);
+					refc_ptr = std::addressof((*refc_ptr)->m_next_item_ptr);
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

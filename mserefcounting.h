@@ -53,10 +53,19 @@ namespace mse {
 	template <class X> using TRefCountingNotNullConstPointer = std::shared_ptr<const X>;
 	template <class X> using TRefCountingFixedConstPointer = std::shared_ptr<const X>;
 
+	template<typename _Ty> TRefCountingNotNullPointer<_Ty> not_null_from_nullable(const TRefCountingPointer<_Ty>& src);
+	template<typename _Ty> TRefCountingNotNullConstPointer<_Ty> not_null_from_nullable(const TRefCountingConstPointer<_Ty>& src);
+
 	template <class X, class... Args>
 	TRefCountingFixedPointer<X> make_refcounting(Args&&... args) {
 		return std::make_shared<X>(std::forward<Args>(args)...);
 	}
+
+	template <class X, class... Args>
+	TRefCountingPointer<X> make_nullable_refcounting(Args&&... args) {
+		return std::make_shared<X>(std::forward<Args>(args)...);
+	}
+
 #else /*MSE_REFCOUNTINGPOINTER_DISABLED*/
 
 #ifdef MSEPOINTERBASICS_H
@@ -70,10 +79,15 @@ namespace mse {
 		using std::logic_error::logic_error;
 	};
 
+	template<typename _Ty> class TRefCountingPointer;
 	template<typename _Ty> class TRefCountingNotNullPointer;
 	template<typename _Ty> class TRefCountingFixedPointer;
+	template<typename _Ty> class TRefCountingConstPointer;
 	template<typename _Ty> class TRefCountingNotNullConstPointer;
 	template<typename _Ty> class TRefCountingFixedConstPointer;
+
+	template<typename _Ty> TRefCountingNotNullPointer<_Ty> not_null_from_nullable(const TRefCountingPointer<_Ty>& src);
+	template<typename _Ty> TRefCountingNotNullConstPointer<_Ty> not_null_from_nullable(const TRefCountingConstPointer<_Ty>& src);
 
 	class CRefCounter {
 	private:
@@ -247,6 +261,8 @@ namespace mse {
 #endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		void valid_if_X_is_not_an_xscope_type() const {}
 
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		CRefCounter* m_ref_with_target_obj_ptr;
 
 		friend class TRefCountingNotNullPointer<X>;
@@ -257,25 +273,32 @@ namespace mse {
 	class TRefCountingNotNullPointer : public TRefCountingPointer<_Ty> {
 	public:
 		TRefCountingNotNullPointer(const TRefCountingNotNullPointer& src_cref) : TRefCountingPointer<_Ty>(src_cref) {}
-		TRefCountingNotNullPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingPointer<_Ty>(src_cref) {
-			*src_cref; // to ensure that src_cref points to a valid target
-		}
 		virtual ~TRefCountingNotNullPointer() {}
 		TRefCountingNotNullPointer<_Ty>& operator=(const TRefCountingNotNullPointer<_Ty>& _Right_cref) {
 			TRefCountingPointer<_Ty>::operator=(_Right_cref);
 			return (*this);
 		}
 
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TRefCountingPointer<_Ty>::operator _Ty*(); }
+		template <class... Args>
+		static TRefCountingNotNullPointer make(Args&&... args) {
+			auto new_ptr = new TRefWithTargetObj<_Ty>(std::forward<Args>(args)...);
+			TRefCountingNotNullPointer retval(new_ptr);
+			return retval;
+		}
 
 	private:
 		explicit TRefCountingNotNullPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountingPointer<_Ty>(p) {}
 
-		//TRefCountingNotNullPointer<_Ty>* operator&() { return this; }
-		//const TRefCountingNotNullPointer<_Ty>* operator&() const { return this; }
+		/* If you want to use this constructor, use not_null_from_nullable() instead. */
+		TRefCountingNotNullPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingPointer<_Ty>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TRefCountingFixedPointer<_Ty>;
+		template<typename _Ty2>
+		friend TRefCountingNotNullPointer<_Ty2> not_null_from_nullable(const TRefCountingPointer<_Ty2>& src);
 	};
 
 	/* TRefCountingFixedPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
@@ -285,10 +308,7 @@ namespace mse {
 	public:
 		TRefCountingFixedPointer(const TRefCountingFixedPointer& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
 		TRefCountingFixedPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
-		TRefCountingFixedPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
 		virtual ~TRefCountingFixedPointer() {}
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TRefCountingNotNullPointer<_Ty>::operator _Ty*(); }
 
 		template <class... Args>
 		static TRefCountingFixedPointer make(Args&&... args) {
@@ -299,17 +319,25 @@ namespace mse {
 
 	private:
 		explicit TRefCountingFixedPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountingNotNullPointer<_Ty>(p) {}
+
+		/* If you want to use this constructor, use not_null_from_nullable() instead. */
+		TRefCountingFixedPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
+
 		TRefCountingFixedPointer<_Ty>& operator=(const TRefCountingFixedPointer<_Ty>& _Right_cref) = delete;
 
-		//TRefCountingFixedPointer<_Ty>* operator&() { return this; }
-		//const TRefCountingFixedPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TRefCountingConstPointer<_Ty>;
 	};
 
 	template <class X, class... Args>
-	TRefCountingFixedPointer<X> make_refcounting(Args&&... args) {
-		return TRefCountingFixedPointer<X>::make(std::forward<Args>(args)...);
+	TRefCountingNotNullPointer<X> make_refcounting(Args&&... args) {
+		return TRefCountingNotNullPointer<X>::make(std::forward<Args>(args)...);
+	}
+
+	template <class X, class... Args>
+	TRefCountingPointer<X> make_nullable_refcounting(Args&&... args) {
+		return TRefCountingPointer<X>::make(std::forward<Args>(args)...);
 	}
 
 
@@ -386,6 +414,11 @@ namespace mse {
 			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return x_ptr;
 		}
+		bool unique() const {
+			return (m_ref_with_target_obj_ptr ? (m_ref_with_target_obj_ptr->use_count() == 1) : true);
+		}
+
+	protected:
 		const X* get() const {
 			if (!m_ref_with_target_obj_ptr) {
 				return nullptr;
@@ -394,9 +427,6 @@ namespace mse {
 				X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 				return x_ptr;
 			}
-		}
-		bool unique() const {
-			return (m_ref_with_target_obj_ptr ? (m_ref_with_target_obj_ptr->use_count() == 1) : true);
 		}
 
 	private:
@@ -432,6 +462,8 @@ namespace mse {
 			}
 		}
 
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		CRefCounter* m_ref_with_target_obj_ptr;
 
 		friend class TRefCountingNotNullConstPointer<X>;
@@ -442,26 +474,26 @@ namespace mse {
 	public:
 		TRefCountingNotNullConstPointer(const TRefCountingNotNullConstPointer& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {}
 		TRefCountingNotNullConstPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {}
-		TRefCountingNotNullConstPointer(const TRefCountingConstPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {
-			*src_cref; // to ensure that src_cref points to a valid target
-		}
-		TRefCountingNotNullConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {
-			*src_cref; // to ensure that src_cref points to a valid target
-		}
 		virtual ~TRefCountingNotNullConstPointer() {}
 		TRefCountingNotNullConstPointer<_Ty>& operator=(const TRefCountingNotNullConstPointer<_Ty>& _Right_cref) {
 			TRefCountingConstPointer<_Ty>::operator=(_Right_cref);
 			return (*this);
 		}
 
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TRefCountingConstPointer<_Ty>::operator _Ty*(); }
-
 	private:
-		//TRefCountingNotNullConstPointer<_Ty>* operator&() { return this; }
-		//const TRefCountingNotNullConstPointer<_Ty>* operator&() const { return this; }
+		/* If you want to use this constructor, use not_null_from_nullable() instead. */
+		TRefCountingNotNullConstPointer(const TRefCountingConstPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+		TRefCountingNotNullConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TRefCountingFixedConstPointer<_Ty>;
+		template<typename _Ty2>
+		friend TRefCountingNotNullConstPointer<_Ty2> not_null_from_nullable(const TRefCountingConstPointer<_Ty2>& src);
 	};
 
 	/* TRefCountingFixedConstPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
@@ -473,17 +505,16 @@ namespace mse {
 		TRefCountingFixedConstPointer(const TRefCountingFixedPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
 		TRefCountingFixedConstPointer(const TRefCountingNotNullConstPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
 		TRefCountingFixedConstPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
-		TRefCountingFixedConstPointer(const TRefCountingConstPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
-		TRefCountingFixedConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
 		virtual ~TRefCountingFixedConstPointer() {}
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TRefCountingNotNullConstPointer<_Ty>::operator _Ty*(); }
 
 	private:
+		/* If you want to use this constructor, use not_null_from_nullable() instead. */
+		TRefCountingFixedConstPointer(const TRefCountingConstPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
+		TRefCountingFixedConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
+
 		TRefCountingFixedConstPointer<_Ty>& operator=(const TRefCountingFixedConstPointer<_Ty>& _Right_cref) = delete;
 
-		//TRefCountingFixedConstPointer<_Ty>* operator&() { return this; }
-		//const TRefCountingFixedConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 }
 
@@ -566,6 +597,15 @@ namespace std {
 namespace mse {
 
 #endif /*MSE_REFCOUNTINGPOINTER_DISABLED*/
+
+	template<typename _Ty>
+	TRefCountingNotNullPointer<_Ty> not_null_from_nullable(const TRefCountingPointer<_Ty>& src) {
+		return src;
+	}
+	template<typename _Ty>
+	TRefCountingNotNullConstPointer<_Ty> not_null_from_nullable(const TRefCountingConstPointer<_Ty>& src) {
+		return src;
+	}
 
 #ifdef MSEPOINTERBASICS_H
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
@@ -1007,8 +1047,8 @@ namespace mse {
 				/* Just testing the convertibility of mse::TStrongFixedPointers. */
 				auto A_refcfp = mse::make_refcounting<A>();
 				auto sfptr1 = mse::make_strong<std::string>(A_refcfp->s, A_refcfp);
-				mse::TStrongFixedPointer<std::string, mse::TRefCountingPointer<A>> sfptr2 = sfptr1;
-				mse::TStrongFixedConstPointer<std::string, mse::TRefCountingFixedPointer<A>> sfcptr1 = sfptr1;
+				mse::TStrongFixedPointer<std::string, mse::TRefCountingFixedPointer<A>> sfptr2 = sfptr1;
+				mse::TStrongFixedConstPointer<std::string, mse::TRefCountingFixedPointer<A>> sfcptr1 = sfptr2;
 				mse::TStrongFixedConstPointer<std::string, mse::TRefCountingPointer<A>> sfcptr2 = sfcptr1;
 				if (sfcptr1 == sfptr1) {
 					int q = 7;
