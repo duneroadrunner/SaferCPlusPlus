@@ -34,17 +34,17 @@ namespace mse {
 #else /*MSE_REFCOUNTINGOFRELAXEDREGISTEREDPOINTER_DISABLED*/
 #endif /*MSE_REFCOUNTINGOFRELAXEDREGISTEREDPOINTER_DISABLED*/
 
-	template<typename _Ty> using TRefCountingOfRelaxedRegisteredPointer = TRefCountingPointer<TRelaxedRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRelaxedRegisteredNotNullPointer = TRefCountingNotNullPointer<TRelaxedRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRelaxedRegisteredFixedPointer = TRefCountingFixedPointer<TRelaxedRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRelaxedRegisteredPointer = TRefCountingPointer<TWRelaxedRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRelaxedRegisteredNotNullPointer = TRefCountingNotNullPointer<TWRelaxedRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRelaxedRegisteredFixedPointer = TRefCountingFixedPointer<TWRelaxedRegisteredObj<_Ty>>;
 
-	template<typename _Ty> using TRefCountingOfRelaxedRegisteredConstPointer = TRefCountingConstPointer<TRelaxedRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRelaxedRegisteredNotNullConstPointer = TRefCountingNotNullConstPointer<TRelaxedRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRelaxedRegisteredFixedConstPointer = TRefCountingFixedConstPointer<TRelaxedRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRelaxedRegisteredConstPointer = TRefCountingConstPointer<TWRelaxedRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRelaxedRegisteredNotNullConstPointer = TRefCountingNotNullConstPointer<TWRelaxedRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRelaxedRegisteredFixedConstPointer = TRefCountingFixedConstPointer<TWRelaxedRegisteredObj<_Ty>>;
 
 	template <class _Ty, class... Args>
 	TRefCountingOfRelaxedRegisteredFixedPointer<_Ty> make_refcountingofrelaxedregistered(Args&&... args) {
-		return make_refcounting<TRelaxedRegisteredObj<_Ty>>(std::forward<Args>(args)...);
+		return make_refcounting<TWRelaxedRegisteredObj<_Ty>>(std::forward<Args>(args)...);
 	}
 
 

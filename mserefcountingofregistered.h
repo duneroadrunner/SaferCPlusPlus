@@ -34,17 +34,17 @@ namespace mse {
 #else /*MSE_REFCOUNTINGOFREGISTEREDPOINTER_DISABLED*/
 #endif /*MSE_REFCOUNTINGOFREGISTEREDPOINTER_DISABLED*/
 
-	template<typename _Ty> using TRefCountingOfRegisteredPointer = TRefCountingPointer<TRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRegisteredNotNullPointer = TRefCountingNotNullPointer<TRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRegisteredFixedPointer = TRefCountingFixedPointer<TRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredPointer = TRefCountingPointer<TWRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredNotNullPointer = TRefCountingNotNullPointer<TWRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredFixedPointer = TRefCountingFixedPointer<TWRegisteredObj<_Ty>>;
 
-	template<typename _Ty> using TRefCountingOfRegisteredConstPointer = TRefCountingConstPointer<TRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRegisteredNotNullConstPointer = TRefCountingNotNullConstPointer<TRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRegisteredFixedConstPointer = TRefCountingFixedConstPointer<TRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredConstPointer = TRefCountingConstPointer<TWRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredNotNullConstPointer = TRefCountingNotNullConstPointer<TWRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredFixedConstPointer = TRefCountingFixedConstPointer<TWRegisteredObj<_Ty>>;
 
 	template <class _Ty, class... Args>
 	TRefCountingOfRegisteredFixedPointer<_Ty> make_refcountingofregistered(Args&&... args) {
-		return make_refcounting<TRegisteredObj<_Ty>>(std::forward<Args>(args)...);
+		return make_refcounting<TWRegisteredObj<_Ty>>(std::forward<Args>(args)...);
 	}
 
 

@@ -1273,6 +1273,42 @@ int main(int argc, char* argv[])
 	}
 
 	{
+		/* TRefCountingPointer<> does not have an associated weak pointer like std::shared_ptr<> does. If you need weak
+		pointer functionality you could just resort to using std::shared_ptr<> and std::weak_ptr<>. When operating within
+		a thread, you could also use registered pointers as weak pointers for TRefCountingPointer<>, which may be
+		preferable in some cases. */
+
+		typedef mse::TRefCountingFixedPointer<std::string> str_rc_ptr_t; // owning pointer of a string
+		typedef mse::TWRegisteredObj<str_rc_ptr_t> str_rc_ptr_regobj_t; // registered version of above so that you can obtain a (weak)
+																	   // registered pointer to it
+
+		 /* str_rc_rc_ptr1 is a "shared" owner of an owning pointer of a string  */
+		auto str_rc_rc_ptr1 = mse::make_nullable_refcounting<str_rc_ptr_regobj_t>(str_rc_ptr_regobj_t(mse::make_refcounting<std::string>("some text")));
+		/* You need to double dereference it to access the string value. */
+		std::cout << **str_rc_rc_ptr1 << std::endl;
+
+		/* Here we're obtaining a (weak) registered pointer to the owning pointer of the string. */
+		auto str_rc_reg_ptr1 = &(*str_rc_rc_ptr1);
+		/* Here you also need to double dereference it to access the string value. */
+		std::cout << **str_rc_reg_ptr1 << std::endl;
+
+		{
+			/* We can obtain a (strong) owning pointer of the string from the (weak) registered pointer. */
+			auto str_rc_ptr2 = *str_rc_reg_ptr1;
+
+			std::cout << *str_rc_ptr2 << std::endl;
+		}
+
+		assert(str_rc_reg_ptr1); // just asserting the str_rc_reg_ptr1 is not null here
+
+		/* Here we're releasing ownership of the string owning pointer. Since this was its only owner, the string owning
+		pointer (and consequently the string) will be destroyed. */
+		str_rc_rc_ptr1 = nullptr;
+
+		assert(!str_rc_reg_ptr1); // here we're asserting that str_rc_reg_ptr1 has been (automatically) set to null
+	}
+
+	{
 		/*************************************/
 		/*  TRefCountingOfRegisteredPointer  */
 		/*************************************/
@@ -1306,14 +1342,10 @@ int main(int argc, char* argv[])
 			int res1 = H::foo5(rcrfpvector.front(), rcrfpvector);
 			assert(3 == res1);
 
-#if !defined(MSE_REGISTEREDPOINTER_DISABLED)
-
 			rcrfpvector.push_back(mse::make_refcountingofregistered<A>());
 			/* The first parameter in this case will be a TRegisteredFixedPointer<A>. */
 			int res2 = H::foo5(&(*rcrfpvector.front()), rcrfpvector);
 			assert(-1 == res2);
-
-#endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 		}
 
 		mse::TRefCountingOfRegisteredPointer_test TRefCountingOfRegisteredPointer_test1;
@@ -1800,105 +1832,6 @@ int main(int argc, char* argv[])
 		
 		mse::CPolyPtrTest1::s_test1();
 		int q = 3;
-	}
-
-	{
-		/*********************************/
-		/*  TAnyRandomAccessIterator<>   */
-		/*  & TAnyRandomAccessSection<>  */
-		/*********************************/
-
-		/* Like TAnyPointer<>, TAnyRandomAccessIterator<> and TAnyRandomAccessSection<> are polymorphic iterators and
-		"sections" that can be used to enable functions to take as arguments any type of iterator or section of any
-		random access container (like an array or vector). */
-
-		mse::mstd::array<int, 4> mstd_array1 { 1, 2, 3, 4 };
-		mse::us::msearray<int, 5> msearray2 { 5, 6, 7, 8, 9 };
-		mse::mstd::vector<int> mstd_vec1 { 10, 11, 12, 13, 14 };
-		class B {
-		public:
-			static void foo1(mse::TXScopeAnyRandomAccessIterator<int> ra_iter1) {
-				ra_iter1[1] = 15;
-			}
-			static int foo2(mse::TXScopeAnyRandomAccessConstIterator<int> const_ra_iter1) {
-				const_ra_iter1 += 2;
-				--const_ra_iter1;
-				const_ra_iter1--;
-				return const_ra_iter1[2];
-			}
-			static void foo3(mse::TXScopeAnyRandomAccessSection<int> ra_section) {
-				for (mse::TXScopeAnyRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
-					ra_section[i] = 0;
-				}
-			}
-			static int foo4(mse::TXScopeAnyRandomAccessConstSection<int> const_ra_section) {
-				int retval = 0;
-				for (mse::TXScopeAnyRandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
-					retval += const_ra_section[i];
-				}
-				return retval;
-			}
-			static int foo5(mse::TXScopeAnyRandomAccessConstSection<int> const_ra_section) {
-				int retval = 0;
-				for (const auto& const_item : const_ra_section) {
-					retval += const_item;
-				}
-				return retval;
-			}
-		};
-
-		auto mstd_array_iter1 = mstd_array1.begin();
-		mstd_array_iter1++;
-		auto res1 = B::foo2(mstd_array_iter1);
-		B::foo1(mstd_array_iter1);
-
-		auto msearray_const_iter2 = msearray2.ss_cbegin();
-		msearray_const_iter2 += 2;
-		auto res2 = B::foo2(msearray_const_iter2);
-
-		auto res3 = B::foo2(mstd_vec1.cbegin());
-		B::foo1(++mstd_vec1.begin());
-		auto res4 = B::foo2(mstd_vec1.begin());
-
-		mse::TXScopeAnyRandomAccessIterator<int> ra_iter1 = mstd_vec1.begin();
-		mse::TXScopeAnyRandomAccessIterator<int> ra_iter2 = mstd_vec1.end();
-		auto res5 = ra_iter2 - ra_iter1;
-		ra_iter1 = ra_iter2;
-
-		{
-			std::array<int, 4> std_array1{ 1, 2, 3, 4 };
-			mse::TXScopeAnyRandomAccessIterator<int> ra_iter1(std_array1.begin());
-			mse::TXScopeAnyRandomAccessIterator<int> ra_iter2 = std_array1.end();
-			auto res5 = ra_iter2 - ra_iter1;
-			ra_iter1 = ra_iter2;
-			int q = 3;
-		}
-
-		mse::TXScopeObj<mse::mstd::array<int, 4>> mstd_array3_scbobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
-		auto mstd_array_scpiter3 = mse::mstd::make_xscope_begin_iterator(&mstd_array3_scbobj);
-		//mstd_array_scpiter3 = mstd_array3_scbobj.begin();
-		++mstd_array_scpiter3;
-		B::foo1(mstd_array_scpiter3);
-
-		mse::TXScopeAnyRandomAccessSection<int> xscp_ra_section1(mstd_array_iter1, 2);
-		B::foo3(xscp_ra_section1);
-
-		mse::TXScopeAnyRandomAccessSection<int> xscp_ra_section2(++mstd_vec1.begin(), 3);
-		auto res6 = B::foo5(xscp_ra_section2);
-		B::foo3(xscp_ra_section2);
-		auto res7 = B::foo4(xscp_ra_section2);
-
-		auto xscp_ra_section1_xscp_iter1 = xscp_ra_section1.xscope_begin();
-		auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
-		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
-		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
-
-		auto ra_section1 = mse::make_random_access_section(mstd_array_iter1, 2);
-		B::foo3(ra_section1);
-		auto ra_const_section2 = mse::make_random_access_const_section(mstd_vec1.cbegin(), 2);
-		B::foo4(ra_const_section2);
-
-		int q = 5;
 	}
 
 	msetl_example2();

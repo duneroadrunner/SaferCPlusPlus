@@ -248,6 +248,105 @@ void msetl_example2() {
 	}
 
 	{
+		/*********************************/
+		/*  TAnyRandomAccessIterator<>   */
+		/*  & TAnyRandomAccessSection<>  */
+		/*********************************/
+
+		/* Like TAnyPointer<>, TAnyRandomAccessIterator<> and TAnyRandomAccessSection<> are polymorphic iterators and
+		"sections" that can be used to enable functions to take as arguments any type of iterator or section of any
+		random access container (like an array or vector). */
+
+		mse::mstd::array<int, 4> mstd_array1{ 1, 2, 3, 4 };
+		mse::us::msearray<int, 5> msearray2{ 5, 6, 7, 8, 9 };
+		mse::mstd::vector<int> mstd_vec1{ 10, 11, 12, 13, 14 };
+		class B {
+		public:
+			static void foo1(mse::TXScopeAnyRandomAccessIterator<int> ra_iter1) {
+				ra_iter1[1] = 15;
+			}
+			static int foo2(mse::TXScopeAnyRandomAccessConstIterator<int> const_ra_iter1) {
+				const_ra_iter1 += 2;
+				--const_ra_iter1;
+				const_ra_iter1--;
+				return const_ra_iter1[2];
+			}
+			static void foo3(mse::TXScopeAnyRandomAccessSection<int> ra_section) {
+				for (mse::TXScopeAnyRandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
+					ra_section[i] = 0;
+				}
+			}
+			static int foo4(mse::TXScopeAnyRandomAccessConstSection<int> const_ra_section) {
+				int retval = 0;
+				for (mse::TXScopeAnyRandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
+					retval += const_ra_section[i];
+				}
+				return retval;
+			}
+			static int foo5(mse::TXScopeAnyRandomAccessConstSection<int> const_ra_section) {
+				int retval = 0;
+				for (const auto& const_item : const_ra_section) {
+					retval += const_item;
+				}
+				return retval;
+			}
+		};
+
+		auto mstd_array_iter1 = mstd_array1.begin();
+		mstd_array_iter1++;
+		auto res1 = B::foo2(mstd_array_iter1);
+		B::foo1(mstd_array_iter1);
+
+		auto msearray_const_iter2 = msearray2.ss_cbegin();
+		msearray_const_iter2 += 2;
+		auto res2 = B::foo2(msearray_const_iter2);
+
+		auto res3 = B::foo2(mstd_vec1.cbegin());
+		B::foo1(++mstd_vec1.begin());
+		auto res4 = B::foo2(mstd_vec1.begin());
+
+		mse::TXScopeAnyRandomAccessIterator<int> ra_iter1 = mstd_vec1.begin();
+		mse::TXScopeAnyRandomAccessIterator<int> ra_iter2 = mstd_vec1.end();
+		auto res5 = ra_iter2 - ra_iter1;
+		ra_iter1 = ra_iter2;
+
+		{
+			std::array<int, 4> std_array1{ 1, 2, 3, 4 };
+			mse::TXScopeAnyRandomAccessIterator<int> ra_iter1(std_array1.begin());
+			mse::TXScopeAnyRandomAccessIterator<int> ra_iter2 = std_array1.end();
+			auto res5 = ra_iter2 - ra_iter1;
+			ra_iter1 = ra_iter2;
+			int q = 3;
+		}
+
+		mse::TXScopeObj<mse::mstd::array<int, 4>> mstd_array3_scbobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
+		auto mstd_array_scpiter3 = mse::mstd::make_xscope_begin_iterator(&mstd_array3_scbobj);
+		//mstd_array_scpiter3 = mstd_array3_scbobj.begin();
+		++mstd_array_scpiter3;
+		B::foo1(mstd_array_scpiter3);
+
+		mse::TXScopeAnyRandomAccessSection<int> xscp_ra_section1(mstd_array_iter1, 2);
+		B::foo3(xscp_ra_section1);
+
+		mse::TXScopeAnyRandomAccessSection<int> xscp_ra_section2(++mstd_vec1.begin(), 3);
+		auto res6 = B::foo5(xscp_ra_section2);
+		B::foo3(xscp_ra_section2);
+		auto res7 = B::foo4(xscp_ra_section2);
+
+		auto xscp_ra_section1_xscp_iter1 = xscp_ra_section1.xscope_begin();
+		auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
+		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
+		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+
+		auto ra_section1 = mse::make_random_access_section(mstd_array_iter1, 2);
+		B::foo3(ra_section1);
+		auto ra_const_section2 = mse::make_random_access_const_section(mstd_vec1.cbegin(), 2);
+		B::foo4(ra_const_section2);
+
+		int q = 5;
+	}
+
+	{
 		/****************/
 		/*  optional<>  */
 		/****************/

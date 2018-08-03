@@ -326,10 +326,6 @@ namespace mse {
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 	};
 
-#ifdef MSE_SAFERPTR_DISABLED
-	template<typename _Ty> using TSaferPtr = TPointer<_Ty>;
-	template<typename _Ty> using TSaferPtrForLegacy = TPointerForLegacy<_Ty>;
-#else /*MSE_SAFERPTR_DISABLED*/
 
 	class CSaferPtrBase : public NotAsyncShareableTagBase {
 	public:
@@ -489,7 +485,6 @@ namespace mse {
 		void assert_initialized() const {}
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 	};
-#endif /*MSE_SAFERPTR_DISABLED*/
 
 #if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 	template<typename _Ty> auto pointer_to(_Ty& _X) { return &_X; }
