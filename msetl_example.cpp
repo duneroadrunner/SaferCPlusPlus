@@ -1273,10 +1273,15 @@ int main(int argc, char* argv[])
 	}
 
 	{
+		/* Using registered pointers as weak pointers with reference counting pointers. */
+
 		/* TRefCountingPointer<> does not have an associated weak pointer like std::shared_ptr<> does. If you need weak
 		pointer functionality you could just resort to using std::shared_ptr<> and std::weak_ptr<>. When operating within
 		a thread, you could also use registered pointers as weak pointers for TRefCountingPointer<>, which may be
-		preferable in some cases. */
+		preferable in some cases. 
+
+		Generally you're going to want to obtain a "strong" pointer from the weak pointer, so  rather than targeting the
+		registered pointer directly at the object of interest, you'd target a/the strong owning pointer of the object. */
 
 		typedef mse::TRefCountingFixedPointer<std::string> str_rc_ptr_t; // owning pointer of a string
 		typedef mse::TWRegisteredObj<str_rc_ptr_t> str_rc_ptr_regobj_t; // registered version of above so that you can obtain a (weak)

@@ -55,8 +55,9 @@ namespace mse {
 	template<typename _Ty> using TRelaxedRegisteredConstPointer = const _Ty*;
 	template<typename _Ty> using TRelaxedRegisteredNotNullPointer = _Ty*;
 	template<typename _Ty> using TRelaxedRegisteredNotNullConstPointer = const _Ty*;
-	template<typename _Ty> using TRelaxedRegisteredFixedPointer = _Ty*;
-	template<typename _Ty> using TRelaxedRegisteredFixedConstPointer = const _Ty*;
+	template<typename _Ty> using TRelaxedRegisteredFixedPointer = _Ty* /*const*/; /* Can't be const qualified because standard
+																				  library containers don't support const elements. */
+	template<typename _Ty> using TRelaxedRegisteredFixedConstPointer = const _Ty* /*const*/;
 	template<typename _TROFLy> using TRelaxedRegisteredObj = _TROFLy;
 	template <class _Ty, class... Args>
 	TRelaxedRegisteredPointer<_Ty> relaxed_registered_new(Args&&... args) {

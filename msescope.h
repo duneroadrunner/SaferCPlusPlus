@@ -116,14 +116,15 @@ namespace mse {
 	template<typename _Ty> using TXScopeConstPointer = const _Ty*;
 	template<typename _Ty> using TXScopeNotNullPointer = _Ty*;
 	template<typename _Ty> using TXScopeNotNullConstPointer = const _Ty*;
-	template<typename _Ty> using TXScopeFixedPointer = _Ty*;
-	template<typename _Ty> using TXScopeFixedConstPointer = const _Ty*;
+	template<typename _Ty> using TXScopeFixedPointer = _Ty* /*const*/; /* Can't be const qualified because standard
+																	   library containers don't support const elements. */
+	template<typename _Ty> using TXScopeFixedConstPointer = const _Ty* /*const*/;
 	template<typename _TROy> using TXScopeObjBase = _TROy;
 	template<typename _TROy> using TXScopeObj = _TROy;
-	template<typename _Ty> using TXScopeItemFixedPointer = _Ty*;
-	template<typename _Ty> using TXScopeItemFixedConstPointer = const _Ty*;
-	template<typename _Ty> using TXScopeCagedItemFixedPointerToRValue = _Ty*;
-	template<typename _Ty> using TXScopeCagedItemFixedConstPointerToRValue = const _Ty*;
+	template<typename _Ty> using TXScopeItemFixedPointer = _Ty* /*const*/;
+	template<typename _Ty> using TXScopeItemFixedConstPointer = const _Ty* /*const*/;
+	template<typename _Ty> using TXScopeCagedItemFixedPointerToRValue = _Ty* /*const*/;
+	template<typename _Ty> using TXScopeCagedItemFixedConstPointerToRValue = const _Ty* /*const*/;
 	//template<typename _TROy> using TXScopeReturnValue = _TROy;
 
 	template<typename _TROy> class TXScopeOwnerPointer;

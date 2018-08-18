@@ -48,16 +48,17 @@ namespace mse {
 #ifdef MSE_REFCOUNTINGPOINTER_DISABLED
 	template <class X> using TRefCountingPointer = std::shared_ptr<X>;
 	template <class X> using TRefCountingNotNullPointer = std::shared_ptr<X>;
-	template <class X> using TRefCountingFixedPointer = std::shared_ptr<X>;
+	template <class X> using TRefCountingFixedPointer = /*const*/ std::shared_ptr<X>; /* Can't be const qualified because standard
+																					  library containers don't support const elements. */
 	template <class X> using TRefCountingConstPointer = std::shared_ptr<const X>;
 	template <class X> using TRefCountingNotNullConstPointer = std::shared_ptr<const X>;
-	template <class X> using TRefCountingFixedConstPointer = std::shared_ptr<const X>;
+	template <class X> using TRefCountingFixedConstPointer = /*const*/ std::shared_ptr<const X>;
 
 	template<typename _Ty> TRefCountingNotNullPointer<_Ty> not_null_from_nullable(const TRefCountingPointer<_Ty>& src);
 	template<typename _Ty> TRefCountingNotNullConstPointer<_Ty> not_null_from_nullable(const TRefCountingConstPointer<_Ty>& src);
 
 	template <class X, class... Args>
-	TRefCountingFixedPointer<X> make_refcounting(Args&&... args) {
+	TRefCountingNotNullPointer<X> make_refcounting(Args&&... args) {
 		return std::make_shared<X>(std::forward<Args>(args)...);
 	}
 

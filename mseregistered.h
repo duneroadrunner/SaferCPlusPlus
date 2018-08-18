@@ -68,8 +68,9 @@ namespace mse {
 	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredConstPointer = const _Ty*;
 	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredNotNullPointer = _Ty*;
 	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredNotNullConstPointer = const _Ty*;
-	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredFixedPointer = _Ty*;
-	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredFixedConstPointer = const _Ty*;
+	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredFixedPointer = _Ty* /*const*/; /* Can't be const qualified because standard
+																											library containers don't support const elements. */
+	template<typename _Ty, int _Tn = sc_default_cache_size> using TRegisteredFixedConstPointer = const _Ty* /*const*/;
 	template<typename _TROy, int _Tn = sc_default_cache_size> using TRegisteredObj = _TROy;
 	template <class _TRRWy, int _TRRWn = sc_default_cache_size> using TRegisteredRefWrapper = std::reference_wrapper<_TRRWy>;
 	template <class _Ty, int _Tn = sc_default_cache_size, class... Args>
