@@ -11,7 +11,7 @@
 //include "mseprimitives.h"
 #include "msepointerbasics.h"
 #include "mseregistered.h"
-#include "mserelaxedregistered.h"
+#include "msecregistered.h"
 #include "mserefcounting.h"
 #include "msescope.h"
 #include "msemstdvector.h"
@@ -686,7 +686,7 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 			mse::TRegisteredPointer<_Ty>,
-			mse::TRelaxedRegisteredPointer<_Ty>,
+			mse::TCRegisteredPointer<_Ty>,
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 			mse::TRefCountingPointer<_Ty>,
@@ -725,9 +725,9 @@ namespace mse {
 			, void>::type>
 			TPolyPointerBase(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
 
-		TPolyPointerBase(const mse::TRelaxedRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredPointer<_Ty>>(p); }
+		TPolyPointerBase(const mse::TCRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TCRegisteredPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyPointerBase(const mse::TRelaxedRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredPointer<_Ty>>(p); }
+		TPolyPointerBase(const mse::TCRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TCRegisteredPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 		TPolyPointerBase(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
@@ -858,7 +858,7 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 			mse::TRegisteredConstPointer<_Ty>,
-			mse::TRelaxedRegisteredConstPointer<_Ty>,
+			mse::TCRegisteredConstPointer<_Ty>,
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 			mse::TRefCountingConstPointer<_Ty>,
@@ -910,13 +910,13 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value, void>::type>
 		TPolyConstPointerBase(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
 
-		TPolyConstPointerBase(const mse::TRelaxedRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
+		TPolyConstPointerBase(const mse::TCRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyConstPointerBase(const mse::TRelaxedRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
+		TPolyConstPointerBase(const mse::TCRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
 
-		TPolyConstPointerBase(const mse::TRelaxedRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
+		TPolyConstPointerBase(const mse::TCRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TPolyConstPointerBase(const mse::TRelaxedRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRelaxedRegisteredConstPointer<_Ty>>(p); }
+		TPolyConstPointerBase(const mse::TCRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 		TPolyConstPointerBase(const mse::TRefCountingConstPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
@@ -2259,7 +2259,7 @@ namespace mse {
 				mse::TXScopeObj<A> a_scpobj;
 				auto a_refcptr = mse::make_refcounting<A>();
 				mse::TRegisteredObj<A> a_regobj;
-				mse::TRelaxedRegisteredObj<A> a_rlxregobj;
+				mse::TCRegisteredObj<A> a_rlxregobj;
 
 				/* Safe iterators are a type of safe pointer too. */
 				mse::mstd::vector<A> a_mstdvec;

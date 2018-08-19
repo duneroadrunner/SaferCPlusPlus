@@ -4,6 +4,8 @@
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+/* This file and its elements are deprecated. */
+
 #pragma once
 #ifndef MSEREFCOUNTINGOFREGISTERED_H_
 #define MSEREFCOUNTINGOFREGISTERED_H_

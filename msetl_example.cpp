@@ -14,11 +14,9 @@ types. Your best bet is probably to use a find/search to get to the data type yo
 //include "msetl.h"
 #include "mseprimitives.h"
 #include "mseregistered.h"
-#include "mserelaxedregistered.h"
+#include "msecregistered.h"
 #include "mseflregistered.h"
 #include "mserefcounting.h"
-#include "mserefcountingofregistered.h"
-#include "mserefcountingofrelaxedregistered.h"
 #include "msescope.h"
 #include "mseasyncshared.h"
 #include "msepoly.h"
@@ -763,9 +761,6 @@ int main(int argc, char* argv[])
 			/* The next commented out line of code is not going to work because D's base class object is not a
 			registered object. */
 			//mse::TRegisteredPointer<A> A_registered_ptr5 = D_registered_ptr1;
-
-			/* Note that unlike registered pointers, relaxed registered pointers can point to base class objects
-			that are not relaxed registered objects. */
 		}
 		{
 			/* Obtaining safe pointers to members of registered objects: */
@@ -800,17 +795,15 @@ int main(int argc, char* argv[])
 		}
 
 		{
-			/***********************************/
-			/*   TRelaxedRegisteredPointer   */
-			/***********************************/
+			/***************************/
+			/*   TCRegisteredPointer   */
+			/***************************/
 
-			/* mse::TRelaxedRegisteredPointer<> behaves very similar to mse::TRegisteredPointer<> but is even more "compatible"
-			with native pointers (i.e. less explicit casting is required when interacting with native pointers and native pointer
-			interfaces). So if you're updating existing or legacy code to be safer, replacing native pointers with
-			mse::TRelaxedRegisteredPointer<> may be more convenient than mse::TRegisteredPointer<>.
-			One case where you may need to use mse::TRelaxedRegisteredPointer<> even when not dealing with legacy code is when
-			you need a reference to a class before it is fully defined. For example, when you have two classes that mutually
-			reference each other. mse::TRegisteredPointer<> does not support this.
+			/* mse::TCRegisteredPointer<> behaves very similar to mse::TRegisteredPointer<> but uses a different implementation
+			that's generally a little more memory efficient. But maybe a bit slower in some cases.
+			One case where you may need to use mse::TCRegisteredPointer<> is when you need a reference to a class before it is
+			fully defined. For example, when you have two classes that mutually reference each other. mse::TRegisteredPointer<>
+			does not support this.
 			*/
 
 			class C;
@@ -818,36 +811,36 @@ int main(int argc, char* argv[])
 			class D {
 			public:
 				virtual ~D() {}
-				mse::TRelaxedRegisteredPointer<C> m_c_ptr;
+				mse::TCRegisteredPointer<C> m_c_ptr;
 			};
 
 			class C {
 			public:
-				mse::TRelaxedRegisteredPointer<D> m_d_ptr;
+				mse::TCRegisteredPointer<D> m_d_ptr;
 			};
 
-			mse::TRelaxedRegisteredObj<C> regobjfl_c;
-			mse::TRelaxedRegisteredPointer<D> d_ptr = mse::relaxed_registered_new<D>();
+			mse::TCRegisteredObj<C> regobjfl_c;
+			mse::TCRegisteredPointer<D> d_ptr = mse::cregistered_new<D>();
 
 			regobjfl_c.m_d_ptr = d_ptr;
 			d_ptr->m_c_ptr = &regobjfl_c;
 
-			mse::relaxed_registered_delete<D>(d_ptr);
+			mse::cregistered_delete<D>(d_ptr);
 
 			{
 				/* Polymorphic conversions. */
-				class FD : public mse::TRelaxedRegisteredObj<D> {};
-				mse::TRelaxedRegisteredObj<FD> relaxedregistered_fd;
-				mse::TRelaxedRegisteredPointer<FD> FD_relaxedregistered_ptr1 = &relaxedregistered_fd;
-				mse::TRelaxedRegisteredPointer<D> D_relaxedregistered_ptr4 = FD_relaxedregistered_ptr1;
-				D_relaxedregistered_ptr4 = &relaxedregistered_fd;
-				mse::TRelaxedRegisteredFixedPointer<D> D_relaxedregistered_fptr1 = &relaxedregistered_fd;
-				mse::TRelaxedRegisteredFixedConstPointer<D> D_relaxedregistered_fcptr1 = &relaxedregistered_fd;
+				class FD : public mse::TCRegisteredObj<D> {};
+				mse::TCRegisteredObj<FD> cregistered_fd;
+				mse::TCRegisteredPointer<FD> FD_cregistered_ptr1 = &cregistered_fd;
+				mse::TCRegisteredPointer<D> D_cregistered_ptr4 = FD_cregistered_ptr1;
+				D_cregistered_ptr4 = &cregistered_fd;
+				mse::TCRegisteredFixedPointer<D> D_cregistered_fptr1 = &cregistered_fd;
+				mse::TCRegisteredFixedConstPointer<D> D_cregistered_fcptr1 = &cregistered_fd;
 			}
 		}
 
 		mse::CRegPtrTest1::s_test1();
-		mse::CRelaxedRegPtrTest1::s_test1();
+		mse::CCRegPtrTest1::s_test1();
 		mse::CForLegRegPtrTest1::s_test1();
 
 		{
@@ -913,18 +906,18 @@ int main(int argc, char* argv[])
 			}
 			{
 				int count = 0;
-				mse::TRelaxedRegisteredPointer<CE> item_ptr2 = mse::relaxed_registered_new<CE>(count);
-				mse::relaxed_registered_delete<CE>(item_ptr2);
+				mse::TCRegisteredPointer<CE> item_ptr2 = mse::cregistered_new<CE>(count);
+				mse::cregistered_delete<CE>(item_ptr2);
 				auto t1 = std::chrono::high_resolution_clock::now();
 				for (int i = 0; i < number_of_loops; i += 1) {
-					mse::TRelaxedRegisteredPointer<CE> item_ptr = mse::relaxed_registered_new<CE>(count);
+					mse::TCRegisteredPointer<CE> item_ptr = mse::cregistered_new<CE>(count);
 					item_ptr2 = item_ptr;
-					mse::relaxed_registered_delete<CE>(item_ptr);
+					mse::cregistered_delete<CE>(item_ptr);
 				}
 
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				std::cout << "mse::TRelaxedRegisteredPointer: " << time_span.count() << " seconds.";
+				std::cout << "mse::TCRegisteredPointer: " << time_span.count() << " seconds.";
 				if (0 != count) {
 					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
 				}
@@ -1022,23 +1015,23 @@ int main(int argc, char* argv[])
 				class CF {
 				public:
 					CF(int a = 0) : m_a(a) {}
-					mse::TRelaxedRegisteredPointer<CF> m_next_item_ptr;
+					mse::TCRegisteredPointer<CF> m_next_item_ptr;
 					int m_a = 3;
 				};
-				mse::TRelaxedRegisteredObj<CF> item1(1);
-				mse::TRelaxedRegisteredObj<CF> item2(2);
-				mse::TRelaxedRegisteredObj<CF> item3(3);
+				mse::TCRegisteredObj<CF> item1(1);
+				mse::TCRegisteredObj<CF> item2(2);
+				mse::TCRegisteredObj<CF> item3(3);
 				item1.m_next_item_ptr = &item2;
 				item2.m_next_item_ptr = &item3;
 				item3.m_next_item_ptr = &item1;
 				auto t1 = std::chrono::high_resolution_clock::now();
-				mse::TRelaxedRegisteredPointer<CF>* rpfl_ptr = std::addressof(item1.m_next_item_ptr);
+				mse::TCRegisteredPointer<CF>* rpfl_ptr = std::addressof(item1.m_next_item_ptr);
 				for (int i = 0; i < number_of_loops2; i += 1) {
 					rpfl_ptr = std::addressof((*rpfl_ptr)->m_next_item_ptr);
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				std::cout << "mse::TRelaxedRegisteredPointer (checked) dereferencing: " << time_span.count() << " seconds.";
+				std::cout << "mse::TCRegisteredPointer (checked) dereferencing: " << time_span.count() << " seconds.";
 				if (3 == (*rpfl_ptr)->m_a) {
 					std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
 				}
@@ -1048,12 +1041,12 @@ int main(int argc, char* argv[])
 				class CF {
 				public:
 					CF(int a = 0) : m_a(a) {}
-					mse::TRelaxedRegisteredPointer<CF> m_next_item_ptr;
+					mse::TCRegisteredPointer<CF> m_next_item_ptr;
 					int m_a = 3;
 				};
-				mse::TRelaxedRegisteredObj<CF> item1(1);
-				mse::TRelaxedRegisteredObj<CF> item2(2);
-				mse::TRelaxedRegisteredObj<CF> item3(3);
+				mse::TCRegisteredObj<CF> item1(1);
+				mse::TCRegisteredObj<CF> item2(2);
+				mse::TCRegisteredObj<CF> item3(3);
 				item1.m_next_item_ptr = &item2;
 				item2.m_next_item_ptr = &item3;
 				item3.m_next_item_ptr = &item1;
@@ -1064,7 +1057,7 @@ int main(int argc, char* argv[])
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-				std::cout << "mse::TRelaxedRegisteredPointer unchecked dereferencing: " << time_span.count() << " seconds.";
+				std::cout << "mse::TCRegisteredPointer unchecked dereferencing: " << time_span.count() << " seconds.";
 				if (3 == cf_ptr->m_a) {
 					std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
 				}
@@ -1191,8 +1184,8 @@ int main(int argc, char* argv[])
 
 		/* TRefCountingPointer behaves similar to std::shared_ptr. Some differences being that it foregoes any thread safety
 		mechanisms, it does not accept raw pointer assignment or construction (use make_refcounting<>() instead), and it will throw
-		an exception on attempted nullptr dereference. And it's faster. And like TRegisteredPointer, proper "const", "not null"
-		and "fixed" (non-retargetable) versions are provided as well. */
+		an exception on attempted nullptr dereference. And it's smaller and faster. And like TRegisteredPointer, proper "const",
+		"not null" and "fixed" (non-retargetable) versions are provided as well. */
 
 		class A {
 		public:
@@ -1314,102 +1307,53 @@ int main(int argc, char* argv[])
 	}
 
 	{
-		/*************************************/
-		/*  TRefCountingOfRegisteredPointer  */
-		/*************************************/
+		/* Here we demonstrate using TWCRegisteredPointer<> as a safe "weak_ptr" to prevent cyclic references from becoming
+		memory leaks. This isn't much different from using std::weak_ptr<> in terms of functionality, but there can be
+		performance and safety advantages. */
 
-		/* TRefCountingOfRegisteredPointer is simply an alias for TRefCountingPointer<TRegisteredObj<_Ty>>. TRegisteredObj<_Ty> is
-		meant to behave much like, and be compatible with a _Ty. The reason why we might want to use it is because the &
-		("address of") operator of TRegisteredObj<_Ty> returns a TRegisteredFixedPointer<_Ty> rather than a raw pointer, and
-		TRegisteredPointers can serve as safe "weak pointers".
-		*/
+		class CRCNode;
 
-		class A {
-		public:
-			A() {}
-			virtual ~A() {
-				int q = 3; /* just so you can place a breakpoint if you want */
-			}
+		typedef mse::TRefCountingFixedPointer<CRCNode> rcnode_strongptr_t;			// owning pointer of a CRCNode
+		typedef mse::TWRegisteredObj<rcnode_strongptr_t> rcnode_strongptr_regobj_t; // registered version of above so that you can obtain a (weak)
+																					// registered pointer to it
+		typedef mse::TWRegisteredPointer<rcnode_strongptr_t> rcnode_strongptr_weakptr_t; // (weak) registered pointer to owning pointer of a CRCNode
 
-			int b = 3;
-		};
-		typedef std::vector<mse::TRefCountingOfRegisteredFixedPointer<A>> CRCRFPVector;
-
-		{
-			CRCRFPVector rcrfpvector;
-			{
-				mse::TRefCountingOfRegisteredFixedPointer<A> A_refcountingofregisteredfixed_ptr1 = mse::make_refcountingofregistered<A>();
-				rcrfpvector.push_back(A_refcountingofregisteredfixed_ptr1);
-
-				/* Just to demonstrate conversion between refcountingofregistered pointer types. */
-				mse::TRefCountingOfRegisteredConstPointer<A> A_refcountingofregisteredconst_ptr1 = A_refcountingofregisteredfixed_ptr1;
-			}
-			int res1 = H::foo5(rcrfpvector.front(), rcrfpvector);
-			assert(3 == res1);
-
-			rcrfpvector.push_back(mse::make_refcountingofregistered<A>());
-			/* The first parameter in this case will be a TRegisteredFixedPointer<A>. */
-			int res2 = H::foo5(&(*rcrfpvector.front()), rcrfpvector);
-			assert(-1 == res2);
-		}
-
-		mse::TRefCountingOfRegisteredPointer_test TRefCountingOfRegisteredPointer_test1;
-		bool TRefCountingOfRegisteredPointer_test1_res = TRefCountingOfRegisteredPointer_test1.testBehaviour();
-		TRefCountingOfRegisteredPointer_test1_res &= TRefCountingOfRegisteredPointer_test1.testLinked();
-		TRefCountingOfRegisteredPointer_test1.test1();
-	}
-
-#ifndef MSE_PRIMITIVES_DISABLED
-	{
-		/********************************************/
-		/*  TRefCountingOfRelaxedRegisteredPointer  */
-		/********************************************/
-
-		/* TRefCountingOfRelaxedRegisteredPointer is simply an alias for TRefCountingPointer<TRelaxedRegisteredObj<_Ty>>. TRelaxedRegisteredObj<_Ty> is
-		meant to behave much like, and be compatible with a _Ty. The reason why we might want to use it is because the &
-		("address of") operator of TRelaxedRegisteredObj<_Ty> returns a TRelaxedRegisteredFixedPointer<_Ty> rather than a raw pointer, and
-		TRelaxedRegisteredPointers can serve as safe "weak pointers".
-		*/
-
-		/* Here we demonstrate using TRelaxedRegisteredFixedPointer<> as a safe "weak_ptr" to prevent "cyclic references" from
-		becoming memory leaks. */
 		class CRCNode {
 		public:
-			CRCNode(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr
-				, mse::TRelaxedRegisteredPointer<CRCNode> root_ptr) : m_node_count_ptr(node_count_ptr), m_root_ptr(root_ptr) {
+			CRCNode(mse::TRegisteredPointer<mse::CInt> node_count_ptr
+				, rcnode_strongptr_weakptr_t root_ptr_ptr) : m_node_count_ptr(node_count_ptr), m_root_ptr_ptr(root_ptr_ptr) {
 				(*node_count_ptr) += 1;
 			}
-			CRCNode(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr) : m_node_count_ptr(node_count_ptr) {
+			CRCNode(mse::TRegisteredPointer<mse::CInt> node_count_ptr) : m_node_count_ptr(node_count_ptr) {
 				(*node_count_ptr) += 1;
 			}
 			virtual ~CRCNode() {
 				(*m_node_count_ptr) -= 1;
 			}
-			static mse::TRefCountingOfRelaxedRegisteredFixedPointer<CRCNode> MakeRoot(mse::TRegisteredFixedPointer<mse::CInt> node_count_ptr) {
-				auto retval = mse::make_refcountingofrelaxedregistered<CRCNode>(node_count_ptr);
-				(*retval).m_root_ptr = &(*retval);
+			static rcnode_strongptr_regobj_t MakeRoot(mse::TRegisteredPointer<mse::CInt> node_count_ptr) {
+				auto retval = rcnode_strongptr_regobj_t{ mse::make_refcounting<CRCNode>(node_count_ptr) };
+				(*retval).m_root_ptr_ptr = &retval;
 				return retval;
 			}
-			mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> ChildPtr() const { return m_child_ptr; }
-			mse::TRefCountingOfRelaxedRegisteredFixedPointer<CRCNode> MakeChild() {
-				auto retval = mse::make_refcountingofrelaxedregistered<CRCNode>(m_node_count_ptr, m_root_ptr);
-				m_child_ptr = retval;
-				return retval;
+			auto MaybeStrongChildPtr() const { return m_maybe_child_ptr; }
+			rcnode_strongptr_regobj_t MakeChild() {
+				m_maybe_child_ptr.emplace(rcnode_strongptr_regobj_t{ mse::make_refcounting<CRCNode>(m_node_count_ptr, m_root_ptr_ptr) });
+				return m_maybe_child_ptr.value();
 			}
 			void DisposeOfChild() {
-				m_child_ptr = nullptr;
+				m_maybe_child_ptr.reset();
 			}
 
 		private:
-			mse::TRegisteredFixedPointer<mse::CInt> m_node_count_ptr;
-			mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> m_child_ptr;
-			mse::TRelaxedRegisteredPointer<CRCNode> m_root_ptr;
+			mse::TRegisteredPointer<mse::CInt> m_node_count_ptr;
+			mse::mstd::optional<rcnode_strongptr_regobj_t> m_maybe_child_ptr;
+			rcnode_strongptr_weakptr_t m_root_ptr_ptr;
 		};
 
 		mse::TRegisteredObj<mse::CInt> node_counter = 0;
 		{
-			mse::TRefCountingOfRelaxedRegisteredPointer<CRCNode> root_ptr = CRCNode::MakeRoot(&node_counter);
-			auto kid1 = root_ptr->MakeChild();
+			auto root_owner_ptr = CRCNode::MakeRoot(&node_counter);
+			auto kid1 = root_owner_ptr->MakeChild();
 			{
 				auto kid2 = kid1->MakeChild();
 				auto kid3 = kid2->MakeChild();
@@ -1419,13 +1363,7 @@ int main(int argc, char* argv[])
 			assert(2 == node_counter);
 		}
 		assert(0 == node_counter);
-
-		mse::TRefCountingOfRelaxedRegisteredPointer_test TRefCountingOfRelaxedRegisteredPointer_test1;
-		bool TRefCountingOfRelaxedRegisteredPointer_test1_res = TRefCountingOfRelaxedRegisteredPointer_test1.testBehaviour();
-		TRefCountingOfRelaxedRegisteredPointer_test1_res &= TRefCountingOfRelaxedRegisteredPointer_test1.testLinked();
-		TRefCountingOfRelaxedRegisteredPointer_test1.test1();
 	}
-#endif // !MSE_PRIMITIVES_DISABLED
 
 	{
 		/*****************************/
@@ -1683,7 +1621,7 @@ int main(int argc, char* argv[])
 		mse::TXScopeObj<H> h_scpobj;
 		auto h_refcptr = mse::make_refcounting<H>();
 		mse::TRegisteredObj<H> h_regobj;
-		mse::TRelaxedRegisteredObj<H> h_rlxregobj;
+		mse::TCRegisteredObj<H> h_rlxregobj;
 
 		/* Safe iterators are a type of safe pointer too. */
 		mse::mstd::vector<H> h_mstdvec;
@@ -1780,7 +1718,7 @@ int main(int argc, char* argv[])
 		mse::TXScopeObj<A> a_scpobj;
 		auto a_refcptr = mse::make_refcounting<A>();
 		mse::TRegisteredObj<A> a_regobj;
-		mse::TRelaxedRegisteredObj<A> a_rlxregobj;
+		mse::TCRegisteredObj<A> a_rlxregobj;
 
 		/* Safe iterators are a type of safe pointer too. */
 		mse::mstd::vector<A> a_mstdvec;
