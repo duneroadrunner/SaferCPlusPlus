@@ -1,30 +1,26 @@
-Jun 2018
+Aug 2018
 
 ### Overview
 
-"SaferCPlusPlus" is essentially a collection of safe data types that are compatible with, and can substitute for, common unsafe native C++ types. You can use as much or as little of the collection as you like, but it is extensive enough to enable the elimination of the large majority of potentially unsafe memory accesses.
+"SaferCPlusPlus" is essentially a collection of safe data types intended to facilitate memory and data race safe C++ programming. This library is intended to work with and be complimentary to the Core Guidelines lifetime checker over its various stages of development and availability. (Including situations where the lifetime checker is not available at all.)
 
-The library includes things like:
+The library's elements are designed, as much as possible, to seamlessly integrate with all manner of existing and future C++ code. It includes things like:
 
 - Drop-in replacements for [std::vector<>](#vector), [std::array<>](#array) and [std::string](#string).
 
-- Replacements for the "use-after-free" prone [std::string_view](#nrp_string_view).
+- Replacements for [std::string_view](#nrp_string_view) and [std::span](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection).
 
 - Drop-in [replacements](#primitives) for int, size_t and bool that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.
 
 - Data types for safe [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
 
-- Replacements for native pointers/references with various compatibilty and performance trade-offs. 
+- Replacements for native pointers/references with various flexibility and performance trade-offs. 
 
-C++ is (famously) not a memory-safe language. But the danger is limited to a finite subset of language elements. To be sure, the subset is large and includes key elements like pointers and arrays. But if you could somehow replace those elements with memory-safe substitutes, then you could essentially turn C++ into a memory-safe language. Right? So the question becomes:
+Historically, C++ has been (famously) not a memory-safe language. The key vexing issue being "use-after-free" (or "dangling reference") bugs. The lifetime checker aims to eliminate these bugs by restricting the ways C++ reference types can be used to those that can, in general, be verified to be safe at compile-time. At the time of this writing (Aug 2018) the lifetime checker is only available for one compiler and still has a [ways to go](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/lifetime%20checker%20observations%20-%20Jun%202018.md) before achieving its goal of memory safety without unnecessary false positives. In the meantime you can replace your potentially unsafe C++ elements with corresponding substitutes in this library to achieve memory safety in a manner designed to be future-compatible with an eventually completed lifetime checker. 
 
-Is C++ powerful enough to enable the construction of safe, compatible substitutes for its own unsafe elements?
+Besides zero-overhead pointers that enforce some of the necessary restrictions not yet (at the time of writing) implemented in the lifetime checker, the library provides a reference counting pointer that's smaller and faster than `std::shared_ptr<>`, and an unrestricted pointer that ensures memory safety via run-time checks. The latter two being not (yet) provided by the Guidelines Support Library, but valuable in the context of having to work around the somewhat draconian restrictions imposed by the (eventual completed) lifetime checker.
 
-Since the advent of C++11, the answer appears to be largely "yes". Sort of. There are some elements whose interface cannot be fully mimicked syntactically. C++ references in particular, as overloading of the "dot" operator is not yet supported. But even in that case, it's no sweat to create an alternative with equivalent functionality, with slightly different syntax.
-
-So it seems like a reasonable strategy to pursue memory safety in C++ by simply replacing unsafe elements with memory-safe substitutes. (Note that this includes the unsafe [`this`](#practical-limitations) pointer.) The nice thing about this strategy is that it can be adopted partially and incrementally with corresponding partial and incremental safety benefits.
-
-An important consideration for many C++ applications is performance. Preferably high and deterministic. This library strives for minimal run-time overhead and does not resort to garbage collection. To this end, the library provides extensive support for the strategy of using [scope lifetimes](#scope-pointers) to achieve memory safety with no run-time overhead.
+And the library also addresses the data race issue, where the Core Guidelines don't (yet) offer anything substantial.
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
