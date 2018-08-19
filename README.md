@@ -502,6 +502,113 @@ Same as `TRefCountingNotNullPointer<>`, but cannot be retargeted after construct
 
 `TRefCountingPointer<X>` actually does implicitly convert to `TRefCountingPointer<const X>`. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
+### Using registered pointers as weak pointers with reference counting pointers
+
+`TRefCountingPointer<>` does not have a specific associated weak pointer like `std::shared_ptr<>` does. But registered pointers can be thought of as sort of independent, universal weak pointers. Note that we're talking about targeting objects "in" the same thread. Sharing objects between threads is done through the library's [data types for asynchronous sharing](#asynchronously-shared-objects) (that don't yet support weak references). 
+
+Generally you're going to want to obtain a "strong" pointer from the weak pointer, so rather than targeting the registered pointer directly at the object of interest, you'd target a/the strong owning pointer of the object.
+
+```cpp
+    #include "mserefcounting.h"
+    #include "mseregistered.h"
+    #include <iostream>
+    
+    void main(int argc, char* argv[]) {
+
+        typedef mse::TRefCountingFixedPointer<std::string> str_rc_ptr_t; // owning pointer of a string
+        typedef mse::TWRegisteredObj<str_rc_ptr_t> str_rc_ptr_regobj_t; // registered version of above so that you can obtain a (weak)
+                                                                       // registered pointer to it
+
+         /* str_rc_rc_ptr1 is a "shared" owner of an owning pointer of a string  */
+        auto str_rc_rc_ptr1 = mse::make_nullable_refcounting<str_rc_ptr_regobj_t>(str_rc_ptr_regobj_t(mse::make_refcounting<std::string>("some text")));
+        /* You need to double dereference it to access the string value. */
+        std::cout << **str_rc_rc_ptr1 << std::endl;
+
+        /* Here we're obtaining a (weak) registered pointer to the owning pointer of the string. */
+        auto str_rc_reg_ptr1 = &(*str_rc_rc_ptr1);
+        /* Here you also need to double dereference it to access the string value. */
+        std::cout << **str_rc_reg_ptr1 << std::endl;
+
+        {
+            /* We can obtain a (strong) owning pointer of the string from the (weak) registered pointer. */
+            auto str_rc_ptr2 = *str_rc_reg_ptr1;
+
+            std::cout << *str_rc_ptr2 << std::endl;
+        }
+
+        assert(str_rc_reg_ptr1); // just asserting the str_rc_reg_ptr1 is not null here
+
+        /* Here we're releasing ownership of the string owning pointer. Since this was its only owner, the string owning
+        pointer (and consequently the string) will be destroyed. */
+        str_rc_rc_ptr1 = nullptr;
+
+        assert(!str_rc_reg_ptr1); // here we're asserting that str_rc_reg_ptr1 has been (automatically) set to null
+    }
+```
+
+And here we demonstrate using `TWCRegisteredPointer<>` as a safe "weak_ptr" to prevent cyclic references from becoming memory leaks. This isn't much different from using `std::weak_ptr<>` in terms of functionality, but there can be performance and safety advantages.
+
+```cpp
+    #include "mserefcounting.h"
+    #include "msecregistered.h"
+    #include "mseregistered.h"
+    
+    void main(int argc, char* argv[]) {
+
+        class CRCNode;
+
+        typedef mse::TRefCountingFixedPointer<CRCNode> rcnode_strongptr_t;            // owning pointer of a CRCNode
+        typedef mse::TWRegisteredObj<rcnode_strongptr_t> rcnode_strongptr_regobj_t; // registered version of above so that you can obtain a (weak)
+                                                                                    // registered pointer to it
+        typedef mse::TWRegisteredPointer<rcnode_strongptr_t> rcnode_strongptr_weakptr_t; // (weak) registered pointer to owning pointer of a CRCNode
+
+        class CRCNode {
+        public:
+            CRCNode(mse::TRegisteredPointer<mse::CInt> node_count_ptr
+                , rcnode_strongptr_weakptr_t root_ptr_ptr) : m_node_count_ptr(node_count_ptr), m_root_ptr_ptr(root_ptr_ptr) {
+                (*node_count_ptr) += 1;
+            }
+            CRCNode(mse::TRegisteredPointer<mse::CInt> node_count_ptr) : m_node_count_ptr(node_count_ptr) {
+                (*node_count_ptr) += 1;
+            }
+            virtual ~CRCNode() {
+                (*m_node_count_ptr) -= 1;
+            }
+            static rcnode_strongptr_regobj_t MakeRoot(mse::TRegisteredPointer<mse::CInt> node_count_ptr) {
+                auto retval = rcnode_strongptr_regobj_t{ mse::make_refcounting<CRCNode>(node_count_ptr) };
+                (*retval).m_root_ptr_ptr = &retval;
+                return retval;
+            }
+            auto MaybeStrongChildPtr() const { return m_maybe_child_ptr; }
+            rcnode_strongptr_regobj_t MakeChild() {
+                m_maybe_child_ptr.emplace(rcnode_strongptr_regobj_t{ mse::make_refcounting<CRCNode>(m_node_count_ptr, m_root_ptr_ptr) });
+                return m_maybe_child_ptr.value();
+            }
+            void DisposeOfChild() {
+                m_maybe_child_ptr.reset();
+            }
+
+        private:
+            mse::TRegisteredPointer<mse::CInt> m_node_count_ptr;
+            mse::mstd::optional<rcnode_strongptr_regobj_t> m_maybe_child_ptr;
+            rcnode_strongptr_weakptr_t m_root_ptr_ptr;
+        };
+
+        mse::TRegisteredObj<mse::CInt> node_counter = 0;
+        {
+            auto root_owner_ptr = CRCNode::MakeRoot(&node_counter);
+            auto kid1 = root_owner_ptr->MakeChild();
+            {
+                auto kid2 = kid1->MakeChild();
+                auto kid3 = kid2->MakeChild();
+            }
+            assert(4 == node_counter);
+            kid1->DisposeOfChild();
+            assert(2 == node_counter);
+        }
+        assert(0 == node_counter);
+    }
+```
 
 
 ### Scope pointers
