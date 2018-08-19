@@ -45,7 +45,7 @@ Tested with msvc2017, msvc2015, g++7.3 & 5.4 and clang++6.0 & 3.8 (as of Jun 201
         2. [TRegisteredFixedPointer](#tregisteredfixedpointer)
         3. [TRegisteredConstPointer](#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer)
         4. [TRegisteredRefWrapper](#tregisteredrefwrapper)
-    2. [TRelaxedRegisteredPointer](#trelaxedregisteredpointer)
+    2. [TCRegisteredPointer](#tcregisteredpointer)
 7. [Simple benchmarks](#simple-benchmarks)
 8. [Reference counting pointers](#reference-counting-pointers)
     1. [TRefCountingPointer](#trefcountingpointer)
@@ -196,7 +196,7 @@ Statistically speaking, doing this should already catch a significant chunk of p
 
 will cause the error description to be written to stderr before program termination.
 
-The next most effective thing to do, in terms of improving memory safety, is probably to replace calls to `new`/`malloc` and `delete`/`free`. The direct substitutes provided in the library (for items not shared between threads) are `mse::registered_new()` and `mse::registered_delete()`. The pointer type returned by `mse::registered_new()` is an [`mse::TRegisteredPointer<>`](#tregisteredpointer). If you need this pointer to interact with legacy interfaces, it can be explicitly cast to a corresponding native pointer. If explicit casting is too inconvenient for your situation, you may instead use `mse::relaxedregistered_new()` to obtain an [`mse::TRelaxedRegisteredPointer<>`](#trelaxedregisteredpointer), which implicitly converts to a corresponding native pointer. But ultimately you're going to want to minimize the amount of casting to (unsafe) native pointers by updating your (function) interfaces to accomodate these safe pointers directly. (See the "[Safely passing parameters by reference](#safely-passing-parameters-by-reference)" section.)
+The next most effective thing to do, in terms of improving memory safety, is probably to replace calls to `new`/`malloc` and `delete`/`free`. The direct substitutes provided in the library (for items not shared between threads) are `mse::registered_new()` and `mse::registered_delete()`. The pointer type returned by `mse::registered_new()` is an [`mse::TRegisteredPointer<>`](#tregisteredpointer). If you need this pointer to interact with legacy interfaces, it can be explicitly cast to a corresponding native pointer. If explicit casting is too inconvenient for your situation, you may instead use `mse::cregistered_new()` to obtain an [`mse::TCRegisteredPointer<>`](#tcregisteredpointer), which implicitly converts to a corresponding native pointer. But ultimately you're going to want to minimize the amount of casting to (unsafe) native pointers by updating your (function) interfaces to accomodate these safe pointers directly. (See the "[Safely passing parameters by reference](#safely-passing-parameters-by-reference)" section.)
 
 Based on reported vulnerabilities, these two things alone should catch most memory bugs.
 
@@ -212,7 +212,7 @@ And if at some point you feel that these new elements involve a lot of typing, n
 
 "Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap. In most cases, they can be used as a compatible, direct substitute for native pointers, making it straightforward to update legacy code (to be safer).
 
-Registered pointers come in two flavors - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TRelaxedRegisteredPointer<>`](#trelaxedregisteredpointer). They are both very similar. `TRegisteredPointer<>` emphasizes speed and safety a bit more, while `TRelaxedRegisteredPointer<>` emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, `TRelaxedRegisteredPointer<>` may be more convenient.
+Registered pointers come in two flavors - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TCRegisteredPointer<>`](#tcregisteredpointer). They are both very similar. `TRegisteredPointer<>` emphasizes speed and safety a bit more, while `TCRegisteredPointer<>` emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, `TCRegisteredPointer<>` may be more convenient.
 
 Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. The library provides safer [substitutes](#primitives) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
@@ -325,16 +325,16 @@ usage example:
     }
 ```
 
-### TRelaxedRegisteredPointer
+### TCRegisteredPointer
 
 usage example:
 
 ```cpp
-    #include "mserelaxedregistered.h"
+    #include "msecregistered.h"
     
     void main(int argc, char* argv[]) {
     
-        /* One case where you may need to use mse::TRelaxedRegisteredPointer<> even when not dealing with legacy code is when
+        /* One case where you may need to use mse::TCRegisteredPointer<> even when not dealing with legacy code is when
         you need a reference to a class before it is fully defined. For example, when you have two classes that mutually
         reference each other. mse::TRegisteredPointer<> does not support this.
         */
@@ -344,31 +344,31 @@ usage example:
         class D {
         public:
             virtual ~D() {}
-            mse::TRelaxedRegisteredPointer<C> m_c_ptr;
+            mse::TCRegisteredPointer<C> m_c_ptr;
         };
     
         class C {
         public:
-            mse::TRelaxedRegisteredPointer<D> m_d_ptr;
+            mse::TCRegisteredPointer<D> m_d_ptr;
         };
     
-        mse::TRelaxedRegisteredObj<C> regobjfl_c;
-        mse::TRelaxedRegisteredPointer<D> d_ptr = mse::relaxed_registered_new<D>();
+        mse::TCRegisteredObj<C> regobjfl_c;
+        mse::TCRegisteredPointer<D> d_ptr = mse::cregistered_new<D>();
     
         regobjfl_c.m_d_ptr = d_ptr;
         d_ptr->m_c_ptr = &regobjfl_c;
     
-        mse::relaxed_registered_delete<D>(d_ptr);
+        mse::cregistered_delete<D>(d_ptr);
     }
 ```
 
-As with registered pointers, if deleting a relaxed registered object via a pointer to its base class you'll need to use the `mse::us::relaxed_register_delete()` function instead.
+As with registered pointers, if deleting a cregistered object via a pointer to its base class you'll need to use the `mse::us::cregistered_delete()` function instead.
 
-#### TRelaxedRegisteredNotNullPointer
+#### TCRegisteredNotNullPointer
 
-#### TRelaxedRegisteredFixedPointer
+#### TCRegisteredFixedPointer
 
-#### TRelaxedRegisteredConstPointer, TRelaxedRegisteredNotNullConstPointer, TRelaxedRegisteredFixedConstPointer
+#### TCRegisteredConstPointer, TCRegisteredNotNullConstPointer, TCRegisteredFixedConstPointer
 
 ### Simple benchmarks
 
@@ -385,7 +385,7 @@ native pointer (heap): | 0.0394826 seconds.
 [mse::TRefCountingPointer](#trefcountingpointer) (heap): | 0.0493629 seconds.
 mse::TRegisteredPointer (heap): | 0.0573699 seconds.
 std::shared_ptr (heap): | 0.0692405 seconds.
-[mse::TRelaxedRegisteredPointer](#trelaxedregisteredpointer) (heap)\*: | 0.14475 seconds.
+[mse::TCRegisteredPointer](#tcregisteredpointer) (heap)\*: | 0.14475 seconds.
 
 ##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
 
@@ -395,9 +395,9 @@ mse::TRegisteredPointer (stack): | 0.0270016 seconds.
 native pointer (heap): | 0.0490028 seconds.
 mse::TRegisteredPointer (heap): | 0.0740042 seconds.
 std::shared_ptr (heap): | 0.087005 seconds.
-mse::TRelaxedRegisteredPointer (heap)\*: | 0.142008 seconds.
+mse::TCRegisteredPointer (heap)\*: | 0.142008 seconds.
 
-\* These benchmarks used an older version of `mse::TRelaxedRegisteredPointer`. The current version would have performance similar to `mse::TRegisteredPointer`.
+\* These benchmarks used an older version of `mse::TCRegisteredPointer`. The current version would have performance similar to `mse::TRegisteredPointer`.
 
 Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. Interestingly, three of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.  
 
@@ -410,9 +410,9 @@ I'm speculating here, but it might be the case that the heap operations that occ
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0105804 seconds.
-mse::TRelaxedRegisteredPointer unchecked: | 0.0136354 seconds.
+mse::TCRegisteredPointer unchecked: | 0.0136354 seconds.
 mse::TRefCountingPointer (checked): | 0.0258107 seconds.
-mse::TRelaxedRegisteredPointer (checked): | 0.0308289 seconds.
+mse::TCRegisteredPointer (checked): | 0.0308289 seconds.
 std::weak_ptr: | 0.179833 seconds.
 
 ##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
@@ -420,13 +420,13 @@ std::weak_ptr: | 0.179833 seconds.
 Pointer Type | Time
 ------------ | ----
 native pointer: | 0.0100006 seconds.
-mse::TRelaxedRegisteredPointer unchecked: | 0.0130008 seconds.
-mse::TRelaxedRegisteredPointer (checked): | 0.016001 seconds.
+mse::TCRegisteredPointer unchecked: | 0.0130008 seconds.
+mse::TCRegisteredPointer (checked): | 0.016001 seconds.
 std::weak_ptr: | 0.17701 seconds.
 
 The interesting thing here is that checking for nullptr seems to have gotten a lot slower between msvc2013 and msvc2015. But anyway, my guess is that pointer dereferencing is such a fast operation (std::weak_ptr aside) that outside of critical inner loops, the overhead of checking for nullptr would generally be probably pretty modest.  
 
-Also note that [`mse::TRefCountingNotNullPointer<>`](#trefcountingnotnullpointer) and [`mse::TRefCountingFixedPointer<>`](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked. `mse::TRegisteredPointer<>`'s safety mechanisms are not compatible with the techniques used by the benchmark to isolate dereferencing performance, but `mse::TRegisteredPointer<>`'s dereferencing performance would be expected to be essentially identical to that of `mse::TRelaxedRegisteredPointer<>`. By default, [scope pointers](#scope-pointers) have identical performance to native pointers.
+Also note that [`mse::TRefCountingNotNullPointer<>`](#trefcountingnotnullpointer) and [`mse::TRefCountingFixedPointer<>`](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked. `mse::TRegisteredPointer<>`'s safety mechanisms are not compatible with the techniques used by the benchmark to isolate dereferencing performance, but `mse::TRegisteredPointer<>`'s dereferencing performance would be expected to be essentially identical to that of `mse::TCRegisteredPointer<>`. By default, [scope pointers](#scope-pointers) have identical performance to native pointers.
 
 ### Reference counting pointers
 
@@ -517,7 +517,7 @@ In the future we expect that there will be a "compile helper tool" to verify tha
 
 Failure to adhere to the rules for scope objects could result in unsafe code. Currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. Again, at some point the restrictions will be fully enforced at compile-time, but for now hopefully these rules are intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is premised on the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond the scope in which they are declared, so that a scope pointer cannot outlive its target scope object.
 
-In lieu of full compile-time enforcement, run-time checking is available to enforce safety and help detect misuses of scope pointers. Run-time checking in debug mode is enabled by defining `MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED`. Additionally defining `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#primitives) that can act as base classes. 
+In lieu of full compile-time enforcement, run-time checking is available to enforce safety and help detect misuses of scope pointers. Run-time checking in debug mode is enabled by defining `MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED`. Additionally defining `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` will enable them in non-debug modes as well. And as with registered pointers, scope pointers cannot target types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#primitives) that can act as base classes. 
 
 Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPointer<>`](#txscopeownerpointer) and [`TXScopeItemFixedPointer<>`](#txscopeitemfixedpointer). `TXScopeOwnerPointer<>` is similar to `boost::scoped_ptr<>` in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to also include "declaration scope".)
 `TXScopeItemFixedPointer<>` is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is primarily intended for the purpose of passing scope objects by reference as function arguments. 
@@ -1022,7 +1022,7 @@ usage example:
         mse::TXScopeObj<H> h_scpobj;
         auto h_refcptr = mse::make_refcounting<H>();
         mse::TRegisteredObj<H> h_regobj;
-        mse::TRelaxedRegisteredObj<H> h_rlxregobj;
+        mse::TCRegisteredObj<H> h_rlxregobj;
     
         /* Safe iterators are a type of safe pointer too. */
         mse::mstd::vector<H> h_mstdvec;
@@ -1156,7 +1156,7 @@ usage example:
         mse::TXScopeObj<A> a_scpobj;
         auto a_refcptr = mse::make_refcounting<A>();
         mse::TRegisteredObj<A> a_regobj;
-        mse::TRelaxedRegisteredObj<A> a_rlxregobj;
+        mse::TCRegisteredObj<A> a_rlxregobj;
     
         /* Safe iterators are a type of safe pointer too. */
         mse::mstd::vector<A> a_mstdvec;
