@@ -376,7 +376,7 @@ As with registered pointers, if deleting a cregistered object via a pointer to i
 
 When pointing to a valid object, `TRegisteredPointer<>` and `TCRegisteredPointer<>` essentially behave like raw pointers. So when in "disabled" mode, they are just aliased to raw pointers. However, in cases when their target object becomes invalid (i.e. is destroyed), the behavior of registered pointers is not the same as raw pointers. Specifically, registered pointers are automatically set to null when their target object is destroyed. So any code that relies on this behavior might not work properly when the registered pointers are substituted with raw pointers.
 
-So for those cases, `TWRegisteredPointer<>` and `TWCRegisteredPointer` are just version of registered pointers that are not aliased to raw pointers in "disabled" mode. In fact, when not in "disabled" mode, `TRegisteredPointer<>` and `TCRegisteredPointer<>` are just aliases for `TWRegisteredPointer<>` and `TWCRegisteredPointer`.
+So for those cases, `TWRegisteredPointer<>` and `TWCRegisteredPointer` are just versions of registered pointers that are not aliased to raw pointers in "disabled" mode. In fact, when not in "disabled" mode, `TRegisteredPointer<>` and `TCRegisteredPointer<>` are just aliases for `TWRegisteredPointer<>` and `TWCRegisteredPointer`.
 
 
 ### Simple benchmarks
