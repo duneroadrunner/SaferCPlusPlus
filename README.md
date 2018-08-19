@@ -545,7 +545,7 @@ Generally you're going to want to obtain a "strong" pointer from the weak pointe
     }
 ```
 
-In this next example we demonstrate using `TWCRegisteredPointer<>` as a safe "weak_ptr" to prevent cyclic references from becoming memory leaks. This isn't much different from using `std::weak_ptr<>` in terms of functionality, but there can be performance and safety advantages.
+This next example demonstrates using `TWCRegisteredPointer<>` as a safe "weak_ptr" to prevent cyclic references from becoming memory leaks. This isn't much different from using `std::weak_ptr<>` in terms of functionality, but there can be performance and safety advantages.
 
 ```cpp
     #include "mserefcounting.h"
