@@ -46,6 +46,7 @@ Tested with msvc2017, msvc2015, g++7.3 & 5.4 and clang++6.0 & 3.8 (as of Jun 201
         3. [TRegisteredConstPointer](#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer)
         4. [TRegisteredRefWrapper](#tregisteredrefwrapper)
     2. [TCRegisteredPointer](#tcregisteredpointer)
+    3. [TWRegisteredPointer, TWCRegisteredPointer](#twregisteredpointer-twcregisteredpointer)
 7. [Simple benchmarks](#simple-benchmarks)
 8. [Reference counting pointers](#reference-counting-pointers)
     1. [TRefCountingPointer](#trefcountingpointer)
@@ -210,13 +211,14 @@ And if at some point you feel that these new elements involve a lot of typing, n
 
 ### Registered pointers
 
-"Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap. In most cases, they can be used as a compatible, direct substitute for native pointers, making it straightforward to update legacy code (to be safer).
+"Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap.  Safe, flexible pointers like these can be handy in situations that are not amenable to the confining restrictions of the lifetime checker. They may be particularly useful when updating legacy code (to be safer). And they can be explicitly cast to the corresponding native pointer when needed.
 
-Registered pointers come in two flavors - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TCRegisteredPointer<>`](#tcregisteredpointer). They are both very similar. `TRegisteredPointer<>` emphasizes speed and safety a bit more, while `TCRegisteredPointer<>` emphasizes compatibility and flexibility a bit more. If you want to undertake the task of en masse replacement of native pointers in legacy code, or need to interact with legacy native pointer interfaces, `TCRegisteredPointer<>` may be more convenient.
+Registered pointers come in two flavors - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TCRegisteredPointer<>`](#tcregisteredpointer). They have very similar functionality, but implementations which are a bit different. With `TRegisteredPointer<>`, the pointer is "registered" in a "registry" that is attached to its target object, whereas `TCRegisteredPointer<>`s are registered in a common (thread local) registry. The only functional difference is that `TRegisteredPointer<>` does not support targeting a type before that type is fully defined, which essentially means that it doesn't support "mutual" or "cyclic" references. `TRegisteredPointer<>`s are also generally a bit less memory efficient. The reason you would choose to use a `TRegisteredPointer<>` over a `TCRegisteredPointer<>`, is that its implementation is generally (even) better at avoiding heap allocations, and thus potential costly cache misses.
 
-Note that these registered pointers cannot target types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. The library provides safer [substitutes](#primitives) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+Note that these registered pointers cannot target some types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. The library provides safer [substitutes](#primitives) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
 
-Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead. In fact, even when registered pointers are used, rather than using them to access the target object directly, you may find it often preferable to use the registered pointer to obtain a scope pointer to the object and use the scope pointer instead. For the sake of simplicity, we don't use scope pointers in the registered pointer usage examples.  
+Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead. In fact, even when registered pointers are used, rather than using them to access the target object directly, you may find it often preferable to use the registered pointer to obtain a scope pointer to the object and use the scope pointer instead. Though for the sake of simplicity, we don't use scope pointers in the registered pointer usage examples.  
+
 
 ### TRegisteredPointer
 
@@ -369,6 +371,13 @@ As with registered pointers, if deleting a cregistered object via a pointer to i
 #### TCRegisteredFixedPointer
 
 #### TCRegisteredConstPointer, TCRegisteredNotNullConstPointer, TCRegisteredFixedConstPointer
+
+### TWRegisteredPointer, TWCRegisteredPointer
+
+When pointing to a valid object, `TRegisteredPointer<>` and `TCRegisteredPointer<>` essentially behave like raw pointers. So when in "disabled" mode, they are just aliased to raw pointers. However, in cases when their target object becomes invalid (i.e. is destroyed), the behavior of registered pointers is not the same as raw pointers. Specifically, registered pointers are automatically set to null when their target object is destroyed. So any code that relies on this behavior might not work properly when the registered pointers are substituted with raw pointers.
+
+So for those cases, `TWRegisteredPointer<>` and `TWCRegisteredPointer` are just version of registered pointers that are not aliased to raw pointers in "disabled" mode. In fact, when not in "disabled" mode, `TRegisteredPointer<>` and `TCRegisteredPointer<>` are just aliases for `TWRegisteredPointer<>` and `TWCRegisteredPointer`.
+
 
 ### Simple benchmarks
 
