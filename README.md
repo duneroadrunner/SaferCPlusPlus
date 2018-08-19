@@ -333,9 +333,11 @@ usage example:
     
     void main(int argc, char* argv[]) {
     
-        /* One case where you may need to use mse::TCRegisteredPointer<> even when not dealing with legacy code is when
-        you need a reference to a class before it is fully defined. For example, when you have two classes that mutually
-        reference each other. mse::TRegisteredPointer<> does not support this.
+        /* mse::TCRegisteredPointer<> behaves very similar to mse::TRegisteredPointer<> but uses a different implementation
+        that's generally a little more memory efficient. But maybe a bit slower in some cases.
+        One case where you may need to use mse::TCRegisteredPointer<> is when you need a reference to a class before it is
+        fully defined. For example, when you have two classes that mutually reference each other. mse::TRegisteredPointer<>
+        does not support this.
         */
     
         class C;
