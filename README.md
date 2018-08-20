@@ -668,6 +668,7 @@ usage example:
         };
     
         mse::TXScopeObj<A> a_scpobj(5);
+        /* note that the '&' ("ampersand") operator is overloaded to return a mse::TXScopeItemFixedPointer<>  */
         int res1 = (&a_scpobj)->b;
         int res2 = B::foo2(&a_scpobj);
         int res3 = B::foo3(&a_scpobj);
