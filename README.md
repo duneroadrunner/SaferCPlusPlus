@@ -977,7 +977,7 @@ void main(int argc, char* argv[]) {
 
 ### Conformance helpers
 
-As mentioned, in the future we expect that there will be a "compile helper tool" to verify that scope objects are not misused. Until then, a couple of "conformance helpers" are provided that can be used to help catch inadvertent misuse.
+As mentioned, in the future we expect that there will be a "compile helper tool" to verify that scope objects are not misused (even if it ends up just being the completed lifetime checker). Until then, a couple of "conformance helpers" are provided that can be used to help catch inadvertent misuse.
 
 ### return_value()
 
