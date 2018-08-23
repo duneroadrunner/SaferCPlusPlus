@@ -2681,9 +2681,9 @@ So technically, in situations where a lifetime checker is not available, achievi
 
 But certain member functions can't be made static. Namely constructors, destructors and member operators. If all the constructors and destructors in the program are compiler-generated defaults (or are otherwise known to be "well behaved") then they would all be perfectly safe. The (theoretical) problem is that user-defined constructors or destructors aren't guaranteed to be "well behaved". Specifically, in conventional C++ they could cause objects to be deleted in the middle of their constructor/destructor(/non-static member function) calls. And not just their own object, but, for example, a misbehaving constructor that is invoked by a parent constructor could cause that parent object to be deleted before its construction is completed.
 
-Fortunately, with the SaferCPlusPlus subset it's not quite so bad. Let's consider the possibility of an object's `this` pointer being invalidated (i.e. the object being destroyed) while in the middle of executing its constructor. In the SaferCPlusPlus subset there are a limited number of circumstances when a constructor is invoked. One is when a local variable is declared (on the stack). In this case the `this` pointer is intrinsically guaranteed to be valid, not just for the duration of the constructor, but indeed for the duration of the scope. Another case is when calling `make_refcounting<>()`. In this case, no direct or indirect reference to the object (other than the `this` pointer itself) is available until after the constructor has finished executing, so there's no opportunity for the object to be destroyed (and the `this` pointer invalidated) before then. Same goes for `registered_new()`. 
+Fortunately, with the SaferCPlusPlus subset it's not quite so bad. Let's consider the possibility of an object's `this` pointer being invalidated (i.e. the object being destroyed) while in the middle of executing its constructor. In the SaferCPlusPlus subset there are a limited number of circumstances when a constructor is invoked. One is when calling `make_refcounting<>()`. In this case, no direct or indirect reference to the object (other than the `this` pointer itself) is available until after the constructor has finished executing, so there's no opportunity for the object to be destroyed (and the `this` pointer invalidated) before then. Same goes for `registered_new()`. 
 
-The more complicated case is when a container, like say, `mstd::vector<>` causes the invocation of child object constructors. Consider this example:
+A more complicated case is when a container, like say, `mstd::vector<>` causes the invocation of child object constructors. Consider this example:
 
 ```cpp
 #include "msescope.h"
@@ -2719,7 +2719,17 @@ Because constructors and destructors of dynamically (i.e. heap) allocated object
 
 But by default these run-time checks are only enabled in debug builds. Because i) empirically, this kind of bug seems to be very rare, and ii) these run-time checks would be unnecessary in circumstances where, for example, a lifetime checker is available and being used. Defining the `MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT` preprocessor symbol will enable the checks in non-debug builds as well.
 
-While we can ensure that the `this` pointer remains valid in constructors/destructors, we cannot do the same for native reference parameters. This means that technically, without a lifetime checker, the safety of (user-defined) constructors which take native reference parameters, like copy and move constructors, cannot be ensured.
+The remaining case is when a local variable is declared (on the stack). In this case the `this` pointer is intrinsically guaranteed to point to a validly allocated object, not just for the duration of the constructor, but indeed for the duration of the scope. Unfortunately, C++ does permit you to reference the object before the completion of its construction. For example, in this declaration
+
+```cpp
+    {
+        std::vector<size_t> v1 { v1.at(3) };
+    }
+```
+
+the local variable `v1` is used after it has been allocated, but before its constructor has been executed. In theory, the library's elements could attempt to detect use-before-construction at run-time, but this kind of bug is probably quite rare and probably more appropriately addressed by a static tool, like the lifetime checker, or frankly, the compiler itself.
+
+While we can generally ensure that the `this` pointer remains valid in constructors/destructors, we cannot do the same for native reference parameters. This means that technically, without a lifetime checker, the safety of (user-defined) constructors which take native reference parameters, like copy and move constructors, cannot be ensured.
 
 Also note that explicitly calling `std::move()` (the one in the `<utility>` library, not the one in the `<algorithm>` library) is not really in the spirit of the library and could cause problems if applied to certain scope objects. `std::forward<>()` is fine. Basically, just let the compiler decide when a reference is an rvalue reference.
 
