@@ -6889,9 +6889,11 @@ namespace mse {
 		TXScopeNRPStringSection(const _TRALoneParam& param) : base_class(param) {}
 
 		virtual ~TXScopeNRPStringSection() {
+#ifndef MSE_SAFERPTR_DISABLED
 			/* Note: Use TXScopeNRPStringConstSection instead if referencing a string literal. */
 			valid_if_TRAIterator_is_not_a_native_pointer();
 			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
+#endif //!MSE_SAFERPTR_DISABLED
 		}
 
 		TXScopeNRPStringSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
@@ -6911,7 +6913,9 @@ namespace mse {
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
 	private:
+#ifndef MSE_SAFERPTR_DISABLED
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+#endif //!MSE_SAFERPTR_DISABLED
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
 		//TXScopeNRPStringSection<_TRAIterator, _Traits>& operator=(const TXScopeNRPStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
@@ -7043,7 +7047,9 @@ namespace mse {
 		}
 
 		virtual ~TXScopeNRPStringConstSection() {
+#ifndef MSE_SAFERPTR_DISABLED
 			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
+#endif //!MSE_SAFERPTR_DISABLED
 		}
 
 		TXScopeNRPStringConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
@@ -7068,7 +7074,9 @@ namespace mse {
 		template<size_t Tn>
 		explicit TXScopeNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
+#ifndef MSE_SAFERPTR_DISABLED
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
+#endif //!MSE_SAFERPTR_DISABLED
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
 		//TXScopeNRPStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeNRPStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;

@@ -1723,13 +1723,17 @@ namespace mse {
 		TXScopeAnyNRPStringSection(const base_class& src) : base_class(src) {}
 		template <typename _TRAIterator>
 		TXScopeAnyNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
+#ifndef MSE_SAFERPTR_DISABLED
 			/* Note: Use TXScopeAnyNRPStringConstSection instead if referencing a string literal. */
 			T_valid_if_not_a_native_pointer_msemsestring<_TRAIterator>();
 			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
+#endif //!MSE_SAFERPTR_DISABLED
 		}
 		template <typename _TRALoneParam>
 		TXScopeAnyNRPStringSection(const _TRALoneParam& param) : base_class(param) {
+#ifndef MSE_SAFERPTR_DISABLED
 			T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
+#endif //!MSE_SAFERPTR_DISABLED
 		}
 
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
@@ -1780,12 +1784,16 @@ namespace mse {
 		TXScopeAnyNRPStringConstSection(const base_class& src) : base_class(src) {}
 		template <typename _TRAIterator>
 		TXScopeAnyNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
+#ifndef MSE_SAFERPTR_DISABLED
 			T_valid_if_not_a_native_pointer_msemsestring<_TRAIterator>();
 			T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
+#endif //!MSE_SAFERPTR_DISABLED
 		}
 		template <typename _TRALoneParam>
 		TXScopeAnyNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {
+#ifndef MSE_SAFERPTR_DISABLED
 			T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
+#endif //!MSE_SAFERPTR_DISABLED
 		}
 		TXScopeAnyNRPStringConstSection() : base_class(&s_default_string_ref()) {}
 
