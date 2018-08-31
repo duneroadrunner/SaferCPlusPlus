@@ -244,7 +244,6 @@ namespace mse {
 		TXScopeConstPointer<_Ty>& operator=(const TXScopeConstPointer<_Ty>& _Right_cref) {
 			return TXScopeConstPointerBase<_Ty>::operator=(_Right_cref);
 		}
-		TXScopeConstPointer<_Ty>& operator=(const TXScopePointer<_Ty>& _Right_cref) { return (*this).operator=(TXScopeConstPointer(_Right_cref)); }
 		operator bool() const {
 			bool retval = (*static_cast<const TXScopeConstPointerBase<_Ty>*>(this));
 			return retval;
@@ -701,27 +700,27 @@ namespace mse {
 	/* template specializations */
 
 	template<typename _Ty>
-	class TXScopeObj<_Ty*> : public TXScopeObj<mse::TPointer<_Ty>> {
+	class TXScopeObj<_Ty*> : public TXScopeObj<mse::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TXScopeObj<mse::TPointer<_Ty>> base_class;
+		typedef TXScopeObj<mse::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TXScopeObj, base_class);
 	};
 	template<typename _Ty>
-	class TXScopeObj<_Ty* const> : public TXScopeObj<const mse::TPointer<_Ty>> {
+	class TXScopeObj<_Ty* const> : public TXScopeObj<const mse::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TXScopeObj<const mse::TPointer<_Ty>> base_class;
+		typedef TXScopeObj<const mse::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TXScopeObj, base_class);
 	};
 	template<typename _Ty>
-	class TXScopeObj<const _Ty *> : public TXScopeObj<mse::TPointer<const _Ty>> {
+	class TXScopeObj<const _Ty *> : public TXScopeObj<mse::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TXScopeObj<mse::TPointer<const _Ty>> base_class;
+		typedef TXScopeObj<mse::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TXScopeObj, base_class);
 	};
 	template<typename _Ty>
-	class TXScopeObj<const _Ty * const> : public TXScopeObj<const mse::TPointer<const _Ty>> {
+	class TXScopeObj<const _Ty * const> : public TXScopeObj<const mse::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TXScopeObj<const mse::TPointer<const _Ty>> base_class;
+		typedef TXScopeObj<const mse::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TXScopeObj, base_class);
 	};
 
@@ -919,18 +918,18 @@ namespace mse {
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
 		template<typename _Ty>
-		class TFParam<_Ty*> : public TPointer<_Ty> {
+		class TFParam<_Ty*> : public TPointerForLegacy<_Ty> {
 		public:
-			typedef TPointer<_Ty> base_class;
+			typedef TPointerForLegacy<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 
 		template<typename _Ty>
-		class TFParam<_Ty* const> : public TPointer<_Ty> {
+		class TFParam<_Ty* const> : public TPointerForLegacy<_Ty> {
 		public:
-			typedef TPointer<_Ty> base_class;
+			typedef TPointerForLegacy<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
@@ -940,18 +939,18 @@ namespace mse {
 		as_an_fparam() on a native array, msvc2017 will try to instantiate a TFParam<> with the native array even though it is
 		determined at compile that it will never be used. clang6, for example, doesn't have the same issue. */
 		template<typename _Ty, size_t _Size>
-		class TFParam<const _Ty[_Size]> : public TPointer<const _Ty> {
+		class TFParam<const _Ty[_Size]> : public TPointerForLegacy<const _Ty> {
 		public:
-			typedef TPointer<const _Ty> base_class;
+			typedef TPointerForLegacy<const _Ty> base_class;
 			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
 			TFParam(const _Ty(&param)[_Size]) : base_class(param) {}
 		private:
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
 		template<typename _Ty, size_t _Size>
-		class TFParam<_Ty[_Size]> : public TPointer<_Ty> {
+		class TFParam<_Ty[_Size]> : public TPointerForLegacy<_Ty> {
 		public:
-			typedef TPointer<_Ty> base_class;
+			typedef TPointerForLegacy<_Ty> base_class;
 			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
 			TFParam(_Ty(&param)[_Size]) : base_class(param) {}
 		private:
@@ -1036,9 +1035,9 @@ namespace mse {
 		/* Template specializations of TReturnableFParam<>. */
 
 		template<typename _Ty>
-		class TReturnableFParam<_Ty*> : public TPointer<_Ty> {
+		class TReturnableFParam<_Ty*> : public TPointerForLegacy<_Ty> {
 		public:
-			typedef TPointer<_Ty> base_class;
+			typedef TPointerForLegacy<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
 #if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
@@ -1050,9 +1049,9 @@ namespace mse {
 		};
 
 		template<typename _Ty>
-		class TReturnableFParam<_Ty* const> : public TPointer<_Ty> {
+		class TReturnableFParam<_Ty* const> : public TPointerForLegacy<_Ty> {
 		public:
-			typedef TPointer<_Ty> base_class;
+			typedef TPointerForLegacy<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
 #if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
@@ -1172,9 +1171,9 @@ namespace mse {
 	/* Template specializations of TReturnValue<>. */
 
 	template<typename _Ty>
-	class TReturnValue<_Ty*> : public TPointer<_Ty> {
+	class TReturnValue<_Ty*> : public TPointerForLegacy<_Ty> {
 	public:
-		typedef TPointer<_Ty> base_class;
+		typedef TPointerForLegacy<_Ty> base_class;
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TReturnValue, base_class);
 		virtual ~TReturnValue() {
 			valid_if_safe_pointers_are_disabled();
@@ -1194,9 +1193,9 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TReturnValue<_Ty* const> : public TPointer<_Ty> {
+	class TReturnValue<_Ty* const> : public TPointerForLegacy<_Ty> {
 	public:
-		typedef TPointer<_Ty> base_class;
+		typedef TPointerForLegacy<_Ty> base_class;
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TReturnValue, base_class);
 		virtual ~TReturnValue() {
 			valid_if_safe_pointers_are_disabled();

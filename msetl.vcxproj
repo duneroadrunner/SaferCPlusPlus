@@ -261,6 +261,7 @@
     <ClInclude Include="msemstdarray.h" />
     <ClInclude Include="msemstdstring.h" />
     <ClInclude Include="msemstdvector.h" />
+    <ClInclude Include="msenorad.h" />
     <ClInclude Include="mseoptional.h" />
     <ClInclude Include="msepointerbasics.h" />
     <ClInclude Include="msepoly.h" />

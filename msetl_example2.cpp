@@ -11,6 +11,7 @@
 //include "msetl.h"
 #include "mseregistered.h"
 #include "msecregistered.h"
+#include "msenorad.h"
 #include "mserefcounting.h"
 #include "msescope.h"
 #include "mseasyncshared.h"

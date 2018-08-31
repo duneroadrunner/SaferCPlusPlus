@@ -456,7 +456,6 @@ namespace mse {
 		virtual ~TWRegisteredConstPointer();
 		TWRegisteredConstPointer<_Ty, _Tn>& operator=(const TWRegisteredObj<_Ty, _Tn>* ptr);
 		TWRegisteredConstPointer<_Ty, _Tn>& operator=(const TWRegisteredConstPointer<_Ty, _Tn>& _Right_cref);
-		TWRegisteredConstPointer<_Ty, _Tn>& operator=(const TWRegisteredPointer<_Ty, _Tn>& _Right_cref) { return (*this).operator=(TWRegisteredConstPointer(_Right_cref));  }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const;
 		explicit operator const TWRegisteredObj<_Ty, _Tn>*() const;
@@ -480,14 +479,6 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TWRegisteredObj<_Ty2, _Tn> *, TWRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
 		TWRegisteredNotNullPointer(const TWRegisteredNotNullPointer<_Ty2, _Tn>& src_cref) : TWRegisteredPointer<_Ty, _Tn>(src_cref) {}
 
-		TWRegisteredNotNullPointer(const TWRegisteredPointer<_Ty, _Tn>& src_cref) : TWRegisteredPointer<_Ty, _Tn>(src_cref) {
-			*src_cref; // to ensure that src_cref points to a valid target
-		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TWRegisteredObj<_Ty2, _Tn> *, TWRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
-		TWRegisteredNotNullPointer(const TWRegisteredPointer<_Ty2, _Tn>& src_cref) : TWRegisteredPointer<_Ty, _Tn>(src_cref) {
-			*src_cref; // to ensure that src_cref points to a valid target
-		}
-
 		virtual ~TWRegisteredNotNullPointer() {}
 		TWRegisteredNotNullPointer<_Ty, _Tn>& operator=(const TWRegisteredNotNullPointer<_Ty, _Tn>& _Right_cref) {
 			TWRegisteredPointer<_Ty, _Tn>::operator=(_Right_cref);
@@ -500,10 +491,21 @@ namespace mse {
 	private:
 		TWRegisteredNotNullPointer(TWRegisteredObj<_Ty, _Tn>* ptr) : TWRegisteredPointer<_Ty, _Tn>(ptr) {}
 
+		/* If you want to use this constructor, use not_null_from_nullable() instead. */
+		TWRegisteredNotNullPointer(const TWRegisteredPointer<_Ty, _Tn>& src_cref) : TWRegisteredPointer<_Ty, _Tn>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TWRegisteredObj<_Ty2, _Tn> *, TWRegisteredObj<_Ty, _Tn> *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
+		TWRegisteredNotNullPointer(const TWRegisteredPointer<_Ty2, _Tn>& src_cref) : TWRegisteredPointer<_Ty, _Tn>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+
 		TWRegisteredNotNullPointer<_Ty, _Tn>* operator&() { return this; }
 		const TWRegisteredNotNullPointer<_Ty, _Tn>* operator&() const { return this; }
 
 		friend class TWRegisteredFixedPointer<_Ty, _Tn>;
+		template<typename _Ty2, int _Tn2>
+		friend TWRegisteredNotNullPointer<_Ty2, _Tn2> not_null_from_nullable(const TWRegisteredPointer<_Ty2, _Tn2>& src);
 	};
 
 	template<typename _Ty, int _Tn>
@@ -516,6 +518,15 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<TWRegisteredObj<_Ty2, _Tn> *, TWRegisteredObj<_Ty, _Tn> *>::value, void>::type>
 		TWRegisteredNotNullConstPointer(const TWRegisteredNotNullPointer<_Ty2, _Tn>& src_cref) : TWRegisteredConstPointer<_Ty, _Tn>(src_cref) {}
 
+		virtual ~TWRegisteredNotNullConstPointer() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator const _Ty*() const { return TWRegisteredConstPointer<_Ty, _Tn>::operator const _Ty*(); }
+		explicit operator const TWRegisteredObj<_Ty, _Tn>*() const { return TWRegisteredConstPointer<_Ty, _Tn>::operator const TWRegisteredObj<_Ty, _Tn>*(); }
+
+	private:
+		TWRegisteredNotNullConstPointer(const TWRegisteredObj<_Ty, _Tn>* ptr) : TWRegisteredConstPointer<_Ty, _Tn>(ptr) {}
+
+		/* If you want to use this constructor, use not_null_from_nullable() instead. */
 		TWRegisteredNotNullConstPointer(const TWRegisteredConstPointer<_Ty, _Tn>& src_cref) : TWRegisteredConstPointer<_Ty, _Tn>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
@@ -531,19 +542,22 @@ namespace mse {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 
-		virtual ~TWRegisteredNotNullConstPointer() {}
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TWRegisteredConstPointer<_Ty, _Tn>::operator const _Ty*(); }
-		explicit operator const TWRegisteredObj<_Ty, _Tn>*() const { return TWRegisteredConstPointer<_Ty, _Tn>::operator const TWRegisteredObj<_Ty, _Tn>*(); }
-
-	private:
-		TWRegisteredNotNullConstPointer(const TWRegisteredObj<_Ty, _Tn>* ptr) : TWRegisteredConstPointer<_Ty, _Tn>(ptr) {}
-
 		TWRegisteredNotNullConstPointer<_Ty, _Tn>* operator&() { return this; }
 		const TWRegisteredNotNullConstPointer<_Ty, _Tn>* operator&() const { return this; }
 
 		friend class TWRegisteredFixedConstPointer<_Ty, _Tn>;
+		template<typename _Ty2, int _Tn2>
+		friend TWRegisteredNotNullConstPointer<_Ty2, _Tn2> not_null_from_nullable(const TWRegisteredConstPointer<_Ty2, _Tn2>& src);
 	};
+
+	template<typename _Ty, int _Tn = sc_default_cache_size>
+	TWRegisteredNotNullPointer<_Ty, _Tn> not_null_from_nullable(const TWRegisteredPointer<_Ty, _Tn>& src) {
+		return src;
+	}
+	template<typename _Ty, int _Tn = sc_default_cache_size>
+	TWRegisteredNotNullConstPointer<_Ty, _Tn> not_null_from_nullable(const TWRegisteredConstPointer<_Ty, _Tn>& src) {
+		return src;
+	}
 
 	/* TWRegisteredFixedPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
 	parameters by reference. */
@@ -901,77 +915,77 @@ namespace mse {
 	/* template specializations */
 
 	template<typename _Ty, int _Tn>
-	class TWRegisteredObj<_Ty*, _Tn> : public TWRegisteredObj<mse::TPointer<_Ty>, _Tn> {
+	class TWRegisteredObj<_Ty*, _Tn> : public TWRegisteredObj<mse::TPointerForLegacy<_Ty>, _Tn> {
 	public:
-		typedef TWRegisteredObj<mse::TPointer<_Ty>, _Tn> base_class;
+		typedef TWRegisteredObj<mse::TPointerForLegacy<_Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredObj, base_class);
 	};
 	template<typename _Ty, int _Tn>
-	class TWRegisteredObj<_Ty* const, _Tn> : public TWRegisteredObj<const mse::TPointer<_Ty>, _Tn> {
+	class TWRegisteredObj<_Ty* const, _Tn> : public TWRegisteredObj<const mse::TPointerForLegacy<_Ty>, _Tn> {
 	public:
-		typedef TWRegisteredObj<const mse::TPointer<_Ty>, _Tn> base_class;
+		typedef TWRegisteredObj<const mse::TPointerForLegacy<_Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredObj, base_class);
 	};
 	template<typename _Ty, int _Tn>
-	class TWRegisteredObj<const _Ty *, _Tn> : public TWRegisteredObj<mse::TPointer<const _Ty>, _Tn> {
+	class TWRegisteredObj<const _Ty *, _Tn> : public TWRegisteredObj<mse::TPointerForLegacy<const _Ty>, _Tn> {
 	public:
-		typedef TWRegisteredObj<mse::TPointer<const _Ty>, _Tn> base_class;
+		typedef TWRegisteredObj<mse::TPointerForLegacy<const _Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredObj, base_class);
 	};
 	template<typename _Ty, int _Tn>
-	class TWRegisteredObj<const _Ty * const, _Tn> : public TWRegisteredObj<const mse::TPointer<const _Ty>, _Tn> {
+	class TWRegisteredObj<const _Ty * const, _Tn> : public TWRegisteredObj<const mse::TPointerForLegacy<const _Ty>, _Tn> {
 	public:
-		typedef TWRegisteredObj<const mse::TPointer<const _Ty>, _Tn> base_class;
+		typedef TWRegisteredObj<const mse::TPointerForLegacy<const _Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredObj, base_class);
 	};
 
 	template<typename _Ty, int _Tn>
-	class TWRegisteredPointer<_Ty*, _Tn> : public TWRegisteredPointer<mse::TPointer<_Ty>, _Tn> {
+	class TWRegisteredPointer<_Ty*, _Tn> : public TWRegisteredPointer<mse::TPointerForLegacy<_Ty>, _Tn> {
 	public:
-		typedef TWRegisteredPointer<mse::TPointer<_Ty>, _Tn> base_class;
+		typedef TWRegisteredPointer<mse::TPointerForLegacy<_Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredPointer, base_class);
 	};
 	template<typename _Ty, int _Tn>
-	class TWRegisteredPointer<_Ty* const, _Tn> : public TWRegisteredPointer<const mse::TPointer<_Ty>, _Tn> {
+	class TWRegisteredPointer<_Ty* const, _Tn> : public TWRegisteredPointer<const mse::TPointerForLegacy<_Ty>, _Tn> {
 	public:
-		typedef TWRegisteredPointer<const mse::TPointer<_Ty>, _Tn> base_class;
+		typedef TWRegisteredPointer<const mse::TPointerForLegacy<_Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredPointer, base_class);
 	};
 	template<typename _Ty, int _Tn>
-	class TWRegisteredPointer<const _Ty *, _Tn> : public TWRegisteredPointer<mse::TPointer<const _Ty>, _Tn> {
+	class TWRegisteredPointer<const _Ty *, _Tn> : public TWRegisteredPointer<mse::TPointerForLegacy<const _Ty>, _Tn> {
 	public:
-		typedef TWRegisteredPointer<mse::TPointer<const _Ty>, _Tn> base_class;
+		typedef TWRegisteredPointer<mse::TPointerForLegacy<const _Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredPointer, base_class);
 	};
 	template<typename _Ty, int _Tn>
-	class TWRegisteredPointer<const _Ty * const, _Tn> : public TWRegisteredPointer<const mse::TPointer<const _Ty>, _Tn> {
+	class TWRegisteredPointer<const _Ty * const, _Tn> : public TWRegisteredPointer<const mse::TPointerForLegacy<const _Ty>, _Tn> {
 	public:
-		typedef TWRegisteredPointer<const mse::TPointer<const _Ty>, _Tn> base_class;
+		typedef TWRegisteredPointer<const mse::TPointerForLegacy<const _Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredPointer, base_class);
 	};
 
 	template<typename _Ty, int _Tn>
-	class TWRegisteredConstPointer<_Ty*, _Tn> : public TWRegisteredConstPointer<mse::TPointer<_Ty>, _Tn> {
+	class TWRegisteredConstPointer<_Ty*, _Tn> : public TWRegisteredConstPointer<mse::TPointerForLegacy<_Ty>, _Tn> {
 	public:
-		typedef TWRegisteredConstPointer<mse::TPointer<_Ty>, _Tn> base_class;
+		typedef TWRegisteredConstPointer<mse::TPointerForLegacy<_Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredConstPointer, base_class);
 	};
 	template<typename _Ty, int _Tn>
-	class TWRegisteredConstPointer<_Ty* const, _Tn> : public TWRegisteredConstPointer<const mse::TPointer<_Ty>, _Tn> {
+	class TWRegisteredConstPointer<_Ty* const, _Tn> : public TWRegisteredConstPointer<const mse::TPointerForLegacy<_Ty>, _Tn> {
 	public:
-		typedef TWRegisteredConstPointer<const mse::TPointer<_Ty>, _Tn> base_class;
+		typedef TWRegisteredConstPointer<const mse::TPointerForLegacy<_Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredConstPointer, base_class);
 	};
 	template<typename _Ty, int _Tn>
-	class TWRegisteredConstPointer<const _Ty *, _Tn> : public TWRegisteredConstPointer<mse::TPointer<const _Ty>, _Tn> {
+	class TWRegisteredConstPointer<const _Ty *, _Tn> : public TWRegisteredConstPointer<mse::TPointerForLegacy<const _Ty>, _Tn> {
 	public:
-		typedef TWRegisteredConstPointer<mse::TPointer<const _Ty>, _Tn> base_class;
+		typedef TWRegisteredConstPointer<mse::TPointerForLegacy<const _Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredConstPointer, base_class);
 	};
 	template<typename _Ty, int _Tn>
-	class TWRegisteredConstPointer<const _Ty * const, _Tn> : public TWRegisteredConstPointer<const mse::TPointer<const _Ty>, _Tn> {
+	class TWRegisteredConstPointer<const _Ty * const, _Tn> : public TWRegisteredConstPointer<const mse::TPointerForLegacy<const _Ty>, _Tn> {
 	public:
-		typedef TWRegisteredConstPointer<const mse::TPointer<const _Ty>, _Tn> base_class;
+		typedef TWRegisteredConstPointer<const mse::TPointerForLegacy<const _Ty>, _Tn> base_class;
 		MSE_USING(TWRegisteredConstPointer, base_class);
 	};
 
@@ -1052,111 +1066,6 @@ namespace mse {
 #endif /*MSEPRIMITIVES_H*/
 
 	/* end of template specializations */
-
-#ifdef _MSC_VER
-#pragma warning( push )  
-#pragma warning( disable : 4127 )
-#endif /*_MSC_VER*/
-
-	/* CSAllocRegistry essentially just maintains a list of all objects allocated by a registered "new" call and not (yet)
-	subsequently deallocated with a corresponding registered delete. */
-	class CSAllocRegistry {
-	public:
-		CSAllocRegistry() {}
-		~CSAllocRegistry() {}
-		bool registerPointer(void *alloc_ptr) {
-			if (nullptr == alloc_ptr) { return true; }
-			{
-				if (1 <= sc_fs1_max_objects) {
-					/* We'll add this object to fast storage. */
-					if (sc_fs1_max_objects == m_num_fs1_objects) {
-						/* Too many objects. We're gonna move the oldest object to slow storage. */
-						moveObjectFromFastStorage1ToSlowStorage(0);
-					}
-					auto& fs1_object_ref = m_fs1_objects[m_num_fs1_objects];
-					fs1_object_ref = alloc_ptr;
-					m_num_fs1_objects += 1;
-					return true;
-				}
-				else {
-					/* Add the mapping to slow storage. */
-					std::unordered_set<CFS1Object>::value_type item(alloc_ptr);
-					m_pointer_set.insert(item);
-				}
-			}
-			return true;
-		}
-		bool unregisterPointer(void *alloc_ptr) {
-			if (nullptr == alloc_ptr) { return true; }
-			bool retval = false;
-			{
-				/* check if the object is in "fast storage 1" first */
-				for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
-					if (alloc_ptr == m_fs1_objects[i]) {
-						removeObjectFromFastStorage1(i);
-						return true;
-					}
-				}
-
-				/* The object was not in "fast storage 1". It's proably in "slow storage". */
-				auto num_erased = m_pointer_set.erase(alloc_ptr);
-				if (1 <= num_erased) {
-					retval = true;
-				}
-			}
-			return retval;
-		}
-		bool registerPointer(const void *alloc_ptr) { return (*this).registerPointer(const_cast<void *>(alloc_ptr)); }
-		bool unregisterPointer(const void *alloc_ptr) { return (*this).unregisterPointer(const_cast<void *>(alloc_ptr)); }
-		void reserve_space_for_one_more() {
-			/* The purpose of this function is to ensure that the next call to registerPointer() won't
-			need to allocate more memory, and thus won't have any chance of throwing an exception due to
-			memory allocation failure. */
-			m_pointer_set.reserve(m_pointer_set.size() + 1);
-		}
-
-		bool isEmpty() const { return ((0 == m_num_fs1_objects) && (0 == m_pointer_set.size())); }
-
-	private:
-		/* So this tracker stores the allocation pointers in either "fast storage1" or "slow storage". The code for
-		"fast storage1" is ugly. The code for "slow storage" is more readable. */
-		void removeObjectFromFastStorage1(int fs1_obj_index) {
-			for (int j = fs1_obj_index; j < (m_num_fs1_objects - 1); j += 1) {
-				m_fs1_objects[j] = m_fs1_objects[j + 1];
-			}
-			m_num_fs1_objects -= 1;
-		}
-		void moveObjectFromFastStorage1ToSlowStorage(int fs1_obj_index) {
-			auto& fs1_object_ref = m_fs1_objects[fs1_obj_index];
-			/* First we're gonna copy this object to slow storage. */
-			std::unordered_set<CFS1Object>::value_type item(fs1_object_ref);
-			m_pointer_set.insert(fs1_object_ref);
-			/* Then we're gonna remove the object from fast storage */
-			removeObjectFromFastStorage1(fs1_obj_index);
-		}
-
-		typedef void* CFS1Object;
-
-#ifndef MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS
-#define MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS 8/* Arbitrary. The optimal number depends on how slow "slow storage" is. */
-#endif // !MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS
-		MSE_CONSTEXPR static const int sc_fs1_max_objects = MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS;
-		CFS1Object m_fs1_objects[sc_fs1_max_objects];
-		int m_num_fs1_objects = 0;
-
-		/* "slow storage" */
-		std::unordered_set<CFS1Object> m_pointer_set;
-	};
-
-#ifdef _MSC_VER
-#pragma warning( pop )  
-#endif /*_MSC_VER*/
-
-	template<typename _Ty>
-	inline CSAllocRegistry& tlSAllocRegistry_ref() {
-		thread_local static CSAllocRegistry tlSAllocRegistry;
-		return tlSAllocRegistry;
-	}
 
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/

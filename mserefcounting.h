@@ -255,6 +255,11 @@ namespace mse {
 			}
 		}
 
+		X* unchecked_get() const {
+			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
+			return x_ptr;
+		}
+
 #ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
@@ -278,6 +283,17 @@ namespace mse {
 		TRefCountingNotNullPointer<_Ty>& operator=(const TRefCountingNotNullPointer<_Ty>& _Right_cref) {
 			TRefCountingPointer<_Ty>::operator=(_Right_cref);
 			return (*this);
+		}
+
+		_Ty& operator*() const {
+			//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingPointer")); }
+			_Ty* x_ptr = (*this).unchecked_get();
+			return *x_ptr;
+		}
+		_Ty* operator->() const {
+			//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingPointer")); }
+			_Ty* x_ptr = (*this).unchecked_get();
+			return x_ptr;
 		}
 
 		template <class... Args>
@@ -348,7 +364,14 @@ namespace mse {
 		TRefCountingConstPointer() : m_ref_with_target_obj_ptr(nullptr) {}
 		TRefCountingConstPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr) {}
 		~TRefCountingConstPointer() {
-			release();
+			//release();
+			/* Doing it this way instead of just calling release() protects against potential reentrant destructor
+			calls caused by a misbehaving (user-defined) destructor of the target object. */
+			auto_release keep(m_ref_with_target_obj_ptr);
+			m_ref_with_target_obj_ptr = nullptr;
+
+			/* This is just a no-op function that will cause a compile error when X is not an eligible type. */
+			valid_if_X_is_not_an_xscope_type();
 		}
 		TRefCountingConstPointer(const TRefCountingConstPointer& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
@@ -463,6 +486,18 @@ namespace mse {
 			}
 		}
 
+		const X* unchecked_get() const {
+			const X* x_ptr = static_cast<const X*>(m_ref_with_target_obj_ptr->target_obj_address());
+			return x_ptr;
+		}
+
+#ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
+		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
+		(intended) compile error. */
+		template<class X2 = X, class = typename std::enable_if<(std::is_same<X2, X>::value) && (!std::is_base_of<XScopeTagBase, X2>::value), void>::type>
+#endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
+		void valid_if_X_is_not_an_xscope_type() const {}
+
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		CRefCounter* m_ref_with_target_obj_ptr;
@@ -479,6 +514,17 @@ namespace mse {
 		TRefCountingNotNullConstPointer<_Ty>& operator=(const TRefCountingNotNullConstPointer<_Ty>& _Right_cref) {
 			TRefCountingConstPointer<_Ty>::operator=(_Right_cref);
 			return (*this);
+		}
+
+		const _Ty& operator*() const {
+			//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
+			const _Ty* x_ptr = (*this).unchecked_get();
+			return *x_ptr;
+		}
+		const _Ty* operator->() const {
+			//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
+			const _Ty* x_ptr = (*this).unchecked_get();
+			return x_ptr;
 		}
 
 	private:

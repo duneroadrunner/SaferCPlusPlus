@@ -493,7 +493,7 @@ namespace mse {
 		};
 
 		/* This macro roughly simulates constructor inheritance. */
-#define MSE_RELAXED_REGISTERED_OBJ_USING(Derived, Base) \
+#define MSE_FLREGISTERED_OBJ_USING(Derived, Base) \
     template<typename ...Args, typename = typename std::enable_if< \
 	std::is_constructible<Base, Args...>::value \
 	&& !is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
@@ -510,7 +510,7 @@ namespace mse {
 		public:
 			typedef _TROFLy base_class;
 
-			MSE_RELAXED_REGISTERED_OBJ_USING(TFLRegisteredObj, _TROFLy);
+			MSE_FLREGISTERED_OBJ_USING(TFLRegisteredObj, _TROFLy);
 			TFLRegisteredObj(const TFLRegisteredObj& _X) : _TROFLy(_X), m_tracker_notifier(*this) {}
 			TFLRegisteredObj(TFLRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)), m_tracker_notifier(*this) {}
 			virtual ~TFLRegisteredObj() {

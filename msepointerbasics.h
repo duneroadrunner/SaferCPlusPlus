@@ -13,6 +13,7 @@
 #include <limits>       // std::numeric_limits
 #include <stdexcept>      // primitives_range_error
 #include <memory>
+#include <unordered_set>
 
 /*compiler specific defines*/
 #ifdef _MSC_VER
@@ -236,7 +237,7 @@ namespace mse {
 			return (m_ptr != nullptr);
 		}
 
-		/*explicit */operator _Ty*() const {
+		explicit operator _Ty*() const {
 			assert_initialized();
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_ptr) {
@@ -515,6 +516,11 @@ namespace mse {
 		return &std::forward<_Ty>(_X);
 	}
 #endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
+	template<typename _Ty>
+	_Ty* not_null_from_nullable(const _Ty* src) {
+		return src;
+	}
 
 
 	template <class _TTargetType, class _TLeasePointerType> class TSyncWeakFixedConstPointer;
@@ -877,6 +883,113 @@ namespace std {
 	};
 }
 
+namespace mse {
+
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4127 )
+#endif /*_MSC_VER*/
+
+	/* CSAllocRegistry essentially just maintains a list of all objects allocated by a registered "new" call and not (yet)
+	subsequently deallocated with a corresponding registered delete. */
+	class CSAllocRegistry {
+	public:
+		CSAllocRegistry() {}
+		~CSAllocRegistry() {}
+		bool registerPointer(void *alloc_ptr) {
+			if (nullptr == alloc_ptr) { return true; }
+			{
+				if (1 <= sc_fs1_max_objects) {
+					/* We'll add this object to fast storage. */
+					if (sc_fs1_max_objects == m_num_fs1_objects) {
+						/* Too many objects. We're gonna move the oldest object to slow storage. */
+						moveObjectFromFastStorage1ToSlowStorage(0);
+					}
+					auto& fs1_object_ref = m_fs1_objects[m_num_fs1_objects];
+					fs1_object_ref = alloc_ptr;
+					m_num_fs1_objects += 1;
+					return true;
+				}
+				else {
+					/* Add the mapping to slow storage. */
+					std::unordered_set<CFS1Object>::value_type item(alloc_ptr);
+					m_pointer_set.insert(item);
+				}
+			}
+			return true;
+		}
+		bool unregisterPointer(void *alloc_ptr) {
+			if (nullptr == alloc_ptr) { return true; }
+			bool retval = false;
+			{
+				/* check if the object is in "fast storage 1" first */
+				for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
+					if (alloc_ptr == m_fs1_objects[i]) {
+						removeObjectFromFastStorage1(i);
+						return true;
+					}
+				}
+
+				/* The object was not in "fast storage 1". It's proably in "slow storage". */
+				auto num_erased = m_pointer_set.erase(alloc_ptr);
+				if (1 <= num_erased) {
+					retval = true;
+				}
+			}
+			return retval;
+		}
+		bool registerPointer(const void *alloc_ptr) { return (*this).registerPointer(const_cast<void *>(alloc_ptr)); }
+		bool unregisterPointer(const void *alloc_ptr) { return (*this).unregisterPointer(const_cast<void *>(alloc_ptr)); }
+		void reserve_space_for_one_more() {
+			/* The purpose of this function is to ensure that the next call to registerPointer() won't
+			need to allocate more memory, and thus won't have any chance of throwing an exception due to
+			memory allocation failure. */
+			m_pointer_set.reserve(m_pointer_set.size() + 1);
+		}
+
+		bool isEmpty() const { return ((0 == m_num_fs1_objects) && (0 == m_pointer_set.size())); }
+
+	private:
+		/* So this tracker stores the allocation pointers in either "fast storage1" or "slow storage". The code for
+		"fast storage1" is ugly. The code for "slow storage" is more readable. */
+		void removeObjectFromFastStorage1(int fs1_obj_index) {
+			for (int j = fs1_obj_index; j < (m_num_fs1_objects - 1); j += 1) {
+				m_fs1_objects[j] = m_fs1_objects[j + 1];
+			}
+			m_num_fs1_objects -= 1;
+		}
+		void moveObjectFromFastStorage1ToSlowStorage(int fs1_obj_index) {
+			auto& fs1_object_ref = m_fs1_objects[fs1_obj_index];
+			/* First we're gonna copy this object to slow storage. */
+			//std::unordered_set<CFS1Object>::value_type item(fs1_object_ref);
+			m_pointer_set.insert(fs1_object_ref);
+			/* Then we're gonna remove the object from fast storage */
+			removeObjectFromFastStorage1(fs1_obj_index);
+		}
+
+		typedef void* CFS1Object;
+
+#ifndef MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS
+#define MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS 8/* Arbitrary. The optimal number depends on how slow "slow storage" is. */
+#endif // !MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS
+		MSE_CONSTEXPR static const int sc_fs1_max_objects = MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS;
+		CFS1Object m_fs1_objects[sc_fs1_max_objects];
+		int m_num_fs1_objects = 0;
+
+		/* "slow storage" */
+		std::unordered_set<CFS1Object> m_pointer_set;
+	};
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
+
+	template<typename _Ty>
+	inline CSAllocRegistry& tlSAllocRegistry_ref() {
+		thread_local static CSAllocRegistry tlSAllocRegistry;
+		return tlSAllocRegistry;
+	}
+}
 
 #ifdef __clang__
 #pragma clang diagnostic pop

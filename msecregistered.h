@@ -350,23 +350,23 @@ namespace mse {
 	before its target type is fully defined. (This is necessary to support mutual and cyclic references.) It's also generally more
 	memory efficient. But maybe a bit slower in some cases. */
 	template<typename _Ty>
-	class TWCRegisteredPointer : public TSaferPtrForLegacy<TWCRegisteredObj<_Ty>> {
+	class TWCRegisteredPointer : public TSaferPtr<TWCRegisteredObj<_Ty>> {
 	public:
-		TWCRegisteredPointer() : TSaferPtrForLegacy<TWCRegisteredObj<_Ty>>() {
+		TWCRegisteredPointer() : TSaferPtr<TWCRegisteredObj<_Ty>>() {
 			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 		}
-		TWCRegisteredPointer(const TWCRegisteredPointer& src_cref) : TSaferPtrForLegacy<TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredPointer(const TWCRegisteredPointer& src_cref) : TSaferPtr<TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWCRegisteredPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TSaferPtrForLegacy<TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TSaferPtr<TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
-		TWCRegisteredPointer(std::nullptr_t) : TSaferPtrForLegacy<TWCRegisteredObj<_Ty>>(nullptr) {
+		TWCRegisteredPointer(std::nullptr_t) : TSaferPtr<TWCRegisteredObj<_Ty>>(nullptr) {
 			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 		}
 		virtual ~TWCRegisteredPointer() {
@@ -375,7 +375,7 @@ namespace mse {
 		TWCRegisteredPointer<_Ty>& operator=(const TWCRegisteredPointer<_Ty>& _Right_cref) {
 			(*m_sp_tracker_ptr).reserve_space_for_one_more();
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
-			TSaferPtrForLegacy<TWCRegisteredObj<_Ty>>::operator=(_Right_cref);
+			TSaferPtr<TWCRegisteredObj<_Ty>>::operator=(_Right_cref);
 			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
 			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 			return (*this);
@@ -386,7 +386,7 @@ namespace mse {
 		}
 		operator bool() const { return (*this).m_ptr; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		operator _Ty*() const {
+		explicit operator _Ty*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
@@ -405,7 +405,7 @@ namespace mse {
 		}
 
 	private:
-		TWCRegisteredPointer(CSPTracker* sp_tracker_ptr, TWCRegisteredObj<_Ty>* ptr) : TSaferPtrForLegacy<TWCRegisteredObj<_Ty>>(ptr) {
+		TWCRegisteredPointer(CSPTracker* sp_tracker_ptr, TWCRegisteredObj<_Ty>* ptr) : TSaferPtr<TWCRegisteredObj<_Ty>>(ptr) {
 			m_sp_tracker_ptr = sp_tracker_ptr;
 			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 		}
@@ -430,34 +430,34 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TWCRegisteredConstPointer : public TSaferPtrForLegacy<const TWCRegisteredObj<_Ty>> {
+	class TWCRegisteredConstPointer : public TSaferPtr<const TWCRegisteredObj<_Ty>> {
 	public:
-		TWCRegisteredConstPointer() : TSaferPtrForLegacy<const TWCRegisteredObj<_Ty>>() {
+		TWCRegisteredConstPointer() : TSaferPtr<const TWCRegisteredObj<_Ty>>() {
 			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 		}
-		TWCRegisteredConstPointer(const TWCRegisteredConstPointer& src_cref) : TSaferPtrForLegacy<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredConstPointer(const TWCRegisteredConstPointer& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWCRegisteredConstPointer(const TWCRegisteredConstPointer<_Ty2>& src_cref) : TSaferPtrForLegacy<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredConstPointer(const TWCRegisteredConstPointer<_Ty2>& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
-		TWCRegisteredConstPointer(const TWCRegisteredPointer<_Ty>& src_cref) : TSaferPtrForLegacy<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredConstPointer(const TWCRegisteredPointer<_Ty>& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWCRegisteredConstPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TSaferPtrForLegacy<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredConstPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
 			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
 		}
-		TWCRegisteredConstPointer(std::nullptr_t) : TSaferPtrForLegacy<const TWCRegisteredObj<_Ty>>(nullptr) {
+		TWCRegisteredConstPointer(std::nullptr_t) : TSaferPtr<const TWCRegisteredObj<_Ty>>(nullptr) {
 			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
 		}
 		virtual ~TWCRegisteredConstPointer() {
@@ -466,7 +466,7 @@ namespace mse {
 		TWCRegisteredConstPointer<_Ty>& operator=(const TWCRegisteredConstPointer<_Ty>& _Right_cref) {
 			(*m_sp_tracker_ptr).reserve_space_for_one_more();
 			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
-			TSaferPtrForLegacy<const TWCRegisteredObj<_Ty>>::operator=(_Right_cref);
+			TSaferPtr<const TWCRegisteredObj<_Ty>>::operator=(_Right_cref);
 			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
 			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 			return (*this);
@@ -475,13 +475,7 @@ namespace mse {
 		TWCRegisteredConstPointer<_Ty>& operator=(const TWCRegisteredConstPointer<_Ty2>& _Right_cref) {
 			return (*this).operator=(TWCRegisteredConstPointer(_Right_cref));
 		}
-		TWCRegisteredConstPointer<_Ty>& operator=(const TWCRegisteredPointer<_Ty>& _Right_cref) {
-			return (*this).operator=(TWCRegisteredConstPointer<_Ty>(_Right_cref));
-		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWCRegisteredConstPointer<_Ty>& operator=(const TWCRegisteredPointer<_Ty2>& _Right_cref) {
-			return (*this).operator=(TWCRegisteredPointer<_Ty>(_Right_cref));
-		}
+
 		operator bool() const { return (*this).m_ptr; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		operator const _Ty*() const {
@@ -503,7 +497,7 @@ namespace mse {
 		}
 
 	private:
-		TWCRegisteredConstPointer(CSPTracker* sp_tracker_ptr, const TWCRegisteredObj<_Ty>* ptr) : TSaferPtrForLegacy<const TWCRegisteredObj<_Ty>>(ptr) {
+		TWCRegisteredConstPointer(CSPTracker* sp_tracker_ptr, const TWCRegisteredObj<_Ty>* ptr) : TSaferPtr<const TWCRegisteredObj<_Ty>>(ptr) {
 			m_sp_tracker_ptr = sp_tracker_ptr;
 			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
 		}
@@ -533,14 +527,6 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWCRegisteredNotNullPointer(const TWCRegisteredNotNullPointer<_Ty2>& src_cref) : TWCRegisteredPointer<_Ty>(src_cref) {}
 
-		TWCRegisteredNotNullPointer(const  TWCRegisteredPointer<_Ty>& src_cref) : TWCRegisteredPointer<_Ty>(src_cref) {
-			*src_cref; // to ensure that src_cref points to a valid target
-		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWCRegisteredNotNullPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TWCRegisteredPointer<_Ty>(src_cref) {
-			*src_cref; // to ensure that src_cref points to a valid target
-		}
-
 		virtual ~TWCRegisteredNotNullPointer() {}
 		/*
 		TWCRegisteredNotNullPointer<_Ty>& operator=(const TWCRegisteredNotNullPointer<_Ty>& _Right_cref) {
@@ -555,6 +541,15 @@ namespace mse {
 	private:
 		TWCRegisteredNotNullPointer(CSPTracker* sp_tracker_ptr, TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredPointer<_Ty>(sp_tracker_ptr, ptr) {}
 
+		/* If you want to use this constructor, use not_null_from_nullable() instead. */
+		TWCRegisteredNotNullPointer(const  TWCRegisteredPointer<_Ty>& src_cref) : TWCRegisteredPointer<_Ty>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TWCRegisteredNotNullPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TWCRegisteredPointer<_Ty>(src_cref) {
+			*src_cref; // to ensure that src_cref points to a valid target
+		}
+
 		/* If you want a pointer to a TWCRegisteredNotNullPointer<_Ty>, declare the TWCRegisteredNotNullPointer<_Ty> as a
 		TWCRegisteredObj<TWCRegisteredNotNullPointer<_Ty>> instead. So for example:
 		auto reg_ptr = TWCRegisteredObj<TWCRegisteredNotNullPointer<_Ty>>(mse::registered_new<_Ty>());
@@ -568,6 +563,8 @@ namespace mse {
 		}
 
 		friend class TWCRegisteredFixedPointer<_Ty>;
+		template<typename _Ty2>
+		friend TWCRegisteredNotNullPointer<_Ty2> not_null_from_nullable(const TWCRegisteredPointer<_Ty2>& src);
 	};
 
 	template<typename _Ty>
@@ -580,6 +577,15 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWCRegisteredNotNullConstPointer(const TWCRegisteredNotNullConstPointer<_Ty2>& src_cref) : TWCRegisteredConstPointer<_Ty>(src_cref) {}
 
+		virtual ~TWCRegisteredNotNullConstPointer() {}
+		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+		explicit operator const _Ty*() const { return TWCRegisteredConstPointer<_Ty>::operator const _Ty*(); }
+		explicit operator const TWCRegisteredObj<_Ty>*() const { return TWCRegisteredConstPointer<_Ty>::operator const TWCRegisteredObj<_Ty>*(); }
+
+	private:
+		TWCRegisteredNotNullConstPointer(CSPTracker* sp_tracker_ptr, const TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredConstPointer<_Ty>(sp_tracker_ptr, ptr) {}
+
+		/* If you want to use this constructor, use not_null_from_nullable() instead. */
 		TWCRegisteredNotNullConstPointer(const TWCRegisteredPointer<_Ty>& src_cref) : TWCRegisteredConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
@@ -595,19 +601,22 @@ namespace mse {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 
-		virtual ~TWCRegisteredNotNullConstPointer() {}
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TWCRegisteredConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TWCRegisteredObj<_Ty>*() const { return TWCRegisteredConstPointer<_Ty>::operator const TWCRegisteredObj<_Ty>*(); }
-
-	private:
-		TWCRegisteredNotNullConstPointer(CSPTracker* sp_tracker_ptr, const TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredConstPointer<_Ty>(sp_tracker_ptr, ptr) {}
-
 		TWCRegisteredNotNullConstPointer<_Ty>* operator&() { return this; }
 		const TWCRegisteredNotNullConstPointer<_Ty>* operator&() const { return this; }
 
 		friend class TWCRegisteredFixedConstPointer<_Ty>;
+		template<typename _Ty2>
+		friend TWCRegisteredNotNullConstPointer<_Ty2> not_null_from_nullable(const TWCRegisteredConstPointer<_Ty2>& src);
 	};
+
+	template<typename _Ty>
+	TWCRegisteredNotNullPointer<_Ty> not_null_from_nullable(const TWCRegisteredPointer<_Ty>& src) {
+		return src;
+	}
+	template<typename _Ty>
+	TWCRegisteredNotNullConstPointer<_Ty> not_null_from_nullable(const TWCRegisteredConstPointer<_Ty>& src) {
+		return src;
+	}
 
 	/* TWCRegisteredFixedPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
 	parameters by reference. */
@@ -691,7 +700,7 @@ namespace mse {
 	};
 
 	/* This macro roughly simulates constructor inheritance. */
-#define MSE_RELAXED_REGISTERED_OBJ_USING(Derived, Base) \
+#define MSE_CREGISTERED_OBJ_USING(Derived, Base) \
     template<typename ...Args, typename = typename std::enable_if< \
 	std::is_constructible<Base, Args...>::value \
 	&& !is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
@@ -708,7 +717,7 @@ namespace mse {
 	public:
 		typedef _TROFLy base_class;
 
-		MSE_RELAXED_REGISTERED_OBJ_USING(TWCRegisteredObj, _TROFLy);
+		MSE_CREGISTERED_OBJ_USING(TWCRegisteredObj, _TROFLy);
 		TWCRegisteredObj(const TWCRegisteredObj& _X) : _TROFLy(_X), m_tracker_notifier(*this) {}
 		TWCRegisteredObj(TWCRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)), m_tracker_notifier(*this) {}
 		virtual ~TWCRegisteredObj() {
@@ -862,77 +871,77 @@ namespace mse {
 	/* template specializations */
 
 	template<typename _Ty>
-	class TWCRegisteredObj<_Ty*> : public TWCRegisteredObj<mse::TPointer<_Ty>> {
+	class TWCRegisteredObj<_Ty*> : public TWCRegisteredObj<mse::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredObj<mse::TPointer<_Ty>> base_class;
+		typedef TWCRegisteredObj<mse::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredObj, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredObj<_Ty* const> : public TWCRegisteredObj<const mse::TPointer<_Ty>> {
+	class TWCRegisteredObj<_Ty* const> : public TWCRegisteredObj<const mse::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredObj<const mse::TPointer<_Ty>> base_class;
+		typedef TWCRegisteredObj<const mse::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredObj, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredObj<const _Ty *> : public TWCRegisteredObj<mse::TPointer<const _Ty>> {
+	class TWCRegisteredObj<const _Ty *> : public TWCRegisteredObj<mse::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredObj<mse::TPointer<const _Ty>> base_class;
+		typedef TWCRegisteredObj<mse::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredObj, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredObj<const _Ty * const> : public TWCRegisteredObj<const mse::TPointer<const _Ty>> {
+	class TWCRegisteredObj<const _Ty * const> : public TWCRegisteredObj<const mse::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredObj<const mse::TPointer<const _Ty>> base_class;
+		typedef TWCRegisteredObj<const mse::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredObj, base_class);
 	};
 
 	template<typename _Ty>
-	class TWCRegisteredPointer<_Ty*> : public TWCRegisteredPointer<mse::TPointer<_Ty>> {
+	class TWCRegisteredPointer<_Ty*> : public TWCRegisteredPointer<mse::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredPointer<mse::TPointer<_Ty>> base_class;
+		typedef TWCRegisteredPointer<mse::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredPointer<_Ty* const> : public TWCRegisteredPointer<const mse::TPointer<_Ty>> {
+	class TWCRegisteredPointer<_Ty* const> : public TWCRegisteredPointer<const mse::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredPointer<const mse::TPointer<_Ty>> base_class;
+		typedef TWCRegisteredPointer<const mse::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredPointer<const _Ty *> : public TWCRegisteredPointer<mse::TPointer<const _Ty>> {
+	class TWCRegisteredPointer<const _Ty *> : public TWCRegisteredPointer<mse::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredPointer<mse::TPointer<const _Ty>> base_class;
+		typedef TWCRegisteredPointer<mse::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredPointer<const _Ty * const> : public TWCRegisteredPointer<const mse::TPointer<const _Ty>> {
+	class TWCRegisteredPointer<const _Ty * const> : public TWCRegisteredPointer<const mse::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredPointer<const mse::TPointer<const _Ty>> base_class;
+		typedef TWCRegisteredPointer<const mse::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredPointer, base_class);
 	};
 
 	template<typename _Ty>
-	class TWCRegisteredConstPointer<_Ty*> : public TWCRegisteredConstPointer<mse::TPointer<_Ty>> {
+	class TWCRegisteredConstPointer<_Ty*> : public TWCRegisteredConstPointer<mse::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredConstPointer<mse::TPointer<_Ty>> base_class;
+		typedef TWCRegisteredConstPointer<mse::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredConstPointer<_Ty* const> : public TWCRegisteredConstPointer<const mse::TPointer<_Ty>> {
+	class TWCRegisteredConstPointer<_Ty* const> : public TWCRegisteredConstPointer<const mse::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredConstPointer<const mse::TPointer<_Ty>> base_class;
+		typedef TWCRegisteredConstPointer<const mse::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredConstPointer<const _Ty *> : public TWCRegisteredConstPointer<mse::TPointer<const _Ty>> {
+	class TWCRegisteredConstPointer<const _Ty *> : public TWCRegisteredConstPointer<mse::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredConstPointer<mse::TPointer<const _Ty>> base_class;
+		typedef TWCRegisteredConstPointer<mse::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredConstPointer<const _Ty * const> : public TWCRegisteredConstPointer<const mse::TPointer<const _Ty>> {
+	class TWCRegisteredConstPointer<const _Ty * const> : public TWCRegisteredConstPointer<const mse::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredConstPointer<const mse::TPointer<const _Ty>> base_class;
+		typedef TWCRegisteredConstPointer<const mse::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredConstPointer, base_class);
 	};
 
@@ -1016,9 +1025,9 @@ namespace mse {
 
 #if defined(MSE_REGISTEREDPOINTER_DISABLED)
 	/* Omit definition of make_pointer_to_member() as it would clash with the one already defined in mseregistered.h. */
-#define MSE_RELAXEDREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER
+#define MSE_CREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER
 #endif // defined(MSE_REGISTEREDPOINTER_DISABLED)
-#if !defined(MSE_RELAXEDREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER) && defined(MSEREGISTERED_H_)
+#if !defined(MSE_CREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER) && defined(MSEREGISTERED_H_)
 	template<class _TTargetType, class _Ty>
 	TSyncWeakFixedPointer<_TTargetType, TCRegisteredPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TCRegisteredPointer<_Ty> &lease_pointer) {
 		return TSyncWeakFixedPointer<_TTargetType, TCRegisteredPointer<_Ty>>::make(target, lease_pointer);
@@ -1027,7 +1036,7 @@ namespace mse {
 	TSyncWeakFixedPointer<_TTargetType, TCRegisteredConstPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TCRegisteredConstPointer<_Ty> &lease_pointer) {
 		return TSyncWeakFixedPointer<_TTargetType, TCRegisteredConstPointer<_Ty>>::make(target, lease_pointer);
 	}
-#endif // !defined(MSE_RELAXEDREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER) && defined(MSEREGISTERED_H_)
+#endif // !defined(MSE_CREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER) && defined(MSEREGISTERED_H_)
 
 	/* shorter aliases */
 	template<typename _Ty> using rrp = TCRegisteredPointer<_Ty>;
