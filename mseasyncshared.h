@@ -11,6 +11,7 @@
 #include "mseoptional.h"
 #include "msemsearray.h"
 #include "msemsevector.h"
+#include "msepointerbasics.h"
 #ifndef MSE_ASYNCSHARED_NO_XSCOPE_DEPENDENCE
 #include "msescope.h"
 #endif // !MSE_ASYNCSHARED_NO_XSCOPE_DEPENDENCE
@@ -61,13 +62,8 @@ namespace mse {
     template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
-#ifdef MSEPOINTERBASICS_H
-	typedef StrongPointerTagBase AsyncSharedStrongPointerTagBase;
-	class AsyncSharedStrongPointerNotAsyncShareableTagBase : public AsyncSharedStrongPointerTagBase, public NotAsyncShareableTagBase {};
-#else // MSEPOINTERBASICS_H
-	class AsyncSharedStrongPointerTagBase {};
-	class AsyncSharedStrongPointerNotAsyncShareableTagBase : public AsyncSharedStrongPointerTagBase {};
-#endif // MSEPOINTERBASICS_H
+	typedef StrongPointerNeverNullTagBase AsyncSharedStrongPointerNeverNullTagBase;
+	class AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase : public AsyncSharedStrongPointerNeverNullTagBase, public NotAsyncShareableTagBase {};
 
 	class asyncshared_runtime_error : public std::runtime_error { public:
 		using std::runtime_error::runtime_error;
@@ -615,7 +611,7 @@ namespace mse {
 	template<typename _TAccessLease> class TAsyncSharedV2ReadWriteConstPointerBase;
 
 	template<typename _TAccessLease>
-	class TAsyncSharedV2ReadWritePointerBase : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedV2ReadWritePointerBase : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedV2ReadWritePointerBase(const TAsyncSharedV2ReadWritePointerBase& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedV2ReadWritePointerBase(TAsyncSharedV2ReadWritePointerBase&& src) = default;
@@ -723,7 +719,7 @@ namespace mse {
 	};
 
 	template<typename _TAccessLease>
-	class TAsyncSharedV2ReadWriteConstPointerBase : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedV2ReadWriteConstPointerBase : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedV2ReadWriteConstPointerBase(const TAsyncSharedV2ReadWriteConstPointerBase& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedV2ReadWriteConstPointerBase(TAsyncSharedV2ReadWriteConstPointerBase&& src) = default;
@@ -830,7 +826,7 @@ namespace mse {
 	};
 
 	template<typename _TAccessLease>
-	class TAsyncSharedV2ExclusiveReadWritePointerBase : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedV2ExclusiveReadWritePointerBase : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedV2ExclusiveReadWritePointerBase(const TAsyncSharedV2ExclusiveReadWritePointerBase& src) = delete;
 		TAsyncSharedV2ExclusiveReadWritePointerBase(TAsyncSharedV2ExclusiveReadWritePointerBase&& src) = default;
@@ -1226,7 +1222,7 @@ namespace mse {
 #endif // MSESCOPE_H_
 
 	template<typename _TAccessLease>
-	class TAsyncSharedV2ReadOnlyConstPointerBase : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedV2ReadOnlyConstPointerBase : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedV2ReadOnlyConstPointerBase(const TAsyncSharedV2ReadOnlyConstPointerBase& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedV2ReadOnlyConstPointerBase(TAsyncSharedV2ReadOnlyConstPointerBase&& src) = default;
@@ -1666,7 +1662,7 @@ namespace mse {
 
 	/* For situations where the shared object is immutable (i.e. is never modified), you don't even need locks or access requesters. */
 	template<typename _Ty>
-	class TAsyncSharedV2ImmutableFixedPointer : public AsyncSharedStrongPointerTagBase {
+	class TAsyncSharedV2ImmutableFixedPointer : public AsyncSharedStrongPointerNeverNullTagBase {
 	public:
 		TAsyncSharedV2ImmutableFixedPointer(const TAsyncSharedV2ImmutableFixedPointer& src_cref) = default;
 		virtual ~TAsyncSharedV2ImmutableFixedPointer() {
@@ -2640,7 +2636,7 @@ namespace mse {
 	template<typename _Ty> class TAsyncSharedReadWriteConstPointer;
 
 	template<typename _Ty>
-	class TAsyncSharedReadWritePointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedReadWritePointer : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedReadWritePointer(const TAsyncSharedReadWriteAccessRequester<_Ty>& src);
 		TAsyncSharedReadWritePointer(const TAsyncSharedReadWritePointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
@@ -2698,7 +2694,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedReadWriteConstPointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedReadWriteConstPointer : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedReadWriteConstPointer(const TAsyncSharedReadWriteConstPointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedReadWriteConstPointer(TAsyncSharedReadWriteConstPointer&& src) = default;
@@ -2755,7 +2751,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedExclusiveReadWritePointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedExclusiveReadWritePointer : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedExclusiveReadWritePointer(const TAsyncSharedExclusiveReadWritePointer& src) = delete;
 		TAsyncSharedExclusiveReadWritePointer(TAsyncSharedExclusiveReadWritePointer&& src) = default;
@@ -2916,7 +2912,7 @@ namespace mse {
 
 
 	template<typename _Ty>
-	class TAsyncSharedReadOnlyConstPointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedReadOnlyConstPointer : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedReadOnlyConstPointer(const TAsyncSharedReadOnlyConstPointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedReadOnlyConstPointer(TAsyncSharedReadOnlyConstPointer&& src) = default;
@@ -3036,7 +3032,7 @@ namespace mse {
 	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer;
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer&& src) = default;
@@ -3093,7 +3089,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer&& src) = default;
@@ -3150,7 +3146,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer& src) = delete;
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer&& src) = default;
@@ -3307,7 +3303,7 @@ namespace mse {
 
 
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer : public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer : public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer&& src) = default;
@@ -3428,7 +3424,7 @@ namespace mse {
 	points to a validly allocated object. Use mse::make_stdsharedimmutable<>() to construct an
 	mse::TStdSharedImmutableFixedPointer. And again, beware of sharing objects with mutable members. */
 	template<typename _Ty>
-	class TStdSharedImmutableFixedPointer : public std::shared_ptr<const _Ty>, public AsyncSharedStrongPointerNotAsyncShareableTagBase {
+	class TStdSharedImmutableFixedPointer : public std::shared_ptr<const _Ty>, public AsyncSharedStrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TStdSharedImmutableFixedPointer(const TStdSharedImmutableFixedPointer& src_cref) : std::shared_ptr<const _Ty>(src_cref) {}
 		virtual ~TStdSharedImmutableFixedPointer() {}

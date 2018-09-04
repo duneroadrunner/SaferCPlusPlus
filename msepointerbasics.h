@@ -718,6 +718,13 @@ namespace mse {
 	};
 	class StrongPointerNotAsyncShareableTagBase : public StrongPointerTagBase, public NotAsyncShareableTagBase {};
 
+	class NeverNullTagBase {
+	public:
+		void never_null_tag() const {}
+	};
+	class StrongPointerNeverNullTagBase : public StrongPointerTagBase, public NeverNullTagBase {};
+	class StrongPointerNeverNullNotAsyncShareableTagBase : public StrongPointerTagBase, public NeverNullTagBase, public NotAsyncShareableTagBase {};
+
 	template <typename T> struct is_shared_ptr : std::false_type {};
 	template <typename T> struct is_shared_ptr<std::shared_ptr<T> > : std::true_type {};
 
@@ -731,13 +738,29 @@ namespace mse {
 		static void no_op() {}
 	};
 
+	template<typename _TNeverNullPointer, class = typename std::enable_if<
+		(std::is_base_of<NeverNullTagBase, _TNeverNullPointer>::value)
+		|| (std::is_pointer<_TNeverNullPointer>::value)/* for when scope pointers are "disabled" */
+		|| (is_shared_ptr<_TNeverNullPointer>::value)/* for when refcounting pointers are "disabled" */
+		, void>::type>
+		class is_valid_if_never_null_pointer {
+		public:
+			static void no_op() {}
+	};
+
+	template<typename _TStrongAndNeverNullPointer>
+	class is_valid_if_strong_and_never_null_pointer : public is_valid_if_strong_pointer<_TStrongAndNeverNullPointer>, public is_valid_if_never_null_pointer<_TStrongAndNeverNullPointer>  {
+		public:
+			static void no_op() {}
+	};
+
 	template <class _TTargetType, class _TLeaseType> class TStrongFixedConstPointer;
 
 	/* If, for example, you want an "owning" pointer to a member of a refcounting pointer target, you can use a
 	TStrongFixedPointer to store a copy of the owning (refcounting) pointer along with the pointer targeting the
 	member. */
 	template <class _TTargetType, class _TLeaseType>
-	class TStrongFixedPointer : public StrongPointerNotAsyncShareableTagBase {
+	class TStrongFixedPointer : public StrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TStrongFixedPointer(const TStrongFixedPointer&) = default;
 		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
@@ -798,7 +821,7 @@ namespace mse {
 	}
 
 	template <class _TTargetType, class _TLeaseType>
-	class TStrongFixedConstPointer : public StrongPointerNotAsyncShareableTagBase {
+	class TStrongFixedConstPointer : public StrongPointerNeverNullNotAsyncShareableTagBase {
 	public:
 		TStrongFixedConstPointer(const TStrongFixedConstPointer&) = default;
 		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>

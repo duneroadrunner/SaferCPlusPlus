@@ -12,6 +12,7 @@
 #include "msepointerbasics.h"
 #include "mseregistered.h"
 #include "msecregistered.h"
+#include "msenorad.h"
 #include "mserefcounting.h"
 #include "msescope.h"
 #include "msemstdvector.h"
@@ -688,6 +689,9 @@ namespace mse {
 			mse::TRegisteredPointer<_Ty>,
 			mse::TCRegisteredPointer<_Ty>,
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
+#if !defined(MSE_NORADPOINTER_DISABLED)
+			mse::TNoradPointer<_Ty>,
+#endif // !defined(MSE_NORADPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 			mse::TRefCountingPointer<_Ty>,
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
@@ -729,6 +733,11 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TPolyPointerBase(const mse::TCRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TCRegisteredPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
+#if !defined(MSE_NORADPOINTER_DISABLED)
+		TPolyPointerBase(const mse::TNoradPointer<_Ty>& p) { m_pointer.template set<mse::TNoradPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyPointerBase(const mse::TNoradPointer<_Ty2>& p) { m_pointer.template set<mse::TNoradPointer<_Ty>>(p); }
+#endif // !defined(MSE_NORADPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 		TPolyPointerBase(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -860,6 +869,9 @@ namespace mse {
 			mse::TRegisteredConstPointer<_Ty>,
 			mse::TCRegisteredConstPointer<_Ty>,
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
+#if !defined(MSE_NORADPOINTER_DISABLED)
+			mse::TNoradConstPointer<_Ty>,
+#endif // !defined(MSE_NORADPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 			mse::TRefCountingConstPointer<_Ty>,
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
@@ -918,6 +930,15 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TPolyConstPointerBase(const mse::TCRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
+#if !defined(MSE_NORADPOINTER_DISABLED)
+		TPolyConstPointerBase(const mse::TNoradConstPointer<_Ty>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointerBase(const mse::TNoradConstPointer<_Ty2>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
+
+		TPolyConstPointerBase(const mse::TNoradPointer<_Ty>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		TPolyConstPointerBase(const mse::TNoradPointer<_Ty2>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
+#endif // !defined(MSE_NORADPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 		TPolyConstPointerBase(const mse::TRefCountingConstPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>

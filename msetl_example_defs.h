@@ -21,12 +21,13 @@ options rather than "#define" directives in the code such as the ones here (for 
 //#define MSE_PRIMITIVES_DISABLED
 //#define MSE_REFCOUNTINGPOINTER_DISABLED
 //#define MSE_SCOPEPOINTER_DISABLED
+//#define MSE_NORADPOINTER_DISABLED
 
 /* The following adds run-time checks to scope pointers in debug mode */
 //#define MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
 //#define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED // This adds them to non-debug modes too.
 
-/* The following will result in program termination instead of exceptions being thrown. */
+/* The following will result in program termination instead of exceptions being thrown when an invalid memory access is attempted. */
 //#define MSE_CUSTOM_THROW_DEFINITION(x) std::cerr << std::endl << x.what(); exit(-11)
 
 /* The following directs the vectors and arrays to use the safe substitutes for native primitives (like int

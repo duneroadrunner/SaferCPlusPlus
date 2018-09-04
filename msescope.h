@@ -266,7 +266,7 @@ namespace mse {
 
 	/* Use TXScopeFixedPointer instead. */
 	template<typename _Ty>
-	class TXScopeNotNullPointer : public TXScopePointer<_Ty> {
+	class TXScopeNotNullPointer : public TXScopePointer<_Ty>, public NeverNullTagBase {
 	public:
 	private:
 		TXScopeNotNullPointer(TXScopeObj<_Ty>* ptr) : TXScopePointer<_Ty>(ptr) {}
@@ -291,7 +291,7 @@ namespace mse {
 
 	/* Use TXScopeFixedConstPointer instead. */
 	template<typename _Ty>
-	class TXScopeNotNullConstPointer : public TXScopeConstPointer<_Ty> {
+	class TXScopeNotNullConstPointer : public TXScopeConstPointer<_Ty>, public NeverNullTagBase {
 	public:
 	private:
 		TXScopeNotNullConstPointer(const TXScopeNotNullConstPointer<_Ty>& src_cref) : TXScopeConstPointer<_Ty>(src_cref) {}
@@ -1763,7 +1763,7 @@ namespace mse {
 		_TStrongPointer m_stored_ptr;
 	};
 
-	template<typename _TStrongPointer, class = is_valid_if_strong_pointer<_TStrongPointer> >
+	template<typename _TStrongPointer, class = is_valid_if_strong_and_never_null_pointer<_TStrongPointer> >
 	class TXScopeStrongNotNullPointerStore : public XScopeTagBase
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeStrongNotNullPointerStore<_TStrongPointer> > >::type
 	{
@@ -1785,7 +1785,7 @@ namespace mse {
 		_TStrongPointer m_stored_ptr;
 	};
 
-	template<typename _TStrongPointer, class = is_valid_if_strong_pointer<_TStrongPointer> >
+	template<typename _TStrongPointer, class = is_valid_if_strong_and_never_null_pointer<_TStrongPointer> >
 	class TXScopeStrongNotNullConstPointerStore : public XScopeTagBase
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeStrongNotNullConstPointerStore<_TStrongPointer> > >::type
 	{

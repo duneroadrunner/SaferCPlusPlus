@@ -631,10 +631,6 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWCRegisteredFixedPointer(const TWCRegisteredNotNullPointer<_Ty2>& src_cref) : TWCRegisteredNotNullPointer<_Ty>(src_cref) {}
 
-		TWCRegisteredFixedPointer(const TWCRegisteredPointer<_Ty>& src_cref) : TWCRegisteredNotNullPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWCRegisteredFixedPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TWCRegisteredNotNullPointer<_Ty>(src_cref) {}
-
 		virtual ~TWCRegisteredFixedPointer() {}
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -676,13 +672,6 @@ namespace mse {
 		TWCRegisteredFixedConstPointer(const TWCRegisteredNotNullConstPointer<_Ty>& src_cref) : TWCRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWCRegisteredFixedConstPointer(const TWCRegisteredNotNullConstPointer<_Ty2>& src_cref) : TWCRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-
-		TWCRegisteredFixedConstPointer(const TWCRegisteredPointer<_Ty>& src_cref) : TWCRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWCRegisteredFixedConstPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TWCRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-		TWCRegisteredFixedConstPointer(const TWCRegisteredConstPointer<_Ty>& src_cref) : TWCRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWCRegisteredFixedConstPointer(const TWCRegisteredConstPointer<_Ty2>& src_cref) : TWCRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 
 		virtual ~TWCRegisteredFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */

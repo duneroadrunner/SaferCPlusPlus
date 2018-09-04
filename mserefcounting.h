@@ -142,6 +142,10 @@ namespace mse {
 		TRefCountingPointer(const TRefCountingPointer& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
 		}
+		TRefCountingPointer(TRefCountingPointer&& r) {
+			m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
+			r.m_ref_with_target_obj_ptr = nullptr;
+		}
 		operator bool() const { return nullptr != get(); }
 		void clear() { (*this) = TRefCountingPointer<X>(nullptr); }
 		TRefCountingPointer& operator=(const TRefCountingPointer& r) {
@@ -276,9 +280,10 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TRefCountingNotNullPointer : public TRefCountingPointer<_Ty> {
+	class TRefCountingNotNullPointer : public TRefCountingPointer<_Ty>, public NeverNullTagBase {
 	public:
 		TRefCountingNotNullPointer(const TRefCountingNotNullPointer& src_cref) : TRefCountingPointer<_Ty>(src_cref) {}
+		TRefCountingNotNullPointer(TRefCountingNotNullPointer&& src_ref) : TRefCountingPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 		virtual ~TRefCountingNotNullPointer() {}
 		TRefCountingNotNullPointer<_Ty>& operator=(const TRefCountingNotNullPointer<_Ty>& _Right_cref) {
 			TRefCountingPointer<_Ty>::operator=(_Right_cref);
@@ -325,6 +330,8 @@ namespace mse {
 	public:
 		TRefCountingFixedPointer(const TRefCountingFixedPointer& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
 		TRefCountingFixedPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
+		TRefCountingFixedPointer(TRefCountingFixedPointer<_Ty>&& src_ref) : TRefCountingNotNullPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TRefCountingFixedPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingNotNullPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 		virtual ~TRefCountingFixedPointer() {}
 
 		template <class... Args>
@@ -378,6 +385,14 @@ namespace mse {
 		}
 		TRefCountingConstPointer(const TRefCountingPointer<X>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
+		}
+		TRefCountingConstPointer(TRefCountingConstPointer&& r) {
+			m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
+			r.m_ref_with_target_obj_ptr = nullptr;
+		}
+		TRefCountingConstPointer(TRefCountingPointer<X>&& r) {
+			m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
+			r.m_ref_with_target_obj_ptr = nullptr;
 		}
 		operator bool() const { return nullptr != get(); }
 		void clear() { (*this) = TRefCountingConstPointer<X>(nullptr); }
@@ -506,10 +521,12 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TRefCountingNotNullConstPointer : public TRefCountingConstPointer<_Ty> {
+	class TRefCountingNotNullConstPointer : public TRefCountingConstPointer<_Ty>, public NeverNullTagBase {
 	public:
 		TRefCountingNotNullConstPointer(const TRefCountingNotNullConstPointer& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {}
 		TRefCountingNotNullConstPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {}
+		TRefCountingNotNullConstPointer(TRefCountingNotNullConstPointer&& src_ref) : TRefCountingConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TRefCountingNotNullConstPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 		virtual ~TRefCountingNotNullConstPointer() {}
 		TRefCountingNotNullConstPointer<_Ty>& operator=(const TRefCountingNotNullConstPointer<_Ty>& _Right_cref) {
 			TRefCountingConstPointer<_Ty>::operator=(_Right_cref);
@@ -552,6 +569,12 @@ namespace mse {
 		TRefCountingFixedConstPointer(const TRefCountingFixedPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
 		TRefCountingFixedConstPointer(const TRefCountingNotNullConstPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
 		TRefCountingFixedConstPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
+
+		TRefCountingFixedConstPointer(TRefCountingFixedConstPointer&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TRefCountingFixedConstPointer(TRefCountingFixedPointer<_Ty>&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TRefCountingFixedConstPointer(TRefCountingNotNullConstPointer<_Ty>&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TRefCountingFixedConstPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+
 		virtual ~TRefCountingFixedConstPointer() {}
 
 	private:

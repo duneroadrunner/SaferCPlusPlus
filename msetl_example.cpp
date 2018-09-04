@@ -976,6 +976,26 @@ int main(int argc, char* argv[])
 		}
 		{
 			int count = 0;
+			mse::TNoradPointer<CE> item_ptr2 = mse::norad_new<CE>(count);
+			mse::norad_delete<CE>(item_ptr2);
+			auto t1 = std::chrono::high_resolution_clock::now();
+			for (int i = 0; i < number_of_loops; i += 1) {
+				mse::TNoradPointer<CE> item_ptr = mse::norad_new<CE>(count);
+				item_ptr2 = item_ptr;
+				item_ptr2 = nullptr;
+				mse::norad_delete<CE>(item_ptr);
+			}
+
+			auto t2 = std::chrono::high_resolution_clock::now();
+			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+			std::cout << "mse::TNoradPointer: " << time_span.count() << " seconds.";
+			if (0 != count) {
+				std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+			}
+			std::cout << std::endl;
+		}
+		{
+			int count = 0;
 			auto item_ptr2 = std::make_shared<CE>(count);
 			auto t1 = std::chrono::high_resolution_clock::now();
 			for (int i = 0; i < number_of_loops; i += 1) {
@@ -1468,7 +1488,8 @@ int main(int argc, char* argv[])
 
 		auto res5 = H::foo6(xscp_s_ptr1, xscp_s_const_ptr1);
 
-		/* Using mse::make_xscope_strong_pointer_store(), you can obtain a scope pointer from a refcounting pointer. */
+		/* Using mse::make_xscope_strong_pointer_store(), you can obtain a scope pointer from a refcounting pointer (or any other
+		"strong" pointer). */
 		/* Let's make it a const refcounting pointer, just for variety. */
 		mse::TRefCountingFixedConstPointer<A> refc_cptr1 = mse::make_refcounting<A>(11);
 		auto xscp_refc_cstore = mse::make_xscope_strong_pointer_store(refc_cptr1);

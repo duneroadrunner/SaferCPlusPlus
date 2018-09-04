@@ -27,7 +27,7 @@ objects of a given type. */
 #include <iostream>
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
-#define MSE_REGISTEREDPOINTER_DISABLED
+#define MSE_NORADPOINTER_DISABLED
 #endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
@@ -51,7 +51,7 @@ namespace mse {
 	template<typename _Ty> class TWNoradFixedPointer;
 	template<typename _Ty> class TWNoradFixedConstPointer;
 
-#ifdef MSE_REGISTEREDPOINTER_DISABLED
+#ifdef MSE_NORADPOINTER_DISABLED
 	template<typename _Ty> using TNoradPointer = _Ty * ;
 	template<typename _Ty> using TNoradConstPointer = const _Ty*;
 	template<typename _Ty> using TNoradNotNullPointer = _Ty * ;
@@ -90,7 +90,7 @@ namespace mse {
 	template<typename _Ty> auto norad_fptr_to(_Ty&& _X) { return &_X; }
 	template<typename _Ty> auto norad_fptr_to(const _Ty& _X) { return &_X; }
 
-#else /*MSE_REGISTEREDPOINTER_DISABLED*/
+#else /*MSE_NORADPOINTER_DISABLED*/
 
 	class norad_cannot_verify_cast_error : public std::logic_error {
 	public:
@@ -114,14 +114,14 @@ namespace mse {
 		return _X.mse_norad_fptr();
 	}
 
-#endif /*MSE_REGISTEREDPOINTER_DISABLED*/
+#endif /*MSE_NORADPOINTER_DISABLED*/
 
 	/* TWNoradPointer<>, like TWCRegisteredPointer<>, behaves similar to native pointers. But where registered pointers are
 	automatically set to nullptr when their target is destroyed, the destruction of an object while a "norad" pointer is targeting
 	it results in program termination. This drastic consequence allows norad pointers' run-time safety mechanism to be very
 	lightweight (compared to that of registered pointers). */
 	template<typename _Ty>
-	class TWNoradPointer : public TPointer<TWNoradObj<_Ty>> {
+	class TWNoradPointer : public TPointer<TWNoradObj<_Ty>>, public StrongPointerTagBase {
 	public:
 		TWNoradPointer() : TPointer<TWNoradObj<_Ty>>() {}
 		TWNoradPointer(const TWNoradPointer& src_cref) : TPointer<TWNoradObj<_Ty>>(src_cref.m_ptr) {
@@ -130,6 +130,9 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWNoradPointer(const TWNoradPointer<_Ty2>& src_cref) : TPointer<TWNoradObj<_Ty>>(src_cref.m_ptr) {
 			if (*this) { (*(*this)).increment_refcount(); }
+		}
+		TWNoradPointer(TWNoradPointer&& src_ref) : TPointer<TWNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+			src_ref.m_ptr = nullptr;
 		}
 		TWNoradPointer(std::nullptr_t) : TPointer<TWNoradObj<_Ty>>(nullptr) {}
 		virtual ~TWNoradPointer() {
@@ -199,7 +202,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TWNoradConstPointer : public TPointer<const TWNoradObj<_Ty>> {
+	class TWNoradConstPointer : public TPointer<const TWNoradObj<_Ty>>, public StrongPointerTagBase {
 	public:
 		TWNoradConstPointer() : TPointer<const TWNoradObj<_Ty>>() {}
 		TWNoradConstPointer(const TWNoradConstPointer& src_cref) : TPointer<const TWNoradObj<_Ty>>(src_cref.m_ptr) {
@@ -216,6 +219,14 @@ namespace mse {
 		TWNoradConstPointer(const TWNoradPointer<_Ty2>& src_cref) : TPointer<const TWNoradObj<_Ty>>(src_cref.m_ptr) {
 			if (*this) { (*(*this)).increment_refcount(); }
 		}
+
+		TWNoradConstPointer(TWNoradConstPointer&& src_ref) : TPointer<const TWNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+			src_ref.m_ptr = nullptr;
+		}
+		TWNoradConstPointer(TWNoradPointer<_Ty>&& src_ref) : TPointer<const TWNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+			src_ref.m_ptr = nullptr;
+		}
+
 		TWNoradConstPointer(std::nullptr_t) : TPointer<const TWNoradObj<_Ty>>(nullptr) {}
 		virtual ~TWNoradConstPointer() {
 			if (*this) { (*(*this)).decrement_refcount(); }
@@ -283,11 +294,12 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TWNoradNotNullPointer : public TWNoradPointer<_Ty> {
+	class TWNoradNotNullPointer : public TWNoradPointer<_Ty>, public NeverNullTagBase {
 	public:
 		TWNoradNotNullPointer(const TWNoradNotNullPointer& src_cref) : TWNoradPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWNoradNotNullPointer(const TWNoradNotNullPointer<_Ty2>& src_cref) : TWNoradPointer<_Ty>(src_cref) {}
+		TWNoradNotNullPointer(TWNoradNotNullPointer&& src_ref) : TWNoradPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 
 		virtual ~TWNoradNotNullPointer() {}
 		/*
@@ -340,7 +352,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TWNoradNotNullConstPointer : public TWNoradConstPointer<_Ty> {
+	class TWNoradNotNullConstPointer : public TWNoradConstPointer<_Ty>, public NeverNullTagBase {
 	public:
 		TWNoradNotNullConstPointer(const TWNoradNotNullPointer<_Ty>& src_cref) : TWNoradConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -348,6 +360,9 @@ namespace mse {
 		TWNoradNotNullConstPointer(const TWNoradNotNullConstPointer<_Ty>& src_cref) : TWNoradConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWNoradNotNullConstPointer(const TWNoradNotNullConstPointer<_Ty2>& src_cref) : TWNoradConstPointer<_Ty>(src_cref) {}
+
+		TWNoradNotNullConstPointer(TWNoradNotNullPointer<_Ty>&& src_ref) : TWNoradConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TWNoradNotNullConstPointer(TWNoradNotNullConstPointer<_Ty>&& src_ref) : TWNoradConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 
 		virtual ~TWNoradNotNullConstPointer() {}
 
@@ -413,9 +428,8 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWNoradFixedPointer(const TWNoradNotNullPointer<_Ty2>& src_cref) : TWNoradNotNullPointer<_Ty>(src_cref) {}
 
-		TWNoradFixedPointer(const TWNoradPointer<_Ty>& src_cref) : TWNoradNotNullPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWNoradFixedPointer(const TWNoradPointer<_Ty2>& src_cref) : TWNoradNotNullPointer<_Ty>(src_cref) {}
+		TWNoradFixedPointer(TWNoradFixedPointer&& src_ref) : TWNoradNotNullPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TWNoradFixedPointer(TWNoradNotNullPointer<_Ty>&& src_ref) : TWNoradNotNullPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 
 		virtual ~TWNoradFixedPointer() {}
 
@@ -459,12 +473,11 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWNoradFixedConstPointer(const TWNoradNotNullConstPointer<_Ty2>& src_cref) : TWNoradNotNullConstPointer<_Ty>(src_cref) {}
 
-		TWNoradFixedConstPointer(const TWNoradPointer<_Ty>& src_cref) : TWNoradNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWNoradFixedConstPointer(const TWNoradPointer<_Ty2>& src_cref) : TWNoradNotNullConstPointer<_Ty>(src_cref) {}
-		TWNoradFixedConstPointer(const TWNoradConstPointer<_Ty>& src_cref) : TWNoradNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWNoradFixedConstPointer(const TWNoradConstPointer<_Ty2>& src_cref) : TWNoradNotNullConstPointer<_Ty>(src_cref) {}
+		TWNoradFixedConstPointer(TWNoradFixedPointer<_Ty>&& src_ref) : TWNoradNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TWNoradFixedConstPointer(TWNoradFixedConstPointer<_Ty>&& src_ref) : TWNoradNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+
+		TWNoradFixedConstPointer(TWNoradNotNullPointer<_Ty>&& src_ref) : TWNoradNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TWNoradFixedConstPointer(TWNoradNotNullConstPointer<_Ty>&& src_ref) : TWNoradNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 
 		virtual ~TWNoradFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -533,8 +546,8 @@ namespace mse {
 	};
 
 
-#ifdef MSE_REGISTEREDPOINTER_DISABLED
-#else /*MSE_REGISTEREDPOINTER_DISABLED*/
+#ifdef MSE_NORADPOINTER_DISABLED
+#else /*MSE_NORADPOINTER_DISABLED*/
 
 	/* See registered_new(). */
 	template <class _Ty, class... Args>
@@ -567,7 +580,7 @@ namespace mse {
 			regPtrRef.norad_delete();
 		}
 	}
-#endif /*MSE_REGISTEREDPOINTER_DISABLED*/
+#endif /*MSE_NORADPOINTER_DISABLED*/
 
 }
 
