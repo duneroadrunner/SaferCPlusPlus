@@ -431,61 +431,50 @@ Same as `TNoradPointer<>`, but cannot be constructed to or assigned a null value
 
 ### Simple benchmarks
 
-Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks of the library in general can be found [here](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame).) We show the results for msvc2015 and msvc2013 (run on the same machine), since there are some interesting differences. The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp). (Search for "benchmark" in the file.)
+Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks of the library in general can be found [here](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame).) The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp). (Search for "benchmark" in the file.)
 
-#### Allocation, deallocation, pointer copy and assignment:
+##### platform: msvc2017/default optimizations/x64/Windows7/Haswell (Sep 2018):
 
-##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
-
-Pointer Type | Time
------------- | ----
-[mse::TRegisteredPointer](#tregisteredpointer) (stack): | 0.0317188 seconds.
-native pointer (heap): | 0.0394826 seconds.
-[mse::TRefCountingPointer](#trefcountingpointer) (heap): | 0.0493629 seconds.
-mse::TRegisteredPointer (heap): | 0.0573699 seconds.
-std::shared_ptr (heap): | 0.0692405 seconds.
-[mse::TCRegisteredPointer](#tcregisteredpointer) (heap)\*: | 0.14475 seconds.
-
-##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
+#### Target object allocation and deallocation:
 
 Pointer Type | Time
 ------------ | ----
-mse::TRegisteredPointer (stack): | 0.0270016 seconds.
-native pointer (heap): | 0.0490028 seconds.
-mse::TRegisteredPointer (heap): | 0.0740042 seconds.
-std::shared_ptr (heap): | 0.087005 seconds.
-mse::TCRegisteredPointer (heap)\*: | 0.142008 seconds.
+native pointer (stack) | 0.0482506 seconds
+[mse::TNoradPointer](#tnoradpointer) (stack) | 0.0543053 seconds
+[mse::TRegisteredPointer](#tregisteredpointer) (stack) | 0.085932 seconds
+[mse::TCRegisteredPointer](#tcregisteredpointer) (stack) | 0.127619 seconds
+native pointer (heap) | 0.380059 seconds
+[mse::TRefCountingPointer](#trefcountingpointer) (heap) | 0.39105 seconds
+mse::TNoradPointer (heap) | 0.392182 seconds
+mse::TRegisteredPointer (heap) | 0.413458 seconds
+mse::TCRegisteredPointer (heap) | 0.489118 seconds
+std::shared_ptr (heap) | 0.525877 seconds
 
-\* These benchmarks used an older version of `mse::TCRegisteredPointer`. The current version would have performance similar to `mse::TRegisteredPointer`.
+#### Pointer declaration, copy and assignment:
 
-Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. Interestingly, three of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.  
-
-I'm speculating here, but it might be the case that the heap operations that occur in this benchmark may be more "cache friendly" than heap operations in real world code would be, making the "heap" results look artificially good (relative to the "stack" result).
+Pointer Type | Time
+------------ | ----
+native pointer | 0.0460813 seconds
+mse::TRefCountingPointer | 0.0990784 seconds
+mse::TNoradPointer | 0.113345 seconds
+std::shared_ptr | 0.282165 seconds
+mse::TRegisteredPointer | 0.299785 seconds
+mse::TCRegisteredPointer | 0.635466 seconds
 
 #### Dereferencing:
 
-##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
-
 Pointer Type | Time
 ------------ | ----
-native pointer: | 0.0105804 seconds.
-mse::TCRegisteredPointer unchecked: | 0.0136354 seconds.
-mse::TRefCountingPointer (checked): | 0.0258107 seconds.
-mse::TCRegisteredPointer (checked): | 0.0308289 seconds.
-std::weak_ptr: | 0.179833 seconds.
+native pointer | 0.105665 seconds
+native pointer + nullptr check | 0.106397 seconds
+mse::TCRegisteredPointer | 0.1591 seconds
+mse::TNoradPointer | 0.160159 seconds
+mse::TRefCountingPointer | 0.225478 seconds
+std::weak_ptr | 1.37197 seconds
 
-##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
+Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But they give you a rough idea of the relative performances.
 
-Pointer Type | Time
------------- | ----
-native pointer: | 0.0100006 seconds.
-mse::TCRegisteredPointer unchecked: | 0.0130008 seconds.
-mse::TCRegisteredPointer (checked): | 0.016001 seconds.
-std::weak_ptr: | 0.17701 seconds.
-
-The interesting thing here is that checking for nullptr seems to have gotten a lot slower between msvc2013 and msvc2015. But anyway, my guess is that pointer dereferencing is such a fast operation (std::weak_ptr aside) that outside of critical inner loops, the overhead of checking for nullptr would generally be probably pretty modest.  
-
-Also note that [`mse::TRefCountingNotNullPointer<>`](#trefcountingnotnullpointer) and [`mse::TRefCountingFixedPointer<>`](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked. `mse::TRegisteredPointer<>`'s safety mechanisms are not compatible with the techniques used by the benchmark to isolate dereferencing performance, but `mse::TRegisteredPointer<>`'s dereferencing performance would be expected to be essentially identical to that of `mse::TCRegisteredPointer<>`. By default, [scope pointers](#scope-pointers) have identical performance to native pointers.
+Note that by default, [scope pointers](#scope-pointers) have identical performance to native pointers.
 
 ### Reference counting pointers
 
