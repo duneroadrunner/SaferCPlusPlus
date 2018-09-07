@@ -126,8 +126,6 @@ And note that the safe components of this library can be adopted completely incr
 
 Though for real time embedded applications, note the dependence on the standard library. You may also want to override the default behavior (of throwing an exception) upon invalid memory operations (using `MSE_CUSTOM_THROW_DEFINITION(x)`).
 
-For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
-
 ### Setup and dependencies
 
 Using this (header-only) library generally involves copying the include files you want to use into your project, and that's it. Outside of the standard library, there are no other dependencies.  
@@ -217,7 +215,7 @@ And if at some point you feel that these new elements involve a lot of typing, n
 
 Registered pointers come in two flavors - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TCRegisteredPointer<>`](#tcregisteredpointer). They have very similar functionality, but implementations which are a bit different. With `TRegisteredPointer<>`, the pointer is "registered" in a "registry" that is attached to its target object, whereas `TCRegisteredPointer<>`s are registered in a common (thread local) registry. The only functional difference is that `TRegisteredPointer<>` does not support targeting a type before that type is fully defined, which essentially means that it doesn't support "mutual" or "cyclic" references. `TRegisteredPointer<>`s are also generally a bit less memory efficient. The reason you would choose to use a `TRegisteredPointer<>` over a `TCRegisteredPointer<>`, is that its implementation is generally (even) better at avoiding heap allocations, and thus potential costly cache misses.
 
-Note that these registered pointers cannot target some types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. The library provides safer [substitutes](#primitives) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+Note that these registered pointers cannot target some types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. The library provides safer [substitutes](#primitives) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library.
 
 Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead. In fact, even when registered pointers are used, rather than using them to access the target object directly, you may find it often preferable to use the registered pointer to obtain a scope pointer to the object and use the scope pointer instead. Though for the sake of simplicity, we don't use scope pointers in the registered pointer usage examples.  
 
@@ -433,65 +431,54 @@ Same as `TNoradPointer<>`, but cannot be constructed to or assigned a null value
 
 ### Simple benchmarks
 
-Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks of the library in general can be found [here](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame).) We show the results for msvc2015 and msvc2013 (run on the same machine), since there are some interesting differences. The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp). (Search for "benchmark" in the file.)
+Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks of the library in general can be found [here](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame).) The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp). (Search for "benchmark" in the file.)
 
-#### Allocation, deallocation, pointer copy and assignment:
+##### platform: msvc2017/default optimizations/x64/Windows7/Haswell (Sep 2018):
 
-##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
-
-Pointer Type | Time
------------- | ----
-[mse::TRegisteredPointer](#tregisteredpointer) (stack): | 0.0317188 seconds.
-native pointer (heap): | 0.0394826 seconds.
-[mse::TRefCountingPointer](#trefcountingpointer) (heap): | 0.0493629 seconds.
-mse::TRegisteredPointer (heap): | 0.0573699 seconds.
-std::shared_ptr (heap): | 0.0692405 seconds.
-[mse::TCRegisteredPointer](#tcregisteredpointer) (heap)\*: | 0.14475 seconds.
-
-##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
+#### Target object allocation and deallocation:
 
 Pointer Type | Time
 ------------ | ----
-mse::TRegisteredPointer (stack): | 0.0270016 seconds.
-native pointer (heap): | 0.0490028 seconds.
-mse::TRegisteredPointer (heap): | 0.0740042 seconds.
-std::shared_ptr (heap): | 0.087005 seconds.
-mse::TCRegisteredPointer (heap)\*: | 0.142008 seconds.
+native pointer (stack) | 0.0482506 seconds
+[mse::TNoradPointer](#tnoradpointer) (stack) | 0.0543053 seconds
+[mse::TRegisteredPointer](#tregisteredpointer) (stack) | 0.085932 seconds
+[mse::TCRegisteredPointer](#tcregisteredpointer) (stack) | 0.127619 seconds
+native pointer (heap) | 0.380059 seconds
+[mse::TRefCountingPointer](#trefcountingpointer) (heap) | 0.39105 seconds
+mse::TNoradPointer (heap) | 0.392182 seconds
+mse::TRegisteredPointer (heap) | 0.413458 seconds
+mse::TCRegisteredPointer (heap) | 0.489118 seconds
+std::shared_ptr (heap) | 0.525877 seconds
 
-\* These benchmarks used an older version of `mse::TCRegisteredPointer`. The current version would have performance similar to `mse::TRegisteredPointer`.
+#### Pointer declaration, copy and assignment:
 
-Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. Interestingly, three of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.  
-
-I'm speculating here, but it might be the case that the heap operations that occur in this benchmark may be more "cache friendly" than heap operations in real world code would be, making the "heap" results look artificially good (relative to the "stack" result).
+Pointer Type | Time
+------------ | ----
+native pointer | 0.0460813 seconds
+mse::TRefCountingPointer | 0.0990784 seconds
+mse::TNoradPointer | 0.113345 seconds
+std::shared_ptr | 0.282165 seconds
+mse::TRegisteredPointer | 0.299785 seconds
+mse::TCRegisteredPointer | 0.635466 seconds
 
 #### Dereferencing:
 
-##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
-
 Pointer Type | Time
 ------------ | ----
-native pointer: | 0.0105804 seconds.
-mse::TCRegisteredPointer unchecked: | 0.0136354 seconds.
-mse::TRefCountingPointer (checked): | 0.0258107 seconds.
-mse::TCRegisteredPointer (checked): | 0.0308289 seconds.
-std::weak_ptr: | 0.179833 seconds.
+native pointer | 0.105665 seconds
+native pointer + nullptr check | 0.106397 seconds
+mse::TCRegisteredPointer | 0.1591 seconds
+mse::TNoradPointer | 0.160159 seconds
+mse::TRefCountingPointer | 0.225478 seconds
+std::weak_ptr | 1.37197 seconds
 
-##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
+Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But they give you a rough idea of the relative performances.
 
-Pointer Type | Time
------------- | ----
-native pointer: | 0.0100006 seconds.
-mse::TCRegisteredPointer unchecked: | 0.0130008 seconds.
-mse::TCRegisteredPointer (checked): | 0.016001 seconds.
-std::weak_ptr: | 0.17701 seconds.
-
-The interesting thing here is that checking for nullptr seems to have gotten a lot slower between msvc2013 and msvc2015. But anyway, my guess is that pointer dereferencing is such a fast operation (std::weak_ptr aside) that outside of critical inner loops, the overhead of checking for nullptr would generally be probably pretty modest.  
-
-Also note that [`mse::TRefCountingNotNullPointer<>`](#trefcountingnotnullpointer) and [`mse::TRefCountingFixedPointer<>`](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked. `mse::TRegisteredPointer<>`'s safety mechanisms are not compatible with the techniques used by the benchmark to isolate dereferencing performance, but `mse::TRegisteredPointer<>`'s dereferencing performance would be expected to be essentially identical to that of `mse::TCRegisteredPointer<>`. By default, [scope pointers](#scope-pointers) have identical performance to native pointers.
+Note that by default, [scope pointers](#scope-pointers) have identical performance to native pointers.
 
 ### Reference counting pointers
 
-If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is `std::shared_ptr<>`, which is notable for its thread-safe reference counting that can be handy when you're sharing an object among asynchronous threads, but is unnecessarily costly when you aren't. So we provide fast reference counting pointers that forego any thread safety mechanisms. In addition to being substantially faster (and smaller) than `std::shared_ptr<>`, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use `mse::make_refcounting<>()` instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them. For more information on how to use the safe smart pointers in this library for maximum memory safety, see [this article](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and throw an exception, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is `std::shared_ptr<>`, which is notable for its thread-safe reference counting that can be handy when you're sharing an object among asynchronous threads, but is unnecessarily costly when you aren't. So we provide fast reference counting pointers that forego any thread safety mechanisms. In addition to being substantially faster (and smaller) than `std::shared_ptr<>`, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use `mse::make_refcounting<>()` instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them.
 
 
 ### TRefCountingPointer
@@ -769,7 +756,7 @@ usage example:
 
 ### make_xscope_strong_pointer_store()
 
-`make_xscope_strong_pointer_store()` returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Currently supported strong pointers include [reference counting pointers](#reference-counting-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
+`make_xscope_strong_pointer_store()` returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Currently supported strong pointers include [reference counting pointers](#reference-counting-pointers), [norad pointers](#norad-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
 
 usage example:
 
@@ -1512,15 +1499,15 @@ usage example:
 `pointer_to(X)` simply returns `&X`, unless the type of `&X` is a native pointer (and the library's safe pointers have not been disabled). In that case a compiler error will be induced. It can be used in place of the `&` operator to help avoid inadvertent use of native pointers.
 
 ### Safely passing parameters by reference
-As has been shown, you can use [registered pointers](#registered-pointers), [reference counting pointers](#reference-counting-pointers), [scope pointers](#scope-pointers) and/or various iterators to safely pass parameters by reference. When writing a function for general use that takes parameters by reference, you can either require a specific (safe) reference type for its reference parameters, or allow the caller some flexibility as to which reference type they use. 
+This library provides a number of safe pointer types. So the question arises as to how and whether functions with pointer/reference parameters should accomodate all these pointer types. Well, an effective option is to "templatize" functions with pointer/reference parameters (that is, make them function templates), so that they can accept any pointer types. 
 
-One way to allow your function to accept any reference type is to make your function into a function template. The benefits of this approach are that it requires no extra run-time overhead, and it intrinsically supports legacy (unsafe, native) pointer types when needed. This approach is demonstrated in a slightly out-of-date article [here](http://www.codeproject.com/Articles/1093894/How-To-Safely-Pass-Parameters-By-Reference-in-Cplu).
+But some would prefer not to templatize all their functions, in which case a more conventional option is to require that reference parameters be passed using [(non-owning) scope pointers](#txscopeitemfixedpointer). This approach, by default, has no more run-time overhead than using native pointers/references. And note that scope pointers can be obtained from [reference counting pointers](#reference-counting-pointers), [norad pointers](#norad-pointers), and pointers to [shared objects](#asynchronously-shared-objects) using [`make_xscope_strong_pointer_store()`](#make_xscope_strong_pointer_store), and [registered pointers](#registered-pointers) when they are pointing to scope objects (or scope pointers). And, if necessary, the `mse::us::unsafe_make_xscope_pointer_to()` function can be used to obtain a (potentially unsafe) scope pointer to any object.
 
-Another option is to use [poly pointers](#poly-pointers) instead. They can also enable your function to accept a variety of reference types, without "templatizing" your function, but with a small run-time overhead.
+Scope pointers will only work for cases where you are not intending for the function to receive any type of ownership or store the reference beyond the duration of the function. For those cases we recommend sticking with the function template approach. 
 
-Another choice is to require that reference parameters be passed using scope pointers. This approach, by default, has no more run-time overhead than using native pointers/references. And note that scope pointers can be obtained from reference counting pointers and pointers to shared objects (using [`make_xscope_strong_pointer_store()`](#make_xscope_strong_pointer_store)), and registered pointers when they are pointing to scope objects. Legacy (native) pointers though, would not be supported. (Although if you're in a pinch, `mse::us::unsafe_make_xscope_pointer_to()` can produce an (unsafe) scope pointer to any object.) Generally, you would use scope pointer parameters in cases where you are adopting a "scopecentric" style of programming (similar to the Rust language), and trying to avoid use of (unsafe) legacy elements.
+A third option is to use [poly pointers](#poly-pointers). They can also enable your function to accept a variety of reference types, without "templatizing" your function, but with a small run-time overhead.
 
-And of course the library remains perfectly compatible with (the less safe) traditional C++ references if you prefer. 
+And of course the library remains perfectly compatible with (potentially unsafe) traditional C++ references if you prefer. 
 
 ### Multithreading
 
