@@ -894,301 +894,6 @@ int main(int argc, char* argv[])
 	}
 	mse::CNoradPtrTest1::s_test1();
 
-	{
-		/*************************/
-		/*   Simple Benchmarks   */
-		/*************************/
-
-		/* Just some simple speed tests. */
-		class CE {
-		public:
-			CE() {}
-			CE(int& count_ref) : m_count_ptr(&count_ref) { (*m_count_ptr) += 1; }
-			virtual ~CE() { (*m_count_ptr) -= 1; }
-			int m_x;
-			int *m_count_ptr;
-		};
-#ifndef NDEBUG
-		static const int number_of_loops = 10/*arbitrary*/;
-#else // !NDEBUG
-		static const int number_of_loops = 1000000/*arbitrary*/;
-#endif // !NDEBUG
-		std::cout << std::endl;
-		std::cout << "Some simple benchmarks: \n";
-		std::cout << "number of loops: " << number_of_loops << " \n" << " \n";
-		{
-			int count = 0;
-			auto item_ptr2 = new CE(count);
-			delete item_ptr2; item_ptr2 = nullptr;
-			auto t1 = std::chrono::high_resolution_clock::now();
-			for (int i = 0; i < number_of_loops; i += 1) {
-				auto item_ptr = new CE(count);
-				item_ptr2 = item_ptr;
-				delete item_ptr;
-				item_ptr = nullptr;
-			}
-
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "native pointer: " << time_span.count() << " seconds.";
-			if (0 != count) {
-				std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
-			}
-			std::cout << std::endl;
-		}
-		{
-			int count = 0;
-			mse::TRegisteredPointer<CE> item_ptr2 = mse::registered_new<CE>(count);
-			mse::registered_delete<CE>(item_ptr2);
-			auto t1 = std::chrono::high_resolution_clock::now();
-			for (int i = 0; i < number_of_loops; i += 1) {
-				mse::TRegisteredPointer<CE> item_ptr = mse::registered_new<CE>(count);
-				item_ptr2 = item_ptr;
-				mse::registered_delete<CE>(item_ptr);
-			}
-
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "mse::TRegisteredPointer: " << time_span.count() << " seconds.";
-			if (0 != count) {
-				std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
-			}
-			std::cout << std::endl;
-		}
-		{
-			int count = 0;
-			mse::TCRegisteredPointer<CE> item_ptr2 = mse::cregistered_new<CE>(count);
-			mse::cregistered_delete<CE>(item_ptr2);
-			auto t1 = std::chrono::high_resolution_clock::now();
-			for (int i = 0; i < number_of_loops; i += 1) {
-				mse::TCRegisteredPointer<CE> item_ptr = mse::cregistered_new<CE>(count);
-				item_ptr2 = item_ptr;
-				mse::cregistered_delete<CE>(item_ptr);
-			}
-
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "mse::TCRegisteredPointer: " << time_span.count() << " seconds.";
-			if (0 != count) {
-				std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
-			}
-			std::cout << std::endl;
-		}
-		{
-			int count = 0;
-			mse::TNoradPointer<CE> item_ptr2 = mse::norad_new<CE>(count);
-			mse::norad_delete<CE>(item_ptr2);
-			auto t1 = std::chrono::high_resolution_clock::now();
-			for (int i = 0; i < number_of_loops; i += 1) {
-				mse::TNoradPointer<CE> item_ptr = mse::norad_new<CE>(count);
-				item_ptr2 = item_ptr;
-				item_ptr2 = nullptr;
-				mse::norad_delete<CE>(item_ptr);
-			}
-
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "mse::TNoradPointer: " << time_span.count() << " seconds.";
-			if (0 != count) {
-				std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
-			}
-			std::cout << std::endl;
-		}
-		{
-			int count = 0;
-			auto item_ptr2 = std::make_shared<CE>(count);
-			auto t1 = std::chrono::high_resolution_clock::now();
-			for (int i = 0; i < number_of_loops; i += 1) {
-				auto item_ptr = std::make_shared<CE>(count);
-				item_ptr2 = item_ptr;
-				item_ptr = nullptr;
-			}
-			item_ptr2 = nullptr;
-
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "std::shared_ptr: " << time_span.count() << " seconds.";
-			if (0 != count) {
-				std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
-			}
-			std::cout << std::endl;
-		}
-		{
-			int count = 0;
-			mse::TRegisteredObj<CE> place_holder1(count);
-			mse::TRegisteredPointer<CE> item_ptr2 = &place_holder1;
-			auto t1 = std::chrono::high_resolution_clock::now();
-			{
-				for (int i = 0; i < number_of_loops; i += 1) {
-					mse::TRegisteredObj<CE> object(count);
-					mse::TRegisteredPointer<CE> item_ptr = &object;
-					item_ptr2 = item_ptr;
-				}
-			}
-
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "mse::TRegisteredPointer targeting the stack: " << time_span.count() << " seconds.";
-			if (0 != count) {
-				std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
-			}
-			std::cout << std::endl;
-		}
-		{
-			int count = 0;
-			mse::TRefCountingPointer<CE> item_ptr2 = mse::make_refcounting<CE>(count);
-			auto t1 = std::chrono::high_resolution_clock::now();
-			for (int i = 0; i < number_of_loops; i += 1) {
-				mse::TRefCountingPointer<CE> item_ptr = mse::make_refcounting<CE>(count);
-				item_ptr2 = item_ptr;
-				item_ptr = nullptr;
-			}
-			item_ptr2 = nullptr;
-
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "mse::TRefCountingPointer: " << time_span.count() << " seconds.";
-			if (0 != count) {
-				std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
-			}
-			std::cout << std::endl;
-		}
-
-		std::cout << std::endl;
-		static const int number_of_loops2 = (10/*arbitrary*/)*number_of_loops;
-		{
-			class CF {
-			public:
-				CF(int a = 0) : m_a(a) {}
-				CF* m_next_item_ptr;
-				int m_a = 3;
-			};
-			CF item1(1);
-			CF item2(2);
-			CF item3(3);
-			item1.m_next_item_ptr = &item2;
-			item2.m_next_item_ptr = &item3;
-			item3.m_next_item_ptr = &item1;
-			auto t1 = std::chrono::high_resolution_clock::now();
-			CF* cf_ptr = item1.m_next_item_ptr;
-			for (int i = 0; i < number_of_loops2; i += 1) {
-				cf_ptr = cf_ptr->m_next_item_ptr;
-			}
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "native pointer dereferencing: " << time_span.count() << " seconds.";
-			if (3 == cf_ptr->m_a) {
-				std::cout << " "; /* Using cf_ptr->m_a for (potential) output should prevent the optimizer from discarding too much. */
-			}
-			std::cout << std::endl;
-		}
-		{
-			class CF {
-			public:
-				CF(int a = 0) : m_a(a) {}
-				mse::TCRegisteredPointer<CF> m_next_item_ptr;
-				int m_a = 3;
-			};
-			mse::TCRegisteredObj<CF> item1(1);
-			mse::TCRegisteredObj<CF> item2(2);
-			mse::TCRegisteredObj<CF> item3(3);
-			item1.m_next_item_ptr = &item2;
-			item2.m_next_item_ptr = &item3;
-			item3.m_next_item_ptr = &item1;
-			auto t1 = std::chrono::high_resolution_clock::now();
-			mse::TCRegisteredPointer<CF>* rpfl_ptr = std::addressof(item1.m_next_item_ptr);
-			for (int i = 0; i < number_of_loops2; i += 1) {
-				rpfl_ptr = std::addressof((*rpfl_ptr)->m_next_item_ptr);
-			}
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "mse::TCRegisteredPointer (checked) dereferencing: " << time_span.count() << " seconds.";
-			if (3 == (*rpfl_ptr)->m_a) {
-				std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
-			}
-			std::cout << std::endl;
-		}
-		{
-			class CF {
-			public:
-				CF(int a = 0) : m_a(a) {}
-				mse::TCRegisteredPointer<CF> m_next_item_ptr;
-				int m_a = 3;
-			};
-			mse::TCRegisteredObj<CF> item1(1);
-			mse::TCRegisteredObj<CF> item2(2);
-			mse::TCRegisteredObj<CF> item3(3);
-			item1.m_next_item_ptr = &item2;
-			item2.m_next_item_ptr = &item3;
-			item3.m_next_item_ptr = &item1;
-			auto t1 = std::chrono::high_resolution_clock::now();
-			CF* cf_ptr = static_cast<CF*>(item1.m_next_item_ptr);
-			for (int i = 0; i < number_of_loops2; i += 1) {
-				cf_ptr = static_cast<CF*>(cf_ptr->m_next_item_ptr);
-			}
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "mse::TCRegisteredPointer unchecked dereferencing: " << time_span.count() << " seconds.";
-			if (3 == cf_ptr->m_a) {
-				std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
-			}
-			std::cout << std::endl;
-		}
-		{
-			class CF {
-			public:
-				CF(int a = 0) : m_a(a) {}
-				std::weak_ptr<CF> m_next_item_ptr;
-				int m_a = 3;
-			};
-			auto item1_ptr = std::make_shared<CF>(1);
-			auto item2_ptr = std::make_shared<CF>(2);
-			auto item3_ptr = std::make_shared<CF>(3);
-			item1_ptr->m_next_item_ptr = item2_ptr;
-			item2_ptr->m_next_item_ptr = item3_ptr;
-			item3_ptr->m_next_item_ptr = item1_ptr;
-			auto t1 = std::chrono::high_resolution_clock::now();
-			std::weak_ptr<CF>* wp_ptr = &(item1_ptr->m_next_item_ptr);
-			for (int i = 0; i < number_of_loops2; i += 1) {
-				wp_ptr = &((*wp_ptr).lock()->m_next_item_ptr);
-			}
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "std::weak_ptr dereferencing: " << time_span.count() << " seconds.";
-			if (3 == (*wp_ptr).lock()->m_a) {
-				std::cout << " "; /* Using wp_ref.lock()->m_a for (potential) output should prevent the optimizer from discarding too much. */
-			}
-			std::cout << std::endl;
-		}
-		{
-			class CF {
-			public:
-				CF(int a = 0) : m_a(a) {}
-				mse::TRefCountingPointer<CF> m_next_item_ptr;
-				int m_a = 3;
-			};
-			auto item1_ptr = mse::make_refcounting<CF>(1);
-			auto item2_ptr = mse::make_refcounting<CF>(2);
-			auto item3_ptr = mse::make_refcounting<CF>(3);
-			item1_ptr->m_next_item_ptr = item2_ptr;
-			item2_ptr->m_next_item_ptr = item3_ptr;
-			item3_ptr->m_next_item_ptr = item1_ptr;
-			auto t1 = std::chrono::high_resolution_clock::now();
-			mse::TRefCountingPointer<CF>* refc_ptr = std::addressof(item1_ptr->m_next_item_ptr);
-			for (int i = 0; i < number_of_loops2; i += 1) {
-				refc_ptr = std::addressof((*refc_ptr)->m_next_item_ptr);
-			}
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-			std::cout << "mse::TRefCountingPointer (checked) dereferencing: " << time_span.count() << " seconds.";
-			item1_ptr->m_next_item_ptr = nullptr; /* to break the reference cycle */
-			if (3 == (*refc_ptr)->m_a) {
-				std::cout << " "; /* Using refc_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
-			}
-			std::cout << std::endl;
-		}
-	}
-
 #if defined(MSEREGISTEREDREFWRAPPER) && !defined(MSE_PRIMITIVES_DISABLED)
 	{
 		/*****************************/
@@ -1847,6 +1552,589 @@ int main(int argc, char* argv[])
 		
 		mse::CPolyPtrTest1::s_test1();
 		int q = 3;
+	}
+
+	{
+		/*************************/
+		/*   Simple Benchmarks   */
+		/*************************/
+
+		/* Just some simple speed tests. */
+		class CE {
+		public:
+			CE() {}
+			CE(int& count_ref) : m_count_ptr(&count_ref) { (*m_count_ptr) += 1; }
+			virtual ~CE() { (*m_count_ptr) -= 1; }
+			void increment() { (*m_count_ptr) += 1; }
+			void decrement() { (*m_count_ptr) -= 1; }
+			int m_x;
+			int *m_count_ptr;
+		};
+	#ifndef NDEBUG
+		static const int number_of_loops = 10/*arbitrary*/;
+	#else // !NDEBUG
+		static const int number_of_loops = 1000000/*arbitrary*/;
+	#endif // !NDEBUG
+		std::cout << std::endl;
+		std::cout << "Some simple benchmarks: \n";
+		std::cout << "number of loops: " << number_of_loops << " \n" << " \n";
+
+		{
+			std::cout << "pointer declaration, copy and assignment: \n";
+			{
+				int count = 0;
+				CE object1(count);
+				CE object2(count);
+				CE* item_ptr2 = &object1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				{
+					for (int i = 0; i < number_of_loops; i += 1) {
+						CE* item_ptr = (0 == (i % 2)) ? &object1 : &object2;
+						item_ptr2 = item_ptr;
+						(*item_ptr).increment();
+						(*item_ptr2).decrement();
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "native pointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				mse::TNoradObj<CE> object1(count);
+				mse::TNoradObj<CE> object2(count);
+				mse::TNoradPointer<CE> item_ptr2 = &object1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				{
+					for (int i = 0; i < number_of_loops; i += 1) {
+						mse::TNoradPointer<CE> item_ptr = (0 == (i % 2)) ? &object1 : &object2;
+						item_ptr2 = item_ptr;
+						(*item_ptr).increment();
+						(*item_ptr2).decrement();
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TNoradPointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				mse::TRefCountingPointer<CE> object1_ptr = mse::make_refcounting<CE>(count);
+				mse::TRefCountingPointer<CE> object2_ptr = mse::make_refcounting<CE>(count);
+				mse::TRefCountingPointer<CE> item_ptr2 = object1_ptr;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					mse::TRefCountingPointer<CE> item_ptr = (0 == (i % 2)) ? object1_ptr : object2_ptr;
+					item_ptr2 = item_ptr;
+					(*item_ptr).increment();
+					(*item_ptr2).decrement();
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRefCountingPointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto object1_ptr = std::make_shared<CE>(count);
+				auto object2_ptr = std::make_shared<CE>(count);
+				auto item_ptr2 = object1_ptr;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					auto item_ptr = (0 == (i % 2)) ? object1_ptr : object2_ptr;
+					item_ptr2 = item_ptr;
+					(*item_ptr).increment();
+					(*item_ptr2).decrement();
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "std::shared_ptr: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				mse::TRegisteredObj<CE> object1(count);
+				mse::TRegisteredObj<CE> object2(count);
+				mse::TRegisteredPointer<CE> item_ptr2 = &object1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				{
+					for (int i = 0; i < number_of_loops; i += 1) {
+						mse::TRegisteredPointer<CE> item_ptr = (0 == (i % 2)) ? &object1 : &object2;
+						item_ptr2 = item_ptr;
+						(*item_ptr).increment();
+						(*item_ptr2).decrement();
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRegisteredPointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				mse::TCRegisteredObj<CE> object1(count);
+				mse::TCRegisteredObj<CE> object2(count);
+				mse::TCRegisteredPointer<CE> item_ptr2 = &object1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				{
+					for (int i = 0; i < number_of_loops; i += 1) {
+						mse::TCRegisteredPointer<CE> item_ptr = (0 == (i % 2)) ? &object1 : &object2;
+						item_ptr2 = item_ptr;
+						(*item_ptr).increment();
+						(*item_ptr2).decrement();
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TCRegisteredPointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
+		}
+
+		{
+			std::cout << "target object allocation and deallocation: \n";
+			{
+				int count = 0;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				{
+					for (int i = 0; i < number_of_loops; i += 1) {
+						CE object(count);
+						if (0 == (i % 2)) {
+							object.increment();
+						}
+						else {
+							object.decrement();
+						}
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "native pointer targeting the stack: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				{
+					for (int i = 0; i < number_of_loops; i += 1) {
+						mse::TNoradObj<CE> object(count);
+						if (0 == (i % 2)) {
+							object.increment();
+						}
+						else {
+							object.decrement();
+						}
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TNoradPointer targeting the stack: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				{
+					for (int i = 0; i < number_of_loops; i += 1) {
+						mse::TRegisteredObj<CE> object(count);
+						if (0 == (i % 2)) {
+							object.increment();
+						}
+						else {
+							object.decrement();
+						}
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRegisteredPointer targeting the stack: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				{
+					for (int i = 0; i < number_of_loops; i += 1) {
+						mse::TCRegisteredObj<CE> object(count);
+						if (0 == (i % 2)) {
+							object.increment();
+						}
+						else {
+							object.decrement();
+						}
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TCRegisteredPointer targeting the stack: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+
+			{
+				int count = 0;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					auto owner_ptr = std::make_unique<CE>(count);
+					if (0 == (i % 2)) {
+						(*owner_ptr).increment();
+					}
+					else {
+						(*owner_ptr).decrement();
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "native pointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					auto owner_ptr = std::make_unique<mse::TNoradObj<CE>>(count);
+					if (0 == (i % 2)) {
+						(*owner_ptr).increment();
+					}
+					else {
+						(*owner_ptr).decrement();
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TNoradPointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					mse::TRefCountingNotNullPointer<CE> owner_ptr = mse::make_refcounting<CE>(count);
+					if (0 == (i % 2)) {
+						(*owner_ptr).increment();
+					}
+					else {
+						(*owner_ptr).decrement();
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRefCountingPointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					auto owner_ptr = std::make_shared<CE>(count);
+					if (0 == (i % 2)) {
+						(*owner_ptr).increment();
+					}
+					else {
+						(*owner_ptr).decrement();
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "std::shared_ptr: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					auto owner_ptr = std::make_unique<mse::TRegisteredObj<CE>>(count);
+					if (0 == (i % 2)) {
+						(*owner_ptr).increment();
+					}
+					else {
+						(*owner_ptr).decrement();
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRegisteredPointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				int count = 0;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				for (int i = 0; i < number_of_loops; i += 1) {
+					auto owner_ptr = std::make_unique<mse::TCRegisteredObj<CE>>(count);
+					if (0 == (i % 2)) {
+						(*owner_ptr).increment();
+					}
+					else {
+						(*owner_ptr).decrement();
+					}
+				}
+
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TCRegisteredPointer: " << time_span.count() << " seconds.";
+				if (0 != count) {
+					std::cout << " destructions pending: " << count << "."; /* Using the count variable for (potential) output should prevent the optimizer from discarding it. */
+				}
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
+		}
+
+		{
+			std::cout << "dereferencing: \n";
+			static const int number_of_loops2 = (10/*arbitrary*/)*number_of_loops;
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					CF* m_next_item_ptr;
+					int m_a = 3;
+				};
+				CF item1(1);
+				CF item2(2);
+				CF item3(3);
+				item1.m_next_item_ptr = &item2;
+				item2.m_next_item_ptr = &item3;
+				item3.m_next_item_ptr = &item1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				CF* cf_ptr = item1.m_next_item_ptr;
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					cf_ptr = cf_ptr->m_next_item_ptr;
+					if (!cf_ptr) { MSE_THROW(""); }
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "native pointer (checked) dereferencing: " << time_span.count() << " seconds.";
+				if (3 == cf_ptr->m_a) {
+					std::cout << " "; /* Using cf_ptr->m_a for (potential) output should prevent the optimizer from discarding too much. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					CF* m_next_item_ptr;
+					int m_a = 3;
+				};
+				CF item1(1);
+				CF item2(2);
+				CF item3(3);
+				item1.m_next_item_ptr = &item2;
+				item2.m_next_item_ptr = &item3;
+				item3.m_next_item_ptr = &item1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				CF* cf_ptr = item1.m_next_item_ptr;
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					cf_ptr = cf_ptr->m_next_item_ptr;
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "native pointer dereferencing: " << time_span.count() << " seconds.";
+				if (3 == cf_ptr->m_a) {
+					std::cout << " "; /* Using cf_ptr->m_a for (potential) output should prevent the optimizer from discarding too much. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					mse::TNoradPointer<CF> m_next_item_ptr;
+					int m_a = 3;
+				};
+				mse::TNoradObj<CF> item1(1);
+				mse::TNoradObj<CF> item2(2);
+				mse::TNoradObj<CF> item3(3);
+				item1.m_next_item_ptr = &item2;
+				item2.m_next_item_ptr = &item3;
+				item3.m_next_item_ptr = &item1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				mse::TNoradPointer<CF>* rpfl_ptr = std::addressof(item1.m_next_item_ptr);
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					rpfl_ptr = std::addressof((*rpfl_ptr)->m_next_item_ptr);
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TNoradPointer (checked) dereferencing: " << time_span.count() << " seconds.";
+				if (3 == (*rpfl_ptr)->m_a) {
+					std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
+				}
+				std::cout << std::endl;
+
+				item1.m_next_item_ptr = nullptr;
+				item2.m_next_item_ptr = nullptr;
+				item3.m_next_item_ptr = nullptr;
+			}
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					mse::TCRegisteredPointer<CF> m_next_item_ptr;
+					int m_a = 3;
+				};
+				mse::TCRegisteredObj<CF> item1(1);
+				mse::TCRegisteredObj<CF> item2(2);
+				mse::TCRegisteredObj<CF> item3(3);
+				item1.m_next_item_ptr = &item2;
+				item2.m_next_item_ptr = &item3;
+				item3.m_next_item_ptr = &item1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				mse::TCRegisteredPointer<CF>* rpfl_ptr = std::addressof(item1.m_next_item_ptr);
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					rpfl_ptr = std::addressof((*rpfl_ptr)->m_next_item_ptr);
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TCRegisteredPointer (checked) dereferencing: " << time_span.count() << " seconds.";
+				if (3 == (*rpfl_ptr)->m_a) {
+					std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					mse::TCRegisteredPointer<CF> m_next_item_ptr;
+					int m_a = 3;
+				};
+				mse::TCRegisteredObj<CF> item1(1);
+				mse::TCRegisteredObj<CF> item2(2);
+				mse::TCRegisteredObj<CF> item3(3);
+				item1.m_next_item_ptr = &item2;
+				item2.m_next_item_ptr = &item3;
+				item3.m_next_item_ptr = &item1;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				CF* cf_ptr = static_cast<CF*>(item1.m_next_item_ptr);
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					cf_ptr = static_cast<CF*>(cf_ptr->m_next_item_ptr);
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TCRegisteredPointer unchecked dereferencing: " << time_span.count() << " seconds.";
+				if (3 == cf_ptr->m_a) {
+					std::cout << " "; /* Using rpfl_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					mse::TRefCountingPointer<CF> m_next_item_ptr;
+					int m_a = 3;
+				};
+				auto item1_ptr = mse::make_refcounting<CF>(1);
+				auto item2_ptr = mse::make_refcounting<CF>(2);
+				auto item3_ptr = mse::make_refcounting<CF>(3);
+				item1_ptr->m_next_item_ptr = item2_ptr;
+				item2_ptr->m_next_item_ptr = item3_ptr;
+				item3_ptr->m_next_item_ptr = item1_ptr;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				mse::TRefCountingPointer<CF>* refc_ptr = std::addressof(item1_ptr->m_next_item_ptr);
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					refc_ptr = std::addressof((*refc_ptr)->m_next_item_ptr);
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "mse::TRefCountingPointer (checked) dereferencing: " << time_span.count() << " seconds.";
+				item1_ptr->m_next_item_ptr = nullptr; /* to break the reference cycle */
+				if (3 == (*refc_ptr)->m_a) {
+					std::cout << " "; /* Using refc_ref->m_a for (potential) output should prevent the optimizer from discarding too much. */
+				}
+				std::cout << std::endl;
+			}
+			{
+				class CF {
+				public:
+					CF(int a = 0) : m_a(a) {}
+					std::weak_ptr<CF> m_next_item_ptr;
+					int m_a = 3;
+				};
+				auto item1_ptr = std::make_shared<CF>(1);
+				auto item2_ptr = std::make_shared<CF>(2);
+				auto item3_ptr = std::make_shared<CF>(3);
+				item1_ptr->m_next_item_ptr = item2_ptr;
+				item2_ptr->m_next_item_ptr = item3_ptr;
+				item3_ptr->m_next_item_ptr = item1_ptr;
+				auto t1 = std::chrono::high_resolution_clock::now();
+				std::weak_ptr<CF>* wp_ptr = &(item1_ptr->m_next_item_ptr);
+				for (int i = 0; i < number_of_loops2; i += 1) {
+					wp_ptr = &((*wp_ptr).lock()->m_next_item_ptr);
+				}
+				auto t2 = std::chrono::high_resolution_clock::now();
+				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+				std::cout << "std::weak_ptr dereferencing: " << time_span.count() << " seconds.";
+				if (3 == (*wp_ptr).lock()->m_a) {
+					std::cout << " "; /* Using wp_ref.lock()->m_a for (potential) output should prevent the optimizer from discarding too much. */
+				}
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
+		}
 	}
 
 	msetl_example2();
