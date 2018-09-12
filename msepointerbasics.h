@@ -725,6 +725,12 @@ namespace mse {
 	class StrongPointerNeverNullTagBase : public StrongPointerTagBase, public NeverNullTagBase {};
 	class StrongPointerNeverNullNotAsyncShareableTagBase : public StrongPointerTagBase, public NeverNullTagBase, public NotAsyncShareableTagBase {};
 
+	class ExclusivePointerTagBase {
+	public:
+		void exclusive_pointer_tag() const {}
+	};
+	class StrongExclusivePointerTagBase : public StrongPointerTagBase, public ExclusivePointerTagBase {};
+
 	template <typename T> struct is_shared_ptr : std::false_type {};
 	template <typename T> struct is_shared_ptr<std::shared_ptr<T> > : std::true_type {};
 

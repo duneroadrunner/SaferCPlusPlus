@@ -1270,15 +1270,15 @@ void msetl_example2() {
 				using access requesters, each thread obtains the desired lock on a thread-safe mutex. Here we're
 				obtaining the lock before launching the thread(s), so the mutex does not need to be thread-safe, thus
 				saving a little overhead. */
-				auto xscope_xwo_pointer_store1 = mse::make_xscope_exclusive_write_obj_pointer_store<ShareableA>(a_xscpacobj1.pointer());
+				auto xscope_xwo_pointer_store1 = mse::make_xscope_exclusive_writer_obj_pointer_store<ShareableA>(a_xscpacobj1.pointer());
 
 				typedef decltype(xscope_xwo_pointer_store1.xscope_shareable_pointer()) exclusive_pointer_t;
 				mse::xscope_thread xscp_thread1(J::foo17<exclusive_pointer_t>, xscope_xwo_pointer_store1.xscope_shareable_pointer());
 			}
 			{
 				auto xscope_xwo_const_pointer_store1 = mse::make_xscope_exclusive_write_obj_const_pointer_store<ShareableA>(a_xscpacobj1.const_pointer());
-				auto xscope_xwo_pointer_store2 = mse::make_xscope_exclusive_write_obj_pointer_store<ShareableA>(a_xscpacobj2.pointer());
-				auto xscope_xwo_pointer_store3 = mse::make_xscope_exclusive_write_obj_pointer_store<ShareableA>(a_xscpacobj3.pointer());
+				auto xscope_xwo_pointer_store2 = mse::make_xscope_exclusive_writer_obj_pointer_store<ShareableA>(a_xscpacobj2.pointer());
+				auto xscope_xwo_pointer_store3 = mse::make_xscope_exclusive_writer_obj_pointer_store<ShareableA>(a_xscpacobj3.pointer());
 
 				typedef decltype(xscope_xwo_const_pointer_store1.xscope_shareable_pointer()) const_pointer_t;
 				typedef decltype(xscope_xwo_pointer_store2.xscope_shareable_pointer()) exclusive_pointer_t;

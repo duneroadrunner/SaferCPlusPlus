@@ -1718,9 +1718,9 @@ namespace mse {
 
 	template<typename _Ty, typename _TRALoneParam>
 	void T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly() {
-#if !defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REGISTEREDPOINTER_DISABLED)
+#if !defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REGISTEREDPOINTER_DISABLED) && !defined(MSE_NORADPOINTER_DISABLED)
 		T_valid_if_not_a_native_pointer_msemsestring<_TRALoneParam>();
-#endif /*!defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REGISTEREDPOINTER_DISABLED)*/
+#endif /*!defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REGISTEREDPOINTER_DISABLED) && !defined(MSE_NORADPOINTER_DISABLED)*/
 #ifndef MSE_MSTDSTRING_DISABLED
 		T_valid_if_not_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
 		//T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
