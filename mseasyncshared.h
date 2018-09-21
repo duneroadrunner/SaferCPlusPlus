@@ -1584,8 +1584,12 @@ namespace mse {
 	template <typename _Ty>
 	class TTaggedUniquePtr : public std::unique_ptr<_Ty>, public mse::StrongExclusivePointerTagBase {
 	public:
+	private:
 		typedef std::unique_ptr<_Ty> base_class;
 		TTaggedUniquePtr(std::unique_ptr<_Ty>&& uqptr) : base_class(std::forward<decltype(uqptr)>(uqptr)) {}
+
+		template <typename _Ty2> friend class TAsyncSharedV2ReadWriteAccessRequester;
+		template <typename _Ty2> friend class TAsyncSharedV2ReadOnlyAccessRequester;
 	};
 
 	template <typename _Ty>
@@ -1684,7 +1688,8 @@ namespace mse {
 	public:
 		typedef TXScopeAsyncSharedV2XWPReadWriteAccessRequester<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
 		typedef decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer()) _TExclusiveWritePointer;
-		typedef mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
+		typedef mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
+		typedef mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
 
 		TXScopeAsyncSharedV2ACOReadWriteAccessRequester(const TXScopeAsyncSharedV2ACOReadWriteAccessRequester& src_cref) = default;
 
@@ -1693,6 +1698,9 @@ namespace mse {
 			valid_if_Ty_is_marked_as_xscope_shareable();
 		}
 
+		static auto make(const xsac_obj_xscpptr_t& xscpptr) {
+			return TXScopeAsyncSharedV2ACOReadWriteAccessRequester((*xscpptr).exclusive_pointer());
+		}
 		static auto make(const ac_obj_xscpptr_t& xscpptr) {
 			return TXScopeAsyncSharedV2ACOReadWriteAccessRequester((*xscpptr).exclusive_pointer());
 		}

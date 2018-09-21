@@ -1720,6 +1720,9 @@ namespace mse {
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeStrongPointerStore<_TStrongPointer> > >::type
 	{
 	public:
+		TXScopeStrongPointerStore(const TXScopeStrongPointerStore&) = delete;
+		TXScopeStrongPointerStore(TXScopeStrongPointerStore&&) = default;
+
 		TXScopeStrongPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
@@ -1744,6 +1747,9 @@ namespace mse {
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeStrongConstPointerStore<_TStrongPointer> > >::type
 	{
 	public:
+		TXScopeStrongConstPointerStore(const TXScopeStrongConstPointerStore&) = delete;
+		TXScopeStrongConstPointerStore(TXScopeStrongConstPointerStore&&) = default;
+
 		TXScopeStrongConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
@@ -1768,6 +1774,9 @@ namespace mse {
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeStrongNotNullPointerStore<_TStrongPointer> > >::type
 	{
 	public:
+		TXScopeStrongNotNullPointerStore(const TXScopeStrongNotNullPointerStore&) = delete;
+		TXScopeStrongNotNullPointerStore(TXScopeStrongNotNullPointerStore&&) = default;
+
 		TXScopeStrongNotNullPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
 		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr);
@@ -1790,6 +1799,9 @@ namespace mse {
 		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TXScopeStrongNotNullConstPointerStore<_TStrongPointer> > >::type
 	{
 	public:
+		TXScopeStrongNotNullConstPointerStore(const TXScopeStrongNotNullConstPointerStore&) = delete;
+		TXScopeStrongNotNullConstPointerStore(TXScopeStrongNotNullConstPointerStore&&) = default;
+
 		TXScopeStrongNotNullConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
 		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);

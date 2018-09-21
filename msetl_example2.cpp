@@ -172,6 +172,14 @@ public:
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 	}
+	template<class _TAPointer>
+	static void foo17b(_TAPointer a_ptr) {
+		static int s_count = 0;
+		s_count += 1;
+		a_ptr->s = std::to_string(s_count);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
 	template<class _TConstPointer, class _TPointer>
 	static void foo18(_TConstPointer src_ptr, _TPointer dst_ptr) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -1147,6 +1155,8 @@ void msetl_example2() {
 			auto ash_access_requester = mse::make_asyncsharedv2readwrite<async_shareable_vector1_t>();
 			std::swap(vector1, (*(ash_access_requester.writelock_ptr())));
 
+			std::cout << "mse::TAsyncRASectionSplitter<>, part 1: " << std::endl;
+
 			{
 				/* Now, we're going to use the access requester to obtain two new access requesters that provide access to
 				(newly created) "random access section" objects which are used to access (disjoint) sections of the vector.
@@ -1184,6 +1194,7 @@ void msetl_example2() {
 				}
 				int q = 5;
 			}
+			std::cout << "mse::TAsyncRASectionSplitter<>, part 2: " << std::endl;
 			{
 				/* Ok, now let's do it again, but instead of splitting the vector into two sections, let's split it into more sections: */
 				/* First we create a list of a the sizes of each section. We'll use a vector here, but any iteratable container will work. */
@@ -1225,8 +1236,8 @@ void msetl_example2() {
 		}
 		{
 			/* Here we demonstrate safely sharing an existing stack allocated object among threads. */
-			std::cout << ": xscope_future_carrier<>";
-			std::cout << std::endl;
+
+			std::cout << "xscope_future_carrier<>: " << std::endl;
 
 			/* (Mutable) objects can be shared between threads only if they are "access controlled". You can make an
 			object "access controlled" by wrapping its type with the mse::TXScopeAccessControlledObj<> template wrapper. */
@@ -1255,41 +1266,150 @@ void msetl_example2() {
 		}
 
 		{
-			/* TExclusiveWriterObj<> is a specialization of TAccessControlledObj<> for which all non-const pointers are
-			exclusive. That is, when a non-const pointer exists, no other pointer may exist. */
-			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpacobj1(3);
-			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpacobj2(5);
-			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpacobj3(7);
+			mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj1(3);
+			mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj2(5);
+			mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj3(7);
 
 			{
-				/* TXScopeExclusiveWriterObjPointerStore<> is a data type that stores a (non-const, exclusive) pointer
-				of a TExclusiveWriterObj<>. From this data type you can obtain a "scope shareable pointer" which can be
-				safely passed to a scope thread. This is a (little) more cumbersome, more restrictive way of sharing an
-				object than, say, using the library's "access requesters". So generally using access requesters would be
-				preferred. But you might choose to do it this way in certain cases where performance is critical. When
-				using access requesters, each thread obtains the desired lock on a thread-safe mutex. Here we're
-				obtaining the lock before launching the thread(s), so the mutex does not need to be thread-safe, thus
-				saving a little overhead. */
-				auto xscope_xwo_pointer_store1 = mse::make_xscope_exclusive_writer_obj_pointer_store<ShareableA>(a_xscpacobj1.pointer());
+				std::cout << "mse::make_xscope_aco_locker_for_sharing(): " << std::endl;
 
-				typedef decltype(xscope_xwo_pointer_store1.xscope_shareable_pointer()) exclusive_pointer_t;
-				mse::xscope_thread xscp_thread1(J::foo17<exclusive_pointer_t>, xscope_xwo_pointer_store1.xscope_shareable_pointer());
+				/* The mse::make_xscope_aco_locker_for_sharing() function takes a scope pointer to an "access controlled object"
+				and returns a "locker" object which then holds an exclusive reference to the given access controlled
+				object. From this locker object, you can obtain either one "scope passable" (non-const) pointer, or
+				any number of "scope passable" const pointers. These scope passable pointers can then be safely
+				passed directly as arguments to scope threads. This is a (little) more cumbersome, more restrictive
+				way of sharing an object than, say, using the library's "access requesters". So generally using
+				access requesters would be preferred. But you might choose to do it this way in certain cases where
+				performance is critical. When using access requesters, each thread obtains the desired lock on a
+				thread-safe mutex. Here we're obtaining the lock before launching the thread(s), so the mutex does
+				not need to be thread-safe, thus saving a little overhead. */
+				auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+
+				typedef decltype(xscope_aco_locker1.xscope_passable_pointer()) passable_exclusive_pointer_t;
+				mse::xscope_thread xscp_thread1(J::foo17b<passable_exclusive_pointer_t>, xscope_aco_locker1.xscope_passable_pointer());
 			}
 			{
-				auto xscope_xwo_const_pointer_store1 = mse::make_xscope_exclusive_write_obj_const_pointer_store<ShareableA>(a_xscpacobj1.const_pointer());
-				auto xscope_xwo_pointer_store2 = mse::make_xscope_exclusive_writer_obj_pointer_store<ShareableA>(a_xscpacobj2.pointer());
-				auto xscope_xwo_pointer_store3 = mse::make_xscope_exclusive_writer_obj_pointer_store<ShareableA>(a_xscpacobj3.pointer());
+				auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+				auto xscope_aco_locker2 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj2);
+				auto xscope_aco_locker3 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj3);
 
-				typedef decltype(xscope_xwo_const_pointer_store1.xscope_shareable_pointer()) const_pointer_t;
-				typedef decltype(xscope_xwo_pointer_store2.xscope_shareable_pointer()) exclusive_pointer_t;
+				typedef decltype(xscope_aco_locker1.xscope_passable_const_pointer()) passable_const_pointer_t;
+				typedef decltype(xscope_aco_locker2.xscope_passable_pointer()) passable_exclusive_pointer_t;
 
-				mse::xscope_thread xscp_thread1(J::foo18<const_pointer_t, exclusive_pointer_t>
-					, xscope_xwo_const_pointer_store1.xscope_shareable_pointer()
-					, xscope_xwo_pointer_store2.xscope_shareable_pointer());
+				mse::xscope_thread xscp_thread1(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+					, xscope_aco_locker1.xscope_passable_const_pointer()
+					, xscope_aco_locker2.xscope_passable_pointer());
 
-				mse::xscope_thread xscp_thread2(J::foo18<const_pointer_t, exclusive_pointer_t>
-					, xscope_xwo_const_pointer_store1.xscope_shareable_pointer()
-					, xscope_xwo_pointer_store3.xscope_shareable_pointer());
+				mse::xscope_thread xscp_thread2(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+					, xscope_aco_locker1.xscope_passable_const_pointer()
+					, xscope_aco_locker3.xscope_passable_pointer());
+			}
+			{
+				auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+
+				/* The mse::make_xscope_exclusive_strong_pointer_store_for_sharing() function returns the same kind of "locker" object that
+				mse::make_xscope_aco_locker_for_sharing() does, but instead of taking a scope pointer to an "access controlled object", it
+				accepts any recognized "exclusive" pointer. That is, a pointer that, while it exists, holds exclusive access to
+				its target object. */
+				auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_aco_locker1.xscope_passable_pointer());
+
+				auto xscope_aco_locker2 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj2);
+				auto xscope_aco_locker3 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj3);
+
+				typedef decltype(xscope_aco_locker1.xscope_passable_const_pointer()) passable_const_pointer_t;
+				typedef decltype(xscope_aco_locker2.xscope_passable_pointer()) passable_exclusive_pointer_t;
+
+				mse::xscope_thread xscp_thread1(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+					, xscope_xstrong_ptr_store1.xscope_passable_const_pointer()
+					, xscope_aco_locker2.xscope_passable_pointer());
+
+				mse::xscope_thread xscp_thread2(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+					, xscope_xstrong_ptr_store1.xscope_passable_const_pointer()
+					, xscope_aco_locker3.xscope_passable_pointer());
+			}
+			{
+				/* In this block we demonstrate obtaining various types of (const and non-const) pointers you might need from
+				an exclusive pointer that might be passed to a thread. */
+
+				std::cout << "mse::TXScopeExclusiveStrongPointerStoreForAccessControlFParam<>: " << std::endl;
+
+				a_xscpacobj1.pointer()->s = "";
+
+				auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+
+				typedef decltype(xscope_aco_locker1.xscope_passable_pointer()) passable_exclusive_pointer_t;
+				typedef decltype(xscope_aco_locker1.xscope_passable_const_pointer()) passable_const_pointer_t;
+
+				class CB {
+				public:
+					/* mse::TXScopeExclusiveStrongPointerStoreForAccessControl<> is the actual type returned by the
+					mse::make_xscope_exclusive_strong_pointer_store_for_sharing() function. 
+					mse::TXScopeExclusiveStrongPointerStoreForAccessControlFParam<> is the version for use as a function parameter.
+					So this function expects to be passed a pointer of type passable_exclusive_pointer_t. */
+					static void foo1(mse::TXScopeExclusiveStrongPointerStoreForAccessControlFParam<passable_exclusive_pointer_t> xscope_store, int count) {
+						{
+							auto xsptr = xscope_store.xscope_pointer();
+							xsptr->s.append(std::to_string(count));
+						}
+						{
+							/* Here, from the exclusive (non-const) pointer passed to this function, we're going to obtain a couple
+							of const pointers that we can pass to different (scope) threads. */
+							auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
+
+							mse::xscope_thread xscp_thread1(CB::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
+							mse::xscope_thread xscp_thread2(CB::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
+						}
+						if (1 <= count) {
+							/* And here we're going to (re)obtain an exclusive strong pointer like the one that was passed to this
+							function, then we're going to use it to recursively call this function again in another (scope) thread. */
+							auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
+							mse::xscope_thread xscp_thread1(CB::foo1, xscope_xstrong_ptr_store1.xscope_passable_pointer(), count - 1);
+						}
+					}
+					static void foo2(passable_const_pointer_t xscope_A_cptr) {
+						std::cout << xscope_A_cptr->s << std::endl;
+					}
+				};
+
+				mse::xscope_thread xscp_thread1(CB::foo1, xscope_aco_locker1.xscope_passable_pointer(), 3);
+
+				std::cout << std::endl;
+			}
+		}
+
+		{
+			/* TExclusiveWriterObj<> is a specialization of TAccessControlledObj<> for which all non-const pointers are
+			exclusive. That is, when a non-const pointer exists, no other pointer may exist. */
+			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj1(3);
+			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj2(5);
+			mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj3(7);
+
+			{
+				/* A (non-const) pointer of an "exclusive writer object" qualifies as an "exclusive strong" pointer, and
+				thus you can obtain an xscope shareable pointer from it in the standard way. */
+				auto xscope_xwo_pointer_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(a_xscpxwobj1.pointer());
+
+				typedef decltype(xscope_xwo_pointer_store1.xscope_passable_pointer()) passable_exclusive_pointer_t;
+				mse::xscope_thread xscp_thread1(J::foo17b<passable_exclusive_pointer_t>, xscope_xwo_pointer_store1.xscope_passable_pointer());
+			}
+			{
+				/* But uniquely, you can obtain an xscope shareable const pointer from a (non-exclusive) const pointer of an
+				"exclusive writer object". There is a special function for this purpose: */
+				auto xscope_xwo_const_pointer_store1 = mse::make_xscope_exclusive_write_obj_const_pointer_store_for_sharing(a_xscpxwobj1.const_pointer());
+
+				auto xscope_xwo_pointer_store2 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(a_xscpxwobj2.pointer());
+				auto xscope_xwo_pointer_store3 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(a_xscpxwobj3.pointer());
+
+				typedef decltype(xscope_xwo_const_pointer_store1.xscope_passable_const_pointer()) passable_const_pointer_t;
+				typedef decltype(xscope_xwo_pointer_store2.xscope_passable_pointer()) passable_exclusive_pointer_t;
+
+				mse::xscope_thread xscp_thread1(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+					, xscope_xwo_const_pointer_store1.xscope_passable_const_pointer()
+					, xscope_xwo_pointer_store2.xscope_passable_pointer());
+
+				mse::xscope_thread xscp_thread2(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+					, xscope_xwo_const_pointer_store1.xscope_passable_const_pointer()
+					, xscope_xwo_pointer_store3.xscope_passable_pointer());
 			}
 		}
 
@@ -1322,6 +1442,8 @@ void msetl_example2() {
 			//auto ash_access_requester = mse::make_asyncsharedv2readwrite<async_shareable_vector1_t>();
 			std::swap(vector1, (*(xscope_ash_access_requester.writelock_ptr())));
 
+			std::cout << "access controlled, mse::TAsyncRASectionSplitter<>, part 1: " << std::endl;
+
 			{
 				/* Now, we're going to use the access requester to obtain two new access requesters that provide access to
 				(newly created) "random access section" objects which are used to access (disjoint) sections of the vector.
@@ -1353,6 +1475,9 @@ void msetl_example2() {
 
 				int q = 5;
 			}
+
+			std::cout << "access controlled, mse::TAsyncRASectionSplitter<>, part 2: " << std::endl;
+
 			{
 				/* Ok, now let's do it again, but instead of splitting the vector into two sections, let's split it into more sections: */
 				/* First we create a list of a the sizes of each section. We'll use a vector here, but any iteratable container will work. */
