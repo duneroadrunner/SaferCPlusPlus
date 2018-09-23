@@ -6182,6 +6182,11 @@ namespace mse {
 		_TExclusiveStrongPointer m_stored_ptr;
 	};
 
+	template<typename _TExclusiveStrongPointer, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex> make_xscope_exclusive_strong_pointer_store_access_control(_TExclusiveStrongPointer&& stored_ptr) {
+		return TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex>(std::forward<decltype(stored_ptr)>(stored_ptr));
+	}
+
 	/* This is just an alias of the TXScopeExclusiveStrongPointerStoreForAccessControl<> class for use as a function parameter type. */
 	template<typename _TExclusiveStrongPointer, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	using TXScopeExclusiveStrongPointerStoreForAccessControlFParam = TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex>;

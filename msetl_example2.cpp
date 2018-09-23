@@ -574,7 +574,7 @@ void msetl_example2() {
 
 		auto str2 = str1 + str1;
 		str2.replace(1, 2, str1);
-		str2.compare(str1);
+		auto comp_res1 = str2.compare(str1);
 		auto nii_str2 = nii_str1 + nii_str1;
 		nii_str2.replace(1, 2, nii_str1);
 		nii_str2.compare(nii_str1);
@@ -1340,10 +1340,10 @@ void msetl_example2() {
 				typedef decltype(xscope_aco_locker1.xscope_passable_pointer()) passable_exclusive_pointer_t;
 				typedef decltype(xscope_aco_locker1.xscope_passable_const_pointer()) passable_const_pointer_t;
 
-				class CB {
+				class CD {
 				public:
-					/* mse::TXScopeExclusiveStrongPointerStoreForAccessControl<> is the actual type returned by the
-					mse::make_xscope_exclusive_strong_pointer_store_for_sharing() function. 
+					/* mse::TXScopeExclusiveStrongPointerStoreForAccessControl<> is a data type that stores an exclusive strong
+					pointer. From this data type you can obtain const, non-const and exclusive pointers. 
 					mse::TXScopeExclusiveStrongPointerStoreForAccessControlFParam<> is the version for use as a function parameter.
 					So this function expects to be passed a pointer of type passable_exclusive_pointer_t. */
 					static void foo1(mse::TXScopeExclusiveStrongPointerStoreForAccessControlFParam<passable_exclusive_pointer_t> xscope_store, int count) {
@@ -1356,14 +1356,14 @@ void msetl_example2() {
 							of const pointers that we can pass to different (scope) threads. */
 							auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
 
-							mse::xscope_thread xscp_thread1(CB::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
-							mse::xscope_thread xscp_thread2(CB::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
+							mse::xscope_thread xscp_thread1(CD::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
+							mse::xscope_thread xscp_thread2(CD::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
 						}
 						if (1 <= count) {
 							/* And here we're going to (re)obtain an exclusive strong pointer like the one that was passed to this
 							function, then we're going to use it to recursively call this function again in another (scope) thread. */
 							auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
-							mse::xscope_thread xscp_thread1(CB::foo1, xscope_xstrong_ptr_store1.xscope_passable_pointer(), count - 1);
+							mse::xscope_thread xscp_thread1(CD::foo1, xscope_xstrong_ptr_store1.xscope_passable_pointer(), count - 1);
 						}
 					}
 					static void foo2(passable_const_pointer_t xscope_A_cptr) {
@@ -1371,7 +1371,7 @@ void msetl_example2() {
 					}
 				};
 
-				mse::xscope_thread xscp_thread1(CB::foo1, xscope_aco_locker1.xscope_passable_pointer(), 3);
+				mse::xscope_thread xscp_thread1(CD::foo1, xscope_aco_locker1.xscope_passable_pointer(), 3);
 
 				std::cout << std::endl;
 			}
