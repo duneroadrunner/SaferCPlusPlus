@@ -1904,13 +1904,21 @@ void main(int argc, char* argv[]) {
 
 `xscope_thread` is the scope counterpart to [`mstd::thread`](#thread). `xscope_thread` ensures that the actual associated thread doesn't outlive it (and therefore doesn't outlive the scope), blocking in its destructor if necessary. Note that any object shared with an `mstd::thread` necessarily has dynamic allocation (i.e. is allocated on the heap), whereas objects shared with a scope thread can themselves be scope objects (i.e. allocated on the stack). Which would generally be the primary reason for using scope threads over non-scope threads. 
 
-Any data type that qualifies as "[shareable](#tuserdeclaredasyncshareableobj)" (or "[passable](#tuserdeclaredasyncpassableobj)") with non-scope threads also qualifies as shareable (or passable) with scope threads. (But not necessarily the other way around.) But in order to share an existing scope object, that object also has to be an "access controlled" object. You make a type "access controlled" by wrapping it with the `mse::TXScopeAccessControlledObj<>` template wrapper. 
+Any data type that qualifies as "[shareable](#tuserdeclaredasyncshareableobj)" (or "[passable](#tuserdeclaredasyncpassableobj)") with non-scope threads also qualifies as shareable (or passable) with scope threads. (But not necessarily the other way around.) 
+
+#### access controlled objects
+
+But in order to share an existing scope object, that object also has to be an "access controlled" object. You make a type "access controlled" by wrapping it with the `mse::TXScopeAccessControlledObj<>` template wrapper. 
 
 `mse::TXScopeAccessControlledObj<>` provides `xscope_pointer()`, `xscope_const_pointer()` and `xscope_exclusive_pointer()` member functions which you use to obtain (scope) pointers to the contained object. Note that a pointer obtained via `xscope_exclusive_pointer()` may not coexist with any other pointer to the same object. Attempting to violate this rule will result in an exception, and attempting to destroy an access controlled object that has outstanding references to it will result in program termination. 
+
+#### xscope_thread_carrier, xscope_future_carrier
 
 Ok, so getting back to scope threads, it would generally not be very common that you would use `xscope_thread`s directly. More often you would use them indirectly via an `xscope_thread_carrier`, which is just a simple container for creating and managing a set of `xscope_thread`s.
 
 Like `xscope_thread`, `xscope_future` and `xscope_async()` are the scope versions of their non-scope counterparts. And similarly, rather than using them directly you would more often use them via an `xscope_future_carrier`, which is just a simple container for creating and managing a set of `xscope_future`s and their associated `xscope_async()` functions.
+
+#### make_xscope_asyncsharedv2acoreadwrite()
 
 And finally, the function used to obtain a (scope) [access requester](#tasyncsharedv2readwriteaccessrequester) to an access controlled scope object is `make_xscope_asyncsharedv2acoreadwrite()`. Note that it takes as its argument a scope pointer to the access controlled object, not a scope pointer to the contained object. Btw, scope access requesters are an example of an object type that can be passed to other scope threads, but does not qualify (i.e. would induce a compile error) to be passed to non-scope threads. 
 
@@ -1985,6 +1993,255 @@ void main(int argc, char* argv[]) {
 		std::cout << std::endl;
 	}
 	std::cout << std::endl;
+}
+```
+
+#### make_xscope_aco_locker_for_sharing()
+
+The `mse::make_xscope_aco_locker_for_sharing()` function takes a scope pointer to an "[access controlled object](#access-controlled-objects)" and returns a "locker" object which holds an exclusive reference to the given access controlled object. From this locker object, you can obtain either one "scope passable" (non-const) pointer, or any number of "scope passable" const pointers. These scope passable pointers can then be safely passed directly as arguments to scope threads. This is a (little) more cumbersome, more restrictive way of sharing an object than, say, using the library's "[access requesters](#make_xscope_asyncsharedv2acoreadwrite)". But you might choose to do it this way in certain cases where performance is critical. When using access requesters, each thread obtains the desired lock on a thread-safe mutex. When using the `mse::make_xscope_aco_locker_for_sharing()`, the lock is obtained before launching the thread(s), so the mutex does not need to be thread-safe, thus saving a little overhead.
+
+#### make_xscope_exclusive_strong_pointer_store_for_sharing()
+
+The `mse::make_xscope_exclusive_strong_pointer_store_for_sharing()` function returns the same kind of "locker" object that `mse::make_xscope_aco_locker_for_sharing()` does, but instead of taking a scope pointer to an "access controlled object", it accepts any recognized "exclusive" pointer. That is, a pointer that, while it exists, holds exclusive access to its target object.
+
+usage example:
+```cpp
+#include "mseasyncshared.h"
+#include "msescope.h"
+#include "msemsestring.h"
+#include <iostream>
+#include <ratio>
+#include <chrono>
+
+class J {
+public:
+    template<class _TAPointer>
+    static void foo17b(_TAPointer a_ptr) {
+        static int s_count = 0;
+        s_count += 1;
+        a_ptr->s = std::to_string(s_count);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    template<class _TConstPointer, class _TPointer>
+    static void foo18(_TConstPointer src_ptr, _TPointer dst_ptr) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        dst_ptr->s = src_ptr->s;
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+};
+
+void main(int argc, char* argv[]) {
+
+    class A {
+    public:
+        A(int x) : b(x) {}
+        virtual ~A() {}
+
+        int b = 3;
+        mse::nii_string s = "some text ";
+    };
+    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+
+    mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj1(3);
+    mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj2(5);
+    mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj3(7);
+
+    {
+        auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+
+        typedef decltype(xscope_aco_locker1.xscope_passable_pointer()) passable_exclusive_pointer_t;
+        mse::xscope_thread xscp_thread1(J::foo17b<passable_exclusive_pointer_t>, xscope_aco_locker1.xscope_passable_pointer());
+    }
+    {
+        auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+        auto xscope_aco_locker2 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj2);
+        auto xscope_aco_locker3 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj3);
+
+        typedef decltype(xscope_aco_locker1.xscope_passable_const_pointer()) passable_const_pointer_t;
+        typedef decltype(xscope_aco_locker2.xscope_passable_pointer()) passable_exclusive_pointer_t;
+
+        mse::xscope_thread xscp_thread1(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_aco_locker1.xscope_passable_const_pointer()
+            , xscope_aco_locker2.xscope_passable_pointer());
+
+        mse::xscope_thread xscp_thread2(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_aco_locker1.xscope_passable_const_pointer()
+            , xscope_aco_locker3.xscope_passable_pointer());
+    }
+    {
+        auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+
+        /* Here we're using a (non-const) "xscope_passable_pointer" as the argument. The "const" version
+        wouldn't be accepted because an "xscope_passable_const_pointer" is not an exclusive pointer. That is, 
+        it doesn't hold exclusive access to its target object. We could, for exmaple, have instead used an 
+        exclusive pointer obtained directly from the "access controlled" object, a_xscpacobj1. */
+
+        auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_aco_locker1.xscope_passable_pointer());
+
+        auto xscope_aco_locker2 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj2);
+        auto xscope_aco_locker3 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj3);
+
+        typedef decltype(xscope_aco_locker1.xscope_passable_const_pointer()) passable_const_pointer_t;
+        typedef decltype(xscope_aco_locker2.xscope_passable_pointer()) passable_exclusive_pointer_t;
+
+        mse::xscope_thread xscp_thread1(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_xstrong_ptr_store1.xscope_passable_const_pointer()
+            , xscope_aco_locker2.xscope_passable_pointer());
+
+        mse::xscope_thread xscp_thread2(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_xstrong_ptr_store1.xscope_passable_const_pointer()
+            , xscope_aco_locker3.xscope_passable_pointer());
+    }
+}
+```
+
+#### TXScopeExclusiveStrongPointerStoreForAccessControlFParam
+
+You can use [`make_xscope_exclusive_strong_pointer_store_for_sharing()`](#make_xscope_exclusive_strong_pointer_store_for_sharing) to obtain, from an exclusive pointer of, for example, an [access controlled object](#access-controlled-objects), pointers that can be passed to other threads. Occassionally, you may want to do the reverse. That is, obtain access controlled object pointers from an exclusive pointer that was passed to a thread. You can do this by declaring the parameter that receives the passed pointer as a `TXScopeExclusiveStrongPointerStoreForAccessControlFParam<passable_exclusive_pointer_t>`, replacing `passable_exclusive_pointer_t` with the type of the passed pointer. From this parameter object you can obtain pointers in the same manner as with regular access controlled objects.
+
+usage example:
+```cpp
+#include "mseasyncshared.h"
+#include "msescope.h"
+#include "msemsestring.h"
+#include <iostream>
+
+void main(int argc, char* argv[]) {
+
+    class A {
+    public:
+        A(int x) : b(x) {}
+        virtual ~A() {}
+
+        int b = 3;
+        mse::nii_string s = "some text ";
+    };
+    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+
+    mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj1(3);
+
+    {
+        /* In this block we demonstrate obtaining various types of (const and non-const) pointers you might need from
+        an exclusive pointer that might be passed to a thread. */
+
+        a_xscpacobj1.pointer()->s = "";
+
+        auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+
+        typedef decltype(xscope_aco_locker1.xscope_passable_pointer()) passable_exclusive_pointer_t;
+        typedef decltype(xscope_aco_locker1.xscope_passable_const_pointer()) passable_const_pointer_t;
+
+        class CD {
+        public:
+            static void foo1(mse::TXScopeExclusiveStrongPointerStoreForAccessControlFParam<passable_exclusive_pointer_t> xscope_store, int count) {
+                {
+                    auto xsptr = xscope_store.xscope_pointer();
+                    xsptr->s.append(std::to_string(count));
+                }
+                {
+                    /* Here, from the exclusive (non-const) pointer passed to this function, we're going to obtain a couple
+                    of const pointers that we can pass to different (scope) threads. */
+                    auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
+
+                    mse::xscope_thread xscp_thread1(CD::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
+                    mse::xscope_thread xscp_thread2(CD::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
+                }
+                if (1 <= count) {
+                    /* And here we're going to (re)obtain an exclusive strong pointer like the one that was passed to this
+                    function, then we're going to use it to recursively call this function again in another (scope) thread. */
+                    auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
+                    mse::xscope_thread xscp_thread1(CD::foo1, xscope_xstrong_ptr_store1.xscope_passable_pointer(), count - 1);
+                }
+            }
+            static void foo2(passable_const_pointer_t xscope_A_cptr) {
+                std::cout << xscope_A_cptr->s << std::endl;
+            }
+        };
+
+        mse::xscope_thread xscp_thread1(CD::foo1, xscope_aco_locker1.xscope_passable_pointer(), 3);
+    }
+}
+```
+
+#### exclusive writer objects
+
+"Exclusive writer objects" are a specialization of [access controlled objects](#access-controlled-objects) for which all non-const pointers are exclusive. That is, when a non-const pointer of an exclusive writer object exists, no other pointer of that object may exist.
+
+A bit of extra functionality that exclusive writer objects have over access controlled objects is that, from a const pointer of an exclusive writer object, you can obtain a const pointer that can be passed to other threads (using the `make_xscope_exclusive_write_obj_const_pointer_store_for_sharing()` function).
+
+usage example:
+```cpp
+#include "mseasyncshared.h"
+#include "msescope.h"
+#include "msemsestring.h"
+#include <iostream>
+#include <ratio>
+#include <chrono>
+
+class J {
+public:
+    template<class _TAPointer>
+    static void foo17b(_TAPointer a_ptr) {
+        static int s_count = 0;
+        s_count += 1;
+        a_ptr->s = std::to_string(s_count);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    template<class _TConstPointer, class _TPointer>
+    static void foo18(_TConstPointer src_ptr, _TPointer dst_ptr) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        dst_ptr->s = src_ptr->s;
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+};
+
+void main(int argc, char* argv[]) {
+
+    class A {
+    public:
+        A(int x) : b(x) {}
+        virtual ~A() {}
+
+        int b = 3;
+        mse::nii_string s = "some text ";
+    };
+    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+
+    mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj1(3);
+    mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj2(5);
+    mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj3(7);
+
+    {
+        /* A (non-const) pointer of an "exclusive writer object" qualifies as an "exclusive strong" pointer, and
+        thus you can obtain an xscope shareable pointer from it in the standard way. */
+        auto xscope_xwo_pointer_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(a_xscpxwobj1.pointer());
+
+        typedef decltype(xscope_xwo_pointer_store1.xscope_passable_pointer()) passable_exclusive_pointer_t;
+        mse::xscope_thread xscp_thread1(J::foo17b<passable_exclusive_pointer_t>, xscope_xwo_pointer_store1.xscope_passable_pointer());
+    }
+    {
+        /* But uniquely, you can obtain an xscope shareable const pointer from a (non-exclusive) const pointer of an
+        "exclusive writer object". There is a special function for this purpose: */
+        auto xscope_xwo_const_pointer_store1 = mse::make_xscope_exclusive_write_obj_const_pointer_store_for_sharing(a_xscpxwobj1.const_pointer());
+
+        auto xscope_xwo_pointer_store2 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(a_xscpxwobj2.pointer());
+        auto xscope_xwo_pointer_store3 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(a_xscpxwobj3.pointer());
+
+        typedef decltype(xscope_xwo_const_pointer_store1.xscope_passable_const_pointer()) passable_const_pointer_t;
+        typedef decltype(xscope_xwo_pointer_store2.xscope_passable_pointer()) passable_exclusive_pointer_t;
+
+        mse::xscope_thread xscp_thread1(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_xwo_const_pointer_store1.xscope_passable_const_pointer()
+            , xscope_xwo_pointer_store2.xscope_passable_pointer());
+
+        mse::xscope_thread xscp_thread2(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_xwo_const_pointer_store1.xscope_passable_const_pointer()
+            , xscope_xwo_pointer_store3.xscope_passable_pointer());
+    }
 }
 ```
 
