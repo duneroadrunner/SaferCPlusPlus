@@ -86,6 +86,11 @@ Tested with msvc2017(v15.7.4), msvc2015, g++7.3 & 5.4 and clang++6.0 & 3.8 (as o
         4. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
         5. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
     5. [Scope threads](#scope-threads)
+        1. [access controlled objects](#access-controlled-objects)
+        2. [xscope_thread_carrier](#xscope_thread_carrier)
+        3. [xscope_future_carrier](#xscope_future_carrier)
+        4. [make_xscope_asyncsharedv2acoreadwrite()](#make_xscope_asyncsharedv2acoreadwrite)
+        5. [make_xscope_aco_locker_for_sharing()](#make_xscope_aco_locker_for_sharing)
 16. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [Quarantined types](#quarantined-types)
@@ -1912,9 +1917,11 @@ But in order to share an existing scope object, that object also has to be an "a
 
 `mse::TXScopeAccessControlledObj<>` provides `xscope_pointer()`, `xscope_const_pointer()` and `xscope_exclusive_pointer()` member functions which you use to obtain (scope) pointers to the contained object. Note that a pointer obtained via `xscope_exclusive_pointer()` may not coexist with any other pointer to the same object. Attempting to violate this rule will result in an exception, and attempting to destroy an access controlled object that has outstanding references to it will result in program termination. 
 
-#### xscope_thread_carrier, xscope_future_carrier
+#### xscope_thread_carrier
 
 Ok, so getting back to scope threads, it would generally not be very common that you would use `xscope_thread`s directly. More often you would use them indirectly via an `xscope_thread_carrier`, which is just a simple container for creating and managing a set of `xscope_thread`s.
+
+#### xscope_future_carrier
 
 Like `xscope_thread`, `xscope_future` and `xscope_async()` are the scope versions of their non-scope counterparts. And similarly, rather than using them directly you would more often use them via an `xscope_future_carrier`, which is just a simple container for creating and managing a set of `xscope_future`s and their associated `xscope_async()` functions.
 
@@ -1998,7 +2005,7 @@ void main(int argc, char* argv[]) {
 
 #### make_xscope_aco_locker_for_sharing()
 
-The `mse::make_xscope_aco_locker_for_sharing()` function takes a scope pointer to an "[access controlled object](#access-controlled-objects)" and returns a "locker" object which holds an exclusive reference to the given access controlled object. From this locker object, you can obtain either one "scope passable" (non-const) pointer, or any number of "scope passable" const pointers. These scope passable pointers can then be safely passed directly as arguments to scope threads. This is a (little) more cumbersome, more restrictive way of sharing an object than, say, using the library's "[access requesters](#make_xscope_asyncsharedv2acoreadwrite)". But you might choose to do it this way in certain cases where performance is critical. When using access requesters, each thread obtains the desired lock on a thread-safe mutex. When using the `mse::make_xscope_aco_locker_for_sharing()`, the lock is obtained before launching the thread(s), so the mutex does not need to be thread-safe, thus saving a little overhead.
+The `mse::make_xscope_aco_locker_for_sharing()` function takes a scope pointer to an "[access controlled object](#access-controlled-objects)" and returns a "locker" object which holds an exclusive reference to the given access controlled object. From this locker object, you can obtain either one "scope passable" (non-const) pointer, or any number of "scope passable" const pointers. These scope passable pointers can then be safely passed directly as arguments to scope threads. This is a (little) more cumbersome, more restrictive way of sharing an object than, say, using the library's "[access requesters](#make_xscope_asyncsharedv2acoreadwrite)". But you might choose to do it this way in certain cases where performance is critical. When using access requesters, each thread obtains the desired lock on a thread-safe mutex. When using `mse::make_xscope_aco_locker_for_sharing()`, the lock is obtained before launching the thread(s), so the mutex does not need to be thread-safe, thus saving a little overhead.
 
 #### make_xscope_exclusive_strong_pointer_store_for_sharing()
 
