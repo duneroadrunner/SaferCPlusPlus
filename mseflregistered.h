@@ -164,7 +164,7 @@ namespace mse {
 					_Ty* a = (*this).m_ptr;
 					(*m_sp_tracker_ptr).onObjectDestruction(a);
 					delete a;
-					(*this).setToNull();
+					(*this).spb_set_to_null();
 				}
 				else {
 					auto a = asANativePointerToTFLRegisteredObj();
@@ -294,7 +294,7 @@ namespace mse {
 					const _Ty* a = (*this).m_ptr;
 					(*m_sp_tracker_ptr).onObjectDestruction(a);
 					delete a;
-					(*this).setToNull();
+					(*this).spb_set_to_null();
 				}
 				else {
 					auto a = asANativePointerToTFLRegisteredObj();
@@ -500,9 +500,9 @@ namespace mse {
 	>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...), m_tracker_notifier(*this) {}
 
-	/* TFLRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
-	destruction so that TFLRegisteredPointers will avoid referencing destroyed objects. Note that TFLRegisteredObj can be used with
-	objects allocated on the stack. */
+		/* TFLRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
+		destruction so that TFLRegisteredPointers will avoid referencing destroyed objects. Note that TFLRegisteredObj can be used with
+		objects allocated on the stack. */
 		template<typename _TROFLy>
 		class TFLRegisteredObj : public _TROFLy
 			, public std::conditional<!std::is_convertible<_TROFLy*, NotAsyncShareableTagBase*>::value, NotAsyncShareableTagBase, TPlaceHolder_msepointerbasics<TFLRegisteredObj<_TROFLy> > >::type

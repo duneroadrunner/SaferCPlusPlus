@@ -249,7 +249,7 @@ namespace mse {
 					if (obj_ptr == m_fs1_objects[i].m_object_ptr) {
 						auto& fs1_object_ref = m_fs1_objects[i];
 						for (int j = 0; j < fs1_object_ref.m_num_pointers; j += 1) {
-							(*(fs1_object_ref.m_pointer_ptrs[j])).setToNull();
+							(*(fs1_object_ref.m_pointer_ptrs[j])).spb_set_to_null();
 						}
 						removeObjectFromFastStorage1(i);
 						return;
@@ -259,7 +259,7 @@ namespace mse {
 				/* The object was not in "fast storage 1". It's proably in "slow storage". */
 				auto range = m_obj_pointer_map.equal_range(obj_ptr);
 				for (auto it = range.first; range.second != it; it++) {
-					(*((*it).second)).setToNull();
+					(*((*it).second)).spb_set_to_null();
 				}
 				m_obj_pointer_map.erase(obj_ptr);
 			}
@@ -350,34 +350,34 @@ namespace mse {
 	before its target type is fully defined. (This is necessary to support mutual and cyclic references.) It's also generally more
 	memory efficient. But maybe a bit slower in some cases. */
 	template<typename _Ty>
-	class TWCRegisteredPointer : public TSaferPtr<TWCRegisteredObj<_Ty>> {
+	class TWCRegisteredPointer : public TRegisteredNode, public TSaferPtr<TWCRegisteredObj<_Ty>> {
 	public:
-		TWCRegisteredPointer() : TSaferPtr<TWCRegisteredObj<_Ty>>() {
-			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
-		}
+		TWCRegisteredPointer() : TSaferPtr<TWCRegisteredObj<_Ty>>() {}
 		TWCRegisteredPointer(const TWCRegisteredPointer& src_cref) : TSaferPtr<TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
-			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
-			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).register_pointer(*this);
+			}
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWCRegisteredPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TSaferPtr<TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
-			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
-			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).register_pointer(*this);
+			}
 		}
-		TWCRegisteredPointer(std::nullptr_t) : TSaferPtr<TWCRegisteredObj<_Ty>>(nullptr) {
-			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
-		}
+		TWCRegisteredPointer(std::nullptr_t) : TSaferPtr<TWCRegisteredObj<_Ty>>(nullptr) {}
 		virtual ~TWCRegisteredPointer() {
-			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).unregister_pointer(*this);
+			}
 		}
 		TWCRegisteredPointer<_Ty>& operator=(const TWCRegisteredPointer<_Ty>& _Right_cref) {
-			(*m_sp_tracker_ptr).reserve_space_for_one_more();
-			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).unregister_pointer(*this);
+			}
 			TSaferPtr<TWCRegisteredObj<_Ty>>::operator=(_Right_cref);
-			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
-			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).register_pointer(*this);
+			}
 			return (*this);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -404,10 +404,14 @@ namespace mse {
 			assert(nullptr == (*this).m_ptr);
 		}
 
+		/* todo: make this private */
+		void rn_set_pointer_to_null() const override { (*this).spb_set_to_null(); }
+
 	private:
-		TWCRegisteredPointer(CSPTracker* sp_tracker_ptr, TWCRegisteredObj<_Ty>* ptr) : TSaferPtr<TWCRegisteredObj<_Ty>>(ptr) {
-			m_sp_tracker_ptr = sp_tracker_ptr;
-			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
+		TWCRegisteredPointer(TWCRegisteredObj<_Ty>* ptr) : TSaferPtr<TWCRegisteredObj<_Ty>>(ptr) {
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).register_pointer(*this);
+			}
 		}
 
 		/* This function, if possible, should not be used. It is meant to be used exclusively by cregistered_delete<>(). */
@@ -422,53 +426,51 @@ namespace mse {
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		CSPTracker* m_sp_tracker_ptr = nullptr;
-
 		template <class Y> friend class TWCRegisteredPointer;
 		template <class Y> friend class TWCRegisteredConstPointer;
 		friend class TWCRegisteredNotNullPointer<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TWCRegisteredConstPointer : public TSaferPtr<const TWCRegisteredObj<_Ty>> {
+	class TWCRegisteredConstPointer : public TRegisteredNode, public TSaferPtr<const TWCRegisteredObj<_Ty>> {
 	public:
-		TWCRegisteredConstPointer() : TSaferPtr<const TWCRegisteredObj<_Ty>>() {
-			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
-		}
+		TWCRegisteredConstPointer() : TSaferPtr<const TWCRegisteredObj<_Ty>>() {}
 		TWCRegisteredConstPointer(const TWCRegisteredConstPointer& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
-			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
-			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).register_pointer(*this);
+			}
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWCRegisteredConstPointer(const TWCRegisteredConstPointer<_Ty2>& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
-			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
-			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).register_pointer(*this);
+			}
 		}
 		TWCRegisteredConstPointer(const TWCRegisteredPointer<_Ty>& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
-			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
-			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).register_pointer(*this);
+			}
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TWCRegisteredConstPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
-			//m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
-			m_sp_tracker_ptr = src_cref.m_sp_tracker_ptr;
-			(*m_sp_tracker_ptr).registerPointer((*this), src_cref.m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).register_pointer(*this);
+			}
 		}
-		TWCRegisteredConstPointer(std::nullptr_t) : TSaferPtr<const TWCRegisteredObj<_Ty>>(nullptr) {
-			m_sp_tracker_ptr = &(tlSPTracker_ref<_Ty>());
-		}
+		TWCRegisteredConstPointer(std::nullptr_t) : TSaferPtr<const TWCRegisteredObj<_Ty>>(nullptr) {}
 		virtual ~TWCRegisteredConstPointer() {
-			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).unregister_pointer(*this);
+			}
 		}
 		TWCRegisteredConstPointer<_Ty>& operator=(const TWCRegisteredConstPointer<_Ty>& _Right_cref) {
-			(*m_sp_tracker_ptr).reserve_space_for_one_more();
-			(*m_sp_tracker_ptr).unregisterPointer((*this), (*this).m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).unregister_pointer(*this);
+			}
 			TSaferPtr<const TWCRegisteredObj<_Ty>>::operator=(_Right_cref);
-			//assert(m_sp_tracker_ptr == _Right_cref.m_sp_tracker_ptr);
-			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).register_pointer(*this);
+			}
 			return (*this);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -496,10 +498,14 @@ namespace mse {
 			assert(nullptr == (*this).m_ptr);
 		}
 
+		/* todo: make this private */
+		void rn_set_pointer_to_null() const override { (*this).spb_set_to_null(); }
+
 	private:
-		TWCRegisteredConstPointer(CSPTracker* sp_tracker_ptr, const TWCRegisteredObj<_Ty>* ptr) : TSaferPtr<const TWCRegisteredObj<_Ty>>(ptr) {
-			m_sp_tracker_ptr = sp_tracker_ptr;
-			(*m_sp_tracker_ptr).registerPointer((*this), (*this).m_ptr);
+		TWCRegisteredConstPointer(const TWCRegisteredObj<_Ty>* ptr) : TSaferPtr<const TWCRegisteredObj<_Ty>>(ptr) {
+			if (nullptr != (*this).m_ptr) {
+				(*((*this).m_ptr)).register_pointer(*this);
+			}
 		}
 
 		/* This function, if possible, should not be used. It is meant to be used exclusively by cregistered_delete<>(). */
@@ -513,8 +519,6 @@ namespace mse {
 		}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-
-		CSPTracker* m_sp_tracker_ptr = nullptr;
 
 		template <class Y> friend class TWCRegisteredConstPointer;
 		friend class TWCRegisteredNotNullConstPointer<_Ty>;
@@ -539,7 +543,7 @@ namespace mse {
 		explicit operator TWCRegisteredObj<_Ty>*() const { return TWCRegisteredPointer<_Ty>::operator TWCRegisteredObj<_Ty>*(); }
 
 	private:
-		TWCRegisteredNotNullPointer(CSPTracker* sp_tracker_ptr, TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredPointer<_Ty>(sp_tracker_ptr, ptr) {}
+		TWCRegisteredNotNullPointer(TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredPointer<_Ty>(ptr) {}
 
 		/* If you want to use this constructor, use not_null_from_nullable() instead. */
 		TWCRegisteredNotNullPointer(const  TWCRegisteredPointer<_Ty>& src_cref) : TWCRegisteredPointer<_Ty>(src_cref) {
@@ -583,7 +587,7 @@ namespace mse {
 		explicit operator const TWCRegisteredObj<_Ty>*() const { return TWCRegisteredConstPointer<_Ty>::operator const TWCRegisteredObj<_Ty>*(); }
 
 	private:
-		TWCRegisteredNotNullConstPointer(CSPTracker* sp_tracker_ptr, const TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredConstPointer<_Ty>(sp_tracker_ptr, ptr) {}
+		TWCRegisteredNotNullConstPointer(const TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredConstPointer<_Ty>(ptr) {}
 
 		/* If you want to use this constructor, use not_null_from_nullable() instead. */
 		TWCRegisteredNotNullConstPointer(const TWCRegisteredPointer<_Ty>& src_cref) : TWCRegisteredConstPointer<_Ty>(src_cref) {
@@ -638,7 +642,7 @@ namespace mse {
 		explicit operator TWCRegisteredObj<_Ty>*() const { return TWCRegisteredNotNullPointer<_Ty>::operator TWCRegisteredObj<_Ty>*(); }
 
 	private:
-		TWCRegisteredFixedPointer(CSPTracker* sp_tracker_ptr, TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredNotNullPointer<_Ty>(sp_tracker_ptr, ptr) {}
+		TWCRegisteredFixedPointer(TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredNotNullPointer<_Ty>(ptr) {}
 		TWCRegisteredFixedPointer<_Ty>& operator=(const TWCRegisteredFixedPointer<_Ty>& _Right_cref) = delete;
 
 		/* If you want a pointer to a TWCRegisteredFixedPointer<_Ty>, declare the TWCRegisteredFixedPointer<_Ty> as a
@@ -679,7 +683,7 @@ namespace mse {
 		explicit operator const TWCRegisteredObj<_Ty>*() const { return TWCRegisteredNotNullConstPointer<_Ty>::operator const TWCRegisteredObj<_Ty>*(); }
 
 	private:
-		TWCRegisteredFixedConstPointer(CSPTracker* sp_tracker_ptr, const TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredNotNullConstPointer<_Ty>(sp_tracker_ptr, ptr) {}
+		TWCRegisteredFixedConstPointer(const TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredNotNullConstPointer<_Ty>(ptr) {}
 		TWCRegisteredFixedConstPointer<_Ty>& operator=(const TWCRegisteredFixedConstPointer<_Ty>& _Right_cref) = delete;
 
 		TWCRegisteredFixedConstPointer<_Ty>* operator&() { return this; }
@@ -694,7 +698,7 @@ namespace mse {
 	std::is_constructible<Base, Args...>::value \
 	&& !is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
 	>::type> \
-    Derived(Args &&...args) : Base(std::forward<Args>(args)...), m_tracker_notifier(*this) {}
+    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
 	/* TWCRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
 	destruction so that TWCRegisteredPointers will avoid referencing destroyed objects. Note that TWCRegisteredObj can be used with
@@ -707,10 +711,10 @@ namespace mse {
 		typedef _TROFLy base_class;
 
 		MSE_CREGISTERED_OBJ_USING(TWCRegisteredObj, _TROFLy);
-		TWCRegisteredObj(const TWCRegisteredObj& _X) : _TROFLy(_X), m_tracker_notifier(*this) {}
-		TWCRegisteredObj(TWCRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)), m_tracker_notifier(*this) {}
+		TWCRegisteredObj(const TWCRegisteredObj& _X) : _TROFLy(_X) {}
+		TWCRegisteredObj(TWCRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
 		virtual ~TWCRegisteredObj() {
-			(*trackerPtr()).onObjectDestruction(this);
+			set_outstanding_pointers_to_null();
 		}
 
 		template<class _Ty2>
@@ -719,25 +723,54 @@ namespace mse {
 		TWCRegisteredObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
 
 		TWCRegisteredFixedPointer<_TROFLy> operator&() {
-			return TWCRegisteredFixedPointer<_TROFLy>(trackerPtr(), this);
+			return TWCRegisteredFixedPointer<_TROFLy>(this);
 		}
 		TWCRegisteredFixedConstPointer<_TROFLy> operator&() const {
-			return TWCRegisteredFixedConstPointer<_TROFLy>(trackerPtr(), this);
+			return TWCRegisteredFixedConstPointer<_TROFLy>(this);
 		}
-		TWCRegisteredFixedPointer<_TROFLy> mse_cregistered_fptr() { return TWCRegisteredFixedPointer<_TROFLy>(trackerPtr(), this); }
-		TWCRegisteredFixedConstPointer<_TROFLy> mse_cregistered_fptr() const { return TWCRegisteredFixedConstPointer<_TROFLy>(trackerPtr(), this); }
+		TWCRegisteredFixedPointer<_TROFLy> mse_cregistered_fptr() { return TWCRegisteredFixedPointer<_TROFLy>(this); }
+		TWCRegisteredFixedConstPointer<_TROFLy> mse_cregistered_fptr() const { return TWCRegisteredFixedConstPointer<_TROFLy>(this); }
 
-		CSPTracker* trackerPtr() const { return &(tlSPTracker_ref<_TROFLy>()); }
+		/* todo: make these private */
+		void register_pointer(const TRegisteredNode& node_cref) const {
+			node_cref.set_next_ptr(m_head_ptr);
+			m_head_ptr = &node_cref;
+		}
+		void unregister_pointer(const TRegisteredNode& node_cref) const {
+			const auto target_node_ptr = &node_cref;
+			if (target_node_ptr == m_head_ptr) {
+				m_head_ptr = target_node_ptr->get_next_ptr();
+				node_cref.set_next_ptr(nullptr);
+				return;
+			}
+			if (!m_head_ptr) {
+				assert(false);
+				return;
+			}
+			auto current_node_ptr = m_head_ptr;
+			while (target_node_ptr != current_node_ptr->get_next_ptr()) {
+				current_node_ptr = current_node_ptr->get_next_ptr();
+				if (!current_node_ptr) {
+					assert(false);
+					return;
+				}
+			}
+			current_node_ptr->set_next_ptr(target_node_ptr->get_next_ptr());
+			node_cref.set_next_ptr(nullptr);
+		}
 
 	private:
-		class CTrackerNotifier {
-		public:
-			template<typename _TWCRegisteredObj>
-			CTrackerNotifier(_TWCRegisteredObj& obj_ref) {
-				(*(obj_ref.trackerPtr())).onObjectConstruction(std::addressof(obj_ref));
+		void set_outstanding_pointers_to_null() const {
+			auto current_node_ptr = m_head_ptr;
+			while (current_node_ptr) {
+				current_node_ptr->rn_set_pointer_to_null();
+				auto next_ptr = current_node_ptr->get_next_ptr();
+				current_node_ptr->set_next_ptr(nullptr);
+				current_node_ptr = next_ptr;
 			}
-		};
-		CTrackerNotifier m_tracker_notifier;
+		}
+
+		mutable const TRegisteredNode * m_head_ptr = nullptr;
 	};
 
 

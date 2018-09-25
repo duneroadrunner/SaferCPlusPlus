@@ -330,9 +330,9 @@ namespace mse {
 
 	class CSaferPtrBase : public NotAsyncShareableTagBase {
 	public:
-		/* setToNull() needs to be available even when the smart pointer is const, because the object it points to may become
+		/* spb_set_to_null() needs to be available even when the smart pointer is const, because the object it points to may become
 		invalid (deleted). */
-		virtual void setToNull() const = 0;
+		virtual void spb_set_to_null() const = 0;
 	};
 
 #ifndef NDEBUG
@@ -353,7 +353,7 @@ namespace mse {
 		TSaferPtr(const TSaferPtr<_Ty2>& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 		virtual ~TSaferPtr() {}
 
-		virtual void setToNull() const { m_ptr = nullptr; }
+		virtual void spb_set_to_null() const { m_ptr = nullptr; }
 
 		void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
 		_Ty* raw_pointer() const { return m_ptr; }
@@ -433,7 +433,7 @@ namespace mse {
 		TSaferPtrForLegacy(const TSaferPtrForLegacy<_Ty2>& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 		virtual ~TSaferPtrForLegacy() {}
 
-		virtual void setToNull() const { m_ptr = nullptr; }
+		virtual void spb_set_to_null() const { m_ptr = nullptr; }
 
 		void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
 		_Ty* raw_pointer() const { return m_ptr; }

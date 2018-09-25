@@ -1573,7 +1573,7 @@ int main(int argc, char* argv[])
 	#ifndef NDEBUG
 		static const int number_of_loops = 10/*arbitrary*/;
 	#else // !NDEBUG
-		static const int number_of_loops = 1000000/*arbitrary*/;
+		static const int number_of_loops = 10000000/*arbitrary*/;
 	#endif // !NDEBUG
 		std::cout << std::endl;
 		std::cout << "Some simple benchmarks: \n";
