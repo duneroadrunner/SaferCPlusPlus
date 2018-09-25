@@ -221,6 +221,8 @@ And if at some point you feel that these new elements involve a lot of typing, n
 
 "Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap.  Safe, flexible pointers like these can be handy in situations that are not amenable to the confining restrictions of the lifetime checker. They may be particularly useful when updating legacy code (to be safer). And they can be explicitly cast to the corresponding native pointer when needed.
 
+Two types of registered pointers are provided - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TCRegisteredPointer<>`](#tcregisteredpointer). Currently they are essentially equivalent, but it is intended that in the future `TRegisteredPointer<>` will be optimized for better average performance, while `TCRegisteredPointer<>` will be optimized for better "worst-case" performance.
+
 Note that these registered pointers cannot target some types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. The library provides safer [substitutes](#primitives) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library.
 
 Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead. In fact, even when registered pointers are used, rather than using them to access the target object directly, you may find it often preferable to use the registered pointer to obtain a scope pointer to the object and use the scope pointer instead. Though for the sake of simplicity, we don't use scope pointers in the registered pointer usage examples.  
@@ -341,14 +343,7 @@ usage example:
     #include "msecregistered.h"
     
     void main(int argc, char* argv[]) {
-    
-        /* mse::TCRegisteredPointer<> behaves very similar to mse::TRegisteredPointer<> but uses a different implementation
-        that's generally a little more memory efficient. But maybe a bit slower in some cases.
-        One case where you may need to use mse::TCRegisteredPointer<> is when you need a reference to a class before it is
-        fully defined. For example, when you have two classes that mutually reference each other. mse::TRegisteredPointer<>
-        does not support this.
-        */
-    
+        
         class C;
     
         class D {
