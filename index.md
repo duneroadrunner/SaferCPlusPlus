@@ -1,4 +1,4 @@
-Aug 2018
+Sep 2018
 
 ### Overview
 
@@ -86,6 +86,14 @@ Tested with msvc2017(v15.7.4), msvc2015, g++7.3 & 5.4 and clang++6.0 & 3.8 (as o
         4. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
         5. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
     5. [Scope threads](#scope-threads)
+        1. [access controlled objects](#access-controlled-objects)
+        2. [xscope_thread_carrier](#xscope_thread_carrier)
+        3. [xscope_future_carrier](#xscope_future_carrier)
+        4. [make_xscope_asyncsharedv2acoreadwrite()](#make_xscope_asyncsharedv2acoreadwrite)
+        5. [make_xscope_aco_locker_for_sharing()](#make_xscope_aco_locker_for_sharing)
+        6. [make_xscope_exclusive_strong_pointer_store_for_sharing()](#make_xscope_exclusive_strong_pointer_store_for_sharing)
+        7. [TXScopeExclusiveStrongPointerStoreForAccessControlFParam](#txscopeexclusivestrongpointerstoreforaccesscontrolfparam)
+        8. [exclusive writer objects](#exclusive-writer-objects)
 16. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [Quarantined types](#quarantined-types)
@@ -213,7 +221,7 @@ And if at some point you feel that these new elements involve a lot of typing, n
 
 "Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap.  Safe, flexible pointers like these can be handy in situations that are not amenable to the confining restrictions of the lifetime checker. They may be particularly useful when updating legacy code (to be safer). And they can be explicitly cast to the corresponding native pointer when needed.
 
-Registered pointers come in two flavors - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TCRegisteredPointer<>`](#tcregisteredpointer). They have very similar functionality, but implementations which are a bit different. With `TRegisteredPointer<>`, the pointer is "registered" in a "registry" that is attached to its target object, whereas `TCRegisteredPointer<>`s are registered in a common (thread local) registry. The only functional difference is that `TRegisteredPointer<>` does not support targeting a type before that type is fully defined, which essentially means that it doesn't support "mutual" or "cyclic" references. `TRegisteredPointer<>`s are also generally a bit less memory efficient. The reason you would choose to use a `TRegisteredPointer<>` over a `TCRegisteredPointer<>`, is that its implementation is generally (even) better at avoiding heap allocations, and thus potential costly cache misses.
+Two types of registered pointers are provided - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TCRegisteredPointer<>`](#tcregisteredpointer). Currently they are essentially equivalent, but it is intended that in the future `TRegisteredPointer<>` will be optimized for better average performance, while `TCRegisteredPointer<>` will be optimized for better "worst-case" performance.
 
 Note that these registered pointers cannot target some types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. The library provides safer [substitutes](#primitives) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library.
 
@@ -335,14 +343,7 @@ usage example:
     #include "msecregistered.h"
     
     void main(int argc, char* argv[]) {
-    
-        /* mse::TCRegisteredPointer<> behaves very similar to mse::TRegisteredPointer<> but uses a different implementation
-        that's generally a little more memory efficient. But maybe a bit slower in some cases.
-        One case where you may need to use mse::TCRegisteredPointer<> is when you need a reference to a class before it is
-        fully defined. For example, when you have two classes that mutually reference each other. mse::TRegisteredPointer<>
-        does not support this.
-        */
-    
+        
         class C;
     
         class D {
@@ -431,61 +432,50 @@ Same as `TNoradPointer<>`, but cannot be constructed to or assigned a null value
 
 ### Simple benchmarks
 
-Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks of the library in general can be found [here](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame).) We show the results for msvc2015 and msvc2013 (run on the same machine), since there are some interesting differences. The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp). (Search for "benchmark" in the file.)
+Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks of the library in general can be found [here](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame).) The source code for these benchmarks can be found in the file [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp). (Search for "benchmark" in the file.)
 
-#### Allocation, deallocation, pointer copy and assignment:
+##### platform: msvc2017/default optimizations/x64/Windows7/Haswell (Sep 2018):
 
-##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
-
-Pointer Type | Time
------------- | ----
-[mse::TRegisteredPointer](#tregisteredpointer) (stack): | 0.0317188 seconds.
-native pointer (heap): | 0.0394826 seconds.
-[mse::TRefCountingPointer](#trefcountingpointer) (heap): | 0.0493629 seconds.
-mse::TRegisteredPointer (heap): | 0.0573699 seconds.
-std::shared_ptr (heap): | 0.0692405 seconds.
-[mse::TCRegisteredPointer](#tcregisteredpointer) (heap)\*: | 0.14475 seconds.
-
-##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
+#### Target object allocation and deallocation:
 
 Pointer Type | Time
 ------------ | ----
-mse::TRegisteredPointer (stack): | 0.0270016 seconds.
-native pointer (heap): | 0.0490028 seconds.
-mse::TRegisteredPointer (heap): | 0.0740042 seconds.
-std::shared_ptr (heap): | 0.087005 seconds.
-mse::TCRegisteredPointer (heap)\*: | 0.142008 seconds.
+native pointer (stack) | 0.0482506 seconds
+[mse::TNoradPointer](#tnoradpointer) (stack) | 0.0543053 seconds
+[mse::TRegisteredPointer](#tregisteredpointer) (stack) | 0.085932 seconds
+[mse::TCRegisteredPointer](#tcregisteredpointer) (stack) | 0.127619 seconds
+native pointer (heap) | 0.380059 seconds
+[mse::TRefCountingPointer](#trefcountingpointer) (heap) | 0.39105 seconds
+mse::TNoradPointer (heap) | 0.392182 seconds
+mse::TRegisteredPointer (heap) | 0.413458 seconds
+mse::TCRegisteredPointer (heap) | 0.489118 seconds
+std::shared_ptr (heap) | 0.525877 seconds
 
-\* These benchmarks used an older version of `mse::TCRegisteredPointer`. The current version would have performance similar to `mse::TRegisteredPointer`.
+#### Pointer declaration, copy and assignment:
 
-Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But I'm guessing the general gist of the results is valid. Interestingly, three of the scenarios seemed to have gotten noticeably faster between msvc2013 and msvc2015.  
-
-I'm speculating here, but it might be the case that the heap operations that occur in this benchmark may be more "cache friendly" than heap operations in real world code would be, making the "heap" results look artificially good (relative to the "stack" result).
+Pointer Type | Time
+------------ | ----
+native pointer | 0.0460813 seconds
+mse::TRefCountingPointer | 0.0990784 seconds
+mse::TNoradPointer | 0.113345 seconds
+std::shared_ptr | 0.282165 seconds
+mse::TRegisteredPointer | 0.299785 seconds
+mse::TCRegisteredPointer | 0.635466 seconds
 
 #### Dereferencing:
 
-##### platform: msvc2015/default optimizations/x64/Windows7/Haswell (Mar 2016):
-
 Pointer Type | Time
 ------------ | ----
-native pointer: | 0.0105804 seconds.
-mse::TCRegisteredPointer unchecked: | 0.0136354 seconds.
-mse::TRefCountingPointer (checked): | 0.0258107 seconds.
-mse::TCRegisteredPointer (checked): | 0.0308289 seconds.
-std::weak_ptr: | 0.179833 seconds.
+native pointer | 0.105665 seconds
+native pointer + nullptr check | 0.106397 seconds
+mse::TCRegisteredPointer | 0.1591 seconds
+mse::TNoradPointer | 0.160159 seconds
+mse::TRefCountingPointer | 0.225478 seconds
+std::weak_ptr | 1.37197 seconds
 
-##### platform: msvc2013/default optimizations/x64/Windows7/Haswell (Jan 2016):
+Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But they give you a rough idea of the relative performances.
 
-Pointer Type | Time
------------- | ----
-native pointer: | 0.0100006 seconds.
-mse::TCRegisteredPointer unchecked: | 0.0130008 seconds.
-mse::TCRegisteredPointer (checked): | 0.016001 seconds.
-std::weak_ptr: | 0.17701 seconds.
-
-The interesting thing here is that checking for nullptr seems to have gotten a lot slower between msvc2013 and msvc2015. But anyway, my guess is that pointer dereferencing is such a fast operation (std::weak_ptr aside) that outside of critical inner loops, the overhead of checking for nullptr would generally be probably pretty modest.  
-
-Also note that [`mse::TRefCountingNotNullPointer<>`](#trefcountingnotnullpointer) and [`mse::TRefCountingFixedPointer<>`](#trefcountingfixedpointer) always point to a validly allocated object, so their dereferences don't need to be checked. `mse::TRegisteredPointer<>`'s safety mechanisms are not compatible with the techniques used by the benchmark to isolate dereferencing performance, but `mse::TRegisteredPointer<>`'s dereferencing performance would be expected to be essentially identical to that of `mse::TCRegisteredPointer<>`. By default, [scope pointers](#scope-pointers) have identical performance to native pointers.
+Note that by default, [scope pointers](#scope-pointers) have identical performance to native pointers.
 
 ### Reference counting pointers
 
@@ -1915,13 +1905,23 @@ void main(int argc, char* argv[]) {
 
 `xscope_thread` is the scope counterpart to [`mstd::thread`](#thread). `xscope_thread` ensures that the actual associated thread doesn't outlive it (and therefore doesn't outlive the scope), blocking in its destructor if necessary. Note that any object shared with an `mstd::thread` necessarily has dynamic allocation (i.e. is allocated on the heap), whereas objects shared with a scope thread can themselves be scope objects (i.e. allocated on the stack). Which would generally be the primary reason for using scope threads over non-scope threads. 
 
-Any data type that qualifies as "[shareable](#tuserdeclaredasyncshareableobj)" (or "[passable](#tuserdeclaredasyncpassableobj)") with non-scope threads also qualifies as shareable (or passable) with scope threads. (But not necessarily the other way around.) But in order to share an existing scope object, that object also has to be an "access controlled" object. You make a type "access controlled" by wrapping it with the `mse::TXScopeAccessControlledObj<>` template wrapper. 
+Any data type that qualifies as "[shareable](#tuserdeclaredasyncshareableobj)" (or "[passable](#tuserdeclaredasyncpassableobj)") with non-scope threads also qualifies as shareable (or passable) with scope threads. (But not necessarily the other way around.) 
+
+#### access controlled objects
+
+But in order to share an existing scope object, that object also has to be an "access controlled" object. You make a type "access controlled" by wrapping it with the `mse::TXScopeAccessControlledObj<>` template wrapper. 
 
 `mse::TXScopeAccessControlledObj<>` provides `xscope_pointer()`, `xscope_const_pointer()` and `xscope_exclusive_pointer()` member functions which you use to obtain (scope) pointers to the contained object. Note that a pointer obtained via `xscope_exclusive_pointer()` may not coexist with any other pointer to the same object. Attempting to violate this rule will result in an exception, and attempting to destroy an access controlled object that has outstanding references to it will result in program termination. 
 
+#### xscope_thread_carrier
+
 Ok, so getting back to scope threads, it would generally not be very common that you would use `xscope_thread`s directly. More often you would use them indirectly via an `xscope_thread_carrier`, which is just a simple container for creating and managing a set of `xscope_thread`s.
 
+#### xscope_future_carrier
+
 Like `xscope_thread`, `xscope_future` and `xscope_async()` are the scope versions of their non-scope counterparts. And similarly, rather than using them directly you would more often use them via an `xscope_future_carrier`, which is just a simple container for creating and managing a set of `xscope_future`s and their associated `xscope_async()` functions.
+
+#### make_xscope_asyncsharedv2acoreadwrite()
 
 And finally, the function used to obtain a (scope) [access requester](#tasyncsharedv2readwriteaccessrequester) to an access controlled scope object is `make_xscope_asyncsharedv2acoreadwrite()`. Note that it takes as its argument a scope pointer to the access controlled object, not a scope pointer to the contained object. Btw, scope access requesters are an example of an object type that can be passed to other scope threads, but does not qualify (i.e. would induce a compile error) to be passed to non-scope threads. 
 
@@ -1996,6 +1996,255 @@ void main(int argc, char* argv[]) {
 		std::cout << std::endl;
 	}
 	std::cout << std::endl;
+}
+```
+
+#### make_xscope_aco_locker_for_sharing()
+
+The `mse::make_xscope_aco_locker_for_sharing()` function takes a scope pointer to an "[access controlled object](#access-controlled-objects)" and returns a "locker" object which holds an exclusive reference to the given access controlled object. From this locker object, you can obtain either one "scope passable" (non-const) pointer, or any number of "scope passable" const pointers. These scope passable pointers can then be safely passed directly as arguments to scope threads. This is a (little) more cumbersome, more restrictive way of sharing an object than, say, using the library's "[access requesters](#make_xscope_asyncsharedv2acoreadwrite)". But you might choose to do it this way in certain cases where performance is critical. When using access requesters, each thread obtains the desired lock on a thread-safe mutex. When using `mse::make_xscope_aco_locker_for_sharing()`, the lock is obtained before launching the thread(s), so the mutex does not need to be thread-safe, thus saving a little overhead.
+
+#### make_xscope_exclusive_strong_pointer_store_for_sharing()
+
+The `mse::make_xscope_exclusive_strong_pointer_store_for_sharing()` function returns the same kind of "locker" object that `mse::make_xscope_aco_locker_for_sharing()` does, but instead of taking a scope pointer to an "access controlled object", it accepts any recognized "exclusive" pointer. That is, a pointer that, while it exists, holds exclusive access to its target object.
+
+usage example:
+```cpp
+#include "mseasyncshared.h"
+#include "msescope.h"
+#include "msemsestring.h"
+#include <iostream>
+#include <ratio>
+#include <chrono>
+
+class J {
+public:
+    template<class _TAPointer>
+    static void foo17b(_TAPointer a_ptr) {
+        static int s_count = 0;
+        s_count += 1;
+        a_ptr->s = std::to_string(s_count);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    template<class _TConstPointer, class _TPointer>
+    static void foo18(_TConstPointer src_ptr, _TPointer dst_ptr) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        dst_ptr->s = src_ptr->s;
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+};
+
+void main(int argc, char* argv[]) {
+
+    class A {
+    public:
+        A(int x) : b(x) {}
+        virtual ~A() {}
+
+        int b = 3;
+        mse::nii_string s = "some text ";
+    };
+    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+
+    mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj1(3);
+    mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj2(5);
+    mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj3(7);
+
+    {
+        auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+
+        typedef decltype(xscope_aco_locker1.xscope_passable_pointer()) passable_exclusive_pointer_t;
+        mse::xscope_thread xscp_thread1(J::foo17b<passable_exclusive_pointer_t>, xscope_aco_locker1.xscope_passable_pointer());
+    }
+    {
+        auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+        auto xscope_aco_locker2 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj2);
+        auto xscope_aco_locker3 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj3);
+
+        typedef decltype(xscope_aco_locker1.xscope_passable_const_pointer()) passable_const_pointer_t;
+        typedef decltype(xscope_aco_locker2.xscope_passable_pointer()) passable_exclusive_pointer_t;
+
+        mse::xscope_thread xscp_thread1(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_aco_locker1.xscope_passable_const_pointer()
+            , xscope_aco_locker2.xscope_passable_pointer());
+
+        mse::xscope_thread xscp_thread2(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_aco_locker1.xscope_passable_const_pointer()
+            , xscope_aco_locker3.xscope_passable_pointer());
+    }
+    {
+        auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+
+        /* Here we're using a (non-const) "xscope_passable_pointer" as the argument. The "const" version
+        wouldn't be accepted because an "xscope_passable_const_pointer" is not an exclusive pointer. That is, 
+        it doesn't hold exclusive access to its target object. We could, for exmaple, have instead used an 
+        exclusive pointer obtained directly from the "access controlled" object, a_xscpacobj1. */
+
+        auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_aco_locker1.xscope_passable_pointer());
+
+        auto xscope_aco_locker2 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj2);
+        auto xscope_aco_locker3 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj3);
+
+        typedef decltype(xscope_aco_locker1.xscope_passable_const_pointer()) passable_const_pointer_t;
+        typedef decltype(xscope_aco_locker2.xscope_passable_pointer()) passable_exclusive_pointer_t;
+
+        mse::xscope_thread xscp_thread1(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_xstrong_ptr_store1.xscope_passable_const_pointer()
+            , xscope_aco_locker2.xscope_passable_pointer());
+
+        mse::xscope_thread xscp_thread2(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_xstrong_ptr_store1.xscope_passable_const_pointer()
+            , xscope_aco_locker3.xscope_passable_pointer());
+    }
+}
+```
+
+#### TXScopeExclusiveStrongPointerStoreForAccessControlFParam
+
+You can use [`make_xscope_exclusive_strong_pointer_store_for_sharing()`](#make_xscope_exclusive_strong_pointer_store_for_sharing) to obtain, from an exclusive pointer of, for example, an [access controlled object](#access-controlled-objects), pointers that can be passed to other threads. Occassionally, you may want to do the reverse. That is, obtain access controlled object pointers from an exclusive pointer that was passed to a thread. You can do this by declaring the parameter that receives the passed pointer as a `TXScopeExclusiveStrongPointerStoreForAccessControlFParam<passable_exclusive_pointer_t>`, replacing `passable_exclusive_pointer_t` with the type of the passed pointer. From this parameter object you can obtain pointers in the same manner as with regular access controlled objects.
+
+usage example:
+```cpp
+#include "mseasyncshared.h"
+#include "msescope.h"
+#include "msemsestring.h"
+#include <iostream>
+
+void main(int argc, char* argv[]) {
+
+    class A {
+    public:
+        A(int x) : b(x) {}
+        virtual ~A() {}
+
+        int b = 3;
+        mse::nii_string s = "some text ";
+    };
+    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+
+    mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj1(3);
+
+    {
+        /* In this block we demonstrate obtaining various types of (const and non-const) pointers you might need from
+        an exclusive pointer that might be passed to a thread. */
+
+        a_xscpacobj1.pointer()->s = "";
+
+        auto xscope_aco_locker1 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj1);
+
+        typedef decltype(xscope_aco_locker1.xscope_passable_pointer()) passable_exclusive_pointer_t;
+        typedef decltype(xscope_aco_locker1.xscope_passable_const_pointer()) passable_const_pointer_t;
+
+        class CD {
+        public:
+            static void foo1(mse::TXScopeExclusiveStrongPointerStoreForAccessControlFParam<passable_exclusive_pointer_t> xscope_store, int count) {
+                {
+                    auto xsptr = xscope_store.xscope_pointer();
+                    xsptr->s.append(std::to_string(count));
+                }
+                {
+                    /* Here, from the exclusive (non-const) pointer passed to this function, we're going to obtain a couple
+                    of const pointers that we can pass to different (scope) threads. */
+                    auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
+
+                    mse::xscope_thread xscp_thread1(CD::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
+                    mse::xscope_thread xscp_thread2(CD::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
+                }
+                if (1 <= count) {
+                    /* And here we're going to (re)obtain an exclusive strong pointer like the one that was passed to this
+                    function, then we're going to use it to recursively call this function again in another (scope) thread. */
+                    auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
+                    mse::xscope_thread xscp_thread1(CD::foo1, xscope_xstrong_ptr_store1.xscope_passable_pointer(), count - 1);
+                }
+            }
+            static void foo2(passable_const_pointer_t xscope_A_cptr) {
+                std::cout << xscope_A_cptr->s << std::endl;
+            }
+        };
+
+        mse::xscope_thread xscp_thread1(CD::foo1, xscope_aco_locker1.xscope_passable_pointer(), 3);
+    }
+}
+```
+
+#### exclusive writer objects
+
+"Exclusive writer objects" are a specialization of [access controlled objects](#access-controlled-objects) for which all non-const pointers are exclusive. That is, when a non-const pointer of an exclusive writer object exists, no other pointer of that object may exist.
+
+A bit of extra functionality that exclusive writer objects have over access controlled objects is that, from a const pointer of an exclusive writer object, you can obtain a const pointer that can be passed to other threads (using the `make_xscope_exclusive_write_obj_const_pointer_store_for_sharing()` function).
+
+usage example:
+```cpp
+#include "mseasyncshared.h"
+#include "msescope.h"
+#include "msemsestring.h"
+#include <iostream>
+#include <ratio>
+#include <chrono>
+
+class J {
+public:
+    template<class _TAPointer>
+    static void foo17b(_TAPointer a_ptr) {
+        static int s_count = 0;
+        s_count += 1;
+        a_ptr->s = std::to_string(s_count);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    template<class _TConstPointer, class _TPointer>
+    static void foo18(_TConstPointer src_ptr, _TPointer dst_ptr) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        dst_ptr->s = src_ptr->s;
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+};
+
+void main(int argc, char* argv[]) {
+
+    class A {
+    public:
+        A(int x) : b(x) {}
+        virtual ~A() {}
+
+        int b = 3;
+        mse::nii_string s = "some text ";
+    };
+    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+
+    mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj1(3);
+    mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj2(5);
+    mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj3(7);
+
+    {
+        /* A (non-const) pointer of an "exclusive writer object" qualifies as an "exclusive strong" pointer, and
+        thus you can obtain an xscope shareable pointer from it in the standard way. */
+        auto xscope_xwo_pointer_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(a_xscpxwobj1.pointer());
+
+        typedef decltype(xscope_xwo_pointer_store1.xscope_passable_pointer()) passable_exclusive_pointer_t;
+        mse::xscope_thread xscp_thread1(J::foo17b<passable_exclusive_pointer_t>, xscope_xwo_pointer_store1.xscope_passable_pointer());
+    }
+    {
+        /* But uniquely, you can obtain an xscope shareable const pointer from a (non-exclusive) const pointer of an
+        "exclusive writer object". There is a special function for this purpose: */
+        auto xscope_xwo_const_pointer_store1 = mse::make_xscope_exclusive_write_obj_const_pointer_store_for_sharing(a_xscpxwobj1.const_pointer());
+
+        auto xscope_xwo_pointer_store2 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(a_xscpxwobj2.pointer());
+        auto xscope_xwo_pointer_store3 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(a_xscpxwobj3.pointer());
+
+        typedef decltype(xscope_xwo_const_pointer_store1.xscope_passable_const_pointer()) passable_const_pointer_t;
+        typedef decltype(xscope_xwo_pointer_store2.xscope_passable_pointer()) passable_exclusive_pointer_t;
+
+        mse::xscope_thread xscp_thread1(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_xwo_const_pointer_store1.xscope_passable_const_pointer()
+            , xscope_xwo_pointer_store2.xscope_passable_pointer());
+
+        mse::xscope_thread xscp_thread2(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
+            , xscope_xwo_const_pointer_store1.xscope_passable_const_pointer()
+            , xscope_xwo_pointer_store3.xscope_passable_pointer());
+    }
 }
 ```
 
