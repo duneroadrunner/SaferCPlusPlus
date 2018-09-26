@@ -122,18 +122,19 @@ namespace mse {
 
 #endif /*MSE_REGISTEREDPOINTER_DISABLED*/
 
-	class TRegisteredNode {
+	/* node of a (singly-linked) list of pointers */
+	class CRegisteredNode {
 	public:
 		virtual void rn_set_pointer_to_null() const = 0;
-		void set_next_ptr(const TRegisteredNode* next_ptr) const {
+		void set_next_ptr(const CRegisteredNode* next_ptr) const {
 			m_next_ptr = next_ptr;
 		}
-		const TRegisteredNode* get_next_ptr() const {
+		const CRegisteredNode* get_next_ptr() const {
 			return m_next_ptr;
 		}
 
 	private:
-		mutable const TRegisteredNode * m_next_ptr = nullptr;
+		mutable const CRegisteredNode * m_next_ptr = nullptr;
 	};
 
 	/* "Registered" pointers are intended to behave just like native C++ pointers, except that their value is (automatically)
@@ -141,7 +142,7 @@ namespace mse {
 	dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects
 	allocated on the stack as well as the heap. */
 	template<typename _Ty>
-	class TWRegisteredPointer : public TRegisteredNode, public TSaferPtr<TWRegisteredObj<_Ty>> {
+	class TWRegisteredPointer : public TSaferPtr<TWRegisteredObj<_Ty>>, public CRegisteredNode {
 	public:
 		TWRegisteredPointer() : TSaferPtr<TWRegisteredObj<_Ty>>() {}
 		TWRegisteredPointer(const TWRegisteredPointer& src_cref) : TSaferPtr<TWRegisteredObj<_Ty>>(src_cref.m_ptr) {
@@ -223,7 +224,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TWRegisteredConstPointer : public TRegisteredNode, public TSaferPtr<const TWRegisteredObj<_Ty>> {
+	class TWRegisteredConstPointer : public TSaferPtr<const TWRegisteredObj<_Ty>>, public CRegisteredNode {
 	public:
 		TWRegisteredConstPointer() : TSaferPtr<const TWRegisteredObj<_Ty>>() {}
 		TWRegisteredConstPointer(const TWRegisteredConstPointer& src_cref) : TSaferPtr<const TWRegisteredObj<_Ty>>(src_cref.m_ptr) {
@@ -505,7 +506,7 @@ namespace mse {
 		TWRegisteredObj(const TWRegisteredObj& _X) : _TROFLy(_X) {}
 		TWRegisteredObj(TWRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
 		virtual ~TWRegisteredObj() {
-			set_outstanding_pointers_to_null();
+			unregister_and_set_outstanding_pointers_to_null();
 		}
 
 		template<class _Ty2>
@@ -523,11 +524,11 @@ namespace mse {
 		TWRegisteredFixedConstPointer<_TROFLy> mse_registered_fptr() const { return TWRegisteredFixedConstPointer<_TROFLy>(this); }
 
 		/* todo: make these private */
-		void register_pointer(const TRegisteredNode& node_cref) const {
+		void register_pointer(const CRegisteredNode& node_cref) const {
 			node_cref.set_next_ptr(m_head_ptr);
 			m_head_ptr = &node_cref;
 		}
-		void unregister_pointer(const TRegisteredNode& node_cref) const {
+		void unregister_pointer(const CRegisteredNode& node_cref) const {
 			const auto target_node_ptr = &node_cref;
 			if (target_node_ptr == m_head_ptr) {
 				m_head_ptr = target_node_ptr->get_next_ptr();
@@ -551,7 +552,7 @@ namespace mse {
 		}
 
 	private:
-		void set_outstanding_pointers_to_null() const {
+		void unregister_and_set_outstanding_pointers_to_null() const {
 			auto current_node_ptr = m_head_ptr;
 			while (current_node_ptr) {
 				current_node_ptr->rn_set_pointer_to_null();
@@ -561,7 +562,8 @@ namespace mse {
 			}
 		}
 
-		mutable const TRegisteredNode * m_head_ptr = nullptr;
+		/* first node in a (singly-linked) list of pointers targeting this object */
+		mutable const CRegisteredNode * m_head_ptr = nullptr;
 	};
 
 

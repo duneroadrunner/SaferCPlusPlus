@@ -112,245 +112,62 @@ namespace mse {
 
 #endif /*MSE_REGISTEREDPOINTER_DISABLED*/
 
-#ifdef _MSC_VER
-#pragma warning( push )  
-#pragma warning( disable : 4127 )
-#endif /*_MSC_VER*/
+	class CCRegisteredNode;
 
-	/* CSPTracker is intended to keep track of all pointers, objects and their lifespans in order to ensure that pointers don't
-	end up pointing to deallocated objects. */
-	class CSPTracker {
+	class CCRNMutablePointer {
 	public:
-		CSPTracker() {}
-		~CSPTracker() {}
-		bool registerPointer(const CSaferPtrBase& sp_ref, void *obj_ptr) {
-			if (nullptr == obj_ptr) { return true; }
-			{
-				//std::lock_guard<std::mutex> lock(m_mutex);
+		CCRNMutablePointer(const CCRegisteredNode* ptr) : m_ptr(ptr) {}
+		/* explicit */CCRNMutablePointer(const CCRNMutablePointer& src_cref) : m_ptr(src_cref.m_ptr) {}
 
-				/* check if the object is in "fast storage 1" first */
-				for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
-					if (obj_ptr == m_fs1_objects[i].m_object_ptr) {
-						auto& fs1_object_ref = m_fs1_objects[i];
-						if (sc_fs1_max_pointers == fs1_object_ref.m_num_pointers) {
-							/* Too many pointers. We're gonna move this object to slow storage. */
-							moveObjectFromFastStorage1ToSlowStorage(i);
-							/* Then add the new object-pointer mapping to slow storage. */
-							std::unordered_multimap<void*, const CSaferPtrBase*>::value_type item(obj_ptr, &sp_ref);
-							m_obj_pointer_map.insert(item);
-							return true;
-						}
-						else {
-							/* register the object-pointer mapping in "fast storage 1" */
-							fs1_object_ref.m_pointer_ptrs[fs1_object_ref.m_num_pointers] = (&sp_ref);
-							fs1_object_ref.m_num_pointers += 1;
-							return true;
-						}
-					}
-				}
-
-				/* The object was not in "fast storage 1". Check if it's in "slow storage". */
-				bool object_is_in_slow_storage = false;
-				if (1 <= m_obj_pointer_map.size()) {
-					auto found_it = m_obj_pointer_map.find(obj_ptr);
-					if (m_obj_pointer_map.end() != found_it) {
-						object_is_in_slow_storage = true;
-					}
-				}
-
-				if ((!object_is_in_slow_storage) && (1 <= sc_fs1_max_objects) && (1 <= sc_fs1_max_pointers)) {
-					/* We'll add this object to fast storage. */
-					if (sc_fs1_max_objects == m_num_fs1_objects) {
-						/* Too many objects. We're gonna move the oldest object to slow storage. */
-						moveObjectFromFastStorage1ToSlowStorage(0);
-					}
-					auto& fs1_object_ref = m_fs1_objects[m_num_fs1_objects];
-					fs1_object_ref.m_object_ptr = obj_ptr;
-					fs1_object_ref.m_pointer_ptrs[0] = &sp_ref;
-					fs1_object_ref.m_num_pointers = 1;
-					m_num_fs1_objects += 1;
-					return true;
-				}
-				else {
-					/* Add the mapping to slow storage. */
-					std::unordered_multimap<void*, const CSaferPtrBase*>::value_type item(obj_ptr, &sp_ref);
-					m_obj_pointer_map.insert(item);
-				}
-			}
-			return true;
+		auto& operator*() const {
+			return (*m_ptr);
 		}
-		bool unregisterPointer(const CSaferPtrBase& sp_ref, void *obj_ptr) {
-			if (nullptr == obj_ptr) { return true; }
-			bool retval = false;
-			{
-				//std::lock_guard<std::mutex> lock(m_mutex);
-
-				/* check if the object is in "fast storage 1" first */
-				for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
-					if (obj_ptr == m_fs1_objects[i].m_object_ptr) {
-						auto& fs1_object_ref = m_fs1_objects[i];
-						if (1 == fs1_object_ref.m_num_pointers) {
-							/* Special case code just for speed. */
-							if ((&sp_ref) == fs1_object_ref.m_pointer_ptrs[0]) {
-								fs1_object_ref.m_num_pointers = 0;
-								//removeObjectFromFastStorage1(i);
-							}
-							else {
-								/* We should really never get here. It seems someone's trying to unregister a pointer that does not
-								seem to be registered. */
-								return false;
-							}
-							return true;
-						}
-						else {
-							for (int j = (fs1_object_ref.m_num_pointers - 1); j >= 0; j -= 1) {
-								if ((&sp_ref) == fs1_object_ref.m_pointer_ptrs[j]) {
-									/* Found the mapping for the pointer. We'll now remove it. */
-									for (int k = j; k < (fs1_object_ref.m_num_pointers - 1); k += 1) {
-										fs1_object_ref.m_pointer_ptrs[k] = fs1_object_ref.m_pointer_ptrs[k + 1];
-									}
-									fs1_object_ref.m_num_pointers -= 1;
-
-									if (0 == fs1_object_ref.m_num_pointers) {
-										//removeObjectFromFastStorage1(i);
-									}
-
-									return true;
-								}
-							}
-						}
-						/* We should really never get here. It seems someone's trying to unregister a pointer that does not
-						seem to be registered. */
-						return false;
-					}
-				}
-
-				/* The object was not in "fast storage 1". It's proably in "slow storage". */
-				auto range = m_obj_pointer_map.equal_range(obj_ptr);
-				if (true) {
-					for (auto& it = range.first; range.second != it; it++) {
-						if (((*it).second) == &sp_ref)/*we're comparing "native pointers pointing to smart pointers" here*/ {
-							m_obj_pointer_map.erase(it);
-							retval = true;
-							break;
-						}
-					}
-				}
-			}
-			return retval;
+		auto operator->() const {
+			return m_ptr;
 		}
-		void onObjectDestruction(void *obj_ptr) {
-			if (nullptr == obj_ptr) { assert(false); return; }
-			{
-				//std::lock_guard<std::mutex> lock(m_mutex);
-
-				/* check if the object is in "fast storage 1" first */
-				for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
-					if (obj_ptr == m_fs1_objects[i].m_object_ptr) {
-						auto& fs1_object_ref = m_fs1_objects[i];
-						for (int j = 0; j < fs1_object_ref.m_num_pointers; j += 1) {
-							(*(fs1_object_ref.m_pointer_ptrs[j])).spb_set_to_null();
-						}
-						removeObjectFromFastStorage1(i);
-						return;
-					}
-				}
-
-				/* The object was not in "fast storage 1". It's proably in "slow storage". */
-				auto range = m_obj_pointer_map.equal_range(obj_ptr);
-				for (auto it = range.first; range.second != it; it++) {
-					(*((*it).second)).spb_set_to_null();
-				}
-				m_obj_pointer_map.erase(obj_ptr);
-			}
+		/* The point of this class is the const at the end. */
+		auto& operator=(const CCRNMutablePointer& src_cref) const {
+			m_ptr =src_cref.m_ptr;
+			return (*this);
 		}
-		void onObjectConstruction(void *obj_ptr) {
-			if (nullptr == obj_ptr) { assert(false); return; }
-			if ((1 <= sc_fs1_max_objects) && (1 <= sc_fs1_max_pointers)) {
-				/* We'll add this object to fast storage. */
-				if (sc_fs1_max_objects == m_num_fs1_objects) {
-					/* Too many objects. We're gonna move the oldest object to slow storage. */
-					moveObjectFromFastStorage1ToSlowStorage(0);
-				}
-				auto& fs1_object_ref = m_fs1_objects[m_num_fs1_objects];
-				fs1_object_ref.m_object_ptr = obj_ptr;
-				fs1_object_ref.m_num_pointers = 0;
-				m_num_fs1_objects += 1;
-				return;
-			}
+		operator bool() const {
+			return (m_ptr != nullptr);
 		}
-		bool registerPointer(const CSaferPtrBase& sp_ref, const void *obj_ptr) { return (*this).registerPointer(sp_ref, const_cast<void *>(obj_ptr)); }
-		bool unregisterPointer(const CSaferPtrBase& sp_ref, const void *obj_ptr) { return (*this).unregisterPointer(sp_ref, const_cast<void *>(obj_ptr)); }
-		void onObjectDestruction(const void *obj_ptr) { (*this).onObjectDestruction(const_cast<void *>(obj_ptr)); }
-		void onObjectConstruction(const void *obj_ptr) { (*this).onObjectConstruction(const_cast<void *>(obj_ptr)); }
-		void reserve_space_for_one_more() {
-			/* The purpose of this function is to ensure that the next call to registerPointer() won't
-			need to allocate more memory, and thus won't have any chance of throwing an exception due to
-			memory allocation failure. */
-			m_obj_pointer_map.reserve(m_obj_pointer_map.size() + 1);
-		}
-
-		bool isEmpty() const { return ((0 == m_num_fs1_objects) && (0 == m_obj_pointer_map.size())); }
 
 	private:
-		/* So this tracker stores the object-pointer mappings in either "fast storage1" or "slow storage". The code for
-		"fast storage1" is ugly. The code for "slow storage" is more readable. */
-		void removeObjectFromFastStorage1(int fs1_obj_index) {
-			for (int j = fs1_obj_index; j < (m_num_fs1_objects - 1); j += 1) {
-				m_fs1_objects[j] = m_fs1_objects[j + 1];
-			}
-			m_num_fs1_objects -= 1;
-		}
-		void moveObjectFromFastStorage1ToSlowStorage(int fs1_obj_index) {
-			auto& fs1_object_ref = m_fs1_objects[fs1_obj_index];
-			/* First we're gonna copy this object to slow storage. */
-			for (int j = 0; j < fs1_object_ref.m_num_pointers; j += 1) {
-				std::unordered_multimap<void*, const CSaferPtrBase*>::value_type item(fs1_object_ref.m_object_ptr, fs1_object_ref.m_pointer_ptrs[j]);
-				m_obj_pointer_map.insert(item);
-			}
-			/* Then we're gonna remove the object from fast storage */
-			removeObjectFromFastStorage1(fs1_obj_index);
-		}
-
-#ifndef MSE_SPTRACKER_FS1_MAX_POINTERS
-#define MSE_SPTRACKER_FS1_MAX_POINTERS 3/* must be at least 1 */
-#endif // !MSE_SPTRACKER_FS1_MAX_POINTERS
-		MSE_CONSTEXPR static const int sc_fs1_max_pointers = MSE_SPTRACKER_FS1_MAX_POINTERS;
-		class CFS1Object {
-		public:
-			void* m_object_ptr;
-			const CSaferPtrBase* m_pointer_ptrs[sc_fs1_max_pointers];
-			int m_num_pointers = 0;
-		};
-
-#ifndef MSE_SPTRACKER_FS1_MAX_OBJECTS
-#define MSE_SPTRACKER_FS1_MAX_OBJECTS 8/* Arbitrary. The optimal number depends on how slow "slow storage" is. */
-#endif // !MSE_SPTRACKER_FS1_MAX_OBJECTS
-		MSE_CONSTEXPR static const int sc_fs1_max_objects = MSE_SPTRACKER_FS1_MAX_OBJECTS;
-		CFS1Object m_fs1_objects[sc_fs1_max_objects];
-		int m_num_fs1_objects = 0;
-
-		/* "slow storage" */
-		std::unordered_multimap<void*, const CSaferPtrBase*> m_obj_pointer_map;
-
-		//std::mutex m_mutex;
+		mutable const CCRegisteredNode* m_ptr = nullptr;
 	};
 
-#ifdef _MSC_VER
-#pragma warning( pop )  
-#endif /*_MSC_VER*/
+	/* node of a (doubly-linked) list of pointers */
+	class CCRegisteredNode {
+	public:
+		virtual void rn_set_pointer_to_null() const = 0;
+		void set_next_ptr(CCRNMutablePointer next_ptr) const {
+			m_next_ptr = next_ptr;
+		}
+		CCRNMutablePointer get_next_ptr() const {
+			return m_next_ptr;
+		}
+		void set_prev_next_ptr_ptr(const CCRNMutablePointer* prev_next_ptr_ptr) const {
+			m_prev_next_ptr_ptr = prev_next_ptr_ptr;
+		}
+		const CCRNMutablePointer* get_prev_next_ptr_ptr() const {
+			return m_prev_next_ptr_ptr;
+		}
+		const CCRNMutablePointer* get_address_of_my_next_ptr() const {
+			return &m_next_ptr;
+		}
 
-	template<typename _Ty>
-	inline CSPTracker& tlSPTracker_ref() {
-		thread_local static CSPTracker tlSPTracker;
-		return tlSPTracker;
-	}
+	private:
+		mutable CCRNMutablePointer m_next_ptr = nullptr;
+		mutable const CCRNMutablePointer* m_prev_next_ptr_ptr = nullptr;
+	};
 
 	/* TWCRegisteredPointer is similar to TWRegisteredPointer but uses a different implementation that allows it to be be declared
 	before its target type is fully defined. (This is necessary to support mutual and cyclic references.) It's also generally more
 	memory efficient. But maybe a bit slower in some cases. */
 	template<typename _Ty>
-	class TWCRegisteredPointer : public TRegisteredNode, public TSaferPtr<TWCRegisteredObj<_Ty>> {
+	class TWCRegisteredPointer : public TSaferPtr<TWCRegisteredObj<_Ty>>, public CCRegisteredNode {
 	public:
 		TWCRegisteredPointer() : TSaferPtr<TWCRegisteredObj<_Ty>>() {}
 		TWCRegisteredPointer(const TWCRegisteredPointer& src_cref) : TSaferPtr<TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
@@ -432,7 +249,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TWCRegisteredConstPointer : public TRegisteredNode, public TSaferPtr<const TWCRegisteredObj<_Ty>> {
+	class TWCRegisteredConstPointer : public TSaferPtr<const TWCRegisteredObj<_Ty>>, public CCRegisteredNode {
 	public:
 		TWCRegisteredConstPointer() : TSaferPtr<const TWCRegisteredObj<_Ty>>() {}
 		TWCRegisteredConstPointer(const TWCRegisteredConstPointer& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
@@ -714,7 +531,7 @@ namespace mse {
 		TWCRegisteredObj(const TWCRegisteredObj& _X) : _TROFLy(_X) {}
 		TWCRegisteredObj(TWCRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
 		virtual ~TWCRegisteredObj() {
-			set_outstanding_pointers_to_null();
+			unregister_and_set_outstanding_pointers_to_null();
 		}
 
 		template<class _Ty2>
@@ -732,45 +549,38 @@ namespace mse {
 		TWCRegisteredFixedConstPointer<_TROFLy> mse_cregistered_fptr() const { return TWCRegisteredFixedConstPointer<_TROFLy>(this); }
 
 		/* todo: make these private */
-		void register_pointer(const TRegisteredNode& node_cref) const {
+		void register_pointer(const CCRegisteredNode& node_cref) const {
+			if (m_head_ptr) {
+				m_head_ptr->set_prev_next_ptr_ptr(node_cref.get_address_of_my_next_ptr());
+			}
 			node_cref.set_next_ptr(m_head_ptr);
+			node_cref.set_prev_next_ptr_ptr(&m_head_ptr);
 			m_head_ptr = &node_cref;
 		}
-		void unregister_pointer(const TRegisteredNode& node_cref) const {
-			const auto target_node_ptr = &node_cref;
-			if (target_node_ptr == m_head_ptr) {
-				m_head_ptr = target_node_ptr->get_next_ptr();
-				node_cref.set_next_ptr(nullptr);
-				return;
+		static void unregister_pointer(const CCRegisteredNode& node_cref) {
+			assert(node_cref.get_prev_next_ptr_ptr());
+			(*(node_cref.get_prev_next_ptr_ptr())) = node_cref.get_next_ptr();
+			if (node_cref.get_next_ptr()) {
+				node_cref.get_next_ptr()->set_prev_next_ptr_ptr(node_cref.get_prev_next_ptr_ptr());
 			}
-			if (!m_head_ptr) {
-				assert(false);
-				return;
-			}
-			auto current_node_ptr = m_head_ptr;
-			while (target_node_ptr != current_node_ptr->get_next_ptr()) {
-				current_node_ptr = current_node_ptr->get_next_ptr();
-				if (!current_node_ptr) {
-					assert(false);
-					return;
-				}
-			}
-			current_node_ptr->set_next_ptr(target_node_ptr->get_next_ptr());
+			node_cref.set_prev_next_ptr_ptr(nullptr);
 			node_cref.set_next_ptr(nullptr);
 		}
 
 	private:
-		void set_outstanding_pointers_to_null() const {
+		void unregister_and_set_outstanding_pointers_to_null() const {
 			auto current_node_ptr = m_head_ptr;
 			while (current_node_ptr) {
 				current_node_ptr->rn_set_pointer_to_null();
+				current_node_ptr->set_prev_next_ptr_ptr(nullptr);
 				auto next_ptr = current_node_ptr->get_next_ptr();
 				current_node_ptr->set_next_ptr(nullptr);
 				current_node_ptr = next_ptr;
 			}
 		}
 
-		mutable const TRegisteredNode * m_head_ptr = nullptr;
+		/* first node in a (doubly-linked) list of pointers targeting this object */
+		mutable CCRNMutablePointer m_head_ptr = nullptr;
 	};
 
 
