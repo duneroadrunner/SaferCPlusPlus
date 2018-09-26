@@ -383,7 +383,7 @@ So for those cases, `TWRegisteredPointer<>` and `TWCRegisteredPointer` are just 
 
 ### Norad pointers
 
-"Norad" pointers, like [registered pointers](#registered-pointers), behave similar to native pointers. But where registered pointers are automatically set to `nullptr` when their target is destroyed, the destruction of an object while a "norad" pointer is still targeting it results in program termination. This drastic consequence allows norad pointers' run-time safety mechanism to be very lightweight (compared to that of registered pointers).
+"Norad" pointers, like [registered pointers](#registered-pointers), behave similar to native pointers. But where registered pointers are automatically set to `nullptr` when their target is destroyed, the destruction of an object while a "norad" pointer is still targeting it results in program termination. This drastic consequence allows norad pointers' run-time safety mechanism to be even more lightweight than registered pointers. And unlike registered pointers, you can obtain a [scope pointer](#scope-pointers) from any norad pointer (using the [`make_xscope_strong_pointer_store()`](#make_xscope_strong_pointer_store) function).
 
 ### TNoradPointer
 
