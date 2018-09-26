@@ -440,42 +440,42 @@ Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks 
 
 Pointer Type | Time
 ------------ | ----
-native pointer (stack) | 0.0482506 seconds
-[mse::TNoradPointer](#tnoradpointer) (stack) | 0.0543053 seconds
-[mse::TRegisteredPointer](#tregisteredpointer) (stack) | 0.085932 seconds
-[mse::TCRegisteredPointer](#tcregisteredpointer) (stack) | 0.127619 seconds
-native pointer (heap) | 0.380059 seconds
-[mse::TRefCountingPointer](#trefcountingpointer) (heap) | 0.39105 seconds
-mse::TNoradPointer (heap) | 0.392182 seconds
-mse::TRegisteredPointer (heap) | 0.413458 seconds
-mse::TCRegisteredPointer (heap) | 0.489118 seconds
-std::shared_ptr (heap) | 0.525877 seconds
+native pointer (stack) | 0.0485738 seconds
+[mse::TCRegisteredPointer](#tcregisteredpointer) (stack) | 0.0569635 seconds
+[mse::TRegisteredPointer](#tregisteredpointer) (stack) | 0.0576867 seconds
+[mse::TNoradPointer](#tnoradpointer) (stack) | 0.0587024 seconds
+native pointer (heap) | 0.383851 seconds
+mse::TNoradPointer (heap) | 0.393733 seconds
+[mse::TRefCountingPointer](#trefcountingpointer) (heap) | 0.402218 seconds
+mse::TCRegisteredPointer (heap) | 0.413688 seconds
+mse::TRegisteredPointer (heap) | 0.417414 seconds
+std::shared_ptr (heap) | 0.523811 seconds
 
 #### Pointer declaration, copy and assignment:
 
 Pointer Type | Time
 ------------ | ----
-native pointer | 0.0460813 seconds
-mse::TRefCountingPointer | 0.0990784 seconds
-mse::TNoradPointer | 0.113345 seconds
-std::shared_ptr | 0.282165 seconds
-mse::TRegisteredPointer | 0.299785 seconds
-mse::TCRegisteredPointer | 0.635466 seconds
+native pointer | 0.0456077 seconds
+mse::TRefCountingPointer | 0.0903483 seconds
+mse::TNoradPointer | 0.119298 seconds
+mse::TRegisteredPointer | 0.144783 seconds
+mse::TCRegisteredPointer | 0.160014 seconds
+std::shared_ptr | 0.284371 seconds
 
 #### Dereferencing:
 
 Pointer Type | Time
 ------------ | ----
-native pointer | 0.105665 seconds
-native pointer + nullptr check | 0.106397 seconds
-mse::TCRegisteredPointer | 0.1591 seconds
-mse::TNoradPointer | 0.160159 seconds
-mse::TRefCountingPointer | 0.225478 seconds
-std::weak_ptr | 1.37197 seconds
+native pointer | 0.106426 seconds
+native pointer + nullptr check | 0.106528 seconds
+mse::TNoradPointer | 0.15955 seconds
+mse::TCRegisteredPointer | 0.161569 seconds
+mse::TRefCountingPointer | 0.219779 seconds
+std::weak_ptr | 1.36357 seconds
 
 Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But they give you a rough idea of the relative performances.
 
-Note that by default, [scope pointers](#scope-pointers) have identical performance to native pointers.
+You can see that the library's safe pointers are quite fast compared to, say, `std::shared_ptr`/`std::weak_ptr`. But in some sense, as long as it's not egregiously bad, their performance is kind of moot because performance sensitive programs would generally stick to using [scope pointers](#scope-pointers) in critical inner loops. And by default, scope pointers have identical performance to native pointers.
 
 ### Reference counting pointers
 
