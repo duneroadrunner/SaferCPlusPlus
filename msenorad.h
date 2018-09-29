@@ -16,8 +16,8 @@ objects of a given type. */
 #ifndef MSENORAD_H_
 #define MSENORAD_H_
 
-//include "mseprimitives.h"
 #include "msepointerbasics.h"
+#include "mseprimitives.h"
 #include <utility>
 #include <unordered_map>
 #include <mutex>

@@ -890,6 +890,16 @@ void msetl_example2() {
 			auto xscope_pointer3 = mse::xscope_ra_const_find_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
 			auto res3 = *xscope_pointer3;
 		}
+		{
+			/* for_each() */
+
+			/*  mse::for_each() is intended to be the same as std:::for_each() but with performance optimizations for some
+			of the library's safe iterators. */
+			mse::for_each(xscope_na1_begin_citer, xscope_na1_end_citer, [](int x) { std::cout << x << std::endl; });
+
+			/* These (non-standard) variant of for_each() for random access containers bypass the use of iterators. */
+			mse::xscope_ra_const_for_each(&xscope_na1, [](int x) { std::cout << x << std::endl; });
+		}
 	}
 
 	{

@@ -40,14 +40,44 @@
 #define MSE_SAFERPTR_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
+
+/* start of scope pointer defines */
+
 /* This is done here rather than in msescope.h because some elements in this file have to know whether or not
 MSE_SCOPEPOINTER_DISABLED will ultimately be defined. */
+
+#if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+#define MSE_SCOPEPOINTER_DISABLED
+#endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
+/* MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED is deprecated */
+#ifdef MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
+#define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
+
+/* Defining MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED will cause norad pointers to be used to catch misuse
+of scope pointers in debug mode. Defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in
+non-debug modes as well. */
+#ifdef MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
+#define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
+
+#ifdef MSE_SCOPEPOINTER_DISABLED
+#undef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // MSE_SCOPEPOINTER_DISABLED
+
+#ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+#undef MSE_SAFERPTR_DISABLED
+#undef MSE_NORADPOINTER_DISABLED
+#else // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 #ifdef NDEBUG
-#ifndef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 /* By default we make scope pointers simply an alias for native pointers in non-debug builds. */
 #define MSE_SCOPEPOINTER_DISABLED
-#endif // !MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 #endif // NDEBUG
+#endif // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+
+/* end of scope pointer defines */
+
 
 #if defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
 #define MSE_CONSTEXPR
@@ -808,10 +838,16 @@ namespace mse {
 		static TStrongFixedPointer make(_TTargetType2& target, const _TLeaseType2& lease) {
 			return TStrongFixedPointer(target, lease);
 		}
+		template <class _TTargetType2, class _TLeaseType2>
+		static TStrongFixedPointer make(_TTargetType2& target, _TLeaseType2&& lease) {
+			return TStrongFixedPointer(target, std::forward<decltype(lease)>(lease));
+		}
 
 	protected:
 		TStrongFixedPointer(_TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
 			: m_target_pointer(std::addressof(target)), m_lease(lease) {}
+		TStrongFixedPointer(_TTargetType& target/* often a struct member */, _TLeaseType&& lease)
+			: m_target_pointer(std::addressof(target)), m_lease(std::forward<decltype(lease)>(lease)) {}
 	private:
 		TStrongFixedPointer& operator=(const TStrongFixedPointer& _Right_cref) = delete;
 
@@ -824,6 +860,10 @@ namespace mse {
 	template <class _TTargetType, class _TLeaseType>
 	TStrongFixedPointer<_TTargetType, _TLeaseType> make_strong(_TTargetType& target, const _TLeaseType& lease) {
 		return TStrongFixedPointer<_TTargetType, _TLeaseType>::make(target, lease);
+	}
+	template <class _TTargetType, class _TLeaseType>
+	auto make_strong(_TTargetType& target, _TLeaseType&& lease) -> TStrongFixedPointer<_TTargetType, typename std::remove_reference<_TLeaseType>::type> {
+		return TStrongFixedPointer<_TTargetType, typename std::remove_reference<_TLeaseType>::type>::make(target, std::forward<decltype(lease)>(lease));
 	}
 
 	template <class _TTargetType, class _TLeaseType>
@@ -868,16 +908,31 @@ namespace mse {
 		static TStrongFixedConstPointer make(const _TTargetType2& target, const _TLeaseType2& lease) {
 			return TStrongFixedConstPointer(target, lease);
 		}
+		template <class _TTargetType2, class _TLeaseType2>
+		static TStrongFixedConstPointer make(const _TTargetType2& target, _TLeaseType2&& lease) {
+			return TStrongFixedConstPointer(target, std::forward<decltype(lease)>(lease));
+		}
 
 	protected:
 		TStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
-			: m_target_pointer(&target), m_lease(lease) {}
+			: m_target_pointer(std::addressof(target)), m_lease(lease) {}
+		TStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeaseType&& lease)
+			: m_target_pointer(std::addressof(target)), m_lease(std::forward<decltype(lease)>(lease)) {}
 	private:
 		TStrongFixedConstPointer& operator=(const TStrongFixedConstPointer& _Right_cref) = delete;
 
 		const _TTargetType* m_target_pointer;
 		_TLeaseType m_lease;
 	};
+
+	template <class _TTargetType, class _TLeaseType>
+	TStrongFixedConstPointer<_TTargetType, _TLeaseType> make_const_strong(const _TTargetType& target, const _TLeaseType& lease) {
+		return TStrongFixedConstPointer<_TTargetType, _TLeaseType>::make(target, lease);
+	}
+	template <class _TTargetType, class _TLeaseType>
+	auto make_const_strong(const _TTargetType& target, _TLeaseType&& lease) -> TStrongFixedConstPointer<_TTargetType, typename std::remove_reference<_TLeaseType>::type> {
+		return TStrongFixedConstPointer<_TTargetType, typename std::remove_reference<_TLeaseType>::type>::make(target, std::forward<decltype(lease)>(lease));
+	}
 
 	template <class _TTargetType, class _TLeaseType>
 	bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }

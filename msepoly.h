@@ -226,19 +226,6 @@ namespace mse {
 		}
 	};
 
-	template <class _TPointer>
-	bool operator_bool_helper1(std::true_type, const _TPointer& ptr_cref) {
-		return bool(ptr_cref);
-	}
-	template <class _TPointer>
-	bool operator_bool_helper1(std::false_type, const _TPointer& ptr_cref) {
-		/* We need to return the result of conversion to bool, but in this case the "pointer" type, _TPointer, is not convertible
-		to bool. Presumably because _TPointer is actually an iterator type. Unfortunately there isn't a good way, in general, to
-		determine if an iterator points to a valid item. */
-		assert(false);
-		return false;
-	}
-
 	template<typename... Ts>
 	struct tdp_pointer_variant_helper;
 
@@ -304,95 +291,10 @@ namespace mse {
 		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
 	};
 
-	namespace us {
-		namespace impl {
-			template <typename _Ty> class TAnyPointerBaseV1;
-			template <typename _Ty> class TAnyConstPointerBaseV1;
-			template <typename _Ty> using TAnyPointerBase = TAnyPointerBaseV1<_Ty>;
-			template <typename _Ty> using TAnyConstPointerBase = TAnyConstPointerBaseV1<_Ty>;
-		}
-	}
 	template <typename _Ty> class TXScopeAnyPointer;
 	template <typename _Ty> class TAnyPointer;
 	template <typename _Ty> class TXScopeAnyConstPointer;
 	template <typename _Ty> class TAnyConstPointer;
-
-	namespace us {
-		namespace impl {
-			template <typename _Ty>
-			class TCommonPointerInterface {
-			public:
-				virtual ~TCommonPointerInterface() {}
-				virtual _Ty& operator*() const = 0;
-				virtual _Ty* operator->() const = 0;
-				virtual operator bool() const = 0;
-			};
-
-			template <typename _Ty, typename _TPointer1>
-			class TCommonizedPointer : public TCommonPointerInterface<_Ty> {
-			public:
-				TCommonizedPointer(const _TPointer1& pointer) : m_pointer(pointer) {}
-				virtual ~TCommonizedPointer() {}
-
-				_Ty& operator*() const {
-					return (*m_pointer);
-				}
-				_Ty* operator->() const {
-					//return m_pointer.operator->();
-					return std::addressof(*m_pointer);
-				}
-				operator bool() const {
-					//return bool(m_pointer);
-					return operator_bool_helper1<_TPointer1>(typename std::is_convertible<_TPointer1, bool>::type(), m_pointer);
-				}
-
-				_TPointer1 m_pointer;
-			};
-
-			template <typename _Ty>
-			class TAnyPointerBaseV1 {
-			public:
-				TAnyPointerBaseV1(const TAnyPointerBaseV1& src) : m_any_pointer(src.m_any_pointer) {}
-
-				template <typename _TPointer1, class = typename std::enable_if<
-					(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
-					&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
-					, void>::type>
-					TAnyPointerBaseV1(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
-
-				_Ty& operator*() const {
-					return (*(*common_pointer_interface_ptr()));
-				}
-				_Ty* operator->() const {
-					return std::addressof(*(*common_pointer_interface_ptr()));
-				}
-				template <typename _Ty2>
-				bool operator ==(const _Ty2& _Right_cref) const {
-					return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
-				}
-				template <typename _Ty2>
-				bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
-
-			protected:
-				operator bool() const {
-					return bool(*common_pointer_interface_ptr());
-				}
-
-				TAnyPointerBaseV1<_Ty>* operator&() { return this; }
-				const TAnyPointerBaseV1<_Ty>* operator&() const { return this; }
-
-				const TCommonPointerInterface<_Ty>* common_pointer_interface_ptr() const {
-					auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_pointer.storage_address());
-					assert(nullptr != retval);
-					return retval;
-				}
-
-				mse::any m_any_pointer;
-
-				friend class TAnyConstPointerBaseV1<_Ty>;
-			};
-		}
-	}
 
 	template <typename _Ty>
 	class TXScopeAnyPointer : public us::impl::TAnyPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
@@ -448,84 +350,6 @@ namespace mse {
 		friend struct std::hash<mse::TAnyPointer<_Ty> >;
 	};
 
-	namespace us {
-		namespace impl {
-			template <typename _Ty>
-			class TCommonConstPointerInterface {
-			public:
-				virtual ~TCommonConstPointerInterface() {}
-				virtual const _Ty& operator*() const = 0;
-				virtual const _Ty* operator->() const = 0;
-				virtual operator bool() const = 0;
-			};
-
-			template <typename _Ty, typename _TConstPointer1>
-			class TCommonizedConstPointer : public TCommonConstPointerInterface<_Ty> {
-			public:
-				TCommonizedConstPointer(const _TConstPointer1& const_pointer) : m_const_pointer(const_pointer) {}
-				virtual ~TCommonizedConstPointer() {}
-
-				const _Ty& operator*() const {
-					return (*m_const_pointer);
-				}
-				const _Ty* operator->() const {
-					//return m_const_pointer.operator->();
-					return std::addressof(*m_const_pointer);
-				}
-				operator bool() const {
-					//return bool(m_const_pointer);
-					return operator_bool_helper1<_TConstPointer1>(typename std::is_convertible<_TConstPointer1, bool>::type(), m_const_pointer);
-				}
-
-				_TConstPointer1 m_const_pointer;
-			};
-
-			template <typename _Ty>
-			class TAnyConstPointerBaseV1 {
-			public:
-				TAnyConstPointerBaseV1(const TAnyConstPointerBaseV1& src) : m_any_const_pointer(src.m_any_const_pointer) {}
-				TAnyConstPointerBaseV1(const TAnyPointerBaseV1<_Ty>& src) : m_any_const_pointer(src.m_any_pointer) {}
-
-				template <typename _TPointer1, class = typename std::enable_if<
-					(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
-					&& (!std::is_convertible<TAnyPointerBaseV1<_Ty>, _TPointer1>::value)
-					, void>::type>
-					TAnyConstPointerBaseV1(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
-
-				const _Ty& operator*() const {
-					return (*(*common_pointer_interface_const_ptr()));
-				}
-				const _Ty* operator->() const {
-					return std::addressof(*(*common_pointer_interface_const_ptr()));
-				}
-				operator bool() const {
-					return bool(*common_pointer_interface_const_ptr());
-				}
-				template <typename _Ty2>
-				bool operator ==(const _Ty2& _Right_cref) const {
-					return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
-				}
-				template <typename _Ty2>
-				bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
-
-			protected:
-				TAnyConstPointerBaseV1<_Ty>* operator&() { return this; }
-				const TAnyConstPointerBaseV1<_Ty>* operator&() const { return this; }
-
-				const TCommonPointerInterface<_Ty>* common_pointer_interface_const_ptr() const {
-					/* This use of mse::any::storage_address() brings to mind the fact that the (pre-C++17) implementation
-					of mse::any that we're using does not support over-aligned types. (And therefore neither does this
-					template.) Though it's hard to imagine a reason why a pointer would be declared an over-aligned type. */
-					auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_const_pointer.storage_address());
-					assert(nullptr != retval);
-					return retval;
-				}
-
-				mse::any m_any_const_pointer;
-			};
-		}
-	}
-
 	template <typename _Ty>
 	class TXScopeAnyConstPointer : public us::impl::TAnyConstPointerBase<_Ty>, public XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
@@ -537,7 +361,7 @@ namespace mse {
 			(!std::is_convertible<_TPointer1, us::impl::TAnyConstPointerBase<_Ty>>::value)
 			&& (!std::is_convertible<_TPointer1, us::impl::TAnyPointerBase<_Ty>>::value)
 			, void>::type>
-		TXScopeAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
+			TXScopeAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 

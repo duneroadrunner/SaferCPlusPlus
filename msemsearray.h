@@ -2079,6 +2079,51 @@ namespace mse {
 				}
 			}
 		};
+
+		/* for_each() */
+
+		template<class _Fn, class _Ty, size_t _Size, class _TStateMutex>
+		class c_for_each<Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>, _Fn> {
+		public:
+			typedef Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> _InIt;
+			typedef decltype(std::for_each(std::declval<_InIt>(), std::declval<_InIt>(), std::declval<_Fn>())) result_type;
+			result_type result;
+			c_for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func)
+				: result(eval(_First, _Last, _Func)) {}
+		private:
+			auto eval(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
+				auto raw_pair = us::iterator_pair_to_raw_pointers_checked(_First, _Last);
+				/* If (_Last <= _First) the returned raw pointers will both have nullptr value. The C++ spec suggests this'll
+				work just fine. Apparently. */
+				return std::for_each(raw_pair.first, raw_pair.second, _Func);
+			}
+		};
+
+		template<class _Fn, class _Ty, size_t _Size, class _TStateMutex>
+		class xscope_c_ra_const_for_each<nii_array<_Ty, _Size, _TStateMutex>, _Fn> {
+		public:
+			typedef nii_array<_Ty, _Size, _TStateMutex> _Container;
+			typedef typename std::remove_reference<decltype(std::declval<const _Container>()[0])>::type element_t;
+			typedef _Fn result_type;
+			result_type result;
+
+			typedef TXScopeItemFixedConstPointer<nii_array<_Ty, _Size, _TStateMutex> > container_pointer_t;
+			xscope_c_ra_const_for_each(const container_pointer_t& _XscpPtr, _Fn _Func)
+				: result(eval(_XscpPtr, _Func)) {}
+		private:
+			result_type eval(const container_pointer_t& _XscpPtr, _Fn _Func) {
+				const auto& array1 = (*_XscpPtr);
+				if (0 >= array1.size()) {
+					return _Func;
+				}
+				else {
+					auto raw_begin_cit = std::addressof(array1[0]);
+					auto raw_end_cit = raw_begin_cit + msear_as_a_size_t(array1.size());
+					return std::for_each(raw_begin_cit, raw_end_cit, _Func);
+				}
+			}
+		};
+
 	}
 }
 

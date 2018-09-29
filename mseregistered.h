@@ -8,8 +8,8 @@
 #ifndef MSEREGISTERED_H_
 #define MSEREGISTERED_H_
 
-//include "mseprimitives.h"
 #include "msepointerbasics.h"
+#include "mseprimitives.h"
 #include <utility>
 #include <unordered_set>
 #include <functional>
@@ -98,8 +98,8 @@ namespace mse {
 		}
 	}
 
-	template<typename _Ty> auto registered_fptr_to(_Ty&& _X) { return &_X; }
-	template<typename _Ty> auto registered_fptr_to(const _Ty& _X) { return &_X; }
+	template<typename _Ty> auto registered_fptr_to(_Ty&& _X) { return std::addressof(_X); }
+	template<typename _Ty> auto registered_fptr_to(const _Ty& _X) { return std::addressof(_X); }
 
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
 

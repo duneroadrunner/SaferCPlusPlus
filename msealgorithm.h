@@ -235,6 +235,63 @@ namespace mse {
 	}
 
 
+	/* for_each() */
+
+	namespace impl {
+		template<class _InIt, class _Fn>
+		class c_for_each {
+		public:
+			typedef decltype(std::for_each(std::declval<_InIt>(), std::declval<_InIt>(), std::declval<_Fn>())) result_type;
+			result_type result;
+			c_for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func) : result(std::for_each(_First, _Last, _Func)) {}
+		};
+
+		template<class _Container, class _Fn>
+		class xscope_c_ra_const_for_each {
+		public:
+			typedef _Fn result_type;
+			result_type result;
+			xscope_c_ra_const_for_each(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Fn _Func)
+				: result(eval(_XscpPtr, _Func)) {}
+		private:
+			result_type eval(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Fn _Func) {
+				auto xscope_begin_cit = mse::make_xscope_begin_const_iterator(_XscpPtr);
+				auto xscope_end_cit = mse::make_xscope_end_const_iterator(_XscpPtr);
+				return std::for_each(xscope_begin_cit, xscope_end_cit, _Func);
+			}
+		};
+
+		template<class _Container, class _Fn>
+		class xscope_c_ra_const_for_each_adapter {
+		public:
+			typedef _Fn result_type;
+			result_type result;
+
+			typedef TXScopeItemFixedConstPointer<_Container> container_pointer_t;
+			xscope_c_ra_const_for_each_adapter(const container_pointer_t& _XscpPtr, _Fn _Func)
+				: result(xscope_c_ra_const_for_each<_Container, _Fn>(_XscpPtr, _Func).result) {}
+			explicit xscope_c_ra_const_for_each_adapter(const TXScopeItemFixedPointer<_Container>& _XscpPtr, _Fn _Func)
+				: result(xscope_c_ra_const_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
+#ifndef MSE_SCOPEPOINTER_DISABLED
+			explicit xscope_c_ra_const_for_each_adapter(const TXScopeFixedConstPointer<_Container>& _XscpPtr, _Fn _Func)
+				: result(xscope_c_ra_const_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
+			explicit xscope_c_ra_const_for_each_adapter(const TXScopeFixedPointer<_Container>& _XscpPtr, _Fn _Func)
+				: result(xscope_c_ra_const_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
+#endif //!MSE_SCOPEPOINTER_DISABLED
+		};
+	}
+	template<class _InIt, class _Fn>
+	inline auto for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
+		return impl::c_for_each<_InIt, _Fn>(_First, _Last, _Func).result;
+	}
+
+	template<class _XScopeContainerPointer, class _Fn>
+	inline auto xscope_ra_const_for_each(const _XScopeContainerPointer& _XscpPtr, _Fn _Func) {
+		typedef typename std::remove_reference<decltype(*std::declval<_XScopeContainerPointer>())>::type _Container;
+		return impl::xscope_c_ra_const_for_each_adapter<_Container, _Fn>(_XscpPtr, _Func).result;
+	}
+
+
 	/* equal() */
 
 	namespace impl {

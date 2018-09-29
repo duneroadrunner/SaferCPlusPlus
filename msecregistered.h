@@ -16,8 +16,8 @@ objects of a given type. */
 #ifndef MSECREGISTERED_H_
 #define MSECREGISTERED_H_
 
-//include "mseprimitives.h"
 #include "msepointerbasics.h"
+#include "mseprimitives.h"
 #include <utility>
 #include <unordered_map>
 #include <mutex>
@@ -84,8 +84,8 @@ namespace mse {
 		}
 	}
 
-	template<typename _Ty> auto cregistered_fptr_to(_Ty&& _X) { return &_X; }
-	template<typename _Ty> auto cregistered_fptr_to(const _Ty& _X) { return &_X; }
+	template<typename _Ty> auto cregistered_fptr_to(_Ty&& _X) { return std::addressof(_X); }
+	template<typename _Ty> auto cregistered_fptr_to(const _Ty& _X) { return std::addressof(_X); }
 
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
 
