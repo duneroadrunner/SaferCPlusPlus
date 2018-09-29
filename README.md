@@ -2371,6 +2371,7 @@ usage example:
 ```cpp
     #include "msemsevector.h"
     #include "mseregistered.h"
+    #include "mseasyncshared.h"
     
     void main(int argc, char* argv[]) {
     
