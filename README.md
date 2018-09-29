@@ -16,7 +16,7 @@ The library's elements are designed, as much as possible, to seamlessly integrat
 
 - Replacements for native pointers/references with various flexibility and performance trade-offs. 
 
-Historically, C++ has been (famously) not a memory-safe language. The key vexing issue being "use-after-free" (or "dangling reference") bugs. The lifetime checker aims to eliminate these bugs by restricting the ways C++ reference types can be used to those that can, in general, be verified to be safe at compile-time. At the time of this writing (Aug 2018) the lifetime checker is only available for one compiler and still has a [ways to go](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/lifetime%20checker%20observations%20-%20Jun%202018.md) before achieving its goal of memory safety without unnecessary false positives. In the meantime you can replace your potentially unsafe C++ elements with corresponding substitutes in this library to achieve memory safety in a manner designed to be future-compatible with an eventually completed lifetime checker. 
+Historically, C++ has been (famously) not a memory-safe language. The key vexing issue being "use-after-free" (or "dangling reference") bugs. The lifetime checker aims to eliminate these bugs by restricting the ways C++ reference types can be used to those that can, in general, be verified to be safe at compile-time. At the time of this writing (Aug 2018) the lifetime checker still has a [ways to go](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/lifetime%20checker%20observations%20-%20Jun%202018.md) before achieving its goal of memory safety without unnecessary false positives. In the meantime you can replace your potentially unsafe C++ elements with corresponding substitutes in this library to achieve memory safety in a manner designed to be future-compatible with an eventually completed lifetime checker. 
 
 Besides zero-overhead pointers that enforce some of the necessary restrictions not yet (at the time of writing) implemented in the lifetime checker, the library provides a reference counting pointer that's smaller and faster than `std::shared_ptr<>`, and an unrestricted pointer that ensures memory safety via run-time checks. The latter two being not (yet) provided by the Guidelines Support Library, but valuable in the context of having to work around the somewhat draconian restrictions imposed by the (eventual completed) lifetime checker.
 
@@ -118,8 +118,11 @@ Tested with msvc2017(v15.7.4), msvc2015, g++7.3 & 5.4 and clang++6.0 & 3.8 (as o
     5. [mstd::string_view](#string_view)
     6. [nrp_string_view](#nrp_string_view)
 21. [optional](#optional-xscope_optional)
-22. [Practical limitations](#practical-limitations)
-23. [Questions and comments](#questions-and-comments)
+22. [Algorithms](#algorithms)
+    1. [for_each()](#for_each)
+    2. [find_if()](#find_if)
+23. [Practical limitations](#practical-limitations)
+24. [Questions and comments](#questions-and-comments)
 
 
 ### Use cases
@@ -658,7 +661,7 @@ Scope pointers generally satisfy the restrictions the lifetime checker would imp
 
 Indeed, unlike other pointers in this library, the safety of scope pointers is not fully enforced at compile-time currently, so if even a partially functioning lifetime checker is available, you'd probably want to use it on your code to augment scope pointers' existing compile-time safety features. 
 
-In lieu of full compile-time enforcement, run-time checking is available to enforce safety and help detect misuses of scope pointers. Run-time checking in debug mode is enabled by defining the `MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED` preprocessor symbol. Additionally defining `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` will enable them in non-debug modes as well. 
+In lieu of full compile-time enforcement, run-time checking is available to ensure safety. Run-time checking in debug mode is enabled by defining the `MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED` preprocessor symbol. Additionally defining `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` will enable it in non-debug modes as well. 
 
 Scope pointers usually point to scope objects. Scope objects are objects that live to the end of the scope in which they are declared. You can designate pretty much any type to be a scope object type by wrapping it in the `mse::TXScopeObj<>` (transparent) wrapper template. As with registered objects, this wrapper does not support some types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#primitives) that can act as base classes. 
 
@@ -2917,6 +2920,83 @@ usage example:
 ### optional, xscope_optional
 
 `mse::mstd::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScopeObj<mse::mstd::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
+
+### Algorithms
+
+The library's safe iterators work just fine with the standard library algorithms. But in many cases, performance could theoretically be improved with tailored implementations. Unfortunately the the standard library algorithms can't really be effectively specialized as function template specializations don't participate in overload resolution in C++. So instead we'll provide compatible versions of some of standard algorithm template functions in the `mse` namespace that may be more optimized for the library's safe iterators. Although compiler optimizers may not always leave that much room for further optimization anyway.
+
+#### for_each()
+
+usage example:
+
+```cpp
+    #include "msealgorithm.h"
+    #include "msemstdarray.h"
+    #include "msemsearray.h"
+    #include <array>
+    
+    void main(int argc, char* argv[]) {
+    
+        mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na1 = mse::nii_array<int, 3>{ 1, 2, 3 };
+        mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na2 = mse::nii_array<int, 3>{ 1, 2, 3 };
+        auto xscope_na1_begin_citer = mse::make_xscope_begin_const_iterator(&xscope_na1);
+        auto xscope_na1_end_citer = mse::make_xscope_end_const_iterator(&xscope_na1);
+        auto xscope_na2_begin_iter = mse::make_xscope_begin_iterator(&xscope_na2);
+        auto xscope_na2_end_iter = mse::make_xscope_end_iterator(&xscope_na2);
+
+        std::array<int, 3> sa1{1, 2, 3 };
+        mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
+
+        {
+            /*  mse::for_each() is intended to be the same as std:::for_each() but with performance optimizations for some
+            of the library's safe iterators. */
+            mse::for_each(xscope_na1_begin_citer, xscope_na1_end_citer, [](int x) { std::cout << x << std::endl; });
+
+            mse::for_each(sa1.begin(), sa1.end(), [](int x) { std::cout << x << std::endl; });
+            mse::for_each(ma1.begin(), ma1.end(), [](int x) { std::cout << x << std::endl; });
+
+            /* This (non-standard) variant of for_each() for random access containers bypasses the use of iterators. */
+            mse::xscope_ra_const_for_each(&xscope_na1, [](int x) { std::cout << x << std::endl; });
+        }
+    }
+```
+
+#### find_if()
+
+usage example:
+
+```cpp
+    #include "msealgorithm.h"
+    #include "msemstdarray.h"
+    #include "msemsearray.h"
+    #include <array>
+    
+    void main(int argc, char* argv[]) {
+    
+        mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na1 = mse::nii_array<int, 3>{ 1, 2, 3 };
+        auto xscope_na1_begin_citer = mse::make_xscope_begin_const_iterator(&xscope_na1);
+        auto xscope_na1_end_citer = mse::make_xscope_end_const_iterator(&xscope_na1);
+
+        std::array<int, 3> sa1{1, 2, 3 };
+        mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
+
+        {
+            /*  mse::find_if() is intended to be the same as std:::find_if() but with performance optimizations for some
+            of the library's safe iterators. */
+            auto found_citer1 = mse::find_if(xscope_na1_begin_citer, xscope_na1_end_citer, [](int x) { return 2 == x; });
+            auto res1 = *found_citer1;
+
+            auto found_citer2 = mse::find_if(sa1.cbegin(), sa1.cend(), [](int x) { return 2 == x; });
+            auto found_citer3 = mse::find_if(ma1.cbegin(), ma1.cend(), [](int x) { return 2 == x; });
+
+            /* These (non-standard) variants of find_if() for random access containers bypass the use of iterators. */
+            auto xscope_optional_xscpptr4 = mse::xscope_ra_const_find_if(&xscope_na1, [](int x) { return 2 == x; });
+            auto res4 = xscope_optional_xscpptr4.value();
+            auto xscope_pointer5 = mse::xscope_ra_const_find_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
+            auto res5 = *xscope_pointer5;
+        }
+    }
+```
 
 ### Practical limitations
 
