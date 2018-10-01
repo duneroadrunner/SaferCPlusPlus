@@ -661,7 +661,7 @@ Scope pointers generally satisfy the restrictions the lifetime checker would imp
 
 Indeed, unlike other pointers in this library, the safety of scope pointers is not fully enforced at compile-time currently, so if even a partially functioning lifetime checker is available, you'd probably want to use it on your code to augment scope pointers' existing compile-time safety features. 
 
-In lieu of full compile-time enforcement, run-time checking is available to ensure safety. Run-time checking in debug mode is enabled by defining the `MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED` preprocessor symbol. Additionally defining `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` will enable it in non-debug modes as well. 
+In lieu of full compile-time enforcement, run-time checking is used in debug builds to catch any unsafe misuses of scope pointers. Defining the `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol will enable run-time checking in non-debug builds as well. 
 
 Scope pointers usually point to scope objects. Scope objects are objects that live to the end of the scope in which they are declared. You can designate pretty much any type to be a scope object type by wrapping it in the `mse::TXScopeObj<>` (transparent) wrapper template. As with registered objects, this wrapper does not support some types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#primitives) that can act as base classes. 
 
