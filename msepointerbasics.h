@@ -55,12 +55,11 @@ MSE_SCOPEPOINTER_DISABLED will ultimately be defined. */
 #define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 #endif // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
 
-/* Defining MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED will cause norad pointers to be used to catch misuse
-of scope pointers in debug mode. Defining MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in
-non-debug modes as well. */
-#ifdef MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
+/* By default, norad pointers are used to catch unsafe misuse of scope pointers in debug mode. Defining
+MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug modes as well. */
+#if (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED))
 #define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
-#endif // MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
+#endif // (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED))
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
 #undef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
@@ -172,11 +171,11 @@ namespace mse {
 #define MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(Derived, Base) \
 	MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Derived, Base) MSE_USING_ASSIGNMENT_OPERATOR(Base)
 
-#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
-#else /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+#else /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 #define MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION	auto operator&() { return this; } auto operator&() const { return this; }
-#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
 #define MSE_DEFAULT_OPERATOR_NEW_DECLARATION	void* operator new(size_t size) { return ::operator new(size); }
 #define MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION	MSE_DEFAULT_OPERATOR_NEW_DECLARATION MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
@@ -517,7 +516,7 @@ namespace mse {
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 	};
 
-#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 	template<typename _Ty> auto pointer_to(_Ty& _X) { return &_X; }
 
 	template<typename _Ty>
@@ -528,7 +527,7 @@ namespace mse {
 		const _Ty& X2 = _X;
 		return &X2;
 	}
-#else /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+#else /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
 	template<typename _Ty, class = typename std::enable_if<(!std::is_pointer<_Ty>::value), void>::type>
 	void T_valid_if_not_raw_pointer_msepointerbasics() {}
@@ -545,7 +544,7 @@ namespace mse {
 		T_valid_if_not_raw_pointer_msepointerbasics<decltype(&X2)>();
 		return &std::forward<_Ty>(_X);
 	}
-#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
 	template<typename _Ty>
 	_Ty* not_null_from_nullable(const _Ty* src) {
@@ -850,6 +849,7 @@ namespace mse {
 			: m_target_pointer(std::addressof(target)), m_lease(std::forward<decltype(lease)>(lease)) {}
 	private:
 		TStrongFixedPointer& operator=(const TStrongFixedPointer& _Right_cref) = delete;
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		_TTargetType* m_target_pointer;
 		_TLeaseType m_lease;

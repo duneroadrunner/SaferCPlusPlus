@@ -339,12 +339,7 @@ namespace mse {
 		auto reg_ptr = TWNoradObj<TWNoradNotNullPointer<_Ty>>(mse::registered_new<_Ty>());
 		auto reg_ptr_to_reg_ptr = &reg_ptr;
 		*/
-		TWNoradNotNullPointer<_Ty>* operator&() {
-			return this;
-		}
-		const TWNoradNotNullPointer<_Ty>* operator&() const {
-			return this;
-		}
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TWNoradFixedPointer<_Ty>;
 		template<typename _Ty2>
@@ -398,8 +393,7 @@ namespace mse {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 
-		TWNoradNotNullConstPointer<_Ty>* operator&() { return this; }
-		const TWNoradNotNullConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TWNoradFixedConstPointer<_Ty>;
 		template<typename _Ty2>
@@ -446,12 +440,7 @@ namespace mse {
 		auto reg_ptr = TWNoradObj<TWNoradFixedPointer<_Ty>>(mse::registered_new<_Ty>());
 		auto reg_ptr_to_reg_ptr = &reg_ptr;
 		*/
-		TWNoradFixedPointer<_Ty>* operator&() {
-			return this;
-		}
-		const TWNoradFixedPointer<_Ty>* operator&() const {
-			return this;
-		}
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TWNoradObj<_Ty>;
 	};
@@ -488,8 +477,7 @@ namespace mse {
 		TWNoradFixedConstPointer(const TWNoradObj<_Ty>* ptr) : TWNoradNotNullConstPointer<_Ty>(ptr) {}
 		TWNoradFixedConstPointer<_Ty>& operator=(const TWNoradFixedConstPointer<_Ty>& _Right_cref) = delete;
 
-		TWNoradFixedConstPointer<_Ty>* operator&() { return this; }
-		const TWNoradFixedConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TWNoradObj<_Ty>;
 	};

@@ -654,8 +654,8 @@ namespace mse {
 		TAsyncSharedV2ReadWritePointerBase<_TAccessLease>& operator=(const TAsyncSharedV2ReadWritePointerBase<_TAccessLease>& _Right_cref) = delete;
 		TAsyncSharedV2ReadWritePointerBase<_TAccessLease>& operator=(TAsyncSharedV2ReadWritePointerBase<_TAccessLease>&& _Right) = delete;
 
-		TAsyncSharedV2ReadWritePointerBase<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2ReadWritePointerBase<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -688,8 +688,7 @@ namespace mse {
 		template<class _Clock, class _Duration>
 		TXScopeAsyncSharedV2ReadWritePointer(const std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : base_class(shptr, ttl, _Abs_time) {}
 
-		TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>* operator&() { return this; }
-		const TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease>;
 	};
@@ -712,8 +711,7 @@ namespace mse {
 		template<class _Clock, class _Duration>
 		TAsyncSharedV2ReadWritePointer(const std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : base_class(shptr, ttl, _Abs_time) {}
 
-		TAsyncSharedV2ReadWritePointer<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2ReadWritePointer<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease>;
 	};
@@ -762,8 +760,8 @@ namespace mse {
 		TAsyncSharedV2ReadWriteConstPointerBase<_TAccessLease>& operator=(const TAsyncSharedV2ReadWriteConstPointerBase<_TAccessLease>& _Right_cref) = delete;
 		TAsyncSharedV2ReadWriteConstPointerBase<_TAccessLease>& operator=(TAsyncSharedV2ReadWriteConstPointerBase<_TAccessLease>&& _Right) = delete;
 
-		TAsyncSharedV2ReadWriteConstPointerBase<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2ReadWriteConstPointerBase<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -795,8 +793,7 @@ namespace mse {
 		template<class _Clock, class _Duration>
 		TXScopeAsyncSharedV2ReadWriteConstPointer(const std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : base_class(shptr, ttl, _Abs_time) {}
 
-		TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>* operator&() { return this; }
-		const TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease>;
 	};
@@ -819,8 +816,7 @@ namespace mse {
 		template<class _Clock, class _Duration>
 		TAsyncSharedV2ReadWriteConstPointer(const std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : base_class(shptr, ttl, _Abs_time) {}
 
-		TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease>;
 	};
@@ -868,8 +864,8 @@ namespace mse {
 		TAsyncSharedV2ExclusiveReadWritePointerBase<_TAccessLease>& operator=(const TAsyncSharedV2ExclusiveReadWritePointerBase<_TAccessLease>& _Right_cref) = delete;
 		TAsyncSharedV2ExclusiveReadWritePointerBase<_TAccessLease>& operator=(TAsyncSharedV2ExclusiveReadWritePointerBase<_TAccessLease>&& _Right) = delete;
 
-		TAsyncSharedV2ExclusiveReadWritePointerBase<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2ExclusiveReadWritePointerBase<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -901,8 +897,7 @@ namespace mse {
 		template<class _Clock, class _Duration>
 		TXScopeAsyncSharedV2ExclusiveReadWritePointer(const std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : base_class(shptr, ttl, _Abs_time) {}
 
-		TXScopeAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>* operator&() { return this; }
-		const TXScopeAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease>;
 	};
@@ -925,8 +920,7 @@ namespace mse {
 		template<class _Clock, class _Duration>
 		TAsyncSharedV2ExclusiveReadWritePointer(const std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : base_class(shptr, ttl, _Abs_time) {}
 
-		TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease>;
 	};
@@ -1080,8 +1074,7 @@ namespace mse {
 #endif /*!defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REFCOUNTINGPOINTER_DISABLED) && !defined(MSE_NORADPOINTER_DISABLED)*/
 		void valid_if_TAccessLease_is_marked_as_a_strong_pointer() const {}
 
-		TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
 
@@ -1154,10 +1147,7 @@ namespace mse {
 			), void>::type>
 			void valid_if_target_type_is_marked_as_xscope_shareable() const {}
 
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>* operator&() { return this; }
-		const TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template<typename _TAccessLease>
@@ -1229,8 +1219,7 @@ namespace mse {
 			(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_target_type2>::Has>())), void>::type>
 		void valid_if_target_type_is_marked_as_shareable() const {}
 
-		TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		//friend class TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>;
 	};
@@ -1298,8 +1287,8 @@ namespace mse {
 		TAsyncSharedV2ReadOnlyConstPointerBase<_TAccessLease>& operator=(const TAsyncSharedV2ReadOnlyConstPointerBase<_TAccessLease>& _Right_cref) = delete;
 		TAsyncSharedV2ReadOnlyConstPointerBase<_TAccessLease>& operator=(TAsyncSharedV2ReadOnlyConstPointerBase<_TAccessLease>&& _Right) = delete;
 
-		TAsyncSharedV2ReadOnlyConstPointerBase<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2ReadOnlyConstPointerBase<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -1332,8 +1321,7 @@ namespace mse {
 		template<class _Clock, class _Duration>
 		TXScopeAsyncSharedV2ReadOnlyConstPointer(const std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : base_class(shptr, ttl, _Abs_time) {}
 
-		TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>* operator&() { return this; }
-		const TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAsyncSharedV2XWPReadOnlyAccessRequesterBase<_TAccessLease>;
 		friend class TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>;
@@ -1357,8 +1345,7 @@ namespace mse {
 		template<class _Clock, class _Duration>
 		TAsyncSharedV2ReadOnlyConstPointer(const std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : base_class(shptr, ttl, _Abs_time) {}
 
-		TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAsyncSharedV2XWPReadOnlyAccessRequesterBase<_TAccessLease>;
 		friend class TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>;
@@ -1450,8 +1437,7 @@ namespace mse {
 #endif /*!defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REFCOUNTINGPOINTER_DISABLED) && !defined(MSE_NORADPOINTER_DISABLED)*/
 		void valid_if_TAccessLease_is_marked_as_a_strong_pointer() const {}
 
-		TAsyncSharedV2XWPReadOnlyAccessRequesterBase<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2XWPReadOnlyAccessRequesterBase<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr;
 
@@ -1507,10 +1493,7 @@ namespace mse {
 			), void>::type>
 			void valid_if_target_type_is_marked_as_xscope_shareable() const {}
 
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>* operator&() { return this; }
-		const TXScopeAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template<typename _TAccessLease>
@@ -1563,8 +1546,7 @@ namespace mse {
 			(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_target_type2>::Has>())), void>::type>
 			void valid_if_target_type_is_marked_as_shareable() const {}
 
-		TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>* operator&() { return this; }
-		const TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 	template<typename _TAccessLease>
@@ -1628,8 +1610,7 @@ namespace mse {
 
 		TAsyncSharedV2ReadWriteAccessRequester(TTaggedUniquePtr<_Ty>&& uqptr) : base_class(make_asyncsharedv2xwpreadwrite(std::forward<decltype(uqptr)>(uqptr))) {}
 
-		TAsyncSharedV2ReadWriteAccessRequester<_Ty>* operator&() { return this; }
-		const TAsyncSharedV2ReadWriteAccessRequester<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 	template <class X, class... Args>
@@ -1673,8 +1654,7 @@ namespace mse {
 
 		TAsyncSharedV2ReadOnlyAccessRequester(TTaggedUniquePtr<_Ty>&& uqptr) : base_class(make_asyncsharedv2xwpreadonly(std::forward<decltype(uqptr)>(uqptr))) {}
 
-		TAsyncSharedV2ReadOnlyAccessRequester<_Ty>* operator&() { return this; }
-		const TAsyncSharedV2ReadOnlyAccessRequester<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 	template <class X, class... Args>
@@ -1720,9 +1700,7 @@ namespace mse {
 		TXScopeAsyncSharedV2ACOReadWriteAccessRequester(_TExclusiveWritePointer&& xwptr)
 			: base_class(make_xscope_asyncsharedv2xwpreadwrite(std::forward<decltype(xwptr)>(xwptr))) {}
 
-		void* operator new(size_t size) { return ::operator new(size); }
-		TXScopeAsyncSharedV2ACOReadWriteAccessRequester<_Ty>* operator&() { return this; }
-		const TXScopeAsyncSharedV2ACOReadWriteAccessRequester<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template <typename TXScopeAccessControlledObj1>
@@ -1786,8 +1764,7 @@ namespace mse {
 		TAsyncSharedV2ImmutableFixedPointer(std::shared_ptr<const _Ty> shptr) : m_shptr(shptr) {}
 		TAsyncSharedV2ImmutableFixedPointer<_Ty>& operator=(const TAsyncSharedV2ImmutableFixedPointer<_Ty>& _Right_cref) = delete;
 
-		TAsyncSharedV2ImmutableFixedPointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedV2ImmutableFixedPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<const _Ty> m_shptr;
 	};
@@ -1892,8 +1869,7 @@ namespace mse {
 				template <typename _TRAIterator1>
 				TAsyncSplitterRandomAccessSectionBase(const TAsyncSplitterRandomAccessSectionBase<_TRAIterator1>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
 
-				TAsyncSplitterRandomAccessSectionBase<_TRAIterator>* operator&() { return this; }
-				const TAsyncSplitterRandomAccessSectionBase<_TRAIterator>* operator&() const { return this; }
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				_TRAIterator m_start_iter;
 				const size_type m_count = 0;
@@ -1935,10 +1911,7 @@ namespace mse {
 				TXScopeAsyncSplitterRandomAccessSection(const TXScopeAsyncSplitterRandomAccessSection<_TRAIterator1>& src) : base_class(src) {}
 
 				TXScopeAsyncSplitterRandomAccessSection& operator=(const TXScopeAsyncSplitterRandomAccessSection& _Right_cref) = delete;
-				void* operator new(size_t size) { return ::operator new(size); }
-
-				TXScopeAsyncSplitterRandomAccessSection<_TRAIterator>* operator&() { return this; }
-				const TXScopeAsyncSplitterRandomAccessSection<_TRAIterator>* operator&() const { return this; }
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 				template <typename _TExclusiveWritelockPtr>
 				friend class TAsyncRASectionSplitterXWP;
@@ -1976,8 +1949,7 @@ namespace mse {
 				template <typename _TRAIterator1>
 				TAsyncSplitterRandomAccessSection(const TAsyncSplitterRandomAccessSection<_TRAIterator1>& src) : base_class(src) {}
 
-				TAsyncSplitterRandomAccessSection<_TRAIterator>* operator&() { return this; }
-				const TAsyncSplitterRandomAccessSection<_TRAIterator>* operator&() const { return this; }
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				template <typename _TExclusiveWritelockPtr>
 				friend class TAsyncRASectionSplitterXWP;
@@ -2098,10 +2070,7 @@ namespace mse {
 			: m_count(exclusive_write_pointer->size()), m_splitter_ra_section_access_requester(make_xscope_asyncsharedv2xwpreadwrite(std::forward<_TAccessLease>(exclusive_write_pointer))) {}
 
 		TXScopeAsyncSplitterRASectionReadWriteAccessRequester& operator=(const TXScopeAsyncSplitterRASectionReadWriteAccessRequester& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeAsyncSplitterRASectionReadWriteAccessRequester* operator&() { return this; }
-		const TXScopeAsyncSplitterRASectionReadWriteAccessRequester* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		const size_type m_count = 0;
 		mse::TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease> m_splitter_ra_section_access_requester;
@@ -2194,8 +2163,7 @@ namespace mse {
 		TAsyncSplitterRASectionReadWriteAccessRequester(const _TRAIterator& start_iter, size_type count) : m_count(count)
 			, m_splitter_ra_section_access_requester(make_asyncsharedv2readwrite<splitter_ra_section_t>(start_iter, count)) {}
 
-		TAsyncSplitterRASectionReadWriteAccessRequester<_TRAIterator>* operator&() { return this; }
-		const TAsyncSplitterRASectionReadWriteAccessRequester<_TRAIterator>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		const size_type m_count = 0;
 		mse::TAsyncSharedV2ReadWriteAccessRequester<splitter_ra_section_t> m_splitter_ra_section_access_requester;
@@ -2286,10 +2254,7 @@ namespace mse {
 		TXScopeAsyncRASectionSplitterXWP(const TXScopeAsyncRASectionSplitterXWP& src) = delete;
 		TXScopeAsyncRASectionSplitterXWP(TXScopeAsyncRASectionSplitterXWP&& src) = delete;
 		TXScopeAsyncRASectionSplitterXWP & operator=(const TXScopeAsyncRASectionSplitterXWP& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeAsyncRASectionSplitterXWP* operator&() { return this; }
-		const TXScopeAsyncRASectionSplitterXWP* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > m_access_lease_obj_shptr;
 		std::unordered_map<size_t, xscope_aco_splitter_ra_section_t> m_splitter_aco_ra_section_map;
@@ -2348,8 +2313,7 @@ namespace mse {
 	private:
 		TAsyncRASectionSplitterXWP(const TAsyncRASectionSplitterXWP& src) = delete;
 		TAsyncRASectionSplitterXWP(TAsyncRASectionSplitterXWP&& src) = delete;
-		TAsyncRASectionSplitterXWP* operator&() { return this; }
-		const TAsyncRASectionSplitterXWP* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > m_access_lease_obj_shptr;
 		std::vector<ras_ar_t> m_ra_sections;
@@ -2367,10 +2331,7 @@ namespace mse {
 
 	private:
 		TXScopeAsyncRASectionSplitter & operator=(const TXScopeAsyncRASectionSplitter& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeAsyncRASectionSplitter* operator&() { return this; }
-		const TXScopeAsyncRASectionSplitter* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template <typename _TAccessRequester>
@@ -2384,8 +2345,7 @@ namespace mse {
 		TAsyncRASectionSplitter(_TAccessRequester& ar, size_t split_index) : base_class(ar.exclusive_writelock_ptr(), split_index) {}
 
 	private:
-		TAsyncRASectionSplitter* operator&() { return this; }
-		const TAsyncRASectionSplitter* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 
@@ -2759,8 +2719,8 @@ namespace mse {
 		TAsyncSharedReadWritePointer<_Ty>& operator=(const TAsyncSharedReadWritePointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedReadWritePointer<_Ty>& operator=(TAsyncSharedReadWritePointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedReadWritePointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedReadWritePointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -2817,8 +2777,8 @@ namespace mse {
 		TAsyncSharedReadWriteConstPointer<_Ty>& operator=(const TAsyncSharedReadWriteConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedReadWriteConstPointer<_Ty>& operator=(TAsyncSharedReadWriteConstPointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedReadWriteConstPointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedReadWriteConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -2873,8 +2833,8 @@ namespace mse {
 		TAsyncSharedExclusiveReadWritePointer<_Ty>& operator=(const TAsyncSharedExclusiveReadWritePointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedExclusiveReadWritePointer<_Ty>& operator=(TAsyncSharedExclusiveReadWritePointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedExclusiveReadWritePointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedExclusiveReadWritePointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -2959,8 +2919,7 @@ namespace mse {
 	private:
 		TAsyncSharedReadWriteAccessRequester(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
 
-		TAsyncSharedReadWriteAccessRequester<_Ty>* operator&() { return this; }
-		const TAsyncSharedReadWriteAccessRequester<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
 
@@ -3034,8 +2993,8 @@ namespace mse {
 		TAsyncSharedReadOnlyConstPointer<_Ty>& operator=(const TAsyncSharedReadOnlyConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedReadOnlyConstPointer<_Ty>& operator=(TAsyncSharedReadOnlyConstPointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedReadOnlyConstPointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedReadOnlyConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -3088,8 +3047,7 @@ namespace mse {
 	private:
 		TAsyncSharedReadOnlyAccessRequester(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
 
-		TAsyncSharedReadOnlyAccessRequester<_Ty>* operator&() { return this; }
-		const TAsyncSharedReadOnlyAccessRequester<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<const TAsyncSharedObj<_Ty>> m_shptr;
 	};
@@ -3154,8 +3112,8 @@ namespace mse {
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& operator=(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& operator=(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -3212,8 +3170,8 @@ namespace mse {
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& operator=(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& operator=(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -3268,8 +3226,8 @@ namespace mse {
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer<_Ty>& operator=(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer<_Ty>& operator=(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -3354,8 +3312,7 @@ namespace mse {
 	private:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester(std::shared_ptr<TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
 
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<_Ty>* operator&() { return this; }
-		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<TAsyncSharedObj<_Ty>> m_shptr;
 
@@ -3425,8 +3382,8 @@ namespace mse {
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& operator=(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& _Right_cref) = delete;
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& operator=(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>&& _Right) = delete;
 
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>* operator&() { return this; }
-		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = m_shptr.operator bool();
 			return retval;
@@ -3479,8 +3436,7 @@ namespace mse {
 	private:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester(std::shared_ptr<const TAsyncSharedObj<_Ty>> shptr) : m_shptr(shptr) {}
 
-		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<_Ty>* operator&() { return this; }
-		const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<const TAsyncSharedObj<_Ty>> m_shptr;
 	};
@@ -3519,9 +3475,7 @@ namespace mse {
 	private:
 		TStdSharedImmutableFixedPointer(std::shared_ptr<const _Ty> shptr) : std::shared_ptr<const _Ty>(shptr) {}
 		TStdSharedImmutableFixedPointer<_Ty>& operator=(const TStdSharedImmutableFixedPointer<_Ty>& _Right_cref) = delete;
-
-		//TStdSharedImmutableFixedPointer<_Ty>* operator&() { return this; }
-		//const TStdSharedImmutableFixedPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 	template <class X, class... Args>

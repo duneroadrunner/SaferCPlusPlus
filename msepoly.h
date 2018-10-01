@@ -612,8 +612,7 @@ namespace mse {
 			return m_pointer.bool_operator();
 		}
 
-		TPolyPointerBase<_Ty>* operator&() { return this; }
-		const TPolyPointerBase<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		poly_variant m_pointer;
 
@@ -641,10 +640,7 @@ namespace mse {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopePolyPointer<_Ty>* operator&() { return this; }
-		const TXScopePolyPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend struct std::hash<mse::TXScopePolyPointer<_Ty> >;
 	};
@@ -675,8 +671,7 @@ namespace mse {
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
-		TPolyPointer<_Ty>* operator&() { return this; }
-		const TPolyPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend struct std::hash<mse::TPolyPointer<_Ty> >;
 	};
@@ -830,8 +825,7 @@ namespace mse {
 			return m_pointer.bool_operator();
 		}
 
-		TPolyConstPointerBase<_Ty>* operator&() { return this; }
-		const TPolyConstPointerBase<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		poly_variant m_pointer;
 	};
@@ -856,10 +850,7 @@ namespace mse {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopePolyConstPointer<_Ty>* operator&() { return this; }
-		const TXScopePolyConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend struct std::hash<mse::TXScopePolyConstPointer<_Ty> >;
 	};
@@ -887,8 +878,7 @@ namespace mse {
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
-		TPolyConstPointer<_Ty>* operator&() { return this; }
-		const TPolyConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend struct std::hash<mse::TPolyConstPointer<_Ty> >;
 	};
@@ -1089,8 +1079,7 @@ namespace mse {
 				}
 
 			protected:
-				TAnyRandomAccessIteratorBase<_Ty>* operator&() { return this; }
-				const TAnyRandomAccessIteratorBase<_Ty>* operator&() const { return this; }
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				TCommonRandomAccessIteratorInterface<_Ty>* common_random_access_iterator_interface_ptr() {
 					auto retval = reinterpret_cast<TCommonRandomAccessIteratorInterface<_Ty>*>(m_any_random_access_iterator.storage_address());
@@ -1207,8 +1196,7 @@ namespace mse {
 				}
 
 			protected:
-				TAnyRandomAccessConstIteratorBase<_Ty>* operator&() { return this; }
-				const TAnyRandomAccessConstIteratorBase<_Ty>* operator&() const { return this; }
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				TCommonRandomAccessConstIteratorInterface<_Ty>* common_random_access_const_iterator_interface_ptr() {
 					auto retval = reinterpret_cast<TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());
@@ -1823,8 +1811,8 @@ namespace mse {
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
-		TNullableAnyRandomAccessIterator<_Ty>* operator&() { return this; }
-		const TNullableAnyRandomAccessIterator<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool m_is_null = false;
 	};
 
@@ -1870,8 +1858,8 @@ namespace mse {
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 	private:
-		TNullableAnyPointer<_Ty>* operator&() { return this; }
-		const TNullableAnyPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool m_is_null = false;
 	};
 }
@@ -1924,10 +1912,7 @@ namespace mse {
 #endif // !MSE_SCOPEPOINTER_DISABLED
 	private:
 		TRefCountingOrXScopeFixedPointer<_Ty>& operator=(const TRefCountingOrXScopeFixedPointer<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		//TRefCountingOrXScopeFixedPointer<_Ty>* operator&() { return this; }
-		//const TRefCountingOrXScopeFixedPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TRefCountingOrXScopeFixedConstPointer<_Ty>;
 	};
@@ -1962,10 +1947,7 @@ namespace mse {
 #endif // !MSE_SCOPEPOINTER_DISABLED
 	private:
 		TRefCountingOrXScopeFixedConstPointer<_Ty>& operator=(const TRefCountingOrXScopeFixedConstPointer<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		//TRefCountingOrXScopeFixedConstPointer<_Ty>* operator&() { return this; }
-		//const TRefCountingOrXScopeFixedConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 
@@ -2003,9 +1985,7 @@ namespace mse {
 
 	private:
 		TSharedOrRawFixedPointer<_Ty>& operator=(const TSharedOrRawFixedPointer<_Ty>& _Right_cref) = delete;
-
-		//TSharedOrRawFixedPointer<_Ty>* operator&() { return this; }
-		//const TSharedOrRawFixedPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TSharedOrRawFixedConstPointer<_Ty>;
 	};
@@ -2029,9 +2009,7 @@ namespace mse {
 
 	private:
 		TSharedOrRawFixedConstPointer<_Ty>& operator=(const TSharedOrRawFixedConstPointer<_Ty>& _Right_cref) = delete;
-
-		//TSharedOrRawFixedConstPointer<_Ty>* operator&() { return this; }
-		//const TSharedOrRawFixedConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 

@@ -2889,10 +2889,7 @@ namespace mse {
 		void xscope_iterator_tag() const {}
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	private:
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeRAIterator* operator&() { return this; }
-		const TXScopeRAIterator* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template <typename _TRAContainerPointer>
@@ -3138,10 +3135,7 @@ namespace mse {
 		void xscope_iterator_tag() const {}
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	private:
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeRAConstIterator* operator&() { return this; }
-		const TXScopeRAConstIterator* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template <typename _TRAContainerPointer>
@@ -3394,10 +3388,7 @@ namespace mse {
 		void xscope_iterator_tag() const {}
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	private:
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeRASectionIterator* operator&() { return this; }
-		const TXScopeRASectionIterator* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template <typename _TRAIterator>
@@ -3568,10 +3559,7 @@ namespace mse {
 		void xscope_iterator_tag() const {}
 		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 	private:
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeRASectionConstIterator* operator&() { return this; }
-		const TXScopeRASectionConstIterator* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template <typename _TRAIterator>
@@ -4208,8 +4196,7 @@ namespace mse {
 		const_iterator end() const { return cend(); }
 
 	private:
-		TRandomAccessConstSectionBase<_TRAIterator>* operator&() { return this; }
-		const TRandomAccessConstSectionBase<_TRAIterator>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		_TRAIterator m_start_iter;
 		size_type m_count = 0;
@@ -4264,10 +4251,7 @@ namespace mse {
 
 	private:
 		TXScopeRandomAccessConstSection<_TRAIterator>& operator=(const TXScopeRandomAccessConstSection<_TRAIterator>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeRandomAccessConstSection<_TRAIterator>* operator&() { return this; }
-		const TXScopeRandomAccessConstSection<_TRAIterator>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template <typename _TRAIterator>
@@ -4784,8 +4768,7 @@ namespace mse {
 			return s_iter_from_lone_param2(typename HasOrInheritsBeginMethod_msemsearray<_TRALoneParam>::type(), param);
 		}
 
-		TRandomAccessSectionBase<_TRAIterator>* operator&() { return this; }
-		const TRandomAccessSectionBase<_TRAIterator>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		_TRAIterator m_start_iter;
 		size_type m_count = 0;
@@ -4840,10 +4823,7 @@ namespace mse {
 
 	private:
 		TXScopeRandomAccessSection<_TRAIterator>& operator=(const TXScopeRandomAccessSection<_TRAIterator>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeRandomAccessSection<_TRAIterator>* operator&() { return this; }
-		const TXScopeRandomAccessSection<_TRAIterator>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template <typename _TRAIterator>
@@ -5465,8 +5445,8 @@ namespace mse {
 			&& (mse::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void valid_if_TAccessMutex_is_supported() const {}
 
-		TAccessControlledPointerBase<_Ty, _TAccessMutex>* operator&() { return this; }
-		const TAccessControlledPointerBase<_Ty, _TAccessMutex>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = (nullptr != m_obj_ptr);
 			return retval;
@@ -5512,9 +5492,7 @@ namespace mse {
 		TXScopeAccessControlledPointer & operator=(const TXScopeAccessControlledPointer& _Right_cref) = delete;
 		TXScopeAccessControlledPointer& operator=(TXScopeAccessControlledPointer&& _Right) = delete;
 
-		void* operator new(size_t size) { return ::operator new(size); }
-		auto operator&() { return this; }
-		auto operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
 		friend class TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>;
@@ -5551,8 +5529,7 @@ namespace mse {
 		TAccessControlledPointer(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
 			: base_class(obj_ref, mutex_ref, ttl, _Abs_time) {}
 
-		TAccessControlledPointer<_Ty, _TAccessMutex>* operator&() { return this; }
-		const TAccessControlledPointer<_Ty, _TAccessMutex>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
 		friend class TAccessControlledConstPointer<_Ty, _TAccessMutex>;
@@ -5605,8 +5582,8 @@ namespace mse {
 			&& (mse::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void valid_if_TAccessMutex_is_supported() const {}
 
-		TAccessControlledConstPointerBase<_Ty, _TAccessMutex>* operator&() { return this; }
-		const TAccessControlledConstPointerBase<_Ty, _TAccessMutex>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = (nullptr != m_obj_ptr);
 			return retval;
@@ -5649,9 +5626,7 @@ namespace mse {
 		TXScopeAccessControlledConstPointer & operator=(const TXScopeAccessControlledConstPointer& _Right_cref) = delete;
 		TXScopeAccessControlledConstPointer& operator=(TXScopeAccessControlledConstPointer&& _Right) = delete;
 
-		void* operator new(size_t size) { return ::operator new(size); }
-		auto operator&() { return this; }
-		auto operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
@@ -5687,8 +5662,7 @@ namespace mse {
 		TAccessControlledConstPointer(const _Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
 			: base_class(obj_ref, mutex_ref, ttl, _Abs_time) {}
 
-		TAccessControlledConstPointer<_Ty, _TAccessMutex>* operator&() { return this; }
-		const TAccessControlledConstPointer<_Ty, _TAccessMutex>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
 	};
@@ -5740,8 +5714,8 @@ namespace mse {
 			&& (mse::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void valid_if_TAccessMutex_is_supported() const {}
 
-		TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex>* operator&() { return this; }
-		const TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		bool is_valid() const {
 			bool retval = (nullptr != m_obj_ptr);
 			return retval;
@@ -5783,9 +5757,7 @@ namespace mse {
 		TXScopeAccessControlledExclusivePointer & operator=(const TXScopeAccessControlledExclusivePointer& _Right_cref) = delete;
 		TXScopeAccessControlledExclusivePointer& operator=(TXScopeAccessControlledExclusivePointer&& _Right) = delete;
 
-		void* operator new(size_t size) { return ::operator new(size); }
-		auto operator&() { return this; }
-		auto operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
@@ -5821,8 +5793,7 @@ namespace mse {
 		TAccessControlledExclusivePointer(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, const std::try_to_lock_t& ttl, const std::chrono::time_point<_Clock, _Duration>& _Abs_time)
 			: base_class(obj_ref, mutex_ref, ttl, _Abs_time) {}
 
-		TAccessControlledExclusivePointer<_Ty, _TAccessMutex>* operator&() { return this; }
-		const TAccessControlledExclusivePointer<_Ty, _TAccessMutex>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
 	};
@@ -6409,9 +6380,7 @@ namespace mse {
 		TXScopeACOLockerForSharing(_TExclusiveWritePointer&& xwptr)
 			: base_class(make_xscope_exclusive_strong_pointer_store_for_sharing(std::forward<decltype(xwptr)>(xwptr))) {}
 
-		void* operator new(size_t size) { return ::operator new(size); }
-		TXScopeACOLockerForSharing<_Ty>* operator&() { return this; }
-		const TXScopeACOLockerForSharing<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template <typename TXScopeAccessControlledObj1>

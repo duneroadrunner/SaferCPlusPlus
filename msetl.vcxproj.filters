@@ -96,9 +96,6 @@
     <ClInclude Include="msenorad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mseflregistered.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="msetl_example.cpp">

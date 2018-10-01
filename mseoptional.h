@@ -1500,10 +1500,7 @@ namespace mse {
 			&& (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
 			void valid_if_Ty_is_not_an_xscope_type() const {}
 
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		xscope_optional<_Ty>* operator&() { return this; }
-		const xscope_optional<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	// 20.5.8, Relational operators

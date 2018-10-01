@@ -607,8 +607,7 @@ namespace mse {
 				}
 
 			protected:
-				TAnyPointerBaseV1<_Ty>* operator&() { return this; }
-				const TAnyPointerBaseV1<_Ty>* operator&() const { return this; }
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				const TCommonPointerInterface<_Ty>* common_pointer_interface_ptr() const {
 					auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_pointer.storage_address());
@@ -686,8 +685,7 @@ namespace mse {
 				bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
 
 			protected:
-				TAnyConstPointerBaseV1<_Ty>* operator&() { return this; }
-				const TAnyConstPointerBaseV1<_Ty>* operator&() const { return this; }
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				const TCommonPointerInterface<_Ty>* common_pointer_interface_const_ptr() const {
 					/* This use of mse::any::storage_address() brings to mind the fact that the (pre-C++17) implementation

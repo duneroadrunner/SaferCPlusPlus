@@ -255,6 +255,114 @@ void msetl_example2() {
 	}
 
 	{
+		/*******************/
+		/*  Poly pointers  */
+		/*******************/
+
+		/* Poly pointers are "chameleon" (or "type-erasing") pointers that can be constructed from, and retain
+		the safety features of multiple different pointer types in this library. If you'd like your function
+		to be able to take different types of safe pointer parameters, you can "templatize" your function, or
+		alternatively, you can declare your pointer parameters as poly pointers. */
+
+		class A {
+		public:
+			A() {}
+			A(std::string x) : b(x) {}
+			virtual ~A() {}
+
+			std::string b = "some text ";
+		};
+		class D : public A {
+		public:
+			D(std::string x) : A(x) {}
+		};
+		class B {
+		public:
+			static std::string foo1(mse::TXScopePolyPointer<A> ptr) {
+				std::string retval = ptr->b;
+				return retval;
+			}
+			static std::string foo2(mse::TXScopePolyConstPointer<A> ptr) {
+				std::string retval = ptr->b;
+				return retval;
+			}
+			static std::string foo3(mse::TXScopePolyPointer<std::string> ptr) {
+				std::string retval = (*ptr) + (*ptr);
+				return retval;
+			}
+			static std::string foo4(mse::TXScopePolyConstPointer<std::string> ptr) {
+				std::string retval = (*ptr) + (*ptr);
+				return retval;
+			}
+		protected:
+			~B() {}
+		};
+
+		/* To demonstrate, first we'll declare some objects such that we can obtain safe pointers to those
+		objects. For better or worse, this library provides a bunch of different safe pointers types. */
+		mse::TXScopeObj<A> a_scpobj;
+		auto a_refcptr = mse::make_refcounting<A>();
+		mse::TRegisteredObj<A> a_regobj;
+		mse::TCRegisteredObj<A> a_cregobj;
+
+		/* Safe iterators are a type of safe pointer too. */
+		mse::mstd::vector<A> a_mstdvec;
+		a_mstdvec.resize(1);
+		auto a_mstdvec_iter = a_mstdvec.begin();
+		mse::us::msevector<A> a_msevec;
+		a_msevec.resize(1);
+		auto a_msevec_ipointer = a_msevec.ibegin();
+		auto a_msevec_ssiter = a_msevec.ss_begin();
+
+		/* And note that safe pointers to member elements need to be wrapped in an mse::TXScopeAnyPointer<> for
+		mse::TXScopePolyPointer<> to accept them. */
+		auto b_member_a_refc_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(a_refcptr, &A::b));
+		auto b_member_a_reg_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(&a_regobj, &A::b));
+		auto b_member_a_mstdvec_iter_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(a_mstdvec_iter, &A::b));
+
+		{
+			/* All of these safe pointer types happily convert to an mse::TXScopePolyPointer<>. */
+			auto res_using_scpptr = B::foo1(&a_scpobj);
+			auto res_using_refcptr = B::foo1(a_refcptr);
+			auto res_using_regptr = B::foo1(&a_regobj);
+			auto res_using_cregptr = B::foo1(&a_cregobj);
+			auto res_using_mstdvec_iter = B::foo1(a_mstdvec_iter);
+			auto res_using_msevec_ipointer = B::foo1(a_msevec_ipointer);
+			auto res_using_msevec_ssiter = B::foo1(a_msevec_ssiter);
+			auto res_using_member_refc_anyptr = B::foo3(b_member_a_refc_anyptr);
+			auto res_using_member_reg_anyptr = B::foo3(b_member_a_reg_anyptr);
+			auto res_using_member_mstdvec_iter_anyptr = B::foo3(b_member_a_mstdvec_iter_anyptr);
+
+			/* Or an mse::TXScopePolyConstPointer<>. */
+			auto res_using_scpptr_via_const_poly = B::foo2(&a_scpobj);
+			auto res_using_refcptr_via_const_poly = B::foo2(a_refcptr);
+			auto res_using_regptr_via_const_poly = B::foo2(&a_regobj);
+			auto res_using_cregptr_via_const_poly = B::foo2(&a_cregobj);
+			auto res_using_mstdvec_iter_via_const_poly = B::foo2(a_mstdvec_iter);
+			auto res_using_msevec_ipointer_via_const_poly = B::foo2(a_msevec_ipointer);
+			auto res_using_msevec_ssiter_via_const_poly = B::foo2(a_msevec_ssiter);
+			auto res_using_member_refc_anyptr_via_const_poly = B::foo4(b_member_a_refc_anyptr);
+			auto res_using_member_reg_anyptr_via_const_poly = B::foo4(b_member_a_reg_anyptr);
+			auto res_using_member_mstdvec_iter_anyptr_via_const_poly = B::foo4(b_member_a_mstdvec_iter_anyptr);
+		}
+
+		mse::TNullableAnyPointer<A> nanyptr1;
+		mse::TNullableAnyPointer<A> nanyptr2(nullptr);
+		mse::TNullableAnyPointer<A> nanyptr3(a_refcptr);
+		mse::TAnyPointer<A> anyptr3(a_refcptr);
+		nanyptr1 = nullptr;
+		nanyptr1 = 0;
+		nanyptr1 = NULL;
+		nanyptr1 = nanyptr2;
+		nanyptr1 = mse::TNullableAnyPointer<A>(&a_regobj);
+		nanyptr1 = mse::TNullableAnyPointer<A>(a_refcptr);
+		auto res_nap1 = *nanyptr1;
+
+		mse::CPolyPtrTest1::s_test1();
+		int q = 3;
+	}
+
+	{
 		/*********************************/
 		/*  TAnyRandomAccessIterator<>   */
 		/*  & TAnyRandomAccessSection<>  */
@@ -871,11 +979,27 @@ void msetl_example2() {
 
 		mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na1 = mse::nii_array<int, 3>{ 1, 2, 3 };
 		mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na2 = mse::nii_array<int, 3>{ 1, 2, 3 };
-		auto xscope_na1_begin_citer = mse::make_xscope_const_iterator(&xscope_na1);
-		auto xscope_na1_end_citer = mse::make_xscope_const_iterator(&xscope_na1);
-		xscope_na1_end_citer.set_to_end_marker();
-		auto xscope_na2_begin_iter = mse::make_xscope_iterator(&xscope_na2);
+		auto xscope_na1_begin_citer = mse::make_xscope_begin_const_iterator(&xscope_na1);
+		auto xscope_na1_end_citer = mse::make_xscope_end_const_iterator(&xscope_na1);
+		auto xscope_na2_begin_iter = mse::make_xscope_begin_iterator(&xscope_na2);
+		auto xscope_na2_end_iter = mse::make_xscope_end_iterator(&xscope_na2);
 
+		std::array<int, 3> sa1{1, 2, 3 };
+		mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
+
+		{
+			/* for_each() */
+
+			/*  mse::for_each() is intended to be the same as std:::for_each() but with performance optimizations for some
+			of the library's safe iterators. */
+			mse::for_each(xscope_na1_begin_citer, xscope_na1_end_citer, [](int x) { std::cout << x << std::endl; });
+
+			mse::for_each(sa1.begin(), sa1.end(), [](int x) { std::cout << x << std::endl; });
+			mse::for_each(ma1.begin(), ma1.end(), [](int x) { std::cout << x << std::endl; });
+
+			/* This (non-standard) variant of for_each() for random access containers bypasses the use of iterators. */
+			mse::xscope_ra_const_for_each(&xscope_na1, [](int x) { std::cout << x << std::endl; });
+		}
 		{
 			/* find_if() */
 
@@ -884,21 +1008,14 @@ void msetl_example2() {
 			auto found_citer1 = mse::find_if(xscope_na1_begin_citer, xscope_na1_end_citer, [](int x) { return 2 == x; });
 			auto res1 = *found_citer1;
 
+			auto found_citer2 = mse::find_if(sa1.cbegin(), sa1.cend(), [](int x) { return 2 == x; });
+			auto found_citer3 = mse::find_if(ma1.cbegin(), ma1.cend(), [](int x) { return 2 == x; });
+
 			/* These (non-standard) variants of find_if() for random access containers bypass the use of iterators. */
-			auto xscope_optional_xscpptr2 = mse::xscope_ra_const_find_if(&xscope_na1, [](int x) { return 2 == x; });
-			auto res2 = xscope_optional_xscpptr2.value();
-			auto xscope_pointer3 = mse::xscope_ra_const_find_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
-			auto res3 = *xscope_pointer3;
-		}
-		{
-			/* for_each() */
-
-			/*  mse::for_each() is intended to be the same as std:::for_each() but with performance optimizations for some
-			of the library's safe iterators. */
-			mse::for_each(xscope_na1_begin_citer, xscope_na1_end_citer, [](int x) { std::cout << x << std::endl; });
-
-			/* These (non-standard) variant of for_each() for random access containers bypass the use of iterators. */
-			mse::xscope_ra_const_for_each(&xscope_na1, [](int x) { std::cout << x << std::endl; });
+			auto xscope_optional_xscpptr4 = mse::xscope_ra_const_find_if(&xscope_na1, [](int x) { return 2 == x; });
+			auto res4 = xscope_optional_xscpptr4.value();
+			auto xscope_pointer5 = mse::xscope_ra_const_find_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
+			auto res5 = *xscope_pointer5;
 		}
 	}
 

@@ -15,7 +15,6 @@ types. Your best bet is probably to use a find/search to get to the data type yo
 #include "mseprimitives.h"
 #include "mseregistered.h"
 #include "msecregistered.h"
-#include "mseflregistered.h"
 #include "msenorad.h"
 #include "mserefcounting.h"
 #include "msescope.h"
@@ -835,7 +834,6 @@ int main(int argc, char* argv[])
 
 		mse::CRegPtrTest1::s_test1();
 		mse::CCRegPtrTest1::s_test1();
-		mse::CForLegRegPtrTest1::s_test1();
 	}
 
 	{
@@ -1437,114 +1435,6 @@ int main(int argc, char* argv[])
 			auto h_string1_stdshared_const_ptr = mse::make_const_pointer_to_member_v2(h_shared_immutable_ptr, &H::m_string1);
 			//(*h_string1_stdshared_const_ptr) = "some new text";
 		}
-	}
-
-	{
-		/*******************/
-		/*  Poly pointers  */
-		/*******************/
-
-		/* Poly pointers are "chameleon" pointers that can be constructed from, and retain the safety
-		features of multiple different pointer types in this library. If you'd like your function to be
-		able to take different types of safe pointer parameters, you can "templatize" your function, or
-		alternatively, you can declare your pointer parameters as poly pointers. */
-
-		class A {
-		public:
-			A() {}
-			A(std::string x) : b(x) {}
-			virtual ~A() {}
-
-			std::string b = "some text ";
-		};
-		class D : public A {
-		public:
-			D(std::string x) : A(x) {}
-		};
-		class B {
-		public:
-			static std::string foo1(mse::TXScopePolyPointer<A> ptr) {
-				std::string retval = ptr->b;
-				return retval;
-			}
-			static std::string foo2(mse::TXScopePolyConstPointer<A> ptr) {
-				std::string retval = ptr->b;
-				return retval;
-			}
-			static std::string foo3(mse::TXScopePolyPointer<std::string> ptr) {
-				std::string retval = (*ptr) + (*ptr);
-				return retval;
-			}
-			static std::string foo4(mse::TXScopePolyConstPointer<std::string> ptr) {
-				std::string retval = (*ptr) + (*ptr);
-				return retval;
-			}
-		protected:
-			~B() {}
-		};
-
-		/* To demonstrate, first we'll declare some objects such that we can obtain safe pointers to those
-		objects. For better or worse, this library provides a bunch of different safe pointers types. */
-		mse::TXScopeObj<A> a_scpobj;
-		auto a_refcptr = mse::make_refcounting<A>();
-		mse::TRegisteredObj<A> a_regobj;
-		mse::TCRegisteredObj<A> a_rlxregobj;
-
-		/* Safe iterators are a type of safe pointer too. */
-		mse::mstd::vector<A> a_mstdvec;
-		a_mstdvec.resize(1);
-		auto a_mstdvec_iter = a_mstdvec.begin();
-		mse::us::msevector<A> a_msevec;
-		a_msevec.resize(1);
-		auto a_msevec_ipointer = a_msevec.ibegin();
-		auto a_msevec_ssiter = a_msevec.ss_begin();
-
-		/* And note that safe pointers to member elements need to be wrapped in an mse::TXScopeAnyPointer<> for
-		mse::TXScopePolyPointer<> to accept them. */
-		auto b_member_a_refc_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(a_refcptr, &A::b));
-		auto b_member_a_reg_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(&a_regobj, &A::b));
-		auto b_member_a_mstdvec_iter_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(a_mstdvec_iter, &A::b));
-
-		{
-			/* All of these safe pointer types happily convert to an mse::TXScopePolyPointer<>. */
-			auto res_using_scpptr = B::foo1(&a_scpobj);
-			auto res_using_refcptr = B::foo1(a_refcptr);
-			auto res_using_regptr = B::foo1(&a_regobj);
-			auto res_using_rlxregptr = B::foo1(&a_rlxregobj);
-			auto res_using_mstdvec_iter = B::foo1(a_mstdvec_iter);
-			auto res_using_msevec_ipointer = B::foo1(a_msevec_ipointer);
-			auto res_using_msevec_ssiter = B::foo1(a_msevec_ssiter);
-			auto res_using_member_refc_anyptr = B::foo3(b_member_a_refc_anyptr);
-			auto res_using_member_reg_anyptr = B::foo3(b_member_a_reg_anyptr);
-			auto res_using_member_mstdvec_iter_anyptr = B::foo3(b_member_a_mstdvec_iter_anyptr);
-
-			/* Or an mse::TXScopePolyConstPointer<>. */
-			auto res_using_scpptr_via_const_poly = B::foo2(&a_scpobj);
-			auto res_using_refcptr_via_const_poly = B::foo2(a_refcptr);
-			auto res_using_regptr_via_const_poly = B::foo2(&a_regobj);
-			auto res_using_rlxregptr_via_const_poly = B::foo2(&a_rlxregobj);
-			auto res_using_mstdvec_iter_via_const_poly = B::foo2(a_mstdvec_iter);
-			auto res_using_msevec_ipointer_via_const_poly = B::foo2(a_msevec_ipointer);
-			auto res_using_msevec_ssiter_via_const_poly = B::foo2(a_msevec_ssiter);
-			auto res_using_member_refc_anyptr_via_const_poly = B::foo4(b_member_a_refc_anyptr);
-			auto res_using_member_reg_anyptr_via_const_poly = B::foo4(b_member_a_reg_anyptr);
-			auto res_using_member_mstdvec_iter_anyptr_via_const_poly = B::foo4(b_member_a_mstdvec_iter_anyptr);
-		}
-
-		mse::TNullableAnyPointer<A> nanyptr1;
-		mse::TNullableAnyPointer<A> nanyptr2(nullptr);
-		mse::TNullableAnyPointer<A> nanyptr3(a_refcptr);
-		mse::TAnyPointer<A> anyptr3(a_refcptr);
-		nanyptr1 = nullptr;
-		nanyptr1 = 0;
-		nanyptr1 = NULL;
-		nanyptr1 = nanyptr2;
-		nanyptr1 = mse::TNullableAnyPointer<A>(&a_regobj);
-		nanyptr1 = mse::TNullableAnyPointer<A>(a_refcptr);
-		auto res_nap1 = *nanyptr1;
-		
-		mse::CPolyPtrTest1::s_test1();
-		int q = 3;
 	}
 
 	{

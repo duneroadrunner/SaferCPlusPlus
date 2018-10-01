@@ -228,8 +228,7 @@ namespace mse {
 			return retval;
 		}
 
-		TXScopePointer<_Ty>* operator&() { return this; }
-		const TXScopePointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TXScopeNotNullPointer<_Ty>;
 		friend class us::impl::TCommonizedPointer<_Ty, TXScopePointer<_Ty> >;
@@ -271,8 +270,7 @@ namespace mse {
 			return retval;
 		}
 
-		TXScopeConstPointer<_Ty>* operator&() { return this; }
-		const TXScopeConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TXScopeNotNullConstPointer<_Ty>;
 		friend class us::impl::TCommonizedConstPointer<const _Ty, TXScopeConstPointer<_Ty> >;
@@ -297,8 +295,7 @@ namespace mse {
 		explicit operator _Ty*() const { return TXScopePointer<_Ty>::operator _Ty*(); }
 		explicit operator TXScopeObj<_Ty>*() const { return TXScopePointer<_Ty>::operator TXScopeObj<_Ty>*(); }
 
-		TXScopeNotNullPointer<_Ty>* operator&() { return this; }
-		const TXScopeNotNullPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TXScopeFixedPointer<_Ty>;
 	};
@@ -321,8 +318,7 @@ namespace mse {
 		explicit operator const TXScopeObj<_Ty>*() const { return TXScopeConstPointer<_Ty>::operator const TXScopeObj<_Ty>*(); }
 		TXScopeNotNullConstPointer(typename TXScopeConstPointer<_Ty>::scope_obj_base_const_ptr_t ptr) : TXScopeConstPointer<_Ty>(ptr) {}
 
-		TXScopeNotNullConstPointer<_Ty>* operator&() { return this; }
-		const TXScopeNotNullConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TXScopeFixedConstPointer<_Ty>;
 	};
@@ -356,10 +352,7 @@ namespace mse {
 		}
 #endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 		TXScopeFixedPointer<_Ty>& operator=(const TXScopeFixedPointer<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeFixedPointer<_Ty>* operator&() { return this; }
-		const TXScopeFixedPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TXScopeObj<_Ty>;
 	};
@@ -383,10 +376,7 @@ namespace mse {
 	private:
 		TXScopeFixedConstPointer(typename TXScopeConstPointer<_Ty>::scope_obj_base_const_ptr_t ptr) : TXScopeNotNullConstPointer<_Ty>(ptr) {}
 		TXScopeFixedConstPointer<_Ty>& operator=(const TXScopeFixedConstPointer<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeFixedConstPointer<_Ty>* operator&() { return this; }
-		const TXScopeFixedConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TXScopeObj<_Ty>;
 	};
@@ -497,6 +487,7 @@ namespace mse {
 		TXScopeStrongFixedPointer(const base_class& src_cref) : base_class(src_cref) {}
 		
 		TXScopeStrongFixedPointer & operator=(const TXScopeStrongFixedPointer& _Right_cref) = delete;
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TXScopeStrongFixedConstPointer<_TTargetType, _TLeaseType>;
 	};
@@ -551,10 +542,7 @@ namespace mse {
 		TXScopeItemFixedPointer(_Ty* ptr) : TXScopePointerBase<_Ty>(ptr) {}
 		TXScopeItemFixedPointer(const TXScopePointerBase<_Ty>& ptr) : TXScopePointerBase<_Ty>(ptr) {}
 		TXScopeItemFixedPointer<_Ty>& operator=(const TXScopeItemFixedPointer<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeItemFixedPointer<_Ty>* operator&() { return this; }
-		const TXScopeItemFixedPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		template<class _Ty2, class _TMemberObjectPointer>
 		friend auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
@@ -602,10 +590,7 @@ namespace mse {
 		TXScopeItemFixedConstPointer(const _Ty* ptr) : TXScopeConstPointerBase<_Ty>(ptr) {}
 		TXScopeItemFixedConstPointer(const TXScopeConstPointerBase<_Ty>& ptr) : TXScopeConstPointerBase<_Ty>(ptr) {}
 		TXScopeItemFixedConstPointer<_Ty>& operator=(const TXScopeItemFixedConstPointer<_Ty>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeItemFixedConstPointer<_Ty>* operator&() { return this; }
-		const TXScopeItemFixedConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		template<class _Ty2, class _TMemberObjectPointer>
 		friend auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
@@ -760,12 +745,8 @@ namespace mse {
 		template<class _Ty2>
 		TNonXScopeObj& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
 
-		auto operator&() {
-			return &(static_cast<_TROy&>(*this));
-		}
-		auto operator&() const {
-			return &(static_cast<const _TROy&>(*this));
-		}
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 
@@ -1454,12 +1435,7 @@ namespace mse {
 			template<class = typename std::enable_if<std::is_base_of<XScopeTagBase, _TROy>::value, void>::type>
 			void valid_if_TROy_is_an_xscope_type() const {}
 
-			TXScopeUserDeclaredReturnable* operator&() {
-				return this;
-			}
-			const TXScopeUserDeclaredReturnable* operator&() const {
-				return this;
-			}
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
 	}
 

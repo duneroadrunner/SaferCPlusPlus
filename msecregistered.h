@@ -376,12 +376,7 @@ namespace mse {
 		auto reg_ptr = TWCRegisteredObj<TWCRegisteredNotNullPointer<_Ty>>(mse::registered_new<_Ty>());
 		auto reg_ptr_to_reg_ptr = &reg_ptr;
 		*/
-		TWCRegisteredNotNullPointer<_Ty>* operator&() {
-			return this;
-		}
-		const TWCRegisteredNotNullPointer<_Ty>* operator&() const {
-			return this;
-		}
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TWCRegisteredFixedPointer<_Ty>;
 		template<typename _Ty2>
@@ -422,8 +417,7 @@ namespace mse {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 
-		TWCRegisteredNotNullConstPointer<_Ty>* operator&() { return this; }
-		const TWCRegisteredNotNullConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TWCRegisteredFixedConstPointer<_Ty>;
 		template<typename _Ty2>
@@ -467,12 +461,7 @@ namespace mse {
 		auto reg_ptr = TWCRegisteredObj<TWCRegisteredFixedPointer<_Ty>>(mse::registered_new<_Ty>());
 		auto reg_ptr_to_reg_ptr = &reg_ptr;
 		*/
-		TWCRegisteredFixedPointer<_Ty>* operator&() {
-			return this;
-		}
-		const TWCRegisteredFixedPointer<_Ty>* operator&() const {
-			return this;
-		}
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TWCRegisteredObj<_Ty>;
 	};
@@ -503,8 +492,7 @@ namespace mse {
 		TWCRegisteredFixedConstPointer(const TWCRegisteredObj<_Ty>* ptr) : TWCRegisteredNotNullConstPointer<_Ty>(ptr) {}
 		TWCRegisteredFixedConstPointer<_Ty>& operator=(const TWCRegisteredFixedConstPointer<_Ty>& _Right_cref) = delete;
 
-		TWCRegisteredFixedConstPointer<_Ty>* operator&() { return this; }
-		const TWCRegisteredFixedConstPointer<_Ty>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TWCRegisteredObj<_Ty>;
 	};

@@ -6012,10 +6012,7 @@ namespace mse {
 
 	private:
 		TXScopeStringSection<_TRAIterator, _Traits>& operator=(const TXScopeStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeStringSection<_TRAIterator, _Traits>* operator&() { return this; }
-		const TXScopeStringSection<_TRAIterator, _Traits>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		template<class _Ty2, class _Traits2>
 		friend std::basic_ostream<_Ty2, _Traits2>& operator<<(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const TXScopeStringSection& _Str) {
@@ -6317,10 +6314,7 @@ namespace mse {
 
 	private:
 		TXScopeStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeStringConstSection<_TRAIterator, _Traits>* operator&() { return this; }
-		const TXScopeStringConstSection<_TRAIterator, _Traits>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		template<class _Ty2, class _Traits2>
 		friend std::basic_ostream<_Ty2, _Traits2>& operator<<(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const TXScopeStringConstSection& _Str) {
@@ -6919,10 +6913,7 @@ namespace mse {
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
 		//TXScopeNRPStringSection<_TRAIterator, _Traits>& operator=(const TXScopeNRPStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeNRPStringSection<_TRAIterator, _Traits>* operator&() { return this; }
-		const TXScopeNRPStringSection<_TRAIterator, _Traits>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TXScopeNRPStringSection& _Str) {
 			return _Ostr << static_cast<const base_class&>(_Str);
@@ -7080,10 +7071,7 @@ namespace mse {
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
 		//TXScopeNRPStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeNRPStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
-		void* operator new(size_t size) { return ::operator new(size); }
-
-		TXScopeNRPStringConstSection<_TRAIterator, _Traits>* operator&() { return this; }
-		const TXScopeNRPStringConstSection<_TRAIterator, _Traits>* operator&() const { return this; }
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& operator<<(std::basic_ostream<nonconst_value_type, std::char_traits<nonconst_value_type> >& _Ostr, const TXScopeNRPStringConstSection& _Str) {
 			return _Ostr << static_cast<const base_class&>(_Str);
