@@ -118,11 +118,8 @@ Tested with msvc2017(v15.7.4), msvc2015, g++7.3 & 5.4 and clang++6.0 & 3.8 (as o
     5. [mstd::string_view](#string_view)
     6. [nrp_string_view](#nrp_string_view)
 21. [optional](#optional-xscope_optional)
-22. [Algorithms](#algorithms)
-    1. [for_each()](#for_each)
-    2. [find_if()](#find_if)
-23. [Practical limitations](#practical-limitations)
-24. [Questions and comments](#questions-and-comments)
+22. [Practical limitations](#practical-limitations)
+23. [Questions and comments](#questions-and-comments)
 
 
 ### Use cases
@@ -661,7 +658,7 @@ Scope pointers generally satisfy the restrictions the lifetime checker would imp
 
 Indeed, unlike other pointers in this library, the safety of scope pointers is not fully enforced at compile-time currently, so if even a partially functioning lifetime checker is available, you'd probably want to use it on your code to augment scope pointers' existing compile-time safety features. 
 
-In lieu of full compile-time enforcement, run-time checking is available to ensure safety. Run-time checking in debug mode is enabled by defining the `MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED` preprocessor symbol. Additionally defining `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` will enable it in non-debug modes as well. 
+In lieu of full compile-time enforcement, run-time checking is used in debug builds to catch any unsafe misuses of scope pointers. Defining the `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol will enable run-time checking in non-debug builds as well. 
 
 Scope pointers usually point to scope objects. Scope objects are objects that live to the end of the scope in which they are declared. You can designate pretty much any type to be a scope object type by wrapping it in the `mse::TXScopeObj<>` (transparent) wrapper template. As with registered objects, this wrapper does not support some types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#primitives) that can act as base classes. 
 
@@ -2651,16 +2648,14 @@ usage example:
             
             mse::TXScopeObj<mse::us::msearray<int, 3>> array1_scpobj = mse::us::msearray<int, 3>{ 1, 2, 3 };
             
-            auto scp_ss_iter1 = mse::make_xscope_iterator(&array1_scpobj);
-            scp_ss_iter1.set_to_beginning();
-            auto scp_ss_iter2 = mse::make_xscope_iterator(&array1_scpobj);
-            scp_ss_iter2.set_to_end_marker();
+            auto scp_ss_iter1 = mse::make_xscope_begin_iterator(&array1_scpobj);
+            auto scp_ss_iter2 = mse::make_xscope_end_iterator(&array1_scpobj);
             
             std::sort(scp_ss_iter1, scp_ss_iter2);
             
-            auto scp_ss_citer3 = mse::make_xscope_const_iterator(&array1_scpobj);
+            auto scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&array1_scpobj);
             scp_ss_citer3 = scp_ss_iter1;
-            scp_ss_citer3 = array1_scpobj.ss_cbegin();
+            scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&array1_scpobj);
             scp_ss_citer3 += 2;
             auto res1 = *scp_ss_citer3;
             auto res2 = scp_ss_citer3[0];
@@ -2675,7 +2670,7 @@ usage example:
             };
             mse::TXScopeObj<CContainer1> container1_scpobj;
             auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
-            auto scp_ss_citer4 = mse::make_xscope_iterator(container1_m_array_scpptr);
+            auto scp_ss_citer4 = mse::make_xscope_begin_iterator(container1_m_array_scpptr);
             scp_ss_citer4++;
             auto res3 = *scp_ss_citer4;
         }
@@ -2701,16 +2696,14 @@ usage example:
         mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
         
         /* Here we're obtaining a scope iterator to the array. */
-        auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
-        scp_array_iter1 = array1_scpobj.begin();
-        auto scp_array_iter2 = mse::mstd::make_xscope_iterator(&array1_scpobj);
-        scp_array_iter2 = array1_scpobj.end();
+        auto scp_array_iter1 = mse::mstd::make_xscope_begin_iterator(&array1_scpobj);
+        auto scp_array_iter2 = mse::mstd::make_xscope_end_iterator(&array1_scpobj);
         
         std::sort(scp_array_iter1, scp_array_iter2);
         
-        auto scp_array_citer3 = mse::mstd::make_xscope_const_iterator(&array1_scpobj);
+        auto scp_array_citer3 = mse::mstd::make_xscope_begin_const_iterator(&array1_scpobj);
         scp_array_citer3 = scp_array_iter1;
-        scp_array_citer3 = array1_scpobj.cbegin();
+        scp_array_citer3 = mse::mstd::make_xscope_begin_const_iterator(&array1_scpobj);
         scp_array_citer3 += 2;
         auto res1 = *scp_array_citer3;
         auto res2 = scp_array_citer3[0];
@@ -2724,7 +2717,7 @@ usage example:
         };
         mse::TXScopeObj<CContainer1> container1_scpobj;
         auto container1_m_array_scpptr = mse::mstd::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
-        auto scp_iter4 = mse::mstd::make_xscope_iterator(container1_m_array_scpptr);
+        auto scp_iter4 = mse::mstd::make_xscope_begin_iterator(container1_m_array_scpptr);
         scp_iter4++;
         auto res3 = *scp_iter4;
     }
@@ -2745,8 +2738,7 @@ usage example:
         mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
         
         /* Here we're obtaining a scope iterator to the array. */
-        auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
-        scp_array_iter1 = array1_scpobj.begin();
+        auto scp_array_iter1 = mse::mstd::make_xscope_begin_iterator(&array1_scpobj);
         
         /* You can also obtain a corresponding scope pointer from a scope iterator. */
         auto scp_ptr1 = mse::mstd::xscope_pointer_to_array_element<int, 3>(scp_array_iter1);
@@ -2921,83 +2913,6 @@ usage example:
 ### optional, xscope_optional
 
 `mse::mstd::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScopeObj<mse::mstd::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
-
-### Algorithms
-
-The library's safe iterators work just fine with the standard library algorithms. But in many cases, performance could theoretically be improved with tailored implementations. Unfortunately the the standard library algorithms can't really be effectively specialized as function template specializations don't participate in overload resolution in C++. So instead we'll provide compatible versions of some of standard algorithm template functions in the `mse` namespace that may be more optimized for the library's safe iterators. Although compiler optimizers may not always leave that much room for further optimization anyway.
-
-#### for_each()
-
-usage example:
-
-```cpp
-    #include "msealgorithm.h"
-    #include "msemstdarray.h"
-    #include "msemsearray.h"
-    #include <array>
-    
-    void main(int argc, char* argv[]) {
-    
-        mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na1 = mse::nii_array<int, 3>{ 1, 2, 3 };
-        mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na2 = mse::nii_array<int, 3>{ 1, 2, 3 };
-        auto xscope_na1_begin_citer = mse::make_xscope_begin_const_iterator(&xscope_na1);
-        auto xscope_na1_end_citer = mse::make_xscope_end_const_iterator(&xscope_na1);
-        auto xscope_na2_begin_iter = mse::make_xscope_begin_iterator(&xscope_na2);
-        auto xscope_na2_end_iter = mse::make_xscope_end_iterator(&xscope_na2);
-
-        std::array<int, 3> sa1{1, 2, 3 };
-        mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
-
-        {
-            /*  mse::for_each() is intended to be the same as std:::for_each() but with performance optimizations for some
-            of the library's safe iterators. */
-            mse::for_each(xscope_na1_begin_citer, xscope_na1_end_citer, [](int x) { std::cout << x << std::endl; });
-
-            mse::for_each(sa1.begin(), sa1.end(), [](int x) { std::cout << x << std::endl; });
-            mse::for_each(ma1.begin(), ma1.end(), [](int x) { std::cout << x << std::endl; });
-
-            /* This (non-standard) variant of for_each() for random access containers bypasses the use of iterators. */
-            mse::xscope_ra_const_for_each(&xscope_na1, [](int x) { std::cout << x << std::endl; });
-        }
-    }
-```
-
-#### find_if()
-
-usage example:
-
-```cpp
-    #include "msealgorithm.h"
-    #include "msemstdarray.h"
-    #include "msemsearray.h"
-    #include <array>
-    
-    void main(int argc, char* argv[]) {
-    
-        mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na1 = mse::nii_array<int, 3>{ 1, 2, 3 };
-        auto xscope_na1_begin_citer = mse::make_xscope_begin_const_iterator(&xscope_na1);
-        auto xscope_na1_end_citer = mse::make_xscope_end_const_iterator(&xscope_na1);
-
-        std::array<int, 3> sa1{1, 2, 3 };
-        mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
-
-        {
-            /*  mse::find_if() is intended to be the same as std:::find_if() but with performance optimizations for some
-            of the library's safe iterators. */
-            auto found_citer1 = mse::find_if(xscope_na1_begin_citer, xscope_na1_end_citer, [](int x) { return 2 == x; });
-            auto res1 = *found_citer1;
-
-            auto found_citer2 = mse::find_if(sa1.cbegin(), sa1.cend(), [](int x) { return 2 == x; });
-            auto found_citer3 = mse::find_if(ma1.cbegin(), ma1.cend(), [](int x) { return 2 == x; });
-
-            /* These (non-standard) variants of find_if() for random access containers bypass the use of iterators. */
-            auto xscope_optional_xscpptr4 = mse::xscope_ra_const_find_if(&xscope_na1, [](int x) { return 2 == x; });
-            auto res4 = xscope_optional_xscpptr4.value();
-            auto xscope_pointer5 = mse::xscope_ra_const_find_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
-            auto res5 = *xscope_pointer5;
-        }
-    }
-```
 
 ### Practical limitations
 
