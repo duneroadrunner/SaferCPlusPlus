@@ -220,16 +220,14 @@ int main(int argc, char* argv[])
 		mse::TXScopeObj<mse::mstd::vector<int>> vector1_scpobj = mse::mstd::vector<int>{ 1, 2, 3 };
 
 		/* Here we're obtaining a scope iterator to the vector. */
-		auto scp_iter1 = mse::mstd::make_xscope_iterator(&vector1_scpobj);
-		scp_iter1 = vector1_scpobj.begin();
-		auto scp_iter2 = mse::mstd::make_xscope_iterator(&vector1_scpobj);
-		scp_iter2 = vector1_scpobj.end();
+		auto scp_iter1 = mse::mstd::make_xscope_begin_iterator(&vector1_scpobj);
+		auto scp_iter2 = mse::mstd::make_xscope_end_iterator(&vector1_scpobj);
 
 		std::sort(scp_iter1, scp_iter2);
 
-		auto scp_citer3 = mse::mstd::make_xscope_const_iterator(&vector1_scpobj);
+		auto scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
 		scp_citer3 = scp_iter1;
-		scp_citer3 = vector1_scpobj.cbegin();
+		scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
 		scp_citer3 += 2;
 		auto res1 = *scp_citer3;
 		auto res2 = scp_citer3[0];
@@ -242,8 +240,7 @@ int main(int argc, char* argv[])
 		};
 		mse::TXScopeObj<CContainer1> container1_scpobj;
 		auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_vector);
-		auto scp_citer4 = mse::mstd::make_xscope_iterator(container1_m_vector_scpptr);
-		scp_citer4 = (*container1_m_vector_scpptr).begin();
+		auto scp_citer4 = mse::mstd::make_xscope_begin_iterator(container1_m_vector_scpptr);
 		scp_citer4++;
 		auto res3 = *scp_citer4;
 
@@ -333,16 +330,14 @@ int main(int argc, char* argv[])
 
 			mse::TXScopeObj<mse::us::msevector<int>> vector1_scpobj = mse::us::msevector<int>{ 1, 2, 3 };
 
-			auto scp_ss_iter1 = mse::make_xscope_iterator(&vector1_scpobj);
-			scp_ss_iter1.set_to_beginning();
-			auto scp_ss_iter2 = mse::make_xscope_iterator(&vector1_scpobj);
-			scp_ss_iter2.set_to_end_marker();
+			auto scp_ss_iter1 = mse::make_xscope_begin_iterator(&vector1_scpobj);
+			auto scp_ss_iter2 = mse::make_xscope_end_iterator(&vector1_scpobj);
 
 			std::sort(scp_ss_iter1, scp_ss_iter2);
 
-			auto scp_ss_citer3 = mse::make_xscope_const_iterator(&vector1_scpobj);
+			auto scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
 			scp_ss_citer3 = scp_ss_iter1;
-			scp_ss_citer3 = vector1_scpobj.ss_cbegin();
+			scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
 			scp_ss_citer3 += 2;
 			auto res1 = *scp_ss_citer3;
 			auto res2 = scp_ss_citer3[0];
@@ -356,7 +351,7 @@ int main(int argc, char* argv[])
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
 			auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_vector);
-			auto scp_ss_citer4 = mse::make_xscope_iterator(container1_m_vector_scpptr);
+			auto scp_ss_citer4 = mse::make_xscope_begin_iterator(container1_m_vector_scpptr);
 			scp_ss_citer4++;
 			auto res3 = *scp_ss_citer4;
 
@@ -430,19 +425,11 @@ int main(int argc, char* argv[])
 			auto scp_array_iter1 = mse::mstd::make_xscope_begin_iterator(&array1_scpobj);
 			auto scp_array_iter2 = mse::mstd::make_xscope_end_iterator(&array1_scpobj);
 
-			/*
-			auto scp_array_iter1 = mse::mstd::make_xscope_iterator(&array1_scpobj);
-			scp_array_iter1 = array1_scpobj.begin();
-			auto scp_array_iter2 = mse::mstd::make_xscope_iterator(&array1_scpobj);
-			scp_array_iter2 = array1_scpobj.end();
-			*/
-
 			std::sort(scp_array_iter1, scp_array_iter2);
 
 			auto scp_array_citer3 = mse::mstd::make_xscope_begin_const_iterator(&array1_scpobj);
 			scp_array_citer3 = scp_array_iter1;
 			scp_array_citer3 = mse::mstd::make_xscope_begin_const_iterator(&array1_scpobj);
-			//scp_array_citer3 = array1_scpobj.cbegin();
 			scp_array_citer3 += 2;
 			auto res1 = *scp_array_citer3;
 			auto res2 = scp_array_citer3[0];
@@ -457,7 +444,6 @@ int main(int argc, char* argv[])
 			mse::TXScopeObj<CContainer1> container1_scpobj;
 			auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_array);
 			auto scp_iter4 = mse::mstd::make_xscope_begin_iterator(container1_m_array_scpptr);
-			//scp_iter4 = (*container1_m_array_scpptr).begin();
 			scp_iter4++;
 			auto res3 = *scp_iter4;
 
@@ -515,14 +501,12 @@ int main(int argc, char* argv[])
 
 			mse::TXScopeObj<mse::us::msearray<int, 3>> array1_scpobj = mse::us::msearray<int, 3>{ 1, 2, 3 };
 
-			auto scp_ss_iter1 = mse::make_xscope_iterator(&array1_scpobj);
-			scp_ss_iter1.set_to_beginning();
-			auto scp_ss_iter2 = mse::make_xscope_iterator(&array1_scpobj);
-			scp_ss_iter2.set_to_end_marker();
+			auto scp_ss_iter1 = mse::make_xscope_begin_iterator(&array1_scpobj);
+			auto scp_ss_iter2 = mse::make_xscope_end_iterator(&array1_scpobj);
 
 			std::sort(scp_ss_iter1, scp_ss_iter2);
 
-			auto scp_ss_citer3 = mse::make_xscope_const_iterator(&array1_scpobj);
+			auto scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&array1_scpobj);
 			scp_ss_citer3 = scp_ss_iter1;
 			scp_ss_citer3 = array1_scpobj.ss_cbegin();
 			scp_ss_citer3 += 2;
@@ -538,7 +522,7 @@ int main(int argc, char* argv[])
 			};
 			mse::TXScopeObj<CContainer1> container1_scpobj;
 			auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_array);
-			auto scp_ss_citer4 = mse::make_xscope_iterator(container1_m_array_scpptr);
+			auto scp_ss_citer4 = mse::make_xscope_begin_iterator(container1_m_array_scpptr);
 			scp_ss_citer4++;
 			auto res3 = *scp_ss_citer4;
 

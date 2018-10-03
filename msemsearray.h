@@ -1997,19 +1997,21 @@ namespace mse {
 		/* find_if() */
 
 		template<class _Pr, class _Ty, size_t _Size, class _TStateMutex>
-		class c_find_if<Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>, _Pr> {
+		class c_ptr_find_if<Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>, _Pr> {
 		public:
 			typedef Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> _InIt;
+			typedef mse::TXScopeItemFixedConstPointer<typename std::remove_reference<decltype(*std::declval<_InIt>())>::type> item_pointer_t;
 			typedef decltype(std::find_if(std::declval<_InIt>(), std::declval<_InIt>(), std::declval<_Pr>())) result_type;
 			result_type result;
-			c_find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred)
+			c_ptr_find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred)
 				: result(eval(_First, _Last, _Pred)) {}
 		private:
 			auto eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
+				auto pred2 = [&_Pred](const auto& item_cref) { return _Pred(mse::us::unsafe_make_xscope_const_pointer_to(item_cref)); };
 				auto raw_pair = us::iterator_pair_to_raw_pointers_checked(_First, _Last);
 				/* If (_Last <= _First) the returned raw pointers will both have nullptr value. The C++ spec suggests this'll
 				work just fine. Apparently. */
-				auto raw_result = std::find_if(raw_pair.first, raw_pair.second, _Pred);
+				auto raw_result = std::find_if(raw_pair.first, raw_pair.second, pred2);
 				return _First + (raw_result - raw_pair.first);
 			}
 		};
@@ -2083,19 +2085,22 @@ namespace mse {
 		/* for_each() */
 
 		template<class _Fn, class _Ty, size_t _Size, class _TStateMutex>
-		class c_for_each<Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>, _Fn> {
+		class c_ptr_for_each<Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>, _Fn> {
 		public:
 			typedef Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> _InIt;
+			typedef mse::TXScopeItemFixedConstPointer<typename std::remove_reference<decltype(*std::declval<_InIt>())>::type> item_pointer_t;
 			typedef decltype(std::for_each(std::declval<_InIt>(), std::declval<_InIt>(), std::declval<_Fn>())) result_type;
 			result_type result;
-			c_for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func)
+			c_ptr_for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func)
 				: result(eval(_First, _Last, _Func)) {}
 		private:
 			auto eval(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
+				auto func2 = [&_Func](const auto& item_cref) { return _Func(mse::us::unsafe_make_xscope_const_pointer_to(item_cref)); };
 				auto raw_pair = us::iterator_pair_to_raw_pointers_checked(_First, _Last);
 				/* If (_Last <= _First) the returned raw pointers will both have nullptr value. The C++ spec suggests this'll
 				work just fine. Apparently. */
-				return std::for_each(raw_pair.first, raw_pair.second, _Func);
+				std::for_each(raw_pair.first, raw_pair.second, func2);
+				return _Func;
 			}
 		};
 

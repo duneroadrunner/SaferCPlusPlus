@@ -117,18 +117,43 @@ namespace mse {
 	/* find_if() */
 
 	namespace impl {
+		template<class _InIt, class _Pr/* = decltype([](_InIt) { return true; })*/>
+		class c_ptr_find_if {
+		public:
+			typedef _InIt item_pointer_t;
+			typedef _InIt result_type;
+			result_type result;
+			c_ptr_find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred) : result(eval(_First, _Last, _Pred)) {}
+		private:
+			static result_type eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
+				auto current = _First;
+				for (; current != _Last; ++current) {
+					if (_Pred(current)) {
+						break;
+					}
+				}
+				return current;
+			}
+		};
+
 		template<class _InIt, class _Pr>
 		class c_find_if {
 		public:
-			typedef decltype(std::find_if(std::declval<_InIt>(), std::declval<_InIt>(), std::declval<_Pr>())) result_type;
+			typedef _InIt result_type;
 			result_type result;
-			c_find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred) : result(std::find_if(_First, _Last, _Pred)) {}
+			c_find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred) : result(eval(_First, _Last, _Pred)) {}
+		private:
+			auto eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
+				auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+				typedef c_ptr_find_if<_InIt, decltype(pred2)> c_ptr_find_if_t;
+				return c_ptr_find_if_t(_First, _Last, pred2).result;
+			}
 		};
 
 		template<class _Container, class _Pr>
 		class xscope_c_ra_const_find_if {
 		public:
-			typedef typename std::remove_reference<decltype(std::declval<const _Container>()[0])>::type element_t;
+			typedef typename std::remove_reference<decltype(*mse::make_xscope_begin_const_iterator(std::declval<const _Container>()))>::type element_t;
 			typedef mse::xscope_optional<TXScopeItemFixedConstPointer<element_t> > result_type;
 			result_type result;
 			xscope_c_ra_const_find_if(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Pr _Pred)
@@ -216,6 +241,11 @@ namespace mse {
 		};
 	}
 	template<class _InIt, class _Pr>
+	inline _InIt ptr_find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
+		return impl::c_ptr_find_if<_InIt, _Pr>(_First, _Last, _Pred).result;
+	}
+
+	template<class _InIt, class _Pr>
 	inline _InIt find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
 		return impl::c_find_if<_InIt, _Pr>(_First, _Last, _Pred).result;
 	}
@@ -234,16 +264,45 @@ namespace mse {
 		return impl::xscope_c_ra_const_find_element_known_to_be_present_adapter<_Container, _Pr>(_XscpPtr, _Pred).result;
 	}
 
+	//template<class _XScopeContainerPointer, class _Pr>
+	//inline auto xscope_ra_const_find_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred)
+
+	//template<class _XScopeContainerPointer, class _Pr>
+	//inline auto xscope_ra_const_find_element_known_to_be_present(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred)
 
 	/* for_each() */
 
 	namespace impl {
+		template<class _InIt, class _Fn/* = decltype([](_InIt) {})*/>
+		class c_ptr_for_each {
+		public:
+			typedef _InIt item_pointer_t;
+			typedef _Fn result_type;
+			result_type result;
+			c_ptr_for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func) : result(eval(_First, _Last, _Func)) {}
+		private:
+			static result_type eval(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
+				auto current = _First;
+				for (; current != _Last; ++current) {
+					_Func(current);
+				}
+				return (_Func);
+			}
+		};
+
 		template<class _InIt, class _Fn>
 		class c_for_each {
 		public:
-			typedef decltype(std::for_each(std::declval<_InIt>(), std::declval<_InIt>(), std::declval<_Fn>())) result_type;
+			typedef _Fn result_type;
 			result_type result;
-			c_for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func) : result(std::for_each(_First, _Last, _Func)) {}
+			c_for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func) : result(eval(_First, _Last, _Func)) {}
+		private:
+			auto eval(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
+				auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
+				typedef c_ptr_for_each<_InIt, decltype(func2)> c_ptr_for_each_t;
+				c_ptr_for_each_t(_First, _Last, func2);
+				return _Func;
+			}
 		};
 
 		template<class _Container, class _Fn>
@@ -280,6 +339,11 @@ namespace mse {
 #endif //!MSE_SCOPEPOINTER_DISABLED
 		};
 	}
+	template<class _InIt, class _Fn>
+	inline auto ptr_for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
+		return impl::c_ptr_for_each<_InIt, _Fn>(_First, _Last, _Func).result;
+	}
+
 	template<class _InIt, class _Fn>
 	inline auto for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
 		return impl::c_for_each<_InIt, _Fn>(_First, _Last, _Func).result;

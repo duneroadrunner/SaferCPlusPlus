@@ -695,7 +695,7 @@ void msetl_example2() {
 
 		std::string str3 = "some text";
 		mse::TXScopeObj<mse::nii_string> xscp_nii_str3 = "some text";
-		auto nii_str3_xscpiter1 = mse::make_xscope_iterator(&xscp_nii_str3);
+		auto nii_str3_xscpiter1 = mse::make_xscope_begin_iterator(&xscp_nii_str3);
 		nii_str2.copy(nii_str3_xscpiter1, 5);
 
 		mse::TRegisteredObj<mse::nii_string> reg_nii_str3 = "some text";
@@ -757,7 +757,7 @@ void msetl_example2() {
 		/* The (run-time overhead free) scope (and const) versions. */
 		typedef mse::TXScopeObj< mse::nii_string > xscope_nii_string_t;
 		xscope_nii_string_t xscp_nstring1("some text");
-		auto xscp_citer1 = mse::make_xscope_const_iterator(&xscp_nstring1);
+		auto xscp_citer1 = mse::make_xscope_begin_const_iterator(&xscp_nstring1);
 		auto xscp_string_section1 = mse::make_xscope_string_const_section(xscp_citer1 + 1, 7);
 		auto xscp_string_section2 = xscp_string_section1.xscope_substr(4, 3);
 		assert(xscp_string_section2.front() == 't');
@@ -1016,6 +1016,8 @@ void msetl_example2() {
 			auto res4 = xscope_optional_xscpptr4.value();
 			auto xscope_pointer5 = mse::xscope_ra_const_find_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
 			auto res5 = *xscope_pointer5;
+		
+			auto res6 = mse::ptr_find_if(sa1.cbegin(), sa1.cend(), [](auto ptr) { return 2 == *ptr; });
 		}
 	}
 
