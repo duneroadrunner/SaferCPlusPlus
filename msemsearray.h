@@ -2017,7 +2017,7 @@ namespace mse {
 		};
 
 		template<class _Pr, class _Ty, size_t _Size, class _TStateMutex>
-		class xscope_c_ra_const_find_if<nii_array<_Ty, _Size, _TStateMutex>, _Pr> {
+		class xscope_c_range_find_if<nii_array<_Ty, _Size, _TStateMutex>, _Pr> {
 		public:
 			typedef nii_array<_Ty, _Size, _TStateMutex> _Container;
 			typedef typename std::remove_reference<decltype(std::declval<const _Container>()[0])>::type element_t;
@@ -2025,7 +2025,7 @@ namespace mse {
 			result_type result;
 
 			typedef TXScopeItemFixedConstPointer<nii_array<_Ty, _Size, _TStateMutex> > container_pointer_t;
-			xscope_c_ra_const_find_if(const container_pointer_t& _XscpPtr, _Pr _Pred)
+			xscope_c_range_find_if(const container_pointer_t& _XscpPtr, _Pr _Pred)
 				: result(eval(_XscpPtr, _Pred)) {}
 		private:
 			result_type eval(const container_pointer_t& _XscpPtr, _Pr _Pred) {
@@ -2050,7 +2050,7 @@ namespace mse {
 		};
 
 		template<class _Pr, class _Ty, size_t _Size, class _TStateMutex>
-		class xscope_c_ra_const_find_element_known_to_be_present<nii_array<_Ty, _Size, _TStateMutex>, _Pr> {
+		class xscope_c_range_find_element_known_to_be_present<nii_array<_Ty, _Size, _TStateMutex>, _Pr> {
 		public:
 			typedef nii_array<_Ty, _Size, _TStateMutex> _Container;
 			typedef typename std::remove_reference<decltype(std::declval<const _Container>()[0])>::type element_t;
@@ -2058,7 +2058,7 @@ namespace mse {
 			result_type result;
 
 			typedef TXScopeItemFixedConstPointer<_Container> container_pointer_t;
-			xscope_c_ra_const_find_element_known_to_be_present(const container_pointer_t& _XscpPtr, _Pr _Pred)
+			xscope_c_range_find_element_known_to_be_present(const container_pointer_t& _XscpPtr, _Pr _Pred)
 				: result(eval(_XscpPtr, _Pred)) {}
 		private:
 			result_type eval(const container_pointer_t& _XscpPtr, _Pr _Pred) {
@@ -2066,14 +2066,14 @@ namespace mse {
 				element in the original container, not an (ephemeral) copy. */
 				const auto& array1 = (*_XscpPtr);
 				if (0 >= array1.size()) {
-					MSE_THROW(std::logic_error("element not found - xscope_c_ra_const_find_element_known_to_be_present"));
+					MSE_THROW(std::logic_error("element not found - xscope_c_range_find_element_known_to_be_present"));
 				}
 				else {
 					auto raw_begin_cit = std::addressof(array1[0]);
 					auto raw_end_cit = raw_begin_cit + msear_as_a_size_t(array1.size());
 					auto raw_result_cit = std::find_if(raw_begin_cit, raw_end_cit, _Pred);
 					if (raw_end_cit == raw_result_cit) {
-						MSE_THROW(std::logic_error("element not found - xscope_c_ra_const_find_element_known_to_be_present"));
+						MSE_THROW(std::logic_error("element not found - xscope_c_range_find_element_known_to_be_present"));
 					}
 					else {
 						return mse::us::unsafe_make_xscope_const_pointer_to(*raw_result_cit);
@@ -2105,7 +2105,7 @@ namespace mse {
 		};
 
 		template<class _Fn, class _Ty, size_t _Size, class _TStateMutex>
-		class xscope_c_ra_const_for_each<nii_array<_Ty, _Size, _TStateMutex>, _Fn> {
+		class xscope_c_range_for_each<nii_array<_Ty, _Size, _TStateMutex>, _Fn> {
 		public:
 			typedef nii_array<_Ty, _Size, _TStateMutex> _Container;
 			typedef typename std::remove_reference<decltype(std::declval<const _Container>()[0])>::type element_t;
@@ -2113,7 +2113,7 @@ namespace mse {
 			result_type result;
 
 			typedef TXScopeItemFixedConstPointer<nii_array<_Ty, _Size, _TStateMutex> > container_pointer_t;
-			xscope_c_ra_const_for_each(const container_pointer_t& _XscpPtr, _Fn _Func)
+			xscope_c_range_for_each(const container_pointer_t& _XscpPtr, _Fn _Func)
 				: result(eval(_XscpPtr, _Func)) {}
 		private:
 			result_type eval(const container_pointer_t& _XscpPtr, _Fn _Func) {

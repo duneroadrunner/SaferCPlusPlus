@@ -145,18 +145,17 @@ namespace mse {
 		private:
 			auto eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
 				auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
-				typedef c_ptr_find_if<_InIt, decltype(pred2)> c_ptr_find_if_t;
-				return c_ptr_find_if_t(_First, _Last, pred2).result;
+				return c_ptr_find_if<_InIt, decltype(pred2)>(_First, _Last, pred2).result;
 			}
 		};
 
 		template<class _Container, class _Pr>
-		class xscope_c_ra_const_find_if {
+		class xscope_c_range_ptr_find_if {
 		public:
 			typedef typename std::remove_reference<decltype(*mse::make_xscope_begin_const_iterator(std::declval<const _Container>()))>::type element_t;
 			typedef mse::xscope_optional<TXScopeItemFixedConstPointer<element_t> > result_type;
 			result_type result;
-			xscope_c_ra_const_find_if(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Pr _Pred)
+			xscope_c_range_ptr_find_if(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Pr _Pred)
 				: result(eval(_XscpPtr, _Pred)) {}
 		private:
 			result_type eval(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Pr _Pred) {
@@ -164,7 +163,7 @@ namespace mse {
 				element in the original container, not an (ephemeral) copy. */
 				auto xscope_begin_cit = mse::make_xscope_begin_const_iterator(_XscpPtr);
 				auto xscope_end_cit = mse::make_xscope_end_const_iterator(_XscpPtr);
-				auto res_cit = std::find_if(xscope_begin_cit, xscope_end_cit, _Pred);
+				auto res_cit = c_ptr_find_if<decltype(xscope_begin_cit), _Pr>(xscope_begin_cit, xscope_end_cit, _Pred).result;
 				if (xscope_end_cit == res_cit) {
 					return result_type{};
 				}
@@ -175,34 +174,71 @@ namespace mse {
 		};
 
 		template<class _Container, class _Pr>
-		class xscope_c_ra_const_find_if_adapter {
+		class xscope_c_range_ptr_find_if_adapter {
 		public:
 			typedef typename std::remove_reference<decltype(std::declval<const _Container>()[0])>::type element_t;
 			typedef mse::xscope_optional<TXScopeItemFixedConstPointer<element_t> > result_type;
 			result_type result;
 
 			typedef TXScopeItemFixedConstPointer<_Container> container_pointer_t;
-			xscope_c_ra_const_find_if_adapter(const container_pointer_t& _XscpPtr, _Pr _Pred)
-				: result(xscope_c_ra_const_find_if<_Container, _Pr>(_XscpPtr, _Pred).result) {}
-			explicit xscope_c_ra_const_find_if_adapter(const TXScopeItemFixedPointer<_Container>& _XscpPtr, _Pr _Pred)
-				: result(xscope_c_ra_const_find_if<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
+			xscope_c_range_ptr_find_if_adapter(const container_pointer_t& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_ptr_find_if<_Container, _Pr>(_XscpPtr, _Pred).result) {}
+			explicit xscope_c_range_ptr_find_if_adapter(const TXScopeItemFixedPointer<_Container>& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_ptr_find_if<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
 #ifndef MSE_SCOPEPOINTER_DISABLED
-			explicit xscope_c_ra_const_find_if_adapter(const TXScopeFixedConstPointer<_Container>& _XscpPtr, _Pr _Pred)
-				: result(xscope_c_ra_const_find_if<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
-			explicit xscope_c_ra_const_find_if_adapter(const TXScopeFixedPointer<_Container>& _XscpPtr, _Pr _Pred)
-				: result(xscope_c_ra_const_find_if<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
+			explicit xscope_c_range_ptr_find_if_adapter(const TXScopeFixedConstPointer<_Container>& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_ptr_find_if<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
+			explicit xscope_c_range_ptr_find_if_adapter(const TXScopeFixedPointer<_Container>& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_ptr_find_if<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 		};
 
 		template<class _Container, class _Pr>
-		class xscope_c_ra_const_find_element_known_to_be_present {
+		class xscope_c_range_find_if {
+		public:
+			typedef typename std::remove_reference<decltype(*mse::make_xscope_begin_const_iterator(std::declval<const _Container>()))>::type element_t;
+			typedef mse::xscope_optional<TXScopeItemFixedConstPointer<element_t> > result_type;
+			result_type result;
+			xscope_c_range_find_if(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Pr _Pred)
+				: result(eval(_XscpPtr, _Pred)) {}
+		private:
+			result_type eval(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Pr _Pred) {
+				/* Note that since we're returning a (wrapped const) reference, we need to be careful that it refers to an
+				element in the original container, not an (ephemeral) copy. */
+				auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+				return xscope_c_range_ptr_find_if<_Container, decltype(pred2)>(_XscpPtr, pred2).result;
+			}
+		};
+
+		template<class _Container, class _Pr>
+		class xscope_c_range_find_if_adapter {
+		public:
+			typedef typename std::remove_reference<decltype(std::declval<const _Container>()[0])>::type element_t;
+			typedef mse::xscope_optional<TXScopeItemFixedConstPointer<element_t> > result_type;
+			result_type result;
+
+			typedef TXScopeItemFixedConstPointer<_Container> container_pointer_t;
+			xscope_c_range_find_if_adapter(const container_pointer_t& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_find_if<_Container, _Pr>(_XscpPtr, _Pred).result) {}
+			explicit xscope_c_range_find_if_adapter(const TXScopeItemFixedPointer<_Container>& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_find_if<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
+#ifndef MSE_SCOPEPOINTER_DISABLED
+			explicit xscope_c_range_find_if_adapter(const TXScopeFixedConstPointer<_Container>& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_find_if<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
+			explicit xscope_c_range_find_if_adapter(const TXScopeFixedPointer<_Container>& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_find_if<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
+#endif //!MSE_SCOPEPOINTER_DISABLED
+		};
+
+		template<class _Container, class _Pr>
+		class xscope_c_range_find_element_known_to_be_present {
 		public:
 			typedef typename std::remove_reference<decltype(std::declval<const _Container>()[0])>::type element_t;
 			typedef TXScopeItemFixedConstPointer<element_t> result_type;
 			result_type result;
 
 			typedef TXScopeItemFixedConstPointer<_Container> container_pointer_t;
-			xscope_c_ra_const_find_element_known_to_be_present(const container_pointer_t& _XscpPtr, _Pr _Pred)
+			xscope_c_range_find_element_known_to_be_present(const container_pointer_t& _XscpPtr, _Pr _Pred)
 				: result(eval(_XscpPtr, _Pred)) {}
 		private:
 			result_type eval(const container_pointer_t& _XscpPtr, _Pr _Pred) {
@@ -212,7 +248,7 @@ namespace mse {
 				auto xscope_end_cit = mse::make_xscope_end_const_iterator(_XscpPtr);
 				auto res_it = std::find_if(xscope_begin_cit, xscope_end_cit, _Pred);
 				if (xscope_end_cit == res_it) {
-					MSE_THROW(std::logic_error("element not found - xscope_c_ra_const_find_element_known_to_be_present"));
+					MSE_THROW(std::logic_error("element not found - xscope_c_range_find_element_known_to_be_present"));
 				}
 				else {
 					return mse::us::unsafe_make_xscope_const_pointer_to(*res_it);
@@ -221,22 +257,22 @@ namespace mse {
 		};
 
 		template<class _Container, class _Pr>
-		class xscope_c_ra_const_find_element_known_to_be_present_adapter {
+		class xscope_c_range_find_element_known_to_be_present_adapter {
 		public:
 			typedef typename std::remove_reference<decltype(std::declval<const _Container>()[0])>::type element_t;
 			typedef TXScopeItemFixedConstPointer<element_t> result_type;
 			result_type result;
 
 			typedef TXScopeItemFixedConstPointer<_Container> container_pointer_t;
-			xscope_c_ra_const_find_element_known_to_be_present_adapter(const container_pointer_t& _XscpPtr, _Pr _Pred)
-				: result(xscope_c_ra_const_find_element_known_to_be_present<_Container, _Pr>(_XscpPtr, _Pred).result) {}
-			explicit xscope_c_ra_const_find_element_known_to_be_present_adapter(const TXScopeItemFixedPointer<_Container>& _XscpPtr, _Pr _Pred)
-				: result(xscope_c_ra_const_find_element_known_to_be_present<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
+			xscope_c_range_find_element_known_to_be_present_adapter(const container_pointer_t& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_find_element_known_to_be_present<_Container, _Pr>(_XscpPtr, _Pred).result) {}
+			explicit xscope_c_range_find_element_known_to_be_present_adapter(const TXScopeItemFixedPointer<_Container>& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_find_element_known_to_be_present<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
 #ifndef MSE_SCOPEPOINTER_DISABLED
-			explicit xscope_c_ra_const_find_element_known_to_be_present_adapter(const TXScopeFixedConstPointer<_Container>& _XscpPtr, _Pr _Pred)
-				: result(xscope_c_ra_const_find_element_known_to_be_present<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
-			explicit xscope_c_ra_const_find_element_known_to_be_present_adapter(const TXScopeFixedPointer<_Container>& _XscpPtr, _Pr _Pred)
-				: result(xscope_c_ra_const_find_element_known_to_be_present<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
+			explicit xscope_c_range_find_element_known_to_be_present_adapter(const TXScopeFixedConstPointer<_Container>& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_find_element_known_to_be_present<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
+			explicit xscope_c_range_find_element_known_to_be_present_adapter(const TXScopeFixedPointer<_Container>& _XscpPtr, _Pr _Pred)
+				: result(xscope_c_range_find_element_known_to_be_present<_Container, _Pr>(container_pointer_t(_XscpPtr), _Pred).result) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 		};
 	}
@@ -252,23 +288,23 @@ namespace mse {
 
 	/* This function returns a (scope) optional that contains a scope pointer to the found element. */
 	template<class _XScopeContainerPointer, class _Pr>
-	inline auto xscope_ra_const_find_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
+	inline auto xscope_range_find_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
 		typedef typename std::remove_reference<decltype(*std::declval<_XScopeContainerPointer>())>::type _Container;
-		return impl::xscope_c_ra_const_find_if_adapter<_Container, _Pr>(_XscpPtr, _Pred).result;
+		return impl::xscope_c_range_find_if_adapter<_Container, _Pr>(_XscpPtr, _Pred).result;
 	}
 
 	/* This function returns a scope pointer to the element. (Or throws an exception if it a suitable element isn't found.) */
 	template<class _XScopeContainerPointer, class _Pr>
-	inline auto xscope_ra_const_find_element_known_to_be_present(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
+	inline auto xscope_range_find_element_known_to_be_present(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
 		typedef typename std::remove_reference<decltype(*std::declval<_XScopeContainerPointer>())>::type _Container;
-		return impl::xscope_c_ra_const_find_element_known_to_be_present_adapter<_Container, _Pr>(_XscpPtr, _Pred).result;
+		return impl::xscope_c_range_find_element_known_to_be_present_adapter<_Container, _Pr>(_XscpPtr, _Pred).result;
 	}
 
-	//template<class _XScopeContainerPointer, class _Pr>
-	//inline auto xscope_ra_const_find_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred)
-
-	//template<class _XScopeContainerPointer, class _Pr>
-	//inline auto xscope_ra_const_find_element_known_to_be_present(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred)
+	/* deprecated alias */
+	template<class _XScopeContainerPointer, class _Pr>
+	inline auto xscope_ra_const_find_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
+		return xscope_range_find_if(_XscpPtr, _Pred);
+	}
 
 	/* for_each() */
 
@@ -299,43 +335,76 @@ namespace mse {
 		private:
 			auto eval(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
 				auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
-				typedef c_ptr_for_each<_InIt, decltype(func2)> c_ptr_for_each_t;
-				c_ptr_for_each_t(_First, _Last, func2);
+				c_ptr_for_each<_InIt, decltype(func2)>(_First, _Last, func2);
 				return _Func;
 			}
 		};
 
 		template<class _Container, class _Fn>
-		class xscope_c_ra_const_for_each {
+		class xscope_c_range_ptr_for_each {
 		public:
 			typedef _Fn result_type;
 			result_type result;
-			xscope_c_ra_const_for_each(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Fn _Func)
+			xscope_c_range_ptr_for_each(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Fn _Func)
 				: result(eval(_XscpPtr, _Func)) {}
 		private:
 			result_type eval(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Fn _Func) {
 				auto xscope_begin_cit = mse::make_xscope_begin_const_iterator(_XscpPtr);
 				auto xscope_end_cit = mse::make_xscope_end_const_iterator(_XscpPtr);
-				return std::for_each(xscope_begin_cit, xscope_end_cit, _Func);
+				return c_ptr_for_each<decltype(xscope_begin_cit), _Fn>(xscope_begin_cit, xscope_end_cit, _Func).result;
 			}
 		};
 
 		template<class _Container, class _Fn>
-		class xscope_c_ra_const_for_each_adapter {
+		class xscope_c_range_ptr_for_each_adapter {
 		public:
 			typedef _Fn result_type;
 			result_type result;
 
 			typedef TXScopeItemFixedConstPointer<_Container> container_pointer_t;
-			xscope_c_ra_const_for_each_adapter(const container_pointer_t& _XscpPtr, _Fn _Func)
-				: result(xscope_c_ra_const_for_each<_Container, _Fn>(_XscpPtr, _Func).result) {}
-			explicit xscope_c_ra_const_for_each_adapter(const TXScopeItemFixedPointer<_Container>& _XscpPtr, _Fn _Func)
-				: result(xscope_c_ra_const_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
+			xscope_c_range_ptr_for_each_adapter(const container_pointer_t& _XscpPtr, _Fn _Func)
+				: result(xscope_c_range_ptr_for_each<_Container, _Fn>(_XscpPtr, _Func).result) {}
+			explicit xscope_c_range_ptr_for_each_adapter(const TXScopeItemFixedPointer<_Container>& _XscpPtr, _Fn _Func)
+				: result(xscope_c_range_ptr_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
 #ifndef MSE_SCOPEPOINTER_DISABLED
-			explicit xscope_c_ra_const_for_each_adapter(const TXScopeFixedConstPointer<_Container>& _XscpPtr, _Fn _Func)
-				: result(xscope_c_ra_const_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
-			explicit xscope_c_ra_const_for_each_adapter(const TXScopeFixedPointer<_Container>& _XscpPtr, _Fn _Func)
-				: result(xscope_c_ra_const_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
+			explicit xscope_c_range_ptr_for_each_adapter(const TXScopeFixedConstPointer<_Container>& _XscpPtr, _Fn _Func)
+				: result(xscope_c_range_ptr_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
+			explicit xscope_c_range_ptr_for_each_adapter(const TXScopeFixedPointer<_Container>& _XscpPtr, _Fn _Func)
+				: result(xscope_c_range_ptr_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
+#endif //!MSE_SCOPEPOINTER_DISABLED
+		};
+
+		template<class _Container, class _Fn>
+		class xscope_c_range_for_each {
+		public:
+			typedef _Fn result_type;
+			result_type result;
+			xscope_c_range_for_each(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Fn _Func)
+				: result(eval(_XscpPtr, _Func)) {}
+		private:
+			result_type eval(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _Fn _Func) {
+				auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
+				xscope_c_range_ptr_for_each<_Container, decltype(func2)>(_XscpPtr, func2);
+				return _Func;
+			}
+		};
+
+		template<class _Container, class _Fn>
+		class xscope_c_range_for_each_adapter {
+		public:
+			typedef _Fn result_type;
+			result_type result;
+
+			typedef TXScopeItemFixedConstPointer<_Container> container_pointer_t;
+			xscope_c_range_for_each_adapter(const container_pointer_t& _XscpPtr, _Fn _Func)
+				: result(xscope_c_range_for_each<_Container, _Fn>(_XscpPtr, _Func).result) {}
+			explicit xscope_c_range_for_each_adapter(const TXScopeItemFixedPointer<_Container>& _XscpPtr, _Fn _Func)
+				: result(xscope_c_range_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
+#ifndef MSE_SCOPEPOINTER_DISABLED
+			explicit xscope_c_range_for_each_adapter(const TXScopeFixedConstPointer<_Container>& _XscpPtr, _Fn _Func)
+				: result(xscope_c_range_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
+			explicit xscope_c_range_for_each_adapter(const TXScopeFixedPointer<_Container>& _XscpPtr, _Fn _Func)
+				: result(xscope_c_range_for_each<_Container, _Fn>(container_pointer_t(_XscpPtr), _Func).result) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 		};
 	}
@@ -350,9 +419,9 @@ namespace mse {
 	}
 
 	template<class _XScopeContainerPointer, class _Fn>
-	inline auto xscope_ra_const_for_each(const _XScopeContainerPointer& _XscpPtr, _Fn _Func) {
+	inline auto xscope_range_for_each(const _XScopeContainerPointer& _XscpPtr, _Fn _Func) {
 		typedef typename std::remove_reference<decltype(*std::declval<_XScopeContainerPointer>())>::type _Container;
-		return impl::xscope_c_ra_const_for_each_adapter<_Container, _Fn>(_XscpPtr, _Func).result;
+		return impl::xscope_c_range_for_each_adapter<_Container, _Fn>(_XscpPtr, _Func).result;
 	}
 
 
@@ -383,37 +452,37 @@ namespace mse {
 			c_equal(const _InIt1& _First1, const _InIt1& _Last1, _InIt2 _First2) : result(m_equal(_First1, _Last1, _First2)) {}
 		};
 
-		template<class _Container, class _InIt2>
-		class xscope_c_ra_const_equal {
+		template<class _Container1, class _InIt2>
+		class xscope_c_range_equal {
 		public:
 			typedef bool result_type;
 			result_type result;
-			xscope_c_ra_const_equal(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _InIt2 _First2)
+			xscope_c_range_equal(const TXScopeItemFixedConstPointer<_Container1>& _XscpPtr, _InIt2 _First2)
 				: result(eval(_XscpPtr, _First2)) {}
 		private:
-			result_type eval(const TXScopeItemFixedConstPointer<_Container>& _XscpPtr, _InIt2 _First2) {
+			result_type eval(const TXScopeItemFixedConstPointer<_Container1>& _XscpPtr, _InIt2 _First2) {
 				auto xscope_begin_cit = mse::make_xscope_begin_const_iterator(_XscpPtr);
 				auto xscope_end_cit = mse::make_xscope_end_const_iterator(_XscpPtr);
 				return m_equal(xscope_begin_cit, xscope_end_cit, _First2);
 			}
 		};
 
-		template<class _Container, class _InIt2>
-		class xscope_c_ra_const_equal_adapter {
+		template<class _Container1, class _InIt2>
+		class xscope_c_range_equal_adapter {
 		public:
 			typedef bool result_type;
 			result_type result;
 
-			typedef TXScopeItemFixedConstPointer<_Container> container_pointer_t;
-			xscope_c_ra_const_equal_adapter(const container_pointer_t& _XscpPtr, _InIt2 _First2)
-				: result(xscope_c_ra_const_equal<_Container, _InIt2>(_XscpPtr, _First2).result) {}
-			explicit xscope_c_ra_const_equal_adapter(const TXScopeItemFixedPointer<_Container>& _XscpPtr, _InIt2 _First2)
-				: result(xscope_c_ra_const_equal<_Container, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
+			typedef TXScopeItemFixedConstPointer<_Container1> container_pointer_t;
+			xscope_c_range_equal_adapter(const container_pointer_t& _XscpPtr, _InIt2 _First2)
+				: result(xscope_c_range_equal<_Container1, _InIt2>(_XscpPtr, _First2).result) {}
+			explicit xscope_c_range_equal_adapter(const TXScopeItemFixedPointer<_Container1>& _XscpPtr, _InIt2 _First2)
+				: result(xscope_c_range_equal<_Container1, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
 #ifndef MSE_SCOPEPOINTER_DISABLED
-			explicit xscope_c_ra_const_equal_adapter(const TXScopeFixedConstPointer<_Container>& _XscpPtr, _InIt2 _First2)
-				: result(xscope_c_ra_const_equal<_Container, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
-			explicit xscope_c_ra_const_equal_adapter(const TXScopeFixedPointer<_Container>& _XscpPtr, _InIt2 _First2)
-				: result(xscope_c_ra_const_equal<_Container, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
+			explicit xscope_c_range_equal_adapter(const TXScopeFixedConstPointer<_Container1>& _XscpPtr, _InIt2 _First2)
+				: result(xscope_c_range_equal<_Container1, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
+			explicit xscope_c_range_equal_adapter(const TXScopeFixedPointer<_Container1>& _XscpPtr, _InIt2 _First2)
+				: result(xscope_c_range_equal<_Container1, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 		};
 	}
@@ -423,9 +492,9 @@ namespace mse {
 	}
 
 	template<class _XScopeContainerPointer, class _InIt2>
-	inline auto xscope_ra_const_equal(const _XScopeContainerPointer& _XscpPtr, _InIt2 _First2) {
-		typedef typename std::remove_reference<decltype(*std::declval<_XScopeContainerPointer>())>::type _Container;
-		return impl::xscope_c_ra_const_equal_adapter<_Container, _InIt2>(_XscpPtr, _First2).result;
+	inline auto xscope_range_equal(const _XScopeContainerPointer& _XscpPtr, _InIt2 _First2) {
+		typedef typename std::remove_reference<decltype(*std::declval<_XScopeContainerPointer>())>::type _Container1;
+		return impl::xscope_c_range_equal_adapter<_Container1, _InIt2>(_XscpPtr, _First2).result;
 	}
 }
 

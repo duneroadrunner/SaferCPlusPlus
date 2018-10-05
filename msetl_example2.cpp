@@ -998,7 +998,7 @@ void msetl_example2() {
 			mse::for_each(ma1.begin(), ma1.end(), [](int x) { std::cout << x << std::endl; });
 
 			/* This (non-standard) variant of for_each() for random access containers bypasses the use of iterators. */
-			mse::xscope_ra_const_for_each(&xscope_na1, [](int x) { std::cout << x << std::endl; });
+			mse::xscope_range_for_each(&xscope_na1, [](int x) { std::cout << x << std::endl; });
 		}
 		{
 			/* find_if() */
@@ -1012,9 +1012,9 @@ void msetl_example2() {
 			auto found_citer3 = mse::find_if(ma1.cbegin(), ma1.cend(), [](int x) { return 2 == x; });
 
 			/* These (non-standard) variants of find_if() for random access containers bypass the use of iterators. */
-			auto xscope_optional_xscpptr4 = mse::xscope_ra_const_find_if(&xscope_na1, [](int x) { return 2 == x; });
+			auto xscope_optional_xscpptr4 = mse::xscope_range_find_if(&xscope_na1, [](int x) { return 2 == x; });
 			auto res4 = xscope_optional_xscpptr4.value();
-			auto xscope_pointer5 = mse::xscope_ra_const_find_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
+			auto xscope_pointer5 = mse::xscope_range_find_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
 			auto res5 = *xscope_pointer5;
 		
 			auto res6 = mse::ptr_find_if(sa1.cbegin(), sa1.cend(), [](auto ptr) { return 2 == *ptr; });
