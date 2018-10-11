@@ -23,8 +23,7 @@ options rather than "#define" directives in the code such as the ones here (for 
 //#define MSE_SCOPEPOINTER_DISABLED
 //#define MSE_NORADPOINTER_DISABLED
 
-/* The following adds run-time checks to scope pointers in debug mode */
-//#define MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_ENABLED
+/* The following adds run-time checks to scope pointers in non-debug mode */
 //#define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED // This adds them to non-debug modes too.
 
 /* The following will result in program termination instead of exceptions being thrown when an invalid memory access is attempted. */

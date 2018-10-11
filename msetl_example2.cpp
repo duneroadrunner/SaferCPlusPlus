@@ -1012,12 +1012,12 @@ void msetl_example2() {
 			auto found_citer3 = mse::find_if(ma1.cbegin(), ma1.cend(), [](int x) { return 2 == x; });
 
 			/* These (non-standard) variants of find_if() for random access containers bypass the use of iterators. */
-			auto xscope_optional_xscpptr4 = mse::xscope_range_find_if(&xscope_na1, [](int x) { return 2 == x; });
+			auto xscope_optional_xscpptr4 = mse::xscope_range_get_ref_if(&xscope_na1, [](int x) { return 2 == x; });
 			auto res4 = xscope_optional_xscpptr4.value();
-			auto xscope_pointer5 = mse::xscope_range_find_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
+			auto xscope_pointer5 = mse::xscope_range_get_ref_to_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
 			auto res5 = *xscope_pointer5;
 		
-			auto res6 = mse::ptr_find_if(sa1.cbegin(), sa1.cend(), [](auto ptr) { return 2 == *ptr; });
+			auto res6 = mse::find_if_ptr(sa1.cbegin(), sa1.cend(), [](auto ptr) { return 2 == *ptr; });
 		}
 	}
 
