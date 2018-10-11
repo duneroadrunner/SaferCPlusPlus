@@ -796,7 +796,7 @@ usage example:
 
 ### xscope_ifptr_to()
 
-Scope pointers cannot (currently) be retargeted after construction. If you need a pointer that will point to multiple different scope objects over its lifespan, you can use a registered pointer. This means that the target objects will also need to be registered objects. If the object is a registered scope object, then the '&' operator will will return a registered pointer. But at some point we're going to need a scope pointer to the base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. 
+Scope pointers cannot (currently) be retargeted after construction. If you need a pointer that will point to multiple different scope objects over its lifespan, you can use a registered pointer. This means that the target objects will also need to be registered objects. If the object is a registered scope object, then the `&` operator will will return a registered pointer. But at some point we're going to need a scope pointer to the base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. 
 
 usage example:
 
