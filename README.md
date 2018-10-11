@@ -271,7 +271,7 @@ usage example:
 Note that using `mse::register_delete()` to delete an object through a base class pointer will result in a failed assert / thrown exception. In such cases use (the not quite as safe) `mse::us::register_delete()` instead.
 
 ### TRegisteredNotNullPointer
-Same as `TRegisteredPointer<>`, but cannot be constructed to a null value. Note that TRegisteredPointer<> does not implicitly convert to TRegisteredNotNullPointer<>. When needed, the conversion can be done with the mse::not_null_from_nullable() function.
+Same as `TRegisteredPointer<>`, but cannot be constructed to a null value. Note that `TRegisteredPointer<>` does not implicitly convert to `TRegisteredNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function.
 
 ### TRegisteredFixedPointer
 Same as `TRegisteredNotNullPointer<>`, but cannot be retargeted after construction (basically a "`const TRegisteredNotNullPointer<>`"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.  
