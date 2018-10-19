@@ -22,123 +22,7 @@
 
 namespace mse {
 
-	/* The declaration of the "make_xscope_iterator()" template functions were moved to here from "msemsearray.h" because
-	they are used by some of the supplementary algorithms. */
-
-#if 0
-	namespace impl {
-		namespace iterator {
-			template<class T, class EqualTo>
-			struct SupportsStdBegin_msealgorithm_impl
-			{
-				template<class U, class V>
-				//static auto test(U*) -> decltype(std::declval<U>().begin() == std::declval<V>().begin(), bool(true));
-				static auto test(U*) -> decltype(std::begin(std::declval<U>()) == std::begin(std::declval<V>()), bool(true));
-				template<typename, typename>
-				static auto test(...)->std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct SupportsStdBegin_msealgorithm : SupportsStdBegin_msealgorithm_impl<
-				typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
-			template<class T, class EqualTo>
-			struct HasOrInheritsStaticSSBeginMethod_msealgorithm_impl
-			{
-				template<class U, class V>
-				static auto test(U*) -> decltype(U::ss_begin(std::declval<U*>()) == V::ss_begin(std::declval<V*>()), bool(true));
-				template<typename, typename>
-				static auto test(...)->std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct HasOrInheritsStaticSSBeginMethod_msealgorithm : HasOrInheritsStaticSSBeginMethod_msealgorithm_impl<
-				typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
-			template<typename T, size_t n>
-			size_t native_array_size_msemsearray(const T(&)[n]) {
-				return n;
-			}
-			template<class T, class EqualTo>
-			struct IsNativeArray_msealgorithm_impl
-			{
-				template<class U, class V>
-				static auto test(U*) -> decltype(native_array_size_msemsearray(std::declval<U>()) == native_array_size_msemsearray(std::declval<V>()), bool(true));
-				template<typename, typename>
-				static auto test(...)->std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct IsNativeArray_msealgorithm : IsNativeArray_msealgorithm_impl<
-				typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
-			template<class T, class EqualTo>
-			struct IsDereferenceable_msealgorithm_impl
-			{
-				template<class U, class V>
-				static auto test(U*) -> decltype((*std::declval<U>()) == (*std::declval<V>()), bool(true));
-				template<typename, typename>
-				static auto test(...)->std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct IsDereferenceable_msealgorithm : IsDereferenceable_msealgorithm_impl<
-				typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
-			template<typename _Ty, class = typename std::enable_if<(IsDereferenceable_msealgorithm<_Ty>::value), void>::type>
-			void T_valid_if_is_dereferenceable() {}
-
-
-			template <typename _TRAPointer>
-			auto begin_iter_from_ptr_helper2(std::true_type, const _TRAPointer& ptr) {
-				/* ptr seems to be an xscope pointer.*/
-				return mse::make_xscope_random_access_iterator(ptr, 0);
-			}
-			template <typename _TRAPointer>
-			auto begin_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
-				return mse::make_random_access_iterator(ptr, 0);
-			}
-			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param3(std::false_type, const _TRALoneParam& ptr) {
-				/* The parameter doesn't seem to be a container with a "begin()" member function or a native array. Here we'll assume
-				that it is a pointer to a supported container. If you get a compile error here, then construction from the given
-				parameter type isn't supported. */
-				mse::T_valid_if_is_dereferenceable<_TRALoneParam>();
-				return begin_iter_from_ptr_helper2(typename std::is_base_of<mse::XScopeTagBase, _TRALoneParam>::type(), ptr);
-			}
-			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param3(std::true_type, const _TRALoneParam& ra_container) {
-				/* The parameter seems to be a container with a "begin()" member function. So we'll use that function to obtain the
-				iterator we need. */
-				return std::begin(ra_container);
-			}
-			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
-				/* The parameter is not a "random access section". */
-				return begin_iter_from_lone_param3(typename SupportsStdBegin_msealgorithm<_TRALoneParam>::type(), param);
-			}
-			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
-				/* Apparently the lone parameter is a native array. */
-				return native_array;
-			}
-			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
-				/* The parameter doesn't seem to be a container with a "begin()" member function. */
-				return begin_iter_from_lone_param2(typename mse::IsNativeArray_msealgorithm<_TRALoneParam>::type(), ptr);
-			}
-			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
-				/* The parameter is another "random access section". */
-				return ra_section.m_start_iter;
-			}
-		}
-	}
-#endif // 0
+	/* Forward declarations of the "make_xscope_iterator()" template functions. */
 
 	template<class _TArray> auto make_xscope_const_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr);
 	template<class _TArray> auto make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr);
@@ -183,6 +67,22 @@ namespace mse {
 			}
 		}
 
+		template<class _InIt>
+		class TXScopeSpecializedFirstAndLast {
+		public:
+			TXScopeSpecializedFirstAndLast(const _InIt& _First, const _InIt& _Last) : m_first(_First), m_last(_Last) {}
+			const auto& first() const {
+				return m_first;
+			}
+			const auto& last() const {
+				return m_last;
+			}
+
+		private:
+			const _InIt& m_first;
+			const _InIt& m_last;
+		};
+
 		template<class _ContainerPointer>
 		class TXScopeRangeIterProvider {
 		public:
@@ -214,13 +114,14 @@ namespace mse {
 			c_find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred) : result(eval(_First, _Last, _Pred)) {}
 		private:
 			static result_type eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
-				auto current = _First;
-				for (; current != _Last; ++current) {
+				const auto xs_iters = TXScopeSpecializedFirstAndLast<_InIt>(_First, _Last);
+				auto current = xs_iters.first();
+				for (; current != xs_iters.last(); ++current) {
 					if (_Pred(current)) {
 						break;
 					}
 				}
-				return current;
+				return _First + (current - xs_iters.first());
 			}
 		};
 
@@ -236,7 +137,7 @@ namespace mse {
 			result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred) {
 				/* Note that since we're returning a (wrapped const) reference, we need to be careful that it refers to an
 				element in the original container, not an (ephemeral) copy. */
-				auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
+				const auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
 				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr>(xs_iters.begin(), xs_iters.end(), _Pred).result;
 				if (xs_iters.end() == res_it) {
 					return result_type{};
@@ -259,7 +160,7 @@ namespace mse {
 			result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred) {
 				/* Note that since we're returning a (const) reference, we need to be careful that it refers to an
 				element in the original container, not an (ephemeral) copy. */
-				auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
+				const auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
 				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr>(xs_iters.begin(), xs_iters.end(), _Pred).result;
 				if (xs_iters.end() == res_it) {
 					MSE_THROW(std::logic_error("element not found - xscope_c_range_get_ref_to_element_known_to_be_present"));
@@ -325,8 +226,9 @@ namespace mse {
 			c_for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func) : result(eval(_First, _Last, _Func)) {}
 		private:
 			static result_type eval(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
-				auto current = _First;
-				for (; current != _Last; ++current) {
+				const auto xs_iters = TXScopeSpecializedFirstAndLast<_InIt>(_First, _Last);
+				auto current = xs_iters.first();
+				for (; current != xs_iters.last(); ++current) {
 					_Func(current);
 				}
 				return (_Func);
@@ -342,7 +244,7 @@ namespace mse {
 				: result(eval(_XscpPtr, _Func)) {}
 		private:
 			result_type eval(const _ContainerPointer& _XscpPtr, _Fn _Func) {
-				auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
+				const auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
 				return c_for_each_ptr<decltype(xs_iters.begin()), _Fn>(xs_iters.begin(), xs_iters.end(), _Func).result;
 			}
 		};
@@ -356,7 +258,7 @@ namespace mse {
 	inline auto for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
 		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
 		for_each_ptr(_First, _Last, func2);
-		return _Func;
+		return (_Func);
 	}
 
 	template<class _XScopeContainerPointer, class _Fn>
@@ -368,7 +270,7 @@ namespace mse {
 	inline auto xscope_range_for_each(const _XScopeContainerPointer& _XscpPtr, _Fn _Func) {
 		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
 		xscope_range_for_each_ptr(_XscpPtr, func2);
-		return _Func;
+		return (_Func);
 	}
 
 

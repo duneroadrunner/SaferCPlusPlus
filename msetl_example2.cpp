@@ -984,40 +984,38 @@ void msetl_example2() {
 		auto xscope_na2_begin_iter = mse::make_xscope_begin_iterator(&xscope_na2);
 		auto xscope_na2_end_iter = mse::make_xscope_end_iterator(&xscope_na2);
 
-		std::array<int, 3> sa1{1, 2, 3 };
 		mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
 
 		{
-			/* for_each() */
+			/* for_each_ptr() */
 
-			/*  mse::for_each() is intended to be the same as std:::for_each() but with performance optimizations for some
-			of the library's safe iterators. */
-			mse::for_each(xscope_na1_begin_citer, xscope_na1_end_citer, [](int x) { std::cout << x << std::endl; });
+			/*  mse::for_each_ptr() is like std:::for_each() but instead of passing, to the given function, a reference
+			to each item it passes a (safe) pointer to each item. The actual type of the pointer varies depending on the
+			type of the given iterators. */
+			mse::for_each_ptr(ma1.begin(), ma1.end(), [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
 
-			mse::for_each(sa1.begin(), sa1.end(), [](int x) { std::cout << x << std::endl; });
-			mse::for_each(ma1.begin(), ma1.end(), [](int x) { std::cout << x << std::endl; });
+			mse::for_each_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
 
-			/* This (non-standard) variant of for_each() for random access containers bypasses the use of iterators. */
-			mse::xscope_range_for_each(&xscope_na1, [](int x) { std::cout << x << std::endl; });
+			/* A "scope range" version is also available that bypasses the use of iterators. As well as often being more
+			convenient, it can theoretically be little more performance optimal. */
+			mse::xscope_range_for_each_ptr(&xscope_na1, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
 		}
 		{
-			/* find_if() */
+			/* find_if_ptr() */
 
-			/*  mse::find_if() is intended to be the same as std:::find_if() but with performance optimizations for some
-			of the library's safe iterators. */
-			auto found_citer1 = mse::find_if(xscope_na1_begin_citer, xscope_na1_end_citer, [](int x) { return 2 == x; });
+			auto found_citer1 = mse::find_if_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](auto x_ptr) { return 2 == *x_ptr; });
 			auto res1 = *found_citer1;
 
-			auto found_citer2 = mse::find_if(sa1.cbegin(), sa1.cend(), [](int x) { return 2 == x; });
-			auto found_citer3 = mse::find_if(ma1.cbegin(), ma1.cend(), [](int x) { return 2 == x; });
+			auto found_citer3 = mse::find_if_ptr(ma1.cbegin(), ma1.cend(), [](auto x_ptr) { return 2 == *x_ptr; });
 
-			/* These (non-standard) variants of find_if() for random access containers bypass the use of iterators. */
-			auto xscope_optional_xscpptr4 = mse::xscope_range_get_ref_if(&xscope_na1, [](int x) { return 2 == x; });
+			/* This version returns an optional scope pointer to the found item rather than an iterator. */
+			auto xscope_optional_xscpptr4 = mse::xscope_range_get_ref_if_ptr(&xscope_na1, [](auto x_ptr) { return 2 == *x_ptr; });
 			auto res4 = xscope_optional_xscpptr4.value();
-			auto xscope_pointer5 = mse::xscope_range_get_ref_to_element_known_to_be_present(&xscope_na1, [](int x) { return 2 == x; });
+
+			/* This version returns a scope pointer to the found item or throws an exception if an appropriate item isn't
+			found. */
+			auto xscope_pointer5 = mse::xscope_range_get_ref_to_element_known_to_be_present_ptr(&xscope_na1, [](auto x_ptr) { return 2 == *x_ptr; });
 			auto res5 = *xscope_pointer5;
-		
-			auto res6 = mse::find_if_ptr(sa1.cbegin(), sa1.cend(), [](auto ptr) { return 2 == *ptr; });
 		}
 	}
 
