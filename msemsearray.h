@@ -5642,6 +5642,10 @@ namespace mse {
 	}
 
 
+	template<typename _Ty>
+	class TSharedGlobalImmutable : public std::add_const<_Ty>::type, public XScopeTagBase {};
+
+
 	namespace impl {
 		namespace lambda {
 

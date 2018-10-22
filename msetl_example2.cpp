@@ -992,24 +992,28 @@ void msetl_example2() {
 			/*  mse::for_each_ptr() is like std:::for_each() but instead of passing, to the given function, a reference
 			to each item it passes a (safe) pointer to each item. The actual type of the pointer varies depending on the
 			type of the given iterators. */
-			mse::for_each_ptr(ma1.begin(), ma1.end(), [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
+			typedef mse::for_each_ptr_type<decltype(ma1.begin())> item_ptr_t;
+			mse::for_each_ptr(ma1.begin(), ma1.end(), [](item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
 
 			mse::for_each_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
 
 			/* A "scope range" version is also available that bypasses the use of iterators. As well as often being more
 			convenient, it can theoretically be little more performance optimal. */
-			mse::xscope_range_for_each_ptr(&xscope_na1, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
+			typedef mse::xscope_range_for_each_ptr_type<decltype(&xscope_na1)> range_item_ptr_t;
+			mse::xscope_range_for_each_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
 		}
 		{
 			/* find_if_ptr() */
 
-			auto found_citer1 = mse::find_if_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](auto x_ptr) { return 2 == *x_ptr; });
+			typedef mse::find_if_ptr_type<decltype(xscope_na1_begin_citer)> item_ptr_t;
+			auto found_citer1 = mse::find_if_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](item_ptr_t x_ptr) { return 2 == *x_ptr; });
 			auto res1 = *found_citer1;
 
 			auto found_citer3 = mse::find_if_ptr(ma1.cbegin(), ma1.cend(), [](auto x_ptr) { return 2 == *x_ptr; });
 
 			/* This version returns an optional scope pointer to the found item rather than an iterator. */
-			auto xscope_optional_xscpptr4 = mse::xscope_range_get_ref_if_ptr(&xscope_na1, [](auto x_ptr) { return 2 == *x_ptr; });
+			typedef mse::xscope_range_get_ref_if_ptr_type<decltype(&xscope_na1)> range_item_ptr_t;
+			auto xscope_optional_xscpptr4 = mse::xscope_range_get_ref_if_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { return 2 == *x_ptr; });
 			auto res4 = xscope_optional_xscpptr4.value();
 
 			/* This version returns a scope pointer to the found item or throws an exception if an appropriate item isn't
