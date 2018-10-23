@@ -760,7 +760,7 @@ usage example:
 
 ### make_xscope_strong_pointer_store()
 
-`make_xscope_strong_pointer_store()` returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Currently supported strong pointers include [reference counting pointers](#reference-counting-pointers), [norad pointers](#norad-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
+`make_xscope_strong_pointer_store()` returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Supported strong pointers include ones like [reference counting pointers](#reference-counting-pointers), [norad pointers](#norad-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
 
 usage example:
 
