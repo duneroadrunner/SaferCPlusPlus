@@ -26,6 +26,7 @@
 #include "mselegacyhelpers.h"
 #include "msemstdstring.h"
 #include "msealgorithm.h"
+#include "msethreadlocal.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -196,6 +197,8 @@ public:
 		return (l_xscope_ra_csection1.size() > l_xscope_ra_csection2.size()) ? false : true;
 	}
 };
+
+MSE_DECLARE_THREAD_LOCAL_GLOBAL(mse::mstd::string) tlg_string1 = "some text";
 
 void msetl_example2() {
 	{
@@ -1024,6 +1027,24 @@ void msetl_example2() {
 	}
 
 	{
+		/*****************************************/
+		/*  MSE_DECLARE_THREAD_LOCAL()           */
+		/*  & MSE_DECLARE_THREAD_LOCAL_GLOBAL()  */
+		/*****************************************/
+
+		auto tlg_ptr1 = &tlg_string1;
+		auto xs_tlg_store1 = mse::make_xscope_strong_pointer_store(tlg_ptr1);
+		auto xs_ptr1 = xs_tlg_store1.xscope_ptr();
+		std::cout << *xs_ptr1 << std::endl;
+
+		MSE_DECLARE_THREAD_LOCAL_CONST(mse::mstd::string) tlc_string2 = "abc";
+		auto tlc_ptr2 = &tlc_string2;
+		auto xs_tlc_store2 = mse::make_xscope_strong_pointer_store(tlc_ptr2);
+		auto xs_cptr2 = xs_tlc_store2.xscope_ptr();
+		std::cout << *xs_cptr2 << std::endl;
+	}
+
+	{
 		/********************/
 		/*  legacy helpers  */
 		/********************/
@@ -1258,7 +1279,7 @@ void msetl_example2() {
 				int res2 = (*it).get();
 			}
 
-			auto A_b_safe_cptr = mse::make_const_pointer_to_member(A_immptr->b, A_immptr);
+			auto A_b_safe_cptr = mse::make_const_pointer_to_member_v2(A_immptr, &A::b);
 		}
 		{
 			/* This block demonstrates safely allowing different threads to (simultaneously) modify different

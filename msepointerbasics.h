@@ -77,6 +77,42 @@ MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug 
 
 /* end of scope pointer defines */
 
+/* start of thread_local pointer defines */
+
+/* This is done here rather than in msethreadlocal.h because some elements in this file have to know whether or not
+MSE_THREADLOCALPOINTER_DISABLED will ultimately be defined. */
+
+#if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+#define MSE_THREADLOCALPOINTER_DISABLED
+#endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
+/* MSE_THREADLOCALPOINTER_USE_RELAXED_REGISTERED is deprecated */
+#ifdef MSE_THREADLOCALPOINTER_USE_RELAXED_REGISTERED
+#define MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // MSE_THREADLOCALPOINTER_USE_RELAXED_REGISTERED
+
+/* By default, norad pointers are used to catch unsafe misuse of thread_local pointers in debug mode. Defining
+MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug modes as well. */
+#if (!defined(NDEBUG)) && (!defined(MSE_THREADLOCALPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED))
+#define MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // (!defined(NDEBUG)) && (!defined(MSE_THREADLOCALPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED))
+
+#ifdef MSE_THREADLOCALPOINTER_DISABLED
+#undef MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // MSE_THREADLOCALPOINTER_DISABLED
+
+#ifdef MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
+#undef MSE_SAFERPTR_DISABLED
+#undef MSE_NORADPOINTER_DISABLED
+#else // MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
+#ifdef NDEBUG
+/* By default we make thread_local pointers simply an alias for native pointers in non-debug builds. */
+#define MSE_THREADLOCALPOINTER_DISABLED
+#endif // NDEBUG
+#endif // MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
+
+/* end of thread_local pointer defines */
+
 
 #if defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
 #define MSE_CONSTEXPR
@@ -171,11 +207,15 @@ namespace mse {
 #define MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(Derived, Base) \
 	MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Derived, Base) MSE_USING_ASSIGNMENT_OPERATOR(Base)
 
-#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED) || defined(MSE_THREADLOCALPOINTER_DISABLED)
+#define MSE_SOME_POINTER_TYPE_IS_DISABLED
+#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED) || defined(MSE_THREADLOCALPOINTER_DISABLED)*/
+
+#if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 #define MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
-#else /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+#else /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 #define MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION	auto operator&() { return this; } auto operator&() const { return this; }
-#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+#endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
 #define MSE_DEFAULT_OPERATOR_NEW_DECLARATION	void* operator new(size_t size) { return ::operator new(size); }
 #define MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION	MSE_DEFAULT_OPERATOR_NEW_DECLARATION MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
@@ -195,6 +235,8 @@ namespace mse {
 	void T_valid_if_not_an_xscope_type(const _Ty&) {
 		T_valid_if_not_an_xscope_type<_Ty>();
 	}
+
+	class ThreadLocalTagBase { public: void thread_local_tag() const {} };
 
 	class NotAsyncShareableTagBase {};
 	class NotAsyncPassableTagBase {};
@@ -516,18 +558,18 @@ namespace mse {
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 	};
 
-#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+#if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 	template<typename _Ty> auto pointer_to(_Ty& _X) { return &_X; }
 
 	template<typename _Ty>
 	auto pointer_to(_Ty&& _X) {
-		/* Some compilers (prudently) don't allow to obtain a pointer to an r-value. But since it's safe and supported for
-		the library's safe elements, for compatibility reasons, here we enable you to do it when the those elements are
+		/* Some compilers (prudently) don't allow you to obtain a pointer to an r-value. But since it's safe and supported
+		for the library's safe elements, for compatibility reasons, here we enable you to do it when the those elements are
 		"disabled" (i.e. replaced with their native counterparts). */
 		const _Ty& X2 = _X;
 		return &X2;
 	}
-#else /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+#else /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
 	template<typename _Ty, class = typename std::enable_if<(!std::is_pointer<_Ty>::value), void>::type>
 	void T_valid_if_not_raw_pointer_msepointerbasics() {}
@@ -544,7 +586,7 @@ namespace mse {
 		T_valid_if_not_raw_pointer_msepointerbasics<decltype(&X2)>();
 		return &std::forward<_Ty>(_X);
 	}
-#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+#endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
 	template<typename _Ty>
 	_Ty* not_null_from_nullable(const _Ty* src) {

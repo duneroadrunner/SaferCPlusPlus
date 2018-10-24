@@ -5699,32 +5699,32 @@ namespace mse {
 
 			/* "non-capture" lambdas are, unlike "capture" lambdas, convertible to function pointers */
 			template<class T, class Ret, class...Args>
-			struct is_non_capture_lambda1 : std::is_convertible<T, Ret(*)(Args...)> {};
+			struct is_convertible_to_function_pointer1 : std::is_convertible<T, Ret(*)(Args...)> {};
 			template <typename T, typename T2>
-			struct is_non_capture_lambda2;
+			struct is_convertible_to_function_pointer2;
 			template <typename T, typename Ret, typename... Args>
-			struct is_non_capture_lambda2<T, Ret(Args...)> {
-				static constexpr auto value = is_non_capture_lambda1<T, Ret, Args...>::value;
+			struct is_convertible_to_function_pointer2<T, Ret(Args...)> {
+				static constexpr auto value = is_convertible_to_function_pointer1<T, Ret, Args...>::value;
 			};
 
 			template <typename T>
-			struct is_non_capture_lambda : is_non_capture_lambda2<T, get_signature<T> > {};
+			struct is_convertible_to_function_pointer : is_convertible_to_function_pointer2<T, get_signature<T> > {};
 
 			template<class T, class Ret, class...Args>
-			struct is_capture_lambda1 {
+			struct is_function_obj_that_is_not_convertible_to_function_pointer1 {
 				/* "capture" lambdas are convertible to corresponding std::function<>s, but not to function pointers */
 				static constexpr auto convertible = std::is_convertible<T, std::function<Ret(Args...)>>::value;
-				static constexpr auto value = convertible && !is_non_capture_lambda1<T, Ret, Args...>::value;
+				static constexpr auto value = convertible && !is_convertible_to_function_pointer1<T, Ret, Args...>::value;
 			};
 			template <typename T, typename T2>
-			struct is_capture_lambda2;
+			struct is_function_obj_that_is_not_convertible_to_function_pointer2;
 			template <typename T, typename Ret, typename... Args>
-			struct is_capture_lambda2<T, Ret(Args...)> {
-				static constexpr auto value = is_capture_lambda1<T, Ret, Args...>::value;
+			struct is_function_obj_that_is_not_convertible_to_function_pointer2<T, Ret(Args...)> {
+				static constexpr auto value = is_function_obj_that_is_not_convertible_to_function_pointer1<T, Ret, Args...>::value;
 			};
 
 			template <typename T>
-			struct is_capture_lambda : is_capture_lambda2<T, get_signature<T> > {};
+			struct is_function_obj_that_is_not_convertible_to_function_pointer : is_function_obj_that_is_not_convertible_to_function_pointer2<T, get_signature<T> > {};
 		}
 	}
 

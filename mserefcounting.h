@@ -1108,11 +1108,11 @@ namespace mse {
 			}
 
 			{
-				/* You can use the "mse::make_pointer_to_member()" function to obtain a safe pointer to a member of
+				/* You can use the "mse::make_pointer_to_member_v2()" function to obtain a safe pointer to a member of
 				an object owned by a refcounting pointer. */
-				auto s_safe_ptr1 = mse::make_pointer_to_member(A_refcounting_ptr1->s, A_refcounting_ptr1);
+				auto s_safe_ptr1 = mse::make_pointer_to_member_v2(A_refcounting_ptr1, &A::s);
 				(*s_safe_ptr1) = "some new text";
-				auto s_safe_const_ptr1 = mse::make_const_pointer_to_member(A_refcounting_ptr1->s, A_refcounting_ptr1);
+				auto s_safe_const_ptr1 = mse::make_const_pointer_to_member_v2(A_refcounting_ptr1, &A::s);
 
 				/* Just testing the convertibility of mse::TStrongFixedPointers. */
 				auto A_refcfp = mse::make_refcounting<A>();

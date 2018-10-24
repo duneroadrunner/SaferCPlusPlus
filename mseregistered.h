@@ -1119,10 +1119,10 @@ namespace mse {
 			member itself a registered object. */
 				mse::TRegisteredPointer<std::string> reg_s_registered_ptr1 = &(E_registered_ptr1->reg_s);
 
-				/* Or you can use the "mse::make_pointer_to_member()" function. */
-				auto s2_safe_ptr1 = mse::make_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
+				/* Or you can use the "mse::make_pointer_to_member_v2()" function. */
+				auto s2_safe_ptr1 = mse::make_pointer_to_member_v2(E_registered_ptr1, &E::s2);
 				(*s2_safe_ptr1) = "some new text";
-				auto s2_safe_const_ptr1 = mse::make_const_pointer_to_member(E_registered_ptr1->s2, E_registered_ptr1);
+				auto s2_safe_const_ptr1 = mse::make_const_pointer_to_member_v2(E_registered_ptr1, &E::s2);
 
 				/* Just testing the convertibility of mse::TSyncWeakFixedPointers. */
 				auto E_registered_fixed_ptr1 = &registered_e;

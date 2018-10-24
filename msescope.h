@@ -15,6 +15,11 @@
 #include <functional>
 #include <cassert>
 
+#ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+#include "msenorad.h"
+#include "mseany.h"
+#endif // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+
 #ifdef _MSC_VER
 #pragma warning( push )  
 #pragma warning( disable : 4100 4456 4189 )
@@ -35,11 +40,6 @@
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
-#ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
-#include "msenorad.h"
-#include "mseany.h"
-#endif // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
-
 /* Note that by default, MSE_SCOPEPOINTER_DISABLED is defined in non-debug builds. This is enacted in "msepointerbasics.h". */
 
 #ifndef _NOEXCEPT
@@ -58,7 +58,7 @@ namespace mse {
 	//class XScopeTagBase { public: void xscope_tag() const {} };
 
 	/* Note that objects not derived from ReferenceableByScopePointerTagBase might still be targeted by a scope pointer via
-	make_pointer_to_member(). */
+	make_pointer_to_member_v2(). */
 	class ReferenceableByScopePointerTagBase {};
 
 	class ContainsNonOwningScopeReferenceTagBase {};
@@ -135,11 +135,6 @@ namespace mse {
 
 #ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 
-	/*
-	template<typename _Ty> using TXScopePointerBase = mse::us::TFLRegisteredPointer<_Ty>;
-	template<typename _Ty> using TXScopeConstPointerBase = mse::us::TFLRegisteredConstPointer<_Ty>;
-	template<typename _TROz> using TXScopeObjBase = mse::us::TFLRegisteredObj<_TROz>;
-	*/
 	template<typename _TROz> using TXScopeObjBase = mse::TNoradObj<_TROz>;
 	template<typename _Ty> using TXScopePointerBase = mse::us::impl::TAnyPointerBase<_Ty>;
 	template<typename _Ty> using TXScopeConstPointerBase = mse::us::impl::TAnyConstPointerBase<_Ty>;
@@ -1983,11 +1978,11 @@ namespace mse {
 				//int res4 = B::foo2(a_scpoptr);
 				int res4b = B::foo2(&(*a_scpoptr));
 
-				/* You can use the "mse::make_xscope_pointer_to_member()" function to obtain a safe pointer to a member of
+				/* You can use the "mse::make_xscope_pointer_to_member_v2()" function to obtain a safe pointer to a member of
 				an xscope object. */
-				auto s_safe_ptr1 = mse::make_xscope_pointer_to_member((a_scpobj.s), (&a_scpobj));
+				auto s_safe_ptr1 = mse::make_xscope_pointer_to_member_v2((&a_scpobj), &A::s);
 				(*s_safe_ptr1) = "some new text";
-				auto s_safe_const_ptr1 = mse::make_xscope_const_pointer_to_member((a_scpobj.s), (&a_scpobj));
+				auto s_safe_const_ptr1 = mse::make_xscope_const_pointer_to_member_v2((&a_scpobj), &A::s);
 			}
 
 			{
