@@ -118,8 +118,11 @@ Tested with msvc2017(v15.7.4), msvc2015, g++7.3 & 5.4 and clang++6.0 & 3.8 (as o
     5. [mstd::string_view](#string_view)
     6. [nrp_string_view](#nrp_string_view)
 21. [optional](#optional-xscope_optional)
-22. [Practical limitations](#practical-limitations)
-23. [Questions and comments](#questions-and-comments)
+22. [Algorithms](#algorithms)
+    1. [for_each_ptr()](#for_each_ptr)
+    2. [find_if_ptr()](#find_if_ptr)
+23. [Practical limitations](#practical-limitations)
+24. [Questions and comments](#questions-and-comments)
 
 
 ### Use cases
@@ -757,7 +760,7 @@ usage example:
 
 ### make_xscope_strong_pointer_store()
 
-`make_xscope_strong_pointer_store()` returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Currently supported strong pointers include [reference counting pointers](#reference-counting-pointers), [norad pointers](#norad-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
+`make_xscope_strong_pointer_store()` returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Supported strong pointers include ones like [reference counting pointers](#reference-counting-pointers), [norad pointers](#norad-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
 
 usage example:
 
@@ -1512,7 +1515,7 @@ And of course the library remains perfectly compatible with (potentially unsafe)
 
 ### Multithreading
 
-Note that the library requires and enforces that objects shared or passed between threads may only be of types identified as safe for such operations. Also, remember that any input to, or output from a function not via its interface (i.e function parameters or return value) is technically unsafe. Specifically, directly accessing global variables, or accessing variables via lambda capture (by reference or otherwise). This particularly applies when the function in question is executed asynchronously.
+The library requires and enforces that objects shared or passed between threads may only be of types identified as safe for such operations. 
 
 ### TUserDeclaredAsyncPassableObj
 
@@ -1520,7 +1523,7 @@ When passing an argument to a function that will be executed in another thread u
 
 ### thread
 
-`mstd::thread` is just an implementation of `std::thread` that verifies that the arguments passed are of a type that is designated as safe to pass between threads. 
+`mstd::thread` is just an implementation of `std::thread` that verifies that the arguments passed are of a type that is designated (i.e. recognized or declared) as safe to pass between threads. Note that this includes the passed function object (although the implementation currently isn't enforcing it). "Regular, concrete" functions and non-capture lambdas should be automatically recognized as safely passable, but functors, capture-lambdas and generic functions should be explicitly declared as "passable".
 
 ### async()
 
@@ -2914,6 +2917,81 @@ usage example:
 
 `mse::mstd::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScopeObj<mse::mstd::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
 
+### Algorithms
+
+The library's safe iterators work just fine with the standard library algorithms. But some of the algorithms, like `std::for_each()`, take a function object parameter and pass to the function object a (native) reference to an element. If you want to avoid using native references, the library provides versions of some of these algorithms that pass to the function object a (safe) pointer to the element instead of a native reference to the element. 
+
+#### for_each_ptr()
+
+usage example:
+
+```cpp
+#include "msescope.h"
+#include "msealgorithm.h"
+#include "msemstdarray.h"
+    
+void main(int argc, char* argv[]) {
+
+    mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na1 = mse::nii_array<int, 3>{ 1, 2, 3 };
+    auto xscope_na1_begin_citer = mse::make_xscope_begin_const_iterator(&xscope_na1);
+    auto xscope_na1_end_citer = mse::make_xscope_end_const_iterator(&xscope_na1);
+
+    mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
+
+    {
+        /*  mse::for_each_ptr() is like std:::for_each() but instead of passing, to the given function, a reference
+        to each item it passes a (safe) pointer to each item. The actual type of the pointer varies depending on the
+        type of the given iterators. */
+        typedef mse::for_each_ptr_type<decltype(ma1.begin())> item_ptr_t;
+        mse::for_each_ptr(ma1.begin(), ma1.end(), [](item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
+
+        mse::for_each_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
+
+        /* A "scope range" version is also available that bypasses the use of iterators. As well as often being more
+        convenient, it can theoretically be little more performance optimal. */
+        typedef mse::xscope_range_for_each_ptr_type<decltype(&xscope_na1)> range_item_ptr_t;
+        mse::xscope_range_for_each_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
+    }
+}
+```
+
+#### find_if_ptr()
+
+usage example:
+
+```cpp
+#include "msescope.h"
+#include "msealgorithm.h"
+#include "msemstdarray.h"
+    
+void main(int argc, char* argv[]) {
+
+    mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na1 = mse::nii_array<int, 3>{ 1, 2, 3 };
+    auto xscope_na1_begin_citer = mse::make_xscope_begin_const_iterator(&xscope_na1);
+    auto xscope_na1_end_citer = mse::make_xscope_end_const_iterator(&xscope_na1);
+
+    mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
+
+    {
+        typedef mse::find_if_ptr_type<decltype(xscope_na1_begin_citer)> item_ptr_t;
+        auto found_citer1 = mse::find_if_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](item_ptr_t x_ptr) { return 2 == *x_ptr; });
+        auto res1 = *found_citer1;
+
+        auto found_citer3 = mse::find_if_ptr(ma1.cbegin(), ma1.cend(), [](auto x_ptr) { return 2 == *x_ptr; });
+
+        /* This version returns an optional scope pointer to the found item rather than an iterator. */
+        typedef mse::xscope_range_get_ref_if_ptr_type<decltype(&xscope_na1)> range_item_ptr_t;
+        auto xscope_optional_xscpptr4 = mse::xscope_range_get_ref_if_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { return 2 == *x_ptr; });
+        auto res4 = xscope_optional_xscpptr4.value();
+
+        /* This version returns a scope pointer to the found item or throws an exception if an appropriate item isn't
+        found. */
+        auto xscope_pointer5 = mse::xscope_range_get_ref_to_element_known_to_be_present_ptr(&xscope_na1, [](auto x_ptr) { return 2 == *x_ptr; });
+        auto res5 = *xscope_pointer5;
+    }
+}
+```
+
 ### Practical limitations
 
 In situations where a lifetime checker, or equivalent static analyzer, is not available, the degree of memory safety that can be achieved is a function of the degree to which use of C++'s (memory) unsafe elements is avoided. 
@@ -3029,7 +3107,7 @@ While we can generally ensure that the `this` pointer remains valid in construct
 
 Also note that explicitly calling `std::move()` (the one in the `<utility>` library, not the one in the `<algorithm>` library) is not really in the spirit of the library and could cause problems if applied to certain scope objects. `std::forward<>()` is fine. Basically, just let the compiler decide when a reference is an rvalue reference.
 
-And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with [`ivector<>`](#ivector)s that support list-style iterators, often with a performance benefit. And also note that safe replacements/wrappers for global variables and lambda functions are still pending.
+And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with [`ivector<>`](#ivector)s that support list-style iterators, often with a performance benefit. And also note that safe replacements/wrappers for global/static variables are still pending.
 
 ### Questions and comments
 If you have questions or comments you can create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
