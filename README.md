@@ -96,7 +96,8 @@ Tested with msvc2017(v15.7.4), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
         8. [exclusive writer objects](#exclusive-writer-objects)
 16. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
-    2. [Quarantined types](#quarantined-types)
+    2. [CNDInt, CNDSize_t and CNDBool](#cndint-cndsize_t-and-cndbool)
+    3. [Quarantined types](#quarantined-types)
 17. [Vectors](#vectors)
     1. [mstd::vector](#vector)
     2. [nii_vector](#nii_vector)
@@ -2286,6 +2287,12 @@ usage example:
 Note that while `CInt` and `CSize_t` have no problem interacting with native signed integers, they do not implicitly play well with `size_t` or native unsigned integers. We'd be generally wary of using native unsigned integer types due to the (unintuitive) implicit conversion/promotion rules between signed and unsigned native integers. But if you need to obtain a `size_t` from a `CSize_t`, you can do so explicitly using the `mse::as_a_size_t()` function.   
 
 Btw, `CInt` is actually just an alias for a specific instantiation of the `TInt<>` template, which can be used to make a safe version of any given integer type. (Eg. `typedef mse::TInt<signed char> my_safe_small_int;`)
+
+### CNDInt, CNDSize_t and CNDBool
+
+`CInt`, `CSize_t` and `CBool` are intended to be compatible replacements for their native counterparts, and in "disabled" mode they are just aliased to their corresponding native counterparts. There are however, some functional differences between these elements and their native counterparts. For example, they can be used as base classes where their (scalar) native counterparts cannot. So any code that relies on such additional properties might not work properly when the elements are substituted with their native counterparts.
+
+So for those cases `CNDInt`, `CNDSize_t` and `CNDBool` are just versions that are not aliased to their native counterparts in "disabled" mode. In fact, when not in "disabled" mode, `CInt`, `CSize_t` and `CBool` are just aliases for `CNDInt`, `CNDSize_t` and `CNDBool`.
 
 ### Quarantined types
 
