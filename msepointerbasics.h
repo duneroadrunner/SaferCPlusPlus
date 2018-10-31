@@ -67,7 +67,6 @@ MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug 
 
 #ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 #undef MSE_SAFERPTR_DISABLED
-#undef MSE_NORADPOINTER_DISABLED
 #else // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 #ifdef NDEBUG
 /* By default we make scope pointers simply an alias for native pointers in non-debug builds. */
@@ -86,11 +85,6 @@ MSE_THREADLOCALPOINTER_DISABLED will ultimately be defined. */
 #define MSE_THREADLOCALPOINTER_DISABLED
 #endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
-/* MSE_THREADLOCALPOINTER_USE_RELAXED_REGISTERED is deprecated */
-#ifdef MSE_THREADLOCALPOINTER_USE_RELAXED_REGISTERED
-#define MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
-#endif // MSE_THREADLOCALPOINTER_USE_RELAXED_REGISTERED
-
 /* By default, norad pointers are used to catch unsafe misuse of thread_local pointers in debug mode. Defining
 MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug modes as well. */
 #if (!defined(NDEBUG)) && (!defined(MSE_THREADLOCALPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED))
@@ -103,7 +97,6 @@ MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-
 
 #ifdef MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
 #undef MSE_SAFERPTR_DISABLED
-#undef MSE_NORADPOINTER_DISABLED
 #else // MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
 #ifdef NDEBUG
 /* By default we make thread_local pointers simply an alias for native pointers in non-debug builds. */
@@ -112,6 +105,34 @@ MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-
 #endif // MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
 
 /* end of thread_local pointer defines */
+
+/* start of static pointer defines */
+
+/* This is done here rather than in msethreadlocal.h because some elements in this file have to know whether or not
+MSE_STATICPOINTER_DISABLED will ultimately be defined. */
+
+#if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+#define MSE_STATICPOINTER_DISABLED
+#endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
+#if (!defined(NDEBUG)) && (!defined(MSE_STATICPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED))
+#define MSE_STATICPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // (!defined(NDEBUG)) && (!defined(MSE_STATICPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED))
+
+#ifdef MSE_STATICPOINTER_DISABLED
+#undef MSE_STATICPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // MSE_STATICPOINTER_DISABLED
+
+#ifdef MSE_STATICPOINTER_RUNTIME_CHECKS_ENABLED
+#undef MSE_SAFERPTR_DISABLED
+#else // MSE_STATICPOINTER_RUNTIME_CHECKS_ENABLED
+#ifdef NDEBUG
+/* By default we make static pointers simply an alias for native pointers in non-debug builds. */
+#define MSE_STATICPOINTER_DISABLED
+#endif // NDEBUG
+#endif // MSE_STATICPOINTER_RUNTIME_CHECKS_ENABLED
+
+/* end of static pointer defines */
 
 
 #if defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
@@ -235,8 +256,6 @@ namespace mse {
 	void T_valid_if_not_an_xscope_type(const _Ty&) {
 		T_valid_if_not_an_xscope_type<_Ty>();
 	}
-
-	class ThreadLocalTagBase { public: void thread_local_tag() const {} };
 
 	class NotAsyncShareableTagBase {};
 	class NotAsyncPassableTagBase {};

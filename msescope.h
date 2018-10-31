@@ -135,11 +135,11 @@ namespace mse {
 
 #ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 
-	template<typename _TROz> using TXScopeObjBase = mse::TNoradObj<_TROz>;
+	template<typename _TROz> using TXScopeObjBase = mse::TWNoradObj<_TROz>;
 	template<typename _Ty> using TXScopePointerBase = mse::us::impl::TAnyPointerBase<_Ty>;
 	template<typename _Ty> using TXScopeConstPointerBase = mse::us::impl::TAnyConstPointerBase<_Ty>;
-	template<typename _Ty> using Tscope_obj_base_ptr = mse::TNoradFixedPointer<_Ty>;
-	template<typename _Ty> using Tscope_obj_base_const_ptr = mse::TNoradConstPointer<_Ty>;
+	template<typename _Ty> using Tscope_obj_base_ptr = mse::TWNoradFixedPointer<_Ty>;
+	template<typename _Ty> using Tscope_obj_base_const_ptr = mse::TWNoradConstPointer<_Ty>;
 
 #else // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 

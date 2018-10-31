@@ -121,7 +121,7 @@ namespace mse {
 	it results in program termination. This drastic consequence allows norad pointers' run-time safety mechanism to be very
 	lightweight (compared to that of registered pointers). */
 	template<typename _Ty>
-	class TWNoradPointer : public TPointer<TWNoradObj<_Ty>>, public StrongPointerTagBase {
+	class TWNoradPointer : public TPointer<TWNoradObj<_Ty> >, public StrongPointerTagBase {
 	public:
 		TWNoradPointer() : TPointer<TWNoradObj<_Ty>>() {}
 		TWNoradPointer(const TWNoradPointer& src_cref) : TPointer<TWNoradObj<_Ty>>(src_cref.m_ptr) {
@@ -202,7 +202,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TWNoradConstPointer : public TPointer<const TWNoradObj<_Ty>>, public StrongPointerTagBase {
+	class TWNoradConstPointer : public TPointer<const TWNoradObj<_Ty> >, public StrongPointerTagBase {
 	public:
 		TWNoradConstPointer() : TPointer<const TWNoradObj<_Ty>>() {}
 		TWNoradConstPointer(const TWNoradConstPointer& src_cref) : TPointer<const TWNoradObj<_Ty>>(src_cref.m_ptr) {
