@@ -122,9 +122,9 @@ Tested with msvc2017(v15.7.4), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
 22. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
-23. [Practical limitations](#practical-limitations)
-24. [Questions and comments](#questions-and-comments)
-
+23. [thread_local, static and global variables](#thread_local-static-and-global-variables)
+24. [Practical limitations](#practical-limitations)
+25. [Questions and comments](#questions-and-comments)
 
 ### Use cases
 
@@ -2995,6 +2995,80 @@ void main(int argc, char* argv[]) {
         found. */
         auto xscope_pointer5 = mse::xscope_range_get_ref_to_element_known_to_be_present_ptr(&xscope_na1, [](auto x_ptr) { return 2 == *x_ptr; });
         auto res5 = *xscope_pointer5;
+    }
+}
+```
+
+### thread_local, static and global variables
+
+[*provisional*]
+
+While not encouraging the use of `thread_local`, `static` or global variables, the library does provide facilities for their use. Note that because `static` and non-`thread_local` global variables can be accessible from multiple threads, their type must be one that is [recognized or declared](#tuserdeclaredasyncshareableobj) as safely shareable.
+
+usage example:
+```cpp
+#include "msescope.h"
+#include "msemstdstring.h"
+#include "msethreadlocal.h"
+#include "msestaticimmutable.h"
+#include <iostream>
+
+MSE_RSV_DECLARE_THREAD_LOCAL_GLOBAL(mse::mstd::string) tlg_string1 = "some text";
+MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(mse::nii_string) gimm_string1 = "some text";
+
+void main(int argc, char* argv[]) {
+    {
+        auto tlg_ptr1 = &tlg_string1;
+        auto xs_tlg_store1 = mse::make_xscope_strong_pointer_store(tlg_ptr1);
+        auto xs_ptr1 = xs_tlg_store1.xscope_ptr();
+        *xs_ptr1 += "...";
+        std::cout << *xs_ptr1 << std::endl;
+
+        MSE_RSV_DECLARE_THREAD_LOCAL_CONST(mse::mstd::string) tlc_string2 = "abc";
+        auto tlc_ptr2 = &tlc_string2;
+        auto xs_tlc_store2 = mse::make_xscope_strong_pointer_store(tlc_ptr2);
+        auto xs_cptr2 = xs_tlc_store2.xscope_ptr();
+        std::cout << *xs_cptr2 << std::endl;
+
+        class CA {
+        public:
+            auto foo1() const {
+                MSE_RSV_DECLARE_THREAD_LOCAL(mse::mstd::string) tl_string = "abc";
+                /* mse::return_value() just returns its argument and ensures that it's of a (pointer) type that's safe to return. */
+                return mse::return_value(&tl_string);
+            }
+        };
+        auto tl_ptr3 = CA().foo1();
+        auto xs_tl_store3 = mse::make_xscope_strong_pointer_store(tl_ptr3);
+        auto xs_cptr3 = xs_tl_store3.xscope_ptr();
+        *xs_cptr3 += "def";
+        std::cout << *xs_cptr3 << std::endl;
+    }
+
+    {
+        auto gimm_ptr1 = &gimm_string1;
+        auto xs_gimm_store1 = mse::make_xscope_strong_pointer_store(gimm_ptr1);
+        auto xs_ptr1 = xs_gimm_store1.xscope_ptr();
+        std::cout << *xs_ptr1 << std::endl;
+
+        MSE_RSV_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string2 = "abc";
+        auto simm_ptr2 = &simm_string2;
+        auto xs_simm_store2 = mse::make_xscope_strong_pointer_store(simm_ptr2);
+        auto xs_ptr2 = xs_simm_store2.xscope_ptr();
+        std::cout << *xs_ptr2 << std::endl;
+
+        class CA {
+        public:
+            auto foo1() const {
+                MSE_RSV_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string = "abc";
+                /* mse::return_value() just returns its argument and ensures that it's of a (pointer) type that's safe to return. */
+                return mse::return_value(&simm_string);
+            }
+        };
+        auto simm_ptr3 = CA().foo1();
+        auto xs_simm_store3 = mse::make_xscope_strong_pointer_store(simm_ptr3);
+        auto xs_cptr3 = xs_simm_store3.xscope_ptr();
+        std::cout << *xs_cptr3 << std::endl;
     }
 }
 ```
