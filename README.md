@@ -1,4 +1,4 @@
-Sep 2018
+Oct 2018
 
 ### Overview
 
@@ -96,7 +96,8 @@ Tested with msvc2017(v15.7.4), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
         8. [exclusive writer objects](#exclusive-writer-objects)
 16. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
-    2. [Quarantined types](#quarantined-types)
+    2. [CNDInt, CNDSize_t and CNDBool](#cndint-cndsize_t-and-cndbool)
+    3. [Quarantined types](#quarantined-types)
 17. [Vectors](#vectors)
     1. [mstd::vector](#vector)
     2. [nii_vector](#nii_vector)
@@ -121,9 +122,9 @@ Tested with msvc2017(v15.7.4), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
 22. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
-23. [Practical limitations](#practical-limitations)
-24. [Questions and comments](#questions-and-comments)
-
+23. [thread_local, static and global variables](#thread_local-static-and-global-variables)
+24. [Practical limitations](#practical-limitations)
+25. [Questions and comments](#questions-and-comments)
 
 ### Use cases
 
@@ -667,8 +668,8 @@ Scope pointers usually point to scope objects. Scope objects are objects that li
 
 The rules for using scope pointers and objects are essentially as follows:
 
-- Objects of scope type (types whose name starts with "TXScope" or "xscope") must be global or local (non-static) automatic variables.
-	- Basically global or allocated on the stack. (Not that we're condoning or encouraging the use of global variables here. Just acknowledging that the global scope is technically a scope.)
+- Objects of scope type (types whose name starts with "TXScope" or "xscope") must be local (non-[static](#thread_local-static-and-global-variables)) automatic variables.
+	- Basically allocated on the stack.
 - Note that scope pointers are themselves scope objects and must adhere to the same restrictions.
 - Do not use scope types as members of classes or structs.
 	- Note that you can use the [`mse::make_xscope_pointer_to_member_v2()`](#make_pointer_to_member_v2) function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
@@ -2287,6 +2288,12 @@ Note that while `CInt` and `CSize_t` have no problem interacting with native sig
 
 Btw, `CInt` is actually just an alias for a specific instantiation of the `TInt<>` template, which can be used to make a safe version of any given integer type. (Eg. `typedef mse::TInt<signed char> my_safe_small_int;`)
 
+### CNDInt, CNDSize_t and CNDBool
+
+`CInt`, `CSize_t` and `CBool` are intended to be compatible replacements for their native counterparts, and in "disabled" mode they are just aliased to their corresponding native counterparts. There are however, some functional differences between these elements and their native counterparts. For example, they can be used as base classes where their (scalar) native counterparts cannot. So any code that relies on such additional properties might not work properly when the elements are substituted with their native counterparts.
+
+So for those cases `CNDInt`, `CNDSize_t` and `CNDBool` are just versions that are not aliased to their native counterparts in "disabled" mode. In fact, when not in "disabled" mode, `CInt`, `CSize_t` and `CBool` are just aliases for `CNDInt`, `CNDSize_t` and `CNDBool`.
+
 ### Quarantined types
 
 Quarantined types are meant to hold values that are obtained from user input or some other untrusted source (like a media file for example). These are not yet available in the library, but are an important concept with respect to safe programming. Values obtained from untrusted sources are the main attack vector of malicious actors and should be handled with special care. For example, the so-called "stagefright" vulnerability in the Android OS is the result of a specially crafted media file causing the sum of integers to overflow.  
@@ -2988,6 +2995,80 @@ void main(int argc, char* argv[]) {
         found. */
         auto xscope_pointer5 = mse::xscope_range_get_ref_to_element_known_to_be_present_ptr(&xscope_na1, [](auto x_ptr) { return 2 == *x_ptr; });
         auto res5 = *xscope_pointer5;
+    }
+}
+```
+
+### thread_local, static and global variables
+
+[*provisional*]
+
+While not encouraging the use of `thread_local`, `static` or global variables, the library does provide facilities for their use. Note that because `static` and non-`thread_local` global variables can be accessible from multiple threads, their type must be one that is [recognized or declared](#tuserdeclaredasyncshareableobj) as safely shareable.
+
+usage example:
+```cpp
+#include "msescope.h"
+#include "msemstdstring.h"
+#include "msethreadlocal.h"
+#include "msestaticimmutable.h"
+#include <iostream>
+
+MSE_RSV_DECLARE_THREAD_LOCAL_GLOBAL(mse::mstd::string) tlg_string1 = "some text";
+MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(mse::nii_string) gimm_string1 = "some text";
+
+void main(int argc, char* argv[]) {
+    {
+        auto tlg_ptr1 = &tlg_string1;
+        auto xs_tlg_store1 = mse::make_xscope_strong_pointer_store(tlg_ptr1);
+        auto xs_ptr1 = xs_tlg_store1.xscope_ptr();
+        *xs_ptr1 += "...";
+        std::cout << *xs_ptr1 << std::endl;
+
+        MSE_RSV_DECLARE_THREAD_LOCAL_CONST(mse::mstd::string) tlc_string2 = "abc";
+        auto tlc_ptr2 = &tlc_string2;
+        auto xs_tlc_store2 = mse::make_xscope_strong_pointer_store(tlc_ptr2);
+        auto xs_cptr2 = xs_tlc_store2.xscope_ptr();
+        std::cout << *xs_cptr2 << std::endl;
+
+        class CA {
+        public:
+            auto foo1() const {
+                MSE_RSV_DECLARE_THREAD_LOCAL(mse::mstd::string) tl_string = "abc";
+                /* mse::return_value() just returns its argument and ensures that it's of a (pointer) type that's safe to return. */
+                return mse::return_value(&tl_string);
+            }
+        };
+        auto tl_ptr3 = CA().foo1();
+        auto xs_tl_store3 = mse::make_xscope_strong_pointer_store(tl_ptr3);
+        auto xs_cptr3 = xs_tl_store3.xscope_ptr();
+        *xs_cptr3 += "def";
+        std::cout << *xs_cptr3 << std::endl;
+    }
+
+    {
+        auto gimm_ptr1 = &gimm_string1;
+        auto xs_gimm_store1 = mse::make_xscope_strong_pointer_store(gimm_ptr1);
+        auto xs_ptr1 = xs_gimm_store1.xscope_ptr();
+        std::cout << *xs_ptr1 << std::endl;
+
+        MSE_RSV_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string2 = "abc";
+        auto simm_ptr2 = &simm_string2;
+        auto xs_simm_store2 = mse::make_xscope_strong_pointer_store(simm_ptr2);
+        auto xs_ptr2 = xs_simm_store2.xscope_ptr();
+        std::cout << *xs_ptr2 << std::endl;
+
+        class CA {
+        public:
+            auto foo1() const {
+                MSE_RSV_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string = "abc";
+                /* mse::return_value() just returns its argument and ensures that it's of a (pointer) type that's safe to return. */
+                return mse::return_value(&simm_string);
+            }
+        };
+        auto simm_ptr3 = CA().foo1();
+        auto xs_simm_store3 = mse::make_xscope_strong_pointer_store(simm_ptr3);
+        auto xs_cptr3 = xs_simm_store3.xscope_ptr();
+        std::cout << *xs_cptr3 << std::endl;
     }
 }
 ```
