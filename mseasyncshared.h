@@ -2388,7 +2388,7 @@ namespace mse {
 			thread::s_valid_if_passable(std::forward<_ArgTypes>(_Args)...);
 			// ensure that the function return value is of a safely passable type
 			mse::T_valid_if_is_marked_as_passable_or_shareable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
-			thread::s_valid_if_scope_passable(std::forward<decltype(_Fnarg)>(_Fnarg));
+			thread::s_valid_if_passable(std::forward<decltype(_Fnarg)>(_Fnarg));
 			return (std::async(_Policy, std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...));
 		}
 
