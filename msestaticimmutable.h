@@ -566,7 +566,7 @@ namespace mse {
 #endif /*MSE_STATICPOINTER_DISABLED*/
 	}
 
-#define MSE_RSV_DECLARE_STATIC_IMMUTABLE(type) static mse::rsv::TStaticImmutableObj<type> 
+#define MSE_DECLARE_STATIC_IMMUTABLE(type) static mse::rsv::TStaticImmutableObj<type> 
 #define MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(type) mse::rsv::TStaticImmutableObj<type> 
 
 
@@ -598,7 +598,7 @@ namespace mse {
 
 			{
 				shareable_A a(7);
-				MSE_RSV_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a(7);
+				MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a(7);
 
 				assert(a.b == static_a.b);
 				shareable_A_native_ptr = std::addressof(a);
@@ -621,7 +621,7 @@ namespace mse {
 				}
 
 				shareable_A a2 = a;
-				MSE_RSV_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a2 = static_a;
+				MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a2 = static_a;
 				static_a2 = a;
 				static_a2 = static_a;
 
@@ -639,7 +639,7 @@ namespace mse {
 				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
 				class GE : public E {};
 				typedef mse::rsv::TAsyncShareableObj<GE> shareable_GE;
-				MSE_RSV_DECLARE_STATIC_IMMUTABLE(shareable_GE) static_gd;
+				MSE_DECLARE_STATIC_IMMUTABLE(shareable_GE) static_gd;
 				mse::rsv::TStaticImmutableFixedPointer<shareable_GE> GE_static_ifptr1 = &static_gd;
 				mse::rsv::TStaticImmutableFixedPointer<E> E_static_ifptr5 = GE_static_ifptr1;
 				mse::rsv::TStaticImmutableFixedPointer<E> E_static_fptr2(&static_gd);
@@ -666,7 +666,7 @@ namespace mse {
 					~B() {}
 				};
 
-				MSE_RSV_DECLARE_STATIC_IMMUTABLE(shareable_A) a_scpobj(5);
+				MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) a_scpobj(5);
 				int res1 = (&a_scpobj)->b;
 				int res2 = B::foo2(&a_scpobj);
 				int res3 = B::foo3(&a_scpobj);
@@ -679,7 +679,7 @@ namespace mse {
 
 			{
 				shareable_A a(7);
-				MSE_RSV_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a(7);
+				MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a(7);
 
 				assert(a.b == static_a.b);
 				shareable_A_native_ptr = std::addressof(a);
@@ -702,7 +702,7 @@ namespace mse {
 				}
 
 				shareable_A a2 = a;
-				MSE_RSV_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a2 = static_a;
+				MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a2 = static_a;
 				static_a2 = a;
 				static_a2 = static_a;
 
@@ -720,7 +720,7 @@ namespace mse {
 				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
 				class GE : public E {};
 				typedef mse::rsv::TAsyncShareableObj<GE> shareable_GE;
-				MSE_RSV_DECLARE_STATIC_IMMUTABLE(shareable_GE) static_gd;
+				MSE_DECLARE_STATIC_IMMUTABLE(shareable_GE) static_gd;
 				mse::rsv::TStaticImmutableFixedPointer<shareable_GE> GE_static_ifptr1 = &static_gd;
 				mse::rsv::TStaticImmutableFixedPointer<E> E_static_ptr5(GE_static_ifptr1);
 				mse::rsv::TStaticImmutableFixedPointer<E> E_static_ifptr2(&static_gd);

@@ -465,10 +465,10 @@ namespace mse {
 #endif /*MSE_THREADLOCALPOINTER_DISABLED*/
 	}
 
-#define MSE_RSV_DECLARE_THREAD_LOCAL(type) thread_local mse::rsv::TThreadLocalObj<type> 
-#define MSE_RSV_DECLARE_THREAD_LOCAL_CONST(type) thread_local const mse::rsv::TThreadLocalObj<type> 
-#define MSE_RSV_DECLARE_THREAD_LOCAL_GLOBAL(type) MSE_RSV_DECLARE_THREAD_LOCAL(type) 
-#define MSE_RSV_DECLARE_THREAD_LOCAL_GLOBAL_CONST(type) MSE_RSV_DECLARE_THREAD_LOCAL_CONST(type) 
+#define MSE_DECLARE_THREAD_LOCAL(type) thread_local mse::rsv::TThreadLocalObj<type> 
+#define MSE_DECLARE_THREAD_LOCAL_CONST(type) thread_local const mse::rsv::TThreadLocalObj<type> 
+#define MSE_DECLARE_THREAD_LOCAL_GLOBAL(type) MSE_DECLARE_THREAD_LOCAL(type) 
+#define MSE_DECLARE_THREAD_LOCAL_GLOBAL_CONST(type) MSE_DECLARE_THREAD_LOCAL_CONST(type) 
 
 
 	class CThreadLocalPtrTest1 {
@@ -498,7 +498,7 @@ namespace mse {
 
 			{
 				A a(7);
-				MSE_RSV_DECLARE_THREAD_LOCAL(A) thread_local_a(7);
+				MSE_DECLARE_THREAD_LOCAL(A) thread_local_a(7);
 
 				assert(a.b == thread_local_a.b);
 				A_native_ptr = &a;
@@ -521,13 +521,13 @@ namespace mse {
 				}
 
 				A a2 = a;
-				MSE_RSV_DECLARE_THREAD_LOCAL(A) thread_local_a2 = thread_local_a;
+				MSE_DECLARE_THREAD_LOCAL(A) thread_local_a2 = thread_local_a;
 				thread_local_a2 = a;
 				thread_local_a2 = thread_local_a;
 
 				mse::rsv::TThreadLocalFixedConstPointer<A> rcp = A_thread_local_ptr1;
 				mse::rsv::TThreadLocalFixedConstPointer<A> rcp2 = rcp;
-				MSE_RSV_DECLARE_THREAD_LOCAL_CONST(A) cthread_local_a(11);
+				MSE_DECLARE_THREAD_LOCAL_CONST(A) cthread_local_a(11);
 				mse::rsv::TThreadLocalFixedConstPointer<A> rfcp = &cthread_local_a;
 			}
 
@@ -540,7 +540,7 @@ namespace mse {
 
 				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
 				class GE : public E {};
-				MSE_RSV_DECLARE_THREAD_LOCAL(GE) thread_local_gd;
+				MSE_DECLARE_THREAD_LOCAL(GE) thread_local_gd;
 				mse::rsv::TThreadLocalFixedPointer<GE> GE_thread_local_ifptr1 = &thread_local_gd;
 				mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_ifptr5 = GE_thread_local_ifptr1;
 				mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_fptr2(&thread_local_gd);
@@ -566,7 +566,7 @@ namespace mse {
 					~B() {}
 				};
 
-				MSE_RSV_DECLARE_THREAD_LOCAL(A) a_scpobj(5);
+				MSE_DECLARE_THREAD_LOCAL(A) a_scpobj(5);
 				int res1 = (&a_scpobj)->b;
 				int res2 = B::foo2(&a_scpobj);
 				int res3 = B::foo3(&a_scpobj);
@@ -580,7 +580,7 @@ namespace mse {
 
 			{
 				A a(7);
-				MSE_RSV_DECLARE_THREAD_LOCAL(A) thread_local_a(7);
+				MSE_DECLARE_THREAD_LOCAL(A) thread_local_a(7);
 
 				assert(a.b == thread_local_a.b);
 				A_native_ptr = &a;
@@ -603,13 +603,13 @@ namespace mse {
 				}
 
 				A a2 = a;
-				MSE_RSV_DECLARE_THREAD_LOCAL(A) thread_local_a2 = thread_local_a;
+				MSE_DECLARE_THREAD_LOCAL(A) thread_local_a2 = thread_local_a;
 				thread_local_a2 = a;
 				thread_local_a2 = thread_local_a;
 
 				mse::rsv::TThreadLocalFixedConstPointer<A> rcp = A_thread_local_ptr1;
 				mse::rsv::TThreadLocalFixedConstPointer<A> rcp2 = rcp;
-				MSE_RSV_DECLARE_THREAD_LOCAL_CONST(A) cthread_local_a(11);
+				MSE_DECLARE_THREAD_LOCAL_CONST(A) cthread_local_a(11);
 				mse::rsv::TThreadLocalFixedConstPointer<A> rfcp = &cthread_local_a;
 			}
 
@@ -622,7 +622,7 @@ namespace mse {
 
 				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
 				class GE : public E {};
-				MSE_RSV_DECLARE_THREAD_LOCAL(GE) thread_local_gd;
+				MSE_DECLARE_THREAD_LOCAL(GE) thread_local_gd;
 				mse::rsv::TThreadLocalFixedPointer<GE> GE_thread_local_ifptr1 = &thread_local_gd;
 				mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_ptr5(GE_thread_local_ifptr1);
 				mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_ifptr2(&thread_local_gd);
