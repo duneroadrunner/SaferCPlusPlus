@@ -1524,7 +1524,7 @@ When passing an argument to a function that will be executed in another thread u
 
 ### thread
 
-`mstd::thread` is just an implementation of `std::thread` that verifies that the arguments passed are of a type that is designated (i.e. recognized or declared) as safe to pass between threads. Note that this includes the passed function object (although the implementation currently isn't enforcing it). "Regular, concrete" functions and non-capture lambdas should be automatically recognized as safely passable, but functors, capture-lambdas and generic functions should be explicitly declared as "passable".
+`mstd::thread` is just an implementation of `std::thread` that verifies that the arguments passed are of a type that is designated (i.e. recognized or declared) as safe to pass between threads. Note that this includes the passed function object. "Regular, concrete" functions and non-capture lambdas are automatically recognized as safely passable, but functors, capture-lambdas and generic lambdas would need to be explicitly declared as "passable".
 
 ### async()
 
@@ -3072,6 +3072,8 @@ void main(int argc, char* argv[]) {
     }
 }
 ```
+
+Note that proper use of the `MSE_RSV_DECLARE_GLOBAL_IMMUTABLE()` macro is not currently fully enforced at compile-time. In debug builds any unsafe use will be caught at run-time. You can enable the run-time checking in non-debug builds by defining the `MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol.
 
 ### Practical limitations
 
