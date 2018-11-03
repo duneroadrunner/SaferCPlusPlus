@@ -17,10 +17,10 @@
 #include <functional>
 #include <cassert>
 
-#ifdef MSE_STATICPOINTER_RUNTIME_CHECKS_ENABLED
+#ifdef MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 #include <mutex>
 #include "mseany.h"
-#endif // MSE_STATICPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 
 #ifdef _MSC_VER
 #pragma warning( push )  
@@ -81,7 +81,7 @@ namespace mse {
 
 #else /*MSE_STATICPOINTER_DISABLED*/
 
-#if defined(MSE_STATICPOINTER_RUNTIME_CHECKS_ENABLED)
+#if defined(MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED)
 
 		namespace impl {
 			namespace simm {
@@ -185,7 +185,7 @@ namespace mse {
 		template<typename _Ty> using Tstatic_obj_base_ptr = mse::rsv::impl::simm::TCheckedSImmFixedPointer<_Ty>;
 		template<typename _Ty> using Tstatic_obj_base_const_ptr = mse::rsv::impl::simm::TCheckedSImmFixedConstPointer<_Ty>;
 
-#else // MSE_STATICPOINTER_RUNTIME_CHECKS_ENABLED
+#else // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 
 		template<typename _TROz>
 		class TStaticImmutableObjBase : public std::add_const<_TROz>::type {
@@ -215,7 +215,7 @@ namespace mse {
 		template<typename _Ty> using Tstatic_obj_base_ptr = TStaticImmutableObjBase<_Ty>*;
 		template<typename _Ty> using Tstatic_obj_base_const_ptr = TStaticImmutableObjBase<const _Ty> const*;
 
-#endif // MSE_STATICPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 
 		template <class _Ty, class _Ty2, class = typename std::enable_if<
 			(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)

@@ -5451,6 +5451,89 @@ namespace mse {
 	template <class N, int _Size>
 	struct is_std_array<std::array<N, _Size> > { static const int value = 1; };
 
+
+	namespace impl {
+		namespace lambda {
+
+			template<class T, class EqualTo>
+			struct HasOrInheritsFunctionCallOperator_msemsearray_impl
+			{
+				template<class U, class V>
+				static auto test(U*) -> decltype(std::declval<U>().operator() == std::declval<V>().operator(), bool(true));
+				template<typename, typename>
+				static auto test(...)->std::false_type;
+
+				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			};
+			template<class T, class EqualTo = T>
+			struct HasOrInheritsFunctionCallOperator_msemsearray : HasOrInheritsFunctionCallOperator_msemsearray_impl<
+				typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+			template<typename T> struct remove_class { };
+			template<typename C, typename R, typename... A>
+			struct remove_class<R(C::*)(A...)> { using type = R(A...); };
+			template<typename C, typename R, typename... A>
+			struct remove_class<R(C::*)(A...) const> { using type = R(A...); };
+			template<typename C, typename R, typename... A>
+			struct remove_class<R(C::*)(A...) volatile> { using type = R(A...); };
+			template<typename C, typename R, typename... A>
+			struct remove_class<R(C::*)(A...) const volatile> { using type = R(A...); };
+
+			template<typename T>
+			auto get_signature_impl_helper1(std::true_type) {
+				return &std::remove_reference<T>::type::operator();
+			}
+			template<typename T>
+			auto get_signature_impl_helper1(std::false_type) {
+				/* This type doesn't seem to have a function signature (as would be the case with generic lambdas for
+				example), so we'll just return a dummy signature. */
+				auto lambda1 = []() {};
+				return &std::remove_reference<decltype(lambda1)>::type::operator();
+			}
+			template<typename T>
+			struct get_signature_impl {
+				using type = typename remove_class<decltype(get_signature_impl_helper1<T>(typename HasOrInheritsFunctionCallOperator_msemsearray<T>::type::type()))>::type;
+			};
+			template<typename R, typename... A>
+			struct get_signature_impl<R(A...)> { using type = R(A...); };
+			template<typename R, typename... A>
+			struct get_signature_impl<R(&)(A...)> { using type = R(A...); };
+			template<typename R, typename... A>
+			struct get_signature_impl<R(*)(A...)> { using type = R(A...); };
+			/* Get the signature of a function type. */
+			template<typename T> using get_signature = typename get_signature_impl<T>::type;
+
+			/* "non-capture" lambdas are, unlike "capture" lambdas, convertible to function pointers */
+			template<class T, class Ret, class...Args>
+			struct is_convertible_to_function_pointer1 : std::is_convertible<T, Ret(*)(Args...)> {};
+			template <typename T, typename T2>
+			struct is_convertible_to_function_pointer2;
+			template <typename T, typename Ret, typename... Args>
+			struct is_convertible_to_function_pointer2<T, Ret(Args...)> {
+				static constexpr auto value = is_convertible_to_function_pointer1<T, Ret, Args...>::value;
+			};
+
+			template <typename T>
+			struct is_convertible_to_function_pointer : is_convertible_to_function_pointer2<T, get_signature<T> > {};
+
+			template<class T, class Ret, class...Args>
+			struct is_function_obj_that_is_not_convertible_to_function_pointer1 {
+				/* "capture" lambdas are convertible to corresponding std::function<>s, but not to function pointers */
+				static constexpr auto convertible = std::is_convertible<T, std::function<Ret(Args...)>>::value;
+				static constexpr auto value = convertible && !is_convertible_to_function_pointer1<T, Ret, Args...>::value;
+			};
+			template <typename T, typename T2>
+			struct is_function_obj_that_is_not_convertible_to_function_pointer2;
+			template <typename T, typename Ret, typename... Args>
+			struct is_function_obj_that_is_not_convertible_to_function_pointer2<T, Ret(Args...)> {
+				static constexpr auto value = is_function_obj_that_is_not_convertible_to_function_pointer1<T, Ret, Args...>::value;
+			};
+
+			template <typename T>
+			struct is_function_obj_that_is_not_convertible_to_function_pointer : is_function_obj_that_is_not_convertible_to_function_pointer2<T, get_signature<T> > {};
+		}
+	}
+
 	namespace rsv {
 		/* TAsyncShareableObj is intended as a transparent wrapper for other classes/objects. */
 		template<typename _TROy>
@@ -5545,7 +5628,8 @@ namespace mse {
 	}
 
 	template <typename _Ty> struct is_marked_as_shareable_msemsearray : std::integral_constant<bool, (HasAsyncShareableTagMethod_msemsearray<_Ty>::Has)
-		|| (std::is_arithmetic<_Ty>::value) || (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
+		|| (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
+		|| (mse::impl::lambda::is_convertible_to_function_pointer<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
 		|| (std::is_same<_Ty, void>::value)> {};
 	
 	template<class _Ty, class = typename std::enable_if<(is_marked_as_shareable_msemsearray<_Ty>::value), void>::type>
@@ -5644,89 +5728,6 @@ namespace mse {
 
 	template<typename _Ty>
 	class TSharedGlobalImmutable : public std::add_const<_Ty>::type, public XScopeTagBase {};
-
-
-	namespace impl {
-		namespace lambda {
-
-			template<class T, class EqualTo>
-			struct HasOrInheritsFunctionCallOperator_msemsearray_impl
-			{
-				template<class U, class V>
-				static auto test(U*) -> decltype(std::declval<U>().operator() == std::declval<V>().operator(), bool(true));
-				template<typename, typename>
-				static auto test(...)->std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct HasOrInheritsFunctionCallOperator_msemsearray : HasOrInheritsFunctionCallOperator_msemsearray_impl<
-				typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
-			template<typename T> struct remove_class { };
-			template<typename C, typename R, typename... A>
-			struct remove_class<R(C::*)(A...)> { using type = R(A...); };
-			template<typename C, typename R, typename... A>
-			struct remove_class<R(C::*)(A...) const> { using type = R(A...); };
-			template<typename C, typename R, typename... A>
-			struct remove_class<R(C::*)(A...) volatile> { using type = R(A...); };
-			template<typename C, typename R, typename... A>
-			struct remove_class<R(C::*)(A...) const volatile> { using type = R(A...); };
-
-			template<typename T>
-			auto get_signature_impl_helper1(std::true_type) {
-				return &std::remove_reference<T>::type::operator();
-			}
-			template<typename T>
-			auto get_signature_impl_helper1(std::false_type) {
-				/* This type doesn't seem to have a function signature (as would be the case with generic lambdas for
-				example), so we'll just return a dummy signature. */
-				auto lambda1 = []() {};
-				return &std::remove_reference<decltype(lambda1)>::type::operator();
-			}
-			template<typename T>
-			struct get_signature_impl {
-				using type = typename remove_class<decltype(get_signature_impl_helper1<T>(typename HasOrInheritsFunctionCallOperator_msemsearray<T>::type::type()))>::type;
-			};
-			template<typename R, typename... A>
-			struct get_signature_impl<R(A...)> { using type = R(A...); };
-			template<typename R, typename... A>
-			struct get_signature_impl<R(&)(A...)> { using type = R(A...); };
-			template<typename R, typename... A>
-			struct get_signature_impl<R(*)(A...)> { using type = R(A...); };
-			/* Get the signature of a function type. */
-			template<typename T> using get_signature = typename get_signature_impl<T>::type;
-
-			/* "non-capture" lambdas are, unlike "capture" lambdas, convertible to function pointers */
-			template<class T, class Ret, class...Args>
-			struct is_convertible_to_function_pointer1 : std::is_convertible<T, Ret(*)(Args...)> {};
-			template <typename T, typename T2>
-			struct is_convertible_to_function_pointer2;
-			template <typename T, typename Ret, typename... Args>
-			struct is_convertible_to_function_pointer2<T, Ret(Args...)> {
-				static constexpr auto value = is_convertible_to_function_pointer1<T, Ret, Args...>::value;
-			};
-
-			template <typename T>
-			struct is_convertible_to_function_pointer : is_convertible_to_function_pointer2<T, get_signature<T> > {};
-
-			template<class T, class Ret, class...Args>
-			struct is_function_obj_that_is_not_convertible_to_function_pointer1 {
-				/* "capture" lambdas are convertible to corresponding std::function<>s, but not to function pointers */
-				static constexpr auto convertible = std::is_convertible<T, std::function<Ret(Args...)>>::value;
-				static constexpr auto value = convertible && !is_convertible_to_function_pointer1<T, Ret, Args...>::value;
-			};
-			template <typename T, typename T2>
-			struct is_function_obj_that_is_not_convertible_to_function_pointer2;
-			template <typename T, typename Ret, typename... Args>
-			struct is_function_obj_that_is_not_convertible_to_function_pointer2<T, Ret(Args...)> {
-				static constexpr auto value = is_function_obj_that_is_not_convertible_to_function_pointer1<T, Ret, Args...>::value;
-			};
-
-			template <typename T>
-			struct is_function_obj_that_is_not_convertible_to_function_pointer : is_function_obj_that_is_not_convertible_to_function_pointer2<T, get_signature<T> > {};
-		}
-	}
 
 
 	template <typename _Ty> struct is_thread_safe_mutex_msemsearray : std::integral_constant<bool, (std::is_same<_Ty, std::mutex>::value) /*|| (std::is_same<_Ty, std::shared_mutex>::value)*/

@@ -2361,6 +2361,7 @@ namespace mse {
 			template<class _Fn, class... _Args, class = typename std::enable_if<!std::is_same<typename std::decay<_Fn>::type, thread>::value>::type>
 			explicit thread(_Fn&& _Fx, _Args&&... _Ax) : base_class(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {
 				s_valid_if_passable(std::forward<_Args>(_Ax)...); // ensure that the function arguments are of a safely passable type
+				s_valid_if_passable(std::forward<decltype(_Fx)>(_Fx));
 			}
 
 			thread(thread&& _Other) _NOEXCEPT : base_class(std::forward<base_class>(_Other)) {}
@@ -2387,6 +2388,7 @@ namespace mse {
 			thread::s_valid_if_passable(std::forward<_ArgTypes>(_Args)...);
 			// ensure that the function return value is of a safely passable type
 			mse::T_valid_if_is_marked_as_passable_or_shareable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
+			thread::s_valid_if_scope_passable(std::forward<decltype(_Fnarg)>(_Fnarg));
 			return (std::async(_Policy, std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...));
 		}
 
@@ -2411,6 +2413,7 @@ namespace mse {
 		template<class _Fn, class... _Args, class = typename std::enable_if<!std::is_same<typename std::decay<_Fn>::type, xscope_thread>::value>::type>
 		explicit xscope_thread(_Fn&& _Fx, _Args&&... _Ax) : base_class(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {
 			s_valid_if_xscope_passable(std::forward<_Args>(_Ax)...); // ensure that the function arguments are of a safely passable type
+			s_valid_if_xscope_passable(std::forward<decltype(_Fx)>(_Fx));
 		}
 
 		xscope_thread& operator=(xscope_thread&& _Other) = delete;
@@ -2547,6 +2550,7 @@ namespace mse {
 	auto xscope_async(std::launch _Policy, _Fty&& _Fnarg, _ArgTypes&&... _Args) -> xscope_future<decltype(std::async(_Policy, std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...).get())> {
 		// ensure that the function arguments are of a safely passable type
 		xscope_thread::s_valid_if_xscope_passable(std::forward<_ArgTypes>(_Args)...);
+		xscope_thread::s_valid_if_xscope_passable(std::forward<decltype(_Fnarg)>(_Fnarg));
 		// ensure that the function return value is of a safely passable type
 		mse::T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
 		typedef decltype(std::async(_Policy, std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...).get()) future_element_t;
