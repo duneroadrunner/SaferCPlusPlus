@@ -3013,7 +3013,7 @@ usage example:
 #include "msestaticimmutable.h"
 #include <iostream>
 
-MSE_RSV_DECLARE_THREAD_LOCAL_GLOBAL(mse::mstd::string) tlg_string1 = "some text";
+MSE_DECLARE_THREAD_LOCAL_GLOBAL(mse::mstd::string) tlg_string1 = "some text";
 MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(mse::nii_string) gimm_string1 = "some text";
 
 void main(int argc, char* argv[]) {
@@ -3024,7 +3024,7 @@ void main(int argc, char* argv[]) {
         *xs_ptr1 += "...";
         std::cout << *xs_ptr1 << std::endl;
 
-        MSE_RSV_DECLARE_THREAD_LOCAL_CONST(mse::mstd::string) tlc_string2 = "abc";
+        MSE_DECLARE_THREAD_LOCAL_CONST(mse::mstd::string) tlc_string2 = "abc";
         auto tlc_ptr2 = &tlc_string2;
         auto xs_tlc_store2 = mse::make_xscope_strong_pointer_store(tlc_ptr2);
         auto xs_cptr2 = xs_tlc_store2.xscope_ptr();
@@ -3033,7 +3033,7 @@ void main(int argc, char* argv[]) {
         class CA {
         public:
             auto foo1() const {
-                MSE_RSV_DECLARE_THREAD_LOCAL(mse::mstd::string) tl_string = "abc";
+                MSE_DECLARE_THREAD_LOCAL(mse::mstd::string) tl_string = "abc";
                 /* mse::return_value() just returns its argument and ensures that it's of a (pointer) type that's safe to return. */
                 return mse::return_value(&tl_string);
             }
@@ -3051,7 +3051,7 @@ void main(int argc, char* argv[]) {
         auto xs_ptr1 = xs_gimm_store1.xscope_ptr();
         std::cout << *xs_ptr1 << std::endl;
 
-        MSE_RSV_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string2 = "abc";
+        MSE_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string2 = "abc";
         auto simm_ptr2 = &simm_string2;
         auto xs_simm_store2 = mse::make_xscope_strong_pointer_store(simm_ptr2);
         auto xs_ptr2 = xs_simm_store2.xscope_ptr();
@@ -3060,7 +3060,7 @@ void main(int argc, char* argv[]) {
         class CA {
         public:
             auto foo1() const {
-                MSE_RSV_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string = "abc";
+                MSE_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string = "abc";
                 /* mse::return_value() just returns its argument and ensures that it's of a (pointer) type that's safe to return. */
                 return mse::return_value(&simm_string);
             }
