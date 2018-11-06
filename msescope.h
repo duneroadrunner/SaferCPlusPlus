@@ -94,6 +94,7 @@ namespace mse {
 	{
 		static const bool value = (std::is_base_of<XScopeContainsNonOwningScopeReferenceTagBase, T>::value
 			&& std::is_base_of<StrongPointerNotAsyncShareableTagBase, T>::value);
+		using type = std::integral_constant<bool, value>;
 	};
 	template<class T, class EqualTo = T>
 	struct IsNonOwningScopePointer : IsNonOwningScopePointer_impl<

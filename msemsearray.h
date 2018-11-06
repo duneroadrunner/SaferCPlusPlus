@@ -3509,7 +3509,7 @@ namespace mse {
 	}
 	template<class _TArrayPointer>
 	auto make_const_iterator(const _TArrayPointer& owner_ptr) {
-		return make_const_iterator_helper2(IsNonOwningScopePointer<_TArrayPointer>::value, owner_ptr);
+		return make_const_iterator_helper2(typename IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
 	}
 
 	template<class _TArrayPointer>
@@ -3534,7 +3534,7 @@ namespace mse {
 	}
 	template<class _TArrayPointer>
 	auto make_iterator(const _TArrayPointer& owner_ptr) {
-		return make_iterator_helper2(IsNonOwningScopePointer<_TArrayPointer>::value, owner_ptr);
+		return make_iterator_helper2(typename IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
 	}
 
 	template<class _TArrayPointer>

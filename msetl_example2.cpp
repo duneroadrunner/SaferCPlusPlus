@@ -256,7 +256,39 @@ void msetl_example2() {
 		shareable nii_vector<>. Note that vector swaps are intrinsically fast operations. */
 		std::swap(vo2, *(access_requester2.writelock_ptr()));
 
-		//std::for_each(vo2.begin(), vo2.end(), [](mse::nii_string& ns) { ns.append("z"); });
+		{
+			/* If the vector is declared as a "scope" object (which basically indicates that it is declared
+			on the stack), then you can use "scope" iterators. While there are limitations on when they can
+			be used, scope iterators would be the preferred iterator type where performance is a priority
+			as they don't require extra run-time overhead to ensure that the vector has not been prematurely
+			deallocated. */
+
+			/* Here we're declaring an vector as a scope object. */
+			mse::TXScopeObj<mse::nii_vector<int>> vector1_scpobj = mse::nii_vector<int>{ 1, 2, 3 };
+
+			/* Here we're obtaining a scope iterator to the vector. */
+			auto scp_iter1 = mse::make_xscope_begin_iterator(&vector1_scpobj);
+			auto scp_iter2 = mse::make_xscope_end_iterator(&vector1_scpobj);
+
+			std::sort(scp_iter1, scp_iter2);
+
+			auto scp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
+			scp_citer3 = scp_iter1;
+			scp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
+			scp_citer3 += 2;
+			auto res1 = *scp_citer3;
+			auto res2 = scp_citer3[0];
+
+			{
+				/* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
+				object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
+				to become invalid is performed. */
+				auto xscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(&vector1_scpobj);
+				auto scp_ptr1 = xscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+				auto res4 = *scp_ptr1;
+			}
+			vector1_scpobj.push_back(4);
+		}
 	}
 
 	{

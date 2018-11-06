@@ -132,7 +132,7 @@ namespace mse {
 	}
 
 	namespace impl {
-		namespace nii_bs {
+		namespace ns_nii_basic_string {
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
 			std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>&& _Istr, nii_basic_string<_Ty, _Traits, _A>& _Str);
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
@@ -717,6 +717,13 @@ namespace mse {
 		friend class /*_Myt*/nii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
 	};
 
+	namespace impl {
+		namespace ns_nii_basic_string {
+			template<class _Ty, class _Traits, class _A, class _TStateMutex>
+			class xscope_structure_change_lock_guard;
+		}
+	}
+
 	/* nii_basic_string<> is essentially a memory-safe basic_string that does not expose (unprotected) non-static member functions
 	like begin() or end() which return (memory) unsafe iterators. It does provide static member function templates
 	like ss_begin<>(...) and ss_end<>(...) which take a pointer parameter and return a (bounds-checked) iterator that
@@ -778,25 +785,25 @@ namespace mse {
 
 		/*
 		_Myt& operator=(const std_basic_string& _X) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.operator =(_X);
 			//m_debug_size = size();
 			return (*this);
 		}
 		*/
 		_Myt& operator=(_Myt&& _X) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.operator=(std::forward<std_basic_string>(_X.contained_basic_string()));
 			return (*this);
 		}
 		_Myt& operator=(const _Myt& _X) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.operator=(_X.contained_basic_string());
 			return (*this);
 		}
 
 		~nii_basic_string() {
-			mse::destructor_lock_guard1<_TStateMutex> lock1(m_mutex1);
+			mse::destructor_lock_guard1<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			valid_if_Ty_is_not_an_xscope_type();
@@ -806,7 +813,7 @@ namespace mse {
 
 		void reserve(size_type _Count)
 		{	// determine new minimum length of allocated storage
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.reserve(msev_as_a_size_t(_Count));
 		}
 		size_type capacity() const _NOEXCEPT
@@ -814,11 +821,11 @@ namespace mse {
 			return m_basic_string.capacity();
 		}
 		void shrink_to_fit() {	// reduce capacity
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.shrink_to_fit();
 		}
 		void resize(size_type _N, const _Ty& _X = _Ty()) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.resize(msev_as_a_size_t(_N), _X);
 		}
 		typename std_basic_string::const_reference operator[](msev_size_t _P) const {
@@ -844,38 +851,38 @@ namespace mse {
 			return m_basic_string.back();
 		}
 		void push_back(_Ty&& _X) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.push_back(std::forward<decltype(_X)>(_X));
 		}
 		void push_back(const _Ty& _X) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.push_back(_X);
 		}
 		void pop_back() {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.pop_back();
 		}
 		void assign(_It _F, _It _L) {
 			smoke_check_source_iterators(_F, _L);
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.assign(_F, _L);
 			/*m_debug_size = size();*/
 		}
 		template<class _Iter>
 		void assign(const _Iter& _First, const _Iter& _Last) {	// assign [_First, _Last)
 			smoke_check_source_iterators(_First, _Last);
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.assign(_First, _Last);
 			/*m_debug_size = size();*/
 		}
 		void assign(size_type _N, const _Ty& _X = _Ty()) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.assign(msev_as_a_size_t(_N), _X);
 			/*m_debug_size = size();*/
 		}
 		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
 		void assign(const _TStringSection& _X) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.assign(_X.cbegin(), _X.cend());
 			/*m_debug_size = size();*/
 		}
@@ -901,30 +908,34 @@ namespace mse {
 		template<class _Iter>
 		void smoke_check_source_iterators_helper(std::false_type, const _Iter&, const _Iter&) {}
 		template<class _Iter>
+#ifdef MSE_SMOKE_CHECK_ITERATORS
 		void smoke_check_source_iterators(const _Iter& _First, const _Iter& _Last) {
 			smoke_check_source_iterators_helper(typename HasOrInheritsLessThanOperator_msemsevector<_Iter>::type(), _First, _Last);
 		}
+#else // MSE_SMOKE_CHECK_ITERATORS
+		void smoke_check_source_iterators(const _Iter&, const _Iter&) {}
+#endif // MSE_SMOKE_CHECK_ITERATORS
 
 		template<class ..._Valty>
 		void emplace_back(_Valty&& ..._Val)
 		{	// insert by moving into element at end
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.emplace_back(std::forward<_Valty>(_Val)...);
 			/*m_debug_size = size();*/
 		}
 		void clear() {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.clear();
 			/*m_debug_size = size();*/
 		}
 
 		void swap(_Myt& _Other) {	// swap contents with _Other
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.swap(_Other.m_basic_string);
 		}
 
 		void swap(_MBS& _Other) {	// swap contents with _Other
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.swap(_Other);
 		}
 
@@ -1909,13 +1920,13 @@ namespace mse {
 
 
 		typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, _Ty _X) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			typename std_basic_string::iterator retval = m_basic_string.insert(_P, _X);
 			/*m_debug_size = size();*/
 			return retval;
 		}
 		typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, size_type _M, _Ty _X) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			typename std_basic_string::iterator retval = m_basic_string.insert(_P, msev_as_a_size_t(_M), _X);
 			/*m_debug_size = size();*/
 			return retval;
@@ -1924,14 +1935,14 @@ namespace mse {
 			//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename std_basic_string::iterator>::type
 			, class = _mse_RequireInputIter<_Iter> >
 			typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _Where, const _Iter& _First, const _Iter& _Last) {	// insert [_First, _Last) at _Where
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			auto retval = m_basic_string.insert(_Where, _First, _Last);
 			/*m_debug_size = size();*/
 			return retval;
 		}
 		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
 		typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, const _TStringSection& _X) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			/* todo: optimize? In most cases a temporary copy shouldn't be necessary, but what about when the string section
 			refers to a section of the target string? */
 			const _Myt temp_nii_str(_X);
@@ -1942,19 +1953,19 @@ namespace mse {
 		template<class ..._Valty>
 		typename std_basic_string::iterator emplace(typename std_basic_string::const_iterator _Where, _Valty&& ..._Val)
 		{	// insert by moving _Val at _Where
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			auto retval = m_basic_string.insert(_Where, std::forward<_Valty>(_Val)...);
 			/*m_debug_size = size();*/
 			return retval;
 		}
 		typename std_basic_string::iterator erase(typename std_basic_string::const_iterator _P) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			typename std_basic_string::iterator retval = m_basic_string.erase(_P);
 			/*m_debug_size = size();*/
 			return retval;
 		}
 		typename std_basic_string::iterator erase(typename std_basic_string::const_iterator _F, typename std_basic_string::const_iterator _L) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			typename std_basic_string::iterator retval = m_basic_string.erase(_F, _L);
 			/*m_debug_size = size();*/
 			return retval;
@@ -1980,7 +1991,9 @@ namespace mse {
 		_MBS& contained_basic_string() { return m_basic_string; }
 
 		std_basic_string m_basic_string;
-		_TStateMutex m_mutex1;
+		//_TStateMutex m_mutex1;
+		mse::non_thread_safe_shared_mutex m_structure_change_mutex;
+
 
 		friend /*class */xscope_ss_const_iterator_type;
 		friend /*class */xscope_ss_iterator_type;
@@ -1988,15 +2001,16 @@ namespace mse {
 
 		friend struct std::hash<nii_basic_string>;
 		template<class _Ty2, class _Traits2/* = std::char_traits<_Ty2>*/, class _A2/* = std::allocator<_Ty2>*/, class _TStateMutex2/* = default_state_mutex*/>
-		friend std::basic_istream<_Ty2, _Traits2>& impl::nii_bs::in_from_stream(std::basic_istream<_Ty2, _Traits2>&& _Istr, nii_basic_string<_Ty2, _Traits2, _A2>& _Str);
+		friend std::basic_istream<_Ty2, _Traits2>& impl::ns_nii_basic_string::in_from_stream(std::basic_istream<_Ty2, _Traits2>&& _Istr, nii_basic_string<_Ty2, _Traits2, _A2>& _Str);
 		template<class _Ty2, class _Traits2/* = std::char_traits<_Ty2>*/, class _A2/* = std::allocator<_Ty2>*/, class _TStateMutex2/* = default_state_mutex*/>
-		friend std::basic_istream<_Ty2, _Traits2>& impl::nii_bs::in_from_stream(std::basic_istream<_Ty2, _Traits2>& _Istr, nii_basic_string<_Ty2, _Traits2, _A2>& _Str);
+		friend std::basic_istream<_Ty2, _Traits2>& impl::ns_nii_basic_string::in_from_stream(std::basic_istream<_Ty2, _Traits2>& _Istr, nii_basic_string<_Ty2, _Traits2, _A2>& _Str);
 		template<class _Ty2, class _Traits2/* = std::char_traits<_Ty2>*/, class _A2/* = std::allocator<_Ty2>*/, class _TStateMutex2/* = default_state_mutex*/>
-		friend std::basic_ostream<_Ty2, _Traits2>& impl::nii_bs::out_to_stream(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const nii_basic_string<_Ty2, _Traits2, _A2>& _Str);
+		friend std::basic_ostream<_Ty2, _Traits2>& impl::ns_nii_basic_string::out_to_stream(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const nii_basic_string<_Ty2, _Traits2, _A2>& _Str);
+		friend class impl::ns_nii_basic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
 	};
 
 	namespace impl {
-		namespace nii_bs {
+		namespace ns_nii_basic_string {
 			template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = default_state_mutex*/>
 			std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>&& _Istr, nii_basic_string<_Ty, _Traits, _A>& _Str) {
 				return _Str.in_from_stream(std::forward<decltype(_Istr)>(_Istr), _Str);
@@ -2014,15 +2028,15 @@ namespace mse {
 
 	template<class _Ty, class _Traits>
 	std::basic_istream<_Ty, _Traits>& operator>>(std::basic_istream<_Ty, _Traits>&& _Istr, nii_basic_string<_Ty, _Traits>& _Str) {
-		return impl::nii_bs::in_from_stream(std::forward<decltype(_Istr)>(_Istr), _Str);
+		return impl::ns_nii_basic_string::in_from_stream(std::forward<decltype(_Istr)>(_Istr), _Str);
 	}
 	template<class _Ty, class _Traits>
 	std::basic_istream<_Ty, _Traits>& operator>>(std::basic_istream<_Ty, _Traits>& _Istr, nii_basic_string<_Ty, _Traits>& _Str) {
-		return impl::nii_bs::in_from_stream(_Istr, _Str);
+		return impl::ns_nii_basic_string::in_from_stream(_Istr, _Str);
 	}
 	template<class _Ty, class _Traits>
 	std::basic_ostream<_Ty, _Traits>& operator<<(std::basic_ostream<_Ty, _Traits>& _Ostr, const nii_basic_string<_Ty, _Traits>& _Str) {
-		return impl::nii_bs::out_to_stream(_Ostr, _Str);
+		return impl::ns_nii_basic_string::out_to_stream(_Ostr, _Str);
 	}
 
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
@@ -2151,6 +2165,50 @@ namespace mse {
 		_Left.push_back(_Right);
 		return (_STD move(_Left));
 	}
+
+	namespace impl {
+		namespace ns_nii_basic_string {
+			/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+			individual elements in the vector do not become invalid by preventing any operation that might resize the vector
+			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
+			template<class _Ty, class _Traits, class _A, class _TStateMutex>
+			class xscope_structure_change_lock_guard : public XScopeTagBase {
+			public:
+				xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_structure_change_lock_guard(const mse::TXScopeItemFixedPointer<nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+				auto xscope_ptr_to_element(typename nii_basic_string<_Ty, _Traits, _A, _TStateMutex>::size_type _P) const {
+					return mse::us::unsafe_make_xscope_pointer_to((*m_stored_ptr)[_P]);
+				}
+				auto target_container_ptr() const {
+					return m_stored_ptr;
+				}
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
+			private:
+				mse::TXScopeItemFixedPointer<nii_basic_string<_Ty, _Traits, _A, _TStateMutex> > m_stored_ptr;
+				std::shared_lock<mse::non_thread_safe_shared_mutex> m_shared_lock;
+			};
+		}
+	}
+
+	/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+	individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
+	or increase its capacity. Any attempt to execute such an operation would result in an exception. */
+	template<class _Ty, class _Traits, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
+	auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeFixedPointer<nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
+		//return typename nii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_change_lock_guard(owner_ptr);
+		return mse::impl::ns_nii_basic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, class _Traits, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
+	auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeItemFixedPointer<nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
+		//return typename nii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_change_lock_guard(owner_ptr);
+		return mse::impl::ns_nii_basic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 }
 
 namespace std {
@@ -2309,27 +2367,27 @@ namespace mse {
 			msebasic_string(const _TStringSection& _X) : base_class(_X), m_mmitset(*this) { /*m_debug_size = size();*/ }
 
 			_Myt& operator=(const base_class& _X) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::operator =(_X);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
 				return (*this);
 			}
 			_Myt& operator=(_Myt&& _X) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::operator=(std::forward<decltype(_X)>(_X));
 				m_mmitset.reset();
 				return (*this);
 			}
 			_Myt& operator=(const _Myt& _X) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::operator=(_X);
 				m_mmitset.reset();
 				return (*this);
 			}
 			void reserve(size_type _Count)
 			{	// determine new minimum length of allocated storage
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				auto original_capacity = msev_size_t((*this).capacity());
 
 				base_class::reserve(msev_as_a_size_t(_Count));
@@ -2352,7 +2410,7 @@ namespace mse {
 				}
 			}
 			void resize(size_type _N, const _Ty& _X = _Ty()) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
 				bool shrinking = (_N < original_size);
@@ -2393,7 +2451,7 @@ namespace mse {
 				return base_class::back();
 			}
 			void push_back(_Ty&& _X) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					base_class::push_back(std::forward<decltype(_X)>(_X));
 				}
@@ -2414,7 +2472,7 @@ namespace mse {
 				}
 			}
 			void push_back(const _Ty& _X) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					base_class::push_back(_X);
 				}
@@ -2435,7 +2493,7 @@ namespace mse {
 				}
 			}
 			void pop_back() {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					base_class::pop_back();
 				}
@@ -2458,27 +2516,27 @@ namespace mse {
 				}
 			}
 			void assign(_It _F, _It _L) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::assign(_F, _L);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
 			}
 			template<class _Iter>
 			void assign(const _Iter& _First, const _Iter& _Last) {	// assign [_First, _Last)
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::assign(_First, _Last);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
 			}
 			void assign(size_type _N, const _Ty& _X = _Ty()) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::assign(msev_as_a_size_t(_N), _X);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
 			}
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
 			void assign(const _TStringSection& _X) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::assign(_X);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
@@ -2487,7 +2545,7 @@ namespace mse {
 				return (emplace(_P, std::forward<decltype(_X)>(_X)));
 			}
 			typename base_class::iterator insert(typename base_class::const_iterator _P, const _Ty& _X = _Ty()) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					typename base_class::iterator retval = base_class::insert(_P, _X);
 					/*m_debug_size = size();*/
@@ -2518,7 +2576,7 @@ namespace mse {
 
 #if !(defined(GPP4P8_COMPATIBLE))
 			typename base_class::iterator insert(typename base_class::const_iterator _P, size_type _M, const _Ty& _X) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					typename base_class::iterator retval = base_class::insert(_P, msev_as_a_size_t(_M), _X);
 					/*m_debug_size = size();*/
@@ -2550,7 +2608,7 @@ namespace mse {
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
 				, class = _mse_RequireInputIter<_Iter> >
 				typename base_class::iterator insert(typename base_class::const_iterator _Where, const _Iter& _First, const _Iter& _Last) {	// insert [_First, _Last) at _Where
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					auto retval = base_class::insert(_Where, _First, _Last);
 					/*m_debug_size = size();*/
@@ -2587,7 +2645,7 @@ namespace mse {
 			void
 				/* g++4.8 seems to be using the c++98 version of this insert function instead of the c++11 version. */
 				insert(typename base_class::/*const_*/iterator _P, size_t _M, const _Ty& _X) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				msev_int di = std::distance(base_class::/*c*/begin(), _P);
 				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(msebasic_string_range_error("index out of range - typename base_class::iterator insert() - msebasic_string")); }
@@ -2613,7 +2671,7 @@ namespace mse {
 				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type
 				, class = _mse_RequireInputIter<_Iter> > void
 				insert(typename base_class::/*const_*/iterator _Where, const _Iter& _First, const _Iter& _Last) {	// insert [_First, _Last) at _Where
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				msev_int di = std::distance(base_class::/*c*/begin(), _Where);
 				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(msebasic_string_range_error("index out of range - typename base_class::iterator insert() - msebasic_string")); }
@@ -2640,7 +2698,7 @@ namespace mse {
 #endif /*!(defined(GPP4P8_COMPATIBLE))*/
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
 			typename base_class::iterator insert(typename base_class::const_iterator _P, const _TStringSection& _X) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					typename base_class::iterator retval = base_class::insert(_P, _X);
 					/*m_debug_size = size();*/
@@ -2672,7 +2730,7 @@ namespace mse {
 			template<class ..._Valty>
 			void emplace_back(_Valty&& ..._Val)
 			{	// insert by moving into element at end
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					base_class::emplace_back(std::forward<_Valty>(_Val)...);
 					/*m_debug_size = size();*/
@@ -2702,7 +2760,7 @@ namespace mse {
 			{	// insert by moving _Val at _Where
 #endif /*!(defined(GPP4P8_COMPATIBLE))*/
 
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					auto retval = base_class::emplace(_Where, std::forward<_Valty>(_Val)...);
 					/*m_debug_size = size();*/
@@ -2737,7 +2795,7 @@ namespace mse {
 				}
 			}
 			typename base_class::iterator erase(typename base_class::const_iterator _P) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					typename base_class::iterator retval = base_class::erase(_P);
 					/*m_debug_size = size();*/
@@ -2770,7 +2828,7 @@ namespace mse {
 				}
 			}
 			typename base_class::iterator erase(typename base_class::const_iterator _F, typename base_class::const_iterator _L) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					typename base_class::iterator retval = base_class::erase(_F, _L);
 					/*m_debug_size = size();*/
@@ -2808,19 +2866,19 @@ namespace mse {
 				}
 			}
 			void clear() {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::clear();
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
 			}
 			void swap(std::basic_string<_Ty, _Traits, _A>& _X) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::swap(_X);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
 			}
 			void swap(base_class& _X) {
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::swap(_X);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
@@ -2836,13 +2894,13 @@ namespace mse {
 																/*m_debug_size = size();*/
 			}
 			_Myt& operator=(_XSTD initializer_list<typename base_class::value_type> _Ilist) {	// assign initializer_list
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::operator=(_Ilist);
 				m_mmitset.reset();
 				return (*this);
 			}
 			void assign(_XSTD initializer_list<typename base_class::value_type> _Ilist) {	// assign initializer_list
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::assign(_Ilist);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
@@ -2850,7 +2908,7 @@ namespace mse {
 #if defined(GPP4P8_COMPATIBLE)
 			/* g++4.8 seems to be (incorrectly) using the c++98 version of this insert function instead of the c++11 version. */
 			/*typename base_class::iterator*/void insert(typename base_class::/*const_*/iterator _Where, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				msev_int di = std::distance(base_class::/*c*/begin(), _Where);
 				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(msebasic_string_range_error("index out of range - typename base_class::iterator insert() - msebasic_string")); }
@@ -2874,7 +2932,7 @@ namespace mse {
 			}
 #else /*defined(GPP4P8_COMPATIBLE)*/
 			typename base_class::iterator insert(typename base_class::const_iterator _Where, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
-				std::lock_guard<mse::non_thread_safe_mutex> lock2(m_structure_change_mutex);
+				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					auto retval = base_class::insert(_Where, _Ilist);
 					/*m_debug_size = size();*/
@@ -4644,15 +4702,14 @@ namespace mse {
 			};
 
 
-			/* For each (scope) basic_string instance, only one instance of xscope_structure_change_lock_guard may exist at any one
-			time. While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+			/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
 			individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 			class xscope_structure_change_lock_guard : public XScopeTagBase {
 			public:
-				xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<msebasic_string>& owner_ptr) : m_unique_lock((*owner_ptr).m_structure_change_mutex), m_stored_ptr(owner_ptr) {}
+				xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<msebasic_string>& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_structure_change_lock_guard(const mse::TXScopeItemFixedPointer<msebasic_string>& owner_ptr) : m_unique_lock((*owner_ptr).m_structure_change_mutex), m_stored_ptr(owner_ptr) {}
+				xscope_structure_change_lock_guard(const mse::TXScopeItemFixedPointer<msebasic_string>& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 				auto xscope_ptr_to_element(size_type _P) const {
@@ -4672,14 +4729,14 @@ namespace mse {
 				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 			private:
-				std::unique_lock<mse::non_thread_safe_mutex> m_unique_lock;
 				mse::TXScopeItemFixedPointer<msebasic_string> m_stored_ptr;
+				std::shared_lock<mse::non_thread_safe_shared_mutex> m_shared_lock;
 			};
 			class xscope_const_structure_change_lock_guard : public XScopeTagBase {
 			public:
-				xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<msebasic_string>& owner_ptr) : m_unique_lock((*owner_ptr).m_structure_change_mutex), m_stored_ptr(owner_ptr) {}
+				xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<msebasic_string>& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_const_structure_change_lock_guard(const mse::TXScopeItemFixedConstPointer<msebasic_string>& owner_ptr) : m_unique_lock((*owner_ptr).m_structure_change_mutex), m_stored_ptr(owner_ptr) {}
+				xscope_const_structure_change_lock_guard(const mse::TXScopeItemFixedConstPointer<msebasic_string>& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 				auto xscope_ptr_to_element(size_type _P) const {
@@ -4695,8 +4752,8 @@ namespace mse {
 				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 			private:
-				std::unique_lock<mse::non_thread_safe_mutex> m_unique_lock;
 				mse::TXScopeItemFixedConstPointer<msebasic_string> m_stored_ptr;
+				std::shared_lock<mse::non_thread_safe_shared_mutex> m_shared_lock;
 			};
 
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
@@ -4717,7 +4774,7 @@ namespace mse {
 			void assert_parent_not_destroyed() const {}
 #endif // MSE_MSTD_STRING_CHECK_USE_AFTER_FREE
 
-			mutable mse::non_thread_safe_mutex m_structure_change_mutex;
+			mutable mse::non_thread_safe_shared_mutex m_structure_change_mutex;
 
 			auto contained_basic_string() const -> decltype(base_class::contained_basic_string()) { return base_class::contained_basic_string(); }
 			auto contained_basic_string() -> decltype(base_class::contained_basic_string()) { return base_class::contained_basic_string(); }
@@ -4748,8 +4805,7 @@ namespace mse {
 			return (!(_Left < _Right));
 		}
 
-		/* For each (scope) basic_string instance, only one instance of xscope_structure_change_lock_guard may exist at any one
-		time. While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+		/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
 		individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 		or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
