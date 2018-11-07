@@ -1684,6 +1684,75 @@ namespace mse {
 		return mse::impl::ns_nii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	namespace impl {
+
+		/* Some algorithm implementation specializations for nii_vector<>.  */
+
+		/* Specializations of TXScopeRawPointerRAFirstAndLast<> that replace regular iterators with fast (raw pointer) iterators for
+		data types for which it's safe to do so. In this case nii_vector<>. */
+		template<class _Ty, class _A, class _TStateMutex>
+		class TXScopeSpecializedFirstAndLast<Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> >
+			: public TXScopeRawPointerRAFirstAndLast<Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> > {
+		public:
+			typedef Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> iter_t;
+			typedef TXScopeRawPointerRAFirstAndLast<Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> > base_class;
+			TXScopeSpecializedFirstAndLast(const iter_t& _First, const iter_t& _Last) : base_class(_First, _Last)
+				, m_structure_lock_obj(make_xscope_vector_size_change_lock_guard(_First.target_container_ptr())) {}
+		private:
+			typedef decltype(make_xscope_vector_size_change_lock_guard(std::declval<iter_t>().target_container_ptr())) xscope_structure_change_lock_guard_t;
+			xscope_structure_change_lock_guard_t m_structure_lock_obj;
+		};
+
+		/* Specializations of TXScopeRangeIterProvider<> that replace regular iterators with fast (raw pointer) iterators for
+		data types for which it's safe to do so. In this case nii_vector<>. */
+		template<class _Ty, class _A, class _TStateMutex>
+		class TXScopeRangeIterProvider<mse::TXScopeItemFixedPointer<mse::nii_vector<_Ty, _A, _TStateMutex> > >
+			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedPointer<mse::nii_vector<_Ty, _A, _TStateMutex> > > {
+		public:
+			typedef mse::TXScopeItemFixedPointer<mse::nii_vector<_Ty, _A, _TStateMutex> > container_pointer_t;
+			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedPointer<mse::nii_vector<_Ty, _A, _TStateMutex> > > base_class;
+			TXScopeRangeIterProvider(const container_pointer_t& _XscpPtr) : base_class(_XscpPtr)
+				, m_structure_lock_obj(make_xscope_vector_size_change_lock_guard(_XscpPtr)) {}
+		private:
+			typedef decltype(make_xscope_vector_size_change_lock_guard(std::declval<container_pointer_t>())) xscope_structure_change_lock_guard_t;
+			xscope_structure_change_lock_guard_t m_structure_lock_obj;
+		};
+
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _Ty, class _A, class _TStateMutex>
+		class TXScopeRangeIterProvider<mse::TXScopeFixedPointer<mse::nii_vector<_Ty, _A, _TStateMutex> > >
+			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedPointer<mse::nii_vector<_Ty, _A, _TStateMutex> > > {
+		public:
+			typedef mse::TXScopeFixedPointer<mse::nii_vector<_Ty, _A, _TStateMutex> > container_pointer_t;
+			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedPointer<mse::nii_vector<_Ty, _A, _TStateMutex> > > base_class;
+			TXScopeRangeIterProvider(const container_pointer_t& _XscpPtr) : base_class(_XscpPtr)
+				, m_structure_lock_obj(make_xscope_vector_size_change_lock_guard(_XscpPtr)) {}
+		private:
+			typedef decltype(make_xscope_vector_size_change_lock_guard(std::declval<container_pointer_t>())) xscope_structure_change_lock_guard_t;
+			xscope_structure_change_lock_guard_t m_structure_lock_obj;
+		};
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	}
+}
+
+namespace std {
+
+	/* Overloads of standard algorithm functions for nii_vector<> iterators. */
+
+	template<class _Pr, class _Ty, class _A, class _TStateMutex>
+	inline auto find_if(mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> _First, const mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> _Last, _Pr _Pred) -> mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> {
+		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+		return mse::find_if_ptr(_First, _Last, pred2);
+	}
+
+	template<class _Fn, class _Ty, class _A, class _TStateMutex>
+	inline _Fn for_each(mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> _First, mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> _Last, _Fn _Func) {
+		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
+		mse::for_each_ptr(_First, _Last, func2);
+		return (_Func);
+	}
 }
 
 namespace std {

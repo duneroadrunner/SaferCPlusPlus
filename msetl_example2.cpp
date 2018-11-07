@@ -1023,6 +1023,10 @@ void msetl_example2() {
 
 		mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
 
+		mse::TXScopeObj<mse::nii_vector<int> > xscope_nv1 = mse::nii_vector<int>{ 1, 2, 3 };
+		auto xscope_nv1_begin_iter = mse::make_xscope_begin_iterator(&xscope_nv1);
+		auto xscope_nv1_end_iter = mse::make_xscope_end_iterator(&xscope_nv1);
+
 		{
 			/* for_each_ptr() */
 
@@ -1038,6 +1042,11 @@ void msetl_example2() {
 			convenient, it can theoretically be little more performance optimal. */
 			typedef mse::xscope_range_for_each_ptr_type<decltype(&xscope_na1)> range_item_ptr_t;
 			mse::xscope_range_for_each_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
+
+			/* Note that for performance (and safety) reasons, vectors may be "structure locked" for the duration of the loop.
+			That is, any attempt to modify the size of the vector during the loop may result in an exception. */
+			mse::for_each_ptr(xscope_nv1_begin_iter, xscope_nv1_end_iter, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
+			mse::xscope_range_for_each_ptr(&xscope_nv1, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
 		}
 		{
 			/* find_if_ptr() */
