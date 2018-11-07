@@ -2936,6 +2936,7 @@ usage example:
 #include "msescope.h"
 #include "msealgorithm.h"
 #include "msemstdarray.h"
+#include "msemstdvector.h"
     
 void main(int argc, char* argv[]) {
 
