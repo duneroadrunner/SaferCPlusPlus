@@ -1166,6 +1166,10 @@ namespace mse {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+		TXScopeRAIterator& operator=(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+			return (*this) = TXScopeRAIterator(_Right_cref);
+		}
 
 		void xscope_tag() const {}
 		void xscope_iterator_tag() const {}
@@ -1225,6 +1229,10 @@ namespace mse {
 		TRAIterator& operator=(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
+		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+		TRAIterator& operator=(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+			return (*this) = TRAIterator(_Right_cref);
 		}
 
 		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
@@ -1412,6 +1420,14 @@ namespace mse {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+		TXScopeRAConstIterator& operator=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
+			return (*this) = TXScopeRAConstIterator(_Right_cref);
+		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+		TXScopeRAConstIterator& operator=(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+			return (*this) = TXScopeRAConstIterator(_Right_cref);
+		}
 
 		void xscope_tag() const {}
 		void xscope_iterator_tag() const {}
@@ -1473,6 +1489,14 @@ namespace mse {
 		TRAConstIterator& operator=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
+		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+		TRAConstIterator& operator=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
+			return (*this) = TRAConstIterator(_Right_cref);
+		}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+		TRAConstIterator& operator=(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+			return (*this) = TRAConstIterator(_Right_cref);
 		}
 
 		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
@@ -3402,22 +3426,22 @@ namespace mse {
 
 	template<class _TArray>
 	auto make_xscope_const_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
-		return make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
+		return mse::make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
 			, mse::TXScopeItemFixedConstPointer<_TArray>(owner_ptr));
 	}
 	template<class _TArray>
 	auto make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
-		return make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
+		return mse::make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
 			, mse::TXScopeItemFixedConstPointer<_TArray>(owner_ptr));
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TArray>
 	auto make_xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-		return make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type(), owner_ptr);
+		return mse::make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type(), owner_ptr);
 	}
 	template<class _TArray>
 	auto make_xscope_const_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-		return make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
+		return mse::make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
 			, mse::TXScopeItemFixedConstPointer<_TArray>(owner_ptr));
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -3435,23 +3459,23 @@ namespace mse {
 
 	template<class _TArray>
 	auto make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
-		return make_xscope_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
+		return mse::make_xscope_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
 			, mse::TXScopeItemFixedPointer<_TArray>(owner_ptr));
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TArray>
 	auto make_xscope_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-		return make_xscope_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type(), owner_ptr);
+		return mse::make_xscope_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type(), owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TArray>
 	auto make_xscope_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
-		return make_xscope_const_iterator(owner_ptr);
+		return mse::make_xscope_const_iterator(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TArray>
 	auto make_xscope_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-		return make_xscope_const_iterator(owner_ptr);
+		return mse::make_xscope_const_iterator(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
@@ -3471,87 +3495,107 @@ namespace mse {
 
 	template<class _TArrayPointer>
 	auto make_xscope_begin_const_iterator(const _TArrayPointer& owner_ptr) {
-		return make_xscope_const_iterator(owner_ptr);
+		return mse::make_xscope_const_iterator(owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_xscope_begin_iterator(const _TArrayPointer& owner_ptr) {
-		return make_xscope_iterator(owner_ptr);
+		return mse::make_xscope_iterator(owner_ptr);
 	}
 
 	template<class _TArrayPointer>
 	auto make_xscope_end_const_iterator(const _TArrayPointer& owner_ptr) {
-		return make_xscope_begin_const_iterator(owner_ptr) + (*owner_ptr).size();
+		return mse::make_xscope_begin_const_iterator(owner_ptr) + (*owner_ptr).size();
 	}
 	template<class _TArrayPointer>
 	auto make_xscope_end_iterator(const _TArrayPointer& owner_ptr) {
-		return make_xscope_begin_iterator(owner_ptr) + (*owner_ptr).size();
+		return mse::make_xscope_begin_iterator(owner_ptr) + (*owner_ptr).size();
 	}
 
+	template<class _TArrayPointer>
+	auto make_const_iterator_helper3(std::true_type, const _TArrayPointer& owner_ptr) {
+		return (*owner_ptr).ss_cbegin(owner_ptr);
+	}
+	template<class _TArrayPointer>
+	auto make_const_iterator_helper3(std::false_type, const _TArrayPointer& owner_ptr) {
+		/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
+		bidirectional iterator or whatever rather than a random access iterator */
+		return mse::TRandomAccessConstIterator<_TArrayPointer>(owner_ptr);
+	}
 	template<class _TArrayPointer>
 	auto make_const_iterator_helper(std::true_type, const _TArrayPointer& owner_ptr) {
 		return std::cbegin(*owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_const_iterator_helper(std::false_type, const _TArrayPointer& owner_ptr) {
-		/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
-		bidirectional iterator or whatever rather than a random access iterator */
-		return mse::TRandomAccessConstIterator<_TArrayPointer>(owner_ptr);
+		return mse::make_const_iterator_helper3(typename mse::HasOrInheritsStaticSSBeginMethod_msemsearray<
+				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
+			>::type(), owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_const_iterator_helper2(std::true_type, const _TArrayPointer& owner_ptr) {
-		return make_xscope_const_iterator(owner_ptr);
+		return mse::make_xscope_const_iterator(owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_const_iterator_helper2(std::false_type, const _TArrayPointer& owner_ptr) {
-		return make_const_iterator_helper(typename mse::SupportsStdBegin_msemsearray<
+		return mse::make_const_iterator_helper(typename mse::SupportsStdBegin_msemsearray<
 				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
 			>::type(), owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_const_iterator(const _TArrayPointer& owner_ptr) {
-		return make_const_iterator_helper2(typename IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
+		return mse::make_const_iterator_helper2(typename IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
 	}
 
+	template<class _TArrayPointer>
+	auto make_iterator_helper3(std::true_type, const _TArrayPointer& owner_ptr) {
+		return (*owner_ptr).ss_begin(owner_ptr);
+	}
+	template<class _TArrayPointer>
+	auto make_iterator_helper3(std::false_type, const _TArrayPointer& owner_ptr) {
+		/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
+		bidirectional iterator or whatever rather than a random access iterator */
+		return mse::TRandomAccessIterator<_TArrayPointer>(owner_ptr);
+	}
 	template<class _TArrayPointer>
 	auto make_iterator_helper(std::true_type, const _TArrayPointer& owner_ptr) {
 		return std::begin(*owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_iterator_helper(std::false_type, const _TArrayPointer& owner_ptr) {
-		/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
-		bidirectional iterator or whatever rather than a random access iterator */
-		return mse::TRandomAccessIterator<_TArrayPointer>(owner_ptr);
+		return mse::make_iterator_helper3(typename mse::HasOrInheritsStaticSSBeginMethod_msemsearray<
+				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
+			>::type(), owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_iterator_helper2(std::true_type, const _TArrayPointer& owner_ptr) {
-		return make_xscope_iterator(owner_ptr);
+		return mse::make_xscope_iterator(owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_iterator_helper2(std::false_type, const _TArrayPointer& owner_ptr) {
-		return make_iterator_helper(typename mse::SupportsStdBegin_msemsearray<
+		return mse::make_iterator_helper(typename mse::SupportsStdBegin_msemsearray<
 				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
 			>::type(), owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_iterator(const _TArrayPointer& owner_ptr) {
-		return make_iterator_helper2(typename IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
+		return mse::make_iterator_helper2(typename IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
 	}
 
 	template<class _TArrayPointer>
 	auto make_begin_const_iterator(const _TArrayPointer& owner_ptr) {
-		return make_const_iterator(owner_ptr);
+		return mse::make_const_iterator(owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_begin_iterator(const _TArrayPointer& owner_ptr) {
-		return make_iterator(owner_ptr);
+		return mse::make_iterator(owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_end_const_iterator(const _TArrayPointer& owner_ptr) {
-		return make_begin_const_iterator(owner_ptr) + (*owner_ptr).size();
+		return mse::make_begin_const_iterator(owner_ptr) + (*owner_ptr).size();
 	}
 	template<class _TArrayPointer>
 	auto make_end_iterator(const _TArrayPointer& owner_ptr) {
-		return make_begin_iterator(owner_ptr) + (*owner_ptr).size();
+		return mse::make_begin_iterator(owner_ptr) + (*owner_ptr).size();
 	}
 
 

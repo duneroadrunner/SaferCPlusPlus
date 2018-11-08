@@ -218,11 +218,10 @@ void msetl_example2() {
 		}
 		mse::TRegisteredPointer<nii_vector1_t> vo1_regptr1 = &rg_vo1;
 
-		/* nii_vector<> does not have member functions like "begin(void)" that return "implicit" iterators. It does have
-		(static template) member functions like "ss_begin" which take a (safe) pointer to the nii_vector<> as a parameter
-		and return a (safe) iterator. */
-		auto iter1 = rg_vo1.ss_begin(vo1_regptr1);
-		auto citer1 = rg_vo1.ss_cend(vo1_regptr1);
+		/* nii_vector<> does not have a begin() member function that returns an "implicit" iterator. You can obtain an
+		iterator using the make_begin_iterator() et al. functions, which take a (safe) pointer to the container. */
+		auto iter1 = mse::make_begin_iterator(vo1_regptr1);
+		auto citer1 = mse::make_end_const_iterator(vo1_regptr1);
 		citer1 = iter1;
 		rg_vo1.emplace(vo1_regptr1, citer1, "some other text");
 		rg_vo1.insert(vo1_regptr1, citer1, "some other text");
@@ -264,30 +263,30 @@ void msetl_example2() {
 			deallocated. */
 
 			/* Here we're declaring an vector as a scope object. */
-			mse::TXScopeObj<mse::nii_vector<int>> vector1_scpobj = mse::nii_vector<int>{ 1, 2, 3 };
+			mse::TXScopeObj<mse::nii_vector<int> > vector1_xscpobj = mse::nii_vector<int>{ 1, 2, 3 };
 
 			/* Here we're obtaining a scope iterator to the vector. */
-			auto scp_iter1 = mse::make_xscope_begin_iterator(&vector1_scpobj);
-			auto scp_iter2 = mse::make_xscope_end_iterator(&vector1_scpobj);
+			auto xscp_iter1 = mse::make_xscope_begin_iterator(&vector1_xscpobj);
+			auto xscp_iter2 = mse::make_xscope_end_iterator(&vector1_xscpobj);
 
-			std::sort(scp_iter1, scp_iter2);
+			std::sort(xscp_iter1, xscp_iter2);
 
-			auto scp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
-			scp_citer3 = scp_iter1;
-			scp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
-			scp_citer3 += 2;
-			auto res1 = *scp_citer3;
-			auto res2 = scp_citer3[0];
+			auto xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+			xscp_citer3 = xscp_iter1;
+			xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+			xscp_citer3 += 2;
+			auto res1 = *xscp_citer3;
+			auto res2 = xscp_citer3[0];
 
 			{
 				/* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
 				object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
 				to become invalid is performed. */
-				auto xscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(&vector1_scpobj);
-				auto scp_ptr1 = xscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
-				auto res4 = *scp_ptr1;
+				auto xxscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(&vector1_xscpobj);
+				auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+				auto res4 = *xscp_ptr1;
 			}
-			vector1_scpobj.push_back(4);
+			vector1_xscpobj.push_back(4);
 		}
 	}
 
@@ -736,7 +735,7 @@ void msetl_example2() {
 		nii_str2.copy(nii_str3_xscpiter1, 5);
 
 		mse::TRegisteredObj<mse::nii_string> reg_nii_str3 = "some text";
-		nii_str2.copy(reg_nii_str3.ss_begin(&reg_nii_str3), 5);
+		nii_str2.copy(mse::make_begin_iterator(&reg_nii_str3), 5);
 
 		str2 = str2.substr(1);
 		nii_str2 = nii_str2.substr(1);
