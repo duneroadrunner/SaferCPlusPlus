@@ -2367,7 +2367,7 @@ usage example:
 
 ### nii_vector
 
-Due to their iterators, vectors are not, in general, safe to share among threads. `nii_vector<>` is designed to be safely shareable between asynchronous threads. To that end, it does not support "implicit" iterators. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the `nii_vector<>`. So for example, instead of a `begin()` member function that takes no parameters, `nii_vector<>` has an `ss_begin(...)` (static template) member function that actually requires a pointer to the vector to passed as a parameter.  
+Due to their iterators, vectors are not, in general, safe to share among threads. `nii_vector<>` is a "stripped down" vector that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. "Explicit" iterators are supported. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the `nii_vector<>`. So for example, instead of a `begin()` member function (that takes no parameters), you can obtain an iterator using the (generic) `make_begin_iterator(...)` function that takes as an argument a (safe) pointer to the vector.  
 
 Note that in cases when you only need the vector to be shared between threads part of the time, you can swap between, for example, (non-shareable) `mstd::vector<>`s and (shareable) `nii_vector<>`s when you need.  
 
@@ -2392,11 +2392,10 @@ usage example:
         }
         mse::TRegisteredPointer<nii_vector1_t> vo1_regptr1 = &rg_vo1;
     
-        /* nii_vector<> does not have member functions like "begin(void)" that return "implicit" iterators. It does have
-        (template) member functions like "ss_begin" which take a (safe) pointer to the nii_vector<> as a parameter and
-        return a (safe) iterator. */
-        auto iter1 = rg_vo1.ss_begin(vo1_regptr1);
-        auto citer1 = rg_vo1.ss_cend(vo1_regptr1);
+        /* nii_vector<> does not have a begin() member function that returns an "implicit" iterator. You can obtain an
+        iterator using the make_begin_iterator() et al. functions, which take a (safe) pointer to the container. */
+        auto iter1 = mse::make_begin_iterator(vo1_regptr1);
+        auto citer1 = mse::make_end_const_iterator(vo1_regptr1);
         citer1 = iter1;
         rg_vo1.emplace(citer1, "some other text");
         rg_vo1.insert(citer1, "some other text");
