@@ -857,6 +857,7 @@ namespace mse {
 
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			valid_if_Ty_is_not_an_xscope_type();
+			valid_if_Ty_is_not_bool();
 		}
 
 		operator _MV() const { return this->contained_vector(); }
@@ -1529,6 +1530,9 @@ namespace mse {
 		(intended) compile error. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
 		void valid_if_Ty_is_not_an_xscope_type() const {}
+
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_same<bool, _Ty2>::value), void>::type>
+		void valid_if_Ty_is_not_bool() const {}
 
 		typename std_vector::iterator begin() {	// return iterator for beginning of mutable sequence
 			return m_vector.begin();
