@@ -14,17 +14,17 @@
 
 #ifndef MSE_LEGACYHELPERS_DISABLED
 #include "msepoly.h"
-#endif // !MSE_LEGACYHELPERS_DISABLED
-
 #include <cstring>
+#else // !MSE_LEGACYHELPERS_DISABLED
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#endif // !MSE_LEGACYHELPERS_DISABLED
 
 #ifdef _MSC_VER
 #pragma warning( push )  
 #pragma warning( disable : 4100 4456 4189 4127 )
 #endif /*_MSC_VER*/
-
-namespace mse {
-	namespace lh {
 
 #ifdef MSE_LEGACYHELPERS_DISABLED
 
@@ -72,7 +72,8 @@ namespace mse {
 #define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((destination)[0])>::type> >::memcpy(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::memset(ptr, value, num_bytes)
 
-#endif /*MSE_LEGACYHELPERS_DISABLED*/
+namespace mse {
+	namespace lh {
 
 		template <typename _Ty>
 		class TOpaqueWrapper {
@@ -342,9 +343,10 @@ namespace mse {
 				CMemF< mse::TNullableAnyRandomAccessIterator<_Ty> >::memset(ptr, value, num_bytes);
 			}
 		};
-
 	}
 }
+
+#endif /*MSE_LEGACYHELPERS_DISABLED*/
 
 #ifdef _MSC_VER
 #pragma warning( pop )  
