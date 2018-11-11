@@ -1526,9 +1526,13 @@ When passing an argument to a function that will be executed in another thread u
 
 `mstd::thread` is just an implementation of `std::thread` that verifies that the arguments passed are of a type that is designated (i.e. recognized or declared) as safe to pass between threads. Note that this includes the passed function object. "Regular, concrete" functions and non-capture lambdas are automatically recognized as safely passable, but functors, capture-lambdas and generic lambdas would need to be explicitly declared as "passable".
 
+usage example: (used in the example for [TAsyncRASectionSplitter](#tasyncrasectionsplitter))
+
 ### async()
 
 `mstd::async()` is just an implementation of `std::async()` that verifies that the arguments and return value passed are of a type that is designated as safe to pass between threads. 
+
+usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
 
 ### Asynchronously shared objects
 One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, while one thread is modifying an object, you want to ensure that no other thread accesses it. But you also want to do it in a way that allows for maximum utilization of the shared object. To this end the library provides "access requesters". Access requesters provide "lock pointers" on demand that are used to safely access the shared object.
@@ -1537,7 +1541,7 @@ In cases where the object you want to share is "immutable" (i.e. not modifiable)
 
 In order to ensure safety, shared objects can only be accessed through lock pointers or immutable fixed pointers. If you have an existing object that you only want to share part of the time, you can swap (using `std::swap()` for example) the object with a shared object when it's time to share it, and swap it back when you're done sharing.
 
-Note that not all types are safe to share between threads. For example, because of its iterators, `mstd::vector<int>` is not safe to share between threads. (And neither is `std::vector<int>`.) `nii_vector<int>` on the other hand is. Trying to share the former using access requesters or immutable fixed pointers would result in a compile error.
+Note that not all types are safe to share between threads. For example, because of its iterators, `mstd::vector<int>` is not safe to share between threads. (And neither is `std::vector<int>`.) [`nii_vector<int>`](#nii_vector) on the other hand is. Trying to share the former using access requesters or immutable fixed pointers would result in a compile error.
 
 ### TUserDeclaredAsyncShareableObj
 
@@ -1551,6 +1555,8 @@ And currently, any type declared as safely shareable must also satisfy the crite
 
 (Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
 
+usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
+
 ### TAsyncSharedV2ReadWriteAccessRequester
 
 Use the `writelock_ptr()` and `readlock_ptr()` member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock for as long as they exist. Their locks are released when the pointers are destroyed (generally when they go out of scope).  
@@ -1563,8 +1569,12 @@ Note that while a "write-lock" pointer will not simultaneously co-exist with any
 
 One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. Prudent practice would avoid deadlock by using the non-blocking `try_writelock_ptr()`, or time-out limited `try_writelock_ptr_for()` member functions to obtain the write-lock pointer. Currently, this dead-lock scenario is not detected by the access requester (or its underlying mutex). It is intended that in the near future, this dead-lock scenario will be detected and an exception will be thrown (or whatever user-specified behavior).
 
+usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
+
 ### TAsyncSharedV2ReadOnlyAccessRequester
 Same as `TAsyncSharedV2ReadWriteAccessRequester<>`, but only supports `readlock_ptr()`, not `writelock_ptr()`. You can use `mse::make_asyncsharedv2readonly<>()` to obtain a `TAsyncSharedV2ReadOnlyAccessRequester<>`. `TAsyncSharedV2ReadOnlyAccessRequester<>` can also be copy constructed from a `TAsyncSharedV2ReadWriteAccessRequester<>`.
+
+usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
 
 ### TAsyncSharedV2ImmutableFixedPointer
 In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases you can use `TAsyncSharedV2ImmutableFixedPointer<>`, which can be thought of as sort of a safer version `std::shared_ptr<>`. Use `mse::make_asyncsharedv2immutable<>()` to obtain a `TAsyncSharedV2ImmutableFixedPointer<>`.
