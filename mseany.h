@@ -521,17 +521,19 @@ namespace std
 
 namespace mse {
 
-	template <class _TPointer>
-	bool operator_bool_helper1(std::true_type, const _TPointer& ptr_cref) {
-		return bool(ptr_cref);
-	}
-	template <class _TPointer>
-	bool operator_bool_helper1(std::false_type, const _TPointer&) {
-		/* We need to return the result of conversion to bool, but in this case the "pointer" type, _TPointer, is not convertible
-		to bool. Presumably because _TPointer is actually an iterator type. Unfortunately there isn't a good way, in general, to
-		determine if an iterator points to a valid item. */
-		assert(false);
-		return false;
+	namespace impl {
+		template <class _TPointer>
+		bool operator_bool_helper1(std::true_type, const _TPointer& ptr_cref) {
+			return bool(ptr_cref);
+		}
+		template <class _TPointer>
+		bool operator_bool_helper1(std::false_type, const _TPointer&) {
+			/* We need to return the result of conversion to bool, but in this case the "pointer" type, _TPointer, is not convertible
+			to bool. Presumably because _TPointer is actually an iterator type. Unfortunately there isn't a good way, in general, to
+			determine if an iterator points to a valid item. */
+			assert(false);
+			return false;
+		}
 	}
 
 	namespace us {
@@ -570,7 +572,7 @@ namespace mse {
 				}
 				operator bool() const {
 					//return bool(m_pointer);
-					return operator_bool_helper1<_TPointer1>(typename std::is_convertible<_TPointer1, bool>::type(), m_pointer);
+					return mse::impl::operator_bool_helper1<_TPointer1>(typename std::is_convertible<_TPointer1, bool>::type(), m_pointer);
 				}
 
 				_TPointer1 m_pointer;
@@ -648,7 +650,7 @@ namespace mse {
 				}
 				operator bool() const {
 					//return bool(m_const_pointer);
-					return operator_bool_helper1<_TConstPointer1>(typename std::is_convertible<_TConstPointer1, bool>::type(), m_const_pointer);
+					return mse::impl::operator_bool_helper1<_TConstPointer1>(typename std::is_convertible<_TConstPointer1, bool>::type(), m_const_pointer);
 				}
 
 				_TConstPointer1 m_const_pointer;

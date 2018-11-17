@@ -172,7 +172,7 @@ namespace mse {
 			}
 			static std::array<_Ty, _Size> std_array_initial_value(std::false_type, _XSTD initializer_list<_Ty> _Ilist) {
 				/* _Ty is not default constructible. */
-				return array_helper_type<_Ty, _Size>::std_array_initial_value2(_Ilist);
+				return mse::impl::array_helper::array_helper_type<_Ty, _Size>::std_array_initial_value2(_Ilist);
 			}
 			array(_XSTD initializer_list<_Ty> _Ilist) : m_nii_array(_MA{ std_array_initial_value(std::is_default_constructible<_Ty>(), _Ilist) }) {
 				/* std::array<> is an "aggregate type" (basically a POD struct with no base class, constructors or private
@@ -467,7 +467,7 @@ namespace mse {
 				return (m_nii_array < _Right.m_nii_array);
 			}
 
-			class xscope_const_iterator : public _MA::na_const_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+			class xscope_const_iterator : public _MA::na_const_iterator_base, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
 			public:
 				typedef typename _MA::na_const_iterator_base base_class;
 				typedef typename base_class::iterator_category iterator_category;
@@ -574,7 +574,7 @@ namespace mse {
 				typename _MA::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 				friend class /*_Myt*/array<_Ty, _Size>;
 			};
-			class xscope_iterator : public _MA::na_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+			class xscope_iterator : public _MA::na_iterator_base, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
 			public:
 				typedef typename _MA::na_iterator_base base_class;
 				typedef typename base_class::iterator_category iterator_category;

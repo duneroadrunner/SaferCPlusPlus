@@ -1088,7 +1088,7 @@ namespace mse {
 
 			~optional() {
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
-				T_valid_if_not_an_xscope_type<T>();
+				mse::impl::T_valid_if_not_an_xscope_type<T>();
 #endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 			}
 
@@ -1412,9 +1412,9 @@ namespace mse {
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 
 	template <class _Ty>
-	class xscope_optional : public mse::us::impl::optional<_Ty>, public XScopeTagBase
-		, public std::conditional<std::is_base_of<ReferenceableByScopePointerTagBase, _Ty>::value, ReferenceableByScopePointerTagBase, TPlaceHolder_msescope<xscope_optional<_Ty> > >::type
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder2_msescope<xscope_optional<_Ty> > >::type
+	class xscope_optional : public mse::us::impl::optional<_Ty>, public mse::us::impl::XScopeTagBase
+		, public std::conditional<std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _Ty>::value, mse::us::impl::ReferenceableByScopePointerTagBase, mse::impl::TPlaceHolder_msescope<xscope_optional<_Ty> > >::type
+		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder2_msescope<xscope_optional<_Ty> > >::type
 	{
 	public:
 		typedef mse::us::impl::optional<_Ty> base_class;
@@ -1476,7 +1476,7 @@ namespace mse {
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
-			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -1484,20 +1484,20 @@ namespace mse {
 		/* If _Ty is "marked" as not safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-			&& (!std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _Ty2>::value), void>::type>
+			&& (!std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty2>::value), void>::type>
 		void valid_if_Ty_is_not_marked_as_unreturnable() const {}
 
 		/* If _Ty is "marked" as containing an accessible "scope address of" operator, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-			&& (!std::is_base_of<ReferenceableByScopePointerTagBase, _Ty2>::value)
+			&& (!std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _Ty2>::value)
 			, void>::type>
 		void valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
 
 		/* If _Ty is a scope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
 		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-			&& (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
+			&& (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value), void>::type>
 			void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -1817,170 +1817,171 @@ namespace mse {
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
-	class COptionalTest1 {
-	public:
-		static void s_test1() {
+	namespace self_test {
+		class COptionalTest1 {
+		public:
+			static void s_test1() {
 #ifdef MSE_SELF_TESTS
-			{
-				// from http://en.cppreference.com/w/cpp/utility/optional
-				class CB {
-				public:
-					static mse::mstd::optional<std::string> create(bool b) {
-						if (b)
-							return std::string("Godzilla");
-						return {};
-					}
-
-					// std::nullopt can be used to create any (empty) std::optional
-					static auto create2(bool b) {
-						return b ? mse::mstd::optional<std::string>{"Godzilla"} : mse::nullopt;
-					}
-				};
-
-				std::cout << "create(false) returned "
-					<< CB::create(false).value_or("empty") << '\n';
-
-				// optional-returning factory functions are usable as conditions of while and if
-				if (auto str = CB::create2(true)) {
-					std::cout << "create2(true) returned " << *str << '\n';
-				}
-
-				auto o1 = CB::create2(true);
-				auto o2 = o1;
-				o1 = o2;
-				o1.swap(o2);
-				std::swap(o1, o2);
-
-				auto ui_o1 = mse::us::impl::optional<std::string>{ "Mothra" };
-				auto ui_o2 = ui_o1;
-				ui_o1 = ui_o2;
-				ui_o1.swap(ui_o2);
-				std::swap(ui_o1, ui_o2);
-			}
-			{
-				mse::mstd::optional<int> o1, // empty
-					o2 = 1, // init from rvalue
-					o3 = o2; // copy-constructor
-
-							 // calls std::string( initializer_list<CharT> ) constructor
-				mse::mstd::optional<std::string> o4(mse::in_place, { 'a', 'b', 'c' });
-
-				// calls std::string( size_type count, CharT ch ) constructor
-				mse::mstd::optional<std::string> o5(mse::in_place, 3, 'A');
-
-				// Move-constructed from std::string using deduction guide to pick the type
-
-				mse::mstd::optional<std::string> o6(std::string{ "deduction" });
-
-				std::cout << *o2 << ' ' << *o3 << ' ' << *o4 << ' ' << *o5 << ' ' << *o6 << '\n';
-			}
-			{
-				mse::mstd::optional<const char*> s1 = "abc", s2; // constructor
-				s2 = s1; // assignment
-				s1 = "def"; // decaying assignment (U = char[4], T = const char*)
-				std::cout << *s2 << ' ' << *s1 << '\n';
-			}
-			{
-				using namespace std::string_literals;
-
-				mse::mstd::optional<int> opt1 = 1;
-				std::cout << "opt1: " << *opt1 << '\n';
-
-				*opt1 = 2;
-				std::cout << "opt1: " << *opt1 << '\n';
-
-				mse::mstd::optional<std::string> opt2 = "abc"s;
-				std::cout << "opt2: " << *opt2 << " size: " << opt2->size() << '\n';
-
-				// You can "take" the contained value by calling operator* on a rvalue to optional
-
-				auto taken = *std::move(opt2);
-				std::cout << "taken: " << taken << " opt2: " << *opt2 << "size: " << opt2->size() << '\n';
-			}
-			{
-				mse::mstd::optional<int> opt = {};
-
-				try {
-					int n = opt.value();
-				}
-				catch (const std::exception& e) {
-					std::cout << e.what() << '\n';
-				}
-			}
-			{
-				class CB {
-				public:
-					static mse::mstd::optional<const char*> maybe_getenv(const char* n)
-					{
-#ifdef _MSC_VER
-						char *x;
-						size_t len;
-						errno_t err = _dupenv_s(&x, &len, n);
-						if ((!err) && (1 <= len))
-#else /*_MSC_VER*/
-						if (const char* x = std::getenv(n))
-#endif /*_MSC_VER*/
-							return x;
-						else
+				{
+					// from http://en.cppreference.com/w/cpp/utility/optional
+					class CB {
+					public:
+						static mse::mstd::optional<std::string> create(bool b) {
+							if (b)
+								return std::string("Godzilla");
 							return {};
+						}
+
+						// std::nullopt can be used to create any (empty) std::optional
+						static auto create2(bool b) {
+							return b ? mse::mstd::optional<std::string>{"Godzilla"} : mse::nullopt;
+						}
+					};
+
+					std::cout << "create(false) returned "
+						<< CB::create(false).value_or("empty") << '\n';
+
+					// optional-returning factory functions are usable as conditions of while and if
+					if (auto str = CB::create2(true)) {
+						std::cout << "create2(true) returned " << *str << '\n';
 					}
-				};
-				std::cout << CB::maybe_getenv("MYPWD").value_or("(none)") << '\n';
-			}
 
-			{
-				mse::xscope_optional<int> o1, // empty
-					o2(1), // init from rvalue
-					o3 = o2; // copy-constructor
+					auto o1 = CB::create2(true);
+					auto o2 = o1;
+					o1 = o2;
+					o1.swap(o2);
+					std::swap(o1, o2);
 
-							 // calls std::string( initializer_list<CharT> ) constructor
-				mse::xscope_optional<std::string> o4(mse::in_place, { 'a', 'b', 'c' });
-
-				// calls std::string( size_type count, CharT ch ) constructor
-				mse::xscope_optional<std::string> o5(mse::in_place, 3, 'A');
-
-				// Move-constructed from std::string using deduction guide to pick the type
-
-				mse::xscope_optional<std::string> o6(std::string{ "deduction" });
-
-				std::cout << *o2 << ' ' << *o3 << ' ' << *o4 << ' ' << *o5 << ' ' << *o6 << '\n';
-			}
-			{
-				mse::xscope_optional<const char*> s1("abc"), s2; // constructor
-				s2 = s1; // assignment
-				s1 = "def"; // decaying assignment (U = char[4], T = const char*)
-				std::cout << *s2 << ' ' << *s1 << '\n';
-			}
-			{
-				using namespace std::string_literals;
-
-				mse::xscope_optional<int> opt1(1);
-				std::cout << "opt1: " << *opt1 << '\n';
-
-				*opt1 = 2;
-				std::cout << "opt1: " << *opt1 << '\n';
-
-				mse::xscope_optional<std::string> opt2("abc"s);
-				std::cout << "opt2: " << *opt2 << " size: " << opt2->size() << '\n';
-
-				// You can "take" the contained value by calling operator* on a rvalue to optional
-
-				auto taken = *std::move(opt2);
-				std::cout << "taken: " << taken << " opt2: " << *opt2 << "size: " << opt2->size() << '\n';
-			}
-			{
-				mse::xscope_optional<int> opt = {};
-
-				try {
-					int n = opt.value();
+					auto ui_o1 = mse::us::impl::optional<std::string>{ "Mothra" };
+					auto ui_o2 = ui_o1;
+					ui_o1 = ui_o2;
+					ui_o1.swap(ui_o2);
+					std::swap(ui_o1, ui_o2);
 				}
-				catch (const std::exception& e) {
-					std::cout << e.what() << '\n';
+				{
+					mse::mstd::optional<int> o1, // empty
+						o2 = 1, // init from rvalue
+						o3 = o2; // copy-constructor
+
+								 // calls std::string( initializer_list<CharT> ) constructor
+					mse::mstd::optional<std::string> o4(mse::in_place, { 'a', 'b', 'c' });
+
+					// calls std::string( size_type count, CharT ch ) constructor
+					mse::mstd::optional<std::string> o5(mse::in_place, 3, 'A');
+
+					// Move-constructed from std::string using deduction guide to pick the type
+
+					mse::mstd::optional<std::string> o6(std::string{ "deduction" });
+
+					std::cout << *o2 << ' ' << *o3 << ' ' << *o4 << ' ' << *o5 << ' ' << *o6 << '\n';
 				}
-			}
+				{
+					mse::mstd::optional<const char*> s1 = "abc", s2; // constructor
+					s2 = s1; // assignment
+					s1 = "def"; // decaying assignment (U = char[4], T = const char*)
+					std::cout << *s2 << ' ' << *s1 << '\n';
+				}
+				{
+					using namespace std::string_literals;
+
+					mse::mstd::optional<int> opt1 = 1;
+					std::cout << "opt1: " << *opt1 << '\n';
+
+					*opt1 = 2;
+					std::cout << "opt1: " << *opt1 << '\n';
+
+					mse::mstd::optional<std::string> opt2 = "abc"s;
+					std::cout << "opt2: " << *opt2 << " size: " << opt2->size() << '\n';
+
+					// You can "take" the contained value by calling operator* on a rvalue to optional
+
+					auto taken = *std::move(opt2);
+					std::cout << "taken: " << taken << " opt2: " << *opt2 << "size: " << opt2->size() << '\n';
+				}
+				{
+					mse::mstd::optional<int> opt = {};
+
+					try {
+						int n = opt.value();
+					}
+					catch (const std::exception& e) {
+						std::cout << e.what() << '\n';
+					}
+				}
+				{
+					class CB {
+					public:
+						static mse::mstd::optional<const char*> maybe_getenv(const char* n)
+						{
+#ifdef _MSC_VER
+							char *x;
+							size_t len;
+							errno_t err = _dupenv_s(&x, &len, n);
+							if ((!err) && (1 <= len))
+#else /*_MSC_VER*/
+							if (const char* x = std::getenv(n))
+#endif /*_MSC_VER*/
+								return x;
+							else
+								return {};
+						}
+					};
+					std::cout << CB::maybe_getenv("MYPWD").value_or("(none)") << '\n';
+				}
+
+				{
+					mse::xscope_optional<int> o1, // empty
+						o2(1), // init from rvalue
+						o3 = o2; // copy-constructor
+
+								 // calls std::string( initializer_list<CharT> ) constructor
+					mse::xscope_optional<std::string> o4(mse::in_place, { 'a', 'b', 'c' });
+
+					// calls std::string( size_type count, CharT ch ) constructor
+					mse::xscope_optional<std::string> o5(mse::in_place, 3, 'A');
+
+					// Move-constructed from std::string using deduction guide to pick the type
+
+					mse::xscope_optional<std::string> o6(std::string{ "deduction" });
+
+					std::cout << *o2 << ' ' << *o3 << ' ' << *o4 << ' ' << *o5 << ' ' << *o6 << '\n';
+				}
+				{
+					mse::xscope_optional<const char*> s1("abc"), s2; // constructor
+					s2 = s1; // assignment
+					s1 = "def"; // decaying assignment (U = char[4], T = const char*)
+					std::cout << *s2 << ' ' << *s1 << '\n';
+				}
+				{
+					using namespace std::string_literals;
+
+					mse::xscope_optional<int> opt1(1);
+					std::cout << "opt1: " << *opt1 << '\n';
+
+					*opt1 = 2;
+					std::cout << "opt1: " << *opt1 << '\n';
+
+					mse::xscope_optional<std::string> opt2("abc"s);
+					std::cout << "opt2: " << *opt2 << " size: " << opt2->size() << '\n';
+
+					// You can "take" the contained value by calling operator* on a rvalue to optional
+
+					auto taken = *std::move(opt2);
+					std::cout << "taken: " << taken << " opt2: " << *opt2 << "size: " << opt2->size() << '\n';
+				}
+				{
+					mse::xscope_optional<int> opt = {};
+
+					try {
+						int n = opt.value();
+					}
+					catch (const std::exception& e) {
+						std::cout << e.what() << '\n';
+					}
+				}
 
 #endif // MSE_SELF_TESTS
-		}
+			}
 
 #ifdef __clang__
 #pragma clang diagnostic pop
@@ -1993,7 +1994,8 @@ namespace mse {
 #pragma warning( pop )  
 #endif /*_MSC_VER*/
 
-	};
+		};
+	}
 
 } // namespace mse
 

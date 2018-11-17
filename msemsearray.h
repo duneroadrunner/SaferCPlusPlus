@@ -377,33 +377,35 @@ namespace mse {
 	};
 
 
-	template<class T, class EqualTo>
-	struct HasOrInheritsNonrecursiveUnlockMethod_msemsearray_impl
-	{
-		template<class U, class V>
-		static auto test(U*) -> decltype(std::declval<U>().nonrecursive_unlock(), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
+	namespace impl {
+		template<class T, class EqualTo>
+		struct HasOrInheritsNonrecursiveUnlockMethod_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<U>().nonrecursive_unlock(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
 
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct HasOrInheritsNonrecursiveUnlockMethod_msemsearray : HasOrInheritsNonrecursiveUnlockMethod_msemsearray_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsNonrecursiveUnlockMethod_msemsearray : HasOrInheritsNonrecursiveUnlockMethod_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
-	template<class T, class EqualTo>
-	struct HasOrInheritsUnlockSharedMethod_msemsearray_impl
-	{
-		template<class U, class V>
-		static auto test(U*) -> decltype(std::declval<U>().unlock_shared(), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
+		template<class T, class EqualTo>
+		struct HasOrInheritsUnlockSharedMethod_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<U>().unlock_shared(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
 
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct HasOrInheritsUnlockSharedMethod_msemsearray : HasOrInheritsUnlockSharedMethod_msemsearray_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsUnlockSharedMethod_msemsearray : HasOrInheritsUnlockSharedMethod_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+	}
 
 	template<class _Mutex>
 	class recursive_shared_mutex_wrapped : public _Mutex {
@@ -411,23 +413,23 @@ namespace mse {
 		typedef _Mutex base_class;
 
 		void nonrecursive_lock() {
-			nonrecursive_lock_helper(typename HasOrInheritsNonrecursiveUnlockMethod_msemsearray<_Mutex>::type());
+			nonrecursive_lock_helper(typename impl::HasOrInheritsNonrecursiveUnlockMethod_msemsearray<_Mutex>::type());
 		}
 		bool try_nonrecursive_lock() {	// try to lock nonrecursive
-			return nonrecursive_try_lock_helper(typename HasOrInheritsNonrecursiveUnlockMethod_msemsearray<_Mutex>::type());
+			return nonrecursive_try_lock_helper(typename impl::HasOrInheritsNonrecursiveUnlockMethod_msemsearray<_Mutex>::type());
 		}
 		void nonrecursive_unlock() {
-			nonrecursive_unlock_helper(typename HasOrInheritsNonrecursiveUnlockMethod_msemsearray<_Mutex>::type());
+			nonrecursive_unlock_helper(typename impl::HasOrInheritsNonrecursiveUnlockMethod_msemsearray<_Mutex>::type());
 		}
 
 		void lock_shared() {	// lock non-exclusive
-			lock_shared_helper(typename HasOrInheritsUnlockSharedMethod_msemsearray<_Mutex>::type());
+			lock_shared_helper(typename impl::HasOrInheritsUnlockSharedMethod_msemsearray<_Mutex>::type());
 		}
 		bool try_lock_shared() {	// try to lock non-exclusive
-			return try_lock_shared_helper(typename HasOrInheritsUnlockSharedMethod_msemsearray<_Mutex>::type());
+			return try_lock_shared_helper(typename impl::HasOrInheritsUnlockSharedMethod_msemsearray<_Mutex>::type());
 		}
 		void unlock_shared() {	// unlock non-exclusive
-			unlock_shared_helper(typename HasOrInheritsUnlockSharedMethod_msemsearray<_Mutex>::type());
+			unlock_shared_helper(typename impl::HasOrInheritsUnlockSharedMethod_msemsearray<_Mutex>::type());
 		}
 	private:
 		void nonrecursive_lock_helper(std::true_type) {
@@ -699,9 +701,9 @@ namespace mse {
 	};
 
 	template <class _Ty, class _TLeasePointer>
-	class TSyncWeakFixedIterator<_Ty*, _TLeasePointer> : public TSaferPtrForLegacy<_Ty> {
+	class TSyncWeakFixedIterator<_Ty*, _TLeasePointer> : public mse::us::TSaferPtrForLegacy<_Ty> {
 	public:
-		typedef TSaferPtrForLegacy<_Ty> _TIterator;
+		typedef mse::us::TSaferPtrForLegacy<_Ty> _TIterator;
 		typedef _TIterator base_class;
 		TSyncWeakFixedIterator(const TSyncWeakFixedIterator&) = default;
 		template<class _TLeasePointer2, class = typename std::enable_if<std::is_convertible<_TLeasePointer2, _TLeasePointer>::value, void>::type>
@@ -728,7 +730,7 @@ namespace mse {
 		TSyncWeakFixedIterator(const _TIterator& src_iterator, const _TLeasePointer& lease_pointer/* often a registered pointer */)
 			: base_class(src_iterator), m_lease_pointer(lease_pointer) {}
 		TSyncWeakFixedIterator(const _Ty* & src_iterator, const _TLeasePointer& lease_pointer/* often a registered pointer */)
-			: base_class(TSaferPtrForLegacy<_Ty>(src_iterator)), m_lease_pointer(lease_pointer) {}
+			: base_class(mse::us::TSaferPtrForLegacy<_Ty>(src_iterator)), m_lease_pointer(lease_pointer) {}
 	private:
 		TSyncWeakFixedIterator & operator=(const TSyncWeakFixedIterator& _Right_cref) = delete;
 
@@ -743,133 +745,144 @@ namespace mse {
 	}
 
 
-	/* Some data structures to determine, at compile time, if a given type has certain features. */
+	namespace impl {
+		/* Some data structures to determine, at compile time, if a given type has certain features. */
 
-	template<typename T>
-	struct HasNotAsyncShareableTagMethod_msemsearray
-	{
-		template<typename U, void(U::*)() const> struct SFINAE {};
-		template<typename U> static char Test(SFINAE<U, &U::not_async_shareable_tag>*);
-		template<typename U> static int Test(...);
-		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
-	};
+		template<typename T>
+		struct HasNotAsyncShareableTagMethod_msemsearray
+		{
+			template<typename U, void(U::*)() const> struct SFINAE {};
+			template<typename U> static char Test(SFINAE<U, &U::not_async_shareable_tag>*);
+			template<typename U> static int Test(...);
+			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+		};
 
-	template<typename T>
-	struct HasAsyncShareableTagMethod_msemsearray
-	{
-		template<typename U, void(U::*)() const> struct SFINAE {};
-		template<typename U> static char Test(SFINAE<U, &U::async_shareable_tag>*);
-		template<typename U> static int Test(...);
-		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
-	};
+		template<typename T>
+		struct HasAsyncShareableTagMethod_msemsearray
+		{
+			template<typename U, void(U::*)() const> struct SFINAE {};
+			template<typename U> static char Test(SFINAE<U, &U::async_shareable_tag>*);
+			template<typename U> static int Test(...);
+			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+		};
 
-	template<typename T>
-	struct HasAsyncPassableTagMethod_msemsearray
-	{
-		template<typename U, void(U::*)() const> struct SFINAE {};
-		template<typename U> static char Test(SFINAE<U, &U::async_passable_tag>*);
-		template<typename U> static int Test(...);
-		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
-	};
+		template<typename T>
+		struct HasAsyncPassableTagMethod_msemsearray
+		{
+			template<typename U, void(U::*)() const> struct SFINAE {};
+			template<typename U> static char Test(SFINAE<U, &U::async_passable_tag>*);
+			template<typename U> static int Test(...);
+			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+		};
 
-	template<typename T>
-	struct HasXScopeAsyncShareableTagMethod_msemsearray
-	{
-		template<typename U, void(U::*)() const> struct SFINAE {};
-		template<typename U> static char Test(SFINAE<U, &U::xscope_async_shareable_tag>*);
-		template<typename U> static int Test(...);
-		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
-	};
+		template<typename T>
+		struct HasXScopeAsyncShareableTagMethod_msemsearray
+		{
+			template<typename U, void(U::*)() const> struct SFINAE {};
+			template<typename U> static char Test(SFINAE<U, &U::xscope_async_shareable_tag>*);
+			template<typename U> static int Test(...);
+			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+		};
 
-	template<typename T>
-	struct HasXScopeAsyncPassableTagMethod_msescope
-	{
-		template<typename U, void(U::*)() const> struct SFINAE {};
-		template<typename U> static char Test(SFINAE<U, &U::xscope_async_passable_tag>*);
-		template<typename U> static int Test(...);
-		static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
-	};
+		template<typename T>
+		struct HasXScopeAsyncPassableTagMethod_msescope
+		{
+			template<typename U, void(U::*)() const> struct SFINAE {};
+			template<typename U> static char Test(SFINAE<U, &U::xscope_async_passable_tag>*);
+			template<typename U> static int Test(...);
+			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+		};
 
-	template<class T> using HasOrInheritsAssignmentOperator_msemsearray = HasOrInheritsAssignmentOperator_msepointerbasics<T>;
+		template<class T> using HasOrInheritsAssignmentOperator_msemsearray = mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<T>;
 
-	template<class T, class EqualTo>
-	struct HasOrInheritsEqualityOperator_msemsearray_impl
-	{
-		template<class U, class V>
-		static auto test(U*) -> decltype(std::declval<U>() == std::declval<V>(), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
+		template<class T, class EqualTo>
+		struct HasOrInheritsEqualityOperator_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<U>() == std::declval<V>(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
 
-		static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct HasOrInheritsEqualityOperator_msemsearray : HasOrInheritsEqualityOperator_msemsearray_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsEqualityOperator_msemsearray : HasOrInheritsEqualityOperator_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
-	template<class T, class EqualTo>
-	struct HasOrInheritsTargetContainerPtrMethod_msemsearray_impl
-	{
-		template<class U, class V>
-		static auto test(U*) -> decltype(std::declval<U>().target_container_ptr(), std::declval<V>().target_container_ptr(), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
+		template<class T, class EqualTo>
+		struct HasOrInheritsTargetContainerPtrMethod_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<U>().target_container_ptr(), std::declval<V>().target_container_ptr(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
 
-		static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct HasOrInheritsTargetContainerPtrMethod_msemsearray : HasOrInheritsTargetContainerPtrMethod_msemsearray_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsTargetContainerPtrMethod_msemsearray : HasOrInheritsTargetContainerPtrMethod_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+	}
+	template<typename T> using HasAsyncShareableTagMethod_msemsearray = impl::HasAsyncShareableTagMethod_msemsearray<T>;
+	template<typename T> using HasXScopeAsyncShareableTagMethod_msemsearray = impl::HasXScopeAsyncShareableTagMethod_msemsearray<T>;
 
 
-	/* array_helper_type is a template class used to help our (non-aggregate) array types support initializer lists
-	of non-default constructible elements. This array_helper_type template has many template specializations. */
 
-	template<class _Ty, size_t _Size>
-	class array_helper_type {
-	public:
-		static typename std::array<_Ty, _Size> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			/* Template specializations of this function construct mse::msearrays of non-default constructible
-			elements. This (non-specialized) implementation here should cause a compile error when invoked. */
-			if (0 < _Ilist.size()) { MSE_THROW(msearray_range_error("sorry, arrays of this size are not supported when the elements are non-default constructible - mse::mstd::array")); }
-			typename std::array<_Ty, _Size> retval{};
-			return retval;
+	namespace impl {
+		namespace array_helper {
+			/* array_helper_type is a template class used to help our (non-aggregate) array types support initializer lists
+			of non-default constructible elements. This array_helper_type template has many template specializations. */
+
+			template<class _Ty, size_t _Size>
+			class array_helper_type {
+			public:
+				static typename std::array<_Ty, _Size> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					/* Template specializations of this function construct mse::msearrays of non-default constructible
+					elements. This (non-specialized) implementation here should cause a compile error when invoked. */
+					if (0 < _Ilist.size()) { MSE_THROW(msearray_range_error("sorry, arrays of this size are not supported when the elements are non-default constructible - mse::mstd::array")); }
+					typename std::array<_Ty, _Size> retval{};
+					return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 1> {
+			public:
+				static typename std::array<_Ty, 1> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					/* This template specialization constructs an mse::msearray of size 1 and supports non-default
+					constructible elements. */
+					if (1 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 1> retval{ *(_Ilist.begin()) }; return retval;
+				}
+			};
+			/* Template specializations that construct mse::msearrays of different sizes are located later in the file. */
 		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 1> {
-	public:
-		static typename std::array<_Ty, 1> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			/* This template specialization constructs an mse::msearray of size 1 and supports non-default
-			constructible elements. */
-			if (1 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 1> retval{ *(_Ilist.begin()) }; return retval;
-		}
-	};
-	/* Template specializations that construct mse::msearrays of different sizes are located later in the file. */
+	}
 
-	template<class _StateMutex>
-	class destructor_lock_guard1 {
-	public:
-		explicit destructor_lock_guard1(_StateMutex& _Mtx) : _MyStateMutex(_Mtx) {
-			try {
-				_Mtx.lock();
+	namespace impl {
+		template<class _StateMutex>
+		class destructor_lock_guard1 {
+		public:
+			explicit destructor_lock_guard1(_StateMutex& _Mtx) : _MyStateMutex(_Mtx) {
+				try {
+					_Mtx.lock();
+				}
+				catch (...) {
+					/* It may not be safe to continue if the object is destroyed while the object state is locked (and presumably
+					in use) by another part of the code. */
+					std::cerr << "\n\nFatal Error: mse::destructor_lock_guard1() failed \n\n";
+					std::terminate();
+				}
 			}
-			catch (...) {
-				/* It may not be safe to continue if the object is destroyed while the object state is locked (and presumably
-				in use) by another part of the code. */
-				std::cerr << "\n\nFatal Error: mse::destructor_lock_guard1() failed \n\n";
-				std::terminate();
+			~destructor_lock_guard1() _NOEXCEPT {
+				_MyStateMutex.unlock();
 			}
-		}
-		~destructor_lock_guard1() _NOEXCEPT {
-			_MyStateMutex.unlock();
-		}
-		destructor_lock_guard1(const destructor_lock_guard1&) = delete;
-		destructor_lock_guard1& operator=(const destructor_lock_guard1&) = delete;
-	private:
-		_StateMutex & _MyStateMutex;
-	};
+			destructor_lock_guard1(const destructor_lock_guard1&) = delete;
+			destructor_lock_guard1& operator=(const destructor_lock_guard1&) = delete;
+		private:
+			_StateMutex & _MyStateMutex;
+		};
+	}
 
 	typedef
 #if !defined(NDEBUG) || defined(MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT)
@@ -879,47 +892,49 @@ namespace mse {
 #endif // !defined(NDEBUG) || defined(MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT)
 		default_state_mutex;
 
-	template <typename _TRAIterator>
-	class random_access_const_iterator_base_from_ra_iterator {
-	public:
-		using iterator_category = std::random_access_iterator_tag;
-		using value_type = typename std::remove_reference<decltype(*std::declval<_TRAIterator>())>::type;
-		using difference_type = decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>());
-		using const_pointer = typename std::add_pointer<typename std::add_const<decltype(*std::declval<_TRAIterator>())>::type>::type;
-		using const_reference = typename std::add_const<decltype(*std::declval<_TRAIterator>())>::type;
-		typedef const_pointer pointer;
-		typedef const_reference reference;
-	};
-	template <typename _TRAIterator>
-	class random_access_iterator_base_from_ra_iterator {
-	public:
-		using iterator_category = std::random_access_iterator_tag;
-		using value_type = typename std::remove_reference<decltype(*std::declval<_TRAIterator>())>::type;
-		using difference_type = decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>());
-		using pointer = typename std::add_pointer<decltype(*std::declval<_TRAIterator>())>::type;
-		using reference = decltype(*std::declval<_TRAIterator>());
-	};
+	namespace impl {
+		template <typename _TRAIterator>
+		class random_access_const_iterator_base_from_ra_iterator {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = typename std::remove_reference<decltype(*std::declval<_TRAIterator>())>::type;
+			using difference_type = decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>());
+			using const_pointer = typename std::add_pointer<typename std::add_const<decltype(*std::declval<_TRAIterator>())>::type>::type;
+			using const_reference = typename std::add_const<decltype(*std::declval<_TRAIterator>())>::type;
+			typedef const_pointer pointer;
+			typedef const_reference reference;
+		};
+		template <typename _TRAIterator>
+		class random_access_iterator_base_from_ra_iterator {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = typename std::remove_reference<decltype(*std::declval<_TRAIterator>())>::type;
+			using difference_type = decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>());
+			using pointer = typename std::add_pointer<decltype(*std::declval<_TRAIterator>())>::type;
+			using reference = decltype(*std::declval<_TRAIterator>());
+		};
 
-	template <typename _TRAContainer>
-	class random_access_const_iterator_base_from_ra_container {
-	public:
-		using iterator_category = std::random_access_iterator_tag;
-		using value_type = typename std::remove_reference<decltype(std::declval<_TRAContainer>()[0])>::type;
-		using difference_type = typename std::array<int, 0>::difference_type;
-		using const_pointer = typename std::add_pointer<typename std::add_const<decltype(std::declval<_TRAContainer>()[0])>::type>::type;
-		using const_reference = typename std::add_const<decltype(std::declval<_TRAContainer>()[0])>::type;
-		typedef const_pointer pointer;
-		typedef const_reference reference;
-	};
-	template <typename _TRAContainer>
-	class random_access_iterator_base_from_ra_container {
-	public:
-		using iterator_category = std::random_access_iterator_tag;
-		using value_type = typename std::remove_reference<decltype(std::declval<_TRAContainer>()[0])>::type;
-		using difference_type = typename std::array<int, 0>::difference_type;
-		using pointer = typename std::add_pointer<decltype(std::declval<_TRAContainer>()[0])>::type;
-		using reference = decltype(std::declval<_TRAContainer>()[0]);
-	};
+		template <typename _TRAContainer>
+		class random_access_const_iterator_base_from_ra_container {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = typename std::remove_reference<decltype(std::declval<_TRAContainer>()[0])>::type;
+			using difference_type = typename std::array<int, 0>::difference_type;
+			using const_pointer = typename std::add_pointer<typename std::add_const<decltype(std::declval<_TRAContainer>()[0])>::type>::type;
+			using const_reference = typename std::add_const<decltype(std::declval<_TRAContainer>()[0])>::type;
+			typedef const_pointer pointer;
+			typedef const_reference reference;
+		};
+		template <typename _TRAContainer>
+		class random_access_iterator_base_from_ra_container {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = typename std::remove_reference<decltype(std::declval<_TRAContainer>()[0])>::type;
+			using difference_type = typename std::array<int, 0>::difference_type;
+			using pointer = typename std::add_pointer<decltype(std::declval<_TRAContainer>()[0])>::type;
+			using reference = decltype(std::declval<_TRAContainer>()[0]);
+		};
+	}
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
 	class nii_array;
@@ -949,35 +964,35 @@ namespace std {
 
 namespace mse {
 
-
-	template<class _Ty>
-	class random_access_iterator_base {
-		typedef std::array<_Ty, 0> standard_t;
-	public:
-		using iterator_category = std::random_access_iterator_tag;
-		using value_type = typename standard_t::value_type;
-		//using difference_type = typename standard_t::difference_type;
-		typedef msear_int difference_type;
-		using pointer = typename standard_t::pointer;
-		using reference = typename standard_t::reference;
-		using const_pointer = typename standard_t::const_pointer;
-		using const_reference = typename standard_t::const_reference;
-		//using size_type = typename standard_t::size_type;
-		typedef msear_size_t size_type;
-	};
-	template<class _Ty>
-	class random_access_const_iterator_base {
-	public:
-		typedef random_access_iterator_base<_Ty> _Myt;
-		using iterator_category = std::random_access_iterator_tag;
-		using value_type = typename _Myt::value_type;
-		using difference_type = typename _Myt::difference_type;
-		using pointer = typename _Myt::const_pointer;
-		using reference = typename _Myt::const_reference;
-		using const_pointer = typename _Myt::const_pointer;
-		using const_reference = typename _Myt::const_reference;
-		using size_type = typename _Myt::size_type;
-	};
+	namespace impl {
+		template<class _Ty>
+		class random_access_iterator_base {
+			typedef std::array<_Ty, 0> standard_t;
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = typename standard_t::value_type;
+			//using difference_type = typename standard_t::difference_type;
+			typedef msear_int difference_type;
+			using pointer = typename standard_t::pointer;
+			using reference = typename standard_t::reference;
+			using const_pointer = typename standard_t::const_pointer;
+			using const_reference = typename standard_t::const_reference;
+			//using size_type = typename standard_t::size_type;
+			typedef msear_size_t size_type;
+		};
+		template<class _Ty>
+		class random_access_const_iterator_base {
+		public:
+			typedef random_access_iterator_base<_Ty> _Myt;
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = typename _Myt::value_type;
+			using difference_type = typename _Myt::difference_type;
+			using pointer = typename _Myt::const_pointer;
+			using reference = typename _Myt::const_reference;
+			using const_pointer = typename _Myt::const_pointer;
+			using const_reference = typename _Myt::const_reference;
+			using size_type = typename _Myt::size_type;
+		};
 
 #define MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class) \
 	typedef typename base_class::value_type value_type; \
@@ -993,142 +1008,147 @@ namespace mse {
 	MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class); \
 	typedef typename base_class::iterator_category iterator_category;
 
+	}
 
-	template <typename _TRAContainerPointer> class TRAConstIteratorBase;
+	namespace us {
+		namespace impl {
+			template <typename _TRAContainerPointer> class TRAConstIteratorBase;
+
+			template <typename _TRAContainerPointer>
+			class TRAIteratorBase : public mse::impl::random_access_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())>
+				, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TRAIteratorBase<_TRAContainerPointer> > >::type
+			{
+			public:
+				typedef mse::impl::random_access_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())> base_class;
+				typedef std::random_access_iterator_tag iterator_category;
+				typedef typename base_class::value_type value_type;
+				typedef typename base_class::difference_type difference_type;
+				typedef typename base_class::pointer pointer;
+				typedef typename base_class::reference reference;
+				typedef const pointer const_pointer;
+				typedef const reference const_reference;
+				typedef msear_size_t size_type;
+
+			private:
+				/*const */_TRAContainerPointer m_ra_container_pointer;
+				difference_type m_index = 0;
+
+			public:
+				template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value) && (std::is_default_constructible<_Ty2>::value), void>::type>
+				TRAIteratorBase() {}
+
+				TRAIteratorBase(const TRAIteratorBase& src) : m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
+				TRAIteratorBase(TRAIteratorBase&& src) = default;
+				//TRAIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+				//TRAIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+				TRAIteratorBase(us::impl::TRAIteratorBase<_Ty2>&& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+				TRAIteratorBase(const us::impl::TRAIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+
+				template<class _TRAContainerPointer2>
+				TRAIteratorBase(const _TRAContainerPointer2& param, size_type index) : m_ra_container_pointer(param), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+				template<class _TRAContainerPointer2>
+				TRAIteratorBase(_TRAContainerPointer2&& param, size_type index) : m_ra_container_pointer(std::forward<_TRAContainerPointer2>(param)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+
+				template<class _TLoneParam>
+				TRAIteratorBase(const _TLoneParam& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
+					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
+					, m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
+				template<class _TLoneParam>
+				TRAIteratorBase(_TLoneParam&& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
+					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param)))
+					, m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
+
+				auto operator*() const -> reference {
+					return (*m_ra_container_pointer)[m_index];
+				}
+				auto operator->() const -> typename std::add_pointer<value_type>::type {
+					return std::addressof((*m_ra_container_pointer)[m_index]);
+				}
+				reference operator[](difference_type _Off) const { return (*m_ra_container_pointer)[m_index + _Off]; }
+				TRAIteratorBase& operator +=(difference_type x) {
+					m_index += (x);
+					return (*this);
+				}
+				TRAIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
+				TRAIteratorBase& operator ++() { operator +=(1); return (*this); }
+				TRAIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+				TRAIteratorBase& operator --() { operator -=(1); return (*this); }
+				TRAIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+				TRAIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				TRAIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const TRAIteratorBase& _Right_cref) const {
+					if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRAIteratorBase")); }
+					return m_index - _Right_cref.m_index;
+				}
+				bool operator ==(const TRAIteratorBase& _Right_cref) const {
+					return ((_Right_cref.m_index == m_index) && (_Right_cref.m_ra_container_pointer == m_ra_container_pointer));
+				}
+				bool operator !=(const TRAIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
+				bool operator<(const TRAIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator>(const TRAIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator<=(const TRAIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				bool operator>=(const TRAIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+
+				TRAIteratorBase& operator=(const TRAIteratorBase& _Right_cref) {
+					assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointer>::type(), _Right_cref);
+					return (*this);
+				}
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+				TRAIteratorBase& operator=(const us::impl::TRAIteratorBase<_Ty2>& _Right_cref) {
+					return (*this) = TRAIteratorBase(_Right_cref);
+				}
+
+				difference_type position() const {
+					return m_index;
+				}
+				_TRAContainerPointer target_container_ptr() const {
+					return m_ra_container_pointer;
+				}
+
+			private:
+				template<class _TRAIterator>
+				_TRAContainerPointer ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
+				template<class _Ty2>
+				const _TRAContainerPointer& ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return param; }
+				template<class _Ty2>
+				_TRAContainerPointer ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return std::forward<_Ty2>(param); }
+				template<class _TRAIterator>
+				auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
+				template<class _Ty2>
+				difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
+				template<class _Ty2>
+				difference_type index_from_lone_param(std::false_type, _Ty2&& param) { return 0; }
+
+				template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
+					&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
+					void assignment_helper1(std::true_type, const TRAIteratorBase& _Right_cref) {
+					((*this).m_ra_container_pointer) = _Right_cref.m_ra_container_pointer;
+					(*this).m_index = _Right_cref.m_index;
+				}
+				void assignment_helper1(std::false_type, const TRAIteratorBase& _Right_cref) {
+					if (std::addressof(*((*this).m_ra_container_pointer)) != std::addressof(*(_Right_cref.m_ra_container_pointer))
+						|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
+						/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
+						example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
+						pointing to the same container. */
+						MSE_THROW(nii_array_range_error("invalid argument - TRAIteratorBase& operator=(const TRAIteratorBase& _Right) - TRAIteratorBase"));
+					}
+					(*this).m_index = _Right_cref.m_index;
+				}
+
+				friend class TRAConstIteratorBase<_TRAContainerPointer>;
+			};
+		}
+	}
 
 	template <typename _TRAContainerPointer>
-	class TRAIteratorBase : public random_access_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())>
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRAIteratorBase<_TRAContainerPointer> > >::type
-	{
+	class TXScopeRAIterator : public us::impl::TRAIteratorBase<_TRAContainerPointer>, public mse::us::impl::XScopeTagBase {
 	public:
-		typedef random_access_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())> base_class;
-		typedef std::random_access_iterator_tag iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
-		typedef msear_size_t size_type;
-
-	private:
-		/*const */_TRAContainerPointer m_ra_container_pointer;
-		difference_type m_index = 0;
-
-	public:
-		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value) && (std::is_default_constructible<_Ty2>::value), void>::type>
-		TRAIteratorBase() {}
-
-		TRAIteratorBase(const TRAIteratorBase& src) : m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
-		TRAIteratorBase(TRAIteratorBase&& src) = default;
-		//TRAIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-		//TRAIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAIteratorBase(TRAIteratorBase<_Ty2>&& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAIteratorBase(const TRAIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
-
-		template<class _TRAContainerPointer2>
-		TRAIteratorBase(const _TRAContainerPointer2& param, size_type index) : m_ra_container_pointer(param), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-		template<class _TRAContainerPointer2>
-		TRAIteratorBase(_TRAContainerPointer2&& param, size_type index) : m_ra_container_pointer(std::forward<_TRAContainerPointer2>(param)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-
-		template<class _TLoneParam>
-		TRAIteratorBase(const _TLoneParam& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
-			typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
-			, m_index(index_from_lone_param(typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
-		template<class _TLoneParam>
-		TRAIteratorBase(_TLoneParam&& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
-			typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param)))
-			, m_index(index_from_lone_param(typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
-
-		auto operator*() const -> reference {
-			return (*m_ra_container_pointer)[m_index];
-		}
-		auto operator->() const -> typename std::add_pointer<value_type>::type {
-			return std::addressof((*m_ra_container_pointer)[m_index]);
-		}
-		reference operator[](difference_type _Off) const { return (*m_ra_container_pointer)[m_index + _Off]; }
-		TRAIteratorBase& operator +=(difference_type x) {
-			m_index += (x);
-			return (*this);
-		}
-		TRAIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
-		TRAIteratorBase& operator ++() { operator +=(1); return (*this); }
-		TRAIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
-		TRAIteratorBase& operator --() { operator -=(1); return (*this); }
-		TRAIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
-
-		TRAIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		TRAIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRAIteratorBase& _Right_cref) const {
-			if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRAIteratorBase")); }
-			return m_index - _Right_cref.m_index;
-		}
-		bool operator ==(const TRAIteratorBase& _Right_cref) const {
-			return ((_Right_cref.m_index == m_index) && (_Right_cref.m_ra_container_pointer == m_ra_container_pointer));
-		}
-		bool operator !=(const TRAIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
-		bool operator<(const TRAIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator>(const TRAIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator<=(const TRAIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		bool operator>=(const TRAIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-
-		TRAIteratorBase& operator=(const TRAIteratorBase& _Right_cref) {
-			assignment_helper1(typename mse::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointer>::type(), _Right_cref);
-			return (*this);
-		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAIteratorBase& operator=(const TRAIteratorBase<_Ty2>& _Right_cref) {
-			return (*this) = TRAIteratorBase(_Right_cref);
-		}
-
-		difference_type position() const {
-			return m_index;
-		}
-		_TRAContainerPointer target_container_ptr() const {
-			return m_ra_container_pointer;
-		}
-
-	private:
-		template<class _TRAIterator>
-		_TRAContainerPointer ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
-		template<class _Ty2>
-		const _TRAContainerPointer& ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return param; }
-		template<class _Ty2>
-		_TRAContainerPointer ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return std::forward<_Ty2>(param); }
-		template<class _TRAIterator>
-		auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
-		template<class _Ty2>
-		difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
-		template<class _Ty2>
-		difference_type index_from_lone_param(std::false_type, _Ty2&& param) { return 0; }
-
-		template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
-			&& (mse::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
-			void assignment_helper1(std::true_type, const TRAIteratorBase& _Right_cref) {
-			((*this).m_ra_container_pointer) = _Right_cref.m_ra_container_pointer;
-			(*this).m_index = _Right_cref.m_index;
-		}
-		void assignment_helper1(std::false_type, const TRAIteratorBase& _Right_cref) {
-			if (std::addressof(*((*this).m_ra_container_pointer)) != std::addressof(*(_Right_cref.m_ra_container_pointer))
-				|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
-				/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
-				example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
-				pointing to the same container. */
-				MSE_THROW(nii_array_range_error("invalid argument - TRAIteratorBase& operator=(const TRAIteratorBase& _Right) - TRAIteratorBase"));
-			}
-			(*this).m_index = _Right_cref.m_index;
-		}
-
-		friend class TRAConstIteratorBase<_TRAContainerPointer>;
-	};
-
-	template <typename _TRAContainerPointer>
-	class TXScopeRAIterator : public TRAIteratorBase<_TRAContainerPointer>, public XScopeTagBase {
-	public:
-		typedef TRAIteratorBase<_TRAContainerPointer> base_class;
+		typedef us::impl::TRAIteratorBase<_TRAContainerPointer> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -1139,8 +1159,8 @@ namespace mse {
 		typedef typename base_class::size_type size_type;
 
 		/*
-		TXScopeRAIterator(const TRAIteratorBase<_TRAContainerPointer>& src) : base_class(src) {}
-		TXScopeRAIterator(TRAIteratorBase<_TRAContainerPointer>&& src) : base_class(std::forward<decltype(src)>(src)) {}
+		TXScopeRAIterator(const us::impl::TRAIteratorBase<_TRAContainerPointer>& src) : base_class(src) {}
+		TXScopeRAIterator(us::impl::TRAIteratorBase<_TRAContainerPointer>&& src) : base_class(std::forward<decltype(src)>(src)) {}
 		TXScopeRAIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {}
 		TXScopeRAIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {}
 		*/
@@ -1158,16 +1178,16 @@ namespace mse {
 
 		TXScopeRAIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeRAIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		difference_type operator-(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
-		TXScopeRAIterator& operator=(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		TXScopeRAIterator& operator=(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TXScopeRAIterator& operator=(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		TXScopeRAIterator& operator=(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			return (*this) = TXScopeRAIterator(_Right_cref);
 		}
 
@@ -1179,9 +1199,9 @@ namespace mse {
 	};
 
 	template <typename _TRAContainerPointer>
-	class TRAIterator : public TRAIteratorBase<_TRAContainerPointer> {
+	class TRAIterator : public us::impl::TRAIteratorBase<_TRAContainerPointer> {
 	public:
-		typedef TRAIteratorBase<_TRAContainerPointer> base_class;
+		typedef us::impl::TRAIteratorBase<_TRAContainerPointer> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -1207,7 +1227,7 @@ namespace mse {
 		TRAIterator(_TLoneParam&& lone_param) : base_class(std::forward<_TLoneParam>(lone_param)) {}
 
 		virtual ~TRAIterator() {
-			mse::T_valid_if_not_an_xscope_type<_TRAContainerPointer>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TRAContainerPointer>();
 		}
 
 		TRAIterator& operator +=(difference_type x) {
@@ -1222,16 +1242,16 @@ namespace mse {
 
 		TRAIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TRAIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		difference_type operator-(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
-		TRAIterator& operator=(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		TRAIterator& operator=(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAIterator& operator=(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		TRAIterator& operator=(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			return (*this) = TRAIterator(_Right_cref);
 		}
 
@@ -1241,146 +1261,150 @@ namespace mse {
 			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 	};
 
+	namespace us {
+		namespace impl {
+			template <typename _TRAContainerPointer>
+			class TRAConstIteratorBase : public mse::impl::random_access_const_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())>
+				, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<us::impl::TRAConstIteratorBase<_TRAContainerPointer> > >::type
+			{
+			public:
+				typedef mse::impl::random_access_const_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())> base_class;
+				typedef typename base_class::iterator_category iterator_category;
+				typedef typename base_class::value_type value_type;
+				typedef typename base_class::difference_type difference_type;
+				typedef typename base_class::pointer pointer;
+				typedef typename base_class::reference reference;
+				typedef const pointer const_pointer;
+				typedef const reference const_reference;
+				typedef msear_size_t size_type;
+
+			private:
+				/*const */_TRAContainerPointer m_ra_container_pointer;
+				difference_type m_index = 0;
+
+			public:
+				TRAConstIteratorBase() {}
+				TRAConstIteratorBase(const TRAConstIteratorBase& src) = default;
+				TRAConstIteratorBase(TRAConstIteratorBase&& src) = default;
+				TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>& src) : m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
+				TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>&& src) : m_ra_container_pointer(std::forward<decltype(src.m_ra_container_pointer)>(src.m_ra_container_pointer)), m_index(src.m_index) {}
+				//TRAConstIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+				//TRAConstIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+				TRAConstIteratorBase(us::impl::TRAConstIteratorBase<_Ty2>&& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+				TRAConstIteratorBase(const us::impl::TRAConstIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+				TRAConstIteratorBase(us::impl::TRAIteratorBase<_Ty2>&& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+				TRAConstIteratorBase(const us::impl::TRAIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+
+				template<class _TRAContainerPointer2>
+				TRAConstIteratorBase(const _TRAContainerPointer2& param, size_type index) : m_ra_container_pointer(param), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+				template<class _TRAContainerPointer2>
+				TRAConstIteratorBase(_TRAContainerPointer2&& param, size_type index) : m_ra_container_pointer(std::forward<_TRAContainerPointer2>(param)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+
+				template<class _TLoneParam>
+				TRAConstIteratorBase(const _TLoneParam& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
+					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
+					, m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
+				template<class _TLoneParam>
+				TRAConstIteratorBase(_TLoneParam&& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
+					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param)))
+					, m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
+
+				auto operator*() const -> const_reference {
+					return (*m_ra_container_pointer)[m_index];
+				}
+				auto operator->() const -> typename std::add_pointer<typename std::add_const<value_type>::type>::type {
+					return std::addressof((*m_ra_container_pointer)[m_index]);
+				}
+				const_reference operator[](difference_type _Off) const { return (*m_ra_container_pointer)[(m_index + _Off)]; }
+				TRAConstIteratorBase& operator +=(difference_type x) {
+					m_index += (x);
+					return (*this);
+				}
+				TRAConstIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
+				TRAConstIteratorBase& operator ++() { operator +=(1); return (*this); }
+				TRAConstIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+				TRAConstIteratorBase& operator --() { operator -=(1); return (*this); }
+				TRAConstIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+				TRAConstIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				TRAConstIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const TRAConstIteratorBase& _Right_cref) const {
+					if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRAConstIteratorBase")); }
+					return m_index - _Right_cref.m_index;
+				}
+				bool operator ==(const TRAConstIteratorBase& _Right_cref) const {
+					return ((_Right_cref.m_index == m_index) && (_Right_cref.m_ra_container_pointer == m_ra_container_pointer));
+				}
+				bool operator !=(const TRAConstIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
+				bool operator<(const TRAConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator>(const TRAConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator<=(const TRAConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				bool operator>=(const TRAConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+
+				TRAConstIteratorBase& operator=(const TRAConstIteratorBase& _Right_cref) {
+					assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointer>::type(), _Right_cref);
+					return (*this);
+				}
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+				TRAConstIteratorBase& operator=(const us::impl::TRAConstIteratorBase<_Ty2>& _Right_cref) {
+					return (*this) = TRAConstIteratorBase(_Right_cref);
+				}
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+				TRAConstIteratorBase& operator=(const us::impl::TRAIteratorBase<_Ty2>& _Right_cref) {
+					return (*this) = TRAConstIteratorBase(_Right_cref);
+				}
+
+				difference_type position() const {
+					return m_index;
+				}
+				_TRAContainerPointer target_container_ptr() const {
+					return m_ra_container_pointer;
+				}
+
+			private:
+				template<class _TRAIterator>
+				_TRAContainerPointer ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
+				template<class _Ty2>
+				const _TRAContainerPointer& ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return param; }
+				template<class _Ty2>
+				_TRAContainerPointer ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return std::forward<_Ty2>(param); }
+				template<class _TRAIterator>
+				auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
+				template<class _Ty2>
+				difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
+				template<class _Ty2>
+				difference_type index_from_lone_param(std::false_type, _Ty2&& param) { return 0; }
+
+				template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
+					&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
+					void assignment_helper1(std::true_type, const TRAConstIteratorBase& _Right_cref) {
+					((*this).m_ra_container_pointer) = _Right_cref.m_ra_container_pointer;
+					(*this).m_index = _Right_cref.m_index;
+				}
+				void assignment_helper1(std::false_type, const TRAConstIteratorBase& _Right_cref) {
+					if (std::addressof(*((*this).m_ra_container_pointer)) != std::addressof(*(_Right_cref.m_ra_container_pointer))
+						|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
+						/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
+						example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
+						pointing to the same container. */
+						MSE_THROW(nii_array_range_error("invalid argument - TRAConstIteratorBase& operator=(const TRAConstIteratorBase& _Right) - TRAConstIteratorBase"));
+					}
+					(*this).m_index = _Right_cref.m_index;
+				}
+			};
+		}
+	}
+
 	template <typename _TRAContainerPointer>
-	class TRAConstIteratorBase : public random_access_const_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())>
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRAConstIteratorBase<_TRAContainerPointer> > >::type
-	{
+	class TXScopeRAConstIterator : public us::impl::TRAConstIteratorBase<_TRAContainerPointer>, public mse::us::impl::XScopeTagBase {
 	public:
-		typedef random_access_const_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())> base_class;
-		typedef typename base_class::iterator_category iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
-		typedef msear_size_t size_type;
-
-	private:
-		/*const */_TRAContainerPointer m_ra_container_pointer;
-		difference_type m_index = 0;
-
-	public:
-		TRAConstIteratorBase() {}
-		TRAConstIteratorBase(const TRAConstIteratorBase& src) = default;
-		TRAConstIteratorBase(TRAConstIteratorBase&& src) = default;
-		TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>& src) : m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
-		TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>&& src) : m_ra_container_pointer(std::forward<decltype(src.m_ra_container_pointer)>(src.m_ra_container_pointer)), m_index(src.m_index) {}
-		//TRAConstIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-		//TRAConstIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAConstIteratorBase(TRAConstIteratorBase<_Ty2>&& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAConstIteratorBase(const TRAConstIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
-
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAConstIteratorBase(TRAIteratorBase<_Ty2>&& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAConstIteratorBase(const TRAIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
-
-		template<class _TRAContainerPointer2>
-		TRAConstIteratorBase(const _TRAContainerPointer2& param, size_type index) : m_ra_container_pointer(param), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-		template<class _TRAContainerPointer2>
-		TRAConstIteratorBase(_TRAContainerPointer2&& param, size_type index) : m_ra_container_pointer(std::forward<_TRAContainerPointer2>(param)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-
-		template<class _TLoneParam>
-		TRAConstIteratorBase(const _TLoneParam& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
-			typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
-			, m_index(index_from_lone_param(typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
-		template<class _TLoneParam>
-		TRAConstIteratorBase(_TLoneParam&& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
-			typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param)))
-			, m_index(index_from_lone_param(typename mse::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
-
-		auto operator*() const -> const_reference {
-			return (*m_ra_container_pointer)[m_index];
-		}
-		auto operator->() const -> typename std::add_pointer<typename std::add_const<value_type>::type>::type {
-			return std::addressof((*m_ra_container_pointer)[m_index]);
-		}
-		const_reference operator[](difference_type _Off) const { return (*m_ra_container_pointer)[(m_index + _Off)]; }
-		TRAConstIteratorBase& operator +=(difference_type x) {
-			m_index += (x);
-			return (*this);
-		}
-		TRAConstIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
-		TRAConstIteratorBase& operator ++() { operator +=(1); return (*this); }
-		TRAConstIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
-		TRAConstIteratorBase& operator --() { operator -=(1); return (*this); }
-		TRAConstIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
-
-		TRAConstIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		TRAConstIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRAConstIteratorBase& _Right_cref) const {
-			if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRAConstIteratorBase")); }
-			return m_index - _Right_cref.m_index;
-		}
-		bool operator ==(const TRAConstIteratorBase& _Right_cref) const {
-			return ((_Right_cref.m_index == m_index) && (_Right_cref.m_ra_container_pointer == m_ra_container_pointer));
-		}
-		bool operator !=(const TRAConstIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
-		bool operator<(const TRAConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator>(const TRAConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator<=(const TRAConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		bool operator>=(const TRAConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-
-		TRAConstIteratorBase& operator=(const TRAConstIteratorBase& _Right_cref) {
-			assignment_helper1(typename mse::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointer>::type(), _Right_cref);
-			return (*this);
-		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAConstIteratorBase& operator=(const TRAConstIteratorBase<_Ty2>& _Right_cref) {
-			return (*this) = TRAConstIteratorBase(_Right_cref);
-		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAConstIteratorBase& operator=(const TRAIteratorBase<_Ty2>& _Right_cref) {
-			return (*this) = TRAConstIteratorBase(_Right_cref);
-		}
-
-		difference_type position() const {
-			return m_index;
-		}
-		_TRAContainerPointer target_container_ptr() const {
-			return m_ra_container_pointer;
-		}
-
-	private:
-		template<class _TRAIterator>
-		_TRAContainerPointer ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
-		template<class _Ty2>
-		const _TRAContainerPointer& ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return param; }
-		template<class _Ty2>
-		_TRAContainerPointer ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return std::forward<_Ty2>(param); }
-		template<class _TRAIterator>
-		auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
-		template<class _Ty2>
-		difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
-		template<class _Ty2>
-		difference_type index_from_lone_param(std::false_type, _Ty2&& param) { return 0; }
-
-		template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
-			&& (mse::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
-			void assignment_helper1(std::true_type, const TRAConstIteratorBase& _Right_cref) {
-			((*this).m_ra_container_pointer) = _Right_cref.m_ra_container_pointer;
-			(*this).m_index = _Right_cref.m_index;
-		}
-		void assignment_helper1(std::false_type, const TRAConstIteratorBase& _Right_cref) {
-			if (std::addressof(*((*this).m_ra_container_pointer)) != std::addressof(*(_Right_cref.m_ra_container_pointer))
-				|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
-				/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
-				example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
-				pointing to the same container. */
-				MSE_THROW(nii_array_range_error("invalid argument - TRAConstIteratorBase& operator=(const TRAConstIteratorBase& _Right) - TRAConstIteratorBase"));
-			}
-			(*this).m_index = _Right_cref.m_index;
-		}
-	};
-
-	template <typename _TRAContainerPointer>
-	class TXScopeRAConstIterator : public TRAConstIteratorBase<_TRAContainerPointer>, public XScopeTagBase {
-	public:
-		typedef TRAConstIteratorBase<_TRAContainerPointer> base_class;
+		typedef us::impl::TRAConstIteratorBase<_TRAContainerPointer> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -1391,10 +1415,10 @@ namespace mse {
 		typedef typename base_class::size_type size_type;
 
 		/*
-		TXScopeRAConstIterator(const TRAConstIteratorBase<_TRAContainerPointer>& src) : base_class(src) {}
-		TXScopeRAConstIterator(TRAConstIteratorBase<_TRAContainerPointer>&& src) : base_class(std::forward<decltype(src)>(src)) {}
-		TXScopeRAConstIterator(const TRAIteratorBase<_TRAContainerPointer>& src) : base_class(src) {}
-		TXScopeRAConstIterator(TRAIteratorBase<_TRAContainerPointer>&& src) : base_class(std::forward<decltype(src)>(src)) {}
+		TXScopeRAConstIterator(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& src) : base_class(src) {}
+		TXScopeRAConstIterator(us::impl::TRAConstIteratorBase<_TRAContainerPointer>&& src) : base_class(std::forward<decltype(src)>(src)) {}
+		TXScopeRAConstIterator(const us::impl::TRAIteratorBase<_TRAContainerPointer>& src) : base_class(src) {}
+		TXScopeRAConstIterator(us::impl::TRAIteratorBase<_TRAContainerPointer>&& src) : base_class(std::forward<decltype(src)>(src)) {}
 		TXScopeRAConstIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {}
 		TXScopeRAConstIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {}
 		*/
@@ -1412,20 +1436,20 @@ namespace mse {
 
 		TXScopeRAConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeRAConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		difference_type operator-(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
-		TXScopeRAConstIterator& operator=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		TXScopeRAConstIterator& operator=(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TXScopeRAConstIterator& operator=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		TXScopeRAConstIterator& operator=(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			return (*this) = TXScopeRAConstIterator(_Right_cref);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TXScopeRAConstIterator& operator=(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		TXScopeRAConstIterator& operator=(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			return (*this) = TXScopeRAConstIterator(_Right_cref);
 		}
 
@@ -1437,9 +1461,9 @@ namespace mse {
 	};
 
 	template <typename _TRAContainerPointer>
-	class TRAConstIterator : public TRAConstIteratorBase<_TRAContainerPointer> {
+	class TRAConstIterator : public us::impl::TRAConstIteratorBase<_TRAContainerPointer> {
 	public:
-		typedef TRAConstIteratorBase<_TRAContainerPointer> base_class;
+		typedef us::impl::TRAConstIteratorBase<_TRAContainerPointer> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -1467,7 +1491,7 @@ namespace mse {
 		TRAConstIterator(_TLoneParam&& lone_param) : base_class(std::forward<_TLoneParam>(lone_param)) {}
 
 		virtual ~TRAConstIterator() {
-			mse::T_valid_if_not_an_xscope_type<_TRAContainerPointer>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TRAContainerPointer>();
 		}
 
 		TRAConstIterator& operator +=(difference_type x) {
@@ -1482,20 +1506,20 @@ namespace mse {
 
 		TRAConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TRAConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		difference_type operator-(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
-		TRAConstIterator& operator=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		TRAConstIterator& operator=(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAConstIterator& operator=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		TRAConstIterator& operator=(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			return (*this) = TRAConstIterator(_Right_cref);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAConstIterator& operator=(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		TRAConstIterator& operator=(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			return (*this) = TRAConstIterator(_Right_cref);
 		}
 
@@ -1577,14 +1601,14 @@ namespace mse {
 	/* The reason we specify the default parameter in the definition instead of this forward declaration is that there seems to be a
 	bug in clang (3.8.0) such that if we don't specify the default parameter in the definition it seems to subsequently behave as if
 	one were never specified. g++ and msvc don't seem to have the same issue. */
-	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex, class/* = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type*/>
+	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex, class/* = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type*/>
 	class Tnii_array_ss_iterator_type;
 
 	/* Tnii_array_ss_const_iterator_type is a bounds checked const_iterator. */
-	template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayConstPointer>::value), void>::type>
-	class Tnii_array_ss_const_iterator_type : public random_access_const_iterator_base<_Ty> {
+	template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type>
+	class Tnii_array_ss_const_iterator_type : public mse::impl::random_access_const_iterator_base<_Ty> {
 	public:
-		typedef random_access_const_iterator_base<_Ty> base_class;
+		typedef mse::impl::random_access_const_iterator_base<_Ty> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -1716,7 +1740,7 @@ namespace mse {
 		}
 
 		template<class _Ty2 = _TArrayConstPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TArrayConstPointer>::value)
-			&& (mse::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
+			&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
 		void assignment_helper1(std::true_type, const Tnii_array_ss_const_iterator_type& _Right_cref) {
 			((*this).m_owner_cptr) = _Right_cref.m_owner_cptr;
 			(*this).m_index = _Right_cref.m_index;
@@ -1732,7 +1756,7 @@ namespace mse {
 			(*this).m_index = _Right_cref.m_index;
 		}
 		Tnii_array_ss_const_iterator_type& operator=(const Tnii_array_ss_const_iterator_type& _Right_cref) {
-			assignment_helper1(typename mse::HasOrInheritsAssignmentOperator_msemsearray<_TArrayConstPointer>::type(), _Right_cref);
+			assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TArrayConstPointer>::type(), _Right_cref);
 			return (*this);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
@@ -1763,10 +1787,10 @@ namespace mse {
 		friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
 	};
 	/* Tnii_array_ss_iterator_type is a bounds checked iterator. */
-	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type>
-	class Tnii_array_ss_iterator_type : public random_access_iterator_base<_Ty> {
+	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type>
+	class Tnii_array_ss_iterator_type : public mse::impl::random_access_iterator_base<_Ty> {
 	public:
-		typedef random_access_iterator_base<_Ty> base_class;
+		typedef mse::impl::random_access_iterator_base<_Ty> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -1898,7 +1922,7 @@ namespace mse {
 		}
 
 		template<class _Ty2 = _TArrayPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TArrayPointer>::value)
-			&& (mse::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
+			&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
 			void assignment_helper1(std::true_type, const Tnii_array_ss_iterator_type& _Right_cref) {
 			((*this).m_owner_ptr) = _Right_cref.m_owner_ptr;
 			(*this).m_index = _Right_cref.m_index;
@@ -1914,7 +1938,7 @@ namespace mse {
 			(*this).m_index = _Right_cref.m_index;
 		}
 		Tnii_array_ss_iterator_type& operator=(const Tnii_array_ss_iterator_type& _Right_cref) {
-			assignment_helper1(typename mse::HasOrInheritsAssignmentOperator_msemsearray<_TArrayPointer>::type(), _Right_cref);
+			assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TArrayPointer>::type(), _Right_cref);
 			return (*this);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayPointer>::value, void>::type>
@@ -1950,13 +1974,13 @@ namespace mse {
 		msear_size_t m_index = 0;
 
 		friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
-		template<typename _TArrayConstPointer, class _Ty2, size_t _Size2, class _TStateMutex2, class/* = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayConstPointer>::value), void>::type*/>
+		template<typename _TArrayConstPointer, class _Ty2, size_t _Size2, class _TStateMutex2, class/* = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type*/>
 		friend class Tnii_array_ss_const_iterator_type;
 	};
 
-	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type*/>
+	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type*/>
 	using Tnii_array_ss_reverse_iterator_type = std::reverse_iterator<Tnii_array_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex> >;
-	template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayConstPointer>::value), void>::type*/>
+	template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type*/>
 	using Tnii_array_ss_const_reverse_iterator_type = std::reverse_iterator<Tnii_array_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex> >;
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
@@ -1972,7 +1996,7 @@ namespace mse {
 	class Tnii_array_xscope_ss_iterator_type;
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	class Tnii_array_xscope_ss_const_iterator_type : public Tnii_array_rp_ss_const_iterator_type<_Ty, _Size, _TStateMutex>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+	class Tnii_array_xscope_ss_const_iterator_type : public Tnii_array_rp_ss_const_iterator_type<_Ty, _Size, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
 	public:
 		typedef Tnii_array_rp_ss_const_iterator_type<_Ty, _Size, _TStateMutex> base_class;
 		typedef typename base_class::iterator_category iterator_category;
@@ -2063,7 +2087,7 @@ namespace mse {
 		friend class Tnii_array_xscope_ss_iterator_type;
 	};
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	class Tnii_array_xscope_ss_iterator_type : public Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+	class Tnii_array_xscope_ss_iterator_type : public Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
 	public:
 		typedef Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex> base_class;
 		typedef typename base_class::iterator_category iterator_category;
@@ -2158,7 +2182,7 @@ namespace mse {
 		typedef std_array _MA;
 		typedef nii_array _Myt;
 
-		typedef random_access_iterator_base<_Ty> ra_it_base;
+		typedef mse::impl::random_access_iterator_base<_Ty> ra_it_base;
 		typedef typename ra_it_base::value_type value_type;
 		typedef typename ra_it_base::difference_type difference_type;
 		typedef typename ra_it_base::pointer pointer;
@@ -2193,7 +2217,7 @@ namespace mse {
 		}
 		static std::array<_Ty, _Size> std_array_initial_value(std::false_type, _XSTD initializer_list<_Ty> _Ilist) {
 			/* _Ty is not default constructible. */
-			return array_helper_type<_Ty, _Size>::std_array_initial_value2(_Ilist);
+			return impl::array_helper::array_helper_type<_Ty, _Size>::std_array_initial_value2(_Ilist);
 		}
 		nii_array(_XSTD initializer_list<_Ty> _Ilist) : m_array(std_array_initial_value(std::is_default_constructible<_Ty>(), _Ilist)) {
 			/* std::array<> is an "aggregate type" (basically a POD struct with no base class, constructors or private
@@ -2207,7 +2231,7 @@ namespace mse {
 		}
 
 		~nii_array() {
-			mse::destructor_lock_guard1<_TStateMutex> lock1(m_mutex1);
+			mse::impl::destructor_lock_guard1<_TStateMutex> lock1(m_mutex1);
 
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			valid_if_Ty_is_not_an_xscope_type();
@@ -2317,17 +2341,17 @@ namespace mse {
 		//class na_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
 		//class na_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
 
-		typedef mse::random_access_const_iterator_base<_Ty> na_const_iterator_base;
-		typedef mse::random_access_iterator_base<_Ty> na_iterator_base;
+		typedef mse::impl::random_access_const_iterator_base<_Ty> na_const_iterator_base;
+		typedef mse::impl::random_access_iterator_base<_Ty> na_iterator_base;
 
-		template<typename _TArrayConstPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayConstPointer>::value), void>::type>
+		template<typename _TArrayConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type>
 		using Tss_const_iterator_type = Tnii_array_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
-		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type>
+		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type>
 		using Tss_iterator_type = Tnii_array_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
 
-		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayPointer>::value), void>::type>
+		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type>
 		using Tss_reverse_iterator_type = Tnii_array_ss_reverse_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
-		template<typename _TArrayConstPointer, class = typename std::enable_if<(!std::is_base_of<XScopeTagBase, _TArrayConstPointer>::value), void>::type>
+		template<typename _TArrayConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type>
 		using Tss_const_reverse_iterator_type = Tnii_array_ss_const_reverse_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
 
 		typedef Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex> ss_iterator_type;
@@ -2337,7 +2361,7 @@ namespace mse {
 
 		template<typename _TArrayPointer>
 		static auto ss_begin(const _TArrayPointer& owner_ptr) {
-			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
 				, Tss_const_iterator_type<_TArrayPointer>, Tss_iterator_type<_TArrayPointer> >::type return_type;
 			return_type retval(owner_ptr);
@@ -2347,7 +2371,7 @@ namespace mse {
 
 		template<typename _TArrayPointer>
 		static auto ss_end(const _TArrayPointer& owner_ptr) {
-			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
 				, Tss_const_iterator_type<_TArrayPointer>, Tss_iterator_type<_TArrayPointer> >::type return_type;
 			return_type retval(owner_ptr);
@@ -2357,7 +2381,7 @@ namespace mse {
 
 		template<typename _TArrayPointer>
 		static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
-			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 			Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr);
 			retval.set_to_beginning();
 			return retval;
@@ -2365,7 +2389,7 @@ namespace mse {
 
 		template<typename _TArrayPointer>
 		static auto ss_cend(const _TArrayPointer& owner_ptr) {
-			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 			Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr);
 			retval.set_to_end_marker();
 			return retval;
@@ -2373,7 +2397,7 @@ namespace mse {
 
 		template<typename _TArrayPointer>
 		static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
-			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
 				, Tss_const_reverse_iterator_type<_TArrayPointer>, Tss_reverse_iterator_type<_TArrayPointer> >::type return_type;
 			return return_type(ss_end<_TArrayPointer>(owner_ptr));
@@ -2381,7 +2405,7 @@ namespace mse {
 
 		template<typename _TArrayPointer>
 		static auto ss_rend(const _TArrayPointer& owner_ptr) {
-			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 			typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
 				, Tss_const_reverse_iterator_type<_TArrayPointer>, Tss_reverse_iterator_type<_TArrayPointer> >::type return_type;
 			return return_type(ss_begin<_TArrayPointer>(owner_ptr));
@@ -2389,13 +2413,13 @@ namespace mse {
 
 		template<typename _TArrayPointer>
 		static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
-			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 			return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_cend<_TArrayPointer>(owner_ptr)));
 		}
 
 		template<typename _TArrayPointer>
 		static auto ss_crend(const _TArrayPointer& owner_ptr) {
-			mse::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 			return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_crbegin<_TArrayPointer>(owner_ptr)));
 		}
 
@@ -2438,7 +2462,7 @@ namespace mse {
 	private:
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<XScopeTagBase, _Ty2>::value), void>::type>
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value), void>::type>
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		ss_iterator_type ss_begin() {	// return std_array::iterator for beginning of mutable sequence
@@ -2899,7 +2923,7 @@ namespace mse {
 
 			class xscope_ss_iterator_type;
 
-			class xscope_ss_const_iterator_type : public ss_const_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+			class xscope_ss_const_iterator_type : public ss_const_iterator_type, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
 			public:
 				template <typename _TXScopePointer, class = typename std::enable_if<
 					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<msearray> >::value
@@ -2979,7 +3003,7 @@ namespace mse {
 				friend class /*_Myt*/msearray<_Ty, _Size>;
 				friend class xscope_ss_iterator_type;
 			};
-			class xscope_ss_iterator_type : public ss_iterator_type, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+			class xscope_ss_iterator_type : public ss_iterator_type, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
 			public:
 				template <typename _TXScopePointer, class = typename std::enable_if<
 					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<msearray> >::value
@@ -3272,97 +3296,99 @@ namespace std {
 
 namespace mse {
 
-	template<class T, class EqualTo>
-	struct SupportsStdBegin_msemsearray_impl
-	{
-		template<class U, class V>
-		//static auto test(U*) -> decltype(std::declval<U>().begin() == std::declval<V>().begin(), bool(true));
-		static auto test(U*) -> decltype(std::begin(std::declval<U>()) == std::begin(std::declval<V>()), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
+	namespace impl {
+		template<class T, class EqualTo>
+		struct SupportsStdBegin_msemsearray_impl
+		{
+			template<class U, class V>
+			//static auto test(U*) -> decltype(std::declval<U>().begin() == std::declval<V>().begin(), bool(true));
+			static auto test(U*) -> decltype(std::begin(std::declval<U>()) == std::begin(std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
 
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct SupportsStdBegin_msemsearray : SupportsStdBegin_msemsearray_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct SupportsStdBegin_msemsearray : SupportsStdBegin_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
-	template<class T, class EqualTo>
-	struct HasOrInheritsSizeMethod_msemsearray_impl
-	{
-		template<class U, class V>
-		static auto test(U*) -> decltype(std::declval<U>().size() == std::declval<V>().size(), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
+		template<class T, class EqualTo>
+		struct HasOrInheritsSizeMethod_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<U>().size() == std::declval<V>().size(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
 
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct HasOrInheritsSizeMethod_msemsearray : HasOrInheritsSizeMethod_msemsearray_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsSizeMethod_msemsearray : HasOrInheritsSizeMethod_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
-	template<class T, class EqualTo>
-	struct HasOrInheritsStaticSSBeginMethod_msemsearray_impl
-	{
-		template<class U, class V>
-		static auto test(U*) -> decltype(U::ss_begin(std::declval<U*>()) == V::ss_begin(std::declval<V*>()), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
+		template<class T, class EqualTo>
+		struct HasOrInheritsStaticSSBeginMethod_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(U::ss_begin(std::declval<U*>()) == V::ss_begin(std::declval<V*>()), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
 
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct HasOrInheritsStaticSSBeginMethod_msemsearray : HasOrInheritsStaticSSBeginMethod_msemsearray_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsStaticSSBeginMethod_msemsearray : HasOrInheritsStaticSSBeginMethod_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
-	template<typename T, size_t n>
-	size_t native_array_size_msemsearray(const T(&)[n]) {
-		return n;
+		template<typename T, size_t n>
+		size_t native_array_size_msemsearray(const T(&)[n]) {
+			return n;
+		}
+		template<class T, class EqualTo>
+		struct IsNativeArray_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(native_array_size_msemsearray(std::declval<U>()) == native_array_size_msemsearray(std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct IsNativeArray_msemsearray : IsNativeArray_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+		template<class T, class EqualTo>
+		struct IsDereferenceable_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype((*std::declval<U>()) == (*std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct IsDereferenceable_msemsearray : IsDereferenceable_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+		template<typename _Ty, class = typename std::enable_if<(IsDereferenceable_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_dereferenceable() {}
+
+		template<class T, class EqualTo>
+		struct HasOrInheritsXScopeIteratorMemberType_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(typename U::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<U> >()) == typename V::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<V> >()), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsXScopeIteratorMemberType_msemsearray : HasOrInheritsXScopeIteratorMemberType_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 	}
-	template<class T, class EqualTo>
-	struct IsNativeArray_msemsearray_impl
-	{
-		template<class U, class V>
-		static auto test(U*) -> decltype(native_array_size_msemsearray(std::declval<U>()) == native_array_size_msemsearray(std::declval<V>()), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
-
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct IsNativeArray_msemsearray : IsNativeArray_msemsearray_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
-	template<class T, class EqualTo>
-	struct IsDereferenceable_msemsearray_impl
-	{
-		template<class U, class V>
-		static auto test(U*) -> decltype((*std::declval<U>()) == (*std::declval<V>()), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
-
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct IsDereferenceable_msemsearray : IsDereferenceable_msemsearray_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
-	template<typename _Ty, class = typename std::enable_if<(IsDereferenceable_msemsearray<_Ty>::value), void>::type>
-	void T_valid_if_is_dereferenceable() {}
-
-	template<class T, class EqualTo>
-	struct HasOrInheritsXScopeIteratorMemberType_msemsearray_impl
-	{
-		template<class U, class V>
-		static auto test(U*) -> decltype(typename U::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<U> >()) == typename V::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<V> >()), bool(true));
-		template<typename, typename>
-		static auto test(...)->std::false_type;
-
-		using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-	};
-	template<class T, class EqualTo = T>
-	struct HasOrInheritsXScopeIteratorMemberType_msemsearray : HasOrInheritsXScopeIteratorMemberType_msemsearray_impl<
-		typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
 	namespace impl {
 		namespace iterator {
@@ -3381,8 +3407,8 @@ namespace mse {
 				/* The parameter doesn't seem to be a container with a "begin()" member function or a native array. Here we'll assume
 				that it is a pointer to a supported container. If you get a compile error here, then construction from the given
 				parameter type isn't supported. */
-				mse::T_valid_if_is_dereferenceable<_TRALoneParam>();
-				return begin_iter_from_ptr_helper2(typename std::is_base_of<mse::XScopeTagBase, _TRALoneParam>::type(), ptr);
+				mse::impl::T_valid_if_is_dereferenceable<_TRALoneParam>();
+				return begin_iter_from_ptr_helper2(typename std::is_base_of<mse::us::impl::XScopeTagBase, _TRALoneParam>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
 			auto begin_iter_from_lone_param3(std::true_type, const _TRALoneParam& ra_container) {
@@ -3393,7 +3419,7 @@ namespace mse {
 			template <typename _TRALoneParam>
 			auto begin_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
 				/* The parameter is not a "random access section". */
-				return begin_iter_from_lone_param3(typename SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
+				return begin_iter_from_lone_param3(typename mse::impl::SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
 			}
 			template <typename _TRALoneParam>
 			auto begin_iter_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
@@ -3403,69 +3429,73 @@ namespace mse {
 			template <typename _TRALoneParam>
 			auto begin_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
 				/* The parameter doesn't seem to be a container with a "begin()" member function. */
-				return begin_iter_from_lone_param2(typename mse::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
+				return begin_iter_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
 			auto begin_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
 				/* The parameter is another "random access section". */
 				return ra_section.m_start_iter;
 			}
+
+			template<class _TArray>
+			auto make_xscope_const_iterator_helper(std::true_type, const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
+				return typename _TArray::xscope_const_iterator(owner_ptr);
+			}
+			template<class _TArray>
+			auto make_xscope_const_iterator_helper(std::false_type, const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
+				/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
+				bidirectional iterator or whatever rather than a random access iterator */
+				return mse::TXScopeRandomAccessConstIterator<mse::TXScopeItemFixedConstPointer<_TArray> >(owner_ptr);
+			}
 		}
 	}
 
 	template<class _TArray>
-	auto make_xscope_const_iterator_helper(std::true_type, const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-		return typename _TArray::xscope_const_iterator(owner_ptr);
-	}
-	template<class _TArray>
-	auto make_xscope_const_iterator_helper(std::false_type, const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-		/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
-		bidirectional iterator or whatever rather than a random access iterator */
-		return mse::TXScopeRandomAccessConstIterator<mse::TXScopeItemFixedConstPointer<_TArray> >(owner_ptr);
-	}
-
-	template<class _TArray>
 	auto make_xscope_const_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
-		return mse::make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
+		return mse::impl::iterator::make_xscope_const_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
 			, mse::TXScopeItemFixedConstPointer<_TArray>(owner_ptr));
 	}
 	template<class _TArray>
 	auto make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
-		return mse::make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
+		return mse::impl::iterator::make_xscope_const_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
 			, mse::TXScopeItemFixedConstPointer<_TArray>(owner_ptr));
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TArray>
 	auto make_xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-		return mse::make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type(), owner_ptr);
+		return mse::impl::iterator::make_xscope_const_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type(), owner_ptr);
 	}
 	template<class _TArray>
 	auto make_xscope_const_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-		return mse::make_xscope_const_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
+		return mse::impl::iterator::make_xscope_const_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
 			, mse::TXScopeItemFixedConstPointer<_TArray>(owner_ptr));
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-	template<class _TArray>
-	auto make_xscope_iterator_helper(std::true_type, const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-		return typename _TArray::xscope_iterator(owner_ptr);
-	}
-	template<class _TArray>
-	auto make_xscope_iterator_helper(std::false_type, const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-		/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
-		bidirectional iterator or whatever rather than a random access iterator */
-		return mse::TXScopeRandomAccessIterator<mse::TXScopeItemFixedPointer<_TArray> >(owner_ptr);
+	namespace impl {
+		namespace iterator {
+			template<class _TArray>
+			auto make_xscope_iterator_helper(std::true_type, const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+				return typename _TArray::xscope_iterator(owner_ptr);
+			}
+			template<class _TArray>
+			auto make_xscope_iterator_helper(std::false_type, const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+				/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
+				bidirectional iterator or whatever rather than a random access iterator */
+				return mse::TXScopeRandomAccessIterator<mse::TXScopeItemFixedPointer<_TArray> >(owner_ptr);
+			}
+		}
 	}
 
 	template<class _TArray>
 	auto make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
-		return mse::make_xscope_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
+		return mse::impl::iterator::make_xscope_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
 			, mse::TXScopeItemFixedPointer<_TArray>(owner_ptr));
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TArray>
 	auto make_xscope_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-		return mse::make_xscope_iterator_helper(typename HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type(), owner_ptr);
+		return mse::impl::iterator::make_xscope_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type(), owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TArray>
@@ -3511,74 +3541,78 @@ namespace mse {
 		return mse::make_xscope_begin_iterator(owner_ptr) + (*owner_ptr).size();
 	}
 
-	template<class _TArrayPointer>
-	auto make_const_iterator_helper3(std::true_type, const _TArrayPointer& owner_ptr) {
-		return (*owner_ptr).ss_cbegin(owner_ptr);
-	}
-	template<class _TArrayPointer>
-	auto make_const_iterator_helper3(std::false_type, const _TArrayPointer& owner_ptr) {
-		/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
-		bidirectional iterator or whatever rather than a random access iterator */
-		return mse::TRandomAccessConstIterator<_TArrayPointer>(owner_ptr);
-	}
-	template<class _TArrayPointer>
-	auto make_const_iterator_helper(std::true_type, const _TArrayPointer& owner_ptr) {
-		return std::cbegin(*owner_ptr);
-	}
-	template<class _TArrayPointer>
-	auto make_const_iterator_helper(std::false_type, const _TArrayPointer& owner_ptr) {
-		return mse::make_const_iterator_helper3(typename mse::HasOrInheritsStaticSSBeginMethod_msemsearray<
+	namespace impl {
+		template<class _TArrayPointer>
+		auto make_const_iterator_helper3(std::true_type, const _TArrayPointer& owner_ptr) {
+			return (*owner_ptr).ss_cbegin(owner_ptr);
+		}
+		template<class _TArrayPointer>
+		auto make_const_iterator_helper3(std::false_type, const _TArrayPointer& owner_ptr) {
+			/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
+			bidirectional iterator or whatever rather than a random access iterator */
+			return mse::TRandomAccessConstIterator<_TArrayPointer>(owner_ptr);
+		}
+		template<class _TArrayPointer>
+		auto make_const_iterator_helper(std::true_type, const _TArrayPointer& owner_ptr) {
+			return std::cbegin(*owner_ptr);
+		}
+		template<class _TArrayPointer>
+		auto make_const_iterator_helper(std::false_type, const _TArrayPointer& owner_ptr) {
+			return make_const_iterator_helper3(typename mse::impl::HasOrInheritsStaticSSBeginMethod_msemsearray<
 				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
 			>::type(), owner_ptr);
-	}
-	template<class _TArrayPointer>
-	auto make_const_iterator_helper2(std::true_type, const _TArrayPointer& owner_ptr) {
-		return mse::make_xscope_const_iterator(owner_ptr);
-	}
-	template<class _TArrayPointer>
-	auto make_const_iterator_helper2(std::false_type, const _TArrayPointer& owner_ptr) {
-		return mse::make_const_iterator_helper(typename mse::SupportsStdBegin_msemsearray<
+		}
+		template<class _TArrayPointer>
+		auto make_const_iterator_helper2(std::true_type, const _TArrayPointer& owner_ptr) {
+			return mse::make_xscope_const_iterator(owner_ptr);
+		}
+		template<class _TArrayPointer>
+		auto make_const_iterator_helper2(std::false_type, const _TArrayPointer& owner_ptr) {
+			return make_const_iterator_helper(typename mse::impl::SupportsStdBegin_msemsearray<
 				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
 			>::type(), owner_ptr);
+		}
 	}
 	template<class _TArrayPointer>
 	auto make_const_iterator(const _TArrayPointer& owner_ptr) {
-		return mse::make_const_iterator_helper2(typename IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
+		return impl::make_const_iterator_helper2(typename mse::impl::IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
 	}
 
-	template<class _TArrayPointer>
-	auto make_iterator_helper3(std::true_type, const _TArrayPointer& owner_ptr) {
-		return (*owner_ptr).ss_begin(owner_ptr);
-	}
-	template<class _TArrayPointer>
-	auto make_iterator_helper3(std::false_type, const _TArrayPointer& owner_ptr) {
-		/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
-		bidirectional iterator or whatever rather than a random access iterator */
-		return mse::TRandomAccessIterator<_TArrayPointer>(owner_ptr);
-	}
-	template<class _TArrayPointer>
-	auto make_iterator_helper(std::true_type, const _TArrayPointer& owner_ptr) {
-		return std::begin(*owner_ptr);
-	}
-	template<class _TArrayPointer>
-	auto make_iterator_helper(std::false_type, const _TArrayPointer& owner_ptr) {
-		return mse::make_iterator_helper3(typename mse::HasOrInheritsStaticSSBeginMethod_msemsearray<
+	namespace impl {
+		template<class _TArrayPointer>
+		auto make_iterator_helper3(std::true_type, const _TArrayPointer& owner_ptr) {
+			return (*owner_ptr).ss_begin(owner_ptr);
+		}
+		template<class _TArrayPointer>
+		auto make_iterator_helper3(std::false_type, const _TArrayPointer& owner_ptr) {
+			/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
+			bidirectional iterator or whatever rather than a random access iterator */
+			return mse::TRandomAccessIterator<_TArrayPointer>(owner_ptr);
+		}
+		template<class _TArrayPointer>
+		auto make_iterator_helper(std::true_type, const _TArrayPointer& owner_ptr) {
+			return std::begin(*owner_ptr);
+		}
+		template<class _TArrayPointer>
+		auto make_iterator_helper(std::false_type, const _TArrayPointer& owner_ptr) {
+			return make_iterator_helper3(typename mse::impl::HasOrInheritsStaticSSBeginMethod_msemsearray<
 				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
 			>::type(), owner_ptr);
-	}
-	template<class _TArrayPointer>
-	auto make_iterator_helper2(std::true_type, const _TArrayPointer& owner_ptr) {
-		return mse::make_xscope_iterator(owner_ptr);
-	}
-	template<class _TArrayPointer>
-	auto make_iterator_helper2(std::false_type, const _TArrayPointer& owner_ptr) {
-		return mse::make_iterator_helper(typename mse::SupportsStdBegin_msemsearray<
+		}
+		template<class _TArrayPointer>
+		auto make_iterator_helper2(std::true_type, const _TArrayPointer& owner_ptr) {
+			return mse::make_xscope_iterator(owner_ptr);
+		}
+		template<class _TArrayPointer>
+		auto make_iterator_helper2(std::false_type, const _TArrayPointer& owner_ptr) {
+			return make_iterator_helper(typename mse::impl::SupportsStdBegin_msemsearray<
 				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
 			>::type(), owner_ptr);
+		}
 	}
 	template<class _TArrayPointer>
 	auto make_iterator(const _TArrayPointer& owner_ptr) {
-		return mse::make_iterator_helper2(typename IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
+		return impl::make_iterator_helper2(typename mse::impl::IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
 	}
 
 	template<class _TArrayPointer>
@@ -3599,91 +3633,95 @@ namespace mse {
 	}
 
 
-	template <typename _TRAIterator> class TRASectionConstIteratorBase;
+	namespace us {
+		namespace impl {
+			template <typename _TRAIterator> class TRASectionConstIteratorBase;
+
+			template <typename _TRAIterator>
+			class TRASectionIteratorBase : public mse::impl::random_access_iterator_base_from_ra_iterator<_TRAIterator>
+				, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<us::impl::TRASectionIteratorBase<_TRAIterator> > >::type
+			{
+			public:
+				typedef mse::impl::random_access_iterator_base_from_ra_iterator<_TRAIterator> base_class;
+				typedef typename base_class::iterator_category iterator_category;
+				typedef typename base_class::value_type value_type;
+				typedef typename base_class::difference_type difference_type;
+				typedef typename base_class::pointer pointer;
+				typedef typename base_class::reference reference;
+				typedef const pointer const_pointer;
+				typedef const reference const_reference;
+				typedef typename mse::nii_array<int, 0>::size_type size_type;
+				typedef _TRAIterator iterator_type;
+
+			private:
+				const _TRAIterator m_ra_iterator;
+				const size_type m_count = 0;
+				difference_type m_index = 0;
+
+			public:
+				TRASectionIteratorBase(const TRASectionIteratorBase& src)
+					: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
+				TRASectionIteratorBase(_TRAIterator ra_iterator, size_type count, size_type index = 0)
+					: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+
+				void bounds_check(difference_type index) const {
+					if ((0 > index) || (difference_type(mse::msear_as_a_size_t(m_count)) <= index)) {
+						MSE_THROW(msearray_range_error("out of bounds index - void bounds_check() - TRASectionIteratorBase"));
+					}
+				}
+				void dereference_bounds_check() const {
+					bounds_check(m_index);
+				}
+				auto operator*() const -> reference {
+					dereference_bounds_check();
+					return m_ra_iterator[m_index];
+				}
+				auto operator->() const -> typename std::add_pointer<value_type>::type {
+					dereference_bounds_check();
+					return std::addressof(m_ra_iterator[m_index]);
+				}
+				reference operator[](difference_type _Off) const {
+					bounds_check(_Off);
+					return m_ra_iterator[_Off];
+				}
+				TRASectionIteratorBase& operator +=(difference_type x) {
+					m_index += (x);
+					return (*this);
+				}
+				TRASectionIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
+				TRASectionIteratorBase& operator ++() { operator +=(1); return (*this); }
+				TRASectionIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+				TRASectionIteratorBase& operator --() { operator -=(1); return (*this); }
+				TRASectionIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+				TRASectionIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				TRASectionIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const TRASectionIteratorBase& _Right_cref) const {
+					if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRASectionIteratorBase")); }
+					return m_index - _Right_cref.m_index;
+				}
+				bool operator ==(const TRASectionIteratorBase& _Right_cref) const {
+					return ((_Right_cref.m_index == m_index) && (_Right_cref.m_count == m_count) && (_Right_cref.m_ra_iterator == m_ra_iterator));
+				}
+				bool operator !=(const TRASectionIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
+				bool operator<(const TRASectionIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator>(const TRASectionIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator<=(const TRASectionIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				bool operator>=(const TRASectionIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				TRASectionIteratorBase& operator=(const TRASectionIteratorBase& _Right_cref) {
+					if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionIteratorBase& operator=() - TRASectionIteratorBase")); }
+					m_index = _Right_cref.m_index;
+					return (*this);
+				}
+				friend class TRASectionConstIteratorBase<_TRAIterator>;
+			};
+		}
+	}
 
 	template <typename _TRAIterator>
-	class TRASectionIteratorBase : public random_access_iterator_base_from_ra_iterator<_TRAIterator>
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRASectionIteratorBase<_TRAIterator> > >::type
-	{
+	class TXScopeRASectionIterator : public us::impl::TRASectionIteratorBase<_TRAIterator>, public mse::us::impl::XScopeTagBase {
 	public:
-		typedef random_access_iterator_base_from_ra_iterator<_TRAIterator> base_class;
-		typedef typename base_class::iterator_category iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
-		typedef typename mse::nii_array<int, 0>::size_type size_type;
-		typedef _TRAIterator iterator_type;
-
-	private:
-		const _TRAIterator m_ra_iterator;
-		const size_type m_count = 0;
-		difference_type m_index = 0;
-
-	public:
-		TRASectionIteratorBase(const TRASectionIteratorBase& src)
-			: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
-		TRASectionIteratorBase(_TRAIterator ra_iterator, size_type count, size_type index = 0)
-			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-
-		void bounds_check(difference_type index) const {
-			if ((0 > index) || (difference_type(mse::msear_as_a_size_t(m_count)) <= index)) {
-				MSE_THROW(msearray_range_error("out of bounds index - void bounds_check() - TRASectionIteratorBase"));
-			}
-		}
-		void dereference_bounds_check() const {
-			bounds_check(m_index);
-		}
-		auto operator*() const -> reference {
-			dereference_bounds_check();
-			return m_ra_iterator[m_index];
-		}
-		auto operator->() const -> typename std::add_pointer<value_type>::type {
-			dereference_bounds_check();
-			return std::addressof(m_ra_iterator[m_index]);
-		}
-		reference operator[](difference_type _Off) const {
-			bounds_check(_Off);
-			return m_ra_iterator[_Off];
-		}
-		TRASectionIteratorBase& operator +=(difference_type x) {
-			m_index += (x);
-			return (*this);
-		}
-		TRASectionIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
-		TRASectionIteratorBase& operator ++() { operator +=(1); return (*this); }
-		TRASectionIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
-		TRASectionIteratorBase& operator --() { operator -=(1); return (*this); }
-		TRASectionIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
-
-		TRASectionIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		TRASectionIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRASectionIteratorBase& _Right_cref) const {
-			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRASectionIteratorBase")); }
-			return m_index - _Right_cref.m_index;
-		}
-		bool operator ==(const TRASectionIteratorBase& _Right_cref) const {
-			return ((_Right_cref.m_index == m_index) && (_Right_cref.m_count == m_count) && (_Right_cref.m_ra_iterator == m_ra_iterator));
-		}
-		bool operator !=(const TRASectionIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
-		bool operator<(const TRASectionIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator>(const TRASectionIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator<=(const TRASectionIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		bool operator>=(const TRASectionIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		TRASectionIteratorBase& operator=(const TRASectionIteratorBase& _Right_cref) {
-			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionIteratorBase& operator=() - TRASectionIteratorBase")); }
-			m_index = _Right_cref.m_index;
-			return (*this);
-		}
-		friend class TRASectionConstIteratorBase<_TRAIterator>;
-	};
-
-	template <typename _TRAIterator>
-	class TXScopeRASectionIterator : public TRASectionIteratorBase<_TRAIterator>, public XScopeTagBase {
-	public:
-		typedef TRASectionIteratorBase<_TRAIterator> base_class;
+		typedef us::impl::TRASectionIteratorBase<_TRAIterator> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -3694,7 +3732,7 @@ namespace mse {
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::iterator_type iterator_type;
 
-		TXScopeRASectionIterator(const TRASectionIteratorBase<_TRAIterator>& src)
+		TXScopeRASectionIterator(const us::impl::TRASectionIteratorBase<_TRAIterator>& src)
 			: base_class(src) {}
 		TXScopeRASectionIterator(_TRAIterator ra_iterator, size_type count, size_type index = 0)
 			: base_class(ra_iterator, count, index) {}
@@ -3711,11 +3749,11 @@ namespace mse {
 
 		TXScopeRASectionIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeRASectionIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) const {
+		difference_type operator-(const us::impl::TRASectionIteratorBase<_TRAIterator>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
-		TXScopeRASectionIterator& operator=(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) {
+		TXScopeRASectionIterator& operator=(const us::impl::TRASectionIteratorBase<_TRAIterator>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
@@ -3728,9 +3766,9 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	class TRASectionIterator : public TRASectionIteratorBase<_TRAIterator> {
+	class TRASectionIterator : public us::impl::TRASectionIteratorBase<_TRAIterator> {
 	public:
-		typedef TRASectionIteratorBase<_TRAIterator> base_class;
+		typedef us::impl::TRASectionIteratorBase<_TRAIterator> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -3746,7 +3784,7 @@ namespace mse {
 		template <typename _TRAIterator1>
 		TRASectionIterator(_TRAIterator1 ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {}
 		virtual ~TRASectionIterator() {
-			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
 		TRASectionIterator& operator +=(difference_type x) {
@@ -3761,100 +3799,104 @@ namespace mse {
 
 		TRASectionIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TRASectionIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) const {
+		difference_type operator-(const us::impl::TRASectionIteratorBase<_TRAIterator>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
-		TRASectionIterator& operator=(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) {
+		TRASectionIterator& operator=(const us::impl::TRASectionIteratorBase<_TRAIterator>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
 	};
 
+	namespace us {
+		namespace impl {
+			template <typename _TRAIterator>
+			class TRASectionConstIteratorBase : public mse::impl::random_access_const_iterator_base_from_ra_iterator<_TRAIterator>
+				, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<us::impl::TRASectionConstIteratorBase<_TRAIterator> > >::type
+			{
+			public:
+				typedef mse::impl::random_access_const_iterator_base_from_ra_iterator<_TRAIterator> base_class;
+				typedef typename base_class::iterator_category iterator_category;
+				typedef typename base_class::value_type value_type;
+				typedef typename base_class::difference_type difference_type;
+				typedef typename base_class::pointer pointer;
+				typedef typename base_class::reference reference;
+				typedef const pointer const_pointer;
+				typedef const reference const_reference;
+				typedef typename mse::nii_array<int, 0>::size_type size_type;
+				typedef _TRAIterator iterator_type;
+
+			private:
+				const _TRAIterator m_ra_iterator;
+				const size_type m_count = 0;
+				difference_type m_index = 0;
+
+			public:
+				TRASectionConstIteratorBase(const TRASectionConstIteratorBase& src)
+					: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
+				TRASectionConstIteratorBase(const TRASectionIteratorBase<_TRAIterator>& src)
+					: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
+				TRASectionConstIteratorBase(_TRAIterator ra_iterator, size_type count, size_type index = 0)
+					: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+
+				void bounds_check(difference_type index) const {
+					if ((0 > index) || (difference_type(mse::msear_as_a_size_t(m_count)) <= index)) {
+						MSE_THROW(msearray_range_error("out of bounds index - void bounds_check() - TRASectionConstIteratorBase"));
+					}
+				}
+				void dereference_bounds_check() const {
+					bounds_check(m_index);
+				}
+				auto operator*() const -> const_reference {
+					dereference_bounds_check();
+					return m_ra_iterator[m_index];
+				}
+				auto operator->() const -> typename std::add_pointer<typename std::add_const<value_type>::type>::type {
+					dereference_bounds_check();
+					return std::addressof(m_ra_iterator[m_index]);
+				}
+				const_reference operator[](difference_type _Off) const {
+					bounds_check(_Off);
+					return m_ra_iterator[_Off];
+				}
+				TRASectionConstIteratorBase& operator +=(difference_type x) {
+					m_index += (x);
+					return (*this);
+				}
+				TRASectionConstIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
+				TRASectionConstIteratorBase& operator ++() { operator +=(1); return (*this); }
+				TRASectionConstIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+				TRASectionConstIteratorBase& operator --() { operator -=(1); return (*this); }
+				TRASectionConstIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+				TRASectionConstIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				TRASectionConstIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const TRASectionConstIteratorBase& _Right_cref) const {
+					if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRASectionConstIteratorBase")); }
+					return m_index - _Right_cref.m_index;
+				}
+				bool operator ==(const TRASectionConstIteratorBase& _Right_cref) const {
+					return ((_Right_cref.m_index == m_index) && (_Right_cref.m_count == m_count) && (_Right_cref.m_ra_iterator == m_ra_iterator));
+				}
+				bool operator !=(const TRASectionConstIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
+				bool operator<(const TRASectionConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator>(const TRASectionConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
+				bool operator<=(const TRASectionConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				bool operator>=(const TRASectionConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				TRASectionConstIteratorBase& operator=(const TRASectionConstIteratorBase& _Right_cref) {
+					if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionConstIteratorBase& operator=() - TRASectionConstIteratorBase")); }
+					m_index = _Right_cref.m_index;
+					return (*this);
+				}
+			};
+		}
+	}
+
 	template <typename _TRAIterator>
-	class TRASectionConstIteratorBase : public random_access_const_iterator_base_from_ra_iterator<_TRAIterator>
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRASectionConstIteratorBase<_TRAIterator> > >::type
-	{
+	class TXScopeRASectionConstIterator : public us::impl::TRASectionConstIteratorBase<_TRAIterator>, public mse::us::impl::XScopeTagBase {
 	public:
-		typedef random_access_const_iterator_base_from_ra_iterator<_TRAIterator> base_class;
-		typedef typename base_class::iterator_category iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
-		typedef typename mse::nii_array<int, 0>::size_type size_type;
-		typedef _TRAIterator iterator_type;
-
-	private:
-		const _TRAIterator m_ra_iterator;
-		const size_type m_count = 0;
-		difference_type m_index = 0;
-
-	public:
-		TRASectionConstIteratorBase(const TRASectionConstIteratorBase& src)
-			: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
-		TRASectionConstIteratorBase(const TRASectionIteratorBase<_TRAIterator>& src)
-			: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
-		TRASectionConstIteratorBase(_TRAIterator ra_iterator, size_type count, size_type index = 0)
-			: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-
-		void bounds_check(difference_type index) const {
-			if ((0 > index) || (difference_type(mse::msear_as_a_size_t(m_count)) <= index)) {
-				MSE_THROW(msearray_range_error("out of bounds index - void bounds_check() - TRASectionConstIteratorBase"));
-			}
-		}
-		void dereference_bounds_check() const {
-			bounds_check(m_index);
-		}
-		auto operator*() const -> const_reference {
-			dereference_bounds_check();
-			return m_ra_iterator[m_index];
-		}
-		auto operator->() const -> typename std::add_pointer<typename std::add_const<value_type>::type>::type {
-			dereference_bounds_check();
-			return std::addressof(m_ra_iterator[m_index]);
-		}
-		const_reference operator[](difference_type _Off) const {
-			bounds_check(_Off);
-			return m_ra_iterator[_Off];
-		}
-		TRASectionConstIteratorBase& operator +=(difference_type x) {
-			m_index += (x);
-			return (*this);
-		}
-		TRASectionConstIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
-		TRASectionConstIteratorBase& operator ++() { operator +=(1); return (*this); }
-		TRASectionConstIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
-		TRASectionConstIteratorBase& operator --() { operator -=(1); return (*this); }
-		TRASectionConstIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
-
-		TRASectionConstIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		TRASectionConstIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRASectionConstIteratorBase& _Right_cref) const {
-			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRASectionConstIteratorBase")); }
-			return m_index - _Right_cref.m_index;
-		}
-		bool operator ==(const TRASectionConstIteratorBase& _Right_cref) const {
-			return ((_Right_cref.m_index == m_index) && (_Right_cref.m_count == m_count) && (_Right_cref.m_ra_iterator == m_ra_iterator));
-		}
-		bool operator !=(const TRASectionConstIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
-		bool operator<(const TRASectionConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator>(const TRASectionConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-		bool operator<=(const TRASectionConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		bool operator>=(const TRASectionConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-		TRASectionConstIteratorBase& operator=(const TRASectionConstIteratorBase& _Right_cref) {
-			if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionConstIteratorBase& operator=() - TRASectionConstIteratorBase")); }
-			m_index = _Right_cref.m_index;
-			return (*this);
-		}
-	};
-
-	template <typename _TRAIterator>
-	class TXScopeRASectionConstIterator : public TRASectionConstIteratorBase<_TRAIterator>, public XScopeTagBase {
-	public:
-		typedef TRASectionConstIteratorBase<_TRAIterator> base_class;
+		typedef us::impl::TRASectionConstIteratorBase<_TRAIterator> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -3865,7 +3907,7 @@ namespace mse {
 		typedef typename base_class::size_type size_type;
 		typedef typename base_class::iterator_type iterator_type;
 
-		TXScopeRASectionConstIterator(const TRASectionConstIteratorBase<_TRAIterator>& src)
+		TXScopeRASectionConstIterator(const us::impl::TRASectionConstIteratorBase<_TRAIterator>& src)
 			: base_class(src) {}
 		TXScopeRASectionConstIterator(_TRAIterator ra_iterator, size_type count, size_type index = 0)
 			: base_class(ra_iterator, count, index) {}
@@ -3882,11 +3924,11 @@ namespace mse {
 
 		TXScopeRASectionConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeRASectionConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
+		difference_type operator-(const us::impl::TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
-		TXScopeRASectionConstIterator& operator=(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) {
+		TXScopeRASectionConstIterator& operator=(const us::impl::TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
@@ -3899,9 +3941,9 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	class TRASectionConstIterator : public TRASectionConstIteratorBase<_TRAIterator> {
+	class TRASectionConstIterator : public us::impl::TRASectionConstIteratorBase<_TRAIterator> {
 	public:
-		typedef TRASectionConstIteratorBase<_TRAIterator> base_class;
+		typedef us::impl::TRASectionConstIteratorBase<_TRAIterator> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -3917,7 +3959,7 @@ namespace mse {
 		TRASectionConstIterator(_TRAIterator1 ra_iterator, size_type count, size_type index = 0)
 			: base_class(ra_iterator, count, index) {}
 		virtual ~TRASectionConstIterator() {
-			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
 		TRASectionConstIterator& operator +=(difference_type x) {
@@ -3932,19 +3974,17 @@ namespace mse {
 
 		TRASectionConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TRASectionConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
+		difference_type operator-(const us::impl::TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
-		TRASectionConstIterator& operator=(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) {
+		TRASectionConstIterator& operator=(const us::impl::TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
 	};
 
 
-	template <typename _TRAIterator> class TRandomAccessSectionBase;
-	template <typename _TRAIterator> class TRandomAccessConstSectionBase;
 	template <typename _TRAIterator> class TXScopeRandomAccessSection;
 	template <typename _TRAIterator> class TXScopeRandomAccessConstSection;
 	//template <typename _TRAIterator> class TXScopeCagedRandomAccessSectionToRValue;
@@ -3956,19 +3996,23 @@ namespace mse {
 		template <typename _TRAIterator> class TXScopeRandomAccessConstSectionFParam;
 	}
 
-	class RandomAccessSectionTag {};
-	class RandomAccessConstSectionTag {};
+	namespace us {
+		namespace impl {
+			class RandomAccessSectionTagBase {};
+			class RandomAccessConstSectionTagBase {};
+		}
+	}
 
 #define MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class) \
 	MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class); \
 	static const size_t npos = size_t(-1);
 
 	namespace impl {
-		/* This struct contains a bunch of construction helper functions for TRandomAccessConstSectionBase<>. They used to
-		be member functions of TRandomAccessConstSectionBase<>, but we had to pull them out because they are needed to
+		/* This struct contains a bunch of construction helper functions for us::impl::TRandomAccessConstSectionBase<>. They used to
+		be member functions of us::impl::TRandomAccessConstSectionBase<>, but we had to pull them out because they are needed to
 		forward declare (the single parameter overload of) the make_xscope_random_access_const_section() function.
 		Specifically, they are needed to determine the return type of that function. The forward declaration needs to be
-		available before the definition of TRandomAccessConstSectionBase<> as its implementation uses the function. */
+		available before the definition of us::impl::TRandomAccessConstSectionBase<> as its implementation uses the function. */
 		struct ra_const_section_helpers {
 			/* construction helper functions */
 			template <typename _TRAPointer>
@@ -3985,8 +4029,8 @@ namespace mse {
 				/* The parameter doesn't seem to be a container with a "begin()" member function or a native array. Here we'll assume
 				that it is a pointer to a supported container. If you get a compile error here, then construction from the given
 				parameter type isn't supported. */
-				mse::T_valid_if_is_dereferenceable<_TRALoneParam>();
-				return s_iter_from_ptr_helper2(typename std::is_base_of<mse::XScopeTagBase, _TRALoneParam>::type(), ptr);
+				mse::impl::T_valid_if_is_dereferenceable<_TRALoneParam>();
+				return s_iter_from_ptr_helper2(typename std::is_base_of<mse::us::impl::XScopeTagBase, _TRALoneParam>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
 			static auto s_iter_from_lone_param3(std::true_type, const _TRALoneParam& ra_container) {
@@ -3997,7 +4041,7 @@ namespace mse {
 			template <typename _TRALoneParam>
 			static auto s_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
 				/* The parameter is not a "random access section". */
-				return s_iter_from_lone_param3(typename SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
+				return s_iter_from_lone_param3(typename mse::impl::SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
 			}
 			template <typename _TRALoneParam>
 			static auto s_iter_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
@@ -4007,7 +4051,7 @@ namespace mse {
 			template <typename _TRALoneParam>
 			static auto s_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
 				/* The parameter doesn't seem to be a container with a "begin()" member function. */
-				return s_iter_from_lone_param2(typename mse::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
+				return s_iter_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
 			static auto s_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
@@ -4031,17 +4075,17 @@ namespace mse {
 			template <typename _TRALoneParam>
 			static auto s_count_from_lone_param2(std::false_type, const _TRALoneParam& param) {
 				/* The parameter is not a "random access section". */
-				return s_count_from_lone_param3(typename SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
+				return s_count_from_lone_param3(typename mse::impl::SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
 			}
 			template <typename _TRALoneParam>
 			static auto s_count_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
 				/* The parameter seems to be a native array. */
-				return mse::native_array_size_msemsearray(native_array);
+				return mse::impl::native_array_size_msemsearray(native_array);
 			}
 			template <typename _TRALoneParam>
 			static auto s_count_from_lone_param1(std::false_type, const _TRALoneParam& param) {
 				/* The parameter doesn't seem to be a container with a "begin()" member function. */
-				return s_count_from_lone_param2(typename mse::IsNativeArray_msemsearray<_TRALoneParam>::type(), param);
+				return s_count_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), param);
 			}
 			template <typename _TRALoneParam>
 			static auto s_count_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
@@ -4054,13 +4098,13 @@ namespace mse {
 				/* _TRALoneParam being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
 				supported. Different initialization implementations are required for each of the two cases. */
 				return s_iter_from_lone_param1(typename std::conditional<
-					std::is_base_of<RandomAccessConstSectionTag, _TRALoneParam>::value || std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::value
+					std::is_base_of<mse::us::impl::RandomAccessConstSectionTagBase, _TRALoneParam>::value || std::is_base_of<mse::us::impl::RandomAccessSectionTagBase, _TRALoneParam>::value
 					, std::true_type, std::false_type>::type(), param);
 			}
 			template <typename _TRALoneParam>
 			static auto s_count_from_lone_param(const _TRALoneParam& param) {
-				return /*TRandomAccessSectionBase<_TRAIterator>::*/s_count_from_lone_param1(typename std::conditional<
-					std::is_base_of<RandomAccessConstSectionTag, _TRALoneParam>::value || std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::value
+				return /*us::impl::TRandomAccessSectionBase<_TRAIterator>::*/s_count_from_lone_param1(typename std::conditional<
+					std::is_base_of<mse::us::impl::RandomAccessConstSectionTagBase, _TRALoneParam>::value || std::is_base_of<mse::us::impl::RandomAccessSectionTagBase, _TRALoneParam>::value
 					, std::true_type, std::false_type>::type(), param);
 			}
 		};
@@ -4084,419 +4128,426 @@ namespace mse {
 			}
 		}
 	}
-	/* We're forward declaring this function here because it is used by the TRandomAccessConstSectionBase<> class that follows.
+	/* We're forward declaring this function here because it is used by the us::impl::TRandomAccessConstSectionBase<> class that follows.
 	Note that this function has other overloads and bretheren that do not need to be forward declared. */
 	template <typename _TRALoneParam> auto make_xscope_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
-		typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+		typename mse::impl::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
 
-	template <typename _TRAIterator>
-	class TRandomAccessConstSectionBase : public RandomAccessConstSectionTag
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRandomAccessConstSectionBase<_TRAIterator> > >::type
-	{
-	public:
-		typedef _TRAIterator iterator_type;
-		typedef _TRAIterator ra_iterator_type;
-		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
-			random_access_const_iterator_base<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>);
+	namespace us {
+		namespace impl {
 
-		//TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) = default;
-		TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
-		TRandomAccessConstSectionBase(const TRandomAccessSectionBase<_TRAIterator>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
-		TRandomAccessConstSectionBase(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
-		template <typename _TRALoneParam>
-		TRandomAccessConstSectionBase(const _TRALoneParam& param)
-			/* _TRALoneParam being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
-			supported. Different initialization implementations are required for each of the two cases. */
-			: m_start_iter(s_iter_from_lone_param(param))
-			, m_count(s_count_from_lone_param(param)) {}
+			template <typename _TRAIterator> class TRandomAccessSectionBase;
 
-		const_reference operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TRandomAccessConstSectionBase")); }
-			return m_start_iter[difference_type(mse::msear_as_a_size_t(_P))];
-		}
-		const_reference at(size_type _P) const {
-			return (*this)[_P];
-		}
-		const_reference front() const {
-			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - const_reference front() const - TRandomAccessConstSectionBase")); }
-			return (*this)[0];
-		}
-		const_reference back() const {
-			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - const_reference back() const - TRandomAccessConstSectionBase")); }
-			return (*this)[(*this).size() - 1];
-		}
-		size_type size() const _NOEXCEPT {
-			return m_count;
-		}
-		size_type length() const _NOEXCEPT {
-			return (*this).size();
-		}
-		size_type max_size() const _NOEXCEPT {	// return maximum possible length of sequence
-			return static_cast<size_type>((std::numeric_limits<difference_type>::max)());
-		}
-		bool empty() const _NOEXCEPT {
-			return (0 == (*this).size());
-		}
+			template <typename _TRAIterator>
+			class TRandomAccessConstSectionBase : public mse::us::impl::RandomAccessConstSectionTagBase
+				, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<us::impl::TRandomAccessConstSectionBase<_TRAIterator> > >::type
+			{
+			public:
+				typedef _TRAIterator iterator_type;
+				typedef _TRAIterator ra_iterator_type;
+				MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
+					mse::impl::random_access_const_iterator_base<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>);
 
-		template<typename _TRAParam>
-		bool equal(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			if (size() != sv.size()) {
-				return false;
-			}
-			//return std::equal(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin());
-			auto first1 = xscope_cbegin();
-			auto last1 = xscope_cend();
-			auto first2 = sv.xscope_cbegin();
-			while (first1 != last1) {
-				if (!(*first1 == *first2)) {
-					return false;
+				//TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) = default;
+				TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
+				TRandomAccessConstSectionBase(const TRandomAccessSectionBase<_TRAIterator>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
+				TRandomAccessConstSectionBase(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
+				template <typename _TRALoneParam>
+				TRandomAccessConstSectionBase(const _TRALoneParam& param)
+					/* _TRALoneParam being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
+					supported. Different initialization implementations are required for each of the two cases. */
+					: m_start_iter(s_iter_from_lone_param(param))
+					, m_count(s_count_from_lone_param(param)) {}
+
+				const_reference operator[](size_type _P) const {
+					if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TRandomAccessConstSectionBase")); }
+					return m_start_iter[difference_type(mse::msear_as_a_size_t(_P))];
 				}
-				++first1; ++first2;
-			}
-			return true;
-		}
-		template<typename _TRAParam>
-		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return subsection(pos1, n1).equal(sv);
-		}
-		template<typename _TRAParam>
-		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
-		}
-		template <typename _TRAIterator2>
-		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = TRandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
-			return subsection(pos1, n1).equal(sv);
-		}
-		template<typename _TRAParam>
-		bool operator==(const _TRAParam& ra_param) const {
-			return equal(ra_param);
-		}
-		template<typename _TRAParam>
-		bool operator!=(const _TRAParam& ra_param) const {
-			return !((*this) == ra_param);
-		}
-
-		template<typename _TRAParam>
-		bool lexicographical_compare(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return std::lexicographical_compare(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin(), sv.xscope_cend());
-		}
-		template<typename _TRAParam>
-		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return subsection(pos1, n1).lexicographical_compare(sv);
-		}
-		template<typename _TRAParam>
-		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
-		}
-		template <typename _TRAIterator2>
-		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(s), n2);
-			return subsection(pos1, n1).lexicographical_compare(sv);
-		}
-		template<typename _TRAParam>
-		bool operator<(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return lexicographical_compare(sv);
-		}
-		template<typename _TRAParam>
-		bool operator>(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return sv.lexicographical_compare(*this);
-		}
-		template<typename _TRAParam>
-		bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
-		template<typename _TRAParam>
-		bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
-
-		template <typename _TRAIterator2>
-		size_type copy(_TRAIterator2 target_iter, size_type n, size_type pos = 0) const {
-			if (pos + n > (*this).size()) {
-				if (pos >= (*this).size()) {
-					return 0;
+				const_reference at(size_type _P) const {
+					return (*this)[_P];
 				}
-				else {
-					n = (*this).size() - pos;
+				const_reference front() const {
+					if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - const_reference front() const - TRandomAccessConstSectionBase")); }
+					return (*this)[0];
 				}
-			}
-			for (size_type i = 0; i < n; i += 1) {
-				(*target_iter) = (*this)[i];
-				++target_iter;
-			}
-			return n;
-		}
-
-		void remove_prefix(size_type n) /*_NOEXCEPT*/ {
-			if (n >(*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_prefix() - TRandomAccessConstSectionBase")); }
-			m_count -= n;
-			m_start_iter += n;
-		}
-		void remove_suffix(size_type n) /*_NOEXCEPT*/ {
-			if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_suffix() - TRandomAccessConstSectionBase")); }
-			m_count -= n;
-		}
-
-		template<typename _Ty2, class = typename std::enable_if<std::is_base_of<TRandomAccessConstSectionBase, _Ty2>::value && HasOrInheritsAssignmentOperator_msemsearray<_TRAIterator>::value, void>::type>
-		void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TRandomAccessConstSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
-			TRandomAccessConstSectionBase& _Other2 = _Other;
-			std::swap((*this), _Other2);
-		}
-
-		size_type find(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			auto cit = std::search((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
-			if ((*this).xscope_cend() == cit) {
-				return npos;
-			}
-			return (cit - (*this).xscope_cbegin());
-		}
-		size_type find(const value_type& c, size_type pos = 0) const _NOEXCEPT {
-			if ((*this).size() <= 1) {
-				return npos;
-			}
-			auto cit1 = std::find(xscope_cbegin(), xscope_cend(), c);
-			return (xscope_cend() == cit1) ? npos : (cit1 - xscope_cbegin());
-		}
-		size_type rfind(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			auto cit = std::find_end((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
-			if ((*this).xscope_cend() == cit) {
-				return npos;
-			}
-			return (cit - (*this).xscope_cbegin());
-		}
-		size_type rfind(const value_type& c, size_type pos = npos) const _NOEXCEPT {
-			if ((*this).size() <= 1) {
-				return npos;
-			}
-			if (pos < (*this).size()) {
-				++pos;
-			}
-			else {
-				pos = (*this).size();
-			}
-			for (size_type i = pos; 0 != i;) {
-				--i;
-				if ((*this)[i] == c) {
-					return i;
+				const_reference back() const {
+					if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - const_reference back() const - TRandomAccessConstSectionBase")); }
+					return (*this)[(*this).size() - 1];
 				}
-			}
-			return npos;
-		}
-		size_type find_first_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			auto cit = std::find_first_of((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
-			if ((*this).xscope_cend() == cit) {
-				return npos;
-			}
-			return (cit - (*this).xscope_cbegin());
-		}
-		size_type find_first_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
-			return find(c, pos);
-		}
-		size_type find_last_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			if (pos < (*this).size()) {
-				++pos;
-			}
-			else {
-				pos = (*this).size();
-			}
-			for (size_type i = pos; 0 != i;) {
-				--i;
-				const auto& domain_element_cref((*this)[i]);
-				for (const auto& search_element_cref : s) {
-					if (domain_element_cref == search_element_cref) {
-						return i;
+				size_type size() const _NOEXCEPT {
+					return m_count;
+				}
+				size_type length() const _NOEXCEPT {
+					return (*this).size();
+				}
+				size_type max_size() const _NOEXCEPT {	// return maximum possible length of sequence
+					return static_cast<size_type>((std::numeric_limits<difference_type>::max)());
+				}
+				bool empty() const _NOEXCEPT {
+					return (0 == (*this).size());
+				}
+
+				template<typename _TRAParam>
+				bool equal(const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					if (size() != sv.size()) {
+						return false;
 					}
-				}
-			}
-			return npos;
-		}
-		size_type find_last_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
-			return rfind(c, pos);
-		}
-		size_type find_first_not_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&s](const value_type& domain_element_cref) {
-				for (const auto& search_element_cref : s) {
-					if (domain_element_cref == search_element_cref) {
-						return true;
+					//return std::equal(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin());
+					auto first1 = xscope_cbegin();
+					auto last1 = xscope_cend();
+					auto first2 = sv.xscope_cbegin();
+					while (first1 != last1) {
+						if (!(*first1 == *first2)) {
+							return false;
+						}
+						++first1; ++first2;
 					}
-				}
-				return false;
-			}
-			);
-			if ((*this).xscope_cend() == cit) {
-				return npos;
-			}
-			return (cit - (*this).xscope_cbegin());
-		}
-		size_type find_first_not_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
-			if (1 > (*this).size()) {
-				return npos;
-			}
-			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&c](const value_type& domain_element_cref) {
-				if (domain_element_cref == c) {
 					return true;
 				}
-				return false;
-			}
-			);
-			if ((*this).xscope_cend() == cit) {
-				return npos;
-			}
-			return (cit - (*this).xscope_cbegin());
-		}
-		size_type find_last_not_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			if (pos < (*this).size()) {
-				++pos;
-			}
-			else {
-				pos = (*this).size();
-			}
-			for (size_type i = pos; 0 != i;) {
-				--i;
-				const auto& domain_element_cref((*this)[i]);
-				for (const auto& search_element_cref : s) {
-					if (domain_element_cref != search_element_cref) {
-						return i;
+				template<typename _TRAParam>
+				bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return subsection(pos1, n1).equal(sv);
+				}
+				template<typename _TRAParam>
+				bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
+				}
+				template <typename _TRAIterator2>
+				bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+					auto sv = us::impl::TRandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
+					return subsection(pos1, n1).equal(sv);
+				}
+				template<typename _TRAParam>
+				bool operator==(const _TRAParam& ra_param) const {
+					return equal(ra_param);
+				}
+				template<typename _TRAParam>
+				bool operator!=(const _TRAParam& ra_param) const {
+					return !((*this) == ra_param);
+				}
+
+				template<typename _TRAParam>
+				bool lexicographical_compare(const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return std::lexicographical_compare(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin(), sv.xscope_cend());
+				}
+				template<typename _TRAParam>
+				bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return subsection(pos1, n1).lexicographical_compare(sv);
+				}
+				template<typename _TRAParam>
+				bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
+				}
+				template <typename _TRAIterator2>
+				bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(s), n2);
+					return subsection(pos1, n1).lexicographical_compare(sv);
+				}
+				template<typename _TRAParam>
+				bool operator<(const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return lexicographical_compare(sv);
+				}
+				template<typename _TRAParam>
+				bool operator>(const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return sv.lexicographical_compare(*this);
+				}
+				template<typename _TRAParam>
+				bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
+				template<typename _TRAParam>
+				bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
+
+				template <typename _TRAIterator2>
+				size_type copy(_TRAIterator2 target_iter, size_type n, size_type pos = 0) const {
+					if (pos + n > (*this).size()) {
+						if (pos >= (*this).size()) {
+							return 0;
+						}
+						else {
+							n = (*this).size() - pos;
+						}
 					}
+					for (size_type i = 0; i < n; i += 1) {
+						(*target_iter) = (*this)[i];
+						++target_iter;
+					}
+					return n;
 				}
-			}
-			return npos;
-		}
-		size_type find_last_not_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
-			if (1 > (*this).size()) {
-				return npos;
-			}
-			if (pos < (*this).size()) {
-				++pos;
-			}
-			else {
-				pos = (*this).size();
-			}
-			for (size_type i = pos; 0 != i;) {
-				--i;
-				const auto& domain_element_cref((*this)[i]);
-				if (domain_element_cref != c) {
-					return i;
+
+				void remove_prefix(size_type n) /*_NOEXCEPT*/ {
+					if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_prefix() - TRandomAccessConstSectionBase")); }
+					m_count -= n;
+					m_start_iter += n;
 				}
-			}
-			return npos;
-		}
+				void remove_suffix(size_type n) /*_NOEXCEPT*/ {
+					if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_suffix() - TRandomAccessConstSectionBase")); }
+					m_count -= n;
+				}
 
-		bool starts_with(const TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
-			return (size() >= s.size()) && equal(0, s.size(), s);
-		}
-		bool starts_with(const value_type& c) const _NOEXCEPT {
-			return (!empty()) && (front() == c);
-		}
-		bool ends_with(const TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
-			return (size() >= s.size()) && equal(size() - s.size(), npos, s);
-		}
-		bool ends_with(const value_type& c) const _NOEXCEPT {
-			return (!empty()) && (back() == c);
-		}
+				template<typename _Ty2, class = typename std::enable_if<std::is_base_of<TRandomAccessConstSectionBase, _Ty2>::value && mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAIterator>::value, void>::type>
+				void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TRandomAccessConstSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
+					TRandomAccessConstSectionBase& _Other2 = _Other;
+					std::swap((*this), _Other2);
+				}
 
-		//typedef TXScopeRASectionConstIterator<_TRAIterator> xscope_const_iterator;
-		class xscope_const_iterator : public TXScopeRASectionConstIterator<_TRAIterator> {
-		public:
-			typedef TXScopeRASectionConstIterator<_TRAIterator> base_class;
+				size_type find(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					auto cit = std::search((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
+					if ((*this).xscope_cend() == cit) {
+						return npos;
+					}
+					return (cit - (*this).xscope_cbegin());
+				}
+				size_type find(const value_type& c, size_type pos = 0) const _NOEXCEPT {
+					if ((*this).size() <= 1) {
+						return npos;
+					}
+					auto cit1 = std::find(xscope_cbegin(), xscope_cend(), c);
+					return (xscope_cend() == cit1) ? npos : (cit1 - xscope_cbegin());
+				}
+				size_type rfind(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					auto cit = std::find_end((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
+					if ((*this).xscope_cend() == cit) {
+						return npos;
+					}
+					return (cit - (*this).xscope_cbegin());
+				}
+				size_type rfind(const value_type& c, size_type pos = npos) const _NOEXCEPT {
+					if ((*this).size() <= 1) {
+						return npos;
+					}
+					if (pos < (*this).size()) {
+						++pos;
+					}
+					else {
+						pos = (*this).size();
+					}
+					for (size_type i = pos; 0 != i;) {
+						--i;
+						if ((*this)[i] == c) {
+							return i;
+						}
+					}
+					return npos;
+				}
+				size_type find_first_of(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					auto cit = std::find_first_of((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
+					if ((*this).xscope_cend() == cit) {
+						return npos;
+					}
+					return (cit - (*this).xscope_cbegin());
+				}
+				size_type find_first_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
+					return find(c, pos);
+				}
+				size_type find_last_of(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					if (pos < (*this).size()) {
+						++pos;
+					}
+					else {
+						pos = (*this).size();
+					}
+					for (size_type i = pos; 0 != i;) {
+						--i;
+						const auto& domain_element_cref((*this)[i]);
+						for (const auto& search_element_cref : s) {
+							if (domain_element_cref == search_element_cref) {
+								return i;
+							}
+						}
+					}
+					return npos;
+				}
+				size_type find_last_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
+					return rfind(c, pos);
+				}
+				size_type find_first_not_of(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&s](const value_type& domain_element_cref) {
+						for (const auto& search_element_cref : s) {
+							if (domain_element_cref == search_element_cref) {
+								return true;
+							}
+						}
+						return false;
+					}
+					);
+					if ((*this).xscope_cend() == cit) {
+						return npos;
+					}
+					return (cit - (*this).xscope_cbegin());
+				}
+				size_type find_first_not_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
+					if (1 > (*this).size()) {
+						return npos;
+					}
+					auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&c](const value_type& domain_element_cref) {
+						if (domain_element_cref == c) {
+							return true;
+						}
+						return false;
+					}
+					);
+					if ((*this).xscope_cend() == cit) {
+						return npos;
+					}
+					return (cit - (*this).xscope_cbegin());
+				}
+				size_type find_last_not_of(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					if (pos < (*this).size()) {
+						++pos;
+					}
+					else {
+						pos = (*this).size();
+					}
+					for (size_type i = pos; 0 != i;) {
+						--i;
+						const auto& domain_element_cref((*this)[i]);
+						for (const auto& search_element_cref : s) {
+							if (domain_element_cref != search_element_cref) {
+								return i;
+							}
+						}
+					}
+					return npos;
+				}
+				size_type find_last_not_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
+					if (1 > (*this).size()) {
+						return npos;
+					}
+					if (pos < (*this).size()) {
+						++pos;
+					}
+					else {
+						pos = (*this).size();
+					}
+					for (size_type i = pos; 0 != i;) {
+						--i;
+						const auto& domain_element_cref((*this)[i]);
+						if (domain_element_cref != c) {
+							return i;
+						}
+					}
+					return npos;
+				}
 
-			MSE_USING(xscope_const_iterator, base_class);
-			template<class _TRASectionPointer>
-			xscope_const_iterator(const _TRASectionPointer& ptr) : base_class((*ptr).m_start_iter, (*ptr).m_count) {}
-		};
-		xscope_const_iterator xscope_begin() const { return (*this).xscope_cbegin(); }
-		xscope_const_iterator xscope_cbegin() const { return xscope_const_iterator((*this).m_start_iter, (*this).m_count); }
-		xscope_const_iterator xscope_end() const { return (*this).xscope_cend(); }
-		xscope_const_iterator xscope_cend() const {
-			auto retval(xscope_const_iterator((*this).m_start_iter, (*this).m_count));
-			retval += mse::msear_as_a_size_t((*this).m_count);
-			return retval;
+				bool starts_with(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+					return (size() >= s.size()) && equal(0, s.size(), s);
+				}
+				bool starts_with(const value_type& c) const _NOEXCEPT {
+					return (!empty()) && (front() == c);
+				}
+				bool ends_with(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+					return (size() >= s.size()) && equal(size() - s.size(), npos, s);
+				}
+				bool ends_with(const value_type& c) const _NOEXCEPT {
+					return (!empty()) && (back() == c);
+				}
+
+				//typedef TXScopeRASectionConstIterator<_TRAIterator> xscope_const_iterator;
+				class xscope_const_iterator : public TXScopeRASectionConstIterator<_TRAIterator> {
+				public:
+					typedef TXScopeRASectionConstIterator<_TRAIterator> base_class;
+
+					MSE_USING(xscope_const_iterator, base_class);
+					template<class _TRASectionPointer>
+					xscope_const_iterator(const _TRASectionPointer& ptr) : base_class((*ptr).m_start_iter, (*ptr).m_count) {}
+				};
+				xscope_const_iterator xscope_begin() const { return (*this).xscope_cbegin(); }
+				xscope_const_iterator xscope_cbegin() const { return xscope_const_iterator((*this).m_start_iter, (*this).m_count); }
+				xscope_const_iterator xscope_end() const { return (*this).xscope_cend(); }
+				xscope_const_iterator xscope_cend() const {
+					auto retval(xscope_const_iterator((*this).m_start_iter, (*this).m_count));
+					retval += mse::msear_as_a_size_t((*this).m_count);
+					return retval;
+				}
+
+				template <typename _TRALoneParam>
+				static auto s_iter_from_lone_param(const _TRALoneParam& param) {
+					/* _TRALoneParam being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
+					supported. Different initialization implementations are required for each of the two cases. */
+					return mse::impl::ra_const_section_helpers::s_iter_from_lone_param1(typename std::conditional<
+						std::is_base_of<mse::us::impl::RandomAccessConstSectionTagBase, _TRALoneParam>::value || std::is_base_of<mse::us::impl::RandomAccessSectionTagBase, _TRALoneParam>::value
+						, std::true_type, std::false_type>::type(), param);
+				}
+				template <typename _TRALoneParam>
+				static auto s_count_from_lone_param(const _TRALoneParam& param) {
+					return mse::impl::ra_const_section_helpers::s_count_from_lone_param1(typename std::conditional<
+						std::is_base_of<mse::us::impl::RandomAccessConstSectionTagBase, _TRALoneParam>::value || std::is_base_of<mse::us::impl::RandomAccessSectionTagBase, _TRALoneParam>::value
+						, std::true_type, std::false_type>::type(), param);
+				}
+
+			protected:
+				TRandomAccessConstSectionBase subsection(size_type pos = 0, size_type n = npos) const {
+					return pos > (*this).size()
+						? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSectionBase subsection() const - TRandomAccessConstSectionBase")))
+						: TRandomAccessConstSectionBase((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+				}
+
+				typedef TRASectionConstIterator<_TRAIterator> const_iterator;
+				const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+				const_iterator begin() const { return cbegin(); }
+				const_iterator cend() const {
+					auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+					retval += mse::msear_as_a_size_t((*this).m_count);
+					return retval;
+				}
+				const_iterator end() const { return cend(); }
+
+			private:
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+				_TRAIterator m_start_iter;
+				size_type m_count = 0;
+
+				friend class TXScopeRandomAccessConstSection<_TRAIterator>;
+				friend class TRandomAccessConstSection<_TRAIterator>;
+				template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
+				/* We're friending us::impl::TRandomAccessSectionBase<> because at the moment we're using its "constructor
+				helper" (static) member functions, instead of duplicating them here, and those functions will need access to
+				the private data members of this class. */
+				template<typename _TRAIterator1> friend class TRandomAccessSectionBase;
+				friend struct mse::impl::ra_const_section_helpers;
+			};
 		}
-
-		template <typename _TRALoneParam>
-		static auto s_iter_from_lone_param(const _TRALoneParam& param) {
-			/* _TRALoneParam being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
-			supported. Different initialization implementations are required for each of the two cases. */
-			return impl::ra_const_section_helpers::s_iter_from_lone_param1(typename std::conditional<
-				std::is_base_of<RandomAccessConstSectionTag, _TRALoneParam>::value || std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::value
-				, std::true_type, std::false_type>::type(), param);
-		}
-		template <typename _TRALoneParam>
-		static auto s_count_from_lone_param(const _TRALoneParam& param) {
-			return impl::ra_const_section_helpers::s_count_from_lone_param1(typename std::conditional<
-				std::is_base_of<RandomAccessConstSectionTag, _TRALoneParam>::value || std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::value
-				, std::true_type, std::false_type>::type(), param);
-		}
-
-	protected:
-		TRandomAccessConstSectionBase subsection(size_type pos = 0, size_type n = npos) const {
-			return pos > (*this).size()
-				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSectionBase subsection() const - TRandomAccessConstSectionBase")))
-				: TRandomAccessConstSectionBase((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
-		}
-
-		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
-		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
-		const_iterator begin() const { return cbegin(); }
-		const_iterator cend() const {
-			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
-			retval += mse::msear_as_a_size_t((*this).m_count);
-			return retval;
-		}
-		const_iterator end() const { return cend(); }
-
-	private:
-		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-
-		_TRAIterator m_start_iter;
-		size_type m_count = 0;
-
-		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
-		friend class TRandomAccessConstSection<_TRAIterator>;
-		template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
-		/* We're friending TRandomAccessSectionBase<> because at the moment we're using its "constructor
-		helper" (static) member functions, instead of duplicating them here, and those functions will need access to
-		the private data members of this class. */
-		template<typename _TRAIterator1> friend class TRandomAccessSectionBase;
-		friend struct mse::impl::ra_const_section_helpers;
-	};
+	}
 
 	template <typename _TRAIterator>
-	class TXScopeRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+	class TXScopeRandomAccessConstSection : public us::impl::TRandomAccessConstSectionBase<_TRAIterator>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
 	public:
-		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
+		typedef us::impl::TRandomAccessConstSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
 		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//TXScopeRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		//TXScopeRandomAccessConstSection(const TXScopeRandomAccessConstSection& src) = default;
-		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
-		//TXScopeRandomAccessConstSection(const TRandomAccessConstSectionBase<_TRAIterator>& src) : base_class(src) {}
-		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
-		//TXScopeRandomAccessConstSection(const TRandomAccessSectionBase<_TRAIterator>& src) : base_class(src) {}
+		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value), void>::type>
+		//TXScopeRandomAccessConstSection(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& src) : base_class(src) {}
+		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value), void>::type>
+		//TXScopeRandomAccessConstSection(const us::impl::TRandomAccessSectionBase<_TRAIterator>& src) : base_class(src) {}
 
 		MSE_USING(TXScopeRandomAccessConstSection, base_class);
 
@@ -4505,7 +4556,7 @@ namespace mse {
 				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessConstSection xscope_subsection() const - TXScopeRandomAccessConstSection")))
 				: TXScopeRandomAccessConstSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
-		typedef typename std::conditional<std::is_base_of<XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSection, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
+		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSection, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
 		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection<_TRAIterator> subsection() const - TXScopeRandomAccessConstSection")))
@@ -4528,9 +4579,9 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	class TRandomAccessConstSection : public TRandomAccessConstSectionBase<_TRAIterator> {
+	class TRandomAccessConstSection : public us::impl::TRandomAccessConstSectionBase<_TRAIterator> {
 	public:
-		typedef TRandomAccessConstSectionBase<_TRAIterator> base_class;
+		typedef us::impl::TRandomAccessConstSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
 		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
@@ -4540,7 +4591,7 @@ namespace mse {
 		template <typename _TRALoneParam>
 		TRandomAccessConstSection(const _TRALoneParam& param) : base_class(param) {}
 		virtual ~TRandomAccessConstSection() {
-			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
 		TXScopeRandomAccessConstSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
@@ -4576,495 +4627,499 @@ namespace mse {
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
 	};
 
-	template <typename _TRAIterator>
-	class TRandomAccessSectionBase : public RandomAccessSectionTag
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msescope<TRandomAccessSectionBase<_TRAIterator> > >::type
-	{
-	public:
-		typedef _TRAIterator iterator_type;
-		typedef _TRAIterator ra_iterator_type;
-		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
-			random_access_iterator_base<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>);
+	namespace us {
+		namespace impl {
+			template <typename _TRAIterator>
+			class TRandomAccessSectionBase : public mse::us::impl::RandomAccessSectionTagBase
+				, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<us::impl::TRandomAccessSectionBase<_TRAIterator> > >::type
+			{
+			public:
+				typedef _TRAIterator iterator_type;
+				typedef _TRAIterator ra_iterator_type;
+				MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
+					mse::impl::random_access_iterator_base<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>);
 
-		//TRandomAccessSectionBase(const TRandomAccessSectionBase& src) = default;
-		TRandomAccessSectionBase(const TRandomAccessSectionBase& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
-		TRandomAccessSectionBase(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
-		template <typename _TRALoneParam>
-		TRandomAccessSectionBase(const _TRALoneParam& param)
-			: m_start_iter(s_iter_from_lone_param(param)), m_count(s_count_from_lone_param(param)) {}
-		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
-		template<size_t Tn>
-		TRandomAccessSectionBase(value_type(&native_array)[Tn]) : m_start_iter(native_array), m_count(Tn) {}
+				//TRandomAccessSectionBase(const TRandomAccessSectionBase& src) = default;
+				TRandomAccessSectionBase(const TRandomAccessSectionBase& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
+				TRandomAccessSectionBase(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
+				template <typename _TRALoneParam>
+				TRandomAccessSectionBase(const _TRALoneParam& param)
+					: m_start_iter(s_iter_from_lone_param(param)), m_count(s_count_from_lone_param(param)) {}
+				/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
+				template<size_t Tn>
+				TRandomAccessSectionBase(value_type(&native_array)[Tn]) : m_start_iter(native_array), m_count(Tn) {}
 
-		reference operator[](size_type _P) const {
-			if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TRandomAccessSectionBase")); }
-			return m_start_iter[difference_type(mse::msear_as_a_size_t(_P))];
-		}
-		reference at(size_type _P) const {
-			return (*this)[_P];
-		}
-		reference front() const {
-			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - reference front() const - TRandomAccessSectionBase")); }
-			return (*this)[0];
-		}
-		reference back() const {
-			if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - reference back() const - TRandomAccessSectionBase")); }
-			return (*this)[(*this).size() - 1];
-		}
-		size_type size() const _NOEXCEPT {
-			return m_count;
-		}
-		size_type length() const _NOEXCEPT {
-			return (*this).size();
-		}
-		size_type max_size() const _NOEXCEPT {	// return maximum possible length of sequence
-			return static_cast<size_type>((std::numeric_limits<difference_type>::max)());
-		}
-		bool empty() const _NOEXCEPT {
-			return (0 == (*this).size());
-		}
-
-		template<typename _TRAParam>
-		bool equal(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			if (size() != sv.size()) {
-				return false;
-			}
-			//return std::equal(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin());
-			auto first1 = xscope_cbegin();
-			auto last1 = xscope_cend();
-			auto first2 = sv.xscope_cbegin();
-			while (first1 != last1) {
-				if (!(*first1 == *first2)) {
-					return false;
+				reference operator[](size_type _P) const {
+					if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TRandomAccessSectionBase")); }
+					return m_start_iter[difference_type(mse::msear_as_a_size_t(_P))];
 				}
-				++first1; ++first2;
-			}
-			return true;
-		}
-		template<typename _TRAParam>
-		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return subsection(pos1, n1).equal(sv);
-		}
-		template<typename _TRAParam>
-		bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
-		}
-		template <typename _TRAIterator2>
-		bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = TRandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
-			return subsection(pos1, n1).equal(sv);
-		}
-		template<typename _TRAParam>
-		bool operator==(const _TRAParam& ra_param) const {
-			return equal(ra_param);
-		}
-		template<typename _TRAParam>
-		bool operator!=(const _TRAParam& ra_param) const {
-			return !((*this) == ra_param);
-		}
-
-		template<typename _TRAParam>
-		bool lexicographical_compare(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return std::lexicographical_compare(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin(), sv.xscope_cend());
-		}
-		template<typename _TRAParam>
-		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return subsection(pos1, n1).lexicographical_compare(sv);
-		}
-		template<typename _TRAParam>
-		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
-		}
-		template <typename _TRAIterator2>
-		bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(s), n2);
-			return subsection(pos1, n1).lexicographical_compare(sv);
-		}
-		template<typename _TRAParam>
-		bool operator<(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return lexicographical_compare(sv);
-		}
-		template<typename _TRAParam>
-		bool operator>(const _TRAParam& ra_param) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
-			return sv.lexicographical_compare(*this);
-		}
-		template<typename _TRAParam>
-		bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
-		template<typename _TRAParam>
-		bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
-
-		int compare(const TRandomAccessConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
-			size_type rlen = std::min(size(), sv.size());
-
-			int retval = 0;
-			auto _First1 = (*this).xscope_cbegin();
-			auto _First2 = sv.xscope_cbegin();
-			for (; 0 < rlen; --rlen, ++_First1, ++_First2)
-				if (!((*_First1) == (*_First2)))
-					return (((*_First1) < (*_First2)) ? -1 : +1);
-
-			if (retval == 0) // first rlen chars matched
-				retval = size() == sv.size() ? 0 : (size() < sv.size() ? -1 : 1);
-			return retval;
-		}
-		int compare(size_type pos1, size_type n1, TRandomAccessConstSectionBase<_TRAIterator> sv) const {
-			return subsection(pos1, n1).compare(sv);
-		}
-		int compare(size_type pos1, size_type n1, TRandomAccessConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
-			return subsection(pos1, n1).compare(sv.subsection(pos2, n2));
-		}
-		template <typename _TRAIterator2>
-		int compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-			return subsection(pos1, n1).compare(TRandomAccessConstSectionBase<_TRAIterator>(s, n2));
-		}
-
-		template <typename _TRAIterator2>
-		size_type copy(_TRAIterator2 target_iter, size_type n, size_type pos = 0) const {
-			if (pos + n > (*this).size()) {
-				if (pos >= (*this).size()) {
-					return 0;
+				reference at(size_type _P) const {
+					return (*this)[_P];
 				}
-				else {
-					n = (*this).size() - pos;
+				reference front() const {
+					if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - reference front() const - TRandomAccessSectionBase")); }
+					return (*this)[0];
 				}
-			}
-			for (size_type i = 0; i < n; i += 1) {
-				(*target_iter) = (*this)[i];
-				++target_iter;
-			}
-			return n;
-		}
-
-		void remove_prefix(size_type n) /*_NOEXCEPT*/ {
-			if (n >(*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_prefix() - TRandomAccessSectionBase")); }
-			m_count -= n;
-			m_start_iter += n;
-		}
-		void remove_suffix(size_type n) /*_NOEXCEPT*/ {
-			if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_suffix() - TRandomAccessSectionBase")); }
-			m_count -= n;
-		}
-
-		template<typename _Ty2, class = typename std::enable_if<std::is_base_of<TRandomAccessSectionBase, _Ty2>::value && HasOrInheritsAssignmentOperator_msemsearray<_TRAIterator>::value, void>::type>
-		void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TRandomAccessSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
-			TRandomAccessSectionBase& _Other2 = _Other;
-			std::swap((*this), _Other2);
-		}
-
-		size_type find(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			auto cit = std::search((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
-			if ((*this).xscope_cend() == cit) {
-				return npos;
-			}
-			return (cit - (*this).xscope_cbegin());
-		}
-		size_type find(const value_type& c, size_type pos = 0) const _NOEXCEPT {
-			if ((*this).size() <= 1) {
-				return npos;
-			}
-			auto cit1 = std::find(xscope_cbegin(), xscope_cend(), c);
-			return (xscope_cend() == cit1) ? npos : (cit1 - xscope_cbegin());
-		}
-		size_type rfind(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			auto cit = std::find_end((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
-			if ((*this).xscope_cend() == cit) {
-				return npos;
-			}
-			return (cit - (*this).xscope_cbegin());
-		}
-		size_type rfind(const value_type& c, size_type pos = npos) const _NOEXCEPT {
-			if ((*this).size() <= 1) {
-				return npos;
-			}
-			if (pos < (*this).size()) {
-				++pos;
-			}
-			else {
-				pos = (*this).size();
-			}
-			for (size_type i = pos; 0 != i;) {
-				--i;
-				if ((*this)[i] == c) {
-					return i;
+				reference back() const {
+					if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - reference back() const - TRandomAccessSectionBase")); }
+					return (*this)[(*this).size() - 1];
 				}
-			}
-			return npos;
-		}
-		size_type find_first_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			auto cit = std::find_first_of((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
-			if ((*this).xscope_cend() == cit) {
-				return npos;
-			}
-			return (cit - (*this).xscope_cbegin());
-		}
-		size_type find_first_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
-			return find(c, pos);
-		}
-		size_type find_last_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			if (pos < (*this).size()) {
-				++pos;
-			}
-			else {
-				pos = (*this).size();
-			}
-			for (size_type i = pos; 0 != i;) {
-				--i;
-				const auto& domain_element_cref((*this)[i]);
-				for (const auto& search_element_cref : s) {
-					if (domain_element_cref == search_element_cref) {
-						return i;
+				size_type size() const _NOEXCEPT {
+					return m_count;
+				}
+				size_type length() const _NOEXCEPT {
+					return (*this).size();
+				}
+				size_type max_size() const _NOEXCEPT {	// return maximum possible length of sequence
+					return static_cast<size_type>((std::numeric_limits<difference_type>::max)());
+				}
+				bool empty() const _NOEXCEPT {
+					return (0 == (*this).size());
+				}
+
+				template<typename _TRAParam>
+				bool equal(const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					if (size() != sv.size()) {
+						return false;
 					}
-				}
-			}
-			return npos;
-		}
-		size_type find_last_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
-			return rfind(c, pos);
-		}
-		size_type find_first_not_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&s](const value_type& domain_element_cref) {
-				for (const auto& search_element_cref : s) {
-					if (domain_element_cref == search_element_cref) {
-						return true;
+					//return std::equal(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin());
+					auto first1 = xscope_cbegin();
+					auto last1 = xscope_cend();
+					auto first2 = sv.xscope_cbegin();
+					while (first1 != last1) {
+						if (!(*first1 == *first2)) {
+							return false;
+						}
+						++first1; ++first2;
 					}
-				}
-				return false;
-			}
-			);
-			if ((*this).xscope_cend() == cit) {
-				return npos;
-			}
-			return (cit - (*this).xscope_cbegin());
-		}
-		size_type find_first_not_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
-			if (1 > (*this).size()) {
-				return npos;
-			}
-			auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&c](const value_type& domain_element_cref) {
-				if (domain_element_cref == c) {
 					return true;
 				}
-				return false;
-			}
-			);
-			if ((*this).xscope_cend() == cit) {
-				return npos;
-			}
-			return (cit - (*this).xscope_cbegin());
-		}
-		size_type find_last_not_of(const TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
-			if ((1 > s.size()) || (1 > (*this).size())) {
-				return npos;
-			}
-			if (pos < (*this).size()) {
-				++pos;
-			}
-			else {
-				pos = (*this).size();
-			}
-			for (size_type i = pos; 0 != i;) {
-				--i;
-				const auto& domain_element_cref((*this)[i]);
-				for (const auto& search_element_cref : s) {
-					if (domain_element_cref != search_element_cref) {
-						return i;
+				template<typename _TRAParam>
+				bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return subsection(pos1, n1).equal(sv);
+				}
+				template<typename _TRAParam>
+				bool equal(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return subsection(pos1, n1).equal(sv.subsection(pos2, n2));
+				}
+				template <typename _TRAIterator2>
+				bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+					auto sv = us::impl::TRandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
+					return subsection(pos1, n1).equal(sv);
+				}
+				template<typename _TRAParam>
+				bool operator==(const _TRAParam& ra_param) const {
+					return equal(ra_param);
+				}
+				template<typename _TRAParam>
+				bool operator!=(const _TRAParam& ra_param) const {
+					return !((*this) == ra_param);
+				}
+
+				template<typename _TRAParam>
+				bool lexicographical_compare(const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return std::lexicographical_compare(xscope_cbegin(), xscope_cend(), sv.xscope_cbegin(), sv.xscope_cend());
+				}
+				template<typename _TRAParam>
+				bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return subsection(pos1, n1).lexicographical_compare(sv);
+				}
+				template<typename _TRAParam>
+				bool lexicographical_compare(size_type pos1, size_type n1, const _TRAParam& ra_param, size_type pos2, size_type n2) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return subsection(pos1, n1).lexicographical_compare(sv.subsection(pos2, n2));
+				}
+				template <typename _TRAIterator2>
+				bool lexicographical_compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(s), n2);
+					return subsection(pos1, n1).lexicographical_compare(sv);
+				}
+				template<typename _TRAParam>
+				bool operator<(const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return lexicographical_compare(sv);
+				}
+				template<typename _TRAParam>
+				bool operator>(const _TRAParam& ra_param) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
+					return sv.lexicographical_compare(*this);
+				}
+				template<typename _TRAParam>
+				bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
+				template<typename _TRAParam>
+				bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
+
+				int compare(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+					size_type rlen = std::min(size(), sv.size());
+
+					int retval = 0;
+					auto _First1 = (*this).xscope_cbegin();
+					auto _First2 = sv.xscope_cbegin();
+					for (; 0 < rlen; --rlen, ++_First1, ++_First2)
+						if (!((*_First1) == (*_First2)))
+							return (((*_First1) < (*_First2)) ? -1 : +1);
+
+					if (retval == 0) // first rlen chars matched
+						retval = size() == sv.size() ? 0 : (size() < sv.size() ? -1 : 1);
+					return retval;
+				}
+				int compare(size_type pos1, size_type n1, us::impl::TRandomAccessConstSectionBase<_TRAIterator> sv) const {
+					return subsection(pos1, n1).compare(sv);
+				}
+				int compare(size_type pos1, size_type n1, us::impl::TRandomAccessConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+					return subsection(pos1, n1).compare(sv.subsection(pos2, n2));
+				}
+				template <typename _TRAIterator2>
+				int compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
+					return subsection(pos1, n1).compare(us::impl::TRandomAccessConstSectionBase<_TRAIterator>(s, n2));
+				}
+
+				template <typename _TRAIterator2>
+				size_type copy(_TRAIterator2 target_iter, size_type n, size_type pos = 0) const {
+					if (pos + n > (*this).size()) {
+						if (pos >= (*this).size()) {
+							return 0;
+						}
+						else {
+							n = (*this).size() - pos;
+						}
 					}
+					for (size_type i = 0; i < n; i += 1) {
+						(*target_iter) = (*this)[i];
+						++target_iter;
+					}
+					return n;
 				}
-			}
-			return npos;
-		}
-		size_type find_last_not_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
-			if (1 > (*this).size()) {
-				return npos;
-			}
-			if (pos < (*this).size()) {
-				++pos;
-			}
-			else {
-				pos = (*this).size();
-			}
-			for (size_type i = pos; 0 != i;) {
-				--i;
-				const auto& domain_element_cref((*this)[i]);
-				if (domain_element_cref != c) {
-					return i;
+
+				void remove_prefix(size_type n) /*_NOEXCEPT*/ {
+					if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_prefix() - TRandomAccessSectionBase")); }
+					m_count -= n;
+					m_start_iter += n;
 				}
-			}
-			return npos;
-		}
+				void remove_suffix(size_type n) /*_NOEXCEPT*/ {
+					if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_suffix() - TRandomAccessSectionBase")); }
+					m_count -= n;
+				}
 
-		bool starts_with(const TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
-			return (size() >= s.size()) && equal(0, s.size(), s);
-		}
-		bool starts_with(const value_type& c) const _NOEXCEPT {
-			return (!empty()) && (front() == c);
-		}
-		bool ends_with(const TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
-			return (size() >= s.size()) && equal(size() - s.size(), npos, s);
-		}
-		bool ends_with(const value_type& c) const _NOEXCEPT {
-			return (!empty()) && (back() == c);
-		}
+				template<typename _Ty2, class = typename std::enable_if<std::is_base_of<TRandomAccessSectionBase, _Ty2>::value && mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAIterator>::value, void>::type>
+				void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TRandomAccessSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
+					TRandomAccessSectionBase& _Other2 = _Other;
+					std::swap((*this), _Other2);
+				}
 
-		//typedef TXScopeRASectionIterator<_TRAIterator> xscope_iterator;
-		//typedef TXScopeRASectionConstIterator<_TRAIterator> xscope_const_iterator;
-		class xscope_iterator : public TXScopeRASectionIterator<_TRAIterator> {
-		public:
-			typedef TXScopeRASectionIterator<_TRAIterator> base_class;
+				size_type find(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					auto cit = std::search((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
+					if ((*this).xscope_cend() == cit) {
+						return npos;
+					}
+					return (cit - (*this).xscope_cbegin());
+				}
+				size_type find(const value_type& c, size_type pos = 0) const _NOEXCEPT {
+					if ((*this).size() <= 1) {
+						return npos;
+					}
+					auto cit1 = std::find(xscope_cbegin(), xscope_cend(), c);
+					return (xscope_cend() == cit1) ? npos : (cit1 - xscope_cbegin());
+				}
+				size_type rfind(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					auto cit = std::find_end((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
+					if ((*this).xscope_cend() == cit) {
+						return npos;
+					}
+					return (cit - (*this).xscope_cbegin());
+				}
+				size_type rfind(const value_type& c, size_type pos = npos) const _NOEXCEPT {
+					if ((*this).size() <= 1) {
+						return npos;
+					}
+					if (pos < (*this).size()) {
+						++pos;
+					}
+					else {
+						pos = (*this).size();
+					}
+					for (size_type i = pos; 0 != i;) {
+						--i;
+						if ((*this)[i] == c) {
+							return i;
+						}
+					}
+					return npos;
+				}
+				size_type find_first_of(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					auto cit = std::find_first_of((*this).xscope_cbegin(), (*this).xscope_cend(), s.xscope_cbegin(), s.xscope_cend());
+					if ((*this).xscope_cend() == cit) {
+						return npos;
+					}
+					return (cit - (*this).xscope_cbegin());
+				}
+				size_type find_first_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
+					return find(c, pos);
+				}
+				size_type find_last_of(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					if (pos < (*this).size()) {
+						++pos;
+					}
+					else {
+						pos = (*this).size();
+					}
+					for (size_type i = pos; 0 != i;) {
+						--i;
+						const auto& domain_element_cref((*this)[i]);
+						for (const auto& search_element_cref : s) {
+							if (domain_element_cref == search_element_cref) {
+								return i;
+							}
+						}
+					}
+					return npos;
+				}
+				size_type find_last_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
+					return rfind(c, pos);
+				}
+				size_type find_first_not_of(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&s](const value_type& domain_element_cref) {
+						for (const auto& search_element_cref : s) {
+							if (domain_element_cref == search_element_cref) {
+								return true;
+							}
+						}
+						return false;
+					}
+					);
+					if ((*this).xscope_cend() == cit) {
+						return npos;
+					}
+					return (cit - (*this).xscope_cbegin());
+				}
+				size_type find_first_not_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
+					if (1 > (*this).size()) {
+						return npos;
+					}
+					auto cit = std::find_if_not((*this).xscope_cbegin(), (*this).xscope_cend(), [&c](const value_type& domain_element_cref) {
+						if (domain_element_cref == c) {
+							return true;
+						}
+						return false;
+					}
+					);
+					if ((*this).xscope_cend() == cit) {
+						return npos;
+					}
+					return (cit - (*this).xscope_cbegin());
+				}
+				size_type find_last_not_of(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+					if ((1 > s.size()) || (1 > (*this).size())) {
+						return npos;
+					}
+					if (pos < (*this).size()) {
+						++pos;
+					}
+					else {
+						pos = (*this).size();
+					}
+					for (size_type i = pos; 0 != i;) {
+						--i;
+						const auto& domain_element_cref((*this)[i]);
+						for (const auto& search_element_cref : s) {
+							if (domain_element_cref != search_element_cref) {
+								return i;
+							}
+						}
+					}
+					return npos;
+				}
+				size_type find_last_not_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
+					if (1 > (*this).size()) {
+						return npos;
+					}
+					if (pos < (*this).size()) {
+						++pos;
+					}
+					else {
+						pos = (*this).size();
+					}
+					for (size_type i = pos; 0 != i;) {
+						--i;
+						const auto& domain_element_cref((*this)[i]);
+						if (domain_element_cref != c) {
+							return i;
+						}
+					}
+					return npos;
+				}
 
-			MSE_USING(xscope_iterator, base_class);
-			template<class _TRASectionPointer>
-			xscope_iterator(const _TRASectionPointer& ptr) : base_class((*ptr).m_start_iter, (*ptr).m_count) {}
-		};
-		class xscope_const_iterator : public TXScopeRASectionConstIterator<_TRAIterator> {
-		public:
-			typedef TXScopeRASectionConstIterator<_TRAIterator> base_class;
+				bool starts_with(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+					return (size() >= s.size()) && equal(0, s.size(), s);
+				}
+				bool starts_with(const value_type& c) const _NOEXCEPT {
+					return (!empty()) && (front() == c);
+				}
+				bool ends_with(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+					return (size() >= s.size()) && equal(size() - s.size(), npos, s);
+				}
+				bool ends_with(const value_type& c) const _NOEXCEPT {
+					return (!empty()) && (back() == c);
+				}
 
-			MSE_USING(xscope_const_iterator, base_class);
-			template<class _TRASectionPointer>
-			xscope_const_iterator(const _TRASectionPointer& ptr) : base_class((*ptr).m_start_iter, (*ptr).m_count) {}
-		};
-		xscope_iterator xscope_begin() const { return xscope_iterator((*this).m_start_iter, (*this).m_count); }
-		xscope_const_iterator xscope_cbegin() const { return xscope_const_iterator((*this).m_start_iter, (*this).m_count); }
-		xscope_iterator xscope_end() const {
-			auto retval(xscope_iterator((*this).m_start_iter, (*this).m_count));
-			retval += mse::msear_as_a_size_t((*this).m_count);
-			return retval;
-		}
-		xscope_const_iterator xscope_cend() const {
-			auto retval(xscope_const_iterator((*this).m_start_iter, (*this).m_count));
-			retval += mse::msear_as_a_size_t((*this).m_count);
-			return retval;
-		}
+				//typedef TXScopeRASectionIterator<_TRAIterator> xscope_iterator;
+				//typedef TXScopeRASectionConstIterator<_TRAIterator> xscope_const_iterator;
+				class xscope_iterator : public TXScopeRASectionIterator<_TRAIterator> {
+				public:
+					typedef TXScopeRASectionIterator<_TRAIterator> base_class;
 
-		template <typename _TRALoneParam>
-		static auto s_iter_from_lone_param(const _TRALoneParam& param) {
-			/* _TRALoneParam being either another TRandomAccessSectionBase<>, a "random access" container, or a pointer to "random
-			access" container is supported. Different initialization implementations are required for each case. */
-			return s_iter_from_lone_param1(typename std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::type(), param);
-		}
-		template <typename _TRALoneParam>
-		static auto s_count_from_lone_param(const _TRALoneParam& param) {
-			return impl::ra_const_section_helpers::s_count_from_lone_param1(typename std::is_base_of<RandomAccessSectionTag, _TRALoneParam>::type(), param);
-		}
+					MSE_USING(xscope_iterator, base_class);
+					template<class _TRASectionPointer>
+					xscope_iterator(const _TRASectionPointer& ptr) : base_class((*ptr).m_start_iter, (*ptr).m_count) {}
+				};
+				class xscope_const_iterator : public TXScopeRASectionConstIterator<_TRAIterator> {
+				public:
+					typedef TXScopeRASectionConstIterator<_TRAIterator> base_class;
 
-	protected:
-		TRandomAccessSectionBase subsection(size_type pos = 0, size_type n = npos) const {
-			return pos > (*this).size()
-				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSectionBase subsection() const - TRandomAccessSectionBase")))
-				: TRandomAccessSectionBase((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
-		}
+					MSE_USING(xscope_const_iterator, base_class);
+					template<class _TRASectionPointer>
+					xscope_const_iterator(const _TRASectionPointer& ptr) : base_class((*ptr).m_start_iter, (*ptr).m_count) {}
+				};
+				xscope_iterator xscope_begin() const { return xscope_iterator((*this).m_start_iter, (*this).m_count); }
+				xscope_const_iterator xscope_cbegin() const { return xscope_const_iterator((*this).m_start_iter, (*this).m_count); }
+				xscope_iterator xscope_end() const {
+					auto retval(xscope_iterator((*this).m_start_iter, (*this).m_count));
+					retval += mse::msear_as_a_size_t((*this).m_count);
+					return retval;
+				}
+				xscope_const_iterator xscope_cend() const {
+					auto retval(xscope_const_iterator((*this).m_start_iter, (*this).m_count));
+					retval += mse::msear_as_a_size_t((*this).m_count);
+					return retval;
+				}
 
-		typedef TRASectionIterator<_TRAIterator> iterator;
-		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
-		iterator begin() { return iterator((*this).m_start_iter, (*this).m_count); }
-		const_iterator begin() const { return cbegin(); }
-		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
-		iterator end() {
-			auto retval(iterator((*this).m_start_iter, (*this).m_count));
-			retval += mse::msear_as_a_size_t((*this).m_count);
-			return retval;
-		}
-		const_iterator end() const { return cend(); }
-		const_iterator cend() const {
-			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
-			retval += mse::msear_as_a_size_t((*this).m_count);
-			return retval;
-		}
+				template <typename _TRALoneParam>
+				static auto s_iter_from_lone_param(const _TRALoneParam& param) {
+					/* _TRALoneParam being either another us::impl::TRandomAccessSectionBase<>, a "random access" container, or a pointer to "random
+					access" container is supported. Different initialization implementations are required for each case. */
+					return s_iter_from_lone_param1(typename std::is_base_of<mse::us::impl::RandomAccessSectionTagBase, _TRALoneParam>::type(), param);
+				}
+				template <typename _TRALoneParam>
+				static auto s_count_from_lone_param(const _TRALoneParam& param) {
+					return mse::impl::ra_const_section_helpers::s_count_from_lone_param1(typename std::is_base_of<mse::us::impl::RandomAccessSectionTagBase, _TRALoneParam>::type(), param);
+				}
 
-	private:
-		/* construction helper functions */
-		template <typename _TRAPointer>
-		static auto s_iter_from_ptr_helper2(std::true_type, const _TRAPointer& ptr) {
-			/* ptr seems to be an xscope pointer.*/
-			return mse::make_xscope_random_access_iterator(ptr, 0);
-		}
-		template <typename _TRAPointer>
-		static auto s_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
-			return mse::make_random_access_iterator(ptr, 0);
-		}
-		template <typename _TRALoneParam>
-		static auto s_iter_from_lone_param3(std::false_type, const _TRALoneParam& ptr) {
-			/* The parameter doesn't seem to be a container with a "begin()" member function or a native array. Here we'll assume
-			that it is a pointer to a supported container. If you get a compile error here, then construction from the given
-			parameter type isn't supported. */
-			mse::T_valid_if_is_dereferenceable<_TRALoneParam>();
-			return s_iter_from_ptr_helper2(typename std::is_base_of<mse::XScopeTagBase, _TRALoneParam>::type(), ptr);
-		}
-		template <typename _TRALoneParam>
-		static auto s_iter_from_lone_param3(std::true_type, const _TRALoneParam& ra_container) {
-			/* The parameter seems to be a container with a "begin()" member function. So we'll use that function to obtain the
-			iterator we need. */
-			return std::begin(ra_container);
-		}
-		template <typename _TRALoneParam>
-		static auto s_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
-			/* The parameter is not a "random access section". */
-			return s_iter_from_lone_param3(typename SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
-		}
-		template <typename _TRALoneParam>
-		static auto s_iter_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
-			/* Apparently the lone parameter is a native array. */
-			return native_array;
-		}
-		template <typename _TRALoneParam>
-		static auto s_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
-			/* The parameter doesn't seem to be a container with a "begin()" member function. */
-			return s_iter_from_lone_param2(typename mse::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
-		}
-		template <typename _TRALoneParam>
-		static auto s_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
-			/* The parameter is another "random access section". */
-			return ra_section.m_start_iter;
-		}
+			protected:
+				TRandomAccessSectionBase subsection(size_type pos = 0, size_type n = npos) const {
+					return pos > (*this).size()
+						? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSectionBase subsection() const - TRandomAccessSectionBase")))
+						: TRandomAccessSectionBase((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+				}
 
-		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+				typedef TRASectionIterator<_TRAIterator> iterator;
+				typedef TRASectionConstIterator<_TRAIterator> const_iterator;
+				iterator begin() { return iterator((*this).m_start_iter, (*this).m_count); }
+				const_iterator begin() const { return cbegin(); }
+				const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+				iterator end() {
+					auto retval(iterator((*this).m_start_iter, (*this).m_count));
+					retval += mse::msear_as_a_size_t((*this).m_count);
+					return retval;
+				}
+				const_iterator end() const { return cend(); }
+				const_iterator cend() const {
+					auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+					retval += mse::msear_as_a_size_t((*this).m_count);
+					return retval;
+				}
 
-		_TRAIterator m_start_iter;
-		size_type m_count = 0;
+			private:
+				/* construction helper functions */
+				template <typename _TRAPointer>
+				static auto s_iter_from_ptr_helper2(std::true_type, const _TRAPointer& ptr) {
+					/* ptr seems to be an xscope pointer.*/
+					return mse::make_xscope_random_access_iterator(ptr, 0);
+				}
+				template <typename _TRAPointer>
+				static auto s_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
+					return mse::make_random_access_iterator(ptr, 0);
+				}
+				template <typename _TRALoneParam>
+				static auto s_iter_from_lone_param3(std::false_type, const _TRALoneParam& ptr) {
+					/* The parameter doesn't seem to be a container with a "begin()" member function or a native array. Here we'll assume
+					that it is a pointer to a supported container. If you get a compile error here, then construction from the given
+					parameter type isn't supported. */
+					mse::impl::T_valid_if_is_dereferenceable<_TRALoneParam>();
+					return s_iter_from_ptr_helper2(typename std::is_base_of<mse::us::impl::XScopeTagBase, _TRALoneParam>::type(), ptr);
+				}
+				template <typename _TRALoneParam>
+				static auto s_iter_from_lone_param3(std::true_type, const _TRALoneParam& ra_container) {
+					/* The parameter seems to be a container with a "begin()" member function. So we'll use that function to obtain the
+					iterator we need. */
+					return std::begin(ra_container);
+				}
+				template <typename _TRALoneParam>
+				static auto s_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
+					/* The parameter is not a "random access section". */
+					return s_iter_from_lone_param3(typename mse::impl::SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
+				}
+				template <typename _TRALoneParam>
+				static auto s_iter_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
+					/* Apparently the lone parameter is a native array. */
+					return native_array;
+				}
+				template <typename _TRALoneParam>
+				static auto s_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
+					/* The parameter doesn't seem to be a container with a "begin()" member function. */
+					return s_iter_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
+				}
+				template <typename _TRALoneParam>
+				static auto s_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
+					/* The parameter is another "random access section". */
+					return ra_section.m_start_iter;
+				}
 
-		friend class TXScopeRandomAccessSection<_TRAIterator>;
-		friend class TRandomAccessSection<_TRAIterator>;
-		template<typename _TRAIterator1> friend class TXScopeTRandomAccessConstSectionBase;
-		template<typename _TRAIterator1> friend class TXScopeTRandomAccessSectionBase;
-		template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
-		template<typename _TRAIterator1> friend class TRandomAccessSectionBase;
-		friend struct mse::impl::ra_const_section_helpers;
-	};
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+				_TRAIterator m_start_iter;
+				size_type m_count = 0;
+
+				friend class mse::TXScopeRandomAccessSection<_TRAIterator>;
+				friend class mse::TRandomAccessSection<_TRAIterator>;
+				template<typename _TRAIterator1> friend class TXScopeTRandomAccessConstSectionBase;
+				template<typename _TRAIterator1> friend class TXScopeTRandomAccessSectionBase;
+				template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
+				template<typename _TRAIterator1> friend class TRandomAccessSectionBase;
+				friend struct mse::impl::ra_const_section_helpers;
+			};
+		}
+	}
 
 	template <typename _TRAIterator>
-	class TXScopeRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator>, public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+	class TXScopeRandomAccessSection : public us::impl::TRandomAccessSectionBase<_TRAIterator>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
 	public:
-		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
+		typedef us::impl::TRandomAccessSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
 		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//TXScopeRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter,count) {}
 		//TXScopeRandomAccessSection(const TXScopeRandomAccessSection& src) = default;
-		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<XScopeTagBase, _TRAIterator>::value), void>::type>
+		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value), void>::type>
 		//TXScopeRandomAccessSection(const TRandomAccessSection<_TRAIterator>& src) : base_class(src) {}
 		//TXScopeRandomAccessSection(const base_class& src) : base_class(src) {}
 
@@ -5075,7 +5130,7 @@ namespace mse {
 				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessSection xscope_subsection() const - TXScopeRandomAccessSection")))
 				: TXScopeRandomAccessSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
-		typedef typename std::conditional<std::is_base_of<XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessSection, TRandomAccessSection<_TRAIterator> >::type subsection_t;
+		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessSection, TRandomAccessSection<_TRAIterator> >::type subsection_t;
 		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
 			return pos > (*this).size()
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection<_TRAIterator> subsection() const - TXScopeRandomAccessSection")))
@@ -5100,9 +5155,9 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	class TRandomAccessSection : public TRandomAccessSectionBase<_TRAIterator> {
+	class TRandomAccessSection : public us::impl::TRandomAccessSectionBase<_TRAIterator> {
 	public:
-		typedef TRandomAccessSectionBase<_TRAIterator> base_class;
+		typedef us::impl::TRandomAccessSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
 		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
@@ -5114,7 +5169,7 @@ namespace mse {
 		template<size_t Tn>
 		TRandomAccessSection(value_type(&native_array)[Tn]) : base_class(native_array) {}
 		virtual ~TRandomAccessSection() {
-			mse::T_valid_if_not_an_xscope_type<_TRAIterator>();
+			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
 		TXScopeRandomAccessSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
@@ -5169,10 +5224,10 @@ namespace mse {
 
 	template <typename _TRALoneParam>
 	auto make_xscope_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
-		typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param)) {
+		typename mse::impl::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param)) {
 
 		return mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
-			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
+			typename mse::impl::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
@@ -5195,7 +5250,7 @@ namespace mse {
 	}
 	template <typename _TRALoneParam>
 	auto make_random_access_const_section(const _TRALoneParam& param) {
-		typedef typename std::remove_reference<decltype(mse::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
 		return TRandomAccessConstSection<_TRAIterator>(param);
 	}
 
@@ -5211,7 +5266,7 @@ namespace mse {
 			}
 			template <typename _TRALoneParam>
 			auto make_xscope_random_access_section_helper1(std::false_type, const _TRALoneParam& param) {
-				typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
 				return TXScopeRandomAccessSection<_TRAIterator>(param);
 			}
 		}
@@ -5219,7 +5274,7 @@ namespace mse {
 	template <typename _TRALoneParam>
 	auto make_xscope_random_access_section(const _TRALoneParam& param) {
 		return mse::impl::ra_section::make_xscope_random_access_section_helper1(
-			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
+			typename mse::impl::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
@@ -5258,7 +5313,7 @@ namespace mse {
 	}
 	template <typename _TRALoneParam>
 	auto make_random_access_section(const _TRALoneParam& param) {
-		typedef typename std::remove_reference<decltype(mse::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
 		return TRandomAccessSection<_TRAIterator>(param);
 	}
 
@@ -5267,7 +5322,7 @@ namespace mse {
 	copyability and movability are also restricted. The "random access const section" can only be accessed by certain types
 	and functions (declared as friends) that will ensure that it will be handled safely. */
 	template<typename _TRAIterator>
-	class TXScopeCagedRandomAccessConstSectionToRValue : public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerNotAsyncShareableTagBase {
+	class TXScopeCagedRandomAccessConstSectionToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
 	public:
 		void xscope_tag() const {}
 
@@ -5290,7 +5345,7 @@ namespace mse {
 			-> impl::ra_section::mkxsracsh1_ReturnType<_Ty>;
 		template <typename _TRALoneParam>
 		friend auto make_xscope_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
-			typename mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+			typename mse::impl::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
 	};
 
 	namespace rsv {
@@ -5307,15 +5362,15 @@ namespace mse {
 			TXScopeRandomAccessConstSectionFParam(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 			template <typename _TRALoneParam>
 			TXScopeRandomAccessConstSectionFParam(const _TRALoneParam& param) : base_class(construction_helper1(typename
-				std::conditional<mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
-				|| mse::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedRandomAccessConstSectionToRValue>::value
+				std::conditional<mse::impl::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
+				|| mse::impl::is_instantiation_of_msescope<_TRALoneParam, mse::TXScopeCagedRandomAccessConstSectionToRValue>::value
 				, std::true_type, std::false_type>::type(), param)) {
 			}
 
 			TXScopeRandomAccessConstSectionFParam xscope_subsection(size_type pos = 0, size_type n = npos) const {
 				return base_class::xscope_subsection(pos, n);
 			}
-			typedef typename std::conditional<std::is_base_of<XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSectionFParam, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
+			typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSectionFParam, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
 			subsection_t subsection(size_type pos = 0, size_type n = npos) const {
 				return base_class::subsection(pos, n);
 			}
@@ -5490,12 +5545,6 @@ namespace mse {
 	}
 
 
-	template <class N>
-	struct is_std_array { static const int value = 0; };
-	template <class N, int _Size>
-	struct is_std_array<std::array<N, _Size> > { static const int value = 1; };
-
-
 	namespace impl {
 		namespace lambda {
 
@@ -5602,8 +5651,8 @@ namespace mse {
 
 			/* If _TROy is "marked" as not safe to share among threads, then the following member function will not
 			instantiate, causing an (intended) compile error. */
-			template<class = typename std::enable_if<(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_TROy>::Has>()) || (
-				(!std::is_convertible<_TROy*, NotAsyncShareableTagBase*>::value)
+			template<class = typename std::enable_if<(std::integral_constant<bool, mse::impl::HasAsyncShareableTagMethod_msemsearray<_TROy>::Has>()) || (
+				(!std::is_convertible<_TROy*, mse::us::impl::NotAsyncShareableTagBase*>::value)
 				/*(!std::integral_constant<bool, HasNotAsyncShareableTagMethod_msemsearray<_TROy>::Has>())*/
 				), void>::type>
 				void valid_if_TROy_is_not_marked_as_unshareable() const {}
@@ -5634,8 +5683,8 @@ namespace mse {
 
 			/* If _TROy is "marked" as not safe to pass among threads, then the following member function will not
 			instantiate, causing an (intended) compile error. */
-			template<class = typename std::enable_if<(std::integral_constant<bool, HasAsyncPassableTagMethod_msemsearray<_TROy>::Has>()) || (
-				(!std::is_convertible<_TROy*, NotAsyncPassableTagBase*>::value)
+			template<class = typename std::enable_if<(std::integral_constant<bool, mse::impl::HasAsyncPassableTagMethod_msemsearray<_TROy>::Has>()) || (
+				(!std::is_convertible<_TROy*, mse::us::impl::NotAsyncPassableTagBase*>::value)
 				/*(!std::integral_constant<bool, HasNotAsyncPassableTagMethod_msemsearray<_TROy>::Has>())*/
 				), void>::type>
 				void valid_if_TROy_is_not_marked_as_unpassable() const {}
@@ -5646,95 +5695,97 @@ namespace mse {
 		/* template specializations */
 
 		template<typename _Ty>
-		class TAsyncPassableObj<_Ty*> : public TAsyncPassableObj<mse::TPointerForLegacy<_Ty>> {
+		class TAsyncPassableObj<_Ty*> : public TAsyncPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
-			typedef TAsyncPassableObj<mse::TPointerForLegacy<_Ty>> base_class;
+			typedef TAsyncPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TAsyncPassableObj, base_class);
 		};
 		template<typename _Ty>
-		class TAsyncPassableObj<_Ty* const> : public TAsyncPassableObj<const mse::TPointerForLegacy<_Ty>> {
+		class TAsyncPassableObj<_Ty* const> : public TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
-			typedef TAsyncPassableObj<const mse::TPointerForLegacy<_Ty>> base_class;
+			typedef TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TAsyncPassableObj, base_class);
 		};
 		template<typename _Ty>
-		class TAsyncPassableObj<const _Ty *> : public TAsyncPassableObj<mse::TPointerForLegacy<const _Ty>> {
+		class TAsyncPassableObj<const _Ty *> : public TAsyncPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
-			typedef TAsyncPassableObj<mse::TPointerForLegacy<const _Ty>> base_class;
+			typedef TAsyncPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TAsyncPassableObj, base_class);
 		};
 		template<typename _Ty>
-		class TAsyncPassableObj<const _Ty * const> : public TAsyncPassableObj<const mse::TPointerForLegacy<const _Ty>> {
+		class TAsyncPassableObj<const _Ty * const> : public TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
-			typedef TAsyncPassableObj<const mse::TPointerForLegacy<const _Ty>> base_class;
+			typedef TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TAsyncPassableObj, base_class);
 		};
 	}
 
-	template <typename _Ty> struct is_marked_as_shareable_msemsearray : std::integral_constant<bool, (HasAsyncShareableTagMethod_msemsearray<_Ty>::Has)
-		|| (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
-		|| (mse::impl::lambda::is_convertible_to_function_pointer<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
-		|| (std::is_same<_Ty, void>::value)> {};
-	
-	template<class _Ty, class = typename std::enable_if<(is_marked_as_shareable_msemsearray<_Ty>::value), void>::type>
+	namespace impl {
+		template <typename _Ty> struct is_marked_as_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncShareableTagMethod_msemsearray<_Ty>::Has)
+			|| (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
+			|| (mse::impl::lambda::is_convertible_to_function_pointer<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
+			|| (std::is_same<_Ty, void>::value)> {};
+
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_shareable_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_marked_as_shareable_msemsearray() {}
-	template<typename _Ty>
-	const _Ty& async_shareable(const _Ty& _X) {
-		T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
-		return _X;
-	}
-	template<typename _Ty>
-	_Ty&& async_shareable(_Ty&& _X) {
-		T_valid_if_is_marked_as_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
-		return std::forward<decltype(_X)>(_X);
-	}
+		template<typename _Ty>
+		const _Ty& async_shareable(const _Ty& _X) {
+			T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
+			return _X;
+		}
+		template<typename _Ty>
+		_Ty&& async_shareable(_Ty&& _X) {
+			T_valid_if_is_marked_as_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+			return std::forward<decltype(_X)>(_X);
+		}
 
-	template <typename _Ty> struct is_marked_as_passable_or_shareable_msemsearray : std::integral_constant<bool, (HasAsyncPassableTagMethod_msemsearray<_Ty>::Has)
-		|| (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
+		template <typename _Ty> struct is_marked_as_passable_or_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncPassableTagMethod_msemsearray<_Ty>::Has)
+			|| (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
 
-	template<class _Ty, class = typename std::enable_if<(is_marked_as_passable_or_shareable_msemsearray<_Ty>::value), void>::type>
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_passable_or_shareable_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_marked_as_passable_or_shareable_msemsearray() {}
-	template<typename _Ty>
-	const _Ty& async_passable(const _Ty& _X) {
-		T_valid_if_is_marked_as_passable_or_shareable_msemsearray<_Ty>();
-		return _X;
-	}
-	template<typename _Ty>
-	_Ty&& async_passable(_Ty&& _X) {
-		T_valid_if_is_marked_as_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
-		return std::forward<decltype(_X)>(_X);
-	}
+		template<typename _Ty>
+		const _Ty& async_passable(const _Ty& _X) {
+			T_valid_if_is_marked_as_passable_or_shareable_msemsearray<_Ty>();
+			return _X;
+		}
+		template<typename _Ty>
+		_Ty&& async_passable(_Ty&& _X) {
+			T_valid_if_is_marked_as_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+			return std::forward<decltype(_X)>(_X);
+		}
 
-	template <typename _Ty> struct is_marked_as_xscope_shareable_msemsearray : std::integral_constant<bool, (HasXScopeAsyncShareableTagMethod_msemsearray<_Ty>::Has)
-		|| (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
+		template <typename _Ty> struct is_marked_as_xscope_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncShareableTagMethod_msemsearray<_Ty>::Has)
+			|| (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
 
-	template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_shareable_msemsearray<_Ty>::value), void>::type>
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_shareable_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_marked_as_xscope_shareable_msemsearray() {}
-	template<typename _Ty>
-	const _Ty& xscope_async_shareable(const _Ty& _X) {
-		T_valid_if_is_marked_as_xscope_shareable_msemsearray<_Ty>();
-		return _X;
-	}
-	template<typename _Ty>
-	_Ty&& xscope_async_shareable(_Ty&& _X) {
-		T_valid_if_is_marked_as_xscope_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
-		return std::forward<decltype(_X)>(_X);
-	}
+		template<typename _Ty>
+		const _Ty& xscope_async_shareable(const _Ty& _X) {
+			T_valid_if_is_marked_as_xscope_shareable_msemsearray<_Ty>();
+			return _X;
+		}
+		template<typename _Ty>
+		_Ty&& xscope_async_shareable(_Ty&& _X) {
+			T_valid_if_is_marked_as_xscope_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+			return std::forward<decltype(_X)>(_X);
+		}
 
-	template <typename _Ty> struct is_marked_as_xscope_passable_or_shareable_msemsearray : std::integral_constant<bool, (HasXScopeAsyncPassableTagMethod_msescope<_Ty>::Has)
-		|| (is_marked_as_xscope_shareable_msemsearray<_Ty>::value)> {};
+		template <typename _Ty> struct is_marked_as_xscope_passable_or_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncPassableTagMethod_msescope<_Ty>::Has)
+			|| (is_marked_as_xscope_shareable_msemsearray<_Ty>::value)> {};
 
-	template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_passable_or_shareable_msemsearray<_Ty>::value), void>::type>
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_passable_or_shareable_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray() {}
-	template<typename _Ty>
-	const _Ty& xscope_async_passable(const _Ty& _X) {
-		T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray<_Ty>();
-		return _X;
-	}
-	template<typename _Ty>
-	_Ty&& xscope_async_passable(_Ty&& _X) {
-		T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
-		return std::forward<decltype(_X)>(_X);
+		template<typename _Ty>
+		const _Ty& xscope_async_passable(const _Ty& _X) {
+			T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray<_Ty>();
+			return _X;
+		}
+		template<typename _Ty>
+		_Ty&& xscope_async_passable(_Ty&& _X) {
+			T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+			return std::forward<decltype(_X)>(_X);
+		}
 	}
 
 	namespace us {
@@ -5761,35 +5812,38 @@ namespace mse {
 		}
 		template<typename _TROy>
 		auto make_user_declared_async_passable(const _TROy& src) {
-			return impl::make_user_declared_async_passable_helper1(typename is_marked_as_passable_or_shareable_msemsearray<_TROy>::type(), src);
+			return impl::make_user_declared_async_passable_helper1(typename mse::impl::is_marked_as_passable_or_shareable_msemsearray<_TROy>::type(), src);
 		}
 		template<typename _TROy>
 		auto make_user_declared_async_passable(_TROy&& src) {
-			return impl::make_user_declared_async_passable_helper1(typename is_marked_as_passable_or_shareable_msemsearray<_TROy>::type(), std::forward<decltype(src)>(src));
+			return impl::make_user_declared_async_passable_helper1(typename mse::impl::is_marked_as_passable_or_shareable_msemsearray<_TROy>::type(), std::forward<decltype(src)>(src));
 		}
 	}
 
 
-	template<typename _Ty>
-	class TSharedGlobalImmutable : public std::add_const<_Ty>::type, public XScopeTagBase {};
+	namespace impl {
+		template <typename _Ty> struct is_thread_safe_mutex_msemsearray : std::integral_constant<bool, (std::is_same<_Ty, std::mutex>::value) /*|| (std::is_same<_Ty, std::shared_mutex>::value)*/
+			|| (std::is_same<_Ty, std::timed_mutex>::value) || (std::is_same<_Ty, std::shared_timed_mutex>::value)> {};
 
-
-	template <typename _Ty> struct is_thread_safe_mutex_msemsearray : std::integral_constant<bool, (std::is_same<_Ty, std::mutex>::value) /*|| (std::is_same<_Ty, std::shared_mutex>::value)*/
-		|| (std::is_same<_Ty, std::timed_mutex>::value) || (std::is_same<_Ty, std::shared_timed_mutex>::value)> {};
-
-	template <typename _Ty> struct is_supported_aco_mutex_msemsearray : std::integral_constant<bool, (is_thread_safe_mutex_msemsearray<_Ty>::value)
-		|| (std::is_same<_Ty, mse::non_thread_safe_recursive_shared_timed_mutex>::value) || (std::is_same<_Ty, mse::non_thread_safe_shared_mutex>::value)
-		|| (std::is_same<_Ty, mse::non_thread_safe_mutex>::value)> {};
+		template <typename _Ty> struct is_supported_aco_mutex_msemsearray : std::integral_constant<bool, (is_thread_safe_mutex_msemsearray<_Ty>::value)
+			|| (std::is_same<_Ty, mse::non_thread_safe_recursive_shared_timed_mutex>::value) || (std::is_same<_Ty, mse::non_thread_safe_shared_mutex>::value)
+			|| (std::is_same<_Ty, mse::non_thread_safe_mutex>::value)> {};
+	}
 
 	class recursive_shared_timed_mutex;
 
-	template<class _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledObjBase;
+	namespace us {
+		namespace impl {
+			template<class _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledObjBase;
+			template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledPointerBase;
+			template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledConstPointerBase;
+			template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledExclusivePointerBase;
+		}
+	}
+
 	template<class _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TXScopeAccessControlledObj;
 	template<class _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledObj;
 
-	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledPointerBase;
-	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledConstPointerBase;
-	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TAccessControlledExclusivePointerBase;
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TXScopeAccessControlledPointer;
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TXScopeAccessControlledConstPointer;
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TXScopeAccessControlledExclusivePointer;
@@ -5814,83 +5868,87 @@ namespace mse {
 
 	template<typename _TExclusiveStrongPointer, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex> class TXScopeExclusiveStrongPointerStoreForAccessControl;
 
+	namespace us {
+		namespace impl {
+			template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+			class TAccessControlledPointerBase {
+			public:
+				TAccessControlledPointerBase(const TAccessControlledPointerBase& src) : m_obj_ptr(src.m_obj_ptr), m_mutex_ptr(src.m_mutex_ptr), m_write_lock(*(src.m_mutex_ptr)) {}
+				TAccessControlledPointerBase(TAccessControlledPointerBase&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
+				virtual ~TAccessControlledPointerBase() {
+					valid_if_TAccessMutex_is_supported<_TAccessMutex>();
+				}
+
+				operator bool() const {
+					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledPointerBase")); }
+					return (nullptr != m_obj_ptr);
+				}
+				auto& operator*() const {
+					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledPointerBase")); }
+					return *m_obj_ptr;
+				}
+				auto operator->() const {
+					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledPointerBase")); }
+					return m_obj_ptr;
+				}
+
+			private:
+				typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
+				TAccessControlledPointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_write_lock(mutex_ref) {}
+				TAccessControlledPointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_write_lock(mutex_ref, std::defer_lock) {
+					if (!m_write_lock.try_lock()) {
+						m_obj_ptr = nullptr;
+					}
+				}
+				template<class _Rep, class _Period>
+				TAccessControlledPointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_write_lock(mutex_ref, std::defer_lock) {
+					if (!m_write_lock.try_lock_for(_Rel_time)) {
+						m_obj_ptr = nullptr;
+					}
+				}
+				template<class _Clock, class _Duration>
+				TAccessControlledPointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_write_lock(mutex_ref, std::defer_lock) {
+					if (!m_write_lock.try_lock_until(_Abs_time)) {
+						m_obj_ptr = nullptr;
+					}
+				}
+
+				template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+					&& (mse::impl::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+					void valid_if_TAccessMutex_is_supported() const {}
+
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+				bool is_valid() const {
+					bool retval = (nullptr != m_obj_ptr);
+					return retval;
+				}
+
+				_Ty* m_obj_ptr = nullptr;
+				_TWrappedAccessMutex* m_mutex_ptr = nullptr;
+				/* Note, the default mutex used here, non_thread_safe_recursive_shared_timed_mutex, like std::recursive_mutex, supports
+				being locked multiple times simultaneously, even when using std::unique_lock<>. */
+				std::unique_lock<_TWrappedAccessMutex> m_write_lock;
+
+				friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
+				friend class TXScopeAccessControlledPointer<_Ty, _TAccessMutex>;
+				friend class TAccessControlledPointer<_Ty, _TAccessMutex>;
+				friend class TAccessControlledConstPointerBase<_Ty, _TAccessMutex>;
+			};
+		}
+	}
+
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TAccessControlledPointerBase {
+	class TXScopeAccessControlledPointer : public mse::us::impl::TAccessControlledPointerBase<_Ty, _TAccessMutex>, public mse::us::impl::XScopeTagBase {
 	public:
-		TAccessControlledPointerBase(const TAccessControlledPointerBase& src) : m_obj_ptr(src.m_obj_ptr), m_mutex_ptr(src.m_mutex_ptr), m_write_lock(*(src.m_mutex_ptr)) {}
-		TAccessControlledPointerBase(TAccessControlledPointerBase&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
-		virtual ~TAccessControlledPointerBase() {
-			valid_if_TAccessMutex_is_supported<_TAccessMutex>();
-		}
-
-		operator bool() const {
-			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledPointerBase")); }
-			return (nullptr != m_obj_ptr);
-		}
-		auto& operator*() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledPointerBase")); }
-			return *m_obj_ptr;
-		}
-		auto operator->() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledPointerBase")); }
-			return m_obj_ptr;
-		}
-
-	private:
-		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
-		TAccessControlledPointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_write_lock(mutex_ref) {}
-		TAccessControlledPointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_write_lock(mutex_ref, std::defer_lock) {
-			if (!m_write_lock.try_lock()) {
-				m_obj_ptr = nullptr;
-			}
-		}
-		template<class _Rep, class _Period>
-		TAccessControlledPointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_write_lock(mutex_ref, std::defer_lock) {
-			if (!m_write_lock.try_lock_for(_Rel_time)) {
-				m_obj_ptr = nullptr;
-			}
-		}
-		template<class _Clock, class _Duration>
-		TAccessControlledPointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_write_lock(mutex_ref, std::defer_lock) {
-			if (!m_write_lock.try_lock_until(_Abs_time)) {
-				m_obj_ptr = nullptr;
-			}
-		}
-
-		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
-		void valid_if_TAccessMutex_is_supported() const {}
-
-		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-
-		bool is_valid() const {
-			bool retval = (nullptr != m_obj_ptr);
-			return retval;
-		}
-
-		_Ty* m_obj_ptr = nullptr;
-		_TWrappedAccessMutex* m_mutex_ptr = nullptr;
-		/* Note, the default mutex used here, non_thread_safe_recursive_shared_timed_mutex, like std::recursive_mutex, supports
-		being locked multiple times simultaneously, even when using std::unique_lock<>. */
-		std::unique_lock<_TWrappedAccessMutex> m_write_lock;
-
-		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
-		friend class TXScopeAccessControlledPointer<_Ty, _TAccessMutex>;
-		friend class TAccessControlledPointer<_Ty, _TAccessMutex>;
-		friend class TAccessControlledConstPointerBase<_Ty, _TAccessMutex>;
-	};
-
-	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TXScopeAccessControlledPointer : public TAccessControlledPointerBase<_Ty, _TAccessMutex>, public XScopeTagBase {
-	public:
-		typedef TAccessControlledPointerBase<_Ty, _TAccessMutex> base_class;
+		typedef mse::us::impl::TAccessControlledPointerBase<_Ty, _TAccessMutex> base_class;
 
 		MSE_USING(TXScopeAccessControlledPointer, base_class);
 		TXScopeAccessControlledPointer(const TXScopeAccessControlledPointer& src) = default;
 		TXScopeAccessControlledPointer(TXScopeAccessControlledPointer&& src) = default;
 
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -5910,7 +5968,7 @@ namespace mse {
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledObjBase<_Ty, _TAccessMutex>;
 		friend class TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>;
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
 		friend TXScopeAccessControlledPointer<_Ty2, _TAccessMutex2> xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
@@ -5923,15 +5981,15 @@ namespace mse {
 	};
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TAccessControlledPointer : public TAccessControlledPointerBase<_Ty, _TAccessMutex> {
+	class TAccessControlledPointer : public mse::us::impl::TAccessControlledPointerBase<_Ty, _TAccessMutex> {
 	public:
-		typedef TAccessControlledPointerBase<_Ty, _TAccessMutex> base_class;
+		typedef mse::us::impl::TAccessControlledPointerBase<_Ty, _TAccessMutex> base_class;
 		TAccessControlledPointer(const TAccessControlledPointer& src) = default;
 		TAccessControlledPointer(TAccessControlledPointer&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
 
 		/* This element is safely "async passable" if the _TAccessMutex is a suitable thread safe mutex. */
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value) 
-			&& (is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -5947,84 +6005,88 @@ namespace mse {
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledObjBase<_Ty, _TAccessMutex>;
 		friend class TAccessControlledConstPointer<_Ty, _TAccessMutex>;
 	};
 
+	namespace us {
+		namespace impl {
+			template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+			class TAccessControlledConstPointerBase {
+			public:
+				TAccessControlledConstPointerBase(const TAccessControlledConstPointerBase& src) : m_obj_ptr(src.m_obj_ptr), m_mutex_ptr(src.m_mutex_ptr), m_read_lock(*(src.m_mutex_ptr)) {}
+				TAccessControlledConstPointerBase(TAccessControlledConstPointerBase&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
+				virtual ~TAccessControlledConstPointerBase() {
+					valid_if_TAccessMutex_is_supported<_TAccessMutex>();
+				}
+
+				operator bool() const {
+					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledConstPointerBase")); }
+					return (nullptr != m_obj_ptr);
+				}
+				const _Ty& operator*() const {
+					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledConstPointerBase")); }
+					return *m_obj_ptr;
+				}
+				const _Ty* operator->() const {
+					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledConstPointerBase")); }
+					return m_obj_ptr;
+				}
+
+			private:
+				typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
+				TAccessControlledConstPointerBase(const _Ty& obj_ref, _TWrappedAccessMutex& mutex_ref) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_read_lock(mutex_ref) {}
+				TAccessControlledConstPointerBase(const _Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_read_lock(mutex_ref, std::defer_lock) {
+					if (!m_read_lock.try_lock()) {
+						m_obj_ptr = nullptr;
+					}
+				}
+				template<class _Rep, class _Period>
+				TAccessControlledConstPointerBase(const _Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_read_lock(mutex_ref, std::defer_lock) {
+					if (!m_read_lock.try_lock_for(_Rel_time)) {
+						m_obj_ptr = nullptr;
+					}
+				}
+				template<class _Clock, class _Duration>
+				TAccessControlledConstPointerBase(const _Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_read_lock(mutex_ref, std::defer_lock) {
+					if (!m_read_lock.try_lock_until(_Abs_time)) {
+						m_obj_ptr = nullptr;
+					}
+				}
+
+				template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+					&& (mse::impl::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+					void valid_if_TAccessMutex_is_supported() const {}
+
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+				bool is_valid() const {
+					bool retval = (nullptr != m_obj_ptr);
+					return retval;
+				}
+
+				const _Ty* m_obj_ptr = nullptr;
+				_TWrappedAccessMutex* m_mutex_ptr = nullptr;
+				std::shared_lock<_TWrappedAccessMutex> m_read_lock;
+
+				friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
+				friend class TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>;
+				friend class TAccessControlledConstPointer<_Ty, _TAccessMutex>;
+			};
+		}
+	}
+
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TAccessControlledConstPointerBase {
+	class TXScopeAccessControlledConstPointer : public mse::us::impl::TAccessControlledConstPointerBase<_Ty, _TAccessMutex>, public mse::us::impl::XScopeTagBase {
 	public:
-		TAccessControlledConstPointerBase(const TAccessControlledConstPointerBase& src) : m_obj_ptr(src.m_obj_ptr), m_mutex_ptr(src.m_mutex_ptr), m_read_lock(*(src.m_mutex_ptr)) {}
-		TAccessControlledConstPointerBase(TAccessControlledConstPointerBase&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
-		virtual ~TAccessControlledConstPointerBase() {
-			valid_if_TAccessMutex_is_supported<_TAccessMutex>();
-		}
-
-		operator bool() const {
-			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledConstPointerBase")); }
-			return (nullptr != m_obj_ptr);
-		}
-		const _Ty& operator*() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledConstPointerBase")); }
-			return *m_obj_ptr;
-		}
-		const _Ty* operator->() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledConstPointerBase")); }
-			return m_obj_ptr;
-		}
-
-	private:
-		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
-		TAccessControlledConstPointerBase(const _Ty& obj_ref, _TWrappedAccessMutex& mutex_ref) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_read_lock(mutex_ref) {}
-		TAccessControlledConstPointerBase(const _Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_read_lock(mutex_ref, std::defer_lock) {
-			if (!m_read_lock.try_lock()) {
-				m_obj_ptr = nullptr;
-			}
-		}
-		template<class _Rep, class _Period>
-		TAccessControlledConstPointerBase(const _Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_read_lock(mutex_ref, std::defer_lock) {
-			if (!m_read_lock.try_lock_for(_Rel_time)) {
-				m_obj_ptr = nullptr;
-			}
-		}
-		template<class _Clock, class _Duration>
-		TAccessControlledConstPointerBase(const _Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_read_lock(mutex_ref, std::defer_lock) {
-			if (!m_read_lock.try_lock_until(_Abs_time)) {
-				m_obj_ptr = nullptr;
-			}
-		}
-
-		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
-		void valid_if_TAccessMutex_is_supported() const {}
-
-		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-
-		bool is_valid() const {
-			bool retval = (nullptr != m_obj_ptr);
-			return retval;
-		}
-
-		const _Ty* m_obj_ptr = nullptr;
-		_TWrappedAccessMutex* m_mutex_ptr = nullptr;
-		std::shared_lock<_TWrappedAccessMutex> m_read_lock;
-
-		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
-		friend class TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>;
-		friend class TAccessControlledConstPointer<_Ty, _TAccessMutex>;
-	};
-
-	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TXScopeAccessControlledConstPointer : public TAccessControlledConstPointerBase<_Ty, _TAccessMutex>, public XScopeTagBase {
-	public:
-		typedef TAccessControlledConstPointerBase<_Ty, _TAccessMutex> base_class;
+		typedef mse::us::impl::TAccessControlledConstPointerBase<_Ty, _TAccessMutex> base_class;
 
 		MSE_USING(TXScopeAccessControlledConstPointer, base_class);
 		TXScopeAccessControlledConstPointer(const TXScopeAccessControlledConstPointer& src) = default;
 		TXScopeAccessControlledConstPointer(TXScopeAccessControlledConstPointer&& src) = default;
 
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -6044,7 +6106,7 @@ namespace mse {
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledObjBase<_Ty, _TAccessMutex>;
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
 		friend TXScopeAccessControlledConstPointer<_Ty2, _TAccessMutex2> xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
 #ifndef MSE_SCOPEPOINTER_DISABLED
@@ -6056,15 +6118,15 @@ namespace mse {
 	};
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TAccessControlledConstPointer : public TAccessControlledConstPointerBase<_Ty, _TAccessMutex> {
+	class TAccessControlledConstPointer : public mse::us::impl::TAccessControlledConstPointerBase<_Ty, _TAccessMutex> {
 	public:
-		typedef TAccessControlledConstPointerBase<_Ty, _TAccessMutex> base_class;
+		typedef mse::us::impl::TAccessControlledConstPointerBase<_Ty, _TAccessMutex> base_class;
 		TAccessControlledConstPointer(const TAccessControlledConstPointer& src) = default;
 		TAccessControlledConstPointer(TAccessControlledConstPointer&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
 
 																					  /* This element is safely "async passable" if the _TAccessMutex is a suitable thread safe mutex. */
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -6080,82 +6142,86 @@ namespace mse {
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledObjBase<_Ty, _TAccessMutex>;
 	};
 
+	namespace us {
+		namespace impl {
+			template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+			class TAccessControlledExclusivePointerBase : public mse::us::impl::StrongExclusivePointerTagBase {
+			public:
+				TAccessControlledExclusivePointerBase(const TAccessControlledExclusivePointerBase& src) = delete;
+				TAccessControlledExclusivePointerBase(TAccessControlledExclusivePointerBase&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
+				virtual ~TAccessControlledExclusivePointerBase() {
+					valid_if_TAccessMutex_is_supported<_TAccessMutex>();
+				}
+
+				operator bool() const {
+					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusivePointerBase")); }
+					return (nullptr != m_obj_ptr);
+				}
+				auto& operator*() const {
+					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusivePointerBase")); }
+					return *m_obj_ptr;
+				}
+				auto operator->() const {
+					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusivePointerBase")); }
+					return m_obj_ptr;
+				}
+
+			private:
+				typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
+				TAccessControlledExclusivePointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref) : m_obj_ptr(std::addressof(obj_ref)), m_exclusive_write_lock(mutex_ref) {}
+				TAccessControlledExclusivePointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t) : m_obj_ptr(std::addressof(obj_ref)), m_exclusive_write_lock(mutex_ref, std::defer_lock) {
+					if (!m_exclusive_write_lock.try_lock()) {
+						m_obj_ptr = nullptr;
+					}
+				}
+				template<class _Rep, class _Period>
+				TAccessControlledExclusivePointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(std::addressof(obj_ref)), m_exclusive_write_lock(mutex_ref, std::defer_lock) {
+					if (!m_exclusive_write_lock.try_lock_for(_Rel_time)) {
+						m_obj_ptr = nullptr;
+					}
+				}
+				template<class _Clock, class _Duration>
+				TAccessControlledExclusivePointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(std::addressof(obj_ref)), m_exclusive_write_lock(mutex_ref, std::defer_lock) {
+					if (!m_exclusive_write_lock.try_lock_until(_Abs_time)) {
+						m_obj_ptr = nullptr;
+					}
+				}
+
+				template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+					&& (mse::impl::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+					void valid_if_TAccessMutex_is_supported() const {}
+
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+				bool is_valid() const {
+					bool retval = (nullptr != m_obj_ptr);
+					return retval;
+				}
+
+				_Ty* m_obj_ptr = nullptr;
+				unique_nonrecursive_lock<_TWrappedAccessMutex> m_exclusive_write_lock;
+
+				friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
+				friend class TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex>;
+				friend class TAccessControlledExclusivePointer<_Ty, _TAccessMutex>;
+			};
+		}
+	}
+
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TAccessControlledExclusivePointerBase : public StrongExclusivePointerTagBase {
+	class TXScopeAccessControlledExclusivePointer : public mse::us::impl::TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex>, public mse::us::impl::XScopeTagBase {
 	public:
-		TAccessControlledExclusivePointerBase(const TAccessControlledExclusivePointerBase& src) = delete;
-		TAccessControlledExclusivePointerBase(TAccessControlledExclusivePointerBase&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
-		virtual ~TAccessControlledExclusivePointerBase() {
-			valid_if_TAccessMutex_is_supported<_TAccessMutex>();
-		}
-
-		operator bool() const {
-			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusivePointerBase")); }
-			return (nullptr != m_obj_ptr);
-		}
-		auto& operator*() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusivePointerBase")); }
-			return *m_obj_ptr;
-		}
-		auto operator->() const {
-			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusivePointerBase")); }
-			return m_obj_ptr;
-		}
-
-	private:
-		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
-		TAccessControlledExclusivePointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref) : m_obj_ptr(std::addressof(obj_ref)), m_exclusive_write_lock(mutex_ref) {}
-		TAccessControlledExclusivePointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t) : m_obj_ptr(std::addressof(obj_ref)), m_exclusive_write_lock(mutex_ref, std::defer_lock) {
-			if (!m_exclusive_write_lock.try_lock()) {
-				m_obj_ptr = nullptr;
-			}
-		}
-		template<class _Rep, class _Period>
-		TAccessControlledExclusivePointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::duration<_Rep, _Period>& _Rel_time) : m_obj_ptr(std::addressof(obj_ref)), m_exclusive_write_lock(mutex_ref, std::defer_lock) {
-			if (!m_exclusive_write_lock.try_lock_for(_Rel_time)) {
-				m_obj_ptr = nullptr;
-			}
-		}
-		template<class _Clock, class _Duration>
-		TAccessControlledExclusivePointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref, std::try_to_lock_t, const std::chrono::time_point<_Clock, _Duration>& _Abs_time) : m_obj_ptr(std::addressof(obj_ref)), m_exclusive_write_lock(mutex_ref, std::defer_lock) {
-			if (!m_exclusive_write_lock.try_lock_until(_Abs_time)) {
-				m_obj_ptr = nullptr;
-			}
-		}
-
-		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
-		void valid_if_TAccessMutex_is_supported() const {}
-
-		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-
-		bool is_valid() const {
-			bool retval = (nullptr != m_obj_ptr);
-			return retval;
-		}
-
-		_Ty* m_obj_ptr = nullptr;
-		unique_nonrecursive_lock<_TWrappedAccessMutex> m_exclusive_write_lock;
-
-		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
-		friend class TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex>;
-		friend class TAccessControlledExclusivePointer<_Ty, _TAccessMutex>;
-	};
-
-	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TXScopeAccessControlledExclusivePointer : public TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex>, public XScopeTagBase {
-	public:
-		typedef TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex> base_class;
+		typedef mse::us::impl::TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex> base_class;
 
 		MSE_USING(TXScopeAccessControlledExclusivePointer, base_class);
 		TXScopeAccessControlledExclusivePointer(const TXScopeAccessControlledExclusivePointer& src) = delete;
 		TXScopeAccessControlledExclusivePointer(TXScopeAccessControlledExclusivePointer&& src) = default;
 
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -6175,7 +6241,7 @@ namespace mse {
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledObjBase<_Ty, _TAccessMutex>;
 		template<typename _Ty2, class _TAccessMutex2/* = non_thread_safe_recursive_shared_timed_mutex*/>
 		friend TXScopeAccessControlledExclusivePointer<_Ty2, _TAccessMutex2> xscope_pointer_to_access_controlled_obj(const TXScopeItemFixedPointer<TAccessControlledObj<_Ty2, _TAccessMutex2> >& aco_xscpptr);
 #ifndef MSE_SCOPEPOINTER_DISABLED
@@ -6187,15 +6253,15 @@ namespace mse {
 	};
 
 	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TAccessControlledExclusivePointer : public TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex> {
+	class TAccessControlledExclusivePointer : public mse::us::impl::TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex> {
 	public:
-		typedef TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex> base_class;
+		typedef mse::us::impl::TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex> base_class;
 		TAccessControlledExclusivePointer(const TAccessControlledExclusivePointer& src) = delete;
 		TAccessControlledExclusivePointer(TAccessControlledExclusivePointer&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
 
 		/* This element is safely "async passable" if the _TAccessMutex is a suitable thread safe mutex. */
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -6211,207 +6277,211 @@ namespace mse {
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		friend class TAccessControlledObjBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledObjBase<_Ty, _TAccessMutex>;
 	};
 
+	namespace us {
+		namespace impl {
+			template<class _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+			class TAccessControlledObjBase {
+			public:
+				typedef _Ty object_type;
+				typedef _TAccessMutex access_mutex_type;
+
+				TAccessControlledObjBase(const TAccessControlledObjBase& src) : m_obj(src.m_obj) {}
+				TAccessControlledObjBase(TAccessControlledObjBase&& src) : m_obj(std::forward<decltype(src.m_obj)>(src.m_obj)) {}
+
+				template <class... Args>
+				TAccessControlledObjBase(Args&&... args) : m_obj(constructor_helper1(std::forward<Args>(args)...)) {}
+
+				virtual ~TAccessControlledObjBase() {
+					try {
+						m_mutex1.nonrecursive_lock();
+						//m_mutex1.nonrecursive_unlock();
+					}
+					catch (...) {
+						/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object (in
+						this thread). */
+						std::cerr << "\n\nFatal Error: mse::us::impl::TAccessControlledObjBase<> destructed with outstanding references in the same thread \n\n";
+						std::terminate();
+					}
+
+					/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+					mse::impl::T_valid_if_is_marked_as_xscope_shareable_msemsearray<_Ty>();
+
+					/* todo: ensure that _TAccessMutex is a supported mutex type */
+				}
+
+				TXScopeAccessControlledPointer<_Ty, _TAccessMutex> xscope_pointer() {
+					return TXScopeAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
+				}
+				mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> xscope_try_pointer() {
+					mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				template<class _Rep, class _Period>
+				mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> xscope_try_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+					mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Rel_time));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				template<class _Clock, class _Duration>
+				mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> xscope_try_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+					mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Abs_time));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex> xscope_const_pointer() {
+					return TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
+				}
+				mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> xscope_try_const_pointer() {
+					mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				template<class _Rep, class _Period>
+				mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> xscope_try_const_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+					mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Rel_time));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				template<class _Clock, class _Duration>
+				mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> xscope_try_const_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+					mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Abs_time));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				/* Note that an exclusive_pointer cannot coexist with any other lock_ptrs (targeting the same object), including ones in
+				the same thread. Thus, using exclusive_pointers without sufficient care introduces the potential for exceptions (in a way
+				that sticking to (regular) pointers doesn't). */
+				TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex> xscope_exclusive_pointer() {
+					return TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
+				}
+
+			protected:
+				TAccessControlledPointer<_Ty, _TAccessMutex> pointer() {
+					return TAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
+				}
+				mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> try_pointer() {
+					mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> retval(TAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				template<class _Rep, class _Period>
+				mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> try_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+					mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> retval(TAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Rel_time));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				template<class _Clock, class _Duration>
+				mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> try_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+					mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> retval(TAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Abs_time));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				TAccessControlledConstPointer<_Ty, _TAccessMutex> const_pointer() {
+					return TAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
+				}
+				mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> try_const_pointer() {
+					mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				template<class _Rep, class _Period>
+				mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> try_const_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+					mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Rel_time));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				template<class _Clock, class _Duration>
+				mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> try_const_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+					mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Abs_time));
+					if (!((*retval).is_valid())) {
+						return{};
+					}
+					return retval;
+				}
+				/* Note that an exclusive_pointer cannot coexist with any other lock_ptrs (targeting the same object), including ones in
+				the same thread. Thus, using exclusive_pointers without sufficient care introduces the potential for exceptions (in a way
+				that sticking to (regular) pointers doesn't). */
+				TAccessControlledExclusivePointer<_Ty, _TAccessMutex> exclusive_pointer() {
+					return TAccessControlledExclusivePointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
+				}
+
+			private:
+				/* construction helper functions */
+				template <class... Args>
+				_Ty initialize(Args&&... args) {
+					return _Ty(std::forward<Args>(args)...);
+				}
+				template <class _TSoleArg>
+				_Ty constructor_helper2(std::true_type, _TSoleArg&& sole_arg) {
+					/* The sole parameter is derived from, or of this type, so we're going to consider the constructor
+					a move constructor. */
+					return std::forward<decltype(sole_arg.m_obj)>(sole_arg.m_obj);
+				}
+				template <class _TSoleArg>
+				_Ty constructor_helper2(std::false_type, _TSoleArg&& sole_arg) {
+					/* The sole parameter is not derived from, or of this type, so the constructor is not a move
+					constructor. */
+					return initialize(std::forward<decltype(sole_arg)>(sole_arg));
+				}
+				template <class... Args>
+				_Ty constructor_helper1(Args&&... args) {
+					return initialize(std::forward<Args>(args)...);
+				}
+				template <class _TSoleArg>
+				_Ty constructor_helper1(_TSoleArg&& sole_arg) {
+					/* The constructor was given exactly one parameter. If the parameter is derived from, or of this type,
+					then we're going to consider the constructor a move constructor. */
+					return constructor_helper2(typename std::is_base_of<TAccessControlledObjBase, _TSoleArg>::type(), std::forward<decltype(sole_arg)>(sole_arg));
+				}
+
+				TAccessControlledObjBase& operator=(TAccessControlledObjBase&& _X) = delete;
+				TAccessControlledObjBase& operator=(const TAccessControlledObjBase& _X) = delete;
+
+				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+				_Ty m_obj;
+
+				typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
+				mutable _TWrappedAccessMutex m_mutex1;
+
+				//friend class TAccessControlledReadOnlyObj<_Ty, _TAccessMutex>;
+				friend class TAccessControlledPointerBase<_Ty, _TAccessMutex>;
+				friend class TAccessControlledConstPointerBase<_Ty, _TAccessMutex>;
+				friend class TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex>;
+			};
+		}
+	}
+
 	template<class _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TAccessControlledObjBase {
+	class TXScopeAccessControlledObj : public mse::us::impl::TAccessControlledObjBase<_Ty, _TAccessMutex>, public mse::us::impl::XScopeTagBase {
 	public:
-		typedef _Ty object_type;
-		typedef _TAccessMutex access_mutex_type;
-
-		TAccessControlledObjBase(const TAccessControlledObjBase& src) : m_obj(src.m_obj) {}
-		TAccessControlledObjBase(TAccessControlledObjBase&& src) : m_obj(std::forward<decltype(src.m_obj)>(src.m_obj)) {}
-
-		template <class... Args>
-		TAccessControlledObjBase(Args&&... args) : m_obj(constructor_helper1(std::forward<Args>(args)...)) {}
-
-		virtual ~TAccessControlledObjBase() {
-			try {
-				m_mutex1.nonrecursive_lock();
-				//m_mutex1.nonrecursive_unlock();
-			}
-			catch (...) {
-				/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object (in
-				this thread). */
-				std::cerr << "\n\nFatal Error: mse::TAccessControlledObjBase<> destructed with outstanding references in the same thread \n\n";
-				std::terminate();
-			}
-
-			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
-			T_valid_if_is_marked_as_xscope_shareable_msemsearray<_Ty>();
-
-			/* todo: ensure that _TAccessMutex is a supported mutex type */
-		}
-
-		TXScopeAccessControlledPointer<_Ty, _TAccessMutex> xscope_pointer() {
-			return TXScopeAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
-		}
-		mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> xscope_try_pointer() {
-			mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		template<class _Rep, class _Period>
-		mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> xscope_try_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Rel_time));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		template<class _Clock, class _Duration>
-		mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> xscope_try_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			mse::xscope_optional<TXScopeAccessControlledPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Abs_time));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex> xscope_const_pointer() {
-			return TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
-		}
-		mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> xscope_try_const_pointer() {
-			mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		template<class _Rep, class _Period>
-		mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> xscope_try_const_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Rel_time));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		template<class _Clock, class _Duration>
-		mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> xscope_try_const_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			mse::xscope_optional<TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TXScopeAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Abs_time));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		/* Note that an exclusive_pointer cannot coexist with any other lock_ptrs (targeting the same object), including ones in
-		the same thread. Thus, using exclusive_pointers without sufficient care introduces the potential for exceptions (in a way
-		that sticking to (regular) pointers doesn't). */
-		TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex> xscope_exclusive_pointer() {
-			return TXScopeAccessControlledExclusivePointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
-		}
-
-	protected:
-		TAccessControlledPointer<_Ty, _TAccessMutex> pointer() {
-			return TAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
-		}
-		mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> try_pointer() {
-			mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> retval(TAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		template<class _Rep, class _Period>
-		mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> try_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> retval(TAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Rel_time));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		template<class _Clock, class _Duration>
-		mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> try_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			mse::mstd::optional<TAccessControlledPointer<_Ty, _TAccessMutex>> retval(TAccessControlledPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Abs_time));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		TAccessControlledConstPointer<_Ty, _TAccessMutex> const_pointer() {
-			return TAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
-		}
-		mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> try_const_pointer() {
-			mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		template<class _Rep, class _Period>
-		mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> try_const_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
-			mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Rel_time));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		template<class _Clock, class _Duration>
-		mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> try_const_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
-			mse::mstd::optional<TAccessControlledConstPointer<_Ty, _TAccessMutex>> retval(TAccessControlledConstPointer<_Ty, _TAccessMutex>(m_obj, m_mutex1, std::try_to_lock, _Abs_time));
-			if (!((*retval).is_valid())) {
-				return{};
-			}
-			return retval;
-		}
-		/* Note that an exclusive_pointer cannot coexist with any other lock_ptrs (targeting the same object), including ones in
-		the same thread. Thus, using exclusive_pointers without sufficient care introduces the potential for exceptions (in a way
-		that sticking to (regular) pointers doesn't). */
-		TAccessControlledExclusivePointer<_Ty, _TAccessMutex> exclusive_pointer() {
-			return TAccessControlledExclusivePointer<_Ty, _TAccessMutex>(m_obj, m_mutex1);
-		}
-
-	private:
-		/* construction helper functions */
-		template <class... Args>
-		_Ty initialize(Args&&... args) {
-			return _Ty(std::forward<Args>(args)...);
-		}
-		template <class _TSoleArg>
-		_Ty constructor_helper2(std::true_type, _TSoleArg&& sole_arg) {
-			/* The sole parameter is derived from, or of this type, so we're going to consider the constructor
-			a move constructor. */
-			return std::forward<decltype(sole_arg.m_obj)>(sole_arg.m_obj);
-		}
-		template <class _TSoleArg>
-		_Ty constructor_helper2(std::false_type, _TSoleArg&& sole_arg) {
-			/* The sole parameter is not derived from, or of this type, so the constructor is not a move
-			constructor. */
-			return initialize(std::forward<decltype(sole_arg)>(sole_arg));
-		}
-		template <class... Args>
-		_Ty constructor_helper1(Args&&... args) {
-			return initialize(std::forward<Args>(args)...);
-		}
-		template <class _TSoleArg>
-		_Ty constructor_helper1(_TSoleArg&& sole_arg) {
-			/* The constructor was given exactly one parameter. If the parameter is derived from, or of this type,
-			then we're going to consider the constructor a move constructor. */
-			return constructor_helper2(typename std::is_base_of<TAccessControlledObjBase, _TSoleArg>::type(), std::forward<decltype(sole_arg)>(sole_arg));
-		}
-
-		TAccessControlledObjBase& operator=(TAccessControlledObjBase&& _X) = delete;
-		TAccessControlledObjBase& operator=(const TAccessControlledObjBase& _X) = delete;
-
-		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-
-		_Ty m_obj;
-
-		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
-		mutable _TWrappedAccessMutex m_mutex1;
-
-		//friend class TAccessControlledReadOnlyObj<_Ty, _TAccessMutex>;
-		friend class TAccessControlledPointerBase<_Ty, _TAccessMutex>;
-		friend class TAccessControlledConstPointerBase<_Ty, _TAccessMutex>;
-		friend class TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex>;
-	};
-
-	template<class _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TXScopeAccessControlledObj : public TAccessControlledObjBase<_Ty, _TAccessMutex>, public XScopeTagBase {
-	public:
-		typedef TAccessControlledObjBase<_Ty, _TAccessMutex> base_class;
+		typedef mse::us::impl::TAccessControlledObjBase<_Ty, _TAccessMutex> base_class;
 		typedef _Ty object_type;
 		typedef _TAccessMutex access_mutex_type;
 
@@ -6454,22 +6524,22 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		//friend class TAccessControlledReadOnlyObj<_Ty, _TAccessMutex>;
-		friend class TAccessControlledPointerBase<_Ty, _TAccessMutex>;
-		friend class TAccessControlledConstPointerBase<_Ty, _TAccessMutex>;
-		friend class TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledPointerBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledConstPointerBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex>;
 	};
 
 	template<class _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TAccessControlledObj : public TAccessControlledObjBase<_Ty, _TAccessMutex> {
+	class TAccessControlledObj : public mse::us::impl::TAccessControlledObjBase<_Ty, _TAccessMutex> {
 	public:
-		typedef TAccessControlledObjBase<_Ty, _TAccessMutex> base_class;
+		typedef mse::us::impl::TAccessControlledObjBase<_Ty, _TAccessMutex> base_class;
 		typedef _Ty object_type;
 		typedef _TAccessMutex access_mutex_type;
 
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TAccessControlledObj, base_class);
 
 		virtual ~TAccessControlledObj() {
-			T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
+			mse::impl::T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
 		}
 
 		auto pointer() {
@@ -6508,16 +6578,16 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		//friend class TAccessControlledReadOnlyObj<_Ty, _TAccessMutex>;
-		friend class TAccessControlledPointerBase<_Ty, _TAccessMutex>;
-		friend class TAccessControlledConstPointerBase<_Ty, _TAccessMutex>;
-		friend class TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledPointerBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledConstPointerBase<_Ty, _TAccessMutex>;
+		friend class mse::us::impl::TAccessControlledExclusivePointerBase<_Ty, _TAccessMutex>;
 	};
 
 	/* TXScopeExclusiveStrongPointerStoreForAccessControl<> is a data type that stores an exclusive strong pointer. From this data type you
 	can obtain const, non-const and exclusive pointers. */
 	template<typename _TExclusiveStrongPointer, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-	class TXScopeExclusiveStrongPointerStoreForAccessControl : public XScopeTagBase
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TExclusiveStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msepointerbasics<TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex> > >::type
+	class TXScopeExclusiveStrongPointerStoreForAccessControl : public mse::us::impl::XScopeTagBase
+		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TExclusiveStrongPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, impl::TPlaceHolder_msepointerbasics<TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex> > >::type
 	{
 	public:
 		TXScopeExclusiveStrongPointerStoreForAccessControl(const TXScopeExclusiveStrongPointerStoreForAccessControl&) = delete;
@@ -6528,7 +6598,7 @@ namespace mse {
 			*m_stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
 		virtual ~TXScopeExclusiveStrongPointerStoreForAccessControl() {
-			is_valid_if_strong_pointer<_TExclusiveStrongPointer>::no_op();
+			mse::impl::is_valid_if_strong_pointer<_TExclusiveStrongPointer>::no_op();
 
 			try {
 				m_mutex1.nonrecursive_lock();
@@ -6537,7 +6607,7 @@ namespace mse {
 			catch (...) {
 				/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object (in
 				this thread). */
-				std::cerr << "\n\nFatal Error: mse::TAccessControlledObjBase<> destructed with outstanding references in the same thread \n\n";
+				std::cerr << "\n\nFatal Error: mse::us::impl::TAccessControlledObjBase<> destructed with outstanding references in the same thread \n\n";
 				std::terminate();
 			}
 		}
@@ -6603,7 +6673,7 @@ namespace mse {
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TExclusiveStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TExclusiveStrongPointer>::value) && (
-			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
 			), void>::type>
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -6628,7 +6698,7 @@ namespace mse {
 	template<typename _Ty> class TXScopeExclusiveWriterObjPointerStoreForSharing;
 
 	template<typename _Ty>
-	class TXScopePassablePointer : public XScopeTagBase, public ContainsNonOwningScopeReferenceTagBase, public StrongExclusivePointerTagBase {
+	class TXScopePassablePointer : public mse::us::impl::XScopeTagBase, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongExclusivePointerTagBase {
 	public:
 		TXScopePassablePointer(const TXScopePassablePointer& src) = delete;
 		TXScopePassablePointer(TXScopePassablePointer&& src) = default;
@@ -6667,7 +6737,7 @@ namespace mse {
 	template<typename _Ty> class TXScopeExclusiveWriterObjConstPointerStoreForSharing;
 
 	template<typename _Ty>
-	class TXScopePassableConstPointer : public XScopeTagBase, public ContainsNonOwningScopeReferenceTagBase {
+	class TXScopePassableConstPointer : public mse::us::impl::XScopeTagBase, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
 	public:
 		TXScopePassableConstPointer(const TXScopePassableConstPointer& src) = default;
 		TXScopePassableConstPointer(TXScopePassableConstPointer&& src) = default;
@@ -6706,8 +6776,8 @@ namespace mse {
 	/* TXScopeExclusiveStrongPointerStoreForSharing<> is a data type that stores an exclusive strong pointer. From this data type you
 	can obtain a "scope shareable pointer" which can be safely passed to a scope thread. */
 	template<typename _TExclusiveStrongPointer>
-	class TXScopeExclusiveStrongPointerStoreForSharing : public XScopeTagBase
-		, public std::conditional<std::is_base_of<ContainsNonOwningScopeReferenceTagBase, _TExclusiveStrongPointer>::value, ContainsNonOwningScopeReferenceTagBase, TPlaceHolder_msepointerbasics<TXScopeExclusiveStrongPointerStoreForSharing<_TExclusiveStrongPointer> > >::type
+	class TXScopeExclusiveStrongPointerStoreForSharing : public mse::us::impl::XScopeTagBase
+		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TExclusiveStrongPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, impl::TPlaceHolder_msepointerbasics<TXScopeExclusiveStrongPointerStoreForSharing<_TExclusiveStrongPointer> > >::type
 	{
 	public:
 		TXScopeExclusiveStrongPointerStoreForSharing(const TXScopeExclusiveStrongPointerStoreForSharing&) = delete;
@@ -6718,7 +6788,7 @@ namespace mse {
 			*m_stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
 		virtual ~TXScopeExclusiveStrongPointerStoreForSharing() {
-			is_valid_if_strong_pointer<_TExclusiveStrongPointer>::no_op();
+			mse::impl::is_valid_if_strong_pointer<_TExclusiveStrongPointer>::no_op();
 		}
 
 		auto xscope_passable_pointer() const & {
@@ -6735,7 +6805,7 @@ namespace mse {
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TExclusiveStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TExclusiveStrongPointer>::value) && (
-			(std::integral_constant<bool, HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<XScopeTagBase, _Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
 			), void>::type>
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -6886,7 +6956,7 @@ namespace mse {
 	of a TExclusiveWriterObj<>. From this data type you can obtain a "scope shareable const pointer" which can be
 	safely passed to a scope thread. */
 	template<typename _Ty>
-	class TXScopeExclusiveWriterObjConstPointerStoreForSharing : public XScopeTagBase, public ContainsNonOwningScopeReferenceTagBase {
+	class TXScopeExclusiveWriterObjConstPointerStoreForSharing : public mse::us::impl::XScopeTagBase, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
 	public:
 		TXScopeExclusiveWriterObjConstPointerStoreForSharing(const TXScopeExclusiveWriterObjConstPointerStoreForSharing&) = delete;
 		TXScopeExclusiveWriterObjConstPointerStoreForSharing(TXScopeExclusiveWriterObjConstPointerStoreForSharing&&) = default;
@@ -6929,140 +6999,144 @@ namespace mse {
 #pragma clang diagnostic ignored "-Wmissing-braces"
 #endif /*__clang__*/
 
-	/* These are specializations of the array_helper_type template class defined earlier in this file. */
-	template<class _Ty> class array_helper_type<_Ty, 2> {
-	public:
-		static typename std::array<_Ty, 2> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (2 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 2> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1) }; return retval;
+	namespace impl {
+		namespace array_helper {
+			/* These are specializations of the array_helper_type template class defined earlier in this file. */
+			template<class _Ty> class array_helper_type<_Ty, 2> {
+			public:
+				static typename std::array<_Ty, 2> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (2 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 2> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 3> {
+			public:
+				static typename std::array<_Ty, 3> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (3 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 3> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 4> {
+			public:
+				static typename std::array<_Ty, 4> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (4 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 4> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 5> {
+			public:
+				static typename std::array<_Ty, 5> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (5 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 5> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 6> {
+			public:
+				static typename std::array<_Ty, 6> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (6 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 6> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 7> {
+			public:
+				static typename std::array<_Ty, 7> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (7 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 7> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 8> {
+			public:
+				static typename std::array<_Ty, 8> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (8 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 8> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 9> {
+			public:
+				static typename std::array<_Ty, 9> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (9 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 9> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 10> {
+			public:
+				static typename std::array<_Ty, 10> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (10 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 10> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 11> {
+			public:
+				static typename std::array<_Ty, 11> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (11 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 11> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 12> {
+			public:
+				static typename std::array<_Ty, 12> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (12 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 12> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 13> {
+			public:
+				static typename std::array<_Ty, 13> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (13 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 13> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 14> {
+			public:
+				static typename std::array<_Ty, 14> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (14 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 14> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 15> {
+			public:
+				static typename std::array<_Ty, 15> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (15 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 15> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 16> {
+			public:
+				static typename std::array<_Ty, 16> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (16 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 16> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 17> {
+			public:
+				static typename std::array<_Ty, 17> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (17 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 17> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 18> {
+			public:
+				static typename std::array<_Ty, 18> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (18 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 18> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16), *(_Ilist.begin() + 17) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 19> {
+			public:
+				static typename std::array<_Ty, 19> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (19 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 19> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16), *(_Ilist.begin() + 17), *(_Ilist.begin() + 18) }; return retval;
+				}
+			};
+			template<class _Ty> class array_helper_type<_Ty, 20> {
+			public:
+				static typename std::array<_Ty, 20> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
+					if (20 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
+					typename std::array<_Ty, 20> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16), *(_Ilist.begin() + 17), *(_Ilist.begin() + 18), *(_Ilist.begin() + 19) }; return retval;
+				}
+			};
 		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 3> {
-	public:
-		static typename std::array<_Ty, 3> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (3 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 3> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 4> {
-	public:
-		static typename std::array<_Ty, 4> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (4 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 4> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 5> {
-	public:
-		static typename std::array<_Ty, 5> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (5 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 5> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 6> {
-	public:
-		static typename std::array<_Ty, 6> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (6 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 6> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 7> {
-	public:
-		static typename std::array<_Ty, 7> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (7 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 7> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 8> {
-	public:
-		static typename std::array<_Ty, 8> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (8 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 8> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 9> {
-	public:
-		static typename std::array<_Ty, 9> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (9 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 9> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 10> {
-	public:
-		static typename std::array<_Ty, 10> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (10 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 10> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 11> {
-	public:
-		static typename std::array<_Ty, 11> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (11 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 11> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 12> {
-	public:
-		static typename std::array<_Ty, 12> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (12 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 12> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 13> {
-	public:
-		static typename std::array<_Ty, 13> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (13 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 13> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 14> {
-	public:
-		static typename std::array<_Ty, 14> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (14 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 14> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 15> {
-	public:
-		static typename std::array<_Ty, 15> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (15 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 15> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 16> {
-	public:
-		static typename std::array<_Ty, 16> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (16 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 16> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 17> {
-	public:
-		static typename std::array<_Ty, 17> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (17 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 17> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 18> {
-	public:
-		static typename std::array<_Ty, 18> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (18 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 18> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16), *(_Ilist.begin() + 17) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 19> {
-	public:
-		static typename std::array<_Ty, 19> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (19 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 19> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16), *(_Ilist.begin() + 17), *(_Ilist.begin() + 18) }; return retval;
-		}
-	};
-	template<class _Ty> class array_helper_type<_Ty, 20> {
-	public:
-		static typename std::array<_Ty, 20> std_array_initial_value2(_XSTD initializer_list<_Ty> _Ilist) {
-			if (20 != _Ilist.size()) { MSE_THROW(msearray_range_error("the size of the initializer list does not match the size of the array - mse::mstd::array")); }
-			typename std::array<_Ty, 20> retval{ *(_Ilist.begin()), *(_Ilist.begin() + 1), *(_Ilist.begin() + 2), *(_Ilist.begin() + 3), *(_Ilist.begin() + 4), *(_Ilist.begin() + 5), *(_Ilist.begin() + 6), *(_Ilist.begin() + 7), *(_Ilist.begin() + 8), *(_Ilist.begin() + 9), *(_Ilist.begin() + 10), *(_Ilist.begin() + 11), *(_Ilist.begin() + 12), *(_Ilist.begin() + 13), *(_Ilist.begin() + 14), *(_Ilist.begin() + 15), *(_Ilist.begin() + 16), *(_Ilist.begin() + 17), *(_Ilist.begin() + 18), *(_Ilist.begin() + 19) }; return retval;
-		}
-	};
+	}
 
 #ifdef __clang__
 #pragma clang diagnostic pop

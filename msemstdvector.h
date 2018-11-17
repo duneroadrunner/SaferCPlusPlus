@@ -31,7 +31,7 @@ namespace mse {
 		template<class _Ty, class _A = std::allocator<_Ty> > using vector = std::vector<_Ty, _A>;
 
 		template<class _Ty, class _A = std::allocator<_Ty> >
-		class xscope_structure_change_lock_guard : public XScopeTagBase {
+		class xscope_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
 		public:
 			xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<vector<_Ty, _A> >& owner_ptr)
 				: m_owner_ptr(owner_ptr) {}
@@ -54,7 +54,7 @@ namespace mse {
 			mse::TXScopeItemFixedPointer<vector<_Ty, _A> > m_owner_ptr;
 		};
 		template<class _Ty, class _A = std::allocator<_Ty> >
-		class xscope_const_structure_change_lock_guard : public XScopeTagBase {
+		class xscope_const_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
 		public:
 			xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<vector<_Ty, _A> >& owner_ptr)
 				: m_owner_ptr(owner_ptr) {}
@@ -144,9 +144,9 @@ namespace mse {
 			typedef typename _MV::const_iterator _It;
 			vector(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
 			vector(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
-			template<class _Iter, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type>
+			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
 			vector(_Iter _First, _Iter _Last) : m_shptr(std::make_shared<_MV>(_First, _Last)) {}
-			template<class _Iter, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type>
+			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
 			vector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MV>(_First, _Last, _Al)) {}
 
 			virtual ~vector() {
@@ -443,16 +443,16 @@ namespace mse {
 			}
 			iterator insert_before(const const_iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, 1, _X); }
 			template<class _Iter
-				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
-				, class = _mse_RequireInputIter<_Iter> >
+				//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
+				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 				iterator insert_before(const const_iterator &pos, const _Iter &start, const _Iter &end) {
 				auto res = m_shptr->insert_before(pos.msevector_ss_const_iterator_type(), start, end);
 				iterator retval = begin(); retval.msevector_ss_iterator_type() = res;
 				return retval;
 			}
 			template<class _Iter
-				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
-				, class = _mse_RequireInputIter<_Iter> >
+				//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
+				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 				iterator insert_before_inclusive(const const_iterator &pos, const _Iter &first, const _Iter &last) {
 				auto end = last; end++;
 				return insert_before(pos, first, end);
@@ -476,8 +476,8 @@ namespace mse {
 			iterator insert(const const_iterator &pos, _Ty&& _X) { return insert_before(pos, std::forward<decltype(_X)>(_X)); }
 			iterator insert(const const_iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, _X); }
 			template<class _Iter
-				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
-				, class = _mse_RequireInputIter<_Iter> >
+				//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
+				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 				iterator insert(const const_iterator &pos, const _Iter &start, const _Iter &end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, const _Ty* start, const _Ty* end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) { return insert_before(pos, _Ilist); }
@@ -508,7 +508,7 @@ namespace mse {
 				return ((*m_shptr) < (*(_Right.m_shptr)));
 			}
 
-			class xscope_const_iterator : public _MV::random_access_const_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase {
+			class xscope_const_iterator : public _MV::random_access_const_iterator_base, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
 			public:
 				typedef typename _MV::random_access_const_iterator_base base_class;
 				typedef typename base_class::iterator_category iterator_category;
@@ -615,7 +615,7 @@ namespace mse {
 				typename _MV::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 				friend class /*_Myt*/vector<_Ty>;
 			};
-			class xscope_iterator : public _MV::random_access_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase {
+			class xscope_iterator : public _MV::random_access_iterator_base, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
 			public:
 				typedef typename _MV::random_access_iterator_base base_class;
 				typedef typename base_class::iterator_category iterator_category;
@@ -711,7 +711,7 @@ namespace mse {
 			time. While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
 			individual elements in the vector do not become invalid by preventing any operation that might resize the vector
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-			class xscope_structure_change_lock_guard : public XScopeTagBase {
+			class xscope_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
 			public:
 				xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<vector>& owner_ptr)
 					: m_MV_xscope_structure_change_lock_guard(mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
@@ -734,7 +734,7 @@ namespace mse {
 			private:
 				typename mse::us::msevector<_Ty>::xscope_structure_change_lock_guard m_MV_xscope_structure_change_lock_guard;
 			};
-			class xscope_const_structure_change_lock_guard : public XScopeTagBase {
+			class xscope_const_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
 			public:
 				xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<vector>& owner_ptr)
 					: m_MV_xscope_const_structure_change_lock_guard(mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}

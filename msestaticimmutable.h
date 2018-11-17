@@ -92,16 +92,16 @@ namespace mse {
 				template<typename _Ty> using TCheckedSImmFixedConstPointer = TCheckedSImmPointer<_Ty>;
 
 				template<typename _Ty>
-				class TCheckedSImmPointer : public TPointer<TCheckedSImmObj<_Ty> >, public StrongPointerTagBase {
+				class TCheckedSImmPointer : public mse::us::impl::TPointer<TCheckedSImmObj<_Ty> >, public mse::us::impl::StrongPointerTagBase {
 				public:
-					TCheckedSImmPointer(const TCheckedSImmPointer& src_cref) : TPointer<TCheckedSImmObj<_Ty>>(src_cref.m_ptr) {
+					TCheckedSImmPointer(const TCheckedSImmPointer& src_cref) : mse::us::impl::TPointer<TCheckedSImmObj<_Ty>>(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
 					template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-					TCheckedSImmPointer(const TCheckedSImmPointer<_Ty2>& src_cref) : TPointer<TCheckedSImmObj<_Ty>>(src_cref.m_ptr) {
+					TCheckedSImmPointer(const TCheckedSImmPointer<_Ty2>& src_cref) : mse::us::impl::TPointer<TCheckedSImmObj<_Ty>>(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					TCheckedSImmPointer(TCheckedSImmPointer&& src_ref) : TPointer<TCheckedSImmObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+					TCheckedSImmPointer(TCheckedSImmPointer&& src_ref) : mse::us::impl::TPointer<TCheckedSImmObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
 						src_ref.m_ptr = nullptr;
 					}
 					virtual ~TCheckedSImmPointer() {
@@ -109,7 +109,7 @@ namespace mse {
 					}
 					TCheckedSImmPointer<_Ty>& operator=(const TCheckedSImmPointer<_Ty>& _Right_cref) {
 						if (*this) { (*(*this)).decrement_refcount(); }
-						TPointer<TCheckedSImmObj<_Ty>>::operator=(_Right_cref);
+						mse::us::impl::TPointer<TCheckedSImmObj<_Ty>>::operator=(_Right_cref);
 						if (*this) { (*(*this)).increment_refcount(); }
 						return (*this);
 					}
@@ -130,7 +130,7 @@ namespace mse {
 					operator bool() const { return (*this).m_ptr; }
 
 				private:
-					TCheckedSImmPointer(TCheckedSImmObj<_Ty>* ptr) : TPointer<TCheckedSImmObj<_Ty>>(ptr) {
+					TCheckedSImmPointer(TCheckedSImmObj<_Ty>* ptr) : mse::us::impl::TPointer<TCheckedSImmObj<_Ty>>(ptr) {
 						assert(*this);
 						(*(*this)).increment_refcount();
 					}
@@ -210,8 +210,8 @@ namespace mse {
 			}
 		};
 
-		template<typename _Ty> using TStaticImmutablePointerBase = TPointerForLegacy<const _Ty, TStaticImmutableID<const _Ty>>;
-		template<typename _Ty> using TStaticImmutableConstPointerBase = TPointerForLegacy<const _Ty, TStaticImmutableID<const _Ty>>;
+		template<typename _Ty> using TStaticImmutablePointerBase = mse::us::impl::TPointerForLegacy<const _Ty, TStaticImmutableID<const _Ty>>;
+		template<typename _Ty> using TStaticImmutableConstPointerBase = mse::us::impl::TPointerForLegacy<const _Ty, TStaticImmutableID<const _Ty>>;
 		template<typename _Ty> using Tstatic_obj_base_ptr = TStaticImmutableObjBase<_Ty>*;
 		template<typename _Ty> using Tstatic_obj_base_const_ptr = TStaticImmutableObjBase<const _Ty> const*;
 
@@ -240,7 +240,7 @@ namespace mse {
 
 		/* Use TStaticImmutableFixedPointer instead. */
 		template<typename _Ty>
-		class TStaticImmutablePointer : public TStaticImmutablePointerBase<_Ty>, public StrongPointerTagBase {
+		class TStaticImmutablePointer : public TStaticImmutablePointerBase<_Ty>, public mse::us::impl::StrongPointerTagBase {
 		public:
 			typedef Tstatic_obj_base_ptr<_Ty> scope_obj_base_ptr_t;
 			virtual ~TStaticImmutablePointer() {}
@@ -280,7 +280,7 @@ namespace mse {
 
 		/* Use TStaticImmutableFixedConstPointer instead. */
 		template<typename _Ty>
-		class TStaticImmutableConstPointer : public TStaticImmutableConstPointerBase<const _Ty>, public StrongPointerTagBase {
+		class TStaticImmutableConstPointer : public TStaticImmutableConstPointerBase<const _Ty>, public mse::us::impl::StrongPointerTagBase {
 		public:
 			typedef Tstatic_obj_base_const_ptr<_Ty> scope_obj_base_const_ptr_t;
 			virtual ~TStaticImmutableConstPointer() {}
@@ -321,7 +321,7 @@ namespace mse {
 
 		/* Use TStaticImmutableFixedPointer instead. */
 		template<typename _Ty>
-		class TStaticImmutableNotNullPointer : public TStaticImmutablePointer<_Ty>, public NeverNullTagBase {
+		class TStaticImmutableNotNullPointer : public TStaticImmutablePointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 		public:
 			virtual ~TStaticImmutableNotNullPointer() {}
 		private:
@@ -345,7 +345,7 @@ namespace mse {
 
 		/* Use TStaticImmutableFixedConstPointer instead. */
 		template<typename _Ty>
-		class TStaticImmutableNotNullConstPointer : public TStaticImmutableConstPointer<_Ty>, public NeverNullTagBase {
+		class TStaticImmutableNotNullConstPointer : public TStaticImmutableConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 		public:
 			virtual ~TStaticImmutableNotNullConstPointer() {}
 		private:
@@ -427,7 +427,7 @@ namespace mse {
 
 			MSE_STATIC_USING(TStaticImmutableObj, TStaticImmutableObjBase<_TROy>);
 			virtual ~TStaticImmutableObj() {
-				mse::T_valid_if_is_marked_as_xscope_shareable_msemsearray<_TROy>();
+				mse::impl::T_valid_if_is_marked_as_xscope_shareable_msemsearray<_TROy>();
 			}
 
 			TStaticImmutableObj& operator=(TStaticImmutableObj&& _X) {
@@ -509,27 +509,27 @@ namespace mse {
 		/* template specializations */
 
 		template<typename _Ty>
-		class TStaticImmutableObj<_Ty*> : public TStaticImmutableObj<mse::TPointerForLegacy<_Ty>> {
+		class TStaticImmutableObj<_Ty*> : public TStaticImmutableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
-			typedef TStaticImmutableObj<mse::TPointerForLegacy<_Ty>> base_class;
+			typedef TStaticImmutableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TStaticImmutableObj, base_class);
 		};
 		template<typename _Ty>
-		class TStaticImmutableObj<_Ty* const> : public TStaticImmutableObj<const mse::TPointerForLegacy<_Ty>> {
+		class TStaticImmutableObj<_Ty* const> : public TStaticImmutableObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
-			typedef TStaticImmutableObj<const mse::TPointerForLegacy<_Ty>> base_class;
+			typedef TStaticImmutableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TStaticImmutableObj, base_class);
 		};
 		template<typename _Ty>
-		class TStaticImmutableObj<const _Ty *> : public TStaticImmutableObj<mse::TPointerForLegacy<const _Ty>> {
+		class TStaticImmutableObj<const _Ty *> : public TStaticImmutableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
-			typedef TStaticImmutableObj<mse::TPointerForLegacy<const _Ty>> base_class;
+			typedef TStaticImmutableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TStaticImmutableObj, base_class);
 		};
 		template<typename _Ty>
-		class TStaticImmutableObj<const _Ty * const> : public TStaticImmutableObj<const mse::TPointerForLegacy<const _Ty>> {
+		class TStaticImmutableObj<const _Ty * const> : public TStaticImmutableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
-			typedef TStaticImmutableObj<const mse::TPointerForLegacy<const _Ty>> base_class;
+			typedef TStaticImmutableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TStaticImmutableObj, base_class);
 		};
 
@@ -570,166 +570,168 @@ namespace mse {
 #define MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(type) mse::rsv::TStaticImmutableObj<type> 
 
 
-	class CStaticImmutablePtrTest1 {
-	public:
-		static void s_test1() {
+	namespace self_test {
+		class CStaticImmutablePtrTest1 {
+		public:
+			static void s_test1() {
 #ifdef MSE_SELF_TESTS
-			class A {
-			public:
-				A(int x) : b(x) {}
-				A(const A& _X) : b(_X.b) {}
-				A(A&& _X) : b(std::forward<decltype(_X.b)>(_X.b)) {}
-				virtual ~A() {}
-				A& operator=(A&& _X) { b = std::forward<decltype(_X.b)>(_X.b); return (*this); }
-				A& operator=(const A& _X) { b = _X.b; return (*this); }
-
-				int b = 3;
-			};
-			typedef mse::rsv::TAsyncShareableObj<A> shareable_A;
-			class B {
-			public:
-				static int foo1(const shareable_A* a_native_ptr) { return a_native_ptr->b; }
-				static int foo2(mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr) { return shareable_A_static_ptr->b; }
-			protected:
-				~B() {}
-			};
-
-			shareable_A* shareable_A_native_ptr = nullptr;
-
-			{
-				shareable_A a(7);
-				MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a(7);
-
-				assert(a.b == static_a.b);
-				shareable_A_native_ptr = std::addressof(a);
-
-				mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr1(&static_a);
-				assert(shareable_A_native_ptr->b == shareable_A_static_ptr1->b);
-				mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr2 = &static_a;
-
-				/* mse::rsv::TStaticImmutableFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-				B::foo1(static_cast<const shareable_A*>(shareable_A_static_ptr1));
-
-				if (!shareable_A_static_ptr2) {
-					assert(false);
-				}
-				else if (!(shareable_A_static_ptr2 != shareable_A_static_ptr1)) {
-					int q = B::foo2(shareable_A_static_ptr2);
-				}
-				else {
-					assert(false);
-				}
-
-				shareable_A a2 = a;
-				MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a2 = static_a;
-				static_a2 = a;
-				static_a2 = static_a;
-
-				mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> rcp = shareable_A_static_ptr1;
-				mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> rcp2 = rcp;
-			}
-
-			{
-				/* Polymorphic conversions. */
-				class E {
-				public:
-					int m_b = 5;
-				};
-
-				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
-				class GE : public E {};
-				typedef mse::rsv::TAsyncShareableObj<GE> shareable_GE;
-				MSE_DECLARE_STATIC_IMMUTABLE(shareable_GE) static_gd;
-				mse::rsv::TStaticImmutableFixedPointer<shareable_GE> GE_static_ifptr1 = &static_gd;
-				mse::rsv::TStaticImmutableFixedPointer<E> E_static_ifptr5 = GE_static_ifptr1;
-				mse::rsv::TStaticImmutableFixedPointer<E> E_static_fptr2(&static_gd);
-				mse::rsv::TStaticImmutableFixedPointer<E> E_static_ifptr2(&static_gd);
-				mse::rsv::TStaticImmutableFixedConstPointer<E> E_static_fcptr2 = &static_gd;
-			}
-
-			{
 				class A {
 				public:
 					A(int x) : b(x) {}
+					A(const A& _X) : b(_X.b) {}
+					A(A&& _X) : b(std::forward<decltype(_X.b)>(_X.b)) {}
 					virtual ~A() {}
+					A& operator=(A&& _X) { b = std::forward<decltype(_X.b)>(_X.b); return (*this); }
+					A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 					int b = 3;
-					std::string s = "some text ";
 				};
 				typedef mse::rsv::TAsyncShareableObj<A> shareable_A;
 				class B {
 				public:
-					static int foo1(shareable_A* a_native_ptr) { return a_native_ptr->b; }
-					static int foo2(mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_scpfptr) { return shareable_A_scpfptr->b; }
-					static int foo3(mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> shareable_A_scpfcptr) { return shareable_A_scpfcptr->b; }
+					static int foo1(const shareable_A* a_native_ptr) { return a_native_ptr->b; }
+					static int foo2(mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr) { return shareable_A_static_ptr->b; }
 				protected:
 					~B() {}
 				};
 
-				MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) a_scpobj(5);
-				int res1 = (&a_scpobj)->b;
-				int res2 = B::foo2(&a_scpobj);
-				int res3 = B::foo3(&a_scpobj);
+				shareable_A* shareable_A_native_ptr = nullptr;
 
-				/* You can use the "mse::make_pointer_to_member_v2()" function to obtain a safe pointer to a member of
-				an static object. */
-				auto s_safe_ptr1 = mse::make_pointer_to_member_v2((&a_scpobj), &shareable_A::s);
-				auto s_safe_const_ptr1 = mse::make_const_pointer_to_member_v2((&a_scpobj), &shareable_A::s);
-			}
+				{
+					shareable_A a(7);
+					MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a(7);
 
-			{
-				shareable_A a(7);
-				MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a(7);
+					assert(a.b == static_a.b);
+					shareable_A_native_ptr = std::addressof(a);
 
-				assert(a.b == static_a.b);
-				shareable_A_native_ptr = std::addressof(a);
+					mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr1(&static_a);
+					assert(shareable_A_native_ptr->b == shareable_A_static_ptr1->b);
+					mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr2 = &static_a;
 
-				mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr1 = &static_a;
-				assert(shareable_A_native_ptr->b == shareable_A_static_ptr1->b);
-				mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr2 = &static_a;
+					/* mse::rsv::TStaticImmutableFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
+					B::foo1(static_cast<const shareable_A*>(shareable_A_static_ptr1));
 
-				/* mse::rsv::TStaticImmutableFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-				B::foo1(static_cast<const shareable_A*>(shareable_A_static_ptr1));
+					if (!shareable_A_static_ptr2) {
+						assert(false);
+					}
+					else if (!(shareable_A_static_ptr2 != shareable_A_static_ptr1)) {
+						int q = B::foo2(shareable_A_static_ptr2);
+					}
+					else {
+						assert(false);
+					}
 
-				if (!shareable_A_static_ptr2) {
-					assert(false);
+					shareable_A a2 = a;
+					MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a2 = static_a;
+					static_a2 = a;
+					static_a2 = static_a;
+
+					mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> rcp = shareable_A_static_ptr1;
+					mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> rcp2 = rcp;
 				}
-				else if (!(shareable_A_static_ptr2 != shareable_A_static_ptr1)) {
-					int q = B::foo2(shareable_A_static_ptr2);
+
+				{
+					/* Polymorphic conversions. */
+					class E {
+					public:
+						int m_b = 5;
+					};
+
+					/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
+					class GE : public E {};
+					typedef mse::rsv::TAsyncShareableObj<GE> shareable_GE;
+					MSE_DECLARE_STATIC_IMMUTABLE(shareable_GE) static_gd;
+					mse::rsv::TStaticImmutableFixedPointer<shareable_GE> GE_static_ifptr1 = &static_gd;
+					mse::rsv::TStaticImmutableFixedPointer<E> E_static_ifptr5 = GE_static_ifptr1;
+					mse::rsv::TStaticImmutableFixedPointer<E> E_static_fptr2(&static_gd);
+					mse::rsv::TStaticImmutableFixedPointer<E> E_static_ifptr2(&static_gd);
+					mse::rsv::TStaticImmutableFixedConstPointer<E> E_static_fcptr2 = &static_gd;
 				}
-				else {
-					assert(false);
+
+				{
+					class A {
+					public:
+						A(int x) : b(x) {}
+						virtual ~A() {}
+
+						int b = 3;
+						std::string s = "some text ";
+					};
+					typedef mse::rsv::TAsyncShareableObj<A> shareable_A;
+					class B {
+					public:
+						static int foo1(shareable_A* a_native_ptr) { return a_native_ptr->b; }
+						static int foo2(mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_scpfptr) { return shareable_A_scpfptr->b; }
+						static int foo3(mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> shareable_A_scpfcptr) { return shareable_A_scpfcptr->b; }
+					protected:
+						~B() {}
+					};
+
+					MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) a_scpobj(5);
+					int res1 = (&a_scpobj)->b;
+					int res2 = B::foo2(&a_scpobj);
+					int res3 = B::foo3(&a_scpobj);
+
+					/* You can use the "mse::make_pointer_to_member_v2()" function to obtain a safe pointer to a member of
+					an static object. */
+					auto s_safe_ptr1 = mse::make_pointer_to_member_v2((&a_scpobj), &shareable_A::s);
+					auto s_safe_const_ptr1 = mse::make_const_pointer_to_member_v2((&a_scpobj), &shareable_A::s);
 				}
 
-				shareable_A a2 = a;
-				MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a2 = static_a;
-				static_a2 = a;
-				static_a2 = static_a;
+				{
+					shareable_A a(7);
+					MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a(7);
 
-				mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> rcp = shareable_A_static_ptr1;
-				mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> rcp2 = rcp;
-			}
+					assert(a.b == static_a.b);
+					shareable_A_native_ptr = std::addressof(a);
 
-			{
-				/* Polymorphic conversions. */
-				class E {
-				public:
-					int m_b = 5;
-				};
+					mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr1 = &static_a;
+					assert(shareable_A_native_ptr->b == shareable_A_static_ptr1->b);
+					mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr2 = &static_a;
 
-				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
-				class GE : public E {};
-				typedef mse::rsv::TAsyncShareableObj<GE> shareable_GE;
-				MSE_DECLARE_STATIC_IMMUTABLE(shareable_GE) static_gd;
-				mse::rsv::TStaticImmutableFixedPointer<shareable_GE> GE_static_ifptr1 = &static_gd;
-				mse::rsv::TStaticImmutableFixedPointer<E> E_static_ptr5(GE_static_ifptr1);
-				mse::rsv::TStaticImmutableFixedPointer<E> E_static_ifptr2(&static_gd);
-				mse::rsv::TStaticImmutableFixedConstPointer<E> E_static_fcptr2 = &static_gd;
-			}
+					/* mse::rsv::TStaticImmutableFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
+					B::foo1(static_cast<const shareable_A*>(shareable_A_static_ptr1));
+
+					if (!shareable_A_static_ptr2) {
+						assert(false);
+					}
+					else if (!(shareable_A_static_ptr2 != shareable_A_static_ptr1)) {
+						int q = B::foo2(shareable_A_static_ptr2);
+					}
+					else {
+						assert(false);
+					}
+
+					shareable_A a2 = a;
+					MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) static_a2 = static_a;
+					static_a2 = a;
+					static_a2 = static_a;
+
+					mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> rcp = shareable_A_static_ptr1;
+					mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> rcp2 = rcp;
+				}
+
+				{
+					/* Polymorphic conversions. */
+					class E {
+					public:
+						int m_b = 5;
+					};
+
+					/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
+					class GE : public E {};
+					typedef mse::rsv::TAsyncShareableObj<GE> shareable_GE;
+					MSE_DECLARE_STATIC_IMMUTABLE(shareable_GE) static_gd;
+					mse::rsv::TStaticImmutableFixedPointer<shareable_GE> GE_static_ifptr1 = &static_gd;
+					mse::rsv::TStaticImmutableFixedPointer<E> E_static_ptr5(GE_static_ifptr1);
+					mse::rsv::TStaticImmutableFixedPointer<E> E_static_ifptr2(&static_gd);
+					mse::rsv::TStaticImmutableFixedConstPointer<E> E_static_fcptr2 = &static_gd;
+				}
 
 #endif // MSE_SELF_TESTS
-		}
-	};
+			}
+		};
+	}
 
 #ifdef __clang__
 #pragma clang diagnostic pop

@@ -394,7 +394,7 @@ void msetl_example2() {
 		nanyptr1 = mse::TNullableAnyPointer<A>(a_refcptr);
 		auto res_nap1 = *nanyptr1;
 
-		mse::CPolyPtrTest1::s_test1();
+		mse::self_test::CPolyPtrTest1::s_test1();
 		int q = 3;
 	}
 
@@ -502,7 +502,7 @@ void msetl_example2() {
 		/*  optional<>  */
 		/****************/
 
-		mse::COptionalTest1::s_test1();
+		mse::self_test::COptionalTest1::s_test1();
 	}
 
 	{
@@ -577,9 +577,9 @@ void msetl_example2() {
 		/* But in cases where you're going to use a scope type as a member of a class or struct, that class or
 		struct must itself be a scope type. Improperly defining a scope type could result in unsafe code. */
 
-		/* Scope types need to publicly inherit from mse::XScopeTagBase. And by convention, be named with a prefix
+		/* Scope types need to publicly inherit from mse::us::impl::XScopeTagBase. And by convention, be named with a prefix
 		indicating that it's a scope type. */
-		class xscope_my_type1 : public mse::XScopeTagBase {
+		class xscope_my_type1 : public mse::us::impl::XScopeTagBase {
 		public:
 			xscope_my_type1(const mse::xscope_optional<mse::mstd::string>& xscp_maybe_string)
 				: m_xscp_maybe_string1(xscp_maybe_string) {}
@@ -593,12 +593,12 @@ void msetl_example2() {
 		};
 
 		/* If your type contains or owns any non-owning scope pointers, then it must also publicly inherit
-		from mse::ContainsNonOwningScopeReferenceTagBase. If your type contains or owns any item that can be
+		from mse::us::impl::ContainsNonOwningScopeReferenceTagBase. If your type contains or owns any item that can be
 		independently targeted by scope pointers (i.e. basically has a '&' ("address of" operator) that yeilds
-		a scope pointer), then it must also publicly inherit from mse::ReferenceableByScopePointerTagBase.
+		a scope pointer), then it must also publicly inherit from mse::us::impl::ReferenceableByScopePointerTagBase.
 		Failure to do so could result in unsafe code. */
-		class xscope_my_type2 : public mse::XScopeTagBase, public mse::ContainsNonOwningScopeReferenceTagBase
-			, public mse::ReferenceableByScopePointerTagBase
+		class xscope_my_type2 : public mse::us::impl::XScopeTagBase, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase
+			, public mse::us::impl::ReferenceableByScopePointerTagBase
 		{
 		public:
 			typedef mse::TXScopeItemFixedConstPointer<mse::mstd::string> xscope_string_ptr_t;

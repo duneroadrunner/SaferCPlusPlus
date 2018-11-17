@@ -51,9 +51,9 @@ namespace mse {
 		typedef typename _MV::const_iterator _It;
 		ivector(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
 		ivector(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
-		template<class _Iter, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type>
+		template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
 			ivector(_Iter _First, _Iter _Last) : m_shptr(std::make_shared<_MV>(_First, _Last)) {}
-		template<class _Iter, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type>
+		template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
 			ivector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MV>(_First, _Last, _Al)) {}
 
 		_Myt& operator=(_MV&& _X) { m_shptr->operator=(std::forward<decltype(_X)>(_X)); return (*this); }
@@ -97,7 +97,7 @@ namespace mse {
 		class xscope_cipointer;
 		class xscope_ipointer;
 
-		class cipointer : public _MV::random_access_const_iterator_base, public NotAsyncShareableTagBase {
+		class cipointer : public _MV::random_access_const_iterator_base, public mse::us::impl::NotAsyncShareableTagBase {
 		public:
 			typedef typename _MV::mm_const_iterator_type::iterator_category iterator_category;
 			typedef typename _MV::mm_const_iterator_type::value_type value_type;
@@ -345,7 +345,7 @@ namespace mse {
 		static _MV& _MV_ref(_MV& obj) { return obj; }
 		static const _MV& _MV_cref(const _MV& obj) { return obj; }
 
-		class xscope_cipointer : public _MV::random_access_iterator_base, public XScopeTagBase {
+		class xscope_cipointer : public _MV::random_access_iterator_base, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef typename _MV::cipointer::iterator_category iterator_category;
 			typedef typename _MV::cipointer::value_type value_type;
@@ -452,7 +452,7 @@ namespace mse {
 			typename _MV::xscope_cipointer m_xscope_cipointer;
 			friend class /*_Myt*/ivector<_Ty>;
 		};
-		class xscope_ipointer : public _MV::random_access_iterator_base, public XScopeTagBase {
+		class xscope_ipointer : public _MV::random_access_iterator_base, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef typename _MV::ipointer::iterator_category iterator_category;
 			typedef typename _MV::ipointer::value_type value_type;
@@ -546,7 +546,7 @@ namespace mse {
 		time. While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
 		individual elements in the vector do not become invalid by preventing any operation that might resize the vector
 		or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-		class xscope_structure_change_lock_guard : public XScopeTagBase {
+		class xscope_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
 		public:
 			xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
 				: m_MV_xscope_structure_change_lock_guard(mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
@@ -569,7 +569,7 @@ namespace mse {
 		private:
 			typename mse::us::msevector<_Ty>::xscope_structure_change_lock_guard m_MV_xscope_structure_change_lock_guard;
 		};
-		class xscope_const_structure_change_lock_guard : public XScopeTagBase {
+		class xscope_const_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
 		public:
 			xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<ivector>& owner_ptr)
 				: m_MV_xscope_const_structure_change_lock_guard(mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}

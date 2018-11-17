@@ -92,16 +92,16 @@ namespace mse {
 			typedef typename _MBS::const_iterator _It;
 			basic_string(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_F, _L, _Al)) {}
 			basic_string(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_F, _L, _Al)) {}
-			template<class _Iter, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type>
+			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
 			basic_string(_Iter _First, _Iter _Last) : m_shptr(std::make_shared<_MBS>(_First, _Last)) {}
-			template<class _Iter, class = typename std::enable_if<_mse_Is_iterator<_Iter>::value, void>::type>
+			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
 			basic_string(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MBS>(_First, _Last, _Al)) {}
 			basic_string(const _Ty* const _Ptr) : m_shptr(std::make_shared<_MBS>(_Ptr)) {}
 			basic_string(const _Ty* const _Ptr, const size_t _Count) : m_shptr(std::make_shared<_MBS>(_Ptr, _Count)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, npos, _Al)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, _Count, _Al)) {}
 			/* construct from mse::string_view and "string sections". */
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			basic_string(const _TStringSection& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
 
 			virtual ~basic_string() {
@@ -130,7 +130,7 @@ namespace mse {
 			template<class _Iter>
 			void assign(const _Iter& _First, const _Iter& _Last) { m_shptr->assign(_First, _Last); }
 			void assign(size_type _N, const _Ty& _X = _Ty()) { m_shptr->assign(_N, _X); }
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			void assign(const _TStringSection& _X) { m_shptr->assign(_X); }
 			template<class ..._Valty>
 			void emplace_back(_Valty&& ..._Val) { m_shptr->emplace_back(std::forward<_Valty>(_Val)...); }
@@ -398,16 +398,16 @@ namespace mse {
 			}
 			iterator insert_before(const const_iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, 1, _X); }
 			template<class _Iter
-				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
-				, class = _mse_RequireInputIter<_Iter> >
+				//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
+				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 			iterator insert_before(const const_iterator &pos, const _Iter &start, const _Iter &end) {
 				auto res = m_shptr->insert_before(pos.msebasic_string_ss_const_iterator_type(), start, end);
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
 				return retval;
 			}
 			template<class _Iter
-				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
-				, class = _mse_RequireInputIter<_Iter> >
+				//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
+				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 			iterator insert_before_inclusive(const const_iterator &pos, const _Iter &first, const _Iter &last) {
 				auto end = last; end++;
 				return insert_before(pos, first, end);
@@ -417,7 +417,7 @@ namespace mse {
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
 				return retval;
 			}
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			iterator insert_before(const const_iterator &pos, const _TStringSection& _X) {	// insert initializer_list
 				auto res = m_shptr->insert_before(pos.msebasic_string_ss_const_iterator_type(), _X);
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
@@ -435,7 +435,7 @@ namespace mse {
 				m_shptr->insert_before(pos, _Ilist);
 				return *this;
 			}
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			basic_string& insert_before(msev_size_t pos, const _TStringSection& _X) {
 				m_shptr->insert_before(pos, _X);
 				return *this;
@@ -445,12 +445,12 @@ namespace mse {
 			iterator insert(const const_iterator &pos, _Ty&& _X) { return insert_before(pos, std::forward<decltype(_X)>(_X)); }
 			iterator insert(const const_iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, _X); }
 			template<class _Iter
-				//>typename std::enable_if<_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
-				, class = _mse_RequireInputIter<_Iter> >
+				//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
+				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 				iterator insert(const const_iterator &pos, const _Iter &start, const _Iter &end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, const _Ty* start, const _Ty* end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, _XSTD initializer_list<typename _MBS::value_type> _Ilist) { return insert_before(pos, _Ilist); }
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			iterator insert(const const_iterator &pos, const _TStringSection& _X) { return insert_before(pos, _X); }
 			template<class ..._Valty>
 			iterator emplace(const const_iterator &pos, _Valty&& ..._Val) {
@@ -516,7 +516,7 @@ namespace mse {
 				msebasic_string().append(_Count, _Ch);
 				return (*this);
 			}
-			template<class _Iter, class = typename std::enable_if<mse::_mse_Is_iterator<_Iter>::value, void>::type>
+			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
 			basic_string& append(const _Iter _First, const _Iter _Last) {
 				msebasic_string().append(_First, _Last);
 				return (*this);
@@ -612,7 +612,7 @@ namespace mse {
 				return (replace(_First - begin(), _Last - _First, _Count, _Ch));
 			}
 
-			template<class _Iter, class = typename std::enable_if<mse::_mse_Is_iterator<_Iter>::value>::type>
+			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value>::type>
 			basic_string& replace(const const_iterator _First, const const_iterator _Last,
 				const _Iter _First2, const _Iter _Last2) {
 				const basic_string _Right(_First2, _Last2, get_allocator());
@@ -877,7 +877,7 @@ namespace mse {
 			}
 
 
-			class xscope_const_iterator : public _MBS::random_access_const_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase {
+			class xscope_const_iterator : public _MBS::random_access_const_iterator_base, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
 			public:
 				typedef typename _MBS::random_access_const_iterator_base base_class;
 				typedef typename base_class::iterator_category iterator_category;
@@ -984,7 +984,7 @@ namespace mse {
 				typename _MBS::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 				friend class /*_Myt*/basic_string<_Ty, _Traits>;
 			};
-			class xscope_iterator : public _MBS::random_access_iterator_base, public XScopeContainsNonOwningScopeReferenceTagBase {
+			class xscope_iterator : public _MBS::random_access_iterator_base, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
 			public:
 				typedef typename _MBS::random_access_iterator_base base_class;
 				typedef typename base_class::iterator_category iterator_category;
@@ -1080,7 +1080,7 @@ namespace mse {
 			time. While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
 			individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-			class xscope_structure_change_lock_guard : public XScopeTagBase {
+			class xscope_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
 			public:
 				xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<basic_string>& owner_ptr)
 					: m_MBS_xscope_structure_change_lock_guard(mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
@@ -1103,7 +1103,7 @@ namespace mse {
 			private:
 				typename mse::us::msebasic_string<_Ty, _Traits>::xscope_structure_change_lock_guard m_MBS_xscope_structure_change_lock_guard;
 			};
-			class xscope_const_structure_change_lock_guard : public XScopeTagBase {
+			class xscope_const_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
 			public:
 				xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<basic_string>& owner_ptr)
 					: m_MBS_xscope_const_structure_change_lock_guard(mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}

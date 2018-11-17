@@ -112,76 +112,80 @@ namespace mse {
 
 #endif /*MSE_REGISTEREDPOINTER_DISABLED*/
 
-	class CCRegisteredNode;
+	namespace us {
+		namespace impl {
+			class CCRegisteredNode;
 
-	class CCRNMutablePointer {
-	public:
-		CCRNMutablePointer(const CCRegisteredNode* ptr) : m_ptr(ptr) {}
-		/* explicit */CCRNMutablePointer(const CCRNMutablePointer& src_cref) : m_ptr(src_cref.m_ptr) {}
+			class CCRNMutablePointer {
+			public:
+				CCRNMutablePointer(const CCRegisteredNode* ptr) : m_ptr(ptr) {}
+				/* explicit */CCRNMutablePointer(const CCRNMutablePointer& src_cref) : m_ptr(src_cref.m_ptr) {}
 
-		auto& operator*() const {
-			return (*m_ptr);
-		}
-		auto operator->() const {
-			return m_ptr;
-		}
-		/* The point of this class is the const at the end. */
-		auto& operator=(const CCRNMutablePointer& src_cref) const {
-			m_ptr =src_cref.m_ptr;
-			return (*this);
-		}
-		operator bool() const {
-			return (m_ptr != nullptr);
-		}
+				auto& operator*() const {
+					return (*m_ptr);
+				}
+				auto operator->() const {
+					return m_ptr;
+				}
+				/* The point of this class is the const at the end. */
+				auto& operator=(const CCRNMutablePointer& src_cref) const {
+					m_ptr = src_cref.m_ptr;
+					return (*this);
+				}
+				operator bool() const {
+					return (m_ptr != nullptr);
+				}
 
-	private:
-		mutable const CCRegisteredNode* m_ptr = nullptr;
-	};
+			private:
+				mutable const CCRegisteredNode* m_ptr = nullptr;
+			};
 
-	/* node of a (doubly-linked) list of pointers */
-	class CCRegisteredNode {
-	public:
-		virtual void rn_set_pointer_to_null() const = 0;
-		void set_next_ptr(CCRNMutablePointer next_ptr) const {
-			m_next_ptr = next_ptr;
-		}
-		CCRNMutablePointer get_next_ptr() const {
-			return m_next_ptr;
-		}
-		void set_prev_next_ptr_ptr(const CCRNMutablePointer* prev_next_ptr_ptr) const {
-			m_prev_next_ptr_ptr = prev_next_ptr_ptr;
-		}
-		const CCRNMutablePointer* get_prev_next_ptr_ptr() const {
-			return m_prev_next_ptr_ptr;
-		}
-		const CCRNMutablePointer* get_address_of_my_next_ptr() const {
-			return &m_next_ptr;
-		}
+			/* node of a (doubly-linked) list of pointers */
+			class CCRegisteredNode {
+			public:
+				virtual void rn_set_pointer_to_null() const = 0;
+				void set_next_ptr(mse::us::impl::CCRNMutablePointer next_ptr) const {
+					m_next_ptr = next_ptr;
+				}
+				mse::us::impl::CCRNMutablePointer get_next_ptr() const {
+					return m_next_ptr;
+				}
+				void set_prev_next_ptr_ptr(const mse::us::impl::CCRNMutablePointer* prev_next_ptr_ptr) const {
+					m_prev_next_ptr_ptr = prev_next_ptr_ptr;
+				}
+				const mse::us::impl::CCRNMutablePointer* get_prev_next_ptr_ptr() const {
+					return m_prev_next_ptr_ptr;
+				}
+				const mse::us::impl::CCRNMutablePointer* get_address_of_my_next_ptr() const {
+					return &m_next_ptr;
+				}
 
-	private:
-		mutable CCRNMutablePointer m_next_ptr = nullptr;
-		mutable const CCRNMutablePointer* m_prev_next_ptr_ptr = nullptr;
-	};
+			private:
+				mutable mse::us::impl::CCRNMutablePointer m_next_ptr = nullptr;
+				mutable const mse::us::impl::CCRNMutablePointer* m_prev_next_ptr_ptr = nullptr;
+			};
+		}
+	}
 
 	/* TWCRegisteredPointer is similar to TWRegisteredPointer but uses a different implementation that allows it to be be declared
 	before its target type is fully defined. (This is necessary to support mutual and cyclic references.) It's also generally more
 	memory efficient. But maybe a bit slower in some cases. */
 	template<typename _Ty>
-	class TWCRegisteredPointer : public TSaferPtr<TWCRegisteredObj<_Ty>>, public CCRegisteredNode {
+	class TWCRegisteredPointer : public mse::us::TSaferPtr<TWCRegisteredObj<_Ty>>, public mse::us::impl::CCRegisteredNode {
 	public:
-		TWCRegisteredPointer() : TSaferPtr<TWCRegisteredObj<_Ty>>() {}
-		TWCRegisteredPointer(const TWCRegisteredPointer& src_cref) : TSaferPtr<TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredPointer() : mse::us::TSaferPtr<TWCRegisteredObj<_Ty>>() {}
+		TWCRegisteredPointer(const TWCRegisteredPointer& src_cref) : mse::us::TSaferPtr<TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWCRegisteredPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TSaferPtr<TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
-		TWCRegisteredPointer(std::nullptr_t) : TSaferPtr<TWCRegisteredObj<_Ty>>(nullptr) {}
+		TWCRegisteredPointer(std::nullptr_t) : mse::us::TSaferPtr<TWCRegisteredObj<_Ty>>(nullptr) {}
 		virtual ~TWCRegisteredPointer() {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).unregister_pointer(*this);
@@ -191,7 +195,7 @@ namespace mse {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).unregister_pointer(*this);
 			}
-			TSaferPtr<TWCRegisteredObj<_Ty>>::operator=(_Right_cref);
+			mse::us::TSaferPtr<TWCRegisteredObj<_Ty>>::operator=(_Right_cref);
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
@@ -225,7 +229,7 @@ namespace mse {
 		void rn_set_pointer_to_null() const override { (*this).spb_set_to_null(); }
 
 	private:
-		TWCRegisteredPointer(TWCRegisteredObj<_Ty>* ptr) : TSaferPtr<TWCRegisteredObj<_Ty>>(ptr) {
+		TWCRegisteredPointer(TWCRegisteredObj<_Ty>* ptr) : mse::us::TSaferPtr<TWCRegisteredObj<_Ty>>(ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
@@ -249,32 +253,32 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TWCRegisteredConstPointer : public TSaferPtr<const TWCRegisteredObj<_Ty>>, public CCRegisteredNode {
+	class TWCRegisteredConstPointer : public mse::us::TSaferPtr<const TWCRegisteredObj<_Ty>>, public mse::us::impl::CCRegisteredNode {
 	public:
-		TWCRegisteredConstPointer() : TSaferPtr<const TWCRegisteredObj<_Ty>>() {}
-		TWCRegisteredConstPointer(const TWCRegisteredConstPointer& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredConstPointer() : mse::us::TSaferPtr<const TWCRegisteredObj<_Ty>>() {}
+		TWCRegisteredConstPointer(const TWCRegisteredConstPointer& src_cref) : mse::us::TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWCRegisteredConstPointer(const TWCRegisteredConstPointer<_Ty2>& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredConstPointer(const TWCRegisteredConstPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
-		TWCRegisteredConstPointer(const TWCRegisteredPointer<_Ty>& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredConstPointer(const TWCRegisteredPointer<_Ty>& src_cref) : mse::us::TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWCRegisteredConstPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TWCRegisteredConstPointer(const TWCRegisteredPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<const TWCRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
-		TWCRegisteredConstPointer(std::nullptr_t) : TSaferPtr<const TWCRegisteredObj<_Ty>>(nullptr) {}
+		TWCRegisteredConstPointer(std::nullptr_t) : mse::us::TSaferPtr<const TWCRegisteredObj<_Ty>>(nullptr) {}
 		virtual ~TWCRegisteredConstPointer() {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).unregister_pointer(*this);
@@ -284,7 +288,7 @@ namespace mse {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).unregister_pointer(*this);
 			}
-			TSaferPtr<const TWCRegisteredObj<_Ty>>::operator=(_Right_cref);
+			mse::us::TSaferPtr<const TWCRegisteredObj<_Ty>>::operator=(_Right_cref);
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
@@ -319,7 +323,7 @@ namespace mse {
 		void rn_set_pointer_to_null() const override { (*this).spb_set_to_null(); }
 
 	private:
-		TWCRegisteredConstPointer(const TWCRegisteredObj<_Ty>* ptr) : TSaferPtr<const TWCRegisteredObj<_Ty>>(ptr) {
+		TWCRegisteredConstPointer(const TWCRegisteredObj<_Ty>* ptr) : mse::us::TSaferPtr<const TWCRegisteredObj<_Ty>>(ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
@@ -509,8 +513,8 @@ namespace mse {
 	destruction so that TWCRegisteredPointers will avoid referencing destroyed objects. Note that TWCRegisteredObj can be used with
 	objects allocated on the stack. */
 	template<typename _TROFLy>
-	class TWCRegisteredObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, NotAsyncShareableTagBase*>::value) && (!std::is_base_of<NotAsyncShareableTagBase, _TROFLy>::value)
-		, NotAsyncShareableTagBase, TPlaceHolder_msepointerbasics<TWCRegisteredObj<_TROFLy> > >::type
+	class TWCRegisteredObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, mse::us::impl::NotAsyncShareableTagBase*>::value) && (!std::is_base_of<mse::us::impl::NotAsyncShareableTagBase, _TROFLy>::value)
+		, mse::us::impl::NotAsyncShareableTagBase, impl::TPlaceHolder_msepointerbasics<TWCRegisteredObj<_TROFLy> > >::type
 	{
 	public:
 		typedef _TROFLy base_class;
@@ -537,7 +541,7 @@ namespace mse {
 		TWCRegisteredFixedConstPointer<_TROFLy> mse_cregistered_fptr() const { return TWCRegisteredFixedConstPointer<_TROFLy>(this); }
 
 		/* todo: make these private */
-		void register_pointer(const CCRegisteredNode& node_cref) const {
+		void register_pointer(const mse::us::impl::CCRegisteredNode& node_cref) const {
 			if (m_head_ptr) {
 				m_head_ptr->set_prev_next_ptr_ptr(node_cref.get_address_of_my_next_ptr());
 			}
@@ -545,7 +549,7 @@ namespace mse {
 			node_cref.set_prev_next_ptr_ptr(&m_head_ptr);
 			m_head_ptr = &node_cref;
 		}
-		static void unregister_pointer(const CCRegisteredNode& node_cref) {
+		static void unregister_pointer(const mse::us::impl::CCRegisteredNode& node_cref) {
 			assert(node_cref.get_prev_next_ptr_ptr());
 			(*(node_cref.get_prev_next_ptr_ptr())) = node_cref.get_next_ptr();
 			if (node_cref.get_next_ptr()) {
@@ -568,7 +572,7 @@ namespace mse {
 		}
 
 		/* first node in a (doubly-linked) list of pointers targeting this object */
-		mutable CCRNMutablePointer m_head_ptr = nullptr;
+		mutable mse::us::impl::CCRNMutablePointer m_head_ptr = nullptr;
 	};
 
 
@@ -579,20 +583,20 @@ namespace mse {
 	template <class _Ty, class... Args>
 	TCRegisteredPointer<_Ty> cregistered_new(Args&&... args) {
 		auto a = new TCRegisteredObj<_Ty>(std::forward<Args>(args)...);
-		tlSAllocRegistry_ref<TCRegisteredObj<_Ty> >().registerPointer(a);
+		mse::us::impl::tlSAllocRegistry_ref<TCRegisteredObj<_Ty> >().registerPointer(a);
 		return &(*a);
 	}
 	template <class _Ty>
 	void cregistered_delete(const TCRegisteredPointer<_Ty>& regPtrRef) {
 		auto a = static_cast<TCRegisteredObj<_Ty>*>(regPtrRef);
-		auto res = tlSAllocRegistry_ref<TCRegisteredObj<_Ty> >().unregisterPointer(a);
+		auto res = mse::us::impl::tlSAllocRegistry_ref<TCRegisteredObj<_Ty> >().unregisterPointer(a);
 		if (!res) { assert(false); MSE_THROW(std::invalid_argument("invalid argument, no corresponding allocation found - mse::cregistered_delete() \n- tip: If deleting via base class pointer, use mse::us::cregistered_delete() instead. ")); }
 		regPtrRef.cregistered_delete();
 	}
 	template <class _Ty>
 	void cregistered_delete(const TCRegisteredConstPointer<_Ty>& regPtrRef) {
 		auto a = static_cast<const TCRegisteredObj<_Ty>*>(regPtrRef);
-		auto res = tlSAllocRegistry_ref<TCRegisteredObj<_Ty> >().unregisterPointer(a);
+		auto res = mse::us::impl::tlSAllocRegistry_ref<TCRegisteredObj<_Ty> >().unregisterPointer(a);
 		if (!res) { assert(false); MSE_THROW(std::invalid_argument("invalid argument, no corresponding allocation found - mse::cregistered_delete() \n- tip: If deleting via base class pointer, use mse::us::cregistered_delete() instead. ")); }
 		regPtrRef.cregistered_delete();
 	}
@@ -691,77 +695,77 @@ namespace mse {
 	/* template specializations */
 
 	template<typename _Ty>
-	class TWCRegisteredObj<_Ty*> : public TWCRegisteredObj<mse::TPointerForLegacy<_Ty>> {
+	class TWCRegisteredObj<_Ty*> : public TWCRegisteredObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredObj<mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWCRegisteredObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredObj, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredObj<_Ty* const> : public TWCRegisteredObj<const mse::TPointerForLegacy<_Ty>> {
+	class TWCRegisteredObj<_Ty* const> : public TWCRegisteredObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredObj<const mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWCRegisteredObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredObj, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredObj<const _Ty *> : public TWCRegisteredObj<mse::TPointerForLegacy<const _Ty>> {
+	class TWCRegisteredObj<const _Ty *> : public TWCRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredObj<mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWCRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredObj, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredObj<const _Ty * const> : public TWCRegisteredObj<const mse::TPointerForLegacy<const _Ty>> {
+	class TWCRegisteredObj<const _Ty * const> : public TWCRegisteredObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredObj<const mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWCRegisteredObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredObj, base_class);
 	};
 
 	template<typename _Ty>
-	class TWCRegisteredPointer<_Ty*> : public TWCRegisteredPointer<mse::TPointerForLegacy<_Ty>> {
+	class TWCRegisteredPointer<_Ty*> : public TWCRegisteredPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredPointer<mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWCRegisteredPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredPointer<_Ty* const> : public TWCRegisteredPointer<const mse::TPointerForLegacy<_Ty>> {
+	class TWCRegisteredPointer<_Ty* const> : public TWCRegisteredPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredPointer<const mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWCRegisteredPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredPointer<const _Ty *> : public TWCRegisteredPointer<mse::TPointerForLegacy<const _Ty>> {
+	class TWCRegisteredPointer<const _Ty *> : public TWCRegisteredPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredPointer<mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWCRegisteredPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredPointer<const _Ty * const> : public TWCRegisteredPointer<const mse::TPointerForLegacy<const _Ty>> {
+	class TWCRegisteredPointer<const _Ty * const> : public TWCRegisteredPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredPointer<const mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWCRegisteredPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredPointer, base_class);
 	};
 
 	template<typename _Ty>
-	class TWCRegisteredConstPointer<_Ty*> : public TWCRegisteredConstPointer<mse::TPointerForLegacy<_Ty>> {
+	class TWCRegisteredConstPointer<_Ty*> : public TWCRegisteredConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredConstPointer<mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWCRegisteredConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredConstPointer<_Ty* const> : public TWCRegisteredConstPointer<const mse::TPointerForLegacy<_Ty>> {
+	class TWCRegisteredConstPointer<_Ty* const> : public TWCRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWCRegisteredConstPointer<const mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWCRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWCRegisteredConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredConstPointer<const _Ty *> : public TWCRegisteredConstPointer<mse::TPointerForLegacy<const _Ty>> {
+	class TWCRegisteredConstPointer<const _Ty *> : public TWCRegisteredConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredConstPointer<mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWCRegisteredConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWCRegisteredConstPointer<const _Ty * const> : public TWCRegisteredConstPointer<const mse::TPointerForLegacy<const _Ty>> {
+	class TWCRegisteredConstPointer<const _Ty * const> : public TWCRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWCRegisteredConstPointer<const mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWCRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWCRegisteredConstPointer, base_class);
 	};
 
@@ -890,54 +894,56 @@ namespace mse {
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
-	class CCRegPtrTest1 {
-	public:
-		static void s_test1() {
+	namespace self_test {
+		class CCRegPtrTest1 {
+		public:
+			static void s_test1() {
 #ifdef MSE_SELF_TESTS
-			class C;
+				class C;
 
-			class D {
-			public:
-				virtual ~D() {}
-				mse::TCRegisteredPointer<C> m_c_ptr = nullptr;
-			};
+				class D {
+				public:
+					virtual ~D() {}
+					mse::TCRegisteredPointer<C> m_c_ptr = nullptr;
+				};
 
-			class C {
-			public:
-				C() {}
-				mse::TCRegisteredPointer<D> m_d_ptr = nullptr;
-			};
+				class C {
+				public:
+					C() {}
+					mse::TCRegisteredPointer<D> m_d_ptr = nullptr;
+				};
 
-			mse::TCRegisteredObj<C> regobjfl_c;
-			mse::TCRegisteredPointer<D> d_ptr = mse::cregistered_new<D>();
+				mse::TCRegisteredObj<C> regobjfl_c;
+				mse::TCRegisteredPointer<D> d_ptr = mse::cregistered_new<D>();
 
-			regobjfl_c.m_d_ptr = d_ptr;
-			d_ptr->m_c_ptr = &regobjfl_c;
+				regobjfl_c.m_d_ptr = d_ptr;
+				d_ptr->m_c_ptr = &regobjfl_c;
 
-			mse::TCRegisteredConstPointer<C> rrcp = d_ptr->m_c_ptr;
-			mse::TCRegisteredConstPointer<C> rrcp2 = rrcp;
-			const mse::TCRegisteredObj<C> regobjfl_e;
-			rrcp = &regobjfl_e;
-			mse::TCRegisteredFixedConstPointer<C> rrfcp = &regobjfl_e;
-			rrcp = mse::cregistered_new<C>();
-			mse::cregistered_delete<C>(rrcp);
+				mse::TCRegisteredConstPointer<C> rrcp = d_ptr->m_c_ptr;
+				mse::TCRegisteredConstPointer<C> rrcp2 = rrcp;
+				const mse::TCRegisteredObj<C> regobjfl_e;
+				rrcp = &regobjfl_e;
+				mse::TCRegisteredFixedConstPointer<C> rrfcp = &regobjfl_e;
+				rrcp = mse::cregistered_new<C>();
+				mse::cregistered_delete<C>(rrcp);
 
-			mse::cregistered_delete<D>(d_ptr);
+				mse::cregistered_delete<D>(d_ptr);
 
-			{
-				/* Polymorphic conversions. */
-				class FD : public mse::TCRegisteredObj<D> {};
-				mse::TCRegisteredObj<FD> cregistered_fd;
-				mse::TCRegisteredPointer<FD> FD_cregistered_ptr1 = &cregistered_fd;
-				mse::TCRegisteredPointer<D> D_cregistered_ptr4 = FD_cregistered_ptr1;
-				D_cregistered_ptr4 = &cregistered_fd;
-				mse::TCRegisteredFixedPointer<D> D_cregistered_fptr1 = &cregistered_fd;
-				mse::TCRegisteredFixedConstPointer<D> D_cregistered_fcptr1 = &cregistered_fd;
-			}
+				{
+					/* Polymorphic conversions. */
+					class FD : public mse::TCRegisteredObj<D> {};
+					mse::TCRegisteredObj<FD> cregistered_fd;
+					mse::TCRegisteredPointer<FD> FD_cregistered_ptr1 = &cregistered_fd;
+					mse::TCRegisteredPointer<D> D_cregistered_ptr4 = FD_cregistered_ptr1;
+					D_cregistered_ptr4 = &cregistered_fd;
+					mse::TCRegisteredFixedPointer<D> D_cregistered_fptr1 = &cregistered_fd;
+					mse::TCRegisteredFixedConstPointer<D> D_cregistered_fcptr1 = &cregistered_fd;
+				}
 
 #endif // MSE_SELF_TESTS
-		}
-	};
+			}
+		};
+	}
 
 #ifdef __clang__
 #pragma clang diagnostic pop

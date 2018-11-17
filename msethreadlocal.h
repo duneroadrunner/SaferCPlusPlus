@@ -111,8 +111,8 @@ namespace mse {
 			}
 		};
 
-		template<typename _Ty> using TThreadLocalPointerBase = TPointerForLegacy<_Ty, TThreadLocalID<const _Ty>>;
-		template<typename _Ty> using TThreadLocalConstPointerBase = TPointerForLegacy<const _Ty, TThreadLocalID<const _Ty>>;
+		template<typename _Ty> using TThreadLocalPointerBase = mse::us::impl::TPointerForLegacy<_Ty, TThreadLocalID<const _Ty>>;
+		template<typename _Ty> using TThreadLocalConstPointerBase = mse::us::impl::TPointerForLegacy<const _Ty, TThreadLocalID<const _Ty>>;
 		template<typename _Ty> using Tthread_local_obj_base_ptr = TThreadLocalObjBase<_Ty>*;
 		template<typename _Ty> using Tthread_local_obj_base_const_ptr = TThreadLocalObjBase<_Ty> const*;
 
@@ -141,7 +141,7 @@ namespace mse {
 
 		/* Use TThreadLocalFixedPointer instead. */
 		template<typename _Ty>
-		class TThreadLocalPointer : public TThreadLocalPointerBase<_Ty>, public StrongPointerNotAsyncShareableTagBase {
+		class TThreadLocalPointer : public TThreadLocalPointerBase<_Ty>, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
 		public:
 			typedef Tthread_local_obj_base_ptr<_Ty> scope_obj_base_ptr_t;
 			virtual ~TThreadLocalPointer() {}
@@ -181,7 +181,7 @@ namespace mse {
 
 		/* Use TThreadLocalFixedConstPointer instead. */
 		template<typename _Ty>
-		class TThreadLocalConstPointer : public TThreadLocalConstPointerBase<const _Ty>, public StrongPointerNotAsyncShareableTagBase {
+		class TThreadLocalConstPointer : public TThreadLocalConstPointerBase<const _Ty>, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
 		public:
 			typedef Tthread_local_obj_base_const_ptr<_Ty> scope_obj_base_const_ptr_t;
 			virtual ~TThreadLocalConstPointer() {}
@@ -222,7 +222,7 @@ namespace mse {
 
 		/* Use TThreadLocalFixedPointer instead. */
 		template<typename _Ty>
-		class TThreadLocalNotNullPointer : public TThreadLocalPointer<_Ty>, public NeverNullTagBase {
+		class TThreadLocalNotNullPointer : public TThreadLocalPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 		public:
 			virtual ~TThreadLocalNotNullPointer() {}
 		private:
@@ -246,7 +246,7 @@ namespace mse {
 
 		/* Use TThreadLocalFixedConstPointer instead. */
 		template<typename _Ty>
-		class TThreadLocalNotNullConstPointer : public TThreadLocalConstPointer<_Ty>, public NeverNullTagBase {
+		class TThreadLocalNotNullConstPointer : public TThreadLocalConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 		public:
 			virtual ~TThreadLocalNotNullConstPointer() {}
 		private:
@@ -408,27 +408,27 @@ namespace mse {
 		/* template specializations */
 
 		template<typename _Ty>
-		class TThreadLocalObj<_Ty*> : public TThreadLocalObj<mse::TPointerForLegacy<_Ty>> {
+		class TThreadLocalObj<_Ty*> : public TThreadLocalObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
-			typedef TThreadLocalObj<mse::TPointerForLegacy<_Ty>> base_class;
+			typedef TThreadLocalObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TThreadLocalObj, base_class);
 		};
 		template<typename _Ty>
-		class TThreadLocalObj<_Ty* const> : public TThreadLocalObj<const mse::TPointerForLegacy<_Ty>> {
+		class TThreadLocalObj<_Ty* const> : public TThreadLocalObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
-			typedef TThreadLocalObj<const mse::TPointerForLegacy<_Ty>> base_class;
+			typedef TThreadLocalObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TThreadLocalObj, base_class);
 		};
 		template<typename _Ty>
-		class TThreadLocalObj<const _Ty *> : public TThreadLocalObj<mse::TPointerForLegacy<const _Ty>> {
+		class TThreadLocalObj<const _Ty *> : public TThreadLocalObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
-			typedef TThreadLocalObj<mse::TPointerForLegacy<const _Ty>> base_class;
+			typedef TThreadLocalObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TThreadLocalObj, base_class);
 		};
 		template<typename _Ty>
-		class TThreadLocalObj<const _Ty * const> : public TThreadLocalObj<const mse::TPointerForLegacy<const _Ty>> {
+		class TThreadLocalObj<const _Ty * const> : public TThreadLocalObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
-			typedef TThreadLocalObj<const mse::TPointerForLegacy<const _Ty>> base_class;
+			typedef TThreadLocalObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TThreadLocalObj, base_class);
 		};
 
@@ -471,167 +471,169 @@ namespace mse {
 #define MSE_DECLARE_THREAD_LOCAL_GLOBAL_CONST(type) MSE_DECLARE_THREAD_LOCAL_CONST(type) 
 
 
-	class CThreadLocalPtrTest1 {
-	public:
-		static void s_test1() {
+	namespace self_test {
+		class CThreadLocalPtrTest1 {
+		public:
+			static void s_test1() {
 #ifdef MSE_SELF_TESTS
-			class A {
-			public:
-				A(int x) : b(x) {}
-				A(const A& _X) : b(_X.b) {}
-				A(A&& _X) : b(std::forward<decltype(_X.b)>(_X.b)) {}
-				virtual ~A() {}
-				A& operator=(A&& _X) { b = std::forward<decltype(_X.b)>(_X.b); return (*this); }
-				A& operator=(const A& _X) { b = _X.b; return (*this); }
-
-				int b = 3;
-			};
-			class B {
-			public:
-				static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-				static int foo2(mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr) { return A_thread_local_ptr->b; }
-			protected:
-				~B() {}
-			};
-
-			A* A_native_ptr = nullptr;
-
-			{
-				A a(7);
-				MSE_DECLARE_THREAD_LOCAL(A) thread_local_a(7);
-
-				assert(a.b == thread_local_a.b);
-				A_native_ptr = &a;
-
-				mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr1(&thread_local_a);
-				assert(A_native_ptr->b == A_thread_local_ptr1->b);
-				mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr2 = &thread_local_a;
-
-				/* mse::rsv::TThreadLocalFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-				B::foo1(static_cast<A*>(A_thread_local_ptr1));
-
-				if (!A_thread_local_ptr2) {
-					assert(false);
-				}
-				else if (!(A_thread_local_ptr2 != A_thread_local_ptr1)) {
-					int q = B::foo2(A_thread_local_ptr2);
-				}
-				else {
-					assert(false);
-				}
-
-				A a2 = a;
-				MSE_DECLARE_THREAD_LOCAL(A) thread_local_a2 = thread_local_a;
-				thread_local_a2 = a;
-				thread_local_a2 = thread_local_a;
-
-				mse::rsv::TThreadLocalFixedConstPointer<A> rcp = A_thread_local_ptr1;
-				mse::rsv::TThreadLocalFixedConstPointer<A> rcp2 = rcp;
-				MSE_DECLARE_THREAD_LOCAL_CONST(A) cthread_local_a(11);
-				mse::rsv::TThreadLocalFixedConstPointer<A> rfcp = &cthread_local_a;
-			}
-
-			{
-				/* Polymorphic conversions. */
-				class E {
-				public:
-					int m_b = 5;
-				};
-
-				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
-				class GE : public E {};
-				MSE_DECLARE_THREAD_LOCAL(GE) thread_local_gd;
-				mse::rsv::TThreadLocalFixedPointer<GE> GE_thread_local_ifptr1 = &thread_local_gd;
-				mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_ifptr5 = GE_thread_local_ifptr1;
-				mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_fptr2(&thread_local_gd);
-				mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_ifptr2(&thread_local_gd);
-				mse::rsv::TThreadLocalFixedConstPointer<E> E_thread_local_fcptr2 = &thread_local_gd;
-			}
-
-			{
 				class A {
 				public:
 					A(int x) : b(x) {}
+					A(const A& _X) : b(_X.b) {}
+					A(A&& _X) : b(std::forward<decltype(_X.b)>(_X.b)) {}
 					virtual ~A() {}
+					A& operator=(A&& _X) { b = std::forward<decltype(_X.b)>(_X.b); return (*this); }
+					A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 					int b = 3;
-					std::string s = "some text ";
 				};
 				class B {
 				public:
 					static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-					static int foo2(mse::rsv::TThreadLocalFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-					static int foo3(mse::rsv::TThreadLocalFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+					static int foo2(mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr) { return A_thread_local_ptr->b; }
 				protected:
 					~B() {}
 				};
 
-				MSE_DECLARE_THREAD_LOCAL(A) a_scpobj(5);
-				int res1 = (&a_scpobj)->b;
-				int res2 = B::foo2(&a_scpobj);
-				int res3 = B::foo3(&a_scpobj);
+				A* A_native_ptr = nullptr;
 
-				/* You can use the "mse::make_pointer_to_member_v2()" function to obtain a safe pointer to a member of
-				an thread_local object. */
-				auto s_safe_ptr1 = mse::make_pointer_to_member_v2((&a_scpobj), &A::s);
-				(*s_safe_ptr1) = "some new text";
-				auto s_safe_const_ptr1 = mse::make_const_pointer_to_member_v2((&a_scpobj), &A::s);
-			}
+				{
+					A a(7);
+					MSE_DECLARE_THREAD_LOCAL(A) thread_local_a(7);
 
-			{
-				A a(7);
-				MSE_DECLARE_THREAD_LOCAL(A) thread_local_a(7);
+					assert(a.b == thread_local_a.b);
+					A_native_ptr = &a;
 
-				assert(a.b == thread_local_a.b);
-				A_native_ptr = &a;
+					mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr1(&thread_local_a);
+					assert(A_native_ptr->b == A_thread_local_ptr1->b);
+					mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr2 = &thread_local_a;
 
-				mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr1 = &thread_local_a;
-				assert(A_native_ptr->b == A_thread_local_ptr1->b);
-				mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr2 = &thread_local_a;
+					/* mse::rsv::TThreadLocalFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
+					B::foo1(static_cast<A*>(A_thread_local_ptr1));
 
-				/* mse::rsv::TThreadLocalFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-				B::foo1(static_cast<A*>(A_thread_local_ptr1));
+					if (!A_thread_local_ptr2) {
+						assert(false);
+					}
+					else if (!(A_thread_local_ptr2 != A_thread_local_ptr1)) {
+						int q = B::foo2(A_thread_local_ptr2);
+					}
+					else {
+						assert(false);
+					}
 
-				if (!A_thread_local_ptr2) {
-					assert(false);
+					A a2 = a;
+					MSE_DECLARE_THREAD_LOCAL(A) thread_local_a2 = thread_local_a;
+					thread_local_a2 = a;
+					thread_local_a2 = thread_local_a;
+
+					mse::rsv::TThreadLocalFixedConstPointer<A> rcp = A_thread_local_ptr1;
+					mse::rsv::TThreadLocalFixedConstPointer<A> rcp2 = rcp;
+					MSE_DECLARE_THREAD_LOCAL_CONST(A) cthread_local_a(11);
+					mse::rsv::TThreadLocalFixedConstPointer<A> rfcp = &cthread_local_a;
 				}
-				else if (!(A_thread_local_ptr2 != A_thread_local_ptr1)) {
-					int q = B::foo2(A_thread_local_ptr2);
+
+				{
+					/* Polymorphic conversions. */
+					class E {
+					public:
+						int m_b = 5;
+					};
+
+					/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
+					class GE : public E {};
+					MSE_DECLARE_THREAD_LOCAL(GE) thread_local_gd;
+					mse::rsv::TThreadLocalFixedPointer<GE> GE_thread_local_ifptr1 = &thread_local_gd;
+					mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_ifptr5 = GE_thread_local_ifptr1;
+					mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_fptr2(&thread_local_gd);
+					mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_ifptr2(&thread_local_gd);
+					mse::rsv::TThreadLocalFixedConstPointer<E> E_thread_local_fcptr2 = &thread_local_gd;
 				}
-				else {
-					assert(false);
+
+				{
+					class A {
+					public:
+						A(int x) : b(x) {}
+						virtual ~A() {}
+
+						int b = 3;
+						std::string s = "some text ";
+					};
+					class B {
+					public:
+						static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
+						static int foo2(mse::rsv::TThreadLocalFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+						static int foo3(mse::rsv::TThreadLocalFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+					protected:
+						~B() {}
+					};
+
+					MSE_DECLARE_THREAD_LOCAL(A) a_scpobj(5);
+					int res1 = (&a_scpobj)->b;
+					int res2 = B::foo2(&a_scpobj);
+					int res3 = B::foo3(&a_scpobj);
+
+					/* You can use the "mse::make_pointer_to_member_v2()" function to obtain a safe pointer to a member of
+					an thread_local object. */
+					auto s_safe_ptr1 = mse::make_pointer_to_member_v2((&a_scpobj), &A::s);
+					(*s_safe_ptr1) = "some new text";
+					auto s_safe_const_ptr1 = mse::make_const_pointer_to_member_v2((&a_scpobj), &A::s);
 				}
 
-				A a2 = a;
-				MSE_DECLARE_THREAD_LOCAL(A) thread_local_a2 = thread_local_a;
-				thread_local_a2 = a;
-				thread_local_a2 = thread_local_a;
+				{
+					A a(7);
+					MSE_DECLARE_THREAD_LOCAL(A) thread_local_a(7);
 
-				mse::rsv::TThreadLocalFixedConstPointer<A> rcp = A_thread_local_ptr1;
-				mse::rsv::TThreadLocalFixedConstPointer<A> rcp2 = rcp;
-				MSE_DECLARE_THREAD_LOCAL_CONST(A) cthread_local_a(11);
-				mse::rsv::TThreadLocalFixedConstPointer<A> rfcp = &cthread_local_a;
-			}
+					assert(a.b == thread_local_a.b);
+					A_native_ptr = &a;
 
-			{
-				/* Polymorphic conversions. */
-				class E {
-				public:
-					int m_b = 5;
-				};
+					mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr1 = &thread_local_a;
+					assert(A_native_ptr->b == A_thread_local_ptr1->b);
+					mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr2 = &thread_local_a;
 
-				/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
-				class GE : public E {};
-				MSE_DECLARE_THREAD_LOCAL(GE) thread_local_gd;
-				mse::rsv::TThreadLocalFixedPointer<GE> GE_thread_local_ifptr1 = &thread_local_gd;
-				mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_ptr5(GE_thread_local_ifptr1);
-				mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_ifptr2(&thread_local_gd);
-				mse::rsv::TThreadLocalFixedConstPointer<E> E_thread_local_fcptr2 = &thread_local_gd;
-			}
+					/* mse::rsv::TThreadLocalFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
+					B::foo1(static_cast<A*>(A_thread_local_ptr1));
+
+					if (!A_thread_local_ptr2) {
+						assert(false);
+					}
+					else if (!(A_thread_local_ptr2 != A_thread_local_ptr1)) {
+						int q = B::foo2(A_thread_local_ptr2);
+					}
+					else {
+						assert(false);
+					}
+
+					A a2 = a;
+					MSE_DECLARE_THREAD_LOCAL(A) thread_local_a2 = thread_local_a;
+					thread_local_a2 = a;
+					thread_local_a2 = thread_local_a;
+
+					mse::rsv::TThreadLocalFixedConstPointer<A> rcp = A_thread_local_ptr1;
+					mse::rsv::TThreadLocalFixedConstPointer<A> rcp2 = rcp;
+					MSE_DECLARE_THREAD_LOCAL_CONST(A) cthread_local_a(11);
+					mse::rsv::TThreadLocalFixedConstPointer<A> rfcp = &cthread_local_a;
+				}
+
+				{
+					/* Polymorphic conversions. */
+					class E {
+					public:
+						int m_b = 5;
+					};
+
+					/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
+					class GE : public E {};
+					MSE_DECLARE_THREAD_LOCAL(GE) thread_local_gd;
+					mse::rsv::TThreadLocalFixedPointer<GE> GE_thread_local_ifptr1 = &thread_local_gd;
+					mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_ptr5(GE_thread_local_ifptr1);
+					mse::rsv::TThreadLocalFixedPointer<E> E_thread_local_ifptr2(&thread_local_gd);
+					mse::rsv::TThreadLocalFixedConstPointer<E> E_thread_local_fcptr2 = &thread_local_gd;
+				}
 
 #endif // MSE_SELF_TESTS
-		}
-	};
+			}
+		};
+	}
 
 #ifdef __clang__
 #pragma clang diagnostic pop

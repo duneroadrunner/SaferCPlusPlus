@@ -121,26 +121,26 @@ namespace mse {
 	it results in program termination. This drastic consequence allows norad pointers' run-time safety mechanism to be very
 	lightweight (compared to that of registered pointers). */
 	template<typename _Ty>
-	class TWNoradPointer : public TPointer<TWNoradObj<_Ty> >, public StrongPointerTagBase {
+	class TWNoradPointer : public mse::us::impl::TPointer<TWNoradObj<_Ty> >, public mse::us::impl::StrongPointerTagBase {
 	public:
-		TWNoradPointer() : TPointer<TWNoradObj<_Ty>>() {}
-		TWNoradPointer(const TWNoradPointer& src_cref) : TPointer<TWNoradObj<_Ty>>(src_cref.m_ptr) {
+		TWNoradPointer() : mse::us::impl::TPointer<TWNoradObj<_Ty>>() {}
+		TWNoradPointer(const TWNoradPointer& src_cref) : mse::us::impl::TPointer<TWNoradObj<_Ty>>(src_cref.m_ptr) {
 			if (*this) { (*(*this)).increment_refcount(); }
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWNoradPointer(const TWNoradPointer<_Ty2>& src_cref) : TPointer<TWNoradObj<_Ty>>(src_cref.m_ptr) {
+		TWNoradPointer(const TWNoradPointer<_Ty2>& src_cref) : mse::us::impl::TPointer<TWNoradObj<_Ty>>(src_cref.m_ptr) {
 			if (*this) { (*(*this)).increment_refcount(); }
 		}
-		TWNoradPointer(TWNoradPointer&& src_ref) : TPointer<TWNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+		TWNoradPointer(TWNoradPointer&& src_ref) : mse::us::impl::TPointer<TWNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
 			src_ref.m_ptr = nullptr;
 		}
-		TWNoradPointer(std::nullptr_t) : TPointer<TWNoradObj<_Ty>>(nullptr) {}
+		TWNoradPointer(std::nullptr_t) : mse::us::impl::TPointer<TWNoradObj<_Ty>>(nullptr) {}
 		virtual ~TWNoradPointer() {
 			if (*this) { (*(*this)).decrement_refcount(); }
 		}
 		TWNoradPointer<_Ty>& operator=(const TWNoradPointer<_Ty>& _Right_cref) {
 			if (*this) { (*(*this)).decrement_refcount(); }
-			TPointer<TWNoradObj<_Ty>>::operator=(_Right_cref);
+			mse::us::impl::TPointer<TWNoradObj<_Ty>>::operator=(_Right_cref);
 			if (*this) { (*(*this)).increment_refcount(); }
 			return (*this);
 		}
@@ -179,7 +179,7 @@ namespace mse {
 		}
 
 	private:
-		TWNoradPointer(TWNoradObj<_Ty>* ptr) : TPointer<TWNoradObj<_Ty>>(ptr) {
+		TWNoradPointer(TWNoradObj<_Ty>* ptr) : mse::us::impl::TPointer<TWNoradObj<_Ty>>(ptr) {
 			assert(*this);
 			(*(*this)).increment_refcount();
 		}
@@ -202,38 +202,38 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TWNoradConstPointer : public TPointer<const TWNoradObj<_Ty> >, public StrongPointerTagBase {
+	class TWNoradConstPointer : public mse::us::impl::TPointer<const TWNoradObj<_Ty> >, public mse::us::impl::StrongPointerTagBase {
 	public:
-		TWNoradConstPointer() : TPointer<const TWNoradObj<_Ty>>() {}
-		TWNoradConstPointer(const TWNoradConstPointer& src_cref) : TPointer<const TWNoradObj<_Ty>>(src_cref.m_ptr) {
+		TWNoradConstPointer() : mse::us::impl::TPointer<const TWNoradObj<_Ty>>() {}
+		TWNoradConstPointer(const TWNoradConstPointer& src_cref) : mse::us::impl::TPointer<const TWNoradObj<_Ty>>(src_cref.m_ptr) {
 			if (*this) { (*(*this)).increment_refcount(); }
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWNoradConstPointer(const TWNoradConstPointer<_Ty2>& src_cref) : TPointer<const TWNoradObj<_Ty>>(src_cref.m_ptr) {
+		TWNoradConstPointer(const TWNoradConstPointer<_Ty2>& src_cref) : mse::us::impl::TPointer<const TWNoradObj<_Ty>>(src_cref.m_ptr) {
 			if (*this) { (*(*this)).increment_refcount(); }
 		}
-		TWNoradConstPointer(const TWNoradPointer<_Ty>& src_cref) : TPointer<const TWNoradObj<_Ty>>(src_cref.m_ptr) {
+		TWNoradConstPointer(const TWNoradPointer<_Ty>& src_cref) : mse::us::impl::TPointer<const TWNoradObj<_Ty>>(src_cref.m_ptr) {
 			if (*this) { (*(*this)).increment_refcount(); }
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWNoradConstPointer(const TWNoradPointer<_Ty2>& src_cref) : TPointer<const TWNoradObj<_Ty>>(src_cref.m_ptr) {
+		TWNoradConstPointer(const TWNoradPointer<_Ty2>& src_cref) : mse::us::impl::TPointer<const TWNoradObj<_Ty>>(src_cref.m_ptr) {
 			if (*this) { (*(*this)).increment_refcount(); }
 		}
 
-		TWNoradConstPointer(TWNoradConstPointer&& src_ref) : TPointer<const TWNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+		TWNoradConstPointer(TWNoradConstPointer&& src_ref) : mse::us::impl::TPointer<const TWNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
 			src_ref.m_ptr = nullptr;
 		}
-		TWNoradConstPointer(TWNoradPointer<_Ty>&& src_ref) : TPointer<const TWNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+		TWNoradConstPointer(TWNoradPointer<_Ty>&& src_ref) : mse::us::impl::TPointer<const TWNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
 			src_ref.m_ptr = nullptr;
 		}
 
-		TWNoradConstPointer(std::nullptr_t) : TPointer<const TWNoradObj<_Ty>>(nullptr) {}
+		TWNoradConstPointer(std::nullptr_t) : mse::us::impl::TPointer<const TWNoradObj<_Ty>>(nullptr) {}
 		virtual ~TWNoradConstPointer() {
 			if (*this) { (*(*this)).decrement_refcount(); }
 		}
 		TWNoradConstPointer<_Ty>& operator=(const TWNoradConstPointer<_Ty>& _Right_cref) {
 			if (*this) { (*(*this)).decrement_refcount(); }
-			TPointer<const TWNoradObj<_Ty>>::operator=(_Right_cref);
+			mse::us::impl::TPointer<const TWNoradObj<_Ty>>::operator=(_Right_cref);
 			if (*this) { (*(*this)).increment_refcount(); }
 			return (*this);
 		}
@@ -272,7 +272,7 @@ namespace mse {
 		}
 
 	private:
-		TWNoradConstPointer(const TWNoradObj<_Ty>* ptr) : TPointer<const TWNoradObj<_Ty>>(ptr) {
+		TWNoradConstPointer(const TWNoradObj<_Ty>* ptr) : mse::us::impl::TPointer<const TWNoradObj<_Ty>>(ptr) {
 			assert(*this);
 			(*(*this)).increment_refcount();
 		}
@@ -294,7 +294,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TWNoradNotNullPointer : public TWNoradPointer<_Ty>, public NeverNullTagBase {
+	class TWNoradNotNullPointer : public TWNoradPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 	public:
 		TWNoradNotNullPointer(const TWNoradNotNullPointer& src_cref) : TWNoradPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -347,7 +347,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TWNoradNotNullConstPointer : public TWNoradConstPointer<_Ty>, public NeverNullTagBase {
+	class TWNoradNotNullConstPointer : public TWNoradConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 	public:
 		TWNoradNotNullConstPointer(const TWNoradNotNullPointer<_Ty>& src_cref) : TWNoradConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -494,8 +494,8 @@ namespace mse {
 	destruction so that TWNoradPointers will avoid referencing destroyed objects. Note that TWNoradObj can be used with
 	objects allocated on the stack. */
 	template<typename _TROFLy>
-	class TWNoradObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, NotAsyncShareableTagBase*>::value) && (!std::is_base_of<NotAsyncShareableTagBase, _TROFLy>::value)
-		, NotAsyncShareableTagBase, TPlaceHolder_msepointerbasics<TWNoradObj<_TROFLy> > >::type
+	class TWNoradObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, mse::us::impl::NotAsyncShareableTagBase*>::value) && (!std::is_base_of<mse::us::impl::NotAsyncShareableTagBase, _TROFLy>::value)
+		, mse::us::impl::NotAsyncShareableTagBase, impl::TPlaceHolder_msepointerbasics<TWNoradObj<_TROFLy> > >::type
 	{
 	public:
 		typedef _TROFLy base_class;
@@ -541,20 +541,20 @@ namespace mse {
 	template <class _Ty, class... Args>
 	TNoradPointer<_Ty> norad_new(Args&&... args) {
 		auto a = new TNoradObj<_Ty>(std::forward<Args>(args)...);
-		tlSAllocRegistry_ref<TNoradObj<_Ty> >().registerPointer(a);
+		mse::us::impl::tlSAllocRegistry_ref<TNoradObj<_Ty> >().registerPointer(a);
 		return &(*a);
 	}
 	template <class _Ty>
 	void norad_delete(TNoradPointer<_Ty>& regPtrRef) {
 		auto a = static_cast<TNoradObj<_Ty>*>(regPtrRef);
-		auto res = tlSAllocRegistry_ref<TNoradObj<_Ty> >().unregisterPointer(a);
+		auto res = mse::us::impl::tlSAllocRegistry_ref<TNoradObj<_Ty> >().unregisterPointer(a);
 		if (!res) { assert(false); MSE_THROW(std::invalid_argument("invalid argument, no corresponding allocation found - mse::norad_delete() \n- tip: If deleting via base class pointer, use mse::us::norad_delete() instead. ")); }
 		regPtrRef.norad_delete();
 	}
 	template <class _Ty>
 	void norad_delete(TNoradConstPointer<_Ty>& regPtrRef) {
 		auto a = static_cast<const TNoradObj<_Ty>*>(regPtrRef);
-		auto res = tlSAllocRegistry_ref<TNoradObj<_Ty> >().unregisterPointer(a);
+		auto res = mse::us::impl::tlSAllocRegistry_ref<TNoradObj<_Ty> >().unregisterPointer(a);
 		if (!res) { assert(false); MSE_THROW(std::invalid_argument("invalid argument, no corresponding allocation found - mse::norad_delete() \n- tip: If deleting via base class pointer, use mse::us::norad_delete() instead. ")); }
 		regPtrRef.norad_delete();
 	}
@@ -653,77 +653,77 @@ namespace mse {
 	/* template specializations */
 
 	template<typename _Ty>
-	class TWNoradObj<_Ty*> : public TWNoradObj<mse::TPointerForLegacy<_Ty>> {
+	class TWNoradObj<_Ty*> : public TWNoradObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWNoradObj<mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWNoradObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWNoradObj, base_class);
 	};
 	template<typename _Ty>
-	class TWNoradObj<_Ty* const> : public TWNoradObj<const mse::TPointerForLegacy<_Ty>> {
+	class TWNoradObj<_Ty* const> : public TWNoradObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWNoradObj<const mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWNoradObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWNoradObj, base_class);
 	};
 	template<typename _Ty>
-	class TWNoradObj<const _Ty *> : public TWNoradObj<mse::TPointerForLegacy<const _Ty>> {
+	class TWNoradObj<const _Ty *> : public TWNoradObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWNoradObj<mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWNoradObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWNoradObj, base_class);
 	};
 	template<typename _Ty>
-	class TWNoradObj<const _Ty * const> : public TWNoradObj<const mse::TPointerForLegacy<const _Ty>> {
+	class TWNoradObj<const _Ty * const> : public TWNoradObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWNoradObj<const mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWNoradObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWNoradObj, base_class);
 	};
 
 	template<typename _Ty>
-	class TWNoradPointer<_Ty*> : public TWNoradPointer<mse::TPointerForLegacy<_Ty>> {
+	class TWNoradPointer<_Ty*> : public TWNoradPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWNoradPointer<mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWNoradPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWNoradPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWNoradPointer<_Ty* const> : public TWNoradPointer<const mse::TPointerForLegacy<_Ty>> {
+	class TWNoradPointer<_Ty* const> : public TWNoradPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWNoradPointer<const mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWNoradPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWNoradPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWNoradPointer<const _Ty *> : public TWNoradPointer<mse::TPointerForLegacy<const _Ty>> {
+	class TWNoradPointer<const _Ty *> : public TWNoradPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWNoradPointer<mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWNoradPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWNoradPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWNoradPointer<const _Ty * const> : public TWNoradPointer<const mse::TPointerForLegacy<const _Ty>> {
+	class TWNoradPointer<const _Ty * const> : public TWNoradPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWNoradPointer<const mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWNoradPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWNoradPointer, base_class);
 	};
 
 	template<typename _Ty>
-	class TWNoradConstPointer<_Ty*> : public TWNoradConstPointer<mse::TPointerForLegacy<_Ty>> {
+	class TWNoradConstPointer<_Ty*> : public TWNoradConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWNoradConstPointer<mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWNoradConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWNoradConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWNoradConstPointer<_Ty* const> : public TWNoradConstPointer<const mse::TPointerForLegacy<_Ty>> {
+	class TWNoradConstPointer<_Ty* const> : public TWNoradConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWNoradConstPointer<const mse::TPointerForLegacy<_Ty>> base_class;
+		typedef TWNoradConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TWNoradConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWNoradConstPointer<const _Ty *> : public TWNoradConstPointer<mse::TPointerForLegacy<const _Ty>> {
+	class TWNoradConstPointer<const _Ty *> : public TWNoradConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWNoradConstPointer<mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWNoradConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWNoradConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWNoradConstPointer<const _Ty * const> : public TWNoradConstPointer<const mse::TPointerForLegacy<const _Ty>> {
+	class TWNoradConstPointer<const _Ty * const> : public TWNoradConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWNoradConstPointer<const mse::TPointerForLegacy<const _Ty>> base_class;
+		typedef TWNoradConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TWNoradConstPointer, base_class);
 	};
 
@@ -837,58 +837,60 @@ namespace mse {
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
-	class CNoradPtrTest1 {
-	public:
-		static void s_test1() {
+	namespace self_test {
+		class CNoradPtrTest1 {
+		public:
+			static void s_test1() {
 #ifdef MSE_SELF_TESTS
-			class C;
+				class C;
 
-			class D {
-			public:
-				virtual ~D() {}
-				mse::TNoradPointer<C> m_c_ptr = nullptr;
-			};
+				class D {
+				public:
+					virtual ~D() {}
+					mse::TNoradPointer<C> m_c_ptr = nullptr;
+				};
 
-			class C {
-			public:
-				C() {}
-				mse::TNoradPointer<D> m_d_ptr = nullptr;
-			};
+				class C {
+				public:
+					C() {}
+					mse::TNoradPointer<D> m_d_ptr = nullptr;
+				};
 
-			mse::TNoradObj<C> noradobj_c;
-			mse::TNoradPointer<D> d_ptr = mse::norad_new<D>();
+				mse::TNoradObj<C> noradobj_c;
+				mse::TNoradPointer<D> d_ptr = mse::norad_new<D>();
 
-			noradobj_c.m_d_ptr = d_ptr;
-			d_ptr->m_c_ptr = &noradobj_c;
+				noradobj_c.m_d_ptr = d_ptr;
+				d_ptr->m_c_ptr = &noradobj_c;
 
-			mse::TNoradConstPointer<C> rrcp = d_ptr->m_c_ptr;
-			mse::TNoradConstPointer<C> rrcp2 = rrcp;
-			const mse::TNoradObj<C> noradobj_e;
-			rrcp = &noradobj_e;
-			mse::TNoradFixedConstPointer<C> rrfcp = &noradobj_e;
-			rrcp = mse::norad_new<C>();
-			mse::norad_delete<C>(rrcp);
+				mse::TNoradConstPointer<C> rrcp = d_ptr->m_c_ptr;
+				mse::TNoradConstPointer<C> rrcp2 = rrcp;
+				const mse::TNoradObj<C> noradobj_e;
+				rrcp = &noradobj_e;
+				mse::TNoradFixedConstPointer<C> rrfcp = &noradobj_e;
+				rrcp = mse::norad_new<C>();
+				mse::norad_delete<C>(rrcp);
 
-			/* We must make sure that there are no other references to the target of d_ptr before deleting it. Registered pointers don't
-			have the same requirement. */
-			noradobj_c.m_d_ptr = nullptr;
+				/* We must make sure that there are no other references to the target of d_ptr before deleting it. Registered pointers don't
+				have the same requirement. */
+				noradobj_c.m_d_ptr = nullptr;
 
-			mse::norad_delete<D>(d_ptr);
+				mse::norad_delete<D>(d_ptr);
 
-			{
-				/* Polymorphic conversions. */
-				class FD : public mse::TNoradObj<D> {};
-				mse::TNoradObj<FD> norad_fd;
-				mse::TNoradPointer<FD> FD_norad_ptr1 = &norad_fd;
-				mse::TNoradPointer<D> D_norad_ptr4 = FD_norad_ptr1;
-				D_norad_ptr4 = &norad_fd;
-				mse::TNoradFixedPointer<D> D_norad_fptr1 = &norad_fd;
-				mse::TNoradFixedConstPointer<D> D_norad_fcptr1 = &norad_fd;
-			}
+				{
+					/* Polymorphic conversions. */
+					class FD : public mse::TNoradObj<D> {};
+					mse::TNoradObj<FD> norad_fd;
+					mse::TNoradPointer<FD> FD_norad_ptr1 = &norad_fd;
+					mse::TNoradPointer<D> D_norad_ptr4 = FD_norad_ptr1;
+					D_norad_ptr4 = &norad_fd;
+					mse::TNoradFixedPointer<D> D_norad_fptr1 = &norad_fd;
+					mse::TNoradFixedConstPointer<D> D_norad_fcptr1 = &norad_fd;
+				}
 
 #endif // MSE_SELF_TESTS
-		}
-	};
+			}
+		};
+	}
 
 #ifdef __clang__
 #pragma clang diagnostic pop

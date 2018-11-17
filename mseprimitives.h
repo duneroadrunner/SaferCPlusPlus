@@ -164,56 +164,58 @@ namespace std {
 
 namespace mse {
 
-	template<typename _TDestination, typename _TSource>
-	MSE_CONSTEXPR static bool sg_can_exceed_upper_bound() {
-		return (
-			((std::numeric_limits<_TSource>::is_signed == std::numeric_limits<_TDestination>::is_signed)
-				&& (std::numeric_limits<_TSource>::digits > std::numeric_limits<_TDestination>::digits))
-			|| ((std::numeric_limits<_TSource>::is_signed != std::numeric_limits<_TDestination>::is_signed)
-				&& ((std::numeric_limits<_TSource>::is_signed && (std::numeric_limits<_TSource>::digits > (1 + std::numeric_limits<_TDestination>::digits)))
-					|| ((!std::numeric_limits<_TSource>::is_signed) && ((1 + std::numeric_limits<_TSource>::digits) > std::numeric_limits<_TDestination>::digits))
+	namespace impl {
+		template<typename _TDestination, typename _TSource>
+		MSE_CONSTEXPR static bool sg_can_exceed_upper_bound() {
+			return (
+				((std::numeric_limits<_TSource>::is_signed == std::numeric_limits<_TDestination>::is_signed)
+					&& (std::numeric_limits<_TSource>::digits > std::numeric_limits<_TDestination>::digits))
+				|| ((std::numeric_limits<_TSource>::is_signed != std::numeric_limits<_TDestination>::is_signed)
+					&& ((std::numeric_limits<_TSource>::is_signed && (std::numeric_limits<_TSource>::digits > (1 + std::numeric_limits<_TDestination>::digits)))
+						|| ((!std::numeric_limits<_TSource>::is_signed) && ((1 + std::numeric_limits<_TSource>::digits) > std::numeric_limits<_TDestination>::digits))
+						)
 					)
-				)
-			);
-	}
-	template<typename _TDestination, typename _TSource>
-	MSE_CONSTEXPR static bool sg_can_exceed_lower_bound() {
-		return (
-			(std::numeric_limits<_TSource>::is_signed && (!std::numeric_limits<_TDestination>::is_signed))
-			|| (std::numeric_limits<_TSource>::is_signed && (std::numeric_limits<_TSource>::digits > std::numeric_limits<_TDestination>::digits))
-			);
-	}
-
-	template<typename _TDestination, typename _TSource>
-	void g_assign_check_range(const _TSource &x) {
-#ifndef MSE_PRIMITIVE_ASSIGN_RANGE_CHECK_DISABLED
-		/* This probably needs to be cleaned up. But at the moment this should be mostly compile time complexity. And
-		as is it avoids "signed/unsigned" mismatch warnings. */
-		MSE_CONSTEXPR const bool rhs_can_exceed_upper_bound = sg_can_exceed_upper_bound<_TDestination, _TSource>();
-		MSE_CONSTEXPR const bool rhs_can_exceed_lower_bound = sg_can_exceed_lower_bound<_TDestination, _TSource>();
-		MSE_CONSTEXPR const bool can_exceed_bounds = rhs_can_exceed_upper_bound || rhs_can_exceed_lower_bound;
-		if (can_exceed_bounds) {
-			if (rhs_can_exceed_upper_bound) {
-				if (x > _TSource(std::numeric_limits<_TDestination>::max())) {
-					MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
-				}
-			}
-			if (rhs_can_exceed_lower_bound) {
-				/* We're assuming that std::numeric_limits<>::lowest() will never be greater than zero. */
-				if (_TSource(0) > x) {
-					if (0 == std::numeric_limits<_TDestination>::lowest()) {
-						MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
-					}
-					else if (x < _TSource(std::numeric_limits<_TDestination>::lowest())) {
-						MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
-					}
-				}
-			}
+				);
 		}
+		template<typename _TDestination, typename _TSource>
+		MSE_CONSTEXPR static bool sg_can_exceed_lower_bound() {
+			return (
+				(std::numeric_limits<_TSource>::is_signed && (!std::numeric_limits<_TDestination>::is_signed))
+				|| (std::numeric_limits<_TSource>::is_signed && (std::numeric_limits<_TSource>::digits > std::numeric_limits<_TDestination>::digits))
+				);
+		}
+
+		template<typename _TDestination, typename _TSource>
+		void g_assign_check_range(const _TSource &x) {
+#ifndef MSE_PRIMITIVE_ASSIGN_RANGE_CHECK_DISABLED
+			/* This probably needs to be cleaned up. But at the moment this should be mostly compile time complexity. And
+			as is it avoids "signed/unsigned" mismatch warnings. */
+			MSE_CONSTEXPR const bool rhs_can_exceed_upper_bound = impl::sg_can_exceed_upper_bound<_TDestination, _TSource>();
+			MSE_CONSTEXPR const bool rhs_can_exceed_lower_bound = impl::sg_can_exceed_lower_bound<_TDestination, _TSource>();
+			MSE_CONSTEXPR const bool can_exceed_bounds = rhs_can_exceed_upper_bound || rhs_can_exceed_lower_bound;
+			if (can_exceed_bounds) {
+				if (rhs_can_exceed_upper_bound) {
+					if (x > _TSource(std::numeric_limits<_TDestination>::max())) {
+						MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
+					}
+				}
+				if (rhs_can_exceed_lower_bound) {
+					/* We're assuming that std::numeric_limits<>::lowest() will never be greater than zero. */
+					if (_TSource(0) > x) {
+						if (0 == std::numeric_limits<_TDestination>::lowest()) {
+							MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
+						}
+						else if (x < _TSource(std::numeric_limits<_TDestination>::lowest())) {
+							MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
+						}
+					}
+				}
+			}
 #endif // !MSE_PRIMITIVE_ASSIGN_RANGE_CHECK_DISABLED
+		}
 	}
 
-//define MSE_TINT_TYPE_WITH_THE_LOWER_FLOOR(_Ty, _Tz) typename std::conditional<sg_can_exceed_lower_bound<_Tz, _Ty>(), _Ty, _Tz>::type
+//define MSE_TINT_TYPE_WITH_THE_LOWER_FLOOR(_Ty, _Tz) typename std::conditional<impl::sg_can_exceed_lower_bound<_Tz, _Ty>(), _Ty, _Tz>::type
 
 	template<typename _TBaseInt = MSE_CINT_BASE_INTEGER_TYPE> class TInt;
 
@@ -222,36 +224,37 @@ namespace mse {
 	class CNDSize_t;
 	static size_t as_a_size_t(CNDSize_t n);
 
-	template<typename _Ty> struct next_bigger_native_int_type { typedef _Ty type; };
-	template<> struct next_bigger_native_int_type<char> { typedef short int type; };
-	template<> struct next_bigger_native_int_type<short int> { typedef long int type; };
-	template<> struct next_bigger_native_int_type<long int> { typedef long long int type; };
-	template<> struct next_bigger_native_int_type<unsigned char> { typedef unsigned short int type; };
-	template<> struct next_bigger_native_int_type<unsigned short int> { typedef unsigned long int type; };
-	template<> struct next_bigger_native_int_type<unsigned long int> { typedef unsigned long long int type; };
+	namespace impl {
+		template<typename _Ty> struct next_bigger_native_int_type { typedef _Ty type; };
+		template<> struct next_bigger_native_int_type<char> { typedef short int type; };
+		template<> struct next_bigger_native_int_type<short int> { typedef long int type; };
+		template<> struct next_bigger_native_int_type<long int> { typedef long long int type; };
+		template<> struct next_bigger_native_int_type<unsigned char> { typedef unsigned short int type; };
+		template<> struct next_bigger_native_int_type<unsigned short int> { typedef unsigned long int type; };
+		template<> struct next_bigger_native_int_type<unsigned long int> { typedef unsigned long long int type; };
 
-	template<typename _Ty, typename _Tz> struct range_encompassing_native_int_type { typedef long long int type; };
-	template<> struct range_encompassing_native_int_type<unsigned long long int, unsigned long long int> { typedef unsigned long long int type; };
-	template<> struct range_encompassing_native_int_type<long int, long int> { typedef long int type; };
-	template<> struct range_encompassing_native_int_type<unsigned long int, unsigned long int> { typedef unsigned long int type; };
-	template<> struct range_encompassing_native_int_type<int, int> { typedef int type; };
-	template<> struct range_encompassing_native_int_type<unsigned int, unsigned int> { typedef unsigned int type; };
-	template<> struct range_encompassing_native_int_type<short int, short int> { typedef short int type; };
-	template<> struct range_encompassing_native_int_type<unsigned short int, unsigned short int> { typedef unsigned short int type; };
+		template<typename _Ty, typename _Tz> struct range_encompassing_native_int_type { typedef long long int type; };
+		template<> struct range_encompassing_native_int_type<unsigned long long int, unsigned long long int> { typedef unsigned long long int type; };
+		template<> struct range_encompassing_native_int_type<long int, long int> { typedef long int type; };
+		template<> struct range_encompassing_native_int_type<unsigned long int, unsigned long int> { typedef unsigned long int type; };
+		template<> struct range_encompassing_native_int_type<int, int> { typedef int type; };
+		template<> struct range_encompassing_native_int_type<unsigned int, unsigned int> { typedef unsigned int type; };
+		template<> struct range_encompassing_native_int_type<short int, short int> { typedef short int type; };
+		template<> struct range_encompassing_native_int_type<unsigned short int, unsigned short int> { typedef unsigned short int type; };
 
-	template<> struct range_encompassing_native_int_type<unsigned long int, long int> { typedef long int type; };
-	template<> struct range_encompassing_native_int_type<long int, unsigned long int> { typedef long int type; };
-	template<> struct range_encompassing_native_int_type<unsigned int, int> { typedef int type; };
-	template<> struct range_encompassing_native_int_type<int, unsigned int> { typedef int type; };
-	/* to do: add more template specializations or otherwise address the other cases */
-#define MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz) typename range_encompassing_native_int_type<_Ty, _Tz>::type
+		template<> struct range_encompassing_native_int_type<unsigned long int, long int> { typedef long int type; };
+		template<> struct range_encompassing_native_int_type<long int, unsigned long int> { typedef long int type; };
+		template<> struct range_encompassing_native_int_type<unsigned int, int> { typedef int type; };
+		template<> struct range_encompassing_native_int_type<int, unsigned int> { typedef int type; };
+		/* to do: add more template specializations or otherwise address the other cases */
+#define MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz) typename mse::impl::range_encompassing_native_int_type<_Ty, _Tz>::type
 
 #ifdef MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
-#define MSE_NATIVE_INT_RESULT_TYPE1(_Ty, _Tz) typename next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
-#define MSE_NATIVE_INT_ADD_RESULT_TYPE1(_Ty, _Tz) typename next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
+#define MSE_NATIVE_INT_RESULT_TYPE1(_Ty, _Tz) typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
+#define MSE_NATIVE_INT_ADD_RESULT_TYPE1(_Ty, _Tz) typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
 #define MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) typename std::conditional<std::is_signed<_Ty>::value || std::is_signed<_Tz>::value \
-, next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type, typename std::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type>::type
-#define MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) typename next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
+, mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type, typename std::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type>::type
+#define MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
 #define MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
 #else // MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 #define MSE_NATIVE_INT_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
@@ -261,9 +264,9 @@ namespace mse {
 #define MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
 #endif //MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 
-template<typename _Ty>
-struct native_int_type { typedef typename std::conditional<std::is_arithmetic<_Ty>::value, TInt<_Ty>, _Ty>::type type; };
-#define MSE_TINT_TYPE(_Ty) typename native_int_type<_Ty>::type
+		template<typename _Ty>
+		struct native_int_type { typedef typename std::conditional<std::is_arithmetic<_Ty>::value, TInt<_Ty>, _Ty>::type type; };
+#define MSE_TINT_TYPE(_Ty) typename mse::impl::native_int_type<_Ty>::type
 #define MSE_NATIVE_INT_TYPE(_Ty) MSE_TINT_TYPE(_Ty)::base_int_type
 #define MSE_TINT_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
 #define MSE_TINT_ADD_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_ADD_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
@@ -271,47 +274,48 @@ struct native_int_type { typedef typename std::conditional<std::is_arithmetic<_T
 #define MSE_TINT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
 #define MSE_TINT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
 
-	/* The CNDInt and CNDSize_t classes are meant to substitute for standard "int" and "size_t" types. The differences between
-	the standard types and these classes are that the classes have a default intialization value (zero), and the
-	classes, as much as possible, try to prevent the problematic behaviour of (possibly negative) signed integers
-	being cast (inadvertently) to the unsigned size_t type. For example, the expression (0 > (int)5 - (size_t)7) evaluates
-	(unintuitively) to false, whereas the expression (0 > (CNDInt)5 - (CNDSize_t)7) evaluates to true. Also, the classes do
-	some range checking. For example, the code "CNDSize_t s = -2;" will throw an exception. */
-	template<typename _Ty>
-	class TIntBase1 {
-	public:
-		// Constructs zero.
-		TIntBase1() : m_val(0) {}
+		/* The CNDInt and CNDSize_t classes are meant to substitute for standard "int" and "size_t" types. The differences between
+		the standard types and these classes are that the classes have a default intialization value (zero), and the
+		classes, as much as possible, try to prevent the problematic behaviour of (possibly negative) signed integers
+		being cast (inadvertently) to the unsigned size_t type. For example, the expression (0 > (int)5 - (size_t)7) evaluates
+		(unintuitively) to false, whereas the expression (0 > (CNDInt)5 - (CNDSize_t)7) evaluates to true. Also, the classes do
+		some range checking. For example, the code "CNDSize_t s = -2;" will throw an exception. */
+		template<typename _Ty>
+		class TIntBase1 {
+		public:
+			// Constructs zero.
+			TIntBase1() : m_val(0) {}
 
-		// Copy constructor
-		TIntBase1(const TIntBase1 &x) : m_val(x.m_val) { note_value_assignment(); };
+			// Copy constructor
+			TIntBase1(const TIntBase1 &x) : m_val(x.m_val) { note_value_assignment(); };
 
-		// Constructors from primitive integer types
-		explicit TIntBase1(_Ty x) : m_val(x) { note_value_assignment(); }
+			// Constructors from primitive integer types
+			explicit TIntBase1(_Ty x) : m_val(x) { note_value_assignment(); }
 
-		template<typename _Tz>
-		void assign_check_range(const _Tz &x) {
-			note_value_assignment();
-			g_assign_check_range<_Ty, _Tz>(x);
-		}
+			template<typename _Tz>
+			void assign_check_range(const _Tz &x) {
+				note_value_assignment();
+				impl::g_assign_check_range<_Ty, _Tz>(x);
+			}
 
-		_Ty m_val;
+			_Ty m_val;
 
 #ifdef MSE_CHECK_USE_BEFORE_SET
-		void note_value_assignment() { m_initialized = true; }
-		void assert_initialized() const { assert(m_initialized); }
-		bool m_initialized = false;
+			void note_value_assignment() { m_initialized = true; }
+			void assert_initialized() const { assert(m_initialized); }
+			bool m_initialized = false;
 #else // MSE_CHECK_USE_BEFORE_SET
-		void note_value_assignment() {}
-		void assert_initialized() const {}
+			void note_value_assignment() {}
+			void assert_initialized() const {}
 #endif // MSE_CHECK_USE_BEFORE_SET
-	};
+		};
+	}
 	
 
 	template<typename _TBaseInt/* = MSE_CINT_BASE_INTEGER_TYPE*/>
-	class TInt : public TIntBase1<_TBaseInt> {
+	class TInt : public impl::TIntBase1<_TBaseInt> {
 	public:
-		typedef TIntBase1<_TBaseInt> base_class;
+		typedef impl::TIntBase1<_TBaseInt> base_class;
 		typedef _TBaseInt base_int_type;
 
 		TInt() : base_class() {}
@@ -530,9 +534,9 @@ namespace std {
 namespace mse {
 	/* Note that CNDSize_t does not have a default conversion to size_t. This is by design. Use the as_a_size_t() member
 	function to get a size_t when necessary. */
-	class CNDSize_t : public TIntBase1<size_t> {
+	class CNDSize_t : public impl::TIntBase1<size_t> {
 	public:
-		typedef TIntBase1<size_t> base_class;
+		typedef impl::TIntBase1<size_t> base_class;
 		typedef size_t base_int_type;
 		typedef int _T_signed_primitive_integer_type;
 
@@ -841,58 +845,60 @@ namespace mse {
 
 #endif /*MSE_PRIMITIVES_DISABLED*/
 
-	class CPrimitivesTest1 {
-	public:
-		static void s_test1() {
+	namespace self_test {
+		class CPrimitivesTest1 {
+		public:
+			static void s_test1() {
 #ifdef MSE_SELF_TESTS
-			CInt i1(3);
-			CInt i2 = 5;
-			CInt i3;
-			i3 = 7;
-			CInt i4 = i1 + i2;
-			i4 = i1 + 17;
-			i4 = 19 + i1;
-			i4 += i2;
-			i4 -= 23;
-			i4++;
-			CBool b1 = (i1 < i2);
-			b1 = (i1 < 17);
-			b1 = (19 < i1);
-			b1 = (i1 == i2);
-			b1 = (i1 == 17);
-			b1 = (19 == i1);
+				CInt i1(3);
+				CInt i2 = 5;
+				CInt i3;
+				i3 = 7;
+				CInt i4 = i1 + i2;
+				i4 = i1 + 17;
+				i4 = 19 + i1;
+				i4 += i2;
+				i4 -= 23;
+				i4++;
+				CBool b1 = (i1 < i2);
+				b1 = (i1 < 17);
+				b1 = (19 < i1);
+				b1 = (i1 == i2);
+				b1 = (i1 == 17);
+				b1 = (19 == i1);
 
-			CSize_t szt1(3);
-			CSize_t szt2 = 5;
-			CSize_t szt3;
-			szt3 = 7;
-			CSize_t szt4 = szt1 + szt2;
-			szt4 = szt1 + 17;
-			szt4 = 19 + szt1;
-			CInt i11 = 19 + szt1;
-			szt4 += szt2;
-			szt4 -= 23;
-			szt4++;
+				CSize_t szt1(3);
+				CSize_t szt2 = 5;
+				CSize_t szt3;
+				szt3 = 7;
+				CSize_t szt4 = szt1 + szt2;
+				szt4 = szt1 + 17;
+				szt4 = 19 + szt1;
+				CInt i11 = 19 + szt1;
+				szt4 += szt2;
+				szt4 -= 23;
+				szt4++;
 #ifndef MSVC2010_COMPATIBLE
-			size_t szt5 = size_t(szt4);
+				size_t szt5 = size_t(szt4);
 #endif /*MSVC2010_COMPATIBLE*/
-			bool b3 = (szt1 < szt2);
-			b3 = (szt1 < 17);
-			b3 = (19 < szt1);
-			CBool b2 = (19 < szt1);
-			b3 = (szt1 == szt2);
-			b3 = (szt1 == 17);
-			b3 = (19 == szt1);
-			CBool b4 = (b1 == b2);
-			b4 = (b3 == b1);
-			b4 = (b1 && b2);
-			b4 = (b1 || b3);
-			b4 = (b3 && b1);
-			b4 |= b1;
-			b4 &= b3;
+				bool b3 = (szt1 < szt2);
+				b3 = (szt1 < 17);
+				b3 = (19 < szt1);
+				CBool b2 = (19 < szt1);
+				b3 = (szt1 == szt2);
+				b3 = (szt1 == 17);
+				b3 = (19 == szt1);
+				CBool b4 = (b1 == b2);
+				b4 = (b3 == b1);
+				b4 = (b1 && b2);
+				b4 = (b1 || b3);
+				b4 = (b3 && b1);
+				b4 |= b1;
+				b4 &= b3;
 #endif // MSE_SELF_TESTS
-		}
-	};
+			}
+		};
+	}
 
 #ifdef __clang__
 #pragma clang diagnostic pop

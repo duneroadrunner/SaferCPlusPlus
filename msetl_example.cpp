@@ -548,7 +548,7 @@ int main(int argc, char* argv[])
 		implicitly converted to unsigned. msetl provides substitutes for size_t and int that change the implicit conversion to
 		instead be from unsigned to signed. */
 
-		mse::CPrimitivesTest1::s_test1();
+		mse::self_test::CPrimitivesTest1::s_test1();
 
 #ifndef MSE_PRIMITIVES_DISABLED
 		{
@@ -816,8 +816,8 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		mse::CRegPtrTest1::s_test1();
-		mse::CCRegPtrTest1::s_test1();
+		mse::self_test::CRegPtrTest1::s_test1();
+		mse::self_test::CCRegPtrTest1::s_test1();
 	}
 
 	{
@@ -867,7 +867,7 @@ int main(int argc, char* argv[])
 			mse::TNoradFixedConstPointer<D> D_norad_fcptr1 = &norad_fd;
 		}
 	}
-	mse::CNoradPtrTest1::s_test1();
+	mse::self_test::CNoradPtrTest1::s_test1();
 
 #if defined(MSEREGISTEREDREFWRAPPER) && !defined(MSE_PRIMITIVES_DISABLED)
 	{
@@ -1357,7 +1357,7 @@ int main(int argc, char* argv[])
 			//*registered_ptr1;
 		}
 
-		mse::CXScpPtrTest1::s_test1();
+		mse::self_test::CXScpPtrTest1::s_test1();
 	}
 
 	{
