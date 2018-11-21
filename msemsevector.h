@@ -1748,16 +1748,21 @@ namespace std {
 	/* Overloads of standard algorithm functions for nii_vector<> iterators. */
 
 	template<class _Pr, class _Ty, class _A, class _TStateMutex>
-	inline auto find_if(mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> _First, const mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> _Last, _Pr _Pred) -> mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> {
+	inline auto find_if(const mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _First, const mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _Last, _Pr _Pred) -> mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> {
 		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
 		return mse::find_if_ptr(_First, _Last, pred2);
 	}
 
 	template<class _Fn, class _Ty, class _A, class _TStateMutex>
-	inline _Fn for_each(mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> _First, mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> _Last, _Fn _Func) {
+	inline _Fn for_each(const mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _First, const mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _Last, _Fn _Func) {
 		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
 		mse::for_each_ptr(_First, _Last, func2);
 		return (_Func);
+	}
+
+	template<class _Ty, class _A, class _TStateMutex>
+	inline void sort(const mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _First, const mse::Tnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _Last) {
+		mse::sort(_First, _Last);
 	}
 }
 

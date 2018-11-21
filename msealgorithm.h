@@ -149,7 +149,7 @@ namespace mse {
 			xscope_c_range_get_ref_if_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred)
 				: result(eval(_XscpPtr, _Pred)) {}
 		private:
-			result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred) {
+			static result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred) {
 				/* Note that since we're returning a (wrapped const) reference, we need to be careful that it refers to an
 				element in the original container, not an (ephemeral) copy. */
 				const auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
@@ -298,6 +298,41 @@ namespace mse {
 		return (_Func);
 	}
 
+	/* sort() */
+
+	namespace impl {
+		template<class _RanIt>
+		class c_sort {
+		public:
+			c_sort(const _RanIt& _First, const _RanIt& _Last) { eval(_First, _Last); }
+		private:
+			static void eval(const _RanIt& _First, const _RanIt& _Last) {
+				const auto xs_iters = TXScopeSpecializedFirstAndLast<_RanIt>(_First, _Last);
+				std::sort(xs_iters.first(), xs_iters.first());
+			}
+		};
+
+		template<class _ContainerPointer>
+		class xscope_c_range_sort {
+		public:
+			xscope_c_range_sort(const _ContainerPointer& _XscpPtr) { eval(_XscpPtr); }
+		private:
+			static void eval(const _ContainerPointer& _XscpPtr) {
+				const auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
+				std::sort(xs_iters.begin(), xs_iters.end());
+			}
+		};
+	}
+	template<class _RanIt>
+	inline void sort(const _RanIt& _First, const _RanIt& _Last) {
+		impl::c_sort<_RanIt>(_First, _Last);
+	}
+
+	template<class _XScopeContainerPointer>
+	inline void xscope_range_sort(const _XScopeContainerPointer& _XscpPtr) {
+		auto tmp_vexing_parse = impl::xscope_c_range_sort<_XScopeContainerPointer>(_XscpPtr);
+	}
+
 
 	/* equal() */
 
@@ -339,25 +374,6 @@ namespace mse {
 				return m_equal(xs_iters.begin(), xs_iters.end(), _First2);
 			}
 		};
-
-		template<class _Container1, class _InIt2>
-		class xscope_c_range_equal_adapter {
-		public:
-			typedef bool result_type;
-			result_type result;
-
-			typedef TXScopeItemFixedConstPointer<_Container1> container_pointer_t;
-			xscope_c_range_equal_adapter(const container_pointer_t& _XscpPtr, _InIt2 _First2)
-				: result(xscope_c_range_equal<_Container1, _InIt2>(_XscpPtr, _First2).result) {}
-			explicit xscope_c_range_equal_adapter(const TXScopeItemFixedPointer<_Container1>& _XscpPtr, _InIt2 _First2)
-				: result(xscope_c_range_equal<_Container1, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
-#ifndef MSE_SCOPEPOINTER_DISABLED
-			explicit xscope_c_range_equal_adapter(const TXScopeFixedConstPointer<_Container1>& _XscpPtr, _InIt2 _First2)
-				: result(xscope_c_range_equal<_Container1, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
-			explicit xscope_c_range_equal_adapter(const TXScopeFixedPointer<_Container1>& _XscpPtr, _InIt2 _First2)
-				: result(xscope_c_range_equal<_Container1, _InIt2>(container_pointer_t(_XscpPtr), _First2).result) {}
-#endif //!MSE_SCOPEPOINTER_DISABLED
-		};
 	}
 	template<class _InIt1, class _InIt2>
 	inline _InIt1 equal(const _InIt1& _First1, const _InIt1& _Last1, _InIt2 _First2) {
@@ -366,8 +382,7 @@ namespace mse {
 
 	template<class _XScopeContainerPointer, class _InIt2>
 	inline auto xscope_range_equal(const _XScopeContainerPointer& _XscpPtr, _InIt2 _First2) {
-		typedef typename std::remove_reference<decltype(*std::declval<_XScopeContainerPointer>())>::type _Container1;
-		return impl::xscope_c_range_equal_adapter<_Container1, _InIt2>(_XscpPtr, _First2).result;
+		return impl::xscope_c_range_equal<_XScopeContainerPointer, _InIt2>(_XscpPtr, _First2).result;
 	}
 }
 

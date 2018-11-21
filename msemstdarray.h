@@ -129,6 +129,221 @@ namespace std {
 namespace mse {
 	namespace mstd {
 
+		/* Following are some template (iterator) classes that, organizationally, should be members of mstd::array<>. (And they
+		used to be.) However, being a member of mstd::array<> makes them "dependent types", and dependent types do not participate
+		in automatic template parameter type deduction. So we had to haul them here outside of mstd::array<>. */
+
+		template<class _Ty, size_t _Size>
+		class Tarray_xscope_iterator;
+
+		template<class _Ty, size_t _Size>
+		class Tarray_xscope_const_iterator : public mse::impl::random_access_const_iterator_base<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+		public:
+			typedef mse::mstd::array<_Ty, _Size> mstd_array;
+			typedef typename mstd_array::_MA _MA;
+			typedef typename _MA::na_const_iterator_base base_class;
+			typedef typename base_class::iterator_category iterator_category;
+			typedef typename base_class::value_type value_type;
+			typedef typename base_class::difference_type difference_type;
+			typedef typename base_class::pointer pointer;
+			typedef typename base_class::reference reference;
+			typedef const pointer const_pointer;
+			typedef const reference const_reference;
+
+			template <typename _TXScopePointer, class = typename std::enable_if<
+				std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<mstd_array> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<mstd_array> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedConstPointer<mstd_array> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<mstd_array> >::value
+				, void>::type>
+				Tarray_xscope_const_iterator(const _TXScopePointer& owner_ptr)
+				: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member((*owner_ptr).m_nii_array, owner_ptr)) {}
+
+			Tarray_xscope_const_iterator(const Tarray_xscope_const_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_const_iterator) {}
+			Tarray_xscope_const_iterator(const Tarray_xscope_iterator<_Ty, _Size>& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_iterator) {}
+			~Tarray_xscope_const_iterator() {}
+			const typename _MA::xscope_ss_const_iterator_type& nii_array_xscope_ss_const_iterator_type() const {
+				return m_xscope_ss_const_iterator;
+			}
+			typename _MA::xscope_ss_const_iterator_type& nii_array_xscope_ss_const_iterator_type() {
+				return m_xscope_ss_const_iterator;
+			}
+			const typename _MA::xscope_ss_const_iterator_type& mvssci() const { return nii_array_xscope_ss_const_iterator_type(); }
+			typename _MA::xscope_ss_const_iterator_type& mvssci() { return nii_array_xscope_ss_const_iterator_type(); }
+
+			void reset() { nii_array_xscope_ss_const_iterator_type().reset(); }
+			bool points_to_an_item() const { return nii_array_xscope_ss_const_iterator_type().points_to_an_item(); }
+			bool points_to_end_marker() const { return nii_array_xscope_ss_const_iterator_type().points_to_end_marker(); }
+			bool points_to_beginning() const { return nii_array_xscope_ss_const_iterator_type().points_to_beginning(); }
+			/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+			bool has_next_item_or_end_marker() const { return nii_array_xscope_ss_const_iterator_type().has_next_item_or_end_marker(); }
+			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
+			bool has_next() const { return nii_array_xscope_ss_const_iterator_type().has_next(); }
+			bool has_previous() const { return nii_array_xscope_ss_const_iterator_type().has_previous(); }
+			void set_to_beginning() { nii_array_xscope_ss_const_iterator_type().set_to_beginning(); }
+			void set_to_end_marker() { nii_array_xscope_ss_const_iterator_type().set_to_end_marker(); }
+			void set_to_next() { nii_array_xscope_ss_const_iterator_type().set_to_next(); }
+			void set_to_previous() { nii_array_xscope_ss_const_iterator_type().set_to_previous(); }
+			Tarray_xscope_const_iterator& operator ++() { nii_array_xscope_ss_const_iterator_type().operator ++(); return (*this); }
+			Tarray_xscope_const_iterator operator++(int) { Tarray_xscope_const_iterator _Tmp = *this; ++*this; return (_Tmp); }
+			Tarray_xscope_const_iterator& operator --() { nii_array_xscope_ss_const_iterator_type().operator --(); return (*this); }
+			Tarray_xscope_const_iterator operator--(int) { Tarray_xscope_const_iterator _Tmp = *this; --*this; return (_Tmp); }
+			void advance(typename _MA::difference_type n) { nii_array_xscope_ss_const_iterator_type().advance(n); }
+			void regress(typename _MA::difference_type n) { nii_array_xscope_ss_const_iterator_type().regress(n); }
+			Tarray_xscope_const_iterator& operator +=(difference_type n) { nii_array_xscope_ss_const_iterator_type().operator +=(n); return (*this); }
+			Tarray_xscope_const_iterator& operator -=(difference_type n) { nii_array_xscope_ss_const_iterator_type().operator -=(n); return (*this); }
+			Tarray_xscope_const_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			Tarray_xscope_const_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
+			typename _MA::difference_type operator-(const Tarray_xscope_const_iterator& _Right_cref) const { return nii_array_xscope_ss_const_iterator_type() - (_Right_cref.nii_array_xscope_ss_const_iterator_type()); }
+			typename _MA::const_reference operator*() const { return nii_array_xscope_ss_const_iterator_type().operator*(); }
+			typename _MA::const_reference item() const { return operator*(); }
+			typename _MA::const_reference previous_item() const { return nii_array_xscope_ss_const_iterator_type().previous_item(); }
+			typename _MA::const_pointer operator->() const { return nii_array_xscope_ss_const_iterator_type().operator->(); }
+			typename _MA::const_reference operator[](typename _MA::difference_type _Off) const { return nii_array_xscope_ss_const_iterator_type()[_Off]; }
+			Tarray_xscope_const_iterator& operator=(const Tarray_xscope_const_iterator& _Right_cref) {
+				nii_array_xscope_ss_const_iterator_type().operator=(_Right_cref.nii_array_xscope_ss_const_iterator_type());
+				return (*this);
+			}
+			Tarray_xscope_const_iterator& operator=(const Tarray_xscope_iterator<_Ty, _Size>& _Right_cref) {
+				nii_array_xscope_ss_const_iterator_type().operator=(_Right_cref.nii_array_xscope_ss_iterator_type());
+				return (*this);
+			}
+			Tarray_xscope_const_iterator& operator=(const typename mstd_array::const_iterator& _Right_cref) {
+				//nii_array_xscope_ss_const_iterator_type().operator=(_Right_cref.nii_array_reg_ss_const_iterator_type());
+				if (!(_Right_cref.target_container_ptr())
+					|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
+					MSE_THROW(mstdarray_range_error("invalid assignment - mse::mstd::array<>::Tarray_xscope_const_iterator"));
+				}
+				(*this).set_to_beginning();
+				(*this) += _Right_cref.position();
+				return (*this);
+			}
+			Tarray_xscope_const_iterator& operator=(const typename mstd_array::iterator& _Right_cref) {
+				//nii_array_xscope_ss_const_iterator_type().operator=(_Right_cref.nii_array_reg_ss_iterator_type());
+				if (!(_Right_cref.target_container_ptr())
+					|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
+					MSE_THROW(mstdarray_range_error("invalid assignment - mse::mstd::array<>::Tarray_xscope_const_iterator"));
+				}
+				(*this).set_to_beginning();
+				(*this) += _Right_cref.position();
+				return (*this);
+			}
+			bool operator==(const Tarray_xscope_const_iterator& _Right_cref) const { return nii_array_xscope_ss_const_iterator_type().operator==(_Right_cref.nii_array_xscope_ss_const_iterator_type()); }
+			bool operator!=(const Tarray_xscope_const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
+			bool operator<(const Tarray_xscope_const_iterator& _Right) const { return (nii_array_xscope_ss_const_iterator_type() < _Right.nii_array_xscope_ss_const_iterator_type()); }
+			bool operator<=(const Tarray_xscope_const_iterator& _Right) const { return (nii_array_xscope_ss_const_iterator_type() <= _Right.nii_array_xscope_ss_const_iterator_type()); }
+			bool operator>(const Tarray_xscope_const_iterator& _Right) const { return (nii_array_xscope_ss_const_iterator_type() > _Right.nii_array_xscope_ss_const_iterator_type()); }
+			bool operator>=(const Tarray_xscope_const_iterator& _Right) const { return (nii_array_xscope_ss_const_iterator_type() >= _Right.nii_array_xscope_ss_const_iterator_type()); }
+			void set_to_const_item_pointer(const Tarray_xscope_const_iterator& _Right_cref) { nii_array_xscope_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.nii_array_xscope_ss_const_iterator_type()); }
+			msear_size_t position() const { return nii_array_xscope_ss_const_iterator_type().position(); }
+			auto target_container_ptr() const -> decltype(nii_array_xscope_ss_const_iterator_type().target_container_ptr()) {
+				return nii_array_xscope_ss_const_iterator_type().target_container_ptr();
+			}
+			void xscope_tag() const {}
+			void Tarray_xscope_iterator_tag() const {}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		private:
+			typename _MA::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
+			friend class /*_Myt*/array<_Ty, _Size>;
+		};
+		template<class _Ty, size_t _Size>
+		class Tarray_xscope_iterator : public mse::impl::random_access_iterator_base<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+		public:
+			typedef mse::mstd::array<_Ty, _Size> mstd_array;
+			typedef typename mstd_array::_MA _MA;
+			typedef typename _MA::na_iterator_base base_class;
+			typedef typename base_class::iterator_category iterator_category;
+			typedef typename base_class::value_type value_type;
+			typedef typename base_class::difference_type difference_type;
+			typedef typename base_class::pointer pointer;
+			typedef typename base_class::reference reference;
+			typedef const pointer const_pointer;
+			typedef const reference const_reference;
+
+			template <typename _TXScopePointer, class = typename std::enable_if<
+				std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<mstd_array> >::value
+				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<mstd_array> >::value
+				, void>::type>
+				Tarray_xscope_iterator(const _TXScopePointer& owner_ptr)
+				: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member((*owner_ptr).m_nii_array, owner_ptr)) {}
+
+			Tarray_xscope_iterator(const Tarray_xscope_iterator& src_cref) : m_xscope_ss_iterator(src_cref.m_xscope_ss_iterator) {}
+			~Tarray_xscope_iterator() {}
+			const typename _MA::xscope_ss_iterator_type& nii_array_xscope_ss_iterator_type() const {
+				return m_xscope_ss_iterator;
+			}
+			typename _MA::xscope_ss_iterator_type& nii_array_xscope_ss_iterator_type() {
+				return m_xscope_ss_iterator;
+			}
+			const typename _MA::xscope_ss_iterator_type& mvssi() const { return nii_array_xscope_ss_iterator_type(); }
+			typename _MA::xscope_ss_iterator_type& mvssi() { return nii_array_xscope_ss_iterator_type(); }
+
+			void reset() { nii_array_xscope_ss_iterator_type().reset(); }
+			bool points_to_an_item() const { return nii_array_xscope_ss_iterator_type().points_to_an_item(); }
+			bool points_to_end_marker() const { return nii_array_xscope_ss_iterator_type().points_to_end_marker(); }
+			bool points_to_beginning() const { return nii_array_xscope_ss_iterator_type().points_to_beginning(); }
+			/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+			bool has_next_item_or_end_marker() const { return nii_array_xscope_ss_iterator_type().has_next_item_or_end_marker(); }
+			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
+			bool has_next() const { return nii_array_xscope_ss_iterator_type().has_next(); }
+			bool has_previous() const { return nii_array_xscope_ss_iterator_type().has_previous(); }
+			void set_to_beginning() { nii_array_xscope_ss_iterator_type().set_to_beginning(); }
+			void set_to_end_marker() { nii_array_xscope_ss_iterator_type().set_to_end_marker(); }
+			void set_to_next() { nii_array_xscope_ss_iterator_type().set_to_next(); }
+			void set_to_previous() { nii_array_xscope_ss_iterator_type().set_to_previous(); }
+			Tarray_xscope_iterator& operator ++() { nii_array_xscope_ss_iterator_type().operator ++(); return (*this); }
+			Tarray_xscope_iterator operator++(int) { Tarray_xscope_iterator _Tmp = *this; ++*this; return (_Tmp); }
+			Tarray_xscope_iterator& operator --() { nii_array_xscope_ss_iterator_type().operator --(); return (*this); }
+			Tarray_xscope_iterator operator--(int) { Tarray_xscope_iterator _Tmp = *this; --*this; return (_Tmp); }
+			void advance(typename _MA::difference_type n) { nii_array_xscope_ss_iterator_type().advance(n); }
+			void regress(typename _MA::difference_type n) { nii_array_xscope_ss_iterator_type().regress(n); }
+			Tarray_xscope_iterator& operator +=(difference_type n) { nii_array_xscope_ss_iterator_type().operator +=(n); return (*this); }
+			Tarray_xscope_iterator& operator -=(difference_type n) { nii_array_xscope_ss_iterator_type().operator -=(n); return (*this); }
+			Tarray_xscope_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			Tarray_xscope_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
+			typename _MA::difference_type operator-(const Tarray_xscope_iterator& _Right_cref) const { return nii_array_xscope_ss_iterator_type() - (_Right_cref.nii_array_xscope_ss_iterator_type()); }
+			typename _MA::reference operator*() const { return nii_array_xscope_ss_iterator_type().operator*(); }
+			typename _MA::reference item() const { return operator*(); }
+			typename _MA::reference previous_item() const { return nii_array_xscope_ss_iterator_type().previous_item(); }
+			typename _MA::pointer operator->() const { return nii_array_xscope_ss_iterator_type().operator->(); }
+			typename _MA::reference operator[](typename _MA::difference_type _Off) const { return nii_array_xscope_ss_iterator_type()[_Off]; }
+			Tarray_xscope_iterator& operator=(const Tarray_xscope_iterator& _Right_cref) {
+				nii_array_xscope_ss_iterator_type().operator=(_Right_cref.nii_array_xscope_ss_iterator_type());
+				return (*this);
+			}
+			/*
+			Tarray_xscope_iterator& operator=(const typename _Myt::iterator& _Right_cref) {
+				//nii_array_xscope_ss_iterator_type().operator=(_Right_cref.nii_array_reg_ss_iterator_type());
+				if (!(_Right_cref.target_container_ptr())
+					|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
+					MSE_THROW(mstdarray_range_error("invalid assignment - mse::mstd::array<>::Tarray_xscope_iterator"));
+				}
+				(*this).set_to_beginning();
+				(*this) += _Right_cref.position();
+				return (*this);
+			}
+			*/
+			bool operator==(const Tarray_xscope_iterator& _Right_cref) const { return nii_array_xscope_ss_iterator_type().operator==(_Right_cref.nii_array_xscope_ss_iterator_type()); }
+			bool operator!=(const Tarray_xscope_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
+			bool operator<(const Tarray_xscope_iterator& _Right) const { return (nii_array_xscope_ss_iterator_type() < _Right.nii_array_xscope_ss_iterator_type()); }
+			bool operator<=(const Tarray_xscope_iterator& _Right) const { return (nii_array_xscope_ss_iterator_type() <= _Right.nii_array_xscope_ss_iterator_type()); }
+			bool operator>(const Tarray_xscope_iterator& _Right) const { return (nii_array_xscope_ss_iterator_type() > _Right.nii_array_xscope_ss_iterator_type()); }
+			bool operator>=(const Tarray_xscope_iterator& _Right) const { return (nii_array_xscope_ss_iterator_type() >= _Right.nii_array_xscope_ss_iterator_type()); }
+			void set_to_item_pointer(const Tarray_xscope_iterator& _Right_cref) { nii_array_xscope_ss_iterator_type().set_to_item_pointer(_Right_cref.nii_array_xscope_ss_iterator_type()); }
+			msear_size_t position() const { return nii_array_xscope_ss_iterator_type().position(); }
+			auto target_container_ptr() const -> decltype(nii_array_xscope_ss_iterator_type().target_container_ptr()) {
+				return nii_array_xscope_ss_iterator_type().target_container_ptr();
+			}
+			void xscope_tag() const {}
+			void Tarray_xscope_iterator_tag() const {}
+			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		private:
+			typename _MA::xscope_ss_iterator_type m_xscope_ss_iterator;
+			friend class /*_Myt*/array<_Ty, _Size>;
+			friend class Tarray_xscope_const_iterator<_Ty, _Size>;
+		};
+
+
 		template<class _Ty, size_t _Size >
 		class array {
 		public:
@@ -240,8 +455,8 @@ namespace mse {
 				}
 			};
 
-			class xscope_const_iterator;
-			class xscope_iterator;
+			typedef Tarray_xscope_const_iterator<_Ty, _Size> xscope_const_iterator;
+			typedef Tarray_xscope_iterator<_Ty, _Size> xscope_iterator;
 
 			class const_iterator : public _MA::na_const_iterator_base {
 			public:
@@ -319,7 +534,7 @@ namespace mse {
 
 				friend class /*_Myt*/array<_Ty, _Size>;
 				friend class iterator;
-				friend class xscope_const_iterator;
+				friend /*class*/ xscope_const_iterator;
 			};
 			class iterator : public _MA::na_iterator_base {
 			public:
@@ -400,8 +615,8 @@ namespace mse {
 				reg_ss_iterator_type m_reg_ss_iterator;
 
 				friend class /*_Myt*/array<_Ty, _Size>;
-				friend class xscope_const_iterator;
-				friend class xscope_iterator;
+				friend /*class*/ xscope_const_iterator;
+				friend /*class*/ xscope_iterator;
 			};
 
 			iterator begin()
@@ -467,205 +682,6 @@ namespace mse {
 				return (m_nii_array < _Right.m_nii_array);
 			}
 
-			class xscope_const_iterator : public _MA::na_const_iterator_base, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
-			public:
-				typedef typename _MA::na_const_iterator_base base_class;
-				typedef typename base_class::iterator_category iterator_category;
-				typedef typename base_class::value_type value_type;
-				typedef typename base_class::difference_type difference_type;
-				typedef typename base_class::pointer pointer;
-				typedef typename base_class::reference reference;
-				typedef const pointer const_pointer;
-				typedef const reference const_reference;
-
-				template <typename _TXScopePointer, class = typename std::enable_if<
-					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<array> >::value
-					|| std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<array> >::value
-					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedConstPointer<array> >::value
-					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<array> >::value
-					, void>::type>
-				xscope_const_iterator(const _TXScopePointer& owner_ptr)
-					: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member((*owner_ptr).m_nii_array, owner_ptr)) {}
-
-				xscope_const_iterator(const xscope_const_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_const_iterator) {}
-				xscope_const_iterator(const xscope_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_iterator) {}
-				~xscope_const_iterator() {}
-				const typename _MA::xscope_ss_const_iterator_type& nii_array_xscope_ss_const_iterator_type() const {
-					return m_xscope_ss_const_iterator;
-				}
-				typename _MA::xscope_ss_const_iterator_type& nii_array_xscope_ss_const_iterator_type() {
-					return m_xscope_ss_const_iterator;
-				}
-				const typename _MA::xscope_ss_const_iterator_type& mvssci() const { return nii_array_xscope_ss_const_iterator_type(); }
-				typename _MA::xscope_ss_const_iterator_type& mvssci() { return nii_array_xscope_ss_const_iterator_type(); }
-
-				void reset() { nii_array_xscope_ss_const_iterator_type().reset(); }
-				bool points_to_an_item() const { return nii_array_xscope_ss_const_iterator_type().points_to_an_item(); }
-				bool points_to_end_marker() const { return nii_array_xscope_ss_const_iterator_type().points_to_end_marker(); }
-				bool points_to_beginning() const { return nii_array_xscope_ss_const_iterator_type().points_to_beginning(); }
-				/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-				bool has_next_item_or_end_marker() const { return nii_array_xscope_ss_const_iterator_type().has_next_item_or_end_marker(); }
-				/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-				bool has_next() const { return nii_array_xscope_ss_const_iterator_type().has_next(); }
-				bool has_previous() const { return nii_array_xscope_ss_const_iterator_type().has_previous(); }
-				void set_to_beginning() { nii_array_xscope_ss_const_iterator_type().set_to_beginning(); }
-				void set_to_end_marker() { nii_array_xscope_ss_const_iterator_type().set_to_end_marker(); }
-				void set_to_next() { nii_array_xscope_ss_const_iterator_type().set_to_next(); }
-				void set_to_previous() { nii_array_xscope_ss_const_iterator_type().set_to_previous(); }
-				xscope_const_iterator& operator ++() { nii_array_xscope_ss_const_iterator_type().operator ++(); return (*this); }
-				xscope_const_iterator operator++(int) { xscope_const_iterator _Tmp = *this; ++*this; return (_Tmp); }
-				xscope_const_iterator& operator --() { nii_array_xscope_ss_const_iterator_type().operator --(); return (*this); }
-				xscope_const_iterator operator--(int) { xscope_const_iterator _Tmp = *this; --*this; return (_Tmp); }
-				void advance(typename _MA::difference_type n) { nii_array_xscope_ss_const_iterator_type().advance(n); }
-				void regress(typename _MA::difference_type n) { nii_array_xscope_ss_const_iterator_type().regress(n); }
-				xscope_const_iterator& operator +=(difference_type n) { nii_array_xscope_ss_const_iterator_type().operator +=(n); return (*this); }
-				xscope_const_iterator& operator -=(difference_type n) { nii_array_xscope_ss_const_iterator_type().operator -=(n); return (*this); }
-				xscope_const_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-				xscope_const_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
-				typename _MA::difference_type operator-(const xscope_const_iterator& _Right_cref) const { return nii_array_xscope_ss_const_iterator_type() - (_Right_cref.nii_array_xscope_ss_const_iterator_type()); }
-				typename _MA::const_reference operator*() const { return nii_array_xscope_ss_const_iterator_type().operator*(); }
-				typename _MA::const_reference item() const { return operator*(); }
-				typename _MA::const_reference previous_item() const { return nii_array_xscope_ss_const_iterator_type().previous_item(); }
-				typename _MA::const_pointer operator->() const { return nii_array_xscope_ss_const_iterator_type().operator->(); }
-				typename _MA::const_reference operator[](typename _MA::difference_type _Off) const { return nii_array_xscope_ss_const_iterator_type()[_Off]; }
-				xscope_const_iterator& operator=(const xscope_const_iterator& _Right_cref) {
-					nii_array_xscope_ss_const_iterator_type().operator=(_Right_cref.nii_array_xscope_ss_const_iterator_type());
-					return (*this);
-				}
-				xscope_const_iterator& operator=(const xscope_iterator& _Right_cref) {
-					nii_array_xscope_ss_const_iterator_type().operator=(_Right_cref.nii_array_xscope_ss_iterator_type());
-					return (*this);
-				}
-				xscope_const_iterator& operator=(const /*typename _Myt::*/const_iterator& _Right_cref) {
-					//nii_array_xscope_ss_const_iterator_type().operator=(_Right_cref.nii_array_reg_ss_const_iterator_type());
-					if (!(_Right_cref.target_container_ptr())
-						|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) { 
-						MSE_THROW(mstdarray_range_error("invalid assignment - mse::mstd::array<>::xscope_const_iterator"));
-					}
-					(*this).set_to_beginning();
-					(*this) += _Right_cref.position();
-					return (*this);
-				}
-				xscope_const_iterator& operator=(const /*typename _Myt::*/iterator& _Right_cref) {
-					//nii_array_xscope_ss_const_iterator_type().operator=(_Right_cref.nii_array_reg_ss_iterator_type());
-					if (!(_Right_cref.target_container_ptr())
-						|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
-						MSE_THROW(mstdarray_range_error("invalid assignment - mse::mstd::array<>::xscope_const_iterator"));
-					}
-					(*this).set_to_beginning();
-					(*this) += _Right_cref.position();
-					return (*this);
-				}
-				bool operator==(const xscope_const_iterator& _Right_cref) const { return nii_array_xscope_ss_const_iterator_type().operator==(_Right_cref.nii_array_xscope_ss_const_iterator_type()); }
-				bool operator!=(const xscope_const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const xscope_const_iterator& _Right) const { return (nii_array_xscope_ss_const_iterator_type() < _Right.nii_array_xscope_ss_const_iterator_type()); }
-				bool operator<=(const xscope_const_iterator& _Right) const { return (nii_array_xscope_ss_const_iterator_type() <= _Right.nii_array_xscope_ss_const_iterator_type()); }
-				bool operator>(const xscope_const_iterator& _Right) const { return (nii_array_xscope_ss_const_iterator_type() > _Right.nii_array_xscope_ss_const_iterator_type()); }
-				bool operator>=(const xscope_const_iterator& _Right) const { return (nii_array_xscope_ss_const_iterator_type() >= _Right.nii_array_xscope_ss_const_iterator_type()); }
-				void set_to_const_item_pointer(const xscope_const_iterator& _Right_cref) { nii_array_xscope_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.nii_array_xscope_ss_const_iterator_type()); }
-				msear_size_t position() const { return nii_array_xscope_ss_const_iterator_type().position(); }
-				auto target_container_ptr() const -> decltype(nii_array_xscope_ss_const_iterator_type().target_container_ptr()) {
-					return nii_array_xscope_ss_const_iterator_type().target_container_ptr();
-				}
-				void xscope_tag() const {}
-				void xscope_iterator_tag() const {}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
-			private:
-				typename _MA::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
-				friend class /*_Myt*/array<_Ty, _Size>;
-			};
-			class xscope_iterator : public _MA::na_iterator_base, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
-			public:
-				typedef typename _MA::na_iterator_base base_class;
-				typedef typename base_class::iterator_category iterator_category;
-				typedef typename base_class::value_type value_type;
-				typedef typename base_class::difference_type difference_type;
-				typedef typename base_class::pointer pointer;
-				typedef typename base_class::reference reference;
-				typedef const pointer const_pointer;
-				typedef const reference const_reference;
-
-				template <typename _TXScopePointer, class = typename std::enable_if<
-					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<array> >::value
-					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<array> >::value
-					, void>::type>
-				xscope_iterator(const _TXScopePointer& owner_ptr)
-					: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member((*owner_ptr).m_nii_array, owner_ptr)) {}
-
-				xscope_iterator(const xscope_iterator& src_cref) : m_xscope_ss_iterator(src_cref.m_xscope_ss_iterator) {}
-				~xscope_iterator() {}
-				const typename _MA::xscope_ss_iterator_type& nii_array_xscope_ss_iterator_type() const {
-					return m_xscope_ss_iterator;
-				}
-				typename _MA::xscope_ss_iterator_type& nii_array_xscope_ss_iterator_type() {
-					return m_xscope_ss_iterator;
-				}
-				const typename _MA::xscope_ss_iterator_type& mvssi() const { return nii_array_xscope_ss_iterator_type(); }
-				typename _MA::xscope_ss_iterator_type& mvssi() { return nii_array_xscope_ss_iterator_type(); }
-
-				void reset() { nii_array_xscope_ss_iterator_type().reset(); }
-				bool points_to_an_item() const { return nii_array_xscope_ss_iterator_type().points_to_an_item(); }
-				bool points_to_end_marker() const { return nii_array_xscope_ss_iterator_type().points_to_end_marker(); }
-				bool points_to_beginning() const { return nii_array_xscope_ss_iterator_type().points_to_beginning(); }
-				/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-				bool has_next_item_or_end_marker() const { return nii_array_xscope_ss_iterator_type().has_next_item_or_end_marker(); }
-				/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-				bool has_next() const { return nii_array_xscope_ss_iterator_type().has_next(); }
-				bool has_previous() const { return nii_array_xscope_ss_iterator_type().has_previous(); }
-				void set_to_beginning() { nii_array_xscope_ss_iterator_type().set_to_beginning(); }
-				void set_to_end_marker() { nii_array_xscope_ss_iterator_type().set_to_end_marker(); }
-				void set_to_next() { nii_array_xscope_ss_iterator_type().set_to_next(); }
-				void set_to_previous() { nii_array_xscope_ss_iterator_type().set_to_previous(); }
-				xscope_iterator& operator ++() { nii_array_xscope_ss_iterator_type().operator ++(); return (*this); }
-				xscope_iterator operator++(int) { xscope_iterator _Tmp = *this; ++*this; return (_Tmp); }
-				xscope_iterator& operator --() { nii_array_xscope_ss_iterator_type().operator --(); return (*this); }
-				xscope_iterator operator--(int) { xscope_iterator _Tmp = *this; --*this; return (_Tmp); }
-				void advance(typename _MA::difference_type n) { nii_array_xscope_ss_iterator_type().advance(n); }
-				void regress(typename _MA::difference_type n) { nii_array_xscope_ss_iterator_type().regress(n); }
-				xscope_iterator& operator +=(difference_type n) { nii_array_xscope_ss_iterator_type().operator +=(n); return (*this); }
-				xscope_iterator& operator -=(difference_type n) { nii_array_xscope_ss_iterator_type().operator -=(n); return (*this); }
-				xscope_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-				xscope_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
-				typename _MA::difference_type operator-(const xscope_iterator& _Right_cref) const { return nii_array_xscope_ss_iterator_type() - (_Right_cref.nii_array_xscope_ss_iterator_type()); }
-				typename _MA::reference operator*() const { return nii_array_xscope_ss_iterator_type().operator*(); }
-				typename _MA::reference item() const { return operator*(); }
-				typename _MA::reference previous_item() const { return nii_array_xscope_ss_iterator_type().previous_item(); }
-				typename _MA::pointer operator->() const { return nii_array_xscope_ss_iterator_type().operator->(); }
-				typename _MA::reference operator[](typename _MA::difference_type _Off) const { return nii_array_xscope_ss_iterator_type()[_Off]; }
-				xscope_iterator& operator=(const xscope_iterator& _Right_cref) {
-					nii_array_xscope_ss_iterator_type().operator=(_Right_cref.nii_array_xscope_ss_iterator_type());
-					return (*this);
-				}
-				xscope_iterator& operator=(const typename _Myt::iterator& _Right_cref) {
-					//nii_array_xscope_ss_iterator_type().operator=(_Right_cref.nii_array_reg_ss_iterator_type());
-					if (!(_Right_cref.target_container_ptr())
-						|| (!(std::addressof(*(_Right_cref.target_container_ptr())) == std::addressof(*((*this).target_container_ptr()))))) {
-						MSE_THROW(mstdarray_range_error("invalid assignment - mse::mstd::array<>::xscope_iterator"));
-					}
-					(*this).set_to_beginning();
-					(*this) += _Right_cref.position();
-					return (*this);
-				}
-				bool operator==(const xscope_iterator& _Right_cref) const { return nii_array_xscope_ss_iterator_type().operator==(_Right_cref.nii_array_xscope_ss_iterator_type()); }
-				bool operator!=(const xscope_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const xscope_iterator& _Right) const { return (nii_array_xscope_ss_iterator_type() < _Right.nii_array_xscope_ss_iterator_type()); }
-				bool operator<=(const xscope_iterator& _Right) const { return (nii_array_xscope_ss_iterator_type() <= _Right.nii_array_xscope_ss_iterator_type()); }
-				bool operator>(const xscope_iterator& _Right) const { return (nii_array_xscope_ss_iterator_type() > _Right.nii_array_xscope_ss_iterator_type()); }
-				bool operator>=(const xscope_iterator& _Right) const { return (nii_array_xscope_ss_iterator_type() >= _Right.nii_array_xscope_ss_iterator_type()); }
-				void set_to_item_pointer(const xscope_iterator& _Right_cref) { nii_array_xscope_ss_iterator_type().set_to_item_pointer(_Right_cref.nii_array_xscope_ss_iterator_type()); }
-				msear_size_t position() const { return nii_array_xscope_ss_iterator_type().position(); }
-				auto target_container_ptr() const -> decltype(nii_array_xscope_ss_iterator_type().target_container_ptr()) {
-					return nii_array_xscope_ss_iterator_type().target_container_ptr();
-				}
-				void xscope_tag() const {}
-				void xscope_iterator_tag() const {}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
-			private:
-				typename _MA::xscope_ss_iterator_type m_xscope_ss_iterator;
-				friend class /*_Myt*/array<_Ty, _Size>;
-				friend class xscope_const_iterator;
-			};
-
 			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
 
 		private:
@@ -673,6 +689,9 @@ namespace mse {
 
 			const _MA& as_nii_array() const { return m_nii_array; }
 			_MA& as_nii_array() { return m_nii_array; }
+
+			friend xscope_const_iterator;
+			friend xscope_iterator;
 
 			template<size_t _Idx, class _Tz, size_t _Size2>
 			friend _CONST_FUN _Tz& std::get(mse::mstd::array<_Tz, _Size2>& _Arr) _NOEXCEPT;
@@ -734,6 +753,176 @@ namespace mse {
 			return mse::make_xscope_iterator(owner_ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+	}
+
+	namespace impl {
+
+		/* Some algorithm implementation specializations for mstd::array<>.  */
+
+		/* Specializations of TXScopeRawPointerRAFirstAndLast<> that replace regular iterators with fast (raw pointer) iterators for
+		data types for which it's safe to do so. In this case mstd::array<>. */
+		template<class _Ty, size_t _Size>
+		class TXScopeSpecializedFirstAndLast<mstd::Tarray_xscope_const_iterator<_Ty, _Size> >
+			: public TXScopeRawPointerRAFirstAndLast<mstd::Tarray_xscope_const_iterator<_Ty, _Size> > {
+		public:
+			typedef TXScopeRawPointerRAFirstAndLast<mstd::Tarray_xscope_const_iterator<_Ty, _Size> > base_class;
+			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+		};
+		template<class _Ty, size_t _Size>
+		class TXScopeSpecializedFirstAndLast<mstd::Tarray_xscope_iterator<_Ty, _Size> >
+			: public TXScopeRawPointerRAFirstAndLast<mstd::Tarray_xscope_iterator<_Ty, _Size> > {
+		public:
+			typedef TXScopeRawPointerRAFirstAndLast<mstd::Tarray_xscope_iterator<_Ty, _Size> > base_class;
+			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+		};
+
+		/* Specializations of TXScopeRangeIterProvider<> that replace regular iterators with fast (raw pointer) iterators for
+		data types for which it's safe to do so. In this case mstd::array<>. */
+		template<class _Ty, size_t _Size>
+		class TXScopeRangeIterProvider<mse::TXScopeItemFixedConstPointer<mse::mstd::array<_Ty, _Size> > >
+			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedConstPointer<mse::mstd::array<_Ty, _Size> > > {
+		public:
+			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedConstPointer<mse::mstd::array<_Ty, _Size> > > base_class;
+			MSE_USING(TXScopeRangeIterProvider, base_class);
+		};
+		template<class _Ty, size_t _Size>
+		class TXScopeRangeIterProvider<mse::TXScopeItemFixedPointer<mse::mstd::array<_Ty, _Size> > >
+			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedPointer<mse::mstd::array<_Ty, _Size> > > {
+		public:
+			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedPointer<mse::mstd::array<_Ty, _Size> > > base_class;
+			MSE_USING(TXScopeRangeIterProvider, base_class);
+		};
+
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _Ty, size_t _Size>
+		class TXScopeRangeIterProvider<mse::TXScopeFixedConstPointer<mse::mstd::array<_Ty, _Size> > >
+			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedConstPointer<mse::mstd::array<_Ty, _Size> > > {
+		public:
+			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedConstPointer<mse::mstd::array<_Ty, _Size> > > base_class;
+			MSE_USING(TXScopeRangeIterProvider, base_class);
+		};
+		template<class _Ty, size_t _Size>
+		class TXScopeRangeIterProvider<mse::TXScopeFixedPointer<mse::mstd::array<_Ty, _Size> > >
+			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedPointer<mse::mstd::array<_Ty, _Size> > > {
+		public:
+			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedPointer<mse::mstd::array<_Ty, _Size> > > base_class;
+			MSE_USING(TXScopeRangeIterProvider, base_class);
+		};
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	}
+}
+
+namespace std {
+
+	/* Overloads of standard algorithm functions for mstd::array<> iterators. */
+
+	template<class _Pr, class _Ty, size_t _Size>
+	inline auto find_if(mse::mstd::Tarray_xscope_const_iterator<_Ty, _Size> _First, const mse::mstd::Tarray_xscope_const_iterator<_Ty, _Size> _Last, _Pr _Pred) -> mse::mstd::Tarray_xscope_const_iterator<_Ty, _Size> {
+		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+		return mse::find_if_ptr(_First, _Last, pred2);
+	}
+	template<class _Pr, class _Ty, size_t _Size>
+	inline auto find_if(const mse::mstd::Tarray_xscope_iterator<_Ty, _Size>& _First, const mse::mstd::Tarray_xscope_iterator<_Ty, _Size>& _Last, _Pr _Pred) -> mse::mstd::Tarray_xscope_iterator<_Ty, _Size> {
+		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+		return mse::find_if_ptr(_First, _Last, pred2);
+	}
+
+	template<class _Fn, class _Ty, size_t _Size>
+	inline _Fn for_each(mse::mstd::Tarray_xscope_const_iterator<_Ty, _Size> _First, mse::mstd::Tarray_xscope_const_iterator<_Ty, _Size> _Last, _Fn _Func) {
+		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
+		mse::for_each_ptr(_First, _Last, func2);
+		return (_Func);
+	}
+	template<class _Fn, class _Ty, size_t _Size>
+	inline _Fn for_each(const mse::mstd::Tarray_xscope_iterator<_Ty, _Size>& _First, const mse::mstd::Tarray_xscope_iterator<_Ty, _Size>& _Last, _Fn _Func) {
+		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
+		mse::for_each_ptr(_First, _Last, func2);
+		return (_Func);
+	}
+
+	template<class _Ty, size_t _Size>
+	inline void sort(const mse::mstd::Tarray_xscope_iterator<_Ty, _Size>& _First, const mse::mstd::Tarray_xscope_iterator<_Ty, _Size>& _Last) {
+		mse::sort(_First, _Last);
+	}
+}
+
+namespace std {
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmismatched-tags"
+#endif /*__clang__*/
+
+	template<class _Ty, size_t _Size>
+	struct tuple_size<mse::mstd::array<_Ty, _Size> >
+		: integral_constant<size_t, _Size>
+	{	// struct to determine number of elements in array
+	};
+
+	template<size_t _Idx, class _Ty, size_t _Size>
+	struct tuple_element<_Idx, mse::mstd::array<_Ty, _Size> >
+	{	// struct to determine type of element _Idx in array
+		static_assert(_Idx < _Size, "array index out of bounds");
+
+		typedef _Ty type;
+	};
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif /*__clang__*/
+
+	// TUPLE INTERFACE TO array
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN _Ty& get(mse::mstd::array<_Ty, _Size>& _Arr) _NOEXCEPT
+	{	// return element at _Idx in array _Arr
+		static_assert(_Idx < _Size, "array index out of bounds");
+		return (std::get<_Idx>(_Arr.m_nii_array));
+	}
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN const _Ty& get(const mse::mstd::array<_Ty, _Size>& _Arr) _NOEXCEPT
+	{	// return element at _Idx in array _Arr
+		static_assert(_Idx < _Size, "array index out of bounds");
+		return (std::get<_Idx>(_Arr.m_nii_array));
+	}
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN _Ty&& get(mse::mstd::array<_Ty, _Size>&& _Arr) _NOEXCEPT
+	{	// return element at _Idx in array _Arr
+		static_assert(_Idx < _Size, "array index out of bounds");
+		return (_STD move(std::get<_Idx>(_Arr.m_nii_array)));
+	}
+
+	template<class _Ty, size_t _Size>
+	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap arrays
+		return (_Left.swap(_Right));
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap arrays
+		return (_Left.swap(_Right));
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::us::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{	// swap arrays
+		return (_Left.swap(_Right));
+	}
+
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap arrays
+		return (_Right.swap(_Left));
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::us::msearray<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap arrays
+		return (_Right.swap(_Left));
+	}
+
+}
+
+namespace mse {
+	namespace mstd {
 
 #endif /*MSE_MSTDARRAY_DISABLED*/
 
@@ -792,87 +981,6 @@ namespace mse {
 			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-	}
-}
-
-namespace std {
-
-#ifndef MSE_MSTDARRAY_DISABLED
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmismatched-tags"
-#endif /*__clang__*/
-
-	template<class _Ty, size_t _Size>
-	struct tuple_size<mse::mstd::array<_Ty, _Size> >
-		: integral_constant<size_t, _Size>
-	{	// struct to determine number of elements in array
-	};
-
-	template<size_t _Idx, class _Ty, size_t _Size>
-	struct tuple_element<_Idx, mse::mstd::array<_Ty, _Size> >
-	{	// struct to determine type of element _Idx in array
-		static_assert(_Idx < _Size, "array index out of bounds");
-
-		typedef _Ty type;
-	};
-
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif /*__clang__*/
-
-	// TUPLE INTERFACE TO array
-	template<size_t _Idx, class _Ty, size_t _Size>
-	_CONST_FUN _Ty& get(mse::mstd::array<_Ty, _Size>& _Arr) _NOEXCEPT
-	{	// return element at _Idx in array _Arr
-		static_assert(_Idx < _Size, "array index out of bounds");
-		return (std::get<_Idx>(_Arr.m_nii_array));
-	}
-	template<size_t _Idx, class _Ty, size_t _Size>
-		_CONST_FUN const _Ty& get(const mse::mstd::array<_Ty, _Size>& _Arr) _NOEXCEPT
-	{	// return element at _Idx in array _Arr
-		static_assert(_Idx < _Size, "array index out of bounds");
-		return (std::get<_Idx>(_Arr.m_nii_array));
-	}
-	template<size_t _Idx, class _Ty, size_t _Size>
-	_CONST_FUN _Ty&& get(mse::mstd::array<_Ty, _Size>&& _Arr) _NOEXCEPT
-	{	// return element at _Idx in array _Arr
-		static_assert(_Idx < _Size, "array index out of bounds");
-		return (_STD move(std::get<_Idx>(_Arr.m_nii_array)));
-	}
-
-	template<class _Ty, size_t _Size>
-	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
-	{	// swap arrays
-		return (_Left.swap(_Right));
-	}
-	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
-	{	// swap arrays
-		return (_Left.swap(_Right));
-	}
-	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::us::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
-	{	// swap arrays
-		return (_Left.swap(_Right));
-	}
-
-	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
-	{	// swap arrays
-		return (_Right.swap(_Left));
-	}
-	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::us::msearray<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
-	{	// swap arrays
-		return (_Right.swap(_Left));
-	}
-
-#endif // !MSE_MSTDARRAY_DISABLED
-}
-
-namespace mse {
-	namespace mstd {
 
 		class array_test {
 		public:
