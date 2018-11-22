@@ -1645,57 +1645,13 @@ usage example:
 		};
 	
 		std::cout << std::endl;
-		std::cout << "AsyncShared test output:";
+		std::cout << "AsyncSharedV2 test output:";
 		std::cout << std::endl;
 	
 		{
-			/* This block contains a simple example demonstrating the use of mse::TAsyncSharedReadWriteAccessRequester
+			/* This block contains a simple example demonstrating the use of mse::TAsyncSharedV2ReadWriteAccessRequester
 			to safely share an object between threads. */
 	
-			std::cout << "TAsyncSharedReadWrite:";
-			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedv2readwrite<ShareableA>(7);
-			ash_access_requester.writelock_ptr()->b = 11;
-			int res1 = ash_access_requester.readlock_ptr()->b;
-	
-			{
-				auto ptr1 = ash_access_requester.writelock_ptr();
-				auto ptr2 = ash_access_requester.writelock_ptr();
-			}
-	
-			std::list<std::future<double>> futures;
-			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(mse::mstd::async(B::foo1, ash_access_requester));
-			}
-			int count = 1;
-			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
-				std::cout << "thread: " << count << ", time to acquire write pointer: " << (*it).get() << " seconds.";
-				std::cout << std::endl;
-			}
-			std::cout << std::endl;
-	
-			/* Btw, mse::TAsyncSharedV2ReadOnlyAccessRequester<>s can be copy constructed from
-			mse::TAsyncSharedV2ReadWriteAccessRequester<>s */
-			mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA> ash_read_only_access_requester(ash_access_requester);
-		}
-		{
-			std::cout << "TAsyncSharedReadOnly:";
-			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedv2readonly<ShareableA>(7);
-			int res1 = ash_access_requester.readlock_ptr()->b;
-	
-			std::list<std::future<double>> futures;
-			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
-			}
-			int count = 1;
-			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
-				std::cout << "thread: " << count << ", time to acquire read pointer: " << (*it).get() << " seconds.";
-				std::cout << std::endl;
-			}
-			std::cout << std::endl;
-		}
-		{
 			std::cout << "TAsyncSharedV2ReadWriteAccessRequester:";
 			std::cout << std::endl;
 			auto ash_access_requester = mse::make_asyncsharedv2readwrite<ShareableA>(7);
@@ -1710,7 +1666,7 @@ usage example:
 	
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA>>, ash_access_requester));
+				futures.emplace_back(mse::mstd::async(B::foo1, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -1917,7 +1873,7 @@ void main(int argc, char* argv[]) {
 
 ### Scope threads
 
-`xscope_thread` is the scope counterpart to [`mstd::thread`](#thread). `xscope_thread` ensures that the actual associated thread doesn't outlive it (and therefore doesn't outlive the scope), blocking in its destructor if necessary. Note that any object shared with an `mstd::thread` necessarily has dynamic allocation (i.e. is allocated on the heap), whereas objects shared with a scope thread can themselves be scope objects (i.e. allocated on the stack). Which would generally be the primary reason for using scope threads over non-scope threads. 
+`xscope_thread` is the scope counterpart to [`mstd::thread`](#thread). `xscope_thread` ensures that the actual associated thread doesn't outlive it (and therefore doesn't outlive the scope), blocking in its destructor if necessary. Note that objects shared with an `mstd::thread` generally have dynamic allocation (i.e. are allocated on the heap), whereas objects shared with a scope thread can themselves be scope objects (i.e. allocated on the stack). Which would generally be the primary reason for using scope threads over non-scope threads. 
 
 Any data type that qualifies as "[shareable](#tuserdeclaredasyncshareableobj)" (or "[passable](#tuserdeclaredasyncpassableobj)") with non-scope threads also qualifies as shareable (or passable) with scope threads. (But not necessarily the other way around.) 
 
