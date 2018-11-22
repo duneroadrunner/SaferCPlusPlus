@@ -1207,11 +1207,11 @@ void msetl_example2() {
 	}
 
 	{
-		/******************/
-		/*  TAsyncShared  */
-		/******************/
+		/********************/
+		/*  TAsyncSharedV2  */
+		/********************/
 
-		/* The TAsyncShared data types are used to safely share objects between asynchronous threads. */
+		/* The TAsyncSharedV2 data types are used to safely share objects between asynchronous threads. */
 
 		class A {
 		public:
@@ -1249,57 +1249,13 @@ void msetl_example2() {
 		};
 
 		std::cout << std::endl;
-		std::cout << "AsyncShared test output:";
+		std::cout << "AsyncSharedV2 test output:";
 		std::cout << std::endl;
 
 		{
-			/* This block contains a simple example demonstrating the use of mse::TAsyncSharedReadWriteAccessRequester
+			/* This block contains a simple example demonstrating the use of mse::TAsyncSharedV2ReadWriteAccessRequester
 			to safely share an object between threads. */
 
-			std::cout << "TAsyncSharedReadWrite:";
-			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedv2readwrite<ShareableA>(7);
-			ash_access_requester.writelock_ptr()->b = 11;
-			int res1 = ash_access_requester.readlock_ptr()->b;
-
-			{
-				auto ptr1 = ash_access_requester.writelock_ptr();
-				auto ptr2 = ash_access_requester.writelock_ptr();
-			}
-
-			std::list<std::future<double>> futures;
-			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(mse::mstd::async(B::foo1, ash_access_requester));
-			}
-			int count = 1;
-			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
-				std::cout << "thread: " << count << ", time to acquire write pointer: " << (*it).get() << " seconds.";
-				std::cout << std::endl;
-			}
-			std::cout << std::endl;
-
-			/* Btw, mse::TAsyncSharedV2ReadOnlyAccessRequester<>s can be copy constructed from
-			mse::TAsyncSharedV2ReadWriteAccessRequester<>s */
-			mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA> ash_read_only_access_requester(ash_access_requester);
-		}
-		{
-			std::cout << "TAsyncSharedReadOnly:";
-			std::cout << std::endl;
-			auto ash_access_requester = mse::make_asyncsharedv2readonly<ShareableA>(7);
-			int res1 = ash_access_requester.readlock_ptr()->b;
-
-			std::list<std::future<double>> futures;
-			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
-			}
-			int count = 1;
-			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
-				std::cout << "thread: " << count << ", time to acquire read pointer: " << (*it).get() << " seconds.";
-				std::cout << std::endl;
-			}
-			std::cout << std::endl;
-		}
-		{
 			std::cout << "TAsyncSharedV2ReadWriteAccessRequester:";
 			std::cout << std::endl;
 			auto ash_access_requester = mse::make_asyncsharedv2readwrite<ShareableA>(7);
@@ -1314,7 +1270,7 @@ void msetl_example2() {
 
 			std::list<std::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA>>, ash_access_requester));
+				futures.emplace_back(mse::mstd::async(B::foo1, ash_access_requester));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
