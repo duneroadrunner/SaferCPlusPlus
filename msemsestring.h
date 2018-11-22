@@ -6643,9 +6643,18 @@ namespace mse {
 	to friend the "nrp string sections" make functions. But in order to be declared as friends, they need to be
 	forward declared here (because some of them are in a different namespace from
 	TXScopeCagedStringConstSectionToRValue<>). */
+
+	template <typename _TRAIterator>
+	using make_xscope_nrp_string_const_section_helper_type1 = decltype(make_xscope_string_const_section(std::declval<_TRAIterator>(), std::declval<typename TXScopeNRPStringConstSection<_TRAIterator>::size_type>()));
+	template <typename _TRALoneParam>
+	using make_xscope_nrp_string_const_section_helper_type2 = decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()));
+
 	template <typename _TRAIterator>
 	auto make_xscope_nrp_string_const_section(const _TRAIterator& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count)
-		-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(start_iter, count))::iterator_type>(make_xscope_string_const_section(start_iter, count)));
+		//-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(start_iter, count))::iterator_type>(make_xscope_string_const_section(start_iter, count)));
+		/* the previous line seems to be (sometimes?) too complex for msvc2017 */
+		-> decltype(TXScopeNRPStringConstSection<typename make_xscope_nrp_string_const_section_helper_type1<_TRAIterator>::iterator_type>(make_xscope_string_const_section(start_iter, count)));
+
 	template<typename _Ty, size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 	auto make_xscope_nrp_string_const_section(const _Ty(&presumed_string_literal)[Tn]) -> decltype(TXScopeNRPStringConstSection<const _Ty*>(presumed_string_literal));
 	namespace impl {
@@ -6654,7 +6663,8 @@ namespace mse {
 			auto make_xscope_nrp_string_const_section_helper1(std::true_type, const _Ty& param) -> decltype(make_xscope_string_const_section(param));
 			template <typename _TRALoneParam>
 			auto make_xscope_nrp_string_const_section_helper1(std::false_type, const _TRALoneParam& param)
-				-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(param))::iterator_type>(make_xscope_string_const_section(param)));
+				//-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(param))::iterator_type>(make_xscope_string_const_section(param)));
+				-> decltype(TXScopeNRPStringConstSection<typename make_xscope_nrp_string_const_section_helper_type2<_TRALoneParam>::iterator_type>(make_xscope_string_const_section(param)));
 		}
 	}
 	template <typename _TRALoneParam>
@@ -7216,7 +7226,8 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	auto make_xscope_nrp_string_const_section(const _TRAIterator& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count)
-		-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(start_iter, count))::iterator_type>(make_xscope_string_const_section(start_iter, count))) {
+		//-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(start_iter, count))::iterator_type>(make_xscope_string_const_section(start_iter, count))) {
+		-> decltype(TXScopeNRPStringConstSection<typename make_xscope_nrp_string_const_section_helper_type1<_TRAIterator>::iterator_type>(make_xscope_string_const_section(start_iter, count))) {
 		return TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(start_iter, count))::iterator_type>(make_xscope_string_const_section(start_iter, count));
 	}
 	template<typename _Ty, size_t Tn, typename/* = typename std::enable_if<1 <= Tn>::type*/>
@@ -7231,7 +7242,8 @@ namespace mse {
 			}
 			template <typename _TRALoneParam>
 			auto make_xscope_nrp_string_const_section_helper1(std::false_type, const _TRALoneParam& param)
-				-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(param))::iterator_type>(make_xscope_string_const_section(param))) {
+				//-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(param))::iterator_type>(make_xscope_string_const_section(param))) {
+				-> decltype(TXScopeNRPStringConstSection<typename make_xscope_nrp_string_const_section_helper_type2<_TRALoneParam>::iterator_type>(make_xscope_string_const_section(param))) {
 
 				return TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(param))::iterator_type>(make_xscope_string_const_section(param));
 			}

@@ -2619,7 +2619,7 @@ namespace mse {
 		public:
 			typedef decltype(std::addressof((*std::declval<_ContainerPointer>())[0])) iter_t;
 			TXScopeRARangeRawPointerIterProvider(const _ContainerPointer& _XscpPtr) : m_begin(std::addressof((*_XscpPtr)[0]))
-				, m_end(std::addressof((*_XscpPtr)[0]) + (*_XscpPtr).size()) {}
+				, m_end(std::addressof((*_XscpPtr)[0]) + mse::as_a_size_t((*_XscpPtr).size())) {}
 			const auto& begin() const { return m_begin; }
 			const auto& end() const { return m_end; }
 

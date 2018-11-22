@@ -205,7 +205,7 @@ namespace mse {
 		TWCRegisteredPointer<_Ty>& operator=(const TWCRegisteredPointer<_Ty2>& _Right_cref) {
 			return (*this).operator=(TWCRegisteredPointer(_Right_cref));
 		}
-		operator bool() const { return (*this).m_ptr; }
+		operator bool() const { return !(!((*this).m_ptr)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
@@ -299,7 +299,7 @@ namespace mse {
 			return (*this).operator=(TWCRegisteredConstPointer(_Right_cref));
 		}
 
-		operator bool() const { return (*this).m_ptr; }
+		operator bool() const { return !(!((*this).m_ptr)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		operator const _Ty*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1

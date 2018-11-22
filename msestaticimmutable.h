@@ -127,7 +127,7 @@ namespace mse {
 						return (*this).m_ptr;
 					}
 
-					operator bool() const { return (*this).m_ptr; }
+					operator bool() const { return !(!((*this).m_ptr)); }
 
 				private:
 					TCheckedSImmPointer(TCheckedSImmObj<_Ty>* ptr) : mse::us::impl::TPointer<TCheckedSImmObj<_Ty>>(ptr) {

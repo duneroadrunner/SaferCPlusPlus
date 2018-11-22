@@ -535,6 +535,12 @@ namespace mse {
 		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref);
 	}
 
+	namespace impl {
+		/* This template type alias is only used because msvc2017(v15.9.0) crashes if the type expression is used directly. */
+		template<class _Ty2, class _TMemberObjectPointer>
+		using make_xscope_pointer_to_member_v2_return_type1 = TXScopeItemFixedPointer<typename std::remove_reference<decltype(std::declval<_Ty2>().*std::declval<_TMemberObjectPointer>())>::type>;
+	}
+
 	/* While TXScopeFixedPointer<> points to a TXScopeObj<>, TXScopeItemFixedPointer<> is intended to be able to point to a
 	TXScopeObj<>, any member of a TXScopeObj<>, or various other items with scope lifetime that, for various reasons, aren't
 	declared as TXScopeObj<>. */
@@ -568,7 +574,7 @@ namespace mse {
 
 		template<class _Ty2, class _TMemberObjectPointer>
 		friend auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-			->TXScopeItemFixedPointer<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>;
+			-> mse::impl::make_xscope_pointer_to_member_v2_return_type1<_Ty2, _TMemberObjectPointer>;
 		/* These versions of make_xscope_pointer_to_member() are actually now deprecated. */
 		template<class _TTargetType, class _Ty2>
 		friend TXScopeItemFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty2> &lease_pointer);
@@ -1549,7 +1555,7 @@ namespace mse {
 #ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-		-> TXScopeItemFixedPointer<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type> {
+		-> mse::impl::make_xscope_pointer_to_member_v2_return_type1<_Ty, _TMemberObjectPointer> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopePointerBase<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>(
 			mse::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));

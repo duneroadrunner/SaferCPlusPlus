@@ -524,7 +524,7 @@ namespace mse {
 	namespace impl {
 		template <class _TPointer>
 		bool operator_bool_helper1(std::true_type, const _TPointer& ptr_cref) {
-			return bool(ptr_cref);
+			return !(!ptr_cref);
 		}
 		template <class _TPointer>
 		bool operator_bool_helper1(std::false_type, const _TPointer&) {
