@@ -240,12 +240,12 @@ namespace mse {
 		Tnii_basic_string_ss_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
 		Tnii_basic_string_ss_const_iterator_type operator--(int) { Tnii_basic_string_ss_const_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
 		void advance(difference_type n) {
-			auto new_index = msear_int(m_index) + n;
-			if ((0 > new_index) || (m_owner_cptr->size() < msear_size_t(new_index))) {
+			auto new_index = msev_int(m_index) + n;
+			if ((0 > new_index) || (m_owner_cptr->size() < msev_size_t(new_index))) {
 				MSE_THROW(nii_basic_string_range_error("index out of range - void advance(difference_type n) - Tnii_basic_string_ss_const_iterator_type - nii_basic_string"));
 			}
 			else {
-				m_index = msear_size_t(new_index);
+				m_index = msev_size_t(new_index);
 			}
 		}
 		void regress(difference_type n) { advance(-n); }
@@ -264,16 +264,16 @@ namespace mse {
 			return retval;
 		}
 		const_reference operator*() const {
-			return (*m_owner_cptr).at(msear_as_a_size_t((*this).m_index));
+			return (*m_owner_cptr).at(msev_as_a_size_t((*this).m_index));
 		}
 		const_reference item() const { return operator*(); }
 		const_reference previous_item() const {
-			return (*m_owner_cptr).at(msear_as_a_size_t((*this).m_index - 1));
+			return (*m_owner_cptr).at(msev_as_a_size_t((*this).m_index - 1));
 		}
 		const_pointer operator->() const {
-			return std::addressof((*m_owner_cptr).at(msear_as_a_size_t((*this).m_index)));
+			return std::addressof((*m_owner_cptr).at(msev_as_a_size_t((*this).m_index)));
 		}
-		const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(msear_as_a_size_t(difference_type(m_index) + _Off)); }
+		const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
 
 		bool operator==(const Tnii_basic_string_ss_const_iterator_type& _Right_cref) const {
 			if (this->m_owner_cptr != _Right_cref.m_owner_cptr) { MSE_THROW(nii_basic_string_range_error("invalid argument - Tnii_basic_string_ss_const_iterator_type& operator==(const Tnii_basic_string_ss_const_iterator_type& _Right) - Tnii_basic_string_ss_const_iterator_type - nii_basic_string")); }
@@ -320,7 +320,7 @@ namespace mse {
 			return (*this) = Tnii_basic_string_ss_const_iterator_type(_Right_cref);
 		}
 
-		msear_size_t position() const {
+		msev_size_t position() const {
 			return m_index;
 		}
 		_TBasicStringConstPointer target_container_ptr() const {
@@ -334,7 +334,7 @@ namespace mse {
 
 	private:
 		_TBasicStringConstPointer m_owner_cptr;
-		msear_size_t m_index = 0;
+		msev_size_t m_index = 0;
 
 		friend class /*_Myt*/nii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
 	};
@@ -393,7 +393,7 @@ namespace mse {
 			m_index = 0;
 		}
 		void set_to_end_marker() {
-			m_index = m_owner_ptr->size();
+			m_index = msev_size_t(m_owner_ptr->size());
 		}
 		void set_to_next() {
 			if (points_to_an_item()) {
@@ -417,12 +417,12 @@ namespace mse {
 		Tnii_basic_string_ss_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
 		Tnii_basic_string_ss_iterator_type operator--(int) { Tnii_basic_string_ss_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
 		void advance(difference_type n) {
-			auto new_index = msear_int(m_index) + n;
-			if ((0 > new_index) || (m_owner_ptr->size() < msear_size_t(new_index))) {
+			auto new_index = msev_int(m_index) + n;
+			if ((0 > new_index) || (m_owner_ptr->size() < msev_size_t(new_index))) {
 				MSE_THROW(nii_basic_string_range_error("index out of range - void advance(difference_type n) - Tnii_basic_string_ss_iterator_type - nii_basic_string"));
 			}
 			else {
-				m_index = msear_size_t(new_index);
+				m_index = msev_size_t(new_index);
 			}
 		}
 		void regress(difference_type n) { advance(-n); }
@@ -441,7 +441,7 @@ namespace mse {
 			return retval;
 		}
 		reference operator*() const {
-			return (*m_owner_ptr).at(msear_as_a_size_t((*this).m_index));
+			return (*m_owner_ptr).at(msev_as_a_size_t((*this).m_index));
 		}
 		reference item() const { return operator*(); }
 		reference previous_item() const {
@@ -453,9 +453,9 @@ namespace mse {
 			}
 		}
 		pointer operator->() const {
-			return std::addressof((*m_owner_ptr).at(msear_as_a_size_t((*this).m_index)));
+			return std::addressof((*m_owner_ptr).at(msev_as_a_size_t((*this).m_index)));
 		}
-		reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msear_as_a_size_t(difference_type(m_index) + _Off)); }
+		reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
 
 		bool operator==(const Tnii_basic_string_ss_iterator_type& _Right_cref) const {
 			if (this->m_owner_ptr != _Right_cref.m_owner_ptr) { MSE_THROW(nii_basic_string_range_error("invalid argument - Tnii_basic_string_ss_iterator_type& operator==(const Tnii_basic_string_ss_iterator_type& _Right) - Tnii_basic_string_ss_iterator_type - nii_basic_string")); }
@@ -498,7 +498,7 @@ namespace mse {
 			return (*this) = Tnii_basic_string_ss_iterator_type(_Right_cref);
 		}
 
-		msear_size_t position() const {
+		msev_size_t position() const {
 			return m_index;
 		}
 		_TBasicStringPointer target_container_ptr() const {
@@ -509,7 +509,7 @@ namespace mse {
 		Tnii_basic_string_ss_const_iterator_type<_TBasicStringPointer> retval;
 		if (nullptr != m_owner_ptr) {
 		retval = m_owner_ptr->ss_cbegin<_TBasicStringPointer>(m_owner_ptr);
-		retval.advance(msear_int(m_index));
+		retval.advance(msev_int(m_index));
 		}
 		return retval;
 		}
@@ -521,9 +521,9 @@ namespace mse {
 			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
-		//msear_pointer<_Myt> m_owner_ptr = nullptr;
+		//msev_pointer<_Myt> m_owner_ptr = nullptr;
 		_TBasicStringPointer m_owner_ptr;
-		msear_size_t m_index = 0;
+		msev_size_t m_index = 0;
 
 		friend class /*_Myt*/nii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
 		template<typename _TBasicStringConstPointer, class _Ty2, class _Traits2, class _A2, class _TStateMutex2, class/* = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringConstPointer>::value), void>::type*/>
@@ -536,13 +536,13 @@ namespace mse {
 	using Tnii_basic_string_ss_const_reverse_iterator_type = std::reverse_iterator<Tnii_basic_string_ss_const_iterator_type<_TBasicStringConstPointer, _Ty, _Traits, _A, _TStateMutex> >;
 
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
-	using Tnii_basic_string_rp_ss_iterator_type = Tnii_basic_string_ss_iterator_type<msear_pointer<nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
+	using Tnii_basic_string_rp_ss_iterator_type = Tnii_basic_string_ss_iterator_type<msev_pointer<nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
-	using Tnii_basic_string_rp_ss_const_iterator_type = Tnii_basic_string_ss_const_iterator_type<msear_pointer<const nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
+	using Tnii_basic_string_rp_ss_const_iterator_type = Tnii_basic_string_ss_const_iterator_type<msev_pointer<const nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
-	using Tnii_basic_string_rp_ss_reverse_iterator_type = Tnii_basic_string_ss_iterator_type<msear_pointer<nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
+	using Tnii_basic_string_rp_ss_reverse_iterator_type = Tnii_basic_string_ss_iterator_type<msev_pointer<nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
-	using Tnii_basic_string_rp_ss_const_reverse_iterator_type = Tnii_basic_string_ss_const_reverse_iterator_type<msear_pointer<const nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
+	using Tnii_basic_string_rp_ss_const_reverse_iterator_type = Tnii_basic_string_ss_const_reverse_iterator_type<msev_pointer<const nii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
 
 	template<class _Ty, class _Traits, class _A, class _TStateMutex>
 	class Tnii_basic_string_xscope_ss_iterator_type;
@@ -624,7 +624,7 @@ namespace mse {
 		bool operator>(const Tnii_basic_string_xscope_ss_const_iterator_type& _Right) const { return Tnii_basic_string_rp_ss_const_iterator_type<_Ty, _Traits, _A, _TStateMutex>::operator>(_Right); }
 		bool operator>=(const Tnii_basic_string_xscope_ss_const_iterator_type& _Right) const { return Tnii_basic_string_rp_ss_const_iterator_type<_Ty, _Traits, _A, _TStateMutex>::operator>=(_Right); }
 		void set_to_const_item_pointer(const Tnii_basic_string_xscope_ss_const_iterator_type& _Right_cref) { Tnii_basic_string_rp_ss_const_iterator_type<_Ty, _Traits, _A, _TStateMutex>::set_to_item_pointer(_Right_cref); }
-		msear_size_t position() const { return Tnii_basic_string_rp_ss_const_iterator_type<_Ty, _Traits, _A, _TStateMutex>::position(); }
+		msev_size_t position() const { return Tnii_basic_string_rp_ss_const_iterator_type<_Ty, _Traits, _A, _TStateMutex>::position(); }
 		auto target_container_ptr() const {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*(Tnii_basic_string_rp_ss_const_iterator_type<_Ty, _Traits, _A, _TStateMutex>::target_container_ptr()));
 		}
@@ -708,7 +708,7 @@ namespace mse {
 		bool operator>(const Tnii_basic_string_xscope_ss_iterator_type& _Right) const { return Tnii_basic_string_rp_ss_iterator_type<_Ty, _Traits, _A, _TStateMutex>::operator>(_Right); }
 		bool operator>=(const Tnii_basic_string_xscope_ss_iterator_type& _Right) const { return Tnii_basic_string_rp_ss_iterator_type<_Ty, _Traits, _A, _TStateMutex>::operator>=(_Right); }
 		void set_to_item_pointer(const Tnii_basic_string_xscope_ss_iterator_type& _Right_cref) { Tnii_basic_string_rp_ss_iterator_type<_Ty, _Traits, _A, _TStateMutex>::set_to_item_pointer(_Right_cref); }
-		msear_size_t position() const { return Tnii_basic_string_rp_ss_iterator_type<_Ty, _Traits, _A, _TStateMutex>::position(); }
+		msev_size_t position() const { return Tnii_basic_string_rp_ss_iterator_type<_Ty, _Traits, _A, _TStateMutex>::position(); }
 		auto target_container_ptr() const {
 			return mse::us::unsafe_make_xscope_pointer_to(*(Tnii_basic_string_rp_ss_iterator_type<_Ty, _Traits, _A, _TStateMutex>::target_container_ptr()));
 		}
@@ -2392,9 +2392,9 @@ namespace mse {
 			typedef typename base_class::allocator_type allocator_type;
 			typedef typename base_class::value_type value_type;
 			typedef typename base_class::size_type size_type;
-			//typedef msear_size_t size_type;
+			//typedef msev_size_t size_type;
 			typedef typename base_class::difference_type difference_type;
-			//typedef msear_int difference_type;
+			//typedef msev_int difference_type;
 			typedef typename base_class::pointer pointer;
 			typedef typename base_class::const_pointer const_pointer;
 			typedef typename base_class::reference reference;
@@ -3333,7 +3333,7 @@ namespace mse {
 					else { assert(false == m_points_to_an_item); }
 				}
 				void set_to_end_marker() {
-					m_index = m_owner_ptr->size();
+					m_index = msev_size_t(m_owner_ptr->size());
 					m_points_to_an_item = false;
 				}
 				void set_to_next() {
@@ -4536,7 +4536,7 @@ namespace mse {
 				bool operator>(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator>(_Right); }
 				bool operator>=(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator>=(_Right); }
 				void set_to_const_item_pointer(const xscope_ss_const_iterator_type& _Right_cref) { ss_const_iterator_type::set_to_item_pointer(_Right_cref); }
-				msear_size_t position() const { return ss_const_iterator_type::position(); }
+				msev_size_t position() const { return ss_const_iterator_type::position(); }
 				auto target_container_ptr() const {
 					return mse::us::unsafe_make_xscope_const_pointer_to(*(ss_const_iterator_type::target_container_ptr()));
 				}
@@ -4609,7 +4609,7 @@ namespace mse {
 				bool operator>(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator>(_Right); }
 				bool operator>=(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator>=(_Right); }
 				void set_to_item_pointer(const xscope_ss_iterator_type& _Right_cref) { ss_iterator_type::set_to_item_pointer(_Right_cref); }
-				msear_size_t position() const { return ss_iterator_type::position(); }
+				msev_size_t position() const { return ss_iterator_type::position(); }
 				auto target_container_ptr() const {
 					return mse::us::unsafe_make_xscope_pointer_to(*(ss_iterator_type::target_container_ptr()));
 				}
@@ -4694,7 +4694,7 @@ namespace mse {
 				bool operator>(const xscope_cipointer& _Right) const { return cipointer::operator>(_Right); }
 				bool operator>=(const xscope_cipointer& _Right) const { return cipointer::operator>=(_Right); }
 				void set_to_const_item_pointer(const xscope_cipointer& _Right_cref) { cipointer::set_to_item_pointer(_Right_cref); }
-				msear_size_t position() const { return cipointer::position(); }
+				msev_size_t position() const { return cipointer::position(); }
 				auto target_container_ptr() const {
 					return mse::us::unsafe_make_xscope_const_pointer_to(*(cipointer::target_container_ptr()));
 				}
@@ -4766,7 +4766,7 @@ namespace mse {
 				bool operator>(const xscope_ipointer& _Right) const { return ipointer::operator>(_Right); }
 				bool operator>=(const xscope_ipointer& _Right) const { return ipointer::operator>=(_Right); }
 				void set_to_item_pointer(const xscope_ipointer& _Right_cref) { ipointer::set_to_item_pointer(_Right_cref); }
-				msear_size_t position() const { return ipointer::position(); }
+				msev_size_t position() const { return ipointer::position(); }
 				auto target_container_ptr() const {
 					return mse::us::unsafe_make_xscope_pointer_to(*(ipointer::target_container_ptr()));
 				}
