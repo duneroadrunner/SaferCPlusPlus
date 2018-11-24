@@ -1723,9 +1723,9 @@ void main(int argc, char* argv[]) {
 	}
 	{
 		/* mse::TAsyncSharedV2ReadWriteAccessRequester's flexibilty in allowing coexisting read and write lock
-		pointers in the same thread introduces new ways produce logical deadlocks. This block (likely) demonstrates
-		the access requester's ability to detect these potential deadlocks (and throw an exception when they would
-		occur). */
+		pointers in the same thread introduces new ways to produce logical deadlocks. This block (likely)
+		demonstrates the access requester's ability to detect these potential deadlocks (and throw an exception
+		when they would occur). */
 
 		std::cout << "TAsyncSharedV2ReadWriteAccessRequester deadlock detection:";
 		std::cout << std::endl;
