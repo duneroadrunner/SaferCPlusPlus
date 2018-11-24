@@ -1,4 +1,4 @@
-Oct 2018
+Nov 2018
 
 ### Overview
 
@@ -24,7 +24,7 @@ And the library also addresses the data race issue, where the Core Guidelines do
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
-Tested with msvc2017(v15.7.4), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. Note that this is currently a C++14 library (and in large part a C++11 library). So, for example, it does not yet provide any C++17 template deduction guides for its elements. Also note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
+Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. Note that this is currently a C++14 library (and in large part a C++11 library). So, for example, it does not yet provide any C++17 template deduction guides for its elements. Also note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
 
 
 ### Table of contents
@@ -1567,7 +1567,7 @@ Non-blocking `try_writelock_ptr()` and `try_readlock_ptr()` member functions are
 
 Note that while a "write-lock" pointer will not simultaneously co-exist with any lock pointer to the same shared object in any other thread, it can co-exist with (read- and/or write-) lock pointers in the same thread. This means that lock pointers have ["upgrade lock"](http://www.boost.org/doc/libs/1_65_1/doc/html/thread/synchronization.html#thread.synchronization.mutex_concepts.upgrade_lockable) functionality. That is, for example, a thread that holds a read lock on a shared object (via read-lock pointer) can, at some later point, additionally obtain a write lock (via write-lock pointer) without surrendering the original read lock. It can then release the write lock (by allowing the write-lock pointer to go out of scope), again without surrendering the original read lock. Systems based on traditional "readers-writer" locks would require you to surrender the read lock before attempting to obtain a write lock, allowing another thread to potentially (and undesirably) obtain a write lock in between.
 
-One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. Prudent practice would avoid deadlock by using the non-blocking `try_writelock_ptr()`, or time-out limited `try_writelock_ptr_for()` member functions to obtain the write-lock pointer. Currently, this dead-lock scenario is not detected by the access requester (or its underlying mutex). It is intended that in the near future, this dead-lock scenario will be detected and an exception will be thrown (or whatever user-specified behavior).
+One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. The access requesters detect these situations, and will throw an exception (or whatever user-specified behavior) when they occur.
 
 usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
 
@@ -1720,6 +1720,45 @@ usage example:
 			}
 	
 			auto A_b_safe_cptr = mse::make_const_pointer_to_member(A_immptr->b, A_immptr);
+		}
+		{
+			/* mse::TAsyncSharedV2ReadWriteAccessRequester's flexibilty in allowing coexisting read and write lock
+			pointers in the same thread introduces new ways produce logical deadlocks. This block (likely) demonstrates
+			the access requester's ability to detect these potential deadlocks (and throw an exception when they would
+			occur). */
+
+			std::cout << "TAsyncSharedV2ReadWriteAccessRequester deadlock detection:";
+			std::cout << std::endl;
+
+			class CC {
+			public:
+				static void foo1(mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA> A_ashar, int id) {
+					{
+						auto readlock_ptr = A_ashar.readlock_ptr();
+						std::this_thread::sleep_for(std::chrono::seconds(1));
+						try {
+							auto writelock_ptr = A_ashar.writelock_ptr();
+							std::this_thread::sleep_for(std::chrono::seconds(1));
+						}
+						catch (...) {
+							// likely exception due to potential deadlock
+							std::cout << "deadlock detected ";
+							std::cout << std::endl;
+						}
+					}
+				}
+			};
+
+			auto ash_access_requester = mse::make_asyncsharedv2readwrite<ShareableA>(7);
+
+			{
+				auto thread1 = mse::mstd::thread(CC::foo1, ash_access_requester, 1);
+				auto thread2 = mse::mstd::thread(CC::foo1, ash_access_requester, 2);
+				thread1.join();
+				thread2.join();
+			}
+
+			std::cout << std::endl;
 		}
 	}
 ```
