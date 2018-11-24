@@ -1733,18 +1733,16 @@ usage example:
 			class CC {
 			public:
 				static void foo1(mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA> A_ashar, int id) {
-					{
-						auto readlock_ptr = A_ashar.readlock_ptr();
+					auto readlock_ptr = A_ashar.readlock_ptr();
+					std::this_thread::sleep_for(std::chrono::seconds(1));
+					try {
+						auto writelock_ptr = A_ashar.writelock_ptr();
 						std::this_thread::sleep_for(std::chrono::seconds(1));
-						try {
-							auto writelock_ptr = A_ashar.writelock_ptr();
-							std::this_thread::sleep_for(std::chrono::seconds(1));
-						}
-						catch (...) {
-							// likely exception due to potential deadlock
-							std::cout << "deadlock detected ";
-							std::cout << std::endl;
-						}
+					}
+					catch (...) {
+						// likely exception due to potential deadlock
+						std::cout << "deadlock detected ";
+						std::cout << std::endl;
 					}
 				}
 			};
