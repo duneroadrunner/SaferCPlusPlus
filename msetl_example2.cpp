@@ -1280,45 +1280,6 @@ void msetl_example2() {
 			std::cout << std::endl;
 		}
 		{
-			/* mse::TAsyncSharedV2ReadWriteAccessRequester's flexibilty in allowing coexisting read and write lock
-			pointers in the same thread introduces new ways produce logical deadlocks. This block (likely) demonstrates
-			the access requester's ability to detect these potential deadlocks (and throw an exception when they would
-			occur). */
-
-			std::cout << "TAsyncSharedV2ReadWriteAccessRequester deadlock detection:";
-			std::cout << std::endl;
-
-			class CC {
-			public:
-				static void foo1(mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA> A_ashar, int id) {
-					{
-						auto readlock_ptr = A_ashar.readlock_ptr();
-						std::this_thread::sleep_for(std::chrono::seconds(1));
-						try {
-							auto writelock_ptr = A_ashar.writelock_ptr();
-							std::this_thread::sleep_for(std::chrono::seconds(1));
-						}
-						catch (...) {
-							// likely exception due to potential deadlock
-							std::cout << "deadlock detected ";
-							std::cout << std::endl;
-						}
-					}
-				}
-			};
-
-			auto ash_access_requester = mse::make_asyncsharedv2readwrite<ShareableA>(7);
-
-			{
-				auto thread1 = mse::mstd::thread(CC::foo1, ash_access_requester, 1);
-				auto thread2 = mse::mstd::thread(CC::foo1, ash_access_requester, 2);
-				thread1.join();
-				thread2.join();
-			}
-
-			std::cout << std::endl;
-		}
-		{
 			std::cout << "TAsyncSharedV2ReadOnlyAccessRequester:";
 			std::cout << std::endl;
 			auto ash_access_requester = mse::make_asyncsharedv2readonly<ShareableA>(7);
@@ -1363,6 +1324,45 @@ void msetl_example2() {
 			}
 
 			auto A_b_safe_cptr = mse::make_const_pointer_to_member_v2(A_immptr, &A::b);
+		}
+		{
+			/* mse::TAsyncSharedV2ReadWriteAccessRequester's flexibilty in allowing coexisting read and write lock
+			pointers in the same thread introduces new ways produce logical deadlocks. This block (likely) demonstrates
+			the access requester's ability to detect these potential deadlocks (and throw an exception when they would
+			occur). */
+
+			std::cout << "TAsyncSharedV2ReadWriteAccessRequester deadlock detection:";
+			std::cout << std::endl;
+
+			class CC {
+			public:
+				static void foo1(mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA> A_ashar, int id) {
+					{
+						auto readlock_ptr = A_ashar.readlock_ptr();
+						std::this_thread::sleep_for(std::chrono::seconds(1));
+						try {
+							auto writelock_ptr = A_ashar.writelock_ptr();
+							std::this_thread::sleep_for(std::chrono::seconds(1));
+						}
+						catch (...) {
+							// likely exception due to potential deadlock
+							std::cout << "deadlock detected ";
+							std::cout << std::endl;
+						}
+					}
+				}
+			};
+
+			auto ash_access_requester = mse::make_asyncsharedv2readwrite<ShareableA>(7);
+
+			{
+				auto thread1 = mse::mstd::thread(CC::foo1, ash_access_requester, 1);
+				auto thread2 = mse::mstd::thread(CC::foo1, ash_access_requester, 2);
+				thread1.join();
+				thread2.join();
+			}
+
+			std::cout << std::endl;
 		}
 		{
 			/* This block demonstrates safely allowing different threads to (simultaneously) modify different
