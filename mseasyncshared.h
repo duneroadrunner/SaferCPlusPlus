@@ -635,7 +635,6 @@ namespace mse {
 					if (m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock
 						&& (!the_shared_lock_of_this_thread_is_suspended_to_allow_an_exclusive_lock)) {
 						/* In this case we need to yield our (just obtained) writelock (to the thread that has "dibs"). */
-						unlock_guard<std::mutex> unlock1(m_state_mutex1);
 						base_class::unlock();
 					}
 					else {

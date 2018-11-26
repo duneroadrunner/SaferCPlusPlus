@@ -1327,9 +1327,9 @@ void msetl_example2() {
 		}
 		{
 			/* mse::TAsyncSharedV2ReadWriteAccessRequester's flexibilty in allowing coexisting read and write lock
-			pointers in the same thread introduces new ways produce logical deadlocks. This block (likely) demonstrates
-			the access requester's ability to detect these potential deadlocks (and throw an exception when they would
-			occur). */
+			pointers in the same thread introduces new ways to produce logical deadlocks. This block (likely)
+			demonstrates the access requester's ability to detect these potential deadlocks (and throw an exception
+			when they would occur). */
 
 			std::cout << "TAsyncSharedV2ReadWriteAccessRequester deadlock detection:";
 			std::cout << std::endl;
@@ -1337,18 +1337,16 @@ void msetl_example2() {
 			class CC {
 			public:
 				static void foo1(mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA> A_ashar, int id) {
-					{
-						auto readlock_ptr = A_ashar.readlock_ptr();
+					auto readlock_ptr = A_ashar.readlock_ptr();
+					std::this_thread::sleep_for(std::chrono::seconds(1));
+					try {
+						auto writelock_ptr = A_ashar.writelock_ptr();
 						std::this_thread::sleep_for(std::chrono::seconds(1));
-						try {
-							auto writelock_ptr = A_ashar.writelock_ptr();
-							std::this_thread::sleep_for(std::chrono::seconds(1));
-						}
-						catch (...) {
-							// likely exception due to potential deadlock
-							std::cout << "deadlock detected ";
-							std::cout << std::endl;
-						}
+					}
+					catch (...) {
+						// likely exception due to potential deadlock
+						std::cout << "deadlock detected ";
+						std::cout << std::endl;
 					}
 				}
 			};
