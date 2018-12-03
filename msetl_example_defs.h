@@ -40,6 +40,13 @@ library's container classes in release builds. (They are automatically enabled i
 necessary in the presence of potentially misbehaving user-defined constructors/destructors.) */
 //#define MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT
 
+/* The following causes arithmetic operations involving the library's safe primitives to return, if available, a
+type larger than the operand type(s). So for example, if the size of CInt (and the native int) is 4 bytes and the
+native long long type is 8 bytes, then the result of multiplying two CInts would be a TInt<long long>. Assigning
+that result back to a CInt would result in a run-time range check. (Effectively an overflow check for the
+operation.) */
+//#define MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
+
 /* msvc2015's incomplete support for "constexpr" means that range checks that should be done at compile time would
 be done at run time, at significant cost. So they are disabled by default for that compiler. Here we're "forcing"
 them to be enabled. */

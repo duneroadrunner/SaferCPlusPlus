@@ -225,35 +225,100 @@ namespace mse {
 	static size_t as_a_size_t(CNDSize_t n);
 
 	namespace impl {
+		/* We don't assume that char, short, long and long long all have distinct sizes. But in the common case where
+		each is double the size of the preceding type, efficient (run-time) arithmetic overflow detection for types
+		smaller other than the largest ones (long long and unsigned long long) can be enabled (by defining
+		MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC). */
 		template<typename _Ty> struct next_bigger_native_int_type { typedef _Ty type; };
 		template<> struct next_bigger_native_int_type<char> { typedef short int type; };
+		template<> struct next_bigger_native_int_type<signed char> { typedef short int type; };
 		template<> struct next_bigger_native_int_type<short int> { typedef long int type; };
 		template<> struct next_bigger_native_int_type<long int> { typedef long long int type; };
 		template<> struct next_bigger_native_int_type<unsigned char> { typedef unsigned short int type; };
 		template<> struct next_bigger_native_int_type<unsigned short int> { typedef unsigned long int type; };
 		template<> struct next_bigger_native_int_type<unsigned long int> { typedef unsigned long long int type; };
+		template<> struct next_bigger_native_int_type<int> {
+			typedef typename std::conditional<(std::numeric_limits<long int>::digits > std::numeric_limits<int>::digits), long int, long long int>::type type;
+		};
+		template<> struct next_bigger_native_int_type<unsigned int> {
+			typedef typename std::conditional<(std::numeric_limits<unsigned long int>::digits > std::numeric_limits<unsigned int>::digits), unsigned long int, unsigned long long int>::type type;
+		};
 
-		template<typename _Ty, typename _Tz> struct range_encompassing_native_int_type { typedef long long int type; };
-		template<> struct range_encompassing_native_int_type<unsigned long long int, unsigned long long int> { typedef unsigned long long int type; };
-		template<> struct range_encompassing_native_int_type<long int, long int> { typedef long int type; };
-		template<> struct range_encompassing_native_int_type<unsigned long int, unsigned long int> { typedef unsigned long int type; };
-		template<> struct range_encompassing_native_int_type<int, int> { typedef int type; };
-		template<> struct range_encompassing_native_int_type<unsigned int, unsigned int> { typedef unsigned int type; };
-		template<> struct range_encompassing_native_int_type<short int, short int> { typedef short int type; };
-		template<> struct range_encompassing_native_int_type<unsigned short int, unsigned short int> { typedef unsigned short int type; };
+		namespace range_encompassing {
+			template<typename _Ty, typename _Tz>
+			struct next_bigger_candidate {
+				typedef typename std::conditional<std::is_signed<_Ty>::value || std::is_signed<_Tz>::value
+					, typename std::make_signed<_Ty>::type, _Ty>::type candidate_type;
 
-		template<> struct range_encompassing_native_int_type<unsigned long int, long int> { typedef long int type; };
-		template<> struct range_encompassing_native_int_type<long int, unsigned long int> { typedef long int type; };
-		template<> struct range_encompassing_native_int_type<unsigned int, int> { typedef int type; };
-		template<> struct range_encompassing_native_int_type<int, unsigned int> { typedef int type; };
-		/* to do: add more template specializations or otherwise address the other cases */
-#define MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz) typename mse::impl::range_encompassing_native_int_type<_Ty, _Tz>::type
+				typedef typename next_bigger_native_int_type<candidate_type>::type type;
+			};
+			template<typename _Ty, typename _Tz, typename candidate_type>
+			struct last_encompasses_first_two {
+				static const bool value = !((sg_can_exceed_upper_bound<candidate_type, _Ty>()) || (sg_can_exceed_upper_bound<candidate_type, _Tz>())
+					|| (sg_can_exceed_lower_bound<candidate_type, _Ty>()) || (sg_can_exceed_lower_bound<candidate_type, _Tz>()));
+			};
+			template<typename _Ty>
+			struct is_biggest_available_type {
+				static const bool value = std::is_same<long long int, _Ty>::value || std::is_same<unsigned long long int, _Ty>::value;
+			};
+
+			/* range_encompassing_native_int_type1<> determines the smallest (integer) type whose range encompasses the
+			ranges of the two given (integer) types. Ideally it would use a recursive algorithm to accomplish this. But
+			it was not readily apparent how to do the recursion in a supported way. So knowing that the maximum
+			recursion depth needed is limited, we just manually emulate the recursion by creating a distinct struct for
+			each level of recursion. */
+			template<typename candidate_type, typename _Tz> struct range_encompassing_native_int_type_helper7 {
+				typedef void type; /* Should induce a compile error if this type is actually ever used. */
+			};
+			template<typename candidate_type, typename _Tz> struct range_encompassing_native_int_type_helper6 {
+				typedef typename std::conditional<!(is_biggest_available_type<candidate_type>::value || last_encompasses_first_two<candidate_type, _Tz, candidate_type>::value)
+					, typename range_encompassing_native_int_type_helper7<typename next_bigger_candidate<candidate_type, _Tz>::type, _Tz>::type
+					, candidate_type>::type type;
+			};
+			template<typename candidate_type, typename _Tz> struct range_encompassing_native_int_type_helper5 {
+				typedef typename std::conditional<!(is_biggest_available_type<candidate_type>::value || last_encompasses_first_two<candidate_type, _Tz, candidate_type>::value)
+					, typename range_encompassing_native_int_type_helper6<typename next_bigger_candidate<candidate_type, _Tz>::type, _Tz>::type
+					, candidate_type>::type type;
+			};
+			template<typename candidate_type, typename _Tz> struct range_encompassing_native_int_type_helper4 {
+				typedef typename std::conditional<!(is_biggest_available_type<candidate_type>::value || last_encompasses_first_two<candidate_type, _Tz, candidate_type>::value)
+					, typename range_encompassing_native_int_type_helper5<typename next_bigger_candidate<candidate_type, _Tz>::type, _Tz>::type
+					, candidate_type>::type type;
+			};
+			template<typename candidate_type, typename _Tz> struct range_encompassing_native_int_type_helper3 {
+				typedef typename std::conditional<!(is_biggest_available_type<candidate_type>::value || last_encompasses_first_two<candidate_type, _Tz, candidate_type>::value)
+					, typename range_encompassing_native_int_type_helper4<typename next_bigger_candidate<candidate_type, _Tz>::type, _Tz>::type
+					, candidate_type>::type type;
+			};
+			template<typename candidate_type, typename _Tz> struct range_encompassing_native_int_type_helper2 {
+				typedef typename std::conditional<!(is_biggest_available_type<candidate_type>::value || last_encompasses_first_two<candidate_type, _Tz, candidate_type>::value)
+					, typename range_encompassing_native_int_type_helper3<typename next_bigger_candidate<candidate_type, _Tz>::type, _Tz>::type
+					, candidate_type>::type type;
+			};
+
+			/* This template struct should deduce the smallest native integer type that can encompass the combined range
+			of both template parameters (or the one that comes closest if there isn't one). */
+			template<typename _Ty, typename _Tz> struct range_encompassing_native_int_type {
+				typedef typename std::conditional<std::is_signed<_Ty>::value || std::is_signed<_Tz>::value, typename std::make_signed<_Ty>::type, _Ty>::type candidate_type;
+
+				typedef typename std::conditional<!(is_biggest_available_type<candidate_type>::value || last_encompasses_first_two<_Ty, _Tz, candidate_type>::value)
+					, typename range_encompassing_native_int_type_helper2<typename next_bigger_candidate<candidate_type, _Tz>::type, _Tz>::type
+					, candidate_type>::type type;
+			};
+		}
+
+		template<typename _Ty>
+		struct corresponding_TInt { typedef typename std::conditional<std::is_arithmetic<_Ty>::value, TInt<_Ty>, _Ty>::type type; };
+#define MSE_TINT_TYPE(_Ty) typename mse::impl::corresponding_TInt<_Ty>::type
+#define MSE_NATIVE_INT_TYPE(_Ty) MSE_TINT_TYPE(_Ty)::base_int_type
+
+#define MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz) typename mse::impl::range_encompassing::range_encompassing_native_int_type<MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz)>::type
 
 #ifdef MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 #define MSE_NATIVE_INT_RESULT_TYPE1(_Ty, _Tz) typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
 #define MSE_NATIVE_INT_ADD_RESULT_TYPE1(_Ty, _Tz) typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
 #define MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) typename std::conditional<std::is_signed<_Ty>::value || std::is_signed<_Tz>::value \
-, mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type, typename std::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type>::type
+, typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type, typename std::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type>::type
 #define MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
 #define MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
 #else // MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
@@ -264,10 +329,6 @@ namespace mse {
 #define MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
 #endif //MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 
-		template<typename _Ty>
-		struct native_int_type { typedef typename std::conditional<std::is_arithmetic<_Ty>::value, TInt<_Ty>, _Ty>::type type; };
-#define MSE_TINT_TYPE(_Ty) typename mse::impl::native_int_type<_Ty>::type
-#define MSE_NATIVE_INT_TYPE(_Ty) MSE_TINT_TYPE(_Ty)::base_int_type
 #define MSE_TINT_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
 #define MSE_TINT_ADD_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_ADD_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
 #define MSE_TINT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
@@ -555,6 +616,7 @@ namespace mse {
 		operator CNDInt() const { (*this).assert_initialized(); return CNDInt(m_val); }
 #ifndef MSVC2010_COMPATIBLE
 		explicit operator size_t() const { (*this).assert_initialized(); return (m_val); }
+		explicit operator typename CNDInt::base_int_type() const { (*this).assert_initialized(); return (m_val); }
 #endif /*MSVC2010_COMPATIBLE*/
 		//size_t as_a_size_t() const { (*this).assert_initialized(); return m_val; }
 
@@ -860,6 +922,12 @@ namespace mse {
 				i4 += i2;
 				i4 -= 23;
 				i4++;
+				i4 = i3 - i1;
+				i4 -= i1;
+				i4 *= i1;
+				i4 = i1 * i2;
+				i4 /= i1;
+				i4 = i1 * i2 / i3;
 				CBool b1 = (i1 < i2);
 				b1 = (i1 < 17);
 				b1 = (19 < i1);
@@ -868,19 +936,28 @@ namespace mse {
 				b1 = (19 == i1);
 
 				CSize_t szt1(3);
-				CSize_t szt2 = 5;
+				CSize_t szt2 = 5U;
 				CSize_t szt3;
 				szt3 = 7;
 				CSize_t szt4 = szt1 + szt2;
 				szt4 = szt1 + 17;
 				szt4 = 19 + szt1;
-				CInt i11 = 19 + szt1;
 				szt4 += szt2;
 				szt4 -= 23;
 				szt4++;
 #ifndef MSVC2010_COMPATIBLE
 				size_t szt5 = size_t(szt4);
 #endif /*MSVC2010_COMPATIBLE*/
+				szt4 = szt3 - szt1;
+				szt4 *= szt1;
+				szt4 = szt1 * szt2;
+				szt4 /= szt1;
+				szt4 = szt1 * szt2 / szt3;
+				CInt i11 = 19 + szt1;
+				CInt i12 = szt1 * i11;
+				i12 = szt1;
+				i12 = szt3 - szt1;
+				i12 = szt3 - i11;
 				bool b3 = (szt1 < szt2);
 				b3 = (szt1 < 17);
 				b3 = (19 < szt1);
