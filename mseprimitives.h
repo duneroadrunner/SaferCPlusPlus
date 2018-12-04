@@ -32,6 +32,7 @@
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
+#ifndef MSEPOINTERBASICS_H
 /*compiler specific defines*/
 #ifdef _MSC_VER
 #if (1700 > _MSC_VER)
@@ -40,9 +41,9 @@
 #if (1900 > _MSC_VER)
 #define MSVC2013_COMPATIBLE 1
 #endif /*(1900 > _MSC_VER)*/
-#if (2000 > _MSC_VER)
+#if (1910 > _MSC_VER)
 #define MSVC2015_COMPATIBLE 1
-#endif /*(1900 > _MSC_VER)*/
+#endif /*(1910 > _MSC_VER)*/
 #else /*_MSC_VER*/
 #if (defined(__GNUC__) || defined(__GNUG__))
 #define GPP_COMPATIBLE 1
@@ -51,6 +52,7 @@
 #endif /*((5 > __GNUC__) && (!defined(__clang__)))*/
 #endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
+#endif /*ndef MSEPOINTERBASICS_H*/
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_PRIMITIVES_DISABLED
@@ -164,9 +166,17 @@ namespace std {
 
 namespace mse {
 
+	template<typename _TBaseInt = MSE_CINT_BASE_INTEGER_TYPE> class TInt;
+
+	typedef TInt<MSE_CINT_BASE_INTEGER_TYPE> CNDInt;
+
+	class CNDSize_t;
+	static size_t as_a_size_t(CNDSize_t n);
+
 	namespace impl {
 		template<typename _TDestination, typename _TSource>
 		MSE_CONSTEXPR static bool sg_can_exceed_upper_bound() {
+
 			return (
 				((std::numeric_limits<_TSource>::is_signed == std::numeric_limits<_TDestination>::is_signed)
 					&& (std::numeric_limits<_TSource>::digits > std::numeric_limits<_TDestination>::digits))
@@ -195,9 +205,20 @@ namespace mse {
 			MSE_CONSTEXPR const bool can_exceed_bounds = rhs_can_exceed_upper_bound || rhs_can_exceed_lower_bound;
 			if (can_exceed_bounds) {
 				if (rhs_can_exceed_upper_bound) {
+
+#ifdef MSE_SUPPRESS_CSIZE_T_TO_CINT_CONVERSION_RANGE_CHECK
+					MSE_CONSTEXPR const bool this_is_a_CSize_t_to_CInt_conversion = ((std::is_same<_TDestination, MSE_CINT_BASE_INTEGER_TYPE>::value || std::is_same<_TDestination, CNDInt>::value)
+						&& (std::is_same<_TSource, CNDSize_t>::value || std::is_same<_TSource, size_t>::value));
+					if (!this_is_a_CSize_t_to_CInt_conversion) {
+#endif // MSE_SUPPRESS_CSIZE_T_TO_CINT_CONVERSION_RANGE_CHECK
+
 					if (x > _TSource(std::numeric_limits<_TDestination>::max())) {
 						MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
 					}
+
+#ifdef MSE_SUPPRESS_CSIZE_T_TO_CINT_CONVERSION_RANGE_CHECK
+					}
+#endif // MSE_SUPPRESS_CSIZE_T_TO_CINT_CONVERSION_RANGE_CHECK
 				}
 				if (rhs_can_exceed_lower_bound) {
 					/* We're assuming that std::numeric_limits<>::lowest() will never be greater than zero. */
@@ -216,13 +237,6 @@ namespace mse {
 	}
 
 //define MSE_TINT_TYPE_WITH_THE_LOWER_FLOOR(_Ty, _Tz) typename std::conditional<impl::sg_can_exceed_lower_bound<_Tz, _Ty>(), _Ty, _Tz>::type
-
-	template<typename _TBaseInt = MSE_CINT_BASE_INTEGER_TYPE> class TInt;
-
-	typedef TInt<MSE_CINT_BASE_INTEGER_TYPE> CNDInt;
-
-	class CNDSize_t;
-	static size_t as_a_size_t(CNDSize_t n);
 
 	namespace impl {
 		/* We don't assume that char, short, long and long long all have distinct sizes. But in the common case where

@@ -41,16 +41,27 @@ necessary in the presence of potentially misbehaving user-defined constructors/d
 //#define MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT
 
 /* The following causes arithmetic operations involving the library's safe primitives to return, if available, a
-type larger than the operand type(s). So for example, if the size of CInt (and the native int) is 4 bytes and the
-native long long type is 8 bytes, then the result of multiplying two CInts would be a TInt<long long>. Assigning
-that result back to a CInt would result in a run-time range check. (Effectively an overflow check for the
-operation.) */
+type larger than the operand type(s). So for example, if the size of the native int (that CInt is based on) is 4
+bytes and the native long long type is 8 bytes, then the result of multiplying two CInts would be a TInt<long
+long>. Assigning that result back to a CInt would result in a run-time range check. (Effectively an overflow
+check for the operation.) */
 //#define MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 
+/* The conversion from CSize_t to CInt, like the conversion from size_t to int, is a common one that theoretically
+requires a range check. The following will cause the range check for that particular conversion to be suppressed.
+Empirically speaking, both the risks and rewards of doing so seem to be minor, but of course it's situation
+dependent. */
+//#define MSE_SUPPRESS_CSIZE_T_TO_CINT_CONVERSION_RANGE_CHECK
+
 /* msvc2015's incomplete support for "constexpr" means that range checks that should be done at compile time would
-be done at run time, at significant cost. So they are disabled by default for that compiler. Here we're "forcing"
+be done at run time, at significant cost. So they are disabled by default for that compiler. The following "forces"
 them to be enabled. */
+#ifdef _MSC_VER
+#if (1910 > _MSC_VER)
+/* The compiler is msvc2015 or earlier. */
 #define MSE_FORCE_PRIMITIVE_ASSIGN_RANGE_CHECK_ENABLED
+#endif /*(1910 > _MSC_VER)*/
+#endif /*_MSC_VER*/
 
 #define MSE_SELF_TESTS
 

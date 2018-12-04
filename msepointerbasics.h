@@ -15,6 +15,7 @@
 #include <memory>
 #include <unordered_set>
 
+#ifndef MSEPRIMITIVES_H
 /*compiler specific defines*/
 #ifdef _MSC_VER
 #if (1700 > _MSC_VER)
@@ -23,9 +24,9 @@
 #if (1900 > _MSC_VER)
 #define MSVC2013_COMPATIBLE 1
 #endif /*(1900 > _MSC_VER)*/
-#if (2000 > _MSC_VER)
+#if (1910 > _MSC_VER)
 #define MSVC2015_COMPATIBLE 1
-#endif /*(1900 > _MSC_VER)*/
+#endif /*(1910 > _MSC_VER)*/
 #else /*_MSC_VER*/
 #if (defined(__GNUC__) || defined(__GNUG__))
 #define GPP_COMPATIBLE 1
@@ -34,6 +35,7 @@
 #endif /*((5 > __GNUC__) && (!defined(__clang__)))*/
 #endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
+#endif /*ndef MSEPRIMITIVES_H*/
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_POINTERBASICS_DISABLED
