@@ -687,7 +687,7 @@ Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPo
 `TXScopeItemFixedPointer<>` is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is primarily intended for the purpose of passing scope objects by reference as function arguments. 
 
 ### TXScopeItemFixedPointer
-`TXScopeItemFixedPointer<>` is primarily intended to be used to pass scope objects by reference as function arguments. It should not be used as a function return type, as that could be unsafe. And as with any other scope object, it should not be used as a member of any class or struct that is not itself a scope object (though attempting to do so would generally produce a compile error).  
+`TXScopeItemFixedPointer<>` is primarily intended to be used to pass scope objects by reference as function arguments. It may not be used as a function return type (as enforced by the [`return_value()`](#return_value) function wrapper). And as with any other scope object, it may not be used as a member of any class or struct that is not itself a scope object. (Attempting to do so would generally produce a compile error).  
 
 usage example:
 
