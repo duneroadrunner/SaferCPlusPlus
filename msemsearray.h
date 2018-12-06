@@ -4567,6 +4567,8 @@ namespace mse {
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection<_TRAIterator> subsection() const - TXScopeRandomAccessConstSection")))
 				: subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
+		auto first(size_type count) const { return subsection(0, count); }
+		auto last(size_type count) const { return subsection(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
 		//typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
@@ -4609,6 +4611,8 @@ namespace mse {
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection subsection() const - TRandomAccessConstSection")))
 				: TRandomAccessConstSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
+		auto first(size_type count) const { return subsection(0, count); }
+		auto last(size_type count) const { return subsection(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
 		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
 		const_iterator begin() const { return cbegin(); }
@@ -5141,6 +5145,8 @@ namespace mse {
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection<_TRAIterator> subsection() const - TXScopeRandomAccessSection")))
 				: subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
+		auto first(size_type count) const { return subsection(0, count); }
+		auto last(size_type count) const { return subsection(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
 		typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
@@ -5187,6 +5193,8 @@ namespace mse {
 				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection subsection() const - TRandomAccessSection")))
 				: TRandomAccessSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
+		auto first(size_type count) const { return subsection(0, count); }
+		auto last(size_type count) const { return subsection(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
 		typedef typename base_class::iterator iterator;
 		typedef typename base_class::const_iterator const_iterator;

@@ -23,15 +23,14 @@ options rather than "#define" directives in the code such as the ones here (for 
 //#define MSE_SCOPEPOINTER_DISABLED
 //#define MSE_NORADPOINTER_DISABLED
 
-/* The following adds run-time checks to scope pointers in non-debug mode */
-//#define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED // This adds them to non-debug modes too.
-
 /* The following will result in program termination instead of exceptions being thrown when an invalid memory access is attempted. */
 //#define MSE_CUSTOM_THROW_DEFINITION(x) std::cerr << std::endl << x.what(); exit(-11)
 
-/* The following directs the vectors and arrays to use the safe substitutes for native primitives (like int
-and size_t) in their interface and implementation. This adds a marginal increase in safety. (Mostly due to
-the interface.) */
+/* The following adds run-time checks to scope pointers in non-debug mode. */
+//#define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+
+/* The following directs the library's vectors and arrays to use CSize_t and CInt in place of size_t and int in their
+interface and implementation. This adds a marginal increase in safety. (Mostly due to the interface.) */
 //#define MSE_MSEVECTOR_USE_MSE_PRIMITIVES 1
 //#define MSE_MSEARRAY_USE_MSE_PRIMITIVES 1
 
@@ -40,7 +39,7 @@ library's container classes in release builds. (They are automatically enabled i
 necessary in the presence of potentially misbehaving user-defined constructors/destructors.) */
 //#define MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT
 
-/* The following causes arithmetic operations involving the library's safe primitives to return, if available, a
+/* The following causes arithmetic operations involving the library's integer substitutes to return, if available, a
 type larger than the operand type(s). So for example, if the size of the native int (that CInt is based on) is 4
 bytes and the native long long type is 8 bytes, then the result of multiplying two CInts would be a TInt<long
 long>. Assigning that result back to a CInt would result in a run-time range check. (Effectively an overflow
