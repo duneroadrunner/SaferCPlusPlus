@@ -792,6 +792,14 @@ namespace mse {
 
 			friend xscope_const_iterator;
 			friend xscope_iterator;
+
+			friend void swap(_Myt& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
+			friend void swap(_Myt& a, _MV& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
+			friend void swap(_Myt& a, mse::nii_vector<_Ty, _A>& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
+			friend void swap(_Myt& a, std::vector<_Ty, _A>& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
+			friend void swap(_MV& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
+			friend void swap(mse::nii_vector<_Ty, _A>& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
+			friend void swap(std::vector<_Ty, _A>& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
 		};
 
 		template<class _Ty, class _Alloc> inline bool operator!=(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test for vector inequality

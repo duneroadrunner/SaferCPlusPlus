@@ -699,6 +699,14 @@ namespace mse {
 			friend _CONST_FUN const _Tz& std::get(const mse::mstd::array<_Tz, _Size2>& _Arr) _NOEXCEPT;
 			template<size_t _Idx, class _Tz, size_t _Size2>
 			friend _CONST_FUN _Tz&& std::get(mse::mstd::array<_Tz, _Size2>&& _Arr) _NOEXCEPT;
+
+			friend void swap(_Myt& a, _Myt& b) { a.swap(b); }
+			friend void swap(_Myt& a, _MA& b) { a.swap(b); }
+			friend void swap(_Myt& a, mse::us::msearray<_Ty, _Size>& b) { a.swap(b); }
+			friend void swap(_Myt& a, std::array<_Ty, _Size>& b) { a.swap(b); }
+			friend void swap(_MA& a, _Myt& b) { b.swap(a); }
+			friend void swap(mse::us::msearray<_Ty, _Size>& a, _Myt& b) { b.swap(a); }
+			friend void swap(std::array<_Ty, _Size>& a, _Myt& b) { b.swap(a); }
 		};
 
 		template<class _Ty, size_t _Size> inline bool operator!=(const array<_Ty, _Size>& _Left,

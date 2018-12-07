@@ -1171,6 +1171,14 @@ namespace mse {
 			friend std::basic_istream<_Ty2, _Traits2>& impl::bs::in_from_stream(std::basic_istream<_Ty2, _Traits2>& _Istr, basic_string<_Ty2, _Traits2, _A2>& _Str);
 			template<class _Ty2, class _Traits2/* = std::char_traits<_Ty2>*/, class _A2/* = std::allocator<_Ty2> */>
 			friend std::basic_ostream<_Ty2, _Traits2>& impl::bs::out_to_stream(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const basic_string<_Ty2, _Traits2, _A2>& _Str);
+
+			friend void swap(_Myt& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
+			friend void swap(_Myt& a, _MBS& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
+			friend void swap(_Myt& a, mse::nii_basic_string<_Ty, _A>& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
+			friend void swap(_Myt& a, std::basic_string<_Ty, _A>& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
+			friend void swap(_MBS& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
+			friend void swap(mse::nii_basic_string<_Ty, _A>& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
+			friend void swap(std::basic_string<_Ty, _A>& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
 		};
 
 		namespace impl {

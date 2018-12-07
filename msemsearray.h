@@ -2531,6 +2531,10 @@ namespace mse {
 		friend _CONST_FUN const _Tz& std::get(const mse::nii_array<_Tz, _Size2>& _Arr) _NOEXCEPT;
 		template<size_t _Idx, class _Tz, size_t _Size2>
 		friend _CONST_FUN _Tz&& std::get(mse::nii_array<_Tz, _Size2>&& _Arr) _NOEXCEPT;
+
+		friend void swap(_Myt& a, _Myt& b) { a.swap(b); }
+		friend void swap(_Myt& a, _MA& b) { a.swap(b); }
+		friend void swap(_MA& a, _Myt& b) { b.swap(a); }
 	};
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator!=(const nii_array<_Ty, _Size, _TStateMutex>& _Left,

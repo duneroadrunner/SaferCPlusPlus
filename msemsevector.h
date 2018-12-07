@@ -1625,6 +1625,10 @@ namespace mse {
 		friend /*class */xscope_ss_iterator_type;
 		friend class us::msevector<_Ty, _A, _TStateMutex>;
 		friend class impl::ns_nii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>;
+
+		friend void swap(_Myt& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
+		friend void swap(_Myt& a, _MV& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
+		friend void swap(_MV& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
 	};
 
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex> inline bool operator!=(const nii_vector<_Ty, _A, _TStateMutex>& _Left,
