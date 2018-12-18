@@ -175,6 +175,15 @@ int main(int argc, char* argv[])
 
 		/* And of course the iterators can be used with the standard algorithms, just like those of std::vector. */
 		std::sort(v3.begin(), v3.end());
+
+		{
+#ifdef MSE_HAS_CXX17
+			/* deduction guide example */
+			auto str1 = std::string("abcd");
+			auto vector2 = mse::mstd::vector{ str1.cbegin(), str1.cend() };
+			assert('b' == vector2[1]);
+#endif /* MSE_HAS_CXX17 */
+		}
 	}
 
 	{

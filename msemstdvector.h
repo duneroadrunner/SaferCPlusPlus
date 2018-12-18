@@ -802,6 +802,12 @@ namespace mse {
 			friend void swap(std::vector<_Ty, _A>& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
 		};
 
+#ifdef MSE_HAS_CXX17
+		template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type> >
+		vector(_Iter, _Iter, _Alloc = _Alloc())
+			->vector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
+#endif /* MSE_HAS_CXX17 */
+
 		template<class _Ty, class _Alloc> inline bool operator!=(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test for vector inequality
 			return (!(_Left == _Right));
 		}

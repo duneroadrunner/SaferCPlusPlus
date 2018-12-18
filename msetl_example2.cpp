@@ -287,6 +287,15 @@ void msetl_example2() {
 				auto res4 = *xscp_ptr1;
 			}
 			vector1_xscpobj.push_back(4);
+
+			{
+#ifdef MSE_HAS_CXX17
+				/* deduction guide example */
+				auto str1 = std::string("abcd");
+				auto vector2 = mse::nii_vector( str1.cbegin(), str1.cend() );
+				assert('b' == vector2[1]);
+#endif /* MSE_HAS_CXX17 */
+			}
 		}
 	}
 
@@ -766,6 +775,27 @@ void msetl_example2() {
 		{
 			using namespace mse::literals;
 			auto niistr5 = "some text"_niis;
+		}
+
+		{
+#ifdef MSE_HAS_CXX17
+			/* deduction guide example */
+			auto str1 = std::string("abcd");
+			{
+				auto nii_str1 = mse::nii_string{ str1.cbegin(), str1.cend() };
+				assert('b' == nii_str1[1]);
+			}
+			{
+				auto sv1 = std::string_view(str1);
+				auto nii_str2 = mse::nii_string{ sv1 };
+				assert('b' == nii_str2[1]);
+			}
+			{
+				auto xs_str_csection1 = mse::make_string_const_section(str1);
+				auto nii_str3 = mse::nii_string{ xs_str_csection1 };
+				assert('b' == nii_str3[1]);
+			}
+#endif /* MSE_HAS_CXX17 */
 		}
 	}
 

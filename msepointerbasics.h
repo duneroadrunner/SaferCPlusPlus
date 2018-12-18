@@ -16,8 +16,14 @@
 #include <unordered_set>
 
 #ifndef MSEPRIMITIVES_H
+#if __cplusplus >= 201703L
+#define MSE_HAS_CXX17
+#endif // __cplusplus >= 201703L
 /*compiler specific defines*/
 #ifdef _MSC_VER
+#if _MSVC_LANG >= 201703L || (defined(_HAS_CXX17) && (_HAS_CXX17 >= 1))
+#define MSE_HAS_CXX17
+#endif // _MSVC_LANG >= 201703L || (defined(_HAS_CXX17) && (_HAS_CXX17 >= 1))
 #if (1700 > _MSC_VER)
 #define MSVC2010_COMPATIBLE 1
 #endif /*(1700 > _MSC_VER)*/
@@ -141,6 +147,12 @@ MSE_STATICPOINTER_DISABLED will ultimately be defined. */
 #define MSE_CONSTEXPR
 #else // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
 #define MSE_CONSTEXPR constexpr
+#endif // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
+
+#ifdef MSE_HAS_CXX17
+#define MSE_INLINE_VAR inline
+#else // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
+#define MSE_INLINE_VAR
 #endif // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION

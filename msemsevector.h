@@ -147,30 +147,38 @@ namespace mse {
 #endif /*_XSTD*/
 
 	namespace impl {
-		template<class _Ty, _Ty _Val>
-		struct integral_constant
-		{	// convenient template for integral constant types
-			static const _Ty value = _Val;
-
-			typedef _Ty value_type;
-			typedef integral_constant<_Ty, _Val> type;
-
-			operator value_type() const
-			{	// return stored value
-				return (value);
-			}
-		};
+		template<class... _Types> using void_t = void;
 
 		template<class _Iter>
-		struct _mse_Is_iterator
-			: public integral_constant<bool, !std::is_integral<_Iter>::value>
+		using _mse_Iter_cat_t = typename std::iterator_traits<_Iter>::iterator_category;
+		template<class _Ty, class = void>
+		MSE_INLINE_VAR MSE_CONSTEXPR bool _mse_Is_iterator_v = false;
+		template<class _Ty>
+		MSE_INLINE_VAR MSE_CONSTEXPR bool _mse_Is_iterator_v<_Ty, void_t<_mse_Iter_cat_t<_Ty> > > = true;
+
+		template<class _Iter>
+		struct _mse_Is_iterator : public std::integral_constant<bool, !std::is_integral<_Iter>::value>
 		{	// tests for reasonable iterator candidate
 		};
+
 		template<typename _InIter>
 		using _mse_RequireInputIter = typename std::enable_if<
 			std::is_convertible<typename std::iterator_traits<_InIter>::iterator_category, std::input_iterator_tag>::value
 			//mse::impl::_mse_Is_iterator<_InIter>::value
 		>::type;
+
+#ifdef MSE_HAS_CXX17
+		template<class _Ty, class = void>
+		struct _mse_Is_allocator : std::false_type {};
+
+		template<class _Ty>
+		struct _mse_Is_allocator < _Ty, std::void_t<typename _Ty::value_type,
+			decltype(std::declval<_Ty&>().deallocate(std::declval<_Ty&>().allocate(size_t{ 1 }), size_t{ 1 }))
+		> > : std::true_type {};
+
+		template<class _Alloc>
+		using _mse_Guide_size_type_t = typename std::allocator_traits<std::conditional_t<_mse_Is_allocator<_Alloc>::value, _Alloc, std::allocator<int>>>::size_type;
+#endif /* MSE_HAS_CXX17 */
 
 		template<class T, class EqualTo>
 		struct HasOrInheritsLessThanOperator_msemsevector_impl
@@ -1630,6 +1638,12 @@ namespace mse {
 		friend void swap(_Myt& a, _MV& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
 		friend void swap(_MV& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
 	};
+
+#ifdef MSE_HAS_CXX17
+	template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type> >
+	nii_vector(_Iter, _Iter, _Alloc = _Alloc())
+		->nii_vector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
+#endif /* MSE_HAS_CXX17 */
 
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex> inline bool operator!=(const nii_vector<_Ty, _A, _TStateMutex>& _Left,
 		const nii_vector<_Ty, _A, _TStateMutex>& _Right) {	// test for vector inequality
@@ -4219,6 +4233,12 @@ namespace mse {
 			friend class mse::mstd::vector;
 #endif /*!MSE_MSTDVECTOR_DISABLED*/
 		};
+
+#ifdef MSE_HAS_CXX17
+		template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type> >
+		msevector(_Iter, _Iter, _Alloc = _Alloc())
+			->msevector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
+#endif /* MSE_HAS_CXX17 */
 
 		template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex> inline bool operator!=(const msevector<_Ty, _A, _TStateMutex>& _Left,
 			const msevector<_Ty, _A, _TStateMutex>& _Right) {	// test for vector inequality

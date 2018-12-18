@@ -3552,6 +3552,22 @@ namespace mse {
 
 	namespace impl {
 		template<class _TArrayPointer>
+		auto container_size_helper(std::true_type, const _TArrayPointer& owner_ptr) {
+			return owner_ptr->size();
+		}
+		template<class _TArray>
+		auto container_size_helper(std::false_type, const _TArray& container) {
+			/* The parameter doesn't seem to be a pointer. */
+			return container.size();
+		}
+	}
+	template<class _TArrayPointer>
+	auto container_size(const _TArrayPointer& owner_ptr) {
+		return impl::container_size_helper(typename mse::impl::IsDereferenceable_msemsearray<_TArrayPointer>::type(), owner_ptr);
+	}
+
+	namespace impl {
+		template<class _TArrayPointer>
 		auto make_const_iterator_helper3(std::true_type, const _TArrayPointer& owner_ptr) {
 			return (*owner_ptr).ss_cbegin(owner_ptr);
 		}
@@ -3581,10 +3597,19 @@ namespace mse {
 				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
 			>::type(), owner_ptr);
 		}
+		template<class _TArrayPointer>
+		auto make_const_iterator_helper4(std::true_type, const _TArrayPointer& owner_ptr) {
+			return make_const_iterator_helper2(typename mse::impl::IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
+		}
+		template<class _TArray>
+		auto make_const_iterator_helper4(std::false_type, const _TArray& container) {
+			/* The parameter doesn't seem to be a pointer. */
+			return container.cbegin();
+		}
 	}
 	template<class _TArrayPointer>
 	auto make_const_iterator(const _TArrayPointer& owner_ptr) {
-		return impl::make_const_iterator_helper2(typename mse::impl::IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
+		return impl::make_const_iterator_helper4(typename mse::impl::IsDereferenceable_msemsearray<_TArrayPointer>::type(), owner_ptr);
 	}
 
 	namespace impl {
@@ -3618,10 +3643,19 @@ namespace mse {
 				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
 			>::type(), owner_ptr);
 		}
+		template<class _TArrayPointer>
+		auto make_iterator_helper4(std::true_type, const _TArrayPointer& owner_ptr) {
+			return make_iterator_helper2(typename mse::impl::IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
+		}
+		template<class _TArray>
+		auto make_iterator_helper4(std::false_type, const _TArray& container) {
+			/* The parameter doesn't seem to be a pointer. */
+			return container.begin();
+		}
 	}
 	template<class _TArrayPointer>
 	auto make_iterator(const _TArrayPointer& owner_ptr) {
-		return impl::make_iterator_helper2(typename mse::impl::IsNonOwningScopePointer<_TArrayPointer>::type(), owner_ptr);
+		return impl::make_iterator_helper4(typename mse::impl::IsDereferenceable_msemsearray<_TArrayPointer>::type(), owner_ptr);
 	}
 
 	template<class _TArrayPointer>
@@ -3634,11 +3668,11 @@ namespace mse {
 	}
 	template<class _TArrayPointer>
 	auto make_end_const_iterator(const _TArrayPointer& owner_ptr) {
-		return mse::make_begin_const_iterator(owner_ptr) + (*owner_ptr).size();
+		return mse::make_begin_const_iterator(owner_ptr) + mse::container_size(owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_end_iterator(const _TArrayPointer& owner_ptr) {
-		return mse::make_begin_iterator(owner_ptr) + (*owner_ptr).size();
+		return mse::make_begin_iterator(owner_ptr) + mse::container_size(owner_ptr);
 	}
 
 
