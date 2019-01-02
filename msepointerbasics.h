@@ -15,7 +15,7 @@
 #include <memory>
 #include <unordered_set>
 
-#ifndef MSEPRIMITIVES_H
+//ifndef MSEPRIMITIVES_H
 #if __cplusplus >= 201703L
 #define MSE_HAS_CXX17
 #endif // __cplusplus >= 201703L
@@ -41,7 +41,7 @@
 #endif /*((5 > __GNUC__) && (!defined(__clang__)))*/
 #endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
-#endif /*ndef MSEPRIMITIVES_H*/
+//endif /*ndef MSEPRIMITIVES_H*/
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_POINTERBASICS_DISABLED
