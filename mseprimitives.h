@@ -13,26 +13,10 @@
 #include <limits>       // std::numeric_limits
 #include <stdexcept>      // primitives_range_error
 
-#ifdef _MSC_VER
-#pragma warning( push )  
-#pragma warning( disable : 4100 4456 4189 4505 )
-#endif /*_MSC_VER*/
-
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-variable"
-#pragma clang diagnostic ignored "-Wunused-function"
-//pragma clang diagnostic ignored "-Wunused-but-set-variable"
-#else /*__clang__*/
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-#endif /*__GNUC__*/
-#endif /*__clang__*/
-
 #ifndef MSEPOINTERBASICS_H
+
+#define MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
+
 /*compiler specific defines*/
 #ifdef _MSC_VER
 #if (1700 > _MSC_VER)
@@ -97,6 +81,25 @@ be done at run time, at significant cost. So by default we disable range checks 
 #endif // SIZE_MAX <= INT_MAX
 #endif // !MSE_CINT_BASE_INTEGER_TYPE
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4100 4456 4189 4505 )
+#endif /*_MSC_VER*/
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+//pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 
 namespace mse {
 
@@ -138,17 +141,24 @@ namespace mse {
 		CNDBool& operator &=(const CNDBool &x) { assert_initialized(); m_val &= x.m_val; return (*this); }
 		CNDBool& operator ^=(const CNDBool &x) { assert_initialized(); m_val ^= x.m_val; return (*this); }
 
+#ifdef MSE_CHECK_USE_BEFORE_SET
+		void assert_initialized() const { assert(m_initialized); }
+#else // MSE_CHECK_USE_BEFORE_SET
+		void assert_initialized() const {}
+#endif // MSE_CHECK_USE_BEFORE_SET
+
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		bool m_val;
 
 #ifdef MSE_CHECK_USE_BEFORE_SET
 		void note_value_assignment() { m_initialized = true; }
-		void assert_initialized() const { assert(m_initialized); }
 		bool m_initialized = false;
 #else // MSE_CHECK_USE_BEFORE_SET
 		void note_value_assignment() {}
-		void assert_initialized() const {}
 #endif // MSE_CHECK_USE_BEFORE_SET
 	};
 }
@@ -388,7 +398,7 @@ namespace mse {
 	
 
 	template<typename _TBaseInt/* = MSE_CINT_BASE_INTEGER_TYPE*/>
-	class TInt : public impl::TIntBase1<_TBaseInt> {
+	class TInt : private impl::TIntBase1<_TBaseInt> {
 	public:
 		typedef impl::TIntBase1<_TBaseInt> base_class;
 		typedef _TBaseInt base_int_type;
@@ -512,6 +522,8 @@ namespace mse {
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		template<typename _Ty2>
 		auto checked_and_adjusted_x(const _Ty2& x) {
 			(*this).template assign_check_range<_Ty2>(x);
@@ -519,6 +531,7 @@ namespace mse {
 		}
 
 		template<typename _Ty2> friend class TInt;
+		friend class CNDSize_t;
 	};
 }
 
@@ -609,7 +622,7 @@ namespace std {
 namespace mse {
 	/* Note that CNDSize_t does not have a default conversion to size_t. This is by design. Use the as_a_size_t() member
 	function to get a size_t when necessary. */
-	class CNDSize_t : public impl::TIntBase1<size_t> {
+	class CNDSize_t : private impl::TIntBase1<size_t> {
 	public:
 		typedef impl::TIntBase1<size_t> base_class;
 		typedef size_t base_int_type;
@@ -762,6 +775,9 @@ namespace mse {
 		}
 
 		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		//base_int_type m_val;
 
@@ -1006,5 +1022,9 @@ namespace mse {
 #ifdef _MSC_VER
 #pragma warning( pop )  
 #endif /*_MSC_VER*/
+
+#ifndef MSEPOINTERBASICS_H
+#undef MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
+#endif /*ndef MSEPOINTERBASICS_H*/
 
 #endif /*ndef MSEPRIMITIVES_H*/
