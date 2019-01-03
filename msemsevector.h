@@ -1623,7 +1623,7 @@ namespace mse {
 
 
 		const _MV& contained_vector() const { return m_vector; }
-		_MV& contained_vector() { return m_vector; }
+		auto&& contained_vector() { return m_vector; }
 
 		std_vector m_vector;
 		//_TStateMutex m_mutex1;

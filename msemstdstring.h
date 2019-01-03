@@ -288,20 +288,18 @@ namespace mse {
 
 			explicit basic_string(const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_Al)) {}
 			explicit basic_string(size_type _N) : m_shptr(std::make_shared<_MBS>(_N)) {}
+#ifdef MSE_HAS_CXX17
+			template<class _Alloc2 = _A, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc2>::value, int> = 0>
+#endif /* MSE_HAS_CXX17 */
 			explicit basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_N, _V, _Al)) {}
-			basic_string(_Myt&& _X) : m_shptr(std::make_shared<_MBS>()) {
-				static_assert(typename std::is_rvalue_reference<decltype(_X)>::type(), "");
-				/* It would be more efficient to just move _X.m_shptr into m_shptr, but that would leave _X in what we
-				would consider an invalid state. */
-				msebasic_string() = std::move(_X.msebasic_string());
-			}
-			basic_string(const _Myt& _X) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string())) {}
+			basic_string(_Myt&& _X) : m_shptr(std::make_shared<_MBS>(std::forward<decltype(_X.msebasic_string())>(_X.msebasic_string()))) {}
+			basic_string(const _Myt& _X) : basic_string(mse::us::unsafe_make_xscope_const_pointer_to(_X)) {}
 			basic_string(_MBS&& _X) : m_shptr(std::make_shared<_MBS>(std::forward<decltype(_X)>(_X))) {}
-			basic_string(const _MBS& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
+			basic_string(const _MBS& _X) : basic_string(mse::us::unsafe_make_xscope_const_pointer_to(_X)) {}
 			basic_string(mse::nii_basic_string<_Ty, _Traits>&& _X) : m_shptr(std::make_shared<_MBS>(std::forward<decltype(_X)>(_X))) {}
-			basic_string(const mse::nii_basic_string<_Ty, _Traits>& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
+			basic_string(const mse::nii_basic_string<_Ty, _Traits>& _X) : basic_string(mse::us::unsafe_make_xscope_const_pointer_to(_X)) {}
 			basic_string(std::basic_string<_Ty, _Traits>&& _X) : m_shptr(std::make_shared<_MBS>(std::forward<decltype(_X)>(_X))) {}
-			basic_string(const std::basic_string<_Ty, _Traits>& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
+			basic_string(const std::basic_string<_Ty, _Traits>& _X) : basic_string(mse::us::unsafe_make_xscope_const_pointer_to(_X)) {}
 			typedef typename _MBS::const_iterator _It;
 			basic_string(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_F, _L, _Al)) {}
 			basic_string(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_F, _L, _Al)) {}
@@ -313,9 +311,28 @@ namespace mse {
 			basic_string(const _Ty* const _Ptr, const size_t _Count) : m_shptr(std::make_shared<_MBS>(_Ptr, _Count)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, npos, _Al)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, _Count, _Al)) {}
+
+			basic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr) : m_shptr(std::make_shared<_MBS>(xs_ptr->msebasic_string())) {}
+			basic_string(const mse::TXScopeItemFixedConstPointer<_MBS>& xs_ptr) : m_shptr(std::make_shared<_MBS>(*xs_ptr)) {}
+			basic_string(const mse::TXScopeItemFixedConstPointer<mse::nii_basic_string<_Ty, _Traits> >& xs_ptr) : m_shptr(std::make_shared<_MBS>(*xs_ptr)) {}
+			basic_string(const mse::TXScopeItemFixedConstPointer<std::basic_string<_Ty, _Traits> >& xs_ptr) : m_shptr(std::make_shared<_MBS>(*xs_ptr)) {}
+			basic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(xs_ptr->msebasic_string(), _Roff, npos, _Al)) {}
+			basic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(xs_ptr->msebasic_string(), _Roff, _Count, _Al)) {}
+
+#ifdef MSE_HAS_CXX17
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
+			basic_string(const _TParam1& _Right) : m_shptr(std::make_shared<_MBS>()) { assign(_Right); }
+
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
+			basic_string(const _TParam1& _Right, const size_type _Roff, const size_type _Count, const _A& _Al = _A())
+				: m_shptr(std::make_shared<_MBS>(_Al)) {
+				assign(_Right, _Roff, _Count);
+			}
+#else /* MSE_HAS_CXX17 */
 			/* construct from mse::string_view and "string sections". */
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
-			basic_string(const _TStringSection& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
+			explicit basic_string(const _TStringSection& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
+#endif /* MSE_HAS_CXX17 */
 
 			virtual ~basic_string() {
 				msebasic_string().note_parent_destruction();
@@ -339,12 +356,82 @@ namespace mse {
 			void push_back(_Ty&& _X) { m_shptr->push_back(std::forward<decltype(_X)>(_X)); }
 			void push_back(const _Ty& _X) { m_shptr->push_back(_X); }
 			void pop_back() { m_shptr->pop_back(); }
-			void assign(_It _F, _It _L) { m_shptr->assign(_F, _L); }
-			template<class _Iter>
-			void assign(const _Iter& _First, const _Iter& _Last) { m_shptr->assign(_First, _Last); }
-			void assign(size_type _N, const _Ty& _X = _Ty()) { m_shptr->assign(_N, _X); }
+
+			basic_string& assign(mse::TXScopeItemFixedConstPointer<basic_string> xs_ptr) {
+				m_shptr->assign(xs_ptr->msebasic_string());
+				return (*this);
+			}
+			basic_string& assign(const basic_string& _Right) {
+				auto xs_ptr = mse::us::unsafe_make_xscope_const_pointer_to(_Right);
+				return assign(xs_ptr);
+			}
+			basic_string& assign(mse::TXScopeItemFixedConstPointer<basic_string> xs_ptr, const size_type _Roff, size_type _Count = npos) {
+				m_shptr->assign(xs_ptr->msebasic_string(), _Roff, _Count);
+				return (*this);
+			}
+			basic_string& assign(const basic_string& _Right, const size_type _Roff, size_type _Count = npos) {
+				auto xs_ptr = mse::us::unsafe_make_xscope_const_pointer_to(_Right);
+				return assign(xs_ptr, _Roff, _Count);
+			}
+
+			basic_string& assign(const _Ty * const _Ptr, const size_type _Count) {
+				m_shptr->assign(_Ptr, _Count);
+				return (*this);
+			}
+			basic_string& assign(const _Ty * const _Ptr) {
+				m_shptr->assign(_Ptr);
+				return (*this);
+			}
+			basic_string& assign(const size_type _Count, const _Ty& _Ch) {
+				m_shptr->assign(_Count, _Ch);
+				return (*this);
+			}
+			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator_v<_Iter> >::type>
+			basic_string& assign(const _Iter _First, const _Iter _Last) {
+				m_shptr->assign(_First, _Last);
+				return (*this);
+			}
+
+#ifdef MSE_HAS_CXX17
+	private:
+		template<class _TParam1>
+		basic_string& assign_helper1(std::true_type, const _TParam1& _Right) {
+			return (assign(static_cast<const basic_string&>(_Right)));
+		}
+		template<class _TParam1>
+		basic_string& assign_helper1(std::false_type, const _TParam1& _Right) {
+			m_shptr->assign(_Right);
+			return (*this);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		basic_string& assign(const _TParam1& _Right) {
+			return assign_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right);
+		}
+
+	private:
+		template<class _TParam1>
+		basic_string& assign_helper1(std::true_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+			return (assign(static_cast<const basic_string&>(_Right, _Roff, _Count)));
+		}
+		template<class _TParam1>
+		basic_string& assign_helper1(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+			m_shptr->assign(_Right, _Roff, _Count);
+			return (*this);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		basic_string& assign(const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) {
+			return assign_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Roff, _Count);
+		}
+#else /* MSE_HAS_CXX17 */
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
-			void assign(const _TStringSection& _X) { m_shptr->assign(_X); }
+			basic_string& assign(const _TStringSection& _X) {
+				m_shptr->assign(_X);
+				return (*this);
+			}
+#endif /* MSE_HAS_CXX17 */
+
 			template<class ..._Valty>
 			void emplace_back(_Valty&& ..._Val) { m_shptr->emplace_back(std::forward<_Valty>(_Val)...); }
 			void clear() { m_shptr->clear(); }
@@ -1155,7 +1242,7 @@ namespace mse {
 			}
 
 			const _MBS& msebasic_string() const { return (*m_shptr); }
-			_MBS& msebasic_string() { return (*m_shptr); }
+			auto&& msebasic_string() { return (*m_shptr); }
 			template<class _TThisPointer>
 			static auto& s_msebasic_string(const _TThisPointer& this_pointer) { return this_pointer->msebasic_string(); }
 

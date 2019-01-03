@@ -4938,7 +4938,7 @@ namespace mse {
 		}
 
 		const _MBS& contained_basic_string() const { return m_basic_string; }
-		_MBS& contained_basic_string() { return m_basic_string; }
+		auto&& contained_basic_string() { return m_basic_string; }
 
 		std_basic_string m_basic_string;
 		//_TStateMutex m_mutex1;
@@ -5399,6 +5399,9 @@ namespace mse {
 				: base_class(msev_as_a_size_t(_N)), m_mmitset(*this) {
 				/*m_debug_size = size();*/
 			}
+#ifdef MSE_HAS_CXX17
+			template<class _Alloc2 = _A, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc2>::value, int> = 0>
+#endif /* MSE_HAS_CXX17 */
 			explicit msebasic_string(size_type _N, const _Ty& _V, const _A& _Al = _A())
 				: base_class(msev_as_a_size_t(_N), _V, _Al), m_mmitset(*this) {
 				/*m_debug_size = size();*/
@@ -5426,8 +5429,28 @@ namespace mse {
 			msebasic_string(const _Ty* const _Ptr, const size_t _Count) : base_class(_Ptr, _Count), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			msebasic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : base_class(_X, _Roff, npos, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			msebasic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(_X, _Roff, _Count, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
+
+
+			msebasic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr) : base_class(*xs_ptr), m_mmitset(*this) { /*m_debug_size = size();*/ }
+			msebasic_string(const mse::TXScopeItemFixedConstPointer<mse::nii_basic_string<_Ty, _Traits> >& xs_ptr) : base_class(*xs_ptr), m_mmitset(*this) { /*m_debug_size = size();*/ }
+			msebasic_string(const mse::TXScopeItemFixedConstPointer<std::basic_string<_Ty, _Traits> >& xs_ptr) : base_class(*xs_ptr), m_mmitset(*this) { /*m_debug_size = size();*/ }
+			msebasic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const _A& _Al = _A()) : base_class(*xs_ptr, _Roff, npos, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
+			msebasic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(*xs_ptr, _Roff, _Count, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
+
+#ifdef MSE_HAS_CXX17
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
+			msebasic_string(const _TParam1& _Right) : base_class(), m_mmitset(*this) { assign(_Right); }
+
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
+			msebasic_string(const _TParam1& _Right, const size_type _Roff, const size_type _Count, const _A& _Al = _A())
+				: base_class(_Al), m_mmitset(*this) {
+				assign(_Right, _Roff, _Count);
+			}
+#else /* MSE_HAS_CXX17 */
+			/* construct from mse::string_view and "string sections". */
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
-			msebasic_string(const _TStringSection& _X) : base_class(_X), m_mmitset(*this) { /*m_debug_size = size();*/ }
+			explicit msebasic_string(const _TStringSection& _X) : base_class(_X), m_mmitset(*this) { /*m_debug_size = size();*/ }
+#endif /* MSE_HAS_CXX17 */
 
 			_Myt& operator=(const base_class& _X) {
 				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
@@ -5578,32 +5601,91 @@ namespace mse {
 					}
 				}
 			}
-			void assign(_It _F, _It _L) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
-				base_class::assign(_F, _L);
-				/*m_debug_size = size();*/
+
+			msebasic_string& assign(mse::TXScopeItemFixedConstPointer<base_class> xs_ptr) {
+				base_class::assign(*xs_ptr);
 				m_mmitset.reset();
+				return (*this);
 			}
-			template<class _Iter>
-			void assign(const _Iter& _First, const _Iter& _Last) {	// assign [_First, _Last)
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+			msebasic_string& assign(const base_class& _Right) {
+				auto xs_ptr = mse::us::unsafe_make_xscope_const_pointer_to(_Right);
+				return assign(xs_ptr);
+			}
+			msebasic_string& assign(mse::TXScopeItemFixedConstPointer<base_class> xs_ptr, const size_type _Roff, size_type _Count = npos) {
+				base_class::assign(*xs_ptr, _Roff, _Count);
+				m_mmitset.reset();
+				return (*this);
+			}
+			msebasic_string& assign(const base_class& _Right, const size_type _Roff, size_type _Count = npos) {
+				auto xs_ptr = mse::us::unsafe_make_xscope_const_pointer_to(_Right);
+				return assign(xs_ptr, _Roff, _Count);
+			}
+
+			msebasic_string& assign(const _Ty * const _Ptr, const size_type _Count) {
+				base_class::assign(_Ptr, _Count);
+				m_mmitset.reset();
+				return (*this);
+			}
+			msebasic_string& assign(const _Ty * const _Ptr) {
+				base_class::assign(_Ptr);
+				m_mmitset.reset();
+				return (*this);
+			}
+			msebasic_string& assign(const size_type _Count, const _Ty& _Ch) {
+				base_class::assign(_Count, _Ch);
+				m_mmitset.reset();
+				return (*this);
+			}
+			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator_v<_Iter> >::type>
+			msebasic_string& assign(const _Iter _First, const _Iter _Last) {
 				base_class::assign(_First, _Last);
-				/*m_debug_size = size();*/
 				m_mmitset.reset();
+				return (*this);
 			}
-			void assign(size_type _N, const _Ty& _X = _Ty()) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
-				base_class::assign(msev_as_a_size_t(_N), _X);
-				/*m_debug_size = size();*/
+
+#ifdef MSE_HAS_CXX17
+		private:
+			template<class _TParam1>
+			msebasic_string& assign_helper1(std::true_type, const _TParam1& _Right) {
+				return (assign(static_cast<const base_class&>(_Right)));
+			}
+			template<class _TParam1>
+			msebasic_string& assign_helper1(std::false_type, const _TParam1& _Right) {
+				base_class::assign(_Right);
 				m_mmitset.reset();
+				return (*this);
 			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			msebasic_string& assign(const _TParam1& _Right) {
+				return assign_helper1(typename std::is_base_of<base_class, _TParam1>::type(), _Right);
+			}
+
+		private:
+			template<class _TParam1>
+			msebasic_string& assign_helper1(std::true_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+				return (assign(static_cast<const base_class&>(_Right, _Roff, _Count)));
+			}
+			template<class _TParam1>
+			msebasic_string& assign_helper1(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+				base_class::assign(_Right, _Roff, _Count);
+				m_mmitset.reset();
+				return (*this);
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			msebasic_string& assign(const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) {
+				return assign_helper1(typename std::is_base_of<base_class, _TParam1>::type(), _Right, _Roff, _Count);
+			}
+#else /* MSE_HAS_CXX17 */
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
-			void assign(const _TStringSection& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+			msebasic_string& assign(const _TStringSection& _X) {
 				base_class::assign(_X);
-				/*m_debug_size = size();*/
 				m_mmitset.reset();
+				return (*this);
 			}
+#endif /* MSE_HAS_CXX17 */
+
 			typename base_class::iterator insert(typename base_class::const_iterator _P, _Ty&& _X) {
 				return (emplace(_P, std::forward<decltype(_X)>(_X)));
 			}
@@ -7846,7 +7928,7 @@ namespace mse {
 			template<class _Ty2, class _Traits2/* = std::char_traits<_Ty>*/, class _A2/* = std::allocator<_Ty> */>
 			friend class mse::mstd::basic_string;
 #endif /*!MSE_MSTDSTRING_DISABLED*/
-			};
+		};
 
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex> inline bool operator!=(const msebasic_string<_Ty, _Traits, _A, _TStateMutex>& _Left,
 			const msebasic_string<_Ty, _Traits, _A, _TStateMutex>& _Right) {	// test for basic_string inequality

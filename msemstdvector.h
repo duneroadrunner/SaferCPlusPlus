@@ -784,7 +784,7 @@ namespace mse {
 
 		private:
 			const _MV& msevector() const { return (*m_shptr); }
-			_MV& msevector() { return (*m_shptr); }
+			auto&& msevector() { return (*m_shptr); }
 			template<class _TThisPointer>
 			static auto& s_msevector(const _TThisPointer& this_pointer) { return this_pointer->msevector(); }
 

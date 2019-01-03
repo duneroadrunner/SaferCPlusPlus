@@ -688,7 +688,7 @@ namespace mse {
 			mse::TRegisteredObj<_MA> m_nii_array;
 
 			const _MA& as_nii_array() const { return m_nii_array; }
-			_MA& as_nii_array() { return m_nii_array; }
+			auto&& as_nii_array() { return m_nii_array; }
 
 			friend xscope_const_iterator;
 			friend xscope_iterator;

@@ -2516,7 +2516,7 @@ namespace mse {
 		}
 
 		const _MA& contained_array() const { return m_array; }
-		_MA& contained_array() { return m_array; }
+		auto&& contained_array() { return m_array; }
 
 		std_array m_array;
 		_TStateMutex m_mutex1;
