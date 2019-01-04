@@ -9,6 +9,10 @@ This example file has become quite large (and has spilled into msetl_example2.cp
 types. Your best bet is probably to use a find/search to get to the data type your interested in.
 */
 
+#include "msetl_example2.h"
+
+#ifndef EXCLUDE_MSETL_EXAMPLE
+
 #include "msetl_example_defs.h"
 
 //include "msetl.h"
@@ -45,8 +49,6 @@ types. Your best bet is probably to use a find/search to get to the data type yo
 #include <numeric>
 #include <random>
 #include <functional>
-
-#include "msetl_example2.h"
 
 
 #ifdef _MSC_VER
@@ -131,8 +133,8 @@ public:
 /* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
 typedef mse::us::TUserDeclaredAsyncShareableObj<H> ShareableH;
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
+
 	mse::msevector_test msevector_test;
 	msevector_test.run_all();
 
@@ -2031,3 +2033,9 @@ int main(int argc, char* argv[])
 #pragma warning( pop )  
 #endif /*_MSC_VER*/
 
+#else // !EXCLUDE_MSETL_EXAMPLE
+int main(int /*argc*/, char* /*argv*/[]) {
+	msetl_example2();
+	return 0;
+}
+#endif // !EXCLUDE_MSETL_EXAMPLE

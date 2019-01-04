@@ -11,6 +11,7 @@
 #include <string>
 #include <iostream>
 #include "msemsevector.h"
+#include "msealgorithm.h"
 #ifdef MSE_HAS_CXX17
 #include <string_view>
 #endif /* MSE_HAS_CXX17 */
@@ -3628,11 +3629,12 @@ namespace mse {
 		}
 		template<class _TParam1>
 		nii_basic_string& assign_helper2(std::false_type, const _TParam1& _Right) {
-			return (assign(mse::make_begin_const_iterator(_Right), mse::make_end_const_iterator(_Right)));
+			const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+			return assign(xs_iters.begin(), xs_iters.end());
 		}
-		template<class _TParam1>
-		nii_basic_string& assign_helper1(std::true_type, const _TParam1& _Right) {
-			return (assign(static_cast<const nii_basic_string&>(_Right)));
+		nii_basic_string& assign_helper1(std::true_type, const nii_basic_string& _Right) {
+			assign(_Right);
+			return (*this);
 		}
 		template<class _TParam1>
 		nii_basic_string& assign_helper1(std::false_type, const _TParam1& _Right) {
@@ -3658,12 +3660,12 @@ namespace mse {
 			auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 				: difference_type(_Count);
 			if (0 > adjusted_count) { throw(std::out_of_range(" nii_basic_string::assign() ")); }
-			return (assign(mse::make_begin_const_iterator(_Right) + mse::as_a_size_t(_Roff)
-				, mse::make_begin_const_iterator(_Right) + _Roff) + mse::as_a_size_t(_Roff) + size_t(adjusted_count));
+			const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+			return assign(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count));
 		}
-		template<class _TParam1>
-		nii_basic_string& assign_helper1(std::true_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
-			return (assign(static_cast<const nii_basic_string&>(_Right, _Roff, _Count)));
+		nii_basic_string& assign_helper1(std::true_type, const nii_basic_string& _Right, const size_type _Roff, const size_type _Count) {
+			assign(_Right, _Roff, _Count);
+			return (*this);
 		}
 		template<class _TParam1>
 		nii_basic_string& assign_helper1(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
@@ -4346,11 +4348,12 @@ namespace mse {
 		}
 		template<class _TParam1>
 		nii_basic_string& append_helper2(std::false_type, const _TParam1& _Right) {
-			return (append(mse::make_begin_const_iterator(_Right), mse::make_end_const_iterator(_Right)));
+			const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+			return (append(xs_iters.begin(), xs_iters.end()));
 		}
-		template<class _TParam1>
-		nii_basic_string& append_helper1(std::true_type, const _TParam1& _Right) {
-			return (append(static_cast<const nii_basic_string&>(_Right)));
+		nii_basic_string& append_helper1(std::true_type, const nii_basic_string& _Right) {
+			append(_Right);
+			return (*this);
 		}
 		template<class _TParam1>
 		nii_basic_string& append_helper1(std::false_type, const _TParam1& _Right) {
@@ -4376,12 +4379,12 @@ namespace mse {
 			auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 				: difference_type(_Count);
 			if (0 > adjusted_count) { throw(std::out_of_range(" nii_basic_string::append() ")); }
-			return (append(mse::make_begin_const_iterator(_Right) + mse::as_a_size_t(_Roff)
-				, mse::make_begin_const_iterator(_Right) + _Roff) + mse::as_a_size_t(_Roff) + size_t(adjusted_count));
+			const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+			return append(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count));
 		}
-		template<class _TParam1>
-		nii_basic_string& append_helper1(std::true_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
-			return (append(static_cast<const nii_basic_string&>(_Right, _Roff, _Count)));
+		nii_basic_string& append_helper1(std::true_type, const nii_basic_string& _Right, const size_type _Roff, const size_type _Count) {
+			append(_Right, _Roff, _Count);
+			return (*this);
 		}
 		template<class _TParam1>
 		nii_basic_string& append_helper1(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
@@ -4431,21 +4434,25 @@ namespace mse {
 #endif /* MSE_HAS_CXX17 */
 
 		nii_basic_string& replace(const size_type _Off, const size_type _N0, mse::TXScopeItemFixedConstPointer<nii_basic_string> xs_ptr) {
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string());
 			return (*this);
 		}
 		nii_basic_string& replace(const size_type _Off, const size_type _N0, const nii_basic_string& _Right) {
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string());
 			return (*this);
 		}
 
 		nii_basic_string& replace(const size_type _Off, size_type _N0,
 			mse::TXScopeItemFixedConstPointer<nii_basic_string> xs_ptr, const size_type _Roff, size_type _Count = npos) {
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string(), mse::msev_as_a_size_t(_Roff), mse::msev_as_a_size_t(_Count));
 			return (*this);
 		}
 		nii_basic_string& replace(const size_type _Off, size_type _N0,
 			const nii_basic_string& _Right, const size_type _Roff, size_type _Count = npos) {
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string(), mse::msev_as_a_size_t(_Roff), mse::msev_as_a_size_t(_Count));
 			return (*this);
 		}
@@ -4462,11 +4469,11 @@ namespace mse {
 		}
 		template<class _TParam1>
 		nii_basic_string& replace_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) {
-			return (replace(_Off, _N0, mse::make_begin_const_iterator(_Right), mse::make_end_const_iterator(_Right)));
+			const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+			return replace(_Off, _N0, xs_iters.begin(), xs_iters.end());
 		}
-		template<class _TParam1>
-		nii_basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) {
-			return (replace(_Off, _N0, static_cast<const nii_basic_string&>(_Right)));
+		nii_basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const nii_basic_string& _Right) {
+			return (replace(_Off, _N0, _Right));
 		}
 		template<class _TParam1>
 		nii_basic_string& replace_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) {
@@ -4489,15 +4496,14 @@ namespace mse {
 		}
 		template<class _TParam1>
 		nii_basic_string& replace_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
-			auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Off, _N0, _Right)) - difference_type(_Roff))
+			auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 				: difference_type(_Count);
 			if (0 > adjusted_count) { throw(std::out_of_range(" nii_basic_string::replace() ")); }
-			return (replace(_Off, _N0, mse::make_begin_const_iterator(_Right) + mse::as_a_size_t(_Roff)
-				, mse::make_begin_const_iterator(_Right) + _Roff) + mse::as_a_size_t(_Roff) + size_t(adjusted_count));
+			const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+			return replace(_Off, _N0, xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count));
 		}
-		template<class _TParam1>
-		nii_basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
-			return (replace(_Off, _N0, static_cast<const nii_basic_string&>(_Right, _Roff, _Count)));
+		nii_basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const nii_basic_string& _Right, const size_type _Roff, const size_type _Count) {
+			return (replace(_Off, _N0, _Right, _Roff, _Count));
 		}
 		template<class _TParam1>
 		nii_basic_string& replace_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
@@ -4519,6 +4525,7 @@ namespace mse {
 #endif /* MSE_HAS_CXX17 */
 
 		nii_basic_string& replace(const size_type _Off, size_type _N0, const _Ty * const _Ptr, const size_type _Count) {
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr, mse::msev_as_a_size_t(_Count));
 			return (*this);
 		}
@@ -4528,6 +4535,7 @@ namespace mse {
 		}
 
 		nii_basic_string& replace(const size_type _Off, size_type _N0, const size_type _Count, const _Ty _Ch) {
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), mse::msev_as_a_size_t(_Count), _Ch);
 			return (*this);
 		}
@@ -4567,35 +4575,14 @@ namespace mse {
 			return (*this);
 		}
 
-#if 0//_HAS_CXX17
-		int compare(const mstd::basic_string_view<_Ty, _Traits> _Right) const _NOEXCEPT {
-			auto& _My_data = this->_Get_data();
-			return (_Traits_compare<_Traits>(_My_data._Myptr(), _My_data._Mysize,
-				_Right.data(), _Right.size()));
+		template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value>::type>
+		nii_basic_string& replace(const size_type _Off, const size_type _N0, const _Iter _First2, const _Iter _Last2) {
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+			if (m_basic_string.size() <= (mse::msev_as_a_size_t(_Off) + mse::msev_as_a_size_t(_N0))) { throw(std::out_of_range(" nii_basic_string::replace() ")); }
+			auto iter1 = m_basic_string.begin() + mse::msev_as_a_size_t(_Off);
+			m_basic_string.replace(iter1, iter1 + mse::msev_as_a_size_t(_N0), _First2, _Last2);
+			return (*this);
 		}
-
-		int compare(const size_type _Off, const size_type _N0,
-			const mstd::basic_string_view<_Ty, _Traits> _Right) const
-		{	// compare [_Off, _Off + _N0) with _Right
-			auto& _My_data = this->_Get_data();
-			_My_data._Check_offset(_Off);
-			return (_Traits_compare<_Traits>(_My_data._Myptr() + _Off, _My_data._Clamp_suffix_size(_Off, _N0),
-				_Right.data(), _Right.size()));
-		}
-
-		template<class _StringViewIsh,
-			class = _Is_string_view_ish<_StringViewIsh>>
-			int compare(const size_type _Off, const size_type _N0,
-				const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos) const
-		{	// compare [_Off, _Off + _N0) with _Right [_Roff, _Roff + _Count)
-			mstd::basic_string_view<_Ty, _Traits> _As_view = _Right;
-			auto& _My_data = this->_Get_data();
-			_My_data._Check_offset(_Off);
-			const auto _With_substr = _As_view.substr(_Roff, _Count);
-			return (_Traits_compare<_Traits>(_My_data._Myptr() + _Off, _My_data._Clamp_suffix_size(_Off, _N0),
-				_With_substr.data(), _With_substr.size()));
-		}
-#endif /* _HAS_CXX17 */
 
 		int compare(mse::TXScopeItemFixedConstPointer<nii_basic_string> xs_ptr) const _NOEXCEPT {
 			return m_basic_string.compare((*xs_ptr).contained_basic_string());
@@ -4630,6 +4617,95 @@ namespace mse {
 			const size_type _Count) const {
 			return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr, mse::msev_as_a_size_t(_Count));
 		}
+
+#ifdef MSE_HAS_CXX17
+	private:
+		template<class _StringViewIsh>
+		int compare_helper2(std::true_type, const _StringViewIsh& _Right) const {
+			std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+			return m_basic_string.compare(_As_view);
+		}
+		template<class _TParam1>
+		int compare_helper2(std::false_type, const _TParam1& _Right) const {
+			const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+			return std::lexicographical_compare(m_basic_string.cbegin(), m_basic_string.cend(), xs_iters.begin(), xs_iters.end());
+			//return compare(nii_basic_string(xs_iters.begin(), xs_iters.end()));
+		}
+		int compare_helper1(std::true_type, const nii_basic_string& _Right) const {
+			return compare(_Right);
+		}
+		template<class _TParam1>
+		int compare_helper1(std::false_type, const _TParam1& _Right) const {
+			return compare_helper2(typename _is_string_view_ish<_TParam1>::type(), _Right);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		int compare(const _TParam1& _Right) const {
+			return compare_helper1(typename std::is_base_of<nii_basic_string, _TParam1>::type(), _Right);
+		}
+
+	private:
+		template<class _StringViewIsh>
+		int compare_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right) const {
+			std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+			return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view);
+		}
+		template<class _TParam1>
+		int compare_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
+			const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+			return compare(_Off, _N0, nii_basic_string(xs_iters.begin(), xs_iters.end()));
+		}
+		int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const nii_basic_string& _Right) const {
+			return compare(_Off, _N0, _Right);
+		}
+		template<class _TParam1>
+		int compare_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
+			return compare_helper2(typename _is_string_view_ish<_TParam1>::type(), _Off, _N0, _Right);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		int compare(const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
+			return compare_helper1(typename std::is_base_of<nii_basic_string, _TParam1>::type(), _Off, _N0, _Right);
+		}
+
+	private:
+		template<class _StringViewIsh>
+		int compare_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count) const {
+			std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+			return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
+		}
+		template<class _TParam1>
+		int compare_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) const {
+			auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
+				: difference_type(_Count);
+			if (0 > adjusted_count) { throw(std::out_of_range(" nii_basic_string::compare() ")); }
+			const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+			return compare(_Off, _N0, nii_basic_string(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count)));
+		}
+		int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const nii_basic_string& _Right, const size_type _Roff, const size_type _Count) const {
+			return compare(_Off, _N0, _Right, _Roff, _Count);
+		}
+		template<class _TParam1>
+		int compare_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) const {
+			return compare_helper2(typename _is_string_view_ish<_TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		int compare(const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) const {
+			return compare_helper1(typename std::is_base_of<nii_basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
+		}
+#else /* MSE_HAS_CXX17 */
+		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+		int compare(const size_type _Off, const size_type _N0, const _TStringSection& _X) const {
+			//std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+			m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), nii_basic_string(_X.cbegin(), _X.cend()));
+			/*m_debug_size = size();*/
+			return (*this);
+		}
+#endif /* MSE_HAS_CXX17 */
 
 
 #if 0//_HAS_CXX17

@@ -3310,8 +3310,8 @@ namespace mse {
 		struct SupportsStdBegin_msemsearray_impl
 		{
 			template<class U, class V>
-			//static auto test(U*) -> decltype(std::declval<U>().begin() == std::declval<V>().begin(), bool(true));
-			static auto test(U*) -> decltype(std::begin(std::declval<U>()) == std::begin(std::declval<V>()), bool(true));
+			//static auto test(U*) -> decltype(std::declval<U>().begin(), std::declval<V>().begin(), bool(true));
+			static auto test(U*) -> decltype(std::begin(std::declval<U>()), std::begin(std::declval<V>()), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
@@ -3325,7 +3325,7 @@ namespace mse {
 		struct HasOrInheritsSizeMethod_msemsearray_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>().size() == std::declval<V>().size(), bool(true));
+			static auto test(U*) -> decltype(std::declval<U>().size(), std::declval<V>().size(), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
@@ -3339,7 +3339,7 @@ namespace mse {
 		struct HasOrInheritsStaticSSBeginMethod_msemsearray_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(U::ss_begin(std::declval<U*>()) == V::ss_begin(std::declval<V*>()), bool(true));
+			static auto test(U*) -> decltype(U::ss_begin(std::declval<U*>()), V::ss_begin(std::declval<V*>()), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
@@ -3357,7 +3357,7 @@ namespace mse {
 		struct IsNativeArray_msemsearray_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(native_array_size_msemsearray(std::declval<U>()) == native_array_size_msemsearray(std::declval<V>()), bool(true));
+			static auto test(U*) -> decltype(native_array_size_msemsearray(std::declval<U>()), native_array_size_msemsearray(std::declval<V>()), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
@@ -3371,7 +3371,7 @@ namespace mse {
 		struct IsDereferenceable_msemsearray_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype((*std::declval<U>()) == (*std::declval<V>()), bool(true));
+			static auto test(U*) -> decltype((*std::declval<U>()), (*std::declval<V>()), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
@@ -3388,7 +3388,7 @@ namespace mse {
 		struct HasOrInheritsXScopeIteratorMemberType_msemsearray_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(typename U::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<U> >()) == typename V::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<V> >()), bool(true));
+			static auto test(U*) -> decltype(typename U::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<U> >()), typename V::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<V> >()), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 

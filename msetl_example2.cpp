@@ -4,6 +4,7 @@
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+#ifndef EXCLUDE_MSETL_EXAMPLE2
 
 #include "msetl_example_defs.h"
 
@@ -201,6 +202,7 @@ public:
 
 MSE_DECLARE_THREAD_LOCAL_GLOBAL(mse::mstd::string) tlg_string1 = "some text";
 MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(mse::nii_string) gimm_string1 = "some text";
+
 
 void msetl_example2() {
 	{
@@ -1790,3 +1792,6 @@ void msetl_example2() {
 #pragma warning( pop )  
 #endif /*_MSC_VER*/
 
+#else // !EXCLUDE_MSETL_EXAMPLE2
+void msetl_example2() {}
+#endif // !EXCLUDE_MSETL_EXAMPLE2

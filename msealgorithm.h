@@ -42,12 +42,15 @@ namespace mse {
 
 	template<class _TArrayPointer, class size_type> auto make_xscope_const_iterator(const _TArrayPointer& owner_ptr, size_type index);
 	template<class _TArrayPointer, class size_type> auto make_xscope_iterator(const _TArrayPointer& owner_ptr, size_type index);
-
 	template<class _TArrayPointer> auto make_xscope_begin_const_iterator(const _TArrayPointer& owner_ptr);
 	template<class _TArrayPointer> auto make_xscope_begin_iterator(const _TArrayPointer& owner_ptr);
-
 	template<class _TArrayPointer> auto make_xscope_end_const_iterator(const _TArrayPointer& owner_ptr);
 	template<class _TArrayPointer> auto make_xscope_end_iterator(const _TArrayPointer& owner_ptr);
+
+	template<class _TArrayPointer> auto make_begin_const_iterator(const _TArrayPointer& owner_ptr);
+	template<class _TArrayPointer> auto make_begin_iterator(const _TArrayPointer& owner_ptr);
+	template<class _TArrayPointer> auto make_end_const_iterator(const _TArrayPointer& owner_ptr);
+	template<class _TArrayPointer> auto make_end_iterator(const _TArrayPointer& owner_ptr);
 
 
 	namespace impl {
@@ -111,6 +114,53 @@ namespace mse {
 			typename std::remove_const<typename std::remove_reference<
 				decltype(TXScopeRangeIterProvider<_ContainerPointer>(std::declval<_ContainerPointer>()).begin())
 			>::type>::type>;
+
+
+		template<class T, class EqualTo>
+		struct IsSupportedByMakeXScopeIterator_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(mse::make_xscope_iterator(std::declval<U>()), mse::make_xscope_iterator(std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct IsSupportedByMakeXScopeIterator_msemsearray : IsSupportedByMakeXScopeIterator_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+		template<class _ContainerPointer>
+		class TRangeIterProvider {
+		public:
+			typedef decltype(mse::make_begin_iterator(std::declval<_ContainerPointer>())) iter_t;
+			TRangeIterProvider(const _ContainerPointer& _XscpPtr) : m_begin(mse::make_begin_iterator(_XscpPtr))
+				, m_end(mse::make_end_iterator(_XscpPtr)) {}
+			const auto& begin() const {
+				return m_begin;
+			}
+			const auto& end() const {
+				return m_end;
+			}
+
+		private:
+			iter_t m_begin;
+			iter_t m_end;
+		};
+
+		template<class _ContainerPointer>
+		auto make_xscope_range_iter_provider_helper1(std::true_type, const _ContainerPointer& ptr) {
+			return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
+		}
+		template<class _ContainerPointer>
+		auto make_xscope_range_iter_provider_helper1(std::false_type, const _ContainerPointer& ptr) {
+			return TRangeIterProvider<decltype(ptr)>(ptr);
+		}
+
+		template<class _ContainerPointer>
+		auto make_xscope_range_iter_provider(const _ContainerPointer& ptr) {
+			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeIterator_msemsearray<_ContainerPointer>::type(), ptr);
+		}
 	}
 
 	/* find_if() */
