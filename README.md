@@ -1,4 +1,4 @@
-Nov 2018
+Jan 2019
 
 ### Overview
 
@@ -43,7 +43,7 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
         3. [TRegisteredConstPointer](#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer)
         4. [TRegisteredRefWrapper](#tregisteredrefwrapper)
     2. [TCRegisteredPointer](#tcregisteredpointer)
-    3. [TWRegisteredPointer, TWCRegisteredPointer](#twregisteredpointer-twcregisteredpointer)
+    3. [TNDRegisteredPointer, TNDCRegisteredPointer](#tndregisteredpointer-tndcregisteredpointer)
 7. [Norad pointers](#norad-pointers)
     1. [TNoradPointer](#tnoradpointer)
 8. [Simple benchmarks](#simple-benchmarks)
@@ -379,11 +379,11 @@ As with [`TRegisteredPointer<>`](#tregisteredpointer), if deleting a cregistered
 
 #### TCRegisteredConstPointer, TCRegisteredNotNullConstPointer, TCRegisteredFixedConstPointer
 
-### TWRegisteredPointer, TWCRegisteredPointer
+### TNDRegisteredPointer, TNDCRegisteredPointer
 
 When pointing to a valid object, [`TRegisteredPointer<>` and `TCRegisteredPointer<>`](#registered-pointers) essentially behave like raw pointers. So when in "disabled" mode, they are just aliased to raw pointers. However, in cases when their target object becomes invalid (i.e. is destroyed), the behavior of registered pointers is not the same as raw pointers. Specifically, registered pointers are automatically set to null when their target object is destroyed. So any code that relies on this behavior might not work properly when the registered pointers are substituted with raw pointers.
 
-So for those cases, `TWRegisteredPointer<>` and `TWCRegisteredPointer` are just versions of registered pointers that are not aliased to raw pointers in "disabled" mode. In fact, when not in "disabled" mode, `TRegisteredPointer<>` and `TCRegisteredPointer<>` are just aliases for `TWRegisteredPointer<>` and `TWCRegisteredPointer`.
+So for those cases, `TNDRegisteredPointer<>` and `TNDCRegisteredPointer` are just versions of registered pointers that are not aliased to raw pointers in "disabled" mode. In fact, when not in "disabled" mode, `TRegisteredPointer<>` and `TCRegisteredPointer<>` are just aliases for `TNDRegisteredPointer<>` and `TNDCRegisteredPointer`.
 
 ### Norad pointers
 
@@ -560,7 +560,7 @@ Generally you're going to want to obtain a "strong" pointer from the weak pointe
     void main(int argc, char* argv[]) {
 
         typedef mse::TRefCountingFixedPointer<std::string> str_rc_ptr_t; // owning pointer of a string
-        typedef mse::TWRegisteredObj<str_rc_ptr_t> str_rc_ptr_regobj_t; // registered version of above so that you can obtain a (weak)
+        typedef mse::TNDRegisteredObj<str_rc_ptr_t> str_rc_ptr_regobj_t; // registered version of above so that you can obtain a (weak)
                                                                        // registered pointer to it
 
          /* str_rc_rc_ptr1 is a "shared" owner of an owning pointer of a string  */
@@ -590,7 +590,7 @@ Generally you're going to want to obtain a "strong" pointer from the weak pointe
     }
 ```
 
-This next example demonstrates using `TWCRegisteredPointer<>` as a safe "weak_ptr" to prevent cyclic references from becoming memory leaks. This isn't much different from using `std::weak_ptr<>` in terms of functionality, but there can be performance and safety advantages.
+This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_ptr" to prevent cyclic references from becoming memory leaks. This isn't much different from using `std::weak_ptr<>` in terms of functionality, but there can be performance and safety advantages.
 
 ```cpp
     #include "mserefcounting.h"
@@ -602,9 +602,9 @@ This next example demonstrates using `TWCRegisteredPointer<>` as a safe "weak_pt
         class CRCNode;
 
         typedef mse::TRefCountingFixedPointer<CRCNode> rcnode_strongptr_t;            // owning pointer of a CRCNode
-        typedef mse::TWRegisteredObj<rcnode_strongptr_t> rcnode_strongptr_regobj_t; // registered version of above so that you can obtain a (weak)
+        typedef mse::TNDRegisteredObj<rcnode_strongptr_t> rcnode_strongptr_regobj_t; // registered version of above so that you can obtain a (weak)
                                                                                     // registered pointer to it
-        typedef mse::TWRegisteredPointer<rcnode_strongptr_t> rcnode_strongptr_weakptr_t; // (weak) registered pointer to owning pointer of a CRCNode
+        typedef mse::TNDRegisteredPointer<rcnode_strongptr_t> rcnode_strongptr_weakptr_t; // (weak) registered pointer to owning pointer of a CRCNode
 
         class CRCNode {
         public:
