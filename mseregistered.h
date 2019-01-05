@@ -49,13 +49,33 @@
 
 namespace mse {
 
-	template<typename _Ty> class TWRegisteredObj;
-	template<typename _Ty> class TWRegisteredPointer;
-	template<typename _Ty> class TWRegisteredConstPointer;
-	template<typename _Ty> class TWRegisteredNotNullPointer;
-	template<typename _Ty> class TWRegisteredNotNullConstPointer;
-	template<typename _Ty> class TWRegisteredFixedPointer;
-	template<typename _Ty> class TWRegisteredFixedConstPointer;
+	template<typename _Ty> class TNDRegisteredObj;
+	template<typename _Ty> class TNDRegisteredPointer;
+	template<typename _Ty> class TNDRegisteredConstPointer;
+	template<typename _Ty> class TNDRegisteredNotNullPointer;
+	template<typename _Ty> class TNDRegisteredNotNullConstPointer;
+	template<typename _Ty> class TNDRegisteredFixedPointer;
+	template<typename _Ty> class TNDRegisteredFixedConstPointer;
+
+	template<typename _Ty> auto make_ndregistered_referenceable(_Ty&& _X);
+	template<typename _Ty> auto make_ndregistered_referenceable(const _Ty& _X);
+
+	template<typename _Ty>
+	auto ndregistered_fptr_to(_Ty&& _X) {
+		return _X.mse_registered_fptr();
+	}
+	template<typename _Ty>
+	auto ndregistered_fptr_to(const _Ty& _X) {
+		return _X.mse_registered_fptr();
+	}
+
+	template <class _Ty, class... Args> TNDRegisteredPointer<_Ty> ndregistered_new(Args&&... args);
+	template <class _Ty> void ndregistered_delete(const TNDRegisteredPointer<_Ty>& ndregisteredPtrRef);
+	template <class _Ty> void ndregistered_delete(const TNDRegisteredConstPointer<_Ty>& ndregisteredPtrRef);
+	namespace us {
+		template <class _Ty> void ndregistered_delete(const TNDRegisteredPointer<_Ty>& ndregisteredPtrRef);
+		template <class _Ty> void ndregistered_delete(const TNDRegisteredConstPointer<_Ty>& ndregisteredPtrRef);
+	}
 
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 	template<typename _Ty> using TRegisteredPointer = _Ty*;
@@ -66,6 +86,13 @@ namespace mse {
 																											library containers don't support const elements. */
 	template<typename _Ty> using TRegisteredFixedConstPointer = const _Ty* /*const*/;
 	template<typename _TROy> using TRegisteredObj = _TROy;
+
+	template<typename _Ty> auto make_registered_referenceable(_Ty&& _X) { return std::forward<decltype(_X)>(_X); }
+	template<typename _Ty> auto make_registered_referenceable(const _Ty& _X) -> decltype(_X) { return _X; }
+
+	template<typename _Ty> auto registered_fptr_to(_Ty&& _X) { return std::addressof(_X); }
+	template<typename _Ty> auto registered_fptr_to(const _Ty& _X) { return std::addressof(_X); }
+
 	template <class _TRRWy> using TRegisteredRefWrapper = std::reference_wrapper<_TRRWy>;
 	template <class _Ty, class... Args>
 	TRegisteredPointer<_Ty> registered_new(Args&&... args) {
@@ -92,26 +119,28 @@ namespace mse {
 		}
 	}
 
-	template<typename _Ty> auto registered_fptr_to(_Ty&& _X) { return std::addressof(_X); }
-	template<typename _Ty> auto registered_fptr_to(const _Ty& _X) { return std::addressof(_X); }
-
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
 
-	template<typename _Ty> using TRegisteredPointer = TWRegisteredPointer<_Ty>;
-	template<typename _Ty> using TRegisteredConstPointer = TWRegisteredConstPointer<_Ty>;
-	template<typename _Ty> using TRegisteredNotNullPointer = TWRegisteredNotNullPointer<_Ty>;
-	template<typename _Ty> using TRegisteredNotNullConstPointer = TWRegisteredNotNullConstPointer<_Ty>;
-	template<typename _Ty> using TRegisteredFixedPointer = TWRegisteredFixedPointer<_Ty>;
-	template<typename _Ty> using TRegisteredFixedConstPointer = TWRegisteredFixedConstPointer<_Ty>;
-	template<typename _TROy> using TRegisteredObj = TWRegisteredObj<_TROy>;
+	template<typename _Ty> using TRegisteredPointer = TNDRegisteredPointer<_Ty>;
+	template<typename _Ty> using TRegisteredConstPointer = TNDRegisteredConstPointer<_Ty>;
+	template<typename _Ty> using TRegisteredNotNullPointer = TNDRegisteredNotNullPointer<_Ty>;
+	template<typename _Ty> using TRegisteredNotNullConstPointer = TNDRegisteredNotNullConstPointer<_Ty>;
+	template<typename _Ty> using TRegisteredFixedPointer = TNDRegisteredFixedPointer<_Ty>;
+	template<typename _Ty> using TRegisteredFixedConstPointer = TNDRegisteredFixedConstPointer<_Ty>;
+	template<typename _TROy> using TRegisteredObj = TNDRegisteredObj<_TROy>;
 
-	template<typename _Ty>
-	auto registered_fptr_to(_Ty&& _X) {
-		return _X.mse_registered_fptr();
-	}
-	template<typename _Ty>
-	auto registered_fptr_to(const _Ty& _X) {
-		return _X.mse_registered_fptr();
+	template<typename _Ty> auto make_registered_referenceable(_Ty&& _X) { return make_ndregistered_referenceable(std::forward<decltype(_X)>(_X)); }
+	template<typename _Ty> auto make_registered_referenceable(const _Ty& _X) -> decltype(make_ndregistered_referenceable(_X)) { return make_ndregistered_referenceable(_X); }
+
+	template<typename _Ty> auto registered_fptr_to(_Ty&& _X) { return ndregistered_fptr_to(std::forward<decltype(_X)>(_X)); }
+	template<typename _Ty> auto registered_fptr_to(const _Ty& _X) { return ndregistered_fptr_to(_X); }
+
+	template <class _Ty, class... Args> TNDRegisteredPointer<_Ty> registered_new(Args&&... args) { return ndregistered_new<_Ty>(std::forward<Args>(args)...); }
+	template <class _Ty> void registered_delete(TNDRegisteredPointer<_Ty>& ndregisteredPtrRef) { return mse::ndregistered_delete<_Ty>(ndregisteredPtrRef); }
+	template <class _Ty> void registered_delete(TNDRegisteredConstPointer<_Ty>& ndregisteredPtrRef) { return mse::ndregistered_delete<_Ty>(ndregisteredPtrRef); }
+	namespace us {
+		template <class _Ty> void registered_delete(TNDRegisteredPointer<_Ty>& ndregisteredPtrRef) { return mse::us::ndregistered_delete<_Ty>(ndregisteredPtrRef); }
+		template <class _Ty> void registered_delete(TNDRegisteredConstPointer<_Ty>& ndregisteredPtrRef) { return mse::us::ndregistered_delete<_Ty>(ndregisteredPtrRef); }
 	}
 
 #endif /*MSE_REGISTEREDPOINTER_DISABLED*/
@@ -140,39 +169,39 @@ namespace mse {
 	dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects
 	allocated on the stack as well as the heap. */
 	template<typename _Ty>
-	class TWRegisteredPointer : public mse::us::TSaferPtr<TWRegisteredObj<_Ty>>, public mse::us::impl::CRegisteredNode {
+	class TNDRegisteredPointer : public mse::us::TSaferPtr<TNDRegisteredObj<_Ty>>, public mse::us::impl::CRegisteredNode {
 	public:
-		TWRegisteredPointer() : mse::us::TSaferPtr<TWRegisteredObj<_Ty>>() {}
-		TWRegisteredPointer(const TWRegisteredPointer& src_cref) : mse::us::TSaferPtr<TWRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TNDRegisteredPointer() : mse::us::TSaferPtr<TNDRegisteredObj<_Ty>>() {}
+		TNDRegisteredPointer(const TNDRegisteredPointer& src_cref) : mse::us::TSaferPtr<TNDRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredPointer(const TWRegisteredPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<TWRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TNDRegisteredPointer(const TNDRegisteredPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<TNDRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
-		TWRegisteredPointer(std::nullptr_t) : mse::us::TSaferPtr<TWRegisteredObj<_Ty>>(nullptr) {}
-		virtual ~TWRegisteredPointer() {
+		TNDRegisteredPointer(std::nullptr_t) : mse::us::TSaferPtr<TNDRegisteredObj<_Ty>>(nullptr) {}
+		virtual ~TNDRegisteredPointer() {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).unregister_pointer(*this);
 			}
 		}
-		TWRegisteredPointer<_Ty>& operator=(const TWRegisteredPointer<_Ty>& _Right_cref) {
+		TNDRegisteredPointer<_Ty>& operator=(const TNDRegisteredPointer<_Ty>& _Right_cref) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).unregister_pointer(*this);
 			}
-			mse::us::TSaferPtr<TWRegisteredObj<_Ty>>::operator=(_Right_cref);
+			mse::us::TSaferPtr<TNDRegisteredObj<_Ty>>::operator=(_Right_cref);
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 			return (*this);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredPointer<_Ty>& operator=(const TWRegisteredPointer<_Ty2>& _Right_cref) {
-			return (*this).operator=(TWRegisteredPointer(_Right_cref));
+		TNDRegisteredPointer<_Ty>& operator=(const TNDRegisteredPointer<_Ty2>& _Right_cref) {
+			return (*this).operator=(TNDRegisteredPointer(_Right_cref));
 		}
 		operator bool() const { return !(!((*this).m_ptr)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -189,7 +218,7 @@ namespace mse {
 		then the (derived) object's destructor won't be called possibly resulting in resource leaks. With registered
 		objects, the destructor not being called also circumvents their memory safety mechanism. */
 		void registered_delete() const {
-			auto a = asANativePointerToTWRegisteredObj();
+			auto a = asANativePointerToTNDRegisteredObj();
 			delete a;
 			assert(nullptr == (*this).m_ptr);
 		}
@@ -198,74 +227,74 @@ namespace mse {
 		void rn_set_pointer_to_null() const override { (*this).spb_set_to_null(); }
 
 	private:
-		TWRegisteredPointer(TWRegisteredObj<_Ty>* ptr) : mse::us::TSaferPtr<TWRegisteredObj<_Ty>>(ptr) {
+		TNDRegisteredPointer(TNDRegisteredObj<_Ty>* ptr) : mse::us::TSaferPtr<TNDRegisteredObj<_Ty>>(ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
 
 		/* This function, if possible, should not be used. It is meant to be used exclusively by registered_delete<>(). */
-		TWRegisteredObj<_Ty>* asANativePointerToTWRegisteredObj() const {
+		TNDRegisteredObj<_Ty>* asANativePointerToTNDRegisteredObj() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
-			return static_cast<TWRegisteredObj<_Ty>*>((*this).m_ptr);
+			return static_cast<TNDRegisteredObj<_Ty>*>((*this).m_ptr);
 		}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		template <class Y> friend class TWRegisteredPointer;
-		template <class Y> friend class TWRegisteredConstPointer;
-		friend class TWRegisteredNotNullPointer<_Ty>;
+		template <class Y> friend class TNDRegisteredPointer;
+		template <class Y> friend class TNDRegisteredConstPointer;
+		friend class TNDRegisteredNotNullPointer<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TWRegisteredConstPointer : public mse::us::TSaferPtr<const TWRegisteredObj<_Ty>>, public mse::us::impl::CRegisteredNode {
+	class TNDRegisteredConstPointer : public mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>, public mse::us::impl::CRegisteredNode {
 	public:
-		TWRegisteredConstPointer() : mse::us::TSaferPtr<const TWRegisteredObj<_Ty>>() {}
-		TWRegisteredConstPointer(const TWRegisteredConstPointer& src_cref) : mse::us::TSaferPtr<const TWRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TNDRegisteredConstPointer() : mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>() {}
+		TNDRegisteredConstPointer(const TNDRegisteredConstPointer& src_cref) : mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredConstPointer(const TWRegisteredConstPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<const TWRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TNDRegisteredConstPointer(const TNDRegisteredConstPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
-		TWRegisteredConstPointer(const TWRegisteredPointer<_Ty>& src_cref) : mse::us::TSaferPtr<const TWRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TNDRegisteredConstPointer(const TNDRegisteredPointer<_Ty>& src_cref) : mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredConstPointer(const TWRegisteredPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<const TWRegisteredObj<_Ty>>(src_cref.m_ptr) {
+		TNDRegisteredConstPointer(const TNDRegisteredPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
-		TWRegisteredConstPointer(std::nullptr_t) : mse::us::TSaferPtr<const TWRegisteredObj<_Ty>>(nullptr) {}
-		virtual ~TWRegisteredConstPointer() {
+		TNDRegisteredConstPointer(std::nullptr_t) : mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>(nullptr) {}
+		virtual ~TNDRegisteredConstPointer() {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).unregister_pointer(*this);
 			}
 		}
-		TWRegisteredConstPointer<_Ty>& operator=(const TWRegisteredConstPointer<_Ty>& _Right_cref) {
+		TNDRegisteredConstPointer<_Ty>& operator=(const TNDRegisteredConstPointer<_Ty>& _Right_cref) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).unregister_pointer(*this);
 			}
-			mse::us::TSaferPtr<const TWRegisteredObj<_Ty>>::operator=(_Right_cref);
+			mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>::operator=(_Right_cref);
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 			return (*this);
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredConstPointer<_Ty>& operator=(const TWRegisteredConstPointer<_Ty2>& _Right_cref) {
-			return (*this).operator=(TWRegisteredConstPointer(_Right_cref));
+		TNDRegisteredConstPointer<_Ty>& operator=(const TNDRegisteredConstPointer<_Ty2>& _Right_cref) {
+			return (*this).operator=(TNDRegisteredConstPointer(_Right_cref));
 		}
 
 		operator bool() const { return !(!((*this).m_ptr)); }
@@ -283,7 +312,7 @@ namespace mse {
 		then the (derived) object's destructor won't be called possibly resulting in resource leaks. With registered
 		objects, the destructor not being called also circumvents their memory safety mechanism. */
 		void registered_delete() const {
-			auto a = asANativePointerToTWRegisteredObj();
+			auto a = asANativePointerToTNDRegisteredObj();
 			delete a;
 			assert(nullptr == (*this).m_ptr);
 		}
@@ -292,181 +321,181 @@ namespace mse {
 		void rn_set_pointer_to_null() const override { (*this).spb_set_to_null(); }
 
 	private:
-		TWRegisteredConstPointer(const TWRegisteredObj<_Ty>* ptr) : mse::us::TSaferPtr<const TWRegisteredObj<_Ty>>(ptr) {
+		TNDRegisteredConstPointer(const TNDRegisteredObj<_Ty>* ptr) : mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>(ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
 
 		/* This function, if possible, should not be used. It is meant to be used exclusively by registered_delete<>(). */
-		const TWRegisteredObj<_Ty>* asANativePointerToTWRegisteredObj() const {
+		const TNDRegisteredObj<_Ty>* asANativePointerToTNDRegisteredObj() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
 			}
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
-			return static_cast<const TWRegisteredObj<_Ty>*>((*this).m_ptr);
+			return static_cast<const TNDRegisteredObj<_Ty>*>((*this).m_ptr);
 		}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		template <class Y> friend class TWRegisteredConstPointer;
-		friend class TWRegisteredNotNullConstPointer<_Ty>;
+		template <class Y> friend class TNDRegisteredConstPointer;
+		friend class TNDRegisteredNotNullConstPointer<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TWRegisteredNotNullPointer : public TWRegisteredPointer<_Ty> {
+	class TNDRegisteredNotNullPointer : public TNDRegisteredPointer<_Ty> {
 	public:
-		TWRegisteredNotNullPointer(const TWRegisteredNotNullPointer& src_cref) : TWRegisteredPointer<_Ty>(src_cref) {}
+		TNDRegisteredNotNullPointer(const TNDRegisteredNotNullPointer& src_cref) : TNDRegisteredPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredNotNullPointer(const TWRegisteredNotNullPointer<_Ty2>& src_cref) : TWRegisteredPointer<_Ty>(src_cref) {}
+		TNDRegisteredNotNullPointer(const TNDRegisteredNotNullPointer<_Ty2>& src_cref) : TNDRegisteredPointer<_Ty>(src_cref) {}
 
-		virtual ~TWRegisteredNotNullPointer() {}
+		virtual ~TNDRegisteredNotNullPointer() {}
 		/*
-		TWRegisteredNotNullPointer<_Ty>& operator=(const TWRegisteredNotNullPointer<_Ty>& _Right_cref) {
-		TWRegisteredPointer<_Ty>::operator=(_Right_cref);
+		TNDRegisteredNotNullPointer<_Ty>& operator=(const TNDRegisteredNotNullPointer<_Ty>& _Right_cref) {
+		TNDRegisteredPointer<_Ty>::operator=(_Right_cref);
 		return (*this);
 		}
 		*/
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TWRegisteredPointer<_Ty>::operator _Ty*(); }
-		explicit operator TWRegisteredObj<_Ty>*() const { return TWRegisteredPointer<_Ty>::operator TWRegisteredObj<_Ty>*(); }
+		explicit operator _Ty*() const { return TNDRegisteredPointer<_Ty>::operator _Ty*(); }
+		explicit operator TNDRegisteredObj<_Ty>*() const { return TNDRegisteredPointer<_Ty>::operator TNDRegisteredObj<_Ty>*(); }
 
 	private:
-		TWRegisteredNotNullPointer(TWRegisteredObj<_Ty>* ptr) : TWRegisteredPointer<_Ty>(ptr) {}
+		TNDRegisteredNotNullPointer(TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredPointer<_Ty>(ptr) {}
 
 		/* If you want to use this constructor, use not_null_from_nullable() instead. */
-		TWRegisteredNotNullPointer(const  TWRegisteredPointer<_Ty>& src_cref) : TWRegisteredPointer<_Ty>(src_cref) {
+		TNDRegisteredNotNullPointer(const  TNDRegisteredPointer<_Ty>& src_cref) : TNDRegisteredPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredNotNullPointer(const TWRegisteredPointer<_Ty2>& src_cref) : TWRegisteredPointer<_Ty>(src_cref) {
+		TNDRegisteredNotNullPointer(const TNDRegisteredPointer<_Ty2>& src_cref) : TNDRegisteredPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 
-		/* If you want a pointer to a TWRegisteredNotNullPointer<_Ty>, declare the TWRegisteredNotNullPointer<_Ty> as a
-		TWRegisteredObj<TWRegisteredNotNullPointer<_Ty>> instead. So for example:
-		auto reg_ptr = TWRegisteredObj<TWRegisteredNotNullPointer<_Ty>>(mse::registered_new<_Ty>());
+		/* If you want a pointer to a TNDRegisteredNotNullPointer<_Ty>, declare the TNDRegisteredNotNullPointer<_Ty> as a
+		TNDRegisteredObj<TNDRegisteredNotNullPointer<_Ty>> instead. So for example:
+		auto reg_ptr = TNDRegisteredObj<TNDRegisteredNotNullPointer<_Ty>>(mse::registered_new<_Ty>());
 		auto reg_ptr_to_reg_ptr = &reg_ptr;
 		*/
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		friend class TWRegisteredFixedPointer<_Ty>;
+		friend class TNDRegisteredFixedPointer<_Ty>;
 		template<typename _Ty2>
-		friend TWRegisteredNotNullPointer<_Ty2> not_null_from_nullable(const TWRegisteredPointer<_Ty2>& src);
+		friend TNDRegisteredNotNullPointer<_Ty2> not_null_from_nullable(const TNDRegisteredPointer<_Ty2>& src);
 	};
 
 	template<typename _Ty>
-	class TWRegisteredNotNullConstPointer : public TWRegisteredConstPointer<_Ty> {
+	class TNDRegisteredNotNullConstPointer : public TNDRegisteredConstPointer<_Ty> {
 	public:
-		TWRegisteredNotNullConstPointer(const TWRegisteredNotNullPointer<_Ty>& src_cref) : TWRegisteredConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredNotNullConstPointer(const TNDRegisteredNotNullPointer<_Ty>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredNotNullConstPointer(const TWRegisteredNotNullPointer<_Ty2>& src_cref) : TWRegisteredConstPointer<_Ty>(src_cref) {}
-		TWRegisteredNotNullConstPointer(const TWRegisteredNotNullConstPointer<_Ty>& src_cref) : TWRegisteredConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredNotNullConstPointer(const TNDRegisteredNotNullPointer<_Ty2>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredNotNullConstPointer(const TNDRegisteredNotNullConstPointer<_Ty>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredNotNullConstPointer(const TWRegisteredNotNullConstPointer<_Ty2>& src_cref) : TWRegisteredConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredNotNullConstPointer(const TNDRegisteredNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {}
 
-		virtual ~TWRegisteredNotNullConstPointer() {}
+		virtual ~TNDRegisteredNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TWRegisteredConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TWRegisteredObj<_Ty>*() const { return TWRegisteredConstPointer<_Ty>::operator const TWRegisteredObj<_Ty>*(); }
+		explicit operator const _Ty*() const { return TNDRegisteredConstPointer<_Ty>::operator const _Ty*(); }
+		explicit operator const TNDRegisteredObj<_Ty>*() const { return TNDRegisteredConstPointer<_Ty>::operator const TNDRegisteredObj<_Ty>*(); }
 
 	private:
-		TWRegisteredNotNullConstPointer(const TWRegisteredObj<_Ty>* ptr) : TWRegisteredConstPointer<_Ty>(ptr) {}
+		TNDRegisteredNotNullConstPointer(const TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredConstPointer<_Ty>(ptr) {}
 
 		/* If you want to use this constructor, use not_null_from_nullable() instead. */
-		TWRegisteredNotNullConstPointer(const TWRegisteredPointer<_Ty>& src_cref) : TWRegisteredConstPointer<_Ty>(src_cref) {
+		TNDRegisteredNotNullConstPointer(const TNDRegisteredPointer<_Ty>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredNotNullConstPointer(const TWRegisteredPointer<_Ty2>& src_cref) : TWRegisteredConstPointer<_Ty>(src_cref) {
+		TNDRegisteredNotNullConstPointer(const TNDRegisteredPointer<_Ty2>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
-		TWRegisteredNotNullConstPointer(const TWRegisteredConstPointer<_Ty>& src_cref) : TWRegisteredConstPointer<_Ty>(src_cref) {
+		TNDRegisteredNotNullConstPointer(const TNDRegisteredConstPointer<_Ty>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredNotNullConstPointer(const TWRegisteredConstPointer<_Ty2>& src_cref) : TWRegisteredConstPointer<_Ty>(src_cref) {
+		TNDRegisteredNotNullConstPointer(const TNDRegisteredConstPointer<_Ty2>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		friend class TWRegisteredFixedConstPointer<_Ty>;
+		friend class TNDRegisteredFixedConstPointer<_Ty>;
 		template<typename _Ty2>
-		friend TWRegisteredNotNullConstPointer<_Ty2> not_null_from_nullable(const TWRegisteredConstPointer<_Ty2>& src);
+		friend TNDRegisteredNotNullConstPointer<_Ty2> not_null_from_nullable(const TNDRegisteredConstPointer<_Ty2>& src);
 	};
 
 	template<typename _Ty>
-	TWRegisteredNotNullPointer<_Ty> not_null_from_nullable(const TWRegisteredPointer<_Ty>& src) {
+	TNDRegisteredNotNullPointer<_Ty> not_null_from_nullable(const TNDRegisteredPointer<_Ty>& src) {
 		return src;
 	}
 	template<typename _Ty>
-	TWRegisteredNotNullConstPointer<_Ty> not_null_from_nullable(const TWRegisteredConstPointer<_Ty>& src) {
+	TNDRegisteredNotNullConstPointer<_Ty> not_null_from_nullable(const TNDRegisteredConstPointer<_Ty>& src) {
 		return src;
 	}
 
-	/* TWRegisteredFixedPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
+	/* TNDRegisteredFixedPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
 	parameters by reference. */
 	template<typename _Ty>
-	class TWRegisteredFixedPointer : public TWRegisteredNotNullPointer<_Ty> {
+	class TNDRegisteredFixedPointer : public TNDRegisteredNotNullPointer<_Ty> {
 	public:
-		TWRegisteredFixedPointer(const TWRegisteredFixedPointer& src_cref) : TWRegisteredNotNullPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedPointer(const TNDRegisteredFixedPointer& src_cref) : TNDRegisteredNotNullPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredFixedPointer(const TWRegisteredFixedPointer<_Ty2>& src_cref) : TWRegisteredNotNullPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedPointer(const TNDRegisteredFixedPointer<_Ty2>& src_cref) : TNDRegisteredNotNullPointer<_Ty>(src_cref) {}
 
-		TWRegisteredFixedPointer(const TWRegisteredNotNullPointer<_Ty>& src_cref) : TWRegisteredNotNullPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedPointer(const TNDRegisteredNotNullPointer<_Ty>& src_cref) : TNDRegisteredNotNullPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredFixedPointer(const TWRegisteredNotNullPointer<_Ty2>& src_cref) : TWRegisteredNotNullPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedPointer(const TNDRegisteredNotNullPointer<_Ty2>& src_cref) : TNDRegisteredNotNullPointer<_Ty>(src_cref) {}
 
-		virtual ~TWRegisteredFixedPointer() {}
+		virtual ~TNDRegisteredFixedPointer() {}
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TWRegisteredNotNullPointer<_Ty>::operator _Ty*(); }
-		explicit operator TWRegisteredObj<_Ty>*() const { return TWRegisteredNotNullPointer<_Ty>::operator TWRegisteredObj<_Ty>*(); }
+		explicit operator _Ty*() const { return TNDRegisteredNotNullPointer<_Ty>::operator _Ty*(); }
+		explicit operator TNDRegisteredObj<_Ty>*() const { return TNDRegisteredNotNullPointer<_Ty>::operator TNDRegisteredObj<_Ty>*(); }
 
 	private:
-		TWRegisteredFixedPointer(TWRegisteredObj<_Ty>* ptr) : TWRegisteredNotNullPointer<_Ty>(ptr) {}
-		TWRegisteredFixedPointer<_Ty>& operator=(const TWRegisteredFixedPointer<_Ty>& _Right_cref) = delete;
+		TNDRegisteredFixedPointer(TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredNotNullPointer<_Ty>(ptr) {}
+		TNDRegisteredFixedPointer<_Ty>& operator=(const TNDRegisteredFixedPointer<_Ty>& _Right_cref) = delete;
 
-		/* If you want a pointer to a TWRegisteredFixedPointer<_Ty>, declare the TWRegisteredFixedPointer<_Ty> as a
-		TWRegisteredObj<TWRegisteredFixedPointer<_Ty>> instead. So for example:
-		auto reg_ptr = TWRegisteredObj<TWRegisteredFixedPointer<_Ty>>(mse::registered_new<_Ty>());
+		/* If you want a pointer to a TNDRegisteredFixedPointer<_Ty>, declare the TNDRegisteredFixedPointer<_Ty> as a
+		TNDRegisteredObj<TNDRegisteredFixedPointer<_Ty>> instead. So for example:
+		auto reg_ptr = TNDRegisteredObj<TNDRegisteredFixedPointer<_Ty>>(mse::registered_new<_Ty>());
 		auto reg_ptr_to_reg_ptr = &reg_ptr;
 		*/
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		friend class TWRegisteredObj<_Ty>;
+		friend class TNDRegisteredObj<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TWRegisteredFixedConstPointer : public TWRegisteredNotNullConstPointer<_Ty> {
+	class TNDRegisteredFixedConstPointer : public TNDRegisteredNotNullConstPointer<_Ty> {
 	public:
-		TWRegisteredFixedConstPointer(const TWRegisteredFixedPointer<_Ty>& src_cref) : TWRegisteredNotNullConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedConstPointer(const TNDRegisteredFixedPointer<_Ty>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredFixedConstPointer(const TWRegisteredFixedPointer<_Ty2>& src_cref) : TWRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-		TWRegisteredFixedConstPointer(const TWRegisteredFixedConstPointer<_Ty>& src_cref) : TWRegisteredNotNullConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedConstPointer(const TNDRegisteredFixedPointer<_Ty2>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedConstPointer(const TNDRegisteredFixedConstPointer<_Ty>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredFixedConstPointer(const TWRegisteredFixedConstPointer<_Ty2>& src_cref) : TWRegisteredNotNullConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedConstPointer(const TNDRegisteredFixedConstPointer<_Ty2>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 
-		TWRegisteredFixedConstPointer(const TWRegisteredNotNullPointer<_Ty>& src_cref) : TWRegisteredNotNullConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedConstPointer(const TNDRegisteredNotNullPointer<_Ty>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredFixedConstPointer(const TWRegisteredNotNullPointer<_Ty2>& src_cref) : TWRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-		TWRegisteredFixedConstPointer(const TWRegisteredNotNullConstPointer<_Ty>& src_cref) : TWRegisteredNotNullConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedConstPointer(const TNDRegisteredNotNullPointer<_Ty2>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedConstPointer(const TNDRegisteredNotNullConstPointer<_Ty>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TWRegisteredFixedConstPointer(const TWRegisteredNotNullConstPointer<_Ty2>& src_cref) : TWRegisteredNotNullConstPointer<_Ty>(src_cref) {}
+		TNDRegisteredFixedConstPointer(const TNDRegisteredNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 
-		virtual ~TWRegisteredFixedConstPointer() {}
+		virtual ~TNDRegisteredFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TWRegisteredNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TWRegisteredObj<_Ty>*() const { return TWRegisteredNotNullConstPointer<_Ty>::operator const TWRegisteredObj<_Ty>*(); }
+		explicit operator const _Ty*() const { return TNDRegisteredNotNullConstPointer<_Ty>::operator const _Ty*(); }
+		explicit operator const TNDRegisteredObj<_Ty>*() const { return TNDRegisteredNotNullConstPointer<_Ty>::operator const TNDRegisteredObj<_Ty>*(); }
 
 	private:
-		TWRegisteredFixedConstPointer(const TWRegisteredObj<_Ty>* ptr) : TWRegisteredNotNullConstPointer<_Ty>(ptr) {}
-		TWRegisteredFixedConstPointer<_Ty>& operator=(const TWRegisteredFixedConstPointer<_Ty>& _Right_cref) = delete;
+		TNDRegisteredFixedConstPointer(const TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredNotNullConstPointer<_Ty>(ptr) {}
+		TNDRegisteredFixedConstPointer<_Ty>& operator=(const TNDRegisteredFixedConstPointer<_Ty>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		friend class TWRegisteredObj<_Ty>;
+		friend class TNDRegisteredObj<_Ty>;
 	};
 
 	/* This macro roughly simulates constructor inheritance. */
@@ -477,36 +506,36 @@ namespace mse {
 	>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
-	/* TWRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
-	destruction so that TWRegisteredPointers will avoid referencing destroyed objects. Note that TWRegisteredObj can be used with
+	/* TNDRegisteredObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
+	destruction so that TNDRegisteredPointers will avoid referencing destroyed objects. Note that TNDRegisteredObj can be used with
 	objects allocated on the stack. */
 	template<typename _TROFLy>
-	class TWRegisteredObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, mse::us::impl::NotAsyncShareableTagBase*>::value) && (!std::is_base_of<mse::us::impl::NotAsyncShareableTagBase, _TROFLy>::value)
-		, mse::us::impl::NotAsyncShareableTagBase, impl::TPlaceHolder_msepointerbasics<TWRegisteredObj<_TROFLy> > >::type
+	class TNDRegisteredObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, mse::us::impl::NotAsyncShareableTagBase*>::value) && (!std::is_base_of<mse::us::impl::NotAsyncShareableTagBase, _TROFLy>::value)
+		, mse::us::impl::NotAsyncShareableTagBase, impl::TPlaceHolder_msepointerbasics<TNDRegisteredObj<_TROFLy> > >::type
 	{
 	public:
 		typedef _TROFLy base_class;
 
-		MSE_CREGISTERED_OBJ_USING(TWRegisteredObj, _TROFLy);
-		TWRegisteredObj(const TWRegisteredObj& _X) : _TROFLy(_X) {}
-		TWRegisteredObj(TWRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
-		virtual ~TWRegisteredObj() {
+		MSE_CREGISTERED_OBJ_USING(TNDRegisteredObj, _TROFLy);
+		TNDRegisteredObj(const TNDRegisteredObj& _X) : _TROFLy(_X) {}
+		TNDRegisteredObj(TNDRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
+		virtual ~TNDRegisteredObj() {
 			unregister_and_set_outstanding_pointers_to_null();
 		}
 
 		template<class _Ty2>
-		TWRegisteredObj& operator=(_Ty2&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TNDRegisteredObj& operator=(_Ty2&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		template<class _Ty2>
-		TWRegisteredObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
+		TNDRegisteredObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
 
-		TWRegisteredFixedPointer<_TROFLy> operator&() {
-			return TWRegisteredFixedPointer<_TROFLy>(this);
+		TNDRegisteredFixedPointer<_TROFLy> operator&() {
+			return TNDRegisteredFixedPointer<_TROFLy>(this);
 		}
-		TWRegisteredFixedConstPointer<_TROFLy> operator&() const {
-			return TWRegisteredFixedConstPointer<_TROFLy>(this);
+		TNDRegisteredFixedConstPointer<_TROFLy> operator&() const {
+			return TNDRegisteredFixedConstPointer<_TROFLy>(this);
 		}
-		TWRegisteredFixedPointer<_TROFLy> mse_registered_fptr() { return TWRegisteredFixedPointer<_TROFLy>(this); }
-		TWRegisteredFixedConstPointer<_TROFLy> mse_registered_fptr() const { return TWRegisteredFixedConstPointer<_TROFLy>(this); }
+		TNDRegisteredFixedPointer<_TROFLy> mse_registered_fptr() { return TNDRegisteredFixedPointer<_TROFLy>(this); }
+		TNDRegisteredFixedConstPointer<_TROFLy> mse_registered_fptr() const { return TNDRegisteredFixedConstPointer<_TROFLy>(this); }
 
 		/* todo: make these private */
 		void register_pointer(const mse::us::impl::CRegisteredNode& node_cref) const {
@@ -551,51 +580,71 @@ namespace mse {
 		mutable const mse::us::impl::CRegisteredNode * m_head_ptr = nullptr;
 	};
 
+	namespace impl {
+		template<typename _Ty>
+		auto make_ndregistered_referenceable_helper(std::true_type, _Ty&& _X) {
+			return std::forward<decltype(_X)>(_X);
+		}
+		template<typename _Ty>
+		auto make_ndregistered_referenceable_helper(std::false_type, _Ty&& _X) {
+			return TNDRegisteredObj<typename std::remove_reference<_Ty>::type>(std::forward<decltype(_X)>(_X));
+		}
+		template<typename _Ty>
+		auto make_ndregistered_referenceable_helper(std::true_type, const _Ty& _X) -> decltype(_X) {
+			return _X;
+		}
+		template<typename _Ty>
+		auto make_ndregistered_referenceable_helper(std::false_type, const _Ty& _X) {
+			return TNDRegisteredObj<typename std::remove_reference<_Ty>::type>(_X);
+		}
+	}
+	template<typename _Ty>
+	auto make_ndregistered_referenceable(_Ty&& _X) {
+		return impl::make_ndregistered_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TNDRegisteredObj>::type(), std::forward<decltype(_X)>(_X));
+	}
+	template<typename _Ty>
+	auto make_ndregistered_referenceable(const _Ty& _X) -> decltype(impl::make_ndregistered_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TNDRegisteredObj>::type(), _X)) {
+		return impl::make_ndregistered_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TNDRegisteredObj>::type(), _X);
+	}
 
-#ifdef MSE_REGISTEREDPOINTER_DISABLED
-#else /*MSE_REGISTEREDPOINTER_DISABLED*/
-
-	/* See registered_new(). */
 	template <class _Ty, class... Args>
-	TRegisteredPointer<_Ty> registered_new(Args&&... args) {
-		auto a = new TRegisteredObj<_Ty>(std::forward<Args>(args)...);
-		mse::us::impl::tlSAllocRegistry_ref<TRegisteredObj<_Ty> >().registerPointer(a);
+	TNDRegisteredPointer<_Ty> ndregistered_new(Args&&... args) {
+		auto a = new TNDRegisteredObj<_Ty>(std::forward<Args>(args)...);
+		mse::us::impl::tlSAllocRegistry_ref<TNDRegisteredObj<_Ty> >().registerPointer(a);
 		return &(*a);
 	}
 	template <class _Ty>
-	void registered_delete(const TRegisteredPointer<_Ty>& regPtrRef) {
-		auto a = static_cast<TRegisteredObj<_Ty>*>(regPtrRef);
-		auto res = mse::us::impl::tlSAllocRegistry_ref<TRegisteredObj<_Ty> >().unregisterPointer(a);
+	void ndregistered_delete(const TNDRegisteredPointer<_Ty>& regPtrRef) {
+		auto a = static_cast<TNDRegisteredObj<_Ty>*>(regPtrRef);
+		auto res = mse::us::impl::tlSAllocRegistry_ref<TNDRegisteredObj<_Ty> >().unregisterPointer(a);
 		if (!res) { assert(false); MSE_THROW(std::invalid_argument("invalid argument, no corresponding allocation found - mse::registered_delete() \n- tip: If deleting via base class pointer, use mse::us::registered_delete() instead. ")); }
 		regPtrRef.registered_delete();
-}
+	}
 	template <class _Ty>
-	void registered_delete(const TRegisteredConstPointer<_Ty>& regPtrRef) {
-		auto a = static_cast<const TRegisteredObj<_Ty>*>(regPtrRef);
-		auto res = mse::us::impl::tlSAllocRegistry_ref<TRegisteredObj<_Ty> >().unregisterPointer(a);
+	void ndregistered_delete(const TNDRegisteredConstPointer<_Ty>& regPtrRef) {
+		auto a = static_cast<const TNDRegisteredObj<_Ty>*>(regPtrRef);
+		auto res = mse::us::impl::tlSAllocRegistry_ref<TNDRegisteredObj<_Ty> >().unregisterPointer(a);
 		if (!res) { assert(false); MSE_THROW(std::invalid_argument("invalid argument, no corresponding allocation found - mse::registered_delete() \n- tip: If deleting via base class pointer, use mse::us::registered_delete() instead. ")); }
 		regPtrRef.registered_delete();
 	}
 	namespace us {
 		template <class _Ty>
-		void registered_delete(const TRegisteredPointer<_Ty>& regPtrRef) {
+		void ndregistered_delete(const TNDRegisteredPointer<_Ty>& regPtrRef) {
 			regPtrRef.registered_delete();
 		}
 		template <class _Ty>
-		void registered_delete(const TRegisteredConstPointer<_Ty>& regPtrRef) {
+		void ndregistered_delete(const TNDRegisteredConstPointer<_Ty>& regPtrRef) {
 			regPtrRef.registered_delete();
 		}
 	}
-#endif /*MSE_REGISTEREDPOINTER_DISABLED*/
-
 }
 
 namespace std {
 	template<class _Ty>
-	struct hash<mse::TWRegisteredPointer<_Ty> > {	// hash functor
-		typedef mse::TWRegisteredPointer<_Ty> argument_type;
+	struct hash<mse::TNDRegisteredPointer<_Ty> > {	// hash functor
+		typedef mse::TNDRegisteredPointer<_Ty> argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::TWRegisteredPointer<_Ty>& _Keyval) const _NOEXCEPT {
+		size_t operator()(const mse::TNDRegisteredPointer<_Ty>& _Keyval) const _NOEXCEPT {
 			const _Ty* ptr1 = nullptr;
 			if (_Keyval) {
 				ptr1 = std::addressof(*_Keyval);
@@ -604,10 +653,10 @@ namespace std {
 		}
 	};
 	template<class _Ty>
-	struct hash<mse::TWRegisteredNotNullPointer<_Ty> > {	// hash functor
-		typedef mse::TWRegisteredNotNullPointer<_Ty> argument_type;
+	struct hash<mse::TNDRegisteredNotNullPointer<_Ty> > {	// hash functor
+		typedef mse::TNDRegisteredNotNullPointer<_Ty> argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::TWRegisteredNotNullPointer<_Ty>& _Keyval) const _NOEXCEPT {
+		size_t operator()(const mse::TNDRegisteredNotNullPointer<_Ty>& _Keyval) const _NOEXCEPT {
 			const _Ty* ptr1 = nullptr;
 			if (_Keyval) {
 				ptr1 = std::addressof(*_Keyval);
@@ -616,10 +665,10 @@ namespace std {
 		}
 	};
 	template<class _Ty>
-	struct hash<mse::TWRegisteredFixedPointer<_Ty> > {	// hash functor
-		typedef mse::TWRegisteredFixedPointer<_Ty> argument_type;
+	struct hash<mse::TNDRegisteredFixedPointer<_Ty> > {	// hash functor
+		typedef mse::TNDRegisteredFixedPointer<_Ty> argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::TWRegisteredFixedPointer<_Ty>& _Keyval) const _NOEXCEPT {
+		size_t operator()(const mse::TNDRegisteredFixedPointer<_Ty>& _Keyval) const _NOEXCEPT {
 			const _Ty* ptr1 = nullptr;
 			if (_Keyval) {
 				ptr1 = std::addressof(*_Keyval);
@@ -629,10 +678,10 @@ namespace std {
 	};
 
 	template<class _Ty>
-	struct hash<mse::TWRegisteredConstPointer<_Ty> > {	// hash functor
-		typedef mse::TWRegisteredConstPointer<_Ty> argument_type;
+	struct hash<mse::TNDRegisteredConstPointer<_Ty> > {	// hash functor
+		typedef mse::TNDRegisteredConstPointer<_Ty> argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::TWRegisteredConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+		size_t operator()(const mse::TNDRegisteredConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
 			const _Ty* ptr1 = nullptr;
 			if (_Keyval) {
 				ptr1 = std::addressof(*_Keyval);
@@ -641,10 +690,10 @@ namespace std {
 		}
 	};
 	template<class _Ty>
-	struct hash<mse::TWRegisteredNotNullConstPointer<_Ty> > {	// hash functor
-		typedef mse::TWRegisteredNotNullConstPointer<_Ty> argument_type;
+	struct hash<mse::TNDRegisteredNotNullConstPointer<_Ty> > {	// hash functor
+		typedef mse::TNDRegisteredNotNullConstPointer<_Ty> argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::TWRegisteredNotNullConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+		size_t operator()(const mse::TNDRegisteredNotNullConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
 			const _Ty* ptr1 = nullptr;
 			if (_Keyval) {
 				ptr1 = std::addressof(*_Keyval);
@@ -653,10 +702,10 @@ namespace std {
 		}
 	};
 	template<class _Ty>
-	struct hash<mse::TWRegisteredFixedConstPointer<_Ty> > {	// hash functor
-		typedef mse::TWRegisteredFixedConstPointer<_Ty> argument_type;
+	struct hash<mse::TNDRegisteredFixedConstPointer<_Ty> > {	// hash functor
+		typedef mse::TNDRegisteredFixedConstPointer<_Ty> argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::TWRegisteredFixedConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+		size_t operator()(const mse::TNDRegisteredFixedConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
 			const _Ty* ptr1 = nullptr;
 			if (_Keyval) {
 				ptr1 = std::addressof(*_Keyval);
@@ -671,153 +720,153 @@ namespace mse {
 	/* template specializations */
 
 	template<typename _Ty>
-	class TWRegisteredObj<_Ty*> : public TWRegisteredObj<mse::us::impl::TPointerForLegacy<_Ty>> {
+	class TNDRegisteredObj<_Ty*> : public TNDRegisteredObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWRegisteredObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TWRegisteredObj, base_class);
+		typedef TNDRegisteredObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TNDRegisteredObj, base_class);
 	};
 	template<typename _Ty>
-	class TWRegisteredObj<_Ty* const> : public TWRegisteredObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
+	class TNDRegisteredObj<_Ty* const> : public TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWRegisteredObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TWRegisteredObj, base_class);
+		typedef TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TNDRegisteredObj, base_class);
 	};
 	template<typename _Ty>
-	class TWRegisteredObj<const _Ty *> : public TWRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
+	class TNDRegisteredObj<const _Ty *> : public TNDRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TWRegisteredObj, base_class);
+		typedef TNDRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TNDRegisteredObj, base_class);
 	};
 	template<typename _Ty>
-	class TWRegisteredObj<const _Ty * const> : public TWRegisteredObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
+	class TNDRegisteredObj<const _Ty * const> : public TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWRegisteredObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TWRegisteredObj, base_class);
-	};
-
-	template<typename _Ty>
-	class TWRegisteredPointer<_Ty*> : public TWRegisteredPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
-	public:
-		typedef TWRegisteredPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TWRegisteredPointer, base_class);
-	};
-	template<typename _Ty>
-	class TWRegisteredPointer<_Ty* const> : public TWRegisteredPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
-	public:
-		typedef TWRegisteredPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TWRegisteredPointer, base_class);
-	};
-	template<typename _Ty>
-	class TWRegisteredPointer<const _Ty *> : public TWRegisteredPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
-	public:
-		typedef TWRegisteredPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TWRegisteredPointer, base_class);
-	};
-	template<typename _Ty>
-	class TWRegisteredPointer<const _Ty * const> : public TWRegisteredPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
-	public:
-		typedef TWRegisteredPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TWRegisteredPointer, base_class);
+		typedef TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TNDRegisteredObj, base_class);
 	};
 
 	template<typename _Ty>
-	class TWRegisteredConstPointer<_Ty*> : public TWRegisteredConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
+	class TNDRegisteredPointer<_Ty*> : public TNDRegisteredPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWRegisteredConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TWRegisteredConstPointer, base_class);
+		typedef TNDRegisteredPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TNDRegisteredPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWRegisteredConstPointer<_Ty* const> : public TWRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
+	class TNDRegisteredPointer<_Ty* const> : public TNDRegisteredPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TWRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TWRegisteredConstPointer, base_class);
+		typedef TNDRegisteredPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TNDRegisteredPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWRegisteredConstPointer<const _Ty *> : public TWRegisteredConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
+	class TNDRegisteredPointer<const _Ty *> : public TNDRegisteredPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWRegisteredConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TWRegisteredConstPointer, base_class);
+		typedef TNDRegisteredPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TNDRegisteredPointer, base_class);
 	};
 	template<typename _Ty>
-	class TWRegisteredConstPointer<const _Ty * const> : public TWRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
+	class TNDRegisteredPointer<const _Ty * const> : public TNDRegisteredPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TWRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TWRegisteredConstPointer, base_class);
+		typedef TNDRegisteredPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TNDRegisteredPointer, base_class);
+	};
+
+	template<typename _Ty>
+	class TNDRegisteredConstPointer<_Ty*> : public TNDRegisteredConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
+	public:
+		typedef TNDRegisteredConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TNDRegisteredConstPointer, base_class);
+	};
+	template<typename _Ty>
+	class TNDRegisteredConstPointer<_Ty* const> : public TNDRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
+	public:
+		typedef TNDRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TNDRegisteredConstPointer, base_class);
+	};
+	template<typename _Ty>
+	class TNDRegisteredConstPointer<const _Ty *> : public TNDRegisteredConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
+	public:
+		typedef TNDRegisteredConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TNDRegisteredConstPointer, base_class);
+	};
+	template<typename _Ty>
+	class TNDRegisteredConstPointer<const _Ty * const> : public TNDRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
+	public:
+		typedef TNDRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TNDRegisteredConstPointer, base_class);
 	};
 
 #ifdef MSEPRIMITIVES_H
 	template<>
-	class TWRegisteredObj<int> : public TWRegisteredObj<mse::TInt<int>> {
+	class TNDRegisteredObj<int> : public TNDRegisteredObj<mse::TInt<int>> {
 	public:
-		typedef TWRegisteredObj<mse::TInt<int>> base_class;
-		MSE_USING(TWRegisteredObj, base_class);
+		typedef TNDRegisteredObj<mse::TInt<int>> base_class;
+		MSE_USING(TNDRegisteredObj, base_class);
 	};
 	template<>
-	class TWRegisteredObj<const int> : public TWRegisteredObj<const mse::TInt<int>> {
+	class TNDRegisteredObj<const int> : public TNDRegisteredObj<const mse::TInt<int>> {
 	public:
-		typedef TWRegisteredObj<const mse::TInt<int>> base_class;
-		MSE_USING(TWRegisteredObj, base_class);
+		typedef TNDRegisteredObj<const mse::TInt<int>> base_class;
+		MSE_USING(TNDRegisteredObj, base_class);
 	};
 	template<>
-	class TWRegisteredPointer<int> : public TWRegisteredPointer<mse::TInt<int>> {
+	class TNDRegisteredPointer<int> : public TNDRegisteredPointer<mse::TInt<int>> {
 	public:
-		typedef TWRegisteredPointer<mse::TInt<int>> base_class;
-		MSE_USING(TWRegisteredPointer, base_class);
+		typedef TNDRegisteredPointer<mse::TInt<int>> base_class;
+		MSE_USING(TNDRegisteredPointer, base_class);
 	};
 	template<>
-	class TWRegisteredPointer<const int> : public TWRegisteredPointer<const mse::TInt<int>> {
+	class TNDRegisteredPointer<const int> : public TNDRegisteredPointer<const mse::TInt<int>> {
 	public:
-		typedef TWRegisteredPointer<const mse::TInt<int>> base_class;
-		MSE_USING(TWRegisteredPointer, base_class);
+		typedef TNDRegisteredPointer<const mse::TInt<int>> base_class;
+		MSE_USING(TNDRegisteredPointer, base_class);
 	};
 	template<>
-	class TWRegisteredConstPointer<int> : public TWRegisteredConstPointer<mse::TInt<int>> {
+	class TNDRegisteredConstPointer<int> : public TNDRegisteredConstPointer<mse::TInt<int>> {
 	public:
-		typedef TWRegisteredConstPointer<mse::TInt<int>> base_class;
-		MSE_USING(TWRegisteredConstPointer, base_class);
+		typedef TNDRegisteredConstPointer<mse::TInt<int>> base_class;
+		MSE_USING(TNDRegisteredConstPointer, base_class);
 	};
 	template<>
-	class TWRegisteredConstPointer<const int> : public TWRegisteredConstPointer<const mse::TInt<int>> {
+	class TNDRegisteredConstPointer<const int> : public TNDRegisteredConstPointer<const mse::TInt<int>> {
 	public:
-		typedef TWRegisteredConstPointer<const mse::TInt<int>> base_class;
-		MSE_USING(TWRegisteredConstPointer, base_class);
+		typedef TNDRegisteredConstPointer<const mse::TInt<int>> base_class;
+		MSE_USING(TNDRegisteredConstPointer, base_class);
 	};
 
 	template<>
-	class TWRegisteredObj<size_t> : public TWRegisteredObj<mse::TInt<size_t>> {
+	class TNDRegisteredObj<size_t> : public TNDRegisteredObj<mse::TInt<size_t>> {
 	public:
-		typedef TWRegisteredObj<mse::TInt<size_t>> base_class;
-		MSE_USING(TWRegisteredObj, base_class);
+		typedef TNDRegisteredObj<mse::TInt<size_t>> base_class;
+		MSE_USING(TNDRegisteredObj, base_class);
 	};
 	template<>
-	class TWRegisteredObj<const size_t> : public TWRegisteredObj<const mse::TInt<size_t>> {
+	class TNDRegisteredObj<const size_t> : public TNDRegisteredObj<const mse::TInt<size_t>> {
 	public:
-		typedef TWRegisteredObj<const mse::TInt<size_t>> base_class;
-		MSE_USING(TWRegisteredObj, base_class);
+		typedef TNDRegisteredObj<const mse::TInt<size_t>> base_class;
+		MSE_USING(TNDRegisteredObj, base_class);
 	};
 	template<>
-	class TWRegisteredPointer<size_t> : public TWRegisteredPointer<mse::TInt<size_t>> {
+	class TNDRegisteredPointer<size_t> : public TNDRegisteredPointer<mse::TInt<size_t>> {
 	public:
-		typedef TWRegisteredPointer<mse::TInt<size_t>> base_class;
-		MSE_USING(TWRegisteredPointer, base_class);
+		typedef TNDRegisteredPointer<mse::TInt<size_t>> base_class;
+		MSE_USING(TNDRegisteredPointer, base_class);
 	};
 	template<>
-	class TWRegisteredPointer<const size_t> : public TWRegisteredPointer<const mse::TInt<size_t>> {
+	class TNDRegisteredPointer<const size_t> : public TNDRegisteredPointer<const mse::TInt<size_t>> {
 	public:
-		typedef TWRegisteredPointer<const mse::TInt<size_t>> base_class;
-		MSE_USING(TWRegisteredPointer, base_class);
+		typedef TNDRegisteredPointer<const mse::TInt<size_t>> base_class;
+		MSE_USING(TNDRegisteredPointer, base_class);
 	};
 	template<>
-	class TWRegisteredConstPointer<size_t> : public TWRegisteredConstPointer<mse::TInt<size_t>> {
+	class TNDRegisteredConstPointer<size_t> : public TNDRegisteredConstPointer<mse::TInt<size_t>> {
 	public:
-		typedef TWRegisteredConstPointer<mse::TInt<size_t>> base_class;
-		MSE_USING(TWRegisteredConstPointer, base_class);
+		typedef TNDRegisteredConstPointer<mse::TInt<size_t>> base_class;
+		MSE_USING(TNDRegisteredConstPointer, base_class);
 	};
 	template<>
-	class TWRegisteredConstPointer<const size_t> : public TWRegisteredConstPointer<const mse::TInt<size_t>> {
+	class TNDRegisteredConstPointer<const size_t> : public TNDRegisteredConstPointer<const mse::TInt<size_t>> {
 	public:
-		typedef TWRegisteredConstPointer<const mse::TInt<size_t>> base_class;
-		MSE_USING(TWRegisteredConstPointer, base_class);
+		typedef TNDRegisteredConstPointer<const mse::TInt<size_t>> base_class;
+		MSE_USING(TNDRegisteredConstPointer, base_class);
 	};
 #endif /*MSEPRIMITIVES_H*/
 
@@ -904,6 +953,13 @@ namespace mse {
 	/* deprecated aliases */
 	template<class _TTargetType, class _TLeasePointerType> using swkfp = TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>;
 	template<class _TTargetType, class _TLeasePointerType> using swkfcp = TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;
+	template<typename _Ty> using TWRegisteredPointer = TNDRegisteredPointer<_Ty>;
+	template<typename _Ty> using TWRegisteredConstPointer = TNDRegisteredConstPointer<_Ty>;
+	template<typename _Ty> using TWRegisteredNotNullPointer = TNDRegisteredNotNullPointer<_Ty>;
+	template<typename _Ty> using TWRegisteredNotNullConstPointer = TNDRegisteredNotNullConstPointer<_Ty>;
+	template<typename _Ty> using TWRegisteredFixedPointer = TNDRegisteredFixedPointer<_Ty>;
+	template<typename _Ty> using TWRegisteredFixedConstPointer = TNDRegisteredFixedConstPointer<_Ty>;
+	template<typename _TROy> using TWRegisteredObj = TNDRegisteredObj<_TROy>;
 
 
 #ifdef MSEREGISTEREDREFWRAPPER

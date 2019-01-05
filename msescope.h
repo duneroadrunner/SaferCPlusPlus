@@ -107,12 +107,6 @@ namespace mse {
 		struct IsNonOwningScopePointer : IsNonOwningScopePointer_impl<
 			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
-		/* determines if a given type is an instantiation of a given template */
-		template<typename T, template<typename> class TT>
-		struct is_instantiation_of_msescope : std::false_type { };
-		template<typename T, template<typename> class TT>
-		struct is_instantiation_of_msescope<TT<T>, TT> : std::true_type { };
-
 		template <class _Ty, class _Ty2, class = typename std::enable_if<
 			(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
 			, void>::type>
@@ -143,6 +137,9 @@ namespace mse {
 
 	template<typename _TROy> class TXScopeOwnerPointer;
 
+	template<typename _Ty> auto make_xscope_referenceable(_Ty&& _X) { return std::forward<decltype(_X)>(_X); }
+	template<typename _Ty> auto make_xscope_referenceable(const _Ty& _X) -> decltype(_X) { return _X; }
+
 	template<typename _Ty> auto xscope_ifptr_to(_Ty&& _X) { return std::addressof(_X); }
 	template<typename _Ty> auto xscope_ifptr_to(const _Ty& _X) { return std::addressof(_X); }
 
@@ -157,11 +154,11 @@ namespace mse {
 
 #ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 
-			template<typename _TROz> using TXScopeObjBase = mse::TWNoradObj<_TROz>;
+			template<typename _TROz> using TXScopeObjBase = mse::TNDNoradObj<_TROz>;
 			template<typename _Ty> using TXScopePointerBase = mse::us::impl::TAnyPointerBase<_Ty>;
 			template<typename _Ty> using TXScopeConstPointerBase = mse::us::impl::TAnyConstPointerBase<_Ty>;
-			template<typename _Ty> using Tscope_obj_base_ptr = mse::TWNoradFixedPointer<_Ty>;
-			template<typename _Ty> using Tscope_obj_base_const_ptr = mse::TWNoradConstPointer<_Ty>;
+			template<typename _Ty> using Tscope_obj_base_ptr = mse::TNDNoradFixedPointer<_Ty>;
+			template<typename _Ty> using Tscope_obj_base_const_ptr = mse::TNDNoradConstPointer<_Ty>;
 
 #else // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 
@@ -472,6 +469,33 @@ namespace mse {
 
 		friend class TXScopeOwnerPointer<_TROy>;
 	};
+
+	namespace impl {
+		template<typename _Ty>
+		auto make_xscope_referenceable_helper(std::true_type, _Ty&& _X) {
+			return std::forward<decltype(_X)>(_X);
+		}
+		template<typename _Ty>
+		auto make_xscope_referenceable_helper(std::false_type, _Ty&& _X) {
+			return TXScopeObj<typename std::remove_reference<_Ty>::type>(std::forward<decltype(_X)>(_X));
+		}
+		template<typename _Ty>
+		auto make_xscope_referenceable_helper(std::true_type, const _Ty& _X) -> decltype(_X) {
+			return _X;
+		}
+		template<typename _Ty>
+		auto make_xscope_referenceable_helper(std::false_type, const _Ty& _X) {
+			return TXScopeObj<typename std::remove_reference<_Ty>::type>(_X);
+		}
+	}
+	template<typename _Ty>
+	auto make_xscope_referenceable(_Ty&& _X) {
+		return impl::make_xscope_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TXScopeObj>::type(), std::forward<decltype(_X)>(_X));
+	}
+	template<typename _Ty>
+	auto make_xscope_referenceable(const _Ty& _X) -> decltype(impl::make_xscope_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TXScopeObj>::type(), _X)) {
+		return impl::make_xscope_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TXScopeObj>::type(), _X);
+	}
 
 	template<typename _Ty>
 	auto xscope_ifptr_to(_Ty&& _X) {
@@ -1231,8 +1255,8 @@ namespace mse {
 	const auto& return_value(const _Ty& _X) {
 		typedef typename std::remove_reference<_Ty>::type _Ty_noref;
 		return impl::return_value_helper11(typename std::conditional<
-			impl::is_instantiation_of_msescope<_Ty_noref, rsv::TReturnableFParam>::value
-			|| impl::is_instantiation_of_msescope<_Ty_noref, rsv::TXScopeReturnableFParam>::value
+			impl::is_instantiation_of<_Ty_noref, rsv::TReturnableFParam>::value
+			|| impl::is_instantiation_of<_Ty_noref, rsv::TXScopeReturnableFParam>::value
 			, std::true_type, std::false_type>::type(), _X);
 	}
 
@@ -1251,8 +1275,8 @@ namespace mse {
 	auto return_value(_Ty&& _X) {
 		typedef typename std::remove_reference<_Ty>::type _Ty_noref;
 		return impl::return_value_helper11(typename std::conditional<
-			impl::is_instantiation_of_msescope<_Ty_noref, rsv::TReturnableFParam>::value
-			|| impl::is_instantiation_of_msescope<_Ty_noref, rsv::TXScopeReturnableFParam>::value
+			impl::is_instantiation_of<_Ty_noref, rsv::TReturnableFParam>::value
+			|| impl::is_instantiation_of<_Ty_noref, rsv::TXScopeReturnableFParam>::value
 			, std::true_type, std::false_type>::type(), std::forward<decltype(_X)>(_X));
 	}
 

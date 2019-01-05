@@ -1038,7 +1038,7 @@ int main(int argc, char* argv[]) {
 		registered pointer directly at the object of interest, you'd target a/the strong owning pointer of the object. */
 
 		typedef mse::TRefCountingFixedPointer<std::string> str_rc_ptr_t; // owning pointer of a string
-		typedef mse::TWRegisteredObj<str_rc_ptr_t> str_rc_ptr_regobj_t; // registered version of above so that you can obtain a (weak)
+		typedef mse::TNDRegisteredObj<str_rc_ptr_t> str_rc_ptr_regobj_t; // registered version of above so that you can obtain a (weak)
 																	   // registered pointer to it
 
 		 /* str_rc_rc_ptr1 is a "shared" owner of an owning pointer of a string  */
@@ -1068,16 +1068,16 @@ int main(int argc, char* argv[]) {
 	}
 
 	{
-		/* Here we demonstrate using TWCRegisteredPointer<> as a safe "weak_ptr" to prevent cyclic references from becoming
+		/* Here we demonstrate using TNDRegisteredPointer<> as a safe "weak_ptr" to prevent cyclic references from becoming
 		memory leaks. This isn't much different from using std::weak_ptr<> in terms of functionality, but there can be
 		performance and safety advantages. */
 
 		class CRCNode;
 
 		typedef mse::TRefCountingFixedPointer<CRCNode> rcnode_strongptr_t;			// owning pointer of a CRCNode
-		typedef mse::TWRegisteredObj<rcnode_strongptr_t> rcnode_strongptr_regobj_t; // registered version of above so that you can obtain a (weak)
+		typedef mse::TNDRegisteredObj<rcnode_strongptr_t> rcnode_strongptr_regobj_t; // registered version of above so that you can obtain a (weak)
 																					// registered pointer to it
-		typedef mse::TWRegisteredPointer<rcnode_strongptr_t> rcnode_strongptr_weakptr_t; // (weak) registered pointer to owning pointer of a CRCNode
+		typedef mse::TNDRegisteredPointer<rcnode_strongptr_t> rcnode_strongptr_weakptr_t; // (weak) registered pointer to owning pointer of a CRCNode
 
 		class CRCNode {
 		public:

@@ -81,11 +81,11 @@ namespace mse {
 
 #ifdef MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
 
-		template<typename _TROz> using TThreadLocalObjBase = mse::TWNoradObj<_TROz>;
+		template<typename _TROz> using TThreadLocalObjBase = mse::TNDNoradObj<_TROz>;
 		template<typename _Ty> using TThreadLocalPointerBase = mse::us::impl::TAnyPointerBase<_Ty>;
 		template<typename _Ty> using TThreadLocalConstPointerBase = mse::us::impl::TAnyConstPointerBase<_Ty>;
-		template<typename _Ty> using Tthread_local_obj_base_ptr = mse::TWNoradFixedPointer<_Ty>;
-		template<typename _Ty> using Tthread_local_obj_base_const_ptr = mse::TWNoradConstPointer<_Ty>;
+		template<typename _Ty> using Tthread_local_obj_base_ptr = mse::TNDNoradFixedPointer<_Ty>;
+		template<typename _Ty> using Tthread_local_obj_base_const_ptr = mse::TNDNoradConstPointer<_Ty>;
 
 #else // MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
 

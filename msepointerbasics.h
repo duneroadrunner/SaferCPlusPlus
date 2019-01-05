@@ -295,6 +295,14 @@ namespace mse {
 		class TPlaceHolder2_msepointerbasics {};
 	}
 
+	namespace impl {
+		/* determines if a given type is an instantiation of a given template */
+		template<typename T, template<typename> class TT>
+		struct is_instantiation_of : std::false_type { };
+		template<typename T, template<typename> class TT>
+		struct is_instantiation_of<TT<T>, TT> : std::true_type { };
+	}
+
 	namespace us {
 		namespace impl {
 			template<typename _Ty>
