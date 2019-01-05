@@ -431,7 +431,7 @@ Same as `TNoradPointer<>`, but cannot be constructed to or assigned a null value
 
 #### TNoradFixedPointer
 
-#### TNoradConstPointer, TNoradNotNullConstPointer, TNoradFixedConstPointer, TWNoradPointer
+#### TNoradConstPointer, TNoradNotNullConstPointer, TNoradFixedConstPointer, TNDNoradPointer
 
 
 ### Simple benchmarks
