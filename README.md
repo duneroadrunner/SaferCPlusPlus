@@ -301,13 +301,13 @@ usage example:
             }
         };
     
-        mse::TRegisteredObj<CA> in1_obj("input1");
-        mse::TRegisteredPointer<CA> in2_reg_ptr = mse::registered_new<CA>("input2");
-        mse::TRegisteredObj<CA> out_obj("");
+        mse::TRegisteredObj<CA> in1_regobj("input1");
+        mse::TRegisteredPointer<CA> in2_regptr = mse::registered_new<CA>("input2");
+        auto out_regobj = mse::make_registered(CA("")); /* Alternative way to make a registered object. */
     
-        CB::foo(&in1_obj, &(*in2_reg_ptr), &out_obj);
+        CB::foo(&in1_regobj, &(*in2_regptr), &out_regobj);
     
-        mse::registered_delete<CA>(in2_reg_ptr);
+        mse::registered_delete<CA>(in2_regptr);
     }
 ```
 
@@ -422,6 +422,9 @@ usage example:
         noradobj_c.m_d_ptr = nullptr;
 
         mse::norad_delete<D>(d_ptr);
+
+        /* You can also use the make_norad() function to obtain a norad object from a given value. */
+        auto noradobj_c2 = mse::make_norad(C());
     }
 ```
 
@@ -717,6 +720,9 @@ usage example:
         int res1 = (&a_scpobj)->b;
         int res2 = B::foo2(&a_scpobj);
         int res3 = B::foo3(&a_scpobj);
+
+        /* You can also use the make_xscope() function to obtain a scope object from a given value. */
+        auto a2_scpobj = mse::make_xscope(A(7));
     }
 ```
 
