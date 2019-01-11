@@ -871,7 +871,7 @@ int main(int argc, char* argv[]) {
 		mse::norad_delete<D>(d_ptr);
 
 		/* You can also use the make_norad() function to obtain a norad object from a given value. */
-		auto norad_c2 = mse::make_norad(C());
+		auto noradobj_c2 = mse::make_norad(C());
 
 		{
 			/* Polymorphic conversions. */

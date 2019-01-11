@@ -4405,20 +4405,21 @@ namespace mse {
 		}
 #endif /* MSE_HAS_CXX17 */
 
-
 		nii_basic_string& operator+=(mse::TXScopeItemFixedConstPointer<nii_basic_string> xs_ptr) {
 			return (append(xs_ptr));
 		}
 		nii_basic_string& operator+=(const nii_basic_string& _Right) {
 			return (append(_Right));
 		}
-
 		nii_basic_string& operator+=(const _Ty * const _Ptr) {
 			return (append(_Ptr));
 		}
 		nii_basic_string& operator+=(_Ty _Ch) {
 			push_back(_Ch);
 			return (*this);
+		}
+		nii_basic_string& operator+=(std::initializer_list<_Ty> _Ilist) {
+			return (append(_Ilist));
 		}
 
 #ifdef MSE_HAS_CXX17

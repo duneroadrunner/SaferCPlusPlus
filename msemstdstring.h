@@ -779,122 +779,194 @@ namespace mse {
 				return ((*m_shptr) < (*(_Right.m_shptr)));
 			}
 
-			basic_string& append(std::initializer_list<_Ty> _Ilist) {
-				msebasic_string().append(_Ilist);
+
+			basic_string& append(mse::TXScopeItemFixedConstPointer<basic_string> xs_ptr) {
+				msebasic_string().append(xs_ptr->msebasic_string());
 				return (*this);
 			}
-			basic_string& append(const basic_string& _Right) {
-				msebasic_string().append(_Right);
+			basic_string& append(const basic_string& _Right) {	// append _Right
+				auto xs_ptr = mse::us::unsafe_make_xscope_const_pointer_to(_Right);
+				return append(xs_ptr);
+			}
+			basic_string& append(mse::TXScopeItemFixedConstPointer<basic_string> xs_ptr, const size_type _Roff, size_type _Count = npos) {
+				msebasic_string().append(xs_ptr->msebasic_string(), mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 				return (*this);
 			}
 			basic_string& append(const basic_string& _Right, const size_type _Roff, size_type _Count = npos) {
-				msebasic_string().append(_Right, _Roff, _Count);
-				return (*this);
+				auto xs_ptr = mse::us::unsafe_make_xscope_const_pointer_to(_Right);
+				return append(xs_ptr, _Roff, _Count);
 			}
-#if 0//_HAS_CXX17
-			basic_string& append(const basic_string_view<_Ty, _Traits> _Right)
-			{	// append _Right
-				return (append(_Right.data(), _Convert_size<size_type>(_Right.size())));
-			}
-			template<class _StringViewIsh,
-				class = _Is_string_view_ish<_StringViewIsh>>
-				basic_string& append(const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos)
-			{	// append _Right [_Roff, _Roff + _Count)
-				basic_string_view<_Ty, _Traits> _As_view = _Right;
-				return (append(_As_view.substr(_Roff, _Count)));
-			}
-#endif /* _HAS_CXX17 */
+
 			basic_string& append(const _Ty * const _Ptr, const size_type _Count) {
-				msebasic_string().append(_Ptr, _Count);
+				msebasic_string().append(_Ptr, mse::as_a_size_t(_Count));
 				return (*this);
 			}
 			basic_string& append(const _Ty * const _Ptr) {
 				msebasic_string().append(_Ptr);
 				return (*this);
 			}
-			basic_string& append(const size_type _Count, const _Ty _Ch) {
-				msebasic_string().append(_Count, _Ch);
+			basic_string& append(const size_type _Count, const _Ty& _Ch) {
+				msebasic_string().append(mse::as_a_size_t(_Count), _Ch);
 				return (*this);
 			}
-			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
+			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator_v<_Iter> >::type>
 			basic_string& append(const _Iter _First, const _Iter _Last) {
 				msebasic_string().append(_First, _Last);
 				return (*this);
 			}
-
-			basic_string& operator+=(std::initializer_list<_Ty> _Ilist) {
+			basic_string& append(std::initializer_list<_Ty> _Ilist) {
 				msebasic_string().append(_Ilist);
 				return (*this);
 			}
+
+#ifdef MSE_HAS_CXX17
+	private:
+		basic_string& append_helper1(std::true_type, const basic_string& _Right) {
+			return (append(static_cast<const basic_string&>(_Right)));
+		}
+		template<class _TParam1>
+		basic_string& append_helper1(std::false_type, const _TParam1& _Right) {
+			m_shptr->append(_Right);
+			return (*this);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		basic_string& append(const _TParam1& _Right) {
+			return append_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right);
+		}
+
+	private:
+		basic_string& append_helper1(std::true_type, const basic_string& _Right, const size_type _Roff, const size_type _Count) {
+			return (append(static_cast<const basic_string&>(_Right, _Roff, _Count)));
+		}
+		template<class _TParam1>
+		basic_string& append_helper1(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+			m_shptr->append(_Right, _Roff, _Count);
+			return (*this);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		basic_string& append(const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) {
+			return append_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Roff, _Count);
+		}
+#else /* MSE_HAS_CXX17 */
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			basic_string& append(const _TStringSection& _X) {
+				m_shptr->append(_X);
+				return (*this);
+			}
+#endif /* MSE_HAS_CXX17 */
+
+			basic_string& operator+=(mse::TXScopeItemFixedConstPointer<basic_string> xs_ptr) {
+				return (append(xs_ptr));
+			}
 			basic_string& operator+=(const basic_string& _Right) {
-				msebasic_string().append(_Right.msebasic_string());
+				return (append(_Right));
+			}
+			basic_string& operator+=(const _Ty * const _Ptr) {
+				return (append(_Ptr));
+			}
+			basic_string& operator+=(_Ty _Ch) {
+				push_back(_Ch);
 				return (*this);
 			}
-#if 0//_HAS_CXX17
-			basic_string& operator+=(const basic_string_view<_Ty, _Traits> _Right)
-			{	// append _Right
-				return (append(_Right.data(), _Convert_size<size_type>(_Right.size())));
-			}
-#endif /* _HAS_CXX17 */
-			/*
-			basic_string& operator+=(_In_z_ const _Ty * const _Ptr) {	// append [_Ptr, <null>)
-			return (append(_Ptr, _Convert_size<size_type>(_Traits::length(_Ptr))));
-			}
-			*/
-			basic_string& operator+=(const _Ty _Ch) {
-				msebasic_string() += _Ch;
-				return (*this);
+			basic_string& operator+=(std::initializer_list<_Ty> _Ilist) {
+				return (append(_Ilist));
 			}
 
+#ifdef MSE_HAS_CXX17
+			template<class _TParam1/*, class = _Is_string_view_ish<_TParam1>*/>
+			basic_string & operator+=(const _TParam1& _Right) {
+				return (append(_Right));
+			}
+#else /* MSE_HAS_CXX17 */
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			basic_string& operator+=(const _TStringSection& _X) {
+				return (append(_X));
+			}
+#endif /* MSE_HAS_CXX17 */
+
+
+			basic_string& replace(const size_type _Off, const size_type _N0, mse::TXScopeItemFixedConstPointer<basic_string> xs_ptr) {
+				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).msebasic_string());
+				return (*this);
+			}
 			basic_string& replace(const size_type _Off, const size_type _N0, const basic_string& _Right) {
-				msebasic_string().replace(_Off, _N0, _Right.msebasic_string());
+				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.msebasic_string());
 				return (*this);
 			}
 
 			basic_string& replace(const size_type _Off, size_type _N0,
+				mse::TXScopeItemFixedConstPointer<basic_string> xs_ptr, const size_type _Roff, size_type _Count = npos) {
+				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).msebasic_string(), mse::msev_as_a_size_t(_Roff), mse::msev_as_a_size_t(_Count));
+				return (*this);
+			}
+			basic_string& replace(const size_type _Off, size_type _N0,
 				const basic_string& _Right, const size_type _Roff, size_type _Count = npos) {
-				msebasic_string().replace(_Right.msebasic_string(), _Roff, _Count);
+				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.msebasic_string(), mse::msev_as_a_size_t(_Roff), mse::msev_as_a_size_t(_Count));
 				return (*this);
 			}
 
-#if 0//_HAS_CXX17
-			basic_string& replace(const size_type _Off, const size_type _N0, const basic_string_view<_Ty, _Traits> _Right)
-			{	// replace [_Off, _Off + _N0) with _Right
-				msebasic_string().replace(_Off, _N0, _Right);
+#ifdef MSE_HAS_CXX17
+	private:
+		basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right) {
+			return (replace(_Off, _N0, _Right));
+		}
+		template<class _TParam1>
+		basic_string& replace_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) {
+			return m_shptr->replace(_Off, _N0, _Right);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		basic_string& replace(const size_type _Off, const size_type _N0, const _TParam1& _Right) {
+			return replace_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right);
+		}
+
+	private:
+		basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right, const size_type _Roff, const size_type _Count) {
+			return (replace(_Off, _N0, _Right, _Roff, _Count));
+		}
+		template<class _TParam1>
+		basic_string& replace_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+			return m_shptr->replace(_Off, _N0, _Right, _Roff, _Count);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		basic_string& replace(const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) {
+			return replace_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
+		}
+#else /* MSE_HAS_CXX17 */
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			basic_string& replace(const size_type _Off, const size_type _N0, const _TStringSection& _X) {
+				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _X.cbegin(), _X.cend());
 				return (*this);
 			}
-
-			template<class _StringViewIsh,
-				class = _Is_string_view_ish<_StringViewIsh>>
-				basic_string& replace(const size_type _Off, const size_type _N0,
-					const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos)
-			{	// replace [_Off, _Off + _N0) with _Right [_Roff, _Roff + _Count)
-				basic_string_view<_Ty, _Traits> _As_view = _Right;
-				return (replace(_Off, _N0, _As_view.substr(_Roff, _Count)));
-			}
-#endif /* _HAS_CXX17 */
+#endif /* MSE_HAS_CXX17 */
 
 			basic_string& replace(const size_type _Off, size_type _N0, const _Ty * const _Ptr, const size_type _Count) {
-				msebasic_string().replace(_Off, _N0, _Ptr, _Count);
+				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr, mse::msev_as_a_size_t(_Count));
 				return (*this);
 			}
 
 			basic_string& replace(const size_type _Off, const size_type _N0, const _Ty * const _Ptr) {
-				return (replace(_Off, _N0, _Ptr, size_type(_Traits::length(_Ptr))));
+				return (replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr, size_type(_Traits::length(_Ptr))));
 			}
 
 			basic_string& replace(const size_type _Off, size_type _N0, const size_type _Count, const _Ty _Ch) {
-				msebasic_string().replace(_Off, _N0, _Count, _Ch);
+				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), mse::msev_as_a_size_t(_Count), _Ch);
 				return (*this);
 			}
 
+			basic_string& replace(const const_iterator _First, const const_iterator _Last, mse::TXScopeItemFixedConstPointer<basic_string> xs_ptr) {
+				return (replace(_First - begin(), _Last - _First, xs_ptr));
+			}
 			basic_string& replace(const const_iterator _First, const const_iterator _Last, const basic_string& _Right) {
 				return (replace(_First - begin(), _Last - _First, _Right));
 			}
 
 #if 0//_HAS_CXX17
 			basic_string& replace(const const_iterator _First, const const_iterator _Last,
-				const basic_string_view<_Ty, _Traits> _Right) {
+				const mstd::basic_string_view<_Ty, _Traits> _Right) {
 				return (replace(_First - begin(), _Last - _First, _Right));
 			}
 #endif /* _HAS_CXX17 */
@@ -915,52 +987,35 @@ namespace mse {
 			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value>::type>
 			basic_string& replace(const const_iterator _First, const const_iterator _Last,
 				const _Iter _First2, const _Iter _Last2) {
-				const basic_string _Right(_First2, _Last2, get_allocator());
-				replace(_First, _Last, _Right);
+				replace(_First, _Last, _First2, _Last2);
 				return (*this);
 			}
 
-#if 0//_HAS_CXX17
-			int compare(const basic_string_view<_Ty, _Traits> _Right) const _NOEXCEPT {
-				auto& _My_data = this->_Get_data();
-				return (_Traits_compare<_Traits>(_My_data._Myptr(), _My_data._Mysize,
-					_Right.data(), _Right.size()));
+			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value>::type>
+			basic_string& replace(const size_type _Off, const size_type _N0, const _Iter _First2, const _Iter _Last2) {
+				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _First2, _Last2);
+				return (*this);
 			}
 
-			int compare(const size_type _Off, const size_type _N0,
-				const basic_string_view<_Ty, _Traits> _Right) const
-			{	// compare [_Off, _Off + _N0) with _Right
-				auto& _My_data = this->_Get_data();
-				_My_data._Check_offset(_Off);
-				return (_Traits_compare<_Traits>(_My_data._Myptr() + _Off, _My_data._Clamp_suffix_size(_Off, _N0),
-					_Right.data(), _Right.size()));
+			int compare(mse::TXScopeItemFixedConstPointer<basic_string> xs_ptr) const _NOEXCEPT {
+				return msebasic_string().compare((*xs_ptr).msebasic_string());
 			}
-
-			template<class _StringViewIsh,
-				class = _Is_string_view_ish<_StringViewIsh>>
-				int compare(const size_type _Off, const size_type _N0,
-					const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos) const
-			{	// compare [_Off, _Off + _N0) with _Right [_Roff, _Roff + _Count)
-				basic_string_view<_Ty, _Traits> _As_view = _Right;
-				auto& _My_data = this->_Get_data();
-				_My_data._Check_offset(_Off);
-				const auto _With_substr = _As_view.substr(_Roff, _Count);
-				return (_Traits_compare<_Traits>(_My_data._Myptr() + _Off, _My_data._Clamp_suffix_size(_Off, _N0),
-					_With_substr.data(), _With_substr.size()));
-			}
-#endif /* _HAS_CXX17 */
-
 			int compare(const basic_string& _Right) const _NOEXCEPT {
 				return msebasic_string().compare(_Right.msebasic_string());
 			}
-
-			int compare(size_type _Off, size_type _N0, const basic_string& _Right) const {
-				return msebasic_string().compare(_Off, _N0, _Right.msebasic_string());
+			int compare(size_type _Off, size_type _N0, mse::TXScopeItemFixedConstPointer<basic_string> xs_ptr) const {
+				return msebasic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).msebasic_string());
 			}
-
+			int compare(size_type _Off, size_type _N0, const basic_string& _Right) const {
+				return msebasic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.msebasic_string());
+			}
+			int compare(const size_type _Off, const size_type _N0, mse::TXScopeItemFixedConstPointer<basic_string> xs_ptr,
+				const size_type _Roff, const size_type _Count = npos) const {
+				return msebasic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).msebasic_string(), _Roff, _Count);
+			}
 			int compare(const size_type _Off, const size_type _N0, const basic_string& _Right,
 				const size_type _Roff, const size_type _Count = npos) const {
-				return msebasic_string().compare(_Off, _N0, _Right.msebasic_string(), _Roff, _Count);
+				return msebasic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.msebasic_string(), _Roff, _Count);
 			}
 
 			int compare(const _Ty * const _Ptr) const _NOEXCEPT {
@@ -968,13 +1023,63 @@ namespace mse {
 			}
 
 			int compare(const size_type _Off, const size_type _N0, const _Ty * const _Ptr) const {
-				return msebasic_string().compare(_Off, _N0, _Ptr);
+				return msebasic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr);
 			}
 
 			int compare(const size_type _Off, const size_type _N0, const _Ty * const _Ptr,
 				const size_type _Count) const {
-				return msebasic_string().compare(_Off, _N0, _Ptr, _Count);
+				return msebasic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr, mse::msev_as_a_size_t(_Count));
 			}
+
+#ifdef MSE_HAS_CXX17
+	private:
+		int compare_helper1(std::true_type, const basic_string& _Right) const {
+			return compare(_Right);
+		}
+		template<class _TParam1>
+		int compare_helper1(std::false_type, const _TParam1& _Right) const {
+			return msebasic_string().compare(_Right);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		int compare(const _TParam1& _Right) const {
+			return compare_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right);
+		}
+
+	private:
+		int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right) const {
+			return compare(_Off, _N0, _Right);
+		}
+		template<class _TParam1>
+		int compare_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
+			return msebasic_string().compare(_Off, _N0, _Right);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		int compare(const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
+			return compare_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right);
+		}
+
+	private:
+		int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right, const size_type _Roff, const size_type _Count) const {
+			return compare(_Off, _N0, _Right, _Roff, _Count);
+		}
+		template<class _TParam1>
+		int compare_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) const {
+			return msebasic_string().compare(_Off, _N0, _Right, _Roff, _Count);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		int compare(const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) const {
+			return compare_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
+		}
+#else /* MSE_HAS_CXX17 */
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			int compare(const size_type _Off, const size_type _N0, const _TStringSection& _X) const {
+				msebasic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), basic_string(_X.cbegin(), _X.cend()));
+				return (*this);
+			}
+#endif /* MSE_HAS_CXX17 */
 
 
 #if 0//_HAS_CXX17
