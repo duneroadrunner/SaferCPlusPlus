@@ -246,29 +246,32 @@ usage example:
             int m_x;
         };
     
-        mse::TRegisteredPointer<CA> a_ptr;
+        mse::TRegisteredPointer<CA> a_regptr;
         CA a2_obj(2);
         {
             // mse::TRegisteredObj<CA> is a class publicly derived from CA
     
-            mse::TRegisteredObj<CA> a_obj(1); // a_obj is entirely on the stack
+            mse::TRegisteredObj<CA> a_regobj(1); // a_regobj is entirely on the stack
     
-            a_ptr = &a_obj;
-            a2_obj = (*a_ptr);
+            a_regptr = &a_regobj;
+            a2_obj = (*a_regptr);
         }
-        if (a_ptr) {
+        if (a_regptr) {
             assert(false);
         } else {
             try {
-                a2_obj = (*a_ptr);
+                a2_obj = (*a_regptr);
             }
             catch (...) {
                 // expected exception
             }
         }
     
-        a_ptr = mse::registered_new<CA>(3); // heap allocation
-        mse::registered_delete<CA>(a_ptr);
+        a_regptr = mse::registered_new<CA>(3); // heap allocation
+        mse::registered_delete<CA>(a_regptr);
+    
+        /* You can also use the make_registered() function to obtain a registered object from a given value. */
+        auto a3_regobj = mse::make_registered(CA(5));
     }
 ```
 
