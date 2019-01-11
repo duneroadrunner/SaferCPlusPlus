@@ -50,9 +50,6 @@ namespace mse {
 	template<typename _Ty> class TNDNoradNotNullConstPointer;
 	template<typename _Ty> class TNDNoradFixedPointer;
 	template<typename _Ty> class TNDNoradFixedConstPointer;
-
-	template<typename _Ty> auto make_ndnorad_referenceable(_Ty&& _X);
-	template<typename _Ty> auto make_ndnorad_referenceable(const _Ty& _X);
 	
 	template<typename _Ty>
 	auto ndnorad_fptr_to(_Ty&& _X) {
@@ -71,6 +68,37 @@ namespace mse {
 		template <class _Ty> void ndnorad_delete(TNDNoradConstPointer<_Ty>& ndnoradPtrRef);
 	}
 
+	namespace impl {
+		template<typename _Ty, class... Args>
+		auto make_ndnorad_helper(std::true_type, Args&&... args) {
+			return _Ty(std::forward<Args>(args)...);
+		}
+		template<typename _Ty, class... Args>
+		auto make_ndnorad_helper(std::false_type, Args&&... args) {
+			return TNDNoradObj<_Ty>(std::forward<Args>(args)...);
+		}
+	}
+	template <class X, class... Args>
+	auto make_ndnorad(Args&&... args) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return impl::make_ndnorad_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TNDNoradObj>::type(), std::forward<Args>(args)...);
+	}
+	template <class X>
+	auto make_ndnorad(const X& arg) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return impl::make_ndnorad_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TNDNoradObj>::type(), arg);
+	}
+	template <class X>
+	auto make_ndnorad(X&& arg) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return impl::make_ndnorad_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TNDNoradObj>::type(), std::forward<decltype(arg)>(arg));
+	}
+
+#ifdef MSE_HAS_CXX17
+	/* deduction guide */
+	template<class _TROy> TNDNoradObj(_TROy)->TNDNoradObj<_TROy>;
+#endif /* MSE_HAS_CXX17 */
+
 #ifdef MSE_NORADPOINTER_DISABLED
 	template<typename _Ty> using TNoradPointer = _Ty * ;
 	template<typename _Ty> using TNoradConstPointer = const _Ty*;
@@ -80,9 +108,6 @@ namespace mse {
 																			 library containers don't support const elements. */
 	template<typename _Ty> using TNoradFixedConstPointer = const _Ty* /*const*/;
 	template<typename _TROFLy> using TNoradObj = _TROFLy;
-
-	template<typename _Ty> auto make_norad_referenceable(_Ty&& _X) { return std::forward<decltype(_X)>(_X); }
-	template<typename _Ty> auto make_norad_referenceable(const _Ty& _X) -> decltype(_X) { return _X; }
 
 	template<typename _Ty> auto norad_fptr_to(_Ty&& _X) { return &_X; }
 	template<typename _Ty> auto norad_fptr_to(const _Ty& _X) { return &_X; }
@@ -114,6 +139,22 @@ namespace mse {
 		}
 	}
 
+	template <class X, class... Args>
+	auto make_norad(Args&&... args) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return nrX(std::forward<Args>(args)...);
+	}
+	template <class X>
+	auto make_norad(const X& arg) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return nrX(arg);
+	}
+	template <class X>
+	auto make_norad(X&& arg) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return nrX(std::forward<decltype(arg)>(arg));
+	}
+
 #else /*MSE_NORADPOINTER_DISABLED*/
 
 	class norad_cannot_verify_cast_error : public std::logic_error {
@@ -129,9 +170,6 @@ namespace mse {
 	template<typename _Ty> using TNoradFixedConstPointer = TNDNoradFixedConstPointer<_Ty>;
 	template<typename _TROFLy> using TNoradObj = TNDNoradObj<_TROFLy>;
 
-	template<typename _Ty> auto make_norad_referenceable(_Ty&& _X) { return make_ndnorad_referenceable(std::forward<decltype(_X)>(_X)); }
-	template<typename _Ty> auto make_norad_referenceable(const _Ty& _X) -> decltype(make_ndnorad_referenceable(_X)) { return make_ndnorad_referenceable(_X); }
-
 	template<typename _Ty> auto norad_fptr_to(_Ty&& _X) { return ndnorad_fptr_to(std::forward<decltype(_X )>(_X)); }
 	template<typename _Ty> auto norad_fptr_to(const _Ty& _X) { return ndnorad_fptr_to(_X); }
 
@@ -141,6 +179,19 @@ namespace mse {
 	namespace us {
 		template <class _Ty> void norad_delete(TNDNoradPointer<_Ty>& ndnoradPtrRef) { return mse::us::ndnorad_delete<_Ty>(ndnoradPtrRef); }
 		template <class _Ty> void norad_delete(TNDNoradConstPointer<_Ty>& ndnoradPtrRef) { return mse::us::ndnorad_delete<_Ty>(ndnoradPtrRef); }
+	}
+
+	template <class X, class... Args>
+	auto make_norad(Args&&... args) {
+		return make_ndnorad<X>(std::forward<Args>(args)...);
+	}
+	template <class X>
+	auto make_norad(const X& arg) {
+		return make_ndnorad(arg);
+	}
+	template <class X>
+	auto make_norad(X&& arg) {
+		return make_ndnorad(std::forward<decltype(arg)>(arg));
 	}
 
 #endif /*MSE_NORADPOINTER_DISABLED*/
@@ -561,33 +612,6 @@ namespace mse {
 	private:
 		mutable int m_counter = 0;
 	};
-
-	namespace impl {
-		template<typename _Ty>
-		auto make_ndnorad_referenceable_helper(std::true_type, _Ty&& _X) {
-			return std::forward<decltype(_X)>(_X);
-		}
-		template<typename _Ty>
-		auto make_ndnorad_referenceable_helper(std::false_type, _Ty&& _X) {
-			return TNoradObj<typename std::remove_reference<_Ty>::type>(std::forward<decltype(_X)>(_X));
-		}
-		template<typename _Ty>
-		auto make_ndnorad_referenceable_helper(std::true_type, const _Ty& _X) -> decltype(_X) {
-			return _X;
-		}
-		template<typename _Ty>
-		auto make_ndnorad_referenceable_helper(std::false_type, const _Ty& _X) {
-			return TNoradObj<typename std::remove_reference<_Ty>::type>(_X);
-		}
-	}
-	template<typename _Ty>
-	auto make_ndnorad_referenceable(_Ty&& _X) {
-		return impl::make_ndnorad_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TNoradObj>::type(), std::forward<decltype(_X)>(_X));
-	}
-	template<typename _Ty>
-	auto make_ndnorad_referenceable(const _Ty& _X) -> decltype(impl::make_ndnorad_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TNoradObj>::type(), _X)) {
-		return impl::make_ndnorad_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TNoradObj>::type(), _X);
-	}
 
 	/* See ndregistered_new(). */
 	template <class _Ty, class... Args>

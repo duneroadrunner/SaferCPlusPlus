@@ -57,9 +57,6 @@ namespace mse {
 	template<typename _Ty> class TNDRegisteredFixedPointer;
 	template<typename _Ty> class TNDRegisteredFixedConstPointer;
 
-	template<typename _Ty> auto make_ndregistered_referenceable(_Ty&& _X);
-	template<typename _Ty> auto make_ndregistered_referenceable(const _Ty& _X);
-
 	template<typename _Ty>
 	auto ndregistered_fptr_to(_Ty&& _X) {
 		return _X.mse_registered_fptr();
@@ -77,6 +74,37 @@ namespace mse {
 		template <class _Ty> void ndregistered_delete(const TNDRegisteredConstPointer<_Ty>& ndregisteredPtrRef);
 	}
 
+	namespace impl {
+		template<typename _Ty, class... Args>
+		auto make_ndregistered_helper(std::true_type, Args&&... args) {
+			return _Ty(std::forward<Args>(args)...);
+		}
+		template<typename _Ty, class... Args>
+		auto make_ndregistered_helper(std::false_type, Args&&... args) {
+			return TNDRegisteredObj<_Ty>(std::forward<Args>(args)...);
+		}
+	}
+	template <class X, class... Args>
+	auto make_ndregistered(Args&&... args) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return impl::make_ndregistered_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TNDRegisteredObj>::type(), std::forward<Args>(args)...);
+	}
+	template <class X>
+	auto make_ndregistered(const X& arg) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return impl::make_ndregistered_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TNDRegisteredObj>::type(), arg);
+	}
+	template <class X>
+	auto make_ndregistered(X&& arg) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return impl::make_ndregistered_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TNDRegisteredObj>::type(), std::forward<decltype(arg)>(arg));
+	}
+
+#ifdef MSE_HAS_CXX17
+	/* deduction guide */
+	template<class _TROy> TNDRegisteredObj(_TROy)->TNDRegisteredObj<_TROy>;
+#endif /* MSE_HAS_CXX17 */
+
 #ifdef MSE_REGISTEREDPOINTER_DISABLED
 	template<typename _Ty> using TRegisteredPointer = _Ty*;
 	template<typename _Ty> using TRegisteredConstPointer = const _Ty*;
@@ -86,9 +114,6 @@ namespace mse {
 																											library containers don't support const elements. */
 	template<typename _Ty> using TRegisteredFixedConstPointer = const _Ty* /*const*/;
 	template<typename _TROy> using TRegisteredObj = _TROy;
-
-	template<typename _Ty> auto make_registered_referenceable(_Ty&& _X) { return std::forward<decltype(_X)>(_X); }
-	template<typename _Ty> auto make_registered_referenceable(const _Ty& _X) -> decltype(_X) { return _X; }
 
 	template<typename _Ty> auto registered_fptr_to(_Ty&& _X) { return std::addressof(_X); }
 	template<typename _Ty> auto registered_fptr_to(const _Ty& _X) { return std::addressof(_X); }
@@ -119,6 +144,22 @@ namespace mse {
 		}
 	}
 
+	template <class X, class... Args>
+	auto make_registered(Args&&... args) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return nrX(std::forward<Args>(args)...);
+	}
+	template <class X>
+	auto make_registered(const X& arg) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return nrX(arg);
+	}
+	template <class X>
+	auto make_registered(X&& arg) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return nrX(std::forward<decltype(arg)>(arg));
+	}
+
 #else /*MSE_REGISTEREDPOINTER_DISABLED*/
 
 	template<typename _Ty> using TRegisteredPointer = TNDRegisteredPointer<_Ty>;
@@ -129,9 +170,6 @@ namespace mse {
 	template<typename _Ty> using TRegisteredFixedConstPointer = TNDRegisteredFixedConstPointer<_Ty>;
 	template<typename _TROy> using TRegisteredObj = TNDRegisteredObj<_TROy>;
 
-	template<typename _Ty> auto make_registered_referenceable(_Ty&& _X) { return make_ndregistered_referenceable(std::forward<decltype(_X)>(_X)); }
-	template<typename _Ty> auto make_registered_referenceable(const _Ty& _X) -> decltype(make_ndregistered_referenceable(_X)) { return make_ndregistered_referenceable(_X); }
-
 	template<typename _Ty> auto registered_fptr_to(_Ty&& _X) { return ndregistered_fptr_to(std::forward<decltype(_X)>(_X)); }
 	template<typename _Ty> auto registered_fptr_to(const _Ty& _X) { return ndregistered_fptr_to(_X); }
 
@@ -141,6 +179,19 @@ namespace mse {
 	namespace us {
 		template <class _Ty> void registered_delete(TNDRegisteredPointer<_Ty>& ndregisteredPtrRef) { return mse::us::ndregistered_delete<_Ty>(ndregisteredPtrRef); }
 		template <class _Ty> void registered_delete(TNDRegisteredConstPointer<_Ty>& ndregisteredPtrRef) { return mse::us::ndregistered_delete<_Ty>(ndregisteredPtrRef); }
+	}
+
+	template <class X, class... Args>
+	auto make_registered(Args&&... args) {
+		return make_ndregistered<X>(std::forward<Args>(args)...);
+	}
+	template <class X>
+	auto make_registered(const X& arg) {
+		return make_ndregistered(arg);
+	}
+	template <class X>
+	auto make_registered(X&& arg) {
+		return make_ndregistered(std::forward<decltype(arg)>(arg));
 	}
 
 #endif /*MSE_REGISTEREDPOINTER_DISABLED*/
@@ -580,33 +631,6 @@ namespace mse {
 		mutable const mse::us::impl::CRegisteredNode * m_head_ptr = nullptr;
 	};
 
-	namespace impl {
-		template<typename _Ty>
-		auto make_ndregistered_referenceable_helper(std::true_type, _Ty&& _X) {
-			return std::forward<decltype(_X)>(_X);
-		}
-		template<typename _Ty>
-		auto make_ndregistered_referenceable_helper(std::false_type, _Ty&& _X) {
-			return TNDRegisteredObj<typename std::remove_reference<_Ty>::type>(std::forward<decltype(_X)>(_X));
-		}
-		template<typename _Ty>
-		auto make_ndregistered_referenceable_helper(std::true_type, const _Ty& _X) -> decltype(_X) {
-			return _X;
-		}
-		template<typename _Ty>
-		auto make_ndregistered_referenceable_helper(std::false_type, const _Ty& _X) {
-			return TNDRegisteredObj<typename std::remove_reference<_Ty>::type>(_X);
-		}
-	}
-	template<typename _Ty>
-	auto make_ndregistered_referenceable(_Ty&& _X) {
-		return impl::make_ndregistered_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TNDRegisteredObj>::type(), std::forward<decltype(_X)>(_X));
-	}
-	template<typename _Ty>
-	auto make_ndregistered_referenceable(const _Ty& _X) -> decltype(impl::make_ndregistered_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TNDRegisteredObj>::type(), _X)) {
-		return impl::make_ndregistered_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TNDRegisteredObj>::type(), _X);
-	}
-
 	template <class _Ty, class... Args>
 	TNDRegisteredPointer<_Ty> ndregistered_new(Args&&... args) {
 		auto a = new TNDRegisteredObj<_Ty>(std::forward<Args>(args)...);
@@ -939,17 +963,6 @@ namespace mse {
 	template <class _Ty>
 	void rdelete(const TRegisteredPointer<_Ty>& regPtrRef) { registered_delete<_Ty>(regPtrRef); }
 
-	/* These functions create a registered object assuming the type is the same as the lone parameter, so you don't need
-	to explicitly specify it. */
-	template <typename _TLoneParam>
-	auto mkrolp(const _TLoneParam& lone_param) {
-		return TRegisteredObj<_TLoneParam>(lone_param);
-	}
-	template <typename _TLoneParam>
-	auto mkrolp(_TLoneParam&& lone_param) {
-		return TRegisteredObj<_TLoneParam>(std::forward<decltype(lone_param)>(lone_param));
-	}
-
 	/* deprecated aliases */
 	template<class _TTargetType, class _TLeasePointerType> using swkfp = TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>;
 	template<class _TTargetType, class _TLeasePointerType> using swkfcp = TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;
@@ -960,6 +973,8 @@ namespace mse {
 	template<typename _Ty> using TWRegisteredFixedPointer = TNDRegisteredFixedPointer<_Ty>;
 	template<typename _Ty> using TWRegisteredFixedConstPointer = TNDRegisteredFixedConstPointer<_Ty>;
 	template<typename _TROy> using TWRegisteredObj = TNDRegisteredObj<_TROy>;
+	template <typename _TLoneParam> auto mkrolp(const _TLoneParam& lone_param) { return make_registered(lone_param); }
+	template <typename _TLoneParam> auto mkrolp(_TLoneParam&& lone_param) { return make_registered(std::forward<decltype(lone_param)>(lone_param)); }
 
 
 #ifdef MSEREGISTEREDREFWRAPPER

@@ -1031,7 +1031,7 @@ void msetl_example2() {
 		{
 #ifndef MSE_REGISTEREDPOINTER_DISABLED
 			std::string s = "Hellooooooooooooooo ";
-			auto sv = mse::mknscs(&mse::mkrolp(s + "World\n"));
+			auto sv = mse::mknscs(&mse::make_registered(s + "World\n"));
 			try {
 				std::cout << sv;
 			}

@@ -137,9 +137,6 @@ namespace mse {
 
 	template<typename _TROy> class TXScopeOwnerPointer;
 
-	template<typename _Ty> auto make_xscope_referenceable(_Ty&& _X) { return std::forward<decltype(_X)>(_X); }
-	template<typename _Ty> auto make_xscope_referenceable(const _Ty& _X) -> decltype(_X) { return _X; }
-
 	template<typename _Ty> auto xscope_ifptr_to(_Ty&& _X) { return std::addressof(_X); }
 	template<typename _Ty> auto xscope_ifptr_to(const _Ty& _X) { return std::addressof(_X); }
 
@@ -469,33 +466,6 @@ namespace mse {
 
 		friend class TXScopeOwnerPointer<_TROy>;
 	};
-
-	namespace impl {
-		template<typename _Ty>
-		auto make_xscope_referenceable_helper(std::true_type, _Ty&& _X) {
-			return std::forward<decltype(_X)>(_X);
-		}
-		template<typename _Ty>
-		auto make_xscope_referenceable_helper(std::false_type, _Ty&& _X) {
-			return TXScopeObj<typename std::remove_reference<_Ty>::type>(std::forward<decltype(_X)>(_X));
-		}
-		template<typename _Ty>
-		auto make_xscope_referenceable_helper(std::true_type, const _Ty& _X) -> decltype(_X) {
-			return _X;
-		}
-		template<typename _Ty>
-		auto make_xscope_referenceable_helper(std::false_type, const _Ty& _X) {
-			return TXScopeObj<typename std::remove_reference<_Ty>::type>(_X);
-		}
-	}
-	template<typename _Ty>
-	auto make_xscope_referenceable(_Ty&& _X) {
-		return impl::make_xscope_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TXScopeObj>::type(), std::forward<decltype(_X)>(_X));
-	}
-	template<typename _Ty>
-	auto make_xscope_referenceable(const _Ty& _X) -> decltype(impl::make_xscope_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TXScopeObj>::type(), _X)) {
-		return impl::make_xscope_referenceable_helper(typename mse::impl::is_instantiation_of<_Ty, TXScopeObj>::type(), _X);
-	}
 
 	template<typename _Ty>
 	auto xscope_ifptr_to(_Ty&& _X) {
@@ -860,6 +830,33 @@ namespace mse {
 	/* end of template specializations */
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
+
+	namespace impl {
+		template<typename _Ty, class... Args>
+		auto make_xscope_helper(std::true_type, Args&&... args) {
+			return _Ty(std::forward<Args>(args)...);
+		}
+		template<typename _Ty, class... Args>
+		auto make_xscope_helper(std::false_type, Args&&... args) {
+			return TXScopeObj<_Ty>(std::forward<Args>(args)...);
+		}
+	}
+	template <class X, class... Args>
+	auto make_xscope(Args&&... args) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return impl::make_xscope_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TXScopeObj>::type(), std::forward<Args>(args)...);
+	}
+	template <class X>
+	auto make_xscope(const X& arg) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return impl::make_xscope_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TXScopeObj>::type(), arg);
+	}
+	template <class X>
+	auto make_xscope(X&& arg) {
+		typedef typename std::remove_reference<X>::type nrX;
+		return impl::make_xscope_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TXScopeObj>::type(), std::forward<decltype(arg)>(arg));
+	}
+
 	namespace us {
 		namespace impl {
 #ifdef MSE_SCOPEPOINTER_DISABLED

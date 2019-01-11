@@ -891,7 +891,7 @@ namespace mse {
 	}
 	template <typename _TLoneParam>
 	auto mkrclp(_TLoneParam&& lone_param) {
-		return make_refcounting<_TLoneParam>(std::forward<decltype(lone_param)>(lone_param));
+		return make_refcounting<typename std::remove_reference<_TLoneParam>::type>(std::forward<decltype(lone_param)>(lone_param));
 	}
 
 	/* deprecated aliases */

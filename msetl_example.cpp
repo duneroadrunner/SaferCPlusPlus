@@ -673,6 +673,9 @@ int main(int argc, char* argv[]) {
 			/* mse::TRegisteredObj<A> is a class that is publicly derived from A, and so should be a compatible substitute for A
 			in almost all cases. */
 
+			/* You can also use the make_registered() function to obtain a registered object from a given value. */
+			auto registered_a2 = mse::make_registered(A());
+
 			assert(a.b == registered_a.b);
 			A_native_ptr = &a;
 			A_registered_ptr1 = &registered_a;
@@ -866,6 +869,9 @@ int main(int argc, char* argv[]) {
 		noradobj_c.m_d_ptr = nullptr;
 
 		mse::norad_delete<D>(d_ptr);
+
+		/* You can also use the make_norad() function to obtain a norad object from a given value. */
+		auto norad_c2 = mse::make_norad(C());
 
 		{
 			/* Polymorphic conversions. */
@@ -1133,10 +1139,10 @@ int main(int argc, char* argv[]) {
 
 		/* The "xscope" templates basically allow the programmer to indicate that the target object has "scope
 		lifetime". That is, the object is either allocated on the stack, or its "owner" pointer is allocated on
-		the stack. Scope pointers may only point to scope objects. While there are limitations on when they can
-		be used, scope pointers would be the preferred pointer type where performance is a priority as they don't
-		require any run time overhead to ensure that they will not be used to access a target object has already
-		been deallocated. */
+		the stack. Scope pointers may only point to scope objects (or certain other objects known to live beyond
+		the scope in question). While there are limitations on when they can be used, scope pointers would be the
+		preferred pointer type where performance is a priority as they don't require any run time overhead to 
+		ensure that they will not be used to access a target object has already been deallocated. */
 
 		class A {
 		public:
@@ -1167,6 +1173,9 @@ int main(int argc, char* argv[]) {
 		mse::TXScopeOwnerPointer<A> xscp_a_ownerptr(7);
 		int res4 = B::foo2(xscp_a_ownerptr);
 		int res4b = B::foo2(&(*xscp_a_ownerptr));
+
+		/* You can also use the make_xscope() function to obtain a scope object from a given value. */
+		auto a2_scpobj = mse::make_xscope(A(7));
 
 		/* You can use the "mse::make_xscope_pointer_to_member_v2()" function to obtain a safe pointer to a member of
 		an xscope object. */
