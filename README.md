@@ -246,29 +246,32 @@ usage example:
             int m_x;
         };
     
-        mse::TRegisteredPointer<CA> a_ptr;
+        mse::TRegisteredPointer<CA> a_regptr;
         CA a2_obj(2);
         {
             // mse::TRegisteredObj<CA> is a class publicly derived from CA
     
-            mse::TRegisteredObj<CA> a_obj(1); // a_obj is entirely on the stack
+            mse::TRegisteredObj<CA> a_regobj(1); // a_regobj is entirely on the stack
     
-            a_ptr = &a_obj;
-            a2_obj = (*a_ptr);
+            a_regptr = &a_regobj;
+            a2_obj = (*a_regptr);
         }
-        if (a_ptr) {
+        if (a_regptr) {
             assert(false);
         } else {
             try {
-                a2_obj = (*a_ptr);
+                a2_obj = (*a_regptr);
             }
             catch (...) {
                 // expected exception
             }
         }
     
-        a_ptr = mse::registered_new<CA>(3); // heap allocation
-        mse::registered_delete<CA>(a_ptr);
+        a_regptr = mse::registered_new<CA>(3); // heap allocation
+        mse::registered_delete<CA>(a_regptr);
+    
+        /* You can also use the make_registered() function to obtain a registered object from a given value. */
+        auto a3_regobj = mse::make_registered(CA(5));
     }
 ```
 
@@ -301,13 +304,13 @@ usage example:
             }
         };
     
-        mse::TRegisteredObj<CA> in1_obj("input1");
-        mse::TRegisteredPointer<CA> in2_reg_ptr = mse::registered_new<CA>("input2");
-        mse::TRegisteredObj<CA> out_obj("");
+        mse::TRegisteredObj<CA> in1_regobj("input1");
+        mse::TRegisteredPointer<CA> in2_regptr = mse::registered_new<CA>("input2");
+        auto out_regobj = mse::make_registered(CA("")); /* Alternative way to make a registered object. */
     
-        CB::foo(&in1_obj, &(*in2_reg_ptr), &out_obj);
+        CB::foo(&in1_regobj, &(*in2_regptr), &out_regobj);
     
-        mse::registered_delete<CA>(in2_reg_ptr);
+        mse::registered_delete<CA>(in2_regptr);
     }
 ```
 
@@ -422,6 +425,9 @@ usage example:
         noradobj_c.m_d_ptr = nullptr;
 
         mse::norad_delete<D>(d_ptr);
+
+        /* You can also use the make_norad() function to obtain a norad object from a given value. */
+        auto noradobj_c2 = mse::make_norad(C());
     }
 ```
 
@@ -717,6 +723,9 @@ usage example:
         int res1 = (&a_scpobj)->b;
         int res2 = B::foo2(&a_scpobj);
         int res3 = B::foo3(&a_scpobj);
+
+        /* You can also use the make_xscope() function to obtain a scope object from a given value. */
+        auto a2_scpobj = mse::make_xscope(A(7));
     }
 ```
 
