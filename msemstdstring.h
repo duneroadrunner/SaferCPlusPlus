@@ -1081,15 +1081,26 @@ namespace mse {
 			}
 #endif /* MSE_HAS_CXX17 */
 
-
-#if 0//_HAS_CXX17
-			size_type find(const basic_string_view<_Ty, _Traits> _Right, const size_type _Off = 0) const _NOEXCEPT
-			{	// look for _Right beginning at or after _Off
-				auto& _My_data = this->_Get_data();
-				return (static_cast<size_type>(
-					_Traits_find<_Traits>(_My_data._Myptr(), _My_data._Mysize, _Off, _Right.data(), _Right.size())));
+#ifdef MSE_HAS_CXX17
+	private:
+		size_type find_helper1(std::true_type, const basic_string& _Right, const size_type _Off = npos) const {
+			return find(_Right, _Off);
+		}
+		template<class _TParam1>
+		size_type find_helper1(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+			return m_shptr->find(_Right, mse::as_a_size_t(_Off));
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		size_type find(const _TParam1& _Right, const size_type _Off = npos) const {
+			return find_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Off);
+		}
+#else /* MSE_HAS_CXX17 */
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			size_type find(const _TStringSection& _X, const size_type _Off = npos) const {
+				return m_shptr->find(basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 			}
-#endif /* _HAS_CXX17 */
+#endif /* MSE_HAS_CXX17 */
 
 			size_type find(const basic_string& _Right, const size_type _Off = 0) const _NOEXCEPT {
 				return msebasic_string().find(_Right.msebasic_string(), _Off);
@@ -1107,14 +1118,26 @@ namespace mse {
 				return msebasic_string().find(_Ch, _Off);
 			}
 
-#if 0//_HAS_CXX17
-			size_type rfind(const basic_string_view<_Ty, _Traits> _Right, const size_type _Off = npos) const _NOEXCEPT
-			{	// look for _Right beginning before _Off
-				auto& _My_data = this->_Get_data();
-				return (static_cast<size_type>(
-					_Traits_rfind<_Traits>(_My_data._Myptr(), _My_data._Mysize, _Off, _Right.data(), _Right.size())));
+#ifdef MSE_HAS_CXX17
+	private:
+		size_type rfind_helper1(std::true_type, const basic_string& _Right, const size_type _Off = npos) const {
+			return rfind(_Right, _Off);
+		}
+		template<class _TParam1>
+		size_type rfind_helper1(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+			return m_shptr->rfind(_Right, mse::as_a_size_t(_Off));
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		size_type rfind(const _TParam1& _Right, const size_type _Off = npos) const {
+			return rfind_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Off);
+		}
+#else /* MSE_HAS_CXX17 */
+			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			size_type rfind(const _TStringSection& _X, const size_type _Off = npos) const {
+				return m_shptr->rfind(basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 			}
-#endif /* _HAS_CXX17 */
+#endif /* MSE_HAS_CXX17 */
 
 			size_type rfind(const basic_string& _Right, const size_type _Off = npos) const _NOEXCEPT {
 				return msebasic_string().rfind(_Right.msebasic_string(), _Off);

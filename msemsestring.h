@@ -4624,7 +4624,6 @@ namespace mse {
 		template<class _StringViewIsh>
 		int compare_helper2(std::true_type, const _StringViewIsh& _Right) const {
 			std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			return m_basic_string.compare(_As_view);
 		}
 		template<class _TParam1>
@@ -4650,7 +4649,6 @@ namespace mse {
 		template<class _StringViewIsh>
 		int compare_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right) const {
 			std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view);
 		}
 		template<class _TParam1>
@@ -4675,7 +4673,6 @@ namespace mse {
 		template<class _StringViewIsh>
 		int compare_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count) const {
 			std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 		}
 		template<class _TParam1>
@@ -4701,22 +4698,40 @@ namespace mse {
 #else /* MSE_HAS_CXX17 */
 		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 		int compare(const size_type _Off, const size_type _N0, const _TStringSection& _X) const {
-			//std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-			m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), nii_basic_string(_X.cbegin(), _X.cend()));
-			/*m_debug_size = size();*/
-			return (*this);
+			return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), nii_basic_string(_X.cbegin(), _X.cend()));
 		}
 #endif /* MSE_HAS_CXX17 */
 
-
-#if 0//_HAS_CXX17
-		size_type find(const mstd::basic_string_view<_Ty, _Traits> _Right, const size_type _Off = 0) const _NOEXCEPT
-		{	// look for _Right beginning at or after _Off
-			auto& _My_data = this->_Get_data();
-			return (static_cast<size_type>(
-				_Traits_find<_Traits>(_My_data._Myptr(), _My_data._Mysize, _Off, _Right.data(), _Right.size())));
+#ifdef MSE_HAS_CXX17
+	private:
+		template<class _StringViewIsh>
+		size_type find_helper2(std::true_type, const _StringViewIsh& _Right, const size_type _Off = npos) const {
+			std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+			return m_basic_string.find(_As_view, mse::as_a_size_t(_Off));
 		}
-#endif /* _HAS_CXX17 */
+		template<class _TParam1>
+		size_type find_helper2(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+			const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+			return find(nii_basic_string(xs_iters.begin(), xs_iters.end()), _Off);
+		}
+		size_type find_helper1(std::true_type, const nii_basic_string& _Right, const size_type _Off = npos) const {
+			return find(_Right, _Off);
+		}
+		template<class _TParam1>
+		size_type find_helper1(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+			return find_helper2(typename _is_string_view_ish<_TParam1>::type(), _Right, _Off);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		size_type find(const _TParam1& _Right, const size_type _Off = npos) const {
+			return find_helper1(typename std::is_base_of<nii_basic_string, _TParam1>::type(), _Right, _Off);
+		}
+#else /* MSE_HAS_CXX17 */
+		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+		size_type find(const _TStringSection& _X, const size_type _Off = npos) const {
+			return m_basic_string.find(nii_basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
+		}
+#endif /* MSE_HAS_CXX17 */
 
 		size_type find(const nii_basic_string& _Right, const size_type _Off = 0) const _NOEXCEPT {
 			return m_basic_string.find(_Right.contained_basic_string(), _Off);
@@ -4734,14 +4749,36 @@ namespace mse {
 			return m_basic_string.find(_Ch, _Off);
 		}
 
-#if 0//_HAS_CXX17
-		size_type rfind(const mstd::basic_string_view<_Ty, _Traits> _Right, const size_type _Off = npos) const _NOEXCEPT
-		{	// look for _Right beginning before _Off
-			auto& _My_data = this->_Get_data();
-			return (static_cast<size_type>(
-				_Traits_rfind<_Traits>(_My_data._Myptr(), _My_data._Mysize, _Off, _Right.data(), _Right.size())));
+#ifdef MSE_HAS_CXX17
+	private:
+		template<class _StringViewIsh>
+		size_type rfind_helper2(std::true_type, const _StringViewIsh& _Right, const size_type _Off = npos) const {
+			std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+			return m_basic_string.rfind(_As_view, mse::as_a_size_t(_Off));
 		}
-#endif /* _HAS_CXX17 */
+		template<class _TParam1>
+		size_type rfind_helper2(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+			const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+			return rfind(nii_basic_string(xs_iters.begin(), xs_iters.end()), _Off);
+		}
+		size_type rfind_helper1(std::true_type, const nii_basic_string& _Right, const size_type _Off = npos) const {
+			return rfind(_Right, _Off);
+		}
+		template<class _TParam1>
+		size_type rfind_helper1(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+			return rfind_helper2(typename _is_string_view_ish<_TParam1>::type(), _Right, _Off);
+		}
+	public:
+		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+		size_type rfind(const _TParam1& _Right, const size_type _Off = npos) const {
+			return rfind_helper1(typename std::is_base_of<nii_basic_string, _TParam1>::type(), _Right, _Off);
+		}
+#else /* MSE_HAS_CXX17 */
+		template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+		size_type rfind(const _TStringSection& _X, const size_type _Off = npos) const {
+			return m_basic_string.rfind(nii_basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
+		}
+#endif /* MSE_HAS_CXX17 */
 
 		size_type rfind(const nii_basic_string& _Right, const size_type _Off = npos) const _NOEXCEPT {
 			return m_basic_string.rfind(_Right.contained_basic_string(), _Off);
