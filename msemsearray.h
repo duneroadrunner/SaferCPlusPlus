@@ -2537,6 +2537,25 @@ namespace mse {
 		friend void swap(_MA& a, _Myt& b) { b.swap(a); }
 	};
 
+#ifdef MSE_HAS_CXX17
+	namespace impl {
+		template<class _First,
+			class... _Rest>
+			struct _mse_Enforce_same
+		{
+			static_assert(std::conjunction<std::is_same<_First, _Rest>...>::value,
+				"N4687 26.3.7.2 [array.cons]/2: "
+				"Requires: (is_same_v<T, U> && ...) is true. Otherwise the program is ill-formed.");
+			using type = _First;
+		};
+	}
+
+	template<class _First,
+		class... _Rest>
+		nii_array(_First, _Rest...)
+		->nii_array<typename impl::_mse_Enforce_same<_First, _Rest...>::type, 1 + sizeof...(_Rest)>;
+#endif /* MSE_HAS_CXX17 */
+
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator!=(const nii_array<_Ty, _Size, _TStateMutex>& _Left,
 		const nii_array<_Ty, _Size, _TStateMutex>& _Right) {	// test for array inequality
 		return (!(_Left == _Right));
@@ -3102,6 +3121,13 @@ namespace mse {
 			template<size_t _Idx, class _Tz, size_t _Size2>
 			friend _CONST_FUN _Tz&& std::get(mse::us::msearray<_Tz, _Size2>&& _Arr) _NOEXCEPT;
 		};
+
+#ifdef MSE_HAS_CXX17
+		template<class _First,
+			class... _Rest>
+			msearray(_First, _Rest...)
+			->msearray<typename mse::impl::_mse_Enforce_same<_First, _Rest...>::type, 1 + sizeof...(_Rest)>;
+#endif /* MSE_HAS_CXX17 */
 
 		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator!=(const msearray<_Ty, _Size, _TStateMutex>& _Left,
 			const msearray<_Ty, _Size, _TStateMutex>& _Right) {	// test for array inequality

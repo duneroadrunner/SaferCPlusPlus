@@ -762,6 +762,11 @@ namespace mse {
 				static_assert(sizeof(T) == 0, "optional rvalue references disallowed");
 			};
 
+#ifdef MSE_HAS_CXX17
+			template<class _Ty>
+			optional(_Ty)->optional<_Ty>;
+#endif /* MSE_HAS_CXX17 */
+
 
 			// 20.5.8, Relational operators
 			template <class T> constexpr bool operator==(const optional<T>& x, const optional<T>& y)
@@ -1095,6 +1100,11 @@ namespace mse {
 			//using base_class::operator=;
 			MSE_SCOPE_USING(optional, base_class);
 		};
+
+#ifdef MSE_HAS_CXX17
+		template<class _Ty>
+		optional(_Ty)->optional<_Ty>;
+#endif /* MSE_HAS_CXX17 */
 
 		// 20.5.8, Relational operators
 		template <class T> constexpr bool operator==(const optional<T>& x, const optional<T>& y)
@@ -1502,6 +1512,11 @@ namespace mse {
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
+
+#ifdef MSE_HAS_CXX17
+	template<class _Ty>
+	xscope_optional(_Ty)->xscope_optional<_Ty>;
+#endif /* MSE_HAS_CXX17 */
 
 	// 20.5.8, Relational operators
 	template <class T> constexpr bool operator==(const xscope_optional<T>& x, const xscope_optional<T>& y)

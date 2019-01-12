@@ -599,6 +599,12 @@ namespace mse {
 		std::shared_ptr<_MV> m_shptr;
 	};
 
+#ifdef MSE_HAS_CXX17
+	template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type> >
+	ivector(_Iter, _Iter, _Alloc = _Alloc())
+		->ivector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
+#endif /* MSE_HAS_CXX17 */
+
 	template<class _Ty, class _Alloc> inline bool operator!=(const ivector<_Ty, _Alloc>& _Left,
 		const ivector<_Ty, _Alloc>& _Right) {	// test for ivector inequality
 			return (!(_Left == _Right));

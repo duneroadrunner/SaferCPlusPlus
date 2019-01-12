@@ -709,6 +709,13 @@ namespace mse {
 			friend void swap(std::array<_Ty, _Size>& a, _Myt& b) { b.swap(a); }
 		};
 
+#ifdef MSE_HAS_CXX17
+		template<class _First,
+			class... _Rest>
+			array(_First, _Rest...)
+			->array<typename mse::impl::_mse_Enforce_same<_First, _Rest...>::type, 1 + sizeof...(_Rest)>;
+#endif /* MSE_HAS_CXX17 */
+
 		template<class _Ty, size_t _Size> inline bool operator!=(const array<_Ty, _Size>& _Left,
 			const array<_Ty, _Size>& _Right) {	// test for array inequality
 			return (!(_Left == _Right));
