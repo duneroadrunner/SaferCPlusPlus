@@ -851,6 +851,8 @@ usage example:
 
 ### xscope_chosen_pointer()
 
+[*provisional*]
+
 Currently there's a rule against using non-owning scope pointers as function return values (enforced by the [`return_value()`](#return_value) function) due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the `xscope_chosen_pointer()` function instead.
 
 In essence, the `xscope_chosen_pointer()` function simply takes a bool and two scope pointers as input parameters and returns one of the pointers. If the bool is false then the first scope pointer is returned, otherwise the second is returned.
@@ -889,6 +891,8 @@ So consider, for example, a "min" function that takes two scope pointers and ret
 ```
 
 ### as_a_returnable_fparam()
+
+[*provisional*]
 
 Another alternative if you want to return a scope pointer (or any object containing a scope reference) input parameter from a function is to wrap the parameter type with the `rsv::TXScopeReturnableFParam<>` transparent template wrapper when declaring the parameter. 
 
@@ -974,6 +978,8 @@ void main(int argc, char* argv[]) {
 ```
 
 ### as_an_fparam()
+
+[*provisional*]
 
 `rsv::TFParam<>` is just a transparent template wrapper for function parameter declarations. In most cases use of this wrapper is not necessary, but in some cases it enables functionality only available to variables that are function parameters. Specifically, it allows functions to support arguments that are scope pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so in the case of function parameters, the `rsv::TFParam<>` wrapper enables certain scope pointer/reference types (like `TXScopeItemFixedPointer<>`, and "[random access section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" scope types) to be constructed from their "functionally disabled" counterparts.
 
