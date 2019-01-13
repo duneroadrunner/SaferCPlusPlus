@@ -1839,6 +1839,37 @@ namespace mse {
 		return TStringSection<_TRAIterator>(param);
 	}
 
+#ifdef MSE_HAS_CXX17
+	/* deduction guides */
+	template<class _TRAIterator>
+	TStringSection(_TRAIterator, typename TStringSection<_TRAIterator>::size_type)
+		->TStringSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TStringSection(_TRALoneParam)
+		->TStringSection<typename decltype(make_string_section(std::declval<_TRALoneParam>()))::iterator_type>;
+
+	template<class _TRAIterator>
+	TStringConstSection(_TRAIterator, typename TStringConstSection<_TRAIterator>::size_type)
+		->TStringConstSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TStringConstSection(_TRALoneParam)
+		->TStringConstSection<typename decltype(make_string_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+
+	template<class _TRAIterator>
+	TXScopeStringSection(_TRAIterator, typename TXScopeStringSection<_TRAIterator>::size_type)
+		->TXScopeStringSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TXScopeStringSection(_TRALoneParam)
+		->TXScopeStringSection<typename decltype(make_xscope_string_section(std::declval<_TRALoneParam>()))::iterator_type>;
+
+	template<class _TRAIterator>
+	TXScopeStringConstSection(_TRAIterator, typename TXScopeStringConstSection<_TRAIterator>::size_type)
+		->TXScopeStringConstSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TXScopeStringConstSection(_TRALoneParam)
+		->TXScopeStringConstSection<typename decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+#endif /* MSE_HAS_CXX17 */
+
 
 	/* "nrp string sections" are derived from "string sections". Rather than define their own associtaed
 	TXScopeCagedNRPStringConstSectionToRValue<>, for now they just use the TXScopeCagedStringConstSectionToRValue<>
@@ -2551,6 +2582,37 @@ namespace mse {
 		auto string_const_section = make_string_const_section(param);
 		return TNRPStringConstSection<typename decltype(string_const_section)::iterator_type>(string_const_section);
 	}
+
+#ifdef MSE_HAS_CXX17
+	/* deduction guides */
+	template<class _TRAIterator>
+	TNRPStringSection(_TRAIterator, typename TNRPStringSection<_TRAIterator>::size_type)
+		->TNRPStringSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TNRPStringSection(_TRALoneParam)
+		->TNRPStringSection<typename decltype(make_nrp_string_section(std::declval<_TRALoneParam>()))::iterator_type>;
+
+	template<class _TRAIterator>
+	TNRPStringConstSection(_TRAIterator, typename TNRPStringConstSection<_TRAIterator>::size_type)
+		->TNRPStringConstSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TNRPStringConstSection(_TRALoneParam)
+		->TNRPStringConstSection<typename decltype(make_nrp_string_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+
+	template<class _TRAIterator>
+	TXScopeNRPStringSection(_TRAIterator, typename TXScopeNRPStringSection<_TRAIterator>::size_type)
+		->TXScopeNRPStringSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TXScopeNRPStringSection(_TRALoneParam)
+		->TXScopeNRPStringSection<typename decltype(make_xscope_nrp_string_section(std::declval<_TRALoneParam>()))::iterator_type>;
+
+	template<class _TRAIterator>
+	TXScopeNRPStringConstSection(_TRAIterator, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type)
+		->TXScopeNRPStringConstSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TXScopeNRPStringConstSection(_TRALoneParam)
+		->TXScopeNRPStringConstSection<typename decltype(make_xscope_nrp_string_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+#endif /* MSE_HAS_CXX17 */
 
 	namespace rsv {
 
@@ -5078,6 +5140,7 @@ namespace mse {
 	};
 
 #ifdef MSE_HAS_CXX17
+	/* deduction guides */
 	template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type>
 		, std::enable_if_t<std::conjunction_v< mse::impl::_mse_Is_iterator<_Iter>, mse::impl::_mse_Is_allocator<_Alloc> >, int> = 0>
 	nii_basic_string(_Iter, _Iter, _Alloc = _Alloc())
@@ -8043,6 +8106,42 @@ namespace mse {
 			friend class mse::mstd::basic_string;
 #endif /*!MSE_MSTDSTRING_DISABLED*/
 		};
+
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type>
+			, std::enable_if_t<std::conjunction_v< mse::impl::_mse_Is_iterator<_Iter>, mse::impl::_mse_Is_allocator<_Alloc> >, int> = 0>
+			msebasic_string(_Iter, _Iter, _Alloc = _Alloc())
+			->msebasic_string<typename std::iterator_traits<_Iter>::value_type, std::char_traits<typename std::iterator_traits<_Iter>::value_type>, _Alloc>;
+
+		template<class _Elem, class _Traits, class _Alloc = std::allocator<_Elem>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			explicit msebasic_string(std::basic_string_view<_Elem, _Traits>, const _Alloc& = _Alloc())
+			->msebasic_string<_Elem, _Traits, _Alloc>;
+
+		template<class _Elem, class _Traits, class _Alloc = std::allocator<_Elem>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			msebasic_string(std::basic_string_view<_Elem, _Traits>, mse::impl::_mse_Guide_size_type_t<_Alloc>
+				, mse::impl::_mse_Guide_size_type_t<_Alloc>, const _Alloc& = _Alloc())
+			->msebasic_string<_Elem, _Traits, _Alloc>;
+
+		template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			explicit msebasic_string(mse::TStringConstSection<_TRAIterator, _Traits>, const _Alloc& = _Alloc())
+			->msebasic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+		template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			explicit msebasic_string(mse::TStringSection<_TRAIterator, _Traits>, const _Alloc& = _Alloc())
+			->msebasic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+		template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			explicit msebasic_string(mse::TXScopeStringConstSection<_TRAIterator, _Traits>, const _Alloc& = _Alloc())
+			->msebasic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+		template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			explicit msebasic_string(mse::TXScopeStringSection<_TRAIterator, _Traits>, const _Alloc& = _Alloc())
+			->msebasic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+#endif /* MSE_HAS_CXX17 */
 
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex> inline bool operator!=(const msebasic_string<_Ty, _Traits, _A, _TStateMutex>& _Left,
 			const msebasic_string<_Ty, _Traits, _A, _TStateMutex>& _Right) {	// test for basic_string inequality

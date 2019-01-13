@@ -710,6 +710,7 @@ namespace mse {
 		};
 
 #ifdef MSE_HAS_CXX17
+		/* deduction guides */
 		template<class _First,
 			class... _Rest>
 			array(_First, _Rest...)

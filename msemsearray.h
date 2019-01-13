@@ -2538,6 +2538,7 @@ namespace mse {
 	};
 
 #ifdef MSE_HAS_CXX17
+	/* deduction guides */
 	namespace impl {
 		template<class _First,
 			class... _Rest>
@@ -3123,6 +3124,7 @@ namespace mse {
 		};
 
 #ifdef MSE_HAS_CXX17
+		/* deduction guides */
 		template<class _First,
 			class... _Rest>
 			msearray(_First, _Rest...)
@@ -5393,6 +5395,37 @@ namespace mse {
 		typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
 		return TRandomAccessSection<_TRAIterator>(param);
 	}
+
+#ifdef MSE_HAS_CXX17
+	/* deduction guides */
+	template<class _TRAIterator>
+	TRandomAccessSection(_TRAIterator, typename TRandomAccessSection<_TRAIterator>::size_type)
+		->TRandomAccessSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TRandomAccessSection(_TRALoneParam)
+		->TRandomAccessSection<typename decltype(make_random_access_section(std::declval<_TRALoneParam>()))::iterator_type>;
+
+	template<class _TRAIterator>
+	TRandomAccessConstSection(_TRAIterator, typename TRandomAccessConstSection<_TRAIterator>::size_type)
+		->TRandomAccessConstSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TRandomAccessConstSection(_TRALoneParam)
+		->TRandomAccessConstSection<typename decltype(make_random_access_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+
+	template<class _TRAIterator>
+	TXScopeRandomAccessSection(_TRAIterator, typename TXScopeRandomAccessSection<_TRAIterator>::size_type)
+		->TXScopeRandomAccessSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TXScopeRandomAccessSection(_TRALoneParam)
+		->TXScopeRandomAccessSection<typename decltype(make_xscope_random_access_section(std::declval<_TRALoneParam>()))::iterator_type>;
+
+	template<class _TRAIterator>
+	TXScopeRandomAccessConstSection(_TRAIterator, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type)
+		->TXScopeRandomAccessConstSection<_TRAIterator>;
+	template<class _TRALoneParam>
+	TXScopeRandomAccessConstSection(_TRALoneParam)
+		->TXScopeRandomAccessConstSection<typename decltype(make_xscope_random_access_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+#endif /* MSE_HAS_CXX17 */
 
 	/* TXScopeCagedRandomAccessConstSectionToRValue<> represents a "random access const section" that refers to a temporary
 	object. The "random access const section" is inaccessible ("caged") by default because it is, in general, unsafe. Its

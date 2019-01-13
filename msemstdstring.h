@@ -393,37 +393,37 @@ namespace mse {
 			}
 
 #ifdef MSE_HAS_CXX17
-	private:
-		template<class _TParam1>
-		basic_string& assign_helper1(std::true_type, const _TParam1& _Right) {
-			return (assign(static_cast<const basic_string&>(_Right)));
-		}
-		template<class _TParam1>
-		basic_string& assign_helper1(std::false_type, const _TParam1& _Right) {
-			m_shptr->assign(_Right);
-			return (*this);
-		}
-	public:
-		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
-		basic_string& assign(const _TParam1& _Right) {
-			return assign_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right);
-		}
+		private:
+			template<class _TParam1>
+			basic_string& assign_helper1(std::true_type, const _TParam1& _Right) {
+				return (assign(static_cast<const basic_string&>(_Right)));
+			}
+			template<class _TParam1>
+			basic_string& assign_helper1(std::false_type, const _TParam1& _Right) {
+				m_shptr->assign(_Right);
+				return (*this);
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			basic_string& assign(const _TParam1& _Right) {
+				return assign_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right);
+			}
 
-	private:
-		template<class _TParam1>
-		basic_string& assign_helper1(std::true_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
-			return (assign(static_cast<const basic_string&>(_Right, _Roff, _Count)));
-		}
-		template<class _TParam1>
-		basic_string& assign_helper1(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
-			m_shptr->assign(_Right, _Roff, _Count);
-			return (*this);
-		}
-	public:
-		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
-		basic_string& assign(const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) {
-			return assign_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Roff, _Count);
-		}
+		private:
+			template<class _TParam1>
+			basic_string& assign_helper1(std::true_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+				return (assign(static_cast<const basic_string&>(_Right, _Roff, _Count)));
+			}
+			template<class _TParam1>
+			basic_string& assign_helper1(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+				m_shptr->assign(_Right, _Roff, _Count);
+				return (*this);
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			basic_string& assign(const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) {
+				return assign_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Roff, _Count);
+			}
 #else /* MSE_HAS_CXX17 */
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			basic_string& assign(const _TStringSection& _X) {
@@ -820,35 +820,35 @@ namespace mse {
 			}
 
 #ifdef MSE_HAS_CXX17
-	private:
-		basic_string& append_helper1(std::true_type, const basic_string& _Right) {
-			return (append(static_cast<const basic_string&>(_Right)));
-		}
-		template<class _TParam1>
-		basic_string& append_helper1(std::false_type, const _TParam1& _Right) {
-			m_shptr->append(_Right);
-			return (*this);
-		}
-	public:
-		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
-		basic_string& append(const _TParam1& _Right) {
-			return append_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right);
-		}
+		private:
+			basic_string& append_helper1(std::true_type, const basic_string& _Right) {
+				return (append(static_cast<const basic_string&>(_Right)));
+			}
+			template<class _TParam1>
+			basic_string& append_helper1(std::false_type, const _TParam1& _Right) {
+				m_shptr->append(_Right);
+				return (*this);
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			basic_string& append(const _TParam1& _Right) {
+				return append_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right);
+			}
 
-	private:
-		basic_string& append_helper1(std::true_type, const basic_string& _Right, const size_type _Roff, const size_type _Count) {
-			return (append(static_cast<const basic_string&>(_Right, _Roff, _Count)));
-		}
-		template<class _TParam1>
-		basic_string& append_helper1(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
-			m_shptr->append(_Right, _Roff, _Count);
-			return (*this);
-		}
-	public:
-		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
-		basic_string& append(const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) {
-			return append_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Roff, _Count);
-		}
+		private:
+			basic_string& append_helper1(std::true_type, const basic_string& _Right, const size_type _Roff, const size_type _Count) {
+				return (append(static_cast<const basic_string&>(_Right, _Roff, _Count)));
+			}
+			template<class _TParam1>
+			basic_string& append_helper1(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+				m_shptr->append(_Right, _Roff, _Count);
+				return (*this);
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			basic_string& append(const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) {
+				return append_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Roff, _Count);
+			}
 #else /* MSE_HAS_CXX17 */
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			basic_string& append(const _TStringSection& _X) {
@@ -908,33 +908,33 @@ namespace mse {
 			}
 
 #ifdef MSE_HAS_CXX17
-	private:
-		basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right) {
-			return (replace(_Off, _N0, _Right));
-		}
-		template<class _TParam1>
-		basic_string& replace_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) {
-			return m_shptr->replace(_Off, _N0, _Right);
-		}
-	public:
-		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
-		basic_string& replace(const size_type _Off, const size_type _N0, const _TParam1& _Right) {
-			return replace_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right);
-		}
+		private:
+			basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right) {
+				return (replace(_Off, _N0, _Right));
+			}
+			template<class _TParam1>
+			basic_string& replace_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) {
+				return m_shptr->replace(_Off, _N0, _Right);
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			basic_string& replace(const size_type _Off, const size_type _N0, const _TParam1& _Right) {
+				return replace_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right);
+			}
 
-	private:
-		basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right, const size_type _Roff, const size_type _Count) {
-			return (replace(_Off, _N0, _Right, _Roff, _Count));
-		}
-		template<class _TParam1>
-		basic_string& replace_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
-			return m_shptr->replace(_Off, _N0, _Right, _Roff, _Count);
-		}
-	public:
-		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
-		basic_string& replace(const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) {
-			return replace_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
-		}
+		private:
+			basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right, const size_type _Roff, const size_type _Count) {
+				return (replace(_Off, _N0, _Right, _Roff, _Count));
+			}
+			template<class _TParam1>
+			basic_string& replace_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+				return m_shptr->replace(_Off, _N0, _Right, _Roff, _Count);
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			basic_string& replace(const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) {
+				return replace_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
+			}
 #else /* MSE_HAS_CXX17 */
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			basic_string& replace(const size_type _Off, const size_type _N0, const _TStringSection& _X) {
@@ -1032,47 +1032,47 @@ namespace mse {
 			}
 
 #ifdef MSE_HAS_CXX17
-	private:
-		int compare_helper1(std::true_type, const basic_string& _Right) const {
-			return compare(_Right);
-		}
-		template<class _TParam1>
-		int compare_helper1(std::false_type, const _TParam1& _Right) const {
-			return msebasic_string().compare(_Right);
-		}
-	public:
-		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
-		int compare(const _TParam1& _Right) const {
-			return compare_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right);
-		}
+		private:
+			int compare_helper1(std::true_type, const basic_string& _Right) const {
+				return compare(_Right);
+			}
+			template<class _TParam1>
+			int compare_helper1(std::false_type, const _TParam1& _Right) const {
+				return msebasic_string().compare(_Right);
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			int compare(const _TParam1& _Right) const {
+				return compare_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right);
+			}
 
-	private:
-		int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right) const {
-			return compare(_Off, _N0, _Right);
-		}
-		template<class _TParam1>
-		int compare_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
-			return msebasic_string().compare(_Off, _N0, _Right);
-		}
-	public:
-		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
-		int compare(const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
-			return compare_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right);
-		}
+		private:
+			int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right) const {
+				return compare(_Off, _N0, _Right);
+			}
+			template<class _TParam1>
+			int compare_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
+				return msebasic_string().compare(_Off, _N0, _Right);
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			int compare(const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
+				return compare_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right);
+			}
 
-	private:
-		int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right, const size_type _Roff, const size_type _Count) const {
-			return compare(_Off, _N0, _Right, _Roff, _Count);
-		}
-		template<class _TParam1>
-		int compare_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) const {
-			return msebasic_string().compare(_Off, _N0, _Right, _Roff, _Count);
-		}
-	public:
-		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
-		int compare(const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) const {
-			return compare_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
-		}
+		private:
+			int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const basic_string& _Right, const size_type _Roff, const size_type _Count) const {
+				return compare(_Off, _N0, _Right, _Roff, _Count);
+			}
+			template<class _TParam1>
+			int compare_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) const {
+				return msebasic_string().compare(_Off, _N0, _Right, _Roff, _Count);
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			int compare(const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) const {
+				return compare_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
+			}
 #else /* MSE_HAS_CXX17 */
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			int compare(const size_type _Off, const size_type _N0, const _TStringSection& _X) const {
@@ -1082,19 +1082,19 @@ namespace mse {
 #endif /* MSE_HAS_CXX17 */
 
 #ifdef MSE_HAS_CXX17
-	private:
-		size_type find_helper1(std::true_type, const basic_string& _Right, const size_type _Off = npos) const {
-			return find(_Right, _Off);
-		}
-		template<class _TParam1>
-		size_type find_helper1(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
-			return m_shptr->find(_Right, mse::as_a_size_t(_Off));
-		}
-	public:
-		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
-		size_type find(const _TParam1& _Right, const size_type _Off = npos) const {
-			return find_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Off);
-		}
+		private:
+			size_type find_helper1(std::true_type, const basic_string& _Right, const size_type _Off = npos) const {
+				return find(_Right, _Off);
+			}
+			template<class _TParam1>
+			size_type find_helper1(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+				return m_shptr->find(_Right, mse::as_a_size_t(_Off));
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			size_type find(const _TParam1& _Right, const size_type _Off = npos) const {
+				return find_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Off);
+			}
 #else /* MSE_HAS_CXX17 */
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			size_type find(const _TStringSection& _X, const size_type _Off = npos) const {
@@ -1119,19 +1119,19 @@ namespace mse {
 			}
 
 #ifdef MSE_HAS_CXX17
-	private:
-		size_type rfind_helper1(std::true_type, const basic_string& _Right, const size_type _Off = npos) const {
-			return rfind(_Right, _Off);
-		}
-		template<class _TParam1>
-		size_type rfind_helper1(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
-			return m_shptr->rfind(_Right, mse::as_a_size_t(_Off));
-		}
-	public:
-		template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
-		size_type rfind(const _TParam1& _Right, const size_type _Off = npos) const {
-			return rfind_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Off);
-		}
+		private:
+			size_type rfind_helper1(std::true_type, const basic_string& _Right, const size_type _Off = npos) const {
+				return rfind(_Right, _Off);
+			}
+			template<class _TParam1>
+			size_type rfind_helper1(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+				return m_shptr->rfind(_Right, mse::as_a_size_t(_Off));
+			}
+		public:
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+			size_type rfind(const _TParam1& _Right, const size_type _Off = npos) const {
+				return rfind_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Off);
+			}
 #else /* MSE_HAS_CXX17 */
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			size_type rfind(const _TStringSection& _X, const size_type _Off = npos) const {
@@ -1395,6 +1395,42 @@ namespace mse {
 			friend void swap(mse::nii_basic_string<_Ty, _A>& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
 			friend void swap(std::basic_string<_Ty, _A>& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
 		};
+
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type>
+			, std::enable_if_t<std::conjunction_v< mse::impl::_mse_Is_iterator<_Iter>, mse::impl::_mse_Is_allocator<_Alloc> >, int> = 0>
+			basic_string(_Iter, _Iter, _Alloc = _Alloc())
+			->basic_string<typename std::iterator_traits<_Iter>::value_type, std::char_traits<typename std::iterator_traits<_Iter>::value_type>, _Alloc>;
+
+		template<class _Elem, class _Traits, class _Alloc = std::allocator<_Elem>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			explicit basic_string(std::basic_string_view<_Elem, _Traits>, const _Alloc& = _Alloc())
+			->basic_string<_Elem, _Traits, _Alloc>;
+
+		template<class _Elem, class _Traits, class _Alloc = std::allocator<_Elem>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			basic_string(std::basic_string_view<_Elem, _Traits>, mse::impl::_mse_Guide_size_type_t<_Alloc>
+				, mse::impl::_mse_Guide_size_type_t<_Alloc>, const _Alloc& = _Alloc())
+			->basic_string<_Elem, _Traits, _Alloc>;
+
+		template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			explicit basic_string(mse::TStringConstSection<_TRAIterator, _Traits>, const _Alloc& = _Alloc())
+			->basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+		template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			explicit basic_string(mse::TStringSection<_TRAIterator, _Traits>, const _Alloc& = _Alloc())
+			->basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+		template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			explicit basic_string(mse::TXScopeStringConstSection<_TRAIterator, _Traits>, const _Alloc& = _Alloc())
+			->basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+		template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+			, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+			explicit basic_string(mse::TXScopeStringSection<_TRAIterator, _Traits>, const _Alloc& = _Alloc())
+			->basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+#endif /* MSE_HAS_CXX17 */
 
 		namespace impl {
 			namespace bs {

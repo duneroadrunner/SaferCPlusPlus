@@ -600,6 +600,7 @@ namespace mse {
 	};
 
 #ifdef MSE_HAS_CXX17
+	/* deduction guides */
 	template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type> >
 	ivector(_Iter, _Iter, _Alloc = _Alloc())
 		->ivector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
