@@ -894,7 +894,7 @@ In the case of function templates, sometimes you want the parameter types to be 
 
 `rsv::TReturnableFParam<>` and `rsv::as_a_returnable_fparam()` can be used for situations when the type of the input parameter is itself a template parameter and not necessarily always a scope type or treated as a scope type. 
 
-usage exmaple:
+usage example:
 
 ```cpp
 #include "msescope.h"
@@ -2092,7 +2092,7 @@ void main(int argc, char* argv[]) {
 
         /* Here we're using a (non-const) "xscope_passable_pointer" as the argument. The "const" version
         wouldn't be accepted because an "xscope_passable_const_pointer" is not an exclusive pointer. That is, 
-        it doesn't hold exclusive access to its target object. We could, for exmaple, have instead used an 
+        it doesn't hold exclusive access to its target object. We could, for example, have instead used an 
         exclusive pointer obtained directly from the "access controlled" object, a_xscpacobj1. */
 
         auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_aco_locker1.xscope_passable_pointer());
