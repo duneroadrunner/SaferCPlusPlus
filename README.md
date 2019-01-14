@@ -853,11 +853,7 @@ usage example:
 
 [*provisional*]
 
-Currently there's a rule against using non-owning scope pointers as function return values (enforced by the [`return_value()`](#return_value) function) due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the `xscope_chosen_pointer()` function instead.
-
-In essence, the `xscope_chosen_pointer()` function simply takes a bool and two scope pointers as input parameters and returns one of the pointers. If the bool is false then the first scope pointer is returned, otherwise the second is returned.
-
-So consider, for example, a "min" function that takes two scope pointers and returns a scope pointer to the lesser of the two target (scope) objects. The implementation of this function would be straightforward if returning non-owning scope pointers was permitted. The following example demonstrates the same functionality using `xscope_chosen_pointer()` instead. 
+For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted to be used as function return values. (The [`return_value()`](#return_value) function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be a "min(a, b)" function which takes two objects by reference and returns the reference to the lesser of the two objects. For these cases you could use the xscope_chosen() function which takes two objects of the same type (in this case it will be two scope pointers) and returns one of the objects (scope pointers), which one depending on the value of a given "decider" function. You could use this function to implement the equivalent of a min(a, b) function like so:
 
 ```cpp
     #include "msescope.h"
@@ -877,15 +873,11 @@ So consider, for example, a "min" function that takes two scope pointers and ret
         mse::TXScopeObj<A> a_scpobj(5);
         mse::TXScopeOwnerPointer<A> xscp_a_ownerptr(7);
     
-        /* Technically, you're not allowed to return a non-owning scope pointer from a function. (The return_value() function
-        wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer
-        is one of the input parameters. An example might be a "min(a, b)" function which takes two objects by reference and
-        returns the reference to the lesser of the two objects. The library provides the xscope_chosen_pointer() function
-        which takes a bool and two scope pointers, and returns one of the scope pointers depending on the value of the
-        bool. You could use this function to implement the equivalent of a min(a, b) function like so: */
         auto xscp_a_ptr5 = &a_scpobj;
         auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
-        auto xscp_min_ptr1 = mse::xscope_chosen_pointer((*xscp_a_ptr6 < *xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
+        const auto second_arg_is_smaller_fn = [](const auto xscp_a_ptr1, const auto xscp_a_ptr2) { return (*xscp_a_ptr2) < (*xscp_a_ptr1); };
+        auto xscp_min_ptr1 = mse::xscope_chosen(second_arg_is_smaller_fn, xscp_a_ptr5, xscp_a_ptr6);
+	/* xscp_min_ptr1 should be a copy of xscp_a_ptr5 */
         assert(5 == xscp_min_ptr1->b);
     }
 ```
