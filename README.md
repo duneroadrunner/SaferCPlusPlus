@@ -58,7 +58,7 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
     4. [xscope_ifptr_to()](#xscope_ifptr_to)
-    5. [xscope_chosen_pointer()](#xscope_chosen_pointer)
+    5. [xscope_chosen()](#xscope_chosen)
     6. [as_a_returnable_fparam()](#as_a_returnable_fparam)
     7. [as_an_fparam()](#as_an_fparam)
     8. [Conformance helpers](#conformance-helpers)
@@ -685,7 +685,7 @@ The rules for using scope pointers and objects are essentially as follows:
 	- In the uncommon cases that you really want to use a scope type as a base class/struct, the derived class/struct must itself be a scope type. User defined scope types must adhere to the [rules](#defining-your-own-scope-types) of scope types.
 - Do not use scope types as function return types.
 	- In the uncommon cases that you really want to use a scope type as a function return type, it must be wrapped in the [`mse::TXScopeReturnValue<>`](#return_value) transparent template wrapper.
-	- `mse::TXScopeReturnValue<>` will not accept non-owning scope pointer types. Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen_pointer()`](#xscope_chosen_pointer) function.
+	- `mse::TXScopeReturnValue<>` will not accept non-owning scope pointer types. Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen()`](#xscope_chosen) function.
 
 Again, currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. At some point the restrictions will be fully enforced at compile-time (either by the lifetime checker or a separate tool), but for now hopefully these rules are intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is premised on the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond the scope in which they are declared, so that a scope pointer cannot outlive its target scope object.
 
@@ -849,7 +849,7 @@ usage example:
     }
 ```
 
-### xscope_chosen_pointer()
+### xscope_chosen()
 
 [*provisional*]
 
