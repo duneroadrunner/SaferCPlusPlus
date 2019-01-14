@@ -1883,13 +1883,21 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	/* Just the generalization of xscope_chosen_pointer(). */
+	template<typename _TBoolFunction, typename _Ty, class... Args>
+	const auto& chosen(const _TBoolFunction& function1, const _Ty& a, const _Ty& b, Args&&... args) {
+		return function1(a, b, std::forward<Args>(args)...) ? b : a;
+	}
+	template<typename _TBoolFunction, typename _Ty, class... Args>
+	const auto& xscope_chosen(const _TBoolFunction& function1, const _Ty& a, const _Ty& b, Args&&... args) {
+		return chosen(function1, a, b, std::forward<Args>(args)...);
+	}
 	template<typename _Ty>
 	const auto& chosen(bool choose_the_second, const _Ty& a, const _Ty& b) {
 		return choose_the_second ? b : a;
 	}
 	template<typename _Ty>
 	const auto& xscope_chosen(bool choose_the_second, const _Ty& a, const _Ty& b) {
-		return choose_the_second ? b : a;
+		return chosen(choose_the_second, a, b);
 	}
 
 	/* shorter aliases */

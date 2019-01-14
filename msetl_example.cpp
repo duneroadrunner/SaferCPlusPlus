@@ -1198,16 +1198,18 @@ int main(int argc, char* argv[]) {
 		mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
 		A res7 = *xscp_cptr2;
 
-		/* Technically, you're not allowed to return a non-owning scope pointer (or any object containing a scope reference)
-		from a function. (The return_value() function wrapper enforces this.) Pretty much the only time you'd legitimately
-		want to do this is when the returned pointer is one of the input parameters. An example might be a "min(a, b)"
-		function which takes two objects by reference and returns the reference to the lesser of the two objects. The
-		library provides the xscope_chosen() function which takes a bool and two objects of the same type (in this case it
-		will be two scope pointers) and returns one of the objects (scope pointers), which one depending on the value of the
-		bool. You could use this function to implement the equivalent of a min(a, b) function like so: */
+		/* For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted
+		to be used as function return values. (The return_value() function wrapper enforces this.) Pretty much the only
+		time you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example
+		might be a "min(a, b)" function which takes two objects by reference and returns the reference to the lesser of
+		the two objects. For these cases you could use the xscope_chosen() function which takes two objects of the same
+		type (in this case it will be two scope pointers) and returns one of the objects (scope pointers), which one
+		depending on the value of a given "decider" function. You could use this function to implement the equivalent of
+		a min(a, b) function like so: */
 		auto xscp_a_ptr5 = &a_scpobj;
 		auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
-		auto xscp_min_ptr1 = mse::xscope_chosen((*xscp_a_ptr6 < *xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
+		const auto second_arg_is_smaller_fn = [](const auto xscp_a_ptr1, const auto xscp_a_ptr2) { return (*xscp_a_ptr2) < (*xscp_a_ptr1); };
+		auto xscp_min_ptr1 = mse::xscope_chosen(second_arg_is_smaller_fn, xscp_a_ptr5, xscp_a_ptr6);
 		assert(5 == xscp_min_ptr1->b);
 
 		{
