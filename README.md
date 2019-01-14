@@ -58,7 +58,7 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
     4. [xscope_ifptr_to()](#xscope_ifptr_to)
-    5. [xscope_chosen_pointer()](#xscope_chosen_pointer)
+    5. [xscope_chosen()](#xscope_chosen)
     6. [as_a_returnable_fparam()](#as_a_returnable_fparam)
     7. [as_an_fparam()](#as_an_fparam)
     8. [Conformance helpers](#conformance-helpers)
@@ -685,7 +685,7 @@ The rules for using scope pointers and objects are essentially as follows:
 	- In the uncommon cases that you really want to use a scope type as a base class/struct, the derived class/struct must itself be a scope type. User defined scope types must adhere to the [rules](#defining-your-own-scope-types) of scope types.
 - Do not use scope types as function return types.
 	- In the uncommon cases that you really want to use a scope type as a function return type, it must be wrapped in the [`mse::TXScopeReturnValue<>`](#return_value) transparent template wrapper.
-	- `mse::TXScopeReturnValue<>` will not accept non-owning scope pointer types. Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen_pointer()`](#xscope_chosen_pointer) function.
+	- `mse::TXScopeReturnValue<>` will not accept non-owning scope pointer types. Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen()`](#xscope_chosen) function.
 
 Again, currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. At some point the restrictions will be fully enforced at compile-time (either by the lifetime checker or a separate tool), but for now hopefully these rules are intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is premised on the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond the scope in which they are declared, so that a scope pointer cannot outlive its target scope object.
 
@@ -849,13 +849,11 @@ usage example:
     }
 ```
 
-### xscope_chosen_pointer()
+### xscope_chosen()
 
-Currently there's a rule against using non-owning scope pointers as function return values (enforced by the [`return_value()`](#return_value) function) due to the possibility of inadvertently returning an invalid pointer to a local scope object. You could imagine that this rule might be relaxed in the future when a static code analyzer becomes available to catch any attempts to return an invalid scope pointer. But in the meantime, when you feel the need to return a non-owning scope pointer, you can use the `xscope_chosen_pointer()` function instead.
+[*provisional*]
 
-In essence, the `xscope_chosen_pointer()` function simply takes a bool and two scope pointers as input parameters and returns one of the pointers. If the bool is false then the first scope pointer is returned, otherwise the second is returned.
-
-So consider, for example, a "min" function that takes two scope pointers and returns a scope pointer to the lesser of the two target (scope) objects. The implementation of this function would be straightforward if returning non-owning scope pointers was permitted. The following example demonstrates the same functionality using `xscope_chosen_pointer()` instead. 
+For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted to be used as function return values. (The [`return_value()`](#return_value) function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be a "min(a, b)" function which takes two objects by reference and returns the reference to the lesser of the two objects. For these cases you could use the xscope_chosen() function which takes two objects of the same type (in this case it will be two scope pointers) and returns one of the objects (scope pointers), which one depending on the value of a given "decider" function. You could use this function to implement the equivalent of a min(a, b) function like so:
 
 ```cpp
     #include "msescope.h"
@@ -875,24 +873,22 @@ So consider, for example, a "min" function that takes two scope pointers and ret
         mse::TXScopeObj<A> a_scpobj(5);
         mse::TXScopeOwnerPointer<A> xscp_a_ownerptr(7);
     
-        /* Technically, you're not allowed to return a non-owning scope pointer from a function. (The return_value() function
-        wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer
-        is one of the input parameters. An example might be a "min(a, b)" function which takes two objects by reference and
-        returns the reference to the lesser of the two objects. The library provides the xscope_chosen_pointer() function
-        which takes a bool and two scope pointers, and returns one of the scope pointers depending on the value of the
-        bool. You could use this function to implement the equivalent of a min(a, b) function like so: */
         auto xscp_a_ptr5 = &a_scpobj;
         auto xscp_a_ptr6 = &(*xscp_a_ownerptr);
-        auto xscp_min_ptr1 = mse::xscope_chosen_pointer((*xscp_a_ptr6 < *xscp_a_ptr5), xscp_a_ptr5, xscp_a_ptr6);
+        const auto second_arg_is_smaller_fn = [](const auto xscp_a_ptr1, const auto xscp_a_ptr2) { return (*xscp_a_ptr2) < (*xscp_a_ptr1); };
+        auto xscp_min_ptr1 = mse::xscope_chosen(second_arg_is_smaller_fn, xscp_a_ptr5, xscp_a_ptr6);
+	/* xscp_min_ptr1 should be a copy of xscp_a_ptr5 */
         assert(5 == xscp_min_ptr1->b);
     }
 ```
 
 ### as_a_returnable_fparam()
 
+[*provisional*]
+
 Another alternative if you want to return a scope pointer (or any object containing a scope reference) input parameter from a function is to wrap the parameter type with the `rsv::TXScopeReturnableFParam<>` transparent template wrapper when declaring the parameter. 
 
-Normally the [`return_value()`](#return_value) function wrapper will reject (with a compile error) scope pointers as unsafe return values. But if the scope pointer type is wrapped in the `rsv::TXScopeReturnableFParam<>` transparent template wrapper, then it will be accepted as a safe return value. Because it's generally safe to return a reference to an object if that reference was passed as an input parameter. Well, as long as the object is not a temporary one. So unlike with [`rsv::TXScopeFParam<>`](#as_an_fparam), scope reference types wrapped with `rsv::TXScopeReturnableFParam<>` will not enable support for references to temporaries, as returning a (scope) reference to a temporary would be unsafe even if the reference was passed as a function parameter. So for scope reference parameters you have to choose between being able to use it as a return value, or supporting references to temporaries. (Or neither.)
+Normally the [`return_value()`](#return_value) function wrapper will reject (with a compile error) scope pointers as unsafe return values. But if the scope pointer type is wrapped in the `rsv::TXScopeReturnableFParam<>` transparent template wrapper, then it will be accepted as a safe return value. Because it's generally safe to return a reference to an object if that reference was passed as an input parameter. Well, as long as the object is not a temporary one. So unlike with [`rsv::TXScopeFParam<>`](#as_an_fparam), scope reference types wrapped with `rsv::TXScopeReturnableFParam<>` will not enable support for (scope) references to temporaries, as returning a (scope) reference to a temporary could be unsafe even if the reference was passed as a function parameter. So for scope reference parameters you have to choose between being able to use it as a return value, or supporting references to temporaries. (Or neither.)
 
 In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the `rsv::TXScopeReturnableFParam<>` wrapper can interfere with that. In those cases you can instead convert parameters to their wrapped type after-the-fact using the `rsv::xscope_as_a_returnable_fparam()` function. Note that using this function (or the `rsv::TXScopeReturnableFParam<>` wrapper) on anything other than function parameters is unsafe, and currently there is no compile-time enforcement of this restriction.
 
@@ -974,6 +970,8 @@ void main(int argc, char* argv[]) {
 ```
 
 ### as_an_fparam()
+
+[*provisional*]
 
 `rsv::TFParam<>` is just a transparent template wrapper for function parameter declarations. In most cases use of this wrapper is not necessary, but in some cases it enables functionality only available to variables that are function parameters. Specifically, it allows functions to support arguments that are scope pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so in the case of function parameters, the `rsv::TFParam<>` wrapper enables certain scope pointer/reference types (like `TXScopeItemFixedPointer<>`, and "[random access section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" scope types) to be constructed from their "functionally disabled" counterparts.
 
@@ -1348,9 +1346,9 @@ usage example:
     
         /* And note that safe pointers to member elements need to be wrapped in an mse::TXScopeAnyPointer<> for
         mse::TXScopePolyPointer<> to accept them. */
-        auto b_member_a_refc_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_refcptr->b, a_refcptr));
-        auto b_member_a_reg_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_regobj.b, &a_regobj));
-        auto b_member_a_mstdvec_iter_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member(a_mstdvec_iter->b, a_mstdvec_iter));
+        auto b_member_a_refc_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(a_refcptr, &A::b));
+        auto b_member_a_reg_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(&a_regobj, &A::b));
+        auto b_member_a_mstdvec_iter_anyptr = mse::TXScopeAnyPointer<std::string>(mse::make_pointer_to_member_v2(a_mstdvec_iter, &A::b));
     
         {
             /* All of these safe pointer types happily convert to an mse::TXScopePolyPointer<>. */
@@ -1387,7 +1385,7 @@ usage example:
 These poly pointers do not support construction from scope pointers, and thus are not bound by the same usage restrictions. For example, these poly pointers may be used as a member of a class or struct.
 
 ### TXScopeAnyPointer, TXScopeAnyConstPointer, TAnyPointer, TAnyConstPointer
-"Any" pointers are also “chameleon” (type-erased) pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by [`make_pointer_to_member()`](#make_pointer_to_member) to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the [scope poly pointer](#txscopepolypointer-txscopepolyconstpointer) usage example.  
+"Any" pointers are also “chameleon” (type-erased) pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by [`make_pointer_to_member_v2()`](#make_pointer_to_member_v2) to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the [scope poly pointer](#txscopepolypointer-txscopepolyconstpointer) usage example.  
 
 "Any" pointers can also be used as function arguments. The choice between using poly pointers versus "any" pointers is similar to the choice between [`std::variant` and `std::any`](http://www.boost.org/doc/libs/1_63_0/doc/html/variant/misc.html#variant.versus-any). 
 
@@ -2690,7 +2688,7 @@ usage example:
                 mse::us::msearray<int, 3> m_array;
             };
             mse::TXScopeObj<CContainer1> container1_scpobj;
-            auto container1_m_array_scpptr = mse::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+            auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_array);
             auto scp_ss_citer4 = mse::make_xscope_begin_iterator(container1_m_array_scpptr);
             scp_ss_citer4++;
             auto res3 = *scp_ss_citer4;
@@ -2737,7 +2735,7 @@ usage example:
             mse::mstd::array<int, 3> m_array;
         };
         mse::TXScopeObj<CContainer1> container1_scpobj;
-        auto container1_m_array_scpptr = mse::mstd::make_pointer_to_member(container1_scpobj.m_array, &container1_scpobj);
+        auto container1_m_array_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_array);
         auto scp_iter4 = mse::mstd::make_xscope_begin_iterator(container1_m_array_scpptr);
         scp_iter4++;
         auto res3 = *scp_iter4;
