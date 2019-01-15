@@ -943,6 +943,14 @@ namespace mse {
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<class _Ty>
+		TFParam(_Ty)->TFParam<_Ty>;
+		template<class _Ty>
+		TFParam(TFParam<_Ty>)->TFParam<_Ty>;
+#endif /* MSE_HAS_CXX17 */
+
 		template<typename _Ty> using TXScopeFParam = TFParam<_Ty>;
 
 		namespace impl {
@@ -969,11 +977,11 @@ namespace mse {
 
 		template<typename _Ty>
 		auto as_an_fparam(const _Ty& param) -> decltype(impl::fparam::as_an_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, _Ty>::type(), param)) {
-			return impl::fparam::as_an_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, _Ty>::type(), param);
+			return impl::fparam::as_an_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, typename std::remove_reference<_Ty>::type>::type(), param);
 		}
 		template<typename _Ty>
 		auto as_an_fparam(_Ty&& param) {
-			return impl::fparam::as_an_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, _Ty>::type(), std::forward<_Ty>(param));
+			return impl::fparam::as_an_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, typename std::remove_reference<_Ty>::type>::type(), std::forward<_Ty>(param));
 		}
 
 		template<typename _Ty>
@@ -1084,6 +1092,14 @@ namespace mse {
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<class _Ty>
+		TReturnableFParam(_Ty)->TReturnableFParam<_Ty>;
+		template<class _Ty>
+		TReturnableFParam(TReturnableFParam<_Ty>)->TReturnableFParam<_Ty>;
+#endif /* MSE_HAS_CXX17 */
+
 		template<typename _Ty> using TXScopeReturnableFParam = TReturnableFParam<_Ty>;
 
 
@@ -1121,11 +1137,11 @@ namespace mse {
 
 		template<typename _Ty>
 		auto as_a_returnable_fparam(const _Ty& param) -> decltype(impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, _Ty>::type(), param)) {
-			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, _Ty>::type(), param);
+			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, typename std::remove_reference<_Ty>::type>::type(), param);
 		}
 		template<typename _Ty>
 		auto as_a_returnable_fparam(_Ty&& param) {
-			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, _Ty>::type(), std::forward<_Ty>(param));
+			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, typename std::remove_reference<_Ty>::type>::type(), std::forward<_Ty>(param));
 		}
 
 		template<typename _Ty>

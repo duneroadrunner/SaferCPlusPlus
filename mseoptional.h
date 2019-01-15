@@ -1514,6 +1514,7 @@ namespace mse {
 	};
 
 #ifdef MSE_HAS_CXX17
+	/* deduction guides */
 	template<class _Ty>
 	xscope_optional(_Ty)->xscope_optional<_Ty>;
 #endif /* MSE_HAS_CXX17 */
