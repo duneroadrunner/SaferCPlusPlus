@@ -853,7 +853,7 @@ usage example:
 
 [*provisional*]
 
-For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted to be used as function return values. (The [`return_value()`](#return_value) function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be a "min(a, b)" function which takes two objects by reference and returns the reference to the lesser of the two objects. For these cases you could use the xscope_chosen() function which takes two objects of the same type (in this case it will be two scope pointers) and returns one of the objects (scope pointers), which one depending on the value of a given "decider" function. You could use this function to implement the equivalent of a min(a, b) function like so:
+For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted to be used as function return values. (The [`return_value()`](#return_value) function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be a `min(a, b)` function which takes two objects by reference and returns the reference to the lesser of the two objects. For these cases you could use the `xscope_chosen()` function which takes two objects of the same type (in this case it will be two scope pointers) and returns one of the objects (scope pointers), which one depending on the value of a given "decider" function. You could use this function to implement the equivalent of a `min(a, b)` function like so:
 
 ```cpp
     #include "msescope.h"
@@ -894,7 +894,7 @@ In the case of function templates, sometimes you want the parameter types to be 
 
 `rsv::TReturnableFParam<>` and `rsv::as_a_returnable_fparam()` can be used for situations when the type of the input parameter is itself a template parameter and not necessarily always a scope type or treated as a scope type. 
 
-usage exmaple:
+usage example:
 
 ```cpp
 #include "msescope.h"
@@ -1037,7 +1037,7 @@ The safety of non-owning scope pointers is premised on the fact that they will n
 
 The `return_value()` function just returns its argument and verifies that it is of a type that is safe to return from a function (basically, doesn't contain any scope pointers). If not it will induce a compile error. Functions that do or could return scope types should wrap their return value with this function. 
 
-`TReturnValue<>` is a transparent template wrapper that verifies that the type is safe to use as a function return type. If not it will induce a compile error. Functions that do or could return scope types and do not use the `auto` return type should wrap their return type with this template. Alternatively, you can use `TXScopeReturnValue<>` which additionally ensures that the return type is a scope type. 
+`TReturnValue<>` is a transparent template wrapper that verifies that the type is safe to use as a function return type. If not it will induce a compile error. Functions that do or could return scope types and explicitly specify their return types (rather than just using the `auto` return type) should wrap their return type with this template. Alternatively, you can use `TXScopeReturnValue<>` which additionally ensures that the return type is a scope type. 
 
 usage example:
 
@@ -2092,7 +2092,7 @@ void main(int argc, char* argv[]) {
 
         /* Here we're using a (non-const) "xscope_passable_pointer" as the argument. The "const" version
         wouldn't be accepted because an "xscope_passable_const_pointer" is not an exclusive pointer. That is, 
-        it doesn't hold exclusive access to its target object. We could, for exmaple, have instead used an 
+        it doesn't hold exclusive access to its target object. We could, for example, have instead used an 
         exclusive pointer obtained directly from the "access controlled" object, a_xscpacobj1. */
 
         auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_aco_locker1.xscope_passable_pointer());
