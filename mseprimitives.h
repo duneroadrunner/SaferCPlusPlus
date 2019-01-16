@@ -8,7 +8,7 @@
 #ifndef MSEPRIMITIVES_H
 #define MSEPRIMITIVES_H
 
-#include <assert.h>
+#include <cassert>
 #include <climits>       // ULONG_MAX
 #include <limits>       // std::numeric_limits
 #include <stdexcept>      // primitives_range_error

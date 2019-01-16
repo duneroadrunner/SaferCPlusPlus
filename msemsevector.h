@@ -32,7 +32,7 @@
 
 #include "msemsearray.h"
 #include <vector>
-#include <assert.h>
+#include <cassert>
 #include <memory>
 #include <unordered_map>
 #include <functional>

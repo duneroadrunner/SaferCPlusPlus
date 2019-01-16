@@ -34,7 +34,7 @@
 #include "mseoptional.h"
 #include "msealgorithm.h"
 #include <array>
-#include <assert.h>
+#include <cassert>
 #include <memory>
 #include <unordered_map>
 #include <functional>
