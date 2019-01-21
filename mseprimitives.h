@@ -70,16 +70,20 @@ be done at run time, at significant cost. So by default we disable range checks 
 
 
 #ifndef MSE_CINT_BASE_INTEGER_TYPE
-#if SIZE_MAX <= UINT_MAX
+#if (SIZE_MAX <= UINT_MAX) ||(!defined(MSE_MATCH_CINT_SIZE_TO_CSIZE_T))
 #define MSE_CINT_BASE_INTEGER_TYPE int
-#else // SIZE_MAX <= INT_MAX
+#else // (SIZE_MAX <= UINT_MAX) ||(!defined(MSE_MATCH_CINT_SIZE_TO_CSIZE_T))
 #if SIZE_MAX <= ULONG_MAX
 #define MSE_CINT_BASE_INTEGER_TYPE long int
 #else // SIZE_MAX <= ULONG_MAX
 #define MSE_CINT_BASE_INTEGER_TYPE long long int
 #endif // SIZE_MAX <= ULONG_MAX
-#endif // SIZE_MAX <= INT_MAX
+#endif // (SIZE_MAX <= UINT_MAX) ||(!defined(MSE_MATCH_CINT_SIZE_TO_CSIZE_T))
 #endif // !MSE_CINT_BASE_INTEGER_TYPE
+
+#ifndef MSE_DEFAULT_INT_VALUE
+#define MSE_DEFAULT_INT_VALUE 0
+#endif // !MSE_DEFAULT_INT_VALUE
 
 #ifdef _MSC_VER
 #pragma warning( push )  
@@ -369,7 +373,7 @@ namespace mse {
 		class TIntBase1 {
 		public:
 			// Constructs zero.
-			TIntBase1() : m_val(0) {}
+			TIntBase1() : m_val(MSE_DEFAULT_INT_VALUE) {}
 
 			// Copy constructor
 			TIntBase1(const TIntBase1 &x) : m_val(x.m_val) { note_value_assignment(); };
@@ -643,7 +647,7 @@ namespace mse {
 		operator CNDInt() const { (*this).assert_initialized(); return CNDInt(m_val); }
 #ifndef MSVC2010_COMPATIBLE
 		explicit operator size_t() const { (*this).assert_initialized(); return (m_val); }
-		explicit operator typename CNDInt::base_int_type() const { (*this).assert_initialized(); return (m_val); }
+		explicit operator typename CNDInt::base_int_type() const { (*this).assert_initialized(); return CNDInt(m_val); }
 #endif /*MSVC2010_COMPATIBLE*/
 		//size_t as_a_size_t() const { (*this).assert_initialized(); return m_val; }
 
@@ -983,11 +987,19 @@ namespace mse {
 				szt4 = szt1 * szt2;
 				szt4 /= szt1;
 				szt4 = szt1 * szt2 / szt3;
+#ifndef MSEPRIMITIVES_H
 				CInt i11 = 19 + szt1;
 				CInt i12 = szt1 * i11;
 				i12 = szt1;
 				i12 = szt3 - szt1;
 				i12 = szt3 - i11;
+#else // !MSEPRIMITIVES_H
+				CInt i11 = 19 + CInt(szt1);
+				CInt i12 = CInt(szt1) * i11;
+				i12 = CInt(szt1);
+				i12 = CInt(szt3 - szt1);
+				i12 = CInt(szt3) - i11;
+#endif // !MSEPRIMITIVES_H
 				bool b3 = (szt1 < szt2);
 				b3 = (szt1 < 17);
 				b3 = (19 < szt1);

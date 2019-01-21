@@ -561,7 +561,6 @@ int main(int argc, char* argv[]) {
 
 		mse::self_test::CPrimitivesTest1::s_test1();
 
-#ifndef MSE_PRIMITIVES_DISABLED
 		{
 			size_t number_of_security_credits = 0;
 			number_of_security_credits += 5;
@@ -578,7 +577,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		{
-			mse::CSize_t number_of_security_credits = 0;
+			mse::CNDSize_t number_of_security_credits = 0;
 			number_of_security_credits += 5;
 			int minimum_number_of_security_credits_required_for_access = 7;
 			bool access_granted = false;
@@ -594,8 +593,8 @@ int main(int argc, char* argv[]) {
 		{
 			size_t number_of_security_credits = 0;
 			number_of_security_credits += 5;
-			mse::CInt minimum_number_of_security_credits_required_for_access = 7;
-			mse::CBool access_granted = false;
+			mse::CNDInt minimum_number_of_security_credits_required_for_access = 7;
+			mse::CNDBool access_granted = false;
 			if (number_of_security_credits - minimum_number_of_security_credits_required_for_access >= 0) {
 				access_granted = true;
 				assert(false);
@@ -604,20 +603,18 @@ int main(int argc, char* argv[]) {
 				access_granted = false; /* this works too */
 			}
 		}
-#endif // !MSE_PRIMITIVES_DISABLED
 
 		mse::CSize_t mse_szt1 = 0;
 		/* size_t szt2 = mse_szt1; */ /* This wouldn't compile. */
-#ifdef MSVC2010_COMPATIBLE
 		size_t szt1 = mse::as_a_size_t(mse_szt1); /* We exclude automatic conversion from mse::CSize_t to size_t because we
 													 consider size_t an intrinsically error prone type. */
-#else /*MSVC2010_COMPATIBLE*/
-		size_t szt1 = static_cast<size_t>(mse_szt1); /* We exclude automatic conversion from mse::CSize_t to size_t because we
+#ifndef MSVC2010_COMPATIBLE
+		size_t szt2 = static_cast<size_t>(mse_szt1); /* We exclude automatic conversion from mse::CSize_t to size_t because we
 													 consider size_t an intrinsically error prone type. */
-#endif /*MSVC2010_COMPATIBLE*/
+#endif // !MSVC2010_COMPATIBLE
 
 		try {
-			mse::CSize_t mse_szt2 = 0;
+			mse::CNDSize_t mse_szt2 = 0;
 			mse_szt2 = -3;
 		}
 		catch (...) {
