@@ -1899,8 +1899,8 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRefCountingOrXScopeFixedPointer(const TRefCountingPointer<_Ty2>& src_cref) : TXScopePolyPointer<_Ty>(TRefCountingPointer<_Ty>(src_cref)) {}
 		TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TXScopePolyPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopePolyPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
+		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		//TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopePolyPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
 		virtual ~TRefCountingOrXScopeFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return std::addressof((*this).operator*()); }
@@ -1935,8 +1935,8 @@ namespace mse {
 #ifndef MSE_SCOPEPOINTER_DISABLED
 		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
 #endif // !MSE_SCOPEPOINTER_DISABLED
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopePolyConstPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
+		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		//TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopePolyConstPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
 		virtual ~TRefCountingOrXScopeFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return std::addressof((*this).operator*()); }
@@ -2146,9 +2146,9 @@ namespace mse {
 						mse::TXScopeObj<D> d_xscpobj(7);
 						D d_obj(11);
 						int res11 = B::foo1(D_refcfp);
-						int res12 = B::foo1(&d_xscpobj);
+						int res12 = B::foo1(mse::TXScopeItemFixedPointer<D>(&d_xscpobj));
 						int res13 = B::foo2(D_refcfp);
-						int res14 = B::foo2(&d_xscpobj);
+						int res14 = B::foo2(mse::TXScopeItemFixedPointer<D>(&d_xscpobj));
 					}
 
 					{
@@ -2165,9 +2165,7 @@ namespace mse {
 						mse::TXScopeObj<D> d_xscpobj(7);
 						D d_obj(11);
 						int res11 = B::foo7(D_refcfp);
-						int res12 = B::foo7(&d_xscpobj);
 						int res13 = B::foo8(D_refcfp);
-						int res14 = B::foo8(&d_xscpobj);
 
 						int res21 = B::foo3(A_refcfp);
 						int res22 = B::foo3(&a_xscpobj);
@@ -2177,10 +2175,8 @@ namespace mse {
 						int res26 = B::foo4(&a_obj);
 
 						int res31 = B::foo3(D_refcfp);
-						int res32 = B::foo3(&d_xscpobj);
 						int res33 = B::foo3(&d_obj);
 						int res34 = B::foo4(D_refcfp);
-						int res35 = B::foo4(&d_xscpobj);
 						int res36 = B::foo4(&d_obj);
 
 						auto A_shp = std::make_shared<A>(5);
