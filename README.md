@@ -278,10 +278,10 @@ usage example:
 Note that using `mse::registered_delete()` to delete an object through a base class pointer will result in a failed assert / thrown exception. In such cases use (the not quite as safe) `mse::us::registered_delete()` instead.
 
 ### TRegisteredNotNullPointer
-Same as `TRegisteredPointer<>`, but cannot be constructed to a null value. Note that `TRegisteredPointer<>` does not implicitly convert to `TRegisteredNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function.
+`TRegisteredNotNullPointer<>` is a version of `TRegisteredPointer<>` that cannot be constructed to a null value. Note that `TRegisteredPointer<>` does not implicitly convert to `TRegisteredNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function.
 
 ### TRegisteredFixedPointer
-Same as `TRegisteredNotNullPointer<>`, but cannot be retargeted after construction (basically a "`const TRegisteredNotNullPointer<>`"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.  
+`TRegisteredFixedPointer<>` is a version of `TRegisteredNotNullPointer<>` that cannot be retargeted after construction (basically a "`const TRegisteredNotNullPointer<>`"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.  
 
 usage example:
 
@@ -433,7 +433,7 @@ usage example:
 
 ### TNoradNotNullPointer
 
-Same as `TNoradPointer<>`, but cannot be constructed to or assigned a null value. Because a `TNoradNotNullPointer<>` cannot outlive its target, it should be always safe to assume that it points to a validly allocated object. Note that `TNoradPointer<>` does not implicitly convert to `TNoradNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function. 
+`TNoradNotNullPointer<>` is a version of `TNoradPointer<>` that cannot be constructed to or assigned a null value. Because a `TNoradNotNullPointer<>` cannot outlive its target, it should be always safe to assume that it points to a validly allocated object. Note that `TNoradPointer<>` does not implicitly convert to `TNoradNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function. 
 
 #### TNoradFixedPointer
 
@@ -450,38 +450,38 @@ Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks 
 
 Pointer Type | Time
 ------------ | ----
-native pointer (stack) | 0.0485738 seconds
-[mse::TCRegisteredPointer](#tcregisteredpointer) (stack) | 0.0569635 seconds
-[mse::TRegisteredPointer](#tregisteredpointer) (stack) | 0.0576867 seconds
-[mse::TNoradPointer](#tnoradpointer) (stack) | 0.0587024 seconds
-native pointer (heap) | 0.383851 seconds
-mse::TNoradPointer (heap) | 0.393733 seconds
-[mse::TRefCountingPointer](#trefcountingpointer) (heap) | 0.402218 seconds
-mse::TCRegisteredPointer (heap) | 0.413688 seconds
-mse::TRegisteredPointer (heap) | 0.417414 seconds
-std::shared_ptr (heap) | 0.523811 seconds
+native pointer (stack) | 0.049 seconds
+[mse::TCRegisteredPointer](#tcregisteredpointer) (stack) | 0.057 seconds
+[mse::TRegisteredPointer](#tregisteredpointer) (stack) | 0.058 seconds
+[mse::TNoradPointer](#tnoradpointer) (stack) | 0.059 seconds
+native pointer (heap) | 0.384 seconds
+mse::TNoradPointer (heap) | 0.394 seconds
+[mse::TRefCountingPointer](#trefcountingpointer) (heap) | 0.402 seconds
+mse::TCRegisteredPointer (heap) | 0.414 seconds
+mse::TRegisteredPointer (heap) | 0.417 seconds
+std::shared_ptr (heap) | 0.524 seconds
 
 #### Pointer declaration, copy and assignment:
 
 Pointer Type | Time
 ------------ | ----
-native pointer | 0.0456077 seconds
-mse::TRefCountingPointer | 0.0903483 seconds
-mse::TNoradPointer | 0.119298 seconds
-mse::TRegisteredPointer | 0.144783 seconds
-mse::TCRegisteredPointer | 0.160014 seconds
-std::shared_ptr | 0.284371 seconds
+native pointer | 0.046 seconds
+mse::TRefCountingPointer | 0.090 seconds
+mse::TNoradPointer | 0.119 seconds
+mse::TRegisteredPointer | 0.145 seconds
+mse::TCRegisteredPointer | 0.160 seconds
+std::shared_ptr | 0.284 seconds
 
 #### Dereferencing:
 
 Pointer Type | Time
 ------------ | ----
-native pointer | 0.106426 seconds
-native pointer + nullptr check | 0.106528 seconds
-mse::TNoradPointer | 0.15955 seconds
-mse::TCRegisteredPointer | 0.161569 seconds
-mse::TRefCountingPointer | 0.219779 seconds
-std::weak_ptr | 1.36357 seconds
+native pointer | 0.106 seconds
+native pointer + nullptr check | 0.107 seconds
+mse::TNoradPointer | 0.160 seconds
+mse::TCRegisteredPointer | 0.162 seconds
+mse::TRefCountingPointer | 0.220 seconds
+std::weak_ptr | 1.364 seconds
 
 Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But they give you a rough idea of the relative performances.
 
