@@ -2587,6 +2587,8 @@ namespace mse {
 	private:
 		xscope_thread(xscope_thread&& _Other) _NOEXCEPT : base_class(std::forward<base_class>(_Other)) {}
 
+		void detach() { base_class::detach(); }
+
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		friend class xscope_thread_carrier;
 	};
