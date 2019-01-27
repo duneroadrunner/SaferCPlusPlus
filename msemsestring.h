@@ -3673,6 +3673,7 @@ namespace mse {
 		}
 		template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator_v<_Iter> >::type>
 		nii_basic_string& assign(const _Iter _First, const _Iter _Last) {
+			smoke_check_source_iterators(_First, _Last);
 			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.assign(_First, _Last);
 			//m_debug_size = size();
@@ -3750,12 +3751,18 @@ namespace mse {
 
 
 		template<class _Iter>
-		static void smoke_check_source_iterators_helper(std::true_type, const nii_basic_string& target_cref, const _Iter& _First, const _Iter& _Last) {
+		static void smoke_check_source_iterators_helper(std::true_type, const _Iter& _First, const _Iter& _Last) {
 			if (_Last < _First)/*comparison operations should also verify that safe iterators point to the same container*/ {
 				MSE_THROW(nii_basic_string_range_error("invalid arguments - void smoke_check_source_iterators() const - nii_basic_string"));
 			}
-			else if (!(target_cref.empty())) {
+		}
+		template<class _Iter>
+		static void smoke_check_source_iterators_helper(std::false_type, const _Iter&, const _Iter&) {}
+
+		template<class _Iter>
+		static void smoke_check_source_iterators(const nii_basic_string& target_cref, const _Iter& _First, const _Iter& _Last) {
 #ifndef MSE_NII_BASIC_STRING_SUPRESS_SOURCE_ITER_ALIAS_CHECK
+			if (!(target_cref.empty())) {
 				/* check if the source sequence is part of target (target) container */
 				auto start_of_target_ptr = std::addressof(*(target_cref.cbegin()));
 				auto end_of_target_ptr = std::addressof(*(target_cref.cend() - 1)) + 1;
@@ -3763,27 +3770,17 @@ namespace mse {
 				if ((end_of_target_ptr > _First_ptr) && (start_of_target_ptr <= _First_ptr)) {
 					MSE_THROW(nii_basic_string_range_error("invalid arguments - void smoke_check_source_iterators() const - nii_basic_string"));
 				}
-#endif // !MSE_NII_BASIC_STRING_SUPRESS_SOURCE_ITER_ALIAS_CHECK
 			}
-		}
-		template<class _Iter>
-		static void smoke_check_source_iterators_helper(std::false_type, const nii_basic_string&, const _Iter&, const _Iter&) {}
+#endif // !MSE_NII_BASIC_STRING_SUPRESS_SOURCE_ITER_ALIAS_CHECK
 
-#ifndef MSE_SUPRESS_ITERATOR_SMOKE_CHECK
-		template<class _Iter>
-		static void smoke_check_source_iterators(const nii_basic_string& target_cref, const _Iter& _First, const _Iter& _Last) {
-			smoke_check_source_iterators_helper(typename mse::impl::HasOrInheritsLessThanOperator_msemsevector<_Iter>::type(), target_cref, _First, _Last);
+#ifdef MSE_NII_BASIC_STRING_ENABLE_SOURCE_ITER_ORDER_CHECK
+			smoke_check_source_iterators_helper(typename mse::impl::HasOrInheritsLessThanOperator_msemsebasic_string<_Iter>::type(), _First, _Last);
+#endif // MSE_NII_BASIC_STRING_ENABLE_SOURCE_ITER_ORDER_CHECK
 		}
 		template<class _Iter>
 		void smoke_check_source_iterators(const _Iter& _First, const _Iter& _Last) {
 			smoke_check_source_iterators(*this, _First, _Last);
 		}
-#else // !MSE_SUPRESS_ITERATOR_SMOKE_CHECK
-		template<class _Iter>
-		static void smoke_check_source_iterators(const nii_basic_string& target_cref, const _Iter&, const _Iter&) {}
-		template<class _Iter>
-		void smoke_check_source_iterators(const _Iter&, const _Iter&) {}
-#endif // !MSE_SUPRESS_ITERATOR_SMOKE_CHECK
 
 
 		template<class ..._Valty>
@@ -3973,7 +3970,7 @@ namespace mse {
 		template<class _Iter
 			//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename std_basic_string::iterator>::type
 			, class = mse::impl::_mse_RequireInputIter<_Iter> >
-			ss_iterator_type insert_before(const ss_const_iterator_type &pos, const _Iter &start, const _Iter &end) {
+		ss_iterator_type insert_before(const ss_const_iterator_type &pos, const _Iter &start, const _Iter &end) {
 			if (pos.m_owner_cptr != this) { MSE_THROW(nii_basic_string_range_error("invalid argument - ss_iterator_type insert_before() - nii_basic_string")); }
 			//if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(nii_basic_string_range_error("invalid arguments - void insert_before(const ss_const_iterator_type &pos, const ss_const_iterator_type &start, const ss_const_iterator_type &end) - nii_basic_string")); }
 			pos.assert_valid_index();
@@ -4195,7 +4192,6 @@ namespace mse {
 		template<typename _TBasicStringPointer1, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
 		static auto insert(_TBasicStringPointer1 this_ptr, size_type pos, const _Iter& _First, const _Iter& _Last) {
 			s_assert_valid_index(this_ptr, pos);
-			smoke_check_source_iterators(*this_ptr, _First, _Last);
 			msev_size_t original_pos = pos;
 			typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
 			(*this_ptr).insert(_P, _First, _Last);
@@ -4466,6 +4462,7 @@ namespace mse {
 		}
 		template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator_v<_Iter> >::type>
 		nii_basic_string& append(const _Iter _First, const _Iter _Last) {
+			smoke_check_source_iterators(_First, _Last);
 			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			m_basic_string.append(_First, _Last);
 			//m_debug_size = size();
@@ -4719,6 +4716,7 @@ namespace mse {
 
 		template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value>::type>
 		nii_basic_string& replace(const size_type _Off, const size_type _N0, const _Iter _First2, const _Iter _Last2) {
+			smoke_check_source_iterators(_First2, _Last2);
 			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			if (m_basic_string.size() <= (mse::msev_as_a_size_t(_Off) + mse::msev_as_a_size_t(_N0))) { throw(std::out_of_range(" nii_basic_string::replace() ")); }
 			auto iter1 = m_basic_string.begin() + mse::msev_as_a_size_t(_Off);
@@ -5128,7 +5126,8 @@ namespace mse {
 		template<class _Iter
 			//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename std_basic_string::iterator>::type
 			, class = mse::impl::_mse_RequireInputIter<_Iter> >
-			typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _Where, const _Iter& _First, const _Iter& _Last) {	// insert [_First, _Last) at _Where
+		typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _Where, const _Iter& _First, const _Iter& _Last) {	// insert [_First, _Last) at _Where
+			smoke_check_source_iterators(_First, _Last);
 			std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 			auto retval = m_basic_string.insert(_Where, _First, _Last);
 			/*m_debug_size = size();*/

@@ -942,12 +942,20 @@ namespace mse {
 			/*m_debug_size = size();*/
 		}
 
+
 		template<class _Iter>
-		static void smoke_check_source_iterators_helper(std::true_type, const nii_vector& target_cref, const _Iter& _First, const _Iter& _Last) {
+		static void smoke_check_source_iterators_helper(std::true_type, const _Iter& _First, const _Iter& _Last) {
 			if (_Last < _First)/*comparison operations should also verify that safe iterators point to the same container*/ {
 				MSE_THROW(nii_vector_range_error("invalid arguments - void smoke_check_source_iterators() const - nii_vector"));
-			} else if (!(target_cref.empty())) {
+			}
+		}
+		template<class _Iter>
+		static void smoke_check_source_iterators_helper(std::false_type, const _Iter&, const _Iter&) {}
+
+		template<class _Iter>
+		static void smoke_check_source_iterators(const nii_vector& target_cref, const _Iter& _First, const _Iter& _Last) {
 #ifndef MSE_NII_VECTOR_SUPRESS_SOURCE_ITER_ALIAS_CHECK
+			if (!(target_cref.empty())) {
 				/* check if the source sequence is part of target (target) container */
 				auto start_of_target_ptr = std::addressof(*(target_cref.cbegin()));
 				auto end_of_target_ptr = std::addressof(*(target_cref.cend() - 1)) + 1;
@@ -955,27 +963,17 @@ namespace mse {
 				if ((end_of_target_ptr > _First_ptr) && (start_of_target_ptr <= _First_ptr)) {
 					MSE_THROW(nii_vector_range_error("invalid arguments - void smoke_check_source_iterators() const - nii_vector"));
 				}
-#endif // !MSE_NII_VECTOR_SUPRESS_SOURCE_ITER_ALIAS_CHECK
 			}
-		}
-		template<class _Iter>
-		static void smoke_check_source_iterators_helper(std::false_type, const nii_vector&, const _Iter&, const _Iter&) {}
+#endif // !MSE_NII_VECTOR_SUPRESS_SOURCE_ITER_ALIAS_CHECK
 
-#ifndef MSE_SUPRESS_ITERATOR_SMOKE_CHECK
-		template<class _Iter>
-		static void smoke_check_source_iterators(const nii_vector& target_cref, const _Iter& _First, const _Iter& _Last) {
-			smoke_check_source_iterators_helper(typename mse::impl::HasOrInheritsLessThanOperator_msemsevector<_Iter>::type(), target_cref, _First, _Last);
+#ifdef MSE_NII_VECTOR_ENABLE_SOURCE_ITER_ORDER_CHECK
+			smoke_check_source_iterators_helper(typename mse::impl::HasOrInheritsLessThanOperator_msemsevector<_Iter>::type(), _First, _Last);
+#endif // MSE_NII_VECTOR_ENABLE_SOURCE_ITER_ORDER_CHECK
 		}
 		template<class _Iter>
 		void smoke_check_source_iterators(const _Iter& _First, const _Iter& _Last) {
 			smoke_check_source_iterators(*this, _First, _Last);
 		}
-#else // !MSE_SUPRESS_ITERATOR_SMOKE_CHECK
-		template<class _Iter>
-		static void smoke_check_source_iterators(const nii_vector& target_cref, const _Iter&, const _Iter&) {}
-		template<class _Iter>
-		void smoke_check_source_iterators(const _Iter&, const _Iter&) {}
-#endif // !MSE_SUPRESS_ITERATOR_SMOKE_CHECK
 
 
 		template<class ..._Valty>
@@ -1384,7 +1382,6 @@ namespace mse {
 		template<typename _TVectorPointer1, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
 		static auto insert(_TVectorPointer1 this_ptr, size_type pos, const _Iter& _First, const _Iter& _Last) {
 			s_assert_valid_index(this_ptr, pos);
-			smoke_check_source_iterators(*this_ptr, _First, _Last);
 			msev_size_t original_pos = pos;
 			typename std_vector::const_iterator _P = (*this_ptr).m_vector.cbegin() + difference_type(pos);
 			(*this_ptr).insert(_P, _First, _Last);
