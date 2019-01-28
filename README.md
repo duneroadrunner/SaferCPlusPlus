@@ -84,7 +84,8 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
         2. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
         3. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
         4. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
-        5. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
+        5. [TAsyncSharedV2AtomicFixedPointer](#tasyncsharedv2atomicfixedpointer)
+        6. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
     5. [Scope threads](#scope-threads)
         1. [access controlled objects](#access-controlled-objects)
         2. [xscope_thread_carrier](#xscope_thread_carrier)
@@ -1562,7 +1563,7 @@ And currently, any type declared as safely shareable must also satisfy the crite
 
 (Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
 
-usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
+usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
 
 ### TAsyncSharedV2ReadWriteAccessRequester
 
@@ -1576,15 +1577,20 @@ Note that while a "write-lock" pointer will not simultaneously co-exist with any
 
 One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. The access requesters detect these situations, and will throw an exception (or whatever user-specified behavior) when they occur.
 
-usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
+usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
 
 ### TAsyncSharedV2ReadOnlyAccessRequester
 Same as `TAsyncSharedV2ReadWriteAccessRequester<>`, but only supports `readlock_ptr()`, not `writelock_ptr()`. You can use the `mse::make_asyncsharedv2readonly<>()` function to obtain a `TAsyncSharedV2ReadOnlyAccessRequester<>`. `TAsyncSharedV2ReadOnlyAccessRequester<>` can also be copy constructed from a `TAsyncSharedV2ReadWriteAccessRequester<>`.
 
-usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
+usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
 
 ### TAsyncSharedV2ImmutableFixedPointer
 In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases you can use `TAsyncSharedV2ImmutableFixedPointer<>`, which can be thought of as sort of a safer version of `std::shared_ptr<>`. Use the `mse::make_asyncsharedv2immutable<>()` function to obtain a `TAsyncSharedV2ImmutableFixedPointer<>`.
+
+usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
+
+### TAsyncSharedV2AtomicFixedPointer
+Atomic objects also don't require access control. Use the `make_asyncsharedv2atomic<>()` function to obtain a `TAsyncSharedV2AtomicFixedPointer<>`.
 
 usage example:
 
@@ -1647,6 +1653,11 @@ void main(int argc, char* argv[]) {
 		static int foo2(mse::TAsyncSharedV2ImmutableFixedPointer<ShareableA> A_immptr) {
 			return A_immptr->b;
 		}
+		static int foo3(mse::TAsyncSharedV2AtomicFixedPointer<int> int_atomic_ptr) {
+			(*int_atomic_ptr) += 1;
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			return *int_atomic_ptr;
+		}
 	protected:
 		~B() {}
 	};
@@ -1671,7 +1682,7 @@ void main(int argc, char* argv[]) {
 			auto ptr2 = ash_access_requester.writelock_ptr();
 		}
 
-		std::list<std::future<double>> futures;
+		std::list<mse::mstd::future<double>> futures;
 		for (size_t i = 0; i < 3; i += 1) {
 			futures.emplace_back(mse::mstd::async(B::foo1, ash_access_requester));
 		}
@@ -1688,7 +1699,7 @@ void main(int argc, char* argv[]) {
 		auto ash_access_requester = mse::make_asyncsharedv2readonly<ShareableA>(7);
 		int res1 = ash_access_requester.readlock_ptr()->b;
 
-		std::list<std::future<double>> futures;
+		std::list<mse::mstd::future<double>> futures;
 		for (size_t i = 0; i < 3; i += 1) {
 			futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
 		}
@@ -1717,7 +1728,7 @@ void main(int argc, char* argv[]) {
 		int res1 = A_immptr->b;
 		std::shared_ptr<const ShareableA> A_shptr(A_immptr);
 
-		std::list<std::future<int>> futures;
+		std::list<mse::mstd::future<int>> futures;
 		for (size_t i = 0; i < 3; i += 1) {
 			futures.emplace_back(mse::mstd::async(B::foo2, A_immptr));
 		}
@@ -1727,6 +1738,21 @@ void main(int argc, char* argv[]) {
 		}
 
 		auto A_b_safe_cptr = mse::make_const_pointer_to_member(A_immptr->b, A_immptr);
+	}
+	{
+		/* For scenarios where the shared object is atomic, you can get away without using locks
+		or access requesters. */
+		auto int_atomic_ptr = mse::make_asyncsharedv2atomic<int>(5);
+		int res1 = (*int_atomic_ptr);
+
+		std::list<mse::mstd::future<int>> futures;
+		for (size_t i = 0; i < 3; i += 1) {
+			futures.emplace_back(mse::mstd::async(B::foo3, int_atomic_ptr));
+		}
+		int count = 1;
+		for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+			int res2 = (*it).get();
+		}
 	}
 	{
 		/* mse::TAsyncSharedV2ReadWriteAccessRequester's flexibilty in allowing coexisting read and write lock
