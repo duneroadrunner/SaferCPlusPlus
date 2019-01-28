@@ -1276,6 +1276,11 @@ void msetl_example2() {
 			static int foo2(mse::TAsyncSharedV2ImmutableFixedPointer<ShareableA> A_immptr) {
 				return A_immptr->b;
 			}
+			static int foo3(mse::TAsyncSharedV2AtomicFixedPointer<int> int_atomic_ptr) {
+				(*int_atomic_ptr) += 1;
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				return *int_atomic_ptr;
+			}
 		protected:
 			~B() {}
 		};
@@ -1300,7 +1305,7 @@ void msetl_example2() {
 				auto ptr2 = ash_access_requester.writelock_ptr();
 			}
 
-			std::list<std::future<double>> futures;
+			std::list<mse::mstd::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
 				futures.emplace_back(mse::mstd::async(B::foo1, ash_access_requester));
 			}
@@ -1317,7 +1322,7 @@ void msetl_example2() {
 			auto ash_access_requester = mse::make_asyncsharedv2readonly<ShareableA>(7);
 			int res1 = ash_access_requester.readlock_ptr()->b;
 
-			std::list<std::future<double>> futures;
+			std::list<mse::mstd::future<double>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
 				futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
 			}
@@ -1346,7 +1351,7 @@ void msetl_example2() {
 			int res1 = A_immptr->b;
 			std::shared_ptr<const ShareableA> A_shptr(A_immptr);
 
-			std::list<std::future<int>> futures;
+			std::list<mse::mstd::future<int>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
 				futures.emplace_back(mse::mstd::async(B::foo2, A_immptr));
 			}
@@ -1356,6 +1361,21 @@ void msetl_example2() {
 			}
 
 			auto A_b_safe_cptr = mse::make_const_pointer_to_member_v2(A_immptr, &A::b);
+		}
+		{
+			/* For scenarios where the shared object is atomic, you can get away without using locks
+			or access requesters. */
+			auto int_atomic_ptr = mse::make_asyncsharedv2atomic<int>(5);
+			int res1 = (*int_atomic_ptr);
+
+			std::list<mse::mstd::future<int>> futures;
+			for (size_t i = 0; i < 3; i += 1) {
+				futures.emplace_back(mse::mstd::async(B::foo3, int_atomic_ptr));
+			}
+			int count = 1;
+			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+				int res2 = (*it).get();
+			}
 		}
 		{
 			/* mse::TAsyncSharedV2ReadWriteAccessRequester's flexibilty in allowing coexisting read and write lock

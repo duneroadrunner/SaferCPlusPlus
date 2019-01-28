@@ -17,6 +17,7 @@
 #endif // !MSE_ASYNCSHARED_NO_XSCOPE_DEPENDENCE
 #include <shared_mutex>
 #include <thread>
+#include <atomic>
 #include <unordered_map>
 #include <cassert>
 #include <stdexcept>
@@ -1276,11 +1277,9 @@ namespace mse {
 		/* If the target type is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		template<class _target_type2 = target_type, class = typename std::enable_if<(std::is_same<_target_type2, target_type>::value) && (
-			(std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msemsearray<_target_type2>::Has>())
-			|| (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_target_type2>::Has>())
-			), void>::type>
-			void valid_if_target_type_is_marked_as_xscope_shareable() const {}
+		template<class _target_type2 = target_type, class = typename std::enable_if<(std::is_same<_target_type2, target_type>::value)
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_target_type2>::value), void>::type>
+		void valid_if_target_type_is_marked_as_xscope_shareable() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
@@ -1351,7 +1350,7 @@ namespace mse {
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
 		template<class _target_type2 = target_type, class = typename std::enable_if<(std::is_same<_target_type2, target_type>::value) && (
-			(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_target_type2>::Has>())), void>::type>
+			mse::impl::is_marked_as_shareable_msemsearray<_target_type2>::value), void>::type>
 		void valid_if_target_type_is_marked_as_shareable() const {}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -1630,11 +1629,9 @@ namespace mse {
 		/* If the target type is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		template<class _target_type2 = target_type, class = typename std::enable_if<(std::is_same<_target_type2, target_type>::value) && (
-			(std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msemsearray<_target_type2>::Has>())
-			|| (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_target_type2>::Has>())
-			), void>::type>
-			void valid_if_target_type_is_marked_as_xscope_shareable() const {}
+		template<class _target_type2 = target_type, class = typename std::enable_if<(std::is_same<_target_type2, target_type>::value)
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_target_type2>::value), void>::type>
+		void valid_if_target_type_is_marked_as_xscope_shareable() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
@@ -1686,7 +1683,7 @@ namespace mse {
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
 		template<class _target_type2 = target_type, class = typename std::enable_if<(std::is_same<_target_type2, target_type>::value) && (
-			(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_target_type2>::Has>())), void>::type>
+			mse::impl::is_marked_as_shareable_msemsearray<_target_type2>::value), void>::type>
 			void valid_if_target_type_is_marked_as_shareable() const {}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -1750,7 +1747,7 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value, void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
@@ -1794,7 +1791,7 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value, void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
@@ -1841,10 +1838,8 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
-			(std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())
-			|| (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())
-			), void>::type>
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value), void>::type>
 		void valid_if_Ty_is_marked_as_xscope_shareable() const {}
 
 		TXScopeAsyncSharedV2ACOReadWriteAccessRequester(_TExclusiveWritePointer&& xwptr)
@@ -1903,7 +1898,7 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()), void>::type>
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value, void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
@@ -1932,6 +1927,74 @@ namespace mse {
 		return TXScopeAsyncSharedV2ImmutableFixedStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
+
+
+	/* For situations where the shared object is atomic, you don't need locks or access requesters. */
+	template<typename _Ty>
+	class TAsyncSharedV2AtomicFixedPointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullTagBase {
+	public:
+		TAsyncSharedV2AtomicFixedPointer(const TAsyncSharedV2AtomicFixedPointer& src_cref) = default;
+		virtual ~TAsyncSharedV2AtomicFixedPointer() {
+			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+			//valid_if_Ty_is_marked_as_shareable();
+			mse::impl::T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
+			valid_if_Ty_is_not_an_xscope_type();
+		}
+
+		operator bool() const {
+			return m_shptr.operator bool();
+		}
+		auto& operator*() const {
+			return (*m_shptr);
+		}
+		auto operator->() const {
+			return std::addressof(*m_shptr);
+		}
+
+		/* This operator is just for compatibility with existing/legacy code. */
+		explicit operator std::shared_ptr<std::atomic<_Ty> >() const { return m_shptr; }
+
+		template <class... Args>
+		static TAsyncSharedV2AtomicFixedPointer make(Args&&... args) {
+			return TAsyncSharedV2AtomicFixedPointer(std::make_shared<std::atomic<_Ty> >(std::forward<Args>(args)...));
+		}
+
+		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
+	private:
+		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
+		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
+		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value, void>::type>
+		void valid_if_Ty_is_marked_as_shareable() const {}
+
+		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
+		(intended) compile error. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value), void>::type>
+		void valid_if_Ty_is_not_an_xscope_type() const {}
+
+		TAsyncSharedV2AtomicFixedPointer(std::shared_ptr<std::atomic<_Ty> > shptr) : m_shptr(shptr) {}
+		TAsyncSharedV2AtomicFixedPointer<_Ty>& operator=(const TAsyncSharedV2AtomicFixedPointer<_Ty>& _Right_cref) = delete;
+
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		std::shared_ptr<std::atomic<_Ty> > m_shptr;
+	};
+
+	template <class X, class... Args>
+	TAsyncSharedV2AtomicFixedPointer<X> make_asyncsharedv2atomic(Args&&... args) {
+		return TAsyncSharedV2AtomicFixedPointer<X>::make(std::forward<Args>(args)...);
+	}
+
+#ifdef MSESCOPE_H_
+	template<typename _Ty> using TXScopeAsyncSharedV2AtomicFixedStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedV2AtomicFixedPointer<_Ty> >;
+
+	template<typename _Ty>
+	TXScopeAsyncSharedV2AtomicFixedStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedV2AtomicFixedPointer<_Ty>& stored_ptr) {
+		return TXScopeAsyncSharedV2AtomicFixedStore<_Ty>(stored_ptr);
+	}
+#endif // MSESCOPE_H_
+
 
 #if defined(MSEPOINTERBASICS_H)
 	template<class _TTargetType, class _Ty>
@@ -2009,7 +2072,7 @@ namespace mse {
 				and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
 				to ensure safe "async shareability". */
 				template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
-					&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<value_type2>::Has>()) || (std::is_arithmetic<value_type2>::value))
+					&& (mse::impl::is_marked_as_shareable_msemsearray<value_type2>::value)
 					&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
 					, void>::type>
 				void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
@@ -2050,7 +2113,7 @@ namespace mse {
 				and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
 				to ensure safe "async shareability". */
 				template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
-					&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<value_type2>::Has>()) || (std::is_arithmetic<value_type2>::value))
+					&& (mse::impl::is_marked_as_shareable_msemsearray<value_type2>::value)
 					&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
 					, void>::type>
 				void xscope_async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
@@ -2089,7 +2152,7 @@ namespace mse {
 				and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
 				to ensure safe "async shareability". */
 				template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
-					&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<value_type2>::Has>()) || (std::is_arithmetic<value_type2>::value))
+					&& (mse::impl::is_marked_as_shareable_msemsearray<value_type2>::value)
 					&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
 					, void>::type>
 				void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
@@ -2531,6 +2594,8 @@ namespace mse {
 			}
 			static void s_valid_if_passable() {}
 		};
+
+		template<class _Ty> using future = std::future<_Ty>;
 
 		template<class _Fty, class... _ArgTypes>
 		inline auto async(std::launch _Policy, _Fty&& _Fnarg, _ArgTypes&&... _Args) {

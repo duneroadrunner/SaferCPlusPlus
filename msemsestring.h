@@ -3058,7 +3058,7 @@ namespace mse {
 
 		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
 		template<class _Ty2 = _TBasicStringConstPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TBasicStringConstPointer>::value)
-			&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())), void>::type>
+			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
 			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
@@ -3246,7 +3246,7 @@ namespace mse {
 
 		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
 		template<class _Ty2 = _TBasicStringPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TBasicStringPointer>::value)
-			&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())), void>::type>
+			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
 			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
@@ -5085,10 +5085,9 @@ namespace mse {
 		}
 
 		/* This basic_string is safely "async shareable" if the elements it contains are also "async shareable". */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
-			(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()) || (std::is_arithmetic<_Ty2>::value)
-			), void>::type>
-			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
+		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an

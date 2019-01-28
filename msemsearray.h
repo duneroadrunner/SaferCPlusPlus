@@ -748,6 +748,123 @@ namespace mse {
 	namespace impl {
 		/* Some data structures to determine, at compile time, if a given type has certain features. */
 
+		template<class T> using HasOrInheritsAssignmentOperator_msemsearray = mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<T>;
+
+		template<class T, class EqualTo>
+		struct HasOrInheritsEqualityOperator_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<U>() == std::declval<V>(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsEqualityOperator_msemsearray : HasOrInheritsEqualityOperator_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+		template<class T, class EqualTo>
+		struct HasOrInheritsTargetContainerPtrMethod_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<U>().target_container_ptr(), std::declval<V>().target_container_ptr(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsTargetContainerPtrMethod_msemsearray : HasOrInheritsTargetContainerPtrMethod_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+	}
+
+	namespace impl {
+		namespace lambda {
+
+			template<class T, class EqualTo>
+			struct HasOrInheritsFunctionCallOperator_msemsearray_impl
+			{
+				template<class U, class V>
+				static auto test(U*) -> decltype(std::declval<U>().operator() == std::declval<V>().operator(), bool(true));
+				template<typename, typename>
+				static auto test(...)->std::false_type;
+
+				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			};
+			template<class T, class EqualTo = T>
+			struct HasOrInheritsFunctionCallOperator_msemsearray : HasOrInheritsFunctionCallOperator_msemsearray_impl<
+				typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+			template<typename T> struct remove_class { };
+			template<typename C, typename R, typename... A>
+			struct remove_class<R(C::*)(A...)> { using type = R(A...); };
+			template<typename C, typename R, typename... A>
+			struct remove_class<R(C::*)(A...) const> { using type = R(A...); };
+			template<typename C, typename R, typename... A>
+			struct remove_class<R(C::*)(A...) volatile> { using type = R(A...); };
+			template<typename C, typename R, typename... A>
+			struct remove_class<R(C::*)(A...) const volatile> { using type = R(A...); };
+
+			template<typename T>
+			auto get_signature_impl_helper1(std::true_type) {
+				return &std::remove_reference<T>::type::operator();
+			}
+			template<typename T>
+			auto get_signature_impl_helper1(std::false_type) {
+				/* This type doesn't seem to have a function signature (as would be the case with generic lambdas for
+				example), so we'll just return a dummy signature. */
+				auto lambda1 = []() {};
+				return &std::remove_reference<decltype(lambda1)>::type::operator();
+			}
+			template<typename T>
+			struct get_signature_impl {
+				using type = typename remove_class<decltype(get_signature_impl_helper1<T>(typename HasOrInheritsFunctionCallOperator_msemsearray<T>::type::type()))>::type;
+			};
+			template<typename R, typename... A>
+			struct get_signature_impl<R(A...)> { using type = R(A...); };
+			template<typename R, typename... A>
+			struct get_signature_impl<R(&)(A...)> { using type = R(A...); };
+			template<typename R, typename... A>
+			struct get_signature_impl<R(*)(A...)> { using type = R(A...); };
+			/* Get the signature of a function type. */
+			template<typename T> using get_signature = typename get_signature_impl<T>::type;
+
+			/* "non-capture" lambdas are, unlike "capture" lambdas, convertible to function pointers */
+			template<class T, class Ret, class...Args>
+			struct is_convertible_to_function_pointer1 : std::is_convertible<T, Ret(*)(Args...)> {};
+			template <typename T, typename T2>
+			struct is_convertible_to_function_pointer2;
+			template <typename T, typename Ret, typename... Args>
+			struct is_convertible_to_function_pointer2<T, Ret(Args...)> {
+				static constexpr auto value = is_convertible_to_function_pointer1<T, Ret, Args...>::value;
+			};
+
+			template <typename T>
+			struct is_convertible_to_function_pointer : is_convertible_to_function_pointer2<T, get_signature<T> > {};
+
+			template<class T, class Ret, class...Args>
+			struct is_function_obj_that_is_not_convertible_to_function_pointer1 {
+				/* "capture" lambdas are convertible to corresponding std::function<>s, but not to function pointers */
+				static constexpr auto convertible = std::is_convertible<T, std::function<Ret(Args...)>>::value;
+				static constexpr auto value = convertible && !is_convertible_to_function_pointer1<T, Ret, Args...>::value;
+			};
+			template <typename T, typename T2>
+			struct is_function_obj_that_is_not_convertible_to_function_pointer2;
+			template <typename T, typename Ret, typename... Args>
+			struct is_function_obj_that_is_not_convertible_to_function_pointer2<T, Ret(Args...)> {
+				static constexpr auto value = is_function_obj_that_is_not_convertible_to_function_pointer1<T, Ret, Args...>::value;
+			};
+
+			template <typename T>
+			struct is_function_obj_that_is_not_convertible_to_function_pointer : is_function_obj_that_is_not_convertible_to_function_pointer2<T, get_signature<T> > {};
+		}
+	}
+
+	namespace impl {
+
 		template<typename T>
 		struct HasNotAsyncShareableTagMethod_msemsearray
 		{
@@ -793,41 +910,72 @@ namespace mse {
 			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
 		};
 
-		template<class T> using HasOrInheritsAssignmentOperator_msemsearray = mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<T>;
+		template <typename _Ty> struct is_marked_as_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncShareableTagMethod_msemsearray<_Ty>::Has)
+			|| (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
+			|| (mse::impl::lambda::is_convertible_to_function_pointer<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
+			|| (std::is_same<_Ty, void>::value)> {};
 
-		template<class T, class EqualTo>
-		struct HasOrInheritsEqualityOperator_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>() == std::declval<V>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_shareable_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_marked_as_shareable_msemsearray() {}
+		template<typename _Ty>
+		const _Ty& async_shareable(const _Ty& _X) {
+			T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
+			return _X;
+		}
+		template<typename _Ty>
+		_Ty&& async_shareable(_Ty&& _X) {
+			T_valid_if_is_marked_as_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+			return std::forward<decltype(_X)>(_X);
+		}
 
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsEqualityOperator_msemsearray : HasOrInheritsEqualityOperator_msemsearray_impl<
-			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+		template <typename _Ty> struct is_marked_as_passable_or_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncPassableTagMethod_msemsearray<_Ty>::Has)
+			|| (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
 
-		template<class T, class EqualTo>
-		struct HasOrInheritsTargetContainerPtrMethod_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>().target_container_ptr(), std::declval<V>().target_container_ptr(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_passable_or_shareable_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_marked_as_passable_or_shareable_msemsearray() {}
+		template<typename _Ty>
+		const _Ty& async_passable(const _Ty& _X) {
+			T_valid_if_is_marked_as_passable_or_shareable_msemsearray<_Ty>();
+			return _X;
+		}
+		template<typename _Ty>
+		_Ty&& async_passable(_Ty&& _X) {
+			T_valid_if_is_marked_as_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+			return std::forward<decltype(_X)>(_X);
+		}
 
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsTargetContainerPtrMethod_msemsearray : HasOrInheritsTargetContainerPtrMethod_msemsearray_impl<
-			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+		template <typename _Ty> struct is_marked_as_xscope_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncShareableTagMethod_msemsearray<_Ty>::Has)
+			|| (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
+
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_shareable_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_marked_as_xscope_shareable_msemsearray() {}
+		template<typename _Ty>
+		const _Ty& xscope_async_shareable(const _Ty& _X) {
+			T_valid_if_is_marked_as_xscope_shareable_msemsearray<_Ty>();
+			return _X;
+		}
+		template<typename _Ty>
+		_Ty&& xscope_async_shareable(_Ty&& _X) {
+			T_valid_if_is_marked_as_xscope_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+			return std::forward<decltype(_X)>(_X);
+		}
+
+		template <typename _Ty> struct is_marked_as_xscope_passable_or_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncPassableTagMethod_msescope<_Ty>::Has)
+			|| (is_marked_as_xscope_shareable_msemsearray<_Ty>::value)> {};
+
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_passable_or_shareable_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray() {}
+		template<typename _Ty>
+		const _Ty& xscope_async_passable(const _Ty& _X) {
+			T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray<_Ty>();
+			return _X;
+		}
+		template<typename _Ty>
+		_Ty&& xscope_async_passable(_Ty&& _X) {
+			T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+			return std::forward<decltype(_X)>(_X);
+		}
 	}
-	template<typename T> using HasAsyncShareableTagMethod_msemsearray = impl::HasAsyncShareableTagMethod_msemsearray<T>;
-	template<typename T> using HasXScopeAsyncShareableTagMethod_msemsearray = impl::HasXScopeAsyncShareableTagMethod_msemsearray<T>;
-
 
 
 	namespace impl {
@@ -1257,7 +1405,7 @@ namespace mse {
 
 		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
 		template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
-			&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())), void>::type>
+			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
 			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 	};
 
@@ -1525,7 +1673,7 @@ namespace mse {
 
 		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
 		template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
-			&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())), void>::type>
+			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
 			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 	};
 
@@ -1777,7 +1925,7 @@ namespace mse {
 
 		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
 		template<class _Ty2 = _TArrayConstPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TArrayConstPointer>::value)
-			&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())), void>::type>
+			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
 			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
@@ -1965,7 +2113,7 @@ namespace mse {
 
 		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
 		template<class _Ty2 = _TArrayPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TArrayPointer>::value)
-			&& ((std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())), void>::type>
+			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
 			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
@@ -2454,10 +2602,9 @@ namespace mse {
 		}
 
 		/* This array is safely "async shareable" if the elements it contains are also "async shareable". */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
-			(std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()) || (std::is_arithmetic<_Ty2>::value)
-			), void>::type>
-			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
+		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 	private:
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
@@ -5655,88 +5802,6 @@ namespace mse {
 	}
 
 
-	namespace impl {
-		namespace lambda {
-
-			template<class T, class EqualTo>
-			struct HasOrInheritsFunctionCallOperator_msemsearray_impl
-			{
-				template<class U, class V>
-				static auto test(U*) -> decltype(std::declval<U>().operator() == std::declval<V>().operator(), bool(true));
-				template<typename, typename>
-				static auto test(...)->std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct HasOrInheritsFunctionCallOperator_msemsearray : HasOrInheritsFunctionCallOperator_msemsearray_impl<
-				typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
-			template<typename T> struct remove_class { };
-			template<typename C, typename R, typename... A>
-			struct remove_class<R(C::*)(A...)> { using type = R(A...); };
-			template<typename C, typename R, typename... A>
-			struct remove_class<R(C::*)(A...) const> { using type = R(A...); };
-			template<typename C, typename R, typename... A>
-			struct remove_class<R(C::*)(A...) volatile> { using type = R(A...); };
-			template<typename C, typename R, typename... A>
-			struct remove_class<R(C::*)(A...) const volatile> { using type = R(A...); };
-
-			template<typename T>
-			auto get_signature_impl_helper1(std::true_type) {
-				return &std::remove_reference<T>::type::operator();
-			}
-			template<typename T>
-			auto get_signature_impl_helper1(std::false_type) {
-				/* This type doesn't seem to have a function signature (as would be the case with generic lambdas for
-				example), so we'll just return a dummy signature. */
-				auto lambda1 = []() {};
-				return &std::remove_reference<decltype(lambda1)>::type::operator();
-			}
-			template<typename T>
-			struct get_signature_impl {
-				using type = typename remove_class<decltype(get_signature_impl_helper1<T>(typename HasOrInheritsFunctionCallOperator_msemsearray<T>::type::type()))>::type;
-			};
-			template<typename R, typename... A>
-			struct get_signature_impl<R(A...)> { using type = R(A...); };
-			template<typename R, typename... A>
-			struct get_signature_impl<R(&)(A...)> { using type = R(A...); };
-			template<typename R, typename... A>
-			struct get_signature_impl<R(*)(A...)> { using type = R(A...); };
-			/* Get the signature of a function type. */
-			template<typename T> using get_signature = typename get_signature_impl<T>::type;
-
-			/* "non-capture" lambdas are, unlike "capture" lambdas, convertible to function pointers */
-			template<class T, class Ret, class...Args>
-			struct is_convertible_to_function_pointer1 : std::is_convertible<T, Ret(*)(Args...)> {};
-			template <typename T, typename T2>
-			struct is_convertible_to_function_pointer2;
-			template <typename T, typename Ret, typename... Args>
-			struct is_convertible_to_function_pointer2<T, Ret(Args...)> {
-				static constexpr auto value = is_convertible_to_function_pointer1<T, Ret, Args...>::value;
-			};
-
-			template <typename T>
-			struct is_convertible_to_function_pointer : is_convertible_to_function_pointer2<T, get_signature<T> > {};
-
-			template<class T, class Ret, class...Args>
-			struct is_function_obj_that_is_not_convertible_to_function_pointer1 {
-				/* "capture" lambdas are convertible to corresponding std::function<>s, but not to function pointers */
-				static constexpr auto convertible = std::is_convertible<T, std::function<Ret(Args...)>>::value;
-				static constexpr auto value = convertible && !is_convertible_to_function_pointer1<T, Ret, Args...>::value;
-			};
-			template <typename T, typename T2>
-			struct is_function_obj_that_is_not_convertible_to_function_pointer2;
-			template <typename T, typename Ret, typename... Args>
-			struct is_function_obj_that_is_not_convertible_to_function_pointer2<T, Ret(Args...)> {
-				static constexpr auto value = is_function_obj_that_is_not_convertible_to_function_pointer1<T, Ret, Args...>::value;
-			};
-
-			template <typename T>
-			struct is_function_obj_that_is_not_convertible_to_function_pointer : is_function_obj_that_is_not_convertible_to_function_pointer2<T, get_signature<T> > {};
-		}
-	}
-
 	namespace rsv {
 		/* TAsyncShareableObj is intended as a transparent wrapper for other classes/objects. */
 		template<typename _TROy>
@@ -5761,7 +5826,7 @@ namespace mse {
 
 			/* If _TROy is "marked" as not safe to share among threads, then the following member function will not
 			instantiate, causing an (intended) compile error. */
-			template<class = typename std::enable_if<(std::integral_constant<bool, mse::impl::HasAsyncShareableTagMethod_msemsearray<_TROy>::Has>()) || (
+			template<class = typename std::enable_if<mse::impl::is_marked_as_shareable_msemsearray<_TROy>::value || (
 				(!std::is_convertible<_TROy*, mse::us::impl::NotAsyncShareableTagBase*>::value)
 				/*(!std::integral_constant<bool, HasNotAsyncShareableTagMethod_msemsearray<_TROy>::Has>())*/
 				), void>::type>
@@ -5793,7 +5858,7 @@ namespace mse {
 
 			/* If _TROy is "marked" as not safe to pass among threads, then the following member function will not
 			instantiate, causing an (intended) compile error. */
-			template<class = typename std::enable_if<(std::integral_constant<bool, mse::impl::HasAsyncPassableTagMethod_msemsearray<_TROy>::Has>()) || (
+			template<class = typename std::enable_if<mse::impl::is_marked_as_passable_or_shareable_msemsearray<_TROy>::value || (
 				(!std::is_convertible<_TROy*, mse::us::impl::NotAsyncPassableTagBase*>::value)
 				/*(!std::integral_constant<bool, HasNotAsyncPassableTagMethod_msemsearray<_TROy>::Has>())*/
 				), void>::type>
@@ -5828,74 +5893,6 @@ namespace mse {
 			typedef TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TAsyncPassableObj, base_class);
 		};
-	}
-
-	namespace impl {
-		template <typename _Ty> struct is_marked_as_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncShareableTagMethod_msemsearray<_Ty>::Has)
-			|| (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
-			|| (mse::impl::lambda::is_convertible_to_function_pointer<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
-			|| (std::is_same<_Ty, void>::value)> {};
-
-		template<class _Ty, class = typename std::enable_if<(is_marked_as_shareable_msemsearray<_Ty>::value), void>::type>
-		void T_valid_if_is_marked_as_shareable_msemsearray() {}
-		template<typename _Ty>
-		const _Ty& async_shareable(const _Ty& _X) {
-			T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
-			return _X;
-		}
-		template<typename _Ty>
-		_Ty&& async_shareable(_Ty&& _X) {
-			T_valid_if_is_marked_as_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
-			return std::forward<decltype(_X)>(_X);
-		}
-
-		template <typename _Ty> struct is_marked_as_passable_or_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncPassableTagMethod_msemsearray<_Ty>::Has)
-			|| (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
-
-		template<class _Ty, class = typename std::enable_if<(is_marked_as_passable_or_shareable_msemsearray<_Ty>::value), void>::type>
-		void T_valid_if_is_marked_as_passable_or_shareable_msemsearray() {}
-		template<typename _Ty>
-		const _Ty& async_passable(const _Ty& _X) {
-			T_valid_if_is_marked_as_passable_or_shareable_msemsearray<_Ty>();
-			return _X;
-		}
-		template<typename _Ty>
-		_Ty&& async_passable(_Ty&& _X) {
-			T_valid_if_is_marked_as_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
-			return std::forward<decltype(_X)>(_X);
-		}
-
-		template <typename _Ty> struct is_marked_as_xscope_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncShareableTagMethod_msemsearray<_Ty>::Has)
-			|| (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
-
-		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_shareable_msemsearray<_Ty>::value), void>::type>
-		void T_valid_if_is_marked_as_xscope_shareable_msemsearray() {}
-		template<typename _Ty>
-		const _Ty& xscope_async_shareable(const _Ty& _X) {
-			T_valid_if_is_marked_as_xscope_shareable_msemsearray<_Ty>();
-			return _X;
-		}
-		template<typename _Ty>
-		_Ty&& xscope_async_shareable(_Ty&& _X) {
-			T_valid_if_is_marked_as_xscope_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
-			return std::forward<decltype(_X)>(_X);
-		}
-
-		template <typename _Ty> struct is_marked_as_xscope_passable_or_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncPassableTagMethod_msescope<_Ty>::Has)
-			|| (is_marked_as_xscope_shareable_msemsearray<_Ty>::value)> {};
-
-		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_passable_or_shareable_msemsearray<_Ty>::value), void>::type>
-		void T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray() {}
-		template<typename _Ty>
-		const _Ty& xscope_async_passable(const _Ty& _X) {
-			T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray<_Ty>();
-			return _X;
-		}
-		template<typename _Ty>
-		_Ty&& xscope_async_passable(_Ty&& _X) {
-			T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
-			return std::forward<decltype(_X)>(_X);
-		}
 	}
 
 	namespace us {
@@ -6824,10 +6821,8 @@ namespace mse {
 		}
 
 		/* This pointer is safely "async passable" if its target type is "async passable". */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
-			(std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())
-			|| (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()) || (std::is_arithmetic<_Ty2>::value)
-			), void>::type>
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value), void>::type>
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -6863,10 +6858,8 @@ namespace mse {
 		}
 
 		/* This pointer is safely "async passable" if its target type is "async passable". */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
-			(std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())
-			|| (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()) || (std::is_arithmetic<_Ty2>::value)
-			), void>::type>
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value), void>::type>
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -6967,10 +6960,8 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
-			(std::integral_constant<bool, HasXScopeAsyncShareableTagMethod_msemsearray<_Ty2>::Has>())
-			|| (std::integral_constant<bool, HasAsyncShareableTagMethod_msemsearray<_Ty2>::Has>()) || (std::is_arithmetic<_Ty2>::value)
-			), void>::type>
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value), void>::type>
 		void valid_if_Ty_is_marked_as_xscope_shareable() const {}
 
 		TXScopeACOLockerForSharing(_TExclusiveWritePointer&& xwptr)
