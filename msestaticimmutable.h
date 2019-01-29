@@ -413,14 +413,9 @@ namespace mse {
 			}
 			template<class _Ty2>
 			TStaticImmutableObj& operator=(const _Ty2& _X) { TStaticImmutableObjBase<_TROy>::operator=(_X); return (*this); }
-
-			const TStaticImmutableFixedPointer<_TROy> operator&() & {
-				return &(*static_cast<TStaticImmutableObjBase<_TROy>*>(this));
-			}
 			const TStaticImmutableFixedConstPointer<_TROy> operator&() const & {
 				return &(*static_cast<const TStaticImmutableObjBase<_TROy>*>(this));
 			}
-			const TStaticImmutableFixedPointer<_TROy> mse_static_fptr() & { return &(*this); }
 			const TStaticImmutableFixedConstPointer<_TROy> mse_static_fptr() const & { return &(*this); }
 
 			void operator&() && = delete;
@@ -431,6 +426,13 @@ namespace mse {
 			void static_tag() const {}
 
 		private:
+
+			void operator&() & {
+				/* This object does not seem to be declared const, which is not valid. Objects of this type should only be
+				declared via the provided macro that declares them (static and) const. */
+			}
+			void mse_static_fptr() & { &(*this); }
+
 			void* operator new(size_t size) { return ::operator new(size); }
 		};
 
