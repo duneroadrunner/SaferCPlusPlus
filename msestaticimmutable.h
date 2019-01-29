@@ -18,8 +18,9 @@
 #include <cassert>
 
 #ifdef MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
+#include "msenorad.h"
+#include <atomic>
 #include <mutex>
-#include "mseany.h"
 #endif // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 
 #ifdef _MSC_VER
@@ -82,6 +83,20 @@ namespace mse {
 
 		namespace impl {
 			namespace cts {
+#ifndef MSE_CHECKED_THREAD_SAFE_DO_NOT_USE_GNORAD
+				class CNoOpCopyAtomicInt : public std::atomic<int> {
+				public:
+					typedef std::atomic<int> base_class;
+					CNoOpCopyAtomicInt(int i) : base_class(i) {}
+					CNoOpCopyAtomicInt(const CNoOpCopyAtomicInt&) : base_class(0) {}
+				};
+				typedef CNoOpCopyAtomicInt atomic_int_t;
+				template<typename _Ty> using TCheckedThreadSafeObj = mse::impl::TGNoradObj<_Ty, atomic_int_t>;
+				template<typename _Ty> using TCheckedThreadSafePointer = mse::impl::TGNoradPointer<_Ty, atomic_int_t>;
+				template<typename _Ty> using TCheckedThreadSafeConstPointer = mse::impl::TGNoradConstPointer<_Ty, atomic_int_t>;
+				template<typename _Ty> using TCheckedThreadSafeFixedPointer = mse::impl::TGNoradFixedPointer<_Ty, atomic_int_t>;
+				template<typename _Ty> using TCheckedThreadSafeFixedConstPointer = mse::impl::TGNoradFixedConstPointer<_Ty, atomic_int_t>;
+#else // !MSE_CHECKED_THREAD_SAFE_DO_NOT_USE_GNORAD
 				/* TCheckedThreadSafePointer<> is essentially just a simplified TNoradPointer<> with an atomic refcounter. */
 				template<typename _Ty> class TCheckedThreadSafeObj;
 				template<typename _Ty> class TCheckedThreadSafePointer;
@@ -223,12 +238,12 @@ namespace mse {
 					mutable std::mutex m_mutex1;
 					mutable int m_counter = 0;
 				};
+#endif // !MSE_CHECKED_THREAD_SAFE_DO_NOT_USE_GNORAD
 			}
 		}
 
 		template<typename _TROz> using TStaticImmutableObjBase = mse::rsv::impl::cts::TCheckedThreadSafeObj<_TROz>;
-		template<typename _Ty> using TStaticImmutableConstPointerBase = mse::rsv::impl::cts::TCheckedThreadSafeFixedConstPointer<_Ty>;
-		template<typename _Ty> using TStaticImmutablePointerBase = TStaticImmutableConstPointerBase<_Ty>;
+		template<typename _Ty> using TStaticImmutableConstPointerBase = mse::rsv::impl::cts::TCheckedThreadSafeConstPointer<_Ty>;
 
 #else // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 
@@ -256,7 +271,6 @@ namespace mse {
 		};
 
 		template<typename _Ty> using TStaticImmutableConstPointerBase = mse::us::impl::TPointerForLegacy<const _Ty, TStaticImmutableID<const _Ty>>;
-		template<typename _Ty> using TStaticImmutablePointerBase = TStaticImmutableConstPointerBase<_Ty>;
 
 #endif // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 

@@ -6404,7 +6404,7 @@ namespace mse {
 				virtual ~TAccessControlledObjBase() {
 					try {
 						m_mutex1.nonrecursive_lock();
-						//m_mutex1.nonrecursive_unlock();
+						m_mutex1.nonrecursive_unlock();
 					}
 					catch (...) {
 						/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object (in
