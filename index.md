@@ -24,7 +24,7 @@ And the library also addresses the data race issue, where the Core Guidelines do
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
-Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. Note that this is currently a C++14 library (and in large part a C++11 library). So, for example, it does not yet provide any C++17 template deduction guides for its elements. Also note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
+Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. Note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
 
 
 ### Table of contents
@@ -84,7 +84,8 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
         2. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
         3. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
         4. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
-        5. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
+        5. [TAsyncSharedV2AtomicFixedPointer](#tasyncsharedv2atomicfixedpointer)
+        6. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
     5. [Scope threads](#scope-threads)
         1. [access controlled objects](#access-controlled-objects)
         2. [xscope_thread_carrier](#xscope_thread_carrier)
@@ -183,9 +184,9 @@ Reassignable (mut) references occur much less frequently, but still have no run-
 
 Probably the biggest difference though, is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the "exclusivity of mutable references") the way Rust does. With respect to memory safety, the benefit of this restriction is that it ensures that objects with "arbitrary lifespan" (like an element in a (resizable) vector) are not deallocated while other references to that object still exist.
 
-But most objects do not have "arbitrary lifespan". (Both Rust and SaferCPlusPlus encourage most objects to have "scope lifespan".) So most of the time, from a memory safety perspective, this restriction is not necessary.  In most cases there is no run-time cost to enforce the rule in Rust, but in some cases enforcement has to be provided by a `Cell` wrapper, which does have a run-time cost, or a `RefCell` wrapper, which also introduces the possibility of a panic.
+But most objects do not have "arbitrary lifespan". (Both Rust and SaferCPlusPlus encourage most objects to have "scope lifespan".) So most of the time, from a memory safety perspective, this restriction is not necessary.  In most cases there is no run-time cost to enforce the rule in Rust, but in some cases enforcement requires the use of a `Cell` wrapper, which can have some run-time cost, or a `RefCell` wrapper, which also introduces the possibility of a panic.
 
-Another difference is the available options for dealing with scope lifetime restrictions. For example, let's say that instead of a list (or whatever container) of objects, you have a list of references to existing objects. And let's say that at some point you want to insert a reference to local variable (allocated on the stack) (as with the C++ example [here](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md#snippet-4)). Unfortunately, Rust only allows you to (safely) do so in cases where the variable is "structurally" guaranteed to outlive the vector container itself. This is understandable, as otherwise you could end up with the vector containing a reference that is no longer valid.
+Another difference is the available options for dealing with scope lifetime restrictions. For example, let's say that instead of a list (or whatever container) of objects, you have a list of references to existing objects. And let's say that at some point you want to insert a reference to local variable (allocated on the stack) (as with the C++ example [here](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md#snippet-4)). Unfortunately, Rust only allows you to (safely) do so in cases where the variable is "structurally" guaranteed to outlive the list container itself. This is understandable, as otherwise you could end up with the list containing a reference that is no longer valid.
 
 But you could imagine scenarios where you might want to temporarily insert a reference to a (stack allocated) local variable that does not outlive the container. In order to (safely) support this you'd need a reference type that can safely handle the potential disappearance of its target object. In Rust, the `Weak` reference is the only one that has this property. But `Weak` references cannot target (stack allocated) local variables, so we're kind of out of luck. SaferCPlusPlus' registered pointers, on the other hand, safely handle the potential disappearance of their target and are able to target (stack allocated) local variables. Registered pointers do have a run-time cost, but that is often outweighed by the benefit of allowing the target object to be a (stack allocated) local variable, rather than, say, a (heap allocated) "reference counted" object.
 
@@ -275,13 +276,13 @@ usage example:
     }
 ```
 
-Note that using `mse::register_delete()` to delete an object through a base class pointer will result in a failed assert / thrown exception. In such cases use (the not quite as safe) `mse::us::register_delete()` instead.
+Note that using `mse::registered_delete()` to delete an object through a base class pointer will result in a failed assert / thrown exception. In such cases use (the not quite as safe) `mse::us::registered_delete()` instead.
 
 ### TRegisteredNotNullPointer
-Same as `TRegisteredPointer<>`, but cannot be constructed to a null value. Note that `TRegisteredPointer<>` does not implicitly convert to `TRegisteredNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function.
+`TRegisteredNotNullPointer<>` is a version of `TRegisteredPointer<>` that cannot be constructed to a null value. Note that `TRegisteredPointer<>` does not implicitly convert to `TRegisteredNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function.
 
 ### TRegisteredFixedPointer
-Same as `TRegisteredNotNullPointer<>`, but cannot be retargeted after construction (basically a "`const TRegisteredNotNullPointer<>`"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.  
+`TRegisteredFixedPointer<>` is a version of `TRegisteredNotNullPointer<>` that cannot be retargeted after construction (basically a "`const TRegisteredNotNullPointer<>`"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.  
 
 usage example:
 
@@ -433,7 +434,7 @@ usage example:
 
 ### TNoradNotNullPointer
 
-Same as `TNoradPointer<>`, but cannot be constructed to or assigned a null value. Because a `TNoradNotNullPointer<>` cannot outlive its target, it should be always safe to assume that it points to a validly allocated object. Note that `TNoradPointer<>` does not implicitly convert to `TNoradNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function. 
+`TNoradNotNullPointer<>` is a version of `TNoradPointer<>` that cannot be constructed to or assigned a null value. Because a `TNoradNotNullPointer<>` cannot outlive its target, it should be always safe to assume that it points to a validly allocated object. Note that `TNoradPointer<>` does not implicitly convert to `TNoradNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function. 
 
 #### TNoradFixedPointer
 
@@ -450,38 +451,38 @@ Just some simple microbenchmarks of the pointers. (Some less "micro" benchmarks 
 
 Pointer Type | Time
 ------------ | ----
-native pointer (stack) | 0.0485738 seconds
-[mse::TCRegisteredPointer](#tcregisteredpointer) (stack) | 0.0569635 seconds
-[mse::TRegisteredPointer](#tregisteredpointer) (stack) | 0.0576867 seconds
-[mse::TNoradPointer](#tnoradpointer) (stack) | 0.0587024 seconds
-native pointer (heap) | 0.383851 seconds
-mse::TNoradPointer (heap) | 0.393733 seconds
-[mse::TRefCountingPointer](#trefcountingpointer) (heap) | 0.402218 seconds
-mse::TCRegisteredPointer (heap) | 0.413688 seconds
-mse::TRegisteredPointer (heap) | 0.417414 seconds
-std::shared_ptr (heap) | 0.523811 seconds
+native pointer (stack) | 0.049 seconds
+[mse::TCRegisteredPointer](#tcregisteredpointer) (stack) | 0.057 seconds
+[mse::TRegisteredPointer](#tregisteredpointer) (stack) | 0.058 seconds
+[mse::TNoradPointer](#tnoradpointer) (stack) | 0.059 seconds
+native pointer (heap) | 0.384 seconds
+mse::TNoradPointer (heap) | 0.394 seconds
+[mse::TRefCountingPointer](#trefcountingpointer) (heap) | 0.402 seconds
+mse::TCRegisteredPointer (heap) | 0.414 seconds
+mse::TRegisteredPointer (heap) | 0.417 seconds
+std::shared_ptr (heap) | 0.524 seconds
 
 #### Pointer declaration, copy and assignment:
 
 Pointer Type | Time
 ------------ | ----
-native pointer | 0.0456077 seconds
-mse::TRefCountingPointer | 0.0903483 seconds
-mse::TNoradPointer | 0.119298 seconds
-mse::TRegisteredPointer | 0.144783 seconds
-mse::TCRegisteredPointer | 0.160014 seconds
-std::shared_ptr | 0.284371 seconds
+native pointer | 0.046 seconds
+mse::TRefCountingPointer | 0.090 seconds
+mse::TNoradPointer | 0.119 seconds
+mse::TRegisteredPointer | 0.145 seconds
+mse::TCRegisteredPointer | 0.160 seconds
+std::shared_ptr | 0.284 seconds
 
 #### Dereferencing:
 
 Pointer Type | Time
 ------------ | ----
-native pointer | 0.106426 seconds
-native pointer + nullptr check | 0.106528 seconds
-mse::TNoradPointer | 0.15955 seconds
-mse::TCRegisteredPointer | 0.161569 seconds
-mse::TRefCountingPointer | 0.219779 seconds
-std::weak_ptr | 1.36357 seconds
+native pointer | 0.106 seconds
+native pointer + nullptr check | 0.107 seconds
+mse::TNoradPointer | 0.160 seconds
+mse::TCRegisteredPointer | 0.162 seconds
+mse::TRefCountingPointer | 0.220 seconds
+std::weak_ptr | 1.364 seconds
 
 Take these results with a grain of salt. The benchmarks were run on a noisy machine, and anyway don't represent realistic usage scenarios. But they give you a rough idea of the relative performances.
 
@@ -894,7 +895,7 @@ In the case of function templates, sometimes you want the parameter types to be 
 
 `rsv::TReturnableFParam<>` and `rsv::as_a_returnable_fparam()` can be used for situations when the type of the input parameter is itself a template parameter and not necessarily always a scope type or treated as a scope type. 
 
-usage exmaple:
+usage example:
 
 ```cpp
 #include "msescope.h"
@@ -1562,7 +1563,7 @@ And currently, any type declared as safely shareable must also satisfy the crite
 
 (Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
 
-usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
+usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
 
 ### TAsyncSharedV2ReadWriteAccessRequester
 
@@ -1576,15 +1577,20 @@ Note that while a "write-lock" pointer will not simultaneously co-exist with any
 
 One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. The access requesters detect these situations, and will throw an exception (or whatever user-specified behavior) when they occur.
 
-usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
+usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
 
 ### TAsyncSharedV2ReadOnlyAccessRequester
 Same as `TAsyncSharedV2ReadWriteAccessRequester<>`, but only supports `readlock_ptr()`, not `writelock_ptr()`. You can use the `mse::make_asyncsharedv2readonly<>()` function to obtain a `TAsyncSharedV2ReadOnlyAccessRequester<>`. `TAsyncSharedV2ReadOnlyAccessRequester<>` can also be copy constructed from a `TAsyncSharedV2ReadWriteAccessRequester<>`.
 
-usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
+usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
 
 ### TAsyncSharedV2ImmutableFixedPointer
 In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases you can use `TAsyncSharedV2ImmutableFixedPointer<>`, which can be thought of as sort of a safer version of `std::shared_ptr<>`. Use the `mse::make_asyncsharedv2immutable<>()` function to obtain a `TAsyncSharedV2ImmutableFixedPointer<>`.
+
+usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
+
+### TAsyncSharedV2AtomicFixedPointer
+Atomic objects also don't require access control. Use the `make_asyncsharedv2atomic<>()` function to obtain a `TAsyncSharedV2AtomicFixedPointer<>`.
 
 usage example:
 
@@ -1647,6 +1653,11 @@ void main(int argc, char* argv[]) {
 		static int foo2(mse::TAsyncSharedV2ImmutableFixedPointer<ShareableA> A_immptr) {
 			return A_immptr->b;
 		}
+		static int foo3(mse::TAsyncSharedV2AtomicFixedPointer<int> int_atomic_ptr) {
+			(*int_atomic_ptr) += 1;
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			return *int_atomic_ptr;
+		}
 	protected:
 		~B() {}
 	};
@@ -1671,7 +1682,7 @@ void main(int argc, char* argv[]) {
 			auto ptr2 = ash_access_requester.writelock_ptr();
 		}
 
-		std::list<std::future<double>> futures;
+		std::list<mse::mstd::future<double>> futures;
 		for (size_t i = 0; i < 3; i += 1) {
 			futures.emplace_back(mse::mstd::async(B::foo1, ash_access_requester));
 		}
@@ -1688,7 +1699,7 @@ void main(int argc, char* argv[]) {
 		auto ash_access_requester = mse::make_asyncsharedv2readonly<ShareableA>(7);
 		int res1 = ash_access_requester.readlock_ptr()->b;
 
-		std::list<std::future<double>> futures;
+		std::list<mse::mstd::future<double>> futures;
 		for (size_t i = 0; i < 3; i += 1) {
 			futures.emplace_back(mse::mstd::async(J::foo7<mse::TAsyncSharedV2ReadOnlyAccessRequester<ShareableA>>, ash_access_requester));
 		}
@@ -1717,7 +1728,7 @@ void main(int argc, char* argv[]) {
 		int res1 = A_immptr->b;
 		std::shared_ptr<const ShareableA> A_shptr(A_immptr);
 
-		std::list<std::future<int>> futures;
+		std::list<mse::mstd::future<int>> futures;
 		for (size_t i = 0; i < 3; i += 1) {
 			futures.emplace_back(mse::mstd::async(B::foo2, A_immptr));
 		}
@@ -1727,6 +1738,21 @@ void main(int argc, char* argv[]) {
 		}
 
 		auto A_b_safe_cptr = mse::make_const_pointer_to_member(A_immptr->b, A_immptr);
+	}
+	{
+		/* For scenarios where the shared object is atomic, you can get away without using locks
+		or access requesters. */
+		auto int_atomic_ptr = mse::make_asyncsharedv2atomic<int>(5);
+		int res1 = (*int_atomic_ptr);
+
+		std::list<mse::mstd::future<int>> futures;
+		for (size_t i = 0; i < 3; i += 1) {
+			futures.emplace_back(mse::mstd::async(B::foo3, int_atomic_ptr));
+		}
+		int count = 1;
+		for (auto it = futures.begin(); futures.end() != it; it++, count++) {
+			int res2 = (*it).get();
+		}
 	}
 	{
 		/* mse::TAsyncSharedV2ReadWriteAccessRequester's flexibilty in allowing coexisting read and write lock
@@ -2092,7 +2118,7 @@ void main(int argc, char* argv[]) {
 
         /* Here we're using a (non-const) "xscope_passable_pointer" as the argument. The "const" version
         wouldn't be accepted because an "xscope_passable_const_pointer" is not an exclusive pointer. That is, 
-        it doesn't hold exclusive access to its target object. We could, for exmaple, have instead used an 
+        it doesn't hold exclusive access to its target object. We could, for example, have instead used an 
         exclusive pointer obtained directly from the "access controlled" object, a_xscpacobj1. */
 
         auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_aco_locker1.xscope_passable_pointer());
