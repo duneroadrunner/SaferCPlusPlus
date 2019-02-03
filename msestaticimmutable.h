@@ -376,6 +376,7 @@ namespace mse {
 			explicit operator const _Ty*() const { return TStaticImmutableNotNullConstPointer<_Ty>::operator const _Ty*(); }
 			explicit operator const TStaticImmutableObj<_Ty>*() const { return TStaticImmutableNotNullConstPointer<_Ty>::operator const TStaticImmutableObj<_Ty>*(); }
 			void static_tag() const {}
+			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 		private:
 			TStaticImmutableFixedConstPointer(const typename TStaticImmutableConstPointer<_Ty>::base_class& ptr) : TStaticImmutableNotNullConstPointer<_Ty>(ptr) {}

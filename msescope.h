@@ -114,7 +114,6 @@ namespace mse {
 	}
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
-	//mse::impl::TScopeID
 	template<typename _Ty> using TXScopePointer = _Ty * ;
 	template<typename _Ty> using TXScopeConstPointer = const _Ty*;
 	template<typename _Ty> using TXScopeNotNullPointer = _Ty * ;
@@ -156,8 +155,6 @@ namespace mse {
 			template<typename _TROz> using TXScopeObjBase = mse::TNDNoradObj<_TROz>;
 			template<typename _Ty> using TXScopeItemPointerBase = mse::us::impl::TAnyPointerBase<_Ty>;
 			template<typename _Ty> using TXScopeItemConstPointerBase = mse::us::impl::TAnyConstPointerBase<_Ty>;
-			template<typename _Ty> using Tscope_obj_base_ptr = mse::TNDNoradFixedPointer<_Ty>;
-			template<typename _Ty> using Tscope_obj_base_const_ptr = mse::TNDNoradConstPointer<_Ty>;
 
 			template<typename _Ty>
 			class TXScopePointerBase : public mse::TNDNoradPointer<_Ty> {
@@ -168,10 +165,10 @@ namespace mse {
 				TXScopePointerBase(TXScopeObj<_Ty>& scpobj_ref) : base_class(&(static_cast<TXScopeObjBase<_Ty>&>(scpobj_ref))) {}
 
 				TXScopeObj<_Ty>& operator*() const {
-					return reinterpret_cast<TXScopeObj<_Ty>& >(*(static_cast<const base_class&>(*this)));
+					return static_cast<TXScopeObj<_Ty>& >(*(static_cast<const base_class&>(*this)));
 				}
 				TXScopeObj<_Ty>* operator->() const {
-					return std::addressof(reinterpret_cast<TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this))));
+					return std::addressof(static_cast<TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this))));
 				}
 			};
 
@@ -185,10 +182,10 @@ namespace mse {
 				TXScopeConstPointerBase(const TXScopeObj<_Ty>& scpobj_cref) : base_class(&(static_cast<const TXScopeObjBase<_Ty>&>(scpobj_cref))) {}
 
 				const TXScopeObj<_Ty>& operator*() const {
-					return reinterpret_cast<const TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this)));
+					return static_cast<const TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this)));
 				}
 				const TXScopeObj<_Ty>* operator->() const {
-					return std::addressof(reinterpret_cast<const TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this))));
+					return std::addressof(static_cast<const TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this))));
 				}
 			};
 
@@ -216,10 +213,41 @@ namespace mse {
 				}
 			};
 
-			template<typename _Ty> using TXScopePointerBase = mse::us::impl::TPointerForLegacy<_Ty, mse::impl::TScopeID<const _Ty>>;
+			template<typename _Ty>
+			class TXScopePointerBase : public mse::us::impl::TPointerForLegacy<TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> {
+			public:
+				typedef mse::us::impl::TPointerForLegacy<TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> base_class;
+				TXScopePointerBase(const TXScopePointerBase&) = default;
+				TXScopePointerBase(TXScopePointerBase&&) = default;
+				TXScopePointerBase(TXScopeObj<_Ty>& scpobj_ref) : base_class(&(static_cast<TXScopeObjBase<_Ty>&>(scpobj_ref))) {}
+
+				TXScopeObj<_Ty>& operator*() const {
+					return static_cast<TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this)));
+				}
+				TXScopeObj<_Ty>* operator->() const {
+					return std::addressof(static_cast<TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this))));
+				}
+			};
+
+			template<typename _Ty>
+			class TXScopeConstPointerBase : public mse::us::impl::TPointerForLegacy<const TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> {
+			public:
+				typedef mse::us::impl::TPointerForLegacy<const TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> base_class;
+				TXScopeConstPointerBase(const TXScopeConstPointerBase&) = default;
+				TXScopeConstPointerBase(TXScopeConstPointerBase&&) = default;
+				TXScopeConstPointerBase(const TXScopePointerBase<_Ty>& src_cref) : base_class(src_cref) {}
+				TXScopeConstPointerBase(const TXScopeObj<_Ty>& scpobj_cref) : base_class(&(static_cast<const TXScopeObjBase<_Ty>&>(scpobj_cref))) {}
+
+				const TXScopeObj<_Ty>& operator*() const {
+					return static_cast<const TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this)));
+				}
+				const TXScopeObj<_Ty>* operator->() const {
+					return std::addressof(static_cast<const TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this))));
+				}
+			};
+
+			template<typename _Ty> using TXScopeItemPointerBase = mse::us::impl::TPointerForLegacy<_Ty, mse::impl::TScopeID<const _Ty>>;
 			template<typename _Ty> using TXScopeItemConstPointerBase = mse::us::impl::TPointerForLegacy<const _Ty, mse::impl::TScopeID<const _Ty>>;
-			template<typename _Ty> using Tscope_obj_base_ptr = TXScopeObjBase<_Ty>*;
-			template<typename _Ty> using Tscope_obj_base_const_ptr = TXScopeObjBase<_Ty> const*;
 
 #endif // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 
@@ -494,7 +522,7 @@ namespace mse {
 		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
 			), void>::type>
-			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
 		void* operator new(size_t size) { return ::operator new(size); }
@@ -1624,6 +1652,14 @@ namespace mse {
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
+#ifdef MSE_SCOPEPOINTER_DISABLED
+	namespace impl {
+		/* This template type alias is only used because msvc2017(v15.9.0) crashes if the type expression is used directly. */
+		template<class _Ty2, class _TMemberObjectPointer>
+		using make_xscope_pointer_to_member_v2_return_type1 = TXScopeItemFixedPointer<typename std::remove_reference<decltype(std::declval<_Ty2>().*std::declval<_TMemberObjectPointer>())>::type>;
+	}
+#endif // MSE_SCOPEPOINTER_DISABLED
+
 #ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
@@ -1656,7 +1692,7 @@ namespace mse {
 #else // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-		-> TXScopeItemFixedPointer<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type> {
+		-> mse::impl::make_xscope_pointer_to_member_v2_return_type1<_Ty, _TMemberObjectPointer> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		/* Originally, this function itself was a friend of TXScopeItemFixedPointer<>, but that seemed to confuse msvc2017 (but not
 		g++ or clang) in some cases. */

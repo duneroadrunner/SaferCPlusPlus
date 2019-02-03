@@ -28,6 +28,8 @@ options rather than "#define" directives in the code such as the ones here (for 
 
 /* The following adds run-time checks to scope pointers in non-debug mode. */
 //#define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+/* The following removes run-time checks from scope pointers in debug mode. */
+//#define MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED
 
 /* The following directs the library's vectors and arrays to use CSize_t and CInt in place of size_t and int in their
 interface and implementation. This adds a marginal increase in safety. (Mostly due to the interface.) */
