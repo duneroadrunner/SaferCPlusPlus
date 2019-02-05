@@ -215,6 +215,15 @@ namespace mse {
 	>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
+	/* This macro roughly simulates constructor inheritance, but adds an additional initialization statement
+	to each constructor. */
+#define MSE_USING_WITH_ADDED_INIT(Derived, Base, InitializationStatement) \
+    template<typename ...Args, typename = typename std::enable_if< \
+	std::is_constructible<Base, Args...>::value \
+	&& !is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
+	>::type> \
+    Derived(Args &&...args) : Base(std::forward<Args>(args)...) { InitializationStatement; }
+
 	namespace impl {
 		template<class T, class EqualTo>
 		struct HasOrInheritsAssignmentOperator_msepointerbasics_impl

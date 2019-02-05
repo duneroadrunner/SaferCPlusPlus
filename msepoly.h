@@ -584,10 +584,10 @@ namespace mse {
 				TPolyPointerBase(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>(p); }
 
 				_Ty& operator*() const {
-					return *(reinterpret_cast<_Ty*>(m_pointer.arrow_operator()));
+					return *(static_cast<_Ty*>(m_pointer.arrow_operator()));
 				}
 				_Ty* operator->() const {
-					return reinterpret_cast<_Ty*>(m_pointer.arrow_operator());
+					return static_cast<_Ty*>(m_pointer.arrow_operator());
 				}
 				template <typename _Ty2>
 				bool operator ==(const _Ty2& _Right_cref) const {
@@ -798,10 +798,10 @@ namespace mse {
 				TPolyConstPointerBase(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>(p); }
 
 				const _Ty& operator*() const {
-					return *(reinterpret_cast<const _Ty*>(m_pointer.const_arrow_operator()));
+					return *(static_cast<const _Ty*>(m_pointer.const_arrow_operator()));
 				}
 				const _Ty* operator->() const {
-					return reinterpret_cast<const _Ty*>(m_pointer.const_arrow_operator());
+					return static_cast<const _Ty*>(m_pointer.const_arrow_operator());
 				}
 				template <typename _Ty2>
 				bool operator ==(const _Ty2& _Right_cref) const {
@@ -1079,12 +1079,12 @@ namespace mse {
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				TCommonRandomAccessIteratorInterface<_Ty>* common_random_access_iterator_interface_ptr() {
-					auto retval = reinterpret_cast<TCommonRandomAccessIteratorInterface<_Ty>*>(m_any_random_access_iterator.storage_address());
+					auto retval = static_cast<TCommonRandomAccessIteratorInterface<_Ty>*>(m_any_random_access_iterator.storage_address());
 					assert(nullptr != retval);
 					return retval;
 				}
 				const TCommonRandomAccessIteratorInterface<_Ty>* common_random_access_iterator_interface_ptr() const {
-					auto retval = reinterpret_cast<const TCommonRandomAccessIteratorInterface<_Ty>*>(m_any_random_access_iterator.storage_address());
+					auto retval = static_cast<const TCommonRandomAccessIteratorInterface<_Ty>*>(m_any_random_access_iterator.storage_address());
 					assert(nullptr != retval);
 					return retval;
 				}
@@ -1196,12 +1196,12 @@ namespace mse {
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				TCommonRandomAccessConstIteratorInterface<_Ty>* common_random_access_const_iterator_interface_ptr() {
-					auto retval = reinterpret_cast<TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());
+					auto retval = static_cast<TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());
 					assert(nullptr != retval);
 					return retval;
 				}
 				const TCommonRandomAccessConstIteratorInterface<_Ty>* common_random_access_const_iterator_interface_ptr() const {
-					auto retval = reinterpret_cast<const TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());
+					auto retval = static_cast<const TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());
 					assert(nullptr != retval);
 					return retval;
 				}

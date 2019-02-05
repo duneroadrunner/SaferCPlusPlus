@@ -266,12 +266,12 @@ namespace mse
 
 			static void* storage_address(storage_union& storage) noexcept
 			{
-				return reinterpret_cast<void*>(storage.dynamic);
+				return static_cast<void*>(storage.dynamic);
 			}
 
 			static const void* const_storage_address(const storage_union& storage) noexcept
 			{
-				return reinterpret_cast<const void*>(storage.dynamic);
+				return static_cast<const void*>(storage.dynamic);
 			}
 		};
 
@@ -309,12 +309,12 @@ namespace mse
 
 			static void* storage_address(storage_union& storage) noexcept
 			{
-				return reinterpret_cast<void*>(&storage.stack);
+				return static_cast<void*>(&storage.stack);
 			}
 
 			static const void* const_storage_address(const storage_union& storage) noexcept
 			{
-				return reinterpret_cast<const void*>(&storage.stack);
+				return static_cast<const void*>(&storage.stack);
 			}
 		};
 
@@ -612,7 +612,7 @@ namespace mse {
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				const TCommonPointerInterface<_Ty>* common_pointer_interface_ptr() const {
-					auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_pointer.storage_address());
+					auto retval = static_cast<const TCommonPointerInterface<_Ty>*>(m_any_pointer.storage_address());
 					assert(nullptr != retval);
 					return retval;
 				}
@@ -693,7 +693,7 @@ namespace mse {
 					/* This use of mse::any::storage_address() brings to mind the fact that the (pre-C++17) implementation
 					of mse::any that we're using does not support over-aligned types. (And therefore neither does this
 					template.) Though it's hard to imagine a reason why a pointer would be declared an over-aligned type. */
-					auto retval = reinterpret_cast<const TCommonPointerInterface<_Ty>*>(m_any_const_pointer.storage_address());
+					auto retval = static_cast<const TCommonPointerInterface<_Ty>*>(m_any_const_pointer.storage_address());
 					assert(nullptr != retval);
 					return retval;
 				}

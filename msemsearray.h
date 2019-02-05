@@ -913,6 +913,9 @@ namespace mse {
 		template <typename _Ty> struct is_marked_as_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncShareableTagMethod_msemsearray<_Ty>::Has)
 			|| (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
 			|| (mse::impl::lambda::is_convertible_to_function_pointer<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
+#ifdef MSE_SCOPEPOINTER_DISABLED
+			|| (std::is_pointer<_Ty>::value)
+#endif // MSE_SCOPEPOINTER_DISABLED
 			|| (std::is_same<_Ty, void>::value)> {};
 
 		template<class _Ty, class = typename std::enable_if<(is_marked_as_shareable_msemsearray<_Ty>::value), void>::type>
@@ -5807,19 +5810,7 @@ namespace mse {
 		template<typename _TROy>
 		class TAsyncShareableObj : public _TROy {
 		public:
-			MSE_USING(TAsyncShareableObj, _TROy);
-			TAsyncShareableObj(const TAsyncShareableObj& _X) : _TROy(_X) {}
-			TAsyncShareableObj(TAsyncShareableObj&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
-			virtual ~TAsyncShareableObj() {
-				/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
-				valid_if_TROy_is_not_marked_as_unshareable();
-			}
-
-			template<class _Ty2>
-			TAsyncShareableObj& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			template<class _Ty2>
-			TAsyncShareableObj& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
-
+			MSE_USING_WITH_ADDED_INIT(TAsyncShareableObj, _TROy, valid_if_TROy_is_not_marked_as_unshareable());
 			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 		private:
@@ -5830,39 +5821,31 @@ namespace mse {
 				(!std::is_convertible<_TROy*, mse::us::impl::NotAsyncShareableTagBase*>::value)
 				/*(!std::integral_constant<bool, HasNotAsyncShareableTagMethod_msemsearray<_TROy>::Has>())*/
 				), void>::type>
-				void valid_if_TROy_is_not_marked_as_unshareable() const {}
+			void valid_if_TROy_is_not_marked_as_unshareable() const {}
 
+			/* There's a bug in the g++ atomic<> implementation (prior to C++17) that requires (public) access to the '&' operator. */
+#if defined(MSE_HAS_CXX17) || ((!defined(__GNUC__)) && (!defined(__GNUG__)))
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+#endif // defined(MSE_HAS_CXX17) || ((!defined(__GNUC__)) && (!defined(__GNUG__)))
 		};
 
 		/* TAsyncPassableObj is intended as a transparent wrapper for other classes/objects. */
 		template<typename _TROy>
 		class TAsyncPassableObj : public _TROy {
 		public:
-			MSE_USING(TAsyncPassableObj, _TROy);
-			TAsyncPassableObj(const TAsyncPassableObj& _X) : _TROy(_X) {}
-			TAsyncPassableObj(TAsyncPassableObj&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
-			virtual ~TAsyncPassableObj() {
-				/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
-				valid_if_TROy_is_not_marked_as_unpassable();
-			}
+			MSE_USING_WITH_ADDED_INIT(TAsyncPassableObj, _TROy, valid_if_TROy_is_not_marked_as_unpassable());
 
-			template<class _Ty2>
-			TAsyncPassableObj& operator=(_Ty2&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			template<class _Ty2>
-			TAsyncPassableObj& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
-
-			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+			void async_passable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 		private:
 
-			/* If _TROy is "marked" as not safe to pass among threads, then the following member function will not
+			/* If _TROy is "marked" as not safe to share among threads, then the following member function will not
 			instantiate, causing an (intended) compile error. */
 			template<class = typename std::enable_if<mse::impl::is_marked_as_passable_or_shareable_msemsearray<_TROy>::value || (
 				(!std::is_convertible<_TROy*, mse::us::impl::NotAsyncPassableTagBase*>::value)
 				/*(!std::integral_constant<bool, HasNotAsyncPassableTagMethod_msemsearray<_TROy>::Has>())*/
 				), void>::type>
-				void valid_if_TROy_is_not_marked_as_unpassable() const {}
+			void valid_if_TROy_is_not_marked_as_unpassable() const {}
 
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
@@ -5929,10 +5912,13 @@ namespace mse {
 
 
 	namespace impl {
-		template <typename _Ty> struct is_thread_safe_mutex_msemsearray : std::integral_constant<bool, (std::is_same<_Ty, std::mutex>::value) /*|| (std::is_same<_Ty, std::shared_mutex>::value)*/
+		template <typename _Ty> struct is_thread_safety_enforcing_mutex_msemsearray : std::integral_constant<bool, (std::is_same<_Ty, std::mutex>::value)
+#ifdef MSE_HAS_CXX17
+			|| (std::is_same<_Ty, std::shared_mutex>::value)
+#endif // MSE_HAS_CXX17
 			|| (std::is_same<_Ty, std::timed_mutex>::value) || (std::is_same<_Ty, std::shared_timed_mutex>::value)> {};
 
-		template <typename _Ty> struct is_supported_aco_mutex_msemsearray : std::integral_constant<bool, (is_thread_safe_mutex_msemsearray<_Ty>::value)
+		template <typename _Ty> struct is_supported_aco_mutex_msemsearray : std::integral_constant<bool, (is_thread_safety_enforcing_mutex_msemsearray<_Ty>::value)
 			|| (std::is_same<_Ty, mse::non_thread_safe_recursive_shared_timed_mutex>::value) || (std::is_same<_Ty, mse::non_thread_safe_shared_mutex>::value)
 			|| (std::is_same<_Ty, mse::non_thread_safe_mutex>::value)> {};
 	}
@@ -6055,7 +6041,7 @@ namespace mse {
 		TXScopeAccessControlledPointer(TXScopeAccessControlledPointer&& src) = default;
 
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -6096,7 +6082,7 @@ namespace mse {
 
 		/* This element is safely "async passable" if the _TAccessMutex is a suitable thread safe mutex. */
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value) 
-			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -6193,7 +6179,7 @@ namespace mse {
 		TXScopeAccessControlledConstPointer(TXScopeAccessControlledConstPointer&& src) = default;
 
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -6233,7 +6219,7 @@ namespace mse {
 
 																					  /* This element is safely "async passable" if the _TAccessMutex is a suitable thread safe mutex. */
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -6328,7 +6314,7 @@ namespace mse {
 		TXScopeAccessControlledExclusivePointer(TXScopeAccessControlledExclusivePointer&& src) = default;
 
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -6368,7 +6354,7 @@ namespace mse {
 
 		/* This element is safely "async passable" if the _TAccessMutex is a suitable thread safe mutex. */
 		template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::impl::is_thread_safe_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
 		void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:

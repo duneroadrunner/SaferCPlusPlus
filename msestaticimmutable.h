@@ -17,11 +17,18 @@
 #include <functional>
 #include <cassert>
 
-#ifdef MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
+#if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+#define MSE_STATICPOINTER_DISABLED
+#endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
+#if defined(MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED) || defined(MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED)
+#define MSE_CHECKEDTHREADSAFEPOINTER
+#endif // defined(MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED) || defined(MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED)
+
+#ifdef MSE_CHECKEDTHREADSAFEPOINTER
 #include "msenorad.h"
 #include <atomic>
-#include <mutex>
-#endif // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
+#endif // MSE_CHECKEDTHREADSAFEPOINTER
 
 #ifdef _MSC_VER
 #pragma warning( push )  
@@ -63,27 +70,10 @@ namespace mse {
 		template<typename _Ty>
 		class TPlaceHolder2_msestatic {};
 
-#ifdef MSE_STATICPOINTER_DISABLED
-		//TStaticImmutableID
-		template<typename _Ty> using TStaticImmutableConstPointer = const _Ty*;
-		template<typename _Ty> using TStaticImmutablePointer = TStaticImmutableConstPointer<_Ty>;
-		template<typename _Ty> using TStaticImmutableNotNullConstPointer = const _Ty*;
-		template<typename _Ty> using TStaticImmutableNotNullPointer = TStaticImmutableNotNullConstPointer<_Ty>;
-		template<typename _Ty> using TStaticImmutableFixedConstPointer = const _Ty* /*const*/;
-		template<typename _Ty> using TStaticImmutableFixedPointer = TStaticImmutableFixedConstPointer<_Ty>;
-		template<typename _TROy> using TStaticImmutableObjBase = _TROy;
-		template<typename _TROy> using TStaticImmutableObj = _TROy;
 
-		template<typename _Ty> auto static_fptr_to(_Ty&& _X) { return std::addressof(_X); }
-		template<typename _Ty> auto static_fptr_to(const _Ty& _X) { return std::addressof(_X); }
-
-#else /*MSE_STATICPOINTER_DISABLED*/
-
-#if defined(MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED)
-
+#ifdef MSE_CHECKEDTHREADSAFEPOINTER
 		namespace impl {
 			namespace cts {
-#ifndef MSE_CHECKED_THREAD_SAFE_DO_NOT_USE_GNORAD
 				class CNoOpCopyAtomicInt : public std::atomic<int> {
 				public:
 					typedef std::atomic<int> base_class;
@@ -91,6 +81,8 @@ namespace mse {
 					CNoOpCopyAtomicInt(const CNoOpCopyAtomicInt&) : base_class(0) {}
 				};
 				typedef CNoOpCopyAtomicInt atomic_int_t;
+
+#ifndef MSE_CHECKED_THREAD_SAFE_DO_NOT_USE_GNORAD
 				template<typename _Ty> using TCheckedThreadSafeObj = mse::impl::TGNoradObj<_Ty, atomic_int_t>;
 				template<typename _Ty> using TCheckedThreadSafePointer = mse::impl::TGNoradPointer<_Ty, atomic_int_t>;
 				template<typename _Ty> using TCheckedThreadSafeConstPointer = mse::impl::TGNoradConstPointer<_Ty, atomic_int_t>;
@@ -107,14 +99,15 @@ namespace mse {
 				template<typename _Ty>
 				class TCheckedThreadSafePointer : public mse::us::impl::TPointer<TCheckedThreadSafeObj<_Ty> >, public mse::us::impl::StrongPointerTagBase {
 				public:
-					TCheckedThreadSafePointer(const TCheckedThreadSafePointer& src_cref) : mse::us::impl::TPointer<TCheckedThreadSafeObj<_Ty>>(src_cref.m_ptr) {
+					typedef mse::us::impl::TPointer<TCheckedThreadSafeObj<_Ty> > base_class;
+					TCheckedThreadSafePointer(const TCheckedThreadSafePointer& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
 					template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-					TCheckedThreadSafePointer(const TCheckedThreadSafePointer<_Ty2>& src_cref) : mse::us::impl::TPointer<TCheckedThreadSafeObj<_Ty>>(src_cref.m_ptr) {
+					TCheckedThreadSafePointer(const TCheckedThreadSafePointer<_Ty2>& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					TCheckedThreadSafePointer(TCheckedThreadSafePointer&& src_ref) : mse::us::impl::TPointer<TCheckedThreadSafeObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+					TCheckedThreadSafePointer(TCheckedThreadSafePointer&& src_ref) : base_class(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
 						src_ref.m_ptr = nullptr;
 					}
 					virtual ~TCheckedThreadSafePointer() {
@@ -122,7 +115,7 @@ namespace mse {
 					}
 					TCheckedThreadSafePointer<_Ty>& operator=(const TCheckedThreadSafePointer<_Ty>& _Right_cref) {
 						if (*this) { (*(*this)).decrement_refcount(); }
-						mse::us::impl::TPointer<TCheckedThreadSafeObj<_Ty>>::operator=(_Right_cref);
+						base_class::operator=(_Right_cref);
 						if (*this) { (*(*this)).increment_refcount(); }
 						return (*this);
 					}
@@ -141,9 +134,13 @@ namespace mse {
 					}
 
 					operator bool() const { return !(!((*this).m_ptr)); }
+					/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+					operator _Ty*() const {
+						return std::addressof(*(*this));
+					}
 
 				private:
-					TCheckedThreadSafePointer(TCheckedThreadSafeObj<_Ty>* ptr) : mse::us::impl::TPointer<TCheckedThreadSafeObj<_Ty>>(ptr) {
+					TCheckedThreadSafePointer(TCheckedThreadSafeObj<_Ty>* ptr) : base_class(ptr) {
 						assert(*this);
 						(*(*this)).increment_refcount();
 					}
@@ -156,22 +153,26 @@ namespace mse {
 				template<typename _Ty>
 				class TCheckedThreadSafeConstPointer : public mse::us::impl::TPointer<const TCheckedThreadSafeObj<_Ty> >, public mse::us::impl::StrongPointerTagBase {
 				public:
-					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeConstPointer& src_cref) : mse::us::impl::TPointer<const TCheckedThreadSafeObj<_Ty>>(src_cref.m_ptr) {
+					typedef mse::us::impl::TPointer<const TCheckedThreadSafeObj<_Ty> > base_class;
+					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeConstPointer& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
 					template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeConstPointer<_Ty2>& src_cref) : mse::us::impl::TPointer<const TCheckedThreadSafeObj<_Ty>>(src_cref.m_ptr) {
+					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeConstPointer<_Ty2>& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					TCheckedThreadSafeConstPointer(TCheckedThreadSafeConstPointer&& src_ref) : mse::us::impl::TPointer<const TCheckedThreadSafeObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+					TCheckedThreadSafeConstPointer(TCheckedThreadSafeConstPointer&& src_ref) : base_class(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
 						src_ref.m_ptr = nullptr;
+					}
+					TCheckedThreadSafeConstPointer(const TCheckedThreadSafePointer<_Ty>& src_cref) : base_class(src_cref) {
+						if (*this) { (*(*this)).increment_refcount(); }
 					}
 					virtual ~TCheckedThreadSafeConstPointer() {
 						if (*this) { (*(*this)).decrement_refcount(); }
 					}
 					TCheckedThreadSafeConstPointer<_Ty>& operator=(const TCheckedThreadSafeConstPointer<_Ty>& _Right_cref) {
 						if (*this) { (*(*this)).decrement_refcount(); }
-						mse::us::impl::TPointer<const TCheckedThreadSafeObj<_Ty>>::operator=(_Right_cref);
+						base_class::operator=(_Right_cref);
 						if (*this) { (*(*this)).increment_refcount(); }
 						return (*this);
 					}
@@ -190,9 +191,13 @@ namespace mse {
 					}
 
 					operator bool() const { return !(!((*this).m_ptr)); }
+					/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
+					operator const _Ty*() const {
+						return std::addressof(*(*this));
+					}
 
 				private:
-					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeObj<_Ty>* ptr) : mse::us::impl::TPointer<const TCheckedThreadSafeObj<_Ty>>(ptr) {
+					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeObj<_Ty>* ptr) : base_class(ptr) {
 						assert(*this);
 						(*(*this)).increment_refcount();
 					}
@@ -210,8 +215,7 @@ namespace mse {
 					TCheckedThreadSafeObj(const TCheckedThreadSafeObj& _X) : _TROFLy(_X) {}
 					TCheckedThreadSafeObj(TCheckedThreadSafeObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
 					virtual ~TCheckedThreadSafeObj() {
-						std::lock_guard<decltype(m_mutex1)> lock1(m_mutex1);
-						if (0 != m_counter) {
+						if (0 != m_atomic_counter.load()) {
 							/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object. */
 							std::cerr << "\n\nFatal Error: mse::TCheckedThreadSafeObj<> destructed with outstanding references \n\n";
 							std::terminate();
@@ -231,17 +235,36 @@ namespace mse {
 					}
 
 					/* todo: make these private */
-					void increment_refcount() const { std::lock_guard<decltype(m_mutex1)> lock1(m_mutex1); m_counter += 1; }
-					void decrement_refcount() const { std::lock_guard<decltype(m_mutex1)> lock1(m_mutex1); m_counter -= 1; }
+					void increment_refcount() const { m_atomic_counter += 1; }
+					void decrement_refcount() const { m_atomic_counter -= 1; }
 
 				private:
-					mutable std::mutex m_mutex1;
-					mutable int m_counter = 0;
+					mutable CNoOpCopyAtomicInt m_atomic_counter = 0;
 				};
 #endif // !MSE_CHECKED_THREAD_SAFE_DO_NOT_USE_GNORAD
 			}
 		}
+#endif // MSE_CHECKEDTHREADSAFEPOINTER
 
+
+#ifdef MSE_STATICPOINTER_DISABLED
+		//TStaticImmutableID
+		template<typename _Ty> using TStaticImmutableConstPointer = const _Ty*;
+		template<typename _Ty> using TStaticImmutablePointer = TStaticImmutableConstPointer<_Ty>;
+		template<typename _Ty> using TStaticImmutableNotNullConstPointer = const _Ty*;
+		template<typename _Ty> using TStaticImmutableNotNullPointer = TStaticImmutableNotNullConstPointer<_Ty>;
+		template<typename _Ty> using TStaticImmutableFixedConstPointer = const _Ty* /*const*/;
+		template<typename _Ty> using TStaticImmutableFixedPointer = TStaticImmutableFixedConstPointer<_Ty>;
+		template<typename _TROy> using TStaticImmutableObjBase = _TROy;
+		template<typename _TROy> using TStaticImmutableObj = _TROy;
+
+		template<typename _Ty> auto static_fptr_to(_Ty&& _X) { return std::addressof(_X); }
+		template<typename _Ty> auto static_fptr_to(const _Ty& _X) { return std::addressof(_X); }
+
+#else /*MSE_STATICPOINTER_DISABLED*/
+
+#if defined(MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED)
+		
 		template<typename _TROz> using TStaticImmutableObjBase = mse::rsv::impl::cts::TCheckedThreadSafeObj<_TROz>;
 		template<typename _Ty> using TStaticImmutableConstPointerBase = mse::rsv::impl::cts::TCheckedThreadSafeConstPointer<_Ty>;
 
@@ -390,32 +413,16 @@ namespace mse {
 		class TStaticImmutableObj : public TStaticImmutableObjBase<_TROy> {
 		public:
 			typedef TStaticImmutableObjBase<_TROy> base_class;
-			TStaticImmutableObj(const TStaticImmutableObj& _X) : TStaticImmutableObjBase<_TROy>(_X) {}
+			TStaticImmutableObj(const TStaticImmutableObj& _X) : base_class(_X) {}
+			TStaticImmutableObj(TStaticImmutableObj&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 
-#ifdef MSE_STATIC_DISABLE_MOVE_RESTRICTIONS
-			explicit TStaticImmutableObj(TStaticImmutableObj&& _X) : TStaticImmutableObjBase<_TROy>(std::forward<decltype(_X)>(_X)) {}
-#endif // !MSE_STATIC_DISABLE_MOVE_RESTRICTIONS
-
-			MSE_STATIC_USING(TStaticImmutableObj, TStaticImmutableObjBase<_TROy>);
+			MSE_STATIC_USING(TStaticImmutableObj, base_class);
 			virtual ~TStaticImmutableObj() {
 				mse::impl::T_valid_if_is_marked_as_xscope_shareable_msemsearray<_TROy>();
 			}
 
-			TStaticImmutableObj& operator=(TStaticImmutableObj&& _X) {
-				valid_if_not_rvalue_reference_of_given_type_msestatic<TStaticImmutableObj, decltype(_X)>(_X);
-				TStaticImmutableObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
-				return (*this);
-			}
-			TStaticImmutableObj& operator=(const TStaticImmutableObj& _X) { TStaticImmutableObjBase<_TROy>::operator=(_X); return (*this); }
-			template<class _Ty2>
-			TStaticImmutableObj& operator=(_Ty2&& _X) {
-				TStaticImmutableObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
-				return (*this);
-			}
-			template<class _Ty2>
-			TStaticImmutableObj& operator=(const _Ty2& _X) { TStaticImmutableObjBase<_TROy>::operator=(_X); return (*this); }
 			const TStaticImmutableFixedConstPointer<_TROy> operator&() const & {
-				return &(*static_cast<const TStaticImmutableObjBase<_TROy>*>(this));
+				return &(*static_cast<const base_class*>(this));
 			}
 			const TStaticImmutableFixedConstPointer<_TROy> mse_static_fptr() const & { return &(*this); }
 
@@ -427,6 +434,14 @@ namespace mse {
 			void static_tag() const {}
 
 		private:
+
+			template<class _Ty2>
+			TStaticImmutableObj& operator=(_Ty2&& _X) {
+				base_class::operator=(std::forward<decltype(_X)>(_X));
+				return (*this);
+			}
+			template<class _Ty2>
+			TStaticImmutableObj& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
 			void operator&() & {
 				/* This object does not seem to be declared const, which is not valid. Objects of this type should only be

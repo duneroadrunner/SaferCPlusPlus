@@ -29,6 +29,7 @@
 #include "msealgorithm.h"
 #include "msethreadlocal.h"
 #include "msestaticimmutable.h"
+#include "msescopeatomic.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -1256,6 +1257,16 @@ void msetl_example2() {
 		/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
 		typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
 
+		/* trivially copyable class */
+		class D {
+		public:
+			D(int x) : b(x) {}
+
+			int b = 3;
+		};
+		/* User-defined classes need to be declared as (safely) shareable in order to be used with the atomic templates. */
+		typedef mse::us::TUserDeclaredAsyncShareableObj<D> ShareableD;
+
 		class B {
 		public:
 			static double foo1(mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA> A_ashar) {
@@ -1276,10 +1287,19 @@ void msetl_example2() {
 			static int foo2(mse::TAsyncSharedV2ImmutableFixedPointer<ShareableA> A_immptr) {
 				return A_immptr->b;
 			}
-			static int foo3(mse::TAsyncSharedV2AtomicFixedPointer<int> int_atomic_ptr) {
-				(*int_atomic_ptr) += 1;
+			static int foo3(mse::TAsyncSharedV2AtomicFixedPointer<ShareableD> D_atomic_ptr) {
+				auto d = (*D_atomic_ptr).load();
+				d.b += 1;
+				(*D_atomic_ptr).store(d);
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-				return *int_atomic_ptr;
+				return (*D_atomic_ptr).load().b;
+			}
+			static int foo4(mse::TXScopeAtomicFixedPointer<ShareableD> xs_D_atomic_ptr) {
+				auto d = (*xs_D_atomic_ptr).load();
+				d.b += 1;
+				(*xs_D_atomic_ptr).store(d);
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				return (*xs_D_atomic_ptr).load().b;
 			}
 		protected:
 			~B() {}
@@ -1365,12 +1385,12 @@ void msetl_example2() {
 		{
 			/* For scenarios where the shared object is atomic, you can get away without using locks
 			or access requesters. */
-			auto int_atomic_ptr = mse::make_asyncsharedv2atomic<int>(5);
-			int res1 = (*int_atomic_ptr);
+			auto D_atomic_ptr = mse::make_asyncsharedv2atomic<ShareableD>(5);
+			int res1 = (*D_atomic_ptr).load().b;
 
 			std::list<mse::mstd::future<int>> futures;
 			for (size_t i = 0; i < 3; i += 1) {
-				futures.emplace_back(mse::mstd::async(B::foo3, int_atomic_ptr));
+				futures.emplace_back(mse::mstd::async(B::foo3, D_atomic_ptr));
 			}
 			int count = 1;
 			for (auto it = futures.begin(); futures.end() != it; it++, count++) {
@@ -1696,6 +1716,20 @@ void msetl_example2() {
 					, xscope_xwo_const_pointer_store1.xscope_passable_const_pointer()
 					, xscope_xwo_pointer_store3.xscope_passable_pointer());
 			}
+		}
+
+		{
+			/* For scenarios where the shared object is atomic, you can get away without using locks
+			or access requesters. */
+			mse::TXScopeAtomicObj<ShareableD> xscope_D_atomic_obj(7);
+			int res1 = xscope_D_atomic_obj.load().b;
+
+			auto xscope_D_atomic_ptr = &xscope_D_atomic_obj;
+
+			mse::xscope_thread xscp_thread1(B::foo4, xscope_D_atomic_ptr);
+			mse::xscope_thread xscp_thread2(B::foo4, xscope_D_atomic_ptr);
+
+			int res2 = (*xscope_D_atomic_ptr).load().b;
 		}
 
 		{

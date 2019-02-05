@@ -15,6 +15,10 @@
 #include <functional>
 #include <cassert>
 
+#if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
+#define MSE_THREADLOCALPOINTER_DISABLED
+#endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
+
 #ifdef MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
 #include "msenorad.h"
 #include "mseany.h"

@@ -102,6 +102,9 @@
     <ClInclude Include="msestaticimmutable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="msescopeatomic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="msetl_example.cpp">

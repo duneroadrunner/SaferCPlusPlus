@@ -278,6 +278,7 @@
     <ClInclude Include="mseregistered.h" />
     <ClInclude Include="mserelaxedregistered.h" />
     <ClInclude Include="msescope.h" />
+    <ClInclude Include="msescopeatomic.h" />
     <ClInclude Include="msestaticimmutable.h" />
     <ClInclude Include="msethreadlocal.h" />
     <ClInclude Include="msetl.h" />
