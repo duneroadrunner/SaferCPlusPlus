@@ -1,4 +1,4 @@
-Jan 2019
+Feb 2019
 
 ### Overview
 
@@ -95,6 +95,11 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
         6. [make_xscope_exclusive_strong_pointer_store_for_sharing()](#make_xscope_exclusive_strong_pointer_store_for_sharing)
         7. [TXScopeExclusiveStrongPointerStoreForAccessControlFParam](#txscopeexclusivestrongpointerstoreforaccesscontrolfparam)
         8. [exclusive writer objects](#exclusive-writer-objects)
+        9. [scope atomics](#scope-atomics)
+    6. [static and global variables](#static-and-global-variables)
+        1. [static immutables](#static-immutables)
+        2. [static atomics](#static-atomics)
+        3. [static access controlled objects and access requesters](#static-access-controlled-objects-and-access-requesters)
 16. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [CNDInt, CNDSize_t and CNDBool](#cndint-cndsize_t-and-cndbool)
@@ -123,7 +128,7 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
 22. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
-23. [thread_local, static and global variables](#thread_local-static-and-global-variables)
+23. [thread_local](#thread_local)
 24. [Practical limitations](#practical-limitations)
 25. [Questions and comments](#questions-and-comments)
 
@@ -2288,6 +2293,116 @@ void main(int argc, char* argv[]) {
 }
 ```
 
+#### scope atomics
+
+Atomic objects don't require access control.
+
+usage example:
+
+```cpp
+#include "msescopeatomic.h"
+#include "mseasyncshared.h"
+#include <ratio>
+#include <chrono>
+
+
+void main(int argc, char* argv[]) {
+
+    /* trivially copyable class */
+    class D {
+    public:
+        D(int x) : b(x) {}
+
+        int b = 3;
+    };
+    /* User-defined classes need to be declared as (safely) shareable in order to be used with the atomic templates. */
+    typedef mse::us::TUserDeclaredAsyncShareableObj<D> ShareableD;
+
+    class B {
+    public:
+        static int foo4(mse::TXScopeAtomicFixedPointer<ShareableD> xs_D_atomic_ptr) {
+            auto d = (*xs_D_atomic_ptr).load();
+            d.b += 1;
+            (*xs_D_atomic_ptr).store(d);
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            return (*xs_D_atomic_ptr).load().b;
+        }
+    };
+
+    {
+        /* For scenarios where the shared object is atomic, you can get away without using locks
+        or access requesters. */
+
+        mse::TXScopeAtomicObj<ShareableD> xscope_D_atomic_obj(7);
+        int res1 = xscope_D_atomic_obj.load().b;
+
+        auto xscope_D_atomic_ptr = &xscope_D_atomic_obj;
+
+        mse::xscope_thread xscp_thread1(B::foo4, xscope_D_atomic_ptr);
+        mse::xscope_thread xscp_thread2(B::foo4, xscope_D_atomic_ptr);
+
+        int res2 = (*xscope_D_atomic_ptr).load().b;
+    }
+}
+```
+
+### static and global variables
+
+[*provisional*]
+
+While not encouraging the use of `static` or (non-[`thread_local`](#thread_local)) global variables, the library does provide some facilities for their use. Note that because `static` and non-`thread_local` global variables can be accessible from multiple threads, their type must be one that is [recognized or declared](#tuserdeclaredasyncshareableobj) as safely shareable.
+
+#### static immutables
+
+usage example:
+```cpp
+#include "msescope.h"
+#include "msemsestring.h"
+#include "msestaticimmutable.h"
+#include <iostream>
+
+MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(mse::nii_string) gimm_string1 = "some text";
+
+void main(int argc, char* argv[]) {
+    {
+        auto gimm_ptr1 = &gimm_string1;
+        auto xs_gimm_store1 = mse::make_xscope_strong_pointer_store(gimm_ptr1);
+        auto xs_ptr1 = xs_gimm_store1.xscope_ptr();
+        std::cout << *xs_ptr1 << std::endl;
+
+        MSE_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string2 = "abc";
+        auto simm_ptr2 = &simm_string2;
+        auto xs_simm_store2 = mse::make_xscope_strong_pointer_store(simm_ptr2);
+        auto xs_ptr2 = xs_simm_store2.xscope_ptr();
+        std::cout << *xs_ptr2 << std::endl;
+
+        class CA {
+        public:
+            auto foo1() const {
+                MSE_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string = "abc";
+                /* mse::return_value() just returns its argument and ensures that it's of a (pointer) type that's safe to return. */
+                return mse::return_value(&simm_string);
+            }
+        };
+        auto simm_ptr3 = CA().foo1();
+        auto xs_simm_store3 = mse::make_xscope_strong_pointer_store(simm_ptr3);
+        auto xs_cptr3 = xs_simm_store3.xscope_ptr();
+        std::cout << *xs_cptr3 << std::endl;
+    }
+}
+```
+
+Note that proper use of the `MSE_RSV_DECLARE_GLOBAL_IMMUTABLE()` macro is not currently fully enforced at compile-time. In debug builds any unsafe use will be caught at run-time. You can enable the run-time checking in non-debug builds by defining the `MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol.
+
+#### static atomics
+
+Not yet available. Atomics declared `static` (or global) in traditional C++ should be fairly safe. Just make sure your object doesn't contain any indirect elements (i.e. pointers/references).
+
+#### static access controlled objects and access requesters
+
+Not yet available. [Access requesters](#tasyncsharedv2readwriteaccessrequester) declared `static` (or global) would be safe.
+
+
 ### Primitives
 
 ### CInt, CSize_t and CBool
@@ -3044,22 +3159,20 @@ void main(int argc, char* argv[]) {
 }
 ```
 
-### thread_local, static and global variables
+### thread_local
 
 [*provisional*]
 
-While not encouraging the use of `thread_local`, `static` or global variables, the library does provide facilities for their use. Note that because `static` and non-`thread_local` global variables can be accessible from multiple threads, their type must be one that is [recognized or declared](#tuserdeclaredasyncshareableobj) as safely shareable.
+While not encouraging the use of `thread_local` variables, the library does provide facilities for their use.
 
 usage example:
 ```cpp
 #include "msescope.h"
 #include "msemstdstring.h"
 #include "msethreadlocal.h"
-#include "msestaticimmutable.h"
 #include <iostream>
 
 MSE_DECLARE_THREAD_LOCAL_GLOBAL(mse::mstd::string) tlg_string1 = "some text";
-MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(mse::nii_string) gimm_string1 = "some text";
 
 void main(int argc, char* argv[]) {
     {
@@ -3090,35 +3203,8 @@ void main(int argc, char* argv[]) {
         std::cout << *xs_cptr3 << std::endl;
     }
 
-    {
-        auto gimm_ptr1 = &gimm_string1;
-        auto xs_gimm_store1 = mse::make_xscope_strong_pointer_store(gimm_ptr1);
-        auto xs_ptr1 = xs_gimm_store1.xscope_ptr();
-        std::cout << *xs_ptr1 << std::endl;
-
-        MSE_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string2 = "abc";
-        auto simm_ptr2 = &simm_string2;
-        auto xs_simm_store2 = mse::make_xscope_strong_pointer_store(simm_ptr2);
-        auto xs_ptr2 = xs_simm_store2.xscope_ptr();
-        std::cout << *xs_ptr2 << std::endl;
-
-        class CA {
-        public:
-            auto foo1() const {
-                MSE_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string = "abc";
-                /* mse::return_value() just returns its argument and ensures that it's of a (pointer) type that's safe to return. */
-                return mse::return_value(&simm_string);
-            }
-        };
-        auto simm_ptr3 = CA().foo1();
-        auto xs_simm_store3 = mse::make_xscope_strong_pointer_store(simm_ptr3);
-        auto xs_cptr3 = xs_simm_store3.xscope_ptr();
-        std::cout << *xs_cptr3 << std::endl;
-    }
 }
 ```
-
-Note that proper use of the `MSE_RSV_DECLARE_GLOBAL_IMMUTABLE()` macro is not currently fully enforced at compile-time. In debug builds any unsafe use will be caught at run-time. You can enable the run-time checking in non-debug builds by defining the `MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol.
 
 ### Practical limitations
 
