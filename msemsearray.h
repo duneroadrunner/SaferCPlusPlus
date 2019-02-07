@@ -6779,7 +6779,7 @@ namespace mse {
 	};
 
 	template<typename _TExclusiveStrongPointer, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
-	TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex> make_xscope_exclusive_strong_pointer_store_access_control(_TExclusiveStrongPointer&& stored_ptr) {
+	TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex> make_xscope_exclusive_strong_pointer_store_for_access_control(_TExclusiveStrongPointer&& stored_ptr) {
 		return TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex>(std::forward<decltype(stored_ptr)>(stored_ptr));
 	}
 
@@ -7081,6 +7081,19 @@ namespace mse {
 		MSE_USING(TXScopeExclusiveWriterObjConstPointerStoreForSharingFParam, base_class);
 	};
 
+	/* TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<> is a data type that stores an exclusive strong pointer. From this data type you
+	can obtain const and non-const pointers that ensure conformance to the "exclusive writer" policy. */
+	template<typename _TExclusiveStrongPointer>
+	using TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess = TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, non_thread_safe_shared_mutex>;
+
+	template<typename _TExclusiveStrongPointer>
+	TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<_TExclusiveStrongPointer> make_xscope_exclusive_strong_pointer_store_for_exclusive_writer_access(_TExclusiveStrongPointer&& stored_ptr) {
+		return TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<_TExclusiveStrongPointer>(std::forward<decltype(stored_ptr)>(stored_ptr));
+	}
+
+	/* This is just an alias of the TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<> class for use as a function parameter type. */
+	template<typename _TExclusiveStrongPointer>
+	using TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccessFParam = TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<_TExclusiveStrongPointer>;
 
 #ifdef __clang__
 #pragma clang diagnostic push
