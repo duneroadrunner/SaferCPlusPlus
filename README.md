@@ -93,7 +93,7 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
         4. [make_xscope_asyncsharedv2acoreadwrite()](#make_xscope_asyncsharedv2acoreadwrite)
         5. [make_xscope_aco_locker_for_sharing()](#make_xscope_aco_locker_for_sharing)
         6. [make_xscope_exclusive_strong_pointer_store_for_sharing()](#make_xscope_exclusive_strong_pointer_store_for_sharing)
-        7. [TXScopeExclusiveStrongPointerStoreForAccessControlFParam](#txscopeexclusivestrongpointerstoreforaccesscontrolfparam)
+        7. [TXScopeExclusiveStrongPointerStoreForAccessControl](#txscopeexclusivestrongpointerstoreforaccesscontrol)
         8. [exclusive writer objects](#exclusive-writer-objects)
         9. [scope atomics](#scope-atomics)
     6. [static and global variables](#static-and-global-variables)
@@ -2145,9 +2145,9 @@ void main(int argc, char* argv[]) {
 }
 ```
 
-#### TXScopeExclusiveStrongPointerStoreForAccessControlFParam
+#### TXScopeExclusiveStrongPointerStoreForAccessControl
 
-You can use [`make_xscope_exclusive_strong_pointer_store_for_sharing()`](#make_xscope_exclusive_strong_pointer_store_for_sharing) to obtain, from an exclusive pointer of, for example, an [access controlled object](#access-controlled-objects), pointers that can be passed to other threads. Occassionally, you may want to do the reverse. That is, obtain access controlled object pointers from an exclusive pointer that was passed to a thread. You can do this by declaring the parameter that receives the passed pointer as a `TXScopeExclusiveStrongPointerStoreForAccessControlFParam<passable_exclusive_pointer_t>`, replacing `passable_exclusive_pointer_t` with the type of the passed pointer. From this parameter object you can obtain pointers in the same manner as with regular access controlled objects.
+You can use [`make_xscope_exclusive_strong_pointer_store_for_sharing()`](#make_xscope_exclusive_strong_pointer_store_for_sharing) to obtain, from an exclusive pointer of, for example, an [access controlled object](#access-controlled-objects), pointers that can be passed to other threads. Occassionally, you may want to do the reverse. That is, obtain access controlled object pointers from an exclusive pointer that was passed to a thread. You can do this by declaring the parameter that receives the passed pointer as a `TXScopeExclusiveStrongPointerStoreForAccessControl<passable_exclusive_pointer_t>`, replacing `passable_exclusive_pointer_t` with the type of the passed pointer. From this parameter object you can obtain pointers in the same manner as with regular access controlled objects.
 
 usage example:
 ```cpp
@@ -2183,7 +2183,7 @@ void main(int argc, char* argv[]) {
 
         class CD {
         public:
-            static void foo1(mse::TXScopeExclusiveStrongPointerStoreForAccessControlFParam<passable_exclusive_pointer_t> xscope_store, int count) {
+            static void foo1(mse::TXScopeExclusiveStrongPointerStoreForAccessControl<passable_exclusive_pointer_t> xscope_store, int count) {
                 {
                     auto xsptr = xscope_store.xscope_pointer();
                     xsptr->s.append(std::to_string(count));
@@ -2218,6 +2218,8 @@ void main(int argc, char* argv[]) {
 "Exclusive writer objects" are a specialization of [access controlled objects](#access-controlled-objects) for which all non-const pointers are exclusive. That is, when a non-const pointer of an exclusive writer object exists, no other pointer of that object may exist.
 
 A bit of extra functionality that exclusive writer objects have over access controlled objects is that, from a const pointer of an exclusive writer object, you can obtain a const pointer that can be passed to other threads (using the `make_xscope_exclusive_write_obj_const_pointer_store_for_sharing()` function).
+
+`TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<>` is the corresponding specialization of [`TXScopeExclusiveStrongPointerStoreForAccessControl<>`](#txscopeexclusivestrongpointerstoreforaccesscontrol).
 
 usage example:
 ```cpp
