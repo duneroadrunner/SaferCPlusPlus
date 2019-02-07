@@ -917,6 +917,15 @@ namespace mse {
 		public:
 			static void no_op() {}
 		};
+
+		template<typename _Ty, class = typename std::enable_if<(std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _Ty>::value), void>::type>
+		class is_valid_if_exclusive_pointer {
+		public:
+			static void no_op() {}
+		};
+
+		template<typename _Ty, class = typename std::enable_if<(std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _Ty>::value), void>::type>
+		void T_valid_if_exclusive_pointer_msepointerbasics() {}
 	}
 
 	template <class _TTargetType, class _TLeaseType> class TStrongFixedConstPointer;

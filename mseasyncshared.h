@@ -2445,6 +2445,10 @@ namespace mse {
 		}
 		TXScopeAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, size_t split_index)
 			: TXScopeAsyncRASectionSplitterXWP(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr), std::array<size_t, 1>{ {split_index}}) {}
+		virtual ~TXScopeAsyncRASectionSplitterXWP() {
+			mse::impl::is_valid_if_exclusive_pointer<exclusive_writelock_ptr_t>::no_op();
+		}
+
 		xscope_ras_ar_t xscope_ra_section_access_requester(size_t index) const {
 			return m_ra_section_ar_map.at(index);
 		}
@@ -2512,6 +2516,7 @@ namespace mse {
 			: TAsyncRASectionSplitterXWP(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr), std::array<size_t, 1>{ {split_index}}) {}
 		virtual ~TAsyncRASectionSplitterXWP() {
 			mse::impl::T_valid_if_not_an_xscope_type<exclusive_writelock_ptr_t>();
+			mse::impl::is_valid_if_exclusive_pointer<exclusive_writelock_ptr_t>::no_op();
 		}
 
 		ras_ar_t ra_section_access_requester(size_t index) const {
@@ -2526,6 +2531,7 @@ namespace mse {
 	private:
 		TAsyncRASectionSplitterXWP(const TAsyncRASectionSplitterXWP& src) = delete;
 		TAsyncRASectionSplitterXWP(TAsyncRASectionSplitterXWP&& src) = delete;
+
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > m_access_lease_obj_shptr;

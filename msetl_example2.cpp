@@ -1636,7 +1636,7 @@ void msetl_example2() {
 				/* In this block we demonstrate obtaining various types of (const and non-const) pointers you might need from
 				an exclusive pointer that might be passed to a thread. */
 
-				std::cout << "mse::TXScopeExclusiveStrongPointerStoreForAccessControlFParam<>: " << std::endl;
+				std::cout << "mse::TXScopeExclusiveStrongPointerStoreForAccessControl<>: " << std::endl;
 
 				a_xscpacobj1.pointer()->s = "";
 
@@ -1649,9 +1649,8 @@ void msetl_example2() {
 				public:
 					/* mse::TXScopeExclusiveStrongPointerStoreForAccessControl<> is a data type that stores an exclusive strong
 					pointer. From this data type you can obtain const, non-const and exclusive pointers. 
-					mse::TXScopeExclusiveStrongPointerStoreForAccessControlFParam<> is the version for use as a function parameter.
-					So this function expects to be passed a pointer of type passable_exclusive_pointer_t. */
-					static void foo1(mse::TXScopeExclusiveStrongPointerStoreForAccessControlFParam<passable_exclusive_pointer_t> xscope_store, int count) {
+					So this function expects to be passed an (rvlaue) pointer of type passable_exclusive_pointer_t. */
+					static void foo1(mse::TXScopeExclusiveStrongPointerStoreForAccessControl<passable_exclusive_pointer_t> xscope_store, int count) {
 						{
 							auto xsptr = xscope_store.xscope_pointer();
 							xsptr->s.append(std::to_string(count));

@@ -10,6 +10,7 @@
 
 #include "msepointerbasics.h"
 #include "mseprimitives.h"
+#include "msemsearray.h" /* for T_valid_if_is_marked_as_xscope_shareable_msemsearray<>() */
 #include "msestaticimmutable.h" /* for mse::rsv::impl::cts::TCheckedThreadSafeObj<> */
 #include <atomic>
 #include <utility>

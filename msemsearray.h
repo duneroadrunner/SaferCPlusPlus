@@ -6692,6 +6692,7 @@ namespace mse {
 		}
 		virtual ~TXScopeExclusiveStrongPointerStoreForAccessControl() {
 			mse::impl::is_valid_if_strong_pointer<_TExclusiveStrongPointer>::no_op();
+			mse::impl::is_valid_if_exclusive_pointer<_TExclusiveStrongPointer>::no_op();
 
 			try {
 				m_mutex1.nonrecursive_lock();
