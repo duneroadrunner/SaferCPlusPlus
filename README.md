@@ -3278,6 +3278,7 @@ A more complicated case is when a container, like say, `mstd::vector<>` causes t
 ```cpp
 #include "msescope.h"
 #include "msemstdvector.h"
+#include "msemstdstring.h"
 
 class CMisbehaver1 {
 public:
