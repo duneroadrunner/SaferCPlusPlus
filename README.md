@@ -187,9 +187,9 @@ The most commonly used reference type, the non-reassignable (non-mut) reference 
 
 Reassignable (mut) references occur much less frequently, but still have no run-time overhead in Rust. Since SaferCPlusPlus does not (yet) have a "borrow checker", it has to resort to run-time checks to ensure memory safety in this case. But in exchange for the overhead, SaferCPlusPlus' registered pointers get essentially all the flexibility of native pointers (minus pointer arithmetic).
 
-Probably the biggest difference though, is that SaferCPlusPlus does not restrict the number and type of references to an object that can exist at one time (i.e. the "exclusivity of mutable references") the way Rust does. With respect to memory safety, the benefit of this restriction is that it ensures that objects with "arbitrary lifespan" (like an element in a (resizable) vector) are not deallocated while other references to that object still exist.
+Probably the biggest difference though, is that SaferCPlusPlus does not (universially) restrict the number and type of references to an object that can exist at one time (i.e. the "exclusivity of mutable references") the way Rust does. With respect to memory safety, the benefit of this restriction is that it ensures that objects with "arbitrary lifespan" (like an element in a (resizable) vector) are not deallocated while other references to that object still exist. But most objects do not have "arbitrary lifespan" (both Rust and SaferCPlusPlus encourage most objects to have "scope lifespan"), so most of the time, from a memory safety perspective, this restriction is not necessary. So SaferCPlusPlus (and the lifetime checker too) are more selective about what restrictions are applied and when. 
 
-But most objects do not have "arbitrary lifespan". (Both Rust and SaferCPlusPlus encourage most objects to have "scope lifespan".) So most of the time, from a memory safety perspective, this restriction is not necessary.  In most cases there is no run-time cost to enforce the rule in Rust, but in some cases enforcement requires the use of a `Cell` wrapper, which can have some run-time cost, or a `RefCell` wrapper, which also introduces the possibility of a panic.
+There are situations where restrictions on object accessibility can be beneficial or essential for reasons other than (single-threaded) memory safety. (To help ensure data race safety of asynchronously shared objects, for example.) For those cases, the library does provide facilities for the enforcement of "access control" restrictions, including essentially the [equivalent](#exclusive-writer-objects) of Rust's `RefCell` wrapper.
 
 Another difference is the available options for dealing with scope lifetime restrictions. For example, let's say that instead of a list (or whatever container) of objects, you have a list of references to existing objects. And let's say that at some point you want to insert a reference to local variable (allocated on the stack) (as with the C++ example [here](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md#snippet-4)). Unfortunately, Rust only allows you to (safely) do so in cases where the variable is "structurally" guaranteed to outlive the list container itself. This is understandable, as otherwise you could end up with the list containing a reference that is no longer valid.
 
@@ -287,7 +287,7 @@ Note that using `mse::registered_delete()` to delete an object through a base cl
 `TRegisteredNotNullPointer<>` is a version of `TRegisteredPointer<>` that cannot be constructed to a null value. Note that `TRegisteredPointer<>` does not implicitly convert to `TRegisteredNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function.
 
 ### TRegisteredFixedPointer
-`TRegisteredFixedPointer<>` is a version of `TRegisteredNotNullPointer<>` that cannot be retargeted after construction (basically a "`const TRegisteredNotNullPointer<>`"). It is essentially a functional equivalent of a C++ reference and is a recommended type to be used for safe parameter passing by reference.  
+`TRegisteredFixedPointer<>` is a version of `TRegisteredNotNullPointer<>` that cannot be retargeted after construction (basically a "`const TRegisteredNotNullPointer<>`"). It is essentially a functional equivalent of a C++ reference.  
 
 usage example:
 
@@ -552,7 +552,7 @@ And also note that the `mse::make_refcounting<>()` function actually returns a `
 
 ### TRefCountingFixedPointer
 
-Same as `TRefCountingNotNullPointer<>`, but cannot be retargeted after construction (basically a "`const TRefCountingNotNullPointer<>`"). It is a recommended type to be used for safe parameter passing by reference.
+Same as `TRefCountingNotNullPointer<>`, but cannot be retargeted after construction (basically a "`const TRefCountingNotNullPointer<>`").
 
 ### TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer
 
@@ -3278,6 +3278,7 @@ A more complicated case is when a container, like say, `mstd::vector<>` causes t
 ```cpp
 #include "msescope.h"
 #include "msemstdvector.h"
+#include "msemstdstring.h"
 
 class CMisbehaver1 {
 public:
