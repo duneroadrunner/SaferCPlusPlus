@@ -6778,6 +6778,13 @@ namespace mse {
 		_TExclusiveStrongPointer m_stored_ptr;
 	};
 
+#ifdef MSE_HAS_CXX17
+	/* deduction guides */
+	template<typename _TExclusiveStrongPointer>
+	TXScopeExclusiveStrongPointerStoreForAccessControl(_TExclusiveStrongPointer&&)
+		->TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer>;
+#endif /* MSE_HAS_CXX17 */
+
 	template<typename _TExclusiveStrongPointer, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex> make_xscope_exclusive_strong_pointer_store_for_access_control(_TExclusiveStrongPointer&& stored_ptr) {
 		return TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex>(std::forward<decltype(stored_ptr)>(stored_ptr));
