@@ -1172,7 +1172,7 @@ namespace mse {
 		}
 		template<typename _Ty>
 		auto returnable_fparam_as_base_type(const TReturnableFParam<_Ty>& _X) -> const typename TReturnableFParam<_Ty>::base_class& {
-			return _X;
+			return static_cast<const typename TReturnableFParam<_Ty>::base_class&>(_X);
 		}
 
 
@@ -1308,7 +1308,7 @@ namespace mse {
 		static void z__returnable_noop(const _Ty&) {}
 
 		template<typename _Ty>
-		auto return_value_helper12(const _Ty& _X) {
+		const auto& return_value_helper12(const _Ty& _X) {
 			return rsv::returnable_fparam_as_base_type(_X);
 		}
 		template<typename _Ty>
