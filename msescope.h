@@ -730,6 +730,7 @@ namespace mse {
 		friend class TXScopeObj<_Ty>;
 		template<class _Ty2> friend class rsv::TXScopeItemFixedPointerFParam;
 		template<class _Ty2> friend class rsv::TXScopeItemFixedConstPointerFParam;
+		template<class _Ty2> friend class TXScopeStrongPointerStore;
 	};
 
 	template<typename _Ty>
@@ -755,6 +756,7 @@ namespace mse {
 		friend class TXScopeObj<_Ty>;
 		template<class _Ty2> friend class rsv::TXScopeItemFixedConstPointerFParam;
 		template<typename _Ty2> friend auto pointer_to(_Ty2&& _X) -> decltype(&std::forward<_Ty2>(_X));
+		template<class _Ty2> friend class TXScopeStrongConstPointerStore;
 	};
 }
 
@@ -1790,7 +1792,7 @@ namespace mse {
 
 	/* TXScopeStrongPointerStore et al are types that store a strong pointer (like a refcounting pointer), and let you
 	obtain a corresponding scope pointer. */
-	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_pointer<_TStrongPointer> >
+	template<typename _TStrongPointer>
 	class TXScopeStrongPointerStore : public mse::us::impl::XScopeTagBase
 		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TXScopeStrongPointerStore<_TStrongPointer> > >::type
 	{
@@ -1801,10 +1803,15 @@ namespace mse {
 		TXScopeStrongPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
+		~TXScopeStrongPointerStore() {
+			mse::impl::is_valid_if_strong_pointer<_TStrongPointer>::no_op();
+		}
 		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr);
 		}
-		void xscope_ptr() const && = delete;
+		auto xscope_ptr() const && {
+			return mse::TXScopeCagedItemFixedPointerToRValue<typename std::remove_reference<decltype(*m_stored_ptr)>::type>(mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr));
+		}
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
@@ -1817,7 +1824,7 @@ namespace mse {
 		_TStrongPointer m_stored_ptr;
 	};
 
-	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_pointer<_TStrongPointer> >
+	template<typename _TStrongPointer>
 	class TXScopeStrongConstPointerStore : public mse::us::impl::XScopeTagBase
 		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TXScopeStrongConstPointerStore<_TStrongPointer> > >::type
 	{
@@ -1828,10 +1835,15 @@ namespace mse {
 		TXScopeStrongConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
+		~TXScopeStrongConstPointerStore() {
+			mse::impl::is_valid_if_strong_pointer<_TStrongPointer>::no_op();
+		}
 		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
 		}
-		void xscope_ptr() const && = delete;
+		auto xscope_ptr() const && {
+			return mse::TXScopeCagedItemFixedConstPointerToRValue<typename std::remove_const<typename std::remove_reference<decltype(*m_stored_ptr)>::type>::type>(mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr));
+		}
 		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
