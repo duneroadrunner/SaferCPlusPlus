@@ -680,7 +680,7 @@ Scope pointers usually point to scope objects. Scope objects are objects that li
 
 The rules for using scope pointers and objects are essentially as follows:
 
-- Objects of scope type (types whose name starts with "TXScope" or "xscope") must be local (non-[static](#thread_local-static-and-global-variables)) automatic variables.
+- Objects of scope type (types whose name starts with "TXScope" or "xscope") must be local ([non](#thread_local)-[static](#static-and-global-variables)) automatic variables.
 	- Basically allocated on the stack.
 - Note that scope pointers are themselves scope objects and must adhere to the same restrictions.
 - Do not use scope types as members of classes or structs.
