@@ -1012,7 +1012,7 @@ namespace mse {
 	}
 
 	template<typename _TAccessLease>
-	class TXScopeAsyncSharedV2ExclusiveReadWritePointer : public mse::us::impl::TAsyncSharedV2ExclusiveReadWritePointerBase<_TAccessLease> {
+	class TXScopeAsyncSharedV2ExclusiveReadWritePointer : public mse::us::impl::TAsyncSharedV2ExclusiveReadWritePointerBase<_TAccessLease>, public mse::us::impl::XScopeTagBase {
 	public:
 		typedef mse::us::impl::TAsyncSharedV2ExclusiveReadWritePointerBase<_TAccessLease> base_class;
 
@@ -2387,28 +2387,14 @@ namespace mse {
 		return TAsyncSplitterRASectionReadWriteAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
-	template <typename _TAccessLease>
-	class TSplitterAccessLeaseObj {
-	public:
-		TSplitterAccessLeaseObj(_TAccessLease&& access_lease)
-			: m_access_lease(std::forward<_TAccessLease>(access_lease)) {}
-		const _TAccessLease& cref() const {
-			return m_access_lease;
-		}
-	private:
-		_TAccessLease m_access_lease;
-	};
-
-	/* to do: verify that _TExclusiveWritelockPtr is a (supported) safe, strong exclusive pointer type, or move the
-	TAsyncRASectionSplitterXWP classes to the "mse::us" namespace. */
 	template <typename _TExclusiveWritelockPtr>
-	class TXScopeAsyncRASectionSplitterXWP {
+	class TXScopeAsyncRASectionSplitterXWP : public mse::us::impl::XScopeTagBase {
 	public:
 		typedef _TExclusiveWritelockPtr exclusive_writelock_ptr_t;
 		typedef typename std::remove_reference<decltype(*(std::declval<exclusive_writelock_ptr_t>()))>::type _TContainer;
 		typedef typename std::remove_reference<decltype(std::declval<_TContainer>()[0])>::type element_t;
 		typedef mse::TRAIterator<_TContainer*> ra_iterator_t;
-		typedef decltype(mse::make_strong_iterator(std::declval<ra_iterator_t>(), std::declval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
+		typedef decltype(mse::impl::make_strong_iterator(std::declval<ra_iterator_t>(), std::declval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
 		typedef mse::us::impl::TXScopeAsyncSplitterRandomAccessSection<strong_ra_iterator_t> xscope_splitter_ra_section_t;
 		typedef decltype(std::declval<xscope_splitter_ra_section_t>().size()) size_type;
 		typedef mse::TXScopeAccessControlledObj<xscope_splitter_ra_section_t> xscope_aco_splitter_ra_section_t;
@@ -2427,7 +2413,7 @@ namespace mse {
 				if (0 > section_size) { MSE_THROW(std::range_error("invalid section size - TXScopeAsyncRASectionSplitterXWP() - TXScopeAsyncRASectionSplitterXWP")); }
 				auto section_size_szt = mse::msev_as_a_size_t(section_size);
 
-				strong_ra_iterator_t it1 = mse::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
+				strong_ra_iterator_t it1 = mse::impl::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
 				auto res1 = m_splitter_aco_ra_section_map.emplace(count, xscope_aco_splitter_ra_section_t(it1, section_size_szt));
 				m_ra_section_ar_map.emplace(count, mse::make_xscope_asyncsplitterrasectionreadwrite<aco_exclusive_pointer_t>(res1.first->second.exclusive_pointer()));
 
@@ -2438,7 +2424,7 @@ namespace mse {
 			if (m_access_lease_obj_shptr->cref()->size() > cummulative_size) {
 				auto section_size = m_access_lease_obj_shptr->cref()->size() - cummulative_size;
 				auto section_size_szt = mse::msev_as_a_size_t(section_size);
-				auto it1 = mse::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
+				auto it1 = mse::impl::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
 				auto res1 = m_splitter_aco_ra_section_map.emplace(count, xscope_aco_splitter_ra_section_t(it1, section_size_szt));
 				m_ra_section_ar_map.emplace(count, mse::make_xscope_asyncsplitterrasectionreadwrite<aco_exclusive_pointer_t>(res1.first->second.exclusive_pointer()));
 			}
@@ -2485,7 +2471,7 @@ namespace mse {
 		typedef typename std::remove_reference<decltype(*(std::declval<exclusive_writelock_ptr_t>()))>::type _TContainer;
 		typedef typename std::remove_reference<decltype(std::declval<_TContainer>()[0])>::type element_t;
 		typedef mse::TRAIterator<_TContainer*> ra_iterator_t;
-		typedef decltype(mse::make_strong_iterator(std::declval<ra_iterator_t>(), std::declval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
+		typedef decltype(mse::impl::make_strong_iterator(std::declval<ra_iterator_t>(), std::declval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
 		typedef TAsyncSplitterRASectionReadWriteAccessRequester<strong_ra_iterator_t> ras_ar_t;
 
 		template<typename _TList>
@@ -2498,7 +2484,7 @@ namespace mse {
 				if (0 > section_size) { MSE_THROW(std::range_error("invalid section size - TAsyncRASectionSplitterXWP() - TAsyncRASectionSplitterXWP")); }
 				auto section_size_szt = mse::msev_as_a_size_t(section_size);
 
-				strong_ra_iterator_t it1 = mse::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
+				strong_ra_iterator_t it1 = mse::impl::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
 				ras_ar_t ras_ar1 = mse::make_asyncsplitterrasectionreadwrite<strong_ra_iterator_t>(it1, section_size_szt);
 				m_ra_sections.push_back(ras_ar1);
 
@@ -2507,7 +2493,7 @@ namespace mse {
 			}
 			if (m_access_lease_obj_shptr->cref()->size() > cummulative_size) {
 				auto section_size = m_access_lease_obj_shptr->cref()->size() - cummulative_size;
-				auto it1 = mse::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
+				auto it1 = mse::impl::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
 				auto ras_ar1 = mse::make_asyncsplitterrasectionreadwrite<strong_ra_iterator_t>(it1, section_size);
 				m_ra_sections.push_back(ras_ar1);
 			}
