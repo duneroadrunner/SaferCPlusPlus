@@ -1734,7 +1734,7 @@ void msetl_example2() {
 		{
 			/* This block is similar to a previous one that demonstrates safely allowing different threads to (simultaneously)
 			modify different sections of a vector. The difference is just that here the shared vector is a pre-existing one
-			declared as a local variable (i.e. on the stack). */
+			declared as a local variable. */
 
 			static const size_t num_sections = 10;
 			static const size_t section_size = 5;
@@ -1756,9 +1756,7 @@ void msetl_example2() {
 			/* Only access controlled objects can be shared with other threads, so we'll make an access controlled vector and
 			(temporarily) swap it with our original one. */
 			mse::TXScopeObj<mse::TXScopeAccessControlledObj<async_shareable_vector1_t> > xscope_acobj;
-			auto xscope_ash_access_requester = mse::make_xscope_asyncsharedv2acoreadwrite(&xscope_acobj);
-			//auto ash_access_requester = mse::make_asyncsharedv2readwrite<async_shareable_vector1_t>();
-			std::swap(vector1, (*(xscope_ash_access_requester.writelock_ptr())));
+			std::swap(vector1, *(xscope_acobj.xscope_pointer()));
 
 			std::cout << "access controlled, mse::TAsyncRASectionSplitter<>, part 1: " << std::endl;
 
@@ -1767,7 +1765,7 @@ void msetl_example2() {
 				(newly created) "random access section" objects which are used to access (disjoint) sections of the vector.
 				We need to specify the position where we want to split the vector. Here we specify that it be split at index
 				"num_elements / 2", right down the middle. */
-				mse::TXScopeAsyncRASectionSplitter<decltype(xscope_ash_access_requester)> xscope_ra_section_split1(xscope_ash_access_requester, num_elements / 2);
+				mse::TXScopeAsyncACORASectionSplitter<async_shareable_vector1_t> xscope_ra_section_split1(&xscope_acobj, num_elements / 2);
 				auto ar1 = xscope_ra_section_split1.first_ra_section_access_requester();
 				auto ar2 = xscope_ra_section_split1.second_ra_section_access_requester();
 
@@ -1804,8 +1802,8 @@ void msetl_example2() {
 					section_sizes.push_back(section_size);
 				}
 
-				/* Just as before, TXScopeAsyncRASectionSplitter<> will generate a new access requester for each section. */
-				mse::TXScopeAsyncRASectionSplitter<decltype(xscope_ash_access_requester)> xscope_ra_section_split1(xscope_ash_access_requester, section_sizes);
+				/* Just as before, TXScopeAsyncACORASectionSplitter<> will generate a new access requester for each section. */
+				mse::TXScopeAsyncACORASectionSplitter<async_shareable_vector1_t> xscope_ra_section_split1(&xscope_acobj, section_sizes);
 				auto ar0 = xscope_ra_section_split1.ra_section_access_requester(0);
 
 				auto& my_foo8_function_ref = J::foo8<decltype(ar0.writelock_ra_section())>;
@@ -1823,7 +1821,7 @@ void msetl_example2() {
 			}
 
 			/* Now that we're done sharing the (controlled access) vector, we can swap it back to our original vector. */
-			std::swap(vector1, (*(xscope_ash_access_requester.writelock_ptr())));
+			std::swap(vector1, *(xscope_acobj.xscope_pointer()));
 			auto first_element_value = vector1[0];
 			auto last_element_value = vector1.back();
 

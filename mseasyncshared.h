@@ -1071,10 +1071,10 @@ namespace mse {
 					valid_if_TAccessLease_is_marked_as_a_strong_pointer();
 				}
 
-				TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease> xscope_writelock_ptr() {
+				TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease> xscope_writelock_ptr() const {
 					return TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr);
 				}
-				mse::xscope_optional<TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>> xscope_try_writelock_ptr() {
+				mse::xscope_optional<TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>> xscope_try_writelock_ptr() const {
 					mse::xscope_optional<TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>> retval(TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr, std::try_to_lock));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1082,7 +1082,7 @@ namespace mse {
 					return retval;
 				}
 				template<class _Rep, class _Period>
-				mse::xscope_optional<TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>> xscope_try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+				mse::xscope_optional<TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>> xscope_try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 					mse::xscope_optional<TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>> retval(TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr, std::try_to_lock, _Rel_time));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1090,17 +1090,17 @@ namespace mse {
 					return retval;
 				}
 				template<class _Clock, class _Duration>
-				mse::xscope_optional<TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>> xscope_try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+				mse::xscope_optional<TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>> xscope_try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 					mse::xscope_optional<TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>> retval(TXScopeAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr, std::try_to_lock, _Abs_time));
 					if (!((*retval).is_valid())) {
 						return{};
 					}
 					return retval;
 				}
-				TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease> xscope_readlock_ptr() {
+				TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease> xscope_readlock_ptr() const {
 					return TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr);
 				}
-				mse::xscope_optional<TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> xscope_try_readlock_ptr() {
+				mse::xscope_optional<TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> xscope_try_readlock_ptr() const {
 					mse::xscope_optional<TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> retval(TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr, std::try_to_lock));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1108,7 +1108,7 @@ namespace mse {
 					return retval;
 				}
 				template<class _Rep, class _Period>
-				mse::xscope_optional<TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> xscope_try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+				mse::xscope_optional<TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> xscope_try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 					mse::xscope_optional<TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> retval(TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Rel_time));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1116,7 +1116,7 @@ namespace mse {
 					return retval;
 				}
 				template<class _Clock, class _Duration>
-				mse::xscope_optional<TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> xscope_try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+				mse::xscope_optional<TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> xscope_try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 					mse::xscope_optional<TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> retval(TXScopeAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Abs_time));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1126,8 +1126,11 @@ namespace mse {
 				/* Note that an exclusive_writelock_ptr cannot coexist with any other lock_ptrs (targeting the same object), including ones in
 				the same thread. Thus, using exclusive_writelock_ptrs without sufficient care introduces the potential for exceptions (in a way
 				that sticking to (regular) writelock_ptrs doesn't). */
-				TXScopeAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease> xscope_exclusive_writelock_ptr() {
+				TXScopeAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease> xscope_exclusive_writelock_ptr() const {
 					return TXScopeAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>(m_shptr);
+				}
+				auto xscope_exclusive_pointer() const {
+					return xscope_exclusive_writelock_ptr();
 				}
 
 				static TAsyncSharedV2XWPReadWriteAccessRequesterBase make(_TAccessLease&& exclusive_write_pointer) {
@@ -1137,10 +1140,10 @@ namespace mse {
 				void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 			protected:
-				TAsyncSharedV2ReadWritePointer<_TAccessLease> writelock_ptr() {
+				TAsyncSharedV2ReadWritePointer<_TAccessLease> writelock_ptr() const {
 					return TAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr);
 				}
-				mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr() {
+				mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr() const {
 					mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> retval(TAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr, std::try_to_lock));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1148,7 +1151,7 @@ namespace mse {
 					return retval;
 				}
 				template<class _Rep, class _Period>
-				mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+				mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 					mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> retval(TAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr, std::try_to_lock, _Rel_time));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1156,17 +1159,17 @@ namespace mse {
 					return retval;
 				}
 				template<class _Clock, class _Duration>
-				mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+				mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 					mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> retval(TAsyncSharedV2ReadWritePointer<_TAccessLease>(m_shptr, std::try_to_lock, _Abs_time));
 					if (!((*retval).is_valid())) {
 						return{};
 					}
 					return retval;
 				}
-				TAsyncSharedV2ReadWriteConstPointer<_TAccessLease> readlock_ptr() {
+				TAsyncSharedV2ReadWriteConstPointer<_TAccessLease> readlock_ptr() const {
 					return TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr);
 				}
-				mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr() {
+				mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr() const {
 					mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr, std::try_to_lock));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1174,7 +1177,7 @@ namespace mse {
 					return retval;
 				}
 				template<class _Rep, class _Period>
-				mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+				mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 					mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Rel_time));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1182,7 +1185,7 @@ namespace mse {
 					return retval;
 				}
 				template<class _Clock, class _Duration>
-				mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+				mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 					mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Abs_time));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1192,8 +1195,11 @@ namespace mse {
 				/* Note that an exclusive_writelock_ptr cannot coexist with any other lock_ptrs (targeting the same object), including ones in
 				the same thread. Thus, using exclusive_writelock_ptrs without sufficient care introduces the potential for exceptions (in a way
 				that sticking to (regular) writelock_ptrs doesn't). */
-				TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease> exclusive_writelock_ptr() {
+				TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease> exclusive_writelock_ptr() const {
 					return TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease>(m_shptr);
+				}
+				auto exclusive_pointer() const {
+					return exclusive_writelock_ptr();
 				}
 
 			private:
@@ -1231,36 +1237,39 @@ namespace mse {
 		}
 
 		/* Prefer the "xscope_" prefixed versions to acknowledge that scope iterators are returned. */
-		auto writelock_ptr() {
+		auto writelock_ptr() const {
 			return base_class::xscope_writelock_ptr();
 		}
-		auto try_writelock_ptr() {
+		auto try_writelock_ptr() const {
 			return base_class::xscope_try_writelock_ptr();
 		}
 		template<class _Rep, class _Period>
-		auto try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		auto try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 			return base_class::xscope_try_writelock_ptr_for(_Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		auto try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		auto try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 			return base_class::xscope_try_writelock_ptr_until(_Abs_time);
 		}
-		auto readlock_ptr() {
+		auto readlock_ptr() const {
 			return base_class::xscope_readlock_ptr();
 		}
-		auto try_readlock_ptr() {
+		auto try_readlock_ptr() const {
 			return base_class::xscope_try_readlock_ptr();
 		}
 		template<class _Rep, class _Period>
-		auto try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		auto try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 			return base_class::xscope_try_readlock_ptr_for(_Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		auto try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		auto try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 			return base_class::xscope_try_readlock_ptr_until(_Abs_time);
 		}
-		auto exclusive_writelock_ptr() {
+		auto exclusive_writelock_ptr() const {
 			return base_class::xscope_exclusive_writelock_ptr();
+		}
+		auto exclusive_pointer() const {
+			return exclusive_writelock_ptr();
 		}
 
 		static TXScopeAsyncSharedV2XWPReadWriteAccessRequester make(_TAccessLease&& exclusive_write_pointer) {
@@ -1301,39 +1310,42 @@ namespace mse {
 			valid_if_target_type_is_marked_as_shareable();
 		}
 
-		TAsyncSharedV2ReadWritePointer<_TAccessLease> writelock_ptr() {
+		TAsyncSharedV2ReadWritePointer<_TAccessLease> writelock_ptr() const {
 			return base_class::writelock_ptr();
 		}
-		mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr() {
+		mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr() const {
 			return base_class::try_writelock_ptr();
 		}
 		template<class _Rep, class _Period>
-		mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 			return base_class::try_writelock_ptr_for(_Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		mse::mstd::optional<TAsyncSharedV2ReadWritePointer<_TAccessLease>> try_writelock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 			return base_class::try_writelock_ptr_until(_Abs_time);
 		}
-		TAsyncSharedV2ReadWriteConstPointer<_TAccessLease> readlock_ptr() {
+		TAsyncSharedV2ReadWriteConstPointer<_TAccessLease> readlock_ptr() const {
 			return base_class::readlock_ptr();
 		}
-		mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr() {
+		mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr() const {
 			return base_class::try_readlock_ptr();
 		}
 		template<class _Rep, class _Period>
-		mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 			return base_class::try_readlock_ptr_for(_Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		mse::mstd::optional<TAsyncSharedV2ReadWriteConstPointer<_TAccessLease>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 			return base_class::try_readlock_ptr_until(_Abs_time);
 		}
 		/* Note that an exclusive_writelock_ptr cannot coexist with any other lock_ptrs (targeting the same object), including ones in
 		the same thread. Thus, using exclusive_writelock_ptrs without sufficient care introduces the potential for exceptions (in a way
 		that sticking to (regular) writelock_ptrs doesn't). */
-		TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease> exclusive_writelock_ptr() {
+		TAsyncSharedV2ExclusiveReadWritePointer<_TAccessLease> exclusive_writelock_ptr() const {
 			return base_class::exclusive_writelock_ptr();
+		}
+		auto exclusive_pointer() const {
+			return exclusive_writelock_ptr();
 		}
 
 		static TAsyncSharedV2XWPReadWriteAccessRequester make(_TAccessLease&& exclusive_write_pointer) {
@@ -1504,10 +1516,10 @@ namespace mse {
 					valid_if_TAccessLease_is_marked_as_a_strong_pointer();
 				}
 
-				TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease> xscope_readlock_ptr() {
+				TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease> xscope_readlock_ptr() const {
 					return TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr);
 				}
-				mse::xscope_optional<TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> xscope_try_readlock_ptr() {
+				mse::xscope_optional<TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> xscope_try_readlock_ptr() const {
 					mse::xscope_optional<TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> retval(TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr, std::try_to_lock));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1515,7 +1527,7 @@ namespace mse {
 					return retval;
 				}
 				template<class _Rep, class _Period>
-				mse::xscope_optional<TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> xscope_try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+				mse::xscope_optional<TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> xscope_try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 					mse::xscope_optional<TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> retval(TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Rel_time));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1523,7 +1535,7 @@ namespace mse {
 					return retval;
 				}
 				template<class _Clock, class _Duration>
-				mse::xscope_optional<TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> xscope_try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+				mse::xscope_optional<TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> xscope_try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 					mse::xscope_optional<TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> retval(TXScopeAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Abs_time));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1538,10 +1550,10 @@ namespace mse {
 				void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 			protected:
-				TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease> readlock_ptr() {
+				TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease> readlock_ptr() const {
 					return TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr);
 				}
-				mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr() {
+				mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr() const {
 					mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr, std::try_to_lock));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1549,7 +1561,7 @@ namespace mse {
 					return retval;
 				}
 				template<class _Rep, class _Period>
-				mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+				mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 					mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Rel_time));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1557,7 +1569,7 @@ namespace mse {
 					return retval;
 				}
 				template<class _Clock, class _Duration>
-				mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+				mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 					mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> retval(TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>(m_shptr, std::try_to_lock, _Abs_time));
 					if (!((*retval).is_valid())) {
 						return{};
@@ -1600,18 +1612,18 @@ namespace mse {
 		}
 
 		/* Prefer the "xscope_" prefixed versions to acknowledge that scope iterators are returned. */
-		auto readlock_ptr() {
+		auto readlock_ptr() const {
 			return base_class::xscope_readlock_ptr();
 		}
-		auto try_readlock_ptr() {
+		auto try_readlock_ptr() const {
 			return base_class::xscope_try_readlock_ptr();
 		}
 		template<class _Rep, class _Period>
-		auto try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		auto try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 			return base_class::xscope_try_readlock_ptr_for(_Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		auto try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		auto try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 			return base_class::xscope_try_readlock_ptr_until(_Abs_time);
 		}
 
@@ -1654,18 +1666,18 @@ namespace mse {
 			valid_if_target_type_is_marked_as_shareable();
 		}
 
-		TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease> readlock_ptr() {
+		TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease> readlock_ptr() const {
 			return base_class::readlock_ptr();
 		}
-		mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr() {
+		mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr() const {
 			return base_class::try_readlock_ptr();
 		}
 		template<class _Rep, class _Period>
-		mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 			return base_class::try_readlock_ptr_for(_Rel_time);
 		}
 		template<class _Clock, class _Duration>
-		mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		mse::mstd::optional<TAsyncSharedV2ReadOnlyConstPointer<_TAccessLease>> try_readlock_ptr_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 			return base_class::try_readlock_ptr_until(_Abs_time);
 		}
 
@@ -2236,7 +2248,7 @@ namespace mse {
 		the same thread. TXScopehus, using exclusive_writelock_ra_sections without sufficient care introduces the potential for exceptions (in a way
 		that sticking to (regular) writelock_ra_sections doesn't). */
 		auto xscope_exclusive_writelock_ra_section() {
-			return mse::make_xscope_random_access_section(mse::make_xscope_random_access_iterator(m_splitter_ra_section_access_requester.exclusive_writelock_ptr()), m_count);
+			return mse::make_xscope_random_access_section(mse::make_xscope_random_access_iterator(m_splitter_ra_section_access_requester.exclusive_pointer()), m_count);
 		}
 
 		/* Prefer the "xscope_" prefixed versions to acknowledge that scope sections are returned. */
@@ -2361,7 +2373,7 @@ namespace mse {
 		that sticking to (regular) writelock_ra_sections doesn't). */
 		typedef TRandomAccessSection<TRAIterator<TAsyncSharedV2ExclusiveReadWritePointer<splitter_ra_section_t> > > xrw_ra_section_t;
 		xrw_ra_section_t exclusive_writelock_ra_section() {
-			return xrw_ra_section_t(TRAIterator<decltype(m_splitter_ra_section_access_requester.writelock_ptr())>(m_splitter_ra_section_access_requester.exclusive_writelock_ptr()), m_count);
+			return xrw_ra_section_t(TRAIterator<decltype(m_splitter_ra_section_access_requester.writelock_ptr())>(m_splitter_ra_section_access_requester.exclusive_pointer()), m_count);
 		}
 
 		template <class... Args>
@@ -2525,14 +2537,14 @@ namespace mse {
 	};
 
 	template <typename _TAccessRequester>
-	class TXScopeAsyncRASectionSplitter : public TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_writelock_ptr())> {
+	class TXScopeAsyncRASectionSplitter : public TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_pointer())> {
 	public:
-		typedef TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_writelock_ptr())> base_class;
+		typedef TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_pointer())> base_class;
 
 		template<typename _TList>
-		TXScopeAsyncRASectionSplitter(_TAccessRequester& ar, const _TList& section_sizes) : base_class(ar.exclusive_writelock_ptr(), section_sizes) {}
+		TXScopeAsyncRASectionSplitter(_TAccessRequester& ar, const _TList& section_sizes) : base_class(ar.exclusive_pointer(), section_sizes) {}
 
-		TXScopeAsyncRASectionSplitter(_TAccessRequester& ar, size_t split_index) : base_class(ar.exclusive_writelock_ptr(), split_index) {}
+		TXScopeAsyncRASectionSplitter(_TAccessRequester& ar, size_t split_index) : base_class(ar.exclusive_pointer(), split_index) {}
 
 	private:
 		TXScopeAsyncRASectionSplitter & operator=(const TXScopeAsyncRASectionSplitter& _Right_cref) = delete;
@@ -2540,17 +2552,37 @@ namespace mse {
 	};
 
 	template <typename _TAccessRequester>
-	class TAsyncRASectionSplitter : public TAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_writelock_ptr())> {
+	class TAsyncRASectionSplitter : public TAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_pointer())> {
 	public:
-		typedef TAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_writelock_ptr())> base_class;
+		typedef TAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_pointer())> base_class;
 
 		template<typename _TList>
-		TAsyncRASectionSplitter(_TAccessRequester& ar, const _TList& section_sizes) : base_class(ar.exclusive_writelock_ptr(), section_sizes) {}
+		TAsyncRASectionSplitter(_TAccessRequester& ar, const _TList& section_sizes) : base_class(ar.exclusive_pointer(), section_sizes) {}
 
-		TAsyncRASectionSplitter(_TAccessRequester& ar, size_t split_index) : base_class(ar.exclusive_writelock_ptr(), split_index) {}
+		TAsyncRASectionSplitter(_TAccessRequester& ar, size_t split_index) : base_class(ar.exclusive_pointer(), split_index) {}
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+	};
+
+	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	class TXScopeAsyncACORASectionSplitter : public TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
+	public:
+		typedef TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
+		typedef mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
+		typedef mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
+
+		TXScopeAsyncACORASectionSplitter(const xsac_obj_xscpptr_t& xsptr, size_t split_index) : base_class(xsptr->exclusive_pointer(), split_index) {}
+		template<typename _TList>
+		TXScopeAsyncACORASectionSplitter(const xsac_obj_xscpptr_t& xsptr, const _TList& section_sizes) : base_class(xsptr->exclusive_pointer(), section_sizes) {}
+
+		TXScopeAsyncACORASectionSplitter(const ac_obj_xscpptr_t& xsptr, size_t split_index) : base_class(xsptr->exclusive_pointer(), split_index) {}
+		template<typename _TList>
+		TXScopeAsyncACORASectionSplitter(const ac_obj_xscpptr_t& xsptr, const _TList& section_sizes) : base_class(xsptr->exclusive_pointer(), section_sizes) {}
+
+	private:
+		TXScopeAsyncACORASectionSplitter & operator=(const TXScopeAsyncACORASectionSplitter& _Right_cref) = delete;
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 
@@ -3129,6 +3161,9 @@ namespace mse {
 		TAsyncSharedExclusiveReadWritePointer<_Ty> exclusive_writelock_ptr() {
 			return TAsyncSharedExclusiveReadWritePointer<_Ty>(m_shptr);
 		}
+		auto exclusive_pointer() {
+			return exclusive_writelock_ptr();
+		}
 
 		template <class... Args>
 		static TAsyncSharedReadWriteAccessRequester make(Args&&... args) {
@@ -3534,6 +3569,9 @@ namespace mse {
 		that sticking to (regular) writelock_ptrs doesn't). */
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer<_Ty> exclusive_writelock_ptr() {
 			return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer<_Ty>(m_shptr);
+		}
+		auto exclusive_pointer() {
+			return exclusive_writelock_ptr();
 		}
 
 		template <class... Args>

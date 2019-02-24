@@ -7456,15 +7456,21 @@ namespace mse {
 		typedef typename std::remove_reference<decltype(*(std::declval<exclusive_writelock_ptr_t>()))>::type _TContainer;
 		typedef typename std::remove_reference<decltype(std::declval<_TContainer>()[0])>::type element_t;
 		typedef mse::TRAIterator<_TContainer*> ra_iterator_t;
+
 #ifdef NDEBUG
-		typedef TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> access_lease_t;
-#else // NDEBUG
-		typedef mse::TNDNoradObj<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > access_lease_t;
+		/* If the assumptions and implementation are correct, then the run-time checks in the debug branch should be
+		totally unnecessary/redundant. Once we're confident in the implmentation, the debug branch can/should be removed. */
+#define MSE_TRASECTIONSPLITTERXWP_NDEBUG
 #endif // NDEBUG
+#ifdef MSE_TRASECTIONSPLITTERXWP_NDEBUG
+		typedef TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> access_lease_t;
+#else // MSE_TRASECTIONSPLITTERXWP_NDEBUG
+		typedef mse::TNDNoradObj<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > access_lease_t;
+#endif // MSE_TRASECTIONSPLITTERXWP_NDEBUG
 		typedef typename std::remove_reference<decltype(&std::declval<access_lease_t>())>::type access_lease_ptr_t;
 
-		typedef decltype(mse::impl::make_strong_iterator(std::declval<ra_iterator_t>(), std::declval<access_lease_ptr_t>())) strong_ra_iterator_t;
-		typedef mse::us::impl::TSplitterRandomAccessSection<strong_ra_iterator_t> splitter_ra_section_t;
+		typedef decltype(adjusted_ra_iterator(std::declval<ra_iterator_t>(), std::declval<access_lease_ptr_t>())) adjusted_ra_iterator_t;
+		typedef mse::us::impl::TSplitterRandomAccessSection<adjusted_ra_iterator_t> splitter_ra_section_t;
 		typedef decltype(std::declval<splitter_ra_section_t>().size()) size_type;
 		typedef mse::TAccessControlledObj<splitter_ra_section_t> aco_splitter_ra_section_t;
 
@@ -7480,7 +7486,7 @@ namespace mse {
 				if (0 > section_size) { MSE_THROW(std::range_error("invalid section size - TRASectionSplitterXWP() - TRASectionSplitterXWP")); }
 				auto section_size_szt = mse::msear_as_a_size_t(section_size);
 
-				strong_ra_iterator_t it1 = mse::impl::make_strong_iterator(section_begin_it, &m_access_lease_obj);
+				auto it1 = adjusted_ra_iterator(section_begin_it, &m_access_lease_obj);
 				auto res1 = m_splitter_aco_ra_section_map.emplace(count, aco_splitter_ra_section_t(it1, section_size_szt));
 
 				cummulative_size += section_size_szt;
@@ -7490,7 +7496,7 @@ namespace mse {
 			if (m_access_lease_obj.cref()->size() > cummulative_size) {
 				auto section_size = m_access_lease_obj.cref()->size() - cummulative_size;
 				auto section_size_szt = mse::msear_as_a_size_t(section_size);
-				auto it1 = mse::impl::make_strong_iterator(section_begin_it, &m_access_lease_obj);
+				auto it1 = adjusted_ra_iterator(section_begin_it, &m_access_lease_obj);
 				auto res1 = m_splitter_aco_ra_section_map.emplace(count, aco_splitter_ra_section_t(it1, section_size_szt));
 			}
 		}
@@ -7511,6 +7517,14 @@ namespace mse {
 			return m_splitter_aco_ra_section_map.at(1);
 		}
 	private:
+		auto adjusted_ra_iterator(const ra_iterator_t& src_it, const access_lease_ptr_t& access_lease_ptr) const {
+#ifdef MSE_TRASECTIONSPLITTERXWP_NDEBUG
+			return src_it;
+#else // MSE_TRASECTIONSPLITTERXWP_NDEBUG
+			return mse::impl::make_strong_iterator(src_it, access_lease_ptr);
+#endif // MSE_TRASECTIONSPLITTERXWP_NDEBUG
+		}
+
 		TRASectionSplitterXWP(const TRASectionSplitterXWP& src) = delete;
 		TRASectionSplitterXWP(TRASectionSplitterXWP&& src) = delete;
 		TRASectionSplitterXWP & operator=(const TRASectionSplitterXWP& _Right_cref) = delete;
@@ -7520,35 +7534,26 @@ namespace mse {
 		std::unordered_map<size_t, aco_splitter_ra_section_t> m_splitter_aco_ra_section_map;
 	};
 
-
-	template <typename _TAccessRequester>
-	class TXScopeRASectionSplitter : public TXScopeRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_writelock_ptr())> {
+	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	class TXScopeACORASectionSplitter : public TXScopeRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
 	public:
-		typedef TXScopeRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_writelock_ptr())> base_class;
+		typedef TXScopeRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
+		typedef mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
+		typedef mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
 
+		TXScopeACORASectionSplitter(const xsac_obj_xscpptr_t& xsptr, size_t split_index) : base_class(xsptr->exclusive_pointer(), split_index) {}
 		template<typename _TList>
-		TXScopeRASectionSplitter(_TAccessRequester& ar, const _TList& section_sizes) : base_class(ar.exclusive_writelock_ptr(), section_sizes) {}
+		TXScopeACORASectionSplitter(const xsac_obj_xscpptr_t& xsptr, const _TList& section_sizes) : base_class(xsptr->exclusive_pointer(), section_sizes) {}
 
-		TXScopeRASectionSplitter(_TAccessRequester& ar, size_t split_index) : base_class(ar.exclusive_writelock_ptr(), split_index) {}
+		TXScopeACORASectionSplitter(const ac_obj_xscpptr_t& xsptr, size_t split_index) : base_class(xsptr->exclusive_pointer(), split_index) {}
+		template<typename _TList>
+		TXScopeACORASectionSplitter(const ac_obj_xscpptr_t& xsptr, const _TList& section_sizes) : base_class(xsptr->exclusive_pointer(), section_sizes) {}
 
 	private:
-		TXScopeRASectionSplitter & operator=(const TXScopeRASectionSplitter& _Right_cref) = delete;
+		TXScopeACORASectionSplitter & operator=(const TXScopeACORASectionSplitter& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
-	template <typename _TAccessRequester>
-	class TRASectionSplitter : public TRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_writelock_ptr())> {
-	public:
-		typedef TRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_writelock_ptr())> base_class;
-
-		template<typename _TList>
-		TRASectionSplitter(_TAccessRequester& ar, const _TList& section_sizes) : base_class(ar.exclusive_writelock_ptr(), section_sizes) {}
-
-		TRASectionSplitter(_TAccessRequester& ar, size_t split_index) : base_class(ar.exclusive_writelock_ptr(), split_index) {}
-
-	private:
-		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-	};
 
 #ifdef __clang__
 #pragma clang diagnostic push
