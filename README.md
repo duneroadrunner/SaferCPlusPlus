@@ -12,7 +12,7 @@ The library's elements are designed, as much as possible, to seamlessly integrat
 
 - Drop-in [replacements](#primitives) for `int`, `size_t` and `bool` that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.
 
-- Data types for safe [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
+- Data types for safe [sharing](#asynchronously-shared-objects) of objects among concurrently executing threads.
 
 - Replacements for native pointers/references with various flexibility and performance trade-offs. 
 
