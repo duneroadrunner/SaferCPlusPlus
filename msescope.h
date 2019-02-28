@@ -1800,6 +1800,9 @@ namespace mse {
 		TXScopeStrongPointerStore(const TXScopeStrongPointerStore&) = delete;
 		TXScopeStrongPointerStore(TXScopeStrongPointerStore&&) = default;
 
+		TXScopeStrongPointerStore(_TStrongPointer&& stored_ptr) : m_stored_ptr(std::forward<_TStrongPointer>(stored_ptr)) {
+			*m_stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
+		}
 		TXScopeStrongPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}

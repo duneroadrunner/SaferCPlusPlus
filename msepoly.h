@@ -327,9 +327,10 @@ namespace mse {
 		template <typename _TPointer1, class = typename std::enable_if<
 			(!std::is_convertible<_TPointer1, TAnyPointer>::value)
 			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
-			&& (!std::is_base_of<mse::us::impl::XScopeTagBase, _TPointer1>::value)
 			, void>::type>
-			TAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
+		TAnyPointer(const _TPointer1& pointer) : base_class(pointer) {
+			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
+		}
 
 		TAnyPointer<_Ty>& operator=(const TAnyPointer<_Ty>& _Right_cref) {
 			base_class::operator=(static_cast<const base_class&>(_Right_cref));
@@ -380,9 +381,10 @@ namespace mse {
 		template <typename _TPointer1, class = typename std::enable_if<
 			(!std::is_convertible<_TPointer1, TAnyConstPointer>::value)
 			&& (!std::is_convertible<_TPointer1, TAnyPointer<_Ty>>::value)
-			&& (!std::is_base_of<mse::us::impl::XScopeTagBase, _TPointer1>::value)
 			, void>::type>
-			TAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
+		TAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {
+			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
+		}
 
 		TAnyConstPointer<_Ty>& operator=(const TAnyConstPointer<_Ty>& _Right_cref) {
 			base_class::operator=(static_cast<const base_class&>(_Right_cref));
@@ -654,10 +656,10 @@ namespace mse {
 		//MSE_USING(TPolyPointer, us::impl::TPolyPointerBase<_Ty>);
 		//TPolyPointer(const us::impl::TPolyPointerBase<_Ty>& p) : base_class(p) {}
 
-		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_base_of<mse::us::impl::XScopeTagBase, _TPointer1>::value)
-			, void>::type>
-			TPolyPointer(const _TPointer1& pointer) : base_class(pointer) {}
+		template <typename _TPointer1>
+		TPolyPointer(const _TPointer1& pointer) : base_class(pointer) {
+			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
+		}
 
 		TPolyPointer<_Ty>& operator=(const TPolyPointer<_Ty>& _Right_cref) {
 			base_class::operator=(_Right_cref);
@@ -862,10 +864,10 @@ namespace mse {
 		//TPolyConstPointer(const TPolyConstPointer& src) : base_class(src) {}
 		//TPolyConstPointer(const TPolyPointer<_Ty>& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = typename std::enable_if<
-			(!std::is_base_of<mse::us::impl::XScopeTagBase, _TPointer1>::value)
-			, void>::type>
-			TPolyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
+		template <typename _TPointer1>
+		TPolyConstPointer(const _TPointer1& pointer) : base_class(pointer) {
+			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
+		}
 
 		TPolyConstPointer<_Ty>& operator=(const TPolyConstPointer<_Ty>& _Right_cref) {
 			base_class::operator=(_Right_cref);
@@ -1288,9 +1290,10 @@ namespace mse {
 		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
 			(!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<TAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)
-			&& (!std::is_base_of<mse::us::impl::XScopeTagBase, _TRandomAccessIterator1>::value)
 			, void>::type>
-			TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {}
+		TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {
+			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
+		}
 
 		TAnyRandomAccessIterator& operator ++() { base_class::operator ++(); return (*this); }
 		TAnyRandomAccessIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
@@ -1322,9 +1325,10 @@ namespace mse {
 		template <typename _TRandomAccessConstIterator1, class = typename std::enable_if<
 			(!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIterator<_Ty>>::value)
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
-			&& (!std::is_base_of<mse::us::impl::XScopeTagBase, _TRandomAccessConstIterator1>::value)
 			, void>::type>
-		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : base_class(random_access_const_iterator) {}
+		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : base_class(random_access_const_iterator) {
+			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessConstIterator1>();
+		}
 
 		TAnyRandomAccessConstIterator& operator ++() { base_class::operator ++(); return (*this); }
 		TAnyRandomAccessConstIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
@@ -1785,9 +1789,10 @@ namespace mse {
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
-			&& (!std::is_base_of<mse::us::impl::XScopeTagBase, _TRandomAccessIterator1>::value)
 			, void>::type>
-			TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TAnyRandomAccessIterator<_Ty>(random_access_iterator) {}
+		TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TAnyRandomAccessIterator<_Ty>(random_access_iterator) {
+			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
+		}
 
 		friend void swap(TNullableAnyRandomAccessIterator& first, TNullableAnyRandomAccessIterator& second) {
 			std::swap(static_cast<TAnyRandomAccessIterator<_Ty>&>(first), static_cast<TAnyRandomAccessIterator<_Ty>&>(second));
@@ -1832,9 +1837,10 @@ namespace mse {
 			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
-			&& (!std::is_base_of<mse::us::impl::XScopeTagBase, _TRandomAccessIterator1>::value)
 			, void>::type>
-			TNullableAnyPointer(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {}
+		TNullableAnyPointer(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {
+			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
+		}
 
 		friend void swap(TNullableAnyPointer& first, TNullableAnyPointer& second) {
 			std::swap(static_cast<base_class&>(first), static_cast<base_class&>(second));

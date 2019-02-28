@@ -4732,16 +4732,6 @@ namespace mse {
 						: TRandomAccessConstSectionBase((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 				}
 
-				typedef TRASectionConstIterator<_TRAIterator> const_iterator;
-				const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
-				const_iterator begin() const { return cbegin(); }
-				const_iterator cend() const {
-					auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
-					retval += mse::msear_as_a_size_t((*this).m_count);
-					return retval;
-				}
-				const_iterator end() const { return cend(); }
-
 			private:
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
@@ -4795,6 +4785,7 @@ namespace mse {
 
 		/* These are here because some standard algorithms require them. Prefer the "xscope_" prefixed versions to
 		acknowledge that scope iterators are returned. */
+		typedef xscope_const_iterator const_iterator;
 		auto begin() const { return (*this).xscope_cbegin(); }
 		auto cbegin() const { return (*this).xscope_cbegin(); }
 		auto end() const { return (*this).xscope_cend(); }
@@ -4835,10 +4826,14 @@ namespace mse {
 		auto last(size_type count) const { return subsection(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
 		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
 		const_iterator begin() const { return cbegin(); }
-		const_iterator cbegin() const { return base_class::cbegin(); }
+		const_iterator cend() const {
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+			retval += mse::msear_as_a_size_t((*this).m_count);
+			return retval;
+		}
 		const_iterator end() const { return cend(); }
-		const_iterator cend() const { return base_class::cend(); }
 		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 		const_reverse_iterator rbegin() const {	// return iterator for beginning of reversed nonmutable sequence
 			return (const_reverse_iterator(end()));
@@ -5260,23 +5255,6 @@ namespace mse {
 						: TRandomAccessSectionBase((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 				}
 
-				typedef TRASectionIterator<_TRAIterator> iterator;
-				typedef TRASectionConstIterator<_TRAIterator> const_iterator;
-				iterator begin() { return iterator((*this).m_start_iter, (*this).m_count); }
-				const_iterator begin() const { return cbegin(); }
-				const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
-				iterator end() {
-					auto retval(iterator((*this).m_start_iter, (*this).m_count));
-					retval += mse::msear_as_a_size_t((*this).m_count);
-					return retval;
-				}
-				const_iterator end() const { return cend(); }
-				const_iterator cend() const {
-					auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
-					retval += mse::msear_as_a_size_t((*this).m_count);
-					return retval;
-				}
-
 			private:
 				/* construction helper functions */
 				template <typename _TRAPointer>
@@ -5373,6 +5351,8 @@ namespace mse {
 
 		/* These are here because some standard algorithms require them. Prefer the "xscope_" prefixed versions to
 		acknowledge that scope iterators are returned. */
+		typedef xscope_iterator iterator;
+		typedef xscope_const_iterator const_iterator;
 		auto begin() { return (*this).xscope_begin(); }
 		auto begin() const { return cbegin(); }
 		auto cbegin() const { return (*this).xscope_cbegin(); }
@@ -5416,14 +5396,23 @@ namespace mse {
 		auto first(size_type count) const { return subsection(0, count); }
 		auto last(size_type count) const { return subsection(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
-		typedef typename base_class::iterator iterator;
-		typedef typename base_class::const_iterator const_iterator;
-		iterator begin() { return base_class::begin(); }
+
+		typedef TRASectionIterator<_TRAIterator> iterator;
+		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
+		iterator begin() { return iterator((*this).m_start_iter, (*this).m_count); }
 		const_iterator begin() const { return cbegin(); }
-		const_iterator cbegin() const { return base_class::cbegin(); }
-		iterator end() { return base_class::end(); }
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+		iterator end() {
+			auto retval(iterator((*this).m_start_iter, (*this).m_count));
+			retval += mse::msear_as_a_size_t((*this).m_count);
+			return retval;
+		}
 		const_iterator end() const { return cend(); }
-		const_iterator cend() const { return base_class::cend(); }
+		const_iterator cend() const {
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+			retval += mse::msear_as_a_size_t((*this).m_count);
+			return retval;
+		}
 		typedef std::reverse_iterator<iterator> reverse_iterator;
 		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 		reverse_iterator rbegin() {	// return iterator for beginning of reversed mutable sequence
@@ -6770,10 +6759,10 @@ namespace mse {
 			}
 		}
 
-		TXScopeAccessControlledPointer<target_type, _TAccessMutex> xscope_pointer() {
+		TXScopeAccessControlledPointer<target_type, _TAccessMutex> xscope_pointer() const {
 			return TXScopeAccessControlledPointer<target_type, _TAccessMutex>(*m_stored_ptr, m_mutex1);
 		}
-		mse::xscope_optional<TXScopeAccessControlledPointer<target_type, _TAccessMutex>> xscope_try_pointer() {
+		mse::xscope_optional<TXScopeAccessControlledPointer<target_type, _TAccessMutex>> xscope_try_pointer() const {
 			mse::xscope_optional<TXScopeAccessControlledPointer<target_type, _TAccessMutex>> retval(TXScopeAccessControlledPointer<target_type, _TAccessMutex>(*m_stored_ptr, m_mutex1, std::try_to_lock));
 			if (!((*retval).is_valid())) {
 				return{};
@@ -6781,7 +6770,7 @@ namespace mse {
 			return retval;
 		}
 		template<class _Rep, class _Period>
-		mse::xscope_optional<TXScopeAccessControlledPointer<target_type, _TAccessMutex>> xscope_try_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		mse::xscope_optional<TXScopeAccessControlledPointer<target_type, _TAccessMutex>> xscope_try_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 			mse::xscope_optional<TXScopeAccessControlledPointer<target_type, _TAccessMutex>> retval(TXScopeAccessControlledPointer<target_type, _TAccessMutex>(*m_stored_ptr, m_mutex1, std::try_to_lock, _Rel_time));
 			if (!((*retval).is_valid())) {
 				return{};
@@ -6789,17 +6778,17 @@ namespace mse {
 			return retval;
 		}
 		template<class _Clock, class _Duration>
-		mse::xscope_optional<TXScopeAccessControlledPointer<target_type, _TAccessMutex>> xscope_try_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		mse::xscope_optional<TXScopeAccessControlledPointer<target_type, _TAccessMutex>> xscope_try_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 			mse::xscope_optional<TXScopeAccessControlledPointer<target_type, _TAccessMutex>> retval(TXScopeAccessControlledPointer<target_type, _TAccessMutex>(*m_stored_ptr, m_mutex1, std::try_to_lock, _Abs_time));
 			if (!((*retval).is_valid())) {
 				return{};
 			}
 			return retval;
 		}
-		TXScopeAccessControlledConstPointer<target_type, _TAccessMutex> xscope_const_pointer() {
+		TXScopeAccessControlledConstPointer<target_type, _TAccessMutex> xscope_const_pointer() const {
 			return TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>(*m_stored_ptr, m_mutex1);
 		}
-		mse::xscope_optional<TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>> xscope_try_const_pointer() {
+		mse::xscope_optional<TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>> xscope_try_const_pointer() const {
 			mse::xscope_optional<TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>> retval(TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>(*m_stored_ptr, m_mutex1, std::try_to_lock));
 			if (!((*retval).is_valid())) {
 				return{};
@@ -6807,7 +6796,7 @@ namespace mse {
 			return retval;
 		}
 		template<class _Rep, class _Period>
-		mse::xscope_optional<TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>> xscope_try_const_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) {
+		mse::xscope_optional<TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>> xscope_try_const_pointer_for(const std::chrono::duration<_Rep, _Period>& _Rel_time) const {
 			mse::xscope_optional<TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>> retval(TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>(*m_stored_ptr, m_mutex1, std::try_to_lock, _Rel_time));
 			if (!((*retval).is_valid())) {
 				return{};
@@ -6815,7 +6804,7 @@ namespace mse {
 			return retval;
 		}
 		template<class _Clock, class _Duration>
-		mse::xscope_optional<TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>> xscope_try_const_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
+		mse::xscope_optional<TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>> xscope_try_const_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) const {
 			mse::xscope_optional<TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>> retval(TXScopeAccessControlledConstPointer<target_type, _TAccessMutex>(*m_stored_ptr, m_mutex1, std::try_to_lock, _Abs_time));
 			if (!((*retval).is_valid())) {
 				return{};
@@ -6825,7 +6814,7 @@ namespace mse {
 		/* Note that an exclusive_pointer cannot coexist with any other lock_ptrs (targeting the same object), including ones in
 		the same thread. Thus, using exclusive_pointers without sufficient care introduces the potential for exceptions (in a way
 		that sticking to (regular) pointers doesn't). */
-		TXScopeAccessControlledExclusivePointer<target_type, _TAccessMutex> xscope_exclusive_pointer() {
+		TXScopeAccessControlledExclusivePointer<target_type, _TAccessMutex> xscope_exclusive_pointer() const {
 			return TXScopeAccessControlledExclusivePointer<target_type, _TAccessMutex>(*m_stored_ptr, m_mutex1);
 		}
 
@@ -7167,73 +7156,75 @@ namespace mse {
 	using TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccessFParam = TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<_TExclusiveStrongPointer>;
 
 
-	namespace impl {
-		/* Some iterators are prone to having their target container prematurely deallocated out from under them. In cases where the
-		target container is owned by reference counting pointers or "lock" pointers, you can use TStrongFixedIterator<> to weld an
-		owning pointer (aka "lease") to the iterator to prevent the target container from being deallocated prematurely. */
-		template <class _TIterator, class _TLeaseType>
-		class TStrongFixedIterator : public _TIterator
-			/* add mse::us::impl::StrongPointerNotAsyncShareableTagBase as a base class iff it is not already a base class */
-			, public std::conditional<std::is_base_of<mse::us::impl::StrongPointerNotAsyncShareableTagBase, _TIterator>::value, impl::TPlaceHolder_msepointerbasics<TStrongFixedIterator<_TIterator, _TLeaseType> >, mse::us::impl::StrongPointerNotAsyncShareableTagBase>::type
-		{
-		public:
-			typedef _TIterator base_class;
-			TStrongFixedIterator(const TStrongFixedIterator&) = default;
-			template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
-			TStrongFixedIterator(const TStrongFixedIterator<_TIterator, _TLeaseType2>&src) : base_class(src), m_lease(src.lease()) {}
-			_TLeaseType lease() const { return (*this).m_lease; }
+	namespace us {
+		namespace impl {
+			/* Some iterators are prone to having their target container prematurely deallocated out from under them. In cases where the
+			target container is owned by reference counting pointers or "lock" pointers, you can use TStrongFixedIterator<> to weld an
+			owning pointer (aka "lease") to the iterator to prevent the target container from being deallocated prematurely. */
+			template <class _TIterator, class _TLeaseType>
+			class TStrongFixedIterator : public _TIterator
+				/* add mse::us::impl::StrongPointerNotAsyncShareableTagBase as a base class iff it is not already a base class */
+				, public std::conditional<std::is_base_of<mse::us::impl::StrongPointerNotAsyncShareableTagBase, _TIterator>::value, mse::impl::TPlaceHolder_msepointerbasics<TStrongFixedIterator<_TIterator, _TLeaseType> >, mse::us::impl::StrongPointerNotAsyncShareableTagBase>::type
+			{
+			public:
+				typedef _TIterator base_class;
+				TStrongFixedIterator(const TStrongFixedIterator&) = default;
+				template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
+				TStrongFixedIterator(const TStrongFixedIterator<_TIterator, _TLeaseType2>&src) : base_class(src), m_lease(src.lease()) {}
+				_TLeaseType lease() const { return (*this).m_lease; }
 
-			template <class _TIterator2, class _TLeaseType2>
-			static TStrongFixedIterator make(const _TIterator2& src_iterator, const _TLeaseType2& lease) {
-				return TStrongFixedIterator(src_iterator, lease);
+				template <class _TIterator2, class _TLeaseType2>
+				static TStrongFixedIterator make(const _TIterator2& src_iterator, const _TLeaseType2& lease) {
+					return TStrongFixedIterator(src_iterator, lease);
+				}
+
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
+			protected:
+				TStrongFixedIterator(const _TIterator& src_iterator, const _TLeaseType& lease/* often a reference counting pointer */)
+					: base_class(src_iterator), m_lease(lease) {}
+			private:
+				TStrongFixedIterator& operator=(const TStrongFixedIterator& _Right_cref) = delete;
+
+				_TLeaseType m_lease;
+
+				//friend class TStrongFixedConstIterator<_TIterator, _TLeaseType>;
+			};
+
+			template <class _Ty, class _TLeaseType>
+			class TStrongFixedIterator<_Ty*, _TLeaseType> : public mse::us::TSaferPtrForLegacy<_Ty>, public mse::us::impl::StrongPointerTagBase {
+			public:
+				typedef mse::us::TSaferPtrForLegacy<_Ty> _TIterator;
+				typedef _TIterator base_class;
+				TStrongFixedIterator(const TStrongFixedIterator&) = default;
+				template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
+				TStrongFixedIterator(const TStrongFixedIterator<_TIterator, _TLeaseType2>&src) : base_class(src), m_lease(src.lease()) {}
+				_TLeaseType lease() const { return (*this).m_lease; }
+
+				template <class _TIterator2, class _TLeaseType2>
+				static TStrongFixedIterator make(const _TIterator2& src_iterator, const _TLeaseType2& lease) {
+					return TStrongFixedIterator(src_iterator, lease);
+				}
+
+				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+
+			protected:
+				TStrongFixedIterator(const _TIterator& src_iterator, const _TLeaseType& lease/* often a reference counting pointer */)
+					: base_class(src_iterator), m_lease(lease) {}
+				TStrongFixedIterator(const _Ty* & src_iterator, const _TLeaseType& lease/* often a reference counting pointer */)
+					: base_class(mse::us::TSaferPtrForLegacy<_Ty>(src_iterator)), m_lease(lease) {}
+			private:
+				TStrongFixedIterator& operator=(const TStrongFixedIterator& _Right_cref) = delete;
+
+				_TLeaseType m_lease;
+
+				//friend class TStrongFixedConstIterator<_TIterator, _TLeaseType>;
+			};
+
+			template <class _TIterator, class _TLeaseType>
+			TStrongFixedIterator<_TIterator, _TLeaseType> make_strong_iterator(const _TIterator& src_iterator, const _TLeaseType& lease) {
+				return TStrongFixedIterator<_TIterator, _TLeaseType>::make(src_iterator, lease);
 			}
-
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
-
-		protected:
-			TStrongFixedIterator(const _TIterator& src_iterator, const _TLeaseType& lease/* often a reference counting pointer */)
-				: base_class(src_iterator), m_lease(lease) {}
-		private:
-			TStrongFixedIterator& operator=(const TStrongFixedIterator& _Right_cref) = delete;
-
-			_TLeaseType m_lease;
-
-			//friend class TStrongFixedConstIterator<_TIterator, _TLeaseType>;
-		};
-
-		template <class _Ty, class _TLeaseType>
-		class TStrongFixedIterator<_Ty*, _TLeaseType> : public mse::us::TSaferPtrForLegacy<_Ty>, public mse::us::impl::StrongPointerTagBase {
-		public:
-			typedef mse::us::TSaferPtrForLegacy<_Ty> _TIterator;
-			typedef _TIterator base_class;
-			TStrongFixedIterator(const TStrongFixedIterator&) = default;
-			template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
-			TStrongFixedIterator(const TStrongFixedIterator<_TIterator, _TLeaseType2>&src) : base_class(src), m_lease(src.lease()) {}
-			_TLeaseType lease() const { return (*this).m_lease; }
-
-			template <class _TIterator2, class _TLeaseType2>
-			static TStrongFixedIterator make(const _TIterator2& src_iterator, const _TLeaseType2& lease) {
-				return TStrongFixedIterator(src_iterator, lease);
-			}
-
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
-
-		protected:
-			TStrongFixedIterator(const _TIterator& src_iterator, const _TLeaseType& lease/* often a reference counting pointer */)
-				: base_class(src_iterator), m_lease(lease) {}
-			TStrongFixedIterator(const _Ty* & src_iterator, const _TLeaseType& lease/* often a reference counting pointer */)
-				: base_class(mse::us::TSaferPtrForLegacy<_Ty>(src_iterator)), m_lease(lease) {}
-		private:
-			TStrongFixedIterator& operator=(const TStrongFixedIterator& _Right_cref) = delete;
-
-			_TLeaseType m_lease;
-
-			//friend class TStrongFixedConstIterator<_TIterator, _TLeaseType>;
-		};
-
-		template <class _TIterator, class _TLeaseType>
-		TStrongFixedIterator<_TIterator, _TLeaseType> make_strong_iterator(const _TIterator& src_iterator, const _TLeaseType& lease) {
-			return TStrongFixedIterator<_TIterator, _TLeaseType>::make(src_iterator, lease);
 		}
 	}
 
@@ -7241,61 +7232,9 @@ namespace mse {
 		namespace impl {
 
 			template <typename _TRAIterator>
-			class TSplitterRandomAccessSectionBase
-				: public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TRAIterator>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TSplitterRandomAccessSectionBase<_TRAIterator> > >::type
-			{
+			class TXScopeSplitterRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator> {
 			public:
-				typedef typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type value_type;
-				typedef decltype(std::declval<_TRAIterator>()[0]) reference;
-				typedef typename std::add_lvalue_reference<typename std::add_const<value_type>::type>::type const_reference;
-				typedef typename mse::us::msearray<value_type, 0>::size_type size_type;
-				typedef decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>()) difference_type;
-
-				TSplitterRandomAccessSectionBase(TSplitterRandomAccessSectionBase&& src) = default;
-				TSplitterRandomAccessSectionBase(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
-
-				reference at(size_type _P) const {
-					if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference_t at(size_type _P) - TSplitterRandomAccessSectionBase")); }
-					return m_start_iter[difference_type(mse::msear_as_a_size_t(_P))];
-				}
-				reference operator[](size_type _P) const {
-					return at(_P);
-				}
-				size_type size() const {
-					return m_count;
-				}
-
-				/* We will mark this type as safely "async shareable" if the elements it contains are also "async shareable"
-				and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
-				to ensure safe "async shareability". */
-				template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
-					&& (mse::impl::is_marked_as_shareable_msemsearray<value_type2>::value)
-					&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
-					, void>::type>
-					void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
-
-			private:
-				TSplitterRandomAccessSectionBase(const TSplitterRandomAccessSectionBase& src) = default;
-				template <typename _TRAIterator1>
-				TSplitterRandomAccessSectionBase(const TSplitterRandomAccessSectionBase<_TRAIterator1>& src) : m_start_iter(src.m_start_iter), m_count(src.m_count) {}
-
-				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-
-				_TRAIterator m_start_iter;
-				const size_type m_count = 0;
-
-				template <typename _TRAIterator2>
-				friend class TXScopeSplitterRandomAccessSection;
-				template <typename _TRAIterator2>
-				friend class TSplitterRandomAccessSection;
-				template <typename _TExclusiveWritelockPtr>
-				friend class TAsyncRASectionSplitterXWP;
-			};
-
-			template <typename _TRAIterator>
-			class TXScopeSplitterRandomAccessSection : public TSplitterRandomAccessSectionBase<_TRAIterator>, public mse::us::impl::XScopeTagBase {
-			public:
-				typedef TSplitterRandomAccessSectionBase<_TRAIterator> base_class;
+				typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
 				typedef typename base_class::value_type value_type;
 				typedef typename base_class::reference reference;
 				typedef typename base_class::const_reference const_reference;
@@ -7303,17 +7242,17 @@ namespace mse {
 				typedef typename base_class::difference_type difference_type;
 
 				TXScopeSplitterRandomAccessSection(TXScopeSplitterRandomAccessSection&& src) = default;
-				//TXScopeSplitterRandomAccessSection(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
-				MSE_USING(TXScopeSplitterRandomAccessSection, base_class);
+				TXScopeSplitterRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+				//MSE_USING(TXScopeSplitterRandomAccessSection, base_class);
 
 				/* We will mark this type as safely "async shareable" if the elements it contains are also "async shareable"
 				and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
 				to ensure safe "async shareability". */
 				template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
 					&& (mse::impl::is_marked_as_shareable_msemsearray<value_type2>::value)
-					&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
+					&& ((std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value) || (std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value))
 					, void>::type>
-					void xscope_async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+				void xscope_async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 
 			private:
 				TXScopeSplitterRandomAccessSection(const TXScopeSplitterRandomAccessSection& src) = default;
@@ -7330,9 +7269,9 @@ namespace mse {
 			};
 
 			template <typename _TRAIterator>
-			class TSplitterRandomAccessSection : public TSplitterRandomAccessSectionBase<_TRAIterator> {
+			class TSplitterRandomAccessSection : public TRandomAccessSection<_TRAIterator> {
 			public:
-				typedef TSplitterRandomAccessSectionBase<_TRAIterator> base_class;
+				typedef TRandomAccessSection<_TRAIterator> base_class;
 				typedef typename base_class::value_type value_type;
 				typedef typename base_class::reference reference;
 				typedef typename base_class::const_reference const_reference;
@@ -7386,8 +7325,8 @@ namespace mse {
 		typedef typename std::remove_reference<decltype(*(std::declval<exclusive_writelock_ptr_t>()))>::type _TContainer;
 		typedef typename std::remove_reference<decltype(std::declval<_TContainer>()[0])>::type element_t;
 		typedef mse::TXScopeStrongPointerStore<exclusive_writelock_ptr_t> xscope_exclusive_writelock_ptr_store_t;
-		typedef typename std::remove_reference<decltype(std::declval<xscope_exclusive_writelock_ptr_store_t>().xscope_ptr())>::type container_xsptr_t;
-		typedef mse::TRAIterator<container_xsptr_t> ra_iterator_t;
+		typedef mse::TXScopeItemFixedPointer<_TContainer> container_xsptr_t;
+		typedef mse::TXScopeRAIterator<container_xsptr_t> ra_iterator_t;
 		typedef mse::us::impl::TXScopeSplitterRandomAccessSection<ra_iterator_t> xscope_splitter_ra_section_t;
 		typedef decltype(std::declval<xscope_splitter_ra_section_t>().size()) size_type;
 		typedef mse::TXScopeAccessControlledObj<xscope_splitter_ra_section_t> xscope_aco_splitter_ra_section_t;
@@ -7403,16 +7342,16 @@ namespace mse {
 				if (0 > section_size) { MSE_THROW(std::range_error("invalid section size - TXScopeRASectionSplitterXWP() - TXScopeRASectionSplitterXWP")); }
 				auto section_size_szt = mse::msear_as_a_size_t(section_size);
 
-				auto res1 = m_splitter_aco_ra_section_map.emplace(count, xscope_aco_splitter_ra_section_t(section_begin_it, section_size_szt));
+				m_splitter_aco_ra_section_map.emplace(count, xscope_aco_splitter_ra_section_t(section_begin_it, section_size_szt));
 
 				cummulative_size += section_size_szt;
 				section_begin_it += section_size_szt;
 				count += 1;
 			}
-			if (m_xscope_exclusive_writelock_ptr_store.xscope_ptr()->cref()->size() > cummulative_size) {
-				auto section_size = m_xscope_exclusive_writelock_ptr_store.xscope_ptr()->cref()->size() - cummulative_size;
+			if (m_xscope_exclusive_writelock_ptr_store.xscope_ptr()->size() > cummulative_size) {
+				auto section_size = m_xscope_exclusive_writelock_ptr_store.xscope_ptr()->size() - cummulative_size;
 				auto section_size_szt = mse::msear_as_a_size_t(section_size);
-				auto res1 = m_splitter_aco_ra_section_map.emplace(count, xscope_aco_splitter_ra_section_t(section_begin_it, section_size_szt));
+				m_splitter_aco_ra_section_map.emplace(count, xscope_aco_splitter_ra_section_t(section_begin_it, section_size_szt));
 			}
 		}
 		TXScopeRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, size_t split_index)
@@ -7437,6 +7376,25 @@ namespace mse {
 			return m_splitter_aco_ra_section_map.at(0);
 		}
 		const xscope_aco_splitter_ra_section_t& second_ra_section_aco() const {
+			return m_splitter_aco_ra_section_map.at(1);
+		}
+
+		xscope_aco_splitter_ra_section_t& xscope_ra_section_aco(size_t index) {
+			return m_splitter_aco_ra_section_map.at(index);
+		}
+		xscope_aco_splitter_ra_section_t& xscope_first_ra_section_aco() {
+			return m_splitter_aco_ra_section_map.at(0);
+		}
+		xscope_aco_splitter_ra_section_t& xscope_second_ra_section_aco() {
+			return m_splitter_aco_ra_section_map.at(1);
+		}
+		xscope_aco_splitter_ra_section_t& ra_section_aco(size_t index) {
+			return m_splitter_aco_ra_section_map.at(index);
+		}
+		xscope_aco_splitter_ra_section_t& first_ra_section_aco() {
+			return m_splitter_aco_ra_section_map.at(0);
+		}
+		xscope_aco_splitter_ra_section_t& second_ra_section_aco() {
 			return m_splitter_aco_ra_section_map.at(1);
 		}
 	private:
@@ -7521,7 +7479,7 @@ namespace mse {
 #ifdef MSE_TRASECTIONSPLITTERXWP_NDEBUG
 			return src_it;
 #else // MSE_TRASECTIONSPLITTERXWP_NDEBUG
-			return mse::impl::make_strong_iterator(src_it, access_lease_ptr);
+			return mse::us::impl::make_strong_iterator(src_it, access_lease_ptr);
 #endif // MSE_TRASECTIONSPLITTERXWP_NDEBUG
 		}
 

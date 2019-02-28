@@ -118,9 +118,16 @@ public:
 	}
 	/* This function just obtains a writelock_ra_section from the given "splitter access requester" and calls the given
 	function with the writelock_ra_section as the first argument. */
-	template<class _TAsyncSplitterRASectionReadWriteAccessRequester, class _TFunction, class... Args>
-	static void invoke_with_writelock_ra_section1(_TAsyncSplitterRASectionReadWriteAccessRequester ar, _TFunction function1, Args&&... args) {
+	template<class TAsyncSplitterRASectionReadWriteAccessRequester, class TFunction, class... Args>
+	static void invoke_with_writelock_ra_section1(TAsyncSplitterRASectionReadWriteAccessRequester ar, TFunction function1, Args&&... args) {
 		function1(ar.writelock_ra_section(), args...);
+	}
+	/* This function just obtains an xscope_random_access_section from the given access controlled pointer and calls the given
+	function with the xscope_random_access_section as the first argument. */
+	template<class Ty, class TFunction, class... Args>
+	static void invoke_with_ra_section(mse::TXScopeExclusiveStrongPointerStoreForAccessControl<Ty> xs_ac_store, TFunction function1, Args&&... args) {
+		auto xscope_ra_section = mse::make_xscope_random_access_section(xs_ac_store.xscope_pointer());
+		function1(xscope_ra_section, args...);
 	}
 
 	template<typename _TParam>
@@ -1473,8 +1480,8 @@ void msetl_example2() {
 
 				/* The J::foo8 template function is just an example function that operates on containers of strings. In our case the
 				containers will be the random access sections we just created. We'll create an instance of the function here. */
-				auto& my_foo8_function_ref = J::foo8<decltype(ar1.writelock_ra_section())>;
-				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
+				auto my_foo8_function = J::foo8<decltype(ar1.writelock_ra_section())>;
+				typedef decltype(my_foo8_function) my_foo8_function_type;
 
 				/* We want to execute the my_foo8 function in a separate thread. The function takes a "random access section"
 				as an argument. But as we're not allowed to pass random access sections between threads, we must pass an
@@ -1483,13 +1490,13 @@ void msetl_example2() {
 				function, in this case my_foo8, with that random access section. So here we'll use it to create a proxy
 				function that we can execute directly in a separate thread and will accept an access requester as a
 				parameter. */
-				auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar1), my_foo8_function_type>;
+				auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar1), my_foo8_function_type>;
 
 				std::list<mse::mstd::thread> threads;
 				/* So this thread will modify the first section of the vector. */
-				threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref));
+				threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function, ar1, my_foo8_function));
 				/* While this thread modifies the other section. */
-				threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref));
+				threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function, ar2, my_foo8_function));
 
 				{
 					int count = 1;
@@ -1512,9 +1519,9 @@ void msetl_example2() {
 				mse::TAsyncRASectionSplitter<decltype(ash_access_requester)> ra_section_split1(ash_access_requester, section_sizes);
 				auto ar0 = ra_section_split1.ra_section_access_requester(0);
 
-				auto& my_foo8_function_ref = J::foo8<decltype(ar0.writelock_ra_section())>;
-				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
-				auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
+				auto my_foo8_function = J::foo8<decltype(ar0.writelock_ra_section())>;
+				typedef decltype(my_foo8_function) my_foo8_function_type;
+				auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
 
 				{
 					/* Here we demonstrate scope threads. Scope threads don't support being copied or moved. Unlike mstd::thread,
@@ -1526,7 +1533,7 @@ void msetl_example2() {
 					mse::xscope_thread_carrier xscope_threads;
 					for (size_t i = 0; i < num_sections; i += 1) {
 						auto ar = ra_section_split1.ra_section_access_requester(i);
-						xscope_threads.new_thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref);
+						xscope_threads.new_thread(my_foo8_proxy_function, ar, my_foo8_function);
 					}
 					/* The scope will not end until all the scope threads have finished executing. */
 				}
@@ -1616,7 +1623,7 @@ void msetl_example2() {
 				mse::make_xscope_aco_locker_for_sharing() does, but instead of taking a scope pointer to an "access controlled object", it
 				accepts any recognized "exclusive" pointer. That is, a pointer that, while it exists, holds exclusive access to
 				its target object. */
-				auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_aco_locker1.xscope_passable_pointer());
+				auto xscope_strong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_aco_locker1.xscope_passable_pointer());
 
 				auto xscope_aco_locker2 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj2);
 				auto xscope_aco_locker3 = mse::make_xscope_aco_locker_for_sharing(&a_xscpacobj3);
@@ -1625,11 +1632,11 @@ void msetl_example2() {
 				typedef decltype(xscope_aco_locker2.xscope_passable_pointer()) passable_exclusive_pointer_t;
 
 				mse::xscope_thread xscp_thread1(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
-					, xscope_xstrong_ptr_store1.xscope_passable_const_pointer()
+					, xscope_strong_ptr_store1.xscope_passable_const_pointer()
 					, xscope_aco_locker2.xscope_passable_pointer());
 
 				mse::xscope_thread xscp_thread2(J::foo18<passable_const_pointer_t, passable_exclusive_pointer_t>
-					, xscope_xstrong_ptr_store1.xscope_passable_const_pointer()
+					, xscope_strong_ptr_store1.xscope_passable_const_pointer()
 					, xscope_aco_locker3.xscope_passable_pointer());
 			}
 			{
@@ -1658,16 +1665,16 @@ void msetl_example2() {
 						{
 							/* Here, from the exclusive (non-const) pointer passed to this function, we're going to obtain a couple
 							of const pointers that we can pass to different (scope) threads. */
-							auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
+							auto xscope_strong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
 
-							mse::xscope_thread xscp_thread1(CD::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
-							mse::xscope_thread xscp_thread2(CD::foo2, xscope_xstrong_ptr_store1.xscope_passable_const_pointer());
+							mse::xscope_thread xscp_thread1(CD::foo2, xscope_strong_ptr_store1.xscope_passable_const_pointer());
+							mse::xscope_thread xscp_thread2(CD::foo2, xscope_strong_ptr_store1.xscope_passable_const_pointer());
 						}
 						if (1 <= count) {
 							/* And here we're going to (re)obtain an exclusive strong pointer like the one that was passed to this
 							function, then we're going to use it to recursively call this function again in another (scope) thread. */
-							auto xscope_xstrong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
-							mse::xscope_thread xscp_thread1(CD::foo1, xscope_xstrong_ptr_store1.xscope_passable_pointer(), count - 1);
+							auto xscope_strong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(xscope_store.xscope_exclusive_pointer());
+							mse::xscope_thread xscp_thread1(CD::foo1, xscope_strong_ptr_store1.xscope_passable_pointer(), count - 1);
 						}
 					}
 					static void foo2(passable_const_pointer_t xscope_A_cptr) {
@@ -1758,41 +1765,38 @@ void msetl_example2() {
 			mse::TXScopeObj<mse::TXScopeAccessControlledObj<async_shareable_vector1_t> > xscope_acobj;
 			std::swap(vector1, *(xscope_acobj.xscope_pointer()));
 
-			std::cout << "access controlled, mse::TAsyncRASectionSplitter<>, part 1: " << std::endl;
+			std::cout << "mse::TXScopeACORASectionSplitter<>: " << std::endl;
 
 			{
-				/* Now, we're going to use the access requester to obtain two new access requesters that provide access to
-				(newly created) "random access section" objects which are used to access (disjoint) sections of the vector.
-				We need to specify the position where we want to split the vector. Here we specify that it be split at index
-				"num_elements / 2", right down the middle. */
-				mse::TXScopeAsyncACORASectionSplitter<async_shareable_vector1_t> xscope_ra_section_split1(&xscope_acobj, num_elements / 2);
-				auto ar1 = xscope_ra_section_split1.first_ra_section_access_requester();
-				auto ar2 = xscope_ra_section_split1.second_ra_section_access_requester();
+				/* From the access controlled vector we're going to obtain "exclusive pointers" to two access controlled
+				"random access section" objects which are used to access (disjoint) sections of the vector. We are going
+				to store those pointers in an "exclusive strong pointer store for sharing" object. From this object we can
+				obtain a pointer that is designated as safe to pass to other threads. We need to specify the position
+				where we want to split the vector. Here we specify that it be split at index "num_elements / 2", right
+				down the middle. */
+				mse::TXScopeACORASectionSplitter<async_shareable_vector1_t> xscope_ra_section_split2(&xscope_acobj, num_elements / 2);
+				auto xscope_strong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(
+					xscope_ra_section_split2.first_ra_section_aco().xscope_exclusive_pointer());
+				auto xscope_xstrong_ptr_store2 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(
+					xscope_ra_section_split2.second_ra_section_aco().xscope_exclusive_pointer());
 
-				/* The J::foo8 template function is just an example function that operates on containers of strings. In our case the
+				/* The J::foo8 template function is just an example function that operates on containers of strings. In this case the
 				containers will be the random access sections we just created. We'll create an instance of the function here. */
-				auto& my_foo8_function_ref = J::foo8<decltype(ar1.writelock_ra_section())>;
-				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
-
-				/* We want to execute the my_foo8 function in a separate thread. The function takes a "random access section"
-				as an argument. But as we're not allowed to pass random access sections between threads, we must pass an
-				access requester instead. The "J::invoke_with_writelock_ra_section1" template function is just a helper
-				function that will obtain a (writelock) random access section from the access requester, then call the given
-				function, in this case my_foo8, with that random access section. So here we'll use it to create a proxy
-				function that we can execute directly in a separate thread and will accept an access requester as a
-				parameter. */
-				auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar1), my_foo8_function_type>;
+				auto my_foo8_function = J::foo8<mse::TXScopeAnyRandomAccessSection<mse::nii_string> >;
+				typedef decltype(my_foo8_function) my_foo8_function_type;
 
 				mse::xscope_thread_carrier threads;
 				/* So this thread will modify the first section of the vector. */
-				threads.new_thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref);
+				threads.new_thread(J::invoke_with_ra_section<decltype(xscope_strong_ptr_store1.xscope_passable_pointer()), my_foo8_function_type>
+					, xscope_strong_ptr_store1.xscope_passable_pointer(), my_foo8_function);
 				/* While this thread modifies the other section. */
-				threads.new_thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref);
+				threads.new_thread(J::invoke_with_ra_section<decltype(xscope_xstrong_ptr_store2.xscope_passable_pointer()), my_foo8_function_type>
+					, xscope_xstrong_ptr_store2.xscope_passable_pointer(), my_foo8_function);
 
-				int q = 5;
+				/* Note that in this particular scenario we did need to use any access requesters (or locks). */
 			}
 
-			std::cout << "access controlled, mse::TAsyncRASectionSplitter<>, part 2: " << std::endl;
+			std::cout << "mse::TXScopeAsyncACORASectionSplitter<>: " << std::endl;
 
 			{
 				/* Ok, now let's do it again, but instead of splitting the vector into two sections, let's split it into more sections: */
@@ -1802,19 +1806,20 @@ void msetl_example2() {
 					section_sizes.push_back(section_size);
 				}
 
-				/* Just as before, TXScopeAsyncACORASectionSplitter<> will generate a new access requester for each section. */
+				/* This time (for demonstration purposes) we'll use TXScopeAsyncACORASectionSplitter<> to generate a new
+				access requester for each section. */
 				mse::TXScopeAsyncACORASectionSplitter<async_shareable_vector1_t> xscope_ra_section_split1(&xscope_acobj, section_sizes);
 				auto ar0 = xscope_ra_section_split1.ra_section_access_requester(0);
 
-				auto& my_foo8_function_ref = J::foo8<decltype(ar0.writelock_ra_section())>;
-				typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
-				auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
+				auto my_foo8_function = J::foo8<decltype(ar0.writelock_ra_section())>;
+				typedef decltype(my_foo8_function) my_foo8_function_type;
+				auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
 
 				{
 					mse::xscope_thread_carrier xscope_threads;
 					for (size_t i = 0; i < num_sections; i += 1) {
 						auto ar = xscope_ra_section_split1.ra_section_access_requester(i);
-						xscope_threads.new_thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref);
+						xscope_threads.new_thread(my_foo8_proxy_function, ar, my_foo8_function);
 					}
 					/* The scope will not end until all the scope threads have finished executing. */
 				}
