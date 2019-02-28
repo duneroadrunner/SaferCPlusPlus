@@ -12,7 +12,7 @@ The library's elements are designed, as much as possible, to seamlessly integrat
 
 - Drop-in [replacements](#primitives) for `int`, `size_t` and `bool` that ensure against the use of uninitialized values and address the "signed-unsigned mismatch" issues.
 
-- Data types for safe [sharing](#asynchronously-shared-objects) of objects among asynchronous threads.
+- Data types for safe [sharing](#asynchronously-shared-objects) of objects among concurrently executing threads.
 
 - Replacements for native pointers/references with various flexibility and performance trade-offs. 
 
@@ -1545,7 +1545,7 @@ usage example: (used in the example for [TAsyncRASectionSplitter](#tasyncrasecti
 
 `mstd::async()` is just an implementation of `std::async()` that verifies that the arguments and return value passed are of a type that is designated as safe to pass between threads. 
 
-usage example: ([see below](#tasyncsharedv2immutablefixedpointer))
+usage example: ([see below](#async-aggregate-usage-example))
 
 ### Asynchronously shared objects
 One situation where safety mechanisms are particularly important is when sharing objects between asynchronous threads. In particular, while one thread is modifying an object, you want to ensure that no other thread accesses it. But you also want to do it in a way that allows for maximum utilization of the shared object. To this end the library provides "access requesters". Access requesters provide "lock pointers" on demand that are used to safely access the shared object.
@@ -1568,7 +1568,7 @@ And currently, any type declared as safely shareable must also satisfy the crite
 
 (Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
 
-usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
+usage example: ([see below](#async-aggregate-usage-example))
 
 ### TAsyncSharedV2ReadWriteAccessRequester
 
@@ -1582,22 +1582,24 @@ Note that while a "write-lock" pointer will not simultaneously co-exist with any
 
 One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. The access requesters detect these situations, and will throw an exception (or whatever user-specified behavior) when they occur.
 
-usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
+usage example: ([see below](#async-aggregate-usage-example))
 
 ### TAsyncSharedV2ReadOnlyAccessRequester
 Same as `TAsyncSharedV2ReadWriteAccessRequester<>`, but only supports `readlock_ptr()`, not `writelock_ptr()`. You can use the `mse::make_asyncsharedv2readonly<>()` function to obtain a `TAsyncSharedV2ReadOnlyAccessRequester<>`. `TAsyncSharedV2ReadOnlyAccessRequester<>` can also be copy constructed from a `TAsyncSharedV2ReadWriteAccessRequester<>`.
 
-usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
+usage example: ([see below](#async-aggregate-usage-example))
 
 ### TAsyncSharedV2ImmutableFixedPointer
 In cases where the object you want to share is "immutable" (i.e. not modifiable), no access control is necessary. For these cases you can use `TAsyncSharedV2ImmutableFixedPointer<>`, which can be thought of as sort of a safer version of `std::shared_ptr<>`. Use the `mse::make_asyncsharedv2immutable<>()` function to obtain a `TAsyncSharedV2ImmutableFixedPointer<>`.
 
-usage example: ([see below](#tasyncsharedv2atomicfixedpointer))
+usage example: ([see below](#async-aggregate-usage-example))
 
 ### TAsyncSharedV2AtomicFixedPointer
 Atomic objects also don't require access control. Use the `make_asyncsharedv2atomic<>()` function to obtain a `TAsyncSharedV2AtomicFixedPointer<>`.
 
-usage example:
+usage example: ([see below](#async-aggregate-usage-example))
+
+#### async aggregate usage example:
 
 ```cpp
 #include "mseasyncshared.h"
