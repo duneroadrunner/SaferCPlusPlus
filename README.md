@@ -1,4 +1,4 @@
-Feb 2019
+Mar 2019
 
 ### Overview
 
@@ -81,11 +81,12 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     3. [async()](#async)
     4. [Asynchronously shared objects](#asynchronously-shared-objects)
         1. [TUserDeclaredAsyncShareableObj](#tuserdeclaredasyncshareableobj)
-        2. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
-        3. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
-        4. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
-        5. [TAsyncSharedV2AtomicFixedPointer](#tasyncsharedv2atomicfixedpointer)
-        6. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
+        2. [TUserDeclaredAsyncShareableAndPassableObj](#tuserdeclaredasyncshareableandpassableobj)
+        3. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
+        4. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
+        5. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
+        6. [TAsyncSharedV2AtomicFixedPointer](#tasyncsharedv2atomicfixedpointer)
+        7. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
     5. [Scope threads](#scope-threads)
         1. [access controlled objects](#access-controlled-objects)
         2. [xscope_thread_carrier](#xscope_thread_carrier)
@@ -1564,9 +1565,11 @@ As with objects that are passed between threads, a type that is safe to share sh
 
 In addition, safely shareable types should not have any `mutable` qualified members that are not protected by a thread-safety mechanism.
 
-And currently, any type declared as safely shareable must also satisfy the criteria for being safely passable. That is, safe shareability must imply safe passability.
-
 (Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
+
+### TUserDeclaredAsyncShareableAndPassableObj
+
+Most objects that qualify as safely [shareable](#tuserdeclaredasyncshareableobj) or [passable](#tuserdeclaredasyncpassableobj) between threads qualify as both.
 
 usage example: ([see below](#async-aggregate-usage-example))
 
@@ -1638,7 +1641,7 @@ void main(int argc, char* argv[]) {
 		mse::nii_string s = "some text ";
 	};
 	/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
-	typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+	typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
 
 	class B {
 	public:
@@ -2014,7 +2017,7 @@ void main(int argc, char* argv[]) {
 		mse::nii_string s = "some text ";
 	};
 	/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
-	typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+	typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
 
 	std::cout << ": xscope_future_carrier<>";
 	std::cout << std::endl;
@@ -2092,7 +2095,7 @@ void main(int argc, char* argv[]) {
         int b = 3;
         mse::nii_string s = "some text ";
     };
-    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+    typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
 
     mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj1(3);
     mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj2(5);
@@ -2168,7 +2171,7 @@ void main(int argc, char* argv[]) {
         int b = 3;
         mse::nii_string s = "some text ";
     };
-    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+    typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
 
     mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj1(3);
 
@@ -2261,7 +2264,7 @@ void main(int argc, char* argv[]) {
         int b = 3;
         mse::nii_string s = "some text ";
     };
-    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+    typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
 
     mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj1(3);
     mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj2(5);
@@ -2320,7 +2323,7 @@ void main(int argc, char* argv[]) {
         int b = 3;
     };
     /* User-defined classes need to be declared as (safely) shareable in order to be used with the atomic templates. */
-    typedef mse::us::TUserDeclaredAsyncShareableObj<D> ShareableD;
+    typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<D> ShareableD;
 
     class B {
     public:
@@ -2563,7 +2566,7 @@ usage example:
             int m_i;
         };
         /* Here we're declaring that A can be safely shared between asynchronous threads. */
-        typedef mse::TUserDeclaredAsyncShareableObj<A> shareable_A_t;
+        typedef mse::TUserDeclaredAsyncShareableAndPassableObj<A> shareable_A_t;
     
         /* When the element type of an nii_vector<> is marked as "async shareable", the nii_vector<> itself is
         (automatically) marked as async shareable as well and can be safely shared between asynchronous threads
