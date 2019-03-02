@@ -49,7 +49,7 @@ namespace mse {
 			auto target_container_ptr() const {
 				return m_owner_ptr;
 			}
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 		private:
 			mse::TXScopeItemFixedPointer<vector<_Ty, _A> > m_owner_ptr;
 		};
@@ -72,7 +72,7 @@ namespace mse {
 			auto target_container_ptr() const {
 				return m_owner_ptr;
 			}
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 		private:
 			mse::TXScopeItemFixedConstPointer<vector<_Ty, _A> > m_owner_ptr;
 		};
@@ -224,7 +224,7 @@ namespace mse {
 			}
 			void xscope_tag() const {}
 			void Tvector_xscope_iterator_tag() const {}
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 		private:
 			typename _MV::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 			friend class /*_Myt*/vector<_Ty, _A>;
@@ -317,7 +317,7 @@ namespace mse {
 			}
 			void xscope_tag() const {}
 			void Tvector_xscope_iterator_tag() const {}
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 		private:
 			typename _MV::xscope_ss_iterator_type m_xscope_ss_iterator;
 			friend class /*_Myt*/vector<_Ty, _A>;
@@ -491,7 +491,7 @@ namespace mse {
 				auto target_container_ptr() const -> decltype(msevector_ss_const_iterator_type().target_container_ptr()) {
 					return msevector_ss_const_iterator_type().target_container_ptr();
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				const_iterator(std::shared_ptr<_MV> msevector_shptr) : m_msevector_cshptr(msevector_shptr) {
 					m_ss_const_iterator = msevector_shptr->ss_cbegin();
@@ -579,7 +579,7 @@ namespace mse {
 				auto target_container_ptr() const -> decltype(msevector_ss_iterator_type().target_container_ptr()) {
 					return msevector_ss_iterator_type().target_container_ptr();
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				std::shared_ptr<_MV> m_msevector_shptr;
 				/* m_ss_iterator needs to be declared after m_msevector_shptr so that its destructor will be called first. */
@@ -752,7 +752,7 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_MV_xscope_structure_change_lock_guard.target_container_ptr();
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				typename mse::us::msevector<_Ty>::xscope_structure_change_lock_guard m_MV_xscope_structure_change_lock_guard;
 			};
@@ -775,12 +775,12 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_MV_xscope_const_structure_change_lock_guard.target_container_ptr();
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				typename mse::us::msevector<_Ty>::xscope_const_structure_change_lock_guard m_MV_xscope_const_structure_change_lock_guard;
 			};
 
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 
 		private:
 			const _MV& msevector() const { return (*m_shptr); }

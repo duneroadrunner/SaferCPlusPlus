@@ -137,7 +137,7 @@ namespace mse {
 
 		explicit operator _Ty*() const { return m_ptr; }
 
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 
 		_Ty* m_ptr;
 	};
@@ -387,8 +387,8 @@ namespace mse {
 
 		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
 		template<class _Ty2 = _TVectorConstPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TVectorConstPointer>::value)
-			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
-			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+			&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<_Ty2>::value), void>::type>
+			void async_shareable_and_passable_tag() const {}
 
 	private:
 		_TVectorConstPointer m_owner_cptr;
@@ -575,8 +575,8 @@ namespace mse {
 
 		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
 		template<class _Ty2 = _TVectorPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TVectorPointer>::value)
-			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
-			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+			&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<_Ty2>::value), void>::type>
+			void async_shareable_and_passable_tag() const {}
 
 	private:
 		//msev_pointer<_Myt> m_owner_ptr = nullptr;
@@ -606,7 +606,7 @@ namespace mse {
 	class Tnii_vector_xscope_ss_iterator_type;
 
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
-	class Tnii_vector_xscope_ss_const_iterator_type : public Tnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+	class Tnii_vector_xscope_ss_const_iterator_type : public Tnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		typedef Tnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex> base_class;
 		typedef typename base_class::iterator_category iterator_category;
@@ -687,7 +687,7 @@ namespace mse {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*(Tnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::target_container_ptr()));
 		}
 		void xscope_ss_iterator_type_tag() const {}
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 	private:
 		void* operator new(size_t size) { return ::operator new(size); }
 
@@ -697,7 +697,7 @@ namespace mse {
 		friend class Tnii_vector_xscope_ss_iterator_type;
 	};
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = default_state_mutex>
-	class Tnii_vector_xscope_ss_iterator_type : public Tnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+	class Tnii_vector_xscope_ss_iterator_type : public Tnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		typedef Tnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex> base_class;
 		typedef typename base_class::iterator_category iterator_category;
@@ -771,7 +771,7 @@ namespace mse {
 			return mse::us::unsafe_make_xscope_pointer_to(*(Tnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::target_container_ptr()));
 		}
 		void xscope_ss_iterator_type_tag() const {}
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 	private:
 		void* operator new(size_t size) { return ::operator new(size); }
 
@@ -1600,10 +1600,7 @@ namespace mse {
 			return write_bytes(_Ostr, mse::msev_as_a_size_t(sizeof(_Ty) * (*this).size()));
 		}
 
-		/* This vector is safely "async shareable" if the elements it contains are also "async shareable". */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
-		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
 
 	private:
 
@@ -1746,7 +1743,7 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_stored_ptr;
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 
 			private:
 				mse::TXScopeItemFixedPointer<nii_vector<_Ty, _A, _TStateMutex> > m_stored_ptr;
@@ -2733,7 +2730,7 @@ namespace mse {
 					retval += msev_as_a_size_t(m_index);
 					return retval;
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 
 				/* We actually want to make this constructor private, but doing so seems to break std::make_shared<mm_const_iterator_type>.  */
 				mm_const_iterator_type(const _Myt& owner_cref) : m_owner_cptr(&owner_cref) { set_to_beginning(); }
@@ -2929,7 +2926,7 @@ namespace mse {
 					retval.advance(msev_int(m_index));
 					return retval;
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 
 				/* We actually want to make this constructor private, but doing so seems to break std::make_shared<mm_iterator_type>.  */
 				mm_iterator_type(_Myt& owner_ref) : m_owner_ptr(&owner_ref) { set_to_beginning(); }
@@ -3342,7 +3339,7 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_owner_cptr;
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				const _Myt* m_owner_cptr = nullptr;
 				std::shared_ptr<mm_const_iterator_handle_type> m_handle_shptr;
@@ -3420,7 +3417,7 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_owner_ptr;
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				_Myt* m_owner_ptr = nullptr;
 				std::shared_ptr<mm_iterator_handle_type> m_handle_shptr;
@@ -3974,7 +3971,7 @@ namespace mse {
 					return mse::us::unsafe_make_xscope_const_pointer_to(*(ss_const_iterator_type::target_container_ptr()));
 				}
 				void xscope_ss_iterator_type_tag() const {}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				void* operator new(size_t size) { return ::operator new(size); }
 
@@ -4047,7 +4044,7 @@ namespace mse {
 					return mse::us::unsafe_make_xscope_pointer_to(*(ss_iterator_type::target_container_ptr()));
 				}
 				void xscope_ss_iterator_type_tag() const {}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				void* operator new(size_t size) { return ::operator new(size); }
 
@@ -4132,7 +4129,7 @@ namespace mse {
 					return mse::us::unsafe_make_xscope_const_pointer_to(*(cipointer::target_container_ptr()));
 				}
 				void xscope_ipointer_tag() const {}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				void* operator new(size_t size) { return ::operator new(size); }
 
@@ -4204,7 +4201,7 @@ namespace mse {
 					return mse::us::unsafe_make_xscope_pointer_to(*(ipointer::target_container_ptr()));
 				}
 				void xscope_ipointer_tag() const {}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				void* operator new(size_t size) { return ::operator new(size); }
 
@@ -4237,7 +4234,7 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_stored_ptr;
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 
 			private:
 				mse::TXScopeItemFixedPointer<msevector> m_stored_ptr;
@@ -4260,14 +4257,14 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_stored_ptr;
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 
 			private:
 				mse::TXScopeItemFixedConstPointer<msevector> m_stored_ptr;
 				std::shared_lock<mse::non_thread_safe_shared_mutex> m_shared_lock;
 			};
 
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 
 		private:
 			/* These are a couple of functions that are basically just here for the convenience of the mstd::vector<>

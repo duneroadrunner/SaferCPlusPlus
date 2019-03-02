@@ -599,8 +599,8 @@ namespace mse {
 		destruction so that TGNoradPointers will avoid referencing destroyed objects. Note that TGNoradObj can be used with
 		objects allocated on the stack. */
 		template<typename _TROFLy, typename _TRefCounter>
-		class TGNoradObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, mse::us::impl::NotAsyncShareableTagBase*>::value) && (!std::is_base_of<mse::us::impl::NotAsyncShareableTagBase, _TROFLy>::value)
-			, mse::us::impl::NotAsyncShareableTagBase, impl::TPlaceHolder_msepointerbasics<TGNoradObj<_TROFLy, _TRefCounter> > >::type
+		class TGNoradObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, mse::us::impl::AsyncNotShareableAndNotPassableTagBase*>::value) && (!std::is_base_of<mse::us::impl::AsyncNotShareableAndNotPassableTagBase, _TROFLy>::value)
+			, mse::us::impl::AsyncNotShareableAndNotPassableTagBase, impl::TPlaceHolder_msepointerbasics<TGNoradObj<_TROFLy, _TRefCounter> > >::type
 		{
 		public:
 			typedef _TROFLy base_class;
@@ -1289,8 +1289,8 @@ namespace mse {
 	destruction so that TNDNoradPointers will avoid referencing destroyed objects. Note that TNDNoradObj can be used with
 	objects allocated on the stack. */
 	template<typename _TROFLy>
-	class TNDNoradObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, mse::us::impl::NotAsyncShareableTagBase*>::value) && (!std::is_base_of<mse::us::impl::NotAsyncShareableTagBase, _TROFLy>::value)
-		, mse::us::impl::NotAsyncShareableTagBase, impl::TPlaceHolder_msepointerbasics<TNDNoradObj<_TROFLy> > >::type
+	class TNDNoradObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, mse::us::impl::AsyncNotShareableAndNotPassableTagBase*>::value) && (!std::is_base_of<mse::us::impl::AsyncNotShareableAndNotPassableTagBase, _TROFLy>::value)
+		, mse::us::impl::AsyncNotShareableAndNotPassableTagBase, impl::TPlaceHolder_msepointerbasics<TNDNoradObj<_TROFLy> > >::type
 	{
 	public:
 		typedef _TROFLy base_class;

@@ -166,7 +166,7 @@ namespace mse {
 			}
 			void xscope_tag() const {}
 			void Tbasic_string_xscope_iterator_tag() const {}
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 		private:
 			typename _MBS::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 			friend class /*_Myt*/basic_string<_Ty, _Traits, _A>;
@@ -259,7 +259,7 @@ namespace mse {
 			}
 			void xscope_tag() const {}
 			void Tbasic_string_xscope_iterator_tag() const {}
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 		private:
 			typename _MBS::xscope_ss_iterator_type m_xscope_ss_iterator;
 			friend class /*_Myt*/basic_string<_Ty, _Traits, _A>;
@@ -536,7 +536,7 @@ namespace mse {
 				auto target_container_ptr() const -> decltype(msebasic_string_ss_const_iterator_type().target_container_ptr()) {
 					return msebasic_string_ss_const_iterator_type().target_container_ptr();
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				const_iterator(std::shared_ptr<_MBS> msebasic_string_shptr) : m_msebasic_string_cshptr(msebasic_string_shptr) {
 					m_ss_const_iterator = msebasic_string_shptr->ss_cbegin();
@@ -616,7 +616,7 @@ namespace mse {
 				auto target_container_ptr() const -> decltype(msebasic_string_ss_iterator_type().target_container_ptr()) {
 					return msebasic_string_ss_iterator_type().target_container_ptr();
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				std::shared_ptr<_MBS> m_msebasic_string_shptr;
 				/* m_ss_iterator needs to be declared after m_msebasic_string_shptr so that its destructor will be called first. */
@@ -1328,7 +1328,7 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_MBS_xscope_structure_change_lock_guard.target_container_ptr();
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				typename mse::us::msebasic_string<_Ty, _Traits>::xscope_structure_change_lock_guard m_MBS_xscope_structure_change_lock_guard;
 			};
@@ -1351,12 +1351,12 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_MBS_xscope_const_structure_change_lock_guard.target_container_ptr();
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				typename mse::us::msebasic_string<_Ty, _Traits>::xscope_const_structure_change_lock_guard m_MBS_xscope_const_structure_change_lock_guard;
 			};
 
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 
 		private:
 			static std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>&& _Istr, basic_string& _Str) {

@@ -72,7 +72,7 @@ namespace mse {
 	namespace us {
 		namespace impl {
 #ifdef MSEPOINTERBASICS_H
-			typedef mse::us::impl::StrongPointerNotAsyncShareableTagBase RefCStrongPointerTagBase;
+			typedef mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase RefCStrongPointerTagBase;
 #else // MSEPOINTERBASICS_H
 			class mse::us::impl::RefCStrongPointerTagBase {};
 #endif // MSEPOINTERBASICS_H

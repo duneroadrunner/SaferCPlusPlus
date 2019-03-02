@@ -145,7 +145,7 @@ namespace mse {
 
 		/* Use TThreadLocalFixedPointer instead. */
 		template<typename _Ty>
-		class TThreadLocalPointer : public TThreadLocalPointerBase<_Ty>, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+		class TThreadLocalPointer : public TThreadLocalPointerBase<_Ty>, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
 			typedef Tthread_local_obj_base_ptr<_Ty> scope_obj_base_ptr_t;
 			virtual ~TThreadLocalPointer() {}
@@ -185,7 +185,7 @@ namespace mse {
 
 		/* Use TThreadLocalFixedConstPointer instead. */
 		template<typename _Ty>
-		class TThreadLocalConstPointer : public TThreadLocalConstPointerBase<const _Ty>, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+		class TThreadLocalConstPointer : public TThreadLocalConstPointerBase<const _Ty>, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
 			typedef Tthread_local_obj_base_const_ptr<_Ty> scope_obj_base_const_ptr_t;
 			virtual ~TThreadLocalConstPointer() {}

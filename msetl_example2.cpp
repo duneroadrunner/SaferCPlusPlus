@@ -244,7 +244,7 @@ void msetl_example2() {
 			int m_i = 0;
 		};
 		/* Here we're declaring that A can be safely shared between asynchronous threads. */
-		typedef mse::us::TUserDeclaredAsyncShareableObj<A> shareable_A_t;
+		typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> shareable_A_t;
 
 		/* When the element type of an nii_vector<> is marked as "async shareable", the nii_vector<> itself is
 		(automatically) marked as async shareable as well and can be safely shared between asynchronous threads
@@ -1262,7 +1262,7 @@ void msetl_example2() {
 			mse::nii_string s = "some text ";
 		};
 		/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
-		typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+		typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
 
 		/* trivially copyable class */
 		class D {
@@ -1272,7 +1272,7 @@ void msetl_example2() {
 			int b = 3;
 		};
 		/* User-defined classes need to be declared as (safely) shareable in order to be used with the atomic templates. */
-		typedef mse::us::TUserDeclaredAsyncShareableObj<D> ShareableD;
+		typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<D> ShareableD;
 
 		class B {
 		public:

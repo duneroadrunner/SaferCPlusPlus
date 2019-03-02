@@ -137,7 +137,7 @@ namespace mse {
 		class Tarray_xscope_iterator;
 
 		template<class _Ty, size_t _Size>
-		class Tarray_xscope_const_iterator : public mse::impl::random_access_const_iterator_base<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+		class Tarray_xscope_const_iterator : public mse::impl::random_access_const_iterator_base<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
 			typedef mse::mstd::array<_Ty, _Size> mstd_array;
 			typedef typename mstd_array::_MA _MA;
@@ -241,13 +241,13 @@ namespace mse {
 			}
 			void xscope_tag() const {}
 			void Tarray_xscope_iterator_tag() const {}
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 		private:
 			typename _MA::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
 			friend class /*_Myt*/array<_Ty, _Size>;
 		};
 		template<class _Ty, size_t _Size>
-		class Tarray_xscope_iterator : public mse::impl::random_access_iterator_base<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+		class Tarray_xscope_iterator : public mse::impl::random_access_iterator_base<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
 			typedef mse::mstd::array<_Ty, _Size> mstd_array;
 			typedef typename mstd_array::_MA _MA;
@@ -336,7 +336,7 @@ namespace mse {
 			}
 			void xscope_tag() const {}
 			void Tarray_xscope_iterator_tag() const {}
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 		private:
 			typename _MA::xscope_ss_iterator_type m_xscope_ss_iterator;
 			friend class /*_Myt*/array<_Ty, _Size>;
@@ -523,7 +523,7 @@ namespace mse {
 				auto target_container_ptr() const -> decltype(nii_array_reg_ss_const_iterator_type().target_container_ptr()) {
 					return nii_array_reg_ss_const_iterator_type().target_container_ptr();
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				const_iterator(mse::TRegisteredConstPointer<_MA> nii_array_regcptr) {
 					if (nii_array_regcptr) {
@@ -610,7 +610,7 @@ namespace mse {
 				auto target_container_ptr() const -> decltype(nii_array_reg_ss_iterator_type().target_container_ptr()) {
 					return nii_array_reg_ss_iterator_type().target_container_ptr();
 				}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				reg_ss_iterator_type m_reg_ss_iterator;
 
@@ -682,7 +682,7 @@ namespace mse {
 				return (m_nii_array < _Right.m_nii_array);
 			}
 
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 
 		private:
 			mse::TRegisteredObj<_MA> m_nii_array;

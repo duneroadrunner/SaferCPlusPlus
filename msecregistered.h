@@ -593,8 +593,8 @@ namespace mse {
 	destruction so that TNDCRegisteredPointers will avoid referencing destroyed objects. Note that TNDCRegisteredObj can be used with
 	objects allocated on the stack. */
 	template<typename _TROFLy>
-	class TNDCRegisteredObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, mse::us::impl::NotAsyncShareableTagBase*>::value) && (!std::is_base_of<mse::us::impl::NotAsyncShareableTagBase, _TROFLy>::value)
-		, mse::us::impl::NotAsyncShareableTagBase, impl::TPlaceHolder_msepointerbasics<TNDCRegisteredObj<_TROFLy> > >::type
+	class TNDCRegisteredObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, mse::us::impl::AsyncNotShareableAndNotPassableTagBase*>::value) && (!std::is_base_of<mse::us::impl::AsyncNotShareableAndNotPassableTagBase, _TROFLy>::value)
+		, mse::us::impl::AsyncNotShareableAndNotPassableTagBase, impl::TPlaceHolder_msepointerbasics<TNDCRegisteredObj<_TROFLy> > >::type
 	{
 	public:
 		typedef _TROFLy base_class;

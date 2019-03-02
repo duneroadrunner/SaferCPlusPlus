@@ -186,7 +186,7 @@ namespace mse {
 
 		explicit operator _Ty*() const { return m_ptr; }
 
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 
 		_Ty* m_ptr;
 	};
@@ -691,7 +691,7 @@ namespace mse {
 		static TSyncWeakFixedIterator make(const _TIterator2& src_iterator, const _TLeasePointer2& lease_pointer) {
 			return TSyncWeakFixedIterator(src_iterator, lease_pointer);
 		}
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 
 	protected:
 		TSyncWeakFixedIterator(const _TIterator& src_iterator, const _TLeasePointer& lease_pointer/* often a registered pointer */)
@@ -728,7 +728,7 @@ namespace mse {
 		static TSyncWeakFixedIterator make(const _TIterator2& src_iterator, const _TLeasePointer2& lease_pointer) {
 			return TSyncWeakFixedIterator(src_iterator, lease_pointer);
 		}
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 
 	protected:
 		TSyncWeakFixedIterator(const _TIterator& src_iterator, const _TLeasePointer& lease_pointer/* often a registered pointer */)
@@ -870,10 +870,19 @@ namespace mse {
 	namespace impl {
 
 		template<typename T>
-		struct HasNotAsyncShareableTagMethod_msemsearray
+		struct HasAsyncNotShareableAndNotPassableTagMethod_msemsearray
 		{
 			template<typename U, void(U::*)() const> struct SFINAE {};
-			template<typename U> static char Test(SFINAE<U, &U::not_async_shareable_tag>*);
+			template<typename U> static char Test(SFINAE<U, &U::async_not_shareable_and_not_passable_tag>*);
+			template<typename U> static int Test(...);
+			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+		};
+
+		template<typename T>
+		struct HasAsyncShareableAndPassableTagMethod_msemsearray
+		{
+			template<typename U, void(U::*)() const> struct SFINAE {};
+			template<typename U> static char Test(SFINAE<U, &U::async_shareable_and_passable_tag>*);
 			template<typename U> static int Test(...);
 			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
 		};
@@ -897,6 +906,15 @@ namespace mse {
 		};
 
 		template<typename T>
+		struct HasXScopeAsyncShareableAndPassableTagMethod_msemsearray
+		{
+			template<typename U, void(U::*)() const> struct SFINAE {};
+			template<typename U> static char Test(SFINAE<U, &U::xscope_async_shareable_and_passable_tag>*);
+			template<typename U> static int Test(...);
+			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+		};
+
+		template<typename T>
 		struct HasXScopeAsyncShareableTagMethod_msemsearray
 		{
 			template<typename U, void(U::*)() const> struct SFINAE {};
@@ -915,7 +933,7 @@ namespace mse {
 		};
 
 		template <typename _Ty> struct is_marked_as_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncShareableTagMethod_msemsearray<_Ty>::Has)
-			|| (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
+			|| (mse::impl::HasAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::Has) || (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
 			|| (mse::impl::lambda::is_convertible_to_function_pointer<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
 #ifdef MSE_SCOPEPOINTER_DISABLED
 			|| (std::is_pointer<_Ty>::value)
@@ -924,6 +942,7 @@ namespace mse {
 
 		template<class _Ty, class = typename std::enable_if<(is_marked_as_shareable_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_marked_as_shareable_msemsearray() {}
+
 		template<typename _Ty>
 		const _Ty& async_shareable(const _Ty& _X) {
 			T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
@@ -935,10 +954,15 @@ namespace mse {
 			return std::forward<decltype(_X)>(_X);
 		}
 
-		template <typename _Ty> struct is_marked_as_passable_or_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncPassableTagMethod_msemsearray<_Ty>::Has)
-			|| (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
+		template <typename _Ty> struct is_marked_as_passable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncPassableTagMethod_msemsearray<_Ty>::Has)
+			|| (mse::impl::HasAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::Has) || (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
+			|| (mse::impl::lambda::is_convertible_to_function_pointer<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
+#ifdef MSE_SCOPEPOINTER_DISABLED
+			|| (std::is_pointer<_Ty>::value)
+#endif // MSE_SCOPEPOINTER_DISABLED
+			|| (std::is_same<_Ty, void>::value)> {};
 
-		template<class _Ty, class = typename std::enable_if<(is_marked_as_passable_or_shareable_msemsearray<_Ty>::value), void>::type>
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_passable_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_marked_as_passable_or_shareable_msemsearray() {}
 		template<typename _Ty>
 		const _Ty& async_passable(const _Ty& _X) {
@@ -951,8 +975,14 @@ namespace mse {
 			return std::forward<decltype(_X)>(_X);
 		}
 
+		template <typename _Ty> struct is_marked_as_shareable_and_passable_msemsearray : std::integral_constant<bool, (is_marked_as_shareable_msemsearray<_Ty>::value)
+			&& (is_marked_as_passable_msemsearray<_Ty>::value)> {};
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_shareable_and_passable_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_marked_as_shareable_and_passable_msemsearray() {}
+
+
 		template <typename _Ty> struct is_marked_as_xscope_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncShareableTagMethod_msemsearray<_Ty>::Has)
-			|| (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
+			|| (mse::impl::HasXScopeAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::Has) || (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
 
 		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_shareable_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_marked_as_xscope_shareable_msemsearray() {}
@@ -967,22 +997,40 @@ namespace mse {
 			return std::forward<decltype(_X)>(_X);
 		}
 
-		template <typename _Ty> struct is_marked_as_xscope_passable_or_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncPassableTagMethod_msescope<_Ty>::Has)
-			|| (is_marked_as_xscope_shareable_msemsearray<_Ty>::value)> {};
+		template <typename _Ty> struct is_marked_as_xscope_passable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncPassableTagMethod_msescope<_Ty>::Has)
+			|| (mse::impl::HasXScopeAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::Has) || (is_marked_as_passable_msemsearray<_Ty>::value)> {};
 
-		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_passable_or_shareable_msemsearray<_Ty>::value), void>::type>
-		void T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray() {}
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_passable_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_marked_as_xscope_passable_msemsearray() {}
 		template<typename _Ty>
 		const _Ty& xscope_async_passable(const _Ty& _X) {
-			T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray<_Ty>();
+			T_valid_if_is_marked_as_xscope_passable_msemsearray<_Ty>();
 			return _X;
 		}
 		template<typename _Ty>
 		_Ty&& xscope_async_passable(_Ty&& _X) {
-			T_valid_if_is_marked_as_xscope_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+			T_valid_if_is_marked_as_xscope_passable_msemsearray<typename std::remove_reference<_Ty>::type>();
 			return std::forward<decltype(_X)>(_X);
 		}
+
+		template <typename _Ty> struct is_marked_as_xscope_shareable_and_passable_msemsearray : std::integral_constant<bool, (is_marked_as_xscope_shareable_msemsearray<_Ty>::value)
+			&& (is_marked_as_xscope_passable_msemsearray<_Ty>::value)> {};
+		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_shareable_and_passable_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_marked_as_xscope_shareable_and_passable_msemsearray() {}
 	}
+#define MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(Tmse_isap) \
+		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
+			&& (mse::impl::is_marked_as_shareable_msemsearray<Tmse_isap2>::value), void>::type> \
+		void async_shareable_tag() const {} \
+		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
+			&& (mse::impl::is_marked_as_passable_msemsearray<Tmse_isap2>::value), void>::type> \
+		void async_passable_tag() const {} \
+		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<Tmse_isap2>::value), void>::type> \
+		void xscope_async_shareable_tag() const {} \
+		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
+			&& (mse::impl::is_marked_as_xscope_passable_msemsearray<Tmse_isap2>::value), void>::type> \
+		void xscope_async_passable_tag() const {}
 
 
 	namespace impl {
@@ -1348,7 +1396,7 @@ namespace mse {
 
 		void xscope_tag() const {}
 		void xscope_iterator_tag() const {}
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
@@ -1410,10 +1458,7 @@ namespace mse {
 			return (*this) = TRAIterator(_Right_cref);
 		}
 
-		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
-		template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
-			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
-			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TRAContainerPointer);
 	};
 
 	namespace us {
@@ -1610,7 +1655,7 @@ namespace mse {
 
 		void xscope_tag() const {}
 		void xscope_iterator_tag() const {}
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
@@ -1678,10 +1723,7 @@ namespace mse {
 			return (*this) = TRAConstIterator(_Right_cref);
 		}
 
-		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
-		template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
-			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
-			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TRAContainerPointer);
 	};
 
 	template <typename _TRAContainerPointer>
@@ -1930,10 +1972,7 @@ namespace mse {
 			return m_owner_cptr;
 		}
 
-		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
-		template<class _Ty2 = _TArrayConstPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TArrayConstPointer>::value)
-			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
-			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TArrayConstPointer);
 
 	private:
 		_TArrayConstPointer m_owner_cptr;
@@ -2118,10 +2157,7 @@ namespace mse {
 		}
 		*/
 
-		/* This iterator is safely "async shareable" if the owner pointer it contains is also "async shareable". */
-		template<class _Ty2 = _TArrayPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TArrayPointer>::value)
-			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
-			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TArrayPointer);
 
 	private:
 		//msear_pointer<_Myt> m_owner_ptr = nullptr;
@@ -2151,7 +2187,7 @@ namespace mse {
 	class Tnii_array_xscope_ss_iterator_type;
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	class Tnii_array_xscope_ss_const_iterator_type : public Tnii_array_rp_ss_const_iterator_type<_Ty, _Size, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+	class Tnii_array_xscope_ss_const_iterator_type : public Tnii_array_rp_ss_const_iterator_type<_Ty, _Size, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		typedef Tnii_array_rp_ss_const_iterator_type<_Ty, _Size, _TStateMutex> base_class;
 		typedef typename base_class::iterator_category iterator_category;
@@ -2232,7 +2268,7 @@ namespace mse {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*(Tnii_array_rp_ss_const_iterator_type<_Ty, _Size, _TStateMutex>::target_container_ptr()));
 		}
 		void xscope_ss_iterator_type_tag() const {}
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 	private:
 		void* operator new(size_t size) { return ::operator new(size); }
 
@@ -2242,7 +2278,7 @@ namespace mse {
 		friend class Tnii_array_xscope_ss_iterator_type;
 	};
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	class Tnii_array_xscope_ss_iterator_type : public Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+	class Tnii_array_xscope_ss_iterator_type : public Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		typedef Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex> base_class;
 		typedef typename base_class::iterator_category iterator_category;
@@ -2316,7 +2352,7 @@ namespace mse {
 			return mse::us::unsafe_make_xscope_pointer_to(*(Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex>::target_container_ptr()));
 		}
 		void xscope_ss_iterator_type_tag() const {}
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 	private:
 		void* operator new(size_t size) { return ::operator new(size); }
 
@@ -2608,10 +2644,7 @@ namespace mse {
 			return write_bytes(_Ostr, mse::msear_as_a_size_t(sizeof(_Ty) * (*this).size()));
 		}
 
-		/* This array is safely "async shareable" if the elements it contains are also "async shareable". */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-			&& (mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value), void>::type>
-		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
 
 	private:
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
@@ -3106,7 +3139,7 @@ namespace mse {
 
 			class xscope_ss_iterator_type;
 
-			class xscope_ss_const_iterator_type : public ss_const_iterator_type, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+			class xscope_ss_const_iterator_type : public ss_const_iterator_type, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 			public:
 				template <typename _TXScopePointer, class = typename std::enable_if<
 					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<msearray> >::value
@@ -3178,7 +3211,7 @@ namespace mse {
 					return mse::us::unsafe_make_xscope_const_pointer_to(*(ss_const_iterator_type::target_container_ptr()));
 				}
 				void xscope_ss_iterator_type_tag() const {}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				void* operator new(size_t size) { return ::operator new(size); }
 
@@ -3186,7 +3219,7 @@ namespace mse {
 				friend class /*_Myt*/msearray<_Ty, _Size>;
 				friend class xscope_ss_iterator_type;
 			};
-			class xscope_ss_iterator_type : public ss_iterator_type, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+			class xscope_ss_iterator_type : public ss_iterator_type, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 			public:
 				template <typename _TXScopePointer, class = typename std::enable_if<
 					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<msearray> >::value
@@ -3251,7 +3284,7 @@ namespace mse {
 					return mse::us::unsafe_make_xscope_pointer_to(*(ss_iterator_type::target_container_ptr()));
 				}
 				void xscope_ss_iterator_type_tag() const {}
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 			private:
 				void* operator new(size_t size) { return ::operator new(size); }
 
@@ -3262,7 +3295,7 @@ namespace mse {
 			typedef xscope_ss_const_iterator_type xscope_const_iterator;
 			typedef xscope_ss_iterator_type xscope_iterator;
 
-			void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+			void async_not_shareable_and_not_passable_tag() const {}
 
 		private:
 
@@ -3985,7 +4018,7 @@ namespace mse {
 
 		void xscope_tag() const {}
 		void xscope_iterator_tag() const {}
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
@@ -4160,7 +4193,7 @@ namespace mse {
 
 		void xscope_tag() const {}
 		void xscope_iterator_tag() const {}
-		void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+		void async_not_shareable_and_not_passable_tag() const {}
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
@@ -4751,7 +4784,7 @@ namespace mse {
 	}
 
 	template <typename _TRAIterator>
-	class TXScopeRandomAccessConstSection : public us::impl::TRandomAccessConstSectionBase<_TRAIterator>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+	class TXScopeRandomAccessConstSection : public us::impl::TRandomAccessConstSectionBase<_TRAIterator>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		typedef us::impl::TRandomAccessConstSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
@@ -5318,7 +5351,7 @@ namespace mse {
 	}
 
 	template <typename _TRAIterator>
-	class TXScopeRandomAccessSection : public us::impl::TRandomAccessSectionBase<_TRAIterator>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+	class TXScopeRandomAccessSection : public us::impl::TRandomAccessSectionBase<_TRAIterator>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		typedef us::impl::TRandomAccessSectionBase<_TRAIterator> base_class;
 		typedef _TRAIterator iterator_type;
@@ -5575,7 +5608,7 @@ namespace mse {
 	copyability and movability are also restricted. The "random access const section" can only be accessed by certain types
 	and functions (declared as friends) that will ensure that it will be handled safely. */
 	template<typename _TRAIterator>
-	class TXScopeCagedRandomAccessConstSectionToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+	class TXScopeCagedRandomAccessConstSectionToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		void xscope_tag() const {}
 
@@ -5804,17 +5837,23 @@ namespace mse {
 		class TAsyncShareableObj : public _TROy {
 		public:
 			MSE_USING_WITH_ADDED_INIT(TAsyncShareableObj, _TROy, valid_if_TROy_is_not_marked_as_unshareable());
-			void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+
+			void async_shareable_tag() const {}
+
+			/* inherit the async passability of _TROy */
+			template<class _TROy2 = _TROy, class = typename std::enable_if<(std::is_same<_TROy2, _TROy>::value) \
+				&& (mse::impl::is_marked_as_passable_msemsearray<_TROy2>::value), void>::type> \
+			void async_passable_tag() const {}
 
 		private:
 
 			/* If _TROy is "marked" as not safe to share among threads, then the following member function will not
 			instantiate, causing an (intended) compile error. */
-			template<class = typename std::enable_if<mse::impl::is_marked_as_shareable_msemsearray<_TROy>::value || (
-				(!std::is_convertible<_TROy*, mse::us::impl::NotAsyncShareableTagBase*>::value)
-				/*(!std::integral_constant<bool, HasNotAsyncShareableTagMethod_msemsearray<_TROy>::Has>())*/
+			template<class = typename std::enable_if<mse::impl::is_marked_as_shareable_and_passable_msemsearray<_TROy>::value || (
+				(!std::is_convertible<_TROy*, mse::us::impl::AsyncNotShareableAndNotPassableTagBase*>::value)
+				/*(!std::integral_constant<bool, HasAsyncNotShareableAndNotPassableTagMethod_msemsearray<_TROy>::Has>())*/
 				), void>::type>
-			void valid_if_TROy_is_not_marked_as_unshareable() const {}
+				void valid_if_TROy_is_not_marked_as_unshareable() const {}
 
 			/* There's a bug in the g++ atomic<> implementation (prior to C++17) that requires (public) access to the '&' operator. */
 #if defined(MSE_HAS_CXX17) || ((!defined(__GNUC__)) && (!defined(__GNUG__)))
@@ -5828,19 +5867,48 @@ namespace mse {
 		public:
 			MSE_USING_WITH_ADDED_INIT(TAsyncPassableObj, _TROy, valid_if_TROy_is_not_marked_as_unpassable());
 
-			void async_passable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+
+			/* inherit the async shareability of _TROy */
+			template<class _TROy2 = _TROy, class = typename std::enable_if<(std::is_same<_TROy2, _TROy>::value) \
+				&& (mse::impl::is_marked_as_shareable_msemsearray<_TROy2>::value), void>::type> \
+			void async_shareable_tag() const {}
+
+		private:
+
+			/* If _TROy is "marked" as not safe to pass between threads, then the following member function will not
+			instantiate, causing an (intended) compile error. */
+			template<class = typename std::enable_if<mse::impl::is_marked_as_passable_msemsearray<_TROy>::value || (
+				(!std::is_convertible<_TROy*, mse::us::impl::AsyncNotPassableTagBase*>::value)
+				/*(!std::integral_constant<bool, HasAsyncNotPassableTagMethod_msemsearray<_TROy>::Has>())*/
+				), void>::type>
+			void valid_if_TROy_is_not_marked_as_unpassable() const {}
+
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+		};
+
+		/* TAsyncShareableAndPassableObj is intended as a transparent wrapper for other classes/objects. */
+		template<typename _TROy>
+		class TAsyncShareableAndPassableObj : public _TROy {
+		public:
+			MSE_USING_WITH_ADDED_INIT(TAsyncShareableAndPassableObj, _TROy, valid_if_TROy_is_not_marked_as_unshareable());
+
+			void async_shareable_and_passable_tag() const {}
 
 		private:
 
 			/* If _TROy is "marked" as not safe to share among threads, then the following member function will not
 			instantiate, causing an (intended) compile error. */
-			template<class = typename std::enable_if<mse::impl::is_marked_as_passable_or_shareable_msemsearray<_TROy>::value || (
-				(!std::is_convertible<_TROy*, mse::us::impl::NotAsyncPassableTagBase*>::value)
-				/*(!std::integral_constant<bool, HasNotAsyncPassableTagMethod_msemsearray<_TROy>::Has>())*/
+			template<class = typename std::enable_if<mse::impl::is_marked_as_shareable_and_passable_msemsearray<_TROy>::value || (
+				(!std::is_convertible<_TROy*, mse::us::impl::AsyncNotShareableAndNotPassableTagBase*>::value)
+				/*(!std::integral_constant<bool, HasAsyncNotShareableAndNotPassableTagMethod_msemsearray<_TROy>::Has>())*/
 				), void>::type>
-			void valid_if_TROy_is_not_marked_as_unpassable() const {}
+				void valid_if_TROy_is_not_marked_as_unshareable() const {}
 
+			/* There's a bug in the g++ atomic<> implementation (prior to C++17) that requires (public) access to the '&' operator. */
+#if defined(MSE_HAS_CXX17) || ((!defined(__GNUC__)) && (!defined(__GNUG__)))
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+#endif // defined(MSE_HAS_CXX17) || ((!defined(__GNUC__)) && (!defined(__GNUG__)))
 		};
 
 		/* template specializations */
@@ -5869,11 +5937,37 @@ namespace mse {
 			typedef TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TAsyncPassableObj, base_class);
 		};
+
+		template<typename _Ty>
+		class TAsyncShareableAndPassableObj<_Ty*> : public TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
+		public:
+			typedef TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+			MSE_USING(TAsyncShareableAndPassableObj, base_class);
+		};
+		template<typename _Ty>
+		class TAsyncShareableAndPassableObj<_Ty* const> : public TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
+		public:
+			typedef TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+			MSE_USING(TAsyncShareableAndPassableObj, base_class);
+		};
+		template<typename _Ty>
+		class TAsyncShareableAndPassableObj<const _Ty *> : public TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
+		public:
+			typedef TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+			MSE_USING(TAsyncShareableAndPassableObj, base_class);
+		};
+		template<typename _Ty>
+		class TAsyncShareableAndPassableObj<const _Ty * const> : public TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
+		public:
+			typedef TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+			MSE_USING(TAsyncShareableAndPassableObj, base_class);
+		};
 	}
 
 	namespace us {
 		template<typename _TROy> using TUserDeclaredAsyncShareableObj = mse::rsv::TAsyncShareableObj<_TROy>;
 		template<typename _TROy> using TUserDeclaredAsyncPassableObj = mse::rsv::TAsyncPassableObj<_TROy>;
+		template<typename _TROy> using TUserDeclaredAsyncShareableAndPassableObj = mse::rsv::TAsyncShareableAndPassableObj<_TROy>;
 
 		namespace impl {
 			template<typename _TROy>
@@ -5895,11 +5989,11 @@ namespace mse {
 		}
 		template<typename _TROy>
 		auto make_user_declared_async_passable(const _TROy& src) {
-			return impl::make_user_declared_async_passable_helper1(typename mse::impl::is_marked_as_passable_or_shareable_msemsearray<_TROy>::type(), src);
+			return impl::make_user_declared_async_passable_helper1(typename mse::impl::is_marked_as_passable_msemsearray<_TROy>::type(), src);
 		}
 		template<typename _TROy>
 		auto make_user_declared_async_passable(_TROy&& src) {
-			return impl::make_user_declared_async_passable_helper1(typename mse::impl::is_marked_as_passable_or_shareable_msemsearray<_TROy>::type(), std::forward<decltype(src)>(src));
+			return impl::make_user_declared_async_passable_helper1(typename mse::impl::is_marked_as_passable_msemsearray<_TROy>::type(), std::forward<decltype(src)>(src));
 		}
 	}
 
@@ -6867,7 +6961,7 @@ namespace mse {
 			return std::addressof(*m_obj_ptr);
 		}
 
-		/* This pointer is safely "async passable" if its target type is "async passable". */
+		/* This pointer is safely "async passable" if its target type is "async shareable". */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
 			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value), void>::type>
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
@@ -6904,7 +6998,7 @@ namespace mse {
 			return std::addressof(*m_obj_ptr);
 		}
 
-		/* This pointer is safely "async passable" if its target type is "async passable". */
+		/* This pointer is safely "async passable" if its target type is "async shareable". */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
 			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value), void>::type>
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
@@ -7008,7 +7102,7 @@ namespace mse {
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value), void>::type>
+			&& (mse::impl::is_marked_as_xscope_shareable_and_passable_msemsearray<_Ty2>::value), void>::type>
 		void valid_if_Ty_is_marked_as_xscope_shareable() const {}
 
 		TXScopeACOLockerForSharing(_TExclusiveWritePointer&& xwptr)
@@ -7163,8 +7257,8 @@ namespace mse {
 			owning pointer (aka "lease") to the iterator to prevent the target container from being deallocated prematurely. */
 			template <class _TIterator, class _TLeaseType>
 			class TStrongFixedIterator : public _TIterator
-				/* add mse::us::impl::StrongPointerNotAsyncShareableTagBase as a base class iff it is not already a base class */
-				, public std::conditional<std::is_base_of<mse::us::impl::StrongPointerNotAsyncShareableTagBase, _TIterator>::value, mse::impl::TPlaceHolder_msepointerbasics<TStrongFixedIterator<_TIterator, _TLeaseType> >, mse::us::impl::StrongPointerNotAsyncShareableTagBase>::type
+				/* add mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase as a base class iff it is not already a base class */
+				, public std::conditional<std::is_base_of<mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, _TIterator>::value, mse::impl::TPlaceHolder_msepointerbasics<TStrongFixedIterator<_TIterator, _TLeaseType> >, mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase>::type
 			{
 			public:
 				typedef _TIterator base_class;
@@ -7178,7 +7272,7 @@ namespace mse {
 					return TStrongFixedIterator(src_iterator, lease);
 				}
 
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 
 			protected:
 				TStrongFixedIterator(const _TIterator& src_iterator, const _TLeaseType& lease/* often a reference counting pointer */)
@@ -7206,7 +7300,7 @@ namespace mse {
 					return TStrongFixedIterator(src_iterator, lease);
 				}
 
-				void not_async_shareable_tag() const {} /* Indication that this type is not eligible to be shared between threads. */
+				void async_not_shareable_and_not_passable_tag() const {}
 
 			protected:
 				TStrongFixedIterator(const _TIterator& src_iterator, const _TLeaseType& lease/* often a reference counting pointer */)
@@ -7252,7 +7346,7 @@ namespace mse {
 					&& (mse::impl::is_marked_as_shareable_msemsearray<value_type2>::value)
 					&& ((std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value) || (std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value))
 					, void>::type>
-				void xscope_async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+				void xscope_async_shareable_tag() const {}
 
 			private:
 				TXScopeSplitterRandomAccessSection(const TXScopeSplitterRandomAccessSection& src) = default;
@@ -7291,7 +7385,7 @@ namespace mse {
 					&& (mse::impl::is_marked_as_shareable_msemsearray<value_type2>::value)
 					&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
 					, void>::type>
-					void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+				void async_shareable_tag() const {}
 
 			private:
 				TSplitterRandomAccessSection(const TSplitterRandomAccessSection& src) = default;

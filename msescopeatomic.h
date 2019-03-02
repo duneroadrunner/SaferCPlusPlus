@@ -466,10 +466,10 @@ namespace mse {
 		const TXScopeAtomicCagedItemFixedConstPointerToRValue<_TROy> mse_xscope_ifptr() && { return &(*this); }
 		const TXScopeAtomicCagedItemFixedConstPointerToRValue<_TROy> mse_xscope_ifptr() const && { return &(*this); }
 
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TROy);
 		void xscope_tag() const {}
-		void xscope_async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
 		//void xscope_contains_accessible_scope_address_of_operator_tag() const {}
-		/* This type can be safely used as a function return value if _Ty is also safely returnable. */
+		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
 		template<class _Ty2 = std::atomic<_TROy>, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
 			), void>::type>
@@ -509,7 +509,7 @@ namespace mse {
 	TXScopeAtomicObj<>, any member of a TXScopeAtomicObj<>, or various other items with scope lifetime that, for various reasons, aren't
 	declared as TXScopeAtomicObj<>. */
 	template<typename _Ty>
-	class TXScopeAtomicItemFixedPointer : public mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+	class TXScopeAtomicItemFixedPointer : public mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		TXScopeAtomicItemFixedPointer(const TXScopeAtomicItemFixedPointer& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -540,7 +540,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TXScopeAtomicItemFixedConstPointer : public mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+	class TXScopeAtomicItemFixedConstPointer : public mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		TXScopeAtomicItemFixedConstPointer(const TXScopeAtomicItemFixedConstPointer<_Ty>& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -581,7 +581,7 @@ namespace mse {
 	/* TXScopeAtomicCagedItemFixedPointerToRValue<> holds a TXScopeAtomicItemFixedPointer<> that points to an r-value which can only be
 	accessed when converted to a rsv::TXScopeAtomicItemFixedPointerFParam<>. */
 	template<typename _Ty>
-	class TXScopeAtomicCagedItemFixedPointerToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+	class TXScopeAtomicCagedItemFixedPointerToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		void xscope_tag() const {}
 
@@ -608,7 +608,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TXScopeAtomicCagedItemFixedConstPointerToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase {
+	class TXScopeAtomicCagedItemFixedConstPointerToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		void xscope_tag() const {}
 
@@ -828,7 +828,7 @@ namespace mse {
 	enforce this, which makes this data type less intrinsically safe than say, "reference counting" pointers.
 	*/
 	template<typename _Ty>
-	class TXScopeAtomicOwnerPointer : public mse::us::impl::XScopeTagBase, public mse::us::impl::StrongPointerNotAsyncShareableTagBase
+	class TXScopeAtomicOwnerPointer : public mse::us::impl::XScopeTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase
 		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TXScopeAtomicOwnerPointer<_Ty> > >::type
 	{
 	public:
@@ -1033,7 +1033,7 @@ namespace mse {
 					int b = 3;
 				};
 				/* Here we're declaring that A can be safely shared between asynchronous threads. */
-				typedef mse::us::TUserDeclaredAsyncShareableObj<A> shareable_A_t;
+				typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> shareable_A_t;
 
 				class B {
 				public:
@@ -1104,7 +1104,7 @@ namespace mse {
 
 						int b = 3;
 					};
-					typedef mse::us::TUserDeclaredAsyncShareableObj<A> shareable_A_t;
+					typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> shareable_A_t;
 
 					class B {
 					public:

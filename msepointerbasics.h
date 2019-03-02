@@ -292,8 +292,9 @@ namespace mse {
 
 	namespace us {
 		namespace impl {
-			class NotAsyncShareableTagBase {};
-			class NotAsyncPassableTagBase {};
+			class AsyncNotShareableAndNotPassableTagBase {};
+			class AsyncNotShareableTagBase {};
+			class AsyncNotPassableTagBase {};
 		}
 	}
 
@@ -319,7 +320,7 @@ namespace mse {
 
 			/* TPointer is just a wrapper for native pointers that can act as a base class. */
 			template<typename _Ty, typename _TID = TPointerID<_Ty>>
-			class TPointer : public mse::us::impl::NotAsyncShareableTagBase {
+			class TPointer : public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {
 			public:
 				TPointer() : m_ptr(nullptr) {}
 				TPointer(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
@@ -399,7 +400,7 @@ namespace mse {
 			};
 
 			template<typename _Ty, typename _TID = TPointerID<_Ty>>
-			class TPointerForLegacy : public mse::us::impl::NotAsyncShareableTagBase {
+			class TPointerForLegacy : public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {
 			public:
 				TPointerForLegacy() : m_ptr(nullptr) {}
 				TPointerForLegacy(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
@@ -471,7 +472,7 @@ namespace mse {
 
 	namespace us {
 		namespace impl {
-			class CSaferPtrBase : public mse::us::impl::NotAsyncShareableTagBase {
+			class CSaferPtrBase : public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {
 			public:
 				/* spb_set_to_null() needs to be available even when the smart pointer is const, because the object it points to may become
 				invalid (deleted). */
@@ -680,7 +681,7 @@ namespace mse {
 	TSyncWeakFixedPointer to store a copy of the registered pointer along with the pointer targeting the
 	member. */
 	template <class _TTargetType, class _TLeasePointerType>
-	class TSyncWeakFixedPointer : public mse::us::impl::NotAsyncShareableTagBase {
+	class TSyncWeakFixedPointer : public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {
 	public:
 		TSyncWeakFixedPointer(const TSyncWeakFixedPointer&) = default;
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
@@ -737,7 +738,7 @@ namespace mse {
 	}
 
 	template <class _TTargetType, class _TLeasePointerType>
-	class TSyncWeakFixedConstPointer : public mse::us::impl::NotAsyncShareableTagBase {
+	class TSyncWeakFixedConstPointer : public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {
 	public:
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedConstPointer&) = default;
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
@@ -871,14 +872,14 @@ namespace mse {
 			public:
 				void strong_pointer_tag() const {}
 			};
-			class StrongPointerNotAsyncShareableTagBase : public StrongPointerTagBase, public mse::us::impl::NotAsyncShareableTagBase {};
+			class StrongPointerAsyncNotShareableAndNotPassableTagBase : public StrongPointerTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {};
 
 			class NeverNullTagBase {
 			public:
 				void never_null_tag() const {}
 			};
 			class StrongPointerNeverNullTagBase : public StrongPointerTagBase, public NeverNullTagBase {};
-			class StrongPointerNeverNullNotAsyncShareableTagBase : public StrongPointerTagBase, public NeverNullTagBase, public mse::us::impl::NotAsyncShareableTagBase {};
+			class StrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase : public StrongPointerTagBase, public NeverNullTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {};
 
 			class ExclusivePointerTagBase {
 			public:
@@ -934,7 +935,7 @@ namespace mse {
 	TStrongFixedPointer to store a copy of the owning (refcounting) pointer along with the pointer targeting the
 	member. */
 	template <class _TTargetType, class _TLeaseType>
-	class TStrongFixedPointer : public mse::us::impl::StrongPointerNeverNullNotAsyncShareableTagBase {
+	class TStrongFixedPointer : public mse::us::impl::StrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
 	public:
 		TStrongFixedPointer(const TStrongFixedPointer&) = default;
 		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
@@ -1006,7 +1007,7 @@ namespace mse {
 	}
 
 	template <class _TTargetType, class _TLeaseType>
-	class TStrongFixedConstPointer : public mse::us::impl::StrongPointerNeverNullNotAsyncShareableTagBase {
+	class TStrongFixedConstPointer : public mse::us::impl::StrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
 	public:
 		TStrongFixedConstPointer(const TStrongFixedConstPointer&) = default;
 		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>

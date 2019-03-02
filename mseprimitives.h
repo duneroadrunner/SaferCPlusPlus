@@ -151,7 +151,7 @@ namespace mse {
 		void assert_initialized() const {}
 #endif // MSE_CHECK_USE_BEFORE_SET
 
-		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+		void async_shareable_and_passable_tag() const {}
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -523,7 +523,7 @@ namespace mse {
 			return tmp;   // return old value
 		}
 
-		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+		void async_shareable_and_passable_tag() const {}
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -778,7 +778,7 @@ namespace mse {
 			return tmp;   // return old value
 		}
 
-		void async_shareable_tag() const {} /* Indication that this type is eligible to be shared between threads. */
+		void async_shareable_and_passable_tag() const {}
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
