@@ -1,4 +1,4 @@
-Feb 2019
+Mar 2019
 
 ### Overview
 
@@ -81,11 +81,12 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     3. [async()](#async)
     4. [Asynchronously shared objects](#asynchronously-shared-objects)
         1. [TUserDeclaredAsyncShareableObj](#tuserdeclaredasyncshareableobj)
-        2. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
-        3. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
-        4. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
-        5. [TAsyncSharedV2AtomicFixedPointer](#tasyncsharedv2atomicfixedpointer)
-        6. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
+        2. [TUserDeclaredAsyncShareableAndPassableObj](#tuserdeclaredasyncshareableandpassableobj)
+        3. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
+        4. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
+        5. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
+        6. [TAsyncSharedV2AtomicFixedPointer](#tasyncsharedv2atomicfixedpointer)
+        7. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
     5. [Scope threads](#scope-threads)
         1. [access controlled objects](#access-controlled-objects)
         2. [xscope_thread_carrier](#xscope_thread_carrier)
@@ -1564,9 +1565,11 @@ As with objects that are passed between threads, a type that is safe to share sh
 
 In addition, safely shareable types should not have any `mutable` qualified members that are not protected by a thread-safety mechanism.
 
-And currently, any type declared as safely shareable must also satisfy the criteria for being safely passable. That is, safe shareability must imply safe passability.
-
 (Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
+
+### TUserDeclaredAsyncShareableAndPassableObj
+
+Most objects that qualify as safely [shareable](#tuserdeclaredasyncshareableobj) or [passable](#tuserdeclaredasyncpassableobj) between threads qualify as both.
 
 usage example: ([see below](#async-aggregate-usage-example))
 
@@ -1638,7 +1641,7 @@ void main(int argc, char* argv[]) {
 		mse::nii_string s = "some text ";
 	};
 	/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
-	typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+	typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
 
 	class B {
 	public:
@@ -1886,8 +1889,7 @@ void main(int argc, char* argv[]) {
 
 		/* The J::foo8 template function is just an example function that operates on containers of strings. In our case the
 		containers will be the random access sections we just created. We'll create an instance of the function here. */
-		auto& my_foo8_function_ref = J::foo8<decltype(ar1.writelock_ra_section())>;
-		typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
+		auto my_foo8_function = J::foo8<decltype(ar1.writelock_ra_section())>;
 
 		/* We want to execute the my_foo8 function in a separate thread. The function takes a "random access section"
 		as an argument. But as we're not allowed to pass random access sections between threads, we must pass an
@@ -1896,13 +1898,13 @@ void main(int argc, char* argv[]) {
 		function, in this case my_foo8, with that random access section. So here we'll use it to create a proxy
 		function that we can execute directly in a separate thread and will accept an access requester as a
 		parameter. */
-		auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar1), my_foo8_function_type>;
+		auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar1), decltype(my_foo8_function)>;
 
 		std::list<mse::mstd::thread> threads;
 		/* So this thread will modify the first section of the vector. */
-		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar1, my_foo8_function_ref));
+		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function, ar1, my_foo8_proxy_function));
 		/* While this thread modifies the other section. */
-		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar2, my_foo8_function_ref));
+		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function, ar2, my_foo8_proxy_function));
 
 		{
 			int count = 1;
@@ -1923,14 +1925,13 @@ void main(int argc, char* argv[]) {
 		mse::TAsyncRASectionSplitter<decltype(ash_access_requester)> ra_section_split1(ash_access_requester, section_sizes);
 		auto ar0 = ra_rection_split1.ra_section_access_requester(0);
 
-		auto& my_foo8_function_ref = J::foo8<decltype(ar0.writelock_ra_section())>;
-		typedef std::remove_reference<decltype(my_foo8_function_ref)>::type my_foo8_function_type;
-		auto& my_foo8_proxy_function_ref = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
+		auto my_foo8_function = J::foo8<decltype(ar1.writelock_ra_section())>;
+		auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar1), decltype(my_foo8_function)>;
 
 		std::list<mse::mstd::thread> threads;
 		for (size_t i = 0; i < num_sections; i += 1) {
 			auto ar = ra_rection_split1.ra_section_access_requester(i);
-			threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function_ref, ar, my_foo8_function_ref));
+			threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function, ar, my_foo8_proxy_function));
 		}
 
 		{
@@ -2014,7 +2015,7 @@ void main(int argc, char* argv[]) {
 		mse::nii_string s = "some text ";
 	};
 	/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
-	typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+	typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
 
 	std::cout << ": xscope_future_carrier<>";
 	std::cout << std::endl;
@@ -2092,7 +2093,7 @@ void main(int argc, char* argv[]) {
         int b = 3;
         mse::nii_string s = "some text ";
     };
-    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+    typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
 
     mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj1(3);
     mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj2(5);
@@ -2168,7 +2169,7 @@ void main(int argc, char* argv[]) {
         int b = 3;
         mse::nii_string s = "some text ";
     };
-    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+    typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
 
     mse::TXScopeObj<mse::TXScopeAccessControlledObj<ShareableA> > a_xscpacobj1(3);
 
@@ -2261,7 +2262,7 @@ void main(int argc, char* argv[]) {
         int b = 3;
         mse::nii_string s = "some text ";
     };
-    typedef mse::us::TUserDeclaredAsyncShareableObj<A> ShareableA;
+    typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
 
     mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj1(3);
     mse::TXScopeObj<mse::TExclusiveWriterObj<ShareableA> > a_xscpxwobj2(5);
@@ -2320,7 +2321,7 @@ void main(int argc, char* argv[]) {
         int b = 3;
     };
     /* User-defined classes need to be declared as (safely) shareable in order to be used with the atomic templates. */
-    typedef mse::us::TUserDeclaredAsyncShareableObj<D> ShareableD;
+    typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<D> ShareableD;
 
     class B {
     public:
@@ -2563,7 +2564,7 @@ usage example:
             int m_i;
         };
         /* Here we're declaring that A can be safely shared between asynchronous threads. */
-        typedef mse::TUserDeclaredAsyncShareableObj<A> shareable_A_t;
+        typedef mse::TUserDeclaredAsyncShareableAndPassableObj<A> shareable_A_t;
     
         /* When the element type of an nii_vector<> is marked as "async shareable", the nii_vector<> itself is
         (automatically) marked as async shareable as well and can be safely shared between asynchronous threads
