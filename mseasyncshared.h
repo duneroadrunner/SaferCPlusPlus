@@ -2053,83 +2053,89 @@ namespace mse {
 	}
 #endif // defined(MSEPOINTERBASICS_H)
 
-	namespace us {
-		namespace impl {
+	template <typename _TExclusiveWritelockPtr> class TXScopeAsyncRASectionSplitterXWP;
+	template <typename _TExclusiveWritelockPtr> class TAsyncRASectionSplitterXWP;
+	template <typename _TRAIterator> class TXScopeAsyncSplitterRASectionReadWriteAccessRequester;
+	template <typename _TRAIterator> class TAsyncSplitterRASectionReadWriteAccessRequester;
 
-			template <typename _TRAIterator>
-			class TXScopeAsyncSplitterRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator> {
-			public:
-				typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
-				typedef typename base_class::value_type value_type;
-				typedef typename base_class::reference reference;
-				typedef typename base_class::const_reference const_reference;
-				typedef typename base_class::size_type size_type;
-				typedef typename base_class::difference_type difference_type;
+	template <typename _TRAIterator>
+	class TXScopeAsyncSplitterRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator>, public mse::us::impl::AsyncNotPassableTagBase {
+	public:
+		typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
 
-				TXScopeAsyncSplitterRandomAccessSection(TXScopeAsyncSplitterRandomAccessSection&& src) = default;
-				//TXScopeAsyncSplitterRandomAccessSection(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
-				MSE_USING(TXScopeAsyncSplitterRandomAccessSection, base_class);
+		TXScopeAsyncSplitterRandomAccessSection(TXScopeAsyncSplitterRandomAccessSection&& src) = default;
 
-				/* We will mark this type as safely "async shareable" if the elements it contains are also "async shareable"
-				and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
-				to ensure safe "async shareability". */
-				template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
-					&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<value_type2>::value)
-					&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
-					, void>::type>
-				void xscope_async_shareable_and_passable_tag() const {}
+		/* We will mark this type as safely "async shareable" if the elements it contains are also "async shareable"
+		and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
+		to ensure safe "async shareability". */
+		template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
+			&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<value_type2>::value)
+			&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
+			, void>::type>
+		void xscope_async_shareable_and_passable_tag() const {}
 
-			private:
-				TXScopeAsyncSplitterRandomAccessSection(const TXScopeAsyncSplitterRandomAccessSection& src) = default;
-				template <typename _TRAIterator1>
-				TXScopeAsyncSplitterRandomAccessSection(const TXScopeAsyncSplitterRandomAccessSection<_TRAIterator1>& src) : base_class(src) {}
+	private:
+		TXScopeAsyncSplitterRandomAccessSection(const TXScopeAsyncSplitterRandomAccessSection& src) = default;
+		template <typename _TRAIterator1>
+		TXScopeAsyncSplitterRandomAccessSection(const TXScopeAsyncSplitterRandomAccessSection<_TRAIterator1>& src) : base_class(src) {}
 
-				TXScopeAsyncSplitterRandomAccessSection& operator=(const TXScopeAsyncSplitterRandomAccessSection& _Right_cref) = delete;
-				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+		TXScopeAsyncSplitterRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		//MSE_USING(TXScopeAsyncSplitterRandomAccessSection, base_class);
 
-				template <typename _TExclusiveWritelockPtr>
-				friend class TAsyncRASectionSplitterXWP;
-				template<class _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-				friend class mse::us::impl::TAccessControlledObjBase;
-			};
+		TXScopeAsyncSplitterRandomAccessSection& operator=(const TXScopeAsyncSplitterRandomAccessSection& _Right_cref) = delete;
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-			template <typename _TRAIterator>
-			class TAsyncSplitterRandomAccessSection : public TRandomAccessSection<_TRAIterator> {
-			public:
-				typedef TRandomAccessSection<_TRAIterator> base_class;
-				typedef typename base_class::value_type value_type;
-				typedef typename base_class::reference reference;
-				typedef typename base_class::const_reference const_reference;
-				typedef typename base_class::size_type size_type;
-				typedef typename base_class::difference_type difference_type;
+		template <typename _TExclusiveWritelockPtr>
+		friend class TXScopeAsyncRASectionSplitterXWP;
+		template <typename _TRAIterator2>
+		friend class TXScopeAsyncSplitterRASectionReadWriteAccessRequester;
+		template<class _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
+		friend class mse::us::impl::TAccessControlledObjBase;
+	};
 
-				TAsyncSplitterRandomAccessSection(TAsyncSplitterRandomAccessSection&& src) = default;
-				TAsyncSplitterRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
-				virtual ~TAsyncSplitterRandomAccessSection() {
-					mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
-				}
+	template <typename _TRAIterator>
+	class TAsyncSplitterRandomAccessSection : public TRandomAccessSection<_TRAIterator>, public mse::us::impl::AsyncNotPassableTagBase {
+	public:
+		typedef TRandomAccessSection<_TRAIterator> base_class;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
 
-				/* We will mark this type as safely "async shareable" if the elements it contains are also "async shareable"
-				and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
-				to ensure safe "async shareability". */
-				template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
-					&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<value_type2>::value)
-					&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
-					, void>::type>
-				void async_shareable_and_passable_tag() const {}
-
-			private:
-				TAsyncSplitterRandomAccessSection(const TAsyncSplitterRandomAccessSection& src) = default;
-				template <typename _TRAIterator1>
-				TAsyncSplitterRandomAccessSection(const TAsyncSplitterRandomAccessSection<_TRAIterator1>& src) : base_class(src) {}
-
-				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-
-				template <typename _TExclusiveWritelockPtr>
-				friend class TAsyncRASectionSplitterXWP;
-			};
+		TAsyncSplitterRandomAccessSection(TAsyncSplitterRandomAccessSection&& src) = default;
+		virtual ~TAsyncSplitterRandomAccessSection() {
+			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
-	}
+
+		/* We will mark this type as safely "async shareable" if the elements it contains are also "async shareable"
+		and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
+		to ensure safe "async shareability". */
+		template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
+			&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<value_type2>::value)
+			&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
+			, void>::type>
+		void async_shareable_and_passable_tag() const {}
+
+	private:
+		TAsyncSplitterRandomAccessSection(const TAsyncSplitterRandomAccessSection& src) = default;
+		template <typename _TRAIterator1>
+		TAsyncSplitterRandomAccessSection(const TAsyncSplitterRandomAccessSection<_TRAIterator1>& src) : base_class(src) {}
+
+		TAsyncSplitterRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		template <typename _TExclusiveWritelockPtr>
+		friend class TAsyncRASectionSplitterXWP;
+		template <typename _TRAIterator2>
+		friend class TAsyncSplitterRASectionReadWriteAccessRequester;
+	};
 
 	template <typename _TAccessLease>
 	class TXScopeAsyncSplitterRASectionReadWriteAccessRequester : public mse::us::impl::XScopeTagBase {
@@ -2138,6 +2144,9 @@ namespace mse {
 
 		TXScopeAsyncSplitterRASectionReadWriteAccessRequester(const TXScopeAsyncSplitterRASectionReadWriteAccessRequester& src) = default;
 		TXScopeAsyncSplitterRASectionReadWriteAccessRequester(TXScopeAsyncSplitterRASectionReadWriteAccessRequester&& src) = default;
+		virtual ~TXScopeAsyncSplitterRASectionReadWriteAccessRequester() {
+			mse::impl::is_valid_if_exclusive_pointer<_TAccessLease>::no_op();
+		}
 
 		typedef decltype(mse::make_xscope_random_access_section(mse::make_xscope_random_access_iterator(std::declval<mse::TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease> >().writelock_ptr()), std::declval<size_type>())) xscope_rw_ra_section_t;
 		xscope_rw_ra_section_t xscope_writelock_ra_section() {
@@ -2233,10 +2242,6 @@ namespace mse {
 			return xscope_exclusive_writelock_ra_section();
 		}
 
-		static TXScopeAsyncSplitterRASectionReadWriteAccessRequester make(_TAccessLease&& exclusive_write_pointer) {
-			return TXScopeAsyncSplitterRASectionReadWriteAccessRequester(std::forward<_TAccessLease>(exclusive_write_pointer));
-		}
-
 		void xscope_async_shareable_and_passable_tag() const {}
 
 	private:
@@ -2248,17 +2253,15 @@ namespace mse {
 
 		const size_type m_count = 0;
 		mse::TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease> m_splitter_ra_section_access_requester;
-	};
 
-	template<typename _TAccessLease>
-	auto make_xscope_asyncsplitterrasectionreadwrite(_TAccessLease&& exclusive_write_pointer) {
-		return TXScopeAsyncSplitterRASectionReadWriteAccessRequester<_TAccessLease>::make(std::forward<_TAccessLease>(exclusive_write_pointer));
-	}
+		template <typename _TExclusiveWritelockPtr>
+		friend class TXScopeAsyncRASectionSplitterXWP;
+	};
 
 	template <typename _TRAIterator>
 	class TAsyncSplitterRASectionReadWriteAccessRequester {
 	public:
-		typedef mse::us::impl::TAsyncSplitterRandomAccessSection<_TRAIterator> splitter_ra_section_t;
+		typedef mse::TAsyncSplitterRandomAccessSection<_TRAIterator> splitter_ra_section_t;
 		typedef decltype(std::declval<splitter_ra_section_t>().size()) size_type;
 
 		TAsyncSplitterRASectionReadWriteAccessRequester(const TAsyncSplitterRASectionReadWriteAccessRequester& src_cref) = default;
@@ -2325,28 +2328,21 @@ namespace mse {
 			return xrw_ra_section_t(TRAIterator<decltype(m_splitter_ra_section_access_requester.writelock_ptr())>(m_splitter_ra_section_access_requester.exclusive_pointer()), m_count);
 		}
 
-		template <class... Args>
-		static TAsyncSplitterRASectionReadWriteAccessRequester make(Args&&... args) {
-			return TAsyncSplitterRASectionReadWriteAccessRequester(std::forward<Args>(args)...);
-		}
-
 		void async_shareable_and_passable_tag() const {}
 
 	private:
 
 		TAsyncSplitterRASectionReadWriteAccessRequester(const _TRAIterator& start_iter, size_type count) : m_count(count)
-			, m_splitter_ra_section_access_requester(make_asyncsharedv2readwrite<splitter_ra_section_t>(start_iter, count)) {}
+			, m_splitter_ra_section_access_requester(make_asyncsharedv2readwrite<splitter_ra_section_t>(splitter_ra_section_t(start_iter, count))) {}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		const size_type m_count = 0;
 		mse::TAsyncSharedV2ReadWriteAccessRequester<splitter_ra_section_t> m_splitter_ra_section_access_requester;
-	};
 
-	template <class X, class... Args>
-	TAsyncSplitterRASectionReadWriteAccessRequester<X> make_asyncsplitterrasectionreadwrite(Args&&... args) {
-		return TAsyncSplitterRASectionReadWriteAccessRequester<X>::make(std::forward<Args>(args)...);
-	}
+		template <typename _TExclusiveWritelockPtr>
+		friend class TAsyncRASectionSplitterXWP;
+	};
 
 	template <typename _TExclusiveWritelockPtr>
 	class TXScopeAsyncRASectionSplitterXWP : public mse::us::impl::XScopeTagBase {
@@ -2356,7 +2352,7 @@ namespace mse {
 		typedef typename std::remove_reference<decltype(std::declval<_TContainer>()[0])>::type element_t;
 		typedef mse::TRAIterator<_TContainer*> ra_iterator_t;
 		typedef decltype(mse::us::impl::make_strong_iterator(std::declval<ra_iterator_t>(), std::declval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
-		typedef mse::us::impl::TXScopeAsyncSplitterRandomAccessSection<strong_ra_iterator_t> xscope_splitter_ra_section_t;
+		typedef mse::TXScopeAsyncSplitterRandomAccessSection<strong_ra_iterator_t> xscope_splitter_ra_section_t;
 		typedef decltype(std::declval<xscope_splitter_ra_section_t>().size()) size_type;
 		typedef mse::TXScopeAccessControlledObj<xscope_splitter_ra_section_t> xscope_aco_splitter_ra_section_t;
 		typedef decltype(std::declval<xscope_aco_splitter_ra_section_t>().exclusive_pointer()) aco_exclusive_pointer_t;
@@ -2376,7 +2372,7 @@ namespace mse {
 
 				strong_ra_iterator_t it1 = mse::us::impl::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
 				auto res1 = m_splitter_aco_ra_section_map.emplace(count, xscope_aco_splitter_ra_section_t(it1, section_size_szt));
-				m_ra_section_ar_map.emplace(count, mse::make_xscope_asyncsplitterrasectionreadwrite<aco_exclusive_pointer_t>(res1.first->second.exclusive_pointer()));
+				m_ra_section_ar_map.emplace(count, mse::TXScopeAsyncSplitterRASectionReadWriteAccessRequester<aco_exclusive_pointer_t>(res1.first->second.exclusive_pointer()));
 
 				cummulative_size += section_size_szt;
 				section_begin_it += section_size_szt;
@@ -2387,7 +2383,7 @@ namespace mse {
 				auto section_size_szt = mse::msev_as_a_size_t(section_size);
 				auto it1 = mse::us::impl::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
 				auto res1 = m_splitter_aco_ra_section_map.emplace(count, xscope_aco_splitter_ra_section_t(it1, section_size_szt));
-				m_ra_section_ar_map.emplace(count, mse::make_xscope_asyncsplitterrasectionreadwrite<aco_exclusive_pointer_t>(res1.first->second.exclusive_pointer()));
+				m_ra_section_ar_map.emplace(count, mse::TXScopeAsyncSplitterRASectionReadWriteAccessRequester<aco_exclusive_pointer_t>(res1.first->second.exclusive_pointer()));
 			}
 		}
 		TXScopeAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, size_t split_index)
@@ -2446,7 +2442,7 @@ namespace mse {
 				auto section_size_szt = mse::msev_as_a_size_t(section_size);
 
 				strong_ra_iterator_t it1 = mse::us::impl::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
-				ras_ar_t ras_ar1 = mse::make_asyncsplitterrasectionreadwrite<strong_ra_iterator_t>(it1, section_size_szt);
+				ras_ar_t ras_ar1 = mse::TAsyncSplitterRASectionReadWriteAccessRequester<strong_ra_iterator_t>(it1, section_size_szt);
 				m_ra_sections.push_back(ras_ar1);
 
 				cummulative_size += section_size_szt;
@@ -2455,7 +2451,7 @@ namespace mse {
 			if (m_access_lease_obj_shptr->cref()->size() > cummulative_size) {
 				auto section_size = m_access_lease_obj_shptr->cref()->size() - cummulative_size;
 				auto it1 = mse::us::impl::make_strong_iterator(section_begin_it, m_access_lease_obj_shptr);
-				auto ras_ar1 = mse::make_asyncsplitterrasectionreadwrite<strong_ra_iterator_t>(it1, section_size);
+				auto ras_ar1 = mse::TAsyncSplitterRASectionReadWriteAccessRequester<strong_ra_iterator_t>(it1, section_size);
 				m_ra_sections.push_back(ras_ar1);
 			}
 		}

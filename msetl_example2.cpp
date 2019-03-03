@@ -1481,7 +1481,6 @@ void msetl_example2() {
 				/* The J::foo8 template function is just an example function that operates on containers of strings. In our case the
 				containers will be the random access sections we just created. We'll create an instance of the function here. */
 				auto my_foo8_function = J::foo8<decltype(ar1.writelock_ra_section())>;
-				typedef decltype(my_foo8_function) my_foo8_function_type;
 
 				/* We want to execute the my_foo8 function in a separate thread. The function takes a "random access section"
 				as an argument. But as we're not allowed to pass random access sections between threads, we must pass an
@@ -1490,7 +1489,7 @@ void msetl_example2() {
 				function, in this case my_foo8, with that random access section. So here we'll use it to create a proxy
 				function that we can execute directly in a separate thread and will accept an access requester as a
 				parameter. */
-				auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar1), my_foo8_function_type>;
+				auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar1), decltype(my_foo8_function)>;
 
 				std::list<mse::mstd::thread> threads;
 				/* So this thread will modify the first section of the vector. */
@@ -1520,8 +1519,7 @@ void msetl_example2() {
 				auto ar0 = ra_section_split1.ra_section_access_requester(0);
 
 				auto my_foo8_function = J::foo8<decltype(ar0.writelock_ra_section())>;
-				typedef decltype(my_foo8_function) my_foo8_function_type;
-				auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
+				auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar0), decltype(my_foo8_function)>;
 
 				{
 					/* Here we demonstrate scope threads. Scope threads don't support being copied or moved. Unlike mstd::thread,
