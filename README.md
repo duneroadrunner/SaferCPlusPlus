@@ -1534,7 +1534,7 @@ The library requires and enforces that objects shared or passed between threads 
 
 ### TUserDeclaredAsyncPassableObj
 
-When passing an argument to a function that will be executed in another thread using the library, the argument must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely passable to another thread, but can't automatically deduce whether or not a user-defined type is safe to pass. So in order to pass a user-defined type, you need to "declare" that it is safely passable by wrapping it with the transparent `us::TUserDeclaredAsyncPassableObj<>` template. Otherwise you'll get a compile error. A type that is safe to pass should have no indirect members (i.e. pointers/references) whose target is not protected by a thread-safety mechanism. (Mis)using `us::TUserDeclaredAsyncPassableObj<>` to indicate that a user-defined type is safely passable when that type does not meet these criteria could result in unsafe code.
+When passing an argument to a function that will be executed in another thread using the library, the argument must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely passable to another thread, but can't automatically deduce whether or not a user-defined type is safe to pass. So in order to pass a user-defined type, you need to "declare" that it is safely passable by wrapping it with the transparent `us::TUserDeclaredAsyncPassableObj<>` template. Otherwise you'll get a compile error. A type that is safe to pass should contain no indirect objects (i.e. pointers, references, etc.) that are not known to be safe to pass between threads. (Mis)using `us::TUserDeclaredAsyncPassableObj<>` to indicate that a user-defined type is safely passable when that type does not meet these criteria could result in unsafe code.
 
 ### thread
 
@@ -1559,17 +1559,19 @@ Note that not all types are safe to share between threads. For example, because 
 
 ### TUserDeclaredAsyncShareableObj
 
-As with passing objects between threads, when using the library to share an object among threads, the object must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely shareable, but can't automatically deduce whether or not a user-defined type is safe to share. So in order to share a user-defined type, you need to "declare" that it is safely shareable by wrapping it with the transparent `us::TUserDeclaredAsyncShareableObj<>` template.
+As with [passing](#tuserdeclaredasyncpassableobj) objects between threads, when using the library to share an object among threads, the object must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely shareable, but can't automatically deduce whether or not a user-defined type is safe to share. So in order to share a user-defined type, you need to "declare" that it is safely shareable by wrapping it with the transparent `us::TUserDeclaredAsyncShareableObj<>` template.
 
-As with objects that are passed between threads, a type that is safe to share should have no indirect members (i.e. pointers/references) whose target is not protected by a thread-safety mechanism. 
+A type that is safe to share should contain no indirect objects (i.e. pointers, references, etc.) that are not known to be safe to share among threads, and should not provide any facilities for obtaining such indirect objects. Note that this would disqualify, for example, container types that have a (non-static) `begin()` member function that returns an iterator (which is an indirect/reference object). (The library provides containers such as [`nii_array<>`](#nii_array) that are more appropriate for sharing among threads.)
 
-In addition, safely shareable types should not have any `mutable` qualified members that are not protected by a thread-safety mechanism.
+Technically it would also disqualify pretty much any object with a functioning (non-static) `&` operator, but the (ubiquitous) default `&` operator returns a raw pointer, and for pragmatic reasons, we more precisely identify the *declaration* of a raw pointer object (that receives the returned raw pointer value) to be unsafe, rather than the mere presence of the (hopefully unused) `&` operator that potentially generates it. Objects with custom (non-static) `&` operators that return something other than a raw pointer (such as registered objects whose `&` operator yields a [registered pointer](#registered-pointers)), however, would be disqualified.
+
+Types declared as shareable should also not have any `mutable` qualified members that are not protected by a thread-safety mechanism.
 
 (Mis)using `us::TUserDeclaredAsyncShareableObj<>` to indicate that a user-defined type is safely shareable when that type does not meet these criteria could result in unsafe code.
 
 ### TUserDeclaredAsyncShareableAndPassableObj
 
-Most objects that qualify as safely [shareable](#tuserdeclaredasyncshareableobj) or [passable](#tuserdeclaredasyncpassableobj) between threads qualify as both.
+Many objects that qualify as safely [shareable](#tuserdeclaredasyncshareableobj) or [passable](#tuserdeclaredasyncpassableobj) between threads qualify as both.
 
 usage example: ([see below](#async-aggregate-usage-example))
 
