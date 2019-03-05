@@ -268,7 +268,7 @@ namespace mse {
 
 
 		template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty> */>
-		class basic_string {
+		class basic_string : public mse::us::impl::AsyncNotShareableTagBase {
 		public:
 			typedef basic_string _Myt;
 			typedef mse::us::msebasic_string<_Ty, _Traits, _A> _MBS;
@@ -1356,7 +1356,11 @@ namespace mse {
 				typename mse::us::msebasic_string<_Ty, _Traits>::xscope_const_structure_change_lock_guard m_MBS_xscope_const_structure_change_lock_guard;
 			};
 
-			void async_not_shareable_and_not_passable_tag() const {}
+			void async_not_shareable_tag() const {}
+			/* this array should be safely passable iff the element type is safely passable */
+			template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value), void>::type>
+			void async_passable_tag() const {}
 
 		private:
 			static std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>&& _Istr, basic_string& _Str) {

@@ -852,7 +852,7 @@ namespace mse {
 		operator _Ty*() const {
 			return std::addressof(*(*this));
 		}
-		operator const _Ty*() const {
+		explicit operator const _Ty*() const {
 			return std::addressof(*(*this));
 		}
 #endif /*MSE_SCOPEPOINTER_DISABLED*/

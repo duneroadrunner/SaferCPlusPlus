@@ -192,7 +192,7 @@ namespace mse {
 
 					operator bool() const { return !(!((*this).m_ptr)); }
 					/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-					operator const _Ty*() const {
+					explicit operator const _Ty*() const {
 						return std::addressof(*(*this));
 					}
 

@@ -326,7 +326,7 @@ namespace mse {
 
 
 		template<class _Ty, class _A = std::allocator<_Ty> >
-		class vector {
+		class vector : public mse::us::impl::AsyncNotShareableTagBase {
 		public:
 			typedef vector _Myt;
 			typedef mse::us::msevector<_Ty, _A> _MV;
@@ -780,7 +780,11 @@ namespace mse {
 				typename mse::us::msevector<_Ty>::xscope_const_structure_change_lock_guard m_MV_xscope_const_structure_change_lock_guard;
 			};
 
-			void async_not_shareable_and_not_passable_tag() const {}
+			void async_not_shareable_tag() const {}
+			/* this array should be safely passable iff the element type is safely passable */
+			template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value), void>::type>
+			void async_passable_tag() const {}
 
 		private:
 			const _MV& msevector() const { return (*m_shptr); }

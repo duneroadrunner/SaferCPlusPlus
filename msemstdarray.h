@@ -345,7 +345,7 @@ namespace mse {
 
 
 		template<class _Ty, size_t _Size >
-		class array {
+		class array : public mse::us::impl::AsyncNotShareableTagBase {
 		public:
 			typedef array _Myt;
 			typedef mse::nii_array<_Ty, _Size> _MA;
@@ -682,7 +682,11 @@ namespace mse {
 				return (m_nii_array < _Right.m_nii_array);
 			}
 
-			void async_not_shareable_and_not_passable_tag() const {}
+			void async_not_shareable_tag() const {}
+			/* this array should be safely passable iff the element type is safely passable */
+			template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value), void>::type>
+			void async_passable_tag() const {}
 
 		private:
 			mse::TRegisteredObj<_MA> m_nii_array;
