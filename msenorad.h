@@ -253,8 +253,7 @@ namespace mse {
 			}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 			TGNoradPointer<_Ty, _TRefCounter>& operator=(const TGNoradPointer<_Ty2, _TRefCounter>& _Right_cref) {
-				m_ptr.operator=(TGNoradPointer(_Right_cref).m_ptr);
-				return (*this);
+				return (*this).operator=(TGNoradPointer(_Right_cref));
 			}
 
 			TGNoradObj<_Ty, _TRefCounter>& operator*() const {
@@ -368,8 +367,7 @@ namespace mse {
 			}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 			TGNoradConstPointer<_Ty, _TRefCounter>& operator=(const TGNoradConstPointer<_Ty2, _TRefCounter>& _Right_cref) {
-				m_ptr.operator=(TGNoradConstPointer(_Right_cref).m_ptr);
-				return (*this);
+				return (*this).operator=(TGNoradConstPointer(_Right_cref));
 			}
 
 			const TGNoradObj<_Ty, _TRefCounter>& operator*() const {
