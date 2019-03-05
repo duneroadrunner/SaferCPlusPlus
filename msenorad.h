@@ -290,7 +290,7 @@ namespace mse {
 			objects, the destructor not being called also circumvents their memory safety mechanism. */
 			void norad_delete() {
 				auto a = asANativePointerToTGNoradObj();
-				m_ptr = nullptr;
+				(*this) = nullptr;
 				delete a;
 			}
 
@@ -397,7 +397,7 @@ namespace mse {
 			objects, the destructor not being called also circumvents their memory safety mechanism. */
 			void norad_delete() {
 				auto a = asANativePointerToTGNoradObj();
-				m_ptr = nullptr;
+				(*this) = nullptr;
 				delete a;
 			}
 
