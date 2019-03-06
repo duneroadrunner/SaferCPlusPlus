@@ -639,7 +639,7 @@ namespace mse {
 				if (0 != m_counter) {
 					/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object. */
 					std::cerr << "\n\nFatal Error: mse::TGNoradObj<> destructed with outstanding references \n\n";
-					std::terminate();
+					assert(false); std::terminate();
 				}
 			}
 
@@ -1330,7 +1330,7 @@ namespace mse {
 			if (0 != m_counter) {
 				/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object. */
 				std::cerr << "\n\nFatal Error: mse::TNDNoradObj<> destructed with outstanding references \n\n";
-				std::terminate();
+				assert(false); std::terminate();
 			}
 		}
 

@@ -1074,7 +1074,7 @@ namespace mse {
 					/* It may not be safe to continue if the object is destroyed while the object state is locked (and presumably
 					in use) by another part of the code. */
 					std::cerr << "\n\nFatal Error: mse::destructor_lock_guard1() failed \n\n";
-					std::terminate();
+					assert(false); std::terminate();
 				}
 			}
 			~destructor_lock_guard1() _NOEXCEPT {
@@ -6501,7 +6501,7 @@ namespace mse {
 						/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object (in
 						this thread). */
 						std::cerr << "\n\nFatal Error: mse::us::impl::TAccessControlledObjBase<> destructed with outstanding references in the same thread \n\n";
-						std::terminate();
+						assert(false); std::terminate();
 					}
 
 					/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
@@ -6853,7 +6853,7 @@ namespace mse {
 				/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object (in
 				this thread). */
 				std::cerr << "\n\nFatal Error: mse::us::impl::TAccessControlledObjBase<> destructed with outstanding references in the same thread \n\n";
-				std::terminate();
+				assert(false); std::terminate();
 			}
 		}
 

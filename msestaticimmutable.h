@@ -218,7 +218,7 @@ namespace mse {
 						if (0 != m_atomic_counter.load()) {
 							/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object. */
 							std::cerr << "\n\nFatal Error: mse::TCheckedThreadSafeObj<> destructed with outstanding references \n\n";
-							std::terminate();
+							assert(false); std::terminate();
 						}
 					}
 
