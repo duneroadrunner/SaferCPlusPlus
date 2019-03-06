@@ -206,6 +206,12 @@ public:
 		auto l_xscope_ra_csection2 = mse::rsv::as_an_fparam(xscope_ra_csection2);
 		return (l_xscope_ra_csection1.size() > l_xscope_ra_csection2.size()) ? false : true;
 	}
+
+#ifdef MSE_HAS_CXX17
+	/* While not encouraging their use, this is how you might declare an immutable static member (in C++17 and later). */
+	inline MSE_DECLARE_STATIC_IMMUTABLE(mse::nii_string) sm_simm_string = "abc";
+#endif // MSE_HAS_CXX17
+
 };
 
 MSE_DECLARE_THREAD_LOCAL_GLOBAL(mse::mstd::string) tlg_string1 = "some text";
@@ -1766,17 +1772,33 @@ void msetl_example2() {
 			std::cout << "mse::TXScopeACORASectionSplitter<>: " << std::endl;
 
 			{
-				/* From the access controlled vector we're going to obtain "exclusive pointers" to two access controlled
-				"random access section" objects which are used to access (disjoint) sections of the vector. We are going
-				to store those pointers in an "exclusive strong pointer store for sharing" object. From this object we can
-				obtain a pointer that is designated as safe to pass to other threads. We need to specify the position
-				where we want to split the vector. Here we specify that it be split at index "num_elements / 2", right
-				down the middle. */
+				/* From the access controlled vector we're going to obtain scope pointers to two access controlled
+				"random access section" objects which are used to access (disjoint) sections of the vector. Then we're
+				going to use "locker" objects to obtain pointers that are designated as safe to pass to other threads.
+				We need to specify the position  where we want to split the vector. Here we specify that it be split
+				at index "num_elements / 2", right down the middle. */
 				mse::TXScopeACORASectionSplitter<async_shareable_vector1_t> xscope_ra_section_split2(&xscope_acobj, num_elements / 2);
-				auto xscope_strong_ptr_store1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(
-					xscope_ra_section_split2.first_ra_section_aco().xscope_exclusive_pointer());
-				auto xscope_xstrong_ptr_store2 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(
-					xscope_ra_section_split2.second_ra_section_aco().xscope_exclusive_pointer());
+
+				/* Here we obtain scope pointers to the access controlled sections. */
+				auto first_ra_section_aco_xsptr = xscope_ra_section_split2.xscope_ptr_to_first_ra_section_aco();
+				auto second_ra_section_aco_xsptr = xscope_ra_section_split2.xscope_ptr_to_second_ra_section_aco();
+
+				/* Access controlled object pointers aren't themselves passable to other threads, but we can obtain
+				corresponding pointers that are passable via a "locker" object that takes exclusive control over
+				the access controlled object. */
+#ifndef _MSC_VER
+				auto xscope_section_access_owner1 = mse::make_xscope_aco_locker_for_sharing(first_ra_section_aco_xsptr);
+				auto xscope_section_access_owner2 = mse::make_xscope_aco_locker_for_sharing(second_ra_section_aco_xsptr);
+#else // !_MSC_VER
+				/* An apparent bug in msvc2017 and msvc2019preview (March 2019) prevents the other branch from compiling.
+				This presents an opportunity to demonstrate an alternative solution. Instead of a "locker" object that
+				takes a scope pointer to the access controlled object, we can use an "exclusive strong pointer store"
+				which takes any recognized exclusive pointer. */
+				auto xscope_section_access_owner1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(
+					(*first_ra_section_aco_xsptr).xscope_exclusive_pointer());
+				auto xscope_section_access_owner2 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(
+					(*second_ra_section_aco_xsptr).xscope_exclusive_pointer());
+#endif // !_MSC_VER
 
 				/* The J::foo8 template function is just an example function that operates on containers of strings. In this case the
 				containers will be the random access sections we just created. We'll create an instance of the function here. */
@@ -1785,13 +1807,13 @@ void msetl_example2() {
 
 				mse::xscope_thread_carrier threads;
 				/* So this thread will modify the first section of the vector. */
-				threads.new_thread(J::invoke_with_ra_section<decltype(xscope_strong_ptr_store1.xscope_passable_pointer()), my_foo8_function_type>
-					, xscope_strong_ptr_store1.xscope_passable_pointer(), my_foo8_function);
+				threads.new_thread(J::invoke_with_ra_section<decltype(xscope_section_access_owner1.xscope_passable_pointer()), my_foo8_function_type>
+					, xscope_section_access_owner1.xscope_passable_pointer(), my_foo8_function);
 				/* While this thread modifies the other section. */
-				threads.new_thread(J::invoke_with_ra_section<decltype(xscope_xstrong_ptr_store2.xscope_passable_pointer()), my_foo8_function_type>
-					, xscope_xstrong_ptr_store2.xscope_passable_pointer(), my_foo8_function);
+				threads.new_thread(J::invoke_with_ra_section<decltype(xscope_section_access_owner2.xscope_passable_pointer()), my_foo8_function_type>
+					, xscope_section_access_owner2.xscope_passable_pointer(), my_foo8_function);
 
-				/* Note that in this particular scenario we did need to use any access requesters (or locks). */
+				/* Note that in this particular scenario we didn't need to use any access requesters (or (thread safe) locks). */
 			}
 
 			std::cout << "mse::TXScopeAsyncACORASectionSplitter<>: " << std::endl;

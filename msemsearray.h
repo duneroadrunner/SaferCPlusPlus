@@ -7460,42 +7460,15 @@ namespace mse {
 			mse::impl::is_valid_if_exclusive_pointer<exclusive_writelock_ptr_t>::no_op();
 		}
 
-		const xscope_aco_splitter_ra_section_t& xscope_ra_section_aco(size_t index) const {
-			return m_splitter_aco_ra_section_map.at(index);
+		typedef mse::TXScopeItemFixedPointer<xscope_aco_splitter_ra_section_t> aco_splitter_ra_section_xsptr_t;
+		aco_splitter_ra_section_xsptr_t xscope_ptr_to_ra_section_aco(size_t index) {
+			return mse::us::unsafe_make_xscope_pointer_to(m_splitter_aco_ra_section_map.at(index));
 		}
-		const xscope_aco_splitter_ra_section_t& xscope_first_ra_section_aco() const {
-			return m_splitter_aco_ra_section_map.at(0);
+		aco_splitter_ra_section_xsptr_t xscope_ptr_to_first_ra_section_aco() {
+			return mse::us::unsafe_make_xscope_pointer_to(m_splitter_aco_ra_section_map.at(0));
 		}
-		const xscope_aco_splitter_ra_section_t& xscope_second_ra_section_aco() const {
-			return m_splitter_aco_ra_section_map.at(1);
-		}
-		const xscope_aco_splitter_ra_section_t& ra_section_aco(size_t index) const {
-			return m_splitter_aco_ra_section_map.at(index);
-		}
-		const xscope_aco_splitter_ra_section_t& first_ra_section_aco() const {
-			return m_splitter_aco_ra_section_map.at(0);
-		}
-		const xscope_aco_splitter_ra_section_t& second_ra_section_aco() const {
-			return m_splitter_aco_ra_section_map.at(1);
-		}
-
-		xscope_aco_splitter_ra_section_t& xscope_ra_section_aco(size_t index) {
-			return m_splitter_aco_ra_section_map.at(index);
-		}
-		xscope_aco_splitter_ra_section_t& xscope_first_ra_section_aco() {
-			return m_splitter_aco_ra_section_map.at(0);
-		}
-		xscope_aco_splitter_ra_section_t& xscope_second_ra_section_aco() {
-			return m_splitter_aco_ra_section_map.at(1);
-		}
-		xscope_aco_splitter_ra_section_t& ra_section_aco(size_t index) {
-			return m_splitter_aco_ra_section_map.at(index);
-		}
-		xscope_aco_splitter_ra_section_t& first_ra_section_aco() {
-			return m_splitter_aco_ra_section_map.at(0);
-		}
-		xscope_aco_splitter_ra_section_t& second_ra_section_aco() {
-			return m_splitter_aco_ra_section_map.at(1);
+		aco_splitter_ra_section_xsptr_t xscope_ptr_to_second_ra_section_aco() {
+			return mse::us::unsafe_make_xscope_pointer_to(m_splitter_aco_ra_section_map.at(1));
 		}
 	private:
 		TXScopeRASectionSplitterXWP(const TXScopeRASectionSplitterXWP& src) = delete;
