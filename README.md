@@ -97,6 +97,7 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
         7. [TXScopeExclusiveStrongPointerStoreForAccessControl](#txscopeexclusivestrongpointerstoreforaccesscontrol)
         8. [exclusive writer objects](#exclusive-writer-objects)
         9. [scope atomics](#scope-atomics)
+        10. [TXScopeACORASectionSplitter and TXScopeAsyncACORASectionSplitter](#txscopeacorasectionsplitter-and-txscopeasyncacorasectionsplitter)
     6. [static and global variables](#static-and-global-variables)
         1. [static immutables](#static-immutables)
         2. [static atomics](#static-atomics)
@@ -2353,11 +2354,13 @@ void main(int argc, char* argv[]) {
 }
 ```
 
-### TXScopeACORASectionSplitter and TXScopeAsyncACORASectionSplitter
+#### TXScopeACORASectionSplitter and TXScopeAsyncACORASectionSplitter
 
 `TXScopeAsyncACORASectionSplitter<>` is the scope version of [`TAsyncRASectionSplitter<>`](#tasyncrasectionsplitter), which enables multiple threads to safely access disjoint sections of an array or vector simultaneously. Instead of passing an access requester to its constructor, it takes a scope pointer to an existing [access controlled](#access-controlled-objects) array or vector. 
 
 Where `TXScopeAsyncACORASectionSplitter<>` provides an [access requester](#make_xscope_asyncsharedv2acoreadwrite) for each section, `TXScopeACORASectionSplitter<>` provides each section as an [access controlled object](#access-controlled-objects). From each of these access controlled sections, as with all access controlled objects, you can obtain pointers to them (using [`make_xscope_aco_locker_for_sharing()`](#make_xscope_aco_locker_for_sharing), for example) that can be safely passed to other threads.
+
+One reason you might choose to use `TXScopeACORASectionSplitter<>` over `TXScopeAsyncACORASectionSplitter<>` is that it does not involve any (costly) thread safe locks. The trade-off being that it doesn't support dynamically locking and unlocking sections (to maximize the availability of each section).
 
 usage example:
 
