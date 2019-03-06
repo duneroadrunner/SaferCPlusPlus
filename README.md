@@ -2353,6 +2353,177 @@ void main(int argc, char* argv[]) {
 }
 ```
 
+### TXScopeACORASectionSplitter and TXScopeAsyncACORASectionSplitter
+
+`TXScopeAsyncACORASectionSplitter<>` is the scope version of [`TAsyncRASectionSplitter<>`](#tasyncrasectionsplitter), which enables multiple threads to safely access disjoint sections of an array or vector simultaneously. Instead of passing an access requester to its constructor, it takes a scope pointer to an existing [access controlled](#access-controlled-objects) array or vector. 
+
+Where `TXScopeAsyncACORASectionSplitter<>` provides an [access requester](#make_xscope_asyncsharedv2acoreadwrite) for each section, `TXScopeACORASectionSplitter<>` provides each section as an [access controlled object](#access-controlled-objects). From each of these access controlled sections, as with all access controlled objects, you can obtain pointers to them (using [`make_xscope_aco_locker_for_sharing()`](#make_xscope_aco_locker_for_sharing), for example) that can be safely passed to other threads.
+
+usage example:
+
+```cpp
+#include "msemstdvector.h"
+#include "mseasyncshared.h"
+#include "msescope.h"
+#include "msemsearray.h"
+
+class J {
+public:
+	/* This function takes a "random access section" (which is like an "array_view" or gsl::span) as its parameter. */
+	template<class _TStringRASection>
+	static void foo8(_TStringRASection ra_section) {
+		size_t delay_in_milliseconds = 3000/*arbitrary*/;
+		if (1 <= ra_section.size()) {
+			delay_in_milliseconds /= mse::as_a_size_t(ra_section.size());
+		}
+		for (size_t i = 0; i < ra_section.size(); i += 1) {
+			auto now1 = std::chrono::system_clock::now();
+			auto tt = std::chrono::system_clock::to_time_t(now1);
+
+			/* Just trying to obtain a string with the current time and date. The standard library doesn't yet
+			seem to provide a safe, portable way to do this. */
+#ifdef _MSC_VER
+			static const size_t buffer_size = 64;
+			char buffer[buffer_size];
+			buffer[0] = '\0';
+			ctime_s(buffer, buffer_size, &tt);
+#else /*_MSC_VER*/
+			auto buffer = ctime(&tt);
+#endif /*_MSC_VER*/
+
+			std::string now_str(buffer);
+			ra_section[i] = now_str;
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(delay_in_milliseconds));
+		}
+	}
+
+	/* This function just obtains a writelock_ra_section from the given "splitter access requester" and calls the given
+	function with the writelock_ra_section as the first argument. */
+	template<class TAsyncSplitterRASectionReadWriteAccessRequester, class TFunction, class... Args>
+	static void invoke_with_writelock_ra_section1(TAsyncSplitterRASectionReadWriteAccessRequester ar, TFunction function1, Args&&... args) {
+		function1(ar.writelock_ra_section(), args...);
+	}
+
+	/* This function just obtains an xscope_random_access_section from the given access controlled pointer and calls the given
+	function with the xscope_random_access_section as the first argument. */
+	template<class Ty, class TFunction, class... Args>
+	static void invoke_with_ra_section(mse::TXScopeExclusiveStrongPointerStoreForAccessControl<Ty> xs_ac_store, TFunction function1, Args&&... args) {
+		auto xscope_ra_section = mse::make_xscope_random_access_section(xs_ac_store.xscope_pointer());
+		function1(xscope_ra_section, args...);
+	}
+};
+
+void main(int argc, char* argv[]) {
+
+	/* This block demonstrates safely allowing different threads to (simultaneously)
+	modify different sections of an existing vector declared as a local variable. */
+
+	static const size_t num_sections = 10;
+	static const size_t section_size = 5;
+	const size_t num_elements = num_sections * section_size;
+
+	typedef mse::nii_vector<mse::nii_string> async_shareable_vector1_t;
+	typedef mse::mstd::vector<mse::nii_string> nonshareable_vector1_t;
+	/* Let's say we have a vector. */
+	nonshareable_vector1_t vector1;
+	vector1.resize(num_elements);
+	{
+		size_t count = 0;
+		for (auto& item_ref : vector1) {
+			count += 1;
+			item_ref = "text" + std::to_string(count);
+		}
+	}
+
+	/* Only access controlled objects can be shared with other threads, so we'll make an access controlled vector and
+	(temporarily) swap it with our original one. */
+	mse::TXScopeObj<mse::TXScopeAccessControlledObj<async_shareable_vector1_t> > xscope_acobj;
+	std::swap(vector1, *(xscope_acobj.xscope_pointer()));
+
+	std::cout << "mse::TXScopeACORASectionSplitter<>: " << std::endl;
+
+	{
+		/* From the access controlled vector we're going to obtain scope pointers to two access controlled
+		"random access section" objects which are used to access (disjoint) sections of the vector. Then we're
+		going to use "locker" objects to obtain pointers that are designated as safe to pass to other threads.
+		We need to specify the position  where we want to split the vector. Here we specify that it be split
+		at index "num_elements / 2", right down the middle. */
+		mse::TXScopeACORASectionSplitter<async_shareable_vector1_t> xscope_ra_section_split2(&xscope_acobj, num_elements / 2);
+
+		/* Here we obtain scope pointers to the access controlled sections. */
+		auto first_ra_section_aco_xsptr = xscope_ra_section_split2.xscope_ptr_to_first_ra_section_aco();
+		auto second_ra_section_aco_xsptr = xscope_ra_section_split2.xscope_ptr_to_second_ra_section_aco();
+
+		/* Access controlled object pointers aren't themselves passable to other threads, but we can obtain
+		corresponding pointers that are passable via a "locker" object that takes exclusive control over
+		the access controlled object. */
+#ifndef _MSC_VER
+		auto xscope_section_access_owner1 = mse::make_xscope_aco_locker_for_sharing(first_ra_section_aco_xsptr);
+		auto xscope_section_access_owner2 = mse::make_xscope_aco_locker_for_sharing(second_ra_section_aco_xsptr);
+#else // !_MSC_VER
+		/* An apparent bug in msvc2017 and msvc2019preview (March 2019) prevents the other branch from compiling.
+		This presents an opportunity to demonstrate an alternative solution. Instead of a "locker" object that
+		takes a scope pointer to the access controlled object, we can use an "exclusive strong pointer store"
+		which takes any recognized exclusive pointer. */
+		auto xscope_section_access_owner1 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(
+			(*first_ra_section_aco_xsptr).xscope_exclusive_pointer());
+		auto xscope_section_access_owner2 = mse::make_xscope_exclusive_strong_pointer_store_for_sharing(
+			(*second_ra_section_aco_xsptr).xscope_exclusive_pointer());
+#endif // !_MSC_VER
+
+		/* The J::foo8 template function is just an example function that operates on containers of strings. In this case the
+		containers will be the random access sections we just created. We'll create an instance of the function here. */
+		auto my_foo8_function = J::foo8<mse::TXScopeAnyRandomAccessSection<mse::nii_string> >;
+		typedef decltype(my_foo8_function) my_foo8_function_type;
+
+		mse::xscope_thread_carrier threads;
+		/* So this thread will modify the first section of the vector. */
+		threads.new_thread(J::invoke_with_ra_section<decltype(xscope_section_access_owner1.xscope_passable_pointer()), my_foo8_function_type>
+			, xscope_section_access_owner1.xscope_passable_pointer(), my_foo8_function);
+		/* While this thread modifies the other section. */
+		threads.new_thread(J::invoke_with_ra_section<decltype(xscope_section_access_owner2.xscope_passable_pointer()), my_foo8_function_type>
+			, xscope_section_access_owner2.xscope_passable_pointer(), my_foo8_function);
+
+		/* Note that in this particular scenario we didn't need to use any access requesters (or (thread safe) locks). */
+	}
+
+	std::cout << "mse::TXScopeAsyncACORASectionSplitter<>: " << std::endl;
+
+	{
+		/* Ok, now let's do it again, but instead of splitting the vector into two sections, let's split it into more sections: */
+		/* First we create a list of a the sizes of each section. We'll use a vector here, but any iteratable container will work. */
+		mse::mstd::vector<size_t> section_sizes;
+		for (size_t i = 0; i < num_sections; i += 1) {
+			section_sizes.push_back(section_size);
+		}
+
+		/* This time (for demonstration purposes) we'll use TXScopeAsyncACORASectionSplitter<> to generate a new
+		access requester for each section. */
+		mse::TXScopeAsyncACORASectionSplitter<async_shareable_vector1_t> xscope_ra_section_split1(&xscope_acobj, section_sizes);
+		auto ar0 = xscope_ra_section_split1.ra_section_access_requester(0);
+
+		auto my_foo8_function = J::foo8<decltype(ar0.writelock_ra_section())>;
+		typedef decltype(my_foo8_function) my_foo8_function_type;
+		auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
+
+		{
+			mse::xscope_thread_carrier xscope_threads;
+			for (size_t i = 0; i < num_sections; i += 1) {
+				auto ar = xscope_ra_section_split1.ra_section_access_requester(i);
+				xscope_threads.new_thread(my_foo8_proxy_function, ar, my_foo8_function);
+			}
+			/* The scope will not end until all the scope threads have finished executing. */
+		}
+	}
+
+	/* Now that we're done sharing the (controlled access) vector, we can swap it back to our original vector. */
+	std::swap(vector1, *(xscope_acobj.xscope_pointer()));
+	auto first_element_value = vector1[0];
+	auto last_element_value = vector1.back();
+}
+```
+
 ### static and global variables
 
 [*provisional*]
