@@ -1299,8 +1299,10 @@ namespace mse {
 		return TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>::make(std::forward<_TAccessLease>(exclusive_write_pointer));
 	}
 
+	template<typename _TAccessLease> class TAsyncSharedV2XWPWeakReadWriteAccessRequester;
+
 	template<typename _TAccessLease>
-	class TAsyncSharedV2XWPReadWriteAccessRequester : public mse::us::impl::TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease>, public mse::us::impl::XScopeTagBase {
+	class TAsyncSharedV2XWPReadWriteAccessRequester : public mse::us::impl::TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease> {
 	public:
 		typedef mse::us::impl::TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease> base_class;
 		typedef typename std::remove_reference<decltype(*std::declval<_TAccessLease>())>::type target_type;
@@ -1359,6 +1361,10 @@ namespace mse {
 		TAsyncSharedV2XWPReadWriteAccessRequester(const std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr) : base_class(shptr) {}
 		TAsyncSharedV2XWPReadWriteAccessRequester(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>&& shptr) : base_class(std::forward<decltype(shptr)>(shptr)) {}
 
+		auto shptr() const {
+			return (*this).m_shptr;
+		}
+
 		/* If the target type is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
@@ -1369,12 +1375,36 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		//friend class TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>;
+		friend class TAsyncSharedV2XWPWeakReadWriteAccessRequester<_TAccessLease>;
 	};
 
 	template<typename _TAccessLease>
 	TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease> make_asyncsharedv2xwpreadwrite(_TAccessLease&& exclusive_write_pointer) {
 		return TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>::make(std::forward<_TAccessLease>(exclusive_write_pointer));
 	}
+
+	template<typename _TAccessLease>
+	class TAsyncSharedV2XWPWeakReadWriteAccessRequester {
+	public:
+		TAsyncSharedV2XWPWeakReadWriteAccessRequester(const TAsyncSharedV2XWPWeakReadWriteAccessRequester&) = default;
+		TAsyncSharedV2XWPWeakReadWriteAccessRequester(const TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>& src) : m_wkptr(src.shptr()) {}
+
+		mse::mstd::optional<TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>> try_strong_access_requester() const {
+			return try_strong_access_requester_helper1(m_wkptr.lock());
+		}
+
+	private:
+		mse::mstd::optional<TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>> try_strong_access_requester_helper1(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>&& shptr) const {
+			if (shptr) {
+				return TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>(std::forward<decltype(shptr)>(shptr));
+			}
+			else {
+				return {};
+			}
+		}
+
+		std::weak_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_wkptr;
+	};
 
 #ifdef MSESCOPE_H_
 	template<typename _Ty> using TXScopeAsyncSharedV2ReadWriteStore = TXScopeStrongNotNullPointerStore<TAsyncSharedV2ReadWritePointer<_Ty> >;
@@ -1734,6 +1764,8 @@ namespace mse {
 		}
 	}
 
+	template<typename _Ty> class TAsyncSharedV2WeakReadWriteAccessRequester;
+
 	template <typename _Ty>
 	class TAsyncSharedV2ReadWriteAccessRequester : public TAsyncSharedV2XWPReadWriteAccessRequester<mse::us::impl::TTaggedUniquePtr<_Ty> > {
 	public:
@@ -1769,14 +1801,39 @@ namespace mse {
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		TAsyncSharedV2ReadWriteAccessRequester(mse::us::impl::TTaggedUniquePtr<_Ty>&& uqptr) : base_class(make_asyncsharedv2xwpreadwrite(std::forward<decltype(uqptr)>(uqptr))) {}
+		TAsyncSharedV2ReadWriteAccessRequester(const base_class& src) : base_class(src) {}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		friend class TAsyncSharedV2WeakReadWriteAccessRequester<_Ty>;
 	};
 
 	template <class X, class... Args>
 	TAsyncSharedV2ReadWriteAccessRequester<X> make_asyncsharedv2readwrite(Args&&... args) {
 		return TAsyncSharedV2ReadWriteAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
+
+	template<typename _Ty>
+	class TAsyncSharedV2WeakReadWriteAccessRequester : public TAsyncSharedV2XWPWeakReadWriteAccessRequester<mse::us::impl::TTaggedUniquePtr<_Ty> > {
+	public:
+		typedef TAsyncSharedV2XWPWeakReadWriteAccessRequester<mse::us::impl::TTaggedUniquePtr<_Ty> > base_class;
+		TAsyncSharedV2WeakReadWriteAccessRequester(const TAsyncSharedV2WeakReadWriteAccessRequester&) = default;
+		TAsyncSharedV2WeakReadWriteAccessRequester(const TAsyncSharedV2ReadWriteAccessRequester<_Ty>& src) : base_class(src) {}
+
+		mse::mstd::optional<TAsyncSharedV2ReadWriteAccessRequester<_Ty>> try_strong_access_requester() const {
+			return try_strong_access_requester_helper1(base_class::try_strong_access_requester());
+		}
+
+	private:
+		mse::mstd::optional<TAsyncSharedV2ReadWriteAccessRequester<_Ty>> try_strong_access_requester_helper1(decltype(std::declval<base_class>().try_strong_access_requester())&& base_maybe_ar) const {
+			if (base_maybe_ar) {
+				return TAsyncSharedV2ReadWriteAccessRequester<_Ty>(std::forward<decltype(base_maybe_ar.value())>(base_maybe_ar.value()));
+			}
+			else {
+				return {};
+			}
+		}
+	};
 
 	template <typename _Ty>
 	class TAsyncSharedV2ReadOnlyAccessRequester : public TAsyncSharedV2XWPReadOnlyAccessRequester<mse::us::impl::TTaggedUniquePtr<_Ty> > {

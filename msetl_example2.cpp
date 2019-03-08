@@ -1378,6 +1378,28 @@ void msetl_example2() {
 			auto writelock_ptr3 = access_requester.try_writelock_ptr_until(std::chrono::steady_clock::now() + std::chrono::seconds(1));
 		}
 		{
+			/* TAsyncSharedV2WeakReadWriteAccessRequester<> is the weak counterpart to TAsyncSharedV2ReadWriteAccessRequester<>
+			analogous to how std::weak_ptr<> is the weak counterpart to std::shared_ptr<>. */
+
+			typedef decltype(mse::make_asyncsharedv2readwrite<mse::nii_string>("abc")) access_requester_t;
+			auto vec1 = mse::mstd::vector<access_requester_t>();
+			vec1.push_back(mse::make_asyncsharedv2readwrite<mse::nii_string>("abc"));
+
+			mse::TAsyncSharedV2WeakReadWriteAccessRequester<mse::nii_string> weak_ar1(vec1.at(0));
+
+			/* Here we're obtaining a (strong) access requester from the weak access requester, then appending it the
+			vector of access requesters. */
+			vec1.push_back(weak_ar1.try_strong_access_requester().value());
+
+			assert((*(vec1.at(1).readlock_ptr())) == "abc");
+
+			vec1.clear();
+
+			/* All the (strong) access requesters have just been destroyed so attempting to obtain a (strong) access requester
+			from our weak one will result in an empty optional being returned. */
+			assert(!(weak_ar1.try_strong_access_requester().has_value()));
+		}
+		{
 			/* For scenarios where the shared object is immutable (i.e. is never modified), you can get away without using locks
 			or access requesters. */
 			auto A_immptr = mse::make_asyncsharedv2immutable<ShareableA>(5);
