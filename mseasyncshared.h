@@ -2641,8 +2641,8 @@ namespace mse {
 	TXScopeAsyncACORASectionSplitter(mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
 	template<typename _Ty, class _TAccessMutex, typename _TList>
 	TXScopeAsyncACORASectionSplitter(mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template <typename _Ty, class _TAccessMutex>
-
 	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
 	template<typename _Ty, class _TAccessMutex, typename _TList>
 	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
@@ -2650,6 +2650,7 @@ namespace mse {
 	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
 	template<typename _Ty, class _TAccessMutex, typename _TList>
 	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #endif /* MSE_HAS_CXX17 */
 
 
