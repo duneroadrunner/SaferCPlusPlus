@@ -562,7 +562,7 @@ Same as `TRefCountingNotNullPointer<>`, but cannot be retargeted after construct
 
 ### Using registered pointers as weak pointers with reference counting pointers
 
-`TRefCountingPointer<>` does not have a specific associated weak pointer like `std::shared_ptr<>` does. But registered pointers can be thought of as sort of independent, universal weak pointers. Note that we're talking about targeting objects "in" the same thread. Sharing objects between threads is done through the library's [data types for asynchronous sharing](#asynchronously-shared-objects) (that don't yet support weak references). 
+`TRefCountingPointer<>` does not have a specific associated weak pointer like `std::shared_ptr<>` does. But registered pointers can be thought of as sort of independent, universal weak pointers. Note that we're talking about targeting objects "in" the same thread here. Sharing objects between threads is done through the library's [data types for asynchronous sharing](#asynchronously-shared-objects). 
 
 Generally you're going to want to obtain a "strong" pointer from the weak pointer, so rather than targeting the registered pointer directly at the object of interest, you'd target a/the strong owning pointer of the object.
 
