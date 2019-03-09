@@ -1393,6 +1393,8 @@ namespace mse {
 			return try_strong_access_requester_helper1(m_wkptr.lock());
 		}
 
+		void async_shareable_and_passable_tag() const {}
+
 	private:
 		mse::mstd::optional<TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>> try_strong_access_requester_helper1(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>&& shptr) const {
 			if (shptr) {
@@ -1405,6 +1407,12 @@ namespace mse {
 
 		std::weak_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_wkptr;
 	};
+
+#ifdef MSE_HAS_CXX17
+	/* deduction guide */
+	template<typename _TAccessLease>
+	TAsyncSharedV2XWPWeakReadWriteAccessRequester(TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>)->TAsyncSharedV2XWPWeakReadWriteAccessRequester<_TAccessLease>;
+#endif /* MSE_HAS_CXX17 */
 
 #ifdef MSESCOPE_H_
 	template<typename _Ty> using TXScopeAsyncSharedV2ReadWriteStore = TXScopeStrongNotNullPointerStore<TAsyncSharedV2ReadWritePointer<_Ty> >;
@@ -1824,6 +1832,8 @@ namespace mse {
 			return try_strong_access_requester_helper1(base_class::try_strong_access_requester());
 		}
 
+		void async_shareable_and_passable_tag() const {}
+
 	private:
 		mse::mstd::optional<TAsyncSharedV2ReadWriteAccessRequester<_Ty>> try_strong_access_requester_helper1(decltype(std::declval<base_class>().try_strong_access_requester())&& base_maybe_ar) const {
 			if (base_maybe_ar) {
@@ -1834,6 +1844,12 @@ namespace mse {
 			}
 		}
 	};
+
+#ifdef MSE_HAS_CXX17
+	/* deduction guide */
+	template<typename _TAccessLease>
+	TAsyncSharedV2WeakReadWriteAccessRequester(TAsyncSharedV2ReadWriteAccessRequester<_TAccessLease>)->TAsyncSharedV2WeakReadWriteAccessRequester<_TAccessLease>;
+#endif /* MSE_HAS_CXX17 */
 
 	template <typename _Ty>
 	class TAsyncSharedV2ReadOnlyAccessRequester : public TAsyncSharedV2XWPReadOnlyAccessRequester<mse::us::impl::TTaggedUniquePtr<_Ty> > {
@@ -2478,6 +2494,12 @@ namespace mse {
 		std::unordered_map<size_t, xscope_ras_ar_t> m_ra_section_ar_map;
 	};
 
+#ifdef MSE_HAS_CXX17
+	/* deduction guide */
+	template <typename _TExclusiveWritelockPtr>
+	TXScopeAsyncRASectionSplitterXWP(_TExclusiveWritelockPtr)->TXScopeAsyncRASectionSplitterXWP<_TExclusiveWritelockPtr>;
+#endif /* MSE_HAS_CXX17 */
+
 	template <typename _TExclusiveWritelockPtr>
 	class TAsyncRASectionSplitterXWP {
 	public:
@@ -2538,6 +2560,12 @@ namespace mse {
 		std::vector<ras_ar_t> m_ra_sections;
 	};
 
+#ifdef MSE_HAS_CXX17
+	/* deduction guide */
+	template <typename _TExclusiveWritelockPtr>
+	TAsyncRASectionSplitterXWP(_TExclusiveWritelockPtr)->TAsyncRASectionSplitterXWP<_TExclusiveWritelockPtr>;
+#endif /* MSE_HAS_CXX17 */
+
 	template <typename _TAccessRequester>
 	class TXScopeAsyncRASectionSplitter : public TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_pointer())> {
 	public:
@@ -2553,6 +2581,14 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
+#ifdef MSE_HAS_CXX17
+	/* deduction guide */
+	template<typename _TAccessRequester, typename _TList>
+	TXScopeAsyncRASectionSplitter(_TAccessRequester, _TList)->TXScopeAsyncRASectionSplitter<_TAccessRequester>;
+	template<typename _TAccessRequester>
+	TXScopeAsyncRASectionSplitter(_TAccessRequester, size_t)->TXScopeAsyncRASectionSplitter<_TAccessRequester>;
+#endif /* MSE_HAS_CXX17 */
+
 	template <typename _TAccessRequester>
 	class TAsyncRASectionSplitter : public TAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_pointer())> {
 	public:
@@ -2566,6 +2602,14 @@ namespace mse {
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
+
+#ifdef MSE_HAS_CXX17
+	/* deduction guide */
+	template<typename _TAccessRequester, typename _TList>
+	TAsyncRASectionSplitter(_TAccessRequester, _TList)->TAsyncRASectionSplitter<_TAccessRequester>;
+	template<typename _TAccessRequester>
+	TAsyncRASectionSplitter(_TAccessRequester, size_t)->TAsyncRASectionSplitter<_TAccessRequester>;
+#endif /* MSE_HAS_CXX17 */
 
 	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	class TXScopeAsyncACORASectionSplitter : public TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
@@ -2586,6 +2630,27 @@ namespace mse {
 		TXScopeAsyncACORASectionSplitter & operator=(const TXScopeAsyncACORASectionSplitter& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
+
+#ifdef MSE_HAS_CXX17
+	/* deduction guide */
+	template <typename _Ty, class _TAccessMutex>
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+	template<typename _Ty, class _TAccessMutex, typename _TList>
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+	template <typename _Ty, class _TAccessMutex>
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+	template<typename _Ty, class _TAccessMutex, typename _TList>
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+	template <typename _Ty, class _TAccessMutex>
+
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+	template<typename _Ty, class _TAccessMutex, typename _TList>
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+	template <typename _Ty, class _TAccessMutex>
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+	template<typename _Ty, class _TAccessMutex, typename _TList>
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+#endif /* MSE_HAS_CXX17 */
 
 
 	namespace mstd {
