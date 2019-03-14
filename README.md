@@ -2889,7 +2889,7 @@ usage example:
 
 ### make_xscope_vector_size_change_lock_guard()
 
-The `make_xscope_vector_size_change_lock_guard()` function is used, indirectly, to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the `make_xscope_vector_size_change_lock_guard()` function to create an `xscope_structure_change_lock_guard` object. You can obtain scope pointers to elements in the corresponding vector via its `xscope_ptr_to_element()` member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. All the library's vectors (`mstd::vector<>`, `nii_vector<>`, `ivector<>` and `us::msevector<>`) can be locked, though with `nii_vector<>`s the supplied pointer must be non-const.
+The `make_xscope_vector_size_change_lock_guard()` function is used, indirectly, to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the `make_xscope_vector_size_change_lock_guard()` function to create an `xscope_structure_change_lock_guard` object. You can obtain scope pointers to elements in the corresponding vector via its `xscope_ptr_to_element()` member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. All the library's vectors (`mstd::vector<>`, `nii_vector<>`, `ivector<>` and `us::msevector<>`) can be locked, though when locking `nii_vector<>`s via scope pointers, the supplied pointer must be non-const.
 
 usage example:
 
@@ -2911,6 +2911,112 @@ usage example:
         }
         // the vector is no longer "size change locked"
         vector1_scpobj.push_back(4);
+    }
+```
+
+The reason you can't lock an `nii_vector<>` via a scope const pointer, is that locking a vector via scope pointer is an operation that actually modifies the vector, and since `nii_vector<>`s can be shared among threads, it would not be safe to modify it when simultaneous reads could be occurring. There are a couple of ways to work around this restriction. First, if you make the `nii_vector<>` an "[exclusive writer object](#exclusive-writer-objects)", then you can lock the `nii_vector<>` via an "exclusive writer" const pointer (an operation which doesn't require modifying the vector), like so:
+
+```cpp
+    #include "msescope.h"
+    #include "msemsevector.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        /* Unfortunately, you cannot obtain a direct scope const pointer to an nii_vector<> element from a scope const
+        pointer to the nii_vector<>. (nii_vector<> is the only one of the library's vectors that has this shortcoming.)
+        However, for vectors that are access controlled with an "exclusive writer" access policy, you can use an
+        "exclusive writer" const pointer to obtain a direct scope const pointer to a vector element. */
+    
+        mse::TXScopeObj<mse::TExclusiveWriterObj<mse::nii_vector<int> > > vector2_ewxsobj = mse::nii_vector<int>{ 1, 2, 3 };
+        {
+            auto xxscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(vector2_ewxsobj.const_pointer());
+            auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+            auto res4 = *xscp_ptr1;
+        }
+        vector2_ewxsobj.pointer()->push_back(4);
+    }
+```
+
+If you're not sharing the vector among threads, you can instead use
+
+### stnii_vector
+
+`stnii_vector<>` is simply a version of `nii_vector<>` that supports being locked via scope const pointer, but is not eligible to be shared among threads. The reason you might use `stnii_vector<>` instead of `mstd::vector<>` is that `stnii_vector<>` has less overhead.
+
+usage example:
+```cpp
+    #include "msescope.h"
+    #include "msemsevector.h"
+    #include "msemstdvector.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        /* stnii_vector<> is just a version of nii_vector<> that is not eligible to be shared between threads. */
+
+        mse::TXScopeObj<mse::stnii_vector<int> > vector1_xscpobj = mse::stnii_vector<int>{ 1, 2, 3 };
+
+        {
+            /* The only advantage stnii_vector<> has over nii_vector<> is that you can obtain (const) scope
+            pointers to its elements from a const scope pointer to vector (whereas with nii_vector<> the pointer
+            must be non-const). */
+            mse::TXScopeItemFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
+            auto xxscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(xscptr);
+            auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+            auto res4 = *xscp_ptr1;
+        }
+        vector1_xscpobj.push_back(4);
+
+        /* And of course stnii_vector<>s can be (efficiently) swapped with nii_vector<>s. */
+        auto niiv1 = mse::nii_vector<int>();
+        std::swap(vector1_xscpobj, niiv1);
+        /* Or mstd::vector<>s. */
+        auto mstdv1 = mse::mstd::vector<int>();
+        std::swap(vector1_xscpobj, mstdv1);
+    }
+```
+
+### mtnii_vector
+
+Like `stnii_vector<>`, `mtnii_vector<>` is a version of `nii_vector<>` that supports being locked via scope const pointer, but unlike `stnii_vector<>`, `mtnii_vector<>` is eligible to be shared among threads. To safely accomplish this, `mtnii_vector<>` has a thread safe / atomic locking mechanism that adds a little bit of overhead to operations that modify the size or capacity of the vector.
+
+usage example:
+```cpp
+    #include "msescope.h"
+    #include "msemsestring.h"
+    #include "msemsevector.h"
+    #include "msemstdvector.h"
+    #include "mseasyncshared.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        /* mtnii_vector<> is just a version of nii_vector<> that supports obtaining scope pointers to its elements from
+        const scope pointers to the vector. Unlike stnii_vector<>, mtnii_vector<> is eligible to be shared among threads.
+        This requires a (partially) thread safe mutex that adds a little bit of overhead to operations that modify the
+        size/structure of the vector. */
+
+        typedef mse::mtnii_vector<mse::nii_string> mtnii_vector1_t;
+        auto access_requester1 = mse::make_asyncsharedv2readwrite<mtnii_vector1_t>(mtnii_vector1_t{ "abc", "def" });
+
+        {
+            /* Here we're obtaining a scope const pointer to the vector from a readlock pointer to the vector. */
+            auto xs_strong_pointer_store = mse::make_xscope_strong_pointer_store(access_requester1.readlock_ptr());
+            auto vector_xscope_const_ptr = xs_strong_pointer_store.xscope_ptr();
+
+            /* The only advantage mtnii_vector<> has over nii_vector<> is that you can obtain (const) scope
+            pointers to its elements from a const scope pointer to vector (whereas with nii_vector<> the pointer
+            must be non-const). */
+            auto xs_size_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(vector_xscope_const_ptr);
+            auto element1_xscope_const_ptr = xs_size_change_lock_guard.xscope_ptr_to_element(1);
+
+            assert((*element1_xscope_const_ptr) == "def");
+        }
+
+        /* And of course stnii_vector<>s can be (efficiently) swapped with nii_vector<>s. */
+        auto niiv1 = mse::nii_vector<mse::nii_string>();
+        std::swap(*(access_requester1.writelock_ptr()), niiv1);
+        /* Or mstd::vector<>s. */
+        auto mstdv1 = mse::mstd::vector<mse::nii_string>();
+        std::swap(*(access_requester1.writelock_ptr()), mstdv1);
     }
 ```
 
