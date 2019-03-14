@@ -724,7 +724,7 @@ namespace mse {
 			/* The following xscope_structure_change_lock_guard constructed from a const reference is only safe because
 			mtnii_vector<> is not eligible to be shared between threads. */
 			template<class _Ty, class _A, class _TStateMutex>
-			using xscope_structure_change_lock_guard = mse::us::impl::ns_gnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>;
+			using xscope_structure_change_lock_guard = mse::us::impl::ns_gnii_vector::xscope_const_structure_change_lock_guard<_Ty, _A, _TStateMutex>;
 		}
 	}
 

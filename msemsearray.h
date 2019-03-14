@@ -6024,9 +6024,13 @@ namespace mse {
 #endif // MSE_HAS_CXX17
 			|| (std::is_same<_Ty, std::timed_mutex>::value) || (std::is_same<_Ty, std::shared_timed_mutex>::value)> {};
 
-		template <typename _Ty> struct is_supported_aco_mutex_msemsearray : std::integral_constant<bool, (is_thread_safety_enforcing_mutex_msemsearray<_Ty>::value)
-			|| (std::is_same<_Ty, mse::non_thread_safe_recursive_shared_timed_mutex>::value) || (std::is_same<_Ty, mse::non_thread_safe_shared_mutex>::value)
-			|| (std::is_same<_Ty, mse::non_thread_safe_mutex>::value)> {};
+		template <typename _Ty> struct is_exclusive_writer_enforcing_mutex_msemsearray : std::integral_constant<bool, (is_thread_safety_enforcing_mutex_msemsearray<_Ty>::value)
+			|| (std::is_same<_Ty, mse::non_thread_safe_shared_mutex>::value) || (std::is_same<_Ty, mse::non_thread_safe_mutex>::value)> {};
+		template<class _Ty, class = typename std::enable_if<(is_exclusive_writer_enforcing_mutex_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray() {}
+
+		template <typename _Ty> struct is_supported_aco_mutex_msemsearray : std::integral_constant<bool, (is_exclusive_writer_enforcing_mutex_msemsearray<_Ty>::value)
+			|| (std::is_same<_Ty, mse::non_thread_safe_recursive_shared_timed_mutex>::value)> {};
 	}
 
 	class recursive_shared_timed_mutex;
@@ -6070,7 +6074,7 @@ namespace mse {
 	namespace us {
 		namespace impl {
 			template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-			class TAccessControlledPointerBase {
+			class TAccessControlledPointerBase : public mse::us::impl::StrongPointerTagBase {
 			public:
 				TAccessControlledPointerBase(const TAccessControlledPointerBase& src) : m_obj_ptr(src.m_obj_ptr), m_mutex_ptr(src.m_mutex_ptr), m_write_lock(*(src.m_mutex_ptr)) {}
 				TAccessControlledPointerBase(TAccessControlledPointerBase&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
@@ -6211,7 +6215,7 @@ namespace mse {
 	namespace us {
 		namespace impl {
 			template<typename _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
-			class TAccessControlledConstPointerBase {
+			class TAccessControlledConstPointerBase : public mse::us::impl::StrongPointerTagBase {
 			public:
 				TAccessControlledConstPointerBase(const TAccessControlledConstPointerBase& src) : m_obj_ptr(src.m_obj_ptr), m_mutex_ptr(src.m_mutex_ptr), m_read_lock(*(src.m_mutex_ptr)) {}
 				TAccessControlledConstPointerBase(TAccessControlledConstPointerBase&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
@@ -6255,7 +6259,7 @@ namespace mse {
 
 				template<class _TAccessMutex2 = _TAccessMutex, class = typename std::enable_if<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
 					&& (mse::impl::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value), void>::type>
-					void valid_if_TAccessMutex_is_supported() const {}
+				void valid_if_TAccessMutex_is_supported() const {}
 
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
@@ -6965,9 +6969,9 @@ namespace mse {
 	template<typename _TExclusiveStrongPointer, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	using TXScopeExclusiveStrongPointerStoreForAccessControlFParam = TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex>;
 
-	template<typename _Ty> class TXScopeExclusiveStrongPointerStoreForSharing;
+	template<typename _TExclusiveStrongPointer> class TXScopeExclusiveStrongPointerStoreForSharing;
 
-	template<typename _Ty> class TXScopeExclusiveWriterObjPointerStoreForSharing;
+	template<typename _Ty, class _TAccessMutex/* = non_thread_safe_shared_mutex*/> class TXScopeExclusiveWriterObjPointerStoreForSharing;
 
 	template<typename _Ty>
 	class TXScopePassablePointer : public mse::us::impl::XScopeTagBase, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongExclusivePointerTagBase {
@@ -7000,11 +7004,11 @@ namespace mse {
 
 		_Ty* m_obj_ptr = nullptr;
 
-		friend class TXScopeExclusiveWriterObjPointerStoreForSharing<_Ty>;
+		template<typename _Ty2, class _TAccessMutex2> friend class TXScopeExclusiveWriterObjPointerStoreForSharing;
 		template<typename _Ty2> friend class TXScopeExclusiveStrongPointerStoreForSharing;
 	};
 
-	template<typename _Ty> class TXScopeExclusiveWriterObjConstPointerStoreForSharing;
+	template<typename _Ty, class _TAccessMutex> class TXScopeExclusiveWriterObjConstPointerStoreForSharing;
 
 	template<typename _Ty>
 	class TXScopePassableConstPointer : public mse::us::impl::XScopeTagBase, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
@@ -7037,7 +7041,7 @@ namespace mse {
 
 		const _Ty* m_obj_ptr = nullptr;
 
-		friend class TXScopeExclusiveWriterObjConstPointerStoreForSharing<_Ty>;
+		template<typename _Ty2, class _TAccessMutex2> friend class TXScopeExclusiveWriterObjConstPointerStoreForSharing;
 		template<typename _Ty2> friend class TXScopeExclusiveStrongPointerStoreForSharing;
 	};
 
@@ -7164,11 +7168,15 @@ namespace mse {
 
 	/* TExclusiveWriterObj<> is a specialization of TAccessControlledObj<> for which all non-const pointers are
 	exclusive. That is, when a non-const pointer exists, no other pointer may exist. */
-	template<class _Ty>
-	class TExclusiveWriterObj : public TAccessControlledObj<_Ty, non_thread_safe_shared_mutex> {
+	template<class _Ty, class _TAccessMutex = non_thread_safe_shared_mutex>
+	class TExclusiveWriterObj : public TAccessControlledObj<_Ty, _TAccessMutex> {
 	public:
-		typedef TAccessControlledObj<_Ty, non_thread_safe_shared_mutex> base_class;
+		typedef TAccessControlledObj<_Ty, _TAccessMutex> base_class;
 		MSE_USING(TExclusiveWriterObj, base_class);
+
+		virtual ~TExclusiveWriterObj() {
+			mse::impl::T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>();
+		}
 
 		auto pointer() {
 			return base_class::exclusive_pointer();
@@ -7186,49 +7194,51 @@ namespace mse {
 		}
 	};
 
-	template<typename _Ty> using TExclusiveWriterObjPointer = TAccessControlledExclusivePointer<_Ty, non_thread_safe_shared_mutex>;
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_shared_mutex, class = typename std::enable_if<(mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value), void>::type>
+	using TExclusiveWriterObjPointer = TAccessControlledExclusivePointer<_Ty, _TAccessMutex>;
 
-	template<typename _Ty>
-	class TXScopeExclusiveWriterObjPointerStoreForSharing : public TXScopeExclusiveStrongPointerStoreForSharing<decltype(std::declval<TExclusiveWriterObj<_Ty> >().pointer())> {
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_shared_mutex>
+	class TXScopeExclusiveWriterObjPointerStoreForSharing : public TXScopeExclusiveStrongPointerStoreForSharing<decltype(std::declval<TExclusiveWriterObj<_Ty, _TAccessMutex> >().pointer())> {
 	public:
-		MSE_USING(TXScopeExclusiveWriterObjPointerStoreForSharing, TXScopeExclusiveStrongPointerStoreForSharing<decltype(std::declval<TExclusiveWriterObj<_Ty> >().pointer())>);
+		MSE_USING(TXScopeExclusiveWriterObjPointerStoreForSharing, TXScopeExclusiveStrongPointerStoreForSharing<decltype(std::declval<TExclusiveWriterObj<_Ty, _TAccessMutex> >().pointer())>);
 	};
 
 	/* TXScopeExclusiveWriterObjPointerStoreForSharing<> is a data type that stores a (non-const, exclusive) pointer
 	of a TExclusiveWriterObj<>. From this data type you can obtain a "scope shareable pointer" which can be
 	safely passed to a scope thread. */
-	template<typename _Ty>
-	TXScopeExclusiveWriterObjPointerStoreForSharing<_Ty> make_xscope_exclusive_writer_obj_pointer_store_for_sharing(TExclusiveWriterObjPointer<_Ty>&& stored_ptr) {
-		return TXScopeExclusiveWriterObjPointerStoreForSharing<_Ty>(std::forward<decltype(stored_ptr)>(stored_ptr));
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_shared_mutex>
+	TXScopeExclusiveWriterObjPointerStoreForSharing<_Ty, _TAccessMutex> make_xscope_exclusive_writer_obj_pointer_store_for_sharing(TExclusiveWriterObjPointer<_Ty, _TAccessMutex>&& stored_ptr) {
+		return TXScopeExclusiveWriterObjPointerStoreForSharing<_Ty, _TAccessMutex>(std::forward<decltype(stored_ptr)>(stored_ptr));
 	}
 	/* deprecated mis-spelling */
-	template<typename _Ty>
-	auto make_xscope_exclusive_write_obj_pointer_store(TExclusiveWriterObjPointer<_Ty>&& stored_ptr) {
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_shared_mutex>
+	auto make_xscope_exclusive_write_obj_pointer_store(TExclusiveWriterObjPointer<_Ty, _TAccessMutex>&& stored_ptr) {
 		return make_xscope_exclusive_writer_obj_pointer_store_for_sharing(std::forward<decltype(stored_ptr)>(stored_ptr));
 	}
 
 	/* This class is just a version of the TXScopeExclusiveWriterObjPointerStoreForSharing<> class for use as a function parameter type. */
-	template<typename _TExclusiveWriterObjPointer>
-	class TXScopeExclusiveWriterObjPointerStoreForSharingFParam : public TXScopeExclusiveWriterObjPointerStoreForSharing<_TExclusiveWriterObjPointer> {
-		typedef TXScopeExclusiveWriterObjPointerStoreForSharing<_TExclusiveWriterObjPointer> base_class;
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_shared_mutex>
+	class TXScopeExclusiveWriterObjPointerStoreForSharingFParam : public TXScopeExclusiveWriterObjPointerStoreForSharing<_Ty, _TAccessMutex> {
+		typedef TXScopeExclusiveWriterObjPointerStoreForSharing<_Ty, _TAccessMutex> base_class;
 
 		TXScopeExclusiveWriterObjPointerStoreForSharingFParam(const TXScopeExclusiveWriterObjPointerStoreForSharingFParam&) = delete;
 		TXScopeExclusiveWriterObjPointerStoreForSharingFParam(TXScopeExclusiveWriterObjPointerStoreForSharingFParam&&) = delete;
 		MSE_USING(TXScopeExclusiveWriterObjPointerStoreForSharingFParam, base_class);
 	};
 
-	template<typename _Ty> using TExclusiveWriterObjConstPointer = TAccessControlledConstPointer<_Ty, non_thread_safe_shared_mutex>;
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_shared_mutex, class = typename std::enable_if<(mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value), void>::type>
+	using TExclusiveWriterObjConstPointer = TAccessControlledConstPointer<_Ty, _TAccessMutex>;
 
 	/* TXScopeExclusiveWriterObjConstPointerStoreForSharing<> is a data type that stores a const pointer
 	of a TExclusiveWriterObj<>. From this data type you can obtain a "scope shareable const pointer" which can be
 	safely passed to a scope thread. */
-	template<typename _Ty>
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_shared_mutex>
 	class TXScopeExclusiveWriterObjConstPointerStoreForSharing : public mse::us::impl::XScopeTagBase, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
 	public:
 		TXScopeExclusiveWriterObjConstPointerStoreForSharing(const TXScopeExclusiveWriterObjConstPointerStoreForSharing&) = delete;
 		TXScopeExclusiveWriterObjConstPointerStoreForSharing(TXScopeExclusiveWriterObjConstPointerStoreForSharing&&) = default;
 
-		TXScopeExclusiveWriterObjConstPointerStoreForSharing(const TExclusiveWriterObjConstPointer<_Ty>& pointer) : m_xwo_pointer(std::forward<decltype(pointer)>(pointer)) {}
+		TXScopeExclusiveWriterObjConstPointerStoreForSharing(const TExclusiveWriterObjConstPointer<_Ty, _TAccessMutex>& pointer) : m_xwo_pointer(std::forward<decltype(pointer)>(pointer)) {}
 
 		auto xscope_passable_const_pointer() const & {
 			return TXScopePassableConstPointer<_Ty>(*m_xwo_pointer);
@@ -7242,18 +7252,18 @@ namespace mse {
 		void xscope_passable_pointer() const && = delete;
 
 	private:
-		TExclusiveWriterObjConstPointer<_Ty> m_xwo_pointer;
+		TExclusiveWriterObjConstPointer<_Ty, _TAccessMutex> m_xwo_pointer;
 	};
 
-	template<typename _Ty>
-	TXScopeExclusiveWriterObjConstPointerStoreForSharing<_Ty> make_xscope_exclusive_write_obj_const_pointer_store_for_sharing(const TExclusiveWriterObjConstPointer<_Ty>& stored_ptr) {
-		return TXScopeExclusiveWriterObjConstPointerStoreForSharing<_Ty>(stored_ptr);
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_shared_mutex>
+	TXScopeExclusiveWriterObjConstPointerStoreForSharing<_Ty, _TAccessMutex> make_xscope_exclusive_write_obj_const_pointer_store_for_sharing(const TExclusiveWriterObjConstPointer<_Ty, _TAccessMutex>& stored_ptr) {
+		return TXScopeExclusiveWriterObjConstPointerStoreForSharing<_Ty, _TAccessMutex>(stored_ptr);
 	}
 
 	/* This class is just a version of the TXScopeExclusiveWriterObjConstPointerStoreForSharing<> class for use as a function parameter type. */
-	template<typename _TExclusiveWriterObjConstPointer>
-	class TXScopeExclusiveWriterObjConstPointerStoreForSharingFParam : public TXScopeExclusiveWriterObjConstPointerStoreForSharing<_TExclusiveWriterObjConstPointer> {
-		typedef TXScopeExclusiveWriterObjConstPointerStoreForSharing<_TExclusiveWriterObjConstPointer> base_class;
+	template<typename _Ty, class _TAccessMutex = non_thread_safe_shared_mutex>
+	class TXScopeExclusiveWriterObjConstPointerStoreForSharingFParam : public TXScopeExclusiveWriterObjConstPointerStoreForSharing<_Ty, _TAccessMutex> {
+		typedef TXScopeExclusiveWriterObjConstPointerStoreForSharing<_Ty, _TAccessMutex> base_class;
 
 		TXScopeExclusiveWriterObjConstPointerStoreForSharingFParam(const TXScopeExclusiveWriterObjConstPointerStoreForSharingFParam&) = delete;
 		TXScopeExclusiveWriterObjConstPointerStoreForSharingFParam(TXScopeExclusiveWriterObjConstPointerStoreForSharingFParam&&) = delete;
@@ -7262,12 +7272,12 @@ namespace mse {
 
 	/* TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<> is a data type that stores an exclusive strong pointer. From this data type you
 	can obtain const and non-const pointers that ensure conformance to the "exclusive writer" policy. */
-	template<typename _TExclusiveStrongPointer>
-	using TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess = TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, non_thread_safe_shared_mutex>;
+	template<typename _TExclusiveStrongPointer, class _TAccessMutex = non_thread_safe_shared_mutex, class = typename std::enable_if<(mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value), void>::type>
+	using TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess = TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex>;
 
-	template<typename _TExclusiveStrongPointer>
+	template<typename _TExclusiveStrongPointer, class _TAccessMutex = non_thread_safe_shared_mutex>
 	TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<_TExclusiveStrongPointer> make_xscope_exclusive_strong_pointer_store_for_exclusive_writer_access(_TExclusiveStrongPointer&& stored_ptr) {
-		return TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<_TExclusiveStrongPointer>(std::forward<decltype(stored_ptr)>(stored_ptr));
+		return TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<_TExclusiveStrongPointer, _TAccessMutex>(std::forward<decltype(stored_ptr)>(stored_ptr));
 	}
 
 	/* This is just an alias of the TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<> class for use as a function parameter type. */

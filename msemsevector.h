@@ -797,7 +797,7 @@ namespace mse {
 		namespace impl {
 			namespace ns_gnii_vector {
 				template<class _Ty, class _A, class _TStateMutex>
-				class xscope_structure_change_lock_guard;
+				class xscope_const_structure_change_lock_guard;
 			}
 
 			/* mse::us::impl::gnii_vector<> is essentially a memory-safe vector that does not expose (unprotected) non-static member functions
@@ -1715,7 +1715,7 @@ namespace mse {
 				//friend class us::msevector<_Ty, _A>;
 				template<class _Ty2, class _A2, class _TStateMutex2> friend class us::msevector;
 				friend class mse::impl::ns_gnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>;
-				friend class mse::us::impl::ns_gnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>;
+				friend class mse::us::impl::ns_gnii_vector::xscope_const_structure_change_lock_guard<_Ty, _A, _TStateMutex>;
 
 				friend void swap(_Myt& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
 				friend void swap(_Myt& a, _MV& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
@@ -1762,11 +1762,11 @@ namespace mse {
 				be shared between threads (like stnii_vector<> does), or ensuring that m_structure_change_mutex is thread safe
 				(like mtnii_vector<> does). */
 				template<class _Ty, class _A, class _TStateMutex>
-				class xscope_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
+				class xscope_const_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
 				public:
-					xscope_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<gnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
+					xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<gnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-					xscope_structure_change_lock_guard(const mse::TXScopeItemFixedConstPointer<gnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
+					xscope_const_structure_change_lock_guard(const mse::TXScopeItemFixedConstPointer<gnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 					auto xscope_ptr_to_element(typename gnii_vector<_Ty, _A, _TStateMutex>::size_type _P) const {
@@ -1810,6 +1810,35 @@ namespace mse {
 				mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > m_stored_ptr;
 				std::shared_lock<_TStateMutex> m_shared_lock;
 			};
+
+			/* For objects that are access controlled under an "exclusive writer" access policy, the object is immutable
+			while a const pointer to the object exists. So given an "exclusive writer" const pointer to a vector, it is
+			safe to store the pointer provide a direct scope const pointer to any of its elements. */
+			template<class _Ty, class _A, class _TStateMutex, class _TAccessMutex = mse::non_thread_safe_shared_mutex>
+			class xscope_ewconst_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
+			public:
+				typedef mse::TAccessControlledConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>, _TAccessMutex> exclusive_writer_const_pointer_t;
+
+				xscope_ewconst_structure_change_lock_guard(const exclusive_writer_const_pointer_t& owner_ptr)
+					: m_stored_ptr(owner_ptr) {}
+				xscope_ewconst_structure_change_lock_guard(exclusive_writer_const_pointer_t&& owner_ptr)
+					: m_stored_ptr(std::forward<decltype(owner_ptr)>(owner_ptr)) {}
+
+				virtual ~xscope_ewconst_structure_change_lock_guard() {
+					mse::impl::T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>();
+				}
+
+				auto xscope_ptr_to_element(typename mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>::size_type _P) const {
+					return mse::us::unsafe_make_xscope_const_pointer_to((*m_stored_ptr)[_P]);
+				}
+				auto target_container_ptr() const {
+					return m_stored_ptr;
+				}
+				void async_not_shareable_and_not_passable_tag() const {}
+
+			private:
+				exclusive_writer_const_pointer_t m_stored_ptr;
+			};
 		}
 	}
 
@@ -1828,6 +1857,14 @@ namespace mse {
 		return mse::impl::ns_gnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	/* For objects that are access controlled under an "exclusive writer" access policy, the object is immutable
+	while a const pointer to the object exists. So given an "exclusive writer" const pointer to a vector, it is
+	safe to store the pointer provide a direct scope const pointer to any of its elements. */
+	template<class _Ty, class _A, class _TStateMutex, class _TAccessMutex = mse::non_thread_safe_shared_mutex>
+	auto make_xscope_vector_size_change_lock_guard(const mse::TAccessControlledConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>, _TAccessMutex>& owner_ptr) {
+		return mse::impl::ns_gnii_vector::xscope_ewconst_structure_change_lock_guard<_Ty, _A, _TStateMutex, _TAccessMutex>(owner_ptr);
+	}
 
 	namespace impl {
 
@@ -1958,7 +1995,7 @@ namespace mse {
 			/* The following xscope_structure_change_lock_guard constructed from a const reference is only safe because
 			stnii_vector<> is not eligible to be shared between threads. */
 			template<class _Ty, class _A, class _TStateMutex>
-			using xscope_structure_change_lock_guard = mse::us::impl::ns_gnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>;
+			using xscope_structure_change_lock_guard = mse::us::impl::ns_gnii_vector::xscope_const_structure_change_lock_guard<_Ty, _A, _TStateMutex>;
 		}
 	}
 

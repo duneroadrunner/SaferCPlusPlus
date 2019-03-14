@@ -304,6 +304,19 @@ void msetl_example2() {
 			}
 			vector1_xscpobj.push_back(4);
 		}
+		{
+			/* Unfortunately, you cannot obtain a direct scope const pointer to an nii_vector<> element from a scope const
+			pointer to the nii_vector<>. (nii_vector<> is the only one of the library's vectors that has this shortcoming.)
+			However, for vectors that are access controlled with an "exclusive writer" access policy, you can use an
+			"exclusive writer" const pointer to obtain a direct scope const pointer to a vector element. */
+			mse::TXScopeObj<mse::TExclusiveWriterObj<mse::nii_vector<int> > > vector2_ewxsobj = mse::nii_vector<int>{ 1, 2, 3 };
+			{
+				auto xxscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(vector2_ewxsobj.const_pointer());
+				auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+				auto res4 = *xscp_ptr1;
+			}
+			vector2_ewxsobj.pointer()->push_back(4);
+		}
 	}
 
 	{
@@ -1929,6 +1942,7 @@ void msetl_example2() {
 			int q = 5;
 		}
 	}
+
 }
 
 
