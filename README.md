@@ -112,6 +112,8 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     3. [msevector](#msevector)
     4. [ivector](#ivector)
     5. [make_xscope_vector_size_change_lock_guard()](#make_xscope_vector_size_change_lock_guard)
+        1. [stnii_vector](#stnii_vector)
+        2. [mtnii_vector](#mtnii_vector)
 18. [Arrays](#arrays)
     1. [mstd::array](#array)
     2. [nii_array](#nii_array)
