@@ -683,6 +683,81 @@ namespace mse {
 	typedef recursive_shared_timed_mutex async_shared_timed_mutex_type;
 
 
+	/* nii_vector<> qualifies as safely shareable, but its corresponding make_xscope_vector_size_change_lock_guard() function
+	only supports non-const reference arguments. So we provide mtnii_vector<> whose corresponding
+	make_xscope_vector_size_change_lock_guard() function does support const reference arguments. But in order to achieve this
+	while maintaining thread safety (and maximal performance), it needs a partially thread safe shared mutex. */
+	typedef T_shared_mutex<bool, std::atomic<size_t> > mtnii_vector_shared_mutex;
+
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::mtnii_vector_shared_mutex>
+	class mtnii_vector : public mse::us::impl::gnii_vector<_Ty, _A, mse::mtnii_vector_shared_mutex> {
+	public:
+		typedef mse::us::impl::gnii_vector<_Ty, _A, mse::mtnii_vector_shared_mutex> base_class;
+
+		typedef typename base_class::allocator_type allocator_type;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		typedef typename base_class::pointer pointer;
+		typedef typename base_class::const_pointer const_pointer;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+
+		typedef typename base_class::iterator iterator;
+		typedef typename base_class::const_iterator const_iterator;
+
+		typedef typename base_class::reverse_iterator reverse_iterator;
+		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
+
+		MSE_USING(mtnii_vector, base_class);
+
+		mtnii_vector(_XSTD initializer_list<value_type> _Ilist, const _A& _Al = _A()) : base_class(_Ilist, _Al) {}
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+	};
+
+	namespace impl {
+		namespace ns_mtnii_vector {
+			/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+			individual elements in the vector do not become invalid by preventing any operation that might resize the vector
+			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
+			/* The following xscope_structure_change_lock_guard constructed from a const reference is only safe because
+			mtnii_vector<> is not eligible to be shared between threads. */
+			template<class _Ty, class _A, class _TStateMutex>
+			using xscope_structure_change_lock_guard = mse::us::impl::ns_gnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>;
+		}
+	}
+
+	/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+	individual elements in the vector do not become invalid by preventing any operation that might resize the vector
+	or increase its capacity. Any attempt to execute such an operation would result in an exception. */
+	/* The returned xscope_structure_change_lock_guard constructed from a const reference is only safe because
+	mtnii_vector<> is not eligible to be shared between threads. */
+	template<class _Ty, class _A, class _TStateMutex>
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedConstPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+		//return typename mtnii_vector<_Ty, _A, _TStateMutex>::xscope_structure_change_lock_guard(owner_ptr);
+		return mse::impl::ns_mtnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, class _A, class _TStateMutex>
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedConstPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+		//return typename mtnii_vector<_Ty, _A, _TStateMutex>::xscope_structure_change_lock_guard(owner_ptr);
+		return mse::impl::ns_mtnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	template<class _Ty, class _A, class _TStateMutex>
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+		return mse::impl::ns_gnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, class _A, class _TStateMutex>
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+		return mse::impl::ns_gnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+
 	namespace us {
 		namespace impl {
 			template<typename _TAccessLease> class TAsyncSharedV2XWPReadWriteAccessRequesterBase;
@@ -2665,8 +2740,8 @@ namespace mse {
 
 			template<class _Fn, class... _Args, class = typename std::enable_if<!std::is_same<typename std::decay<_Fn>::type, thread>::value>::type>
 			explicit thread(_Fn&& _Fx, _Args&&... _Ax) : base_class(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {
-				s_valid_if_passable(std::forward<_Args>(_Ax)...); // ensure that the function arguments are of a safely passable type
-				s_valid_if_passable(std::forward<decltype(_Fx)>(_Fx));
+				s_valid_if_passable(_Ax...); // ensure that the function arguments are of a safely passable type
+				s_valid_if_passable(_Fx);
 			}
 
 			thread(thread&& _Other) _NOEXCEPT : base_class(std::forward<base_class>(_Other)) {}
@@ -2682,7 +2757,7 @@ namespace mse {
 			template<class _Ty, class... _Args>
 			static void s_valid_if_passable(const _Ty& arg1, _Args&&... _Ax) {
 				mse::impl::async_passable(arg1);
-				s_valid_if_passable(std::forward<_Args>(_Ax)...);
+				s_valid_if_passable(_Ax...);
 			}
 			static void s_valid_if_passable() {}
 		};
@@ -2692,17 +2767,17 @@ namespace mse {
 		template<class _Fty, class... _ArgTypes>
 		inline auto async(std::launch _Policy, _Fty&& _Fnarg, _ArgTypes&&... _Args) {
 			// ensure that the function arguments are of a safely passable type
-			thread::s_valid_if_passable(std::forward<_ArgTypes>(_Args)...);
+			thread::s_valid_if_passable(_Args...);
 			// ensure that the function return value is of a safely passable type
 			mse::impl::T_valid_if_is_marked_as_passable_or_shareable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
-			thread::s_valid_if_passable(std::forward<decltype(_Fnarg)>(_Fnarg));
+			thread::s_valid_if_passable(_Fnarg);
 			return (std::async(_Policy, std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...));
 		}
 
 		template<class _Fty, class... _ArgTypes>
 		inline auto async(_Fty&& _Fnarg, _ArgTypes&&... _Args) {
 			// ensure that the function arguments are of a safely passable type
-			thread::s_valid_if_passable(std::forward<_ArgTypes>(_Args)...);
+			thread::s_valid_if_passable(_Args...);
 			// ensure that the function return value is of a safely passable type
 			mse::impl::T_valid_if_is_marked_as_passable_or_shareable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
 			return (std::async(std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...));
@@ -2719,8 +2794,8 @@ namespace mse {
 
 		template<class _Fn, class... _Args, class = typename std::enable_if<!std::is_same<typename std::decay<_Fn>::type, xscope_thread>::value>::type>
 		explicit xscope_thread(_Fn&& _Fx, _Args&&... _Ax) : base_class(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {
-			s_valid_if_xscope_passable(std::forward<_Args>(_Ax)...); // ensure that the function arguments are of a safely passable type
-			s_valid_if_xscope_passable(std::forward<decltype(_Fx)>(_Fx));
+			s_valid_if_xscope_passable(_Ax...); // ensure that the function arguments are of a safely passable type
+			s_valid_if_xscope_passable(_Fx);
 		}
 
 		xscope_thread& operator=(xscope_thread&& _Other) = delete;
@@ -2737,7 +2812,7 @@ namespace mse {
 		template<class _Ty, class... _Args>
 		static void s_valid_if_xscope_passable(const _Ty& arg1, _Args&&... _Ax) {
 			mse::impl::xscope_async_passable(arg1);
-			s_valid_if_xscope_passable(std::forward<_Args>(_Ax)...);
+			s_valid_if_xscope_passable(_Ax...);
 		}
 		static void s_valid_if_xscope_passable() {}
 
@@ -2858,8 +2933,8 @@ namespace mse {
 	template<class _Fty, class... _ArgTypes>
 	auto xscope_async(std::launch _Policy, _Fty&& _Fnarg, _ArgTypes&&... _Args) -> xscope_future<decltype(std::async(_Policy, std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...).get())> {
 		// ensure that the function arguments are of a safely passable type
-		xscope_thread::s_valid_if_xscope_passable(std::forward<_ArgTypes>(_Args)...);
-		xscope_thread::s_valid_if_xscope_passable(std::forward<decltype(_Fnarg)>(_Fnarg));
+		xscope_thread::s_valid_if_xscope_passable(_Args...);
+		xscope_thread::s_valid_if_xscope_passable(_Fnarg);
 		// ensure that the function return value is of a safely passable type
 		mse::impl::T_valid_if_is_marked_as_xscope_passable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
 		typedef decltype(std::async(_Policy, std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...).get()) future_element_t;
@@ -2869,7 +2944,7 @@ namespace mse {
 	template<class _Fty, class... _ArgTypes>
 	auto xscope_async(_Fty&& _Fnarg, _ArgTypes&&... _Args) -> xscope_future<decltype(std::async(std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...).get())> {
 		// ensure that the function arguments are of a safely passable type
-		xscope_thread::s_valid_if_xscope_passable(std::forward<_ArgTypes>(_Args)...);
+		xscope_thread::s_valid_if_xscope_passable(_Args...);
 		// ensure that the function return value is of a safely passable type
 		mse::impl::T_valid_if_is_marked_as_xscope_passable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
 		typedef decltype(std::async(std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...).get()) future_element_t;

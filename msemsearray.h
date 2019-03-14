@@ -85,16 +85,6 @@ namespace mse {
 #define _THROW_NCEE(x, y)	MSE_THROW(x(y))
 #endif /*_THROW_NCEE*/
 
-/* The idea is that MSE_MSEARRAY_MOVE_CONSTRUCTOR_DELETE_OR_DEFAULT_1 be defined as "delete" in cases where the compiler performs
-"return copy elision" even when the move constructor is deleted. Otherwise it should be defined as "default". */
-#ifndef MSE_MSEARRAY_MOVE_CONSTRUCTOR_DELETE_OR_DEFAULT_1
-#if (201703L > __cplusplus) && (defined(__GNUC__) || defined(__GNUG__))
-#define MSE_MSEARRAY_MOVE_CONSTRUCTOR_DELETE_OR_DEFAULT_1 default
-#else // (201703L > __cplusplus) && (defined(__GNUC__) || defined(__GNUG__))
-#define MSE_MSEARRAY_MOVE_CONSTRUCTOR_DELETE_OR_DEFAULT_1 delete
-#endif // (201703L > __cplusplus) && (defined(__GNUC__) || defined(__GNUG__))
-#endif // !MSE_MSEARRAY_MOVE_CONSTRUCTOR_DELETE_OR_DEFAULT_1
-
 #ifdef MSE_MSEARRAY_USE_MSE_PRIMITIVES
 	typedef mse::CSize_t msear_size_t;
 	typedef mse::CInt msear_int;
@@ -188,11 +178,15 @@ namespace mse {
 
 		void async_not_shareable_and_not_passable_tag() const {}
 
+	private:
 		_Ty* m_ptr;
+
+		template<typename _Ty2> friend class msear_pointer;
 	};
 
 	class non_thread_safe_mutex {
 	public:
+		non_thread_safe_mutex() {}
 		void lock() {	// lock exclusive
 			if (m_is_locked) {
 				MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
@@ -222,11 +216,17 @@ namespace mse {
 			m_is_locked = false;
 		}
 
+		non_thread_safe_mutex(const non_thread_safe_mutex&) = delete;
+		non_thread_safe_mutex& operator=(const non_thread_safe_mutex&) = delete;
+
+	private:
 		bool m_is_locked = false;
 	};
 
-	class non_thread_safe_shared_mutex {
+	template<typename _TExclusiveLockIndicator = bool, typename _TSharedLockCounter = size_t>
+	class T_shared_mutex {
 	public:
+		T_shared_mutex() {}
 		void lock() {	// lock exclusive
 			if (m_is_exclusive_locked || (1 <= m_shared_lock_count)) {
 				MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
@@ -284,9 +284,20 @@ namespace mse {
 			m_shared_lock_count -= 1;
 		}
 
-		bool m_is_exclusive_locked = false;
-		size_t m_shared_lock_count = 0;
+		T_shared_mutex(const T_shared_mutex&) = delete;
+		T_shared_mutex& operator=(const T_shared_mutex&) = delete;
+
+	private:
+		_TExclusiveLockIndicator m_is_exclusive_locked = { false };
+		_TSharedLockCounter m_shared_lock_count = { 0 };
 	};
+
+	class non_thread_safe_shared_mutex : public T_shared_mutex<> {
+	public:
+		typedef T_shared_mutex<> base_class;
+		MSE_USING(non_thread_safe_shared_mutex, base_class);
+	};
+
 
 	class non_thread_safe_recursive_shared_timed_mutex : public non_thread_safe_shared_mutex {
 	public:
@@ -331,6 +342,7 @@ namespace mse {
 
 	class dummy_recursive_shared_timed_mutex {
 	public:
+		dummy_recursive_shared_timed_mutex() {}
 		void lock() {
 		}
 		bool try_lock() {
@@ -378,6 +390,9 @@ namespace mse {
 		}
 		void unlock_shared() {	// unlock non-exclusive
 		}
+
+		dummy_recursive_shared_timed_mutex(const dummy_recursive_shared_timed_mutex&) = delete;
+		dummy_recursive_shared_timed_mutex& operator=(const dummy_recursive_shared_timed_mutex&) = delete;
 	};
 
 
@@ -6835,7 +6850,12 @@ namespace mse {
 	{
 	public:
 		TXScopeExclusiveStrongPointerStoreForAccessControl(const TXScopeExclusiveStrongPointerStoreForAccessControl&) = delete;
-		TXScopeExclusiveStrongPointerStoreForAccessControl(TXScopeExclusiveStrongPointerStoreForAccessControl&&) = MSE_MSEARRAY_MOVE_CONSTRUCTOR_DELETE_OR_DEFAULT_1;
+#ifdef MSE_HAS_CXX17
+		TXScopeExclusiveStrongPointerStoreForAccessControl(TXScopeExclusiveStrongPointerStoreForAccessControl&&) = delete;
+#else // MSE_HAS_CXX17
+		TXScopeExclusiveStrongPointerStoreForAccessControl(TXScopeExclusiveStrongPointerStoreForAccessControl&& src)
+			: m_stored_ptr(std::forward<decltype(src.m_stored_ptr)>(src.m_stored_ptr)) {}
+#endif // MSE_HAS_CXX17
 
 		typedef typename std::remove_reference<decltype(*std::declval<_TExclusiveStrongPointer>())>::type target_type;
 		TXScopeExclusiveStrongPointerStoreForAccessControl(_TExclusiveStrongPointer&& stored_ptr) : m_stored_ptr(std::forward<decltype(stored_ptr)>(stored_ptr)) {
@@ -7029,7 +7049,8 @@ namespace mse {
 	{
 	public:
 		TXScopeExclusiveStrongPointerStoreForSharing(const TXScopeExclusiveStrongPointerStoreForSharing&) = delete;
-		TXScopeExclusiveStrongPointerStoreForSharing(TXScopeExclusiveStrongPointerStoreForSharing&&) = default;
+		TXScopeExclusiveStrongPointerStoreForSharing(TXScopeExclusiveStrongPointerStoreForSharing&& src)
+			: m_stored_ptr(std::forward<decltype(src.m_stored_ptr)>(src.m_stored_ptr)) {}
 
 		typedef typename std::remove_reference<decltype(*std::declval<_TExclusiveStrongPointer>())>::type target_type;
 		TXScopeExclusiveStrongPointerStoreForSharing(_TExclusiveStrongPointer&& stored_ptr) : m_stored_ptr(std::forward<decltype(stored_ptr)>(stored_ptr)) {

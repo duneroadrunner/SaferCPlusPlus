@@ -83,11 +83,11 @@ namespace mse {
 				typedef CNoOpCopyAtomicInt atomic_int_t;
 
 #ifndef MSE_CHECKED_THREAD_SAFE_DO_NOT_USE_GNORAD
-				template<typename _Ty> using TCheckedThreadSafeObj = mse::impl::TGNoradObj<_Ty, atomic_int_t>;
-				template<typename _Ty> using TCheckedThreadSafePointer = mse::impl::TGNoradPointer<_Ty, atomic_int_t>;
-				template<typename _Ty> using TCheckedThreadSafeConstPointer = mse::impl::TGNoradConstPointer<_Ty, atomic_int_t>;
-				template<typename _Ty> using TCheckedThreadSafeFixedPointer = mse::impl::TGNoradFixedPointer<_Ty, atomic_int_t>;
-				template<typename _Ty> using TCheckedThreadSafeFixedConstPointer = mse::impl::TGNoradFixedConstPointer<_Ty, atomic_int_t>;
+				template<typename _Ty> using TCheckedThreadSafeObj = mse::us::impl::TGNoradObj<_Ty, atomic_int_t>;
+				template<typename _Ty> using TCheckedThreadSafePointer = mse::us::impl::TGNoradPointer<_Ty, atomic_int_t>;
+				template<typename _Ty> using TCheckedThreadSafeConstPointer = mse::us::impl::TGNoradConstPointer<_Ty, atomic_int_t>;
+				template<typename _Ty> using TCheckedThreadSafeFixedPointer = mse::us::impl::TGNoradFixedPointer<_Ty, atomic_int_t>;
+				template<typename _Ty> using TCheckedThreadSafeFixedConstPointer = mse::us::impl::TGNoradFixedConstPointer<_Ty, atomic_int_t>;
 #else // !MSE_CHECKED_THREAD_SAFE_DO_NOT_USE_GNORAD
 				/* TCheckedThreadSafePointer<> is essentially just a simplified TNoradPointer<> with an atomic refcounter. */
 				template<typename _Ty> class TCheckedThreadSafeObj;

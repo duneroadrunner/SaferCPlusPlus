@@ -224,7 +224,7 @@ void msetl_example2() {
 		/*   nii_vector<>   */
 		/********************/
 
-		/* nii_vector<> is a safe vector designed for safe sharing between asynchronous threads. */
+		/* nii_vector<> is a safe vector that is elegible to be (safely) shared between asynchronous threads. */
 
 		typedef mse::nii_vector<mse::nii_string> nii_vector1_t;
 
@@ -303,15 +303,6 @@ void msetl_example2() {
 				auto res4 = *xscp_ptr1;
 			}
 			vector1_xscpobj.push_back(4);
-
-			{
-#ifdef MSE_HAS_CXX17
-				/* deduction guide example */
-				auto str1 = std::string("abcd");
-				auto vector2 = mse::nii_vector( str1.cbegin(), str1.cend() );
-				assert('b' == vector2[1]);
-#endif /* MSE_HAS_CXX17 */
-			}
 		}
 	}
 
@@ -1176,6 +1167,69 @@ void msetl_example2() {
 		auto xs_simm_store3 = mse::make_xscope_strong_pointer_store(simm_ptr3);
 		auto xs_cptr3 = xs_simm_store3.xscope_ptr();
 		std::cout << *xs_cptr3 << std::endl;
+	}
+
+	{
+		/**********************/
+		/*   stnii_vector<>   */
+		/**********************/
+
+		/* stnii_vector<> is just a version of nii_vector<> that is not eligible to be shared between threads. */
+
+		mse::TXScopeObj<mse::stnii_vector<int> > vector1_xscpobj = mse::stnii_vector<int>{ 1, 2, 3 };
+
+		{
+			/* The only advantage stnii_vector<> has over nii_vector<> is that you can obtain (const) scope
+			pointers to its elements from a const scope pointer to vector (whereas with nii_vector<> the pointer
+			must be non-const). */
+			mse::TXScopeItemFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
+			auto xxscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(xscptr);
+			auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+			auto res4 = *xscp_ptr1;
+		}
+		vector1_xscpobj.push_back(4);
+
+		/* And of course stnii_vector<>s can be (efficiently) swapped with nii_vector<>s. */
+		auto niiv1 = mse::nii_vector<int>();
+		std::swap(vector1_xscpobj, niiv1);
+		/* Or mstd::vector<>s. */
+		auto mstdv1 = mse::mstd::vector<int>();
+		std::swap(vector1_xscpobj, mstdv1);
+	}
+
+	{
+		/**********************/
+		/*   mtnii_vector<>   */
+		/**********************/
+
+		/* mtnii_vector<> is just a version of nii_vector<> that supports obtaining scope pointers to its elements from
+		const scope pointers to the vector. Unlike stnii_vector<>, mtnii_vector<> is eligible to be shared among threads.
+		This requires a (partially) thread safe mutex that adds a little bit of overhead to operations that modify the
+		size/structure of the vector. */
+
+		typedef mse::mtnii_vector<mse::nii_string> mtnii_vector1_t;
+		auto access_requester1 = mse::make_asyncsharedv2readwrite<mtnii_vector1_t>(mtnii_vector1_t{ "abc", "def" });
+
+		{
+			/* Here we're obtaining a scope const pointer to the vector from a readlock pointer to the vector. */
+			auto xs_strong_pointer_store = mse::make_xscope_strong_pointer_store(access_requester1.readlock_ptr());
+			auto vector_xscope_const_ptr = xs_strong_pointer_store.xscope_ptr();
+
+			/* The only advantage mtnii_vector<> has over nii_vector<> is that you can obtain (const) scope
+			pointers to its elements from a const scope pointer to vector (whereas with nii_vector<> the pointer
+			must be non-const). */
+			auto xs_size_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(vector_xscope_const_ptr);
+			auto element1_xscope_const_ptr = xs_size_change_lock_guard.xscope_ptr_to_element(1);
+
+			assert((*element1_xscope_const_ptr) == "def");
+		}
+
+		/* And of course stnii_vector<>s can be (efficiently) swapped with nii_vector<>s. */
+		auto niiv1 = mse::nii_vector<mse::nii_string>();
+		std::swap(*(access_requester1.writelock_ptr()), niiv1);
+		/* Or mstd::vector<>s. */
+		auto mstdv1 = mse::mstd::vector<mse::nii_string>();
+		std::swap(*(access_requester1.writelock_ptr()), mstdv1);
 	}
 
 	{
