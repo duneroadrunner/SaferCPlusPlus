@@ -1944,7 +1944,7 @@ namespace std {
 namespace std {
 
 	template<class _Ty, class _A, class _TStateMutex, class _TStateMutex2>
-	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex2>& _Right) _NOEXCEPT
+	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex2>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{
 		_Left.swap(_Right);
 	}
@@ -1954,7 +1954,7 @@ namespace std {
 		return (_Right.swap(_Left));
 	}
 	template<class _Ty, class _A, class _TStateMutex>
-	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left, vector<_Ty, _A>& _Right) _NOEXCEPT
+	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left, vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{
 		_Left.swap(_Right);
 	}

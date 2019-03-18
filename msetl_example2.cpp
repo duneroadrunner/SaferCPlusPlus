@@ -30,6 +30,7 @@
 #include "msethreadlocal.h"
 #include "msestaticimmutable.h"
 #include "msescopeatomic.h"
+#include "msetuple.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -532,6 +533,14 @@ void msetl_example2() {
 		/****************/
 
 		mse::self_test::COptionalTest1::s_test1();
+	}
+
+	{
+		/*************/
+		/*  tuple<>  */
+		/*************/
+
+		mse::self_test::CTupleTest1::s_test1();
 	}
 
 	{
@@ -1942,7 +1951,6 @@ void msetl_example2() {
 			int q = 5;
 		}
 	}
-
 }
 
 

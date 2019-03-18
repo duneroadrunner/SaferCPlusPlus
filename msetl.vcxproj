@@ -284,6 +284,7 @@
     <ClInclude Include="msetl.h" />
     <ClInclude Include="msetl_example2.h" />
     <ClInclude Include="msetl_example_defs.h" />
+    <ClInclude Include="msetuple.h" />
     <ClInclude Include="msevector_test.h" />
   </ItemGroup>
   <ItemGroup>

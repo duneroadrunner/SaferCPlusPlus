@@ -14,6 +14,7 @@
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 #include "msescope.h"
 #endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+#include "msepointerbasics.h"
 
 # include <utility>
 # include <type_traits>
@@ -1087,6 +1088,9 @@ namespace mse {
 			typedef mse::us::impl::optional<T> base_class;
 			typedef typename base_class::value_type value_type;
 
+#ifndef MSE_HAS_CXX17
+			MSE_USING(optional, base_class);
+#endif // !MSE_HAS_CXX17
 			using base_class::base_class;
 
 			optional(const optional& src) : base_class(src) {}
@@ -1098,7 +1102,14 @@ namespace mse {
 			}
 
 			//using base_class::operator=;
-			MSE_SCOPE_USING(optional, base_class);
+
+			/* inherit the shareability and passability of the contained type */
+			template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value)
+				&& (mse::impl::is_marked_as_shareable_msemsearray<T2>::value), void>::type>
+			void async_shareable_tag() const {}
+			template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value)
+				&& (mse::impl::is_marked_as_passable_msemsearray<T2>::value), void>::type>
+			void async_passable_tag() const {} 
 		};
 
 #ifdef MSE_HAS_CXX17
@@ -1430,8 +1441,10 @@ namespace mse {
 		typedef mse::us::impl::optional<_Ty> base_class;
 		typedef typename base_class::value_type value_type;
 
+#ifndef MSE_HAS_CXX17
+		MSE_USING(xscope_optional, base_class);
+#endif // !MSE_HAS_CXX17
 		using base_class::base_class;
-		MSE_SCOPE_USING(xscope_optional, base_class);
 
 		xscope_optional(const xscope_optional& src_ref) : base_class(src_ref) {}
 		xscope_optional(const mstd::optional<_Ty>& src_ref) : base_class(src_ref) {}
@@ -1490,6 +1503,14 @@ namespace mse {
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
+		/* inherit the shareability and passability of the contained type */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value), void>::type>
+		void xscope_async_shareable_tag() const {}
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::is_marked_as_xscope_passable_msemsearray<_Ty2>::value), void>::type>
+		void xscope_async_passable_tag() const {}
+
 	private:
 		/* If _Ty is "marked" as not safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
@@ -1503,12 +1524,6 @@ namespace mse {
 			&& (!std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _Ty2>::value)
 			, void>::type>
 		void valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
-
-		/* If _Ty is a scope type, then the following member function will not instantiate, causing an
-		(intended) compile error. */
-		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-			&& (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value), void>::type>
-			void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
@@ -1820,6 +1835,81 @@ namespace mse {
 	}
 #endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 
+}
+
+namespace std
+{
+	template <typename T>
+	struct hash<mse::us::impl::optional<T>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::us::impl::optional<T> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+
+	template <typename T>
+	struct hash<mse::us::impl::optional<T&>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::us::impl::optional<T&> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+
+	template <typename T>
+	struct hash<mse::mstd::optional<T>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::mstd::optional<T> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+
+	template <typename T>
+	struct hash<mse::mstd::optional<T&>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::mstd::optional<T&> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+
+	template <typename T>
+	struct hash<mse::xscope_optional<T>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::xscope_optional<T> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+
+	template <typename T>
+	struct hash<mse::xscope_optional<T&>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::xscope_optional<T&> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+}
+
+# undef TR2_OPTIONAL_REQUIRES
+# undef TR2_OPTIONAL_ASSERTED_EXPRESSION
+
+namespace mse {
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -1880,10 +1970,10 @@ namespace mse {
 						o3 = o2; // copy-constructor
 
 								 // calls std::string( initializer_list<CharT> ) constructor
-					mse::mstd::optional<std::string> o4(mse::in_place, { 'a', 'b', 'c' });
+					mse::mstd::optional<std::string> o4(mse::mstd::in_place, { 'a', 'b', 'c' });
 
 					// calls std::string( size_type count, CharT ch ) constructor
-					mse::mstd::optional<std::string> o5(mse::in_place, 3, 'A');
+					mse::mstd::optional<std::string> o5(mse::mstd::in_place, 3, 'A');
 
 					// Move-constructed from std::string using deduction guide to pick the type
 
@@ -2014,77 +2104,5 @@ namespace mse {
 	}
 
 } // namespace mse
-
-namespace std
-{
-	template <typename T>
-	struct hash<mse::us::impl::optional<T>>
-	{
-		typedef typename hash<T>::result_type result_type;
-		typedef mse::us::impl::optional<T> argument_type;
-
-		constexpr result_type operator()(argument_type const& arg) const {
-			return arg ? std::hash<T>{}(*arg) : result_type{};
-		}
-	};
-
-	template <typename T>
-	struct hash<mse::us::impl::optional<T&>>
-	{
-		typedef typename hash<T>::result_type result_type;
-		typedef mse::us::impl::optional<T&> argument_type;
-
-		constexpr result_type operator()(argument_type const& arg) const {
-			return arg ? std::hash<T>{}(*arg) : result_type{};
-		}
-	};
-
-	template <typename T>
-	struct hash<mse::mstd::optional<T>>
-	{
-		typedef typename hash<T>::result_type result_type;
-		typedef mse::mstd::optional<T> argument_type;
-
-		constexpr result_type operator()(argument_type const& arg) const {
-			return arg ? std::hash<T>{}(*arg) : result_type{};
-		}
-	};
-
-	template <typename T>
-	struct hash<mse::mstd::optional<T&>>
-	{
-		typedef typename hash<T>::result_type result_type;
-		typedef mse::mstd::optional<T&> argument_type;
-
-		constexpr result_type operator()(argument_type const& arg) const {
-			return arg ? std::hash<T>{}(*arg) : result_type{};
-		}
-	};
-
-	template <typename T>
-	struct hash<mse::xscope_optional<T>>
-	{
-		typedef typename hash<T>::result_type result_type;
-		typedef mse::xscope_optional<T> argument_type;
-
-		constexpr result_type operator()(argument_type const& arg) const {
-			return arg ? std::hash<T>{}(*arg) : result_type{};
-		}
-	};
-
-	template <typename T>
-	struct hash<mse::xscope_optional<T&>>
-	{
-		typedef typename hash<T>::result_type result_type;
-		typedef mse::xscope_optional<T&> argument_type;
-
-		constexpr result_type operator()(argument_type const& arg) const {
-			return arg ? std::hash<T>{}(*arg) : result_type{};
-		}
-	};
-}
-
-# undef TR2_OPTIONAL_REQUIRES
-# undef TR2_OPTIONAL_ASSERTED_EXPRESSION
 
 # endif //MSEOPTIONAL_H_
