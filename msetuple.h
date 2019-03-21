@@ -21,6 +21,13 @@
 #endif // MSE_SELF_TESTS
 
 
+#if (defined(__GNUC__) || defined(__GNUG__))
+#define GPP_COMPATIBLE 1
+#if ((7 > __GNUC__) && (!defined(__clang__)))
+#define GPP6_COMPATIBLE 1
+#endif /*((7 > __GNUC__) && (!defined(__clang__)))*/
+#endif /*(defined(__GNUC__) || defined(__GNUG__))*/
+
 #ifdef _MSC_VER
 #pragma warning( push )  
 #pragma warning( disable : 4702 4189 )
@@ -41,8 +48,46 @@
 #endif // MSE_HAS_CXX17
 #endif // !_NODISCARD
 
+#ifdef GPP6_COMPATIBLE
+/* Inheriting constructors seems to not work right quite in g++ 5.5. It does seem to work fine in g++ 7. So for versions
+prior to 7 we'll just alias the tuples to std::tuple<>. This means that the tuples won't (automatically) be recognized as
+async shareable or passable. */
+namespace mse {
+	namespace mstd {
+		template<class... _Types> using tuple = std::tuple<_Types...>;
+
+		template<class... _Types>
+		constexpr auto make_tuple(_Types&&... _Args) {
+			return std::make_tuple(std::forward<_Types>(_Args)...);
+		}
+
+		template<class... _Tuples>
+		_NODISCARD constexpr auto tuple_cat(_Tuples&&... _Tpls) {
+			return std::tuple_cat(std::forward<_Tuples>(_Tpls)...);
+		}
+	}
+	template<class... _Types> using tuple = mstd::tuple<_Types...>;
+
+	template<class... _Types> using xscope_tuple = std::tuple<_Types...>;
+
+	template<class... _Types>
+	constexpr auto make_xscope_tuple(_Types&&... _Args) {
+		return std::make_tuple(std::forward<_Types>(_Args)...);
+	}
+
+	template<class... _Tuples>
+	_NODISCARD constexpr auto xscope_tuple_cat(_Tuples&&... _Tpls) {
+		return std::tuple_cat(std::forward<_Tuples>(_Tpls)...);
+	}
+}
+#else // GPP6_COMPATIBLE
 
 namespace mse {
+	namespace mstd {
+		template<class... _Types> class tuple;
+	}
+	template<class... _Types> using tuple = mstd::tuple<_Types...>;
+	template<class... _Types> class xscope_tuple;
 
 	namespace impl {
 		template<class>
@@ -64,6 +109,29 @@ namespace mse {
 		using _Unrefwrap_t = typename _Unrefwrap_helper<std::decay_t<_Ty>>::type;
 	}
 
+	namespace impl {
+		namespace tuple {
+
+			template<class _Ty, bool>
+			struct adjusted_tuple_cat_argument_type_helper1 {
+				using type = _Ty;
+			};
+			template<class _Ty>
+			struct adjusted_tuple_cat_argument_type_helper1<_Ty, true> {
+				using type = typename _Ty::base_class;
+			};
+
+			template<class _Ty>
+			static auto adjusted_tuple_cat_argument(_Ty&& x) {
+				typedef typename std::remove_reference<_Ty>::type NoRefTy;
+				return std::forward<typename adjusted_tuple_cat_argument_type_helper1<NoRefTy,
+						mse::impl::is_instantiation_of<NoRefTy, mse::mstd::tuple>::value
+						|| mse::impl::is_instantiation_of<NoRefTy, mse::xscope_tuple>::value
+					>::type>(x);
+			}
+		}
+	}
+
 	namespace mstd {
 
 		namespace impl {
@@ -80,6 +148,7 @@ namespace mse {
 			}
 		}
 
+
 		template<class... _Types>
 		class tuple;
 
@@ -88,10 +157,12 @@ namespace mse {
 		public:
 			typedef std::tuple<> base_class;
 
+			//MSE_USING(tuple, base_class);
 			using base_class::base_class;
+			tuple(const base_class& src) : base_class(src) {}
+			tuple(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
 			//using base_class::operator=;
-			//MSE_USING(tuple, base_class);
 
 			void async_shareable_tag() const {}
 			void async_passable_tag() const {}
@@ -104,19 +175,21 @@ namespace mse {
 
 			//MSE_USING(tuple, base_class);
 			using base_class::base_class;
+			tuple(const base_class& src) : base_class(src) {}
+			tuple(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
-			~tuple() {
+			virtual ~tuple() {
 				mse::mstd::impl::tuple::s_invoke_T_valid_if_not_an_xscope_type_on_each_type<_This, _Rest...>();
 			}
 
 			//using base_class::operator=;
 
-			template<class dummyT = int, class = typename std::enable_if<(std::is_same<dummyT, int>::value)
-				&& (mse::impl::is_marked_as_shareable_msemsearray<_This>::value)
+			template<class _This2 = _This, class = typename std::enable_if<(std::is_same<_This2, _This>::value)
+				&& (mse::impl::is_marked_as_shareable_msemsearray<_This2>::value)
 				&& (mse::impl::conjunction<mse::impl::is_marked_as_shareable_msemsearray<_Rest>...>::value), void>::type>
 			void async_shareable_tag() const {}
-			template<class dummyT = int, class = typename std::enable_if<(std::is_same<dummyT, int>::value)
-				&& (mse::impl::is_marked_as_passable_msemsearray<_This>::value)
+			template<class _This2 = _This, class = typename std::enable_if<(std::is_same<_This2, _This>::value)
+				&& (mse::impl::is_marked_as_passable_msemsearray<_This2>::value)
 				&& (mse::impl::conjunction<mse::impl::is_marked_as_passable_msemsearray<_Rest>...>::value), void>::type>
 			void async_passable_tag() const {}
 		};
@@ -134,11 +207,26 @@ namespace mse {
 			typedef tuple<mse::impl::_Unrefwrap_t<_Types>...> _Ttype;
 			return (_Ttype(std::forward<_Types>(_Args)...));
 		}
+
+		namespace impl {
+			namespace tuple {
+				template<class... _Types>
+				constexpr auto make_mstdtuple_from_stdtuple(std::tuple<_Types...>&& stdtuple) -> mse::mstd::tuple<_Types...> {
+					return stdtuple;
+				}
+			}
+		}
+
+		template<class... _Tuples>
+		_NODISCARD constexpr auto tuple_cat(_Tuples&&... _Tpls) {
+			return impl::tuple::make_mstdtuple_from_stdtuple(std::tuple_cat(mse::impl::tuple::adjusted_tuple_cat_argument(std::forward<_Tuples>(_Tpls))...));
+		}
 	}
 
-	template<class... Types>
-	using tuple = mstd::tuple<Types...>;
-
+	template<class... _Tuples>
+	_NODISCARD constexpr auto tuple_cat(_Tuples&&... _Tpls) {
+		return mse::mstd::tuple_cat(std::forward<_Tuples>(_Tpls)...);
+	}
 
 #ifndef MSE_TUPLE_NO_XSCOPE_DEPENDENCE
 
@@ -150,8 +238,10 @@ namespace mse {
 	public:
 		typedef std::tuple<> base_class;
 
-		MSE_USING(xscope_tuple, base_class);
+		//MSE_USING(xscope_tuple, base_class);
 		using base_class::base_class;
+		xscope_tuple(const base_class& src) : base_class(src) {}
+		xscope_tuple(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
 		//using base_class::operator=;
 
@@ -164,23 +254,31 @@ namespace mse {
 
 	template <class _This, class... _Rest>
 	class xscope_tuple<_This, _Rest...> : public std::tuple<_This, _Rest...>, public mse::us::impl::XScopeTagBase
-		//, public std::conditional<std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _Ty>::value, mse::us::impl::ReferenceableByScopePointerTagBase, mse::impl::TPlaceHolder_msescope<xscope_tuple<_Ty> > >::type
-		//, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder2_msescope<xscope_tuple<_Ty> > >::type
+		, public std::conditional<
+				(std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _This>::value)
+				|| (mse::impl::disjunction<std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _Rest>...>::value)
+			, mse::us::impl::ReferenceableByScopePointerTagBase, mse::impl::TPlaceHolder_msescope<xscope_tuple<_This, _Rest...> > >::type
+		, public std::conditional<
+				(std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _This>::value)
+				|| (mse::impl::disjunction<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Rest>...>::value)
+			, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder2_msescope<xscope_tuple<_This, _Rest...> > >::type
 	{
 	public:
 		typedef std::tuple<_This, _Rest...> base_class;
 
-		MSE_USING(xscope_tuple, base_class);
+		//MSE_USING(xscope_tuple, base_class);
 		using base_class::base_class;
+		xscope_tuple(const base_class& src) : base_class(src) {}
+		xscope_tuple(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
-		template<class dummyT = int, class = typename std::enable_if<(std::is_same<dummyT, int>::value)
-			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_This>::value)
+		template<class _This2 = _This, class = typename std::enable_if<(std::is_same<_This2, _This>::value)
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_This2>::value)
 			&& (mse::impl::conjunction<mse::impl::is_marked_as_xscope_shareable_msemsearray<_Rest>...>::value), void>::type>
-			void async_xscope_shareable_tag() const {}
-		template<class dummyT = int, class = typename std::enable_if<(std::is_same<dummyT, int>::value)
-			&& (mse::impl::is_marked_as_xscope_passable_msemsearray<_This>::value)
+		void async_xscope_shareable_tag() const {}
+		template<class _This2 = _This, class = typename std::enable_if<(std::is_same<_This2, _This>::value)
+			&& (mse::impl::is_marked_as_xscope_passable_msemsearray<_This2>::value)
 			&& (mse::impl::conjunction<mse::impl::is_marked_as_xscope_passable_msemsearray<_Rest>...>::value), void>::type>
-			void async_xscope_passable_tag() const {}
+		void async_xscope_passable_tag() const {}
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -196,9 +294,23 @@ namespace mse {
 #endif /* MSE_HAS_CXX17 */
 
 	template<class... _Types>
-	constexpr xscope_tuple<typename std::decay<_Types>::type...> make_xscope_xscope_tuple(_Types&&... _Args) {
+	constexpr xscope_tuple<typename std::decay<_Types>::type...> make_xscope_tuple(_Types&&... _Args) {
 		typedef xscope_tuple<mse::impl::_Unrefwrap_t<_Types>...> _Ttype;
 		return (_Ttype(std::forward<_Types>(_Args)...));
+	}
+
+	namespace impl {
+		namespace tuple {
+			template<class... _Types>
+			constexpr auto make_xscopetuple_from_stdtuple(std::tuple<_Types...>&& stdtuple) -> mse::xscope_tuple<_Types...> {
+				return stdtuple;
+			}
+		}
+	}
+
+	template<class... _Tuples>
+	_NODISCARD constexpr auto xscope_tuple_cat(_Tuples&&... _Tpls) {
+		return impl::tuple::make_xscopetuple_from_stdtuple(std::tuple_cat(mse::impl::tuple::adjusted_tuple_cat_argument(std::forward<_Tuples>(_Tpls))...));
 	}
 #endif // !MSE_TUPLE_NO_XSCOPE_DEPENDENCE
 }
@@ -361,6 +473,7 @@ namespace std {
 #pragma clang diagnostic pop
 #endif /*__clang__*/
 }
+#endif // GPP6_COMPATIBLE
 
 namespace mse {
 
@@ -407,6 +520,7 @@ namespace mse {
 
 			static void s_test1() {
 #ifdef MSE_SELF_TESTS
+				std::cout << "\nmstd::tuple<> tests: \n";
 				{
 					/* example from https://en.cppreference.com/w/cpp/utility/tuple */
 					struct CB {
@@ -496,11 +610,125 @@ namespace mse {
 				{
 					/* example from https://en.cppreference.com/w/cpp/utility/tuple/tuple_cat */
 					{
-						std::tuple<int, std::string, double> t1(10, "Test", 3.14);
+						mse::mstd::tuple<int, std::string, double> t1(10, "Test", 3.14);
 						int n = 7;
-						auto t2 = std::tuple_cat(t1, std::make_pair("Foo", "bar"), t1, std::tie(n));
+						auto t2 = mse::mstd::tuple_cat(t1, std::make_pair("Foo", "bar"), t1, std::tie(n));
 						n = 10;
 						print(t2);
+					}
+				}
+				{
+					mse::mstd::tuple<int, std::string, double> t1(10, "Test", 3.14);
+					mse::mstd::tuple<int, std::string, double> t2(11, "Test2", 4.14);
+					mse::mstd::tuple<int, std::string, double> t3(10, "Test", 3.14);
+					std::swap(t1, t2);
+					bool b1 = (t1 == t2);
+					bool b2 = (t2 == t3);
+				}
+
+				std::cout << "\nxscope_tuple<> tests: \n";
+				{
+					/* example from https://en.cppreference.com/w/cpp/utility/tuple */
+					struct CB {
+						static mse::xscope_tuple<double, char, std::string> get_student(int id)
+						{
+							if (id == 0) return mse::mstd::make_tuple(3.8, 'A', "Lisa Simpson");
+							if (id == 1) return mse::mstd::make_tuple(2.9, 'C', "Milhouse Van Houten");
+							if (id == 2) return mse::mstd::make_tuple(1.7, 'D', "Ralph Wiggum");
+							throw std::invalid_argument("id");
+						}
+					};
+
+					{
+						auto student0 = CB::get_student(0);
+						std::cout << "ID: 0, "
+							<< "GPA: " << std::get<0>(student0) << ", "
+							<< "grade: " << std::get<1>(student0) << ", "
+							<< "name: " << std::get<2>(student0) << '\n';
+
+						double gpa1;
+						char grade1;
+						std::string name1;
+						std::tie(gpa1, grade1, name1) = CB::get_student(1);
+						std::cout << "ID: 1, "
+							<< "GPA: " << gpa1 << ", "
+							<< "grade: " << grade1 << ", "
+							<< "name: " << name1 << '\n';
+
+#ifdef MSE_HAS_CXX17
+						// C++17 structured binding:
+						auto[gpa2, grade2, name2] = CB::get_student(2);
+						std::cout << "ID: 2, "
+							<< "GPA: " << gpa2 << ", "
+							<< "grade: " << grade2 << ", "
+							<< "name: " << name2 << '\n';
+#endif // MSE_HAS_CXX17
+					}
+				}
+				{
+					/* example from https://en.cppreference.com/w/cpp/utility/tuple/tuple */
+					{
+						mse::xscope_tuple<int, std::string, double> t1;
+						std::cout << "Value-initialized: "; print(t1);
+						mse::xscope_tuple<int, std::string, double> t2(42, "Test", -3.14);
+						std::cout << "Initialized with values: "; print(t2);
+						//mse::xscope_tuple<char, std::string, int> t3(t2);
+						//std::cout << "Implicitly converted: "; print(t3);
+						mse::xscope_tuple<int, double> t4(std::make_pair(42, 3.14));
+						std::cout << "Constructed from a pair"; print(t4);
+					}
+				}
+				{
+					/* example from https://en.cppreference.com/w/cpp/utility/tuple/swap */
+					mse::xscope_tuple<int, std::string, double> p1, p2;
+					p1 = mse::mstd::make_tuple(10, "test", 3.14);
+					p2.swap(p1);
+					std::cout << "(" << std::get<0>(p2)
+						<< ", " << std::get<1>(p2)
+						<< ", " << std::get<2>(p2) << ")\n";
+				}
+				{
+					/* example from https://en.cppreference.com/w/cpp/utility/tuple/swap */
+					struct CB {
+						static mse::xscope_tuple<int, int> f() // this function returns multiple values
+						{
+							int x = 5;
+							return mse::mstd::make_tuple(x, 7); // return {x,7}; in C++17
+						}
+					};
+
+					{
+						// heterogeneous tuple construction
+						int n = 1;
+						auto t = mse::mstd::make_tuple(10, "Test", 3.14, std::ref(n), n);
+						n = 7;
+						std::cout << "The value of t is " << "("
+							<< std::get<0>(t) << ", " << std::get<1>(t) << ", "
+							<< std::get<2>(t) << ", " << std::get<3>(t) << ", "
+							<< std::get<4>(t) << ")\n";
+
+						// function returning multiple values
+						int a, b;
+						std::tie(a, b) = CB::f();
+						std::cout << a << " " << b << "\n";
+					}
+				}
+				{
+					/* example from https://en.cppreference.com/w/cpp/utility/tuple/tuple_cat */
+					{
+						mse::xscope_tuple<int, std::string, double> t1(10, "Test", 3.14);
+						int n = 7;
+						auto t2 = mse::xscope_tuple_cat(t1, std::make_pair("Foo", "bar"), t1, std::tie(n));
+						n = 10;
+						print(t2);
+					}
+					{
+						mse::xscope_tuple<int, std::string, double> t1(10, "Test", 3.14);
+						mse::xscope_tuple<int, std::string, double> t2(11, "Test2", 4.14);
+						mse::xscope_tuple<int, std::string, double> t3(10, "Test", 3.14);
+						std::swap(t1, t2);
+						bool b1 = (t1 == t2);
+						bool b2 = (t2 == t3);
 					}
 				}
 #endif // MSE_SELF_TESTS

@@ -562,15 +562,26 @@ namespace mse {
 	}
 
 	namespace impl {
+		namespace ns_is_instantiation_of {
+			template <template <typename...> class Template, typename Type>
+			struct is_instance_of : std::false_type {};
+			template <template <typename...> class Template, typename... Args>
+			struct is_instance_of<Template, Template<Args...>> : std::true_type {};
+			template <template <typename...> class Template, typename Type>
+			constexpr bool is_instance_of_v = is_instance_of<Template, Type>::value;
+		}
+
 		/* determines if a given type is an instantiation of a given template */
-		template<typename T, template<typename> class TT>
-		struct is_instantiation_of : std::false_type { };
-		template<typename T, template<typename> class TT>
-		struct is_instantiation_of<TT<T>, TT> : std::true_type { };
+		template<typename Type, template<typename...> class Template>
+		struct is_instantiation_of : ns_is_instantiation_of::is_instance_of<Template, Type> { };
 
 		template<class...> struct conjunction : std::true_type { };
 		template<class B1> struct conjunction<B1> : B1 { };
 		template<class B1, class... Bn> struct conjunction<B1, Bn...> : std::conditional<bool(B1::value), conjunction<Bn...>, B1>::type {};
+
+		template<class...> struct disjunction : std::false_type { };
+		template<class B1> struct disjunction<B1> : B1 { };
+		template<class B1, class... Bn> struct disjunction<B1, Bn...> : std::conditional_t<bool(B1::value), B1, disjunction<Bn...>> { };
 	}
 
 	namespace us {

@@ -16,13 +16,16 @@
 #endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 #include "msepointerbasics.h"
 
-# include <utility>
-# include <type_traits>
-# include <initializer_list>
-# include <cassert>
-# include <functional>
-# include <string>
-# include <stdexcept>
+#include<utility>
+#include<type_traits>
+#include<initializer_list>
+#include<cassert>
+#include<functional>
+#include<string>
+#include<stdexcept>
+#ifdef MSE_HAS_CXX17
+#include<optional>
+#endif // MSE_HAS_CXX17
 
 #ifdef _MSC_VER
 #pragma warning( push )  
@@ -134,6 +137,8 @@ namespace mse {
 	{
 		return static_cast<typename std::remove_reference<T>::type&&>(t);
 	}
+
+#ifndef MSE_HAS_CXX17
 
 	namespace us {
 		namespace impl {
@@ -1071,27 +1076,53 @@ namespace mse {
 
 		}
 	}
+#endif // !MSE_HAS_CXX17
+
+
+	namespace impl {
+		namespace optional {
+#ifdef MSE_HAS_CXX17
+			template <class T> using optional_base = std::optional<T>;
+			using in_place_t_base = std::in_place_t;
+			using nullopt_t_base = std::nullopt_t;
+			using bad_optional_access_base = std::bad_optional_access;
+#else // MSE_HAS_CXX17
+			template <class T> using optional_base = mse::us::impl::optional<T>;
+			using in_place_t_base = mse::us::impl::in_place_t;
+			using nullopt_t_base = mse::us::impl::nullopt_t;
+			using bad_optional_access_base = mse::us::impl::bad_optional_access;
+#endif // MSE_HAS_CXX17
+		}
+	}
 
 	namespace mstd {
 		// 20.5.6, In-place construction
-		typedef mse::us::impl::in_place_t in_place_t;
+		typedef mse::impl::optional::in_place_t_base in_place_t;
 		constexpr in_place_t in_place{};
 		// 20.5.7, Disengaged state indicator
-		typedef typename mse::us::impl::nullopt_t nullopt_t;
+		typedef typename mse::impl::optional::nullopt_t_base nullopt_t;
+#ifdef MSE_HAS_CXX17
+		MSE_INLINE_VAR constexpr const auto& nullopt = std::nullopt;
+#else // MSE_HAS_CXX17
 		constexpr nullopt_t nullopt{ nullopt_t::init() };
+#endif // MSE_HAS_CXX17
 		// 20.5.8, class bad_optional_access
-		typedef typename mse::us::impl::bad_optional_access bad_optional_access;
+		typedef typename mse::impl::optional::bad_optional_access_base bad_optional_access;
 
 		template <class T>
-		class optional : public mse::us::impl::optional<T> {
+		class optional : public mse::impl::optional::optional_base<T> {
 		public:
-			typedef mse::us::impl::optional<T> base_class;
+			typedef mse::impl::optional::optional_base<T> base_class;
 			typedef typename base_class::value_type value_type;
 
-#ifndef MSE_HAS_CXX17
-			MSE_USING(optional, base_class);
-#endif // !MSE_HAS_CXX17
 			using base_class::base_class;
+#ifdef MSE_HAS_CXX17
+			optional(const base_class& src) : base_class(src) {}
+			optional(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+#else // MSE_HAS_CXX17
+			MSE_USING(optional, base_class);
+#endif // MSE_HAS_CXX17
+
 
 			optional(const optional& src) : base_class(src) {}
 
@@ -1422,7 +1453,11 @@ namespace mse {
 	constexpr in_place_t in_place{};
 	// 20.5.7, Disengaged state indicator
 	typedef mstd::nullopt_t nullopt_t;
+#ifdef MSE_HAS_CXX17
+	MSE_INLINE_VAR constexpr const auto& nullopt = std::nullopt;
+#else // MSE_HAS_CXX17
 	constexpr nullopt_t nullopt{ nullopt_t::init() };
+#endif // MSE_HAS_CXX17
 	// 20.5.8, class bad_optional_access
 	typedef mstd::bad_optional_access bad_optional_access;
 
@@ -1433,18 +1468,21 @@ namespace mse {
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 
 	template <class _Ty>
-	class xscope_optional : public mse::us::impl::optional<_Ty>, public mse::us::impl::XScopeTagBase
+	class xscope_optional : public mse::impl::optional::optional_base<_Ty>, public mse::us::impl::XScopeTagBase
 		, public std::conditional<std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _Ty>::value, mse::us::impl::ReferenceableByScopePointerTagBase, mse::impl::TPlaceHolder_msescope<xscope_optional<_Ty> > >::type
 		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder2_msescope<xscope_optional<_Ty> > >::type
 	{
 	public:
-		typedef mse::us::impl::optional<_Ty> base_class;
+		typedef mse::impl::optional::optional_base<_Ty> base_class;
 		typedef typename base_class::value_type value_type;
 
-#ifndef MSE_HAS_CXX17
-		MSE_USING(xscope_optional, base_class);
-#endif // !MSE_HAS_CXX17
 		using base_class::base_class;
+#ifdef MSE_HAS_CXX17
+		xscope_optional(const base_class& src) : base_class(src) {}
+		xscope_optional(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+#else // MSE_HAS_CXX17
+		MSE_USING(xscope_optional, base_class);
+#endif // MSE_HAS_CXX17
 
 		xscope_optional(const xscope_optional& src_ref) : base_class(src_ref) {}
 		xscope_optional(const mstd::optional<_Ty>& src_ref) : base_class(src_ref) {}
@@ -1839,11 +1877,12 @@ namespace mse {
 
 namespace std
 {
+#ifndef MSE_HAS_CXX17
 	template <typename T>
-	struct hash<mse::us::impl::optional<T>>
+	struct hash<mse::impl::optional::optional_base<T>>
 	{
 		typedef typename hash<T>::result_type result_type;
-		typedef mse::us::impl::optional<T> argument_type;
+		typedef mse::impl::optional::optional_base<T> argument_type;
 
 		constexpr result_type operator()(argument_type const& arg) const {
 			return arg ? std::hash<T>{}(*arg) : result_type{};
@@ -1851,15 +1890,16 @@ namespace std
 	};
 
 	template <typename T>
-	struct hash<mse::us::impl::optional<T&>>
+	struct hash<mse::impl::optional::optional_base<T&>>
 	{
 		typedef typename hash<T>::result_type result_type;
-		typedef mse::us::impl::optional<T&> argument_type;
+		typedef mse::impl::optional::optional_base<T&> argument_type;
 
 		constexpr result_type operator()(argument_type const& arg) const {
 			return arg ? std::hash<T>{}(*arg) : result_type{};
 		}
 	};
+#endif // !MSE_HAS_CXX17
 
 	template <typename T>
 	struct hash<mse::mstd::optional<T>>
@@ -1958,7 +1998,7 @@ namespace mse {
 					o1.swap(o2);
 					std::swap(o1, o2);
 
-					auto ui_o1 = mse::us::impl::optional<std::string>{ "Mothra" };
+					auto ui_o1 = mse::impl::optional::optional_base<std::string>{ "Mothra" };
 					auto ui_o2 = ui_o1;
 					ui_o1 = ui_o2;
 					ui_o1.swap(ui_o2);
