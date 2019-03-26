@@ -129,12 +129,13 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     5. [mstd::string_view](#string_view)
     6. [nrp_string_view](#nrp_string_view)
 21. [optional](#optional-xscope_optional)
-22. [Algorithms](#algorithms)
+22. [tuple](#tuple-xscope_tuple)
+23. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
-23. [thread_local](#thread_local)
-24. [Practical limitations](#practical-limitations)
-25. [Questions and comments](#questions-and-comments)
+24. [thread_local](#thread_local)
+25. [Practical limitations](#practical-limitations)
+26. [Questions and comments](#questions-and-comments)
 
 ### Use cases
 
@@ -3386,6 +3387,10 @@ usage example:
 ### optional, xscope_optional
 
 `mse::mstd::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScopeObj<mse::mstd::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
+
+### tuple, xscope_tuple
+
+`mse::mstd::tuple<>` is simply a drop-in replacement for `std::tuple<>`. `mse::xscope_tuple<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_tuple<>` rather than just `mse::TXScopeObj<mse::mstd::tuple<> >` is that `mse::xscope_tuple<>` supports using scope types (including scope pointer types) among its element types.
 
 ### Algorithms
 
