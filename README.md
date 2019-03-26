@@ -3303,6 +3303,8 @@ From an interface perspective, you might think of strings roughly as glorified v
 
 `nii_string` is a string type designed to be safely shareable between asynchronous threads. See the corresponding [`nii_vector<>`](#nii_vector) for more information. Like `mstd::string`, `nii_string` is defined as an alias of `nii_basic_string<char>`. The `nii_wstring`, `nii_u16string` and `nii_u32string` aliases are also present.
 
+And `stnii_basic_string<>` and `mtnii_basic_string<>` are string counterparts of [`stnii_vector<>`](#stnii_vector) and [`mtnii_vector<>`](#mtnii_vector).
+
 ### TXScopeStringSection, TXScopeStringConstSection, TStringSection, TStringConstSection
 
 "String sections" are string specialized versions of "[random access sections](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)". 
