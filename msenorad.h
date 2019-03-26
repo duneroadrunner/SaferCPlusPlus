@@ -936,6 +936,43 @@ namespace mse {
 				typedef TGNoradConstPointer<const mse::TInt<size_t>, _TRefCounter> base_class;
 				MSE_USING(TGNoradConstPointer, base_class);
 			};
+
+			template<typename _TRefCounter>
+			class TGNoradObj<char, _TRefCounter> : public TGNoradObj<mse::TInt<char>, _TRefCounter> {
+			public:
+				typedef TGNoradObj<mse::TInt<char>, _TRefCounter> base_class;
+				MSE_USING(TGNoradObj, base_class);
+			};
+			template<typename _TRefCounter>
+			class TGNoradObj<const char, _TRefCounter> : public TGNoradObj<const mse::TInt<char>, _TRefCounter> {
+			public:
+				typedef TGNoradObj<const mse::TInt<char>, _TRefCounter> base_class;
+				MSE_USING(TGNoradObj, base_class);
+			};
+			template<typename _TRefCounter>
+			class TGNoradPointer<char, _TRefCounter> : public TGNoradPointer<mse::TInt<char>, _TRefCounter> {
+			public:
+				typedef TGNoradPointer<mse::TInt<char>, _TRefCounter> base_class;
+				MSE_USING(TGNoradPointer, base_class);
+			};
+			template<typename _TRefCounter>
+			class TGNoradPointer<const char, _TRefCounter> : public TGNoradPointer<const mse::TInt<char>, _TRefCounter> {
+			public:
+				typedef TGNoradPointer<const mse::TInt<char>, _TRefCounter> base_class;
+				MSE_USING(TGNoradPointer, base_class);
+			};
+			template<typename _TRefCounter>
+			class TGNoradConstPointer<char, _TRefCounter> : public TGNoradConstPointer<mse::TInt<char>, _TRefCounter> {
+			public:
+				typedef TGNoradConstPointer<mse::TInt<char>, _TRefCounter> base_class;
+				MSE_USING(TGNoradConstPointer, base_class);
+			};
+			template<typename _TRefCounter>
+			class TGNoradConstPointer<const char, _TRefCounter> : public TGNoradConstPointer<const mse::TInt<char>, _TRefCounter> {
+			public:
+				typedef TGNoradConstPointer<const mse::TInt<char>, _TRefCounter> base_class;
+				MSE_USING(TGNoradConstPointer, base_class);
+			};
 #endif /*MSEPRIMITIVES_H*/
 
 			/* end of template specializations */

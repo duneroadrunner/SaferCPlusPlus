@@ -49,7 +49,7 @@
 #endif // !_NODISCARD
 
 #ifdef GPP6_COMPATIBLE
-/* Inheriting constructors seems to not work right quite in g++ 5.5. It does seem to work fine in g++ 7. So for versions
+/* Inheriting constructors seems to not work quite right in g++ 5.5. It does seem to work fine in g++ 7. So for versions
 prior to 7 we'll just alias the tuples to std::tuple<>. This means that the tuples won't (automatically) be recognized as
 async shareable or passable. */
 namespace mse {

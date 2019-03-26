@@ -1255,6 +1255,70 @@ void msetl_example2() {
 	}
 
 	{
+		/****************************/
+		/*   stnii_basic_string<>   */
+		/****************************/
+
+		/* stnii_basic_string<> is just a version of nii_basic_string<> that is not eligible to be shared between threads. */
+
+		mse::TXScopeObj<mse::stnii_basic_string<char> > basic_string1_xscpobj = mse::stnii_basic_string<char>{ "abc" };
+
+		{
+			/* The only advantage stnii_basic_string<> has over nii_basic_string<> is that you can obtain (const) scope
+			pointers to its elements from a const scope pointer to basic_string (whereas with nii_basic_string<> the pointer
+			must be non-const). */
+			mse::TXScopeItemFixedConstPointer<mse::stnii_basic_string<char> > xscptr = &basic_string1_xscpobj;
+			auto xxscp_basic_string1_change_lock_guard = mse::make_xscope_basic_string_size_change_lock_guard(xscptr);
+			auto xscp_ptr1 = xxscp_basic_string1_change_lock_guard.xscope_ptr_to_element(2);
+			auto res4 = *xscp_ptr1;
+		}
+		basic_string1_xscpobj.push_back(4);
+
+		/* And of course stnii_basic_string<>s can be (efficiently) swapped with nii_basic_string<>s. */
+		auto niibs1 = mse::nii_basic_string<char>();
+		std::swap(basic_string1_xscpobj, niibs1);
+		/* Or mstd::basic_string<>s. */
+		auto mstdbs1 = mse::mstd::string();
+		std::swap(basic_string1_xscpobj, mstdbs1);
+	}
+
+	{
+		/****************************/
+		/*   mtnii_basic_string<>   */
+		/****************************/
+
+		/* mtnii_basic_string<> is just a version of nii_basic_string<> that supports obtaining scope pointers to its elements from
+		const scope pointers to the basic_string. Unlike stnii_basic_string<>, mtnii_basic_string<> is eligible to be shared among threads.
+		This requires a (partially) thread safe mutex that adds a little bit of overhead to operations that modify the
+		size/structure of the basic_string. */
+
+		typedef mse::mtnii_basic_string<char> mtnii_basic_string1_t;
+		auto access_requester1 = mse::make_asyncsharedv2readwrite<mtnii_basic_string1_t>(mtnii_basic_string1_t{ "abc" });
+
+		{
+			/* Here we're obtaining a scope const pointer to the basic_string from a readlock pointer to the basic_string. */
+			auto xs_strong_pointer_store = mse::make_xscope_strong_pointer_store(access_requester1.readlock_ptr());
+			auto basic_string_xscope_const_ptr = xs_strong_pointer_store.xscope_ptr();
+
+			/* The only advantage mtnii_basic_string<> has over nii_basic_string<> is that you can obtain (const) scope
+			pointers to its elements from a const scope pointer to basic_string (whereas with nii_basic_string<> the pointer
+			must be non-const). */
+			auto xs_size_change_lock_guard = mse::make_xscope_basic_string_size_change_lock_guard(basic_string_xscope_const_ptr);
+			auto element1_xscope_const_ptr = xs_size_change_lock_guard.xscope_ptr_to_element(1);
+
+			assert((*element1_xscope_const_ptr) == 'b');
+		}
+
+		/* And of course stnii_basic_string<>s can be (efficiently) swapped with nii_basic_string<>s. */
+		auto niibs1 = mse::nii_basic_string<char>();
+		std::swap(*(access_requester1.writelock_ptr()), niibs1);
+		/* Or mstd::basic_string<>s. */
+		auto mstdbs1 = mse::mstd::basic_string<char>();
+		std::swap(*(access_requester1.writelock_ptr()), mstdbs1);
+	}
+
+
+	{
 		/********************/
 		/*  legacy helpers  */
 		/********************/

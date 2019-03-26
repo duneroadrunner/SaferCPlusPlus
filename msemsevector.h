@@ -1943,7 +1943,12 @@ namespace std {
 
 namespace std {
 
-	template<class _Ty, class _A, class _TStateMutex, class _TStateMutex2>
+	template<class _Ty, class _A, class _TStateMutex>
+	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	{
+		_Left.swap(_Right);
+	}
+	template<class _Ty, class _A, class _TStateMutex, class _TStateMutex2, class = typename std::enable_if<!std::is_same<_TStateMutex, _TStateMutex2>::value, void>::type>
 	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex2>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{
 		_Left.swap(_Right);

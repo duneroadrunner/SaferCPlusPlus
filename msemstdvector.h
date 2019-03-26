@@ -950,7 +950,7 @@ namespace std {
 
 namespace std {
 
-	template<class _Ty, class _A = std::allocator<_Ty> >
+	template<class _Ty, class _A >
 	void swap(mse::mstd::vector<_Ty, _A>& _Left, mse::mstd::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap vectors
 		return (_Left.swap(_Right));
@@ -965,7 +965,7 @@ namespace std {
 	{	// swap vectors
 		return (_Left.swap(_Right));
 	}
-	template<class _Ty, class _A = std::allocator<_Ty>/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	template<class _Ty, class _A/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
 	void swap(mse::mstd::vector<_Ty, _A>& _Left, std::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap vectors
 		return (_Left.swap(_Right));

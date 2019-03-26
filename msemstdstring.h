@@ -439,6 +439,8 @@ namespace mse {
 			void swap(_Myt& _X) { m_shptr->swap(_X.msebasic_string()); }
 			void swap(mse::nii_basic_string<_Ty, _Traits, _A>& _X) { m_shptr->swap(_X); }
 			void swap(std::basic_string<_Ty, _Traits, _A>& _X) { m_shptr->swap(_X); }
+			template<typename _TStateMutex2>
+			void swap(mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex2>& _X) { m_shptr->swap(_X); }
 
 			basic_string(_XSTD initializer_list<typename _MBS::value_type> _Ilist, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_Ilist, _Al)) {}
 			_Myt& operator=(_XSTD initializer_list<typename _MBS::value_type> _Ilist) { msebasic_string() = (_Ilist); return (*this); }
@@ -1727,38 +1729,38 @@ namespace std {
 	}
 
 
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
+	template<class _Ty, class _Traits, class _A>
 	void swap(mse::mstd::basic_string<_Ty, _Traits, _A>& _Left, mse::mstd::basic_string<_Ty, _Traits, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap basic_strings
 		return (_Left.swap(_Right));
 	}
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	template<class _Ty, class _Traits, class _A, class _TStateMutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
 	void swap(mse::mstd::basic_string<_Ty, _Traits, _A>& _Left, mse::nii_basic_string<_Ty, _Traits, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap basic_strings
 		return (_Left.swap(_Right));
 	}
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	template<class _Ty, class _Traits, class _A, class _TStateMutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
 	void swap(mse::mstd::basic_string<_Ty, _Traits, _A>& _Left, mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap basic_strings
 		return (_Left.swap(_Right));
 	}
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	template<class _Ty, class _Traits, class _A/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
 	void swap(mse::mstd::basic_string<_Ty, _Traits, _A>& _Left, std::basic_string<_Ty, _Traits, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap basic_strings
 		return (_Left.swap(_Right));
 	}
 
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	template<class _Ty, class _Traits, class _A, class _TStateMutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
 	void swap(mse::nii_basic_string<_Ty, _Traits, _A, _TStateMutex>& _Left, mse::mstd::basic_string<_Ty, _Traits, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap basic_strings
 		return (_Right.swap(_Left));
 	}
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	template<class _Ty, class _Traits, class _A, class _TStateMutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
 	void swap(mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex>& _Left, mse::mstd::basic_string<_Ty, _Traits, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap basic_strings
 		return (_Right.swap(_Left));
 	}
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	template<class _Ty, class _Traits, class _A/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
 	void swap(std::basic_string<_Ty, _Traits, _A>& _Left, mse::mstd::basic_string<_Ty, _Traits, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap basic_strings
 		return (_Right.swap(_Left));
