@@ -3169,7 +3169,8 @@ namespace mse {
 					}
 				}
 
-				void apply_to_all_mm_const_iterator_shptrs(const std::function<void(std::shared_ptr<mm_const_iterator_type>&)>& func_obj_ref) {
+				template<typename TFn>
+				void T_apply_to_all_mm_const_iterator_shptrs(const TFn& func_obj_ref) {
 					if (!mm_const_fast_mode1()) {
 						for (auto it = (*m_aux_mm_const_iterator_shptrs_ptr).begin(); (*m_aux_mm_const_iterator_shptrs_ptr).end() != it; it++) {
 							func_obj_ref((*it).second);
@@ -3181,7 +3182,8 @@ namespace mse {
 						}
 					}
 				}
-				void apply_to_all_mm_iterator_shptrs(const std::function<void(std::shared_ptr<mm_iterator_type>&)>& func_obj_ref) {
+				template<typename TFn>
+				void T_apply_to_all_mm_iterator_shptrs(const TFn& func_obj_ref) {
 					if (!mm_fast_mode1()) {
 						for (auto it = (*m_aux_mm_iterator_shptrs_ptr).begin(); (*m_aux_mm_iterator_shptrs_ptr).end() != it; it++) {
 							func_obj_ref((*it).second);
@@ -3196,32 +3198,23 @@ namespace mse {
 				mm_iterator_set_type(_Myt& owner_ref) : m_next_available_key(0), m_owner_ptr(&owner_ref) {}
 				void reset() {
 					/* We can use "static" here because the lambda function does not capture any parameters. */
-					static const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [](std::shared_ptr<mm_const_iterator_type>& a) { a->reset(); };
-					apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
-					static const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [](std::shared_ptr<mm_iterator_type>& a) { a->reset(); };
-					apply_to_all_mm_iterator_shptrs(it_func_obj);
+					T_apply_to_all_mm_const_iterator_shptrs([](std::shared_ptr<mm_const_iterator_type>& a) { a->reset(); });
+					T_apply_to_all_mm_iterator_shptrs([](std::shared_ptr<mm_iterator_type>& a) { a->reset(); });
 				}
 				void sync_iterators_to_index() {
 					/* No longer used. Relic from when mm_iterator_type contained a "native" iterator. */
-					/* We can use "static" here because the lambda function does not capture any parameters. */
 					/*
-					static const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [](std::shared_ptr<mm_const_iterator_type>& a) { a->sync_const_iterator_to_index(); };
-					apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
-					static const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [](std::shared_ptr<mm_iterator_type>& a) { a->sync_iterator_to_index(); };
-					apply_to_all_mm_iterator_shptrs(it_func_obj);
+					T_apply_to_all_mm_const_iterator_shptrs([](std::shared_ptr<mm_const_iterator_type>& a) { a->sync_const_iterator_to_index(); });
+					T_apply_to_all_mm_iterator_shptrs([](std::shared_ptr<mm_iterator_type>& a) { a->sync_iterator_to_index(); });
 					*/
 				}
 				void invalidate_inclusive_range(msev_size_t start_index, msev_size_t end_index) {
-					const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [start_index, end_index](std::shared_ptr<mm_const_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
-					apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
-					const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [start_index, end_index](std::shared_ptr<mm_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); };
-					apply_to_all_mm_iterator_shptrs(it_func_obj);
+					T_apply_to_all_mm_const_iterator_shptrs([start_index, end_index](std::shared_ptr<mm_const_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); });
+					T_apply_to_all_mm_iterator_shptrs([start_index, end_index](std::shared_ptr<mm_iterator_type>& a) { a->invalidate_inclusive_range(start_index, end_index); });
 				}
 				void shift_inclusive_range(msev_size_t start_index, msev_size_t end_index, msev_int shift) {
-					const std::function<void(std::shared_ptr<mm_const_iterator_type>&)> cit_func_obj = [start_index, end_index, shift](std::shared_ptr<mm_const_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
-					apply_to_all_mm_const_iterator_shptrs(cit_func_obj);
-					const std::function<void(std::shared_ptr<mm_iterator_type>&)> it_func_obj = [start_index, end_index, shift](std::shared_ptr<mm_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); };
-					apply_to_all_mm_iterator_shptrs(it_func_obj);
+					T_apply_to_all_mm_const_iterator_shptrs([start_index, end_index, shift](std::shared_ptr<mm_const_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); });
+					T_apply_to_all_mm_iterator_shptrs([start_index, end_index, shift](std::shared_ptr<mm_iterator_type>& a) { a->shift_inclusive_range(start_index, end_index, shift); });
 				}
 				bool is_empty() const {
 					if (mm_const_fast_mode1()) {
