@@ -156,6 +156,11 @@ MSE_STATICPOINTER_DISABLED will ultimately be defined. */
 #define MSE_INLINE_VAR
 #endif // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
 
+
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
@@ -1502,6 +1507,8 @@ namespace mse {
 #pragma warning( pop )  
 #endif /*_MSC_VER*/
 
-#undef MSE_THROW
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #endif /*ndef MSEPOINTERBASICS_H*/

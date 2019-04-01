@@ -32,18 +32,19 @@
 #define MSE_ASYNCSHAREDPOINTER_DISABLED
 #endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#pragma push_macro("_STD")
+#pragma push_macro("_NOEXCEPT")
+#pragma push_macro("_THROW_NCEE")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
-
-namespace mse {
-
-#ifdef MSE_ASYNCSHAREDPOINTER_DISABLED
-#else /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
-#endif /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
 
 #ifndef _STD
 #define _STD std::
@@ -56,6 +57,12 @@ namespace mse {
 #ifndef _THROW_NCEE
 #define _THROW_NCEE(x, y)	MSE_THROW(x(y))
 #endif /*_THROW_NCEE*/
+
+namespace mse {
+
+#ifdef MSE_ASYNCSHAREDPOINTER_DISABLED
+#else /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
+#endif /*MSE_ASYNCSHAREDPOINTER_DISABLED*/
 
 
 	/* This macro roughly simulates constructor inheritance. */
@@ -4054,6 +4061,11 @@ namespace mse {
 	*/
 }
 
-#undef MSE_THROW
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#pragma pop_macro("_STD")
+#pragma pop_macro("_NOEXCEPT")
+#pragma pop_macro("_THROW_NCEE")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #endif // MSEASYNCSHARED_H_

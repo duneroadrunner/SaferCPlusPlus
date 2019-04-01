@@ -40,6 +40,13 @@
 #pragma warning( disable : 4505 )
 #endif /*_MSC_VER*/
 
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#pragma push_macro("_STD")
+#pragma push_macro("_NOEXCEPT")
+#pragma push_macro("_NOEXCEPT_OP")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
@@ -47,13 +54,17 @@
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
 
+#ifndef _STD
+#define _STD std::
+#endif /*_STD*/
+
 #ifndef _NOEXCEPT
 #define _NOEXCEPT
 #endif //_NOEXCEPT
 
-#ifndef _STD
-#define _STD std::
-#endif /*_STD*/
+#ifndef _NOEXCEPT_OP
+#define _NOEXCEPT_OP(x)	noexcept(x)
+#endif /*_NOEXCEPT_OP*/
 
 namespace mse {
 
@@ -8560,7 +8571,12 @@ namespace mse {
 #endif // MSEASYNCSHARED_H_
 }
 
-
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#pragma pop_macro("_STD")
+#pragma pop_macro("_NOEXCEPT")
+#pragma pop_macro("_NOEXCEPT_OP")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef _MSC_VER
 #pragma warning( pop )  

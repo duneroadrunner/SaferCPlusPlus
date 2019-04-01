@@ -15,12 +15,21 @@
 #include <functional>
 #include <cassert>
 
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#pragma push_macro("_NOEXCEPT")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
+
+#ifndef _NOEXCEPT
+#define _NOEXCEPT
+#endif /*_NOEXCEPT*/
 
 #ifdef _MSC_VER
 #pragma warning( push )  
@@ -37,10 +46,6 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #endif /*__GNUC__*/
 #endif /*__clang__*/
-
-#ifndef _NOEXCEPT
-#define _NOEXCEPT
-#endif /*_NOEXCEPT*/
 
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
@@ -1230,6 +1235,9 @@ namespace mse {
 #pragma warning( pop )  
 #endif /*_MSC_VER*/
 
-#undef MSE_THROW
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#pragma pop_macro("_NOEXCEPT")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #endif // MSEREGISTERED_H_

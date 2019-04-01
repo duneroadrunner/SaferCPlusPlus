@@ -13,6 +13,10 @@
 #include "msescope.h"
 #include "mseoptional.h"
 
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
@@ -435,5 +439,9 @@ namespace mse {
 		return impl::xscope_c_range_equal<_XScopeContainerPointer, _InIt2>(_XscpPtr, _First2).result;
 	}
 }
+
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #endif /*ndef MSEALGORITHM_H*/

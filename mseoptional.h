@@ -27,10 +27,9 @@
 #include<optional>
 #endif // MSE_HAS_CXX17
 
-#ifdef _MSC_VER
-#pragma warning( push )  
-#pragma warning( disable : 4702 4189 )
-#endif /*_MSC_VER*/
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
@@ -38,6 +37,11 @@
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
+
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4702 4189 )
+#endif /*_MSC_VER*/
 
 
 # define TR2_OPTIONAL_REQUIRES(...) typename std::enable_if<__VA_ARGS__::value, bool>::type = false
@@ -2136,13 +2140,16 @@ namespace mse {
 #pragma GCC diagnostic pop
 #endif /*__GNUC__*/
 #endif /*__clang__*/
+		};
+	}
+} // namespace mse
+
 #ifdef _MSC_VER
 #pragma warning( pop )  
 #endif /*_MSC_VER*/
 
-		};
-	}
-
-} // namespace mse
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 # endif //MSEOPTIONAL_H_

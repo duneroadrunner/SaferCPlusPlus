@@ -30,12 +30,41 @@ so you can't disable mstd::vector<> without also disabling mstd::array<>. */
 #define MSE_MSTDARRAY_DISABLED
 #endif /*MSE_MSTDVECTOR_DISABLED*/
 
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#pragma push_macro("_STD")
+#pragma push_macro("_XSTD")
+#pragma push_macro("_NOEXCEPT")
+#pragma push_macro("_NOEXCEPT_OP")
+#pragma push_macro("_CONST_FUN")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
+
+#ifndef _STD
+#define _STD std::
+#endif /*_STD*/
+
+#ifndef _XSTD
+#define _XSTD ::std::
+#endif /*_XSTD*/
+
+#ifndef _NOEXCEPT
+#define _NOEXCEPT
+#endif /*_NOEXCEPT*/
+
+#ifndef _NOEXCEPT_OP
+#define _NOEXCEPT_OP(x)	noexcept(x)
+#endif /*_NOEXCEPT_OP*/
+
+#ifndef _CONST_FUN
+#define _CONST_FUN  constexpr
+#endif /*_CONST_FUN*/
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -91,22 +120,6 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 #else /*MSE_MSTDARRAY_DISABLED*/
-
-#ifndef _XSTD
-#define _XSTD ::std::
-#endif /*_XSTD*/
-
-#ifndef _STD
-#define _STD std::
-#endif /*_STD*/
-
-#ifndef _CONST_FUN
-#define _CONST_FUN  constexpr
-#endif /*_CONST_FUN*/
-
-#ifndef _NOEXCEPT
-#define _NOEXCEPT
-#endif /*_NOEXCEPT*/
 
 		class mstdarray_range_error : public std::range_error { public:
 			using std::range_error::range_error;
@@ -1086,7 +1099,14 @@ namespace mse {
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
-#undef MSE_THROW
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#pragma pop_macro("_STD")
+#pragma pop_macro("_XSTD")
+#pragma pop_macro("_NOEXCEPT")
+#pragma pop_macro("_NOEXCEPT_OP")
+#pragma pop_macro("_CONST_FUN")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef _MSC_VER
 #pragma warning( pop )  

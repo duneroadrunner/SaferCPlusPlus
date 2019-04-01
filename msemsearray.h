@@ -59,14 +59,20 @@
 #pragma warning( disable : 4100 4456 4189 4505 5046 )
 #endif /*_MSC_VER*/
 
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#pragma push_macro("_STD")
+#pragma push_macro("_NOEXCEPT")
+#pragma push_macro("_NOEXCEPT_OP")
+#pragma push_macro("_THROW_NCEE")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
-
-namespace mse {
 
 #ifndef _STD
 #define _STD std::
@@ -83,6 +89,8 @@ namespace mse {
 #ifndef _THROW_NCEE
 #define _THROW_NCEE(x, y)	MSE_THROW(x(y))
 #endif /*_THROW_NCEE*/
+
+namespace mse {
 
 #ifdef MSE_MSEARRAY_USE_MSE_PRIMITIVES
 	typedef mse::CSize_t msear_size_t;
@@ -1491,6 +1499,68 @@ namespace mse {
 		}
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TRAContainerPointer);
+	};
+
+	namespace impl{
+
+		template<typename T, size_t n>
+		size_t native_array_size_msemsearray(const T(&)[n]) {
+			return n;
+		}
+		template<class T, class EqualTo>
+		struct IsNativeArray_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(native_array_size_msemsearray(std::declval<U>()), native_array_size_msemsearray(std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			static const bool value = type();
+		};
+		template<class T, class EqualTo = T>
+		struct IsNativeArray_msemsearray : IsNativeArray_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+		template<typename T>
+		struct is_std_array : std::integral_constant<bool, false> {};
+		template<class _Ty, size_t _Size>
+		struct is_std_array<std::array<_Ty, _Size> > : std::integral_constant<bool, true> {};
+
+		template <typename _Ty> struct is_static_structure_container_msemsearray : std::integral_constant<bool, (is_std_array<_Ty>::value)
+			|| (IsNativeArray_msemsearray<_Ty>::value)> {};
+
+		template<class _Ty, class = typename std::enable_if<(is_static_structure_container_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_static_structure_container_msemsearray() {}
+	}
+
+	template <typename _TRAContainerPointer>
+	class TXScopeSSRAIterator : public TXScopeRAIterator<_TRAContainerPointer> {
+	public:
+		typedef TXScopeRAIterator<_TRAContainerPointer> base_class;
+		typedef typename base_class::iterator_category iterator_category;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::difference_type difference_type;
+		typedef typename base_class::pointer pointer;
+		typedef typename base_class::reference reference;
+		typedef const pointer const_pointer;
+		typedef const reference const_reference;
+		typedef typename base_class::size_type size_type;
+
+		TXScopeSSRAIterator(const TXScopeSSRAIterator& src) : base_class(src) {}
+		TXScopeSSRAIterator(TXScopeSSRAIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
+		TXScopeSSRAIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {
+			typedef typename std::remove_reference<decltype(*ra_container_pointer)>::type TRAContainer;
+			mse::impl::T_valid_if_is_static_structure_container_msemsearray<TRAContainer>();
+		}
+		TXScopeSSRAIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {
+			typedef typename std::remove_reference<decltype(*ra_container_pointer)>::type TRAContainer;
+			mse::impl::T_valid_if_is_static_structure_container_msemsearray<TRAContainer>();
+		}
+		//MSE_USING(TXScopeSSRAIterator, base_class);
+
+	private:
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template <typename _TRAContainerPointer>
@@ -3329,24 +3399,6 @@ namespace mse {
 		};
 		template<class T, class EqualTo = T>
 		struct HasOrInheritsStaticSSBeginMethod_msemsearray : HasOrInheritsStaticSSBeginMethod_msemsearray_impl<
-			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
-		template<typename T, size_t n>
-		size_t native_array_size_msemsearray(const T(&)[n]) {
-			return n;
-		}
-		template<class T, class EqualTo>
-		struct IsNativeArray_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(native_array_size_msemsearray(std::declval<U>()), native_array_size_msemsearray(std::declval<V>()), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct IsNativeArray_msemsearray : IsNativeArray_msemsearray_impl<
 			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
 		template<class T, class EqualTo>
@@ -7604,7 +7656,13 @@ namespace mse {
 
 }
 
-#undef MSE_THROW
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#pragma pop_macro("_STD")
+#pragma pop_macro("_NOEXCEPT")
+#pragma pop_macro("_NOEXCEPT_OP")
+#pragma pop_macro("_THROW_NCEE")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef _MSC_VER
 #pragma warning( pop )  

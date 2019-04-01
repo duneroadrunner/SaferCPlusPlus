@@ -42,6 +42,10 @@
 
 /* Note that by default, MSE_SCOPEPOINTER_DISABLED is defined in non-debug builds. This is enacted in "msepointerbasics.h". */
 
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("_NOEXCEPT")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
 #ifndef _NOEXCEPT
 #define _NOEXCEPT
 #endif /*_NOEXCEPT*/
@@ -2212,6 +2216,11 @@ namespace mse {
 			}
 		};
 	}
+}
+
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("_NOEXCEPT")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef __clang__
 #pragma clang diagnostic pop
@@ -2220,8 +2229,6 @@ namespace mse {
 #pragma GCC diagnostic pop
 #endif /*__GNUC__*/
 #endif /*__clang__*/
-
-}
 
 #ifdef _MSC_VER
 #pragma warning( pop )  

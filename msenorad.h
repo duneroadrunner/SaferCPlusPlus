@@ -30,6 +30,11 @@ objects of a given type. */
 #define MSE_NORADPOINTER_DISABLED
 #endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#pragma push_macro("_NOEXCEPT")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
@@ -1743,6 +1748,9 @@ namespace mse {
 
 }
 
-#undef MSE_THROW
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#pragma pop_macro("_NOEXCEPT")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #endif // MSENORAD_H_

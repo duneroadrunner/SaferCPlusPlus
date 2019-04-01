@@ -1848,7 +1848,7 @@ int main(int argc, char* argv[]) {
 				CF* cf_ptr = item1.m_next_item_ptr;
 				for (int i = 0; i < number_of_loops2; i += 1) {
 					cf_ptr = cf_ptr->m_next_item_ptr;
-					if (!cf_ptr) { MSE_THROW(""); }
+					if (!cf_ptr) { throw(""); }
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

@@ -16,12 +16,21 @@
 //#define MSE_MSTDVECTOR_DISABLED
 //#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#pragma push_macro("_NOEXCEPT_OP")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
+
+#ifndef _NOEXCEPT_OP
+#define _NOEXCEPT_OP(x)	noexcept(x)
+#endif /*_NOEXCEPT_OP*/
 
 namespace mse {
 
@@ -995,6 +1004,9 @@ namespace mse {
 	}
 }
 
-#undef MSE_THROW
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#pragma pop_macro("_NOEXCEPT_OP")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #endif /*ndef MSEMSTDVECTOR_H*/

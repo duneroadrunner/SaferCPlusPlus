@@ -35,10 +35,9 @@
 #include <map>
 #include <string>
 
-#ifdef _MSC_VER
-#pragma warning( push )  
-#pragma warning( disable : 4100 4456 4189 )
-#endif /*_MSC_VER*/
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
@@ -51,15 +50,16 @@
 #define MSE_POLYPOINTER_DISABLED
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4100 4456 4189 4503 )
+#endif /*_MSC_VER*/
+
 namespace mse {
 
 #ifdef MSE_POLYPOINTER_DISABLED
 #else /*MSE_POLYPOINTER_DISABLED*/
 #endif /*MSE_POLYPOINTER_DISABLED*/
-
-#if defined(_MSC_VER)
-#pragma warning(disable:4503)
-#endif
 
 	namespace impl {
 		/* The original variant code came from: https://gist.github.com/tibordp/6909880 */
@@ -2259,5 +2259,9 @@ namespace mse {
 #ifdef _MSC_VER
 #pragma warning( pop )  
 #endif /*_MSC_VER*/
+
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #endif // MSEPOLY_H_

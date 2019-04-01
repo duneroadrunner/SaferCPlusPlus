@@ -15,12 +15,31 @@
 //#define MSE_MSTDSTRING_DISABLED
 //#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#pragma push_macro("_STD")
+#pragma push_macro("_NOEXCEPT")
+#pragma push_macro("_NOEXCEPT_OP")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
+
+#ifndef _STD
+#define _STD std::
+#endif /*_STD*/
+
+#ifndef _NOEXCEPT
+#define _NOEXCEPT
+#endif /*_NOEXCEPT*/
+
+#ifndef _NOEXCEPT_OP
+#define _NOEXCEPT_OP(x)	noexcept(x)
+#endif /*_NOEXCEPT_OP*/
 
 namespace mse {
 
@@ -30,10 +49,6 @@ namespace mse {
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> > using basic_string = std::basic_string<_Ty, _Traits, _A>;
 
 #else /*MSE_MSTDSTRING_DISABLED*/
-
-#ifndef _NOEXCEPT
-#define _NOEXCEPT
-#endif /*_NOEXCEPT*/
 
 		class mstdbasic_string_range_error : public std::range_error {
 		public:
@@ -1795,5 +1810,12 @@ namespace mse {
 		}
 	}
 }
+
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#pragma pop_macro("_STD")
+#pragma pop_macro("_NOEXCEPT")
+#pragma pop_macro("_NOEXCEPT_OP")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #endif /*ndef MSEMSTDSTRING_H*/

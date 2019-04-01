@@ -21,17 +21,10 @@
 #endif // MSE_SELF_TESTS
 
 
-#if (defined(__GNUC__) || defined(__GNUG__))
-#define GPP_COMPATIBLE 1
-#if ((7 > __GNUC__) && (!defined(__clang__)))
-#define GPP6_COMPATIBLE 1
-#endif /*((7 > __GNUC__) && (!defined(__clang__)))*/
-#endif /*(defined(__GNUC__) || defined(__GNUG__))*/
-
-#ifdef _MSC_VER
-#pragma warning( push )  
-#pragma warning( disable : 4702 4189 )
-#endif /*_MSC_VER*/
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#pragma push_macro("_NODISCARD")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
@@ -47,6 +40,18 @@
 #define _NODISCARD
 #endif // MSE_HAS_CXX17
 #endif // !_NODISCARD
+
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4702 4189 )
+#endif /*_MSC_VER*/
+
+#if (defined(__GNUC__) || defined(__GNUG__))
+#define GPP_COMPATIBLE 1
+#if ((7 > __GNUC__) && (!defined(__clang__)))
+#define GPP6_COMPATIBLE 1
+#endif /*((7 > __GNUC__) && (!defined(__clang__)))*/
+#endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 
 #ifdef GPP6_COMPATIBLE
 /* Inheriting constructors seems to not work quite right in g++ 5.5. It does seem to work fine in g++ 7. So for versions
@@ -733,6 +738,8 @@ namespace mse {
 				}
 #endif // MSE_SELF_TESTS
 			}
+		};
+	}
 
 #ifdef __clang__
 #pragma clang diagnostic pop
@@ -741,13 +748,16 @@ namespace mse {
 #pragma GCC diagnostic pop
 #endif /*__GNUC__*/
 #endif /*__clang__*/
+
+} // namespace mse
+
 #ifdef _MSC_VER
 #pragma warning( pop )  
 #endif /*_MSC_VER*/
 
-		};
-	}
-
-} // namespace mse
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#pragma pop_macro("_NODISCARD")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 # endif //MSETUPLE_H_
