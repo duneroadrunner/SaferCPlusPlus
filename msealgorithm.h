@@ -282,7 +282,7 @@ namespace mse {
 
 	/* deprecated alias */
 	template<class _XScopeContainerPointer, class _Pr>
-	inline auto xscope_ra_const_find_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
+	MSE_DEPRECATED inline auto xscope_ra_const_find_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
 		return xscope_range_get_ref_if(_XscpPtr, _Pred);
 	}
 

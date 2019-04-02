@@ -156,6 +156,10 @@ MSE_STATICPOINTER_DISABLED will ultimately be defined. */
 #define MSE_INLINE_VAR
 #endif // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
 
+#ifndef MSE_DEPRECATED
+#define MSE_DEPRECATED [[deprecated]]
+#endif // !MSE_DEPRECATED
+
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma push_macro("MSE_THROW")
@@ -280,7 +284,7 @@ namespace mse {
 
 	namespace us {
 		namespace impl {
-	class XScopeTagBase { public: void xscope_tag() const {} };
+			class XScopeTagBase { public: void xscope_tag() const {} };
 		}
 	}
 

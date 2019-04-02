@@ -1653,13 +1653,13 @@ namespace mse {
 	void ndelete(const TNoradPointer<_Ty>& regPtrRef) { norad_delete<_Ty>(regPtrRef); }
 
 	/* deprecated aliases */
-	template<typename _Ty> using TWNoradPointer = TNDNoradPointer<_Ty>;
-	template<typename _Ty> using TWNoradConstPointer = TNDNoradConstPointer<_Ty>;
-	template<typename _Ty> using TWNoradNotNullPointer = TNDNoradNotNullPointer<_Ty>;
-	template<typename _Ty> using TWNoradNotNullConstPointer = TNDNoradNotNullConstPointer<_Ty>;
-	template<typename _Ty> using TWNoradFixedPointer = TNDNoradFixedPointer<_Ty>;
-	template<typename _Ty> using TWNoradFixedConstPointer = TNDNoradFixedConstPointer<_Ty>;
-	template<typename _TROFLy> using TWNoradObj = TNDNoradObj<_TROFLy>;
+	template<typename _Ty> using TWNoradPointer MSE_DEPRECATED = TNDNoradPointer<_Ty>;
+	template<typename _Ty> using TWNoradConstPointer MSE_DEPRECATED = TNDNoradConstPointer<_Ty>;
+	template<typename _Ty> using TWNoradNotNullPointer MSE_DEPRECATED = TNDNoradNotNullPointer<_Ty>;
+	template<typename _Ty> using TWNoradNotNullConstPointer MSE_DEPRECATED = TNDNoradNotNullConstPointer<_Ty>;
+	template<typename _Ty> using TWNoradFixedPointer MSE_DEPRECATED = TNDNoradFixedPointer<_Ty>;
+	template<typename _Ty> using TWNoradFixedConstPointer MSE_DEPRECATED = TNDNoradFixedConstPointer<_Ty>;
+	template<typename _TROFLy> using TWNoradObj MSE_DEPRECATED = TNDNoradObj<_TROFLy>;
 
 #ifdef _MSC_VER
 #pragma warning( push )  

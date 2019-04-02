@@ -956,24 +956,24 @@ namespace mse {
 	void crdelete(const TCRegisteredPointer<_Ty>& regPtrRef) { cregistered_delete<_Ty>(regPtrRef); }
 
 	/* deprecated aliases */
-	template<typename _Ty> using rrp = TCRegisteredPointer<_Ty>;
-	template<typename _Ty> using rrcp = TCRegisteredConstPointer<_Ty>;
-	template<typename _Ty> using rrnnp = TCRegisteredNotNullPointer<_Ty>;
-	template<typename _Ty> using rrnncp = TCRegisteredNotNullConstPointer<_Ty>;
-	template<typename _Ty> using rrfp = TCRegisteredFixedPointer<_Ty>;
-	template<typename _Ty> using rrfcp = TCRegisteredFixedConstPointer<_Ty>;
-	template<typename _TROFLy> using rro = TCRegisteredObj<_TROFLy>;
+	template<typename _Ty> using rrp MSE_DEPRECATED = TCRegisteredPointer<_Ty>;
+	template<typename _Ty> using rrcp MSE_DEPRECATED = TCRegisteredConstPointer<_Ty>;
+	template<typename _Ty> using rrnnp MSE_DEPRECATED = TCRegisteredNotNullPointer<_Ty>;
+	template<typename _Ty> using rrnncp MSE_DEPRECATED = TCRegisteredNotNullConstPointer<_Ty>;
+	template<typename _Ty> using rrfp MSE_DEPRECATED = TCRegisteredFixedPointer<_Ty>;
+	template<typename _Ty> using rrfcp MSE_DEPRECATED = TCRegisteredFixedConstPointer<_Ty>;
+	template<typename _TROFLy> using rro MSE_DEPRECATED = TCRegisteredObj<_TROFLy>;
 	template <class _Ty, class... Args>
-	TCRegisteredPointer<_Ty> rrnew(Args&&... args) { return cregistered_new<_Ty>(std::forward<Args>(args)...); }
+	MSE_DEPRECATED TCRegisteredPointer<_Ty> rrnew(Args&&... args) { return cregistered_new<_Ty>(std::forward<Args>(args)...); }
 	template <class _Ty>
-	void rrdelete(const TCRegisteredPointer<_Ty>& regPtrRef) { cregistered_delete<_Ty>(regPtrRef); }
-	template<typename _Ty> using TWCRegisteredPointer = TNDCRegisteredPointer<_Ty>;
-	template<typename _Ty> using TWCRegisteredConstPointer = TNDCRegisteredConstPointer<_Ty>;
-	template<typename _Ty> using TWCRegisteredNotNullPointer = TNDCRegisteredNotNullPointer<_Ty>;
-	template<typename _Ty> using TWCRegisteredNotNullConstPointer = TNDCRegisteredNotNullConstPointer<_Ty>;
-	template<typename _Ty> using TWCRegisteredFixedPointer = TNDCRegisteredFixedPointer<_Ty>;
-	template<typename _Ty> using TWCRegisteredFixedConstPointer = TNDCRegisteredFixedConstPointer<_Ty>;
-	template<typename _TROFLy> using TWCRegisteredObj = TNDCRegisteredObj<_TROFLy>;
+	MSE_DEPRECATED void rrdelete(const TCRegisteredPointer<_Ty>& regPtrRef) { cregistered_delete<_Ty>(regPtrRef); }
+	template<typename _Ty> using TWCRegisteredPointer MSE_DEPRECATED = TNDCRegisteredPointer<_Ty>;
+	template<typename _Ty> using TWCRegisteredConstPointer MSE_DEPRECATED = TNDCRegisteredConstPointer<_Ty>;
+	template<typename _Ty> using TWCRegisteredNotNullPointer MSE_DEPRECATED = TNDCRegisteredNotNullPointer<_Ty>;
+	template<typename _Ty> using TWCRegisteredNotNullConstPointer MSE_DEPRECATED = TNDCRegisteredNotNullConstPointer<_Ty>;
+	template<typename _Ty> using TWCRegisteredFixedPointer MSE_DEPRECATED = TNDCRegisteredFixedPointer<_Ty>;
+	template<typename _Ty> using TWCRegisteredFixedConstPointer MSE_DEPRECATED = TNDCRegisteredFixedConstPointer<_Ty>;
+	template<typename _TROFLy> using TWCRegisteredObj MSE_DEPRECATED = TNDCRegisteredObj<_TROFLy>;
 
 #ifdef _MSC_VER
 #pragma warning( push )  

@@ -22,39 +22,39 @@ objects of a given type. */
 
 namespace mse {
 
-	template<typename _Ty> using TRelaxedRegisteredPointer = TCRegisteredPointer<_Ty>;
-	template<typename _Ty> using TRelaxedRegisteredConstPointer = TCRegisteredConstPointer<_Ty>;
-	template<typename _Ty> using TRelaxedRegisteredNotNullPointer = TCRegisteredNotNullPointer<_Ty>;
-	template<typename _Ty> using TRelaxedRegisteredNotNullConstPointer = TCRegisteredNotNullConstPointer<_Ty>;
-	template<typename _Ty> using TRelaxedRegisteredFixedPointer = TCRegisteredFixedPointer<_Ty>;
-	template<typename _Ty> using TRelaxedRegisteredFixedConstPointer = TCRegisteredFixedConstPointer<_Ty>;
+	template<typename _Ty> using TRelaxedRegisteredPointer MSE_DEPRECATED = TCRegisteredPointer<_Ty>;
+	template<typename _Ty> using TRelaxedRegisteredConstPointer MSE_DEPRECATED = TCRegisteredConstPointer<_Ty>;
+	template<typename _Ty> using TRelaxedRegisteredNotNullPointer MSE_DEPRECATED = TCRegisteredNotNullPointer<_Ty>;
+	template<typename _Ty> using TRelaxedRegisteredNotNullConstPointer MSE_DEPRECATED = TCRegisteredNotNullConstPointer<_Ty>;
+	template<typename _Ty> using TRelaxedRegisteredFixedPointer MSE_DEPRECATED = TCRegisteredFixedPointer<_Ty>;
+	template<typename _Ty> using TRelaxedRegisteredFixedConstPointer MSE_DEPRECATED = TCRegisteredFixedConstPointer<_Ty>;
 
-	template<typename _TROFLy> using TRelaxedRegisteredObj = TCRegisteredObj<_TROFLy>;
+	template<typename _TROFLy> using TRelaxedRegisteredObj MSE_DEPRECATED = TCRegisteredObj<_TROFLy>;
 	template <class _Ty, class... Args>
-	TRelaxedRegisteredPointer<_Ty> relaxed_registered_new(Args&&... args) {
+	MSE_DEPRECATED TRelaxedRegisteredPointer<_Ty> relaxed_registered_new(Args&&... args) {
 		return cregistered_new<_Ty>(std::forward<Args>(args)...);
 	}
 	template <class _Ty>
-	void relaxed_registered_delete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) {
+	MSE_DEPRECATED void relaxed_registered_delete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) {
 		cregistered_delete(regPtrRef);
 	}
 	template <class _Ty>
-	void relaxed_registered_delete(const TRelaxedRegisteredConstPointer<_Ty>& regPtrRef) {
+	MSE_DEPRECATED void relaxed_registered_delete(const TRelaxedRegisteredConstPointer<_Ty>& regPtrRef) {
 		cregistered_delete(regPtrRef);
 	}
 	namespace us {
 		template <class _Ty>
-		void relaxed_registered_delete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) {
+		MSE_DEPRECATED void relaxed_registered_delete(const TRelaxedRegisteredPointer<_Ty>& regPtrRef) {
 			mse::relaxed_registered_delete(regPtrRef);
 		}
 		template <class _Ty>
-		void relaxed_registered_delete(const TRelaxedRegisteredConstPointer<_Ty>& regPtrRef) {
+		MSE_DEPRECATED void relaxed_registered_delete(const TRelaxedRegisteredConstPointer<_Ty>& regPtrRef) {
 			mse::relaxed_registered_delete(regPtrRef);
 		}
 	}
 
-	template<typename _Ty> auto relaxed_registered_fptr_to(_Ty&& _X) { return cregistered_fptr_to(std::forward<decltype(_X)>(_X)); }
-	template<typename _Ty> auto relaxed_registered_fptr_to(const _Ty& _X) { return cregistered_fptr_to(_X); }
+	template<typename _Ty> MSE_DEPRECATED auto relaxed_registered_fptr_to(_Ty&& _X) { return cregistered_fptr_to(std::forward<decltype(_X)>(_X)); }
+	template<typename _Ty> MSE_DEPRECATED auto relaxed_registered_fptr_to(const _Ty& _X) { return cregistered_fptr_to(_X); }
 }
 
 #endif // MSERELAXEDREGISTERED_H_

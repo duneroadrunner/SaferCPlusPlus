@@ -149,7 +149,7 @@ namespace mse {
 				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<mstd_vector> >::value
 				, void>::type>
 			Tvector_xscope_const_iterator(const _TXScopePointer& owner_ptr)
-				: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member(*((*owner_ptr).m_shptr), owner_ptr)) {}
+				: m_xscope_ss_const_iterator(mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
 
 			Tvector_xscope_const_iterator(const Tvector_xscope_const_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_const_iterator) {}
 			Tvector_xscope_const_iterator(const Tvector_xscope_iterator<_Ty, _A>& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_iterator) {}
@@ -257,7 +257,7 @@ namespace mse {
 				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<mstd_vector> >::value
 				, void>::type>
 			Tvector_xscope_iterator(const _TXScopePointer& owner_ptr)
-				: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member(*((*owner_ptr).m_shptr), owner_ptr)) {}
+				: m_xscope_ss_iterator(mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 
 			Tvector_xscope_iterator(const Tvector_xscope_iterator& src_cref) : m_xscope_ss_iterator(src_cref.m_xscope_ss_iterator) {}
 			~Tvector_xscope_iterator() {}

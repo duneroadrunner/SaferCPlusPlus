@@ -4531,25 +4531,25 @@ namespace mse {
 
 	/* Using the mse::msevector<> alias of mse::us::msevector<> is deprecated. */
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	using msevector = us::msevector< _Ty, _A, _TStateMutex>;
+	using msevector MSE_DEPRECATED = us::msevector< _Ty, _A, _TStateMutex>;
 
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedPointer<msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedPointer<us::msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
 		return us::make_xscope_vector_size_change_lock_guard(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedPointer<msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedPointer<us::msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
 		return us::make_xscope_vector_size_change_lock_guard(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedConstPointer<msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedConstPointer<us::msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
 		return us::make_xscope_vector_size_change_lock_guard(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedConstPointer<msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedConstPointer<us::msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
 		return us::make_xscope_vector_size_change_lock_guard(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)

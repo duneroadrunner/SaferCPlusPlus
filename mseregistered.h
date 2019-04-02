@@ -969,17 +969,17 @@ namespace mse {
 	void rdelete(const TRegisteredPointer<_Ty>& regPtrRef) { registered_delete<_Ty>(regPtrRef); }
 
 	/* deprecated aliases */
-	template<class _TTargetType, class _TLeasePointerType> using swkfp = TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>;
-	template<class _TTargetType, class _TLeasePointerType> using swkfcp = TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;
-	template<typename _Ty> using TWRegisteredPointer = TNDRegisteredPointer<_Ty>;
-	template<typename _Ty> using TWRegisteredConstPointer = TNDRegisteredConstPointer<_Ty>;
-	template<typename _Ty> using TWRegisteredNotNullPointer = TNDRegisteredNotNullPointer<_Ty>;
-	template<typename _Ty> using TWRegisteredNotNullConstPointer = TNDRegisteredNotNullConstPointer<_Ty>;
-	template<typename _Ty> using TWRegisteredFixedPointer = TNDRegisteredFixedPointer<_Ty>;
-	template<typename _Ty> using TWRegisteredFixedConstPointer = TNDRegisteredFixedConstPointer<_Ty>;
-	template<typename _TROy> using TWRegisteredObj = TNDRegisteredObj<_TROy>;
-	template <typename _TLoneParam> auto mkrolp(const _TLoneParam& lone_param) { return make_registered(lone_param); }
-	template <typename _TLoneParam> auto mkrolp(_TLoneParam&& lone_param) { return make_registered(std::forward<decltype(lone_param)>(lone_param)); }
+	template<class _TTargetType, class _TLeasePointerType> using swkfp MSE_DEPRECATED = TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>;
+	template<class _TTargetType, class _TLeasePointerType> using swkfcp MSE_DEPRECATED = TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;
+	template<typename _Ty> using TWRegisteredPointer MSE_DEPRECATED = TNDRegisteredPointer<_Ty>;
+	template<typename _Ty> using TWRegisteredConstPointer MSE_DEPRECATED = TNDRegisteredConstPointer<_Ty>;
+	template<typename _Ty> using TWRegisteredNotNullPointer MSE_DEPRECATED = TNDRegisteredNotNullPointer<_Ty>;
+	template<typename _Ty> using TWRegisteredNotNullConstPointer MSE_DEPRECATED = TNDRegisteredNotNullConstPointer<_Ty>;
+	template<typename _Ty> using TWRegisteredFixedPointer MSE_DEPRECATED = TNDRegisteredFixedPointer<_Ty>;
+	template<typename _Ty> using TWRegisteredFixedConstPointer MSE_DEPRECATED = TNDRegisteredFixedConstPointer<_Ty>;
+	template<typename _TROy> using TWRegisteredObj MSE_DEPRECATED = TNDRegisteredObj<_TROy>;
+	template <typename _TLoneParam> MSE_DEPRECATED auto mkrolp(const _TLoneParam& lone_param) { return make_registered(lone_param); }
+	template <typename _TLoneParam> MSE_DEPRECATED auto mkrolp(_TLoneParam&& lone_param) { return make_registered(std::forward<decltype(lone_param)>(lone_param)); }
 
 
 #ifdef MSEREGISTEREDREFWRAPPER

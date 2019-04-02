@@ -22,7 +22,7 @@
 
 #ifdef _MSC_VER
 #pragma warning( push )  
-#pragma warning( disable : 4100 4456 4189 )
+#pragma warning( disable : 4100 4456 4189 4996 )
 #endif /*_MSC_VER*/
 
 
@@ -36,16 +36,16 @@ namespace mse {
 #else /*MSE_REFCOUNTINGOFREGISTEREDPOINTER_DISABLED*/
 #endif /*MSE_REFCOUNTINGOFREGISTEREDPOINTER_DISABLED*/
 
-	template<typename _Ty> using TRefCountingOfRegisteredPointer = TRefCountingPointer<TNDRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRegisteredNotNullPointer = TRefCountingNotNullPointer<TNDRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRegisteredFixedPointer = TRefCountingFixedPointer<TNDRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredPointer MSE_DEPRECATED = TRefCountingPointer<TNDRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredNotNullPointer MSE_DEPRECATED = TRefCountingNotNullPointer<TNDRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredFixedPointer MSE_DEPRECATED = TRefCountingFixedPointer<TNDRegisteredObj<_Ty>>;
 
-	template<typename _Ty> using TRefCountingOfRegisteredConstPointer = TRefCountingConstPointer<TNDRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRegisteredNotNullConstPointer = TRefCountingNotNullConstPointer<TNDRegisteredObj<_Ty>>;
-	template<typename _Ty> using TRefCountingOfRegisteredFixedConstPointer = TRefCountingFixedConstPointer<TNDRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredConstPointer MSE_DEPRECATED = TRefCountingConstPointer<TNDRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredNotNullConstPointer MSE_DEPRECATED = TRefCountingNotNullConstPointer<TNDRegisteredObj<_Ty>>;
+	template<typename _Ty> using TRefCountingOfRegisteredFixedConstPointer MSE_DEPRECATED = TRefCountingFixedConstPointer<TNDRegisteredObj<_Ty>>;
 
 	template <class _Ty, class... Args>
-	TRefCountingOfRegisteredFixedPointer<_Ty> make_refcountingofregistered(Args&&... args) {
+	MSE_DEPRECATED TRefCountingOfRegisteredFixedPointer<_Ty> make_refcountingofregistered(Args&&... args) {
 		return make_refcounting<TNDRegisteredObj<_Ty>>(std::forward<Args>(args)...);
 	}
 
@@ -54,12 +54,14 @@ namespace mse {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 

@@ -900,8 +900,8 @@ namespace mse {
 	}
 
 	/* deprecated aliases */
-	template<class _TTargetType, class _TLeaseType> using strfp = TStrongFixedPointer<_TTargetType, _TLeaseType>;
-	template<class _TTargetType, class _TLeaseType> using strfcp = TStrongFixedConstPointer<_TTargetType, _TLeaseType>;
+	template<class _TTargetType, class _TLeaseType> using strfp MSE_DEPRECATED = TStrongFixedPointer<_TTargetType, _TLeaseType>;
+	template<class _TTargetType, class _TLeaseType> using strfcp MSE_DEPRECATED = TStrongFixedConstPointer<_TTargetType, _TLeaseType>;
 
 
 #ifdef __clang__

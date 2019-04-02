@@ -3094,24 +3094,40 @@ namespace mse {
 
 
 
+	/*** start of deprecated ***/
+
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4996 )
+#endif /*_MSC_VER*/
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
 
 	/* TAsyncSharedReadWriteAccessRequester, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester,
 	and TStdSharedImmutableFixedPointer are deprecated. */
 
 	/* deprecated */
-	template<typename _Ty> class TAsyncSharedReadWriteAccessRequester;
-	template<typename _Ty> class TAsyncSharedReadWritePointer;
-	template<typename _Ty> class TAsyncSharedReadWriteConstPointer;
-	template<typename _Ty> class TAsyncSharedExclusiveReadWritePointer;
-	template<typename _Ty> class TAsyncSharedReadOnlyAccessRequester;
-	template<typename _Ty> class TAsyncSharedReadOnlyConstPointer;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedReadWriteAccessRequester;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedReadWritePointer;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedReadWriteConstPointer;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedExclusiveReadWritePointer;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedReadOnlyAccessRequester;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedReadOnlyConstPointer;
 
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester;
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer;
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer;
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer;
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester;
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer;
 
 	/* TAsyncSharedObj is intended as a transparent wrapper for other classes/objects. */
 	/* deprecated */
@@ -3153,12 +3169,12 @@ namespace mse {
 	};
 
 
-	template<typename _Ty> class TAsyncSharedReadWriteAccessRequester;
-	template<typename _Ty> class TAsyncSharedReadWriteConstPointer;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedReadWriteAccessRequester;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedReadWriteConstPointer;
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedReadWritePointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotPassableTagBase {
+	class MSE_DEPRECATED TAsyncSharedReadWritePointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotPassableTagBase {
 	public:
 		TAsyncSharedReadWritePointer(const TAsyncSharedReadWriteAccessRequester<_Ty>& src);
 		TAsyncSharedReadWritePointer(const TAsyncSharedReadWritePointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
@@ -3217,7 +3233,7 @@ namespace mse {
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedReadWriteConstPointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotPassableTagBase {
+	class MSE_DEPRECATED TAsyncSharedReadWriteConstPointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotPassableTagBase {
 	public:
 		TAsyncSharedReadWriteConstPointer(const TAsyncSharedReadWriteConstPointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedReadWriteConstPointer(TAsyncSharedReadWriteConstPointer&& src) = default;
@@ -3275,7 +3291,7 @@ namespace mse {
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedExclusiveReadWritePointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotPassableTagBase, public mse::us::impl::StrongExclusivePointerTagBase {
+	class MSE_DEPRECATED TAsyncSharedExclusiveReadWritePointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotPassableTagBase, public mse::us::impl::StrongExclusivePointerTagBase {
 	public:
 		TAsyncSharedExclusiveReadWritePointer(const TAsyncSharedExclusiveReadWritePointer& src) = delete;
 		TAsyncSharedExclusiveReadWritePointer(TAsyncSharedExclusiveReadWritePointer&& src) = default;
@@ -3333,7 +3349,7 @@ namespace mse {
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedReadWriteAccessRequester {
+	class MSE_DEPRECATED TAsyncSharedReadWriteAccessRequester {
 	public:
 		TAsyncSharedReadWriteAccessRequester(const TAsyncSharedReadWriteAccessRequester& src_cref) = default;
 
@@ -3417,7 +3433,7 @@ namespace mse {
 
 	/* deprecated */
 	template <class X, class... Args>
-	TAsyncSharedReadWriteAccessRequester<X> make_asyncsharedreadwrite(Args&&... args) {
+	MSE_DEPRECATED TAsyncSharedReadWriteAccessRequester<X> make_asyncsharedreadwrite(Args&&... args) {
 		return TAsyncSharedReadWriteAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
@@ -3426,17 +3442,17 @@ namespace mse {
 	TAsyncSharedReadWritePointer<_Ty>::TAsyncSharedReadWritePointer(const TAsyncSharedReadWriteAccessRequester<_Ty>& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 
 #ifdef MSESCOPE_H_
-	template<typename _Ty> using TXScopeAsyncSharedReadWriteStore = TXScopeStrongNotNullPointerStore<TAsyncSharedReadWritePointer<_Ty> >;
-	template<typename _Ty> using TXScopeAsyncSharedReadWriteConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedReadWriteConstPointer<_Ty> >;
+	template<typename _Ty> using TXScopeAsyncSharedReadWriteStore MSE_DEPRECATED = TXScopeStrongNotNullPointerStore<TAsyncSharedReadWritePointer<_Ty> >;
+	template<typename _Ty> using TXScopeAsyncSharedReadWriteConstStore MSE_DEPRECATED = TXScopeStrongNotNullConstPointerStore<TAsyncSharedReadWriteConstPointer<_Ty> >;
 
 	/* deprecated */
 	template<typename _Ty>
-	TXScopeAsyncSharedReadWriteStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedReadWritePointer<_Ty>& stored_ptr) {
+	MSE_DEPRECATED TXScopeAsyncSharedReadWriteStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedReadWritePointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedReadWriteStore<_Ty>(stored_ptr);
 	}
 	/* deprecated */
 	template<typename _Ty>
-	TXScopeAsyncSharedReadWriteConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedReadWriteConstPointer<_Ty>& stored_ptr) {
+	MSE_DEPRECATED TXScopeAsyncSharedReadWriteConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedReadWriteConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedReadWriteConstStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
@@ -3444,7 +3460,7 @@ namespace mse {
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedReadOnlyConstPointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotPassableTagBase {
+	class MSE_DEPRECATED TAsyncSharedReadOnlyConstPointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotPassableTagBase {
 	public:
 		TAsyncSharedReadOnlyConstPointer(const TAsyncSharedReadOnlyConstPointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedReadOnlyConstPointer(TAsyncSharedReadOnlyConstPointer&& src) = default;
@@ -3501,7 +3517,7 @@ namespace mse {
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedReadOnlyAccessRequester {
+	class MSE_DEPRECATED TAsyncSharedReadOnlyAccessRequester {
 	public:
 		TAsyncSharedReadOnlyAccessRequester(const TAsyncSharedReadOnlyAccessRequester& src_cref) = default;
 		TAsyncSharedReadOnlyAccessRequester(const TAsyncSharedReadWriteAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
@@ -3548,27 +3564,27 @@ namespace mse {
 
 	/* deprecated */
 	template <class X, class... Args>
-	TAsyncSharedReadOnlyAccessRequester<X> make_asyncsharedreadonly(Args&&... args) {
+	MSE_DEPRECATED TAsyncSharedReadOnlyAccessRequester<X> make_asyncsharedreadonly(Args&&... args) {
 		return TAsyncSharedReadOnlyAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
 #ifdef MSESCOPE_H_
 	/* deprecated */
-	template<typename _Ty> using TXScopeAsyncSharedReadOnlyConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedReadOnlyConstPointer<_Ty> >;
+	template<typename _Ty> using TXScopeAsyncSharedReadOnlyConstStore MSE_DEPRECATED = TXScopeStrongNotNullConstPointerStore<TAsyncSharedReadOnlyConstPointer<_Ty> >;
 
 	/* deprecated */
 	template<typename _Ty>
-	TXScopeAsyncSharedReadOnlyConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedReadOnlyConstPointer<_Ty>& stored_ptr) {
+	MSE_DEPRECATED TXScopeAsyncSharedReadOnlyConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedReadOnlyConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedReadOnlyConstStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
 
 
-	template<typename _Ty> class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer;
+	template<typename _Ty> class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer;
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
+	class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer&& src) = default;
@@ -3626,7 +3642,7 @@ namespace mse {
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
+	class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer&& src) = default;
@@ -3684,7 +3700,7 @@ namespace mse {
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::StrongExclusivePointerTagBase {
+	class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::StrongExclusivePointerTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer& src) = delete;
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer&& src) = default;
@@ -3742,7 +3758,7 @@ namespace mse {
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester {
+	class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester& src_cref) = default;
 
@@ -3825,22 +3841,22 @@ namespace mse {
 
 	/* deprecated */
 	template <class X, class... Args>
-	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite(Args&&... args) {
+	MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadwrite(Args&&... args) {
 		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
 #ifdef MSESCOPE_H_
-	template<typename _Ty> using TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore = TXScopeStrongNotNullPointerStore<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> >;
-	template<typename _Ty> using TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> >;
+	template<typename _Ty> using TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore MSE_DEPRECATED = TXScopeStrongNotNullPointerStore<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> >;
+	template<typename _Ty> using TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore MSE_DEPRECATED = TXScopeStrongNotNullConstPointerStore<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> >;
 
 	/* deprecated */
 	template<typename _Ty>
-	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& stored_ptr) {
+	MSE_DEPRECATED TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteStore<_Ty>(stored_ptr);
 	}
 	/* deprecated */
 	template<typename _Ty>
-	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& stored_ptr) {
+	MSE_DEPRECATED TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
@@ -3848,7 +3864,7 @@ namespace mse {
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
+	class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer&& src) = default;
@@ -3905,7 +3921,7 @@ namespace mse {
 
 	/* deprecated */
 	template<typename _Ty>
-	class TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester {
+	class MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester& src_cref) = default;
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteAccessRequester<_Ty>& src_cref) : m_shptr(src_cref.m_shptr) {}
@@ -3952,17 +3968,17 @@ namespace mse {
 
 	/* deprecated */
 	template <class X, class... Args>
-	TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly(Args&&... args) {
+	MSE_DEPRECATED TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X> make_asyncsharedobjectthatyouaresurehasnounprotectedmutablesreadonly(Args&&... args) {
 		return TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyAccessRequester<X>::make(std::forward<Args>(args)...);
 	}
 
 #ifdef MSESCOPE_H_
 	/* deprecated */
-	template<typename _Ty> using TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore = TXScopeStrongNotNullConstPointerStore<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> >;
+	template<typename _Ty> using TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore MSE_DEPRECATED = TXScopeStrongNotNullConstPointerStore<TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> >;
 
 	/* deprecated */
 	template<typename _Ty>
-	TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& stored_ptr) {
+	MSE_DEPRECATED TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore<_Ty> make_xscope_strong_pointer_store(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>& stored_ptr) {
 		return TXScopeAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
@@ -3973,7 +3989,7 @@ namespace mse {
 	mse::TStdSharedImmutableFixedPointer. And again, beware of sharing objects with mutable members. */
 	/* deprecated */
 	template<typename _Ty>
-	class TStdSharedImmutableFixedPointer : public std::shared_ptr<const _Ty>, public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
+	class MSE_DEPRECATED TStdSharedImmutableFixedPointer : public std::shared_ptr<const _Ty>, public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
 	public:
 		TStdSharedImmutableFixedPointer(const TStdSharedImmutableFixedPointer& src_cref) : std::shared_ptr<const _Ty>(src_cref) {}
 		virtual ~TStdSharedImmutableFixedPointer() {}
@@ -3993,17 +4009,17 @@ namespace mse {
 
 	/* deprecated */
 	template <class X, class... Args>
-	TStdSharedImmutableFixedPointer<X> make_stdsharedimmutable(Args&&... args) {
+	MSE_DEPRECATED TStdSharedImmutableFixedPointer<X> make_stdsharedimmutable(Args&&... args) {
 		return TStdSharedImmutableFixedPointer<X>::make(std::forward<Args>(args)...);
 	}
 
 #ifdef MSESCOPE_H_
 	/* deprecated */
-	template<typename _Ty> using TXScopeStdSharedImmutableFixedStore = TXScopeStrongNotNullConstPointerStore<TStdSharedImmutableFixedPointer<_Ty> >;
+	template<typename _Ty> using TXScopeStdSharedImmutableFixedStore MSE_DEPRECATED = TXScopeStrongNotNullConstPointerStore<TStdSharedImmutableFixedPointer<_Ty> >;
 
 	/* deprecated */
 	template<typename _Ty>
-	TXScopeStdSharedImmutableFixedStore<_Ty> make_xscope_strong_pointer_store(const TStdSharedImmutableFixedPointer<_Ty>& stored_ptr) {
+	MSE_DEPRECATED TXScopeStdSharedImmutableFixedStore<_Ty> make_xscope_strong_pointer_store(const TStdSharedImmutableFixedPointer<_Ty>& stored_ptr) {
 		return TXScopeStdSharedImmutableFixedStore<_Ty>(stored_ptr);
 	}
 #endif // MSESCOPE_H_
@@ -4011,47 +4027,63 @@ namespace mse {
 
 	/* Legacy aliases. */
 	/* deprecated */
-	template<typename _Ty> using TReadOnlyStdSharedFixedConstPointer = TStdSharedImmutableFixedPointer<_Ty>;
+	template<typename _Ty> using TReadOnlyStdSharedFixedConstPointer MSE_DEPRECATED = TStdSharedImmutableFixedPointer<_Ty>;
 	/* deprecated */
 	template <class X, class... Args>
-	TReadOnlyStdSharedFixedConstPointer<X> make_readonlystdshared(Args&&... args) {
+	MSE_DEPRECATED TReadOnlyStdSharedFixedConstPointer<X> make_readonlystdshared(Args&&... args) {
 		return TStdSharedImmutableFixedPointer<X>::make(std::forward<Args>(args)...);
 	}
-
 
 #if defined(MSEPOINTERBASICS_H)
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	TStrongFixedPointer<_TTargetType, TAsyncSharedReadWritePointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TAsyncSharedReadWritePointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TStrongFixedPointer<_TTargetType, TAsyncSharedReadWritePointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TAsyncSharedReadWritePointer<_Ty> &lease_pointer) {
 		return TStrongFixedPointer<_TTargetType, TAsyncSharedReadWritePointer<_Ty>>::make(target, lease_pointer);
 	}
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadWriteConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedReadWriteConstPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadWriteConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedReadWriteConstPointer<_Ty> &lease_pointer) {
 		return TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadWriteConstPointer<_Ty>>::make(target, lease_pointer);
 	}
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadOnlyConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedReadOnlyConstPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadOnlyConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedReadOnlyConstPointer<_Ty> &lease_pointer) {
 		return TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadOnlyConstPointer<_Ty>>::make(target, lease_pointer);
 	}
 
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	TStrongFixedPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TStrongFixedPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> &lease_pointer) {
 		return TStrongFixedPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>::make(target, lease_pointer);
 	}
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> &lease_pointer) {
 		return TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>::make(target, lease_pointer);
 	}
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> &lease_pointer) {
 		return TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>>::make(target, lease_pointer);
 	}
 #endif // defined(MSEPOINTERBASICS_H)
+
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
+
+	/*** end of deprecated ***/
+
+
 
 	/*
 	static void s_ashptr_test1() {

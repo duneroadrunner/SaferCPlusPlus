@@ -52,8 +52,18 @@
 
 #ifdef _MSC_VER
 #pragma warning( push )  
-#pragma warning( disable : 4100 4456 4189 4503 )
+#pragma warning( disable : 4100 4456 4189 4503 4996 )
 #endif /*_MSC_VER*/
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
 
 namespace mse {
 
@@ -1894,11 +1904,11 @@ namespace mse {
 
 
 	/* Deprecated poly pointers. */
-	template<typename _Ty> class TRefCountingOrXScopeFixedConstPointer;
+	template<typename _Ty> class MSE_DEPRECATED TRefCountingOrXScopeFixedConstPointer;
 
 	/* deprecated*/
 	template<typename _Ty>
-	class TRefCountingOrXScopeFixedPointer : public TXScopePolyPointer<_Ty> {
+	class MSE_DEPRECATED TRefCountingOrXScopeFixedPointer : public TXScopePolyPointer<_Ty> {
 	public:
 		TRefCountingOrXScopeFixedPointer(const TRefCountingOrXScopeFixedPointer& src_cref) : TXScopePolyPointer<_Ty>(src_cref) {}
 		TRefCountingOrXScopeFixedPointer(const TRefCountingPointer<_Ty>& src_cref) : TXScopePolyPointer<_Ty>(src_cref) {}
@@ -1925,7 +1935,7 @@ namespace mse {
 
 	/* deprecated*/
 	template<typename _Ty>
-	class TRefCountingOrXScopeFixedConstPointer : public TXScopePolyConstPointer<_Ty> {
+	class MSE_DEPRECATED TRefCountingOrXScopeFixedConstPointer : public TXScopePolyConstPointer<_Ty> {
 	public:
 		TRefCountingOrXScopeFixedConstPointer(const TRefCountingOrXScopeFixedConstPointer& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
 		TRefCountingOrXScopeFixedConstPointer(const TRefCountingOrXScopeFixedPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
@@ -1959,7 +1969,7 @@ namespace mse {
 
 	/* deprecated*/
 	template<typename _Ty>
-	class TRefCountingOrXScopeOrRawFixedPointer : public TRefCountingOrXScopeFixedPointer<_Ty> {
+	class MSE_DEPRECATED TRefCountingOrXScopeOrRawFixedPointer : public TRefCountingOrXScopeFixedPointer<_Ty> {
 	public:
 		MSE_SCOPE_USING(TRefCountingOrXScopeOrRawFixedPointer, TRefCountingOrXScopeFixedPointer<_Ty>);
 		TRefCountingOrXScopeOrRawFixedPointer(_Ty* ptr) : TRefCountingOrXScopeFixedPointer<_Ty>(ptr) {}
@@ -1968,7 +1978,7 @@ namespace mse {
 
 	/* deprecated*/
 	template<typename _Ty>
-	class TRefCountingOrXScopeOrRawFixedConstPointer : public TRefCountingOrXScopeFixedConstPointer<_Ty> {
+	class MSE_DEPRECATED TRefCountingOrXScopeOrRawFixedConstPointer : public TRefCountingOrXScopeFixedConstPointer<_Ty> {
 	public:
 		MSE_SCOPE_USING(TRefCountingOrXScopeOrRawFixedConstPointer, TRefCountingOrXScopeFixedConstPointer<_Ty>);
 		TRefCountingOrXScopeOrRawFixedConstPointer(_Ty* ptr) : TRefCountingOrXScopeFixedConstPointer<_Ty>(ptr) {}
@@ -1977,11 +1987,11 @@ namespace mse {
 
 
 	/* deprecated*/
-	template<typename _Ty> class TSharedOrRawFixedConstPointer;
+	template<typename _Ty> class MSE_DEPRECATED TSharedOrRawFixedConstPointer;
 
 	/* deprecated*/
 	template<typename _Ty>
-	class TSharedOrRawFixedPointer : public TPolyPointer<_Ty> {
+	class MSE_DEPRECATED TSharedOrRawFixedPointer : public TPolyPointer<_Ty> {
 	public:
 		TSharedOrRawFixedPointer(const TSharedOrRawFixedPointer& src_cref) : TPolyPointer<_Ty>(src_cref) {}
 		TSharedOrRawFixedPointer(const std::shared_ptr<_Ty>& src_cref) : TPolyPointer<_Ty>(src_cref) {}
@@ -2002,7 +2012,7 @@ namespace mse {
 
 	/* deprecated*/
 	template<typename _Ty>
-	class TSharedOrRawFixedConstPointer : public TPolyConstPointer<_Ty> {
+	class MSE_DEPRECATED TSharedOrRawFixedConstPointer : public TPolyConstPointer<_Ty> {
 	public:
 		TSharedOrRawFixedConstPointer(const TSharedOrRawFixedConstPointer& src_cref) : TPolyConstPointer<_Ty>(src_cref) {}
 		TSharedOrRawFixedConstPointer(const TSharedOrRawFixedPointer<_Ty>& src_cref) : TPolyConstPointer<_Ty>(src_cref) {}
@@ -2068,6 +2078,7 @@ namespace mse {
 							return retval;
 						}
 
+#ifdef MSE_POLY_SELF_TEST_DEPRECATED_POLY_POINTERS
 						/* Deprecated poly pointers */
 						static int foo3(mse::TRefCountingOrXScopeOrRawFixedPointer<A> ptr) {
 							int retval = ptr->b;
@@ -2093,6 +2104,8 @@ namespace mse {
 							int retval = ptr->b;
 							return retval;
 						}
+#endif // MSE_POLY_SELF_TEST_DEPRECATED_POLY_POINTERS
+
 					protected:
 						~B() {}
 					};
@@ -2157,6 +2170,7 @@ namespace mse {
 						int res14 = B::foo2(mse::TXScopeItemFixedPointer<D>(&d_xscpobj));
 					}
 
+#ifdef MSE_POLY_SELF_TEST_DEPRECATED_POLY_POINTERS
 					{
 						/* Testing the deprecated poly pointers */
 						auto A_refcfp = mse::make_refcounting<A>(5);
@@ -2191,6 +2205,7 @@ namespace mse {
 						int res43 = B::foo6(A_shp);
 						int res44 = B::foo6(&a_obj);
 					}
+#endif // MSE_POLY_SELF_TEST_DEPRECATED_POLY_POINTERS
 
 					{
 						/* Just exercising the tdp_variant type. */
@@ -2255,6 +2270,14 @@ namespace mse {
 #endif /*__clang__*/
 
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop // -Wdeprecated-declarations
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop // -Wdeprecated-declarations
+#endif /*__GNUC__*/
+#endif /*__clang__*/
 
 #ifdef _MSC_VER
 #pragma warning( pop )  

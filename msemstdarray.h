@@ -170,7 +170,7 @@ namespace mse {
 				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<mstd_array> >::value
 				, void>::type>
 				Tarray_xscope_const_iterator(const _TXScopePointer& owner_ptr)
-				: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member((*owner_ptr).m_nii_array, owner_ptr)) {}
+				: m_xscope_ss_const_iterator(mse::make_xscope_const_pointer_to_member_v2(owner_ptr, &mstd_array::m_nii_array)) {}
 
 			Tarray_xscope_const_iterator(const Tarray_xscope_const_iterator& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_const_iterator) {}
 			Tarray_xscope_const_iterator(const Tarray_xscope_iterator<_Ty, _Size>& src_cref) : m_xscope_ss_const_iterator(src_cref.m_xscope_ss_iterator) {}
@@ -278,7 +278,7 @@ namespace mse {
 				|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<mstd_array> >::value
 				, void>::type>
 				Tarray_xscope_iterator(const _TXScopePointer& owner_ptr)
-				: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member((*owner_ptr).m_nii_array, owner_ptr)) {}
+				: m_xscope_ss_iterator(mse::make_xscope_pointer_to_member_v2(owner_ptr, &mstd_array::m_nii_array)) {}
 
 			Tarray_xscope_iterator(const Tarray_xscope_iterator& src_cref) : m_xscope_ss_iterator(src_cref.m_xscope_ss_iterator) {}
 			~Tarray_xscope_iterator() {}
