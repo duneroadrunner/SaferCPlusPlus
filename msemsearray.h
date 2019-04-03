@@ -1696,13 +1696,25 @@ namespace mse {
 		typedef const pointer const_pointer;
 		typedef const reference const_reference;
 
-		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(Tnii_array_ss_const_iterator_type, base_class);
+		template<class _TArrayConstPointer2 = _TArrayConstPointer, class = typename std::enable_if<(std::is_same<_TArrayConstPointer2, _TArrayConstPointer>::value) && (std::is_default_constructible<_TArrayConstPointer>::value), void>::type>
+		Tnii_array_ss_const_iterator_type() {}
 
+		Tnii_array_ss_const_iterator_type(const _TArrayConstPointer& owner_cptr) : base_class(owner_cptr) {}
+		Tnii_array_ss_const_iterator_type(_TArrayConstPointer&& owner_cptr) : base_class(std::forward<decltype(owner_cptr)>(owner_cptr)) {}
+
+		Tnii_array_ss_const_iterator_type(Tnii_array_ss_const_iterator_type&& src) = default;
+		Tnii_array_ss_const_iterator_type(const Tnii_array_ss_const_iterator_type& src) = default;
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
+		Tnii_array_ss_const_iterator_type(const Tnii_array_ss_const_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
+		Tnii_array_ss_const_iterator_type(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 		auto& operator=(Tnii_array_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		auto& operator=(const Tnii_array_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
 		void assert_valid_index() const {
-			if ((*this).target_container_ptr()->size() < (*this).position()) { MSE_THROW(nii_array_range_error("invalid index - void assert_valid_index() const - ss_const_iterator_type - nii_array")); }
+			if (difference_type((*this).target_container_ptr()->size()) < (*this).position()) { MSE_THROW(nii_array_range_error("invalid index - void assert_valid_index() const - ss_const_iterator_type - nii_array")); }
 		}
 		void reset() { set_to_end_marker(); }
 		bool points_to_an_item() const {
@@ -1809,13 +1821,23 @@ namespace mse {
 		typedef const pointer const_pointer;
 		typedef const reference const_reference;
 
-		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(Tnii_array_ss_iterator_type, base_class);
+		template<class _TArrayPointer2 = _TArrayPointer, class = typename std::enable_if<(std::is_same<_TArrayPointer2, _TArrayPointer>::value) && (std::is_default_constructible<_TArrayPointer>::value), void>::type>
+		Tnii_array_ss_iterator_type() {}
 
+		Tnii_array_ss_iterator_type(const _TArrayPointer& owner_ptr) : base_class(owner_ptr) {}
+		Tnii_array_ss_iterator_type(_TArrayPointer&& owner_ptr) : base_class(std::forward<decltype(owner_ptr)>(owner_ptr)) {}
+
+		Tnii_array_ss_iterator_type(Tnii_array_ss_iterator_type&& src) = default;
+		Tnii_array_ss_iterator_type(const Tnii_array_ss_iterator_type& src) = default;
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayPointer>::value, void>::type>
+		Tnii_array_ss_iterator_type(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 		auto& operator=(Tnii_array_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		auto& operator=(const Tnii_array_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
 		void assert_valid_index() const {
-			if ((*this).target_container_ptr()->size() < (*this).position()) { MSE_THROW(nii_array_range_error("invalid index - void assert_valid_index() const - ss_iterator_type - nii_array")); }
+			if (difference_type((*this).target_container_ptr()->size()) < (*this).position()) { MSE_THROW(nii_array_range_error("invalid index - void assert_valid_index() const - ss_iterator_type - nii_array")); }
 		}
 		void reset() { set_to_end_marker(); }
 		bool points_to_an_item() const {
