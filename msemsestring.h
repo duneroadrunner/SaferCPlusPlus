@@ -2905,16 +2905,10 @@ namespace mse {
 
 	/* Tgnii_basic_string_ss_const_iterator_type is a bounds checked const_iterator. */
 	template<typename _TBasicStringConstPointer, class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	class Tgnii_basic_string_ss_const_iterator_type : public mse::TRAConstIterator<_TBasicStringConstPointer> {
+	class Tgnii_basic_string_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TBasicStringConstPointer> > {
 	public:
-		typedef mse::TRAConstIterator<_TBasicStringConstPointer> base_class;
-		typedef typename base_class::iterator_category iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
+		typedef mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TBasicStringConstPointer> > base_class;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		template<class _TBasicStringConstPointer2 = _TBasicStringConstPointer, class = typename std::enable_if<(std::is_same<_TBasicStringConstPointer2, _TBasicStringConstPointer>::value) && (std::is_default_constructible<_TBasicStringConstPointer>::value), void>::type>
 		Tgnii_basic_string_ss_const_iterator_type() {}
@@ -2933,70 +2927,11 @@ namespace mse {
 		auto& operator=(Tgnii_basic_string_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		auto& operator=(const Tgnii_basic_string_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
-		void assert_valid_index() const {
-			if (difference_type((*this).target_container_ptr()->size()) < (*this).position()) { MSE_THROW(gnii_basic_string_range_error("invalid index - void assert_valid_index() const - ss_const_iterator_type - gnii_basic_string")); }
-		}
-		void reset() { set_to_end_marker(); }
-		bool points_to_an_item() const {
-			if (difference_type((*this).target_container_ptr()->size()) > (*this).position()) { return true; }
-			else {
-				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
-				return false;
-			}
-		}
-		bool points_to_end_marker() const {
-			if (false == points_to_an_item()) {
-				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
-				return true;
-			}
-			else { return false; }
-		}
-		bool points_to_beginning() const {
-			if (0 == (*this).position()) { return true; }
-			else { return false; }
-		}
-		/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-		bool has_next_item_or_end_marker() const { return points_to_an_item(); } //his is
-																				 /* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-		bool has_next() const { return has_next_item_or_end_marker(); }
-		bool has_previous() const {
-			return ((1 <= (*this).target_container_ptr()->size()) && (!points_to_beginning()));
-		}
-		void set_to_end_marker() {
-			(*this).set_to_beginning();
-			advance((*this).target_container_ptr()->size());
-		}
-		void set_to_next() {
-			if (points_to_an_item()) {
-				advance(1);
-				assert(difference_type((*this).target_container_ptr()->size()) >= (*this).position());
-			}
-			else {
-				MSE_THROW(gnii_basic_string_range_error("attempt to use invalid const_item_pointer - void set_to_next() - Tgnii_basic_string_ss_const_iterator_type - gnii_basic_string"));
-			}
-		}
-		void set_to_previous() {
-			if (has_previous()) {
-				regress(1);
-			}
-			else {
-				MSE_THROW(gnii_basic_string_range_error("attempt to use invalid const_item_pointer - void set_to_previous() - Tgnii_basic_string_ss_const_iterator_type - gnii_basic_string"));
-			}
-		}
 		Tgnii_basic_string_ss_const_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
 		Tgnii_basic_string_ss_const_iterator_type operator++(int) { Tgnii_basic_string_ss_const_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
 		Tgnii_basic_string_ss_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
 		Tgnii_basic_string_ss_const_iterator_type operator--(int) { Tgnii_basic_string_ss_const_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
-		void advance(difference_type n) {
-			auto new_index = msear_int((*this).position()) + n;
-			if ((0 > new_index) || ((*this).target_container_ptr()->size() < msear_size_t(new_index))) {
-				MSE_THROW(gnii_basic_string_range_error("index out of range - void advance(difference_type n) - Tgnii_basic_string_ss_const_iterator_type - gnii_basic_string"));
-			}
-			else {
-				base_class::operator++();
-			}
-		}
-		void regress(difference_type n) { advance(-n); }
+
 		Tgnii_basic_string_ss_const_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
 		Tgnii_basic_string_ss_const_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
 		Tgnii_basic_string_ss_const_iterator_type operator+(difference_type n) const {
@@ -3007,15 +2942,6 @@ namespace mse {
 		Tgnii_basic_string_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 		difference_type operator-(const base_class& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
-		}
-		const_reference item() const { return (*this).operator*(); }
-		const_reference previous_item() const {
-			if ((*this).has_previous()) {
-				return (*(*this).target_container_ptr())[(*this).position() - 1];
-			}
-			else {
-				MSE_THROW(gnii_basic_string_range_error("attempt to use invalid item_pointer - const_reference previous_item() - Tgnii_basic_string_ss_const_iterator_type - gnii_basic_string"));
-			}
 		}
 
 		void set_to_const_item_pointer(const Tgnii_basic_string_ss_const_iterator_type& _Right_cref) {
@@ -3030,16 +2956,10 @@ namespace mse {
 	};
 	/* Tgnii_basic_string_ss_iterator_type is a bounds checked iterator. */
 	template<typename _TBasicStringPointer, class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	class Tgnii_basic_string_ss_iterator_type : public mse::TRAIterator<_TBasicStringPointer> {
+	class Tgnii_basic_string_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TBasicStringPointer> > {
 	public:
-		typedef mse::TRAIterator<_TBasicStringPointer> base_class;
-		typedef typename base_class::iterator_category iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
+		typedef mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TBasicStringPointer> > base_class;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		template<class _TBasicStringPointer2 = _TBasicStringPointer, class = typename std::enable_if<(std::is_same<_TBasicStringPointer2, _TBasicStringPointer>::value) && (std::is_default_constructible<_TBasicStringPointer>::value), void>::type>
 		Tgnii_basic_string_ss_iterator_type() {}
@@ -3057,70 +2977,11 @@ namespace mse {
 		auto& operator=(Tgnii_basic_string_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		auto& operator=(const Tgnii_basic_string_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
-		void assert_valid_index() const {
-			if (difference_type((*this).target_container_ptr()->size()) < (*this).position()) { MSE_THROW(gnii_basic_string_range_error("invalid index - void assert_valid_index() const - ss_iterator_type - gnii_basic_string")); }
-		}
-		void reset() { set_to_end_marker(); }
-		bool points_to_an_item() const {
-			if (difference_type((*this).target_container_ptr()->size()) > (*this).position()) { return true; }
-			else {
-				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
-				return false;
-			}
-		}
-		bool points_to_end_marker() const {
-			if (false == points_to_an_item()) {
-				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
-				return true;
-			}
-			else { return false; }
-		}
-		bool points_to_beginning() const {
-			if (0 == (*this).position()) { return true; }
-			else { return false; }
-		}
-		/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-		bool has_next_item_or_end_marker() const { return points_to_an_item(); }
-		/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-		bool has_next() const { return has_next_item_or_end_marker(); }
-		bool has_previous() const {
-			return ((1 <= (*this).target_container_ptr()->size()) && (!points_to_beginning()));
-		}
-		void set_to_end_marker() {
-			(*this).set_to_beginning();
-			advance((*this).target_container_ptr()->size());
-		}
-		void set_to_next() {
-			if (points_to_an_item()) {
-				advance(1);
-				assert(difference_type((*this).target_container_ptr()->size()) >= (*this).position());
-			}
-			else {
-				MSE_THROW(gnii_basic_string_range_error("attempt to use invalid item_pointer - void set_to_next() - Tgnii_basic_string_ss_const_iterator_type - gnii_basic_string"));
-			}
-		}
-		void set_to_previous() {
-			if (has_previous()) {
-				regress(1);
-			}
-			else {
-				MSE_THROW(gnii_basic_string_range_error("attempt to use invalid item_pointer - void set_to_previous() - Tgnii_basic_string_ss_iterator_type - gnii_basic_string"));
-			}
-		}
 		Tgnii_basic_string_ss_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
 		Tgnii_basic_string_ss_iterator_type operator++(int) { Tgnii_basic_string_ss_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
 		Tgnii_basic_string_ss_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
 		Tgnii_basic_string_ss_iterator_type operator--(int) { Tgnii_basic_string_ss_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
-		void advance(difference_type n) {
-			auto new_index = msear_int((*this).position()) + n;
-			if ((0 > new_index) || ((*this).target_container_ptr()->size() < msear_size_t(new_index))) {
-				MSE_THROW(gnii_basic_string_range_error("index out of range - void advance(difference_type n) - Tgnii_basic_string_ss_iterator_type - gnii_basic_string"));
-			}
-			else {
-				base_class::operator++();
-			}
-		}
-		void regress(difference_type n) { advance(-n); }
+
 		Tgnii_basic_string_ss_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
 		Tgnii_basic_string_ss_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
 		Tgnii_basic_string_ss_iterator_type operator+(difference_type n) const {
@@ -3131,15 +2992,6 @@ namespace mse {
 		Tgnii_basic_string_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 		difference_type operator-(const base_class& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
-		}
-		reference item() const { return (*this).operator*(); }
-		reference previous_item() const {
-			if ((*this).has_previous()) {
-				return (*(*this).target_container_ptr())[(*this).position() - 1];
-			}
-			else {
-				MSE_THROW(gnii_basic_string_range_error("attempt to use invalid item_pointer - reference previous_item() - Tgnii_basic_string_ss_iterator_type - gnii_basic_string"));
-			}
 		}
 
 		void set_to_item_pointer(const Tgnii_basic_string_ss_iterator_type& _Right_cref) {
