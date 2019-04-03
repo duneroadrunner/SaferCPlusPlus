@@ -246,7 +246,7 @@ namespace mse {
 				TGNoradPointer(const TGNoradPointer<_Ty2, _TRefCounter>& src_cref) : m_ptr(src_cref.m_ptr) {
 					if (m_ptr) { (*m_ptr).increment_refcount(); }
 				}
-				TGNoradPointer(TGNoradPointer&& src_ref) : m_ptr(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+				TGNoradPointer(TGNoradPointer&& src_ref) : m_ptr(std::forward<decltype(src_ref)>(src_ref).m_ptr) {
 					src_ref.m_ptr = nullptr;
 				}
 				TGNoradPointer(std::nullptr_t) : m_ptr(nullptr) {}
@@ -356,10 +356,10 @@ namespace mse {
 					if (m_ptr) { (*m_ptr).increment_refcount(); }
 				}
 
-				TGNoradConstPointer(TGNoradConstPointer&& src_ref) : m_ptr(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+				TGNoradConstPointer(TGNoradConstPointer&& src_ref) : m_ptr(std::forward<decltype(src_ref)>(src_ref).m_ptr) {
 					src_ref.m_ptr = nullptr;
 				}
-				TGNoradConstPointer(TGNoradPointer<_Ty, _TRefCounter>&& src_ref) : m_ptr(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+				TGNoradConstPointer(TGNoradPointer<_Ty, _TRefCounter>&& src_ref) : m_ptr(std::forward<decltype(src_ref)>(src_ref).m_ptr) {
 					src_ref.m_ptr = nullptr;
 				}
 
@@ -1002,7 +1002,7 @@ namespace mse {
 		TNDNoradPointer(const TNDNoradPointer<_Ty2>& src_cref) : mse::us::impl::TPointer<TNDNoradObj<_Ty>>(src_cref.m_ptr) {
 			if (*this) { (*(*this)).increment_refcount(); }
 		}
-		TNDNoradPointer(TNDNoradPointer&& src_ref) : mse::us::impl::TPointer<TNDNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+		TNDNoradPointer(TNDNoradPointer&& src_ref) : mse::us::impl::TPointer<TNDNoradObj<_Ty>>(std::forward<decltype(src_ref)>(src_ref).m_ptr) {
 			src_ref.m_ptr = nullptr;
 		}
 		TNDNoradPointer(std::nullptr_t) : mse::us::impl::TPointer<TNDNoradObj<_Ty>>(nullptr) {}
@@ -1091,10 +1091,10 @@ namespace mse {
 			if (*this) { (*(*this)).increment_refcount(); }
 		}
 
-		TNDNoradConstPointer(TNDNoradConstPointer&& src_ref) : mse::us::impl::TPointer<const TNDNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+		TNDNoradConstPointer(TNDNoradConstPointer&& src_ref) : mse::us::impl::TPointer<const TNDNoradObj<_Ty>>(std::forward<decltype(src_ref)>(src_ref).m_ptr) {
 			src_ref.m_ptr = nullptr;
 		}
-		TNDNoradConstPointer(TNDNoradPointer<_Ty>&& src_ref) : mse::us::impl::TPointer<const TNDNoradObj<_Ty>>(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+		TNDNoradConstPointer(TNDNoradPointer<_Ty>&& src_ref) : mse::us::impl::TPointer<const TNDNoradObj<_Ty>>(std::forward<decltype(src_ref)>(src_ref).m_ptr) {
 			src_ref.m_ptr = nullptr;
 		}
 

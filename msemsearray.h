@@ -1008,36 +1008,36 @@ namespace mse {
 				typedef msear_size_t size_type;
 
 			private:
-				/*const */_TRAContainerPointer m_ra_container_pointer;
 				difference_type m_index = 0;
+				/*const */_TRAContainerPointer m_ra_container_pointer;
 
 			public:
-				template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value) && (std::is_default_constructible<_Ty2>::value), void>::type>
+				template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value) && (std::is_default_constructible<_Ty2>::value), void>::type>
 				TRAIteratorBase() {}
 
-				TRAIteratorBase(const TRAIteratorBase& src) : m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
+				TRAIteratorBase(const TRAIteratorBase& src) = default;
 				TRAIteratorBase(TRAIteratorBase&& src) = default;
-				//TRAIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-				//TRAIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+				//TRAIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(ra_container_pointer) {}
+				//TRAIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)) {}
 
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-				TRAIteratorBase(us::impl::TRAIteratorBase<_Ty2>&& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+				TRAIteratorBase(us::impl::TRAIteratorBase<_Ty2>&& src) : m_index(src.position()), m_ra_container_pointer(std::forward<decltype(src)>(src).target_container_ptr()) {}
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-				TRAIteratorBase(const us::impl::TRAIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+				TRAIteratorBase(const us::impl::TRAIteratorBase<_Ty2>& src) : m_index(src.position()), m_ra_container_pointer(src.target_container_ptr()) {}
 
 				template<class _TRAContainerPointer2>
-				TRAIteratorBase(const _TRAContainerPointer2& param, size_type index) : m_ra_container_pointer(param), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+				TRAIteratorBase(const _TRAContainerPointer2& param, size_type index) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(param) {}
 				template<class _TRAContainerPointer2>
-				TRAIteratorBase(_TRAContainerPointer2&& param, size_type index) : m_ra_container_pointer(std::forward<_TRAContainerPointer2>(param)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+				TRAIteratorBase(_TRAContainerPointer2&& param, size_type index) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(std::forward<_TRAContainerPointer2>(param)) {}
 
 				template<class _TLoneParam>
-				TRAIteratorBase(const _TLoneParam& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
-					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
-					, m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
+				TRAIteratorBase(const _TLoneParam& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
+					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
+					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
 				template<class _TLoneParam>
-				TRAIteratorBase(_TLoneParam&& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
-					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param)))
-					, m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
+				TRAIteratorBase(_TLoneParam&& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
+					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
+					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
 
 				auto operator*() const -> reference {
 					return (*m_ra_container_pointer)[m_index];
@@ -1075,11 +1075,14 @@ namespace mse {
 					assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointer>::type(), _Right_cref);
 					return (*this);
 				}
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-				TRAIteratorBase& operator=(const us::impl::TRAIteratorBase<_Ty2>& _Right_cref) {
-					return (*this) = TRAIteratorBase(_Right_cref);
+				TRAIteratorBase& operator=(TRAIteratorBase&& _Right_cref) {
+					assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointer>::type(), std::forward<decltype(_Right_cref)>(_Right_cref));
+					return (*this);
 				}
 
+				void set_to_beginning() {
+					m_index = 0;
+				}
 				difference_type position() const {
 					return m_index;
 				}
@@ -1087,9 +1090,13 @@ namespace mse {
 					return m_ra_container_pointer;
 				}
 
+				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TRAContainerPointer);
+
 			private:
 				template<class _TRAIterator>
 				_TRAContainerPointer ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
+				template<class _TRAIterator>
+				_TRAContainerPointer ra_container_pointer_from_lone_param(std::true_type, _TRAIterator&& src) { return std::forward< _TRAIterator>(src).target_container_ptr(); }
 				template<class _Ty2>
 				const _TRAContainerPointer& ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return param; }
 				template<class _Ty2>
@@ -1098,14 +1105,18 @@ namespace mse {
 				auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
 				template<class _Ty2>
 				difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
-				template<class _Ty2>
-				difference_type index_from_lone_param(std::false_type, _Ty2&& param) { return 0; }
 
 				template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
 					&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
-					void assignment_helper1(std::true_type, const TRAIteratorBase& _Right_cref) {
+				void assignment_helper1(std::true_type, const TRAIteratorBase& _Right_cref) {
 					((*this).m_ra_container_pointer) = _Right_cref.m_ra_container_pointer;
 					(*this).m_index = _Right_cref.m_index;
+				}
+				template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
+					&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
+				void assignment_helper1(std::true_type, TRAIteratorBase&& _Right_cref) {
+					(*this).m_index = _Right_cref.m_index;
+					((*this).m_ra_container_pointer) = std::forward<decltype(_Right_cref)>(_Right_cref).m_ra_container_pointer;
 				}
 				void assignment_helper1(std::false_type, const TRAIteratorBase& _Right_cref) {
 					if (std::addressof(*((*this).m_ra_container_pointer)) != std::addressof(*(_Right_cref.m_ra_container_pointer))
@@ -1156,18 +1167,19 @@ namespace mse {
 
 		TXScopeRAIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeRAIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		difference_type operator-(const base_class& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
-		TXScopeRAIterator& operator=(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		auto& operator=(const TXScopeRAIterator& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TXScopeRAIterator& operator=(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
-			return (*this) = TXScopeRAIterator(_Right_cref);
+		auto& operator=(TXScopeRAIterator&& _Right_cref) {
+			base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref));
+			return (*this);
 		}
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 		void xscope_tag() const {}
 		void xscope_iterator_tag() const {}
@@ -1189,7 +1201,7 @@ namespace mse {
 		typedef const reference const_reference;
 		typedef typename base_class::size_type size_type;
 
-		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, base_class>::value) && (std::is_default_constructible<_Ty2>::value), void>::type>
+		template<class _Ty2 = base_class, class = typename std::enable_if<(std::is_same<_Ty2, base_class>::value) && (std::is_default_constructible<_Ty2>::value), void>::type>
 		TRAIterator() : base_class() {}
 
 		TRAIterator(const TRAIterator& src) = default;
@@ -1220,18 +1232,19 @@ namespace mse {
 
 		TRAIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TRAIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		difference_type operator-(const base_class& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
-		TRAIterator& operator=(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		auto& operator=(const TRAIterator& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAIterator& operator=(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
-			return (*this) = TRAIterator(_Right_cref);
+		auto& operator=(TRAIterator&& _Right_cref) {
+			base_class::operator=(std::forward<decltype(_Right_cref )>(_Right_cref));
+			return (*this);
 		}
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TRAContainerPointer);
 	};
@@ -1254,41 +1267,43 @@ namespace mse {
 				typedef msear_size_t size_type;
 
 			private:
-				/*const */_TRAContainerPointer m_ra_container_pointer;
 				difference_type m_index = 0;
+				/*const */_TRAContainerPointer m_ra_container_pointer;
 
 			public:
+				template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value) && (std::is_default_constructible<_Ty2>::value), void>::type>
 				TRAConstIteratorBase() {}
+
 				TRAConstIteratorBase(const TRAConstIteratorBase& src) = default;
 				TRAConstIteratorBase(TRAConstIteratorBase&& src) = default;
-				TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>& src) : m_ra_container_pointer(src.m_ra_container_pointer), m_index(src.m_index) {}
-				TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>&& src) : m_ra_container_pointer(std::forward<decltype(src.m_ra_container_pointer)>(src.m_ra_container_pointer)), m_index(src.m_index) {}
-				//TRAConstIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(ra_container_pointer), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
-				//TRAConstIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+				TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>& src) : m_index(src.m_index), m_ra_container_pointer(src.m_ra_container_pointer) {}
+				TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointer>&& src) : m_index(src.m_index), m_ra_container_pointer(std::forward<decltype(src)>(src).m_ra_container_pointer) {}
+				//TRAConstIteratorBase(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(ra_container_pointer) {}
+				//TRAConstIteratorBase(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(std::forward<decltype(ra_container_pointer)>(ra_container_pointer)) {}
 
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-				TRAConstIteratorBase(us::impl::TRAConstIteratorBase<_Ty2>&& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+				TRAConstIteratorBase(us::impl::TRAConstIteratorBase<_Ty2>&& src) : m_index(src.position()), m_ra_container_pointer(std::forward<decltype(src)>(src).target_container_ptr()) {}
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-				TRAConstIteratorBase(const us::impl::TRAConstIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+				TRAConstIteratorBase(const us::impl::TRAConstIteratorBase<_Ty2>& src) : m_index(src.position()), m_ra_container_pointer(src.target_container_ptr()) {}
 
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-				TRAConstIteratorBase(us::impl::TRAIteratorBase<_Ty2>&& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+				TRAConstIteratorBase(us::impl::TRAIteratorBase<_Ty2>&& src) : m_index(src.position()), m_ra_container_pointer(std::forward<decltype(src)>(src).target_container_ptr()) {}
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-				TRAConstIteratorBase(const us::impl::TRAIteratorBase<_Ty2>& src) : m_ra_container_pointer(src.target_container_ptr()), m_index(src.position()) {}
+				TRAConstIteratorBase(const us::impl::TRAIteratorBase<_Ty2>& src) : m_index(src.position()), m_ra_container_pointer(src.target_container_ptr()) {}
 
 				template<class _TRAContainerPointer2>
-				TRAConstIteratorBase(const _TRAContainerPointer2& param, size_type index) : m_ra_container_pointer(param), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+				TRAConstIteratorBase(const _TRAContainerPointer2& param, size_type index) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(param) {}
 				template<class _TRAContainerPointer2>
-				TRAConstIteratorBase(_TRAContainerPointer2&& param, size_type index) : m_ra_container_pointer(std::forward<_TRAContainerPointer2>(param)), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+				TRAConstIteratorBase(_TRAContainerPointer2&& param, size_type index) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(std::forward<_TRAContainerPointer2>(param)) {}
 
 				template<class _TLoneParam>
-				TRAConstIteratorBase(const _TLoneParam& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
-					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
-					, m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
+				TRAConstIteratorBase(const _TLoneParam& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
+					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
+					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
 				template<class _TLoneParam>
-				TRAConstIteratorBase(_TLoneParam&& param) : m_ra_container_pointer(ra_container_pointer_from_lone_param(
-					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param)))
-					, m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
+				TRAConstIteratorBase(_TLoneParam&& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
+					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
+					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
 
 				auto operator*() const -> const_reference {
 					return (*m_ra_container_pointer)[m_index];
@@ -1326,15 +1341,14 @@ namespace mse {
 					assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointer>::type(), _Right_cref);
 					return (*this);
 				}
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-				TRAConstIteratorBase& operator=(const us::impl::TRAConstIteratorBase<_Ty2>& _Right_cref) {
-					return (*this) = TRAConstIteratorBase(_Right_cref);
-				}
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-				TRAConstIteratorBase& operator=(const us::impl::TRAIteratorBase<_Ty2>& _Right_cref) {
-					return (*this) = TRAConstIteratorBase(_Right_cref);
+				TRAConstIteratorBase& operator=(TRAConstIteratorBase&& _Right_cref) {
+					assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointer>::type(), std::forward<decltype(_Right_cref)>(_Right_cref));
+					return (*this);
 				}
 
+				void set_to_beginning() {
+					m_index = 0;
+				}
 				difference_type position() const {
 					return m_index;
 				}
@@ -1345,6 +1359,8 @@ namespace mse {
 			private:
 				template<class _TRAIterator>
 				_TRAContainerPointer ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
+				template<class _TRAIterator>
+				_TRAContainerPointer ra_container_pointer_from_lone_param(std::true_type, _TRAIterator&& src) { return std::forward< _TRAIterator>(src).target_container_ptr(); }
 				template<class _Ty2>
 				const _TRAContainerPointer& ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return param; }
 				template<class _Ty2>
@@ -1353,14 +1369,18 @@ namespace mse {
 				auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
 				template<class _Ty2>
 				difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
-				template<class _Ty2>
-				difference_type index_from_lone_param(std::false_type, _Ty2&& param) { return 0; }
 
 				template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
 					&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
-					void assignment_helper1(std::true_type, const TRAConstIteratorBase& _Right_cref) {
+				void assignment_helper1(std::true_type, const TRAConstIteratorBase& _Right_cref) {
 					((*this).m_ra_container_pointer) = _Right_cref.m_ra_container_pointer;
 					(*this).m_index = _Right_cref.m_index;
+				}
+				template<class _Ty2 = _TRAContainerPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointer>::value)
+					&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
+				void assignment_helper1(std::true_type, TRAConstIteratorBase&& _Right_cref) {
+					(*this).m_index = _Right_cref.m_index;
+					((*this).m_ra_container_pointer) = std::forward<decltype(_Right_cref)>(_Right_cref).m_ra_container_pointer;
 				}
 				void assignment_helper1(std::false_type, const TRAConstIteratorBase& _Right_cref) {
 					if (std::addressof(*((*this).m_ra_container_pointer)) != std::addressof(*(_Right_cref.m_ra_container_pointer))
@@ -1411,9 +1431,19 @@ namespace mse {
 
 		TXScopeRAConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeRAConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		difference_type operator-(const base_class& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
+
+		auto& operator=(const TXScopeRAConstIterator& _Right_cref) {
+			base_class::operator=(_Right_cref);
+			return (*this);
+		}
+		auto& operator=(TXScopeRAConstIterator&& _Right_cref) {
+			base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref));
+			return (*this);
+		}
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 		TXScopeRAConstIterator& operator=(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
 			base_class::operator=(_Right_cref);
@@ -1448,7 +1478,7 @@ namespace mse {
 		typedef const reference const_reference;
 		typedef typename base_class::size_type size_type;
 
-		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, base_class>::value) && (std::is_default_constructible<_Ty2>::value), void>::type>
+		template<class _Ty2 = base_class, class = typename std::enable_if<(std::is_same<_Ty2, base_class>::value) && (std::is_default_constructible<_Ty2>::value), void>::type>
 		TRAConstIterator() : base_class() {}
 
 		TRAConstIterator(const TRAConstIterator& src) = default;
@@ -1481,27 +1511,36 @@ namespace mse {
 
 		TRAConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TRAConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+		difference_type operator-(const base_class& _Right_cref) const {
 			return base_class::operator-(_Right_cref);
 		}
 
-		TRAConstIterator& operator=(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
+		auto& operator=(const TRAConstIterator& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAConstIterator& operator=(const us::impl::TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) {
-			return (*this) = TRAConstIterator(_Right_cref);
+		auto& operator=(TRAConstIterator&& _Right_cref) {
+			base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref));
+			return (*this);
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
-		TRAConstIterator& operator=(const us::impl::TRAIteratorBase<_TRAContainerPointer>& _Right_cref) {
-			return (*this) = TRAConstIterator(_Right_cref);
-		}
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TRAContainerPointer);
 	};
 
-	namespace impl{
+	namespace us {
+		namespace impl {
+			class StaticStructureContainerTagBase {};
+			class ContiguousSequenceContainerTagBase {};
+			class ContiguousSequenceStaticStructureContainerTagBase : public ContiguousSequenceContainerTagBase, public StaticStructureContainerTagBase {};
+
+			class StaticStructureIteratorTagBase {};
+			class ContiguousSequenceIteratorTagBase {};
+			class ContiguousSequenceStaticStructureIteratorTagBase : public ContiguousSequenceIteratorTagBase, public StaticStructureIteratorTagBase {};
+		}
+	}
+
+	namespace impl {
 
 		template<typename T, size_t n>
 		size_t native_array_size_msemsearray(const T(&)[n]) {
@@ -1527,15 +1566,22 @@ namespace mse {
 		template<class _Ty, size_t _Size>
 		struct is_std_array<std::array<_Ty, _Size> > : std::integral_constant<bool, true> {};
 
-		template <typename _Ty> struct is_static_structure_container_msemsearray : std::integral_constant<bool, (is_std_array<_Ty>::value)
-			|| (IsNativeArray_msemsearray<_Ty>::value)> {};
+		template <typename _Ty> struct is_static_structure_container_msemsearray : std::integral_constant<bool, 
+			(std::is_base_of<mse::us::impl::StaticStructureContainerTagBase, _Ty>::value) || (is_std_array<_Ty>::value) || (IsNativeArray_msemsearray<_Ty>::value)> {};
 
 		template<class _Ty, class = typename std::enable_if<(is_static_structure_container_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_static_structure_container_msemsearray() {}
+
+		template <typename _Ty> struct is_contiguous_sequence_static_structure_container_msemsearray : std::integral_constant<bool,
+			(std::is_base_of<mse::us::impl::ContiguousSequenceContainerTagBase, _Ty>::value && std::is_base_of<mse::us::impl::StaticStructureContainerTagBase, _Ty>::value)
+			|| (is_std_array<_Ty>::value) || (IsNativeArray_msemsearray<_Ty>::value)> {};
+
+		template<class _Ty, class = typename std::enable_if<(is_static_structure_container_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray() {}
 	}
 
 	template <typename _TRAContainerPointer>
-	class TXScopeSSRAIterator : public TXScopeRAIterator<_TRAContainerPointer> {
+	class TXScopeCSSSIterator : public TXScopeRAIterator<_TRAContainerPointer> {
 	public:
 		typedef TXScopeRAIterator<_TRAContainerPointer> base_class;
 		typedef typename base_class::iterator_category iterator_category;
@@ -1547,17 +1593,16 @@ namespace mse {
 		typedef const reference const_reference;
 		typedef typename base_class::size_type size_type;
 
-		TXScopeSSRAIterator(const TXScopeSSRAIterator& src) : base_class(src) {}
-		TXScopeSSRAIterator(TXScopeSSRAIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
-		TXScopeSSRAIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {
+		TXScopeCSSSIterator(const TXScopeCSSSIterator& src) : base_class(src) {}
+		TXScopeCSSSIterator(TXScopeCSSSIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
+		TXScopeCSSSIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {
 			typedef typename std::remove_reference<decltype(*ra_container_pointer)>::type TRAContainer;
-			mse::impl::T_valid_if_is_static_structure_container_msemsearray<TRAContainer>();
+			mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
 		}
-		TXScopeSSRAIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {
+		TXScopeCSSSIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {
 			typedef typename std::remove_reference<decltype(*ra_container_pointer)>::type TRAContainer;
-			mse::impl::T_valid_if_is_static_structure_container_msemsearray<TRAContainer>();
+			mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
 		}
-		//MSE_USING(TXScopeSSRAIterator, base_class);
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -1635,14 +1680,14 @@ namespace mse {
 	/* The reason we specify the default parameter in the definition instead of this forward declaration is that there seems to be a
 	bug in clang (3.8.0) such that if we don't specify the default parameter in the definition it seems to subsequently behave as if
 	one were never specified. g++ and msvc don't seem to have the same issue. */
-	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex, class/* = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type*/>
+	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex>
 	class Tnii_array_ss_iterator_type;
 
 	/* Tnii_array_ss_const_iterator_type is a bounds checked const_iterator. */
-	template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type>
-	class Tnii_array_ss_const_iterator_type : public mse::impl::random_access_const_iterator_base<_Ty> {
+	template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	class Tnii_array_ss_const_iterator_type : public mse::TRAConstIterator<_TArrayConstPointer> {
 	public:
-		typedef mse::impl::random_access_const_iterator_base<_Ty> base_class;
+		typedef mse::TRAConstIterator<_TArrayConstPointer> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -1651,40 +1696,31 @@ namespace mse {
 		typedef const pointer const_pointer;
 		typedef const reference const_reference;
 
-		//template<class = typename std::enable_if<std::is_default_constructible<_TArrayConstPointer>::value, void>::type>
-		template<class _TArrayConstPointer2 = _TArrayConstPointer, class = typename std::enable_if<(std::is_same<_TArrayConstPointer2, _TArrayConstPointer>::value) && (std::is_default_constructible<_TArrayConstPointer>::value), void>::type>
-		Tnii_array_ss_const_iterator_type() {}
+		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(Tnii_array_ss_const_iterator_type, base_class);
 
-		Tnii_array_ss_const_iterator_type(const _TArrayConstPointer& owner_cptr) : m_owner_cptr(owner_cptr) {}
-		Tnii_array_ss_const_iterator_type(_TArrayConstPointer&& owner_cptr) : m_owner_cptr(std::forward<decltype(owner_cptr)>(owner_cptr)) {}
-
-		Tnii_array_ss_const_iterator_type(Tnii_array_ss_const_iterator_type&& src) = default;
-		Tnii_array_ss_const_iterator_type(const Tnii_array_ss_const_iterator_type& src) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
-		Tnii_array_ss_const_iterator_type(const Tnii_array_ss_const_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : m_owner_cptr(src.target_container_ptr()), m_index(src.position()) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
-		Tnii_array_ss_const_iterator_type(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex, void>& src) : m_owner_cptr(src.target_container_ptr()), m_index(src.position()) {}
+		auto& operator=(Tnii_array_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		auto& operator=(const Tnii_array_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
 		void assert_valid_index() const {
-			if (m_owner_cptr->size() < m_index) { MSE_THROW(nii_array_range_error("invalid index - void assert_valid_index() const - ss_const_iterator_type - nii_array")); }
+			if ((*this).target_container_ptr()->size() < (*this).position()) { MSE_THROW(nii_array_range_error("invalid index - void assert_valid_index() const - ss_const_iterator_type - nii_array")); }
 		}
 		void reset() { set_to_end_marker(); }
 		bool points_to_an_item() const {
-			if (m_owner_cptr->size() > m_index) { return true; }
+			if (difference_type((*this).target_container_ptr()->size()) > (*this).position()) { return true; }
 			else {
-				assert(m_index == m_owner_cptr->size());
+				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
 				return false;
 			}
 		}
 		bool points_to_end_marker() const {
 			if (false == points_to_an_item()) {
-				assert(m_index == m_owner_cptr->size());
+				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
 				return true;
 			}
 			else { return false; }
 		}
 		bool points_to_beginning() const {
-			if (0 == m_index) { return true; }
+			if (0 == (*this).position()) { return true; }
 			else { return false; }
 		}
 		/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
@@ -1692,18 +1728,16 @@ namespace mse {
 																				 /* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
 		bool has_next() const { return has_next_item_or_end_marker(); }
 		bool has_previous() const {
-			return ((1 <= m_owner_cptr->size()) && (!points_to_beginning()));
-		}
-		void set_to_beginning() {
-			m_index = 0;
+			return ((1 <= (*this).target_container_ptr()->size()) && (!points_to_beginning()));
 		}
 		void set_to_end_marker() {
-			m_index = m_owner_cptr->size();
+			(*this).set_to_beginning();
+			advance((*this).target_container_ptr()->size());
 		}
 		void set_to_next() {
 			if (points_to_an_item()) {
-				m_index += 1;
-				assert(m_owner_cptr->size() >= m_index);
+				advance(1);
+				assert(difference_type((*this).target_container_ptr()->size()) >= (*this).position());
 			}
 			else {
 				MSE_THROW(nii_array_range_error("attempt to use invalid const_item_pointer - void set_to_next() - Tnii_array_ss_const_iterator_type - nii_array"));
@@ -1711,7 +1745,7 @@ namespace mse {
 		}
 		void set_to_previous() {
 			if (has_previous()) {
-				m_index -= 1;
+				regress(1);
 			}
 			else {
 				MSE_THROW(nii_array_range_error("attempt to use invalid const_item_pointer - void set_to_previous() - Tnii_array_ss_const_iterator_type - nii_array"));
@@ -1722,12 +1756,12 @@ namespace mse {
 		Tnii_array_ss_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
 		Tnii_array_ss_const_iterator_type operator--(int) { Tnii_array_ss_const_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
 		void advance(difference_type n) {
-			auto new_index = msear_int(m_index) + n;
-			if ((0 > new_index) || (m_owner_cptr->size() < msear_size_t(new_index))) {
+			auto new_index = msear_int((*this).position()) + n;
+			if ((0 > new_index) || ((*this).target_container_ptr()->size() < msear_size_t(new_index))) {
 				MSE_THROW(nii_array_range_error("index out of range - void advance(difference_type n) - Tnii_array_ss_const_iterator_type - nii_array"));
 			}
 			else {
-				m_index = msear_size_t(new_index);
+				base_class::operator++();
 			}
 		}
 		void regress(difference_type n) { advance(-n); }
@@ -1739,89 +1773,34 @@ namespace mse {
 			return retval;
 		}
 		Tnii_array_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const Tnii_array_ss_const_iterator_type &rhs) const {
-			if (rhs.m_owner_cptr != (*this).m_owner_cptr) { MSE_THROW(nii_array_range_error("invalid argument - difference_type operator-(const Tnii_array_ss_const_iterator_type &rhs) const - nii_array::Tnii_array_ss_const_iterator_type")); }
-			auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
-			assert(difference_type((*m_owner_cptr).size()) >= retval);
-			return retval;
+		difference_type operator-(const base_class& _Right_cref) const {
+			return base_class::operator-(_Right_cref);
 		}
-		const_reference operator*() const {
-			return (*m_owner_cptr).at(msear_as_a_size_t((*this).m_index));
-		}
-		const_reference item() const { return operator*(); }
+		const_reference item() const { return (*this).operator*(); }
 		const_reference previous_item() const {
-			return (*m_owner_cptr).at(msear_as_a_size_t((*this).m_index - 1));
+			if ((*this).has_previous()) {
+				return (*(*this).target_container_ptr())[(*this).position() - 1];
+			}
+			else {
+				MSE_THROW(nii_array_range_error("attempt to use invalid item_pointer - const_reference previous_item() - Tnii_array_ss_const_iterator_type - nii_array"));
+			}
 		}
-		const_pointer operator->() const {
-			return std::addressof((*m_owner_cptr).at(msear_as_a_size_t((*this).m_index)));
-		}
-		const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(msear_as_a_size_t(difference_type(m_index) + _Off)); }
 
-		bool operator==(const Tnii_array_ss_const_iterator_type& _Right_cref) const {
-			if (this->m_owner_cptr != _Right_cref.m_owner_cptr) { MSE_THROW(nii_array_range_error("invalid argument - Tnii_array_ss_const_iterator_type& operator==(const Tnii_array_ss_const_iterator_type& _Right) - Tnii_array_ss_const_iterator_type - nii_array")); }
-			return (_Right_cref.m_index == m_index);
-		}
-		bool operator!=(const Tnii_array_ss_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
-		bool operator<(const Tnii_array_ss_const_iterator_type& _Right) const {
-			if (this->m_owner_cptr != _Right.m_owner_cptr) { MSE_THROW(nii_array_range_error("invalid argument - Tnii_array_ss_const_iterator_type& operator<(const Tnii_array_ss_const_iterator_type& _Right) - Tnii_array_ss_const_iterator_type - nii_array")); }
-			return (m_index < _Right.m_index);
-		}
-		bool operator<=(const Tnii_array_ss_const_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
-		bool operator>(const Tnii_array_ss_const_iterator_type& _Right) const { return (!((*this) <= _Right)); }
-		bool operator>=(const Tnii_array_ss_const_iterator_type& _Right) const { return (!((*this) < _Right)); }
 		void set_to_const_item_pointer(const Tnii_array_ss_const_iterator_type& _Right_cref) {
 			(*this) = _Right_cref;
-		}
-
-		template<class _Ty2 = _TArrayConstPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TArrayConstPointer>::value)
-			&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
-		void assignment_helper1(std::true_type, const Tnii_array_ss_const_iterator_type& _Right_cref) {
-			((*this).m_owner_cptr) = _Right_cref.m_owner_cptr;
-			(*this).m_index = _Right_cref.m_index;
-		}
-		void assignment_helper1(std::false_type, const Tnii_array_ss_const_iterator_type& _Right_cref) {
-			if (std::addressof(*((*this).m_owner_cptr)) != std::addressof(*(_Right_cref.m_owner_cptr))
-				|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_owner_cptr))>::type, typename std::remove_const<decltype(*(_Right_cref.m_owner_cptr))>::type>::value)) {
-				/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
-				example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
-				pointing to the same container. */
-				MSE_THROW(nii_array_range_error("invalid argument - Tnii_array_ss_const_iterator_type& operator=(const Tnii_array_ss_const_iterator_type& _Right) - Tnii_array_ss_const_iterator_type - nii_array"));
-			}
-			(*this).m_index = _Right_cref.m_index;
-		}
-		Tnii_array_ss_const_iterator_type& operator=(const Tnii_array_ss_const_iterator_type& _Right_cref) {
-			assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TArrayConstPointer>::type(), _Right_cref);
-			return (*this);
-		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
-		Tnii_array_ss_const_iterator_type& operator=(const Tnii_array_ss_const_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& _Right_cref) {
-			return (*this) = Tnii_array_ss_const_iterator_type(_Right_cref);
-		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
-		Tnii_array_ss_const_iterator_type& operator=(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex, void>& _Right_cref) {
-			return (*this) = Tnii_array_ss_const_iterator_type(_Right_cref);
-		}
-
-		msear_size_t position() const {
-			return m_index;
-		}
-		_TArrayConstPointer target_container_ptr() const {
-			return m_owner_cptr;
 		}
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TArrayConstPointer);
 
 	private:
-		_TArrayConstPointer m_owner_cptr;
-		msear_size_t m_index = 0;
 
 		friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
 	};
 	/* Tnii_array_ss_iterator_type is a bounds checked iterator. */
-	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type>
-	class Tnii_array_ss_iterator_type : public mse::impl::random_access_iterator_base<_Ty> {
+	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	class Tnii_array_ss_iterator_type : public mse::TRAIterator<_TArrayPointer> {
 	public:
-		typedef mse::impl::random_access_iterator_base<_Ty> base_class;
+		typedef mse::TRAIterator<_TArrayPointer> base_class;
 		typedef typename base_class::iterator_category iterator_category;
 		typedef typename base_class::value_type value_type;
 		typedef typename base_class::difference_type difference_type;
@@ -1830,35 +1809,31 @@ namespace mse {
 		typedef const pointer const_pointer;
 		typedef const reference const_reference;
 
-		//template<class = typename std::enable_if<std::is_default_constructible<_TArrayPointer>::value, void>::type>
-		template<class _TArrayPointer2 = _TArrayPointer, class = typename std::enable_if<(std::is_same<_TArrayPointer2, _TArrayPointer>::value) && (std::is_default_constructible<_TArrayPointer>::value), void>::type>
-		Tnii_array_ss_iterator_type() {}
+		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(Tnii_array_ss_iterator_type, base_class);
 
-		Tnii_array_ss_iterator_type(const _TArrayPointer& owner_ptr) : m_owner_ptr(owner_ptr) {}
-		Tnii_array_ss_iterator_type(_TArrayPointer&& owner_ptr) : m_owner_ptr(std::forward<decltype(owner_ptr)>(owner_ptr)) {}
+		auto& operator=(Tnii_array_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		auto& operator=(const Tnii_array_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
-		Tnii_array_ss_iterator_type(Tnii_array_ss_iterator_type&& src) = default;
-		Tnii_array_ss_iterator_type(const Tnii_array_ss_iterator_type& src) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayPointer>::value, void>::type>
-		Tnii_array_ss_iterator_type(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : m_owner_ptr(src.target_container_ptr()), m_index(src.position()) {}
-
+		void assert_valid_index() const {
+			if ((*this).target_container_ptr()->size() < (*this).position()) { MSE_THROW(nii_array_range_error("invalid index - void assert_valid_index() const - ss_iterator_type - nii_array")); }
+		}
 		void reset() { set_to_end_marker(); }
 		bool points_to_an_item() const {
-			if (m_owner_ptr->size() > m_index) { return true; }
+			if (difference_type((*this).target_container_ptr()->size()) > (*this).position()) { return true; }
 			else {
-				assert(m_index == m_owner_ptr->size());
+				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
 				return false;
 			}
 		}
 		bool points_to_end_marker() const {
 			if (false == points_to_an_item()) {
-				assert(m_index == m_owner_ptr->size());
+				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
 				return true;
 			}
 			else { return false; }
 		}
 		bool points_to_beginning() const {
-			if (0 == m_index) { return true; }
+			if (0 == (*this).position()) { return true; }
 			else { return false; }
 		}
 		/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
@@ -1866,18 +1841,16 @@ namespace mse {
 		/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
 		bool has_next() const { return has_next_item_or_end_marker(); }
 		bool has_previous() const {
-			return ((1 <= m_owner_ptr->size()) && (!points_to_beginning()));
-		}
-		void set_to_beginning() {
-			m_index = 0;
+			return ((1 <= (*this).target_container_ptr()->size()) && (!points_to_beginning()));
 		}
 		void set_to_end_marker() {
-			m_index = m_owner_ptr->size();
+			(*this).set_to_beginning();
+			advance((*this).target_container_ptr()->size());
 		}
 		void set_to_next() {
 			if (points_to_an_item()) {
-				m_index += 1;
-				assert(m_owner_ptr->size() >= m_index);
+				advance(1);
+				assert(difference_type((*this).target_container_ptr()->size()) >= (*this).position());
 			}
 			else {
 				MSE_THROW(nii_array_range_error("attempt to use invalid item_pointer - void set_to_next() - Tnii_array_ss_const_iterator_type - nii_array"));
@@ -1885,7 +1858,7 @@ namespace mse {
 		}
 		void set_to_previous() {
 			if (has_previous()) {
-				m_index -= 1;
+				regress(1);
 			}
 			else {
 				MSE_THROW(nii_array_range_error("attempt to use invalid item_pointer - void set_to_previous() - Tnii_array_ss_iterator_type - nii_array"));
@@ -1896,12 +1869,12 @@ namespace mse {
 		Tnii_array_ss_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
 		Tnii_array_ss_iterator_type operator--(int) { Tnii_array_ss_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
 		void advance(difference_type n) {
-			auto new_index = msear_int(m_index) + n;
-			if ((0 > new_index) || (m_owner_ptr->size() < msear_size_t(new_index))) {
+			auto new_index = msear_int((*this).position()) + n;
+			if ((0 > new_index) || ((*this).target_container_ptr()->size() < msear_size_t(new_index))) {
 				MSE_THROW(nii_array_range_error("index out of range - void advance(difference_type n) - Tnii_array_ss_iterator_type - nii_array"));
 			}
 			else {
-				m_index = msear_size_t(new_index);
+				base_class::operator++();
 			}
 		}
 		void regress(difference_type n) { advance(-n); }
@@ -1913,96 +1886,29 @@ namespace mse {
 			return retval;
 		}
 		Tnii_array_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const Tnii_array_ss_iterator_type& rhs) const {
-			if (rhs.m_owner_ptr != (*this).m_owner_ptr) { MSE_THROW(nii_array_range_error("invalid argument - difference_type operator-(const Tnii_array_ss_iterator_type& rhs) const - nii_array::Tnii_array_ss_iterator_type")); }
-			auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
-			assert(difference_type((*m_owner_ptr).size()) >= retval);
-			return retval;
+		difference_type operator-(const base_class& _Right_cref) const {
+			return base_class::operator-(_Right_cref);
 		}
-		reference operator*() const {
-			return (*m_owner_ptr).at(msear_as_a_size_t((*this).m_index));
-		}
-		reference item() const { return operator*(); }
+		reference item() const { return (*this).operator*(); }
 		reference previous_item() const {
 			if ((*this).has_previous()) {
-				return (*m_owner_ptr)[m_index - 1];
+				return (*(*this).target_container_ptr())[(*this).position() - 1];
 			}
 			else {
-				MSE_THROW(nii_array_range_error("attempt to use invalid item_pointer - reference previous_item() - Tnii_array_ss_const_iterator_type - nii_array"));
+				MSE_THROW(nii_array_range_error("attempt to use invalid item_pointer - reference previous_item() - Tnii_array_ss_iterator_type - nii_array"));
 			}
 		}
-		pointer operator->() const {
-			return std::addressof((*m_owner_ptr).at(msear_as_a_size_t((*this).m_index)));
-		}
-		reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msear_as_a_size_t(difference_type(m_index) + _Off)); }
 
-		bool operator==(const Tnii_array_ss_iterator_type& _Right_cref) const {
-			if (this->m_owner_ptr != _Right_cref.m_owner_ptr) { MSE_THROW(nii_array_range_error("invalid argument - Tnii_array_ss_iterator_type& operator==(const Tnii_array_ss_iterator_type& _Right) - Tnii_array_ss_iterator_type - nii_array")); }
-			return (_Right_cref.m_index == m_index);
-		}
-		bool operator!=(const Tnii_array_ss_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
-		bool operator<(const Tnii_array_ss_iterator_type& _Right) const {
-			if (this->m_owner_ptr != _Right.m_owner_ptr) { MSE_THROW(nii_array_range_error("invalid argument - Tnii_array_ss_iterator_type& operator<(const Tnii_array_ss_iterator_type& _Right) - Tnii_array_ss_iterator_type - nii_array")); }
-			return (m_index < _Right.m_index);
-		}
-		bool operator<=(const Tnii_array_ss_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
-		bool operator>(const Tnii_array_ss_iterator_type& _Right) const { return (!((*this) <= _Right)); }
-		bool operator>=(const Tnii_array_ss_iterator_type& _Right) const { return (!((*this) < _Right)); }
 		void set_to_item_pointer(const Tnii_array_ss_iterator_type& _Right_cref) {
 			(*this) = _Right_cref;
 		}
 
-		template<class _Ty2 = _TArrayPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TArrayPointer>::value)
-			&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
-			void assignment_helper1(std::true_type, const Tnii_array_ss_iterator_type& _Right_cref) {
-			((*this).m_owner_ptr) = _Right_cref.m_owner_ptr;
-			(*this).m_index = _Right_cref.m_index;
-		}
-		void assignment_helper1(std::false_type, const Tnii_array_ss_iterator_type& _Right_cref) {
-			if (std::addressof(*((*this).m_owner_ptr)) != std::addressof(*(_Right_cref.m_owner_ptr))
-				|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_owner_ptr))>::type, typename std::remove_const<decltype(*(_Right_cref.m_owner_ptr))>::type>::value)) {
-				/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
-				example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
-				pointing to the same container. */
-				MSE_THROW(nii_array_range_error("invalid argument - Tnii_array_ss_iterator_type& operator=(const Tnii_array_ss_iterator_type& _Right) - Tnii_array_ss_iterator_type - nii_array"));
-			}
-			(*this).m_index = _Right_cref.m_index;
-		}
-		Tnii_array_ss_iterator_type& operator=(const Tnii_array_ss_iterator_type& _Right_cref) {
-			assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TArrayPointer>::type(), _Right_cref);
-			return (*this);
-		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayPointer>::value, void>::type>
-		Tnii_array_ss_iterator_type& operator=(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& _Right_cref) {
-			return (*this) = Tnii_array_ss_iterator_type(_Right_cref);
-		}
-
-		msear_size_t position() const {
-			return m_index;
-		}
-		_TArrayPointer target_container_ptr() const {
-			return m_owner_ptr;
-		}
-		/*
-		operator Tnii_array_ss_const_iterator_type<_TArrayPointer>() const {
-		Tnii_array_ss_const_iterator_type<_TArrayPointer> retval;
-		if (nullptr != m_owner_ptr) {
-		retval = m_owner_ptr->ss_cbegin<_TArrayPointer>(m_owner_ptr);
-		retval.advance(msear_int(m_index));
-		}
-		return retval;
-		}
-		*/
-
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TArrayPointer);
 
 	private:
-		//msear_pointer<_Myt> m_owner_ptr = nullptr;
-		_TArrayPointer m_owner_ptr;
-		msear_size_t m_index = 0;
 
 		friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
-		template<typename _TArrayConstPointer, class _Ty2, size_t _Size2, class _TStateMutex2, class/* = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type*/>
+		template<typename _TArrayConstPointer, class _Ty2, size_t _Size2, class _TStateMutex2>
 		friend class Tnii_array_ss_const_iterator_type;
 	};
 
@@ -2204,7 +2110,7 @@ namespace mse {
 	inherits the safety of the given pointer. nii_array<> also supports "scope" iterators which are safe without any
 	run-time overhead. nii_array<> is a data type that is eligible to be shared between asynchronous threads. */
 	template<class _Ty, size_t _Size, class _TStateMutex/* = default_state_mutex*/>
-	class nii_array {
+	class nii_array : public mse::us::impl::ContiguousSequenceStaticStructureContainerTagBase {
 	public:
 		typedef std::array<_Ty, _Size> std_array;
 		typedef std_array _MA;
@@ -2222,7 +2128,7 @@ namespace mse {
 		nii_array() {}
 		nii_array(_MA&& _X) : m_array(std::forward<decltype(_X)>(_X)) {}
 		nii_array(const _MA& _X) : m_array(_X) {}
-		nii_array(_Myt&& _X) : m_array(std::forward<decltype(_X.contained_array())>(_X.contained_array())) {}
+		nii_array(_Myt&& _X) : m_array(std::forward<decltype(_X)>(_X).contained_array()) {}
 		nii_array(const _Myt& _X) : m_array(_X.contained_array()) {}
 		//nii_array(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : m_array(_Ilist) {}
 		static std::array<_Ty, _Size> std_array_initial_value(std::true_type, _XSTD initializer_list<_Ty> _Ilist) {
@@ -2835,7 +2741,7 @@ namespace mse {
 		member functions that return unsafe iterators. It also provides ss_begin() and ss_end() (non-static) member
 		functions which return bounds-checked, but still technically unsafe iterators. */
 		template<class _Ty, size_t _Size, class _TStateMutex>
-		class msearray : public nii_array<_Ty, _Size, _TStateMutex> {
+		class msearray : public nii_array<_Ty, _Size, _TStateMutex>, public mse::us::impl::AsyncNotShareableTagBase {
 		public:
 			typedef nii_array<_Ty, _Size, _TStateMutex> base_class;
 			typedef std::array<_Ty, _Size> std_array;
@@ -6304,7 +6210,7 @@ namespace mse {
 					m_access_right_to_source_parameter_holder.release_access_right(typename CAccessRightToSourceParameterHolder::copy_construction_t());
 				}
 				TAccessControlledObjBase(TAccessControlledObjBase&& src) : m_access_right_to_source_parameter_holder(typename CAccessRightToSourceParameterHolder::move_construction_t(), src)
-					, m_obj(std::forward<decltype(src.m_obj)>(src.m_obj)) {
+					, m_obj(std::forward<decltype(src)>(src).m_obj) {
 					/* In order to move an access controlled object, we must have write access rights to the contained
 					object. The m_access_right_to_source_parameter_holder member variable will obtain the required
 					access rights in its constructor so that we can safely access the contained object. Here we're
@@ -6462,7 +6368,7 @@ namespace mse {
 				_Ty constructor_helper2(std::true_type, _TSoleArg&& sole_arg) {
 					/* The sole parameter is derived from, or of this type, so we're going to consider the constructor
 					a move constructor. */
-					return std::forward<decltype(sole_arg.m_obj)>(sole_arg.m_obj);
+					return std::forward<decltype(sole_arg)>(sole_arg).m_obj;
 				}
 				template <class _TSoleArg>
 				_Ty constructor_helper2(std::false_type, _TSoleArg&& sole_arg) {
@@ -6662,7 +6568,7 @@ namespace mse {
 		TXScopeExclusiveStrongPointerStoreForAccessControl(TXScopeExclusiveStrongPointerStoreForAccessControl&&) = delete;
 #else // MSE_HAS_CXX17
 		TXScopeExclusiveStrongPointerStoreForAccessControl(TXScopeExclusiveStrongPointerStoreForAccessControl&& src)
-			: m_stored_ptr(std::forward<decltype(src.m_stored_ptr)>(src.m_stored_ptr)) {}
+			: m_stored_ptr(std::forward<decltype(src)>(src).m_stored_ptr) {}
 #endif // MSE_HAS_CXX17
 
 		typedef typename std::remove_reference<decltype(*std::declval<_TExclusiveStrongPointer>())>::type target_type;
@@ -6858,7 +6764,7 @@ namespace mse {
 	public:
 		TXScopeExclusiveStrongPointerStoreForSharing(const TXScopeExclusiveStrongPointerStoreForSharing&) = delete;
 		TXScopeExclusiveStrongPointerStoreForSharing(TXScopeExclusiveStrongPointerStoreForSharing&& src)
-			: m_stored_ptr(std::forward<decltype(src.m_stored_ptr)>(src.m_stored_ptr)) {}
+			: m_stored_ptr(std::forward<decltype(src)>(src).m_stored_ptr) {}
 
 		typedef typename std::remove_reference<decltype(*std::declval<_TExclusiveStrongPointer>())>::type target_type;
 		TXScopeExclusiveStrongPointerStoreForSharing(_TExclusiveStrongPointer&& stored_ptr) : m_stored_ptr(std::forward<decltype(stored_ptr)>(stored_ptr)) {

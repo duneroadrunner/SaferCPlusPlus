@@ -820,7 +820,7 @@ namespace mse {
 			inherits the safety of the given pointer. mse::us::impl::gnii_vector<> also supports "scope" iterators which are safe without any
 			run-time overhead. mse::us::impl::gnii_vector<> is a data type that is eligible to be shared between asynchronous threads. */
 			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class gnii_vector {
+			class gnii_vector : public us::impl::ContiguousSequenceContainerTagBase {
 			public:
 				typedef std::vector<_Ty, _A> std_vector;
 				typedef std_vector _MV;
@@ -858,7 +858,7 @@ namespace mse {
 				}
 				gnii_vector(std_vector&& _X) : m_vector(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
 				gnii_vector(const std_vector& _X) : m_vector(_X) { /*m_debug_size = size();*/ }
-				gnii_vector(_Myt&& _X) : m_vector(std::forward<decltype(_X.contained_vector())>(_X.contained_vector())) { /*m_debug_size = size();*/ }
+				gnii_vector(_Myt&& _X) : m_vector(std::forward<decltype(_X)>(_X).contained_vector()) { /*m_debug_size = size();*/ }
 				gnii_vector(const _Myt& _X) : m_vector(_X.contained_vector()) { /*m_debug_size = size();*/ }
 				typedef typename std_vector::const_iterator _It;
 				/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
@@ -2062,7 +2062,7 @@ namespace mse {
 		member functions that return unsafe iterators. It also provides ss_begin() and ss_end() (non-static) member
 		functions which return bounds-checked, but still technically unsafe iterators. */
 		template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-		class msevector : public nii_vector<_Ty, _A> {
+		class msevector : public nii_vector<_Ty, _A>, public us::impl::AsyncNotShareableTagBase {
 		public:
 			typedef nii_vector<_Ty, _A> base_class;
 			typedef std::vector<_Ty, _A> std_vector;

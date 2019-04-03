@@ -335,7 +335,7 @@ namespace mse {
 
 
 		template<class _Ty, class _A = std::allocator<_Ty> >
-		class vector : public mse::us::impl::AsyncNotShareableTagBase {
+		class vector : public mse::us::impl::AsyncNotShareableTagBase, public us::impl::ContiguousSequenceContainerTagBase {
 		public:
 			typedef vector _Myt;
 			typedef mse::us::msevector<_Ty, _A> _MV;

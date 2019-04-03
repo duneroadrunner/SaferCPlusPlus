@@ -358,7 +358,7 @@ namespace mse {
 
 
 		template<class _Ty, size_t _Size >
-		class array : public mse::us::impl::AsyncNotShareableTagBase {
+		class array : public mse::us::impl::AsyncNotShareableTagBase, public mse::us::impl::ContiguousSequenceStaticStructureContainerTagBase {
 		public:
 			typedef array _Myt;
 			typedef mse::nii_array<_Ty, _Size> _MA;
@@ -377,7 +377,7 @@ namespace mse {
 			array() {}
 			array(_MA&& _X) : m_nii_array(std::forward<decltype(_X)>(_X)) {}
 			array(const _MA& _X) : m_nii_array(_X) {}
-			array(_Myt&& _X) : m_nii_array(std::forward<decltype(_X.as_nii_array())>(_X.as_nii_array())) {}
+			array(_Myt&& _X) : m_nii_array(std::forward<decltype(_X)>(_X).as_nii_array()) {}
 			array(const _Myt& _X) : m_nii_array(_X.as_nii_array()) {}
 			//array(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : m_nii_array(_Ilist) {}
 			static std::array<_Ty, _Size> std_array_initial_value(std::true_type, _XSTD initializer_list<_Ty> _Ilist) {
@@ -415,7 +415,7 @@ namespace mse {
 
 			_Myt& operator=(_MA&& _X) { m_nii_array.operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 			_Myt& operator=(const _MA& _X) { m_nii_array.operator=(_X); return (*this); }
-			_Myt& operator=(_Myt&& _X) { m_nii_array.operator=(std::forward<decltype(_X.as_nii_array())>(_X.as_nii_array())); return (*this); }
+			_Myt& operator=(_Myt&& _X) { m_nii_array.operator=(std::forward<decltype(_X)>(_X).as_nii_array()); return (*this); }
 			_Myt& operator=(const _Myt& _X) { m_nii_array.operator=(_X.as_nii_array()); return (*this); }
 			typename _MA::const_reference operator[](size_type _P) const { return m_nii_array.operator[](_P); }
 			typename _MA::reference operator[](size_type _P) { return m_nii_array.operator[](_P); }

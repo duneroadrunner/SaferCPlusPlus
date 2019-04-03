@@ -3498,7 +3498,7 @@ namespace mse {
 			run-time overhead. gnii_basic_string<> is a data type that is eligible to be shared between asynchronous threads. */
 			/* Default template parameter values are specified in the forward declaration. */
 			template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/>
-			class gnii_basic_string {
+			class gnii_basic_string : public us::impl::ContiguousSequenceContainerTagBase {
 			private:
 		#ifdef MSE_HAS_CXX17
 				/* Helper classes for converting from string_views. */
@@ -3543,7 +3543,7 @@ namespace mse {
 				explicit gnii_basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_basic_string(msev_as_a_size_t(_N), _V, _Al) { /*m_debug_size = size();*/ }
 				gnii_basic_string(std_basic_string&& _X) : m_basic_string(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
 				gnii_basic_string(const std_basic_string& _X) : m_basic_string(_X) { /*m_debug_size = size();*/ }
-				gnii_basic_string(_Myt&& _X) : m_basic_string(std::forward<decltype(_X.m_basic_string)>(_X.m_basic_string)) { /*m_debug_size = size();*/ }
+				gnii_basic_string(_Myt&& _X) : m_basic_string(std::forward<decltype(_X)>(_X).m_basic_string) { /*m_debug_size = size();*/ }
 				gnii_basic_string(const _Myt& _X) : m_basic_string(_X.contained_basic_string()) { /*m_debug_size = size();*/ }
 				typedef typename std_basic_string::const_iterator _It;
 				/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
@@ -5795,7 +5795,7 @@ namespace mse {
 		member functions that return unsafe iterators. It also provides ss_begin() and ss_end() (non-static) member
 		functions which return bounds-checked, but still technically unsafe iterators. */
 		template<class _Ty, class _Traits, class _A, class _TStateMutex>
-		class msebasic_string : public mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> {
+		class msebasic_string : public mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>, public mse::us::impl::AsyncNotShareableTagBase {
 		public:
 			typedef mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> base_class;
 			typedef std::basic_string<_Ty, _Traits, _A> std_basic_string;

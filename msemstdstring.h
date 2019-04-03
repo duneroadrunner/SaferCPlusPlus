@@ -283,7 +283,7 @@ namespace mse {
 
 
 		template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty> */>
-		class basic_string : public mse::us::impl::AsyncNotShareableTagBase {
+		class basic_string : public mse::us::impl::AsyncNotShareableTagBase, public us::impl::ContiguousSequenceContainerTagBase {
 		public:
 			typedef basic_string _Myt;
 			typedef mse::us::msebasic_string<_Ty, _Traits, _A> _MBS;
@@ -307,7 +307,7 @@ namespace mse {
 			template<class _Alloc2 = _A, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc2>::value, int> = 0>
 #endif /* MSE_HAS_CXX17 */
 			explicit basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_N, _V, _Al)) {}
-			basic_string(_Myt&& _X) : m_shptr(std::make_shared<_MBS>(std::forward<decltype(_X.msebasic_string())>(_X.msebasic_string()))) {}
+			basic_string(_Myt&& _X) : m_shptr(std::make_shared<_MBS>(std::forward<decltype(_X)>(_X).msebasic_string())) {}
 			basic_string(const _Myt& _X) : basic_string(mse::us::unsafe_make_xscope_const_pointer_to(_X)) {}
 			basic_string(_MBS&& _X) : m_shptr(std::make_shared<_MBS>(std::forward<decltype(_X)>(_X))) {}
 			basic_string(const _MBS& _X) : basic_string(mse::us::unsafe_make_xscope_const_pointer_to(_X)) {}

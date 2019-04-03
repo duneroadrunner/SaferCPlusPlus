@@ -63,7 +63,7 @@ namespace mse {
 		explicit ivector(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
 		ivector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X)>(_X))) {}
 		ivector(const _MV& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
-		ivector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X.msevector())>(_X.msevector()))) {}
+		ivector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X)>(_X).msevector())) {}
 		ivector(const _Myt& _X) : m_shptr(std::make_shared<_MV>(_X.msevector())) {}
 		typedef typename _MV::const_iterator _It;
 		ivector(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
@@ -75,7 +75,7 @@ namespace mse {
 
 		_Myt& operator=(_MV&& _X) { m_shptr->operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		_Myt& operator=(const _MV& _X) { m_shptr->operator=(_X); return (*this); }
-		_Myt& operator=(_Myt&& _X) { m_shptr->operator=(std::forward<decltype(_X.msevector())>(_X.msevector())); return (*this); }
+		_Myt& operator=(_Myt&& _X) { m_shptr->operator=(std::forward<decltype(_X)>(_X).msevector()); return (*this); }
 		_Myt& operator=(const _Myt& _X) { m_shptr->operator=(_X.msevector()); return (*this); }
 		void reserve(size_type _Count) { m_shptr->reserve(_Count); }
 		void resize(size_type _N, const _Ty& _X = _Ty()) { m_shptr->resize(_N, _X); }

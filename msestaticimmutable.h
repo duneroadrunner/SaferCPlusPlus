@@ -111,7 +111,7 @@ namespace mse {
 					TCheckedThreadSafePointer(const TCheckedThreadSafePointer<_Ty2>& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					TCheckedThreadSafePointer(TCheckedThreadSafePointer&& src_ref) : base_class(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+					TCheckedThreadSafePointer(TCheckedThreadSafePointer&& src_ref) : base_class(std::forward<decltype(src_ref)>(src_ref).m_ptr) {
 						src_ref.m_ptr = nullptr;
 					}
 					virtual ~TCheckedThreadSafePointer() {
@@ -165,7 +165,7 @@ namespace mse {
 					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeConstPointer<_Ty2>& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					TCheckedThreadSafeConstPointer(TCheckedThreadSafeConstPointer&& src_ref) : base_class(std::forward<decltype(src_ref.m_ptr)>(src_ref.m_ptr)) {
+					TCheckedThreadSafeConstPointer(TCheckedThreadSafeConstPointer&& src_ref) : base_class(std::forward<decltype(src_ref)>(src_ref).m_ptr) {
 						src_ref.m_ptr = nullptr;
 					}
 					TCheckedThreadSafeConstPointer(const TCheckedThreadSafePointer<_Ty>& src_cref) : base_class(src_cref) {
@@ -559,9 +559,9 @@ namespace mse {
 				public:
 					A(int x) : b(x) {}
 					A(const A& _X) : b(_X.b) {}
-					A(A&& _X) : b(std::forward<decltype(_X.b)>(_X.b)) {}
+					A(A&& _X) : b(std::forward<decltype(_X)>(_X).b) {}
 					virtual ~A() {}
-					A& operator=(A&& _X) { b = std::forward<decltype(_X.b)>(_X.b); return (*this); }
+					A& operator=(A&& _X) { b = std::forward<decltype(_X)>(_X).b; return (*this); }
 					A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 					int b = 3;
