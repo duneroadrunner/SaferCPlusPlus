@@ -281,6 +281,7 @@ namespace mse {
 		}
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TVectorConstPointer);
+		void iterator_tag() const {}
 
 	private:
 
@@ -330,6 +331,7 @@ namespace mse {
 		}
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TVectorPointer);
+		void iterator_tag() const {}
 
 	private:
 
@@ -356,176 +358,74 @@ namespace mse {
 	class Tgnii_vector_xscope_ss_iterator_type;
 
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	class Tgnii_vector_xscope_ss_const_iterator_type : public Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+	class Tgnii_vector_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > >
+		/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 	public:
-		typedef Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex> base_class;
-		typedef typename base_class::iterator_category iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
+		typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > > base_class;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-		template <typename _TXScopePointer, class = typename std::enable_if<
-			std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > >::value
-			|| std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > >::value
-			|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedConstPointer<const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > >::value
-			|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > >::value
-			, void>::type>
-			Tgnii_vector_xscope_ss_const_iterator_type(const _TXScopePointer& owner_ptr) : Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>((*owner_ptr).ss_cbegin()) {}
+		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_vector_xscope_ss_const_iterator_type, base_class);
 
-		Tgnii_vector_xscope_ss_const_iterator_type(const Tgnii_vector_xscope_ss_const_iterator_type& src_cref) : Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>(src_cref) {}
-		Tgnii_vector_xscope_ss_const_iterator_type(const Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& src_cref) : Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>(src_cref) {}
-		~Tgnii_vector_xscope_ss_const_iterator_type() {}
-		const Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>& gnii_vector_ss_const_iterator_type() const {
-			return (*this);
-		}
-		Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>& gnii_vector_ss_const_iterator_type() {
-			return (*this);
-		}
-		const Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>& mvssci() const { return gnii_vector_ss_const_iterator_type(); }
-		Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>& mvssci() { return gnii_vector_ss_const_iterator_type(); }
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+		auto& operator=(Tgnii_vector_xscope_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		auto& operator=(const Tgnii_vector_xscope_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
-		void reset() { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::reset(); }
-		bool points_to_an_item() const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::points_to_an_item(); }
-		bool points_to_end_marker() const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::points_to_end_marker(); }
-		bool points_to_beginning() const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::points_to_beginning(); }
-		/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-		bool has_next_item_or_end_marker() const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::has_next_item_or_end_marker(); }
-		/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-		bool has_next() const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::has_next(); }
-		bool has_previous() const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::has_previous(); }
-		void set_to_beginning() { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::set_to_beginning(); }
-		void set_to_end_marker() { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::set_to_end_marker(); }
-		void set_to_next() { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::set_to_next(); }
-		void set_to_previous() { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::set_to_previous(); }
-		Tgnii_vector_xscope_ss_const_iterator_type& operator ++() { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator ++(); return (*this); }
-		Tgnii_vector_xscope_ss_const_iterator_type operator++(int) { Tgnii_vector_xscope_ss_const_iterator_type _Tmp = *this; Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator++(); return (_Tmp); }
-		Tgnii_vector_xscope_ss_const_iterator_type& operator --() { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator --(); return (*this); }
-		Tgnii_vector_xscope_ss_const_iterator_type operator--(int) { Tgnii_vector_xscope_ss_const_iterator_type _Tmp = *this; Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator--(); return (_Tmp); }
-		void advance(difference_type n) { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::advance(n); }
-		void regress(difference_type n) { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::regress(n); }
-		Tgnii_vector_xscope_ss_const_iterator_type& operator +=(difference_type n) { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator +=(n); return (*this); }
-		Tgnii_vector_xscope_ss_const_iterator_type& operator -=(difference_type n) { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator -=(n); return (*this); }
+		Tgnii_vector_xscope_ss_const_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
+		Tgnii_vector_xscope_ss_const_iterator_type operator++(int) { Tgnii_vector_xscope_ss_const_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
+		Tgnii_vector_xscope_ss_const_iterator_type& operator --() { base_class::operator --(); return (*this); }
+		Tgnii_vector_xscope_ss_const_iterator_type operator--(int) { Tgnii_vector_xscope_ss_const_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
+
+		Tgnii_vector_xscope_ss_const_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
+		Tgnii_vector_xscope_ss_const_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
 		Tgnii_vector_xscope_ss_const_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		Tgnii_vector_xscope_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const Tgnii_vector_xscope_ss_const_iterator_type& _Right_cref) const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator-(_Right_cref); }
-		const_reference operator*() const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator*(); }
-		const_reference item() const { return operator*(); }
-		const_reference previous_item() const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::previous_item(); }
-		const_pointer operator->() const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator->(); }
-		const_reference operator[](difference_type _Off) const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator[](_Off); }
-		Tgnii_vector_xscope_ss_const_iterator_type& operator=(const Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>& _Right_cref) {
-			if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(gnii_vector_range_error("invalid argument - Tgnii_vector_xscope_ss_const_iterator_type& operator=(const Tgnii_vector_xscope_ss_const_iterator_type& _Right_cref) - gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type")); }
-			Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator=(_Right_cref);
-			return (*this);
-		}
-		Tgnii_vector_xscope_ss_const_iterator_type& operator=(const Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>& _Right_cref) {
-			if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(gnii_vector_range_error("invalid argument - Tgnii_vector_xscope_ss_const_iterator_type& operator=(const Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>& _Right_cref) - gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type")); }
-			return operator=(Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>(_Right_cref));
-		}
-		bool operator==(const Tgnii_vector_xscope_ss_const_iterator_type& _Right_cref) const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator==(_Right_cref); }
-		bool operator!=(const Tgnii_vector_xscope_ss_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
-		bool operator<(const Tgnii_vector_xscope_ss_const_iterator_type& _Right) const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator<(_Right); }
-		bool operator<=(const Tgnii_vector_xscope_ss_const_iterator_type& _Right) const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator<=(_Right); }
-		bool operator>(const Tgnii_vector_xscope_ss_const_iterator_type& _Right) const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator>(_Right); }
-		bool operator>=(const Tgnii_vector_xscope_ss_const_iterator_type& _Right) const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::operator>=(_Right); }
-		void set_to_const_item_pointer(const Tgnii_vector_xscope_ss_const_iterator_type& _Right_cref) { Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::set_to_item_pointer(_Right_cref); }
-		msev_size_t position() const { return Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::position(); }
-		auto target_container_ptr() const {
-			return mse::us::unsafe_make_xscope_const_pointer_to(*(Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex>::target_container_ptr()));
-		}
-		void xscope_ss_iterator_type_tag() const {}
-		void async_not_shareable_and_not_passable_tag() const {}
-	private:
-		void* operator new(size_t size) { return ::operator new(size); }
+		difference_type operator-(const Tgnii_vector_xscope_ss_const_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
+		const_reference operator*() const { return base_class::operator*(); }
 
-		//typename Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex> (*this);
+		void set_to_const_item_pointer(const Tgnii_vector_xscope_ss_const_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+		void xscope_ss_iterator_type_tag() const {}
+
+	private:
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
 		friend class /*_Myt*/mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>;
 		template<class _Ty2, class _A2, class _TStateMutex2>
 		friend class Tgnii_vector_xscope_ss_iterator_type;
 	};
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	class Tgnii_vector_xscope_ss_iterator_type : public Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+	class Tgnii_vector_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > >
+		/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 	public:
-		typedef Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex> base_class;
-		typedef typename base_class::iterator_category iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
+		typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > > base_class;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-		template <typename _TXScopePointer, class = typename std::enable_if<
-			std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > >::value
-			|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > >::value
-			, void>::type>
-			Tgnii_vector_xscope_ss_iterator_type(const _TXScopePointer& owner_ptr) : Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>((*owner_ptr).ss_begin()) {}
+		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_vector_xscope_ss_iterator_type, base_class);
 
-		Tgnii_vector_xscope_ss_iterator_type(const Tgnii_vector_xscope_ss_iterator_type& src_cref) : Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>(src_cref) {}
-		~Tgnii_vector_xscope_ss_iterator_type() {}
-		const Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>& gnii_vector_ss_iterator_type() const {
-			return (*this);
-		}
-		Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>& gnii_vector_ss_iterator_type() {
-			return (*this);
-		}
-		const Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>& mvssi() const { return gnii_vector_ss_iterator_type(); }
-		Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>& mvssi() { return gnii_vector_ss_iterator_type(); }
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+		auto& operator=(Tgnii_vector_xscope_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		auto& operator=(const Tgnii_vector_xscope_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
-		void reset() { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::reset(); }
-		bool points_to_an_item() const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::points_to_an_item(); }
-		bool points_to_end_marker() const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::points_to_end_marker(); }
-		bool points_to_beginning() const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::points_to_beginning(); }
-		/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-		bool has_next_item_or_end_marker() const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::has_next_item_or_end_marker(); }
-		/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-		bool has_next() const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::has_next(); }
-		bool has_previous() const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::has_previous(); }
-		void set_to_beginning() { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::set_to_beginning(); }
-		void set_to_end_marker() { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::set_to_end_marker(); }
-		void set_to_next() { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::set_to_next(); }
-		void set_to_previous() { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::set_to_previous(); }
-		Tgnii_vector_xscope_ss_iterator_type& operator ++() { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator ++(); return (*this); }
-		Tgnii_vector_xscope_ss_iterator_type operator++(int) { Tgnii_vector_xscope_ss_iterator_type _Tmp = *this; Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator++(); return (_Tmp); }
-		Tgnii_vector_xscope_ss_iterator_type& operator --() { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator --(); return (*this); }
-		Tgnii_vector_xscope_ss_iterator_type operator--(int) { Tgnii_vector_xscope_ss_iterator_type _Tmp = *this; Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator--(); return (_Tmp); }
-		void advance(difference_type n) { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::advance(n); }
-		void regress(difference_type n) { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::regress(n); }
-		Tgnii_vector_xscope_ss_iterator_type& operator +=(difference_type n) { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator +=(n); return (*this); }
-		Tgnii_vector_xscope_ss_iterator_type& operator -=(difference_type n) { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator -=(n); return (*this); }
+		Tgnii_vector_xscope_ss_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
+		Tgnii_vector_xscope_ss_iterator_type operator++(int) { Tgnii_vector_xscope_ss_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
+		Tgnii_vector_xscope_ss_iterator_type& operator --() { base_class::operator --(); return (*this); }
+		Tgnii_vector_xscope_ss_iterator_type operator--(int) { Tgnii_vector_xscope_ss_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
+
+		Tgnii_vector_xscope_ss_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
+		Tgnii_vector_xscope_ss_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
 		Tgnii_vector_xscope_ss_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		Tgnii_vector_xscope_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const Tgnii_vector_xscope_ss_iterator_type& _Right_cref) const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator-(_Right_cref); }
-		reference operator*() const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator*(); }
-		reference item() const { return operator*(); }
-		reference previous_item() const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::previous_item(); }
-		pointer operator->() const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator->(); }
-		reference operator[](difference_type _Off) const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator[](_Off); }
-		Tgnii_vector_xscope_ss_iterator_type& operator=(const Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>& _Right_cref) {
-			if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(gnii_vector_range_error("invalid argument - Tgnii_vector_xscope_ss_iterator_type& operator=(const Tgnii_vector_xscope_ss_iterator_type& _Right_cref) - gnii_vector::Tgnii_vector_xscope_ss_iterator_type")); }
-			Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator=(_Right_cref);
-			return (*this);
-		}
-		bool operator==(const Tgnii_vector_xscope_ss_iterator_type& _Right_cref) const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator==(_Right_cref); }
-		bool operator!=(const Tgnii_vector_xscope_ss_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
-		bool operator<(const Tgnii_vector_xscope_ss_iterator_type& _Right) const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator<(_Right); }
-		bool operator<=(const Tgnii_vector_xscope_ss_iterator_type& _Right) const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator<=(_Right); }
-		bool operator>(const Tgnii_vector_xscope_ss_iterator_type& _Right) const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator>(_Right); }
-		bool operator>=(const Tgnii_vector_xscope_ss_iterator_type& _Right) const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::operator>=(_Right); }
-		void set_to_item_pointer(const Tgnii_vector_xscope_ss_iterator_type& _Right_cref) { Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::set_to_item_pointer(_Right_cref); }
-		msev_size_t position() const { return Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::position(); }
-		auto target_container_ptr() const {
-			return mse::us::unsafe_make_xscope_pointer_to(*(Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex>::target_container_ptr()));
-		}
-		void xscope_ss_iterator_type_tag() const {}
-		void async_not_shareable_and_not_passable_tag() const {}
-	private:
-		void* operator new(size_t size) { return ::operator new(size); }
+		difference_type operator-(const Tgnii_vector_xscope_ss_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
 
-		//typename Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex> (*this);
+		void set_to_item_pointer(const Tgnii_vector_xscope_ss_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+		void xscope_ss_iterator_type_tag() const {}
+
+	private:
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
 		friend class /*_Myt*/mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>;
 	};
 

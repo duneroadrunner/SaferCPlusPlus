@@ -384,9 +384,9 @@ namespace mse {
 
 	namespace us {
 		namespace impl {
-			class AsyncNotShareableAndNotPassableTagBase {};
 			class AsyncNotShareableTagBase {};
 			class AsyncNotPassableTagBase {};
+			class AsyncNotShareableAndNotPassableTagBase : public AsyncNotShareableTagBase, public AsyncNotPassableTagBase {};
 		}
 	}
 

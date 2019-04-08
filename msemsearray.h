@@ -995,6 +995,8 @@ namespace mse {
 			template <typename _TRAContainerPointer>
 			class TRAIteratorBase : public mse::impl::random_access_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())>
 				, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TRAIteratorBase<_TRAContainerPointer> > >::type
+				, public std::conditional<std::is_base_of<mse::us::impl::AsyncNotShareableTagBase, _TRAContainerPointer>::value, mse::us::impl::AsyncNotShareableTagBase, mse::impl::TPlaceHolder2_msescope<TRAIteratorBase<_TRAContainerPointer> > >::type
+				, public std::conditional<std::is_base_of<mse::us::impl::AsyncNotPassableTagBase, _TRAContainerPointer>::value, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder3_msescope<TRAIteratorBase<_TRAContainerPointer> > >::type
 			{
 			public:
 				typedef mse::impl::random_access_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())> base_class;
@@ -1260,6 +1262,8 @@ namespace mse {
 			template <typename _TRAContainerPointer>
 			class TRAConstIteratorBase : public mse::impl::random_access_const_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())>
 				, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TRAContainerPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<us::impl::TRAConstIteratorBase<_TRAContainerPointer> > >::type
+				, public std::conditional<std::is_base_of<mse::us::impl::AsyncNotShareableTagBase, _TRAContainerPointer>::value, mse::us::impl::AsyncNotShareableTagBase, mse::impl::TPlaceHolder2_msescope<us::impl::TRAConstIteratorBase<_TRAContainerPointer> > >::type
+				, public std::conditional<std::is_base_of<mse::us::impl::AsyncNotPassableTagBase, _TRAContainerPointer>::value, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder3_msescope<us::impl::TRAConstIteratorBase<_TRAContainerPointer> > >::type
 			{
 			public:
 				typedef mse::impl::random_access_const_iterator_base_from_ra_container<decltype(*std::declval<_TRAContainerPointer>())> base_class;
@@ -1821,26 +1825,26 @@ namespace mse {
 	}
 
 	template <typename _TRAContainerPointer>
-	class TXScopeCSSSStrongIterator : public TXScopeRAIterator<_TRAContainerPointer> {
+	class TXScopeCSSSStrongRAIterator : public TXScopeRAIterator<_TRAContainerPointer> {
 	public:
 		typedef TXScopeRAIterator<_TRAContainerPointer> base_class;
 		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-		TXScopeCSSSStrongIterator(const TXScopeCSSSStrongIterator& src) : base_class(src) {}
-		TXScopeCSSSStrongIterator(TXScopeCSSSStrongIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
-		TXScopeCSSSStrongIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {
+		TXScopeCSSSStrongRAIterator(const TXScopeCSSSStrongRAIterator& src) : base_class(src) {}
+		TXScopeCSSSStrongRAIterator(TXScopeCSSSStrongRAIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
+		TXScopeCSSSStrongRAIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {
 			mse::impl::is_valid_if_strong_pointer<_TRAContainerPointer>::no_op();
 			typedef typename std::remove_reference<decltype(*ra_container_pointer)>::type TRAContainer;
 			mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
 		}
-		TXScopeCSSSStrongIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {
+		TXScopeCSSSStrongRAIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {
 			mse::impl::is_valid_if_strong_pointer<_TRAContainerPointer>::no_op();
 			typedef typename std::remove_reference<decltype(*ra_container_pointer)>::type TRAContainer;
 			mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
 		}
 
-		auto& operator=(const TXScopeCSSSStrongIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
-		auto& operator=(TXScopeCSSSStrongIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
+		auto& operator=(const TXScopeCSSSStrongRAIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
+		auto& operator=(TXScopeCSSSStrongRAIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
@@ -1852,26 +1856,26 @@ namespace mse {
 	};
 
 	template <typename _TRAContainerPointer>
-	class TXScopeCSSSStrongConstIterator : public TXScopeRAConstIterator<_TRAContainerPointer> {
+	class TXScopeCSSSStrongRAConstIterator : public TXScopeRAConstIterator<_TRAContainerPointer> {
 	public:
 		typedef TXScopeRAConstIterator<_TRAContainerPointer> base_class;
 		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-		TXScopeCSSSStrongConstIterator(const TXScopeCSSSStrongConstIterator& src) : base_class(src) {}
-		TXScopeCSSSStrongConstIterator(TXScopeCSSSStrongConstIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
-		TXScopeCSSSStrongConstIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {
+		TXScopeCSSSStrongRAConstIterator(const TXScopeCSSSStrongRAConstIterator& src) : base_class(src) {}
+		TXScopeCSSSStrongRAConstIterator(TXScopeCSSSStrongRAConstIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
+		TXScopeCSSSStrongRAConstIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {
 			mse::impl::is_valid_if_strong_pointer<_TRAContainerPointer>::no_op();
 			typedef typename std::remove_reference<decltype(*ra_container_pointer)>::type TRAContainer;
 			mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
 		}
-		TXScopeCSSSStrongConstIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {
+		TXScopeCSSSStrongRAConstIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0) : base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {
 			mse::impl::is_valid_if_strong_pointer<_TRAContainerPointer>::no_op();
 			typedef typename std::remove_reference<decltype(*ra_container_pointer)>::type TRAContainer;
 			mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
 		}
 
-		auto& operator=(const TXScopeCSSSStrongConstIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
-		auto& operator=(TXScopeCSSSStrongConstIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
+		auto& operator=(const TXScopeCSSSStrongRAConstIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
+		auto& operator=(TXScopeCSSSStrongRAConstIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
@@ -2078,29 +2082,13 @@ namespace mse {
 	class Tnii_array_xscope_ss_iterator_type;
 
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	class Tnii_array_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongConstIterator<mse::TXScopeItemFixedConstPointer<const mse::nii_array<_Ty, _Size, _TStateMutex> > > >
+	class Tnii_array_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::nii_array<_Ty, _Size, _TStateMutex> > > >
 		/*, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
 	public:
-		typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongConstIterator<mse::TXScopeItemFixedConstPointer<const mse::nii_array<_Ty, _Size, _TStateMutex> > > > base_class;
+		typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::nii_array<_Ty, _Size, _TStateMutex> > > > base_class;
 		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tnii_array_xscope_ss_const_iterator_type, base_class);
-
-		/*
-		template<class _TXScopeArrayConstPointer2 = _TXScopeArrayConstPointer, class = typename std::enable_if<(std::is_same<_TXScopeArrayConstPointer2, _TXScopeArrayConstPointer>::value) && (std::is_default_constructible<_TXScopeArrayConstPointer>::value), void>::type>
-		Tnii_array_xscope_ss_const_iterator_type() {}
-
-		template <typename _TXScopePointer, class = typename std::enable_if<
-			std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<const nii_array<_Ty, _Size, _TStateMutex> > >::value
-			|| std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<nii_array<_Ty, _Size, _TStateMutex> > >::value
-			|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedConstPointer<const nii_array<_Ty, _Size, _TStateMutex> > >::value
-			|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<nii_array<_Ty, _Size, _TStateMutex> > >::value
-			, void>::type>
-			Tnii_array_xscope_ss_const_iterator_type(const _TXScopePointer& owner_ptr) : base_class((*owner_ptr).ss_cbegin()) {}
-
-		Tnii_array_xscope_ss_const_iterator_type(const Tnii_array_xscope_ss_const_iterator_type& src_cref) : base_class(src_cref) {}
-		Tnii_array_xscope_ss_const_iterator_type(const Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& src_cref) : base_class(src_cref) {}
-		*/
 
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 		auto& operator=(Tnii_array_xscope_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
@@ -2125,29 +2113,18 @@ namespace mse {
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		//typename base_class (*this);
 		friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
 		template<class _Ty2, size_t _Size2, class _TStateMutex2>
 		friend class Tnii_array_xscope_ss_iterator_type;
 	};
 	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	class Tnii_array_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongIterator<mse::TXScopeItemFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > >
+	class Tnii_array_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeItemFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > >
 		/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
 	public:
-		typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongIterator<mse::TXScopeItemFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > > base_class;
+		typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeItemFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > > base_class;
 		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tnii_array_xscope_ss_iterator_type, base_class);
-
-		/*
-		template <typename _TXScopePointer, class = typename std::enable_if<
-			std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<nii_array<_Ty, _Size, _TStateMutex> > >::value
-			|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<nii_array<_Ty, _Size, _TStateMutex> > >::value
-			, void>::type>
-			Tnii_array_xscope_ss_iterator_type(const _TXScopePointer& owner_ptr) : base_class((*owner_ptr).ss_begin()) {}
-
-		Tnii_array_xscope_ss_iterator_type(const Tnii_array_xscope_ss_iterator_type& src_cref) : base_class(src_cref) {}
-		*/
 
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 		auto& operator=(Tnii_array_xscope_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
@@ -2172,7 +2149,6 @@ namespace mse {
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		//typename base_class (*this);
 		friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
 	};
 
@@ -5647,12 +5623,9 @@ namespace mse {
 
 			/* If _TROy is "marked" as not safe to share among threads, then the following member function will not
 			instantiate, causing an (intended) compile error. */
-			template<class = typename std::enable_if<mse::impl::is_marked_as_shareable_and_passable_msemsearray<_TROy>::value || (
-				(!std::is_convertible<_TROy*, mse::us::impl::AsyncNotShareableAndNotPassableTagBase*>::value)
-				/*(!std::integral_constant<bool, HasAsyncNotShareableAndNotPassableTagMethod_msemsearray<_TROy>::Has>())*/
-				&& (!std::is_convertible<_TROy*, mse::us::impl::AsyncNotShareableTagBase*>::value)
-				), void>::type>
-				void valid_if_TROy_is_not_marked_as_unshareable() const {}
+			template<class = typename std::enable_if<mse::impl::is_marked_as_shareable_and_passable_msemsearray<_TROy>::value
+				|| ((!std::is_convertible<_TROy*, mse::us::impl::AsyncNotShareableTagBase*>::value)), void>::type>
+			void valid_if_TROy_is_not_marked_as_unshareable() const {}
 
 			/* There's a bug in the g++ atomic<> implementation (prior to C++17) that requires (public) access to the '&' operator. */
 #if defined(MSE_HAS_CXX17) || ((!defined(__GNUC__)) && (!defined(__GNUG__)))
@@ -5677,11 +5650,8 @@ namespace mse {
 
 			/* If _TROy is "marked" as not safe to pass between threads, then the following member function will not
 			instantiate, causing an (intended) compile error. */
-			template<class = typename std::enable_if<mse::impl::is_marked_as_passable_msemsearray<_TROy>::value || (
-				(!std::is_convertible<_TROy*, mse::us::impl::AsyncNotPassableTagBase*>::value)
-				/*(!std::integral_constant<bool, HasAsyncNotPassableTagMethod_msemsearray<_TROy>::Has>())*/
-				&& (!std::is_convertible<_TROy*, mse::us::impl::AsyncNotShareableAndNotPassableTagBase*>::value)
-				), void>::type>
+			template<class = typename std::enable_if<mse::impl::is_marked_as_passable_msemsearray<_TROy>::value
+				|| ((!std::is_convertible<_TROy*, mse::us::impl::AsyncNotPassableTagBase*>::value)), void>::type>
 			void valid_if_TROy_is_not_marked_as_unpassable() const {}
 
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -5691,7 +5661,7 @@ namespace mse {
 		template<typename _TROy>
 		class TAsyncShareableAndPassableObj : public _TROy {
 		public:
-			MSE_USING_WITH_ADDED_INIT(TAsyncShareableAndPassableObj, _TROy, valid_if_TROy_is_not_marked_as_unshareable());
+			MSE_USING_WITH_ADDED_INIT(TAsyncShareableAndPassableObj, _TROy, valid_if_TROy_is_not_marked_as_unshareable_or_unpassable());
 
 			void async_shareable_and_passable_tag() const {}
 
@@ -5700,12 +5670,10 @@ namespace mse {
 			/* If _TROy is "marked" as not safe to share among threads, then the following member function will not
 			instantiate, causing an (intended) compile error. */
 			template<class = typename std::enable_if<mse::impl::is_marked_as_shareable_and_passable_msemsearray<_TROy>::value || (
-				(!std::is_convertible<_TROy*, mse::us::impl::AsyncNotShareableAndNotPassableTagBase*>::value)
-				/*(!std::integral_constant<bool, HasAsyncNotShareableAndNotPassableTagMethod_msemsearray<_TROy>::Has>())*/
-				&& (!std::is_convertible<_TROy*, mse::us::impl::AsyncNotShareableTagBase*>::value)
+				(!std::is_convertible<_TROy*, mse::us::impl::AsyncNotShareableTagBase*>::value)
 				&& (!std::is_convertible<_TROy*, mse::us::impl::AsyncNotPassableTagBase*>::value)
 				), void>::type>
-			void valid_if_TROy_is_not_marked_as_unshareable() const {}
+			void valid_if_TROy_is_not_marked_as_unshareable_or_unpassable() const {}
 
 			/* There's a bug in the g++ atomic<> implementation (prior to C++17) that requires (public) access to the '&' operator. */
 #if defined(MSE_HAS_CXX17) || ((!defined(__GNUC__)) && (!defined(__GNUG__)))
@@ -7145,7 +7113,9 @@ namespace mse {
 
 	namespace impl {
 		template <typename _TRAIterator>
-		class TXScopeSplitterRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator>, public mse::us::impl::AsyncNotPassableTagBase {
+		class TXScopeSplitterRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator>
+			, public std::conditional<!std::is_base_of<mse::us::impl::AsyncNotPassableTagBase, TXScopeRandomAccessSection<_TRAIterator> >::value, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder_msescope<TXScopeSplitterRandomAccessSection<_TRAIterator> > >::type
+		{
 		public:
 			typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
 			typedef typename base_class::value_type value_type;
@@ -7183,7 +7153,9 @@ namespace mse {
 		};
 
 		template <typename _TRAIterator>
-		class TSplitterRandomAccessSection : public TRandomAccessSection<_TRAIterator>, public mse::us::impl::AsyncNotPassableTagBase {
+		class TSplitterRandomAccessSection : public TRandomAccessSection<_TRAIterator>
+			, public std::conditional<!std::is_base_of<mse::us::impl::AsyncNotPassableTagBase, TRandomAccessSection<_TRAIterator> >::value, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder_msescope<TXScopeSplitterRandomAccessSection<_TRAIterator> > >::type
+		{
 		public:
 			typedef TRandomAccessSection<_TRAIterator> base_class;
 			typedef typename base_class::value_type value_type;

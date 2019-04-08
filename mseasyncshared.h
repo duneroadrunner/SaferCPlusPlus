@@ -2139,7 +2139,9 @@ namespace mse {
 	template <typename _TRAIterator> class TAsyncSplitterRASectionReadWriteAccessRequester;
 
 	template <typename _TRAIterator>
-	class TXScopeAsyncSplitterRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator>, public mse::us::impl::AsyncNotPassableTagBase {
+	class TXScopeAsyncSplitterRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator>
+		, public std::conditional<!std::is_base_of<mse::us::impl::AsyncNotPassableTagBase, TXScopeRandomAccessSection<_TRAIterator> >::value, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder_msescope<TXScopeAsyncSplitterRandomAccessSection<_TRAIterator> > >::type
+	{
 	public:
 		typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
 		typedef typename base_class::value_type value_type;
@@ -2179,7 +2181,9 @@ namespace mse {
 	};
 
 	template <typename _TRAIterator>
-	class TAsyncSplitterRandomAccessSection : public TRandomAccessSection<_TRAIterator>, public mse::us::impl::AsyncNotPassableTagBase {
+	class TAsyncSplitterRandomAccessSection : public TRandomAccessSection<_TRAIterator>
+		, public std::conditional<!std::is_base_of<mse::us::impl::AsyncNotPassableTagBase, TRandomAccessSection<_TRAIterator> >::value, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder_msescope<TXScopeAsyncSplitterRandomAccessSection<_TRAIterator> > >::type
+	{
 	public:
 		typedef TRandomAccessSection<_TRAIterator> base_class;
 		typedef typename base_class::value_type value_type;

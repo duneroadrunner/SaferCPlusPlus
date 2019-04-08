@@ -75,10 +75,9 @@ namespace mse {
 	}
 
 	namespace impl {
-		template<typename _Ty>
-		class TPlaceHolder_msescope {};
-		template<typename _Ty>
-		class TPlaceHolder2_msescope {};
+		template<typename _Ty> class TPlaceHolder_msescope {};
+		template<typename _Ty> class TPlaceHolder2_msescope {};
+		template<typename _Ty> class TPlaceHolder3_msescope {};
 
 		template<typename T>
 		struct HasXScopeReturnableTagMethod
