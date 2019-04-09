@@ -262,11 +262,11 @@ namespace mse {
 		, public std::conditional<
 				(std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _This>::value)
 				|| (mse::impl::disjunction<std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _Rest>...>::value)
-			, mse::us::impl::ReferenceableByScopePointerTagBase, mse::impl::TPlaceHolder_msescope<xscope_tuple<_This, _Rest...> > >::type
+			, mse::us::impl::ReferenceableByScopePointerTagBase, mse::impl::TPlaceHolder<mse::us::impl::ReferenceableByScopePointerTagBase, xscope_tuple<_This, _Rest...> > >::type
 		, public std::conditional<
 				(std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _This>::value)
 				|| (mse::impl::disjunction<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Rest>...>::value)
-			, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder2_msescope<xscope_tuple<_This, _Rest...> > >::type
+			, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, xscope_tuple<_This, _Rest...> > >::type
 	{
 	public:
 		typedef std::tuple<_This, _Rest...> base_class;

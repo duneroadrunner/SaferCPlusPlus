@@ -226,7 +226,7 @@ namespace mse {
 	/* Use TXScopeAtomicFixedPointer instead. */
 	template<typename _Ty>
 	class TXScopeAtomicPointer : public mse::us::impl::TXScopeAtomicPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase
-		, public std::conditional<std::is_base_of<mse::us::impl::StrongPointerTagBase, mse::us::impl::TXScopeAtomicPointerBase<_Ty> >::value, mse::impl::TPlaceHolder_msescope<TXScopeAtomicPointer<_Ty> >, mse::us::impl::StrongPointerTagBase>::type
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::StrongPointerTagBase, mse::us::impl::TXScopeAtomicPointerBase<_Ty>, TXScopeAtomicPointer<_Ty>)
 		{
 	public:
 		~TXScopeAtomicPointer() {}
@@ -267,8 +267,8 @@ namespace mse {
 	/* Use TXScopeAtomicFixedConstPointer instead. */
 	template<typename _Ty>
 	class TXScopeAtomicConstPointer : public mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase
-		, public std::conditional<std::is_base_of<mse::us::impl::StrongPointerTagBase, mse::us::impl::TXScopeAtomicConstPointerBase<_Ty> >::value, mse::impl::TPlaceHolder_msescope<TXScopeAtomicConstPointer<_Ty> >, mse::us::impl::StrongPointerTagBase>::type
-		{
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::StrongPointerTagBase, mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>, TXScopeAtomicConstPointer<_Ty>)
+	{
 	public:
 		~TXScopeAtomicConstPointer() {}
 	private:
@@ -422,8 +422,8 @@ namespace mse {
 	mse::us::TFLRegisteredObj to be used in non-debug modes as well. */
 	template<typename _TROy>
 	class TXScopeAtomicObj : public mse::us::impl::TXScopeAtomicObjBase<_TROy>
-		, public std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TROy>::value, mse::impl::TPlaceHolder_msescope<TXScopeAtomicObj<_TROy> >, mse::us::impl::XScopeTagBase>::type
-		, public std::conditional<std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _TROy>::value, mse::impl::TPlaceHolder2_msescope<TXScopeAtomicObj<_TROy> >, mse::us::impl::ReferenceableByScopePointerTagBase>::type
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::XScopeTagBase, mse::us::impl::TXScopeAtomicObjBase<_TROy>, TXScopeAtomicObj<_TROy>)
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::ReferenceableByScopePointerTagBase, mse::us::impl::TXScopeAtomicObjBase<_TROy>, TXScopeAtomicObj<_TROy>)
 	{
 	public:
 		TXScopeAtomicObj(const TXScopeAtomicObj& _X) = default;
@@ -833,7 +833,7 @@ namespace mse {
 	*/
 	template<typename _Ty>
 	class TXScopeAtomicOwnerPointer : public mse::us::impl::XScopeTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase
-		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TXScopeAtomicOwnerPointer<_Ty> > >::type
+		, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(_Ty, TXScopeAtomicOwnerPointer<_Ty>)
 	{
 	public:
 		TXScopeAtomicOwnerPointer(TXScopeAtomicOwnerPointer<_Ty>&& src_ref) = default;

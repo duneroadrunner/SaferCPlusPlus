@@ -63,11 +63,6 @@ namespace mse {
 
 		template<typename _Ty> class TThreadLocalID {};
 
-		template<typename _Ty>
-		class TPlaceHolder_msethreadlocal {};
-		template<typename _Ty>
-		class TPlaceHolder2_msethreadlocal {};
-
 #ifdef MSE_THREADLOCALPOINTER_DISABLED
 		//TThreadLocalID
 		template<typename _Ty> using TThreadLocalPointer = _Ty * ;

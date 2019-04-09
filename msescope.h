@@ -60,24 +60,7 @@ namespace mse {
 		template<typename _Ty> class TScopeID {};
 	}
 
-	namespace us {
-		namespace impl {
-			/* moved to msepointerbasics.h */
-			//class XScopeTagBase { public: void xscope_tag() const {} };
-
-			/* Note that objects not derived from ReferenceableByScopePointerTagBase might still be targeted by a scope pointer via
-			make_pointer_to_member_v2(). */
-			class ReferenceableByScopePointerTagBase {};
-
-			class ContainsNonOwningScopeReferenceTagBase {};
-			class XScopeContainsNonOwningScopeReferenceTagBase : public ContainsNonOwningScopeReferenceTagBase, public XScopeTagBase {};
-		}
-	}
-
 	namespace impl {
-		template<typename _Ty> class TPlaceHolder_msescope {};
-		template<typename _Ty> class TPlaceHolder2_msescope {};
-		template<typename _Ty> class TPlaceHolder3_msescope {};
 
 		template<typename T>
 		struct HasXScopeReturnableTagMethod
@@ -473,8 +456,8 @@ namespace mse {
 	mse::us::TFLRegisteredObj to be used in non-debug modes as well. */
 	template<typename _TROy>
 	class TXScopeObj : public mse::us::impl::TXScopeObjBase<_TROy>
-		, public std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TROy>::value, mse::impl::TPlaceHolder_msescope<TXScopeObj<_TROy> >, mse::us::impl::XScopeTagBase>::type
-		, public std::conditional<std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _TROy>::value, mse::impl::TPlaceHolder2_msescope<TXScopeObj<_TROy> >, mse::us::impl::ReferenceableByScopePointerTagBase>::type
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::XScopeTagBase, mse::us::impl::TXScopeObjBase<_TROy>, TXScopeObj<_TROy>)
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::ReferenceableByScopePointerTagBase, mse::us::impl::TXScopeObjBase<_TROy>, TXScopeObj<_TROy>)
 	{
 	public:
 		TXScopeObj(const TXScopeObj& _X) : mse::us::impl::TXScopeObjBase<_TROy>(_X) {}
@@ -1295,7 +1278,7 @@ namespace mse {
 
 	template<typename _TROy>
 	class TXScopeReturnValue : public TReturnValue<_TROy>
-		, public std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TROy>::value, mse::impl::TPlaceHolder_msescope<TXScopeReturnValue<_TROy> >, mse::us::impl::XScopeTagBase>::type
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::XScopeTagBase, TReturnValue<_TROy>, TXScopeReturnValue<_TROy>)
 	{
 	public:
 		typedef TReturnValue<_TROy> base_class;
@@ -1430,7 +1413,7 @@ namespace mse {
 	*/
 	template<typename _Ty>
 	class TXScopeOwnerPointer : public mse::us::impl::XScopeTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase
-		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TXScopeOwnerPointer<_Ty> > >::type
+		, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(_Ty, TXScopeOwnerPointer<_Ty>)
 	{
 	public:
 		TXScopeOwnerPointer(TXScopeOwnerPointer<_Ty>&& src_ref) = default;
@@ -1797,7 +1780,7 @@ namespace mse {
 	obtain a corresponding scope pointer. */
 	template<typename _TStrongPointer>
 	class TXScopeStrongPointerStore : public mse::us::impl::XScopeTagBase
-		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TXScopeStrongPointerStore<_TStrongPointer> > >::type
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer, TXScopeStrongPointerStore<_TStrongPointer>)
 	{
 	public:
 		TXScopeStrongPointerStore(const TXScopeStrongPointerStore&) = delete;
@@ -1832,7 +1815,7 @@ namespace mse {
 
 	template<typename _TStrongPointer>
 	class TXScopeStrongConstPointerStore : public mse::us::impl::XScopeTagBase
-		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TXScopeStrongConstPointerStore<_TStrongPointer> > >::type
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer, TXScopeStrongConstPointerStore<_TStrongPointer>)
 	{
 	public:
 		TXScopeStrongConstPointerStore(const TXScopeStrongConstPointerStore&) = delete;
@@ -1864,7 +1847,7 @@ namespace mse {
 
 	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_and_never_null_pointer<_TStrongPointer> >
 	class TXScopeStrongNotNullPointerStore : public mse::us::impl::XScopeTagBase
-		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TXScopeStrongNotNullPointerStore<_TStrongPointer> > >::type
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer, TXScopeStrongNotNullPointerStore<_TStrongPointer>)
 	{
 	public:
 		TXScopeStrongNotNullPointerStore(const TXScopeStrongNotNullPointerStore&) = delete;
@@ -1889,7 +1872,7 @@ namespace mse {
 
 	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_and_never_null_pointer<_TStrongPointer> >
 	class TXScopeStrongNotNullConstPointerStore : public mse::us::impl::XScopeTagBase
-		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder_msescope<TXScopeStrongNotNullConstPointerStore<_TStrongPointer> > >::type
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer, TXScopeStrongNotNullConstPointerStore<_TStrongPointer>)
 	{
 	public:
 		TXScopeStrongNotNullConstPointerStore(const TXScopeStrongNotNullConstPointerStore&) = delete;

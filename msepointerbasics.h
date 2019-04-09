@@ -285,6 +285,13 @@ namespace mse {
 	namespace us {
 		namespace impl {
 			class XScopeTagBase { public: void xscope_tag() const {} };
+
+			/* Note that objects not derived from ReferenceableByScopePointerTagBase might still be targeted by a scope pointer via
+			make_pointer_to_member_v2(). */
+			class ReferenceableByScopePointerTagBase {};
+
+			class ContainsNonOwningScopeReferenceTagBase {};
+			class XScopeContainsNonOwningScopeReferenceTagBase : public ContainsNonOwningScopeReferenceTagBase, public XScopeTagBase {};
 		}
 	}
 
@@ -389,6 +396,7 @@ namespace mse {
 			class AsyncNotShareableAndNotPassableTagBase : public AsyncNotShareableTagBase, public AsyncNotPassableTagBase {};
 		}
 	}
+
 
 	namespace impl {
 
@@ -564,11 +572,42 @@ namespace mse {
 		void xscope_async_passable_tag() const {}
 
 	namespace impl {
-		template<typename _Ty>
-		class TPlaceHolder_msepointerbasics {};
-		template<typename _Ty>
-		class TPlaceHolder2_msepointerbasics {};
+		template<typename... _Types>
+		class TPlaceHolder {};
 	}
+
+//define MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(tag_base, class2, class3) std::conditional<!std::is_convertible<class2 const * const, tag_base const * const>::value, tag_base, mse::impl::TPlaceHolder<tag_base, class3> >::type
+//define MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(tag_base, class2, class3) std::conditional<std::is_convertible<class2 const * const, tag_base const * const>::value, tag_base, mse::impl::TPlaceHolder<tag_base, class3> >::type
+#define MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(tag_base, class2, class3) std::conditional<!std::is_base_of<tag_base, class2>::value, tag_base, mse::impl::TPlaceHolder<tag_base, class3> >::type
+#define MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(tag_base, class2, class3) std::conditional<std::is_base_of<tag_base, class2>::value, tag_base, mse::impl::TPlaceHolder<tag_base, class3> >::type
+
+#define MSE_INHERIT_ASYNC_TAG_BASE_SET_FROM(class2, class3) \
+	public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::AsyncNotShareableTagBase, class2, class3) \
+	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::AsyncNotPassableTagBase, class2, class3)
+
+#define MSE_INHERIT_COMMON_ITERATOR_TAG_BASE_SET_FROM(class2, class3) \
+	MSE_INHERIT_ASYNC_TAG_BASE_SET_FROM(class2, class3) \
+	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ExclusivePointerTagBase, class2, class3)
+
+#define MSE_INHERIT_COMMON_POINTER_TAG_BASE_SET_FROM(class2, class3) \
+	MSE_INHERIT_ASYNC_TAG_BASE_SET_FROM(class2, class3) \
+	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::StrongPointerTagBase, class2, class3) \
+	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::NeverNullTagBase, class2, class3) \
+	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ExclusivePointerTagBase, class2, class3)
+
+#define MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(class2, class3) \
+	public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ReferenceableByScopePointerTagBase, class2, class3) \
+	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, class2, class3)
+
+#define MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(class2, class3) \
+	MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(class2, class3) \
+	, MSE_INHERIT_COMMON_ITERATOR_TAG_BASE_SET_FROM(class2, class3)
+
+#define MSE_INHERIT_COMMON_XSCOPE_POINTER_TAG_BASE_SET_FROM(class2, class3) \
+	MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(class2, class3) \
+	, MSE_INHERIT_COMMON_POINTER_TAG_BASE_SET_FROM(class2, class3)
+
+#define MSE_INHERIT_COMMON_XSCOPE_OBJ_TAG_BASE_SET_FROM(class2, class3) MSE_INHERIT_COMMON_XSCOPE_POINTER_TAG_BASE_SET_FROM(class2, class3)
 
 	namespace impl {
 		namespace ns_is_instantiation_of {

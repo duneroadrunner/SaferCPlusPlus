@@ -1473,8 +1473,7 @@ namespace mse {
 
 	template <class _Ty>
 	class xscope_optional : public mse::impl::optional::optional_base<_Ty>, public mse::us::impl::XScopeTagBase
-		, public std::conditional<std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _Ty>::value, mse::us::impl::ReferenceableByScopePointerTagBase, mse::impl::TPlaceHolder_msescope<xscope_optional<_Ty> > >::type
-		, public std::conditional<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty>::value, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder2_msescope<xscope_optional<_Ty> > >::type
+		, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(_Ty, xscope_optional<_Ty>)
 	{
 	public:
 		typedef mse::impl::optional::optional_base<_Ty> base_class;

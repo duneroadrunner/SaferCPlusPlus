@@ -69,12 +69,6 @@ namespace mse {
 
 		template<typename _Ty> class TStaticImmutableID {};
 
-		template<typename _Ty>
-		class TPlaceHolder_msestatic {};
-		template<typename _Ty>
-		class TPlaceHolder2_msestatic {};
-
-
 #ifdef MSE_CHECKEDTHREADSAFEPOINTER
 		namespace impl {
 			namespace cts {
@@ -259,7 +253,9 @@ namespace mse {
 		template<typename _Ty> using TStaticImmutableNotNullPointer = TStaticImmutableNotNullConstPointer<_Ty>;
 		template<typename _Ty> using TStaticImmutableFixedConstPointer = const _Ty* /*const*/;
 		template<typename _Ty> using TStaticImmutableFixedPointer = TStaticImmutableFixedConstPointer<_Ty>;
-		template<typename _TROy> using TStaticImmutableObjBase = _TROy;
+		namespace impl {
+			template<typename _TROy> using TStaticImmutableObjBase = _TROy;
+		}
 		template<typename _TROy> using TStaticImmutableObj = _TROy;
 
 		template<typename _Ty> auto static_fptr_to(_Ty&& _X) { return std::addressof(_X); }
@@ -269,35 +265,39 @@ namespace mse {
 
 #if defined(MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED)
 		
-		template<typename _TROz> using TStaticImmutableObjBase = mse::rsv::impl::cts::TCheckedThreadSafeObj<_TROz>;
-		template<typename _Ty> using TStaticImmutableConstPointerBase = mse::rsv::impl::cts::TCheckedThreadSafeConstPointer<_Ty>;
+		namespace impl {
+			template<typename _TROz> using TStaticImmutableObjBase = mse::rsv::impl::cts::TCheckedThreadSafeObj<_TROz>;
+			template<typename _Ty> using TStaticImmutableConstPointerBase = mse::rsv::impl::cts::TCheckedThreadSafeConstPointer<_Ty>;
+		}
 
 #else // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 
-		template<typename _TROz>
-		class TStaticImmutableObjBase : public std::add_const<_TROz>::type {
-		public:
-			typedef typename std::add_const<_TROz>::type base_class;
-			MSE_STATIC_USING(TStaticImmutableObjBase, base_class);
-			TStaticImmutableObjBase(const TStaticImmutableObjBase& _X) : base_class(_X) {}
-			TStaticImmutableObjBase(TStaticImmutableObjBase&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+		namespace impl {
+			template<typename _TROz>
+			class TStaticImmutableObjBase : public std::add_const<_TROz>::type {
+			public:
+				typedef typename std::add_const<_TROz>::type base_class;
+				MSE_STATIC_USING(TStaticImmutableObjBase, base_class);
+				TStaticImmutableObjBase(const TStaticImmutableObjBase& _X) : base_class(_X) {}
+				TStaticImmutableObjBase(TStaticImmutableObjBase&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 
-			TStaticImmutableObjBase& operator=(TStaticImmutableObjBase&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			TStaticImmutableObjBase& operator=(const TStaticImmutableObjBase& _X) { base_class::operator=(_X); return (*this); }
-			template<class _Ty2>
-			TStaticImmutableObjBase& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			template<class _Ty2>
-			TStaticImmutableObjBase& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+				TStaticImmutableObjBase& operator=(TStaticImmutableObjBase&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				TStaticImmutableObjBase& operator=(const TStaticImmutableObjBase& _X) { base_class::operator=(_X); return (*this); }
+				template<class _Ty2>
+				TStaticImmutableObjBase& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				template<class _Ty2>
+				TStaticImmutableObjBase& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
-			auto operator&() {
-				return this;
-			}
-			auto operator&() const {
-				return this;
-			}
-		};
+				auto operator&() {
+					return this;
+				}
+				auto operator&() const {
+					return this;
+				}
+			};
 
-		template<typename _Ty> using TStaticImmutableConstPointerBase = mse::us::impl::TPointerForLegacy<const _Ty, TStaticImmutableID<const _Ty>>;
+			template<typename _Ty> using TStaticImmutableConstPointerBase = mse::us::impl::TPointerForLegacy<const _Ty, TStaticImmutableID<const _Ty>>;
+		}
 
 #endif // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 
@@ -324,11 +324,11 @@ namespace mse {
 
 		/* Use TStaticImmutableFixedConstPointer instead. */
 		template<typename _Ty>
-		class TStaticImmutableConstPointer : public TStaticImmutableConstPointerBase<_Ty>
-			, public std::conditional<std::is_base_of<mse::us::impl::StrongPointerTagBase, TStaticImmutableConstPointerBase<_Ty> >::value, mse::impl::TPlaceHolder_msescope<TStaticImmutableConstPointer<_Ty> >, mse::us::impl::StrongPointerTagBase>::type
+		class TStaticImmutableConstPointer : public impl::TStaticImmutableConstPointerBase<_Ty>
+			, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::StrongPointerTagBase, impl::TStaticImmutableConstPointerBase<_Ty>, TStaticImmutableConstPointer<_Ty>)
 		{
 		public:
-			typedef TStaticImmutableConstPointerBase<_Ty> base_class;
+			typedef impl::TStaticImmutableConstPointerBase<_Ty> base_class;
 			virtual ~TStaticImmutableConstPointer() {}
 		private:
 			TStaticImmutableConstPointer() : base_class() {}
@@ -338,12 +338,12 @@ namespace mse {
 			TStaticImmutableConstPointer(const TStaticImmutableConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			//TStaticImmutableConstPointer(const TStaticImmutablePointer<_Ty>& src_cref) : base_class(src_cref) {}
 			//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			//TStaticImmutableConstPointer(const TStaticImmutablePointer<_Ty2>& src_cref) : base_class(TStaticImmutableConstPointerBase<_Ty2>(src_cref)) {}
+			//TStaticImmutableConstPointer(const TStaticImmutablePointer<_Ty2>& src_cref) : base_class(impl::TStaticImmutableConstPointerBase<_Ty2>(src_cref)) {}
 			TStaticImmutableConstPointer<_Ty>& operator=(const TStaticImmutableObj<_Ty>* ptr) {
-				return TStaticImmutableConstPointerBase<_Ty>::operator=(ptr);
+				return base_class::operator=(ptr);
 			}
 			TStaticImmutableConstPointer<_Ty>& operator=(const TStaticImmutableConstPointer<_Ty>& _Right_cref) {
-				return TStaticImmutableConstPointerBase<_Ty>::operator=(_Right_cref);
+				return base_class::operator=(_Right_cref);
 			}
 			operator bool() const {
 				bool retval = (bool(*static_cast<const base_class*>(this)));
@@ -414,9 +414,9 @@ namespace mse {
 		};
 
 		template<typename _TROy>
-		class TStaticImmutableObj : public TStaticImmutableObjBase<_TROy> {
+		class TStaticImmutableObj : public impl::TStaticImmutableObjBase<_TROy> {
 		public:
-			typedef TStaticImmutableObjBase<_TROy> base_class;
+			typedef impl::TStaticImmutableObjBase<_TROy> base_class;
 			TStaticImmutableObj(const TStaticImmutableObj& _X) : base_class(_X) {}
 			TStaticImmutableObj(TStaticImmutableObj&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 

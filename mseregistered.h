@@ -566,8 +566,7 @@ namespace mse {
 	destruction so that TNDRegisteredPointers will avoid referencing destroyed objects. Note that TNDRegisteredObj can be used with
 	objects allocated on the stack. */
 	template<typename _TROFLy>
-	class TNDRegisteredObj : public _TROFLy, public std::conditional<(!std::is_convertible<_TROFLy*, mse::us::impl::AsyncNotShareableAndNotPassableTagBase*>::value) && (!std::is_base_of<mse::us::impl::AsyncNotShareableAndNotPassableTagBase, _TROFLy>::value)
-		, mse::us::impl::AsyncNotShareableAndNotPassableTagBase, impl::TPlaceHolder_msepointerbasics<TNDRegisteredObj<_TROFLy> > >::type
+	class TNDRegisteredObj : public _TROFLy, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotShareableTagBase, _TROFLy, TNDRegisteredObj<_TROFLy>)
 	{
 	public:
 		typedef _TROFLy base_class;

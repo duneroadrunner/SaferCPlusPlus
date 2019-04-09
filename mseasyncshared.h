@@ -2140,7 +2140,7 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	class TXScopeAsyncSplitterRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator>
-		, public std::conditional<!std::is_base_of<mse::us::impl::AsyncNotPassableTagBase, TXScopeRandomAccessSection<_TRAIterator> >::value, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder_msescope<TXScopeAsyncSplitterRandomAccessSection<_TRAIterator> > >::type
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotPassableTagBase, TXScopeRandomAccessSection<_TRAIterator>, TXScopeAsyncSplitterRandomAccessSection<_TRAIterator>)
 	{
 	public:
 		typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
@@ -2182,7 +2182,7 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	class TAsyncSplitterRandomAccessSection : public TRandomAccessSection<_TRAIterator>
-		, public std::conditional<!std::is_base_of<mse::us::impl::AsyncNotPassableTagBase, TRandomAccessSection<_TRAIterator> >::value, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder_msescope<TXScopeAsyncSplitterRandomAccessSection<_TRAIterator> > >::type
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotPassableTagBase, TRandomAccessSection<_TRAIterator>, TAsyncSplitterRandomAccessSection<_TRAIterator>)
 	{
 	public:
 		typedef TRandomAccessSection<_TRAIterator> base_class;
