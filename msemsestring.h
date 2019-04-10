@@ -4862,6 +4862,8 @@ namespace mse {
 				template<class _Ty2, class _Traits2, class _A2, class _TStateMutex2> friend class us::msebasic_string;
 				friend class mse::impl::ns_gnii_basic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
 				friend class mse::us::impl::ns_gnii_basic_string::xscope_const_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
+				friend class mse::us::impl::Txscope_structure_change_lock_guard<_Myt>;
+				friend class mse::us::impl::Txscope_const_structure_change_lock_guard<_Myt>;
 
 				friend struct std::hash<gnii_basic_string>;
 				template<class _Ty2, class _Traits2/* = std::char_traits<_Ty2>*/, class _A2/* = std::allocator<_Ty2>*/, class _TStateMutex2/* = mse::non_thread_safe_shared_mutex*/>
@@ -4870,8 +4872,6 @@ namespace mse {
 				friend std::basic_istream<_Ty2, _Traits2>& mse::us::impl::impl::ns_gnii_basic_string::in_from_stream(std::basic_istream<_Ty2, _Traits2>& _Istr, gnii_basic_string<_Ty2, _Traits2, _A2, _TStateMutex2>& _Str);
 				template<class _Ty2, class _Traits2/* = std::char_traits<_Ty2>*/, class _A2/* = std::allocator<_Ty2>*/, class _TStateMutex2/* = mse::non_thread_safe_shared_mutex*/>
 				friend std::basic_ostream<_Ty2, _Traits2>& mse::us::impl::impl::ns_gnii_basic_string::out_to_stream(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const gnii_basic_string<_Ty2, _Traits2, _A2, _TStateMutex2>& _Str);
-				friend class mse::impl::ns_gnii_basic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
-				friend class mse::us::impl::ns_gnii_basic_string::xscope_const_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
 
 				friend void swap(_Myt& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
 				friend void swap(_Myt& a, _MBS& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
@@ -5084,24 +5084,10 @@ namespace mse {
 				be shared between threads (like stnii_basic_string<> does), or ensuring that m_structure_change_mutex is thread safe
 				(like mtnii_basic_string<> does). */
 				template<class _Ty, class _Traits, class _A, class _TStateMutex>
-				class xscope_const_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
+				class xscope_const_structure_change_lock_guard : public mse::us::impl::Txscope_const_structure_change_lock_guard<gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > {
 				public:
-					xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-					xscope_const_structure_change_lock_guard(const mse::TXScopeItemFixedConstPointer<gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
-					auto xscope_ptr_to_element(typename gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::size_type _P) const {
-						return mse::us::unsafe_make_xscope_const_pointer_to((*m_stored_ptr)[_P]);
-					}
-					auto target_container_ptr() const {
-						return m_stored_ptr;
-					}
-					void async_not_shareable_and_not_passable_tag() const {}
-
-				private:
-					mse::TXScopeItemFixedConstPointer<gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > m_stored_ptr;
-					std::shared_lock<_TStateMutex> m_shared_lock;
+					typedef mse::us::impl::Txscope_const_structure_change_lock_guard<gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > base_class;
+					using base_class::base_class;
 				};
 			}
 		}
@@ -5110,56 +5096,23 @@ namespace mse {
 	namespace impl {
 		namespace ns_gnii_basic_string {
 			/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
-			individual elements in the vector do not become invalid by preventing any operation that might resize the vector
+			individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 			template<class _Ty, class _Traits, class _A, class _TStateMutex>
-			class xscope_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
+			class xscope_structure_change_lock_guard : public mse::us::impl::Txscope_structure_change_lock_guard<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > {
 			public:
-				xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_structure_change_lock_guard(const mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
-				auto xscope_ptr_to_element(typename mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::size_type _P) const {
-					return mse::us::unsafe_make_xscope_pointer_to((*m_stored_ptr)[_P]);
-				}
-				auto target_container_ptr() const {
-					return m_stored_ptr;
-				}
-				void async_not_shareable_and_not_passable_tag() const {}
-
-			private:
-				mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > m_stored_ptr;
-				std::shared_lock<_TStateMutex> m_shared_lock;
+				typedef mse::us::impl::Txscope_structure_change_lock_guard<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > base_class;
+				using base_class::base_class;
 			};
 
 			/* For objects that are access controlled under an "exclusive writer" access policy, the object is immutable
 			while a const pointer to the object exists. So given an "exclusive writer" const pointer to a basic_string, it is
 			safe to store the pointer provide a direct scope const pointer to any of its elements. */
 			template<class _Ty, class _Traits, class _A, class _TStateMutex, class _TAccessMutex = mse::non_thread_safe_shared_mutex>
-			class xscope_ewconst_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
+			class xscope_ewconst_structure_change_lock_guard : public mse::us::impl::Txscope_ewconst_structure_change_lock_guard<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>, _TAccessMutex> {
 			public:
-				typedef mse::TAccessControlledConstPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>, _TAccessMutex> exclusive_writer_const_pointer_t;
-
-				xscope_ewconst_structure_change_lock_guard(const exclusive_writer_const_pointer_t& owner_ptr)
-					: m_stored_ptr(owner_ptr) {}
-				xscope_ewconst_structure_change_lock_guard(exclusive_writer_const_pointer_t&& owner_ptr)
-					: m_stored_ptr(std::forward<decltype(owner_ptr)>(owner_ptr)) {}
-
-				virtual ~xscope_ewconst_structure_change_lock_guard() {
-					mse::impl::T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>();
-				}
-
-				auto xscope_ptr_to_element(typename mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::size_type _P) const {
-					return mse::us::unsafe_make_xscope_const_pointer_to((*m_stored_ptr)[_P]);
-				}
-				auto target_container_ptr() const {
-					return m_stored_ptr;
-				}
-				void async_not_shareable_and_not_passable_tag() const {}
-
-			private:
-				exclusive_writer_const_pointer_t m_stored_ptr;
+				typedef mse::us::impl::Txscope_ewconst_structure_change_lock_guard<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>, _TAccessMutex> base_class;
+				using base_class::base_class;
 			};
 		}
 	}
@@ -5424,6 +5377,11 @@ namespace mse {
 	}
 
 	namespace us {
+
+		namespace ns_msebasic_string {
+			template<class _Ty, class _Traits, class _A, class _TStateMutex> class xscope_structure_change_lock_guard;
+			template<class _Ty, class _Traits, class _A, class _TStateMutex> class xscope_const_structure_change_lock_guard;
+		}
 
 		/* msebasic_string<> is an unsafe extension of mse::us::impl::gnii_basic_string<> that provides the traditional begin() and end() (non-static)
 		member functions that return unsafe iterators. It also provides ss_begin() and ss_end() (non-static) member
@@ -7914,61 +7872,6 @@ namespace mse {
 				friend class /*_Myt*/msebasic_string<_Ty, _Traits, _A, _TStateMutex>;
 			};
 
-
-			/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
-			individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
-			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-			class xscope_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
-			public:
-				xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<msebasic_string>& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_structure_change_lock_guard(const mse::TXScopeItemFixedPointer<msebasic_string>& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
-				auto xscope_ptr_to_element(size_type _P) const {
-					return mse::us::unsafe_make_xscope_pointer_to((*m_stored_ptr)[_P]);
-				}
-				auto xscope_ptr_to_element(const xscope_ss_iterator_type& ss_iter) const {
-					assert(std::addressof(*(ss_iter.target_container_ptr())) == std::addressof(*m_stored_ptr));
-					return xscope_ptr_to_element(ss_iter.position());
-				}
-				auto xscope_ptr_to_element(const xscope_ipointer& iptr) const {
-					assert(std::addressof(*(iptr.target_container_ptr())) == std::addressof(*m_stored_ptr));
-					return xscope_ptr_to_element(iptr.position());
-				}
-				auto target_container_ptr() const {
-					return m_stored_ptr;
-				}
-				void async_not_shareable_and_not_passable_tag() const {}
-
-			private:
-				mse::TXScopeItemFixedPointer<msebasic_string> m_stored_ptr;
-				std::shared_lock<mse::non_thread_safe_shared_mutex> m_shared_lock;
-			};
-			class xscope_const_structure_change_lock_guard : public mse::us::impl::XScopeTagBase {
-			public:
-				xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<msebasic_string>& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_const_structure_change_lock_guard(const mse::TXScopeItemFixedConstPointer<msebasic_string>& owner_ptr) : m_stored_ptr(owner_ptr), m_shared_lock((*owner_ptr).m_structure_change_mutex) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
-				auto xscope_ptr_to_element(size_type _P) const {
-					return mse::us::unsafe_make_xscope_const_pointer_to((*m_stored_ptr)[_P]);
-				}
-				auto xscope_ptr_to_element(const xscope_cipointer& ciptr) const {
-					assert(std::addressof(*(ciptr.target_container_ptr())) == std::addressof(*m_stored_ptr));
-					return xscope_ptr_to_element(ciptr.position());
-				}
-				auto target_container_ptr() const {
-					return m_stored_ptr;
-				}
-				void async_not_shareable_and_not_passable_tag() const {}
-
-			private:
-				mse::TXScopeItemFixedConstPointer<msebasic_string> m_stored_ptr;
-				std::shared_lock<mse::non_thread_safe_shared_mutex> m_shared_lock;
-			};
-
 			void async_not_shareable_and_not_passable_tag() const {}
 
 		private:
@@ -7992,6 +7895,10 @@ namespace mse {
 			auto contained_basic_string() const -> decltype(base_class::contained_basic_string()) { return base_class::contained_basic_string(); }
 			auto contained_basic_string() -> decltype(base_class::contained_basic_string()) { return base_class::contained_basic_string(); }
 
+			friend class mse::us::ns_msebasic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
+			friend class mse::us::ns_msebasic_string::xscope_const_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
+			friend class mse::us::impl::Txscope_structure_change_lock_guard<_Myt>;
+			friend class mse::us::impl::Txscope_const_structure_change_lock_guard<_Myt>;
 #ifndef MSE_MSTDSTRING_DISABLED
 			template<class _Ty2, class _Traits2/* = std::char_traits<_Ty>*/, class _A2/* = std::allocator<_Ty> */>
 			friend class mse::mstd::basic_string;
@@ -8054,27 +7961,90 @@ namespace mse {
 			return (!(_Left < _Right));
 		}
 
+		namespace ns_msebasic_string {
+
+			/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+			individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
+			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
+			template<class _Ty, class _Traits, class _A, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			class xscope_structure_change_lock_guard : public mse::us::impl::Txscope_structure_change_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> > {
+			public:
+				typedef mse::us::impl::Txscope_structure_change_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> > base_class;
+				using base_class::base_class;
+
+				typedef mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> MV;
+				xscope_structure_change_lock_guard(const mse::TXScopeFixedPointer<MV>& owner_ptr) : base_class(owner_ptr)
+					, m_base_xscope_structure_change_lock_guard(owner_ptr) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_structure_change_lock_guard(const mse::TXScopeItemFixedPointer<MV>& owner_ptr) : base_class(owner_ptr)
+					, m_base_xscope_structure_change_lock_guard(owner_ptr) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+				auto xscope_ptr_to_element(typename MV::size_type _P) const {
+					return base_class::xscope_ptr_to_element(_P);
+				}
+				auto xscope_ptr_to_element(const typename MV::xscope_const_iterator& ss_iter) const {
+					return base_class::xscope_ptr_to_element(ss_iter);
+				}
+				auto xscope_ptr_to_element(const typename MV::xscope_cipointer& ciptr) const {
+					assert(std::addressof(*(ciptr.target_container_ptr())) == std::addressof(*(*this)));
+					return xscope_ptr_to_element(ciptr.position());
+				}
+
+			private:
+				mse::impl::ns_gnii_basic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, mse::non_thread_safe_shared_mutex> m_base_xscope_structure_change_lock_guard;
+			};
+			template<class _Ty, class _Traits, class _A, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			class xscope_const_structure_change_lock_guard : public mse::us::impl::Txscope_const_structure_change_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> > {
+			public:
+				typedef mse::us::impl::Txscope_const_structure_change_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> > base_class;
+				using base_class::base_class;
+
+				typedef mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> MV;
+				xscope_const_structure_change_lock_guard(const mse::TXScopeFixedConstPointer<MV>& owner_ptr) : base_class(owner_ptr)
+					, m_base_xscope_structure_change_lock_guard(owner_ptr) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_const_structure_change_lock_guard(const mse::TXScopeItemFixedConstPointer<MV>& owner_ptr) : base_class(owner_ptr)
+					, m_base_xscope_structure_change_lock_guard(owner_ptr) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+				auto xscope_ptr_to_element(typename MV::size_type _P) const {
+					return base_class::xscope_ptr_to_element(_P);
+				}
+				auto xscope_ptr_to_element(const typename MV::xscope_const_iterator& ss_iter) const {
+					return base_class::xscope_ptr_to_element(ss_iter);
+				}
+				auto xscope_ptr_to_element(const typename MV::xscope_cipointer& ciptr) const {
+					assert(std::addressof(*(ciptr.target_container_ptr())) == std::addressof(*(*this)));
+					return xscope_ptr_to_element(ciptr.position());
+				}
+
+			private:
+				mse::us::impl::ns_gnii_basic_string::xscope_const_structure_change_lock_guard<_Ty, _Traits, _A, mse::non_thread_safe_shared_mutex> m_base_xscope_structure_change_lock_guard;
+			};
+		}
+
 		/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
 		individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 		or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+		template<class _Ty, class _Traits, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
 		auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeFixedPointer<msebasic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-			return typename msebasic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_change_lock_guard(owner_ptr);
+			return ns_msebasic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+		template<class _Ty, class _Traits, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
 		auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeItemFixedPointer<msebasic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-			return typename msebasic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_change_lock_guard(owner_ptr);
+			return ns_msebasic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+		template<class _Ty, class _Traits, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
 		auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeFixedConstPointer<msebasic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-			return msebasic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_const_structure_change_lock_guard(owner_ptr);
+			return ns_msebasic_string::xscope_const_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+		template<class _Ty, class _Traits, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
 		auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeItemFixedConstPointer<msebasic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-			return msebasic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_const_structure_change_lock_guard(owner_ptr);
+			return ns_msebasic_string::xscope_const_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 

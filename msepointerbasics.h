@@ -1217,7 +1217,7 @@ namespace mse {
 			|| (std::is_pointer<_TStrongPointer>::value)/* for when scope pointers are "disabled" */
 			|| (is_shared_ptr<_TStrongPointer>::value)/* for when refcounting pointers are "disabled" */
 			, void>::type>
-			class is_valid_if_strong_pointer {
+		class is_valid_if_strong_pointer {
 			public:
 				static void no_op() {}
 		};
