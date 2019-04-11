@@ -1,4 +1,4 @@
-Mar 2019
+Apr 2019
 
 ### Overview
 
@@ -111,7 +111,7 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     2. [nii_vector](#nii_vector)
     3. [msevector](#msevector)
     4. [ivector](#ivector)
-    5. [make_xscope_vector_size_change_lock_guard()](#make_xscope_vector_size_change_lock_guard)
+    5. [make_xscope_structure_lock_guard()](#make_xscope_structure_lock_guard)
         1. [stnii_vector](#stnii_vector)
         2. [mtnii_vector](#mtnii_vector)
 18. [Arrays](#arrays)
@@ -2890,9 +2890,9 @@ usage example:
     }
 ```
 
-### make_xscope_vector_size_change_lock_guard()
+### make_xscope_structure_lock_guard()
 
-The `make_xscope_vector_size_change_lock_guard()` function is used, indirectly, to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the `make_xscope_vector_size_change_lock_guard()` function to create an `xscope_structure_change_lock_guard` object. You can obtain scope pointers to elements in the corresponding vector via its `xscope_ptr_to_element()` member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. All the library's vectors (`mstd::vector<>`, `nii_vector<>`, `ivector<>` and `us::msevector<>`) can be locked, though when locking `nii_vector<>`s via scope pointers, the supplied pointer must be non-const.
+The `make_xscope_structure_lock_guard()` function is used, indirectly, to obtain a scope pointer to a vector element. The challenge with scope pointers to vector elements is that any operation that resizes or increases the capacity of the vector could cause the scope pointer to become invalid. So before obtaining a scope pointer, the vector needs to be "locked" to ensure that no such operation occurs. To this end, you can use the `make_xscope_structure_lock_guard()` function to create an `xscope_structure_lock_guard` object. You can obtain scope pointers to elements in the corresponding vector via its `xscope_ptr_to_element()` member function. While the object exists, any attempt to execute an operation that would cause the size of the vector to change (or capacity to increase) will cause an exception. All the library's vectors (`mstd::vector<>`, `nii_vector<>`, `ivector<>` and `us::msevector<>`) can be locked, though when locking `nii_vector<>`s via scope pointers, the supplied pointer must be non-const.
 
 usage example:
 
@@ -2908,7 +2908,7 @@ usage example:
             /* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
             object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
             to become invalid is performed. */
-            auto xscp_vector1_change_lock_guard = mse::mstd::make_xscope_vector_size_change_lock_guard(&vector1_scpobj);
+            auto xscp_vector1_change_lock_guard = mse::mstd::make_xscope_structure_lock_guard(&vector1_scpobj);
             auto scp_ptr1 = xscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
             auto res4 = *scp_ptr1;
         }
@@ -2932,7 +2932,7 @@ The reason you can't lock an `nii_vector<>` via a scope const pointer, is that l
     
         mse::TXScopeObj<mse::TExclusiveWriterObj<mse::nii_vector<int> > > vector2_ewxsobj = mse::nii_vector<int>{ 1, 2, 3 };
         {
-            auto xxscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(vector2_ewxsobj.const_pointer());
+            auto xxscp_vector1_change_lock_guard = mse::make_xscope_structure_lock_guard(vector2_ewxsobj.const_pointer());
             auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
             auto res4 = *xscp_ptr1;
         }
@@ -2963,7 +2963,7 @@ usage example:
             pointers to its elements from a const scope pointer to vector (whereas with nii_vector<> the pointer
             must be non-const). */
             mse::TXScopeItemFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
-            auto xxscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(xscptr);
+            auto xxscp_vector1_change_lock_guard = mse::make_xscope_structure_lock_guard(xscptr);
             auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
             auto res4 = *xscp_ptr1;
         }
@@ -3008,7 +3008,7 @@ usage example:
             /* The only advantage mtnii_vector<> has over nii_vector<> is that you can obtain (const) scope
             pointers to its elements from a const scope pointer to vector (whereas with nii_vector<> the pointer
             must be non-const). */
-            auto xs_size_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(vector_xscope_const_ptr);
+            auto xs_size_change_lock_guard = mse::make_xscope_structure_lock_guard(vector_xscope_const_ptr);
             auto element1_xscope_const_ptr = xs_size_change_lock_guard.xscope_ptr_to_element(1);
 
             assert((*element1_xscope_const_ptr) == "def");
