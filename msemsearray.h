@@ -62,9 +62,11 @@
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma push_macro("MSE_THROW")
 #pragma push_macro("_STD")
+#pragma push_macro("_XSTD")
 #pragma push_macro("_NOEXCEPT")
 #pragma push_macro("_NOEXCEPT_OP")
 #pragma push_macro("_THROW_NCEE")
+#pragma push_macro("_CONST_FUN")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
@@ -78,6 +80,10 @@
 #define _STD std::
 #endif /*_STD*/
 
+#ifndef _XSTD
+#define _XSTD ::std::
+#endif /*_XSTD*/
+
 #ifndef _NOEXCEPT
 #define _NOEXCEPT
 #endif /*_NOEXCEPT*/
@@ -89,6 +95,10 @@
 #ifndef _THROW_NCEE
 #define _THROW_NCEE(x, y)	MSE_THROW(x(y))
 #endif /*_THROW_NCEE*/
+
+#ifndef _CONST_FUN
+#define _CONST_FUN constexpr
+#endif /*_CONST_FUN*/
 
 namespace mse {
 
@@ -702,22 +712,6 @@ namespace mse {
 					_STD make_error_code(std::errc::resource_deadlock_would_occur));
 		}
 	};
-
-#ifndef _XSTD
-#define _XSTD ::std::
-#endif /*_XSTD*/
-
-#ifndef _STD
-#define _STD std::
-#endif /*_STD*/
-
-#ifndef _NOEXCEPT
-#define _NOEXCEPT
-#endif /*_NOEXCEPT*/
-
-#ifndef _CONST_FUN
-#define _CONST_FUN constexpr
-#endif /*_CONST_FUN*/
 
 	/* Some iterators are prone to having their target container prematurely deallocated out from under them. If you have a safe pointer
 	to the target container, you can use TSyncWeakFixedIterator<> as a safe iterator that welds a copy of the safe pointer (aka "lease")
@@ -1758,6 +1752,8 @@ namespace mse {
 			class StaticStructureContainerTagBase {};
 			class ContiguousSequenceContainerTagBase {};
 			class ContiguousSequenceStaticStructureContainerTagBase : public ContiguousSequenceContainerTagBase, public StaticStructureContainerTagBase {};
+			class LockableStructureContainerTagBase {};
+			class ContiguousSequenceLockableStructureContainerTagBase : public ContiguousSequenceContainerTagBase, public LockableStructureContainerTagBase {};
 
 			class StaticStructureIteratorTagBase {};
 			class ContiguousSequenceIteratorTagBase {};
@@ -7710,9 +7706,11 @@ namespace mse {
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma pop_macro("MSE_THROW")
 #pragma pop_macro("_STD")
+#pragma pop_macro("_XSTD")
 #pragma pop_macro("_NOEXCEPT")
 #pragma pop_macro("_NOEXCEPT_OP")
 #pragma pop_macro("_THROW_NCEE")
+#pragma pop_macro("_CONST_FUN")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef _MSC_VER

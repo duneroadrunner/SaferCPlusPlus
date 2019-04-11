@@ -2942,9 +2942,9 @@ namespace mse {
 	};
 
 
-	/* nii_vector<> qualifies as safely shareable, but its corresponding make_xscope_vector_size_change_lock_guard() function
+	/* nii_vector<> qualifies as safely shareable, but its corresponding make_xscope_structure_lock_guard() function
 	only supports non-const reference arguments. So we provide mtnii_vector<> whose corresponding
-	make_xscope_vector_size_change_lock_guard() function does support const reference arguments. But in order to achieve this
+	make_xscope_structure_lock_guard() function does support const reference arguments. But in order to achieve this
 	while maintaining thread safety (and maximal performance), it needs a partially thread safe shared mutex. */
 	typedef T_shared_mutex<bool, std::atomic<size_t> > mtnii_vector_shared_mutex;
 
@@ -2977,45 +2977,44 @@ namespace mse {
 
 	namespace impl {
 		namespace ns_mtnii_vector {
-			/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+			/* While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
 			individual elements in the vector do not become invalid by preventing any operation that might resize the vector
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-			/* The following xscope_structure_change_lock_guard constructed from a const reference is only safe because
+			/* The following xscope_structure_lock_guard constructed from a const reference is only safe because
 			mtnii_vector<> is not eligible to be shared between threads. */
 			template<class _Ty, class _A, class _TStateMutex>
-			using xscope_structure_change_lock_guard = mse::us::impl::ns_gnii_vector::xscope_const_structure_change_lock_guard<_Ty, _A, _TStateMutex>;
+			using xscope_structure_lock_guard = mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<_Ty, _A, _TStateMutex>;
 		}
 	}
 
-	/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+	/* While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
 	individual elements in the vector do not become invalid by preventing any operation that might resize the vector
 	or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-	/* The returned xscope_structure_change_lock_guard constructed from a const reference is only safe because
+	/* The returned xscope_structure_lock_guard constructed from a const reference is only safe because
 	mtnii_vector<> is not eligible to be shared between threads. */
 	template<class _Ty, class _A, class _TStateMutex>
-	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedConstPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
-		//return typename mtnii_vector<_Ty, _A, _TStateMutex>::xscope_structure_change_lock_guard(owner_ptr);
-		return mse::impl::ns_mtnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+		//return typename mtnii_vector<_Ty, _A, _TStateMutex>::xscope_structure_lock_guard(owner_ptr);
+		return mse::impl::ns_mtnii_vector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A, class _TStateMutex>
-	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedConstPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
-		//return typename mtnii_vector<_Ty, _A, _TStateMutex>::xscope_structure_change_lock_guard(owner_ptr);
-		return mse::impl::ns_mtnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+		//return typename mtnii_vector<_Ty, _A, _TStateMutex>::xscope_structure_lock_guard(owner_ptr);
+		return mse::impl::ns_mtnii_vector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	template<class _Ty, class _A, class _TStateMutex>
-	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeFixedPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
-		return mse::impl::ns_gnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+		return mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A, class _TStateMutex>
-	auto make_xscope_vector_size_change_lock_guard(const mse::TXScopeItemFixedPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
-		return mse::impl::ns_gnii_vector::xscope_structure_change_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<mtnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+		return mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
 
 #ifdef MSEMSESTRING_H
 	/* mtnii_basic_string will be defined here if the "msemsestring.h" header file has (already) been included. */
@@ -3055,42 +3054,42 @@ namespace mse {
 
 	namespace impl {
 		namespace ns_mtnii_basic_string {
-			/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+			/* While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
 			individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-			/* The following xscope_structure_change_lock_guard constructed from a const reference is only safe because
+			/* The following xscope_structure_lock_guard constructed from a const reference is only safe because
 			mtnii_basic_string<> is not eligible to be shared between threads. */
 			template<class _Ty, class _Traits, class _A, class _TStateMutex>
-			using xscope_structure_change_lock_guard = mse::us::impl::ns_gnii_basic_string::xscope_const_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
+			using xscope_structure_lock_guard = mse::us::impl::ns_gnii_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
 		}
 	}
 
-	/* While an instance of xscope_structure_change_lock_guard exists it ensures that direct (scope) pointers to
+	/* While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
 	individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 	or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-	/* The returned xscope_structure_change_lock_guard constructed from a const reference is only safe because
+	/* The returned xscope_structure_lock_guard constructed from a const reference is only safe because
 	mtnii_basic_string<> is not eligible to be shared between threads. */
 	template<class _Ty, class _Traits, class _A, class _TStateMutex>
 	auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeFixedConstPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-		//return typename mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_change_lock_guard(owner_ptr);
-		return mse::impl::ns_mtnii_basic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
+		//return typename mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_lock_guard(owner_ptr);
+		return mse::impl::ns_mtnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _Traits, class _A, class _TStateMutex>
 	auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeItemFixedConstPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-		//return typename mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_change_lock_guard(owner_ptr);
-		return mse::impl::ns_mtnii_basic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
+		//return typename mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_lock_guard(owner_ptr);
+		return mse::impl::ns_mtnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	template<class _Ty, class _Traits, class _A, class _TStateMutex>
 	auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeFixedPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-		return mse::impl::ns_gnii_basic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
+		return mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _Traits, class _A, class _TStateMutex>
 	auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeItemFixedPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-		return mse::impl::ns_gnii_basic_string::xscope_structure_change_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
+		return mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 

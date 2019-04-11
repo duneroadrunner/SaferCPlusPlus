@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
 			/* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
 			object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
 			to become invalid is performed. */
-			auto xscp_vector1_change_lock_guard = mse::mstd::make_xscope_vector_size_change_lock_guard(&vector1_scpobj);
+			auto xscp_vector1_change_lock_guard = mse::mstd::make_xscope_structure_lock_guard(&vector1_scpobj);
 			auto scp_ptr1 = xscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
 			auto res4 = *scp_ptr1;
 		}
@@ -370,7 +370,7 @@ int main(int argc, char* argv[]) {
 				/* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
 				object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
 				to become invalid is performed. */
-				auto xscp_vector1_change_lock_guard = mse::us::make_xscope_vector_size_change_lock_guard(&vector1_scpobj);
+				auto xscp_vector1_change_lock_guard = mse::us::make_xscope_structure_lock_guard(&vector1_scpobj);
 				auto scp_ptr1 = xscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
 				auto res4 = *scp_ptr1;
 			}

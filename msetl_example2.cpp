@@ -299,7 +299,7 @@ void msetl_example2() {
 				/* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
 				object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
 				to become invalid is performed. */
-				auto xxscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(&vector1_xscpobj);
+				auto xxscp_vector1_change_lock_guard = mse::make_xscope_structure_lock_guard(&vector1_xscpobj);
 				auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
 				auto res4 = *xscp_ptr1;
 			}
@@ -312,7 +312,7 @@ void msetl_example2() {
 			"exclusive writer" const pointer to obtain a direct scope const pointer to a vector element. */
 			mse::TXScopeObj<mse::TExclusiveWriterObj<mse::nii_vector<int> > > vector2_ewxsobj = mse::nii_vector<int>{ 1, 2, 3 };
 			{
-				auto xxscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(vector2_ewxsobj.const_pointer());
+				auto xxscp_vector1_change_lock_guard = mse::make_xscope_structure_lock_guard(vector2_ewxsobj.const_pointer());
 				auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
 				auto res4 = *xscp_ptr1;
 			}
@@ -1205,7 +1205,7 @@ void msetl_example2() {
 			pointers to its elements from a const scope pointer to vector (whereas with nii_vector<> the pointer
 			must be non-const). */
 			mse::TXScopeItemFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
-			auto xxscp_vector1_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(xscptr);
+			auto xxscp_vector1_change_lock_guard = mse::make_xscope_structure_lock_guard(xscptr);
 			auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
 			auto res4 = *xscp_ptr1;
 		}
@@ -1240,7 +1240,7 @@ void msetl_example2() {
 			/* The only advantage mtnii_vector<> has over nii_vector<> is that you can obtain (const) scope
 			pointers to its elements from a const scope pointer to vector (whereas with nii_vector<> the pointer
 			must be non-const). */
-			auto xs_size_change_lock_guard = mse::make_xscope_vector_size_change_lock_guard(vector_xscope_const_ptr);
+			auto xs_size_change_lock_guard = mse::make_xscope_structure_lock_guard(vector_xscope_const_ptr);
 			auto element1_xscope_const_ptr = xs_size_change_lock_guard.xscope_ptr_to_element(1);
 
 			assert((*element1_xscope_const_ptr) == "def");
@@ -1268,7 +1268,7 @@ void msetl_example2() {
 			pointers to its elements from a const scope pointer to basic_string (whereas with nii_basic_string<> the pointer
 			must be non-const). */
 			mse::TXScopeItemFixedConstPointer<mse::stnii_basic_string<char> > xscptr = &basic_string1_xscpobj;
-			auto xxscp_basic_string1_change_lock_guard = mse::make_xscope_basic_string_size_change_lock_guard(xscptr);
+			auto xxscp_basic_string1_change_lock_guard = mse::make_xscope_structure_lock_guard(xscptr);
 			auto xscp_ptr1 = xxscp_basic_string1_change_lock_guard.xscope_ptr_to_element(2);
 			auto res4 = *xscp_ptr1;
 		}
@@ -1303,7 +1303,7 @@ void msetl_example2() {
 			/* The only advantage mtnii_basic_string<> has over nii_basic_string<> is that you can obtain (const) scope
 			pointers to its elements from a const scope pointer to basic_string (whereas with nii_basic_string<> the pointer
 			must be non-const). */
-			auto xs_size_change_lock_guard = mse::make_xscope_basic_string_size_change_lock_guard(basic_string_xscope_const_ptr);
+			auto xs_size_change_lock_guard = mse::make_xscope_structure_lock_guard(basic_string_xscope_const_ptr);
 			auto element1_xscope_const_ptr = xs_size_change_lock_guard.xscope_ptr_to_element(1);
 
 			assert((*element1_xscope_const_ptr) == 'b');
