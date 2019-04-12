@@ -1812,6 +1812,8 @@ namespace mse {
 		TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> unsafe_make_xscope_csss_strong_ra_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>::size_type index = 0);
 	}
 
+	template <typename _TRAContainerPointer> class TXScopeCSSSStrongRAConstIterator;
+
 	template <typename _TRAContainerPointer>
 	class TXScopeCSSSStrongRAIterator : public TXScopeRAIterator<_TRAContainerPointer> {
 	public:
@@ -1846,6 +1848,7 @@ namespace mse {
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
+		friend class TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>;
 		template<class _TRAContainerPointer2> friend TXScopeCSSSStrongRAIterator<_TRAContainerPointer2> us::unsafe_make_xscope_csss_strong_ra_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXScopeCSSSStrongRAIterator<_TRAContainerPointer2>::size_type index);
 	};
 
@@ -1857,6 +1860,10 @@ namespace mse {
 
 		TXScopeCSSSStrongRAConstIterator(const TXScopeCSSSStrongRAConstIterator& src) : base_class(src) {}
 		TXScopeCSSSStrongRAConstIterator(TXScopeCSSSStrongRAConstIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		TXScopeCSSSStrongRAConstIterator(const TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& src) : base_class(src) {}
+		TXScopeCSSSStrongRAConstIterator(TXScopeCSSSStrongRAIterator<_TRAContainerPointer>&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
 		TXScopeCSSSStrongRAConstIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {
 			mse::impl::is_valid_if_strong_pointer<_TRAContainerPointer>::no_op();
 			typedef typename std::remove_reference<decltype(*ra_container_pointer)>::type TRAContainer;
@@ -1985,208 +1992,210 @@ namespace mse {
 	}
 
 
+	namespace impl {
+		namespace ns_nii_array {
+			/* Following are a bunch of template (iterator) classes that, organizationally, should be members of nii_array<>. (And they
+			used to be.) However, being a member of nii_array<> makes them "dependent types", and dependent types do not participate
+			in automatic template parameter type deduction. So we had to haul them here outside of nii_array<>. */
 
-	/* Following are a bunch of template (iterator) classes that, organizationally, should be members of nii_array<>. (And they
-	used to be.) However, being a member of nii_array<> makes them "dependent types", and dependent types do not participate
-	in automatic template parameter type deduction. So we had to haul them here outside of nii_array<>. */
+			/* The reason we specify the default parameter in the definition instead of this forward declaration is that there seems to be a
+			bug in clang (3.8.0) such that if we don't specify the default parameter in the definition it seems to subsequently behave as if
+			one were never specified. g++ and msvc don't seem to have the same issue. */
+			template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex>
+			class Tnii_array_ss_iterator_type;
 
-	/* The reason we specify the default parameter in the definition instead of this forward declaration is that there seems to be a
-	bug in clang (3.8.0) such that if we don't specify the default parameter in the definition it seems to subsequently behave as if
-	one were never specified. g++ and msvc don't seem to have the same issue. */
-	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex>
-	class Tnii_array_ss_iterator_type;
+			/* Tnii_array_ss_const_iterator_type is a bounds checked const_iterator. */
+			template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+			class Tnii_array_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TArrayConstPointer> > {
+			public:
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TArrayConstPointer> > base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-	/* Tnii_array_ss_const_iterator_type is a bounds checked const_iterator. */
-	template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	class Tnii_array_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TArrayConstPointer> > {
-	public:
-		typedef mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TArrayConstPointer> > base_class;
-		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+				template<class _TArrayConstPointer2 = _TArrayConstPointer, class = typename std::enable_if<(std::is_same<_TArrayConstPointer2, _TArrayConstPointer>::value) && (std::is_default_constructible<_TArrayConstPointer>::value), void>::type>
+				Tnii_array_ss_const_iterator_type() {}
 
-		template<class _TArrayConstPointer2 = _TArrayConstPointer, class = typename std::enable_if<(std::is_same<_TArrayConstPointer2, _TArrayConstPointer>::value) && (std::is_default_constructible<_TArrayConstPointer>::value), void>::type>
-		Tnii_array_ss_const_iterator_type() {}
+				Tnii_array_ss_const_iterator_type(const _TArrayConstPointer& owner_cptr) : base_class(owner_cptr) {}
+				Tnii_array_ss_const_iterator_type(_TArrayConstPointer&& owner_cptr) : base_class(std::forward<decltype(owner_cptr)>(owner_cptr)) {}
 
-		Tnii_array_ss_const_iterator_type(const _TArrayConstPointer& owner_cptr) : base_class(owner_cptr) {}
-		Tnii_array_ss_const_iterator_type(_TArrayConstPointer&& owner_cptr) : base_class(std::forward<decltype(owner_cptr)>(owner_cptr)) {}
+				Tnii_array_ss_const_iterator_type(Tnii_array_ss_const_iterator_type&& src) = default;
+				Tnii_array_ss_const_iterator_type(const Tnii_array_ss_const_iterator_type& src) = default;
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
+				Tnii_array_ss_const_iterator_type(const Tnii_array_ss_const_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
+				Tnii_array_ss_const_iterator_type(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
 
-		Tnii_array_ss_const_iterator_type(Tnii_array_ss_const_iterator_type&& src) = default;
-		Tnii_array_ss_const_iterator_type(const Tnii_array_ss_const_iterator_type& src) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
-		Tnii_array_ss_const_iterator_type(const Tnii_array_ss_const_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
-		Tnii_array_ss_const_iterator_type(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				auto& operator=(Tnii_array_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tnii_array_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
-		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-		auto& operator=(Tnii_array_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		auto& operator=(const Tnii_array_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+				Tnii_array_ss_const_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
+				Tnii_array_ss_const_iterator_type operator++(int) { Tnii_array_ss_const_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
+				Tnii_array_ss_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
+				Tnii_array_ss_const_iterator_type operator--(int) { Tnii_array_ss_const_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
 
-		Tnii_array_ss_const_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
-		Tnii_array_ss_const_iterator_type operator++(int) { Tnii_array_ss_const_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
-		Tnii_array_ss_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
-		Tnii_array_ss_const_iterator_type operator--(int) { Tnii_array_ss_const_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
+				Tnii_array_ss_const_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
+				Tnii_array_ss_const_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
+				Tnii_array_ss_const_iterator_type operator+(difference_type n) const {
+					Tnii_array_ss_const_iterator_type retval(*this);
+					retval.advance(n);
+					return retval;
+				}
+				Tnii_array_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const base_class& _Right_cref) const {
+					return base_class::operator-(_Right_cref);
+				}
 
-		Tnii_array_ss_const_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
-		Tnii_array_ss_const_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
-		Tnii_array_ss_const_iterator_type operator+(difference_type n) const {
-			Tnii_array_ss_const_iterator_type retval(*this);
-			retval.advance(n);
-			return retval;
+				void set_to_const_item_pointer(const Tnii_array_ss_const_iterator_type& _Right_cref) {
+					(*this) = _Right_cref;
+				}
+
+				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TArrayConstPointer);
+
+			private:
+
+				friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
+			};
+			/* Tnii_array_ss_iterator_type is a bounds checked iterator. */
+			template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+			class Tnii_array_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TArrayPointer> > {
+			public:
+				typedef mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TArrayPointer> > base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+				template<class _TArrayPointer2 = _TArrayPointer, class = typename std::enable_if<(std::is_same<_TArrayPointer2, _TArrayPointer>::value) && (std::is_default_constructible<_TArrayPointer>::value), void>::type>
+				Tnii_array_ss_iterator_type() {}
+
+				Tnii_array_ss_iterator_type(const _TArrayPointer& owner_ptr) : base_class(owner_ptr) {}
+				Tnii_array_ss_iterator_type(_TArrayPointer&& owner_ptr) : base_class(std::forward<decltype(owner_ptr)>(owner_ptr)) {}
+
+				Tnii_array_ss_iterator_type(Tnii_array_ss_iterator_type&& src) = default;
+				Tnii_array_ss_iterator_type(const Tnii_array_ss_iterator_type& src) = default;
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayPointer>::value, void>::type>
+				Tnii_array_ss_iterator_type(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				auto& operator=(Tnii_array_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tnii_array_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+
+				Tnii_array_ss_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
+				Tnii_array_ss_iterator_type operator++(int) { Tnii_array_ss_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
+				Tnii_array_ss_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
+				Tnii_array_ss_iterator_type operator--(int) { Tnii_array_ss_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
+
+				Tnii_array_ss_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
+				Tnii_array_ss_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
+				Tnii_array_ss_iterator_type operator+(difference_type n) const {
+					Tnii_array_ss_iterator_type retval(*this);
+					retval.advance(n);
+					return retval;
+				}
+				Tnii_array_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const base_class& _Right_cref) const {
+					return base_class::operator-(_Right_cref);
+				}
+
+				void set_to_item_pointer(const Tnii_array_ss_iterator_type& _Right_cref) {
+					(*this) = _Right_cref;
+				}
+
+				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TArrayPointer);
+
+			private:
+
+				friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
+				template<typename _TArrayConstPointer, class _Ty2, size_t _Size2, class _TStateMutex2>
+				friend class Tnii_array_ss_const_iterator_type;
+			};
+
+			template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type*/>
+			using Tnii_array_ss_reverse_iterator_type = std::reverse_iterator<Tnii_array_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex> >;
+			template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type*/>
+			using Tnii_array_ss_const_reverse_iterator_type = std::reverse_iterator<Tnii_array_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex> >;
+
+			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+			using Tnii_array_rp_ss_iterator_type = Tnii_array_ss_iterator_type<msear_pointer<nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
+			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+			using Tnii_array_rp_ss_const_iterator_type = Tnii_array_ss_const_iterator_type<msear_pointer<const nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
+			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+			using Tnii_array_rp_ss_reverse_iterator_type = Tnii_array_ss_iterator_type<msear_pointer<nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
+			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+			using Tnii_array_rp_ss_const_reverse_iterator_type = Tnii_array_ss_const_reverse_iterator_type<msear_pointer<const nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
+
+			template<class _Ty, size_t _Size, class _TStateMutex>
+			class Tnii_array_xscope_ss_iterator_type;
+
+			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+			class Tnii_array_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::nii_array<_Ty, _Size, _TStateMutex> > > >
+				/*, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
+			public:
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::nii_array<_Ty, _Size, _TStateMutex> > > > base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tnii_array_xscope_ss_const_iterator_type, base_class);
+
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				auto& operator=(Tnii_array_xscope_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tnii_array_xscope_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+
+				Tnii_array_xscope_ss_const_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
+				Tnii_array_xscope_ss_const_iterator_type operator++(int) { Tnii_array_xscope_ss_const_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
+				Tnii_array_xscope_ss_const_iterator_type& operator --() { base_class::operator --(); return (*this); }
+				Tnii_array_xscope_ss_const_iterator_type operator--(int) { Tnii_array_xscope_ss_const_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
+
+				Tnii_array_xscope_ss_const_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
+				Tnii_array_xscope_ss_const_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+				Tnii_array_xscope_ss_const_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				Tnii_array_xscope_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const Tnii_array_xscope_ss_const_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
+
+				void set_to_const_item_pointer(const Tnii_array_xscope_ss_const_iterator_type& _Right_cref) { base_class::set_to_const_item_pointer(_Right_cref); }
+
+				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+				void xscope_ss_iterator_type_tag() const {}
+
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+				friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
+				template<class _Ty2, size_t _Size2, class _TStateMutex2>
+				friend class Tnii_array_xscope_ss_iterator_type;
+			};
+			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+			class Tnii_array_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeItemFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > >
+				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
+			public:
+				typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeItemFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > > base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tnii_array_xscope_ss_iterator_type, base_class);
+
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				auto& operator=(Tnii_array_xscope_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tnii_array_xscope_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+
+				Tnii_array_xscope_ss_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
+				Tnii_array_xscope_ss_iterator_type operator++(int) { Tnii_array_xscope_ss_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
+				Tnii_array_xscope_ss_iterator_type& operator --() { base_class::operator --(); return (*this); }
+				Tnii_array_xscope_ss_iterator_type operator--(int) { Tnii_array_xscope_ss_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
+
+				Tnii_array_xscope_ss_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
+				Tnii_array_xscope_ss_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+				Tnii_array_xscope_ss_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				Tnii_array_xscope_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const Tnii_array_xscope_ss_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
+
+				void set_to_item_pointer(const Tnii_array_xscope_ss_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
+
+				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+				void xscope_ss_iterator_type_tag() const {}
+
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+				friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
+			};
 		}
-		Tnii_array_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const base_class& _Right_cref) const {
-			return base_class::operator-(_Right_cref);
-		}
-
-		void set_to_const_item_pointer(const Tnii_array_ss_const_iterator_type& _Right_cref) {
-			(*this) = _Right_cref;
-		}
-
-		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TArrayConstPointer);
-
-	private:
-
-		friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
-	};
-	/* Tnii_array_ss_iterator_type is a bounds checked iterator. */
-	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	class Tnii_array_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TArrayPointer> > {
-	public:
-		typedef mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TArrayPointer> > base_class;
-		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-
-		template<class _TArrayPointer2 = _TArrayPointer, class = typename std::enable_if<(std::is_same<_TArrayPointer2, _TArrayPointer>::value) && (std::is_default_constructible<_TArrayPointer>::value), void>::type>
-		Tnii_array_ss_iterator_type() {}
-
-		Tnii_array_ss_iterator_type(const _TArrayPointer& owner_ptr) : base_class(owner_ptr) {}
-		Tnii_array_ss_iterator_type(_TArrayPointer&& owner_ptr) : base_class(std::forward<decltype(owner_ptr)>(owner_ptr)) {}
-
-		Tnii_array_ss_iterator_type(Tnii_array_ss_iterator_type&& src) = default;
-		Tnii_array_ss_iterator_type(const Tnii_array_ss_iterator_type& src) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayPointer>::value, void>::type>
-		Tnii_array_ss_iterator_type(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
-
-		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-		auto& operator=(Tnii_array_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		auto& operator=(const Tnii_array_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
-
-		Tnii_array_ss_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
-		Tnii_array_ss_iterator_type operator++(int) { Tnii_array_ss_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
-		Tnii_array_ss_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
-		Tnii_array_ss_iterator_type operator--(int) { Tnii_array_ss_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
-
-		Tnii_array_ss_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
-		Tnii_array_ss_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
-		Tnii_array_ss_iterator_type operator+(difference_type n) const {
-			Tnii_array_ss_iterator_type retval(*this);
-			retval.advance(n);
-			return retval;
-		}
-		Tnii_array_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const base_class& _Right_cref) const {
-			return base_class::operator-(_Right_cref);
-		}
-
-		void set_to_item_pointer(const Tnii_array_ss_iterator_type& _Right_cref) {
-			(*this) = _Right_cref;
-		}
-
-		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TArrayPointer);
-
-	private:
-
-		friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
-		template<typename _TArrayConstPointer, class _Ty2, size_t _Size2, class _TStateMutex2>
-		friend class Tnii_array_ss_const_iterator_type;
-	};
-
-	template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type*/>
-	using Tnii_array_ss_reverse_iterator_type = std::reverse_iterator<Tnii_array_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex> >;
-	template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type*/>
-	using Tnii_array_ss_const_reverse_iterator_type = std::reverse_iterator<Tnii_array_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex> >;
-
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	using Tnii_array_rp_ss_iterator_type =  Tnii_array_ss_iterator_type<msear_pointer<nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	using Tnii_array_rp_ss_const_iterator_type = Tnii_array_ss_const_iterator_type<msear_pointer<const nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	using Tnii_array_rp_ss_reverse_iterator_type = Tnii_array_ss_iterator_type<msear_pointer<nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	using Tnii_array_rp_ss_const_reverse_iterator_type = Tnii_array_ss_const_reverse_iterator_type<msear_pointer<const nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
-
-	template<class _Ty, size_t _Size, class _TStateMutex>
-	class Tnii_array_xscope_ss_iterator_type;
-
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	class Tnii_array_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::nii_array<_Ty, _Size, _TStateMutex> > > >
-		/*, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
-	public:
-		typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::nii_array<_Ty, _Size, _TStateMutex> > > > base_class;
-		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-
-		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tnii_array_xscope_ss_const_iterator_type, base_class);
-
-		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-		auto& operator=(Tnii_array_xscope_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		auto& operator=(const Tnii_array_xscope_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
-
-		Tnii_array_xscope_ss_const_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
-		Tnii_array_xscope_ss_const_iterator_type operator++(int) { Tnii_array_xscope_ss_const_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
-		Tnii_array_xscope_ss_const_iterator_type& operator --() { base_class::operator --(); return (*this); }
-		Tnii_array_xscope_ss_const_iterator_type operator--(int) { Tnii_array_xscope_ss_const_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
-
-		Tnii_array_xscope_ss_const_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
-		Tnii_array_xscope_ss_const_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
-		Tnii_array_xscope_ss_const_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		Tnii_array_xscope_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const Tnii_array_xscope_ss_const_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
-
-		void set_to_const_item_pointer(const Tnii_array_xscope_ss_const_iterator_type& _Right_cref) { base_class::set_to_const_item_pointer(_Right_cref); }
-
-		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
-		void xscope_ss_iterator_type_tag() const {}
-
-	private:
-		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
-
-		friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
-		template<class _Ty2, size_t _Size2, class _TStateMutex2>
-		friend class Tnii_array_xscope_ss_iterator_type;
-	};
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	class Tnii_array_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeItemFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > >
-		/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
-	public:
-		typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeItemFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > > base_class;
-		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-
-		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tnii_array_xscope_ss_iterator_type, base_class);
-
-		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-		auto& operator=(Tnii_array_xscope_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		auto& operator=(const Tnii_array_xscope_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
-
-		Tnii_array_xscope_ss_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
-		Tnii_array_xscope_ss_iterator_type operator++(int) { Tnii_array_xscope_ss_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
-		Tnii_array_xscope_ss_iterator_type& operator --() { base_class::operator --(); return (*this); }
-		Tnii_array_xscope_ss_iterator_type operator--(int) { Tnii_array_xscope_ss_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
-
-		Tnii_array_xscope_ss_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
-		Tnii_array_xscope_ss_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
-		Tnii_array_xscope_ss_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		Tnii_array_xscope_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const Tnii_array_xscope_ss_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
-
-		void set_to_item_pointer(const Tnii_array_xscope_ss_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
-
-		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
-		void xscope_ss_iterator_type_tag() const {}
-
-	private:
-		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
-
-		friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
-	};
-
+	}
 
 	/* nii_array<> is essentially a memory-safe array that does not expose (unprotected) non-static member functions
 	like begin() or end() which return (memory) unsafe iterators. It does provide static member function templates
@@ -2363,19 +2372,19 @@ namespace mse {
 		typedef mse::impl::random_access_iterator_base<_Ty> na_iterator_base;
 
 		template<typename _TArrayConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type>
-		using Tss_const_iterator_type = Tnii_array_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
+		using Tss_const_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
 		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type>
-		using Tss_iterator_type = Tnii_array_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
+		using Tss_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
 
 		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type>
-		using Tss_reverse_iterator_type = Tnii_array_ss_reverse_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
+		using Tss_reverse_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_reverse_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
 		template<typename _TArrayConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type>
-		using Tss_const_reverse_iterator_type = Tnii_array_ss_const_reverse_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
+		using Tss_const_reverse_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_const_reverse_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
 
-		typedef Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex> ss_iterator_type;
-		typedef Tnii_array_rp_ss_const_iterator_type<_Ty, _Size, _TStateMutex> ss_const_iterator_type;
-		typedef Tnii_array_rp_ss_reverse_iterator_type<_Ty, _Size, _TStateMutex> ss_reverse_iterator_type;
-		typedef Tnii_array_rp_ss_const_reverse_iterator_type<_Ty, _Size, _TStateMutex> ss_const_reverse_iterator_type;
+		typedef mse::impl::ns_nii_array::Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex> ss_iterator_type;
+		typedef mse::impl::ns_nii_array::Tnii_array_rp_ss_const_iterator_type<_Ty, _Size, _TStateMutex> ss_const_iterator_type;
+		typedef mse::impl::ns_nii_array::Tnii_array_rp_ss_reverse_iterator_type<_Ty, _Size, _TStateMutex> ss_reverse_iterator_type;
+		typedef mse::impl::ns_nii_array::Tnii_array_rp_ss_const_reverse_iterator_type<_Ty, _Size, _TStateMutex> ss_const_reverse_iterator_type;
 
 		template<typename _TArrayPointer>
 		static auto ss_begin(const _TArrayPointer& owner_ptr) {
@@ -2441,8 +2450,8 @@ namespace mse {
 			return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_crbegin<_TArrayPointer>(owner_ptr)));
 		}
 
-		typedef Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> xscope_ss_const_iterator_type;
-		typedef Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> xscope_ss_iterator_type;
+		typedef mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> xscope_ss_const_iterator_type;
+		typedef mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> xscope_ss_iterator_type;
 
 		typedef xscope_ss_const_iterator_type xscope_const_iterator;
 		typedef xscope_ss_iterator_type xscope_iterator;
@@ -2708,17 +2717,17 @@ namespace mse {
 		/* Specializations of TXScopeRawPointerRAFirstAndLast<> that replace regular iterators with fast (raw pointer) iterators for
 		data types for which it's safe to do so. In this case nii_array<>. */
 		template<class _Ty, size_t _Size, class _TStateMutex>
-		class TXScopeSpecializedFirstAndLast<Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> >
-			: public TXScopeRawPointerRAFirstAndLast<Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> > {
+		class TXScopeSpecializedFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> >
+			: public TXScopeRawPointerRAFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> > {
 		public:
-			typedef TXScopeRawPointerRAFirstAndLast<Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> > base_class;
+			typedef TXScopeRawPointerRAFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> > base_class;
 			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
 		};
 		template<class _Ty, size_t _Size, class _TStateMutex>
-		class TXScopeSpecializedFirstAndLast<Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> >
-			: public TXScopeRawPointerRAFirstAndLast<Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> > {
+		class TXScopeSpecializedFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> >
+			: public TXScopeRawPointerRAFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> > {
 		public:
-			typedef TXScopeRawPointerRAFirstAndLast<Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> > base_class;
+			typedef TXScopeRawPointerRAFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> > base_class;
 			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
 		};
 
@@ -2764,31 +2773,31 @@ namespace std {
 	/* Overloads of standard algorithm functions for nii_array<> iterators. */
 
 	template<class _Pr, class _Ty, size_t _Size, class _TStateMutex>
-	inline auto find_if(mse::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> _First, const mse::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> _Last, _Pr _Pred) -> mse::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> {
+	inline auto find_if(const mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>& _Last, _Pr _Pred) -> mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> {
 		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
 		return mse::find_if_ptr(_First, _Last, pred2);
 	}
 	template<class _Pr, class _Ty, size_t _Size, class _TStateMutex>
-	inline auto find_if(const mse::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _Last, _Pr _Pred) -> mse::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> {
+	inline auto find_if(const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _Last, _Pr _Pred) -> mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> {
 		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
 		return mse::find_if_ptr(_First, _Last, pred2);
 	}
 
 	template<class _Fn, class _Ty, size_t _Size, class _TStateMutex>
-	inline _Fn for_each(mse::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> _First, mse::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> _Last, _Fn _Func) {
+	inline _Fn for_each(const mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>& _Last, _Fn _Func) {
 		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
 		mse::for_each_ptr(_First, _Last, func2);
 		return (_Func);
 	}
 	template<class _Fn, class _Ty, size_t _Size, class _TStateMutex>
-	inline _Fn for_each(const mse::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _Last, _Fn _Func) {
+	inline _Fn for_each(const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _Last, _Fn _Func) {
 		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
 		mse::for_each_ptr(_First, _Last, func2);
 		return (_Func);
 	}
 
 	template<class _Ty, size_t _Size, class _TStateMutex>
-	inline void sort(const mse::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _Last) {
+	inline void sort(const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _Last) {
 		mse::sort(_First, _Last);
 	}
 }

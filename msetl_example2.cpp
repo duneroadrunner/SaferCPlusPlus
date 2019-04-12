@@ -282,18 +282,20 @@ void msetl_example2() {
 			/* Here we're declaring an vector as a scope object. */
 			mse::TXScopeObj<mse::nii_vector<int> > vector1_xscpobj = mse::nii_vector<int>{ 1, 2, 3 };
 
-			/* Here we're obtaining a scope iterator to the vector. */
-			auto xscp_iter1 = mse::make_xscope_begin_iterator(&vector1_xscpobj);
-			auto xscp_iter2 = mse::make_xscope_end_iterator(&vector1_xscpobj);
+			{
+				/* Here we're obtaining a scope iterator to the vector. */
+				auto xscp_iter1 = mse::make_xscope_begin_iterator(&vector1_xscpobj);
+				auto xscp_iter2 = mse::make_xscope_end_iterator(&vector1_xscpobj);
 
-			std::sort(xscp_iter1, xscp_iter2);
+				std::sort(xscp_iter1, xscp_iter2);
 
-			auto xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
-			xscp_citer3 = xscp_iter1;
-			xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
-			xscp_citer3 += 2;
-			auto res1 = *xscp_citer3;
-			auto res2 = xscp_citer3[0];
+				auto xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+				xscp_citer3 = xscp_iter1;
+				xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+				xscp_citer3 += 2;
+				auto res1 = *xscp_citer3;
+				auto res2 = xscp_citer3[0];
+			}
 
 			{
 				/* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"

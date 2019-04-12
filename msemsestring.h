@@ -2893,208 +2893,212 @@ namespace mse {
 
 namespace mse {
 
-	/* Following are a bunch of template (iterator) classes that, organizationally, should be members of gnii_basic_string<>. (And they
-	used to be.) However, being a member of gnii_basic_string<> makes them "dependent types", and dependent types do not participate
-	in automatic template parameter type deduction. So we had to haul them here outside of gnii_basic_string<>. */
+	namespace impl {
+		namespace ns_gnii_basic_string {
+			/* Following are a bunch of template (iterator) classes that, organizationally, should be members of gnii_basic_string<>. (And they
+			used to be.) However, being a member of gnii_basic_string<> makes them "dependent types", and dependent types do not participate
+			in automatic template parameter type deduction. So we had to haul them here outside of gnii_basic_string<>. */
 
-	/* The reason we specify the default parameter in the definition instead of this forward declaration is that there seems to be a
-	bug in clang (3.8.0) such that if we don't specify the default parameter in the definition it seems to subsequently behave as if
-	one were never specified. g++ and msvc don't seem to have the same issue. */
-	template<typename _TBasicStringPointer, class _Ty, class _Traits, class _A, class _TStateMutex>
-	class Tgnii_basic_string_ss_iterator_type;
+			/* The reason we specify the default parameter in the definition instead of this forward declaration is that there seems to be a
+			bug in clang (3.8.0) such that if we don't specify the default parameter in the definition it seems to subsequently behave as if
+			one were never specified. g++ and msvc don't seem to have the same issue. */
+			template<typename _TBasicStringPointer, class _Ty, class _Traits, class _A, class _TStateMutex>
+			class Tgnii_basic_string_ss_iterator_type;
 
-	/* Tgnii_basic_string_ss_const_iterator_type is a bounds checked const_iterator. */
-	template<typename _TBasicStringConstPointer, class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	class Tgnii_basic_string_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TBasicStringConstPointer> > {
-	public:
-		typedef mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TBasicStringConstPointer> > base_class;
-		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+			/* Tgnii_basic_string_ss_const_iterator_type is a bounds checked const_iterator. */
+			template<typename _TBasicStringConstPointer, class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			class Tgnii_basic_string_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TBasicStringConstPointer> > {
+			public:
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TBasicStringConstPointer> > base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-		template<class _TBasicStringConstPointer2 = _TBasicStringConstPointer, class = typename std::enable_if<(std::is_same<_TBasicStringConstPointer2, _TBasicStringConstPointer>::value) && (std::is_default_constructible<_TBasicStringConstPointer>::value), void>::type>
-		Tgnii_basic_string_ss_const_iterator_type() {}
+				template<class _TBasicStringConstPointer2 = _TBasicStringConstPointer, class = typename std::enable_if<(std::is_same<_TBasicStringConstPointer2, _TBasicStringConstPointer>::value) && (std::is_default_constructible<_TBasicStringConstPointer>::value), void>::type>
+				Tgnii_basic_string_ss_const_iterator_type() {}
 
-		Tgnii_basic_string_ss_const_iterator_type(const _TBasicStringConstPointer& owner_cptr) : base_class(owner_cptr) {}
-		Tgnii_basic_string_ss_const_iterator_type(_TBasicStringConstPointer&& owner_cptr) : base_class(std::forward<decltype(owner_cptr)>(owner_cptr)) {}
+				Tgnii_basic_string_ss_const_iterator_type(const _TBasicStringConstPointer& owner_cptr) : base_class(owner_cptr) {}
+				Tgnii_basic_string_ss_const_iterator_type(_TBasicStringConstPointer&& owner_cptr) : base_class(std::forward<decltype(owner_cptr)>(owner_cptr)) {}
 
-		Tgnii_basic_string_ss_const_iterator_type(Tgnii_basic_string_ss_const_iterator_type&& src) = default;
-		Tgnii_basic_string_ss_const_iterator_type(const Tgnii_basic_string_ss_const_iterator_type& src) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value, void>::type>
-		Tgnii_basic_string_ss_const_iterator_type(const Tgnii_basic_string_ss_const_iterator_type<_Ty2, _Ty, _Traits, _A, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value, void>::type>
-		Tgnii_basic_string_ss_const_iterator_type(const Tgnii_basic_string_ss_iterator_type<_Ty2, _Ty, _Traits, _A, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+				Tgnii_basic_string_ss_const_iterator_type(Tgnii_basic_string_ss_const_iterator_type&& src) = default;
+				Tgnii_basic_string_ss_const_iterator_type(const Tgnii_basic_string_ss_const_iterator_type& src) = default;
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value, void>::type>
+				Tgnii_basic_string_ss_const_iterator_type(const Tgnii_basic_string_ss_const_iterator_type<_Ty2, _Ty, _Traits, _A, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value, void>::type>
+				Tgnii_basic_string_ss_const_iterator_type(const Tgnii_basic_string_ss_iterator_type<_Ty2, _Ty, _Traits, _A, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
 
-		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-		auto& operator=(Tgnii_basic_string_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		auto& operator=(const Tgnii_basic_string_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				auto& operator=(Tgnii_basic_string_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tgnii_basic_string_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
-		Tgnii_basic_string_ss_const_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
-		Tgnii_basic_string_ss_const_iterator_type operator++(int) { Tgnii_basic_string_ss_const_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
-		Tgnii_basic_string_ss_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
-		Tgnii_basic_string_ss_const_iterator_type operator--(int) { Tgnii_basic_string_ss_const_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
+				Tgnii_basic_string_ss_const_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
+				Tgnii_basic_string_ss_const_iterator_type operator++(int) { Tgnii_basic_string_ss_const_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
+				Tgnii_basic_string_ss_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
+				Tgnii_basic_string_ss_const_iterator_type operator--(int) { Tgnii_basic_string_ss_const_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
 
-		Tgnii_basic_string_ss_const_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
-		Tgnii_basic_string_ss_const_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
-		Tgnii_basic_string_ss_const_iterator_type operator+(difference_type n) const {
-			Tgnii_basic_string_ss_const_iterator_type retval(*this);
-			retval.advance(n);
-			return retval;
+				Tgnii_basic_string_ss_const_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
+				Tgnii_basic_string_ss_const_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
+				Tgnii_basic_string_ss_const_iterator_type operator+(difference_type n) const {
+					Tgnii_basic_string_ss_const_iterator_type retval(*this);
+					retval.advance(n);
+					return retval;
+				}
+				Tgnii_basic_string_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const base_class& _Right_cref) const {
+					return base_class::operator-(_Right_cref);
+				}
+
+				void set_to_const_item_pointer(const Tgnii_basic_string_ss_const_iterator_type& _Right_cref) {
+					(*this) = _Right_cref;
+				}
+
+				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TBasicStringConstPointer);
+
+			private:
+
+				friend class /*_Myt*/mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
+			};
+			/* Tgnii_basic_string_ss_iterator_type is a bounds checked iterator. */
+			template<typename _TBasicStringPointer, class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			class Tgnii_basic_string_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TBasicStringPointer> > {
+			public:
+				typedef mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TBasicStringPointer> > base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+				template<class _TBasicStringPointer2 = _TBasicStringPointer, class = typename std::enable_if<(std::is_same<_TBasicStringPointer2, _TBasicStringPointer>::value) && (std::is_default_constructible<_TBasicStringPointer>::value), void>::type>
+				Tgnii_basic_string_ss_iterator_type() {}
+
+				Tgnii_basic_string_ss_iterator_type(const _TBasicStringPointer& owner_ptr) : base_class(owner_ptr) {}
+				Tgnii_basic_string_ss_iterator_type(_TBasicStringPointer&& owner_ptr) : base_class(std::forward<decltype(owner_ptr)>(owner_ptr)) {}
+
+				Tgnii_basic_string_ss_iterator_type(Tgnii_basic_string_ss_iterator_type&& src) = default;
+				Tgnii_basic_string_ss_iterator_type(const Tgnii_basic_string_ss_iterator_type& src) = default;
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringPointer>::value, void>::type>
+				Tgnii_basic_string_ss_iterator_type(const Tgnii_basic_string_ss_iterator_type<_Ty2, _Ty, _Traits, _A, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+
+
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				auto& operator=(Tgnii_basic_string_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tgnii_basic_string_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+
+				Tgnii_basic_string_ss_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
+				Tgnii_basic_string_ss_iterator_type operator++(int) { Tgnii_basic_string_ss_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
+				Tgnii_basic_string_ss_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
+				Tgnii_basic_string_ss_iterator_type operator--(int) { Tgnii_basic_string_ss_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
+
+				Tgnii_basic_string_ss_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
+				Tgnii_basic_string_ss_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
+				Tgnii_basic_string_ss_iterator_type operator+(difference_type n) const {
+					Tgnii_basic_string_ss_iterator_type retval(*this);
+					retval.advance(n);
+					return retval;
+				}
+				Tgnii_basic_string_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const base_class& _Right_cref) const {
+					return base_class::operator-(_Right_cref);
+				}
+
+				void set_to_item_pointer(const Tgnii_basic_string_ss_iterator_type& _Right_cref) {
+					(*this) = _Right_cref;
+				}
+
+				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TBasicStringPointer);
+
+			private:
+
+				friend class /*_Myt*/mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
+				template<typename _TBasicStringConstPointer, class _Ty2, class _Traits2, class _A2, class _TStateMutex2>
+				friend class Tgnii_basic_string_ss_const_iterator_type;
+			};
+
+			template<typename _TBasicStringPointer, class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringPointer>::value), void>::type*/>
+			using Tgnii_basic_string_ss_reverse_iterator_type = std::reverse_iterator<Tgnii_basic_string_ss_iterator_type<_TBasicStringPointer, _Ty, _Traits, _A, _TStateMutex> >;
+			template<typename _TBasicStringConstPointer, class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringConstPointer>::value), void>::type*/>
+			using Tgnii_basic_string_ss_const_reverse_iterator_type = std::reverse_iterator<Tgnii_basic_string_ss_const_iterator_type<_TBasicStringConstPointer, _Ty, _Traits, _A, _TStateMutex> >;
+
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			using Tgnii_basic_string_rp_ss_iterator_type = Tgnii_basic_string_ss_iterator_type<msev_pointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			using Tgnii_basic_string_rp_ss_const_iterator_type = Tgnii_basic_string_ss_const_iterator_type<msev_pointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			using Tgnii_basic_string_rp_ss_reverse_iterator_type = Tgnii_basic_string_ss_iterator_type<msev_pointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			using Tgnii_basic_string_rp_ss_const_reverse_iterator_type = Tgnii_basic_string_ss_const_reverse_iterator_type<msev_pointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
+
+			template<class _Ty, class _Traits, class _A, class _TStateMutex>
+			class Tgnii_basic_string_xscope_ss_iterator_type;
+
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			class Tgnii_basic_string_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > >
+				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
+			public:
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > > base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_ss_const_iterator_type, base_class);
+
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				auto& operator=(Tgnii_basic_string_xscope_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tgnii_basic_string_xscope_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+
+				Tgnii_basic_string_xscope_ss_const_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
+				Tgnii_basic_string_xscope_ss_const_iterator_type operator++(int) { Tgnii_basic_string_xscope_ss_const_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
+				Tgnii_basic_string_xscope_ss_const_iterator_type& operator --() { base_class::operator --(); return (*this); }
+				Tgnii_basic_string_xscope_ss_const_iterator_type operator--(int) { Tgnii_basic_string_xscope_ss_const_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
+
+				Tgnii_basic_string_xscope_ss_const_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
+				Tgnii_basic_string_xscope_ss_const_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+				Tgnii_basic_string_xscope_ss_const_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				Tgnii_basic_string_xscope_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const Tgnii_basic_string_xscope_ss_const_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
+				const_reference operator*() const { return base_class::operator*(); }
+
+				void set_to_const_item_pointer(const Tgnii_basic_string_xscope_ss_const_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
+
+				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+				void xscope_ss_iterator_type_tag() const {}
+
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+				friend class /*_Myt*/mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
+				template<class _Ty2, class _Traits2, class _A2, class _TStateMutex2>
+				friend class Tgnii_basic_string_xscope_ss_iterator_type;
+			};
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			class Tgnii_basic_string_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > >
+				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
+			public:
+				typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > > base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_ss_iterator_type, base_class);
+
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				auto& operator=(Tgnii_basic_string_xscope_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tgnii_basic_string_xscope_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+
+				Tgnii_basic_string_xscope_ss_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
+				Tgnii_basic_string_xscope_ss_iterator_type operator++(int) { Tgnii_basic_string_xscope_ss_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
+				Tgnii_basic_string_xscope_ss_iterator_type& operator --() { base_class::operator --(); return (*this); }
+				Tgnii_basic_string_xscope_ss_iterator_type operator--(int) { Tgnii_basic_string_xscope_ss_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
+
+				Tgnii_basic_string_xscope_ss_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
+				Tgnii_basic_string_xscope_ss_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+				Tgnii_basic_string_xscope_ss_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				Tgnii_basic_string_xscope_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const Tgnii_basic_string_xscope_ss_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
+
+				void set_to_item_pointer(const Tgnii_basic_string_xscope_ss_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
+
+				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+				void xscope_ss_iterator_type_tag() const {}
+
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+				friend class /*_Myt*/mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
+			};
 		}
-		Tgnii_basic_string_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const base_class& _Right_cref) const {
-			return base_class::operator-(_Right_cref);
-		}
-
-		void set_to_const_item_pointer(const Tgnii_basic_string_ss_const_iterator_type& _Right_cref) {
-			(*this) = _Right_cref;
-		}
-
-		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TBasicStringConstPointer);
-
-	private:
-
-		friend class /*_Myt*/mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
-	};
-	/* Tgnii_basic_string_ss_iterator_type is a bounds checked iterator. */
-	template<typename _TBasicStringPointer, class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	class Tgnii_basic_string_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TBasicStringPointer> > {
-	public:
-		typedef mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TBasicStringPointer> > base_class;
-		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-
-		template<class _TBasicStringPointer2 = _TBasicStringPointer, class = typename std::enable_if<(std::is_same<_TBasicStringPointer2, _TBasicStringPointer>::value) && (std::is_default_constructible<_TBasicStringPointer>::value), void>::type>
-		Tgnii_basic_string_ss_iterator_type() {}
-
-		Tgnii_basic_string_ss_iterator_type(const _TBasicStringPointer& owner_ptr) : base_class(owner_ptr) {}
-		Tgnii_basic_string_ss_iterator_type(_TBasicStringPointer&& owner_ptr) : base_class(std::forward<decltype(owner_ptr)>(owner_ptr)) {}
-
-		Tgnii_basic_string_ss_iterator_type(Tgnii_basic_string_ss_iterator_type&& src) = default;
-		Tgnii_basic_string_ss_iterator_type(const Tgnii_basic_string_ss_iterator_type& src) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TBasicStringPointer>::value, void>::type>
-		Tgnii_basic_string_ss_iterator_type(const Tgnii_basic_string_ss_iterator_type<_Ty2, _Ty, _Traits, _A, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
-
-
-		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-		auto& operator=(Tgnii_basic_string_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		auto& operator=(const Tgnii_basic_string_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
-
-		Tgnii_basic_string_ss_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
-		Tgnii_basic_string_ss_iterator_type operator++(int) { Tgnii_basic_string_ss_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
-		Tgnii_basic_string_ss_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
-		Tgnii_basic_string_ss_iterator_type operator--(int) { Tgnii_basic_string_ss_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
-
-		Tgnii_basic_string_ss_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
-		Tgnii_basic_string_ss_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
-		Tgnii_basic_string_ss_iterator_type operator+(difference_type n) const {
-			Tgnii_basic_string_ss_iterator_type retval(*this);
-			retval.advance(n);
-			return retval;
-		}
-		Tgnii_basic_string_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const base_class& _Right_cref) const {
-			return base_class::operator-(_Right_cref);
-		}
-
-		void set_to_item_pointer(const Tgnii_basic_string_ss_iterator_type& _Right_cref) {
-			(*this) = _Right_cref;
-		}
-
-		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TBasicStringPointer);
-
-	private:
-
-		friend class /*_Myt*/mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
-		template<typename _TBasicStringConstPointer, class _Ty2, class _Traits2, class _A2, class _TStateMutex2>
-		friend class Tgnii_basic_string_ss_const_iterator_type;
-	};
-
-	template<typename _TBasicStringPointer, class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringPointer>::value), void>::type*/>
-	using Tgnii_basic_string_ss_reverse_iterator_type = std::reverse_iterator<Tgnii_basic_string_ss_iterator_type<_TBasicStringPointer, _Ty, _Traits, _A, _TStateMutex> >;
-	template<typename _TBasicStringConstPointer, class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringConstPointer>::value), void>::type*/>
-	using Tgnii_basic_string_ss_const_reverse_iterator_type = std::reverse_iterator<Tgnii_basic_string_ss_const_iterator_type<_TBasicStringConstPointer, _Ty, _Traits, _A, _TStateMutex> >;
-
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	using Tgnii_basic_string_rp_ss_iterator_type = Tgnii_basic_string_ss_iterator_type<msev_pointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	using Tgnii_basic_string_rp_ss_const_iterator_type = Tgnii_basic_string_ss_const_iterator_type<msev_pointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	using Tgnii_basic_string_rp_ss_reverse_iterator_type = Tgnii_basic_string_ss_iterator_type<msev_pointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	using Tgnii_basic_string_rp_ss_const_reverse_iterator_type = Tgnii_basic_string_ss_const_reverse_iterator_type<msev_pointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >, _Ty, _Traits, _A, _TStateMutex>;
-
-	template<class _Ty, class _Traits, class _A, class _TStateMutex>
-	class Tgnii_basic_string_xscope_ss_iterator_type;
-
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	class Tgnii_basic_string_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > >
-		/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
-	public:
-		typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > > base_class;
-		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-
-		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_ss_const_iterator_type, base_class);
-
-		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-		auto& operator=(Tgnii_basic_string_xscope_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		auto& operator=(const Tgnii_basic_string_xscope_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
-
-		Tgnii_basic_string_xscope_ss_const_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
-		Tgnii_basic_string_xscope_ss_const_iterator_type operator++(int) { Tgnii_basic_string_xscope_ss_const_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
-		Tgnii_basic_string_xscope_ss_const_iterator_type& operator --() { base_class::operator --(); return (*this); }
-		Tgnii_basic_string_xscope_ss_const_iterator_type operator--(int) { Tgnii_basic_string_xscope_ss_const_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
-
-		Tgnii_basic_string_xscope_ss_const_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
-		Tgnii_basic_string_xscope_ss_const_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
-		Tgnii_basic_string_xscope_ss_const_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		Tgnii_basic_string_xscope_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const Tgnii_basic_string_xscope_ss_const_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
-		const_reference operator*() const { return base_class::operator*(); }
-
-		void set_to_const_item_pointer(const Tgnii_basic_string_xscope_ss_const_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
-
-		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
-		void xscope_ss_iterator_type_tag() const {}
-
-	private:
-		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
-
-		friend class /*_Myt*/mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
-		template<class _Ty2, class _Traits2, class _A2, class _TStateMutex2>
-		friend class Tgnii_basic_string_xscope_ss_iterator_type;
-	};
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	class Tgnii_basic_string_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > >
-		/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
-	public:
-		typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > > base_class;
-		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-
-		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_ss_iterator_type, base_class);
-
-		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-		auto& operator=(Tgnii_basic_string_xscope_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		auto& operator=(const Tgnii_basic_string_xscope_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
-
-		Tgnii_basic_string_xscope_ss_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
-		Tgnii_basic_string_xscope_ss_iterator_type operator++(int) { Tgnii_basic_string_xscope_ss_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
-		Tgnii_basic_string_xscope_ss_iterator_type& operator --() { base_class::operator --(); return (*this); }
-		Tgnii_basic_string_xscope_ss_iterator_type operator--(int) { Tgnii_basic_string_xscope_ss_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
-
-		Tgnii_basic_string_xscope_ss_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
-		Tgnii_basic_string_xscope_ss_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
-		Tgnii_basic_string_xscope_ss_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		Tgnii_basic_string_xscope_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const Tgnii_basic_string_xscope_ss_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
-
-		void set_to_item_pointer(const Tgnii_basic_string_xscope_ss_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
-
-		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
-		void xscope_ss_iterator_type_tag() const {}
-
-	private:
-		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
-
-		friend class /*_Myt*/mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
-	};
+	}
 
 	namespace impl {
 		namespace ns_gnii_basic_string {
@@ -3538,19 +3542,19 @@ namespace mse {
 				typedef mse::impl::random_access_iterator_base<_Ty> nbs_iterator_base;
 
 				template<typename _TBasicStringConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringConstPointer>::value), void>::type>
-				using Tss_const_iterator_type = Tgnii_basic_string_ss_const_iterator_type<_TBasicStringConstPointer, _Ty, _Traits, _A, _TStateMutex>;
+				using Tss_const_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_iterator_type<_TBasicStringConstPointer, _Ty, _Traits, _A, _TStateMutex>;
 				template<typename _TBasicStringPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringPointer>::value), void>::type>
-				using Tss_iterator_type = Tgnii_basic_string_ss_iterator_type<_TBasicStringPointer, _Ty, _Traits, _A, _TStateMutex>;
+				using Tss_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_iterator_type<_TBasicStringPointer, _Ty, _Traits, _A, _TStateMutex>;
 
 				template<typename _TBasicStringPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringPointer>::value), void>::type>
-				using Tss_reverse_iterator_type = Tgnii_basic_string_ss_reverse_iterator_type<_TBasicStringPointer, _Ty, _Traits, _A, _TStateMutex>;
+				using Tss_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_reverse_iterator_type<_TBasicStringPointer, _Ty, _Traits, _A, _TStateMutex>;
 				template<typename _TBasicStringConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringConstPointer>::value), void>::type>
-				using Tss_const_reverse_iterator_type = Tgnii_basic_string_ss_const_reverse_iterator_type<_TBasicStringConstPointer, _Ty, _Traits, _A, _TStateMutex>;
+				using Tss_const_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_reverse_iterator_type<_TBasicStringConstPointer, _Ty, _Traits, _A, _TStateMutex>;
 
-				typedef Tgnii_basic_string_rp_ss_iterator_type<_Ty, _Traits, _A, _TStateMutex> ss_iterator_type;
-				typedef Tgnii_basic_string_rp_ss_const_iterator_type<_Ty, _Traits, _A, _TStateMutex> ss_const_iterator_type;
-				typedef Tgnii_basic_string_rp_ss_reverse_iterator_type<_Ty, _Traits, _A, _TStateMutex> ss_reverse_iterator_type;
-				typedef Tgnii_basic_string_rp_ss_const_reverse_iterator_type<_Ty, _Traits, _A, _TStateMutex> ss_const_reverse_iterator_type;
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_iterator_type<_Ty, _Traits, _A, _TStateMutex> ss_iterator_type;
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_const_iterator_type<_Ty, _Traits, _A, _TStateMutex> ss_const_iterator_type;
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_reverse_iterator_type<_Ty, _Traits, _A, _TStateMutex> ss_reverse_iterator_type;
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_const_reverse_iterator_type<_Ty, _Traits, _A, _TStateMutex> ss_const_reverse_iterator_type;
 
 			private:
 				/* ss_iterator_type is bounds checked, but not safe against "use-after-free", so the member functions that
@@ -4006,8 +4010,8 @@ namespace mse {
 				}
 
 
-				typedef Tgnii_basic_string_xscope_ss_const_iterator_type<_Ty, _Traits, _A, _TStateMutex> xscope_ss_const_iterator_type;
-				typedef Tgnii_basic_string_xscope_ss_iterator_type<_Ty, _Traits, _A, _TStateMutex> xscope_ss_iterator_type;
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type<_Ty, _Traits, _A, _TStateMutex> xscope_ss_const_iterator_type;
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Ty, _Traits, _A, _TStateMutex> xscope_ss_iterator_type;
 
 				typedef xscope_ss_const_iterator_type xscope_const_iterator;
 				typedef xscope_ss_iterator_type xscope_iterator;
@@ -5165,11 +5169,11 @@ namespace mse {
 		/* Specializations of TXScopeRawPointerRAFirstAndLast<> that replace regular iterators with fast (raw pointer) iterators for
 		data types for which it's safe to do so. In this case mse::us::impl::gnii_basic_string<>. */
 		template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
-		class TXScopeSpecializedFirstAndLast<Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex> >
-			: public TXScopeRawPointerRAFirstAndLast<Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex> > {
+		class TXScopeSpecializedFirstAndLast<mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex> >
+			: public TXScopeRawPointerRAFirstAndLast<mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex> > {
 		public:
-			typedef Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex> iter_t;
-			typedef TXScopeRawPointerRAFirstAndLast<Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex> > base_class;
+			typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex> iter_t;
+			typedef TXScopeRawPointerRAFirstAndLast<mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex> > base_class;
 			TXScopeSpecializedFirstAndLast(const iter_t& _First, const iter_t& _Last) : base_class(_First, _Last)
 				, m_structure_lock_obj(make_xscope_structure_lock_guard(_First.target_container_ptr())) {}
 		private:
@@ -5215,20 +5219,20 @@ namespace std {
 	/* Overloads of standard algorithm functions for mse::us::impl::gnii_basic_string<> iterators. */
 
 	template<class _Pr, class _Elem, class _Traits, class _Alloc, class _TStateMutex>
-	inline auto find_if(const mse::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _First, const mse::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _Last, _Pr _Pred) -> mse::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex> {
+	inline auto find_if(const mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _First, const mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _Last, _Pr _Pred) -> mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex> {
 		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
 		return mse::find_if_ptr(_First, _Last, pred2);
 	}
 
 	template<class _Fn, class _Elem, class _Traits, class _Alloc, class _TStateMutex>
-	inline _Fn for_each(const mse::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _First, const mse::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _Last, _Fn _Func) {
+	inline _Fn for_each(const mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _First, const mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _Last, _Fn _Func) {
 		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
 		mse::for_each_ptr(_First, _Last, func2);
 		return (_Func);
 	}
 
 	template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
-	inline void sort(const mse::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _First, const mse::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _Last) {
+	inline void sort(const mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _First, const mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Elem, _Traits, _Alloc, _TStateMutex>& _Last) {
 		mse::sort(_First, _Last);
 	}
 }
