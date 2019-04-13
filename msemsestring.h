@@ -2895,6 +2895,25 @@ namespace mse {
 
 	namespace impl {
 		namespace ns_gnii_basic_string {
+			template<class _Ty, class _Traits, class _A, class _TStateMutex>
+			class xscope_structure_lock_guard;
+			template<class _Ty, class _Traits, class _A, class _TStateMutex, class _TAccessMutex/* = mse::non_thread_safe_shared_mutex*/>
+			class xscope_ewconst_structure_lock_guard;
+		}
+	}
+
+	//template<class _Ty> auto make_xscope_structure_lock_guard(const _Ty& owner_ptr);
+	template<class _Ty, class _Traits, class _A, class _TStateMutex>
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr)->mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, class _Traits, class _A, class _TStateMutex>
+	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr)->mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, class _Traits, class _A, class _TStateMutex, class _TAccessMutex/* = mse::non_thread_safe_shared_mutex*/>
+	auto make_xscope_structure_lock_guard(const mse::TAccessControlledConstPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>, _TAccessMutex>& owner_ptr)->mse::impl::ns_gnii_basic_string::xscope_ewconst_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex, _TAccessMutex>;
+
+	namespace impl {
+		namespace ns_gnii_basic_string {
 			/* Following are a bunch of template (iterator) classes that, organizationally, should be members of gnii_basic_string<>. (And they
 			used to be.) However, being a member of gnii_basic_string<> makes them "dependent types", and dependent types do not participate
 			in automatic template parameter type deduction. So we had to haul them here outside of gnii_basic_string<>. */
@@ -3091,6 +3110,88 @@ namespace mse {
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_ss_iterator_type_tag() const {}
+
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+				friend class /*_Myt*/mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
+			};
+
+
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			using TXScopeBasicStringPointer = mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >;
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			using TXScopeBasicStringConstPointer = mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >;
+
+			template<class _Ty, class _Traits, class _A, class _TStateMutex>
+			class Tgnii_basic_string_xscope_cslsstrong_iterator_type;
+
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			class Tgnii_basic_string_xscope_cslsstrong_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSLSStrongRAConstIterator<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex> >()))> >
+				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
+			public:
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSLSStrongRAConstIterator<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex> >()))> > base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_cslsstrong_const_iterator_type, base_class);
+
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				auto& operator=(Tgnii_basic_string_xscope_cslsstrong_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator++(int) { Tgnii_basic_string_xscope_cslsstrong_const_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator --() { base_class::operator --(); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator--(int) { Tgnii_basic_string_xscope_cslsstrong_const_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
+
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
+				const_reference operator*() const { return base_class::operator*(); }
+
+				void set_to_const_item_pointer(const Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
+
+				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+				void xscope_cslsstrong_iterator_type_tag() const {}
+
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+				friend class /*_Myt*/mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
+				template<class _Ty2, class _Traits2, class _A2, class _TStateMutex2>
+				friend class Tgnii_basic_string_xscope_cslsstrong_iterator_type;
+			};
+
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			class Tgnii_basic_string_xscope_cslsstrong_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex> >()))> >
+				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
+			public:
+				typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex> >()))> > base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_cslsstrong_iterator_type, base_class);
+
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				auto& operator=(Tgnii_basic_string_xscope_cslsstrong_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tgnii_basic_string_xscope_cslsstrong_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator++(int) { Tgnii_basic_string_xscope_cslsstrong_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator --() { base_class::operator --(); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator--(int) { Tgnii_basic_string_xscope_cslsstrong_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
+
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				difference_type operator-(const Tgnii_basic_string_xscope_cslsstrong_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
+
+				void set_to_item_pointer(const Tgnii_basic_string_xscope_cslsstrong_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
+
+				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+				void xscope_cslsstrong_iterator_type_tag() const {}
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -4014,7 +4115,8 @@ namespace mse {
 				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Ty, _Traits, _A, _TStateMutex> xscope_ss_iterator_type;
 
 				typedef xscope_ss_const_iterator_type xscope_const_iterator;
-				typedef xscope_ss_iterator_type xscope_iterator;
+				//typedef xscope_ss_iterator_type xscope_iterator;
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_iterator_type<_Ty, _Traits, _A, _TStateMutex> xscope_iterator;
 
 
 				template<typename _TBasicStringPointer1>
@@ -5092,6 +5194,12 @@ namespace mse {
 				public:
 					typedef mse::us::impl::Txscope_const_structure_lock_guard<gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > base_class;
 					using base_class::base_class;
+
+					operator mse::TXScopeItemFixedConstPointer<gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >() const {
+						return static_cast<const base_class&>(*this);
+					}
+				private:
+					MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 				};
 			}
 		}
@@ -5107,6 +5215,15 @@ namespace mse {
 			public:
 				typedef mse::us::impl::Txscope_structure_lock_guard<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > base_class;
 				using base_class::base_class;
+
+				operator mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >() const {
+					return static_cast<const base_class&>(*this);
+				}
+				operator mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >() const {
+					return static_cast<const base_class&>(*this);
+				}
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};
 
 			/* For objects that are access controlled under an "exclusive writer" access policy, the object is immutable
@@ -5117,6 +5234,14 @@ namespace mse {
 			public:
 				typedef mse::us::impl::Txscope_ewconst_structure_lock_guard<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>, _TAccessMutex> base_class;
 				using base_class::base_class;
+
+				typedef mse::TAccessControlledConstPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>, _TAccessMutex> exclusive_writer_const_pointer_t;
+
+				operator exclusive_writer_const_pointer_t() const {
+					return static_cast<const base_class&>(*this);
+				}
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};
 		}
 	}
@@ -5125,14 +5250,12 @@ namespace mse {
 	individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 	or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 	template<class _Ty, class _Traits, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-		//return typename mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_lock_guard(owner_ptr);
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) -> mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex> {
 		return mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _Traits, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-		//return typename mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_lock_guard(owner_ptr);
+	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) -> mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex> {
 		return mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -5141,23 +5264,23 @@ namespace mse {
 	while a const pointer to the object exists. So given an "exclusive writer" const pointer to a basic_string, it is
 	safe to store the pointer provide a direct scope const pointer to any of its elements. */
 	template<class _Ty, class _Traits, class _A, class _TStateMutex, class _TAccessMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_structure_lock_guard(const mse::TAccessControlledConstPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>, _TAccessMutex>& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TAccessControlledConstPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>, _TAccessMutex>& owner_ptr) -> mse::impl::ns_gnii_basic_string::xscope_ewconst_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex, _TAccessMutex> {
 		return mse::impl::ns_gnii_basic_string::xscope_ewconst_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex, _TAccessMutex>(owner_ptr);
 	}
 
 	template<class _TDynamicContainerPointer>
-	auto make_xscope_basic_string_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) {
+	auto make_xscope_basic_string_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) -> decltype(make_xscope_structure_lock_guard(owner_ptr)) {
 		return make_xscope_structure_lock_guard(owner_ptr);
 	}
 	namespace mstd {
 		template<class _TDynamicContainerPointer>
-		auto make_xscope_basic_string_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) {
+		auto make_xscope_basic_string_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) -> decltype(make_xscope_structure_lock_guard(owner_ptr)) {
 			return make_xscope_structure_lock_guard(owner_ptr);
 		}
 	}
 	namespace us {
 		template<class _TDynamicContainerPointer>
-		auto make_xscope_basic_string_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) {
+		auto make_xscope_basic_string_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) -> decltype(make_xscope_structure_lock_guard(owner_ptr)) {
 			return make_xscope_structure_lock_guard(owner_ptr);
 		}
 	}
@@ -5314,9 +5437,28 @@ namespace mse {
 
 		typedef typename base_class::iterator iterator;
 		typedef typename base_class::const_iterator const_iterator;
-
 		typedef typename base_class::reverse_iterator reverse_iterator;
 		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
+
+		template<typename _TBasicStringConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringConstPointer>::value), void>::type>
+		using Tss_const_iterator_type = typename base_class::template Tss_const_iterator_type<_TBasicStringConstPointer>;
+		template<typename _TBasicStringPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringPointer>::value), void>::type>
+		using Tss_iterator_type = typename base_class::template Tss_iterator_type<_TBasicStringPointer>;
+		template<typename _TBasicStringPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringPointer>::value), void>::type>
+		using Tss_reverse_iterator_type = typename base_class::template Tss_reverse_iterator_type<_TBasicStringPointer>;
+		template<typename _TBasicStringConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TBasicStringConstPointer>::value), void>::type>
+		using Tss_const_reverse_iterator_type = typename base_class::template Tss_const_reverse_iterator_type<_TBasicStringConstPointer>;
+		typedef typename base_class::ss_iterator_type ss_iterator_type;
+		typedef typename base_class::ss_const_iterator_type ss_const_iterator_type;
+		typedef typename base_class::ss_reverse_iterator_type ss_reverse_iterator_type;
+		typedef typename base_class::ss_const_reverse_iterator_type ss_const_reverse_iterator_type;
+
+		typedef typename base_class::xscope_ss_const_iterator_type xscope_ss_const_iterator_type;
+		typedef typename base_class::xscope_ss_iterator_type xscope_ss_iterator_type;
+
+		//typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type<_Ty, _Traits, _A, _TStateMutex> xscope_const_iterator;
+		typedef typename base_class::xscope_iterator xscope_iterator;
 
 		MSE_USING(stnii_basic_string, base_class);
 
@@ -5331,7 +5473,7 @@ namespace mse {
 			/* The following xscope_structure_lock_guard constructed from a const reference is only safe because
 			stnii_basic_string<> is not eligible to be shared between threads. */
 			template<class _Ty, class _Traits, class _A, class _TStateMutex>
-			using xscope_structure_lock_guard = mse::us::impl::ns_gnii_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
+			using xscope_const_structure_lock_guard = mse::us::impl::ns_gnii_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
 		}
 	}
 
@@ -5342,14 +5484,12 @@ namespace mse {
 	stnii_basic_string<> is not eligible to be shared between threads. */
 	template<class _Ty, class _Traits, class _A, class _TStateMutex>
 	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<stnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-		//return typename stnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_lock_guard(owner_ptr);
-		return mse::impl::ns_stnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
+		return mse::impl::ns_stnii_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _Traits, class _A, class _TStateMutex>
 	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<stnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
-		//return typename stnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_lock_guard(owner_ptr);
-		return mse::impl::ns_stnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
+		return mse::impl::ns_stnii_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
@@ -7993,23 +8133,30 @@ namespace mse {
 				typedef mse::us::impl::Txscope_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> > base_class;
 				using base_class::base_class;
 
-				typedef mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> MV;
-				xscope_structure_lock_guard(const mse::TXScopeFixedPointer<MV>& owner_ptr) : base_class(owner_ptr)
+				typedef mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> MBS;
+				xscope_structure_lock_guard(const mse::TXScopeFixedPointer<MBS>& owner_ptr) : base_class(owner_ptr)
 					, m_base_xscope_structure_lock_guard(owner_ptr) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<MV>& owner_ptr) : base_class(owner_ptr)
+				xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<MBS>& owner_ptr) : base_class(owner_ptr)
 					, m_base_xscope_structure_lock_guard(owner_ptr) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-				auto xscope_ptr_to_element(typename MV::size_type _P) const {
+				auto xscope_ptr_to_element(typename MBS::size_type _P) const {
 					return base_class::xscope_ptr_to_element(_P);
 				}
-				auto xscope_ptr_to_element(const typename MV::xscope_const_iterator& ss_iter) const {
+				auto xscope_ptr_to_element(const typename MBS::xscope_const_iterator& ss_iter) const {
 					return base_class::xscope_ptr_to_element(ss_iter);
 				}
-				auto xscope_ptr_to_element(const typename MV::xscope_cipointer& ciptr) const {
+				auto xscope_ptr_to_element(const typename MBS::xscope_cipointer& ciptr) const {
 					assert(std::addressof(*(ciptr.target_container_ptr())) == std::addressof(*(*this)));
 					return xscope_ptr_to_element(ciptr.position());
+				}
+
+				operator mse::TXScopeItemFixedPointer<MBS>() const {
+					return static_cast<const base_class&>(*this);
+				}
+				operator mse::TXScopeItemFixedConstPointer<const MBS>() const {
+					return static_cast<const base_class&>(*this);
 				}
 
 			private:
@@ -8021,23 +8168,27 @@ namespace mse {
 				typedef mse::us::impl::Txscope_const_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> > base_class;
 				using base_class::base_class;
 
-				typedef mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> MV;
-				xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<MV>& owner_ptr) : base_class(owner_ptr)
+				typedef mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> MBS;
+				xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<MBS>& owner_ptr) : base_class(owner_ptr)
 					, m_base_xscope_structure_lock_guard(owner_ptr) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_const_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<MV>& owner_ptr) : base_class(owner_ptr)
+				xscope_const_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<MBS>& owner_ptr) : base_class(owner_ptr)
 					, m_base_xscope_structure_lock_guard(owner_ptr) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-				auto xscope_ptr_to_element(typename MV::size_type _P) const {
+				auto xscope_ptr_to_element(typename MBS::size_type _P) const {
 					return base_class::xscope_ptr_to_element(_P);
 				}
-				auto xscope_ptr_to_element(const typename MV::xscope_const_iterator& ss_iter) const {
+				auto xscope_ptr_to_element(const typename MBS::xscope_const_iterator& ss_iter) const {
 					return base_class::xscope_ptr_to_element(ss_iter);
 				}
-				auto xscope_ptr_to_element(const typename MV::xscope_cipointer& ciptr) const {
+				auto xscope_ptr_to_element(const typename MBS::xscope_cipointer& ciptr) const {
 					assert(std::addressof(*(ciptr.target_container_ptr())) == std::addressof(*(*this)));
 					return xscope_ptr_to_element(ciptr.position());
+				}
+
+				operator mse::TXScopeItemFixedConstPointer<MBS>() const {
+					return static_cast<const base_class&>(*this);
 				}
 
 			private:
