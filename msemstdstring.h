@@ -183,7 +183,7 @@ namespace mse {
 			void Tbasic_string_xscope_iterator_tag() const {}
 			void async_not_shareable_and_not_passable_tag() const {}
 		private:
-			typename _MBS::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
+			typename _MBS::xscope_const_iterator m_xscope_ss_const_iterator;
 			friend class /*_Myt*/basic_string<_Ty, _Traits, _A>;
 		};
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>>
@@ -276,7 +276,7 @@ namespace mse {
 			void Tbasic_string_xscope_iterator_tag() const {}
 			void async_not_shareable_and_not_passable_tag() const {}
 		private:
-			typename _MBS::xscope_ss_iterator_type m_xscope_ss_iterator;
+			typename _MBS::xscope_iterator m_xscope_ss_iterator;
 			friend class /*_Myt*/basic_string<_Ty, _Traits, _A>;
 			friend class Tbasic_string_xscope_const_iterator<_Ty, _Traits, _A>;
 		};

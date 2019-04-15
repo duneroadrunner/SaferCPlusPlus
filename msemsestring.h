@@ -3127,10 +3127,10 @@ namespace mse {
 			class Tgnii_basic_string_xscope_cslsstrong_iterator_type;
 
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class Tgnii_basic_string_xscope_cslsstrong_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSLSStrongRAConstIterator<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex> >()))> >
+			class Tgnii_basic_string_xscope_cslsstrong_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex> >()))> >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSLSStrongRAConstIterator<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex> >()))> > base_class;
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringConstPointer<_Ty, _Traits, _A, _TStateMutex> >()))> > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_cslsstrong_const_iterator_type, base_class);
@@ -3165,10 +3165,10 @@ namespace mse {
 			};
 
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class Tgnii_basic_string_xscope_cslsstrong_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex> >()))> >
+			class Tgnii_basic_string_xscope_cslsstrong_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex> >()))> >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex> >()))> > base_class;
+				typedef mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A, _TStateMutex> >()))> > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_cslsstrong_iterator_type, base_class);

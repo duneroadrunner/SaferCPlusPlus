@@ -256,7 +256,7 @@ namespace mse {
 			void Tarray_xscope_iterator_tag() const {}
 			void async_not_shareable_and_not_passable_tag() const {}
 		private:
-			typename _MA::xscope_ss_const_iterator_type m_xscope_ss_const_iterator;
+			typename _MA::xscope_const_iterator m_xscope_ss_const_iterator;
 			friend class /*_Myt*/array<_Ty, _Size>;
 		};
 		template<class _Ty, size_t _Size>
@@ -351,7 +351,7 @@ namespace mse {
 			void Tarray_xscope_iterator_tag() const {}
 			void async_not_shareable_and_not_passable_tag() const {}
 		private:
-			typename _MA::xscope_ss_iterator_type m_xscope_ss_iterator;
+			typename _MA::xscope_iterator m_xscope_ss_iterator;
 			friend class /*_Myt*/array<_Ty, _Size>;
 			friend class Tarray_xscope_const_iterator<_Ty, _Size>;
 		};

@@ -289,6 +289,12 @@ void msetl_example2() {
 
 				std::sort(xscp_iter1, xscp_iter2);
 
+				/* Note that scope iterators to vectors (and other dynamic containers), "lock the structure" of the container
+				so that, for example, it cannot be resized. This allows us to obtain a scope pointer to the iterator's
+				target element. */
+				auto xscp_ptr1 = mse::xscope_pointer(xscp_iter1);
+				auto res3 = *xscp_ptr1;
+
 				auto xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
 				xscp_citer3 = xscp_iter1;
 				xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);

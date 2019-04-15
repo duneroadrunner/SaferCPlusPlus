@@ -1893,6 +1893,18 @@ namespace mse {
 		template<class _TRAContainerPointer2> friend TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer2> us::unsafe_make_xscope_csss_strong_ra_const_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer2>::size_type index);
 	};
 
+	namespace us {
+		/* A couple of unsafe functions for internal use. */
+		template<class _TRAContainerPointer>
+		TXScopeCSSSStrongRAIterator<_TRAContainerPointer> unsafe_make_xscope_csss_strong_ra_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXScopeCSSSStrongRAIterator<_TRAContainerPointer>::size_type index/* = 0*/) {
+			return TXScopeCSSSStrongRAIterator<_TRAContainerPointer>(typename TXScopeCSSSStrongRAIterator<_TRAContainerPointer>::unsafe_t(), ra_container_pointer, index);
+		}
+		template<class _TRAContainerPointer>
+		TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> unsafe_make_xscope_csss_strong_ra_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>::size_type index/* = 0*/) {
+			return TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>(typename TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>::unsafe_t(), ra_container_pointer, index);
+		}
+	}
+
 	template <typename _TRAContainerPointer>
 	auto xscope_pointer(const TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& iter_cref) {
 		return mse::us::unsafe_make_xscope_pointer_to(*iter_cref);
@@ -1910,16 +1922,21 @@ namespace mse {
 		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
 	}
 
-	namespace us {
-		/* A couple of unsafe functions for internal use. */
-		template<class _TRAContainerPointer>
-		TXScopeCSSSStrongRAIterator<_TRAContainerPointer> unsafe_make_xscope_csss_strong_ra_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXScopeCSSSStrongRAIterator<_TRAContainerPointer>::size_type index/* = 0*/) {
-			return TXScopeCSSSStrongRAIterator<_TRAContainerPointer>(typename TXScopeCSSSStrongRAIterator<_TRAContainerPointer>::unsafe_t(), ra_container_pointer, index);
-		}
-		template<class _TRAContainerPointer>
-		TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> unsafe_make_xscope_csss_strong_ra_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>::size_type index/* = 0*/) {
-			return TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>(typename TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>::unsafe_t(), ra_container_pointer, index);
-		}
+	template <typename _TRAContainerPointer>
+	auto xscope_pointer(const mse::TXScopeItemFixedConstPointer<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> >& iter_xscptr) {
+		return mse::us::unsafe_make_xscope_pointer_to(*(*iter_xscptr));
+	}
+	template <typename _TRAContainerPointer>
+	auto xscope_pointer(const mse::TXScopeItemFixedConstPointer<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> >& iter_xscptr) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*(*iter_xscptr));
+	}
+	template <typename _TRAContainerPointer>
+	auto xscope_const_pointer(const mse::TXScopeItemFixedConstPointer<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> >& iter_xscptr) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*(iter_xscptr));
+	}
+	template <typename _TRAContainerPointer>
+	auto xscope_const_pointer(const mse::TXScopeItemFixedConstPointer<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> >& iter_xscptr) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*(*iter_xscptr));
 	}
 
 	template <typename _TRAContainerPointer>
