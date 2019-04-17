@@ -903,10 +903,11 @@ namespace mse {
 			using iterator_category = std::random_access_iterator_tag;
 			using value_type = typename std::remove_reference<decltype(*std::declval<_TRAIterator>())>::type;
 			using difference_type = decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>());
+			using size_type = typename std::array<int, 0>::size_type;
 			using const_pointer = typename std::add_pointer<typename std::add_const<decltype(*std::declval<_TRAIterator>())>::type>::type;
 			using const_reference = typename std::add_const<decltype(*std::declval<_TRAIterator>())>::type;
-			typedef const_pointer pointer;
-			typedef const_reference reference;
+			using pointer = const_pointer;
+			using reference = const_reference;
 		};
 		template <typename _TRAIterator>
 		class random_access_iterator_base_from_ra_iterator {
@@ -914,8 +915,11 @@ namespace mse {
 			using iterator_category = std::random_access_iterator_tag;
 			using value_type = typename std::remove_reference<decltype(*std::declval<_TRAIterator>())>::type;
 			using difference_type = decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>());
+			using size_type = typename std::array<int, 0>::size_type;
 			using pointer = typename std::add_pointer<decltype(*std::declval<_TRAIterator>())>::type;
 			using reference = decltype(*std::declval<_TRAIterator>());
+			using const_pointer = const pointer;
+			using const_reference = const reference;
 		};
 
 		template <typename _TRAContainer>
@@ -924,10 +928,11 @@ namespace mse {
 			using iterator_category = std::random_access_iterator_tag;
 			using value_type = typename std::remove_reference<decltype(std::declval<_TRAContainer>()[0])>::type;
 			using difference_type = typename std::array<int, 0>::difference_type;
+			using size_type = typename std::array<int, 0>::size_type;
 			using const_pointer = typename std::add_pointer<typename std::add_const<decltype(std::declval<_TRAContainer>()[0])>::type>::type;
 			using const_reference = typename std::add_const<decltype(std::declval<_TRAContainer>()[0])>::type;
-			typedef const_pointer pointer;
-			typedef const_reference reference;
+			using pointer = const_pointer;
+			using reference = const_reference;
 		};
 		template <typename _TRAContainer>
 		class random_access_iterator_base_from_ra_container {
@@ -935,8 +940,11 @@ namespace mse {
 			using iterator_category = std::random_access_iterator_tag;
 			using value_type = typename std::remove_reference<decltype(std::declval<_TRAContainer>()[0])>::type;
 			using difference_type = typename std::array<int, 0>::difference_type;
+			using size_type = typename std::array<int, 0>::size_type;
 			using pointer = typename std::add_pointer<decltype(std::declval<_TRAContainer>()[0])>::type;
 			using reference = decltype(std::declval<_TRAContainer>()[0]);
+			using const_pointer = const pointer;
+			using const_reference = const reference;
 		};
 	}
 
@@ -1002,8 +1010,8 @@ namespace mse {
 	typedef typename base_class::value_type value_type; \
 	typedef typename base_class::reference reference; \
 	typedef const reference const_reference; \
-	/*typedef typename base_class::pointer pointer;*/ \
-	/*typedef const pointer const_pointer;*/ \
+	typedef typename base_class::pointer pointer; \
+	typedef const pointer const_pointer; \
 	typedef typename base_class::size_type size_type; \
 	typedef typename base_class::difference_type difference_type; \
 	typedef typename std::remove_const<value_type>::type nonconst_value_type;
@@ -1024,16 +1032,8 @@ namespace mse {
 			{
 			public:
 				typedef mse::impl::random_access_iterator_base_from_ra_container<decltype(*std::declval<typename std::remove_reference<_TRAContainerPointer>::type>())> base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 				typedef typename std::remove_reference<_TRAContainerPointer>::type _TRAContainerPointerRR;
-
-				typedef std::random_access_iterator_tag iterator_category;
-				typedef typename base_class::value_type value_type;
-				typedef typename base_class::difference_type difference_type;
-				typedef typename base_class::pointer pointer;
-				typedef typename base_class::reference reference;
-				typedef const pointer const_pointer;
-				typedef const reference const_reference;
-				typedef msear_size_t size_type;
 
 			private:
 				difference_type m_index = 0;
@@ -1273,16 +1273,8 @@ namespace mse {
 			{
 			public:
 				typedef mse::impl::random_access_const_iterator_base_from_ra_container<decltype(*std::declval<typename std::remove_reference<_TRAContainerPointer>::type>())> base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 				typedef typename std::remove_reference<_TRAContainerPointer>::type _TRAContainerPointerRR;
-
-				typedef typename base_class::iterator_category iterator_category;
-				typedef typename base_class::value_type value_type;
-				typedef typename base_class::difference_type difference_type;
-				typedef typename base_class::pointer pointer;
-				typedef typename base_class::reference reference;
-				typedef const pointer const_pointer;
-				typedef const reference const_reference;
-				typedef msear_size_t size_type;
 
 			private:
 				difference_type m_index = 0;
@@ -3792,14 +3784,7 @@ namespace mse {
 			{
 			public:
 				typedef mse::impl::random_access_iterator_base_from_ra_iterator<_TRAIterator> base_class;
-				typedef typename base_class::iterator_category iterator_category;
-				typedef typename base_class::value_type value_type;
-				typedef typename base_class::difference_type difference_type;
-				typedef typename base_class::pointer pointer;
-				typedef typename base_class::reference reference;
-				typedef const pointer const_pointer;
-				typedef const reference const_reference;
-				typedef typename mse::nii_array<int, 0>::size_type size_type;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 				typedef _TRAIterator iterator_type;
 
 			private:
@@ -3871,14 +3856,7 @@ namespace mse {
 	class TXScopeRASectionIterator : public us::impl::TRASectionIteratorBase<_TRAIterator>, public mse::us::impl::XScopeTagBase {
 	public:
 		typedef us::impl::TRASectionIteratorBase<_TRAIterator> base_class;
-		typedef typename base_class::iterator_category iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
-		typedef typename base_class::size_type size_type;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 		typedef typename base_class::iterator_type iterator_type;
 
 		TXScopeRASectionIterator(const us::impl::TRASectionIteratorBase<_TRAIterator>& src)
@@ -3918,14 +3896,7 @@ namespace mse {
 	class TRASectionIterator : public us::impl::TRASectionIteratorBase<_TRAIterator> {
 	public:
 		typedef us::impl::TRASectionIteratorBase<_TRAIterator> base_class;
-		typedef typename base_class::iterator_category iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
-		typedef typename base_class::size_type size_type;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 		typedef typename base_class::iterator_type iterator_type;
 
 		TRASectionIterator(const TRASectionIterator& src)
@@ -3966,14 +3937,7 @@ namespace mse {
 			{
 			public:
 				typedef mse::impl::random_access_const_iterator_base_from_ra_iterator<_TRAIterator> base_class;
-				typedef typename base_class::iterator_category iterator_category;
-				typedef typename base_class::value_type value_type;
-				typedef typename base_class::difference_type difference_type;
-				typedef typename base_class::pointer pointer;
-				typedef typename base_class::reference reference;
-				typedef const pointer const_pointer;
-				typedef const reference const_reference;
-				typedef typename mse::nii_array<int, 0>::size_type size_type;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 				typedef _TRAIterator iterator_type;
 
 			private:
@@ -4046,14 +4010,7 @@ namespace mse {
 	class TXScopeRASectionConstIterator : public us::impl::TRASectionConstIteratorBase<_TRAIterator>, public mse::us::impl::XScopeTagBase {
 	public:
 		typedef us::impl::TRASectionConstIteratorBase<_TRAIterator> base_class;
-		typedef typename base_class::iterator_category iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
-		typedef typename base_class::size_type size_type;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 		typedef typename base_class::iterator_type iterator_type;
 
 		TXScopeRASectionConstIterator(const us::impl::TRASectionConstIteratorBase<_TRAIterator>& src)
@@ -4093,14 +4050,7 @@ namespace mse {
 	class TRASectionConstIterator : public us::impl::TRASectionConstIteratorBase<_TRAIterator> {
 	public:
 		typedef us::impl::TRASectionConstIteratorBase<_TRAIterator> base_class;
-		typedef typename base_class::iterator_category iterator_category;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::reference reference;
-		typedef const pointer const_pointer;
-		typedef const reference const_reference;
-		typedef typename base_class::size_type size_type;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 		typedef typename base_class::iterator_type iterator_type;
 
 		TRASectionConstIterator(const TRASectionConstIterator& src) : base_class(src) {}
