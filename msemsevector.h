@@ -498,10 +498,10 @@ namespace mse {
 			class Tgnii_vector_xscope_ss_iterator_type;
 
 			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class Tgnii_vector_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > >
+			class Tgnii_vector_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > > base_class;
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_vector_xscope_ss_const_iterator_type, base_class);
@@ -707,7 +707,7 @@ namespace mse {
 				operator mse::TXScopeItemFixedPointer<TDynamicContainer>() const {
 					return m_stored_ptr;
 				}
-				operator mse::TXScopeItemFixedConstPointer<const TDynamicContainer>() const {
+				operator mse::TXScopeItemFixedConstPointer<TDynamicContainer>() const {
 					return m_stored_ptr;
 				}
 				auto& operator*() const {
@@ -919,7 +919,7 @@ namespace mse {
 				}
 				_Myt& operator=(_Myt&& _X) {
 					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_vector.operator=(std::forward<std_vector>(_X.contained_vector()));
+					m_vector.operator=(std::forward<decltype(_X)>(_X).contained_vector());
 					return (*this);
 				}
 				_Myt& operator=(const _Myt& _X) {
@@ -1844,7 +1844,7 @@ namespace mse {
 				operator mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >() const {
 					return static_cast<const base_class&>(*this);
 				}
-				operator mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >() const {
+				operator mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >() const {
 					return static_cast<const base_class&>(*this);
 				}
 			private:

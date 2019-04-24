@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include "msescope.h"
 #include "mseoptional.h"
+#include "msemsearray.h"
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma push_macro("MSE_THROW")
@@ -25,37 +26,6 @@
 #endif // MSE_CUSTOM_THROW_DEFINITION
 
 namespace mse {
-
-	/* Forward declarations of the "make_xscope_iterator()" template functions. */
-
-	template<class _TArray> auto make_xscope_const_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr);
-	template<class _TArray> auto make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr);
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TArray> auto make_xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr);
-	template<class _TArray> auto make_xscope_const_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr);
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
-	template<class _TArray> auto make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr);
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TArray> auto make_xscope_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr);
-#endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
-
-	/* Overloads for rsv::TReturnableFParam<>. */
-	//template <typename _Ty> auto make_xscope_const_iterator(const rsv::TReturnableFParam<_Ty>& param);
-	// template <typename _Ty> auto make_xscope_iterator(const rsv::TReturnableFParam<_Ty>& param);
-
-	template<class _TArrayPointer, class size_type> auto make_xscope_const_iterator(const _TArrayPointer& owner_ptr, size_type index);
-	template<class _TArrayPointer, class size_type> auto make_xscope_iterator(const _TArrayPointer& owner_ptr, size_type index);
-	template<class _TArrayPointer> auto make_xscope_begin_const_iterator(const _TArrayPointer& owner_ptr);
-	template<class _TArrayPointer> auto make_xscope_begin_iterator(const _TArrayPointer& owner_ptr);
-	template<class _TArrayPointer> auto make_xscope_end_const_iterator(const _TArrayPointer& owner_ptr);
-	template<class _TArrayPointer> auto make_xscope_end_iterator(const _TArrayPointer& owner_ptr);
-
-	template<class _TArrayPointer> auto make_begin_const_iterator(const _TArrayPointer& owner_ptr);
-	template<class _TArrayPointer> auto make_begin_iterator(const _TArrayPointer& owner_ptr);
-	template<class _TArrayPointer> auto make_end_const_iterator(const _TArrayPointer& owner_ptr);
-	template<class _TArrayPointer> auto make_end_iterator(const _TArrayPointer& owner_ptr);
-
 
 	namespace impl {
 		namespace us {
@@ -163,7 +133,7 @@ namespace mse {
 
 		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider(const _ContainerPointer& ptr) {
-			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeIterator_msemsearray<_ContainerPointer>::type(), ptr);
+			return make_xscope_range_iter_provider_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, _ContainerPointer>::type(), ptr);
 		}
 	}
 

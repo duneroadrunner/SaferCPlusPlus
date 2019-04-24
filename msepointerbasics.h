@@ -66,9 +66,9 @@ MSE_SCOPEPOINTER_DISABLED will ultimately be defined. */
 
 /* By default, norad pointers are used to catch unsafe misuse of scope pointers in debug mode. Defining
 MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug modes as well. */
-#if (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED))
+#if (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED) && (!defined(MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED)))
 #define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
-#endif // (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED))
+#endif // (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED) && (!defined(MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED)))
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
 #undef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
@@ -209,19 +209,24 @@ namespace mse {
 		template<bool _Val>
 		struct Cat_base_msepointerbasics : std::integral_constant<bool, _Val> {	// base class for type predicates
 		};
+
+		template<class _Ty, class... _Args>
+		struct is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics : impl::Cat_base_msepointerbasics<false> {};
+		template<class _Ty, class _Tz>
+		struct is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_Ty, _Tz> : impl::Cat_base_msepointerbasics<std::is_base_of<typename std::remove_reference<_Ty>::type, typename std::remove_reference<_Tz>::type>::value> {};
+		template<class _Ty>
+		struct is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_Ty> : impl::Cat_base_msepointerbasics<false> {};
+
+		template<typename A, typename B>
+		using disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics =
+			typename std::enable_if<!std::is_base_of<A, typename std::remove_reference<B>::type>::value>::type;
 	}
-	template<class _Ty, class... _Args>
-	struct is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics : impl::Cat_base_msepointerbasics<false> {};
-	template<class _Ty, class _Tz>
-	struct is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_Ty, _Tz> : impl::Cat_base_msepointerbasics<std::is_base_of<typename std::remove_reference<_Ty>::type, typename std::remove_reference<_Tz>::type>::value> {};
-	template<class _Ty>
-	struct is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_Ty> : impl::Cat_base_msepointerbasics<false> {};
 
 	/* This macro roughly simulates constructor inheritance. */
 #define MSE_USING(Derived, Base) \
     template<typename ...Args, typename = typename std::enable_if< \
 	std::is_constructible<Base, Args...>::value \
-	&& !is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
+	&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
 	>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
@@ -230,7 +235,7 @@ namespace mse {
 #define MSE_USING_WITH_ADDED_INIT(Derived, Base, InitializationStatement) \
     template<typename ...Args, typename = typename std::enable_if< \
 	std::is_constructible<Base, Args...>::value \
-	&& !is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
+	&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
 	>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) { InitializationStatement; }
 
@@ -252,7 +257,8 @@ namespace mse {
 	}
 
 #define MSE_USING_ASSIGNMENT_OPERATOR(Base) \
-	template<class _Ty2mse_uao, class _TBase2 = Base, typename = typename std::enable_if<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value>::type> \
+	template<class _Ty2mse_uao, class _TBase2 = Base, typename = typename std::enable_if<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value \
+		&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_TBase2, _Ty2mse_uao>::value) || std::is_same<_TBase2, _Ty2mse_uao>::value)>::type> \
 	auto& operator=(_Ty2mse_uao&& _X) { Base::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
 	template<class _Ty2mse_uao, class _TBase2 = Base, typename = typename std::enable_if<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value>::type> \
 	auto& operator=(const _Ty2mse_uao& _X) { Base::operator=(_X); return (*this); }

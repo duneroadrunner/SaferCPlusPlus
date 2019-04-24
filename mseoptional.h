@@ -27,6 +27,15 @@
 #include<optional>
 #endif // MSE_HAS_CXX17
 
+#ifdef _MSC_VER
+#define MSE_OPTIONAL_IMPLEMENTATION1
+#else // _MSC_VER
+/* msvc(2017) requires this define, but we'll use it for non-msvc compilers as well for consistency. This may result in some
+reduction of functionality/compatibility. */
+#define MSE_OPTIONAL_IMPLEMENTATION1
+#endif // _MSC_VER
+
+
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma push_macro("MSE_THROW")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
@@ -1119,16 +1128,45 @@ namespace mse {
 			typedef mse::impl::optional::optional_base<T> base_class;
 			typedef typename base_class::value_type value_type;
 
-			using base_class::base_class;
 #ifdef MSE_HAS_CXX17
+#ifdef MSE_OPTIONAL_IMPLEMENTATION1
+
+			MSE_USING(optional, base_class);
+
+			template<class... _Types, class = std::enable_if_t<std::is_constructible_v<T, _Types...> > >
+			constexpr explicit optional(mse::mstd::in_place_t, _Types&&... _Args) : base_class(mse::mstd::in_place, std::forward<_Types>(_Args)...) {}
+			template<class _Elem, class... _Types, class = std::enable_if_t<std::is_constructible_v<T, std::initializer_list<_Elem>&, _Types...> > >
+			constexpr explicit optional(mse::mstd::in_place_t, std::initializer_list<_Elem> _Ilist, _Types&&... _Args)
+				: base_class(mse::mstd::in_place, _Ilist, std::forward<_Types>(_Args)...) {}
+
+			template<class T2>
+			using _AllowDirectConversion = std::integral_constant<bool, std::conjunction_v<
+				//std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, optional>>,
+				std::negation<std::is_base_of<base_class, std::remove_cv_t<std::remove_reference_t<T2>>>>,
+				std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, mse::mstd::in_place_t>>,
+				std::is_constructible<T, T2> > >;
+			template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::is_convertible<T2, T>>, int> = 0>
+			constexpr optional(T2&& _Right) : base_class(mse::mstd::in_place, std::forward<T2>(_Right)) {}
+			template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::negation<std::is_convertible<T2, T> > >, int> = 0>
+			constexpr explicit optional(T2&& _Right) : base_class(mse::mstd::in_place, std::forward<T2>(_Right)) {}
+
+#else // MSE_OPTIONAL_IMPLEMENTATION1
+			using base_class::base_class;
+			template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<optional, T2> >
+			explicit optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+#endif // MSE_OPTIONAL_IMPLEMENTATION1
+
 			optional(const base_class& src) : base_class(src) {}
 			optional(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
 #else // MSE_HAS_CXX17
+			using base_class::base_class;
 			MSE_USING(optional, base_class);
+			template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<optional, T2> >
+			explicit optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
 
-
-			optional(const optional& src) : base_class(src) {}
+			optional(const optional& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
 
 			~optional() {
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
@@ -1479,18 +1517,46 @@ namespace mse {
 		typedef mse::impl::optional::optional_base<_Ty> base_class;
 		typedef typename base_class::value_type value_type;
 
-		using base_class::base_class;
 #ifdef MSE_HAS_CXX17
+#ifdef MSE_OPTIONAL_IMPLEMENTATION1
+
+		MSE_USING(xscope_optional, base_class);
+
+		template<class... _Types, class = std::enable_if_t<std::is_constructible_v<_Ty, _Types...> > >
+		constexpr explicit xscope_optional(mse::in_place_t, _Types&&... _Args) : base_class(mse::in_place, std::forward<_Types>(_Args)...) {}
+		template<class _Elem, class... _Types, class = std::enable_if_t<std::is_constructible_v<_Ty, std::initializer_list<_Elem>&, _Types...> > >
+		constexpr explicit xscope_optional(mse::in_place_t, std::initializer_list<_Elem> _Ilist, _Types&&... _Args)
+			: base_class(mse::in_place, _Ilist, std::forward<_Types>(_Args)...) {}
+
+		template<class _Ty2>
+		using _AllowDirectConversion = std::integral_constant<bool, std::conjunction_v<
+			//std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<_Ty2>>, xscope_optional>>,
+			std::negation<std::is_base_of<base_class, std::remove_cv_t<std::remove_reference_t<_Ty2>>>>,
+			std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<_Ty2>>, mse::in_place_t>>,
+			std::is_constructible<_Ty, _Ty2> > >;
+		template<class _Ty2 = _Ty, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<_Ty2>, std::is_convertible<_Ty2, _Ty>>, int> = 0>
+		constexpr xscope_optional(_Ty2&& _Right) : base_class(mse::in_place, std::forward<_Ty2>(_Right)) {}
+		template<class _Ty2 = _Ty, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<_Ty2>, std::negation<std::is_convertible<_Ty2, _Ty> > >, int> = 0>
+		constexpr explicit xscope_optional(_Ty2&& _Right) : base_class(mse::in_place, std::forward<_Ty2>(_Right)) {}
+
+#else // MSE_OPTIONAL_IMPLEMENTATION1
+		using base_class::base_class;
+		template<class _Ty2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_optional, _Ty2> >
+		explicit xscope_optional(_Ty2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+#endif // MSE_OPTIONAL_IMPLEMENTATION1
+
 		xscope_optional(const base_class& src) : base_class(src) {}
 		xscope_optional(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
 #else // MSE_HAS_CXX17
+		using base_class::base_class;
 		MSE_USING(xscope_optional, base_class);
+		template<class _Ty2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_optional, _Ty2> >
+		explicit xscope_optional(_Ty2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
 
-		xscope_optional(const xscope_optional& src_ref) : base_class(src_ref) {}
-		xscope_optional(const mstd::optional<_Ty>& src_ref) : base_class(src_ref) {}
-		template<class _Ty2>
-		explicit xscope_optional(_Ty2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+		xscope_optional(const xscope_optional& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
+		xscope_optional(const mstd::optional<_Ty>& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
 
 		xscope_optional& operator=(nullopt_t) noexcept {
 			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
@@ -1509,7 +1575,7 @@ namespace mse {
 			base_class::operator=(std::forward<base_class>(rhs));
 			return *this;
 		}
-		template <class U>
+		template <class U, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_optional, U> >
 		auto operator=(U&& v) -> typename std::enable_if<std::is_same<typename std::decay<U>::type, _Ty>::value, xscope_optional&>::type {
 			valid_if_Ty_is_not_marked_as_unreturnable<_Ty>();
 			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();

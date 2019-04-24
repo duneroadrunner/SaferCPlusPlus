@@ -635,7 +635,7 @@ namespace mse {
 #define MSE_NORAD_OBJ_USING(Derived, Base) \
     template<typename ...Args, typename = typename std::enable_if< \
 	std::is_constructible<Base, Args...>::value \
-	&& !is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
+	&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
 	>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
@@ -1371,7 +1371,7 @@ namespace mse {
 #define MSE_NORAD_OBJ_USING(Derived, Base) \
     template<typename ...Args, typename = typename std::enable_if< \
 	std::is_constructible<Base, Args...>::value \
-	&& !is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
+	&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
 	>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 

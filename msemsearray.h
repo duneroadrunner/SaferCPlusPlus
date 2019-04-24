@@ -32,7 +32,7 @@
 
 #include "msescope.h"
 #include "mseoptional.h"
-#include "msealgorithm.h"
+//include "msealgorithm.h"
 #include <array>
 #include <cassert>
 #include <memory>
@@ -1080,9 +1080,9 @@ namespace mse {
 				}
 				TRAIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
 				TRAIteratorBase& operator ++() { operator +=(1); return (*this); }
-				TRAIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+				TRAIteratorBase operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 				TRAIteratorBase& operator --() { operator -=(1); return (*this); }
-				TRAIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+				TRAIteratorBase operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
 				TRAIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				TRAIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -1178,9 +1178,9 @@ namespace mse {
 		}
 		TXScopeRAIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TXScopeRAIterator& operator ++() { operator +=(1); return (*this); }
-		TXScopeRAIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TXScopeRAIterator operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TXScopeRAIterator& operator --() { operator -=(1); return (*this); }
-		TXScopeRAIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+		TXScopeRAIterator operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
 		TXScopeRAIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeRAIterator operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -1328,9 +1328,9 @@ namespace mse {
 				}
 				TRAConstIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
 				TRAConstIteratorBase& operator ++() { operator +=(1); return (*this); }
-				TRAConstIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+				TRAConstIteratorBase operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 				TRAConstIteratorBase& operator --() { operator -=(1); return (*this); }
-				TRAConstIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+				TRAConstIteratorBase operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
 				TRAConstIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				TRAConstIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -1422,9 +1422,9 @@ namespace mse {
 		}
 		TXScopeRAConstIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TXScopeRAConstIterator& operator ++() { operator +=(1); return (*this); }
-		TXScopeRAConstIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TXScopeRAConstIterator operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TXScopeRAConstIterator& operator --() { operator -=(1); return (*this); }
-		TXScopeRAConstIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+		TXScopeRAConstIterator operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
 		TXScopeRAConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeRAConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -1484,9 +1484,9 @@ namespace mse {
 		}
 		TRAConstIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TRAConstIterator& operator ++() { operator +=(1); return (*this); }
-		TRAConstIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TRAConstIterator operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRAConstIterator& operator --() { operator -=(1); return (*this); }
-		TRAConstIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+		TRAConstIterator operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
 		TRAConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TRAConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -2686,6 +2686,23 @@ namespace mse {
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
+
+	/* Forward declaration of some algorithm elements we're going to specialize/overload. We can't just include
+	"msealgorithm.h" (where they are declared), because msealgorithm.h includes this file ("msemsearray.h"). */
+	namespace impl {
+
+		namespace us {
+			template<class _InIt> auto iterator_pair_to_raw_pointers_checked(const _InIt& first, const _InIt& last);
+		}
+		template<class _InIt> class TXScopeSpecializedFirstAndLast;
+		template<class _ContainerPointer> class TXScopeRangeIterProvider;
+		template<class _ContainerPointer> class TRangeIterProvider;
+		template<class _ContainerPointer> auto make_xscope_range_iter_provider(const _ContainerPointer& ptr);
+	}
+	template<class _InIt, class _Pr> inline _InIt find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred);
+	template<class _InIt, class _Fn> inline auto for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func);
+	template<class _RanIt> inline void sort(const _RanIt& _First, const _RanIt& _Last);
+
 	namespace impl {
 
 		/* Some algorithm implementation specializations for nii_array<>.  */
@@ -3497,122 +3514,228 @@ namespace mse {
 	namespace impl {
 		namespace iterator {
 
+			template <typename _TXSRAPointer>
+			auto begin_iter_from_xsptr_helper(std::true_type, const _TXSRAPointer& xsptr) {
+				typedef typename std::remove_reference<decltype(*xsptr)>::type container_t;
+				return typename container_t::xscope_iterator(xsptr);
+			}
+			template <typename _TXSRAPointer>
+			auto begin_iter_from_xsptr_helper(std::false_type, const _TXSRAPointer& xsptr) {
+				return mse::TXScopeRAIterator<_TXSRAPointer>(xsptr, 0);
+			}
 			template <typename _TRAPointer>
-			auto begin_iter_from_ptr_helper2(std::true_type, const _TRAPointer& ptr) {
-				/* ptr seems to be an xscope pointer.*/
-				return mse::make_xscope_random_access_iterator(ptr, 0);
+			auto begin_iter_from_ptr_helper3(std::true_type, const _TRAPointer& ptr) {
+				return (*ptr).ss_begin(ptr);
+			}
+			template <typename _TRAPointer>
+			auto begin_iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
+				return mse::TRAIterator<_TRAPointer>(ptr, 0);
+				//return mse::make_random_access_iterator(ptr, 0);
+			}
+			template <typename _TXSRAPointer>
+			auto begin_iter_from_ptr_helper2(std::true_type, const _TXSRAPointer& xsptr) {
+				/* xsptr seems to be an xscope pointer.*/
+				typedef typename std::remove_reference<decltype(*xsptr)>::type container_t;
+				return begin_iter_from_xsptr_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<container_t>::type(), xsptr);
 			}
 			template <typename _TRAPointer>
 			auto begin_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
-				return mse::make_random_access_iterator(ptr, 0);
+				typedef typename std::remove_reference<decltype(*ptr)>::type container_t;
+				return begin_iter_from_ptr_helper3(typename mse::impl::HasOrInheritsStaticSSBeginMethod_msemsearray<container_t>::type(), ptr);
 			}
+
 			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param3(std::false_type, const _TRALoneParam& ptr) {
-				/* The parameter doesn't seem to be a container with a "begin()" member function or a native array. Here we'll assume
-				that it is a pointer to a supported container. If you get a compile error here, then construction from the given
-				parameter type isn't supported. */
-				mse::impl::T_valid_if_is_dereferenceable<_TRALoneParam>();
-				return begin_iter_from_ptr_helper2(typename std::is_base_of<mse::us::impl::XScopeTagBase, _TRALoneParam>::type(), ptr);
-			}
-			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param3(std::true_type, const _TRALoneParam& ra_container) {
-				/* The parameter seems to be a container with a "begin()" member function. So we'll use that function to obtain the
-				iterator we need. */
+			auto begin_iter_from_lone_param2(std::false_type, const _TRALoneParam& ra_container) {
+				/* The parameter doesn't seem to be a pointer. So we'll use std::begin() to obtain an iterator. If you get
+				a compile error here, then construction from the given parameter type isn't supported. */
 				return std::begin(ra_container);
 			}
-			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
-				/* The parameter is not a "random access section". */
-				return begin_iter_from_lone_param3(typename mse::impl::SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
+			template <typename _TRAPointer>
+			auto begin_iter_from_lone_param2(std::true_type, const _TRAPointer& ptr) {
+				return begin_iter_from_ptr_helper2(typename std::is_base_of<mse::us::impl::XScopeTagBase, _TRAPointer>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
-				/* Apparently the lone parameter is a native array. */
-				return native_array;
-			}
-			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
+			auto begin_iter_from_lone_param1(std::false_type, const _TRALoneParam& param) {
 				typedef typename std::remove_reference<_TRALoneParam>::type _TRALoneParamRR;
-				/* The parameter doesn't seem to be a container with a "begin()" member function. */
-				return begin_iter_from_lone_param2<_TRALoneParamRR>(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParamRR>::type(), ptr);
+				return begin_iter_from_lone_param2<_TRALoneParamRR>(typename mse::impl::IsDereferenceable_msemsearray<_TRALoneParamRR>::type(), param);
 			}
 			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
-				/* The parameter is another "random access section". */
-				return ra_section.m_start_iter;
+			auto begin_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_iterator) {
+				/* The parameter is another "random access iterator". */
+				return ra_iterator;
 			}
-
-			template<class _TArray>
-			auto make_xscope_const_iterator_helper(std::true_type, const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-				return typename _TArray::xscope_const_iterator(owner_ptr);
-			}
-			template<class _TArray>
-			auto make_xscope_const_iterator_helper(std::false_type, const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-				/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
-				bidirectional iterator or whatever rather than a random access iterator */
-				return mse::TXScopeRandomAccessConstIterator<mse::TXScopeItemFixedConstPointer<_TArray> >(owner_ptr);
+			template<class _TRALoneParam>
+			auto begin_iter_from_lone_param(const _TRALoneParam& param) {
+				typedef typename std::remove_reference<_TRALoneParam>::type _TRALoneParamRR;
+				return mse::impl::iterator::begin_iter_from_lone_param1(typename mse::impl::conjunction<
+					mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TRAIterator>
+					, mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TXScopeRAIterator>
+					, mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TRAConstIterator>
+					, mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TXScopeRAConstIterator>
+				>::type(), param);
 			}
 		}
-	}
 
-	template<class _TArray>
-	auto make_xscope_const_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
-		return mse::impl::iterator::make_xscope_const_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
-			, mse::TXScopeItemFixedConstPointer<_TArray>(owner_ptr));
-	}
-	template<class _TArray>
-	auto make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
-		return mse::impl::iterator::make_xscope_const_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
-			, mse::TXScopeItemFixedConstPointer<_TArray>(owner_ptr));
-	}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TArray>
-	auto make_xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-		return mse::impl::iterator::make_xscope_const_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type(), owner_ptr);
-	}
-	template<class _TArray>
-	auto make_xscope_const_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-		return mse::impl::iterator::make_xscope_const_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
-			, mse::TXScopeItemFixedConstPointer<_TArray>(owner_ptr));
-	}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
-	namespace impl {
 		namespace iterator {
-			template<class _TArray>
-			auto make_xscope_iterator_helper(std::true_type, const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-				return typename _TArray::xscope_iterator(owner_ptr);
+
+			template <typename _TRAPointer>
+			auto xscope_begin_iter_from_ptr_helper3(std::true_type, const _TRAPointer& ptr) {
+				return (*ptr).xscope_ss_begin(ptr);
 			}
-			template<class _TArray>
-			auto make_xscope_iterator_helper(std::false_type, const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-				/* todo: check whether _TArray actually supports "random access" (i.e. "operator[]") and if not then use a
-				bidirectional iterator or whatever rather than a random access iterator */
-				return mse::TXScopeRandomAccessIterator<mse::TXScopeItemFixedPointer<_TArray> >(owner_ptr);
+			template <typename _TRAPointer>
+			auto xscope_begin_iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
+				return mse::TXScopeRAIterator<_TRAPointer>(ptr, 0);
+			}
+			template <typename _TXSRAPointer>
+			auto xscope_begin_iter_from_ptr_helper2(std::true_type, const _TXSRAPointer& xsptr) {
+				/* xsptr seems to be an xscope pointer.*/
+				typedef typename std::remove_reference<decltype(*xsptr)>::type container_t;
+				return begin_iter_from_xsptr_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<container_t>::type(), xsptr);
+			}
+			template <typename _TRAPointer>
+			auto xscope_begin_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
+				typedef typename std::remove_reference<decltype(*ptr)>::type container_t;
+				return xscope_begin_iter_from_ptr_helper3(typename mse::impl::HasOrInheritsStaticXScopeSSBeginMethod_msemsearray<container_t>::type(), ptr);
+			}
+
+			template <typename _TRALoneParam>
+			auto xscope_begin_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
+				/* The parameter is not a recognized iterator, so we'll presume it's a pointer to a container. */
+				typedef typename std::remove_reference<_TRALoneParam>::type _TRAPointer;
+				static_assert(typename mse::impl::IsDereferenceable_msemsearray<_TRAPointer>::type(), "");
+				return xscope_begin_iter_from_ptr_helper2(typename mse::impl::IsNonOwningScopeOrIndeterminatePointer<_TRAPointer>::type(), ptr);
+			}
+			template <typename _TRALoneParam>
+			auto xscope_begin_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_iterator) {
+				/* The parameter is another "xscope random access iterator". */
+				return ra_iterator;
+			}
+			template<class _TRALoneParam>
+			auto xscope_begin_iter_from_lone_param(const _TRALoneParam& param) {
+				typedef typename std::remove_reference<_TRALoneParam>::type _TRALoneParamRR;
+				return mse::impl::iterator::xscope_begin_iter_from_lone_param1(typename mse::impl::conjunction<
+					mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TXScopeRAIterator>
+					, mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TXScopeRAConstIterator>
+				>::type(), param);
 			}
 		}
+
+		namespace iterator {
+
+			template <typename _TXSRAPointer>
+			auto begin_const_iter_from_xsptr_helper(std::true_type, const _TXSRAPointer& xsptr) {
+				typedef typename std::remove_const<typename std::remove_reference<decltype(*xsptr)>::type>::type container_t;
+				return typename container_t::xscope_const_iterator(xsptr);
+			}
+			template <typename _TXSRAPointer>
+			auto begin_const_iter_from_xsptr_helper(std::false_type, const _TXSRAPointer& xsptr) {
+				return mse::TXScopeRAConstIterator<_TXSRAPointer>(xsptr, 0);
+			}
+			template <typename _TRAPointer>
+			auto begin_const_iter_from_ptr_helper3(std::true_type, const _TRAPointer& ptr) {
+				return (*ptr).ss_cbegin(ptr);
+			}
+			template <typename _TRAPointer>
+			auto begin_const_iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
+				return mse::TRAConstIterator<_TRAPointer>(ptr, 0);
+				//return mse::make_random_access_const_iterator(ptr, 0);
+			}
+			template <typename _TXSRAPointer>
+			auto begin_const_iter_from_ptr_helper2(std::true_type, const _TXSRAPointer& xsptr) {
+				/* xsptr seems to be an xscope pointer.*/
+				typedef typename std::remove_reference<decltype(*xsptr)>::type container_t;
+				return begin_const_iter_from_xsptr_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<container_t>::type(), xsptr);
+			}
+			template <typename _TRAPointer>
+			auto begin_const_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
+				typedef typename std::remove_reference<decltype(*ptr)>::type container_t;
+				return begin_const_iter_from_ptr_helper3(typename mse::impl::HasOrInheritsStaticSSBeginMethod_msemsearray<container_t>::type(), ptr);
+			}
+
+			template <typename _TRALoneParam>
+			auto begin_const_iter_from_lone_param2(std::false_type, const _TRALoneParam& ra_container) {
+				/* The parameter doesn't seem to be a pointer. So we'll use std::cbegin() to obtain an iterator. If you get
+				a compile error here, then construction from the given parameter type isn't supported. */
+				return std::cbegin(ra_container);
+			}
+			template <typename _TRAPointer>
+			auto begin_const_iter_from_lone_param2(std::true_type, const _TRAPointer& ptr) {
+				return begin_const_iter_from_ptr_helper2(typename std::is_base_of<mse::us::impl::XScopeTagBase, _TRAPointer>::type(), ptr);
+			}
+			template <typename _TRALoneParam>
+			auto begin_const_iter_from_lone_param1(std::false_type, const _TRALoneParam& param) {
+				typedef typename std::remove_reference<_TRALoneParam>::type _TRALoneParamRR;
+				return begin_const_iter_from_lone_param2<_TRALoneParamRR>(typename mse::impl::IsDereferenceable_msemsearray<_TRALoneParamRR>::type(), param);
+			}
+			template <typename _TRALoneParam>
+			auto begin_const_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_const_iterator) {
+				/* The parameter is another "random access iterator". */
+				return ra_const_iterator;
+			}
+			template<class _TRALoneParam>
+			auto begin_const_iter_from_lone_param(const _TRALoneParam& param) {
+				typedef typename std::remove_reference<_TRALoneParam>::type _TRALoneParamRR;
+				return mse::impl::iterator::begin_const_iter_from_lone_param1(typename mse::impl::conjunction<
+					mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TRAConstIterator>
+					, mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TXScopeRAConstIterator>
+				>::type(), param);
+			}
+		}
+
+		namespace iterator {
+
+			template <typename _TRAPointer>
+			auto xscope_begin_const_iter_from_ptr_helper3(std::true_type, const _TRAPointer& ptr) {
+				return (*ptr).xscope_ss_cbegin(ptr);
+			}
+			template <typename _TRAPointer>
+			auto xscope_begin_const_iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
+				return mse::TXScopeRAConstIterator<_TRAPointer>(ptr, 0);
+			}
+			template <typename _TXSRAPointer>
+			auto xscope_begin_const_iter_from_ptr_helper2(std::true_type, const _TXSRAPointer& xsptr) {
+				/* xsptr seems to be an xscope pointer.*/
+				typedef typename std::remove_const<typename std::remove_reference<decltype(*xsptr)>::type>::type container_t;
+				return begin_const_iter_from_xsptr_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<container_t>::type(), xsptr);
+			}
+			template <typename _TRAPointer>
+			auto xscope_begin_const_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
+				typedef typename std::remove_reference<decltype(*ptr)>::type container_t;
+				return xscope_begin_const_iter_from_ptr_helper3(typename mse::impl::HasOrInheritsStaticXScopeSSBeginMethod_msemsearray<container_t>::type(), ptr);
+			}
+
+			template <typename _TRALoneParam>
+			auto xscope_begin_const_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
+				/* The parameter is not a recognized iterator, so we'll presume it's a pointer to a container. */
+				typedef typename std::remove_reference<_TRALoneParam>::type _TRAPointer;
+				static_assert(typename mse::impl::IsDereferenceable_msemsearray<_TRAPointer>::type(), "");
+				return xscope_begin_const_iter_from_ptr_helper2(typename mse::impl::IsNonOwningScopeOrIndeterminatePointer<_TRAPointer>::type(), ptr);
+			}
+			template <typename _TRALoneParam>
+			auto xscope_begin_const_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_const_iterator) {
+				/* The parameter is another "xscope random access iterator". */
+				return ra_const_iterator;
+			}
+			template<class _TRALoneParam>
+			auto xscope_begin_const_iter_from_lone_param(const _TRALoneParam& param) {
+				typedef typename std::remove_reference<_TRALoneParam>::type _TRALoneParamRR;
+				return mse::impl::iterator::xscope_begin_const_iter_from_lone_param1(typename mse::impl::conjunction<
+					mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TXScopeRAConstIterator>
+				>::type(), param);
+			}
+		}
+
 	}
 
-	template<class _TArray>
-	auto make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
-		return mse::impl::iterator::make_xscope_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type()
-			, mse::TXScopeItemFixedPointer<_TArray>(owner_ptr));
+	template<class _TRALoneParam>
+	auto make_xscope_const_iterator(const _TRALoneParam& param) {
+		return mse::impl::iterator::xscope_begin_const_iter_from_lone_param(param);
 	}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TArray>
-	auto make_xscope_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-		return mse::impl::iterator::make_xscope_iterator_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<_TArray>::type(), owner_ptr);
+
+	template<class _TRALoneParam>
+	auto make_xscope_iterator(const _TRALoneParam& param) {
+		return mse::impl::iterator::xscope_begin_iter_from_lone_param(param);
 	}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TArray>
-	auto make_xscope_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
-		return mse::make_xscope_const_iterator(owner_ptr);
-	}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TArray>
-	auto make_xscope_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-		return mse::make_xscope_const_iterator(owner_ptr);
-	}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	/* Overloads for rsv::TReturnableFParam<>. */
 	template <typename _Ty>
@@ -3622,7 +3745,7 @@ namespace mse {
 		return rsv::TReturnableFParam<base_return_type>(make_xscope_const_iterator(param_base_ref));
 	}
 	template <typename _Ty>
-	auto make_xscope_iterator(const rsv::TReturnableFParam<_Ty>& param) {
+	auto make_xscope_iterator(const rsv::TReturnableFParam<_Ty>& param) -> rsv::TReturnableFParam<decltype(make_xscope_iterator(std::declval<const _Ty&>()))> {
 		const _Ty& param_base_ref = param;
 		typedef decltype(make_xscope_iterator(param_base_ref)) base_return_type;
 		return rsv::TReturnableFParam<base_return_type>(make_xscope_iterator(param_base_ref));
@@ -3689,9 +3812,12 @@ namespace mse {
 		}
 		template<class _TArrayPointer>
 		auto make_const_iterator_helper2(std::false_type, const _TArrayPointer& owner_ptr) {
+			/*
 			return make_const_iterator_helper(typename mse::impl::SupportsStdBegin_msemsearray<
 				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
 			>::type(), owner_ptr);
+			*/
+			return make_const_iterator_helper(std::false_type(), owner_ptr);
 		}
 		template<class _TArrayPointer>
 		auto make_const_iterator_helper4(std::true_type, const _TArrayPointer& owner_ptr) {
@@ -3736,9 +3862,12 @@ namespace mse {
 		}
 		template<class _TArrayPointer>
 		auto make_iterator_helper2(std::false_type, const _TArrayPointer& owner_ptr) {
+			/*
 			return make_iterator_helper(typename mse::impl::SupportsStdBegin_msemsearray<
 				typename std::remove_reference<decltype(*std::declval<_TArrayPointer>())>::type
 			>::type(), owner_ptr);
+			*/
+			return make_iterator_helper(std::false_type(), owner_ptr);
 		}
 		template<class _TArrayPointer>
 		auto make_iterator_helper4(std::true_type, const _TArrayPointer& owner_ptr) {
@@ -3751,9 +3880,10 @@ namespace mse {
 			return container.begin();
 		}
 	}
-	template<class _TArrayPointer>
-	auto make_iterator(const _TArrayPointer& owner_ptr) {
-		return impl::make_iterator_helper4(typename mse::impl::IsDereferenceable_msemsearray<_TArrayPointer>::type(), owner_ptr);
+	template<class _TRALoneParam>
+	auto make_iterator(const _TRALoneParam& param) {
+		return mse::impl::iterator::begin_iter_from_lone_param(param);
+		//return impl::make_iterator_helper4(typename mse::impl::IsDereferenceable_msemsearray<_TRALoneParamRR>::type(), owner_ptr);
 	}
 
 	template<class _TArrayPointer>
@@ -3824,9 +3954,9 @@ namespace mse {
 				}
 				TRASectionIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
 				TRASectionIteratorBase& operator ++() { operator +=(1); return (*this); }
-				TRASectionIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+				TRASectionIteratorBase operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 				TRASectionIteratorBase& operator --() { operator -=(1); return (*this); }
-				TRASectionIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+				TRASectionIteratorBase operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
 				TRASectionIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				TRASectionIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -3870,9 +4000,9 @@ namespace mse {
 		}
 		TXScopeRASectionIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TXScopeRASectionIterator& operator ++() { operator +=(1); return (*this); }
-		TXScopeRASectionIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TXScopeRASectionIterator operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TXScopeRASectionIterator& operator --() { operator -=(1); return (*this); }
-		TXScopeRASectionIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+		TXScopeRASectionIterator operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
 		TXScopeRASectionIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeRASectionIterator operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -3913,9 +4043,9 @@ namespace mse {
 		}
 		TRASectionIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TRASectionIterator& operator ++() { operator +=(1); return (*this); }
-		TRASectionIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TRASectionIterator operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRASectionIterator& operator --() { operator -=(1); return (*this); }
-		TRASectionIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+		TRASectionIterator operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
 		TRASectionIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TRASectionIterator operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -3979,9 +4109,9 @@ namespace mse {
 				}
 				TRASectionConstIteratorBase& operator -=(difference_type x) { operator +=(-x); return (*this); }
 				TRASectionConstIteratorBase& operator ++() { operator +=(1); return (*this); }
-				TRASectionConstIteratorBase& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+				TRASectionConstIteratorBase operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 				TRASectionConstIteratorBase& operator --() { operator -=(1); return (*this); }
-				TRASectionConstIteratorBase& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+				TRASectionConstIteratorBase operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
 				TRASectionConstIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				TRASectionConstIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -4024,9 +4154,9 @@ namespace mse {
 		}
 		TXScopeRASectionConstIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TXScopeRASectionConstIterator& operator ++() { operator +=(1); return (*this); }
-		TXScopeRASectionConstIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TXScopeRASectionConstIterator operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TXScopeRASectionConstIterator& operator --() { operator -=(1); return (*this); }
-		TXScopeRASectionConstIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+		TXScopeRASectionConstIterator operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
 		TXScopeRASectionConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TXScopeRASectionConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -4067,9 +4197,9 @@ namespace mse {
 		}
 		TRASectionConstIterator& operator -=(difference_type x) { operator +=(-x); return (*this); }
 		TRASectionConstIterator& operator ++() { operator +=(1); return (*this); }
-		TRASectionConstIterator& operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+		TRASectionConstIterator operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
 		TRASectionConstIterator& operator --() { operator -=(1); return (*this); }
-		TRASectionConstIterator& operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+		TRASectionConstIterator operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
 
 		TRASectionConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 		TRASectionConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -4082,6 +4212,129 @@ namespace mse {
 			return (*this);
 		}
 	};
+
+
+	template <typename _TRAIterator> class TXScopeCSSSStrongRASectionIterator;
+	template <typename _TRAIterator> class TXScopeCSSSStrongRASectionConstIterator;
+
+	template <typename _TRAIterator>
+	class TXScopeCSSSStrongRASectionIterator : public TXScopeRASectionIterator<_TRAIterator> {
+	public:
+		typedef TXScopeRASectionIterator<_TRAIterator> base_class;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+		TXScopeCSSSStrongRASectionIterator(const TXScopeCSSSStrongRASectionIterator& src) : base_class(src) {}
+		TXScopeCSSSStrongRASectionIterator(TXScopeCSSSStrongRASectionIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
+		TXScopeCSSSStrongRASectionIterator(const _TRAIterator& ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {
+			static_assert(mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAIterator>::value
+				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionIterator>::value
+				, "");
+		}
+
+		auto& operator=(const TXScopeCSSSStrongRASectionIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
+		auto& operator=(TXScopeCSSSStrongRASectionIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+		void xscope_iterator_tag() const {}
+		void xscope_tag() const {}
+
+	private:
+		class unsafe_t {};
+		TXScopeCSSSStrongRASectionIterator(unsafe_t, const _TRAIterator& ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {}
+
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+		friend class TXScopeCSSSStrongRASectionConstIterator<_TRAIterator>;
+		template<class _TRAIterator2> friend TXScopeCSSSStrongRASectionIterator<_TRAIterator2> us::unsafe_make_xscope_csss_strong_ra_iterator(const _TRAIterator2& ra_iterator, typename TXScopeCSSSStrongRASectionIterator<_TRAIterator2>::size_type count, typename TXScopeCSSSStrongRASectionIterator<_TRAIterator2>::size_type index);
+	};
+
+	template <typename _TRAIterator>
+	class TXScopeCSSSStrongRASectionConstIterator : public TXScopeRASectionConstIterator<_TRAIterator> {
+	public:
+		typedef TXScopeRASectionConstIterator<_TRAIterator> base_class;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+		TXScopeCSSSStrongRASectionConstIterator(const TXScopeCSSSStrongRASectionConstIterator& src) : base_class(src) {}
+		TXScopeCSSSStrongRASectionConstIterator(TXScopeCSSSStrongRASectionConstIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		TXScopeCSSSStrongRASectionConstIterator(const TXScopeCSSSStrongRASectionIterator<_TRAIterator>& src) : base_class(src) {}
+		TXScopeCSSSStrongRASectionConstIterator(TXScopeCSSSStrongRASectionIterator<_TRAIterator>&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		TXScopeCSSSStrongRASectionConstIterator(const _TRAIterator& ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {
+			static_assert(mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAConstIterator>::value
+				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAIterator>::value
+				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionConstIterator>::value
+				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionIterator>::value
+				, "");
+
+			mse::impl::is_valid_if_strong_pointer<_TRAIterator>::no_op();
+			typedef typename std::remove_reference<decltype(*ra_iterator)>::type TRAContainer;
+			mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
+		}
+
+		auto& operator=(const TXScopeCSSSStrongRASectionConstIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
+		auto& operator=(TXScopeCSSSStrongRASectionConstIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+		void xscope_iterator_tag() const {}
+		void xscope_tag() const {}
+
+	private:
+		class unsafe_t {};
+		TXScopeCSSSStrongRASectionConstIterator(unsafe_t, const _TRAIterator& ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {}
+
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+		template<class _TRAIterator2> friend TXScopeCSSSStrongRASectionConstIterator<_TRAIterator2> us::unsafe_make_xscope_csss_strong_ra_const_iterator(const _TRAIterator2& ra_iterator, typename TXScopeCSSSStrongRASectionConstIterator<_TRAIterator2>::size_type count, typename TXScopeCSSSStrongRASectionConstIterator<_TRAIterator2>::size_type index);
+	};
+
+	namespace us {
+		/* A couple of unsafe functions for internal use. */
+		template<class _TRAIterator>
+		TXScopeCSSSStrongRASectionIterator<_TRAIterator> unsafe_make_xscope_csss_strong_ra_section_iterator(const _TRAIterator& ra_iterator, typename TXScopeCSSSStrongRASectionIterator<_TRAIterator>::size_type count, typename TXScopeCSSSStrongRASectionIterator<_TRAIterator>::size_type index/* = 0*/) {
+			return TXScopeCSSSStrongRASectionIterator<_TRAIterator>(typename TXScopeCSSSStrongRASectionIterator<_TRAIterator>::unsafe_t(), ra_iterator, count, index);
+		}
+		template<class _TRAIterator>
+		TXScopeCSSSStrongRASectionConstIterator<_TRAIterator> unsafe_make_xscope_csss_strong_ra_section_const_iterator(const _TRAIterator& ra_iterator, typename TXScopeCSSSStrongRASectionConstIterator<_TRAIterator>::size_type count, typename TXScopeCSSSStrongRASectionConstIterator<_TRAIterator>::size_type index/* = 0*/) {
+			return TXScopeCSSSStrongRASectionConstIterator<_TRAIterator>(typename TXScopeCSSSStrongRASectionConstIterator<_TRAIterator>::unsafe_t(), ra_iterator, count, index);
+		}
+	}
+
+	template <typename _TRAIterator>
+	auto xscope_pointer(const TXScopeCSSSStrongRASectionIterator<_TRAIterator>& iter_cref) {
+		return mse::us::unsafe_make_xscope_pointer_to(*iter_cref);
+	}
+	template <typename _TRAIterator>
+	auto xscope_pointer(const TXScopeCSSSStrongRASectionConstIterator<_TRAIterator>& iter_cref) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
+	}
+	template <typename _TRAIterator>
+	auto xscope_const_pointer(const TXScopeCSSSStrongRASectionIterator<_TRAIterator>& iter_cref) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
+	}
+	template <typename _TRAIterator>
+	auto xscope_const_pointer(const TXScopeCSSSStrongRASectionConstIterator<_TRAIterator>& iter_cref) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
+	}
+
+	template <typename _TRAIterator>
+	auto xscope_pointer(const mse::TXScopeItemFixedConstPointer<TXScopeCSSSStrongRASectionIterator<_TRAIterator> >& iter_xscptr) {
+		return mse::us::unsafe_make_xscope_pointer_to(*(*iter_xscptr));
+	}
+	template <typename _TRAIterator>
+	auto xscope_pointer(const mse::TXScopeItemFixedConstPointer<TXScopeCSSSStrongRASectionConstIterator<_TRAIterator> >& iter_xscptr) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*(*iter_xscptr));
+	}
+	template <typename _TRAIterator>
+	auto xscope_const_pointer(const mse::TXScopeItemFixedConstPointer<TXScopeCSSSStrongRASectionIterator<_TRAIterator> >& iter_xscptr) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*(iter_xscptr));
+	}
+	template <typename _TRAIterator>
+	auto xscope_const_pointer(const mse::TXScopeItemFixedConstPointer<TXScopeCSSSStrongRASectionConstIterator<_TRAIterator> >& iter_xscptr) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*(*iter_xscptr));
+	}
 
 
 	template <typename _TRAIterator> class TXScopeRandomAccessSection;
@@ -4113,34 +4366,28 @@ namespace mse {
 		Specifically, they are needed to determine the return type of that function. The forward declaration needs to be
 		available before the definition of us::impl::TRandomAccessConstSectionBase<> as its implementation uses the function. */
 		struct ra_const_section_helpers {
-			/* construction helper functions */
-			template <typename _TRAPointer>
-			static auto s_iter_from_ptr_helper2(std::true_type, const _TRAPointer& ptr) {
-				/* ptr seems to be an xscope pointer.*/
-				return mse::make_xscope_random_access_const_iterator(ptr, 0);
-			}
-			template <typename _TRAPointer>
-			static auto s_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
-				return mse::make_random_access_const_iterator(ptr, 0);
+			template <typename _TRALoneParam>
+			static auto s_xscope_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
+				return mse::make_xscope_const_iterator(param);
 			}
 			template <typename _TRALoneParam>
-			static auto s_iter_from_lone_param3(std::false_type, const _TRALoneParam& ptr) {
-				/* The parameter doesn't seem to be a container with a "begin()" member function or a native array. Here we'll assume
-				that it is a pointer to a supported container. If you get a compile error here, then construction from the given
-				parameter type isn't supported. */
-				mse::impl::T_valid_if_is_dereferenceable<_TRALoneParam>();
-				return s_iter_from_ptr_helper2(typename std::is_base_of<mse::us::impl::XScopeTagBase, _TRALoneParam>::type(), ptr);
+			static auto s_xscope_iter_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
+				/* Apparently the lone parameter is a native array. */
+				return native_array;
 			}
 			template <typename _TRALoneParam>
-			static auto s_iter_from_lone_param3(std::true_type, const _TRALoneParam& ra_container) {
-				/* The parameter seems to be a container with a "begin()" member function. So we'll use that function to obtain the
-				iterator we need. */
-				return std::cbegin(ra_container);
+			static auto s_xscope_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
+				return s_xscope_iter_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 			}
+			template <typename _TRALoneParam>
+			static auto s_xscope_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
+				/* The parameter is another "random access section". */
+				return ra_section.m_start_iter;
+			}
+
 			template <typename _TRALoneParam>
 			static auto s_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
-				/* The parameter is not a "random access section". */
-				return s_iter_from_lone_param3(typename mse::impl::SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
+				return mse::make_const_iterator(param);
 			}
 			template <typename _TRALoneParam>
 			static auto s_iter_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
@@ -4149,7 +4396,6 @@ namespace mse {
 			}
 			template <typename _TRALoneParam>
 			static auto s_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
-				/* The parameter doesn't seem to be a container with a "begin()" member function. */
 				return s_iter_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
@@ -4193,6 +4439,15 @@ namespace mse {
 			}
 
 			template <typename _TRALoneParam>
+			static auto s_xscope_iter_from_lone_param(const _TRALoneParam& param) {
+				typedef typename std::remove_reference<_TRALoneParam>::type TRALoneParamNR;
+				/* TRALoneParamNR being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
+				supported. Different initialization implementations are required for each of the two cases. */
+				return s_xscope_iter_from_lone_param1(typename std::conditional<
+					std::is_base_of<mse::us::impl::RandomAccessConstSectionTagBase, TRALoneParamNR>::value || std::is_base_of<mse::us::impl::RandomAccessSectionTagBase, TRALoneParamNR>::value
+					, std::true_type, std::false_type>::type(), param);
+			}
+			template <typename _TRALoneParam>
 			static auto s_iter_from_lone_param(const _TRALoneParam& param) {
 				typedef typename std::remove_reference<_TRALoneParam>::type TRALoneParamNR;
 				/* TRALoneParamNR being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
@@ -4211,20 +4466,20 @@ namespace mse {
 		};
 
 		namespace ra_section {
-			template <typename _Ty> using mkxsracsh1_TRAIterator = typename std::remove_reference<decltype(mse::impl::ra_const_section_helpers::s_iter_from_lone_param(std::declval<mse::TXScopeItemFixedConstPointer<_Ty> >()))>::type;
+			template <typename _Ty> using mkxsracsh1_TRAIterator = typename std::remove_reference<decltype(mse::impl::ra_const_section_helpers::s_xscope_iter_from_lone_param(std::declval<mse::TXScopeItemFixedConstPointer<_Ty> >()))>::type;
 			template <typename _Ty> using mkxsracsh1_ReturnType = mse::TXScopeCagedRandomAccessConstSectionToRValue<mkxsracsh1_TRAIterator<_Ty> >;
 
 			template <typename _Ty>
 			static auto make_xscope_random_access_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
 				-> mkxsracsh1_ReturnType<_Ty> {
 				mse::TXScopeItemFixedConstPointer<_Ty> adj_param = mse::rsv::TXScopeItemFixedConstPointerFParam<_Ty>(param);
-				typedef typename std::remove_reference<decltype(mse::impl::ra_const_section_helpers::s_iter_from_lone_param(adj_param))>::type _TRAIterator;
+				typedef typename std::remove_reference<decltype(mse::impl::ra_const_section_helpers::s_xscope_iter_from_lone_param(adj_param))>::type _TRAIterator;
 				mse::TXScopeRandomAccessConstSection<_TRAIterator> ra_section(adj_param);
 				return mse::TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>(ra_section);
 			}
 			template <typename _TRALoneParam>
 			static auto make_xscope_random_access_const_section_helper1(std::false_type, const _TRALoneParam& param) {
-				typedef typename std::remove_reference<decltype(mse::impl::ra_const_section_helpers::s_iter_from_lone_param(param))>::type _TRAIterator;
+				typedef typename std::remove_reference<decltype(mse::impl::ra_const_section_helpers::s_xscope_iter_from_lone_param(param))>::type _TRAIterator;
 				return TXScopeRandomAccessConstSection<_TRAIterator>(param);
 			}
 		}
@@ -4257,7 +4512,7 @@ namespace mse {
 				TRandomAccessConstSectionBase(const _TRALoneParam& param)
 					/* _TRALoneParam being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
 					supported. Different initialization implementations are required for each of the two cases. */
-					: m_start_iter(s_iter_from_lone_param(param))
+					: m_start_iter(s_xscope_iter_from_lone_param(param))
 					, m_count(s_count_from_lone_param(param)) {}
 
 				const_reference operator[](size_type _P) const {
@@ -4587,20 +4842,16 @@ namespace mse {
 				}
 
 				template <typename _TRALoneParam>
+				static auto s_xscope_iter_from_lone_param(const _TRALoneParam& param) {
+					return mse::impl::ra_const_section_helpers::s_xscope_iter_from_lone_param(param);
+				}
+				template <typename _TRALoneParam>
 				static auto s_iter_from_lone_param(const _TRALoneParam& param) {
-					typedef typename std::remove_reference<_TRALoneParam>::type TRALoneParamNR;
-					/* TRALoneParamNR being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
-					supported. Different initialization implementations are required for each of the two cases. */
-					return mse::impl::ra_const_section_helpers::s_iter_from_lone_param1(typename std::conditional<
-						std::is_base_of<mse::us::impl::RandomAccessConstSectionTagBase, TRALoneParamNR>::value || std::is_base_of<mse::us::impl::RandomAccessSectionTagBase, TRALoneParamNR>::value
-						, std::true_type, std::false_type>::type(), param);
+					return mse::impl::ra_const_section_helpers::s_iter_from_lone_param(param);
 				}
 				template <typename _TRALoneParam>
 				static auto s_count_from_lone_param(const _TRALoneParam& param) {
-					typedef typename std::remove_reference<_TRALoneParam>::type TRALoneParamNR;
-					return mse::impl::ra_const_section_helpers::s_count_from_lone_param1(typename std::conditional<
-						std::is_base_of<mse::us::impl::RandomAccessConstSectionTagBase, TRALoneParamNR>::value || std::is_base_of<mse::us::impl::RandomAccessSectionTagBase, TRALoneParamNR>::value
-						, std::true_type, std::false_type>::type(), param);
+					return mse::impl::ra_const_section_helpers::s_count_from_lone_param(param);
 				}
 
 			protected:
@@ -4685,7 +4936,7 @@ namespace mse {
 		TRandomAccessConstSection(const TRandomAccessSection<_TRAIterator>& src) : base_class(static_cast<const base_class&>(src)) {}
 		TRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
-		TRandomAccessConstSection(const _TRALoneParam& param) : base_class(param) {}
+		TRandomAccessConstSection(const _TRALoneParam& param) : base_class(base_class::s_iter_from_lone_param(param), base_class::s_count_from_lone_param(param)) {}
 		virtual ~TRandomAccessConstSection() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
@@ -4746,7 +4997,7 @@ namespace mse {
 				TRandomAccessSectionBase(const _TRAIterator& start_iter, size_type count) : m_start_iter(start_iter), m_count(count) {}
 				template <typename _TRALoneParam>
 				TRandomAccessSectionBase(const _TRALoneParam& param)
-					: m_start_iter(s_iter_from_lone_param(param)), m_count(s_count_from_lone_param(param)) {}
+					: m_start_iter(s_xscope_iter_from_lone_param(param)), m_count(s_count_from_lone_param(param)) {}
 				/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 				template<size_t Tn>
 				TRandomAccessSectionBase(value_type(&native_array)[Tn]) : m_start_iter(native_array), m_count(Tn) {}
@@ -5116,6 +5367,13 @@ namespace mse {
 				}
 
 				template <typename _TRALoneParam>
+				static auto s_xscope_iter_from_lone_param(const _TRALoneParam& param) {
+					typedef typename std::remove_reference<_TRALoneParam>::type TRALoneParamNR;
+					/* TRALoneParamNR being either another TRandomAccessSectionBase<> or a pointer to "random access" container is
+					supported. Different initialization implementations are required for each of the two cases. */
+					return s_xscope_iter_from_lone_param1(typename std::is_base_of<mse::us::impl::RandomAccessSectionTagBase, TRALoneParamNR>::type(), param);
+				}
+				template <typename _TRALoneParam>
 				static auto s_iter_from_lone_param(const _TRALoneParam& param) {
 					typedef typename std::remove_reference<_TRALoneParam>::type TRALoneParamNR;
 					/* TRALoneParamNR being either another us::impl::TRandomAccessSectionBase<>, a "random access" container, or a pointer to "random
@@ -5137,33 +5395,28 @@ namespace mse {
 
 			private:
 				/* construction helper functions */
-				template <typename _TRAPointer>
-				static auto s_iter_from_ptr_helper2(std::true_type, const _TRAPointer& ptr) {
-					/* ptr seems to be an xscope pointer.*/
-					return mse::make_xscope_random_access_iterator(ptr, 0);
-				}
-				template <typename _TRAPointer>
-				static auto s_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
-					return mse::make_random_access_iterator(ptr, 0);
+				template <typename _TRALoneParam>
+				static auto s_xscope_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
+					return mse::make_xscope_iterator(param);
 				}
 				template <typename _TRALoneParam>
-				static auto s_iter_from_lone_param3(std::false_type, const _TRALoneParam& ptr) {
-					/* The parameter doesn't seem to be a container with a "begin()" member function or a native array. Here we'll assume
-					that it is a pointer to a supported container. If you get a compile error here, then construction from the given
-					parameter type isn't supported. */
-					mse::impl::T_valid_if_is_dereferenceable<_TRALoneParam>();
-					return s_iter_from_ptr_helper2(typename std::is_base_of<mse::us::impl::XScopeTagBase, _TRALoneParam>::type(), ptr);
+				static auto s_xscope_iter_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
+					/* Apparently the lone parameter is a native array. */
+					return native_array;
 				}
 				template <typename _TRALoneParam>
-				static auto s_iter_from_lone_param3(std::true_type, const _TRALoneParam& ra_container) {
-					/* The parameter seems to be a container with a "begin()" member function. So we'll use that function to obtain the
-					iterator we need. */
-					return std::begin(ra_container);
+				static auto s_xscope_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
+					return s_xscope_iter_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 				}
+				template <typename _TRALoneParam>
+				static auto s_xscope_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
+					/* The parameter is another "random access section". */
+					return ra_section.m_start_iter;
+				}
+
 				template <typename _TRALoneParam>
 				static auto s_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
-					/* The parameter is not a "random access section". */
-					return s_iter_from_lone_param3(typename mse::impl::SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
+					return mse::make_iterator(param);
 				}
 				template <typename _TRALoneParam>
 				static auto s_iter_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
@@ -5172,7 +5425,6 @@ namespace mse {
 				}
 				template <typename _TRALoneParam>
 				static auto s_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
-					/* The parameter doesn't seem to be a container with a "begin()" member function. */
 					return s_iter_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 				}
 				template <typename _TRALoneParam>
@@ -5180,6 +5432,7 @@ namespace mse {
 					/* The parameter is another "random access section". */
 					return ra_section.m_start_iter;
 				}
+
 
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
@@ -5255,7 +5508,7 @@ namespace mse {
 		TRandomAccessSection(const TRandomAccessSection& src) : base_class(static_cast<const base_class&>(src)) {}
 		TRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
-		TRandomAccessSection(const _TRALoneParam& param) : base_class(param) {}
+		TRandomAccessSection(const _TRALoneParam& param) : base_class(base_class::s_iter_from_lone_param(param), base_class::s_count_from_lone_param(param)) {}
 		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
 		TRandomAccessSection(value_type(&native_array)[Tn]) : base_class(native_array) {}
@@ -5368,7 +5621,7 @@ namespace mse {
 			}
 			template <typename _TRALoneParam>
 			auto make_xscope_random_access_section_helper1(std::false_type, const _TRALoneParam& param) {
-				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessSectionBase<char *>::s_xscope_iter_from_lone_param(param))>::type _TRAIterator;
 				return TXScopeRandomAccessSection<_TRAIterator>(param);
 			}
 		}

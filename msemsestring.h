@@ -1138,7 +1138,7 @@ namespace mse {
 
 	namespace impl {
 		namespace ra_section {
-			template <typename _Ty> using mkxsscsh1_TRAIterator = typename std::remove_reference<decltype(mse::us::impl::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(std::declval<mse::TXScopeItemFixedConstPointer<_Ty> >()))>::type;
+			template <typename _Ty> using mkxsscsh1_TRAIterator = typename std::remove_reference<decltype(mse::us::impl::TRandomAccessConstSectionBase<char *>::s_xscope_iter_from_lone_param(std::declval<mse::TXScopeItemFixedConstPointer<_Ty> >()))>::type;
 			template <typename _Ty> using mkxsscsh1_ReturnType = mse::TXScopeCagedStringConstSectionToRValue<mkxsscsh1_TRAIterator<_Ty> >;
 
 			template <typename _Ty> auto make_xscope_string_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
@@ -1752,13 +1752,13 @@ namespace mse {
 			auto make_xscope_string_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
 				-> impl::ra_section::mkxsscsh1_ReturnType<_Ty> {
 				mse::TXScopeItemFixedConstPointer<_Ty> adj_param = mse::rsv::TXScopeItemFixedConstPointerFParam<_Ty>(param);
-				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(adj_param))>::type _TRAIterator;
+				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessConstSectionBase<char *>::s_xscope_iter_from_lone_param(adj_param))>::type _TRAIterator;
 				mse::TXScopeStringConstSection<_TRAIterator> ra_section(adj_param);
 				return mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>(ra_section);
 			}
 			template <typename _TRALoneParam>
 			auto make_xscope_string_const_section_helper1(std::false_type, const _TRALoneParam& param) {
-				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessConstSectionBase<char *>::s_xscope_iter_from_lone_param(param))>::type _TRAIterator;
 				return TXScopeStringConstSection<_TRAIterator>(param);
 			}
 		}
@@ -1790,7 +1790,7 @@ namespace mse {
 	}
 	template <typename _TRALoneParam>
 	auto make_string_const_section(const _TRALoneParam& param) {
-		typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+		typedef typename std::remove_reference<decltype(mse::impl::ra_const_section_helpers::s_iter_from_lone_param(param))>::type _TRAIterator;
 		return TStringConstSection<_TRAIterator>(param);
 	}
 
@@ -1806,7 +1806,7 @@ namespace mse {
 			}
 			template <typename _TRALoneParam>
 			auto make_xscope_string_section_helper1(std::false_type, const _TRALoneParam& param) {
-				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))>::type _TRAIterator;
+				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessSectionBase<char *>::s_xscope_iter_from_lone_param(param))>::type _TRAIterator;
 				return TXScopeStringSection<_TRAIterator>(param);
 			}
 		}
@@ -2513,13 +2513,15 @@ namespace mse {
 	/* Overloads for rsv::TReturnableFParam<>. */
 	template <typename _TRAIterator>
 	auto make_xscope_nrp_string_const_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count) {
-		const typename rsv::TReturnableFParam<_TRAIterator>::base_class& start_iter_base_ref = start_iter;
+		//const typename rsv::TReturnableFParam<_TRAIterator>::base_class& start_iter_base_ref = start_iter;
+		const _TRAIterator& start_iter_base_ref = start_iter;
 		typedef decltype(make_xscope_nrp_string_const_section(start_iter_base_ref, count)) base_return_type;
 		return rsv::TReturnableFParam<base_return_type>(make_xscope_nrp_string_const_section(start_iter_base_ref, count));
 	}
 	template <typename _TRALoneParam>
 	auto make_xscope_nrp_string_const_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
-		const typename rsv::TReturnableFParam<_TRALoneParam>::base_class& param_base_ref = param;
+		//const typename rsv::TReturnableFParam<_TRALoneParam>::base_class& param_base_ref = param;
+		const _TRALoneParam& param_base_ref = param;
 		typedef decltype(make_xscope_nrp_string_const_section(param_base_ref)) base_return_type;
 		return rsv::TReturnableFParam<base_return_type>(make_xscope_nrp_string_const_section(param_base_ref));
 	}
@@ -3046,10 +3048,10 @@ namespace mse {
 			class Tgnii_basic_string_xscope_ss_iterator_type;
 
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class Tgnii_basic_string_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > >
+			class Tgnii_basic_string_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > > base_class;
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> > > > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_ss_const_iterator_type, base_class);
@@ -3330,7 +3332,7 @@ namespace mse {
 				*/
 				_Myt& operator=(_Myt&& _X) {
 					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.operator=(std::forward<std_basic_string>(_X.contained_basic_string()));
+					m_basic_string.operator=(std::forward<decltype(_X)>(_X).contained_basic_string());
 					return (*this);
 				}
 				_Myt& operator=(const _Myt& _X) {
@@ -5219,7 +5221,7 @@ namespace mse {
 				operator mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >() const {
 					return static_cast<const base_class&>(*this);
 				}
-				operator mse::TXScopeItemFixedConstPointer<const mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >() const {
+				operator mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >() const {
 					return static_cast<const base_class&>(*this);
 				}
 			private:

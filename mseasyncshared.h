@@ -2683,7 +2683,7 @@ namespace mse {
 			thread(thread&& _Other) _NOEXCEPT : base_class(std::forward<base_class>(_Other)) {}
 
 			thread& operator=(thread&& _Other) _NOEXCEPT {
-				base_class::operator=(std::forward<base_class>(_Other));
+				base_class::operator=(std::forward<decltype(_Other)>(_Other));
 				return *this;
 			}
 
@@ -3157,9 +3157,7 @@ namespace mse {
 		MSE_ASYNC_USING(TAsyncSharedObj, _TROy);
 		using _TROy::operator=;
 		TAsyncSharedObj& operator=(TAsyncSharedObj&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		//TAsyncSharedObj& operator=(typename std::conditional<std::is_const<_TROy>::value, std::nullptr_t, TAsyncSharedObj>::type&& _X) { _TROy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		TAsyncSharedObj& operator=(const TAsyncSharedObj& _X) { _TROy::operator=(_X); return (*this); }
-		//TAsyncSharedObj& operator=(const typename std::conditional<std::is_const<_TROy>::value, std::nullptr_t, TAsyncSharedObj>::type& _X) { _TROy::operator=(_X); return (*this); }
 
 	private:
 		TAsyncSharedObj(const TAsyncSharedObj& _X) : _TROy(_X) {}
