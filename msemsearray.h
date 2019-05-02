@@ -1027,11 +1027,11 @@ namespace mse {
 			template <typename _TRAContainerPointer> class TRAConstIteratorBase;
 
 			template <typename _TRAContainerPointer>
-			class TRAIteratorBase : public mse::impl::random_access_iterator_base_from_ra_container<decltype(*std::declval<typename std::remove_reference<_TRAContainerPointer>::type>())>
+			class TRAIteratorBase : public mse::impl::random_access_iterator_base_from_ra_container<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>
 				, MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(typename std::remove_reference<_TRAContainerPointer>::type, TRAIteratorBase<_TRAContainerPointer>)
 			{
 			public:
-				typedef mse::impl::random_access_iterator_base_from_ra_container<decltype(*std::declval<typename std::remove_reference<_TRAContainerPointer>::type>())> base_class;
+				typedef mse::impl::random_access_iterator_base_from_ra_container<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type> base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 				typedef typename std::remove_reference<_TRAContainerPointer>::type _TRAContainerPointerRR;
 
@@ -1148,7 +1148,9 @@ namespace mse {
 					((*this).m_ra_container_pointer) = std::forward<decltype(_Right_cref)>(_Right_cref).m_ra_container_pointer;
 				}
 				void assignment_helper1(std::false_type, const TRAIteratorBase& _Right_cref) {
-					if (std::addressof(*((*this).m_ra_container_pointer)) != std::addressof(*(_Right_cref.m_ra_container_pointer))
+					const auto& this_m_ra_container_pointer_lvaluecref = *((*this).m_ra_container_pointer);
+					const auto& Right_m_ra_container_pointer_lvaluecref = *(_Right_cref.m_ra_container_pointer);
+					if (std::addressof(this_m_ra_container_pointer_lvaluecref) != std::addressof(Right_m_ra_container_pointer_lvaluecref)
 						|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
 						/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
 						example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
@@ -1268,11 +1270,11 @@ namespace mse {
 	namespace us {
 		namespace impl {
 			template <typename _TRAContainerPointer>
-			class TRAConstIteratorBase : public mse::impl::random_access_const_iterator_base_from_ra_container<decltype(*std::declval<typename std::remove_reference<_TRAContainerPointer>::type>())>
+			class TRAConstIteratorBase : public mse::impl::random_access_const_iterator_base_from_ra_container<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>
 				, MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(typename std::remove_reference<_TRAContainerPointer>::type, TRAConstIteratorBase<_TRAContainerPointer>)
 			{
 			public:
-				typedef mse::impl::random_access_const_iterator_base_from_ra_container<decltype(*std::declval<typename std::remove_reference<_TRAContainerPointer>::type>())> base_class;
+				typedef mse::impl::random_access_const_iterator_base_from_ra_container<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type> base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 				typedef typename std::remove_reference<_TRAContainerPointer>::type _TRAContainerPointerRR;
 
@@ -1394,7 +1396,9 @@ namespace mse {
 					((*this).m_ra_container_pointer) = std::forward<decltype(_Right_cref)>(_Right_cref).m_ra_container_pointer;
 				}
 				void assignment_helper1(std::false_type, const TRAConstIteratorBase& _Right_cref) {
-					if (std::addressof(*((*this).m_ra_container_pointer)) != std::addressof(*(_Right_cref.m_ra_container_pointer))
+					const auto& this_m_ra_container_pointer_lvaluecref = *((*this).m_ra_container_pointer);
+					const auto& Right_m_ra_container_pointer_lvaluecref = *(_Right_cref.m_ra_container_pointer);
+					if (std::addressof(this_m_ra_container_pointer_lvaluecref) != std::addressof(Right_m_ra_container_pointer_lvaluecref)
 						|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
 						/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
 						example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
@@ -1755,6 +1759,23 @@ namespace mse {
 
 	namespace impl {
 
+		template<class T, class EqualTo>
+		struct IsDereferenceable_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype((*std::declval<U>()), (*std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct IsDereferenceable_msemsearray : IsDereferenceable_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+		template<typename _Ty, class = typename std::enable_if<(IsDereferenceable_msemsearray<_Ty>::value), void>::type>
+		void T_valid_if_is_dereferenceable() {}
+
 		template<typename T, size_t n>
 		size_t native_array_size_msemsearray(const T(&)[n]) {
 			return n;
@@ -1793,6 +1814,32 @@ namespace mse {
 		void T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray() {}
 	}
 
+	namespace impl {
+		template<class _TArray>
+		auto container_size_helper2(std::true_type, const _TArray& native_array) {
+			return native_array_size_msemsearray(native_array);
+		}
+		template<class _TArray>
+		auto container_size_helper2(std::false_type, const _TArray& container) {
+			return container.size();
+		}
+
+		template<class _TArrayPointer>
+		auto container_size_helper(std::true_type, const _TArrayPointer& owner_ptr) {
+			typedef typename std::remove_reference<decltype(*owner_ptr)>::type _TArray;
+			return container_size_helper2(typename mse::impl::IsNativeArray_msemsearray<_TArray>::type(), *owner_ptr);
+		}
+		template<class _TArray>
+		auto container_size_helper(std::false_type, const _TArray& container) {
+			/* The parameter doesn't seem to be a pointer. */
+			return container_size_helper2(typename mse::impl::IsNativeArray_msemsearray<_TArray>::type(), container);
+		}
+	}
+	template<class _TArrayPointer>
+	auto container_size(const _TArrayPointer& owner_ptr) {
+		return impl::container_size_helper(typename mse::impl::IsDereferenceable_msemsearray<_TArrayPointer>::type(), owner_ptr);
+	}
+
 	template <typename _TRAContainerPointer> class TXScopeCSSSStrongRAIterator;
 	template <typename _TRAContainerPointer> class TXScopeCSSSStrongRAConstIterator;
 
@@ -1829,6 +1876,10 @@ namespace mse {
 		auto& operator=(TXScopeCSSSStrongRAIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
+		bool is_valid() const {
+			return ((0 <= (*this).position()) && (mse::container_size(*(*this).target_container_ptr()) >= (*this).position()));
+		}
+
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
 		void xscope_tag() const {}
@@ -1856,6 +1907,16 @@ namespace mse {
 		TXScopeCSSSStrongRAConstIterator(const TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& src) : base_class(src) {}
 		TXScopeCSSSStrongRAConstIterator(TXScopeCSSSStrongRAIterator<_TRAContainerPointer>&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+		TXScopeCSSSStrongRAConstIterator(TXScopeCSSSStrongRAConstIterator<_Ty2>&& src) : base_class(std::forward<decltype(src)>(src)) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+		TXScopeCSSSStrongRAConstIterator(const TXScopeCSSSStrongRAConstIterator<_Ty2>& src) : base_class(src) {}
+
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+		TXScopeCSSSStrongRAConstIterator(TXScopeCSSSStrongRAIterator<_Ty2>&& src) : base_class(std::forward<decltype(src)>(src)) {}
+		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TRAContainerPointer>::value, void>::type>
+		TXScopeCSSSStrongRAConstIterator(const TXScopeCSSSStrongRAIterator<_Ty2>& src) : base_class(src) {}
+
 		TXScopeCSSSStrongRAConstIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0) : base_class(ra_container_pointer, index) {
 			mse::impl::is_valid_if_strong_pointer<_TRAContainerPointer>::no_op();
 			typedef typename std::remove_reference<decltype(*ra_container_pointer)>::type TRAContainer;
@@ -1871,6 +1932,10 @@ namespace mse {
 		auto& operator=(TXScopeCSSSStrongRAConstIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
+		bool is_valid() const {
+			return ((0 <= (*this).position()) && (mse::container_size(*(*this).target_container_ptr()) >= (*this).position()));
+		}
+
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
 		void xscope_tag() const {}
@@ -1884,6 +1949,18 @@ namespace mse {
 
 		template<class _TRAContainerPointer2> friend TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer2> us::unsafe_make_xscope_csss_strong_ra_const_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer2>::size_type index);
 	};
+
+	/* These specializations are here only because there seems to be a bug(?) in g++7's (but not g++5's) std::is_constructible<>
+	such that if its argument is convertible to one of these specializations (which are invalid instantiations and would
+	otherwise not compile) it may(/does?) try to instantiate it. */
+	template <typename _TRAContainer>
+	class TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<mse::TXScopeItemFixedConstPointer<_TRAContainer> > > {};
+	template <typename _TRAContainer>
+	class TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<mse::TXScopeItemFixedPointer<_TRAContainer> > > {};
+	template <typename _TRAContainer>
+	class TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedPointer<mse::TXScopeItemFixedPointer<_TRAContainer> > > {};
+	template <typename _TRAContainer>
+	class TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedPointer<mse::TXScopeItemFixedConstPointer<_TRAContainer> > > {};
 
 	namespace us {
 		/* A couple of unsafe functions for internal use. */
@@ -1930,6 +2007,175 @@ namespace mse {
 	auto xscope_const_pointer(const mse::TXScopeItemFixedConstPointer<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> >& iter_xscptr) {
 		return mse::us::unsafe_make_xscope_const_pointer_to(*(*iter_xscptr));
 	}
+
+	template <typename _TRAContainer>
+	using TXScopeCSSSXSRAConstIterator = TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<_TRAContainer> >;
+	template <typename _TRAContainer>
+	using TXScopeCSSSXSRAIterator = TXScopeCSSSStrongRAIterator<mse::TXScopeItemFixedPointer<_TRAContainer> >;
+
+	namespace us {
+		namespace impl {
+			/* This template class acts like an array container, but is actually used as a (type erased) proxy to another
+			suitable container. It also acts as a pointer to itself. */
+			template <typename _TElement>
+			class TXScopeRuntimeRawArrayProxyAndSelfPointer : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase
+				, public mse::us::impl::ContiguousSequenceContainerTagBase, public mse::us::impl::StaticStructureContainerTagBase {
+			public:
+				typedef typename std::array<int, 0>::size_type size_type;
+				typedef typename std::array<int, 0>::difference_type difference_type;
+
+				MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TXScopeRuntimeRawArrayProxyAndSelfPointer);
+				TXScopeRuntimeRawArrayProxyAndSelfPointer(_TElement* first_element_ptr, size_type size) : m_first_element_ptr(first_element_ptr), m_size(size) {}
+
+				_TElement& operator[](difference_type _Off) const { return m_first_element_ptr[_Off]; }
+
+				size_t size() const { return m_size; }
+
+				auto operator*() const {
+					return (*this);
+				}
+				auto operator->() const {
+					return this;
+				}
+
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+				_TElement* m_first_element_ptr;
+				size_type m_size = 0;
+			};
+
+			template <typename _TElement>
+			class TXScopeRuntimeRawArrayConstProxyAndSelfPointer : public TXScopeRuntimeRawArrayProxyAndSelfPointer<const _TElement> {
+			public:
+				typedef TXScopeRuntimeRawArrayProxyAndSelfPointer<const _TElement> base_class;
+				typedef typename base_class::size_type size_type;
+				typedef typename base_class::difference_type difference_type;
+				using base_class::base_class;
+
+				auto operator*() const {
+					return (*this);
+				}
+				auto operator->() const {
+					return this;
+				}
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+			};
+		}
+	}
+
+	template <typename _TElement> class TXScopeCSSSXSTERAConstIterator;
+
+	template <typename _TElement>
+	class TXScopeCSSSXSTERAIterator : public TXScopeCSSSStrongRAIterator<mse::us::impl::TXScopeRuntimeRawArrayProxyAndSelfPointer<_TElement> > {
+	public:
+		typedef TXScopeCSSSStrongRAIterator<mse::us::impl::TXScopeRuntimeRawArrayProxyAndSelfPointer<_TElement> > base_class;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+		TXScopeCSSSXSTERAIterator(const TXScopeCSSSXSTERAIterator& src) : base_class(src) {}
+		TXScopeCSSSXSTERAIterator(TXScopeCSSSXSTERAIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		template <typename _TRAContainer2>
+		TXScopeCSSSXSTERAIterator(const TXScopeCSSSXSRAIterator<_TRAContainer2>& src) : base_class(construction_helper1(src.target_container_ptr()), src.position()) {}
+
+		template<typename _TRAContainer2>
+		TXScopeCSSSXSTERAIterator(const mse::TXScopeItemFixedPointer<_TRAContainer2>& ra_container_pointer, size_type index = 0)
+			: base_class(construction_helper1(ra_container_pointer), index) {
+		}
+
+		auto& operator=(const TXScopeCSSSXSTERAIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
+		auto& operator=(TXScopeCSSSXSTERAIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+		void xscope_iterator_tag() const {}
+		void xscope_tag() const {}
+
+	private:
+
+		template<typename _TRAContainer2>
+		mse::us::impl::TXScopeRuntimeRawArrayProxyAndSelfPointer<_TElement> construction_helper1(const mse::TXScopeItemFixedPointer<_TRAContainer2>& ra_container_pointer, size_type index = 0) {
+			auto size1 = mse::container_size(*ra_container_pointer);
+			if (0 >= size1) {
+				return mse::us::impl::TXScopeRuntimeRawArrayProxyAndSelfPointer<_TElement>(nullptr, size1);
+			}
+			else {
+				return mse::us::impl::TXScopeRuntimeRawArrayProxyAndSelfPointer<_TElement>(std::addressof((*ra_container_pointer)[0]), size1);
+			}
+		}
+
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+		friend class TXScopeCSSSXSTERAConstIterator<_TElement>;
+	};
+
+	template <typename _TElement>
+	class TXScopeCSSSXSTERAConstIterator : public TXScopeCSSSStrongRAConstIterator<mse::us::impl::TXScopeRuntimeRawArrayConstProxyAndSelfPointer<_TElement> > {
+	public:
+		typedef  TXScopeCSSSStrongRAConstIterator<mse::us::impl::TXScopeRuntimeRawArrayConstProxyAndSelfPointer<_TElement> > base_class;
+		typedef mse::us::impl::TXScopeRuntimeRawArrayConstProxyAndSelfPointer<_TElement> _TRAContainerPointer;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+	private:
+
+		template<typename _TRAIterator2>
+		struct container_type_from_iterator_type {
+			typedef decltype(std::declval<_TRAIterator2>().target_container_ptr()) TRAContainerPointer;
+			typedef typename std::remove_const<typename std::remove_reference<decltype(*std::declval<TRAContainerPointer>())>::type>::type TRAContainer;
+			typedef TRAContainer type;
+		};
+
+		template<typename _Ty2, typename _TRAIterator2, typename _TRAContainer2 = typename container_type_from_iterator_type<_TRAIterator2>::type>
+		struct is_convertible_to_TXScopeCSSSXSRAConstIterator_helper1 : std::is_convertible<_TRAIterator2, TXScopeCSSSXSRAConstIterator<_TRAContainer2> > {};
+		template<typename _TRAIterator2>
+		struct is_convertible_to_TXScopeCSSSXSRAConstIterator_helper1<std::false_type, _TRAIterator2> : std::integral_constant<bool, false> {};
+		template<typename _TRAIterator2>
+		struct is_convertible_to_TXScopeCSSSXSRAConstIterator : std::integral_constant<bool
+			, is_convertible_to_TXScopeCSSSXSRAConstIterator_helper1<typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRAIterator2>::type, _TRAIterator2>::value> {};
+
+	public:
+		TXScopeCSSSXSTERAConstIterator(const TXScopeCSSSXSTERAConstIterator& src) : base_class(src) {}
+		TXScopeCSSSXSTERAConstIterator(TXScopeCSSSXSTERAConstIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		TXScopeCSSSXSTERAConstIterator(const TXScopeCSSSXSTERAIterator<_TElement>& src) : base_class(src) {}
+		TXScopeCSSSXSTERAConstIterator(TXScopeCSSSXSTERAIterator<_TElement>&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		template <typename _TRAContainer2>
+		TXScopeCSSSXSTERAConstIterator(const TXScopeCSSSXSRAConstIterator<_TRAContainer2>& src) : base_class(construction_helper1(src.target_container_ptr()), src.position()) {}
+		/* The previous (template) constructor takes TXScopeCSSSXSRAConstIterator<>s. This next one is a more general version
+		that accepts any iterators that are convertible to a TXScopeCSSSXSRAConstIterator<>. (So the previous template
+		constructor would be technically redundant.) */
+		template<typename _TRAIterator2, class = typename std::enable_if<is_convertible_to_TXScopeCSSSXSRAConstIterator<_TRAIterator2>::value, void>::type>
+		TXScopeCSSSXSTERAConstIterator(const _TRAIterator2& ra_iter, size_type index = 0)
+			: base_class(construction_helper1(static_cast<const TXScopeCSSSXSRAConstIterator<typename container_type_from_iterator_type<_TRAIterator2>::type>&>(ra_iter).target_container_ptr()), index) {};
+
+		template <typename _TRAContainer2>
+		TXScopeCSSSXSTERAConstIterator(const TXScopeCSSSXSRAIterator<_TRAContainer2>& src) : base_class(construction_helper1(src.target_container_ptr()), src.position()) {}
+
+		auto& operator=(const TXScopeCSSSXSTERAConstIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
+		auto& operator=(TXScopeCSSSXSTERAConstIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
+		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+		void xscope_iterator_tag() const {}
+		void xscope_tag() const {}
+
+	private:
+
+		template<typename _TRAContainer2>
+		mse::us::impl::TXScopeRuntimeRawArrayConstProxyAndSelfPointer<_TElement> construction_helper1(const mse::TXScopeItemFixedConstPointer<_TRAContainer2>& ra_container_pointer, size_type index = 0) {
+			auto size1 = mse::container_size(*ra_container_pointer);
+			if (0 >= size1) {
+				return mse::us::impl::TXScopeRuntimeRawArrayConstProxyAndSelfPointer<_TElement>(nullptr, size1);
+			}
+			else {
+				return mse::us::impl::TXScopeRuntimeRawArrayConstProxyAndSelfPointer<_TElement>(std::addressof((*ra_container_pointer)[0]), size1);
+			}
+		}
+
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+	};
 
 	template <typename _TRAContainerPointer>
 	using TXScopeRandomAccessIterator = TXScopeRAIterator<_TRAContainerPointer>;
@@ -3480,23 +3726,6 @@ namespace mse {
 			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
 		template<class T, class EqualTo>
-		struct IsDereferenceable_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype((*std::declval<U>()), (*std::declval<V>()), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct IsDereferenceable_msemsearray : IsDereferenceable_msemsearray_impl<
-			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
-		template<typename _Ty, class = typename std::enable_if<(IsDereferenceable_msemsearray<_Ty>::value), void>::type>
-		void T_valid_if_is_dereferenceable() {}
-
-		template<class T, class EqualTo>
 		struct HasOrInheritsXScopeIteratorMemberType_msemsearray_impl
 		{
 			template<class U, class V>
@@ -3767,22 +3996,6 @@ namespace mse {
 	template<class _TArrayPointer>
 	auto make_xscope_end_iterator(const _TArrayPointer& owner_ptr) {
 		return mse::make_xscope_begin_iterator(owner_ptr) + (*owner_ptr).size();
-	}
-
-	namespace impl {
-		template<class _TArrayPointer>
-		auto container_size_helper(std::true_type, const _TArrayPointer& owner_ptr) {
-			return owner_ptr->size();
-		}
-		template<class _TArray>
-		auto container_size_helper(std::false_type, const _TArray& container) {
-			/* The parameter doesn't seem to be a pointer. */
-			return container.size();
-		}
-	}
-	template<class _TArrayPointer>
-	auto container_size(const _TArrayPointer& owner_ptr) {
-		return impl::container_size_helper(typename mse::impl::IsDereferenceable_msemsearray<_TArrayPointer>::type(), owner_ptr);
 	}
 
 	namespace impl {
@@ -4213,6 +4426,12 @@ namespace mse {
 		}
 	};
 
+	namespace us {
+		namespace impl {
+			template <typename _TRAIterator> class TRandomAccessSectionBase;
+			template <typename _TRAIterator> class TRandomAccessConstSectionBase;
+		}
+	}
 
 	template <typename _TRAIterator> class TXScopeCSSSStrongRASectionIterator;
 	template <typename _TRAIterator> class TXScopeCSSSStrongRASectionConstIterator;
@@ -4225,11 +4444,6 @@ namespace mse {
 
 		TXScopeCSSSStrongRASectionIterator(const TXScopeCSSSStrongRASectionIterator& src) : base_class(src) {}
 		TXScopeCSSSStrongRASectionIterator(TXScopeCSSSStrongRASectionIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
-		TXScopeCSSSStrongRASectionIterator(const _TRAIterator& ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {
-			static_assert(mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAIterator>::value
-				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionIterator>::value
-				, "");
-		}
 
 		auto& operator=(const TXScopeCSSSStrongRASectionIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
 		auto& operator=(TXScopeCSSSStrongRASectionIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
@@ -4243,10 +4457,18 @@ namespace mse {
 		class unsafe_t {};
 		TXScopeCSSSStrongRASectionIterator(unsafe_t, const _TRAIterator& ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {}
 
+		TXScopeCSSSStrongRASectionIterator(const _TRAIterator& ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {
+			static_assert(mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAIterator>::value
+				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionIterator>::value
+				, "");
+		}
+
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TXScopeCSSSStrongRASectionConstIterator<_TRAIterator>;
 		template<class _TRAIterator2> friend TXScopeCSSSStrongRASectionIterator<_TRAIterator2> us::unsafe_make_xscope_csss_strong_ra_iterator(const _TRAIterator2& ra_iterator, typename TXScopeCSSSStrongRASectionIterator<_TRAIterator2>::size_type count, typename TXScopeCSSSStrongRASectionIterator<_TRAIterator2>::size_type index);
+		template <typename _TRAIterator2> friend class mse::us::impl::TRandomAccessSectionBase;
+		template <typename _TRAIterator2> friend class mse::us::impl::TRandomAccessConstSectionBase;
 	};
 
 	template <typename _TRAIterator>
@@ -4261,18 +4483,6 @@ namespace mse {
 		TXScopeCSSSStrongRASectionConstIterator(const TXScopeCSSSStrongRASectionIterator<_TRAIterator>& src) : base_class(src) {}
 		TXScopeCSSSStrongRASectionConstIterator(TXScopeCSSSStrongRASectionIterator<_TRAIterator>&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
-		TXScopeCSSSStrongRASectionConstIterator(const _TRAIterator& ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {
-			static_assert(mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAConstIterator>::value
-				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAIterator>::value
-				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionConstIterator>::value
-				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionIterator>::value
-				, "");
-
-			mse::impl::is_valid_if_strong_pointer<_TRAIterator>::no_op();
-			typedef typename std::remove_reference<decltype(*ra_iterator)>::type TRAContainer;
-			mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
-		}
-
 		auto& operator=(const TXScopeCSSSStrongRASectionConstIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
 		auto& operator=(TXScopeCSSSStrongRASectionConstIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
@@ -4285,9 +4495,19 @@ namespace mse {
 		class unsafe_t {};
 		TXScopeCSSSStrongRASectionConstIterator(unsafe_t, const _TRAIterator& ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {}
 
+		TXScopeCSSSStrongRASectionConstIterator(const _TRAIterator& ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {
+			static_assert(mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAConstIterator>::value
+				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAIterator>::value
+				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionConstIterator>::value
+				|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionIterator>::value
+				, "");
+		}
+
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		template<class _TRAIterator2> friend TXScopeCSSSStrongRASectionConstIterator<_TRAIterator2> us::unsafe_make_xscope_csss_strong_ra_const_iterator(const _TRAIterator2& ra_iterator, typename TXScopeCSSSStrongRASectionConstIterator<_TRAIterator2>::size_type count, typename TXScopeCSSSStrongRASectionConstIterator<_TRAIterator2>::size_type index);
+		template <typename _TRAIterator2> friend class mse::us::impl::TRandomAccessSectionBase;
+		template <typename _TRAIterator2> friend class mse::us::impl::TRandomAccessConstSectionBase;
 	};
 
 	namespace us {
@@ -4823,10 +5043,14 @@ namespace mse {
 					return (!empty()) && (back() == c);
 				}
 
-				//typedef TXScopeRASectionConstIterator<_TRAIterator> xscope_const_iterator;
-				class xscope_const_iterator : public TXScopeRASectionConstIterator<_TRAIterator> {
+				typedef typename std::conditional<mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAConstIterator>::value
+					|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAIterator>::value
+					|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionConstIterator>::value
+					|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionIterator>::value
+					, TXScopeCSSSStrongRASectionConstIterator<_TRAIterator>, TXScopeRASectionConstIterator<_TRAIterator> >::type xscope_const_iterator_base;
+				class xscope_const_iterator : public xscope_const_iterator_base {
 				public:
-					typedef TXScopeRASectionConstIterator<_TRAIterator> base_class;
+					typedef xscope_const_iterator_base base_class;
 
 					MSE_USING(xscope_const_iterator, base_class);
 					template<class _TRASectionPointer>
@@ -5335,19 +5559,26 @@ namespace mse {
 					return (!empty()) && (back() == c);
 				}
 
-				//typedef TXScopeRASectionIterator<_TRAIterator> xscope_iterator;
-				//typedef TXScopeRASectionConstIterator<_TRAIterator> xscope_const_iterator;
-				class xscope_iterator : public TXScopeRASectionIterator<_TRAIterator> {
+				typedef typename std::conditional<mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAIterator>::value
+					|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionIterator>::value
+					, TXScopeCSSSStrongRASectionIterator<_TRAIterator>, TXScopeRASectionIterator<_TRAIterator> >::type xscope_iterator_base;
+				class xscope_iterator : public xscope_iterator_base {
 				public:
-					typedef TXScopeRASectionIterator<_TRAIterator> base_class;
+					typedef xscope_iterator_base base_class;
 
 					MSE_USING(xscope_iterator, base_class);
 					template<class _TRASectionPointer>
 					xscope_iterator(const _TRASectionPointer& ptr) : base_class((*ptr).m_start_iter, (*ptr).m_count) {}
 				};
-				class xscope_const_iterator : public TXScopeRASectionConstIterator<_TRAIterator> {
+
+				typedef typename std::conditional<mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAConstIterator>::value
+					|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAIterator>::value
+					|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionConstIterator>::value
+					|| mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRASectionIterator>::value
+					, TXScopeCSSSStrongRASectionConstIterator<_TRAIterator>, TXScopeRASectionConstIterator<_TRAIterator> >::type xscope_const_iterator_base;
+				class xscope_const_iterator : public xscope_const_iterator_base {
 				public:
-					typedef TXScopeRASectionConstIterator<_TRAIterator> base_class;
+					typedef xscope_const_iterator_base base_class;
 
 					MSE_USING(xscope_const_iterator, base_class);
 					template<class _TRASectionPointer>
@@ -5571,6 +5802,20 @@ namespace mse {
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
 		friend class TRandomAccessConstSection<_TRAIterator>;
 	};
+
+#if 0
+	template <typename _TElement>
+	class TXScopeCSSSXSTERandomAccessConstSection : public TXScopeRandomAccessConstSection<TXScopeCSSSXSTERAConstIterator<_TElement> > {
+	public:
+		typedef TXScopeRandomAccessConstSection<TXScopeCSSSXSTERAConstIterator<_TElement> > base_class;
+	};
+#else // 0
+	template <typename _TElement>
+	using TXScopeCSSSXSTERandomAccessConstSection = TXScopeRandomAccessConstSection<TXScopeCSSSXSTERAConstIterator<_TElement> >;
+	template <typename _TElement>
+	using TXScopeCSSSXSTERandomAccessSection = TXScopeRandomAccessSection<TXScopeCSSSXSTERAIterator<_TElement> >;
+#endif // 0
+
 
 	template <typename _TRAIterator>
 	auto make_xscope_random_access_const_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {

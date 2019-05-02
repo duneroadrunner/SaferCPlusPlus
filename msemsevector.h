@@ -233,6 +233,14 @@ namespace mse {
 			class xscope_ewconst_structure_lock_guard;
 		}
 	}
+	namespace us {
+		namespace impl {
+			namespace ns_gnii_vector {
+				template<class _Ty, class _A, class _TStateMutex>
+				class xscope_const_structure_lock_guard;
+			}
+		}
+	}
 
 	//template<class _Ty> auto make_xscope_structure_lock_guard(const _Ty& owner_ptr);
 	template<class _Ty, class _A, class _TStateMutex>
@@ -294,7 +302,7 @@ namespace mse {
 				template <typename _TRAContainerPointer2, typename _TStructureLockPointer2>
 				TXScopeCSLSStrongRAConstIterator(const TXScopeCSLSStrongRAIterator<_TRAContainerPointer2, _TStructureLockPointer2>& src) : base_class(src) {}
 				template <typename _TRAContainerPointer2, typename _TStructureLockPointer2>
-				TXScopeCSLSStrongRAConstIterator(TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer2>&& src) : base_class(std::forward<decltype(src)>(src)) {}
+				TXScopeCSLSStrongRAConstIterator(TXScopeCSLSStrongRAIterator<_TRAContainerPointer2, _TStructureLockPointer2>&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
 				TXScopeCSLSStrongRAConstIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0)
 					: base_class(ra_container_pointer, index) {}
@@ -305,11 +313,27 @@ namespace mse {
 				auto& operator=(TXScopeCSLSStrongRAConstIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
+				typedef typename std::remove_const<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>::type _TRAContainer;
+				TXScopeCSSSXSRAConstIterator<_TRAContainer> xscope_csssxsra_iterator() const & {
+					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator<mse::TXScopeItemFixedConstPointer<_TRAContainer> >((*this).target_container_ptr(), (*this).position());
+				}
+				void xscope_csssxsra_iterator() const && = delete;
+				operator TXScopeCSSSXSRAConstIterator<_TRAContainer>() const & {
+					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator<mse::TXScopeItemFixedConstPointer<_TRAContainer> >((*this).target_container_ptr(), (*this).position());
+				}
+				operator TXScopeCSSSXSRAConstIterator<_TRAContainerPointer>() const && = delete;
+
+				TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer> xscope_csss_strong_ra_iterator() const & {
+					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator<_TStructureLockPointer>((*this).target_container_ptr(), (*this).position());
+				}
+				void xscope_csss_strong_ra_iterator() const && = delete;
 				operator TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>() const & {
 					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator<_TStructureLockPointer>((*this).target_container_ptr(), (*this).position());
 				}
 				operator TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>() const && = delete;
 				/* todo: implement operator TXScopeCagedCSSSStrongRAConstIterator<>() const &&. */
+
+				//TXScopeCSSSXSRAConstIterator
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_iterator_tag() const {}
@@ -578,10 +602,10 @@ namespace mse {
 			class Tgnii_vector_xscope_cslsstrong_iterator_type;
 
 			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class Tgnii_vector_xscope_cslsstrong_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeVectorConstPointer<_Ty, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeVectorConstPointer<_Ty, _A, _TStateMutex> >()))> >
+			class Tgnii_vector_xscope_cslsstrong_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeVectorConstPointer<_Ty, _A, _TStateMutex>, mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<_Ty, _A, _TStateMutex> > >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeVectorConstPointer<_Ty, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeVectorConstPointer<_Ty, _A, _TStateMutex> >()))> > base_class;
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeVectorConstPointer<_Ty, _A, _TStateMutex>, mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<_Ty, _A, _TStateMutex> > > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_vector_xscope_cslsstrong_const_iterator_type, base_class);
@@ -704,10 +728,10 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_stored_ptr;
 				}
-				operator mse::TXScopeItemFixedPointer<TDynamicContainer>() const {
+				operator mse::TXScopeItemFixedPointer<TDynamicContainer>() const & {
 					return m_stored_ptr;
 				}
-				operator mse::TXScopeItemFixedConstPointer<TDynamicContainer>() const {
+				operator mse::TXScopeItemFixedConstPointer<TDynamicContainer>() const & {
 					return m_stored_ptr;
 				}
 				auto& operator*() const {
@@ -770,7 +794,7 @@ namespace mse {
 				auto target_container_ptr() const {
 					return m_stored_ptr;
 				}
-				operator mse::TXScopeItemFixedConstPointer<TDynamicContainer>() const {
+				operator mse::TXScopeItemFixedConstPointer<TDynamicContainer>() const & {
 					return m_stored_ptr;
 				}
 				const auto& operator*() const {

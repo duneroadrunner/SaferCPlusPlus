@@ -726,6 +726,26 @@ void msetl_example2() {
 	}
 
 	{
+		/******************************************/
+		/*  TXScopeCSSSXSTERandomAccessSection<>  */
+		/******************************************/
+
+		{
+			mse::TXScopeObj<mse::nii_array<int, 3> > xs_arr1 = mse::nii_array<int, 3>{ 1, 2, 3 };
+			auto xs_citer1 = mse::make_xscope_const_iterator(&xs_arr1);
+			mse::TXScopeCSSSXSTERAConstIterator<int> xs_csssxste_citer1 = xs_citer1;
+			mse::TXScopeCSSSXSTERandomAccessConstSection<int> csssxstera_const_section1(xs_citer1, 0);
+		}
+		{
+			mse::TXScopeObj<mse::stnii_vector<int> > xs_vec1 = mse::stnii_vector<int>{ 1, 2, 3 };
+			auto xs_citer1 = mse::make_xscope_const_iterator(&xs_vec1);
+			auto xs_csssxsra_iter = xs_citer1.xscope_csssxsra_iterator();
+			mse::TXScopeCSSSXSTERAConstIterator<int> xs_csssxste_citer1 = xs_citer1;
+			mse::TXScopeCSSSXSTERandomAccessConstSection<int> csssxstera_const_section1(xs_citer1, 0);
+		}
+	}
+
+	{
 		/******************/
 		/*  mstd::string  */
 		/*  & nii_string  */
