@@ -264,6 +264,7 @@ namespace mse {
 
 				TXScopeCSLSStrongRAIterator(const TXScopeCSLSStrongRAIterator& src) : base_class(src) {}
 				TXScopeCSLSStrongRAIterator(TXScopeCSLSStrongRAIterator&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
 				TXScopeCSLSStrongRAIterator(const _TRAContainerPointer& ra_container_pointer, size_type index = 0)
 					: base_class(ra_container_pointer, index) {}
 				TXScopeCSLSStrongRAIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0)
@@ -273,6 +274,21 @@ namespace mse {
 				auto& operator=(TXScopeCSLSStrongRAIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
+				typedef typename std::remove_const<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>::type _TRAContainer;
+				TXScopeCSSSXSRAIterator<_TRAContainer> xscope_csssxsra_iterator() const & {
+					auto xs_strong_pointer_store = mse::make_xscope_strong_pointer_store((*this).target_container_ptr());
+					return mse::us::unsafe_make_xscope_csss_strong_ra_iterator<mse::TXScopeItemFixedPointer<_TRAContainer> >(xs_strong_pointer_store.xscope_ptr(), (*this).position());
+				}
+				void xscope_csssxsra_iterator() const && = delete;
+				operator TXScopeCSSSXSRAIterator<_TRAContainer>() const & {
+					return mse::us::unsafe_make_xscope_csss_strong_ra_iterator<mse::TXScopeItemFixedPointer<_TRAContainer> >((*this).target_container_ptr(), (*this).position());
+				}
+				operator TXScopeCSSSXSRAIterator<_TRAContainer>() const && = delete;
+
+				TXScopeCSSSStrongRAIterator<_TStructureLockPointer> xscope_csss_strong_ra_iterator() const & {
+					return mse::us::unsafe_make_xscope_csss_strong_ra_iterator<_TStructureLockPointer>((*this).target_container_ptr(), (*this).position());
+				}
+				void xscope_csss_strong_ra_iterator() const && = delete;
 				operator TXScopeCSSSStrongRAIterator<_TStructureLockPointer>() const & {
 					return mse::us::unsafe_make_xscope_csss_strong_ra_iterator<_TStructureLockPointer>((*this).target_container_ptr(), (*this).position());
 				}
@@ -315,13 +331,14 @@ namespace mse {
 
 				typedef typename std::remove_const<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>::type _TRAContainer;
 				TXScopeCSSSXSRAConstIterator<_TRAContainer> xscope_csssxsra_iterator() const & {
-					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator<mse::TXScopeItemFixedConstPointer<_TRAContainer> >((*this).target_container_ptr(), (*this).position());
+					auto xs_strong_pointer_store = mse::make_xscope_strong_pointer_store((*this).target_container_ptr());
+					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator<mse::TXScopeItemFixedConstPointer<_TRAContainer> >(xs_strong_pointer_store.xscope_ptr(), (*this).position());
 				}
 				void xscope_csssxsra_iterator() const && = delete;
 				operator TXScopeCSSSXSRAConstIterator<_TRAContainer>() const & {
 					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator<mse::TXScopeItemFixedConstPointer<_TRAContainer> >((*this).target_container_ptr(), (*this).position());
 				}
-				operator TXScopeCSSSXSRAConstIterator<_TRAContainerPointer>() const && = delete;
+				operator TXScopeCSSSXSRAConstIterator<_TRAContainer>() const && = delete;
 
 				TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer> xscope_csss_strong_ra_iterator() const & {
 					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator<_TStructureLockPointer>((*this).target_container_ptr(), (*this).position());
@@ -332,8 +349,6 @@ namespace mse {
 				}
 				operator TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>() const && = delete;
 				/* todo: implement operator TXScopeCagedCSSSStrongRAConstIterator<>() const &&. */
-
-				//TXScopeCSSSXSRAConstIterator
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_iterator_tag() const {}
@@ -687,7 +702,7 @@ namespace mse {
 			template<class TDynamicContainer> class Txscope_const_structure_lock_guard;
 
 			template<class TDynamicContainer>
-			class Txscope_structure_lock_guard : public mse::us::impl::XScopeTagBase {
+			class Txscope_structure_lock_guard : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 			public:
 				Txscope_structure_lock_guard(const Txscope_structure_lock_guard& src) : m_stored_ptr(src.m_stored_ptr) {
 					(*m_stored_ptr).m_structure_change_mutex.lock_shared();
@@ -754,7 +769,7 @@ namespace mse {
 				friend class Txscope_const_structure_lock_guard<TDynamicContainer>;
 			};
 			template<class TDynamicContainer>
-			class Txscope_const_structure_lock_guard : public mse::us::impl::XScopeTagBase {
+			class Txscope_const_structure_lock_guard : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 			public:
 				Txscope_const_structure_lock_guard(const Txscope_const_structure_lock_guard& src) : m_stored_ptr(src.m_stored_ptr) {
 					(*m_stored_ptr).m_structure_change_mutex.lock_shared();
@@ -817,9 +832,9 @@ namespace mse {
 
 			/* For objects that are access controlled under an "exclusive writer" access policy, the object is immutable
 			while a const pointer to the object exists. So given an "exclusive writer" const pointer to a dynamic
-			container, it is safe to store the pointer provide a direct scope const pointer to any of its elements. */
+			container, it is safe to store the pointer and provide a direct scope const pointer to any of its elements. */
 			template<class TDynamicContainer, class _TAccessMutex = mse::non_thread_safe_shared_mutex>
-			class Txscope_ewconst_structure_lock_guard : public mse::us::impl::XScopeTagBase {
+			class Txscope_ewconst_structure_lock_guard : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 			public:
 				typedef mse::TAccessControlledConstPointer<TDynamicContainer, _TAccessMutex> exclusive_writer_const_pointer_t;
 
@@ -866,6 +881,144 @@ namespace mse {
 
 				exclusive_writer_const_pointer_t m_stored_ptr;
 			};
+
+
+			template<class TDynamicContainer, class TBaseContainerStructureLockGuard> class Txscope_const_structure_lock_guard_of_wrapper;
+
+			template<class TDynamicContainer, class TBaseContainerStructureLockGuard>
+			class Txscope_structure_lock_guard_of_wrapper : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+			public:
+				Txscope_structure_lock_guard_of_wrapper(const Txscope_structure_lock_guard_of_wrapper&) = default;
+				Txscope_structure_lock_guard_of_wrapper(Txscope_structure_lock_guard_of_wrapper&&) = default;
+
+				template<typename TBaseContainerStructureLockGuardInitParam>
+				Txscope_structure_lock_guard_of_wrapper(const mse::TXScopeFixedPointer<TDynamicContainer>& owner_ptr, const TBaseContainerStructureLockGuardInitParam& MV_xscope_structure_lock_guard_init_param)
+					: m_stored_ptr(owner_ptr), m_MV_xscope_structure_lock_guard(MV_xscope_structure_lock_guard_init_param) {}
+				template<typename TBaseContainerStructureLockGuardInitParam>
+				Txscope_structure_lock_guard_of_wrapper(const mse::TXScopeFixedPointer<TDynamicContainer>& owner_ptr, TBaseContainerStructureLockGuardInitParam&& MV_xscope_structure_lock_guard_init_param)
+					: m_stored_ptr(owner_ptr), m_MV_xscope_structure_lock_guard(std::forward<decltype(MV_xscope_structure_lock_guard_init_param)>(MV_xscope_structure_lock_guard_init_param)) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				template<typename TBaseContainerStructureLockGuardInitParam>
+				Txscope_structure_lock_guard_of_wrapper(const mse::TXScopeItemFixedPointer<TDynamicContainer>& owner_ptr, const TBaseContainerStructureLockGuardInitParam& MV_xscope_structure_lock_guard_init_param)
+					: m_stored_ptr(owner_ptr), m_MV_xscope_structure_lock_guard(MV_xscope_structure_lock_guard_init_param) {}
+				template<typename TBaseContainerStructureLockGuardInitParam>
+				Txscope_structure_lock_guard_of_wrapper(const mse::TXScopeItemFixedPointer<TDynamicContainer>& owner_ptr, TBaseContainerStructureLockGuardInitParam&& MV_xscope_structure_lock_guard_init_param)
+					: m_stored_ptr(owner_ptr), m_MV_xscope_structure_lock_guard(std::forward<decltype(MV_xscope_structure_lock_guard_init_param)>(MV_xscope_structure_lock_guard_init_param)) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+				auto xscope_cbegin() const {
+					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator(m_stored_ptr);
+				}
+				auto xscope_cend() const {
+					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator(m_stored_ptr) + (*m_stored_ptr).size();
+				}
+				auto xscope_begin() const {
+					return mse::us::unsafe_make_xscope_csss_strong_ra_iterator(m_stored_ptr);
+				}
+				auto xscope_end() const {
+					return mse::us::unsafe_make_xscope_csss_strong_ra_iterator(m_stored_ptr) + (*m_stored_ptr).size();
+				}
+
+				auto xscope_ptr_to_element(typename TDynamicContainer::size_type _P) const {
+					return mse::us::unsafe_make_xscope_pointer_to((*m_stored_ptr)[_P]);
+				}
+				typedef typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeItemFixedConstPointer<TDynamicContainer> >()))>::type xscope_const_iterator;
+				auto xscope_ptr_to_element(const xscope_const_iterator& ss_iter) const {
+					assert(std::addressof(*(ss_iter.target_container_ptr())) == std::addressof(*m_stored_ptr));
+					return xscope_ptr_to_element(ss_iter.position());
+				}
+				auto target_container_ptr() const {
+					return m_stored_ptr;
+				}
+				operator mse::TXScopeItemFixedPointer<TDynamicContainer>() const & {
+					return m_stored_ptr;
+				}
+				operator mse::TXScopeItemFixedConstPointer<TDynamicContainer>() const & {
+					return m_stored_ptr;
+				}
+				auto& operator*() const {
+					return *m_stored_ptr;
+				}
+				auto* operator->() const {
+					return std::addressof(*m_stored_ptr);
+				}
+				bool operator==(const Txscope_structure_lock_guard_of_wrapper& rhs) const {
+					return (rhs.m_stored_ptr == m_stored_ptr);
+				}
+
+				void async_not_shareable_and_not_passable_tag() const {}
+
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+				mse::TXScopeItemFixedPointer<TDynamicContainer> m_stored_ptr;
+				TBaseContainerStructureLockGuard m_MV_xscope_structure_lock_guard;
+
+				friend class Txscope_const_structure_lock_guard_of_wrapper<TDynamicContainer, TBaseContainerStructureLockGuard>;
+			};
+			template<class TDynamicContainer, class TBaseContainerStructureLockGuard>
+			class Txscope_const_structure_lock_guard_of_wrapper : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+			public:
+				Txscope_const_structure_lock_guard_of_wrapper(const Txscope_const_structure_lock_guard_of_wrapper&) = default;
+				Txscope_const_structure_lock_guard_of_wrapper(Txscope_const_structure_lock_guard_of_wrapper&&) = default;
+
+				template<typename TBaseContainerStructureLockGuardInitParam>
+				Txscope_const_structure_lock_guard_of_wrapper(const mse::TXScopeFixedConstPointer<TDynamicContainer>& owner_ptr, const TBaseContainerStructureLockGuardInitParam& MV_xscope_structure_lock_guard_init_param)
+					: m_stored_ptr(owner_ptr), m_MV_xscope_structure_lock_guard(MV_xscope_structure_lock_guard_init_param) {}
+				template<typename TBaseContainerStructureLockGuardInitParam>
+				Txscope_const_structure_lock_guard_of_wrapper(const mse::TXScopeFixedConstPointer<TDynamicContainer>& owner_ptr, TBaseContainerStructureLockGuardInitParam&& MV_xscope_structure_lock_guard_init_param)
+					: m_stored_ptr(owner_ptr), m_MV_xscope_structure_lock_guard(std::forward<decltype(MV_xscope_structure_lock_guard_init_param)>(MV_xscope_structure_lock_guard_init_param)) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				template<typename TBaseContainerStructureLockGuardInitParam>
+				Txscope_const_structure_lock_guard_of_wrapper(const mse::TXScopeItemFixedConstPointer<TDynamicContainer>& owner_ptr, const TBaseContainerStructureLockGuardInitParam& MV_xscope_structure_lock_guard_init_param)
+					: m_stored_ptr(owner_ptr), m_MV_xscope_structure_lock_guard(MV_xscope_structure_lock_guard_init_param) {}
+				template<typename TBaseContainerStructureLockGuardInitParam>
+				Txscope_const_structure_lock_guard_of_wrapper(const mse::TXScopeItemFixedConstPointer<TDynamicContainer>& owner_ptr, TBaseContainerStructureLockGuardInitParam&& MV_xscope_structure_lock_guard_init_param)
+					: m_stored_ptr(owner_ptr), m_MV_xscope_structure_lock_guard(std::forward<decltype(MV_xscope_structure_lock_guard_init_param)>(MV_xscope_structure_lock_guard_init_param)) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+				auto xscope_cbegin() const {
+					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator(m_stored_ptr);
+				}
+				auto xscope_cend() const {
+					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator(m_stored_ptr) + (*m_stored_ptr).size();
+				}
+				auto xscope_begin() const { return xscope_cbegin(); }
+				auto xscope_end() const { return xscope_cend(); }
+
+				auto xscope_ptr_to_element(typename TDynamicContainer::size_type _P) const {
+					return mse::us::unsafe_make_xscope_const_pointer_to((*m_stored_ptr)[_P]);
+				}
+				typedef typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeItemFixedConstPointer<TDynamicContainer> >()))>::type xscope_const_iterator;
+				auto xscope_ptr_to_element(const xscope_const_iterator& ss_iter) const {
+					assert(std::addressof(*(ss_iter.target_container_ptr())) == std::addressof(*m_stored_ptr));
+					return xscope_ptr_to_element(ss_iter.position());
+				}
+				auto target_container_ptr() const {
+					return m_stored_ptr;
+				}
+				operator mse::TXScopeItemFixedConstPointer<TDynamicContainer>() const & {
+					return m_stored_ptr;
+				}
+				const auto& operator*() const {
+					return *m_stored_ptr;
+				}
+				const auto* operator->() const {
+					return std::addressof(*m_stored_ptr);
+				}
+				bool operator==(const Txscope_const_structure_lock_guard_of_wrapper& rhs) const {
+					return (rhs.m_stored_ptr == m_stored_ptr);
+				}
+
+				void async_not_shareable_and_not_passable_tag() const {}
+
+			private:
+				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+				mse::TXScopeItemFixedConstPointer<TDynamicContainer> m_stored_ptr;
+				TBaseContainerStructureLockGuard m_MV_xscope_structure_lock_guard;
+			};
+
 		}
 	}
 

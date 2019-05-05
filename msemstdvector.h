@@ -39,71 +39,60 @@ namespace mse {
 #ifdef MSE_MSTDVECTOR_DISABLED
 		template<class _Ty, class _A = std::allocator<_Ty> > using vector = std::vector<_Ty, _A>;
 
-		template<class _Ty, class _A = std::allocator<_Ty> >
-		class xscope_structure_lock_guard : public mse::us::impl::XScopeTagBase {
-		public:
-			xscope_structure_lock_guard(const mse::TXScopeFixedPointer<vector<_Ty, _A> >& owner_ptr)
-				: m_owner_ptr(owner_ptr) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<vector<_Ty, _A> >& owner_ptr)
-				: m_owner_ptr(owner_ptr) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+		namespace ns_vector {
 
-			auto xscope_ptr_to_element(size_t _P) const {
-				return mse::us::unsafe_make_xscope_pointer_to((*m_owner_ptr).at(_P));
-			}
-			auto xscope_ptr_to_element(const xscope_array_iterator<vector<_Ty, _A> >& iter) const {
-				return xscope_ptr_to_element(iter - (*m_owner_ptr).begin());
-			}
-			auto target_container_ptr() const {
-				return m_owner_ptr;
-			}
-			void async_not_shareable_and_not_passable_tag() const {}
-		private:
-			mse::TXScopeItemFixedPointer<vector<_Ty, _A> > m_owner_ptr;
-		};
-		template<class _Ty, class _A = std::allocator<_Ty> >
-		class xscope_const_structure_lock_guard : public mse::us::impl::XScopeTagBase {
-		public:
-			xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<vector<_Ty, _A> >& owner_ptr)
-				: m_owner_ptr(owner_ptr) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xscope_const_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<vector<_Ty, _A> >& owner_ptr)
-				: m_owner_ptr(owner_ptr) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+			struct dummy_xscope_structure_lock_guard {};
 
-			auto xscope_ptr_to_element(size_t _P) const {
-				return mse::us::unsafe_make_xscope_const_pointer_to((*m_owner_ptr).at(_P));
-			}
-			auto xscope_ptr_to_element(const xscope_array_const_iterator<vector<_Ty, _A> >& citer) const {
-				return xscope_ptr_to_element(citer - (*m_owner_ptr).cbegin());
-			}
-			auto target_container_ptr() const {
-				return m_owner_ptr;
-			}
-			void async_not_shareable_and_not_passable_tag() const {}
-		private:
-			mse::TXScopeItemFixedConstPointer<vector<_Ty, _A> > m_owner_ptr;
-		};
+			template<class _Ty, class _A = std::allocator<_Ty> >
+			class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard_of_wrapper<vector<_Ty, _A>, dummy_xscope_structure_lock_guard> {
+			public:
+				typedef mse::us::impl::Txscope_structure_lock_guard_of_wrapper<vector<_Ty, _A>, dummy_xscope_structure_lock_guard> base_class;
+
+				xscope_structure_lock_guard(const xscope_structure_lock_guard&) = default;
+				xscope_structure_lock_guard(xscope_structure_lock_guard&&) = default;
+
+				xscope_structure_lock_guard(const mse::TXScopeFixedPointer<vector<_Ty, _A> >& owner_ptr)
+					: base_class(owner_ptr, dummy_xscope_structure_lock_guard()) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<vector<_Ty, _A> >& owner_ptr)
+					: base_class(owner_ptr, dummy_xscope_structure_lock_guard()) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+			};
+			template<class _Ty, class _A = std::allocator<_Ty> >
+			class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard_of_wrapper<vector<_Ty, _A>, dummy_xscope_structure_lock_guard> {
+			public:
+				typedef mse::us::impl::Txscope_structure_lock_guard_of_wrapper<vector<_Ty, _A>, dummy_xscope_structure_lock_guard> base_class;
+
+				xscope_const_structure_lock_guard(const xscope_const_structure_lock_guard&) = default;
+				xscope_const_structure_lock_guard(xscope_const_structure_lock_guard&&) = default;
+
+				xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<vector<_Ty, _A> >& owner_ptr)
+					: base_class(owner_ptr, dummy_xscope_structure_lock_guard()) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_const_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<vector<_Ty, _A> >& owner_ptr)
+					: base_class(owner_ptr, dummy_xscope_structure_lock_guard()) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+			};
+		}
 
 		template<class _Ty, class _A = std::allocator<_Ty> >
 		auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<vector<_Ty, _A> >& owner_ptr) {
-			return xscope_structure_lock_guard<_Ty, _A>(owner_ptr);
+			return ns_vector::xscope_structure_lock_guard<_Ty, _A>(owner_ptr);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _A = std::allocator<_Ty> >
 		auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<vector<_Ty, _A> >& owner_ptr) {
-			return xscope_structure_lock_guard<_Ty, _A>(owner_ptr);
+			return ns_vector::xscope_structure_lock_guard<_Ty, _A>(owner_ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _A = std::allocator<_Ty> >
 		auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<vector<_Ty, _A> >& owner_ptr) {
-			return xscope_const_structure_lock_guard<_Ty, _A>(owner_ptr);
+			return ns_vector::xscope_const_structure_lock_guard<_Ty, _A>(owner_ptr);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _A = std::allocator<_Ty> >
 		auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<vector<_Ty, _A> >& owner_ptr) {
-			return xscope_const_structure_lock_guard<_Ty, _A>(owner_ptr);
+			return ns_vector::xscope_const_structure_lock_guard<_Ty, _A>(owner_ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
@@ -805,55 +794,36 @@ namespace mse {
 			individual elements in the vector do not become invalid by preventing any operation that might resize the vector
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 			template<class _Ty, class _A = std::allocator<_Ty> >
-			class xscope_structure_lock_guard : public mse::us::impl::XScopeTagBase {
+			class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard_of_wrapper<vector<_Ty, _A>, typename mse::us::ns_msevector::xscope_structure_lock_guard<_Ty, _A> > {
 			public:
-				typedef vector<_Ty, _A> MV;
-				xscope_structure_lock_guard(const mse::TXScopeFixedPointer<MV>& owner_ptr)
-					: m_MV_xscope_structure_lock_guard(mse::us::unsafe_make_xscope_pointer_to(MV::s_msevector(owner_ptr))) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<MV>& owner_ptr)
-					: m_MV_xscope_structure_lock_guard(mse::us::unsafe_make_xscope_pointer_to(MV::s_msevector(owner_ptr))) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+				typedef mse::us::impl::Txscope_structure_lock_guard_of_wrapper<vector<_Ty, _A>, typename mse::us::ns_msevector::xscope_structure_lock_guard<_Ty, _A> > base_class;
 
-				auto xscope_ptr_to_element(typename MV::size_type _P) const {
-					return m_MV_xscope_structure_lock_guard.xscope_ptr_to_element(_P);
-				}
-				auto xscope_ptr_to_element(const typename MV::xscope_const_iterator& citer) const {
-					assert(std::addressof(*(citer.target_container_ptr())) == std::addressof(*target_container_ptr()));
-					return xscope_ptr_to_element(citer.position());
-				}
-				auto target_container_ptr() const {
-					return m_MV_xscope_structure_lock_guard.target_container_ptr();
-				}
-				void async_not_shareable_and_not_passable_tag() const {}
-			private:
-				typename mse::us::ns_msevector::xscope_structure_lock_guard<_Ty, _A> m_MV_xscope_structure_lock_guard;
+				xscope_structure_lock_guard(const xscope_structure_lock_guard&) = default;
+				xscope_structure_lock_guard(xscope_structure_lock_guard&&) = default;
+
+				xscope_structure_lock_guard(const mse::TXScopeFixedPointer<vector<_Ty, _A> >& owner_ptr)
+					: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<vector<_Ty, _A> >& owner_ptr)
+					: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 			};
 			template<class _Ty, class _A = std::allocator<_Ty> >
-			class xscope_const_structure_lock_guard : public mse::us::impl::XScopeTagBase {
+			class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard_of_wrapper<vector<_Ty, _A>, typename mse::us::ns_msevector::xscope_const_structure_lock_guard<_Ty, _A> > {
 			public:
-				typedef vector<_Ty, _A> MV;
-				xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<MV>& owner_ptr)
-					: m_MV_xscope_const_structure_lock_guard(mse::us::unsafe_make_xscope_const_pointer_to(MV::s_msevector(owner_ptr))) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_const_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<MV>& owner_ptr)
-					: m_MV_xscope_const_structure_lock_guard(mse::us::unsafe_make_xscope_const_pointer_to(MV::s_msevector(owner_ptr))) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+				typedef mse::us::impl::Txscope_structure_lock_guard_of_wrapper<vector<_Ty, _A>, typename mse::us::ns_msevector::xscope_const_structure_lock_guard<_Ty, _A> > base_class;
 
-				auto xscope_ptr_to_element(typename MV::size_type _P) const {
-					return m_MV_xscope_const_structure_lock_guard.xscope_ptr_to_element(_P);
-				}
-				auto xscope_ptr_to_element(const typename MV::xscope_const_iterator& citer) const {
-					assert(std::addressof(*(citer.target_container_ptr())) == std::addressof(*target_container_ptr()));
-					return xscope_ptr_to_element(citer.position());
-				}
-				auto target_container_ptr() const {
-					return m_MV_xscope_const_structure_lock_guard.target_container_ptr();
-				}
-				void async_not_shareable_and_not_passable_tag() const {}
-			private:
-				typename mse::us::ns_msevector::xscope_const_structure_lock_guard<_Ty, _A> m_MV_xscope_const_structure_lock_guard;
+				xscope_const_structure_lock_guard(const xscope_const_structure_lock_guard&) = default;
+				xscope_const_structure_lock_guard(xscope_const_structure_lock_guard&&) = default;
+
+				xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<vector<_Ty, _A> >& owner_ptr)
+					: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xscope_const_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<vector<_Ty, _A> >& owner_ptr)
+					: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 			};
+
 		}
 
 		/* For each (scope) vector instance, only one instance of xscope_structure_lock_guard may exist at any one

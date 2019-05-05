@@ -563,52 +563,35 @@ namespace mse {
 		time. While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
 		individual elements in the vector do not become invalid by preventing any operation that might resize the vector
 		or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-		class xscope_structure_lock_guard : public mse::us::impl::XScopeTagBase {
+		class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard_of_wrapper<ivector, typename mse::us::msevector<_Ty>::xscope_structure_lock_guard> {
 		public:
+			typedef mse::us::impl::Txscope_structure_lock_guard_of_wrapper<ivector, typename mse::us::msevector<_Ty>::xscope_structure_lock_guard> base_class;
+
+			xscope_structure_lock_guard(const xscope_structure_lock_guard&) = default;
+			xscope_structure_lock_guard(xscope_structure_lock_guard&&) = default;
+
 			xscope_structure_lock_guard(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
-				: m_MV_xscope_structure_lock_guard(mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+				: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 			xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<ivector>& owner_ptr)
-				: m_MV_xscope_structure_lock_guard(mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
+				: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
-			auto xscope_ptr_to_element(size_type _P) const {
-				return m_MV_xscope_structure_lock_guard.xscope_ptr_to_element(_P);
-			}
-			auto xscope_ptr_to_element(const xscope_ipointer& iter) const {
-				assert(std::addressof(*(iter.target_container_ptr())) == std::addressof(*target_container_ptr()));
-				return xscope_ptr_to_element(iter.position());
-			}
-			auto target_container_ptr() const {
-				return m_MV_xscope_structure_lock_guard.target_container_ptr();
-			}
-			void async_not_shareable_and_not_passable_tag() const {}
-		private:
-			typename mse::us::msevector<_Ty>::xscope_structure_lock_guard m_MV_xscope_structure_lock_guard;
 		};
-		class xscope_const_structure_lock_guard : public mse::us::impl::XScopeTagBase {
+		class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard_of_wrapper<ivector, typename mse::us::msevector<_Ty>::xscope_const_structure_lock_guard> {
 		public:
+			typedef mse::us::impl::Txscope_structure_lock_guard_of_wrapper<ivector, typename mse::us::msevector<_Ty>::xscope_structure_lock_guard> base_class;
+
+			xscope_const_structure_lock_guard(const xscope_const_structure_lock_guard&) = default;
+			xscope_const_structure_lock_guard(xscope_const_structure_lock_guard&&) = default;
+
 			xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<ivector>& owner_ptr)
-				: m_MV_xscope_const_structure_lock_guard(mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
+				: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 			xscope_const_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<ivector>& owner_ptr)
-				: m_MV_xscope_const_structure_lock_guard(mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
+				: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
-			auto xscope_ptr_to_element(size_type _P) const {
-				return m_MV_xscope_const_structure_lock_guard.xscope_ptr_to_element(_P);
-			}
-			auto xscope_ptr_to_element(const xscope_cipointer& citer) const {
-				assert(std::addressof(*(citer.target_container_ptr())) == std::addressof(*target_container_ptr()));
-				return xscope_ptr_to_element(citer.position());
-			}
-			auto target_container_ptr() const {
-				return m_MV_xscope_const_structure_lock_guard.target_container_ptr();
-			}
-			void async_not_shareable_and_not_passable_tag() const {}
-		private:
-			typename mse::us::msevector<_Ty>::xscope_const_structure_lock_guard m_MV_xscope_const_structure_lock_guard;
 		};
+
 
 		void async_not_shareable_and_not_passable_tag() const {}
 
