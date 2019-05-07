@@ -1123,13 +1123,13 @@ namespace mse {
 
 			private:
 				template<class _TRAIterator>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
+				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return _TRAContainerPointerRR(src.target_container_ptr()); }
 				template<class _TRAIterator>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, _TRAIterator&& src) { return std::forward< _TRAIterator>(src).target_container_ptr(); }
+				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, _TRAIterator&& src) { return _TRAContainerPointerRR(std::forward< _TRAIterator>(src).target_container_ptr()); }
 				template<class _Ty2>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return param; }
+				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return _TRAContainerPointerRR(param); }
 				template<class _Ty2>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return std::forward<_Ty2>(param); }
+				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return _TRAContainerPointerRR(std::forward<_Ty2>(param)); }
 				template<class _TRAIterator>
 				auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
 				template<class _Ty2>
@@ -1371,13 +1371,13 @@ namespace mse {
 
 			private:
 				template<class _TRAIterator>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return src.target_container_ptr(); }
+				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return _TRAContainerPointerRR(src.target_container_ptr()); }
 				template<class _TRAIterator>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, _TRAIterator&& src) { return std::forward< _TRAIterator>(src).target_container_ptr(); }
+				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, _TRAIterator&& src) { return _TRAContainerPointerRR(std::forward< _TRAIterator>(src).target_container_ptr()); }
 				template<class _Ty2>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return param; }
+				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return _TRAContainerPointerRR(param); }
 				template<class _Ty2>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return std::forward<_Ty2>(param); }
+				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return _TRAContainerPointerRR(std::forward<_Ty2>(param)); }
 				template<class _TRAIterator>
 				auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
 				template<class _Ty2>
@@ -2027,7 +2027,15 @@ namespace mse {
 				MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TXScopeRuntimeRawArrayProxyAndSelfPointer);
 				TXScopeRuntimeRawArrayProxyAndSelfPointer(_TElement* first_element_ptr, size_type size) : m_first_element_ptr(first_element_ptr), m_size(size) {}
 
-				_TElement& operator[](difference_type _Off) const { return m_first_element_ptr[_Off]; }
+				_TElement& at(size_type _Off) const {
+					if (m_size <= _Off) {
+						MSE_THROW(msearray_range_error("out of bounds index - operator[](size_type _Off) - TXScopeRuntimeRawArrayProxyAndSelfPointer"));
+					}
+					return m_first_element_ptr[_Off];
+				}
+				_TElement& operator[](size_type _Off) const {
+					return at(_Off);
+				}
 
 				size_t size() const { return m_size; }
 

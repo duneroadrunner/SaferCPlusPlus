@@ -258,9 +258,10 @@ namespace mse {
 
 #define MSE_USING_ASSIGNMENT_OPERATOR(Base) \
 	template<class _Ty2mse_uao, class _TBase2 = Base, typename = typename std::enable_if<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value \
-		&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_TBase2, _Ty2mse_uao>::value) || std::is_same<_TBase2, _Ty2mse_uao>::value)>::type> \
+		&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_TBase2, _Ty2mse_uao>::value) || std::is_same<_TBase2, typename std::remove_reference<_Ty2mse_uao>::type>::value)>::type> \
 	auto& operator=(_Ty2mse_uao&& _X) { Base::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
-	template<class _Ty2mse_uao, class _TBase2 = Base, typename = typename std::enable_if<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value>::type> \
+	template<class _Ty2mse_uao, class _TBase2 = Base, typename = typename std::enable_if<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value \
+		&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_TBase2, _Ty2mse_uao>::value) || std::is_same<_TBase2, _Ty2mse_uao>::value)>::type> \
 	auto& operator=(const _Ty2mse_uao& _X) { Base::operator=(_X); return (*this); }
 
 #define MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(ClassName) \

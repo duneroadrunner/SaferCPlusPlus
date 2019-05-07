@@ -1794,52 +1794,83 @@ namespace mse {
 	obtain a corresponding scope pointer. */
 	template<typename _TStrongPointer>
 	class TXScopeStrongPointerStore : public mse::us::impl::XScopeTagBase
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer, TXScopeStrongPointerStore<_TStrongPointer>)
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, typename std::remove_reference<_TStrongPointer>::type, TXScopeStrongPointerStore<typename std::remove_reference<_TStrongPointer>::type>)
 	{
+	private:
+		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
+		_TStrongPointerNR m_stored_ptr;
+
 	public:
+		typedef TXScopeStrongPointerStore _Myt;
+		typedef typename std::remove_reference<decltype(*m_stored_ptr)>::type target_t;
+
 		TXScopeStrongPointerStore(const TXScopeStrongPointerStore&) = delete;
 		TXScopeStrongPointerStore(TXScopeStrongPointerStore&&) = default;
 
-		TXScopeStrongPointerStore(_TStrongPointer&& stored_ptr) : m_stored_ptr(std::forward<_TStrongPointer>(stored_ptr)) {
+		TXScopeStrongPointerStore(_TStrongPointerNR&& stored_ptr) : m_stored_ptr(std::forward<_TStrongPointerNR>(stored_ptr)) {
 			*m_stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
-		TXScopeStrongPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
+		TXScopeStrongPointerStore(const _TStrongPointerNR& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
 		~TXScopeStrongPointerStore() {
-			mse::impl::is_valid_if_strong_pointer<_TStrongPointer>::no_op();
+			mse::impl::is_valid_if_strong_pointer<_TStrongPointerNR>::no_op();
 		}
 		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr);
 		}
 		auto xscope_ptr() const && {
-			return mse::TXScopeCagedItemFixedPointerToRValue<typename std::remove_reference<decltype(*m_stored_ptr)>::type>(mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr));
+			return mse::TXScopeCagedItemFixedPointerToRValue<target_t>(mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr));
 		}
-		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
+		const _TStrongPointerNR& stored_ptr() const { return m_stored_ptr; }
 
+		operator mse::TXScopeItemFixedPointer<target_t>() const & {
+			return m_stored_ptr;
+		}
+		/*
+		template<class target_t2 = target_t, class = typename std::enable_if<!std::is_same<mse::TXScopeItemFixedConstPointer<target_t2>, mse::TXScopeItemFixedPointer<target_t> >::value, void>::type>
+		explicit operator mse::TXScopeItemFixedConstPointer<target_t2>() const & {
+			return m_stored_ptr;
+		}
+		*/
+		auto& operator*() const {
+			return *m_stored_ptr;
+		}
+		auto* operator->() const {
+			return std::addressof(*m_stored_ptr);
+		}
+		bool operator==(const _Myt& rhs) const {
+			return (rhs.m_stored_ptr == m_stored_ptr);
+		}
+
+		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
+		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
-
-	private:
-		_TStrongPointer m_stored_ptr;
 	};
 
 	template<typename _TStrongPointer>
 	class TXScopeStrongConstPointerStore : public mse::us::impl::XScopeTagBase
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer, TXScopeStrongConstPointerStore<_TStrongPointer>)
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, typename std::remove_reference<_TStrongPointer>::type, TXScopeStrongConstPointerStore<typename std::remove_reference<_TStrongPointer>::type>)
 	{
+	private:
+		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
+		_TStrongPointerNR m_stored_ptr;
+
 	public:
+		typedef TXScopeStrongConstPointerStore _Myt;
+		typedef typename std::remove_reference<decltype(*m_stored_ptr)>::type target_t;
+
 		TXScopeStrongConstPointerStore(const TXScopeStrongConstPointerStore&) = delete;
 		TXScopeStrongConstPointerStore(TXScopeStrongConstPointerStore&&) = default;
 
-		TXScopeStrongConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {
+		TXScopeStrongConstPointerStore(const _TStrongPointerNR& stored_ptr) : m_stored_ptr(stored_ptr) {
 			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
 		~TXScopeStrongConstPointerStore() {
-			mse::impl::is_valid_if_strong_pointer<_TStrongPointer>::no_op();
+			mse::impl::is_valid_if_strong_pointer<_TStrongPointerNR>::no_op();
 		}
 		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
@@ -1847,95 +1878,212 @@ namespace mse {
 		auto xscope_ptr() const && {
 			return mse::TXScopeCagedItemFixedConstPointerToRValue<typename std::remove_const<typename std::remove_reference<decltype(*m_stored_ptr)>::type>::type>(mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr));
 		}
-		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
+		const _TStrongPointerNR& stored_ptr() const { return m_stored_ptr; }
 
+		operator mse::TXScopeItemFixedConstPointer<target_t>() const & {
+			return m_stored_ptr;
+		}
+		auto& operator*() const {
+			return *m_stored_ptr;
+		}
+		auto* operator->() const {
+			return std::addressof(*m_stored_ptr);
+		}
+		bool operator==(const _Myt& rhs) const {
+			return (rhs.m_stored_ptr == m_stored_ptr);
+		}
+
+		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
+		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
-
-	private:
-		_TStrongPointer m_stored_ptr;
 	};
 
-	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_and_never_null_pointer<_TStrongPointer> >
+	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_and_never_null_pointer<typename std::remove_reference<_TStrongPointer>::type> >
 	class TXScopeStrongNotNullPointerStore : public mse::us::impl::XScopeTagBase
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer, TXScopeStrongNotNullPointerStore<_TStrongPointer>)
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, typename std::remove_reference<_TStrongPointer>::type, TXScopeStrongNotNullPointerStore<typename std::remove_reference<_TStrongPointer>::type>)
 	{
+	private:
+		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
+		_TStrongPointerNR m_stored_ptr;
+
 	public:
+		typedef TXScopeStrongNotNullPointerStore _Myt;
+		typedef typename std::remove_reference<decltype(*m_stored_ptr)>::type target_t;
+
 		TXScopeStrongNotNullPointerStore(const TXScopeStrongNotNullPointerStore&) = delete;
 		TXScopeStrongNotNullPointerStore(TXScopeStrongNotNullPointerStore&&) = default;
 
-		TXScopeStrongNotNullPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
+		TXScopeStrongNotNullPointerStore(const _TStrongPointerNR& stored_ptr) : m_stored_ptr(stored_ptr) {}
 		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_pointer_to(*m_stored_ptr);
 		}
 		void xscope_ptr() const && = delete;
-		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
+		const _TStrongPointerNR& stored_ptr() const { return m_stored_ptr; }
 
+		operator mse::TXScopeItemFixedPointer<target_t>() const & {
+			return m_stored_ptr;
+		}
+		/*
+		template<class target_t2 = target_t, class = typename std::enable_if<!std::is_same<mse::TXScopeItemFixedConstPointer<target_t2>, mse::TXScopeItemFixedPointer<target_t> >::value, void>::type>
+		explicit operator mse::TXScopeItemFixedConstPointer<target_t2>() const & {
+			return m_stored_ptr;
+		}
+		*/
+		auto& operator*() const {
+			return *m_stored_ptr;
+		}
+		auto* operator->() const {
+			return std::addressof(*m_stored_ptr);
+		}
+		bool operator==(const _Myt& rhs) const {
+			return (rhs.m_stored_ptr == m_stored_ptr);
+		}
+
+		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
+		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
-
-	private:
-		_TStrongPointer m_stored_ptr;
 	};
 
-	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_and_never_null_pointer<_TStrongPointer> >
+	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_and_never_null_pointer<typename std::remove_reference<_TStrongPointer>::type> >
 	class TXScopeStrongNotNullConstPointerStore : public mse::us::impl::XScopeTagBase
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer, TXScopeStrongNotNullConstPointerStore<_TStrongPointer>)
+		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer, TXScopeStrongNotNullConstPointerStore<typename std::remove_reference<_TStrongPointer>::type>)
 	{
+	private:
+		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
+		_TStrongPointerNR m_stored_ptr;
+
 	public:
+		typedef TXScopeStrongNotNullConstPointerStore _Myt;
+		typedef typename std::remove_reference<decltype(*m_stored_ptr)>::type target_t;
+
 		TXScopeStrongNotNullConstPointerStore(const TXScopeStrongNotNullConstPointerStore&) = delete;
 		TXScopeStrongNotNullConstPointerStore(TXScopeStrongNotNullConstPointerStore&&) = default;
 
-		TXScopeStrongNotNullConstPointerStore(const _TStrongPointer& stored_ptr) : m_stored_ptr(stored_ptr) {}
+		TXScopeStrongNotNullConstPointerStore(const _TStrongPointerNR& stored_ptr) : m_stored_ptr(stored_ptr) {}
 		auto xscope_ptr() const & {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*m_stored_ptr);
 		}
 		void xscope_ptr() const && = delete;
-		const _TStrongPointer& stored_ptr() const { return m_stored_ptr; }
+		const _TStrongPointerNR& stored_ptr() const { return m_stored_ptr; }
 
+		operator mse::TXScopeItemFixedConstPointer<target_t>() const & {
+			return m_stored_ptr;
+		}
+		auto& operator*() const {
+			return *m_stored_ptr;
+		}
+		auto* operator->() const {
+			return std::addressof(*m_stored_ptr);
+		}
+		bool operator==(const _Myt& rhs) const {
+			return (rhs.m_stored_ptr == m_stored_ptr);
+		}
+
+		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		template<class _Ty2 = _TStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointer>::value) && (
+		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
-
-	private:
-		_TStrongPointer m_stored_ptr;
 	};
 
+	namespace impl {
+		namespace ns_xscope_strong_pointer_store {
+
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_const_pointer_store_helper1(std::true_type, const _TStrongPointer& stored_ptr) {
+				return TXScopeStrongNotNullConstPointerStore<_TStrongPointer>(stored_ptr);
+			}
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_const_pointer_store_helper1(std::true_type, _TStrongPointer&& stored_ptr) {
+				return TXScopeStrongNotNullConstPointerStore<_TStrongPointer>(std::forward<decltype(stored_ptr)>(stored_ptr));
+			}
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_const_pointer_store_helper1(std::false_type, const _TStrongPointer& stored_ptr) {
+				return TXScopeStrongConstPointerStore<_TStrongPointer>(stored_ptr);
+			}
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_const_pointer_store_helper1(std::false_type, _TStrongPointer&& stored_ptr) {
+				return TXScopeStrongConstPointerStore<_TStrongPointer>(std::forward<decltype(stored_ptr)>(stored_ptr));
+			}
+
+		}
+	}
 	template<typename _TStrongPointer>
-	TXScopeStrongPointerStore<_TStrongPointer> make_xscope_strong_pointer_store(const _TStrongPointer& stored_ptr) {
-		return TXScopeStrongPointerStore<_TStrongPointer>(stored_ptr);
+	auto make_xscope_strong_const_pointer_store(const _TStrongPointer& stored_ptr) {
+		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
+		return impl::ns_xscope_strong_pointer_store::make_xscope_strong_const_pointer_store_helper1<_TStrongPointerNR>(typename std::is_base_of<mse::us::impl::NeverNullTagBase, _TStrongPointerNR>::type(), stored_ptr);
+	}
+	template<typename _TStrongPointer>
+	auto make_xscope_strong_const_pointer_store(_TStrongPointer&& stored_ptr) {
+		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
+		return impl::ns_xscope_strong_pointer_store::make_xscope_strong_const_pointer_store_helper1<_TStrongPointerNR>(typename std::is_base_of<mse::us::impl::NeverNullTagBase, _TStrongPointerNR>::type(), std::forward<decltype(stored_ptr)>(stored_ptr));
 	}
 
+	namespace impl {
+		namespace ns_xscope_strong_pointer_store {
+
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_pointer_store_helper1(std::true_type, const _TStrongPointer& stored_ptr) {
+				return TXScopeStrongNotNullPointerStore<_TStrongPointer>(stored_ptr);
+			}
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_pointer_store_helper1(std::true_type, _TStrongPointer&& stored_ptr) {
+				return TXScopeStrongNotNullPointerStore<_TStrongPointer>(std::forward<decltype(stored_ptr)>(stored_ptr));
+			}
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_pointer_store_helper1(std::false_type, const _TStrongPointer& stored_ptr) {
+				return TXScopeStrongPointerStore<_TStrongPointer>(stored_ptr);
+			}
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_pointer_store_helper1(std::false_type, _TStrongPointer&& stored_ptr) {
+				return TXScopeStrongPointerStore<_TStrongPointer>(std::forward<decltype(stored_ptr)>(stored_ptr));
+			}
+
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_pointer_store_helper2(std::true_type, const _TStrongPointer& stored_ptr) {
+				return make_xscope_strong_const_pointer_store(stored_ptr);
+			}
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_pointer_store_helper2(std::true_type, _TStrongPointer&& stored_ptr) {
+				return make_xscope_strong_const_pointer_store(std::forward<decltype(stored_ptr)>(stored_ptr));
+			}
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_pointer_store_helper2(std::false_type, const _TStrongPointer& stored_ptr) {
+				typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
+				return make_xscope_strong_pointer_store_helper1(typename std::is_base_of<mse::us::impl::NeverNullTagBase, _TStrongPointerNR>::type(), stored_ptr);
+			}
+			template<typename _TStrongPointer>
+			auto make_xscope_strong_pointer_store_helper2(std::false_type, _TStrongPointer&& stored_ptr) {
+				typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
+				return make_xscope_strong_pointer_store_helper1(typename std::is_base_of<mse::us::impl::NeverNullTagBase, _TStrongPointerNR>::type(), std::forward<decltype(stored_ptr)>(stored_ptr));
+			}
+		}
+	}
+	template<typename _TStrongPointer>
+	auto make_xscope_strong_pointer_store(const _TStrongPointer& stored_ptr) {
+		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
+		typedef typename std::remove_reference<decltype(*stored_ptr)>::type _TTargetNR;
+		return impl::ns_xscope_strong_pointer_store::make_xscope_strong_pointer_store_helper2<_TStrongPointerNR>(typename std::is_const<_TTargetNR>::type(), stored_ptr);
+	}
+	template<typename _TStrongPointer>
+	auto make_xscope_strong_pointer_store(_TStrongPointer&& stored_ptr) {
+		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
+		typedef typename std::remove_reference<decltype(*stored_ptr)>::type _TTargetNR;
+		return impl::ns_xscope_strong_pointer_store::make_xscope_strong_pointer_store_helper2<_TStrongPointerNR>(typename std::is_const<_TTargetNR>::type(), std::forward<decltype(stored_ptr)>(stored_ptr));
+	}
 
 	template<typename _Ty> using TXScopeXScopeItemFixedStore = TXScopeStrongNotNullPointerStore<TXScopeItemFixedPointer<_Ty> >;
 	template<typename _Ty> using TXScopeXScopeItemFixedConstStore = TXScopeStrongNotNullConstPointerStore<TXScopeItemFixedConstPointer<_Ty> >;
-	template<typename _Ty>
-	TXScopeXScopeItemFixedStore<_Ty> make_xscope_strong_pointer_store(const TXScopeItemFixedPointer<_Ty>& stored_ptr) {
-		return TXScopeXScopeItemFixedStore<_Ty>(stored_ptr);
-	}
-	template<typename _Ty>
-	TXScopeXScopeItemFixedConstStore<_Ty> make_xscope_strong_pointer_store(const TXScopeItemFixedConstPointer<_Ty>& stored_ptr) {
-		return TXScopeXScopeItemFixedConstStore<_Ty>(stored_ptr);
-	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<typename _Ty> using TXScopeXScopeFixedStore = TXScopeStrongNotNullPointerStore<TXScopeFixedPointer<_Ty> >;
 	template<typename _Ty> using TXScopeXScopeFixedConstStore = TXScopeStrongNotNullConstPointerStore<TXScopeFixedConstPointer<_Ty> >;
-	template<typename _Ty>
-	TXScopeXScopeFixedStore<_Ty> make_xscope_strong_pointer_store(const TXScopeFixedPointer<_Ty>& stored_ptr) {
-		return TXScopeXScopeFixedStore<_Ty>(stored_ptr);
-	}
-	template<typename _Ty>
-	TXScopeXScopeFixedConstStore<_Ty> make_xscope_strong_pointer_store(const TXScopeFixedConstPointer<_Ty>& stored_ptr) {
-		return TXScopeXScopeFixedConstStore<_Ty>(stored_ptr);
-	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 

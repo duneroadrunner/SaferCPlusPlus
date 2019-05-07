@@ -180,10 +180,12 @@ int main(int argc, char* argv[]) {
 
 		{
 #ifdef MSE_HAS_CXX17
+#ifndef MSE_MSTDVECTOR_DISABLED
 			/* deduction guide example */
 			auto str1 = std::string("abcd");
 			auto vector2 = mse::mstd::vector(str1.cbegin(), str1.cend());
 			assert('b' == vector2[1]);
+#endif // !MSE_MSTDVECTOR_DISABLED
 #endif /* MSE_HAS_CXX17 */
 		}
 	}

@@ -845,34 +845,6 @@ namespace mse {
 	template<typename _Ty> using TXScopeRefCountingConstStore = TXScopeStrongConstPointerStore<TRefCountingConstPointer<_Ty> >;
 	template<typename _Ty> using TXScopeRefCountingNotNullStore = TXScopeStrongNotNullPointerStore<TRefCountingNotNullPointer<_Ty> >;
 	template<typename _Ty> using TXScopeRefCountingNotNullConstStore = TXScopeStrongNotNullConstPointerStore<TRefCountingNotNullConstPointer<_Ty> >;
-
-	template<typename _Ty>
-	TXScopeRefCountingStore<_Ty> make_xscope_strong_pointer_store(const TRefCountingPointer<_Ty>& stored_ptr) {
-		return TXScopeRefCountingStore<_Ty>(stored_ptr);
-	}
-	template<typename _Ty>
-	TXScopeRefCountingConstStore<_Ty> make_xscope_strong_pointer_store(const TRefCountingConstPointer<_Ty>& stored_ptr) {
-		return TXScopeRefCountingConstStore<_Ty>(stored_ptr);
-	}
-#if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
-	template<typename _Ty>
-	TXScopeRefCountingNotNullStore<_Ty> make_xscope_strong_pointer_store(const TRefCountingNotNullPointer<_Ty>& stored_ptr) {
-		return TXScopeRefCountingNotNullStore<_Ty>(stored_ptr);
-	}
-	template<typename _Ty>
-	TXScopeRefCountingNotNullConstStore<_Ty> make_xscope_strong_pointer_store(const TRefCountingNotNullConstPointer<_Ty>& stored_ptr) {
-		return TXScopeRefCountingNotNullConstStore<_Ty>(stored_ptr);
-	}
-	template<typename _Ty>
-	TXScopeRefCountingNotNullStore<_Ty> make_xscope_strong_pointer_store(const TRefCountingFixedPointer<_Ty>& stored_ptr) {
-		return TXScopeRefCountingNotNullStore<_Ty>(stored_ptr);
-	}
-	template<typename _Ty>
-	TXScopeRefCountingNotNullConstStore<_Ty> make_xscope_strong_pointer_store(const TRefCountingFixedConstPointer<_Ty>& stored_ptr) {
-		return TXScopeRefCountingNotNullConstStore<_Ty>(stored_ptr);
-	}
-#endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
-
 #endif // MSESCOPE_H_
 
 

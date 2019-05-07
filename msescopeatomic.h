@@ -951,28 +951,11 @@ namespace mse {
 		}
 	}
 
-
 	template<typename _Ty> using TXScopeXScopeAtomicItemFixedStore = TXScopeStrongNotNullPointerStore<TXScopeAtomicItemFixedPointer<_Ty> >;
 	template<typename _Ty> using TXScopeXScopeAtomicItemFixedConstStore = TXScopeStrongNotNullConstPointerStore<TXScopeAtomicItemFixedConstPointer<_Ty> >;
-	template<typename _Ty>
-	TXScopeXScopeAtomicItemFixedStore<_Ty> make_xscope_strong_pointer_store(const TXScopeAtomicItemFixedPointer<_Ty>& stored_ptr) {
-		return TXScopeXScopeAtomicItemFixedStore<_Ty>(stored_ptr);
-	}
-	template<typename _Ty>
-	TXScopeXScopeAtomicItemFixedConstStore<_Ty> make_xscope_strong_pointer_store(const TXScopeAtomicItemFixedConstPointer<_Ty>& stored_ptr) {
-		return TXScopeXScopeAtomicItemFixedConstStore<_Ty>(stored_ptr);
-	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<typename _Ty> using TXScopeXScopeAtomicFixedStore = TXScopeStrongNotNullPointerStore<TXScopeAtomicFixedPointer<_Ty> >;
 	template<typename _Ty> using TXScopeXScopeAtomicFixedConstStore = TXScopeStrongNotNullConstPointerStore<TXScopeAtomicFixedConstPointer<_Ty> >;
-	template<typename _Ty>
-	TXScopeXScopeAtomicFixedStore<_Ty> make_xscope_strong_pointer_store(const TXScopeAtomicFixedPointer<_Ty>& stored_ptr) {
-		return TXScopeXScopeAtomicFixedStore<_Ty>(stored_ptr);
-	}
-	template<typename _Ty>
-	TXScopeXScopeAtomicFixedConstStore<_Ty> make_xscope_strong_pointer_store(const TXScopeAtomicFixedConstPointer<_Ty>& stored_ptr) {
-		return TXScopeXScopeAtomicFixedConstStore<_Ty>(stored_ptr);
-	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 
