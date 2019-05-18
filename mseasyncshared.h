@@ -2120,11 +2120,7 @@ namespace mse {
 	{
 	public:
 		typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::reference reference;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		TXScopeAsyncSplitterRandomAccessSection(TXScopeAsyncSplitterRandomAccessSection&& src) = default;
 
@@ -2162,11 +2158,7 @@ namespace mse {
 	{
 	public:
 		typedef TRandomAccessSection<_TRAIterator> base_class;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::reference reference;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		TAsyncSplitterRandomAccessSection(TAsyncSplitterRandomAccessSection&& src) = default;
 		virtual ~TAsyncSplitterRandomAccessSection() {
@@ -2930,13 +2922,7 @@ namespace mse {
 		typedef mse::us::impl::gnii_vector<_Ty, _A, mse::mtnii_vector_shared_mutex> base_class;
 
 		typedef typename base_class::allocator_type allocator_type;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::const_pointer const_pointer;
-		typedef typename base_class::reference reference;
-		typedef typename base_class::const_reference const_reference;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		typedef typename base_class::iterator iterator;
 		typedef typename base_class::const_iterator const_iterator;
@@ -3024,13 +3010,7 @@ namespace mse {
 		typedef mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, mse::mtnii_basic_string_shared_mutex> base_class;
 
 		typedef typename base_class::allocator_type allocator_type;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::const_pointer const_pointer;
-		typedef typename base_class::reference reference;
-		typedef typename base_class::const_reference const_reference;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		typedef typename base_class::iterator iterator;
 		typedef typename base_class::const_iterator const_iterator;

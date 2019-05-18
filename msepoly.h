@@ -991,13 +991,12 @@ namespace mse {
 			class TCommonRandomAccessIteratorInterface : public TRandomAccessIteratorStdBase<_Ty> {
 			public:
 				typedef TRandomAccessIteratorStdBase<_Ty> base_class;
+				MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				virtual ~TCommonRandomAccessIteratorInterface() {}
 				virtual _Ty& operator*() const = 0;
 				virtual _Ty* operator->() const = 0;
-				typedef typename base_class::reference reference_t;
-				typedef typename base_class::difference_type difference_type;
-				virtual reference_t operator[](difference_type _Off) const = 0;
+				virtual reference operator[](difference_type _Off) const = 0;
 				virtual void operator +=(difference_type x) = 0;
 				virtual void operator -=(difference_type x) { operator +=(-x); }
 				virtual void operator ++() { operator +=(1); }
@@ -1016,6 +1015,9 @@ namespace mse {
 			template <typename _Ty, typename _TRandomAccessIterator1>
 			class TCommonizedRandomAccessIterator : public TCommonRandomAccessIteratorInterface<_Ty> {
 			public:
+				typedef TCommonRandomAccessIteratorInterface<_Ty> base_class;
+				MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
+
 				TCommonizedRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : m_random_access_iterator(random_access_iterator) {}
 				virtual ~TCommonizedRandomAccessIterator() {}
 
@@ -1026,11 +1028,11 @@ namespace mse {
 					return std::addressof(*m_random_access_iterator);
 					//return m_random_access_iterator.operator->();
 				}
-				typename TCommonRandomAccessIteratorInterface<_Ty>::reference_t operator[](typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type _Off) const {
+				reference operator[](difference_type _Off) const {
 					return m_random_access_iterator[_Off];
 				}
-				void operator +=(typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type x) { m_random_access_iterator += x; }
-				typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type operator-(const TCommonRandomAccessIteratorInterface<_Ty>& _Right_cref) const {
+				void operator +=(difference_type x) { m_random_access_iterator += x; }
+				difference_type operator-(const TCommonRandomAccessIteratorInterface<_Ty>& _Right_cref) const {
 					const TCommonizedRandomAccessIterator* crai_ptr = static_cast<const TCommonizedRandomAccessIterator*>(&_Right_cref);
 					assert(crai_ptr);
 					const _TRandomAccessIterator1& _Right_cref_m_random_access_iterator_cref = (*crai_ptr).m_random_access_iterator;
@@ -1043,6 +1045,9 @@ namespace mse {
 			template <typename _Ty>
 			class TAnyRandomAccessIteratorBase : public TRandomAccessIteratorStdBase<_Ty> {
 			public:
+				typedef TRandomAccessIteratorStdBase<_Ty> base_class;
+				MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
+
 				TAnyRandomAccessIteratorBase(const TAnyRandomAccessIteratorBase& src) : m_any_random_access_iterator(src.m_any_random_access_iterator) {}
 				TAnyRandomAccessIteratorBase(_Ty arr[]) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _Ty*>(arr)) {}
 
@@ -1059,9 +1064,7 @@ namespace mse {
 				_Ty* operator->() const {
 					return common_random_access_iterator_interface_ptr()->operator->();
 				}
-				typedef typename TCommonRandomAccessIteratorInterface<_Ty>::reference_t reference_t;
-				typedef typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type difference_type;
-				reference_t operator[](difference_type _Off) const {
+				reference operator[](difference_type _Off) const {
 					return common_random_access_iterator_interface_ptr()->operator[](_Off);
 				}
 				void operator +=(difference_type x) { common_random_access_iterator_interface_ptr()->operator+=(x); }
@@ -1108,13 +1111,12 @@ namespace mse {
 			class TCommonRandomAccessConstIteratorInterface : public TRandomAccessConstIteratorStdBase<_Ty> {
 			public:
 				typedef TRandomAccessConstIteratorStdBase<_Ty> base_class;
+				MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				virtual ~TCommonRandomAccessConstIteratorInterface() {}
 				virtual const _Ty& operator*() const = 0;
 				virtual const _Ty* operator->() const = 0;
-				typedef typename base_class::reference const_reference_t;
-				typedef typename base_class::difference_type difference_type;
-				virtual const_reference_t operator[](difference_type _Off) const = 0;
+				virtual const_reference operator[](difference_type _Off) const = 0;
 				virtual void operator +=(difference_type x) = 0;
 				virtual void operator -=(difference_type x) { operator +=(-x); }
 				virtual void operator ++() { operator +=(1); }
@@ -1133,6 +1135,9 @@ namespace mse {
 			template <typename _Ty, typename _TRandomAccessConstIterator1>
 			class TCommonizedRandomAccessConstIterator : public TCommonRandomAccessConstIteratorInterface<_Ty> {
 			public:
+				typedef TCommonRandomAccessConstIteratorInterface<_Ty> base_class;
+				MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
+
 				TCommonizedRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_random_access_const_iterator(random_access_const_iterator) {}
 				virtual ~TCommonizedRandomAccessConstIterator() {}
 
@@ -1143,11 +1148,11 @@ namespace mse {
 					return std::addressof(*m_random_access_const_iterator);
 					//return m_random_access_const_iterator.operator->();
 				}
-				typename TCommonRandomAccessConstIteratorInterface<_Ty>::const_reference_t operator[](typename TCommonRandomAccessConstIteratorInterface<_Ty>::difference_type _Off) const {
+				const_reference operator[](difference_type _Off) const {
 					return m_random_access_const_iterator[_Off];
 				}
-				void operator +=(typename TCommonRandomAccessConstIteratorInterface<_Ty>::difference_type x) { m_random_access_const_iterator += x; }
-				typename TCommonRandomAccessIteratorInterface<_Ty>::difference_type operator-(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const {
+				void operator +=(difference_type x) { m_random_access_const_iterator += x; }
+				difference_type operator-(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const {
 					const TCommonizedRandomAccessConstIterator* crai_ptr = static_cast<const TCommonizedRandomAccessConstIterator*>(&_Right_cref);
 					assert(crai_ptr);
 					const _TRandomAccessConstIterator1& _Right_cref_m_random_access_const_iterator_cref = (*crai_ptr).m_random_access_const_iterator;
@@ -1160,6 +1165,9 @@ namespace mse {
 			template <typename _Ty>
 			class TAnyRandomAccessConstIteratorBase : public TRandomAccessConstIteratorStdBase<_Ty> {
 			public:
+				typedef TRandomAccessConstIteratorStdBase<_Ty> base_class;
+				MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
+
 				TAnyRandomAccessConstIteratorBase(const TAnyRandomAccessConstIteratorBase& src) : m_any_random_access_const_iterator(src.m_any_random_access_const_iterator) {}
 				TAnyRandomAccessConstIteratorBase(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>(arr)) {}
 
@@ -1176,9 +1184,7 @@ namespace mse {
 				const _Ty* operator->() const {
 					return common_random_access_const_iterator_interface_ptr()->operator->();
 				}
-				typedef typename TCommonRandomAccessConstIteratorInterface<_Ty>::const_reference_t const_reference_t;
-				typedef typename TCommonRandomAccessConstIteratorInterface<_Ty>::difference_type difference_type;
-				const_reference_t operator[](difference_type _Off) const {
+				const_reference operator[](difference_type _Off) const {
 					return common_random_access_const_iterator_interface_ptr()->operator[](_Off);
 				}
 				void operator +=(difference_type x) { common_random_access_const_iterator_interface_ptr()->operator+=(x); };
@@ -1227,10 +1233,9 @@ namespace mse {
 	class TXScopeAnyRandomAccessIterator : public us::impl::TAnyRandomAccessIteratorBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef us::impl::TAnyRandomAccessIteratorBase<_Ty> base_class;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		MSE_USING(TXScopeAnyRandomAccessIterator, base_class);
-
-		typedef typename base_class::difference_type difference_type;
 
 		TXScopeAnyRandomAccessIterator& operator ++() { base_class::operator +=(1); return (*this); }
 		TXScopeAnyRandomAccessIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
@@ -1260,10 +1265,9 @@ namespace mse {
 	class TXScopeAnyRandomAccessConstIterator : public us::impl::TAnyRandomAccessConstIteratorBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef us::impl::TAnyRandomAccessConstIteratorBase<_Ty> base_class;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		MSE_USING(TXScopeAnyRandomAccessConstIterator, base_class);
-
-		typedef typename base_class::difference_type difference_type;
 
 		TXScopeAnyRandomAccessConstIterator& operator ++() { base_class::operator +=(1); return (*this); }
 		TXScopeAnyRandomAccessConstIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
@@ -1293,7 +1297,7 @@ namespace mse {
 	class TAnyRandomAccessIterator : public us::impl::TAnyRandomAccessIteratorBase<_Ty> {
 	public:
 		typedef us::impl::TAnyRandomAccessIteratorBase<_Ty> base_class;
-		typedef typename base_class::difference_type difference_type;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : base_class(src) {}
 		TAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
@@ -1326,7 +1330,7 @@ namespace mse {
 	class TAnyRandomAccessConstIterator : public us::impl::TAnyRandomAccessConstIteratorBase<_Ty> {
 	public:
 		typedef us::impl::TAnyRandomAccessConstIteratorBase<_Ty> base_class;
-		typedef typename base_class::difference_type difference_type;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		TAnyRandomAccessConstIterator(const TAnyRandomAccessConstIterator& src) : base_class(src) {}
 		TAnyRandomAccessConstIterator(const TAnyRandomAccessIterator<_Ty>& src) : base_class(src) {}
@@ -1445,12 +1449,7 @@ namespace mse {
 	class TXScopeAnyStringConstSection : public TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		static const size_t npos = size_t(-1);
-		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		MSE_USING(TXScopeAnyStringConstSection, base_class);
 		TXScopeAnyStringConstSection() : base_class(&s_default_string_ref()) {}
@@ -1465,12 +1464,7 @@ namespace mse {
 	class TAnyStringConstSection : public TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		static const size_t npos = size_t(-1);
-		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		MSE_USING(TAnyStringConstSection, base_class);
 		TAnyStringConstSection() : base_class(&s_default_string_ref()) {}
@@ -1556,13 +1550,7 @@ namespace mse {
 	class TXScopeAnyNRPStringSection : public TXScopeNRPStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> {
 	public:
 		typedef TXScopeNRPStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> base_class;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::reference reference;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		static const size_t npos = size_t(-1);
-		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//MSE_USING(TXScopeAnyNRPStringSection, base_class);
 		TXScopeAnyNRPStringSection(const TXScopeAnyNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -1589,13 +1577,7 @@ namespace mse {
 	class TAnyNRPStringSection : public TNRPStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> {
 	public:
 		typedef TNRPStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> base_class;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::reference reference;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		static const size_t npos = size_t(-1);
-		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//MSE_USING(TAnyNRPStringSection, base_class);
 		TAnyNRPStringSection(const TAnyNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -1618,12 +1600,7 @@ namespace mse {
 	class TXScopeAnyNRPStringConstSection : public TXScopeNRPStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TXScopeNRPStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		static const size_t npos = size_t(-1);
-		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//MSE_USING(TXScopeAnyNRPStringConstSection, base_class);
 		TXScopeAnyNRPStringConstSection(const TXScopeAnyNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -1661,12 +1638,7 @@ namespace mse {
 	class TAnyNRPStringConstSection : public TNRPStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TNRPStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::const_reference const_reference;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		static const size_t npos = size_t(-1);
-		typedef typename std::remove_const<value_type>::type nonconst_value_type;
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//MSE_USING(TAnyNRPStringConstSection, base_class);
 		TAnyNRPStringConstSection(const TAnyNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -1735,11 +1707,7 @@ namespace mse {
 		class basic_string_view : public TAnyStringConstSection<_Ty, _Traits> {
 		public:
 			typedef TAnyStringConstSection<_Ty, _Traits> base_class;
-			typedef typename base_class::value_type value_type;
-			typedef typename base_class::const_reference const_reference;
-			typedef typename base_class::size_type size_type;
-			typedef typename base_class::difference_type difference_type;
-			static const size_t npos = size_t(-1);
+			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 			MSE_USING(basic_string_view, base_class);
 			explicit basic_string_view(const char* sz) : base_class(sz, _Traits::length(sz)) {}
@@ -1749,11 +1717,7 @@ namespace mse {
 		class xscope_basic_string_view : public TXScopeAnyStringConstSection<_Ty, _Traits> {
 		public:
 			typedef TXScopeAnyStringConstSection<_Ty, _Traits> base_class;
-			typedef typename base_class::value_type value_type;
-			typedef typename base_class::const_reference const_reference;
-			typedef typename base_class::size_type size_type;
-			typedef typename base_class::difference_type difference_type;
-			static const size_t npos = size_t(-1);
+			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 			MSE_USING(xscope_basic_string_view, base_class);
 			explicit xscope_basic_string_view(const char* sz) : base_class(sz, _Traits::length(sz)) {}

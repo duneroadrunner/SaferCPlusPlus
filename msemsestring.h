@@ -3344,19 +3344,19 @@ namespace mse {
 
 				/*
 				_Myt& operator=(const std_basic_string& _X) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.operator =(_X);
 					//m_debug_size = size();
 					return (*this);
 				}
 				*/
 				_Myt& operator=(_Myt&& _X) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.operator=(std::forward<decltype(_X)>(_X).contained_basic_string());
 					return (*this);
 				}
 				_Myt& operator=(const _Myt& _X) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.operator=(_X.contained_basic_string());
 					return (*this);
 				}
@@ -3372,7 +3372,7 @@ namespace mse {
 
 				void reserve(size_type _Count)
 				{	// determine new minimum length of allocated storage
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.reserve(msev_as_a_size_t(_Count));
 				}
 				size_type capacity() const _NOEXCEPT
@@ -3380,11 +3380,11 @@ namespace mse {
 					return m_basic_string.capacity();
 				}
 				void shrink_to_fit() {	// reduce capacity
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.shrink_to_fit();
 				}
 				void resize(size_type _N, const _Ty& _X = _Ty()) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.resize(msev_as_a_size_t(_N), _X);
 				}
 				typename std_basic_string::const_reference operator[](msev_size_t _P) const {
@@ -3410,21 +3410,21 @@ namespace mse {
 					return m_basic_string.back();
 				}
 				void push_back(_Ty&& _X) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.push_back(std::forward<decltype(_X)>(_X));
 				}
 				void push_back(const _Ty& _X) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.push_back(_X);
 				}
 				void pop_back() {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.pop_back();
 				}
 
 
 				gnii_basic_string& assign(mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.assign(xs_ptr->m_basic_string);
 					/*m_debug_size = size();*/
 					return (*this);
@@ -3434,7 +3434,7 @@ namespace mse {
 					return assign(xs_ptr);
 				}
 				gnii_basic_string& assign(mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr, const size_type _Roff, size_type _Count = npos) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.assign(xs_ptr->m_basic_string, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 					/*m_debug_size = size();*/
 					return (*this);
@@ -3445,19 +3445,19 @@ namespace mse {
 				}
 
 				gnii_basic_string& assign(const _Ty * const _Ptr, const size_type _Count) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.assign(_Ptr, mse::as_a_size_t(_Count));
 					//m_debug_size = size();
 					return (*this);
 				}
 				gnii_basic_string& assign(const _Ty * const _Ptr) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.assign(_Ptr);
 					//m_debug_size = size();
 					return (*this);
 				}
 				gnii_basic_string& assign(const size_type _Count, const _Ty& _Ch) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.assign(mse::as_a_size_t(_Count), _Ch);
 					//m_debug_size = size();
 					return (*this);
@@ -3465,7 +3465,7 @@ namespace mse {
 				template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator_v<_Iter> >::type>
 				gnii_basic_string& assign(const _Iter _First, const _Iter _Last) {
 					smoke_check_source_iterators(_First, _Last);
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.assign(_First, _Last);
 					//m_debug_size = size();
 					return (*this);
@@ -3476,7 +3476,7 @@ namespace mse {
 				template<class _StringViewIsh>
 				gnii_basic_string& assign_helper2(std::true_type, const _StringViewIsh& _Right) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.assign(_As_view);
 					/*m_debug_size = size();*/
 					return (*this);
@@ -3504,7 +3504,7 @@ namespace mse {
 				template<class _StringViewIsh>
 				gnii_basic_string& assign_helper2(std::true_type, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.assign(_As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 					/*m_debug_size = size();*/
 					return (*this);
@@ -3533,7 +3533,7 @@ namespace mse {
 		#else /* MSE_HAS_CXX17 */
 				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 				gnii_basic_string& assign(const _TStringSection& _X) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.assign(_X.cbegin(), _X.cend());
 					/*m_debug_size = size();*/
 					return (*this);
@@ -3577,27 +3577,27 @@ namespace mse {
 				template<class ..._Valty>
 				void emplace_back(_Valty&& ..._Val)
 				{	// insert by moving into element at end
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.emplace_back(std::forward<_Valty>(_Val)...);
 					/*m_debug_size = size();*/
 				}
 				void clear() {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.clear();
 					/*m_debug_size = size();*/
 				}
 
 				void swap(_Myt& _Other) {	// swap contents with _Other
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.swap(_Other.m_basic_string);
 				}
 				void swap(_MBS& _Other) {	// swap contents with _Other
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.swap(_Other);
 				}
 				template<typename _TStateMutex2>
 				void swap(mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex2>& _Other) {	// swap contents with _Other
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.swap(_Other.m_basic_string);
 				}
 
@@ -4218,7 +4218,7 @@ namespace mse {
 
 
 				gnii_basic_string& append(mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.append(xs_ptr->m_basic_string);
 					/*m_debug_size = size();*/
 					return (*this);
@@ -4228,7 +4228,7 @@ namespace mse {
 					return append(xs_ptr);
 				}
 				gnii_basic_string& append(mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr, const size_type _Roff, size_type _Count = npos) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.append(xs_ptr->m_basic_string, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 					/*m_debug_size = size();*/
 					return (*this);
@@ -4239,19 +4239,19 @@ namespace mse {
 				}
 
 				gnii_basic_string& append(const _Ty * const _Ptr, const size_type _Count) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.append(_Ptr, mse::as_a_size_t(_Count));
 					//m_debug_size = size();
 					return (*this);
 				}
 				gnii_basic_string& append(const _Ty * const _Ptr) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.append(_Ptr);
 					//m_debug_size = size();
 					return (*this);
 				}
 				gnii_basic_string& append(const size_type _Count, const _Ty& _Ch) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.append(mse::as_a_size_t(_Count), _Ch);
 					//m_debug_size = size();
 					return (*this);
@@ -4259,13 +4259,13 @@ namespace mse {
 				template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator_v<_Iter> >::type>
 				gnii_basic_string& append(const _Iter _First, const _Iter _Last) {
 					smoke_check_source_iterators(_First, _Last);
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.append(_First, _Last);
 					//m_debug_size = size();
 					return (*this);
 				}
 				gnii_basic_string& append(std::initializer_list<_Ty> _Ilist) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.append(_Ilist);
 					return (*this);
 				}
@@ -4275,7 +4275,7 @@ namespace mse {
 				template<class _StringViewIsh>
 				gnii_basic_string& append_helper2(std::true_type, const _StringViewIsh& _Right) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.append(_As_view);
 					/*m_debug_size = size();*/
 					return (*this);
@@ -4303,7 +4303,7 @@ namespace mse {
 				template<class _StringViewIsh>
 				gnii_basic_string& append_helper2(std::true_type, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.append(_As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 					/*m_debug_size = size();*/
 					return (*this);
@@ -4332,7 +4332,7 @@ namespace mse {
 		#else /* MSE_HAS_CXX17 */
 				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 				gnii_basic_string& append(const _TStringSection& _X) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.append(_X.cbegin(), _X.cend());
 					/*m_debug_size = size();*/
 					return (*this);
@@ -4369,25 +4369,25 @@ namespace mse {
 		#endif /* MSE_HAS_CXX17 */
 
 				gnii_basic_string& replace(const size_type _Off, const size_type _N0, mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string());
 					return (*this);
 				}
 				gnii_basic_string& replace(const size_type _Off, const size_type _N0, const gnii_basic_string& _Right) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string());
 					return (*this);
 				}
 
 				gnii_basic_string& replace(const size_type _Off, size_type _N0,
 					mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr, const size_type _Roff, size_type _Count = npos) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string(), mse::msev_as_a_size_t(_Roff), mse::msev_as_a_size_t(_Count));
 					return (*this);
 				}
 				gnii_basic_string& replace(const size_type _Off, size_type _N0,
 					const gnii_basic_string& _Right, const size_type _Roff, size_type _Count = npos) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string(), mse::msev_as_a_size_t(_Roff), mse::msev_as_a_size_t(_Count));
 					return (*this);
 				}
@@ -4397,7 +4397,7 @@ namespace mse {
 				template<class _StringViewIsh>
 				gnii_basic_string& replace_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view);
 					/*m_debug_size = size();*/
 					return (*this);
@@ -4424,7 +4424,7 @@ namespace mse {
 				template<class _StringViewIsh>
 				gnii_basic_string& replace_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 					/*m_debug_size = size();*/
 					return (*this);
@@ -4452,7 +4452,7 @@ namespace mse {
 		#else /* MSE_HAS_CXX17 */
 				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 				gnii_basic_string& replace(const size_type _Off, const size_type _N0, const _TStringSection& _X) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _X.cbegin(), _X.cend());
 					/*m_debug_size = size();*/
 					return (*this);
@@ -4460,7 +4460,7 @@ namespace mse {
 		#endif /* MSE_HAS_CXX17 */
 
 				gnii_basic_string& replace(const size_type _Off, size_type _N0, const _Ty * const _Ptr, const size_type _Count) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr, mse::msev_as_a_size_t(_Count));
 					return (*this);
 				}
@@ -4470,7 +4470,7 @@ namespace mse {
 				}
 
 				gnii_basic_string& replace(const size_type _Off, size_type _N0, const size_type _Count, const _Ty _Ch) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), mse::msev_as_a_size_t(_Count), _Ch);
 					return (*this);
 				}
@@ -4513,7 +4513,7 @@ namespace mse {
 				template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value>::type>
 				gnii_basic_string& replace(const size_type _Off, const size_type _N0, const _Iter _First2, const _Iter _Last2) {
 					smoke_check_source_iterators(_First2, _Last2);
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					if (m_basic_string.size() <= (mse::msev_as_a_size_t(_Off) + mse::msev_as_a_size_t(_N0))) { throw(std::out_of_range(" gnii_basic_string::replace() ")); }
 					auto iter1 = m_basic_string.begin() + mse::msev_as_a_size_t(_Off);
 					m_basic_string.replace(iter1, iter1 + mse::msev_as_a_size_t(_N0), _First2, _Last2);
@@ -4904,13 +4904,13 @@ namespace mse {
 
 
 				typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, _Ty _X) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					typename std_basic_string::iterator retval = m_basic_string.insert(_P, _X);
 					/*m_debug_size = size();*/
 					return retval;
 				}
 				typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, size_type _M, _Ty _X) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					typename std_basic_string::iterator retval = m_basic_string.insert(_P, msev_as_a_size_t(_M), _X);
 					/*m_debug_size = size();*/
 					return retval;
@@ -4920,14 +4920,14 @@ namespace mse {
 					, class = mse::impl::_mse_RequireInputIter<_Iter> >
 				typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _Where, const _Iter& _First, const _Iter& _Last) {	// insert [_First, _Last) at _Where
 					smoke_check_source_iterators(_First, _Last);
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					auto retval = m_basic_string.insert(_Where, _First, _Last);
 					/*m_debug_size = size();*/
 					return retval;
 				}
 				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 				typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, const _TStringSection& _X) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					/* todo: optimize? In most cases a temporary copy shouldn't be necessary, but what about when the string section
 					refers to a section of the target string? */
 					const _Myt temp_nii_str(_X);
@@ -4938,19 +4938,19 @@ namespace mse {
 				template<class ..._Valty>
 				typename std_basic_string::iterator emplace(typename std_basic_string::const_iterator _Where, _Valty&& ..._Val)
 				{	// insert by moving _Val at _Where
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					auto retval = m_basic_string.insert(_Where, std::forward<_Valty>(_Val)...);
 					/*m_debug_size = size();*/
 					return retval;
 				}
 				typename std_basic_string::iterator erase(typename std_basic_string::const_iterator _P) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					typename std_basic_string::iterator retval = m_basic_string.erase(_P);
 					/*m_debug_size = size();*/
 					return retval;
 				}
 				typename std_basic_string::iterator erase(typename std_basic_string::const_iterator _F, typename std_basic_string::const_iterator _L) {
-					std::lock_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					typename std_basic_string::iterator retval = m_basic_string.erase(_F, _L);
 					/*m_debug_size = size();*/
 					return retval;
@@ -4971,6 +4971,20 @@ namespace mse {
 				static std::basic_ostream<_Ty, _Traits>& out_to_stream(std::basic_ostream<_Ty, _Traits>& _Ostr, const gnii_basic_string& _Str) {
 					return _Ostr << _Str.contained_basic_string();
 				}
+
+				template<class _Mutex>
+				class structure_change_guard {
+				public:
+					structure_change_guard(_Mutex& _Mtx) try : m_lock_guard(_Mtx) {}
+					catch (...) {
+						MSE_THROW(mse::structure_lock_violation_error("structure lock violation - Attempting to modify \
+							the structure (size/capacity) of a container while a reference (iterator) to one of its elements \
+							still exists?"));
+					}
+				private:
+					std::lock_guard<_Mutex> m_lock_guard;
+				};
+
 
 				const _MBS& contained_basic_string() const { return m_basic_string; }
 				auto&& contained_basic_string() { return m_basic_string; }
@@ -5453,13 +5467,7 @@ namespace mse {
 		typedef mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, mse::non_thread_safe_shared_mutex> base_class;
 
 		typedef typename base_class::allocator_type allocator_type;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::const_pointer const_pointer;
-		typedef typename base_class::reference reference;
-		typedef typename base_class::const_reference const_reference;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		typedef typename base_class::iterator iterator;
 		typedef typename base_class::const_iterator const_iterator;
@@ -5581,15 +5589,7 @@ namespace mse {
 			typedef msebasic_string _Myt;
 
 			typedef typename base_class::allocator_type allocator_type;
-			typedef typename base_class::value_type value_type;
-			typedef typename base_class::size_type size_type;
-			//typedef msev_size_t size_type;
-			typedef typename base_class::difference_type difference_type;
-			//typedef msev_int difference_type;
-			typedef typename base_class::pointer pointer;
-			typedef typename base_class::const_pointer const_pointer;
-			typedef typename base_class::reference reference;
-			typedef typename base_class::const_reference const_reference;
+			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 			static const size_t npos = size_t(-1);
 
 			typedef typename base_class::_MBS::iterator iterator;
@@ -5659,27 +5659,27 @@ namespace mse {
 #endif /* MSE_HAS_CXX17 */
 
 			_Myt& operator=(const base_class& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::operator =(_X);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
 				return (*this);
 			}
 			_Myt& operator=(_Myt&& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::operator=(std::forward<decltype(_X)>(_X));
 				m_mmitset.reset();
 				return (*this);
 			}
 			_Myt& operator=(const _Myt& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::operator=(_X);
 				m_mmitset.reset();
 				return (*this);
 			}
 			void reserve(size_type _Count)
 			{	// determine new minimum length of allocated storage
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				auto original_capacity = msev_size_t((*this).capacity());
 
 				base_class::reserve(msev_as_a_size_t(_Count));
@@ -5702,7 +5702,7 @@ namespace mse {
 				}
 			}
 			void resize(size_type _N, const _Ty& _X = _Ty()) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				auto original_size = msev_size_t((*this).size());
 				auto original_capacity = msev_size_t((*this).capacity());
 				bool shrinking = (_N < original_size);
@@ -5743,7 +5743,7 @@ namespace mse {
 				return base_class::back();
 			}
 			void push_back(_Ty&& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					base_class::push_back(std::forward<decltype(_X)>(_X));
 				}
@@ -5764,7 +5764,7 @@ namespace mse {
 				}
 			}
 			void push_back(const _Ty& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					base_class::push_back(_X);
 				}
@@ -5785,7 +5785,7 @@ namespace mse {
 				}
 			}
 			void pop_back() {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					base_class::pop_back();
 				}
@@ -5896,7 +5896,7 @@ namespace mse {
 				return (emplace(_P, std::forward<decltype(_X)>(_X)));
 			}
 			typename base_class::iterator insert(typename base_class::const_iterator _P, const _Ty& _X = _Ty()) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					typename base_class::iterator retval = base_class::insert(_P, _X);
 					/*m_debug_size = size();*/
@@ -5927,7 +5927,7 @@ namespace mse {
 
 #if !(defined(GPP4P8_COMPATIBLE))
 			typename base_class::iterator insert(typename base_class::const_iterator _P, size_type _M, const _Ty& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					typename base_class::iterator retval = base_class::insert(_P, msev_as_a_size_t(_M), _X);
 					/*m_debug_size = size();*/
@@ -5959,7 +5959,7 @@ namespace mse {
 				//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
 				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 				typename base_class::iterator insert(typename base_class::const_iterator _Where, const _Iter& _First, const _Iter& _Last) {	// insert [_First, _Last) at _Where
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					auto retval = base_class::insert(_Where, _First, _Last);
 					/*m_debug_size = size();*/
@@ -5996,7 +5996,7 @@ namespace mse {
 			void
 				/* g++4.8 seems to be using the c++98 version of this insert function instead of the c++11 version. */
 				insert(typename base_class::/*const_*/iterator _P, size_t _M, const _Ty& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				msev_int di = std::distance(base_class::/*c*/begin(), _P);
 				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(msebasic_string_range_error("index out of range - typename base_class::iterator insert() - msebasic_string")); }
@@ -6022,7 +6022,7 @@ namespace mse {
 				//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type
 				, class = mse::impl::_mse_RequireInputIter<_Iter> > void
 				insert(typename base_class::/*const_*/iterator _Where, const _Iter& _First, const _Iter& _Last) {	// insert [_First, _Last) at _Where
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				msev_int di = std::distance(base_class::/*c*/begin(), _Where);
 				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(msebasic_string_range_error("index out of range - typename base_class::iterator insert() - msebasic_string")); }
@@ -6049,7 +6049,7 @@ namespace mse {
 #endif /*!(defined(GPP4P8_COMPATIBLE))*/
 			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 			typename base_class::iterator insert(typename base_class::const_iterator _P, const _TStringSection& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					typename base_class::iterator retval = base_class::insert(_P, _X);
 					/*m_debug_size = size();*/
@@ -6081,7 +6081,7 @@ namespace mse {
 			template<class ..._Valty>
 			void emplace_back(_Valty&& ..._Val)
 			{	// insert by moving into element at end
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					base_class::emplace_back(std::forward<_Valty>(_Val)...);
 					/*m_debug_size = size();*/
@@ -6111,7 +6111,7 @@ namespace mse {
 			{	// insert by moving _Val at _Where
 #endif /*!(defined(GPP4P8_COMPATIBLE))*/
 
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					auto retval = base_class::emplace(_Where, std::forward<_Valty>(_Val)...);
 					/*m_debug_size = size();*/
@@ -6146,7 +6146,7 @@ namespace mse {
 				}
 			}
 			typename base_class::iterator erase(typename base_class::const_iterator _P) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					typename base_class::iterator retval = base_class::erase(_P);
 					/*m_debug_size = size();*/
@@ -6179,7 +6179,7 @@ namespace mse {
 				}
 			}
 			typename base_class::iterator erase(typename base_class::const_iterator _F, typename base_class::const_iterator _L) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					typename base_class::iterator retval = base_class::erase(_F, _L);
 					/*m_debug_size = size();*/
@@ -6217,19 +6217,19 @@ namespace mse {
 				}
 			}
 			void clear() {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::clear();
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
 			}
 			void swap(std::basic_string<_Ty, _Traits, _A>& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::swap(_X);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
 			}
 			void swap(base_class& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::swap(_X);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
@@ -6240,7 +6240,7 @@ namespace mse {
 			}
 			template<typename _TStateMutex2>
 			void swap(mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex2>& _X) {
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::swap(_X);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
@@ -6252,13 +6252,13 @@ namespace mse {
 																/*m_debug_size = size();*/
 			}
 			_Myt& operator=(_XSTD initializer_list<typename base_class::value_type> _Ilist) {	// assign initializer_list
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::operator=(_Ilist);
 				m_mmitset.reset();
 				return (*this);
 			}
 			void assign(_XSTD initializer_list<typename base_class::value_type> _Ilist) {	// assign initializer_list
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::assign(_Ilist);
 				/*m_debug_size = size();*/
 				m_mmitset.reset();
@@ -6266,7 +6266,7 @@ namespace mse {
 #if defined(GPP4P8_COMPATIBLE)
 			/* g++4.8 seems to be (incorrectly) using the c++98 version of this insert function instead of the c++11 version. */
 			/*typename base_class::iterator*/void insert(typename base_class::/*const_*/iterator _Where, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				msev_int di = std::distance(base_class::/*c*/begin(), _Where);
 				msev_size_t d = msev_size_t(di);
 				if ((0 > di) || (msev_size_t((*this).size()) < di)) { MSE_THROW(msebasic_string_range_error("index out of range - typename base_class::iterator insert() - msebasic_string")); }
@@ -6290,7 +6290,7 @@ namespace mse {
 			}
 #else /*defined(GPP4P8_COMPATIBLE)*/
 			typename base_class::iterator insert(typename base_class::const_iterator _Where, _XSTD initializer_list<typename base_class::value_type> _Ilist) {	// insert initializer_list
-				std::lock_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
+				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
 					auto retval = base_class::insert(_Where, _Ilist);
 					/*m_debug_size = size();*/
@@ -6365,18 +6365,12 @@ namespace mse {
 			class random_access_const_iterator_base {
 			public:
 				using iterator_category = std::random_access_iterator_tag;
-				using value_type = typename _Myt::value_type;
-				using difference_type = typename _Myt::difference_type;
-				using pointer = typename _Myt::const_pointer;
-				using reference = typename _Myt::const_reference;
+				MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(_Myt);
 			};
 			class random_access_iterator_base {
 			public:
 				using iterator_category = std::random_access_iterator_tag;
-				using value_type = typename _Myt::value_type;
-				using difference_type = typename _Myt::difference_type;
-				using pointer = typename _Myt::pointer;
-				using reference = typename _Myt::reference;
+				MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(_Myt);
 			};
 
 			/* mm_const_iterator_type acts much like a list iterator. */
@@ -7747,163 +7741,11 @@ namespace mse {
 				return (Tss_const_reverse_iterator_type<_TMseArrayPointer>(ss_end<_TMseArrayPointer>(owner_ptr)));
 			}
 
-			class xscope_ss_iterator_type;
+			typedef typename base_class::xscope_ss_const_iterator_type xscope_ss_const_iterator_type;
+			typedef typename base_class::xscope_ss_iterator_type xscope_ss_iterator_type;
 
-			class xscope_ss_const_iterator_type : public ss_const_iterator_type, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
-			public:
-				template <typename _TXScopePointer, class = typename std::enable_if<
-					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedConstPointer<msebasic_string> >::value
-					|| std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<msebasic_string> >::value
-					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedConstPointer<msebasic_string> >::value
-					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<msebasic_string> >::value
-					, void>::type>
-					xscope_ss_const_iterator_type(const _TXScopePointer& owner_ptr) : ss_const_iterator_type((*owner_ptr).ss_cbegin()) {}
-
-				xscope_ss_const_iterator_type(const xscope_ss_const_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
-				xscope_ss_const_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_const_iterator_type(src_cref) {}
-				~xscope_ss_const_iterator_type() {}
-				const ss_const_iterator_type& msebasic_string_ss_const_iterator_type() const {
-					return (*this);
-				}
-				ss_const_iterator_type& msebasic_string_ss_const_iterator_type() {
-					return (*this);
-				}
-				const ss_const_iterator_type& mvssci() const { return msebasic_string_ss_const_iterator_type(); }
-				ss_const_iterator_type& mvssci() { return msebasic_string_ss_const_iterator_type(); }
-
-				void reset() { ss_const_iterator_type::reset(); }
-				bool points_to_an_item() const { return ss_const_iterator_type::points_to_an_item(); }
-				bool points_to_end_marker() const { return ss_const_iterator_type::points_to_end_marker(); }
-				bool points_to_beginning() const { return ss_const_iterator_type::points_to_beginning(); }
-				/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-				bool has_next_item_or_end_marker() const { return ss_const_iterator_type::has_next_item_or_end_marker(); }
-				/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-				bool has_next() const { return ss_const_iterator_type::has_next(); }
-				bool has_previous() const { return ss_const_iterator_type::has_previous(); }
-				void set_to_beginning() { ss_const_iterator_type::set_to_beginning(); }
-				void set_to_end_marker() { ss_const_iterator_type::set_to_end_marker(); }
-				void set_to_next() { ss_const_iterator_type::set_to_next(); }
-				void set_to_previous() { ss_const_iterator_type::set_to_previous(); }
-				xscope_ss_const_iterator_type& operator ++() { ss_const_iterator_type::operator ++(); return (*this); }
-				xscope_ss_const_iterator_type operator++(int) { xscope_ss_const_iterator_type _Tmp = *this; ss_const_iterator_type::operator++(); return (_Tmp); }
-				xscope_ss_const_iterator_type& operator --() { ss_const_iterator_type::operator --(); return (*this); }
-				xscope_ss_const_iterator_type operator--(int) { xscope_ss_const_iterator_type _Tmp = *this; ss_const_iterator_type::operator--(); return (_Tmp); }
-				void advance(difference_type n) { ss_const_iterator_type::advance(n); }
-				void regress(difference_type n) { ss_const_iterator_type::regress(n); }
-				xscope_ss_const_iterator_type& operator +=(difference_type n) { ss_const_iterator_type::operator +=(n); return (*this); }
-				xscope_ss_const_iterator_type& operator -=(difference_type n) { ss_const_iterator_type::operator -=(n); return (*this); }
-				xscope_ss_const_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-				xscope_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-				difference_type operator-(const xscope_ss_const_iterator_type& _Right_cref) const { return ss_const_iterator_type::operator-(_Right_cref); }
-				const_reference operator*() const { return ss_const_iterator_type::operator*(); }
-				const_reference item() const { return operator*(); }
-				const_reference previous_item() const { return ss_const_iterator_type::previous_item(); }
-				const_pointer operator->() const { return ss_const_iterator_type::operator->(); }
-				const_reference operator[](difference_type _Off) const { return ss_const_iterator_type::operator[](_Off); }
-				xscope_ss_const_iterator_type& operator=(const ss_const_iterator_type& _Right_cref) {
-					if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(msebasic_string_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const xscope_ss_const_iterator_type& _Right_cref) - msebasic_string::xscope_ss_const_iterator_type")); }
-					ss_const_iterator_type::operator=(_Right_cref);
-					return (*this);
-				}
-				xscope_ss_const_iterator_type& operator=(const ss_iterator_type& _Right_cref) {
-					if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(msebasic_string_range_error("invalid argument - xscope_ss_const_iterator_type& operator=(const ss_iterator_type& _Right_cref) - msebasic_string::xscope_ss_const_iterator_type")); }
-					return operator=(ss_const_iterator_type(_Right_cref));
-				}
-				bool operator==(const xscope_ss_const_iterator_type& _Right_cref) const { return ss_const_iterator_type::operator==(_Right_cref); }
-				bool operator!=(const xscope_ss_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator<(_Right); }
-				bool operator<=(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator<=(_Right); }
-				bool operator>(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator>(_Right); }
-				bool operator>=(const xscope_ss_const_iterator_type& _Right) const { return ss_const_iterator_type::operator>=(_Right); }
-				void set_to_const_item_pointer(const xscope_ss_const_iterator_type& _Right_cref) { ss_const_iterator_type::set_to_item_pointer(_Right_cref); }
-				msev_size_t position() const { return ss_const_iterator_type::position(); }
-				auto target_container_ptr() const {
-					return mse::us::unsafe_make_xscope_const_pointer_to(*(ss_const_iterator_type::target_container_ptr()));
-				}
-				void xscope_ss_iterator_type_tag() const {}
-				void async_not_shareable_and_not_passable_tag() const {}
-			private:
-				void* operator new(size_t size) { return ::operator new(size); }
-
-				//typename ss_const_iterator_type (*this);
-				friend class /*_Myt*/msebasic_string<_Ty, _Traits, _A, _TStateMutex>;
-				friend class xscope_ss_iterator_type;
-			};
-			class xscope_ss_iterator_type : public ss_iterator_type, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
-			public:
-				template <typename _TXScopePointer, class = typename std::enable_if<
-					std::is_convertible<_TXScopePointer, mse::TXScopeItemFixedPointer<msebasic_string> >::value
-					|| std::is_convertible<_TXScopePointer, mse::TXScopeFixedPointer<msebasic_string> >::value
-					, void>::type>
-					xscope_ss_iterator_type(const _TXScopePointer& owner_ptr) : ss_iterator_type((*owner_ptr).ss_begin()) {}
-
-				xscope_ss_iterator_type(const xscope_ss_iterator_type& src_cref) : ss_iterator_type(src_cref) {}
-				~xscope_ss_iterator_type() {}
-				const ss_iterator_type& msebasic_string_ss_iterator_type() const {
-					return (*this);
-				}
-				ss_iterator_type& msebasic_string_ss_iterator_type() {
-					return (*this);
-				}
-				const ss_iterator_type& mvssi() const { return msebasic_string_ss_iterator_type(); }
-				ss_iterator_type& mvssi() { return msebasic_string_ss_iterator_type(); }
-
-				void reset() { ss_iterator_type::reset(); }
-				bool points_to_an_item() const { return ss_iterator_type::points_to_an_item(); }
-				bool points_to_end_marker() const { return ss_iterator_type::points_to_end_marker(); }
-				bool points_to_beginning() const { return ss_iterator_type::points_to_beginning(); }
-				/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-				bool has_next_item_or_end_marker() const { return ss_iterator_type::has_next_item_or_end_marker(); }
-				/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-				bool has_next() const { return ss_iterator_type::has_next(); }
-				bool has_previous() const { return ss_iterator_type::has_previous(); }
-				void set_to_beginning() { ss_iterator_type::set_to_beginning(); }
-				void set_to_end_marker() { ss_iterator_type::set_to_end_marker(); }
-				void set_to_next() { ss_iterator_type::set_to_next(); }
-				void set_to_previous() { ss_iterator_type::set_to_previous(); }
-				xscope_ss_iterator_type& operator ++() { ss_iterator_type::operator ++(); return (*this); }
-				xscope_ss_iterator_type operator++(int) { xscope_ss_iterator_type _Tmp = *this; ss_iterator_type::operator++(); return (_Tmp); }
-				xscope_ss_iterator_type& operator --() { ss_iterator_type::operator --(); return (*this); }
-				xscope_ss_iterator_type operator--(int) { xscope_ss_iterator_type _Tmp = *this; ss_iterator_type::operator--(); return (_Tmp); }
-				void advance(difference_type n) { ss_iterator_type::advance(n); }
-				void regress(difference_type n) { ss_iterator_type::regress(n); }
-				xscope_ss_iterator_type& operator +=(difference_type n) { ss_iterator_type::operator +=(n); return (*this); }
-				xscope_ss_iterator_type& operator -=(difference_type n) { ss_iterator_type::operator -=(n); return (*this); }
-				xscope_ss_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-				xscope_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-				difference_type operator-(const xscope_ss_iterator_type& _Right_cref) const { return ss_iterator_type::operator-(_Right_cref); }
-				reference operator*() const { return ss_iterator_type::operator*(); }
-				reference item() const { return operator*(); }
-				reference previous_item() const { return ss_iterator_type::previous_item(); }
-				pointer operator->() const { return ss_iterator_type::operator->(); }
-				reference operator[](difference_type _Off) const { return ss_iterator_type::operator[](_Off); }
-				xscope_ss_iterator_type& operator=(const ss_iterator_type& _Right_cref) {
-					if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(msebasic_string_range_error("invalid argument - xscope_ss_iterator_type& operator=(const xscope_ss_iterator_type& _Right_cref) - msebasic_string::xscope_ss_iterator_type")); }
-					ss_iterator_type::operator=(_Right_cref);
-					return (*this);
-				}
-				bool operator==(const xscope_ss_iterator_type& _Right_cref) const { return ss_iterator_type::operator==(_Right_cref); }
-				bool operator!=(const xscope_ss_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator<(_Right); }
-				bool operator<=(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator<=(_Right); }
-				bool operator>(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator>(_Right); }
-				bool operator>=(const xscope_ss_iterator_type& _Right) const { return ss_iterator_type::operator>=(_Right); }
-				void set_to_item_pointer(const xscope_ss_iterator_type& _Right_cref) { ss_iterator_type::set_to_item_pointer(_Right_cref); }
-				msev_size_t position() const { return ss_iterator_type::position(); }
-				auto target_container_ptr() const {
-					return mse::us::unsafe_make_xscope_pointer_to(*(ss_iterator_type::target_container_ptr()));
-				}
-				void xscope_ss_iterator_type_tag() const {}
-				void async_not_shareable_and_not_passable_tag() const {}
-			private:
-				void* operator new(size_t size) { return ::operator new(size); }
-
-				//typename ss_iterator_type (*this);
-				friend class /*_Myt*/msebasic_string<_Ty, _Traits, _A, _TStateMutex>;
-			};
-
-			typedef xscope_ss_const_iterator_type xscope_const_iterator;
-			typedef xscope_ss_iterator_type xscope_iterator;
+			typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+			typedef typename base_class::xscope_iterator xscope_iterator;
 
 
 			class xscope_ipointer;
@@ -8062,6 +7904,20 @@ namespace mse {
 			void async_not_shareable_and_not_passable_tag() const {}
 
 		private:
+
+			template<class _Mutex>
+			class structure_change_guard {
+			public:
+				structure_change_guard(_Mutex& _Mtx) try : m_lock_guard(_Mtx) {}
+				catch (...) {
+					MSE_THROW(mse::structure_lock_violation_error("structure lock violation - Attempting to modify \
+							the structure (size/capacity) of a container while a reference (iterator) to one of its elements \
+							still exists?"));
+				}
+			private:
+				std::lock_guard<_Mutex> m_lock_guard;
+			};
+
 			/* These are a couple of functions that are basically just here for the convenience of the mstd::basic_string<>
 			implementation, which uses this class. */
 #ifdef MSE_MSTD_STRING_CHECK_USE_AFTER_FREE
@@ -8157,9 +8013,11 @@ namespace mse {
 			class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> > {
 			public:
 				typedef mse::us::impl::Txscope_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> > base_class;
-				using base_class::base_class;
-
 				typedef mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> MBS;
+
+				xscope_structure_lock_guard(const xscope_structure_lock_guard&) = default;
+				xscope_structure_lock_guard(xscope_structure_lock_guard&&) = default;
+
 				xscope_structure_lock_guard(const mse::TXScopeFixedPointer<MBS>& owner_ptr) : base_class(owner_ptr)
 					, m_base_xscope_structure_lock_guard(owner_ptr) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -8190,14 +8048,21 @@ namespace mse {
 
 			private:
 				mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, mse::non_thread_safe_shared_mutex> m_base_xscope_structure_lock_guard;
+
+				friend class xscope_const_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>;
 			};
 			template<class _Ty, class _Traits, class _A, class _TStateMutex = mse::non_thread_safe_shared_mutex>
 			class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> > {
 			public:
 				typedef mse::us::impl::Txscope_const_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> > base_class;
-				using base_class::base_class;
-
 				typedef mse::us::msebasic_string<_Ty, _Traits, _A, _TStateMutex> MBS;
+
+				xscope_const_structure_lock_guard(const xscope_const_structure_lock_guard&) = default;
+				xscope_const_structure_lock_guard(xscope_const_structure_lock_guard&&) = default;
+
+				xscope_const_structure_lock_guard(const xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>& src) : base_class(src), m_base_xscope_structure_lock_guard(src.m_base_xscope_structure_lock_guard) {}
+				xscope_const_structure_lock_guard(xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>&& src) : base_class(std::forward<decltype(src)>(src)), m_base_xscope_structure_lock_guard(std::forward<decltype(src)>(src).m_base_xscope_structure_lock_guard) {}
+
 				xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<MBS>& owner_ptr) : base_class(owner_ptr)
 					, m_base_xscope_structure_lock_guard(owner_ptr) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -8311,13 +8176,7 @@ namespace mse {
 		typedef mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, mse::mtnii_basic_string_shared_mutex> base_class;
 
 		typedef typename base_class::allocator_type allocator_type;
-		typedef typename base_class::value_type value_type;
-		typedef typename base_class::size_type size_type;
-		typedef typename base_class::difference_type difference_type;
-		typedef typename base_class::pointer pointer;
-		typedef typename base_class::const_pointer const_pointer;
-		typedef typename base_class::reference reference;
-		typedef typename base_class::const_reference const_reference;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		typedef typename base_class::iterator iterator;
 		typedef typename base_class::const_iterator const_iterator;

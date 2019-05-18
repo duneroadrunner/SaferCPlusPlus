@@ -232,39 +232,41 @@ int main(int argc, char* argv[]) {
 		/* Here we're declaring an vector as a scope object. */
 		mse::TXScopeObj<mse::mstd::vector<int>> vector1_scpobj = mse::mstd::vector<int>{ 1, 2, 3 };
 
-		/* Here we're obtaining a scope iterator to the vector. */
-		auto scp_iter1 = mse::mstd::make_xscope_begin_iterator(&vector1_scpobj);
-		auto scp_iter2 = mse::mstd::make_xscope_end_iterator(&vector1_scpobj);
-
-		std::sort(scp_iter1, scp_iter2);
-
-		auto scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
-		scp_citer3 = scp_iter1;
-		scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
-		scp_citer3 += 2;
-		auto res1 = *scp_citer3;
-		auto res2 = scp_citer3[0];
-
-		/* Here we demonstrate the case where the vector is a member of a class/struct declared as a scope object. */
-		class CContainer1 {
-		public:
-			CContainer1() : m_vector({ 1, 2, 3 }) {}
-			mse::mstd::vector<int> m_vector;
-		};
-		mse::TXScopeObj<CContainer1> container1_scpobj;
-		auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_vector);
-		auto scp_citer4 = mse::mstd::make_xscope_begin_iterator(container1_m_vector_scpptr);
-		scp_citer4++;
-		auto res3 = *scp_citer4;
-
 		{
-			/* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
-			object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
-			to become invalid is performed. */
-			auto xscp_vector1_change_lock_guard = mse::mstd::make_xscope_structure_lock_guard(&vector1_scpobj);
-			auto scp_ptr1 = xscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+			/* Here we're obtaining a scope iterator to the vector. */
+			auto scp_iter1 = mse::mstd::make_xscope_begin_iterator(&vector1_scpobj);
+			auto scp_iter2 = mse::mstd::make_xscope_end_iterator(&vector1_scpobj);
+
+			std::sort(scp_iter1, scp_iter2);
+
+			auto scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
+			scp_citer3 = scp_iter1;
+			scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
+			scp_citer3 += 2;
+			auto res1 = *scp_citer3;
+			auto res2 = scp_citer3[0];
+
+			/* Here we demonstrate the case where the vector is a member of a class/struct declared as a scope object. */
+			class CContainer1 {
+			public:
+				CContainer1() : m_vector({ 1, 2, 3 }) {}
+				mse::mstd::vector<int> m_vector;
+			};
+			mse::TXScopeObj<CContainer1> container1_scpobj;
+			auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_vector);
+			auto scp_citer4 = mse::mstd::make_xscope_begin_iterator(container1_m_vector_scpptr);
+			scp_citer4++;
+			auto res3 = *scp_citer4;
+
+			/* Note that scope iterators, while they exist, have the effect of "structure locking" their associated container.
+			That is, while a scope iterator exists, the "structure" (i.e. size or capacity) of the target container will remain
+			unchanged. Attempting any operation that would affect the structure would result in an exception. This property
+			allows us to (safely) obtain a (direct) scope pointer to the scope iterator's target element. */
+			auto scp_ptr1 = mse::xscope_pointer(scp_iter1);
 			auto res4 = *scp_ptr1;
 		}
+		/* After all the scope pointers have gone out of scope, you may again perform operations that affect the container's
+		"structure" (i.e. size or capacity). */
 		vector1_scpobj.push_back(4);
 	}
 
@@ -343,39 +345,41 @@ int main(int argc, char* argv[]) {
 
 			mse::TXScopeObj<mse::us::msevector<int>> vector1_scpobj = mse::us::msevector<int>{ 1, 2, 3 };
 
-			auto scp_ss_iter1 = mse::make_xscope_begin_iterator(&vector1_scpobj);
-			auto scp_ss_iter2 = mse::make_xscope_end_iterator(&vector1_scpobj);
-
-			std::sort(scp_ss_iter1, scp_ss_iter2);
-
-			auto scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
-			scp_ss_citer3 = scp_ss_iter1;
-			scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
-			scp_ss_citer3 += 2;
-			auto res1 = *scp_ss_citer3;
-			auto res2 = scp_ss_citer3[0];
-
-			/* Here we demonstrate the case where the vector is a member of a class/struct declared as a
-			scope object. */
-			class CContainer1 {
-			public:
-				CContainer1() : m_vector({ 1, 2, 3 }) {}
-				mse::us::msevector<int> m_vector;
-			};
-			mse::TXScopeObj<CContainer1> container1_scpobj;
-			auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_vector);
-			auto scp_ss_citer4 = mse::make_xscope_begin_iterator(container1_m_vector_scpptr);
-			scp_ss_citer4++;
-			auto res3 = *scp_ss_citer4;
-
 			{
-				/* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
-				object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
-				to become invalid is performed. */
-				auto xscp_vector1_change_lock_guard = mse::us::make_xscope_structure_lock_guard(&vector1_scpobj);
-				auto scp_ptr1 = xscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+				auto scp_ss_iter1 = mse::make_xscope_begin_iterator(&vector1_scpobj);
+				auto scp_ss_iter2 = mse::make_xscope_end_iterator(&vector1_scpobj);
+
+				std::sort(scp_ss_iter1, scp_ss_iter2);
+
+				auto scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
+				scp_ss_citer3 = scp_ss_iter1;
+				scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
+				scp_ss_citer3 += 2;
+				auto res1 = *scp_ss_citer3;
+				auto res2 = scp_ss_citer3[0];
+
+				/* Here we demonstrate the case where the vector is a member of a class/struct declared as a
+				scope object. */
+				class CContainer1 {
+				public:
+					CContainer1() : m_vector({ 1, 2, 3 }) {}
+					mse::us::msevector<int> m_vector;
+				};
+				mse::TXScopeObj<CContainer1> container1_scpobj;
+				auto container1_m_vector_scpptr = mse::make_xscope_pointer_to_member_v2(&container1_scpobj, &CContainer1::m_vector);
+				auto scp_ss_citer4 = mse::make_xscope_begin_iterator(container1_m_vector_scpptr);
+				scp_ss_citer4++;
+				auto res3 = *scp_ss_citer4;
+
+				/* Note that scope iterators, while they exist, have the effect of "structure locking" their associated container.
+				That is, while a scope iterator exists, the "structure" (i.e. size or capacity) of the target container will remain
+				unchanged. Attempting any operation that would affect the structure would result in an exception. This property
+				allows us to (safely) obtain a (direct) scope pointer to the scope iterator's target element. */
+				auto scp_ptr1 = mse::xscope_pointer(scp_ss_iter1);
 				auto res4 = *scp_ptr1;
 			}
+			/* After all the scope pointers have gone out of scope, you may again perform operations that affect the container's
+			"structure" (i.e. size or capacity). */
 			vector1_scpobj.push_back(4);
 		}
 	}
@@ -521,7 +525,6 @@ int main(int argc, char* argv[]) {
 
 			auto scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&array1_scpobj);
 			scp_ss_citer3 = scp_ss_iter1;
-			scp_ss_citer3 = array1_scpobj.ss_cbegin();
 			scp_ss_citer3 += 2;
 			auto res1 = *scp_ss_citer3;
 			auto res2 = scp_ss_citer3[0];

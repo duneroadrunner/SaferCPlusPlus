@@ -536,6 +536,105 @@ void msetl_example2() {
 	}
 
 	{
+		/********************************************/
+		/*  TXScopeCSSSXSTERandomAccessIterator<>   */
+		/*  & TXScopeCSSSXSTERandomAccessSection<>  */
+		/********************************************/
+
+		auto xs_mstd_array1 = mse::make_xscope(mse::mstd::array<int, 4>{ 1, 2, 3, 4 });
+		auto xs_msearray2 = mse::make_xscope(mse::us::msearray<int, 5>{ 5, 6, 7, 8, 9 });
+		auto xs_mstd_vec1 = mse::make_xscope(mse::mstd::vector<int>{ 10, 11, 12, 13, 14 });
+		class B {
+		public:
+			static void foo1(mse::TXScopeCSSSXSTERandomAccessIterator<int> ra_iter1) {
+				ra_iter1[1] = 15;
+			}
+			static int foo2(mse::TXScopeCSSSXSTERandomAccessConstIterator<int> const_ra_iter1) {
+				const_ra_iter1 += 2;
+				--const_ra_iter1;
+				const_ra_iter1--;
+				return const_ra_iter1[2];
+			}
+			static void foo3(mse::TXScopeCSSSXSTERandomAccessSection<int> ra_section) {
+				for (mse::TXScopeCSSSXSTERandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
+					ra_section[i] = 0;
+				}
+			}
+			static int foo4(mse::TXScopeCSSSXSTERandomAccessConstSection<int> const_ra_section) {
+				int retval = 0;
+				for (mse::TXScopeCSSSXSTERandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
+					retval += const_ra_section[i];
+				}
+				return retval;
+			}
+			static int foo5(mse::TXScopeCSSSXSTERandomAccessConstSection<int> const_ra_section) {
+				int retval = 0;
+				for (const auto& const_item : const_ra_section) {
+					retval += const_item;
+				}
+				return retval;
+			}
+		};
+
+		auto xs_mstd_array_iter1 = mse::make_xscope_begin_iterator(&xs_mstd_array1);
+		xs_mstd_array_iter1++;
+		auto res1 = B::foo2(xs_mstd_array_iter1);
+		B::foo1(xs_mstd_array_iter1);
+
+		auto msearray_const_iter2 = mse::make_xscope_begin_const_iterator(&xs_msearray2);
+		msearray_const_iter2 += 2;
+		auto res2 = B::foo2(msearray_const_iter2);
+
+		auto xs_mstd_vec1_citer1 = mse::make_xscope_begin_const_iterator(&xs_mstd_vec1);
+		auto res3 = B::foo2(xs_mstd_vec1_citer1);
+		auto xs_mstd_vec1_citer2 = ++mse::make_xscope_begin_iterator(&xs_mstd_vec1);
+		B::foo1(xs_mstd_vec1_citer2);
+		auto xs_mstd_vec1_iter1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
+
+		auto res4 = B::foo2(xs_mstd_vec1_iter1);
+		auto xs_mstd_vec1_begin_citer1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
+		mse::TXScopeCSSSXSTERandomAccessIterator<int> ra_iter1 = xs_mstd_vec1_begin_citer1;
+		auto xs_mstd_vec1_end_citer1 = mse::make_xscope_end_iterator(&xs_mstd_vec1);
+		mse::TXScopeCSSSXSTERandomAccessIterator<int> ra_iter2 = xs_mstd_vec1_end_citer1;
+		auto res5 = ra_iter2 - ra_iter1;
+		ra_iter1 = ra_iter2;
+
+		{
+			auto std_array1 = mse::make_xscope(std::array<int, 4>{ 1, 2, 3, 4 });
+			mse::TXScopeCSSSXSTERandomAccessIterator<int> ra_iter1(mse::make_xscope_begin_iterator(&std_array1));
+			mse::TXScopeCSSSXSTERandomAccessIterator<int> ra_iter2 = mse::make_xscope_end_iterator(&std_array1);
+			auto res5 = ra_iter2 - ra_iter1;
+			ra_iter1 = ra_iter2;
+		}
+
+		mse::TXScopeObj<mse::mstd::array<int, 4> > mstd_array3_scbobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
+		auto mstd_array_scpiter3 = mse::mstd::make_xscope_begin_iterator(&mstd_array3_scbobj);
+		//mstd_array_scpiter3 = mstd_array3_scbobj.begin();
+		++mstd_array_scpiter3;
+		B::foo1(mstd_array_scpiter3);
+
+		mse::TXScopeCSSSXSTERandomAccessSection<int> xscp_ra_section1(xs_mstd_array_iter1, 2);
+		B::foo3(xscp_ra_section1);
+
+		auto xs_mstd_vec_iter1 = ++mse::make_xscope_begin_iterator(&xs_mstd_vec1);
+		mse::TXScopeCSSSXSTERandomAccessSection<int> xscp_ra_section2(xs_mstd_vec_iter1, 3);
+
+		auto res6 = B::foo5(xscp_ra_section2);
+		B::foo3(xscp_ra_section2);
+		auto res7 = B::foo4(xscp_ra_section2);
+
+		auto xscp_ra_section1_xscp_iter1 = xscp_ra_section1.xscope_begin();
+		auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
+		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
+		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+
+		auto ra_section1 = mse::make_xscope_random_access_section(xs_mstd_array_iter1, 2);
+		B::foo3(ra_section1);
+		auto ra_const_section2 = mse::make_xscope_random_access_const_section(mse::make_xscope_begin_const_iterator(&xs_mstd_vec1), 2);
+		B::foo4(ra_const_section2);
+	}
+
+	{
 		/****************/
 		/*  optional<>  */
 		/****************/
@@ -722,44 +821,6 @@ void msetl_example2() {
 				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
 			auto res3 = CD::second_is_longer_any(xscope_ra_csection1, mse::make_xscope_random_access_const_section(
 				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
-		}
-	}
-
-	{
-		/******************************************/
-		/*  TXScopeCSSSXSTERandomAccessSection<>  */
-		/******************************************/
-
-		{
-			mse::TXScopeObj<mse::nii_array<int, 3> > xs_arr1 = mse::nii_array<int, 3>{ 1, 2, 3 };
-			auto xs_citer1 = mse::make_xscope_const_iterator(&xs_arr1);
-			mse::TXScopeCSSSXSTERAConstIterator<int> xs_csssxste_citer1 = xs_citer1;
-			mse::TXScopeCSSSXSTERandomAccessConstSection<int> csssxstera_const_section1(xs_citer1, 0);
-		}
-		{
-			mse::TXScopeObj<mse::stnii_vector<int> > xs_vec1 = mse::stnii_vector<int>{ 1, 2, 3 };
-			auto xs_citer1 = mse::make_xscope_const_iterator(&xs_vec1);
-			auto xs_csssxsra_iter = xs_citer1.xscope_csssxsra_iterator();
-			mse::TXScopeCSSSXSTERAConstIterator<int> xs_csssxste_citer1 = xs_citer1;
-			mse::TXScopeCSSSXSTERandomAccessConstSection<int> csssxstera_const_section1(xs_citer1, 0);
-			auto ra_const_section1 = mse::make_xscope_random_access_const_section(&xs_vec1);
-			mse::TXScopeCSSSXSTERandomAccessConstSection<int> csssxstera_const_section2 = ra_const_section1;
-		}
-
-		{
-			mse::TXScopeObj<mse::nii_array<int, 3> > xs_arr1 = mse::nii_array<int, 3>{ 1, 2, 3 };
-			auto xs_iter1 = mse::make_xscope_iterator(&xs_arr1);
-			mse::TXScopeCSSSXSTERAIterator<int> xs_csssxste_iter1 = xs_iter1;
-			mse::TXScopeCSSSXSTERandomAccessSection<int> csssxstera_section1(xs_iter1, 0);
-		}
-		{
-			mse::TXScopeObj<mse::stnii_vector<int> > xs_vec1 = mse::stnii_vector<int>{ 1, 2, 3 };
-			auto xs_iter1 = mse::make_xscope_iterator(&xs_vec1);
-			auto xs_csssxsra_iter = xs_iter1.xscope_csssxsra_iterator();
-			mse::TXScopeCSSSXSTERAIterator<int> xs_csssxste_iter1 = xs_iter1;
-			mse::TXScopeCSSSXSTERandomAccessSection<int> csssxstera_section1(xs_iter1, 0);
-			auto ra_section1 = mse::make_xscope_random_access_section(&xs_vec1);
-			mse::TXScopeCSSSXSTERandomAccessSection<int> csssxstera_section2 = ra_section1;
 		}
 	}
 
