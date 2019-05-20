@@ -37,7 +37,7 @@
 
 #ifdef _MSC_VER
 #pragma warning( push )  
-#pragma warning( disable : 4505 )
+#pragma warning( disable : 4505 4522 )
 #endif /*_MSC_VER*/
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
@@ -3063,20 +3063,27 @@ namespace mse {
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_cslsstrong_const_iterator_type, base_class);
 
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-				auto& operator=(Tgnii_basic_string_xscope_cslsstrong_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-				auto& operator=(const Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+				auto& operator=(Tgnii_basic_string_xscope_cslsstrong_const_iterator_type&& _X) & { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& _X) & { base_class::operator=(_X); return (*this); }
 
-				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator ++() & { base_class::operator ++(); return (*this); }
 				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator++(int) { Tgnii_basic_string_xscope_cslsstrong_const_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
-				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator --() { base_class::operator --(); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator --() & { base_class::operator --(); return (*this); }
 				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator--(int) { Tgnii_basic_string_xscope_cslsstrong_const_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
 
-				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
-				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator +=(difference_type n) & { base_class::operator +=(n); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& operator -=(difference_type n) & { base_class::operator -=(n); return (*this); }
 				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 				difference_type operator-(const Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
 				const_reference operator*() const { return base_class::operator*(); }
+
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator=(Tgnii_basic_string_xscope_cslsstrong_const_iterator_type&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::forward<decltype(*this)>(*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator=(const Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& _X) && { base_class::operator=(_X); return std::forward<decltype(*this)>(*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator ++() && { base_class::operator ++(); return std::forward<decltype(*this)>(*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator --() && { base_class::operator --(); return std::forward<decltype(*this)>(*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator +=(difference_type n) && { base_class::operator +=(n); return std::forward<decltype(*this)>(*this); }
+				Tgnii_basic_string_xscope_cslsstrong_const_iterator_type operator -=(difference_type n) && { base_class::operator -=(n); return std::forward<decltype(*this)>(*this); }
 
 				void set_to_const_item_pointer(const Tgnii_basic_string_xscope_cslsstrong_const_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
 
@@ -3101,19 +3108,27 @@ namespace mse {
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_cslsstrong_iterator_type, base_class);
 
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-				auto& operator=(Tgnii_basic_string_xscope_cslsstrong_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-				auto& operator=(const Tgnii_basic_string_xscope_cslsstrong_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+				auto& operator=(Tgnii_basic_string_xscope_cslsstrong_iterator_type&& _X) & { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tgnii_basic_string_xscope_cslsstrong_iterator_type& _X) & { base_class::operator=(_X); return (*this); }
 
-				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator ++() { base_class::operator ++(); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator ++() & { base_class::operator ++(); return (*this); }
 				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator++(int) { Tgnii_basic_string_xscope_cslsstrong_iterator_type _Tmp = *this; base_class::operator++(); return (_Tmp); }
-				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator --() { base_class::operator --(); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator --() & { base_class::operator --(); return (*this); }
 				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator--(int) { Tgnii_basic_string_xscope_cslsstrong_iterator_type _Tmp = *this; base_class::operator--(); return (_Tmp); }
 
-				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
-				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator +=(difference_type n) & { base_class::operator +=(n); return (*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type& operator -=(difference_type n) & { base_class::operator -=(n); return (*this); }
 				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 				difference_type operator-(const Tgnii_basic_string_xscope_cslsstrong_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
+				const_reference operator*() const { return base_class::operator*(); }
+
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator=(Tgnii_basic_string_xscope_cslsstrong_iterator_type&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::forward<decltype(*this)>(*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator=(const Tgnii_basic_string_xscope_cslsstrong_iterator_type& _X) && { base_class::operator=(_X); return std::forward<decltype(*this)>(*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator ++() && { base_class::operator ++(); return std::forward<decltype(*this)>(*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator --() && { base_class::operator --(); return std::forward<decltype(*this)>(*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator +=(difference_type n) && { base_class::operator +=(n); return std::forward<decltype(*this)>(*this); }
+				Tgnii_basic_string_xscope_cslsstrong_iterator_type operator -=(difference_type n) && { base_class::operator -=(n); return std::forward<decltype(*this)>(*this); }
 
 				void set_to_item_pointer(const Tgnii_basic_string_xscope_cslsstrong_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
 

@@ -16,6 +16,11 @@
 //#define MSE_MSTDVECTOR_DISABLED
 //#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4522 )
+#endif /*_MSC_VER*/
+
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma push_macro("MSE_THROW")
 #pragma push_macro("_NOEXCEPT_OP")
@@ -186,20 +191,27 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tvector_xscope_const_iterator, base_class);
 
 			MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-			auto& operator=(Tvector_xscope_const_iterator&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			auto& operator=(const Tvector_xscope_const_iterator& _X) { base_class::operator=(_X); return (*this); }
+			auto& operator=(Tvector_xscope_const_iterator&& _X) & { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			auto& operator=(const Tvector_xscope_const_iterator& _X) & { base_class::operator=(_X); return (*this); }
 
-			Tvector_xscope_const_iterator& operator ++() { base_class::operator ++(); return (*this); }
+			Tvector_xscope_const_iterator& operator ++() & { base_class::operator ++(); return (*this); }
 			Tvector_xscope_const_iterator operator++(int) { Tvector_xscope_const_iterator _Tmp = *this; base_class::operator++(); return (_Tmp); }
-			Tvector_xscope_const_iterator& operator --() { base_class::operator --(); return (*this); }
+			Tvector_xscope_const_iterator& operator --() & { base_class::operator --(); return (*this); }
 			Tvector_xscope_const_iterator operator--(int) { Tvector_xscope_const_iterator _Tmp = *this; base_class::operator--(); return (_Tmp); }
 
-			Tvector_xscope_const_iterator& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
-			Tvector_xscope_const_iterator& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+			Tvector_xscope_const_iterator& operator +=(difference_type n) & { base_class::operator +=(n); return (*this); }
+			Tvector_xscope_const_iterator& operator -=(difference_type n) & { base_class::operator -=(n); return (*this); }
 			Tvector_xscope_const_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 			Tvector_xscope_const_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const Tvector_xscope_const_iterator& _Right_cref) const { return base_class::operator-(_Right_cref); }
 			const_reference operator*() const { return base_class::operator*(); }
+
+			Tvector_xscope_const_iterator operator=(Tvector_xscope_const_iterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::forward<decltype(*this)>(*this); }
+			Tvector_xscope_const_iterator operator=(const Tvector_xscope_const_iterator& _X) && { base_class::operator=(_X); return std::forward<decltype(*this)>(*this); }
+			Tvector_xscope_const_iterator operator ++() && { base_class::operator ++(); return std::forward<decltype(*this)>(*this); }
+			Tvector_xscope_const_iterator operator --() && { base_class::operator --(); return std::forward<decltype(*this)>(*this); }
+			Tvector_xscope_const_iterator operator +=(difference_type n) && { base_class::operator +=(n); return std::forward<decltype(*this)>(*this); }
+			Tvector_xscope_const_iterator operator -=(difference_type n) && { base_class::operator -=(n); return std::forward<decltype(*this)>(*this); }
 
 			void set_to_const_item_pointer(const Tvector_xscope_const_iterator& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
 
@@ -224,19 +236,26 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tvector_xscope_iterator, base_class);
 
 			MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-			auto& operator=(Tvector_xscope_iterator&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			auto& operator=(const Tvector_xscope_iterator& _X) { base_class::operator=(_X); return (*this); }
+			auto& operator=(Tvector_xscope_iterator&& _X) & { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			auto& operator=(const Tvector_xscope_iterator& _X) & { base_class::operator=(_X); return (*this); }
 
-			Tvector_xscope_iterator& operator ++() { base_class::operator ++(); return (*this); }
+			Tvector_xscope_iterator& operator ++() & { base_class::operator ++(); return (*this); }
 			Tvector_xscope_iterator operator++(int) { Tvector_xscope_iterator _Tmp = *this; base_class::operator++(); return (_Tmp); }
-			Tvector_xscope_iterator& operator --() { base_class::operator --(); return (*this); }
+			Tvector_xscope_iterator& operator --() & { base_class::operator --(); return (*this); }
 			Tvector_xscope_iterator operator--(int) { Tvector_xscope_iterator _Tmp = *this; base_class::operator--(); return (_Tmp); }
 
-			Tvector_xscope_iterator& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
-			Tvector_xscope_iterator& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+			Tvector_xscope_iterator& operator +=(difference_type n) & { base_class::operator +=(n); return (*this); }
+			Tvector_xscope_iterator& operator -=(difference_type n) & { base_class::operator -=(n); return (*this); }
 			Tvector_xscope_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 			Tvector_xscope_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const Tvector_xscope_iterator& _Right_cref) const { return base_class::operator-(_Right_cref); }
+
+			Tvector_xscope_iterator operator=(Tvector_xscope_iterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::forward<decltype(*this)>(*this); }
+			Tvector_xscope_iterator operator=(const Tvector_xscope_iterator _X) && { base_class::operator=(_X); return std::forward<decltype(*this)>(*this); }
+			Tvector_xscope_iterator operator ++() && { base_class::operator ++(); return std::forward<decltype(*this)>(*this); }
+			Tvector_xscope_iterator operator --() && { base_class::operator --(); return std::forward<decltype(*this)>(*this); }
+			Tvector_xscope_iterator operator +=(difference_type n) && { base_class::operator +=(n); return std::forward<decltype(*this)>(*this); }
+			Tvector_xscope_iterator operator -=(difference_type n) && { base_class::operator -=(n); return std::forward<decltype(*this)>(*this); }
 
 			void set_to_item_pointer(const Tvector_xscope_iterator& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
 
@@ -898,5 +917,9 @@ namespace mse {
 #pragma pop_macro("MSE_THROW")
 #pragma pop_macro("_NOEXCEPT_OP")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
 
 #endif /*ndef MSEMSTDVECTOR_H*/

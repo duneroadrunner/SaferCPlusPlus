@@ -202,20 +202,27 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tbasic_string_xscope_const_iterator, base_class);
 
 			MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-			auto& operator=(Tbasic_string_xscope_const_iterator&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			auto& operator=(const Tbasic_string_xscope_const_iterator& _X) { base_class::operator=(_X); return (*this); }
+			auto& operator=(Tbasic_string_xscope_const_iterator&& _X) & { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			auto& operator=(const Tbasic_string_xscope_const_iterator& _X) & { base_class::operator=(_X); return (*this); }
 
-			Tbasic_string_xscope_const_iterator& operator ++() { base_class::operator ++(); return (*this); }
+			Tbasic_string_xscope_const_iterator& operator ++() & { base_class::operator ++(); return (*this); }
 			Tbasic_string_xscope_const_iterator operator++(int) { Tbasic_string_xscope_const_iterator _Tmp = *this; base_class::operator++(); return (_Tmp); }
-			Tbasic_string_xscope_const_iterator& operator --() { base_class::operator --(); return (*this); }
+			Tbasic_string_xscope_const_iterator& operator --() & { base_class::operator --(); return (*this); }
 			Tbasic_string_xscope_const_iterator operator--(int) { Tbasic_string_xscope_const_iterator _Tmp = *this; base_class::operator--(); return (_Tmp); }
 
-			Tbasic_string_xscope_const_iterator& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
-			Tbasic_string_xscope_const_iterator& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+			Tbasic_string_xscope_const_iterator& operator +=(difference_type n) & { base_class::operator +=(n); return (*this); }
+			Tbasic_string_xscope_const_iterator& operator -=(difference_type n) & { base_class::operator -=(n); return (*this); }
 			Tbasic_string_xscope_const_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 			Tbasic_string_xscope_const_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const Tbasic_string_xscope_const_iterator& _Right_cref) const { return base_class::operator-(_Right_cref); }
 			const_reference operator*() const { return base_class::operator*(); }
+
+			Tbasic_string_xscope_const_iterator operator=(Tbasic_string_xscope_const_iterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::forward<decltype(*this)>(*this); }
+			Tbasic_string_xscope_const_iterator operator=(const Tbasic_string_xscope_const_iterator& _X) && { base_class::operator=(_X); return std::forward<decltype(*this)>(*this); }
+			Tbasic_string_xscope_const_iterator operator ++() && { base_class::operator ++(); return std::forward<decltype(*this)>(*this); }
+			Tbasic_string_xscope_const_iterator operator --() && { base_class::operator --(); return std::forward<decltype(*this)>(*this); }
+			Tbasic_string_xscope_const_iterator operator +=(difference_type n) && { base_class::operator +=(n); return std::forward<decltype(*this)>(*this); }
+			Tbasic_string_xscope_const_iterator operator -=(difference_type n) && { base_class::operator -=(n); return std::forward<decltype(*this)>(*this); }
 
 			void set_to_const_item_pointer(const Tbasic_string_xscope_const_iterator& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
 
@@ -240,19 +247,26 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tbasic_string_xscope_iterator, base_class);
 
 			MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-			auto& operator=(Tbasic_string_xscope_iterator&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			auto& operator=(const Tbasic_string_xscope_iterator& _X) { base_class::operator=(_X); return (*this); }
+			auto& operator=(Tbasic_string_xscope_iterator&& _X) & { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			auto& operator=(const Tbasic_string_xscope_iterator& _X) & { base_class::operator=(_X); return (*this); }
 
-			Tbasic_string_xscope_iterator& operator ++() { base_class::operator ++(); return (*this); }
+			Tbasic_string_xscope_iterator& operator ++() & { base_class::operator ++(); return (*this); }
 			Tbasic_string_xscope_iterator operator++(int) { Tbasic_string_xscope_iterator _Tmp = *this; base_class::operator++(); return (_Tmp); }
-			Tbasic_string_xscope_iterator& operator --() { base_class::operator --(); return (*this); }
+			Tbasic_string_xscope_iterator& operator --() & { base_class::operator --(); return (*this); }
 			Tbasic_string_xscope_iterator operator--(int) { Tbasic_string_xscope_iterator _Tmp = *this; base_class::operator--(); return (_Tmp); }
 
-			Tbasic_string_xscope_iterator& operator +=(difference_type n) { base_class::operator +=(n); return (*this); }
-			Tbasic_string_xscope_iterator& operator -=(difference_type n) { base_class::operator -=(n); return (*this); }
+			Tbasic_string_xscope_iterator& operator +=(difference_type n) & { base_class::operator +=(n); return (*this); }
+			Tbasic_string_xscope_iterator& operator -=(difference_type n) & { base_class::operator -=(n); return (*this); }
 			Tbasic_string_xscope_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 			Tbasic_string_xscope_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const Tbasic_string_xscope_iterator& _Right_cref) const { return base_class::operator-(_Right_cref); }
+
+			Tbasic_string_xscope_iterator operator=(Tbasic_string_xscope_iterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::forward<decltype(*this)>(*this); }
+			Tbasic_string_xscope_iterator operator=(const Tbasic_string_xscope_iterator _X) && { base_class::operator=(_X); return std::forward<decltype(*this)>(*this); }
+			Tbasic_string_xscope_iterator operator ++() && { base_class::operator ++(); return std::forward<decltype(*this)>(*this); }
+			Tbasic_string_xscope_iterator operator --() && { base_class::operator --(); return std::forward<decltype(*this)>(*this); }
+			Tbasic_string_xscope_iterator operator +=(difference_type n) && { base_class::operator +=(n); return std::forward<decltype(*this)>(*this); }
+			Tbasic_string_xscope_iterator operator -=(difference_type n) && { base_class::operator -=(n); return std::forward<decltype(*this)>(*this); }
 
 			void set_to_item_pointer(const Tbasic_string_xscope_iterator& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
 

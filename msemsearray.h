@@ -2199,6 +2199,9 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		template <typename _TRAContainerPointer2>
 		static auto construction_helper6(const mse::TXScopeRAIterator<_TRAContainerPointer2>& ra_iter, const size_type index = 0) {
+			/* If you get a compile error here, it means that the given iterator (or arguments) is not convertible to
+			the specified TXScopeCSSSXSTERAIterator<>. A common case is when trying to convert an rvalue (temporary) scope
+			iterator of a dynamic (structure lockable) container (like a vector), where only lvalues are supported. */
 			assert(0 == index); return construction_helper7(ra_iter.target_container_ptr(), ra_iter.position());
 		}
 		template <typename _TRAContainer2>
@@ -2364,10 +2367,16 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		template <typename _TRAContainerPointer2>
 		static auto construction_helper6(const mse::TXScopeRAConstIterator<_TRAContainerPointer2>& ra_iter, const size_type index = 0) {
+			/* If you get a compile error here, it means that the given iterator (or arguments) is not convertible to
+			the specified TXScopeCSSSXSTERAIterator<>. A common case is when trying to convert an rvalue (temporary) scope
+			iterator of a dynamic (structure lockable) container (like a vector), where only lvalues are supported. */
 			assert(0 == index); return construction_helper7(ra_iter.target_container_ptr(), ra_iter.position());
 		}
 		template <typename _TRAContainerPointer2>
 		static auto construction_helper6(const mse::TXScopeRAIterator<_TRAContainerPointer2>& ra_iter, const size_type index = 0) {
+			/* If you get a compile error here, it means that the given iterator (or arguments) is not convertible to
+			the specified TXScopeCSSSXSTERAIterator<>. A common case is when trying to convert an rvalue (temporary) scope
+			iterator of a dynamic (structure lockable) container (like a vector), where only lvalues are supported. */
 			assert(0 == index); return construction_helper7(ra_iter.target_container_ptr(), ra_iter.position());
 		}
 		template <typename _TRAContainer2>
