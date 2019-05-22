@@ -1742,6 +1742,11 @@ namespace mse {
 		}
 	};
 
+	template <typename _TElement, class _Traits = std::char_traits<_TElement> >
+	using TXScopeCSSSXSTEStringConstSection = TXScopeStringConstSection<TXScopeCSSSXSTERAConstIterator<_TElement>, _Traits>;
+	template <typename _TElement, class _Traits = std::char_traits<_TElement> >
+	using TXScopeCSSSXSTEStringSection = TXScopeStringSection<TXScopeCSSSXSTERAIterator<_TElement>, _Traits>;
+
 	template <typename _TRAIterator>
 	auto make_xscope_string_const_section(const _TRAIterator& start_iter, typename TXScopeStringConstSection<_TRAIterator>::size_type count) {
 		return TXScopeStringConstSection<_TRAIterator>(start_iter, count);

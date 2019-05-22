@@ -283,6 +283,7 @@
     <ClInclude Include="msethreadlocal.h" />
     <ClInclude Include="msetl.h" />
     <ClInclude Include="msetl_example2.h" />
+    <ClInclude Include="msetl_example3.h" />
     <ClInclude Include="msetl_example_defs.h" />
     <ClInclude Include="msetuple.h" />
     <ClInclude Include="msevector_test.h" />
@@ -290,6 +291,7 @@
   <ItemGroup>
     <ClCompile Include="msetl_example.cpp" />
     <ClCompile Include="msetl_example2.cpp" />
+    <ClCompile Include="msetl_example3.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="LICENSE_1_0.txt" />

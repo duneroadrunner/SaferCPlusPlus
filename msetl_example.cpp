@@ -10,12 +10,12 @@ types. Your best bet is probably to use a find/search to get to the data type yo
 */
 
 #include "msetl_example2.h"
+#include "msetl_example3.h"
 
 #ifndef EXCLUDE_MSETL_EXAMPLE
 
 #include "msetl_example_defs.h"
 
-//include "msetl.h"
 #include "mseprimitives.h"
 #include "mseregistered.h"
 #include "msecregistered.h"
@@ -30,16 +30,8 @@ types. Your best bet is probably to use a find/search to get to the data type yo
 #include "msemstdvector.h"
 #include "mseivector.h"
 #include "msevector_test.h"
-#include "mselegacyhelpers.h"
 #include "msemstdstring.h"
-#include <algorithm>
 #include <iostream>
-#include <ctime>
-#include <ratio>
-#include <chrono>
-//include <thread>
-//include <sstream>
-#include <future>
 
 /* This block of includes is required for the mse::TRegisteredRefWrapper example */
 #include <algorithm>
@@ -2029,6 +2021,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	msetl_example2();
+	msetl_example3();
 
 	return 0;
 }
@@ -2049,6 +2042,7 @@ int main(int argc, char* argv[]) {
 #else // !EXCLUDE_MSETL_EXAMPLE
 int main(int /*argc*/, char* /*argv*/[]) {
 	msetl_example2();
+	msetl_example3();
 	return 0;
 }
 #endif // !EXCLUDE_MSETL_EXAMPLE

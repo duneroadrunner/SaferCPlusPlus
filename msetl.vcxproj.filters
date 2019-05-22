@@ -108,12 +108,18 @@
     <ClInclude Include="msetuple.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="msetl_example3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="msetl_example.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="msetl_example2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msetl_example3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

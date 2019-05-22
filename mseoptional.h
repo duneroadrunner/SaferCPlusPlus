@@ -27,6 +27,10 @@
 #include<optional>
 #endif // MSE_HAS_CXX17
 
+#ifdef MSE_SELF_TESTS
+#include <iostream>
+#endif // MSE_SELF_TESTS
+
 #ifdef _MSC_VER
 #define MSE_OPTIONAL_IMPLEMENTATION1
 #else // _MSC_VER

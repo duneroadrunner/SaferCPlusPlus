@@ -50,6 +50,11 @@
 #include <variant>
 #endif // MSE_HAS_CXX17
 
+#ifdef MSE_TRASECTIONSPLITTERXWP_NDEBUG
+#else // MSE_TRASECTIONSPLITTERXWP_NDEBUG
+#include "msenorad.h"
+#endif // MSE_TRASECTIONSPLITTERXWP_NDEBUG
+
 #ifdef MSE_SELF_TESTS
 #include <string>
 #include <iterator>
@@ -6026,7 +6031,6 @@ namespace mse {
 	using TXScopeCSSSXSTERandomAccessConstSection = TXScopeRandomAccessConstSection<TXScopeCSSSXSTERAConstIterator<_TElement> >;
 	template <typename _TElement>
 	using TXScopeCSSSXSTERandomAccessSection = TXScopeRandomAccessSection<TXScopeCSSSXSTERAIterator<_TElement> >;
-
 
 	template <typename _TRAIterator>
 	auto make_xscope_random_access_const_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
