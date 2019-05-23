@@ -391,10 +391,9 @@ void msetl_example2() {
 			mse::TXScopeAnyRandomAccessIterator<int> ra_iter2 = std_array1.end();
 			auto res5 = ra_iter2 - ra_iter1;
 			ra_iter1 = ra_iter2;
-			int q = 3;
 		}
 
-		mse::TXScopeObj<mse::mstd::array<int, 4>> mstd_array3_scbobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
+		mse::TXScopeObj<mse::mstd::array<int, 4> > mstd_array3_scbobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
 		auto mstd_array_scpiter3 = mse::mstd::make_xscope_begin_iterator(&mstd_array3_scbobj);
 		//mstd_array_scpiter3 = mstd_array3_scbobj.begin();
 		++mstd_array_scpiter3;
@@ -426,6 +425,19 @@ void msetl_example2() {
 		/*  TXScopeCSSSXSTERandomAccessIterator<>   */
 		/*  & TXScopeCSSSXSTERandomAccessSection<>  */
 		/********************************************/
+
+		/* TXScopeCSSSXSTERandomAccessIterator<> and TXScopeCSSSXSTERandomAccessSection<> are "type-erased" template classes
+		that function much like TAnyRandomAccessIterator<> and TAnyRandomAccessSection<> in that they can be used to enable
+		functions to take as arguments iterators or sections of various container types (like an arrays or vectors) without
+		making the functions in to template functions. But in this case there are limitations on what types can be
+		converted. In exchange for these limitations, these types require less overhead. The "CSSSXSTE" part of the
+		typenames stands for "Contiguous Sequence, Static Structure, XScope, Type-Erased". So the first restriction is that
+		the target container must be recognized as a "contiguous sequence" (basically an array or vector). It also must be
+		recognized as having a "static structure". This essentially means that the container cannot be resized. Note that
+		while vectors support resizing, the ones in the library can be "structure locked" at run-time to ensure that they
+		are not resized (i.e. have a "static structure") during certain periods. And only the "scope" versions of the
+		iterators and sections are supported.
+		*/
 
 		auto xs_mstd_array1 = mse::make_xscope(mse::mstd::array<int, 4>{ 1, 2, 3, 4 });
 		auto xs_msearray2 = mse::make_xscope(mse::us::msearray<int, 5>{ 5, 6, 7, 8, 9 });
@@ -467,43 +479,65 @@ void msetl_example2() {
 		auto res1 = B::foo2(xs_mstd_array_iter1);
 		B::foo1(xs_mstd_array_iter1);
 
-		auto msearray_const_iter2 = mse::make_xscope_begin_const_iterator(&xs_msearray2);
-		msearray_const_iter2 += 2;
-		auto res2 = B::foo2(msearray_const_iter2);
+		auto xs_msearray_const_iter2 = mse::make_xscope_begin_const_iterator(&xs_msearray2);
+		xs_msearray_const_iter2 += 2;
+		auto res2 = B::foo2(xs_msearray_const_iter2);
 
 		auto xs_mstd_vec1_citer1 = mse::make_xscope_begin_const_iterator(&xs_mstd_vec1);
 		auto res3 = B::foo2(xs_mstd_vec1_citer1);
+		/*
+		Note that attempting to combine the previous two lines into a single expression like so:
+		auto res3b = B::foo2(mse::make_xscope_begin_const_iterator(&xs_mstd_vec1));
+		is not supported and would result in a compile error.
+
+		In the case of dynamic containers, like vectors and strings, the (scope) iterators can only be converted to
+		TXScopeCSSSXSTERandomAccessIterator<>s if they are lvalues, not temporaries/rvalues. This is because scope iterators
+		hold a "structure lock" that prevents the container from being resized. If the scope iterator you're attempting to
+		convert from is a temporary (rvalue) one, then the structure lock would be just as temporary and it would not be safe
+		to create a TXScopeCSSSXSTERandomAccessIterator<> that outlives the period when the container is "structure locked".
+		"Non-resizable" containers, like arrays, do not have the same issue, so this restriction does not apply to their
+		(scope) iterators.
+		*/
+
 		auto xs_mstd_vec1_citer2 = ++mse::make_xscope_begin_iterator(&xs_mstd_vec1);
 		B::foo1(xs_mstd_vec1_citer2);
 		auto xs_mstd_vec1_iter1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
-
 		auto res4 = B::foo2(xs_mstd_vec1_iter1);
+
 		auto xs_mstd_vec1_begin_citer1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
-		mse::TXScopeCSSSXSTERandomAccessIterator<int> ra_iter1 = xs_mstd_vec1_begin_citer1;
+		mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter1 = xs_mstd_vec1_begin_citer1;
 		auto xs_mstd_vec1_end_citer1 = mse::make_xscope_end_iterator(&xs_mstd_vec1);
-		mse::TXScopeCSSSXSTERandomAccessIterator<int> ra_iter2 = xs_mstd_vec1_end_citer1;
-		auto res5 = ra_iter2 - ra_iter1;
-		ra_iter1 = ra_iter2;
+		mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter2 = xs_mstd_vec1_end_citer1;
+		auto res5 = xs_te_iter2 - xs_te_iter1;
+		xs_te_iter1 = xs_te_iter2;
 
 		{
 			auto std_array1 = mse::make_xscope(std::array<int, 4>{ 1, 2, 3, 4 });
-			mse::TXScopeCSSSXSTERandomAccessIterator<int> ra_iter1(mse::make_xscope_begin_iterator(&std_array1));
-			mse::TXScopeCSSSXSTERandomAccessIterator<int> ra_iter2 = mse::make_xscope_end_iterator(&std_array1);
-			auto res5 = ra_iter2 - ra_iter1;
-			ra_iter1 = ra_iter2;
+			mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter1(mse::make_xscope_begin_iterator(&std_array1));
+			mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter2 = mse::make_xscope_end_iterator(&std_array1);
+			auto res5 = xs_te_iter2 - xs_te_iter1;
+			xs_te_iter1 = xs_te_iter2;
 		}
 
 		mse::TXScopeObj<mse::mstd::array<int, 4> > mstd_array3_scbobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
 		auto mstd_array_scpiter3 = mse::mstd::make_xscope_begin_iterator(&mstd_array3_scbobj);
-		//mstd_array_scpiter3 = mstd_array3_scbobj.begin();
 		++mstd_array_scpiter3;
 		B::foo1(mstd_array_scpiter3);
 
-		mse::TXScopeCSSSXSTERandomAccessSection<int> xscp_ra_section1(xs_mstd_array_iter1, 2);
+		mse::TXScopeCSSSXSTERandomAccessSection<int> xscp_ra_section1(xs_mstd_array_iter1++, 2);
 		B::foo3(xscp_ra_section1);
 
-		auto xs_mstd_vec_iter1 = ++mse::make_xscope_begin_iterator(&xs_mstd_vec1);
-		mse::TXScopeCSSSXSTERandomAccessSection<int> xscp_ra_section2(xs_mstd_vec_iter1, 3);
+		auto xs_mstd_vec_iter1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
+		mse::TXScopeCSSSXSTERandomAccessSection<int> xscp_ra_section2(++xs_mstd_vec_iter1, 3);
+		/*
+		Note that had we instead used the postfix increment operator on the xs_mstd_vec_iter1 argument in the previous line
+		like so:
+		mse::TXScopeCSSSXSTERandomAccessSection<int> xscp_ra_section2b(xs_mstd_vec_iter1++, 3);
+		we would have gotten a compile error. That's because unlike the prefix increment operator, the postfix increment
+		operator returns a temporary (rvalue) copy of the iterator, and as noted earlier, in the case of dynamic containers,
+		like vectors and srings, conversion/construction from temporary (rvalue) versions of their iterators could be unsafe
+		and is not supported.
+		*/
 
 		auto res6 = B::foo5(xscp_ra_section2);
 		B::foo3(xscp_ra_section2);
@@ -514,10 +548,10 @@ void msetl_example2() {
 		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
 		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
 
-		auto ra_section1 = mse::make_xscope_random_access_section(xs_mstd_array_iter1, 2);
-		B::foo3(ra_section1);
-		auto ra_const_section2 = mse::make_xscope_random_access_const_section(mse::make_xscope_begin_const_iterator(&xs_mstd_vec1), 2);
-		B::foo4(ra_const_section2);
+		auto xs_ra_section1 = mse::make_xscope_random_access_section(xs_mstd_array_iter1, 2);
+		B::foo3(xs_ra_section1);
+		auto xs_ra_const_section2 = mse::make_xscope_random_access_const_section(mse::make_xscope_begin_const_iterator(&xs_mstd_vec1), 2);
+		B::foo4(xs_ra_const_section2);
 	}
 
 	{

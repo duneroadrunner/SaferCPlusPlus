@@ -48,6 +48,7 @@
 #include <iostream>
 #ifdef MSE_HAS_CXX17
 #include <variant>
+#include <string_view>
 #endif // MSE_HAS_CXX17
 
 #ifdef MSE_TRASECTIONSPLITTERXWP_NDEBUG
@@ -4725,8 +4726,21 @@ namespace mse {
 				return std::forward<decltype(ra_section)>(ra_section).m_start_iter;
 			}
 			template <typename _TRALoneParam>
-			static auto s_xscope_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
+			static auto s_xscope_iter_from_lone_param4(std::false_type, const _TRALoneParam& param) {
 				return mse::make_xscope_const_iterator(param);
+			}
+			template <typename _TRALoneParam>
+			static auto s_xscope_iter_from_lone_param4(std::true_type, const _TRALoneParam& string_view_param) {
+				/* Apparently the lone parameter is a basic_string_view. */
+				return string_view_param.cbegin();
+			}
+			template <typename _TRALoneParam>
+			static auto s_xscope_iter_from_lone_param2(std::false_type, const _TRALoneParam& param) {
+#ifdef MSE_HAS_CXX17
+				return s_xscope_iter_from_lone_param4(typename mse::impl::is_instantiation_of<_TRALoneParam, std::basic_string_view>::type(), param);
+#else /* MSE_HAS_CXX17 */
+				return s_xscope_iter_from_lone_param4(std::false_type(), param);
+#endif /* MSE_HAS_CXX17 */
 			}
 			template <typename _TRALoneParam>
 			static auto s_xscope_iter_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
