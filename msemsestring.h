@@ -5131,20 +5131,20 @@ namespace mse {
 			}
 
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(const gnii_basic_string<_Elem, _Traits, _Alloc>& _Left,
-				const gnii_basic_string<_Elem, _Traits, _Alloc>& _Right) {	// return string + string
-				gnii_basic_string<_Elem, _Traits, _Alloc> _Ans;
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(const gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>& _Left,
+				const gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>& _Right) {	// return string + string
+				gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> _Ans;
 				_Ans.reserve(_Left.size() + _Right.size());
 				_Ans += _Left;
 				_Ans += _Right;
 				return (_Ans);
 			}
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(const _Elem * const _Left,
-				const gnii_basic_string<_Elem, _Traits, _Alloc>& _Right) {	// return NTCTS + string
-				using _String_type = gnii_basic_string<_Elem, _Traits, _Alloc>;
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(const _Elem * const _Left,
+				const gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>& _Right) {	// return NTCTS + string
+				using _String_type = gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>;
 				using _Size_type = typename _String_type::size_type;
 				_String_type _Ans;
 				_Ans.reserve(_Size_type(_Traits::length(_Left) + _Right.size()));
@@ -5153,20 +5153,20 @@ namespace mse {
 				return (_Ans);
 			}
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(const _Elem _Left,
-				const gnii_basic_string<_Elem, _Traits, _Alloc>& _Right) {	// return character + string
-				gnii_basic_string<_Elem, _Traits, _Alloc> _Ans;
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(const _Elem _Left,
+				const gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>& _Right) {	// return character + string
+				gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> _Ans;
 				_Ans.reserve(1 + _Right.size());
 				_Ans += _Left;
 				_Ans += _Right;
 				return (_Ans);
 			}
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(const gnii_basic_string<_Elem, _Traits, _Alloc>& _Left,
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(const gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>& _Left,
 				const _Elem * const _Right) {	// return string + NTCTS
-				using _String_type = gnii_basic_string<_Elem, _Traits, _Alloc>;
+				using _String_type = gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>;
 				using _Size_type = typename _String_type::size_type;
 				_String_type _Ans;
 				_Ans.reserve(_Size_type(_Left.size() + _Traits::length(_Right)));
@@ -5175,31 +5175,31 @@ namespace mse {
 				return (_Ans);
 			}
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(const gnii_basic_string<_Elem, _Traits, _Alloc>& _Left,
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(const gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>& _Left,
 				const _Elem _Right) {	// return string + character
-				gnii_basic_string<_Elem, _Traits, _Alloc> _Ans;
+				gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> _Ans;
 				_Ans.reserve(_Left.size() + 1);
 				_Ans += _Left;
 				_Ans += _Right;
 				return (_Ans);
 			}
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(const gnii_basic_string<_Elem, _Traits, _Alloc>& _Left,
-				gnii_basic_string<_Elem, _Traits, _Alloc>&& _Right) {	// return string + string
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(const gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>& _Left,
+				gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>&& _Right) {	// return string + string
 				return (_STD move(_Right.insert(0, _Left)));
 			}
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(gnii_basic_string<_Elem, _Traits, _Alloc>&& _Left,
-				const gnii_basic_string<_Elem, _Traits, _Alloc>& _Right) {	// return string + string
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>&& _Left,
+				const gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>& _Right) {	// return string + string
 				return (_STD move(_Left.append(_Right)));
 			}
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(gnii_basic_string<_Elem, _Traits, _Alloc>&& _Left,
-				gnii_basic_string<_Elem, _Traits, _Alloc>&& _Right) {	// return string + string
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>&& _Left,
+				gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>&& _Right) {	// return string + string
 				if (_Right.size() <= _Left.capacity() - _Left.size()
 					|| _Right.capacity() - _Right.size() < _Left.size())
 					return (_STD move(_Left.append(_Right)));
@@ -5207,27 +5207,27 @@ namespace mse {
 					return (_STD move(_Right.insert(0, _Left)));
 			}
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(const _Elem * const _Left,
-				gnii_basic_string<_Elem, _Traits, _Alloc>&& _Right) {
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(const _Elem * const _Left,
+				gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>&& _Right) {
 				return (_STD move(_Right.insert(0, _Left)));
 			}
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(const _Elem _Left,
-				gnii_basic_string<_Elem, _Traits, _Alloc>&& _Right) {
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(const _Elem _Left,
+				gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>&& _Right) {
 				using size_type = typename std::allocator_traits<_Alloc>::size_type;
 				return (_STD move(_Right.insert(static_cast<size_type>(0), static_cast<size_type>(1), _Left)));
 			}
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(gnii_basic_string<_Elem, _Traits, _Alloc>&& _Left,
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>&& _Left,
 				const _Elem * const _Right) {
 				return (_STD move(_Left.append(_Right)));
 			}
 
-			template<class _Elem, class _Traits, class _Alloc>
-			inline gnii_basic_string<_Elem, _Traits, _Alloc> operator+(gnii_basic_string<_Elem, _Traits, _Alloc>&& _Left,
+			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex>
+			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex> operator+(gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex>&& _Left,
 				const _Elem _Right) {	// return string + character
 				_Left.push_back(_Right);
 				return (_STD move(_Left));
@@ -5481,6 +5481,97 @@ namespace std {
 
 namespace mse {
 
+	/* These are some defines that automate the boilerplate of inheriting free operators of a string base class. */
+
+#define MSE_STRING_INHERIT_FREE_STREAM_OPERATORS(template_param_decl, derived_class, base_class, element_type, trait_type) \
+	template_param_decl \
+	std::basic_istream<element_type, trait_type>& operator>>(std::basic_istream<element_type, trait_type>&& _Istr, derived_class& _Str) { \
+		return MSE_FWD(_Istr) >> mse::us::impl::as_ref<base_class>(_Str); \
+	} \
+	template_param_decl \
+	std::basic_istream<element_type, trait_type>& operator>>(std::basic_istream<element_type, trait_type>& _Istr, derived_class& _Str) { \
+		return _Istr >> mse::us::impl::as_ref<base_class>(_Str); \
+	} \
+	template_param_decl \
+	std::basic_ostream<element_type, trait_type>& operator<<(std::basic_ostream<element_type, trait_type>& _Ostr, const derived_class& _Str) { \
+		return _Ostr << mse::us::impl::as_ref<base_class>(_Str); \
+	}
+
+#define MSE_STRING_DEFINE_FREE_REDUNDANT_COMPARISON_OPERATORS(template_param_decl, class1) \
+	template_param_decl \
+	inline bool operator!=(const class1& _Left, const class1& _Right) { return (!(_Left == _Right)); } \
+	template_param_decl \
+	inline bool operator>(const class1& _Left, const class1& _Right) { return (_Right < _Left); } \
+	template_param_decl \
+	inline bool operator<=(const class1& _Left, const class1& _Right) { return (!(_Right < _Left)); } \
+	template_param_decl \
+	inline bool operator>=(const class1& _Left, const class1& _Right) { return (!(_Left < _Right)); }
+
+#define MSE_STRING_INHERIT_FREE_OPERATOR_PLUS1(template_param_decl, derived_class, base_class) \
+	template_param_decl \
+	inline derived_class operator+(const derived_class& _Left, const derived_class& _Right) { \
+		return mse::us::impl::as_ref<base_class>(_Left) + mse::us::impl::as_ref<base_class>(_Right); \
+	} \
+	template_param_decl \
+	inline derived_class operator+(const derived_class& _Left, derived_class&& _Right) { \
+		return mse::us::impl::as_ref<base_class>(_Left) + mse::us::impl::as_ref<base_class>(MSE_FWD(_Right)); \
+	} \
+	template_param_decl \
+	inline derived_class operator+(derived_class&& _Left, const derived_class& _Right) { \
+		return mse::us::impl::as_ref<base_class>(MSE_FWD(_Left)) + mse::us::impl::as_ref<base_class>(_Right); \
+	} \
+	template_param_decl \
+	inline derived_class operator+(derived_class&& _Left, derived_class&& _Right) { \
+		return mse::us::impl::as_ref<base_class>(MSE_FWD(_Left)) + mse::us::impl::as_ref<base_class>(MSE_FWD(_Right)); \
+	}
+
+#define MSE_STRING_INHERIT_FREE_OPERATOR_PLUS2(template_param_decl, derived_class, base_class, element_type) \
+	template_param_decl \
+	inline derived_class operator+(const element_type * const _Left, const derived_class& _Right) { \
+		return _Left + mse::us::impl::as_ref<base_class>(_Right); \
+	} \
+	template_param_decl \
+	inline derived_class operator+(const element_type _Left, const derived_class& _Right) { \
+		return _Left + mse::us::impl::as_ref<base_class>(_Right); \
+	} \
+	template_param_decl \
+	inline derived_class operator+(const derived_class& _Left, const element_type * const _Right) { \
+		return mse::us::impl::as_ref<base_class>(_Left) + _Right; \
+	} \
+	template_param_decl \
+	inline derived_class operator+(const derived_class& _Left, const element_type _Right) { \
+		return mse::us::impl::as_ref<base_class>(_Left) + _Right; \
+	} \
+	template_param_decl \
+	inline derived_class operator+(const element_type * const _Left, derived_class&& _Right) { \
+		return _Left + mse::us::impl::as_ref<base_class>(MSE_FWD(_Right)); \
+	} \
+	template_param_decl \
+	inline derived_class operator+(const element_type _Left, derived_class&& _Right) { \
+		return _Left + mse::us::impl::as_ref<base_class>(MSE_FWD(_Right)); \
+	} \
+	template_param_decl \
+	inline derived_class operator+(derived_class&& _Left, const element_type * const _Right) { \
+		return mse::us::impl::as_ref<base_class>(MSE_FWD(_Left)) + _Right; \
+	} \
+	template_param_decl \
+	inline derived_class operator+(derived_class&& _Left, const element_type _Right) { \
+		return mse::us::impl::as_ref<base_class>(MSE_FWD(_Left)) + _Right; \
+	}
+
+#define MSE_STRING_TEMPLATE_PARAMS_DECL1 template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
+#define MSE_STRING_BASE_CLASS_FROM_TEMPLATE1(x, base_state_mutex_type) x<_Ty, _Traits, _A, base_state_mutex_type>
+#define MSE_STRING_DERIVED_CLASS_FROM_TEMPLATE1(x) x<_Ty, _Traits, _A>
+
+#define MSE_STRING_INHERIT_FREE_OPERATORS(derived_template, base_template, base_state_mutex_type) \
+	MSE_STRING_INHERIT_FREE_STREAM_OPERATORS(MSE_STRING_TEMPLATE_PARAMS_DECL1, MSE_STRING_DERIVED_CLASS_FROM_TEMPLATE1(derived_template), MSE_STRING_BASE_CLASS_FROM_TEMPLATE1(base_template, base_state_mutex_type), _Ty, _Traits) \
+	MSE_STRING_DEFINE_FREE_REDUNDANT_COMPARISON_OPERATORS(MSE_STRING_TEMPLATE_PARAMS_DECL1, MSE_STRING_DERIVED_CLASS_FROM_TEMPLATE1(derived_template)) \
+	MSE_STRING_INHERIT_FREE_OPERATOR_PLUS1(MSE_STRING_TEMPLATE_PARAMS_DECL1, MSE_STRING_DERIVED_CLASS_FROM_TEMPLATE1(derived_template), MSE_STRING_BASE_CLASS_FROM_TEMPLATE1(base_template, base_state_mutex_type)) \
+	MSE_STRING_INHERIT_FREE_OPERATOR_PLUS2(MSE_STRING_TEMPLATE_PARAMS_DECL1, MSE_STRING_DERIVED_CLASS_FROM_TEMPLATE1(derived_template), MSE_STRING_BASE_CLASS_FROM_TEMPLATE1(base_template, base_state_mutex_type), _Ty)
+
+
+	/* stnii_basic_string<> is a "low-overhead" string that is not eligible to be shared among threads and does not
+	support implicit iterators. */
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
 	class stnii_basic_string : public mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, mse::non_thread_safe_shared_mutex>, public us::impl::AsyncNotShareableTagBase {
 	public:
@@ -5558,6 +5649,7 @@ namespace mse {
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
+	MSE_STRING_INHERIT_FREE_OPERATORS(stnii_basic_string, mse::us::impl::gnii_basic_string, mse::non_thread_safe_shared_mutex)
 
 	using nii_string = nii_basic_string<char>;
 	using nii_wstring = nii_basic_string<wchar_t>;
@@ -8190,6 +8282,8 @@ namespace mse {
 	while maintaining thread safety (and maximal performance), it needs a partially thread safe shared mutex. */
 	typedef T_shared_mutex<bool, std::atomic<size_t> > mtnii_basic_string_shared_mutex;
 
+	/* mtnii_basic_string<> is a string that is eligible to be shared among threads and does not support implicit
+	iterators. */
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::mtnii_basic_string_shared_mutex>
 	class mtnii_basic_string : public mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, mse::mtnii_basic_string_shared_mutex> {
 	public:
@@ -8251,6 +8345,13 @@ namespace mse {
 		return mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	MSE_STRING_INHERIT_FREE_OPERATORS(mtnii_basic_string, mse::us::impl::gnii_basic_string, mse::mtnii_basic_string_shared_mutex)
+
+	using mtnii_string = mtnii_basic_string<char>;
+	using mtnii_wstring = mtnii_basic_string<wchar_t>;
+	using mtnii_u16string = mtnii_basic_string<char16_t>;
+	using mtnii_u32string = mtnii_basic_string<char32_t>;
 
 #endif // MSEASYNCSHARED_H_
 }

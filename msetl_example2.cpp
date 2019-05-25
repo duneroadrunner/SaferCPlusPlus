@@ -96,24 +96,141 @@ public:
 
 #ifdef MSE_HAS_CXX17
 	/* While not encouraging their use, this is how you might declare an immutable static member (in C++17 and later). */
-	inline MSE_DECLARE_STATIC_IMMUTABLE(mse::nii_string) sm_simm_string = "abc";
+	inline MSE_DECLARE_STATIC_IMMUTABLE(mse::mtnii_string) sm_simm_string = "abc";
 #endif // MSE_HAS_CXX17
 
 };
 
 MSE_DECLARE_THREAD_LOCAL_GLOBAL(mse::mstd::string) tlg_string1 = "some text";
-MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(mse::nii_string) gimm_string1 = "some text";
+MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(mse::mtnii_string) gimm_string1 = "some text";
 
 
 void msetl_example2() {
+	{
+		/**********************/
+		/*   mtnii_vector<>   */
+		/**********************/
+
+		/* mtnii_vector<> is a safe vector that is eligible to be (safely) shared between asynchronous threads. */
+
+		typedef mse::mtnii_vector<mse::mtnii_string> mtnii_vector1_t;
+
+		mse::TRegisteredObj<mtnii_vector1_t> rg_vo1;
+		for (size_t i = 0; i < 5; i += 1) {
+			rg_vo1.push_back("some text");
+		}
+		mse::TRegisteredPointer<mtnii_vector1_t> vo1_regptr1 = &rg_vo1;
+
+		/* mtnii_vector<> does not have a begin() member function that returns an "implicit" iterator. You can obtain an
+		iterator using the make_begin_iterator() et al. functions, which take a (safe) pointer to the container. */
+		auto iter1 = mse::make_begin_iterator(vo1_regptr1);
+		auto citer1 = mse::make_end_const_iterator(vo1_regptr1);
+		citer1 = iter1;
+		rg_vo1.emplace(vo1_regptr1, citer1, "some other text");
+		rg_vo1.insert(vo1_regptr1, citer1, "some other text");
+		mse::mtnii_string str1 = "some other text";
+		rg_vo1.insert(vo1_regptr1, citer1, str1);
+
+		class A {
+		public:
+			A() {}
+			int m_i = 0;
+		};
+		/* Here we're declaring that A can be safely shared between asynchronous threads. */
+		typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> shareable_A_t;
+
+		/* When the element type of an mtnii_vector<> is marked as "async shareable", the mtnii_vector<> itself is
+		(automatically) marked as async shareable as well and can be safely shared between asynchronous threads
+		using "access requesters". */
+		auto access_requester1 = mse::make_asyncsharedv2readwrite<mse::mtnii_vector<shareable_A_t>>();
+		auto access_requester2 = mse::make_asyncsharedv2readwrite<mtnii_vector1_t>();
+
+		/* If the element type of an mtnii_vector<> is not marked as "async shareable", then neither is the
+		mtnii_vector<> itself. So attempting to create an "access requester" using it would result in a compile
+		error. */
+		//auto access_requester3 = mse::make_asyncsharedv2readwrite<mse::mtnii_vector<A>>();
+		//auto access_requester4 = mse::make_asyncsharedv2readwrite<mse::mtnii_vector<mse::mstd::string>>();
+
+		typedef mse::mstd::vector<mse::mtnii_string> vector1_t;
+		vector1_t vo2 = { "a", "b", "c" };
+		/* mstd::vector<>s, for example, are not safely shareable between threads. But if its element type is
+		safely shareable, then the contents of the mse::mstd::vector<>, can be swapped with a corresponding
+		shareable mtnii_vector<>. Note that vector swaps are intrinsically fast operations. */
+		std::swap(vo2, *(access_requester2.writelock_ptr()));
+
+		{
+			/* If the vector is declared as a "scope" object (which basically indicates that it is declared
+			on the stack), then you can use "scope" iterators. While there are limitations on when they can
+			be used, scope iterators would be the preferred iterator type where performance is a priority
+			as they don't require extra run-time overhead to ensure that the vector has not been prematurely
+			deallocated. */
+
+			/* Here we're declaring a vector as a scope object. */
+			mse::TXScopeObj<mse::mtnii_vector<int> > vector1_xscpobj = mse::mtnii_vector<int>{ 1, 2, 3 };
+
+			{
+				/* Here we're obtaining a scope iterator to the vector. */
+				auto xscp_iter1 = mse::make_xscope_begin_iterator(&vector1_xscpobj);
+				auto xscp_iter2 = mse::make_xscope_end_iterator(&vector1_xscpobj);
+
+				std::sort(xscp_iter1, xscp_iter2);
+
+				auto xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+				xscp_citer3 = xscp_iter1;
+				xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+				xscp_citer3 += 2;
+				auto res1 = *xscp_citer3;
+				auto res2 = xscp_citer3[0];
+
+				/* Note that scope iterators to vectors (and other dynamic containers), "lock the structure" of the container
+				so that, for example, it cannot be resized. This allows us to obtain a scope pointer to the iterator's
+				target element. */
+				auto xscp_ptr1 = mse::xscope_pointer(xscp_citer3);
+				auto res3 = *xscp_ptr1;
+			}
+			/* After all the scope pointers have gone out of scope, you may again perform operations that affect the container's
+			"structure" (i.e. size or capacity). */
+			vector1_xscpobj.push_back(4);
+		}
+	}
+
+	{
+		/**********************/
+		/*   stnii_vector<>   */
+		/**********************/
+
+		/* stnii_vector<> is just a version of mtnii_vector<> that is not eligible to be shared between threads (and has
+		a little less overhead as a result). */
+
+		mse::TXScopeObj<mse::stnii_vector<int> > vector1_xscpobj = mse::stnii_vector<int>{ 1, 2, 3 };
+
+		{
+			mse::TXScopeItemFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
+			auto xxscp_vector1_change_lock_guard = mse::make_xscope_structure_lock_guard(xscptr);
+			auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
+			auto res4 = *xscp_ptr1;
+		}
+		vector1_xscpobj.push_back(4);
+
+		/* stnii_vector<>s can be (efficiently) swapped with mtnii_vector<>s. */
+		auto mtniiv1 = mse::mtnii_vector<int>();
+		std::swap(vector1_xscpobj, mtniiv1);
+		/* Or mstd::vector<>s. */
+		auto mstdv1 = mse::mstd::vector<int>();
+		std::swap(vector1_xscpobj, mstdv1);
+	}
+
 	{
 		/********************/
 		/*   nii_vector<>   */
 		/********************/
 
-		/* nii_vector<> is a safe vector that is elegible to be (safely) shared between asynchronous threads. */
+		/* nii_vector<> is another safe vector that is eligible to be (safely) shared between asynchronous threads. It
+		doesn't use a (costly) thread-safe (atomic) "structure locking" mechanism like mse::mtnii_vector<> does, but
+		therefore it doesn't supports "structure locking" (and therefore obtaining a scope pointer to an element) via
+		its scope const iterators, only its scope non-const iterators. */
 
-		typedef mse::nii_vector<mse::nii_string> nii_vector1_t;
+		typedef mse::nii_vector<mse::mtnii_string> nii_vector1_t;
 
 		mse::TRegisteredObj<nii_vector1_t> rg_vo1;
 		for (size_t i = 0; i < 5; i += 1) {
@@ -128,7 +245,7 @@ void msetl_example2() {
 		citer1 = iter1;
 		rg_vo1.emplace(vo1_regptr1, citer1, "some other text");
 		rg_vo1.insert(vo1_regptr1, citer1, "some other text");
-		mse::nii_string str1 = "some other text";
+		mse::mtnii_string str1 = "some other text";
 		rg_vo1.insert(vo1_regptr1, citer1, str1);
 
 		class A {
@@ -151,7 +268,7 @@ void msetl_example2() {
 		//auto access_requester3 = mse::make_asyncsharedv2readwrite<mse::nii_vector<A>>();
 		//auto access_requester4 = mse::make_asyncsharedv2readwrite<mse::nii_vector<mse::mstd::string>>();
 
-		typedef mse::mstd::vector<mse::nii_string> vector1_t;
+		typedef mse::mstd::vector<mse::mtnii_string> vector1_t;
 		vector1_t vo2 = { "a", "b", "c" };
 		/* mstd::vector<>s, for example, are not safely shareable between threads. But if its element type is
 		safely shareable, then the contents of the mse::mstd::vector<>, can be swapped with a corresponding
@@ -165,7 +282,7 @@ void msetl_example2() {
 			as they don't require extra run-time overhead to ensure that the vector has not been prematurely
 			deallocated. */
 
-			/* Here we're declaring an vector as a scope object. */
+			/* Here we're declaring a vector as a scope object. */
 			mse::TXScopeObj<mse::nii_vector<int> > vector1_xscpobj = mse::nii_vector<int>{ 1, 2, 3 };
 
 			{
@@ -188,15 +305,8 @@ void msetl_example2() {
 				auto res1 = *xscp_citer3;
 				auto res2 = xscp_citer3[0];
 			}
-
-			{
-				/* In order to obtain a direct scope pointer to a vector element, you first need to instantiate a "structure lock"
-				object, which "locks" the vector to ensure that no resize (or reserve) operation that might cause a scope pointer
-				to become invalid is performed. */
-				auto xxscp_vector1_change_lock_guard = mse::make_xscope_structure_lock_guard(&vector1_xscpobj);
-				auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
-				auto res4 = *xscp_ptr1;
-			}
+			/* After all the scope pointers have gone out of scope, you may again perform operations that affect the container's
+			"structure" (i.e. size or capacity). */
 			vector1_xscpobj.push_back(4);
 		}
 		{
@@ -747,22 +857,22 @@ void msetl_example2() {
 	{
 		/******************/
 		/*  mstd::string  */
-		/*  & nii_string  */
+		/*  & mtnii_string  */
 		/******************/
 
 		std::string str1 = "some text";
-		mse::nii_string nii_str1 = "some text";
+		mse::mtnii_string mtnii_str1 = "some text";
 		mse::us::msestring msestr1 = "some text";
 		mse::mstd::string mstdstr1 = "some text";
 
 		std::cout << str1;
-		std::cout << nii_str1;
+		std::cout << mtnii_str1;
 		std::cout << msestr1;
 		std::cout << mstdstr1;
 
 		{
 			std::string str2 = "some text";
-			mse::nii_string nii_str2 = "some text";
+			mse::mtnii_string mtnii_str2 = "some text";
 			mse::us::msestring msestr2 = "some text";
 			mse::mstd::string mstdstr2 = "some text";
 
@@ -770,23 +880,23 @@ void msetl_example2() {
 			std::istringstream iss(stringvalues);
 			iss >> mstdstr2;
 			iss >> msestr2;
-			iss >> nii_str2;
+			iss >> mtnii_str2;
 			iss >> str2;
 			std::getline(iss, mstdstr2, ',');
 			std::getline(iss, mstdstr2);
 			std::getline(iss, msestr2, ',');
 			std::getline(iss, msestr2);
-			std::getline(iss, nii_str2, ',');
-			std::getline(iss, nii_str2);
+			std::getline(iss, mtnii_str2, ',');
+			std::getline(iss, mtnii_str2);
 			std::getline(iss, str2);
 		}
 
 		auto str2 = str1 + str1;
 		str2.replace(1, 2, str1);
 		auto comp_res1 = str2.compare(str1);
-		auto nii_str2 = nii_str1 + nii_str1;
-		nii_str2.replace(1, 2, nii_str1);
-		nii_str2.compare(nii_str1);
+		auto mtnii_str2 = mtnii_str1 + mtnii_str1;
+		mtnii_str2.replace(1, 2, mtnii_str1);
+		mtnii_str2.compare(mtnii_str1);
 		auto msestr2 = msestr1 + msestr1;
 		msestr2.replace(1, 2, msestr1);
 		msestr2.compare(msestr1);
@@ -795,30 +905,30 @@ void msetl_example2() {
 		mstdstr2.compare(mstdstr1);
 
 		std::string str3 = "some text";
-		mse::TXScopeObj<mse::nii_string> xscp_nii_str3 = "some text";
-		auto nii_str3_xscpiter1 = mse::make_xscope_begin_iterator(&xscp_nii_str3);
-		nii_str2.copy(nii_str3_xscpiter1, 5);
+		mse::TXScopeObj<mse::mtnii_string> xscp_mtnii_str3 = "some text";
+		auto mtnii_str3_xscpiter1 = mse::make_xscope_begin_iterator(&xscp_mtnii_str3);
+		mtnii_str2.copy(mtnii_str3_xscpiter1, 5);
 
-		mse::TRegisteredObj<mse::nii_string> reg_nii_str3 = "some text";
-		nii_str2.copy(mse::make_begin_iterator(&reg_nii_str3), 5);
+		mse::TRegisteredObj<mse::mtnii_string> reg_mtnii_str3 = "some text";
+		mtnii_str2.copy(mse::make_begin_iterator(&reg_mtnii_str3), 5);
 
 		str2 = str2.substr(1);
-		nii_str2 = nii_str2.substr(1);
+		mtnii_str2 = mtnii_str2.substr(1);
 		msestr2 = msestr2.substr(1);
 		mstdstr2 = mstdstr2.substr(1);
 
-		std::swap(nii_str1, nii_str2);
-		std::swap(str1, nii_str1);
+		std::swap(mtnii_str1, mtnii_str2);
+		std::swap(str1, mtnii_str1);
 
 		std::swap(msestr1, msestr2);
 		std::swap(str1, msestr1);
-		std::swap(msestr1, nii_str1);
-		std::swap(nii_str1, msestr1);
+		std::swap(msestr1, mtnii_str1);
+		std::swap(mtnii_str1, msestr1);
 
 		std::swap(mstdstr1, mstdstr2);
 		std::swap(str1, mstdstr1);
-		std::swap(mstdstr1, nii_str1);
-		std::swap(nii_str1, mstdstr1);
+		std::swap(mstdstr1, mtnii_str1);
+		std::swap(mtnii_str1, mstdstr1);
 
 		{
 			using namespace std::literals;
@@ -838,18 +948,18 @@ void msetl_example2() {
 			/* deduction guide example */
 			auto str1 = std::string("abcd");
 			{
-				auto nii_str1 = mse::nii_string{ str1.cbegin(), str1.cend() };
-				assert('b' == nii_str1[1]);
+				auto mtnii_str1 = mse::mtnii_string{ str1.cbegin(), str1.cend() };
+				assert('b' == mtnii_str1[1]);
 			}
 			{
 				auto sv1 = std::string_view(str1);
-				auto nii_str2 = mse::nii_string{ sv1 };
-				assert('b' == nii_str2[1]);
+				auto mtnii_str2 = mse::mtnii_string{ sv1 };
+				assert('b' == mtnii_str2[1]);
 			}
 			{
 				auto xs_str_csection1 = mse::make_string_const_section(str1);
-				auto nii_str3 = mse::nii_string{ xs_str_csection1 };
-				assert('b' == nii_str3[1]);
+				auto mtnii_str3 = mse::mtnii_string{ xs_str_csection1 };
+				assert('b' == mtnii_str3[1]);
 			}
 #endif /* MSE_HAS_CXX17 */
 		}
@@ -877,8 +987,8 @@ void msetl_example2() {
 		std::cout << string_section2;
 
 		/* The (run-time overhead free) scope (and const) versions. */
-		typedef mse::TXScopeObj< mse::nii_string > xscope_nii_string_t;
-		xscope_nii_string_t xscp_nstring1("some text");
+		typedef mse::TXScopeObj< mse::mtnii_string > xscope_mtnii_string_t;
+		xscope_mtnii_string_t xscp_nstring1("some text");
 		auto xscp_citer1 = mse::make_xscope_begin_const_iterator(&xscp_nstring1);
 		auto xscp_string_section1 = mse::make_xscope_string_const_section(xscp_citer1 + 1, 7);
 		auto xscp_string_section2 = xscp_string_section1.xscope_substr(4, 3);
@@ -900,13 +1010,13 @@ void msetl_example2() {
 			class CD {
 			public:
 				/* For this example function, the parameter type we'll be using is a "const scope string section that references a
-				scope nii_string". It's a rather verbose type to express, and here we use decltype() to express it. But this example
+				scope mtnii_string". It's a rather verbose type to express, and here we use decltype() to express it. But this example
 				function is mostly for demonstration purposes. Generally, as demonstrated in the other example functions, when
 				taking string sections as function parameters, rather than specifying a particular string section type, you would
 				instead either make the function a function template or use a polymorphic string section type which are more concise
 				and give the caller flexibility in terms of the type of string section they can pass. */
 
-				typedef decltype(mse::make_xscope_string_const_section(std::declval<mse::TXScopeItemFixedConstPointer<mse::nii_string> >())) xscope_string_csection_t;
+				typedef decltype(mse::make_xscope_string_const_section(std::declval<mse::TXScopeItemFixedConstPointer<mse::mtnii_string> >())) xscope_string_csection_t;
 				static bool second_is_longer(mse::rsv::TXScopeFParam<xscope_string_csection_t> xscope_string_csection1
 					, mse::rsv::TXScopeFParam<xscope_string_csection_t> xscope_string_csection2) {
 
@@ -921,16 +1031,16 @@ void msetl_example2() {
 				}
 			};
 
-			mse::TXScopeObj<mse::nii_string > string1(mse::nii_string{"abc"});
+			mse::TXScopeObj<mse::mtnii_string > string1(mse::mtnii_string{"abc"});
 			auto xscope_string_csection1 = mse::make_xscope_string_const_section(&string1);
 
 			/* In these function calls, the second parameter is a string section that refers to a temporary string. */
 			auto res1 = CD::second_is_longer(xscope_string_csection1, mse::make_xscope_string_const_section(
-				mse::pointer_to(mse::TXScopeObj<mse::nii_string >(mse::nii_string{"abcd"}))));
+				mse::pointer_to(mse::TXScopeObj<mse::mtnii_string >(mse::mtnii_string{"abcd"}))));
 			auto res2 = J::second_is_longer(xscope_string_csection1, mse::make_xscope_string_const_section(
-				mse::pointer_to(mse::TXScopeObj<mse::nii_string >(mse::nii_string{"abcd"}))));
+				mse::pointer_to(mse::TXScopeObj<mse::mtnii_string >(mse::mtnii_string{"abcd"}))));
 			auto res3 = CD::second_is_longer_any(xscope_string_csection1, mse::make_xscope_string_const_section(
-				mse::pointer_to(mse::TXScopeObj<mse::nii_string >(mse::nii_string{"abcd"}))));
+				mse::pointer_to(mse::TXScopeObj<mse::mtnii_string >(mse::mtnii_string{"abcd"}))));
 		}
 	}
 
@@ -949,10 +1059,10 @@ void msetl_example2() {
 		auto string_literal = "some text";
 		mse::TAnyStringConstSection<char> any_string_const_section2(string_literal+5, 3);
 
-		typedef mse::TRegisteredObj<mse::nii_string> reg_nii_string_t;
-		reg_nii_string_t reg_nii_string3("some other text");
+		typedef mse::TRegisteredObj<mse::mtnii_string> reg_mtnii_string_t;
+		reg_mtnii_string_t reg_mtnii_string3("some other text");
 		/* This is a different type of (safe) iterator to a different type of string. */
-		auto iter = reg_nii_string_t::ss_begin(&reg_nii_string3);
+		auto iter = reg_mtnii_string_t::ss_begin(&reg_mtnii_string3);
 
 		/* Resulting in a different type of string section. */
 		auto string_section3 = mse::make_string_section(iter+11, 3);
@@ -1029,12 +1139,12 @@ void msetl_example2() {
 		{
 			/* Memory safety can also be achieved without extra run-time overhead. */
 
-			/* nii_string is a safe string type (with no extra run-time overhead). */
-			mse::nii_string s = "Hellooooooooooooooo ";
+			/* mtnii_string is a safe string type (with no extra run-time overhead). */
+			mse::mtnii_string s = "Hellooooooooooooooo ";
 
 			/* TXScopeObj<> is a transparent "annotation" template wrapper indicating that the object has "scope lifetime"
 			(i.e. is declared on the stack). The wrapper, to the extent possible, enforces the claim. */
-			mse::TXScopeObj< mse::nii_string > xscope_s2 = s + "World\n";
+			mse::TXScopeObj< mse::mtnii_string > xscope_s2 = s + "World\n";
 
 			/* xscope_pointer is not a raw pointer. It is an "annotated" pointer indicating its target has scope lifetime.
 			The '&' operator is overloaded. */
@@ -1051,11 +1161,11 @@ void msetl_example2() {
 
 			/* And just to be clear: */
 
-			/* You can't construct a string section directly from a naked nii_string (temporary or otherwise). */
+			/* You can't construct a string section directly from a naked mtnii_string (temporary or otherwise). */
 			//auto xscope_sv2 = mse::make_xscope_nrp_string_const_section(s + "World\n");	 // <-- compile error
 
 			/* And you won't be able to store a "scope" pointer to a temporary. */
-			//auto xscope_pointer2 = &(mse::TXScopeObj< mse::nii_string >(s + "World\n"));	 // <-- compile error
+			//auto xscope_pointer2 = &(mse::TXScopeObj< mse::mtnii_string >(s + "World\n"));	 // <-- compile error
 
 			/* Passing a temporary scope string section that references a temporary string as a function argument is
 			supported. But only if the function parameter is declared to support it. */
@@ -1198,7 +1308,7 @@ void msetl_example2() {
 		auto xs_ptr1 = xs_gimm_store1.xscope_ptr();
 		std::cout << *xs_ptr1 << std::endl;
 
-		MSE_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string2 = "abc";
+		MSE_DECLARE_STATIC_IMMUTABLE(mse::mtnii_string) simm_string2 = "abc";
 		auto simm_ptr2 = &simm_string2;
 		auto xs_simm_store2 = mse::make_xscope_strong_pointer_store(simm_ptr2);
 		auto xs_ptr2 = xs_simm_store2.xscope_ptr();
@@ -1207,7 +1317,7 @@ void msetl_example2() {
 		class CA {
 		public:
 			auto foo1() const {
-				MSE_DECLARE_STATIC_IMMUTABLE(mse::nii_string) simm_string = "abc";
+				MSE_DECLARE_STATIC_IMMUTABLE(mse::mtnii_string) simm_string = "abc";
 				/* mse::return_value() just returns its argument and ensures that it's of a (pointer) type that's safe to return. */
 				return mse::return_value(&simm_string);
 			}
@@ -1219,105 +1329,12 @@ void msetl_example2() {
 	}
 
 	{
-		/**********************/
-		/*   stnii_vector<>   */
-		/**********************/
-
-		/* stnii_vector<> is just a version of nii_vector<> that is not eligible to be shared between threads. */
-
-		mse::TXScopeObj<mse::stnii_vector<int> > vector1_xscpobj = mse::stnii_vector<int>{ 1, 2, 3 };
-
-		{
-			/* The only advantage stnii_vector<> has over nii_vector<> is that you can obtain (const) scope
-			pointers to its elements from a const scope pointer to vector (whereas with nii_vector<> the pointer
-			must be non-const). */
-			mse::TXScopeItemFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
-			auto xxscp_vector1_change_lock_guard = mse::make_xscope_structure_lock_guard(xscptr);
-			auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
-			auto res4 = *xscp_ptr1;
-		}
-		vector1_xscpobj.push_back(4);
-
-		/* And of course stnii_vector<>s can be (efficiently) swapped with nii_vector<>s. */
-		auto niiv1 = mse::nii_vector<int>();
-		std::swap(vector1_xscpobj, niiv1);
-		/* Or mstd::vector<>s. */
-		auto mstdv1 = mse::mstd::vector<int>();
-		std::swap(vector1_xscpobj, mstdv1);
-	}
-
-	{
-		/**********************/
-		/*   mtnii_vector<>   */
-		/**********************/
-
-		/* mtnii_vector<> is just a version of nii_vector<> that supports obtaining scope pointers to its elements from
-		const scope pointers to the vector. Unlike stnii_vector<>, mtnii_vector<> is eligible to be shared among threads.
-		This requires a (partially) thread safe mutex that adds a little bit of overhead to operations that modify the
-		size/structure of the vector. */
-
-		typedef mse::mtnii_vector<mse::nii_string> mtnii_vector1_t;
-		auto access_requester1 = mse::make_asyncsharedv2readwrite<mtnii_vector1_t>(mtnii_vector1_t{ "abc", "def" });
-
-		{
-			/* Here we're obtaining a scope const pointer to the vector from a readlock pointer to the vector. */
-			auto xs_strong_pointer_store = mse::make_xscope_strong_pointer_store(access_requester1.readlock_ptr());
-			auto vector_xscope_const_ptr = xs_strong_pointer_store.xscope_ptr();
-
-			/* The only advantage mtnii_vector<> has over nii_vector<> is that you can obtain (const) scope
-			pointers to its elements from a const scope pointer to vector (whereas with nii_vector<> the pointer
-			must be non-const). */
-			auto xs_size_change_lock_guard = mse::make_xscope_structure_lock_guard(vector_xscope_const_ptr);
-			auto element1_xscope_const_ptr = xs_size_change_lock_guard.xscope_ptr_to_element(1);
-
-			assert((*element1_xscope_const_ptr) == "def");
-		}
-
-		/* And of course stnii_vector<>s can be (efficiently) swapped with nii_vector<>s. */
-		auto niiv1 = mse::nii_vector<mse::nii_string>();
-		std::swap(*(access_requester1.writelock_ptr()), niiv1);
-		/* Or mstd::vector<>s. */
-		auto mstdv1 = mse::mstd::vector<mse::nii_string>();
-		std::swap(*(access_requester1.writelock_ptr()), mstdv1);
-	}
-
-	{
-		/****************************/
-		/*   stnii_basic_string<>   */
-		/****************************/
-
-		/* stnii_basic_string<> is just a version of nii_basic_string<> that is not eligible to be shared between threads. */
-
-		mse::TXScopeObj<mse::stnii_basic_string<char> > basic_string1_xscpobj = mse::stnii_basic_string<char>{ "abc" };
-
-		{
-			/* The only advantage stnii_basic_string<> has over nii_basic_string<> is that you can obtain (const) scope
-			pointers to its elements from a const scope pointer to basic_string (whereas with nii_basic_string<> the pointer
-			must be non-const). */
-			mse::TXScopeItemFixedConstPointer<mse::stnii_basic_string<char> > xscptr = &basic_string1_xscpobj;
-			auto xxscp_basic_string1_change_lock_guard = mse::make_xscope_structure_lock_guard(xscptr);
-			auto xscp_ptr1 = xxscp_basic_string1_change_lock_guard.xscope_ptr_to_element(2);
-			auto res4 = *xscp_ptr1;
-		}
-		basic_string1_xscpobj.push_back(4);
-
-		/* And of course stnii_basic_string<>s can be (efficiently) swapped with nii_basic_string<>s. */
-		auto niibs1 = mse::nii_basic_string<char>();
-		std::swap(basic_string1_xscpobj, niibs1);
-		/* Or mstd::basic_string<>s. */
-		auto mstdbs1 = mse::mstd::string();
-		std::swap(basic_string1_xscpobj, mstdbs1);
-	}
-
-	{
 		/****************************/
 		/*   mtnii_basic_string<>   */
 		/****************************/
 
-		/* mtnii_basic_string<> is just a version of nii_basic_string<> that supports obtaining scope pointers to its elements from
-		const scope pointers to the basic_string. Unlike stnii_basic_string<>, mtnii_basic_string<> is eligible to be shared among threads.
-		This requires a (partially) thread safe mutex that adds a little bit of overhead to operations that modify the
-		size/structure of the basic_string. */
+		/* mtnii_basic_string<> is the string counterpart to mtnii_vector<>. It is eligible to be (safely) shared
+		between asynchronous threads. */
 
 		typedef mse::mtnii_basic_string<char> mtnii_basic_string1_t;
 		auto access_requester1 = mse::make_asyncsharedv2readwrite<mtnii_basic_string1_t>(mtnii_basic_string1_t{ "abc" });
@@ -1327,23 +1344,44 @@ void msetl_example2() {
 			auto xs_strong_pointer_store = mse::make_xscope_strong_pointer_store(access_requester1.readlock_ptr());
 			auto basic_string_xscope_const_ptr = xs_strong_pointer_store.xscope_ptr();
 
-			/* The only advantage mtnii_basic_string<> has over nii_basic_string<> is that you can obtain (const) scope
-			pointers to its elements from a const scope pointer to basic_string (whereas with nii_basic_string<> the pointer
-			must be non-const). */
 			auto xs_size_change_lock_guard = mse::make_xscope_structure_lock_guard(basic_string_xscope_const_ptr);
 			auto element1_xscope_const_ptr = xs_size_change_lock_guard.xscope_ptr_to_element(1);
 
 			assert((*element1_xscope_const_ptr) == 'b');
 		}
 
-		/* And of course stnii_basic_string<>s can be (efficiently) swapped with nii_basic_string<>s. */
-		auto niibs1 = mse::nii_basic_string<char>();
-		std::swap(*(access_requester1.writelock_ptr()), niibs1);
+		/* stnii_basic_string<>s can be (efficiently) swapped with stnii_basic_string<>s. */
+		auto stniibs1 = mse::stnii_basic_string<char>();
+		std::swap(*(access_requester1.writelock_ptr()), stniibs1);
 		/* Or mstd::basic_string<>s. */
 		auto mstdbs1 = mse::mstd::basic_string<char>();
 		std::swap(*(access_requester1.writelock_ptr()), mstdbs1);
 	}
 
+	{
+		/****************************/
+		/*   stnii_basic_string<>   */
+		/****************************/
+
+		/* stnii_basic_string<> is the string counterpart to stnii_vector<>. It is not eligible to be shared between threads. */
+
+		mse::TXScopeObj<mse::stnii_basic_string<char> > basic_string1_xscpobj = mse::stnii_basic_string<char>{ "abc" };
+
+		{
+			mse::TXScopeItemFixedConstPointer<mse::stnii_basic_string<char> > xscptr = &basic_string1_xscpobj;
+			auto xxscp_basic_string1_change_lock_guard = mse::make_xscope_structure_lock_guard(xscptr);
+			auto xscp_ptr1 = xxscp_basic_string1_change_lock_guard.xscope_ptr_to_element(2);
+			auto res4 = *xscp_ptr1;
+		}
+		basic_string1_xscpobj.push_back(4);
+
+		/* And of course stnii_basic_string<>s can be (efficiently) swapped with mtnii_basic_string<>s. */
+		auto mtniibs1 = mse::mtnii_basic_string<char>();
+		std::swap(basic_string1_xscpobj, mtniibs1);
+		/* Or mstd::basic_string<>s. */
+		auto mstdbs1 = mse::mstd::string();
+		std::swap(basic_string1_xscpobj, mstdbs1);
+	}
 
 	{
 		/********************/

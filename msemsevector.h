@@ -385,7 +385,7 @@ namespace mse {
 	void xscope_pointer(const us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>&& iter_cref) = delete;
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	auto xscope_pointer(const us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& iter_cref) {
-		return xscope_pointer(TXScopeCSSSStrongRAIterator<_TStructureLockPointer>(iter_cref));
+		return xscope_pointer(TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>(iter_cref));
 	}
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	void xscope_pointer(const us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>&& iter_cref) = delete;
@@ -408,7 +408,7 @@ namespace mse {
 	}
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	auto xscope_pointer(const mse::TXScopeItemFixedConstPointer<us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> >& iter_xscptr) {
-		return xscope_pointer(TXScopeCSSSStrongRAIterator<_TStructureLockPointer>(*iter_xscptr));
+		return xscope_pointer(TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>(*iter_xscptr));
 	}
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	auto xscope_const_pointer(const mse::TXScopeItemFixedConstPointer<us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> >& iter_xscptr) {

@@ -289,6 +289,39 @@ namespace mse {
 	MSE_USING_ASSIGNMENT_OPERATOR(Base) MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION
 
 
+#define MSE_FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
+
+	namespace us {
+		namespace impl {
+			namespace ns_as_ref {
+				template<typename _Ty, typename _Ty2>
+				_Ty& as_ref_helper1(std::false_type, _Ty2& x) {
+					_Ty* ptr = std::addressof(x);
+					return *ptr;
+				}
+				template<typename _Ty, typename _Ty2>
+				_Ty as_ref_helper1(std::true_type, _Ty2&& x) {
+					return std::forward<decltype(x)>(x);
+				}
+			}
+			template<typename _Ty, typename _Ty2>
+			auto as_ref(_Ty2&& x) -> decltype(ns_as_ref::as_ref_helper1(typename std::is_rvalue_reference<decltype(x)>::type(), std::forward<decltype(x)>(x))) {
+				return ns_as_ref::as_ref_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), std::forward<decltype(x)>(x));
+			}
+			template<typename _Ty, typename _Ty2>
+			_Ty& as_ref(_Ty2& x) {
+				_Ty* ptr = std::addressof(x);
+				return *ptr;
+			}
+			template<typename _Ty, typename _Ty2>
+			const _Ty& as_ref(const _Ty2& x) {
+				_Ty const * ptr = std::addressof(x);
+				return *ptr;
+			}
+		}
+	}
+
+
 	namespace us {
 		namespace impl {
 			class XScopeTagBase { public: void xscope_tag() const {} };

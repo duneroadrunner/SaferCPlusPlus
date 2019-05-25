@@ -162,7 +162,7 @@ void msetl_example3() {
 			virtual ~A() {}
 
 			int b = 3;
-			mse::nii_string s = "some text ";
+			mse::mtnii_string s = "some text ";
 		};
 		/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
 		typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
@@ -265,7 +265,7 @@ void msetl_example3() {
 		}
 		{
 			/* Just demonstrating the existence of the "try" versions. */
-			auto access_requester = mse::make_asyncsharedv2readwrite<mse::nii_string>("some text");
+			auto access_requester = mse::make_asyncsharedv2readwrite<mse::mtnii_string>("some text");
 			auto writelock_ptr1 = access_requester.try_writelock_ptr();
 			if (writelock_ptr1) {
 				// lock request succeeded
@@ -278,11 +278,11 @@ void msetl_example3() {
 			/* TAsyncSharedV2WeakReadWriteAccessRequester<> is the weak counterpart to TAsyncSharedV2ReadWriteAccessRequester<>
 			analogous to how std::weak_ptr<> is the weak counterpart to std::shared_ptr<>. */
 
-			typedef decltype(mse::make_asyncsharedv2readwrite<mse::nii_string>("abc")) access_requester_t;
+			typedef decltype(mse::make_asyncsharedv2readwrite<mse::mtnii_string>("abc")) access_requester_t;
 			auto vec1 = mse::mstd::vector<access_requester_t>();
-			vec1.push_back(mse::make_asyncsharedv2readwrite<mse::nii_string>("abc"));
+			vec1.push_back(mse::make_asyncsharedv2readwrite<mse::mtnii_string>("abc"));
 
-			mse::TAsyncSharedV2WeakReadWriteAccessRequester<mse::nii_string> weak_ar1(vec1.at(0));
+			mse::TAsyncSharedV2WeakReadWriteAccessRequester<mse::mtnii_string> weak_ar1(vec1.at(0));
 
 			/* Here we're obtaining a (strong) access requester from the weak access requester, then appending it the
 			vector of access requesters. */
@@ -374,8 +374,8 @@ void msetl_example3() {
 			static const size_t section_size = 5;
 			const size_t num_elements = num_sections * section_size;
 
-			typedef mse::nii_vector<mse::nii_string> async_shareable_vector1_t;
-			typedef mse::mstd::vector<mse::nii_string> nonshareable_vector1_t;
+			typedef mse::nii_vector<mse::mtnii_string> async_shareable_vector1_t;
+			typedef mse::mstd::vector<mse::mtnii_string> nonshareable_vector1_t;
 			/* Let's say we have a vector. */
 			nonshareable_vector1_t vector1;
 			vector1.resize(num_elements);
@@ -670,8 +670,8 @@ void msetl_example3() {
 			static const size_t section_size = 5;
 			const size_t num_elements = num_sections * section_size;
 
-			typedef mse::nii_vector<mse::nii_string> async_shareable_vector1_t;
-			typedef mse::mstd::vector<mse::nii_string> nonshareable_vector1_t;
+			typedef mse::nii_vector<mse::mtnii_string> async_shareable_vector1_t;
+			typedef mse::mstd::vector<mse::mtnii_string> nonshareable_vector1_t;
 			/* Let's say we have a vector. */
 			nonshareable_vector1_t vector1;
 			vector1.resize(num_elements);
@@ -721,7 +721,7 @@ void msetl_example3() {
 
 				/* The K::foo8 template function is just an example function that operates on containers of strings. In this case the
 				containers will be the random access sections we just created. We'll create an instance of the function here. */
-				auto my_foo8_function = K::foo8<mse::TXScopeAnyRandomAccessSection<mse::nii_string> >;
+				auto my_foo8_function = K::foo8<mse::TXScopeAnyRandomAccessSection<mse::mtnii_string> >;
 				typedef decltype(my_foo8_function) my_foo8_function_type;
 
 				mse::xscope_thread_carrier threads;

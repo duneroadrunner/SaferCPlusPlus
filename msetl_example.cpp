@@ -99,7 +99,7 @@ public:
 		auto l_string1_xscpptr = mse::rsv::as_a_returnable_fparam(string1_xscpptr);
 		auto l_string2_xscpptr = mse::rsv::as_a_returnable_fparam(string2_xscpptr);
 		if (l_string1_xscpptr->length() > l_string2_xscpptr->length()) {
-			/* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::nii_string> and we tried to return it
+			/* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::mtnii_string> and we tried to return it
 			directly instead of l_string1_xscpptr, it would have induced a compile error. */
 			return mse::return_value(l_string1_xscpptr);
 		}
@@ -120,7 +120,7 @@ public:
 		return (l_string1_xscpptr->length() > l_string2_xscpptr->length()) ? false : true;
 	}
 
-	mse::nii_string m_string1 = "initial text";
+	mse::mtnii_string m_string1 = "initial text";
 };
 /* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
 typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<H> ShareableH;
@@ -457,11 +457,10 @@ int main(int argc, char* argv[]) {
 			auto res3 = *scp_iter4;
 
 			/* You can also obtain a corresponding scope pointer from a scope iterator. */
-			auto scp_ptr1 = mse::mstd::xscope_pointer_to_array_element<int, 3>(scp_iter4);
+			auto scp_ptr1 = mse::xscope_pointer(scp_iter4);
 			auto res4 = *scp_ptr1;
-			/* Or with a scope pointer to the array and an index. */
-			auto scp_cptr2 = mse::mstd::xscope_const_pointer_to_array_element<int, 3>(container1_m_array_scpptr, 2/*element index*/);
-			auto res5 = *scp_cptr2;
+			auto scp_cptr1 = mse::xscope_const_pointer(scp_iter4);
+			auto res5 = *scp_cptr1;
 		}
 
 		mse::mstd::array_test testobj1;
@@ -535,11 +534,10 @@ int main(int argc, char* argv[]) {
 			auto res3 = *scp_ss_citer4;
 
 			/* You can also obtain a corresponding scope pointer from a scope iterator. */
-			auto scp_ptr1 = mse::xscope_pointer_to_array_element<int, 3>(scp_ss_citer4);
+			auto scp_ptr1 = mse::xscope_pointer(scp_ss_citer4);
 			auto res4 = *scp_ptr1;
-			/* Or with a scope pointer to the array and an index. */
-			auto scp_ptr2 = mse::xscope_pointer_to_array_element<int, 3>(container1_m_array_scpptr, 2/*element index*/);
-			auto res5 = *scp_ptr2;
+			auto scp_cptr1 = mse::xscope_const_pointer(scp_ss_citer4);
+			auto res5 = *scp_cptr1;
 		}
 
 		mse::msearray_test testobj1;
@@ -1237,10 +1235,10 @@ int main(int argc, char* argv[]) {
 
 			class CD {
 			public:
-				static auto longest(mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::nii_string> > string1_xscpptr
-					, mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::nii_string> > string2_xscpptr) {
+				static auto longest(mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::mtnii_string> > string1_xscpptr
+					, mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::mtnii_string> > string2_xscpptr) {
 					if (string1_xscpptr->length() > string2_xscpptr->length()) {
-						/* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::nii_string> the next line would have
+						/* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::mtnii_string> the next line would have
 						induced a compile error. */
 						return mse::return_value(string1_xscpptr);
 					}
@@ -1252,8 +1250,8 @@ int main(int argc, char* argv[]) {
 					}
 				}
 			};
-			mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
-			mse::TXScopeObj<mse::nii_string> xscope_string2 = "abcd";
+			mse::TXScopeObj<mse::mtnii_string> xscope_string1 = "abc";
+			mse::TXScopeObj<mse::mtnii_string> xscope_string2 = "abcd";
 			auto longer_string_xscpptr = CD::longest(&xscope_string1, &xscope_string2);
 			auto copy_of_longer_string = *longer_string_xscpptr;
 
@@ -1271,7 +1269,7 @@ int main(int argc, char* argv[]) {
 					return mse::return_value(returnable_string_const_section2);
 				}
 			private:
-				mse::nii_string m_string1 = "abcde";
+				mse::mtnii_string m_string1 = "abcde";
 			};
 
 			mse::TXScopeObj<CE> e_xscpobj;
@@ -1306,31 +1304,31 @@ int main(int argc, char* argv[]) {
 
 			class CD {
 			public:
-				static bool second_is_longer(mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::nii_string> > string1_xscpptr
-					, mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::nii_string> > string2_xscpptr) {
+				static bool second_is_longer(mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::mtnii_string> > string1_xscpptr
+					, mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::mtnii_string> > string2_xscpptr) {
 
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 
-				static bool second_is_longer_any(mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string1_xscpptr
-					, mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string2_xscpptr) {
+				static bool second_is_longer_any(mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::mtnii_string> > string1_xscpptr
+					, mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::mtnii_string> > string2_xscpptr) {
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 
-				static bool second_is_longer_poly(mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string1_xscpptr
-					, mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string2_xscpptr) {
+				static bool second_is_longer_poly(mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::mtnii_string> > string1_xscpptr
+					, mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::mtnii_string> > string2_xscpptr) {
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 			};
 
-			mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
+			mse::TXScopeObj<mse::mtnii_string> xscope_string1 = "abc";
 			/* Here we're using the pointer_to() function to obtain a ("caged") pointer to the temporary scope object. The '&'
 			(ampersand) operator would also work, but would not correspond to valid native C++, as C++ does not support taking
 			the address of an r-value. */
-			auto res1 = CD::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
-			auto res2 = H::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
-			auto res3 = CD::second_is_longer_any(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
-			auto res4 = CD::second_is_longer_poly(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+			auto res1 = CD::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::mtnii_string>(xscope_string1 + "de")));
+			auto res2 = H::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::mtnii_string>(xscope_string1 + "de")));
+			auto res3 = CD::second_is_longer_any(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::mtnii_string>(xscope_string1 + "de")));
+			auto res4 = CD::second_is_longer_poly(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::mtnii_string>(xscope_string1 + "de")));
 		}
 
 		{
@@ -1344,8 +1342,8 @@ int main(int argc, char* argv[]) {
 			operator will will return a registered pointer. But at some point we're going to need a scope pointer to the
 			base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. */
 
-			typedef mse::TXScopeObj<mse::nii_string> xscp_nstring_t;
-			typedef mse::TXScopeItemFixedPointer<mse::nii_string> xscp_nstring_ptr_t;
+			typedef mse::TXScopeObj<mse::mtnii_string> xscp_nstring_t;
+			typedef mse::TXScopeItemFixedPointer<mse::mtnii_string> xscp_nstring_ptr_t;
 			class CB {
 			public:
 				static void foo1(xscp_nstring_ptr_t xscope_ptr1) {

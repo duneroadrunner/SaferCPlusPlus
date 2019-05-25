@@ -2998,12 +2998,14 @@ namespace mse {
 #ifdef MSEMSESTRING_H
 	/* mtnii_basic_string will be defined here if the "msemsestring.h" header file has (already) been included. */
 
-	/* nii_basic_string<> qualifies as safely shareable, but its corresponding make_xscope_basic_string_size_change_lock_guard() function
+	/* nii_basic_string<> qualifies as safely shareable, but its corresponding make_xscope_structure_lock_guard() function
 	only supports non-const reference arguments. So we provide mtnii_basic_string<> whose corresponding
-	make_xscope_basic_string_size_change_lock_guard() function does support const reference arguments. But in order to achieve this
+	make_xscope_structure_lock_guard() function does support const reference arguments. But in order to achieve this
 	while maintaining thread safety (and maximal performance), it needs a partially thread safe shared mutex. */
 	typedef T_shared_mutex<bool, std::atomic<size_t> > mtnii_basic_string_shared_mutex;
 
+	/* mtnii_basic_string<> is a string that is eligible to be shared among threads and does not support implicit
+	iterators. */
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::mtnii_basic_string_shared_mutex>
 	class mtnii_basic_string : public mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, mse::mtnii_basic_string_shared_mutex> {
 	public:
@@ -3043,28 +3045,35 @@ namespace mse {
 	/* The returned xscope_structure_lock_guard constructed from a const reference is only safe because
 	mtnii_basic_string<> is not eligible to be shared between threads. */
 	template<class _Ty, class _Traits, class _A, class _TStateMutex>
-	auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeFixedConstPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
 		//return typename mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_lock_guard(owner_ptr);
 		return mse::impl::ns_mtnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _Traits, class _A, class _TStateMutex>
-	auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeItemFixedConstPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
 		//return typename mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex>::xscope_structure_lock_guard(owner_ptr);
 		return mse::impl::ns_mtnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	template<class _Ty, class _Traits, class _A, class _TStateMutex>
-	auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeFixedPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
 		return mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _Traits, class _A, class _TStateMutex>
-	auto make_xscope_basic_string_size_change_lock_guard(const mse::TXScopeItemFixedPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<mtnii_basic_string<_Ty, _Traits, _A, _TStateMutex> >& owner_ptr) {
 		return mse::impl::ns_gnii_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	MSE_STRING_INHERIT_FREE_OPERATORS(mtnii_basic_string, mse::us::impl::gnii_basic_string, mse::mtnii_basic_string_shared_mutex)
+
+		using mtnii_string = mtnii_basic_string<char>;
+	using mtnii_wstring = mtnii_basic_string<wchar_t>;
+	using mtnii_u16string = mtnii_basic_string<char16_t>;
+	using mtnii_u32string = mtnii_basic_string<char32_t>;
 
 #endif // MSEMSESTRING_H
 
