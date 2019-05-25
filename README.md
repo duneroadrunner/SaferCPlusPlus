@@ -119,7 +119,7 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
 19. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
 20. [Strings](#strings)
     1. [mstd::string](#string)
-    2. [nii_string](#nii_string)
+    2. [mtnii_string](#mtnii_string)
     3. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
     4. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
     5. [mstd::string_view](#string_view)
@@ -3225,17 +3225,15 @@ usage example:
 
 ### Strings
 
-From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A couple of string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#string) is simply a memory-safe drop-in replacement for std::string. Due to their iterators, strings are not, in general, safe to share among threads. [`nii_string`](#nii_string) is designed for safe sharing among asynchronous threads. 
+From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A couple of string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#string) is simply a memory-safe drop-in replacement for std::string. Due to their iterators, strings are not, in general, safe to share among threads. [`mtnii_string`](#mtnii_string) is designed for safe sharing among asynchronous threads. 
 
 ### string
 
 `mstd::string` is a memory-safe drop-in replacement for `std::string`. As with the standard library, `mstd::string` is defined as an alias for `mstd::basic_string<char>`. The `mstd::wstring`, `mstd::u16string` and `mstd::u32string` aliases are also present.
 
-### nii_string
+### mtnii_string
 
-`nii_string` is a string type designed to be safely shareable between asynchronous threads. See the corresponding [`nii_vector<>`](#nii_vector) for more information. Like `mstd::string`, `nii_string` is defined as an alias of `nii_basic_string<char>`. The `nii_wstring`, `nii_u16string` and `nii_u32string` aliases are also present.
-
-And `stnii_basic_string<>` and `mtnii_basic_string<>` are string counterparts of [`stnii_vector<>`](#stnii_vector) and [`mtnii_vector<>`](#mtnii_vector).
+`mtnii_string` is a string type designed to be safely shareable between asynchronous threads. See the corresponding [`mtnii_vector<>`](#mtnii_vector) for more information. Like `mstd::string`, `mtnii_string` is defined as an alias of `mtnii_basic_string<char>`. The `mtnii_wstring`, `mtnii_u16string` and `mtnii_u32string` aliases are also present.
 
 ### TXScopeStringSection, TXScopeStringConstSection, TStringSection, TStringConstSection
 
