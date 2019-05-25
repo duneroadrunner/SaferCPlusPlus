@@ -374,7 +374,7 @@ void msetl_example3() {
 			static const size_t section_size = 5;
 			const size_t num_elements = num_sections * section_size;
 
-			typedef mse::nii_vector<mse::mtnii_string> async_shareable_vector1_t;
+			typedef mse::mtnii_vector<mse::mtnii_string> async_shareable_vector1_t;
 			typedef mse::mstd::vector<mse::mtnii_string> nonshareable_vector1_t;
 			/* Let's say we have a vector. */
 			nonshareable_vector1_t vector1;
@@ -670,7 +670,7 @@ void msetl_example3() {
 			static const size_t section_size = 5;
 			const size_t num_elements = num_sections * section_size;
 
-			typedef mse::nii_vector<mse::mtnii_string> async_shareable_vector1_t;
+			typedef mse::mtnii_vector<mse::mtnii_string> async_shareable_vector1_t;
 			typedef mse::mstd::vector<mse::mtnii_string> nonshareable_vector1_t;
 			/* Let's say we have a vector. */
 			nonshareable_vector1_t vector1;

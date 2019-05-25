@@ -829,8 +829,8 @@ void msetl_example2() {
 			functions expecting scope random access section arguments. */
 			class CD {
 			public:
-				typedef decltype(mse::make_xscope_random_access_const_section(mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >
-					(mse::nii_vector<int>{ 1, 2, 3})))) xscope_ra_csection_t;
+				typedef decltype(mse::make_xscope_random_access_const_section(mse::pointer_to(mse::TXScopeObj<mse::mtnii_vector<int> >
+					(mse::mtnii_vector<int>{ 1, 2, 3})))) xscope_ra_csection_t;
 				static bool second_is_longer(mse::rsv::TXScopeFParam<xscope_ra_csection_t> xscope_ra_csection1
 					, mse::rsv::TXScopeFParam<xscope_ra_csection_t> xscope_ra_csection2) {
 
@@ -843,14 +843,14 @@ void msetl_example2() {
 				}
 			};
 
-			mse::TXScopeObj<mse::nii_vector<int> > vector1(mse::nii_vector<int>{ 1, 2, 3});
+			mse::TXScopeObj<mse::mtnii_vector<int> > vector1(mse::mtnii_vector<int>{ 1, 2, 3});
 			auto xscope_ra_csection1 = mse::make_xscope_random_access_const_section(&vector1);
 			auto res1 = CD::second_is_longer(xscope_ra_csection1, mse::make_xscope_random_access_const_section(
-				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
+				mse::pointer_to(mse::TXScopeObj<mse::mtnii_vector<int> >(mse::mtnii_vector<int>{ 1, 2, 3, 4}))));
 			auto res2 = J::second_is_longer(xscope_ra_csection1, mse::make_xscope_random_access_const_section(
-				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
+				mse::pointer_to(mse::TXScopeObj<mse::mtnii_vector<int> >(mse::mtnii_vector<int>{ 1, 2, 3, 4}))));
 			auto res3 = CD::second_is_longer_any(xscope_ra_csection1, mse::make_xscope_random_access_const_section(
-				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
+				mse::pointer_to(mse::TXScopeObj<mse::mtnii_vector<int> >(mse::mtnii_vector<int>{ 1, 2, 3, 4}))));
 		}
 	}
 
@@ -1218,7 +1218,7 @@ void msetl_example2() {
 
 		mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
 
-		mse::TXScopeObj<mse::nii_vector<int> > xscope_nv1 = mse::nii_vector<int>{ 1, 2, 3 };
+		mse::TXScopeObj<mse::mtnii_vector<int> > xscope_nv1 = mse::mtnii_vector<int>{ 1, 2, 3 };
 		auto xscope_nv1_begin_iter = mse::make_xscope_begin_iterator(&xscope_nv1);
 		auto xscope_nv1_end_iter = mse::make_xscope_end_iterator(&xscope_nv1);
 
@@ -1333,7 +1333,7 @@ void msetl_example2() {
 		/*   mtnii_basic_string<>   */
 		/****************************/
 
-		/* mtnii_basic_string<> is the string counterpart to mtnii_vector<>. It is eligible to be (safely) shared
+		/* mtnii_basic_string<> is the string counterpart to mtmtnii_vector<>. It is eligible to be (safely) shared
 		between asynchronous threads. */
 
 		typedef mse::mtnii_basic_string<char> mtnii_basic_string1_t;
@@ -1363,7 +1363,7 @@ void msetl_example2() {
 		/*   stnii_basic_string<>   */
 		/****************************/
 
-		/* stnii_basic_string<> is the string counterpart to stnii_vector<>. It is not eligible to be shared between threads. */
+		/* stnii_basic_string<> is the string counterpart to stmtnii_vector<>. It is not eligible to be shared between threads. */
 
 		mse::TXScopeObj<mse::stnii_basic_string<char> > basic_string1_xscpobj = mse::stnii_basic_string<char>{ "abc" };
 
