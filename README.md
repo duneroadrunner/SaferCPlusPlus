@@ -3024,7 +3024,7 @@ usage example:
 
 ### stnii_vector
 
-`stnii_vector<>` is a "performance" version of `mtnii_vector<>` that is not eligible to be shared among threads. Because scope iterators ["structure lock"](structure-locking) the container when they are created, and because it's possible to simultaneously/concurrently create multiple (const) scope iterators in different threads, `mtnii_vector<>` employs a thread-safe (atomic) locking mechanism. This means that every operation that affects the size of an `mtnii_vector<>` makes a thread-safe (atomic) access operation. Since `stnii_vector<>` is not eligible to be shared among threads, it does not need to perform any costly thread-safe access operations. While `mstd::vector<>` is also not eligible to be shared among threads, it has extra overhead related to its implicit iterators.
+`stnii_vector<>` is a "performance" version of `mtnii_vector<>` that is not eligible to be shared among threads. Because scope iterators ["structure lock"](#structure-locking) the container when they are created, and because it's possible to simultaneously/concurrently create multiple (const) scope iterators in different threads, `mtnii_vector<>` employs a thread-safe (atomic) locking mechanism. This means that every operation that affects the size of an `mtnii_vector<>` makes a thread-safe (atomic) access operation. Since `stnii_vector<>` is not eligible to be shared among threads, it does not need to perform any costly thread-safe access operations. While `mstd::vector<>` is also not eligible to be shared among threads, it has extra overhead related to its implicit iterators.
 
 usage example:
 ```cpp
