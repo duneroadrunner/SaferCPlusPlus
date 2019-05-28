@@ -644,7 +644,7 @@ void msetl_example2() {
 		mse::TXScopeCSSSXSTERandomAccessSection<int> xscp_ra_section2b(xs_mstd_vec_iter1++, 3);
 		we would have gotten a compile error. That's because unlike the prefix increment operator, the postfix increment
 		operator returns a temporary (rvalue) copy of the iterator, and as noted earlier, in the case of dynamic containers,
-		like vectors and srings, conversion/construction from temporary (rvalue) versions of their iterators could be unsafe
+		like vectors and strings, conversion/construction from temporary (rvalue) versions of their iterators could be unsafe
 		and is not supported.
 		*/
 
@@ -1088,14 +1088,20 @@ void msetl_example2() {
 		auto xs_mstring1 = mse::make_xscope(mse::mstd::string("some text"));
 		auto xs_mstring1_iter1 = mse::make_xscope_begin_iterator(&xs_mstring1) + 5;
 		mse::TXScopeCSSSXSTEStringSection<char> xs_csssxste_string_section1(xs_mstring1_iter1, 3);
+		/* Note when passing a (scope) string iterator to TXScopeCSSSXSTEStringSection<>'s constructor, as with
+		TXScopeCSSSXSTERandomAccessSection<>, that iterator must be an lvalue, not a temporary (rvalue), otherwise
+		you'll get a compile error.*/
 
 		mse::TXScopeCSSSXSTEStringConstSection<char> xs_csssxste_string_const_section2("some text");
 
 		auto xs_mtnii_string3 = mse::make_xscope(mse::mtnii_string("some other text"));
-		auto xs_iter = mse::make_xscope_begin_iterator(&xs_mtnii_string3) + 11;
-		auto xs_string_section3 = mse::make_xscope_string_section(xs_iter, 3);
+		auto xs_string_section3 = mse::make_xscope_string_section(mse::make_xscope_begin_iterator(&xs_mtnii_string3) + 11, 3);
+		/* Note that xs_string_section3 is just a regular string section, not a TXScopeCSSSXSTEStringSection<>, so we
+		can construct it from an rvalue iterator. */
 
 		mse::TXScopeCSSSXSTEStringSection<char> xs_csssxste_string_section3 = xs_string_section3;
+		/* As with iterators, only construction from lvalue string sections is supported, not temporary (rvalue) string sections. */
+
 		assert(xs_csssxste_string_section1 == xs_csssxste_string_section3);
 		assert(xs_csssxste_string_section1.front() == 't');
 		assert(xs_csssxste_string_section1.back() == 'x');
