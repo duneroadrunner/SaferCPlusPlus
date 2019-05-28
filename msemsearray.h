@@ -2226,9 +2226,17 @@ namespace mse {
 #endif // defined(MSE_MSTDARRAY_DISABLED) || defined(MSE_MSTDVECTOR_DISABLED)
 		}
 		template<typename _TParam1>
-		static auto construction_helper4(std::false_type, const _TParam1& param1, const size_type index = 0) {
+		static auto construction_helper10(std::true_type, const _TParam1& native_array, const size_type index = 0) {
+			assert(0 == index); return base_class(mse::us::impl::TXScopeRuntimeRawArrayProxyAndSelfPointer<_TElement>(native_array, mse::impl::native_array_size_msemsearray(native_array)), index);
+		}
+		template<typename _TParam1>
+		static auto construction_helper10(std::false_type, const _TParam1& param1, const size_type index = 0) {
 			typedef _TElement * element_ptr_t;
 			return construction_helper5(typename std::is_convertible<decltype(param1), element_ptr_t>::type(), param1, index);
+		}
+		template<typename _TParam1>
+		static auto construction_helper4(std::false_type, const _TParam1& param1, const size_type index = 0) {
+			return construction_helper10(typename mse::impl::IsNativeArray_msemsearray<decltype(param1)>::type(), param1, index);
 		}
 		template<typename _TRAContainer2>
 		static mse::us::impl::TXScopeRuntimeRawArrayProxyAndSelfPointer<_TElement> construction_helper3(const mse::TXScopeItemFixedPointer<_TRAContainer2>& ra_container_pointer) {
@@ -2242,7 +2250,7 @@ namespace mse {
 		}
 		template<typename _TRAIterator2>
 		static auto construction_helper2(std::true_type, const _TRAIterator2& ra_iter, const size_type index = 0) {
-			assert(0 == index); return base_class(construction_helper3(static_cast<const TXScopeCSSSXSRAIterator<typename container_type_from_iterator_type<_TRAIterator2>::type>&>(ra_iter).target_container_ptr()));
+			assert(0 == index); return base_class(construction_helper3(static_cast<const TXScopeCSSSXSRAIterator<typename container_type_from_iterator_type<_TRAIterator2>::type>&>(ra_iter).target_container_ptr()), ra_iter.position());
 		}
 		template<typename _TParam1>
 		static auto construction_helper2(std::false_type, const _TParam1& param1, const size_type index = 0) {
@@ -2404,6 +2412,15 @@ namespace mse {
 			return construction_helper6(param1, index);
 #endif // defined(MSE_MSTDARRAY_DISABLED) || defined(MSE_MSTDVECTOR_DISABLED)
 		}
+		template<typename _TParam1>
+		static auto construction_helper10(std::true_type, const _TParam1& native_array, const size_type index = 0) {
+			assert(0 == index); return base_class(mse::us::impl::TXScopeRuntimeRawArrayConstProxyAndSelfPointer<_TElement>(native_array, mse::impl::native_array_size_msemsearray(native_array)), index);
+		}
+		template<typename _TParam1>
+		static auto construction_helper10(std::false_type, const _TParam1& param1, const size_type index = 0) {
+			typedef _TElement const * element_cptr_t;
+			return construction_helper5(typename std::is_convertible<decltype(param1), element_cptr_t>::type(), param1, index);
+		}
 		template<typename _TRAIterator2>
 		static auto construction_helper4(std::true_type, const _TRAIterator2& ra_iter, const size_type index = 0) {
 			const TXScopeCSSSXSRAIterator<typename container_type_from_iterator_type<_TRAIterator2>::type>& ra_iter2 = ra_iter;
@@ -2413,8 +2430,7 @@ namespace mse {
 		}
 		template<typename _TParam1>
 		static auto construction_helper4(std::false_type, const _TParam1& param1, const size_type index = 0) {
-			typedef _TElement const * element_cptr_t;
-			return construction_helper5(typename std::is_convertible<decltype(param1), element_cptr_t>::type(), param1, index);
+			return construction_helper10(typename mse::impl::IsNativeArray_msemsearray<decltype(param1)>::type(), param1, index);
 		}
 		template<typename _TRAContainer2>
 		static mse::us::impl::TXScopeRuntimeRawArrayConstProxyAndSelfPointer<_TElement> construction_helper3(const mse::TXScopeItemFixedConstPointer<_TRAContainer2>& ra_container_pointer) {
@@ -2428,7 +2444,7 @@ namespace mse {
 		}
 		template<typename _TRAIterator2>
 		static auto construction_helper2(std::true_type, const _TRAIterator2& ra_iter, const size_type index = 0) {
-			assert(0 == index); return base_class(construction_helper3(static_cast<const TXScopeCSSSXSRAConstIterator<typename container_type_from_iterator_type<_TRAIterator2>::type>&>(ra_iter).target_container_ptr()));
+			assert(0 == index); return base_class(construction_helper3(static_cast<const TXScopeCSSSXSRAConstIterator<typename container_type_from_iterator_type<_TRAIterator2>::type>&>(ra_iter).target_container_ptr()), ra_iter.position());
 		}
 		template<typename _TParam1>
 		static auto construction_helper2(std::false_type, const _TParam1& param1, const size_type index = 0) {

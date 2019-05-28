@@ -537,17 +537,16 @@ void msetl_example2() {
 		/********************************************/
 
 		/* TXScopeCSSSXSTERandomAccessIterator<> and TXScopeCSSSXSTERandomAccessSection<> are "type-erased" template classes
-		that function much like TAnyRandomAccessIterator<> and TAnyRandomAccessSection<> in that they can be used to enable
-		functions to take as arguments iterators or sections of various container types (like an arrays or vectors) without
-		making the functions in to template functions. But in this case there are limitations on what types can be
-		converted. In exchange for these limitations, these types require less overhead. The "CSSSXSTE" part of the
+		that function much like TXScopeAnyRandomAccessIterator<> and TXScopeAnyRandomAccessSection<> in that they can be
+		used to enable functions to take as arguments iterators or sections of various container types (like an arrays or
+		vectors) without making the functions in to template functions. But in this case there are limitations on what types
+		can be converted. In exchange for these limitations, these types require less overhead. The "CSSSXSTE" part of the
 		typenames stands for "Contiguous Sequence, Static Structure, XScope, Type-Erased". So the first restriction is that
 		the target container must be recognized as a "contiguous sequence" (basically an array or vector). It also must be
 		recognized as having a "static structure". This essentially means that the container cannot be resized. Note that
 		while vectors support resizing, the ones in the library can be "structure locked" at run-time to ensure that they
 		are not resized (i.e. have a "static structure") during certain periods. And only the "scope" versions of the
-		iterators and sections are supported.
-		*/
+		iterators and sections are supported. */
 
 		auto xs_mstd_array1 = mse::make_xscope(mse::mstd::array<int, 4>{ 1, 2, 3, 4 });
 		auto xs_msearray2 = mse::make_xscope(mse::us::msearray<int, 5>{ 5, 6, 7, 8, 9 });
@@ -1073,6 +1072,34 @@ void msetl_example2() {
 		assert(any_string_section1.back() == 'x');
 		any_string_section1 = string_section3;
 		any_string_section1[1] = 'E';
+	}
+
+	{
+		/************************************/
+		/*  TXScopeCSSSXSTEStringSection<>  */
+		/************************************/
+
+		/* TXScopeCSSSXSTEStringSection<> is the string specialized version of TXScopeCSSSXSTERandomAccessSection<>. Like
+		TXScopeAnyStringSection<>, it can, with lower overhead but more restrictions, be used to enable functions to take
+		as arguments sections of strings. While mstd::string_view (/TAnyStringConstSection<char>) closely matches the
+		interface and flexibilty of std::string_view, TXScopeCSSSXSTEStringConstSection<char> would more closely match
+		its (low) overhead. */
+
+		auto xs_mstring1 = mse::make_xscope(mse::mstd::string("some text"));
+		auto xs_mstring1_iter1 = mse::make_xscope_begin_iterator(&xs_mstring1) + 5;
+		mse::TXScopeCSSSXSTEStringSection<char> xs_csssxste_string_section1(xs_mstring1_iter1, 3);
+
+		mse::TXScopeCSSSXSTEStringConstSection<char> xs_csssxste_string_const_section2("some text");
+
+		auto xs_mtnii_string3 = mse::make_xscope(mse::mtnii_string("some other text"));
+		auto xs_iter = mse::make_xscope_begin_iterator(&xs_mtnii_string3) + 11;
+		auto xs_string_section3 = mse::make_xscope_string_section(xs_iter, 3);
+
+		mse::TXScopeCSSSXSTEStringSection<char> xs_csssxste_string_section3 = xs_string_section3;
+		assert(xs_csssxste_string_section1 == xs_csssxste_string_section3);
+		assert(xs_csssxste_string_section1.front() == 't');
+		assert(xs_csssxste_string_section1.back() == 'x');
+		xs_csssxste_string_section1[1] = 'E';
 	}
 
 	{

@@ -2919,6 +2919,11 @@ namespace mse {
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 	}
+
+	template <typename _TElement, class _Traits = std::char_traits<_TElement> >
+	using TXScopeCSSSXSTENRPStringConstSection = TXScopeNRPStringConstSection<TXScopeCSSSXSTERAConstIterator<_TElement>, _Traits>;
+	template <typename _TElement, class _Traits = std::char_traits<_TElement> >
+	using TXScopeCSSSXSTENRPStringSection = TXScopeNRPStringSection<TXScopeCSSSXSTERAIterator<_TElement>, _Traits>;
 }
 
 namespace std {
