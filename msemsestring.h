@@ -2261,13 +2261,84 @@ namespace mse {
 		template<class _TRAIterator, class = typename std::enable_if<(!std::is_pointer<_TRAIterator>::value), void>::type>
 		void T_valid_if_not_a_native_pointer_msemsestring() {}
 
+		template<class _TRAIterator>
+		struct std_basic_string_from_iterator {
+			typedef std::basic_string<typename std::remove_const<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>::type> type;
+			typedef typename type::iterator iterator;
+			typedef typename type::const_iterator const_iterator;
+		};
 		/* The following template function will instantiate iff the given iterator is not an std::basic_string<>::iterator
 		(or const_iterator). */
-		template<class _TRAIterator, class = typename std::enable_if<
-			(!std::is_same<_TRAIterator, typename std::basic_string<typename std::remove_const<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>::type>::iterator>::value)
-			&& (!std::is_same<_TRAIterator, typename std::basic_string<typename std::remove_const<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>::type>::const_iterator>::value)
-			, void>::type>
+		template<class _TRAIterator>
+		struct is_not_an_std_basic_string_iterator_msemsestring : std::integral_constant<bool,
+			(!std::is_same<_TRAIterator, typename std_basic_string_from_iterator<_TRAIterator>::iterator>::value)
+			&& (!std::is_same<_TRAIterator, typename std_basic_string_from_iterator<_TRAIterator>::const_iterator>::value)
+		> {};
+		/* The following template function will instantiate iff the given iterator is not an std::basic_string<>::iterator
+		(or const_iterator). */
+		template<class _TRAIterator, class = typename std::enable_if<is_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>::value, void>::type>
 		void T_valid_if_not_an_std_basic_string_iterator_msemsestring() {}
+
+		template<class _TRAIterator>
+		struct is_not_an_std_basic_string_xscope_iterator_msemsestring : std::integral_constant<bool,
+			(!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_iterator(std::declval<mse::TXScopeItemFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+			&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeItemFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+			&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeItemFixedConstPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+			&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_iterator(std::declval<mse::TXScopeFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+			&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+			&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeFixedConstPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+		> {};
+		/* The following template function will instantiate iff the given iterator is not an xscope iterator of an
+		std::basic_string<>. */
+		template<class _TRAIterator, class = typename std::enable_if<is_not_an_std_basic_string_xscope_iterator_msemsestring<_TRAIterator>::value, void>::type>
+		void T_valid_if_not_an_std_basic_string_xscope_iterator_msemsestring() {}
+
+		template<class _TRAIterator>
+		struct std_basic_string_view_from_iterator {
+#ifdef MSE_HAS_CXX17
+			typedef std::basic_string_view<typename std::remove_const<typename std::remove_reference<decltype(std::declval<_TRAIterator>()[0])>::type>::type> type;
+			typedef typename type::iterator iterator;
+			typedef typename type::const_iterator const_iterator;
+#else /* MSE_HAS_CXX17 */
+			struct CDummy {};
+			typedef CDummy* type;
+			typedef CDummy* iterator;
+			typedef const CDummy* const_iterator;
+#endif /* MSE_HAS_CXX17 */
+		};
+		template<class _TRAIterator>
+		struct is_not_an_std_basic_string_view_iterator_msemsestring : std::integral_constant<bool,
+				(!std::is_same<_TRAIterator, typename std_basic_string_view_from_iterator<_TRAIterator>::iterator>::value)
+				&& (!std::is_same<_TRAIterator, typename std_basic_string_view_from_iterator<_TRAIterator>::const_iterator>::value)
+			> {};
+		/* The following template function will instantiate iff the given iterator is not an std::basic_string_view<>::iterator
+		(or const_iterator). */
+		template<class _TRAIterator, class = typename std::enable_if<is_not_an_std_basic_string_view_iterator_msemsestring<_TRAIterator>::value, void>::type>
+		void T_valid_if_not_an_std_basic_string_view_iterator_msemsestring() {}
+
+		template<class _TRAIterator>
+		struct is_not_an_std_basic_string_view_xscope_iterator_msemsestring : std::integral_constant<bool, 
+				(!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_iterator(std::declval<mse::TXScopeItemFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+				&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeItemFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+				&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeItemFixedConstPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+				&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_iterator(std::declval<mse::TXScopeFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+				&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+				&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeFixedConstPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+			> {};
+		/* The following template function will instantiate iff the given iterator is not an xscope iterator of an
+		std::basic_string_view<>. */
+		template<class _TRAIterator, class = typename std::enable_if<is_not_an_std_basic_string_view_xscope_iterator_msemsestring<_TRAIterator>::value, void>::type>
+		void T_valid_if_not_an_std_basic_string_view_xscope_iterator_msemsestring() {}
+
+		template<class _TRAIterator, class = typename std::enable_if<
+			is_not_an_std_basic_string_view_iterator_msemsestring<_TRAIterator>::value
+			&& is_not_an_std_basic_string_view_xscope_iterator_msemsestring<_TRAIterator>::value
+#ifndef MSE_MSTDSTRING_DISABLED
+			&& is_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>::value
+			&& is_not_an_std_basic_string_xscope_iterator_msemsestring<_TRAIterator>::value
+#endif /*!MSE_MSTDSTRING_DISABLED*/
+		, void>::type>
+		void T_valid_if_not_an_nrp_unsupported_iterator_msemsestring() {}
 	}
 
 	template <typename _TRAIterator, class _Traits>
@@ -2286,11 +2357,9 @@ namespace mse {
 		TXScopeNRPStringSection(const _TRALoneParam& param) : base_class(param) {}
 
 		virtual ~TXScopeNRPStringSection() {
-#ifndef MSE_SAFERPTR_DISABLED
 			/* Note: Use TXScopeNRPStringConstSection instead if referencing a string literal. */
 			valid_if_TRAIterator_is_not_a_native_pointer();
-			mse::impl::T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
-#endif //!MSE_SAFERPTR_DISABLED
+			mse::impl::T_valid_if_not_an_nrp_unsupported_iterator_msemsestring<_TRAIterator>();
 		}
 
 		TXScopeNRPStringSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
@@ -2310,9 +2379,9 @@ namespace mse {
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
 	private:
-#ifndef MSE_SAFERPTR_DISABLED
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
-#endif //!MSE_SAFERPTR_DISABLED
+#endif /*!defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
 		//TXScopeNRPStringSection<_TRAIterator, _Traits>& operator=(const TXScopeNRPStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
@@ -2363,7 +2432,7 @@ namespace mse {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 			/* Note: Use TNRPStringConstSection instead if referencing a string literal. */
 			valid_if_TRAIterator_is_not_a_native_pointer();
-			mse::impl::T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
+			mse::impl::T_valid_if_not_an_nrp_unsupported_iterator_msemsestring<_TRAIterator>();
 		}
 
 		TNRPStringSection subsection(size_type pos = 0, size_type n = npos) const {
@@ -2441,9 +2510,7 @@ namespace mse {
 		}
 
 		virtual ~TXScopeNRPStringConstSection() {
-#ifndef MSE_SAFERPTR_DISABLED
-			mse::impl::T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
-#endif //!MSE_SAFERPTR_DISABLED
+			mse::impl::T_valid_if_not_an_nrp_unsupported_iterator_msemsestring<_TRAIterator>();
 		}
 
 		TXScopeNRPStringConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
@@ -2468,9 +2535,9 @@ namespace mse {
 		template<size_t Tn>
 		explicit TXScopeNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
-#ifndef MSE_SAFERPTR_DISABLED
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value), void>::type>
-#endif //!MSE_SAFERPTR_DISABLED
+#endif /*!defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
 		//TXScopeNRPStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeNRPStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
@@ -2563,7 +2630,7 @@ namespace mse {
 
 		virtual ~TNRPStringConstSection() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
-			mse::impl::T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
+			mse::impl::T_valid_if_not_an_nrp_unsupported_iterator_msemsestring<_TRAIterator>();
 		}
 
 		TNRPStringConstSection subsection(size_type pos = 0, size_type n = npos) const {

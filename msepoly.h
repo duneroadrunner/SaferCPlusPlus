@@ -1519,8 +1519,10 @@ namespace mse {
 
 	namespace impl {
 		template<typename _Ty, typename _TRALoneParam, class = typename std::enable_if<
-			(!std::is_same<std::basic_string<_Ty>, typename std::remove_const<_TRALoneParam>::type>::value), void>::type>
-			void T_valid_if_not_an_std_basic_string_msepoly() {}
+			(!std::is_same<std::basic_string<_Ty>, typename std::remove_const<_TRALoneParam>::type>::value)
+			&& (!std::is_same<mse::TXScopeObj<std::basic_string<_Ty> >, typename std::remove_const<_TRALoneParam>::type>::value)
+			, void>::type>
+		void T_valid_if_not_an_std_basic_string_msepoly() {}
 
 		template<typename _Ty, typename _TPtr>
 		void T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper(std::true_type) {
@@ -1536,12 +1538,12 @@ namespace mse {
 
 		template<typename _Ty, typename _TRALoneParam>
 		void T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly() {
-#if !defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REGISTEREDPOINTER_DISABLED) && !defined(MSE_NORADPOINTER_DISABLED)
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			mse::impl::T_valid_if_not_a_native_pointer_msemsestring<_TRALoneParam>();
-#endif /*!defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REGISTEREDPOINTER_DISABLED) && !defined(MSE_NORADPOINTER_DISABLED)*/
+#endif /*!defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 #ifndef MSE_MSTDSTRING_DISABLED
 			T_valid_if_not_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
-			//T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
+			T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly<_Ty, _TRALoneParam>();
 #endif /*!MSE_MSTDSTRING_DISABLED*/
 		}
 	}
@@ -1557,17 +1559,18 @@ namespace mse {
 		TXScopeAnyNRPStringSection(const base_class& src) : base_class(src) {}
 		template <typename _TRAIterator>
 		TXScopeAnyNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
-#ifndef MSE_SAFERPTR_DISABLED
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			/* Note: Use TXScopeAnyNRPStringConstSection instead if referencing a string literal. */
 			mse::impl::T_valid_if_not_a_native_pointer_msemsestring<_TRAIterator>();
+#endif /*!defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
+#ifndef MSE_MSTDSTRING_DISABLED
 			mse::impl::T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
-#endif //!MSE_SAFERPTR_DISABLED
+			mse::impl::T_valid_if_not_an_std_basic_string_xscope_iterator_msemsestring<_TRAIterator>();
+#endif /*!MSE_MSTDSTRING_DISABLED*/
 		}
 		template <typename _TRALoneParam>
 		TXScopeAnyNRPStringSection(const _TRALoneParam& param) : base_class(param) {
-#ifndef MSE_SAFERPTR_DISABLED
 			impl::T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
-#endif //!MSE_SAFERPTR_DISABLED
 		}
 
 		void async_not_shareable_and_not_passable_tag() const {}
@@ -1607,16 +1610,18 @@ namespace mse {
 		TXScopeAnyNRPStringConstSection(const base_class& src) : base_class(src) {}
 		template <typename _TRAIterator>
 		TXScopeAnyNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
-#ifndef MSE_SAFERPTR_DISABLED
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+			/* Note: Use TXScopeAnyNRPStringConstSection instead if referencing a string literal. */
 			mse::impl::T_valid_if_not_a_native_pointer_msemsestring<_TRAIterator>();
+			mse::impl::T_valid_if_not_an_std_basic_string_xscope_iterator_msemsestring<_TRAIterator>();
+#endif /*!defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
+#ifndef MSE_MSTDSTRING_DISABLED
 			mse::impl::T_valid_if_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>();
-#endif //!MSE_SAFERPTR_DISABLED
+#endif /*!MSE_MSTDSTRING_DISABLED*/
 		}
 		template <typename _TRALoneParam>
 		TXScopeAnyNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {
-#ifndef MSE_SAFERPTR_DISABLED
 			impl::T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
-#endif //!MSE_SAFERPTR_DISABLED
 		}
 		TXScopeAnyNRPStringConstSection() : base_class(&s_default_string_ref()) {}
 
