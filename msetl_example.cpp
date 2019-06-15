@@ -965,7 +965,7 @@ int main(int argc, char* argv[]) {
 				A_refcounting_ptr = nullptr; /* Target object is destroyed here. */
 				return retval;
 			}
-			static std::string foo2(mse::TStrongFixedPointer<std::string, mse::TRefCountingFixedPointer<A>> strong_string_ptr, CRCFPVector& rcfpvector_ref) {
+			static std::string foo2(mse::us::TStrongFixedPointer<std::string, mse::TRefCountingFixedPointer<A>> strong_string_ptr, CRCFPVector& rcfpvector_ref) {
 				rcfpvector_ref.clear();
 				std::string retval = (*strong_string_ptr);
 				return retval;
@@ -1002,7 +1002,7 @@ int main(int argc, char* argv[]) {
 			auto s_safe_const_ptr1 = mse::make_const_pointer_to_member_v2(rcfpvector.front(), &A::s);
 
 			/* The return type of mse::make_pointer_to_member_v2() depends on the type of the parameters passed
-			to it. In this case, the type of s_safe_ptr1 is mse::TStrongFixedPointer<std::string,
+			to it. In this case, the type of s_safe_ptr1 is mse::us::TStrongFixedPointer<std::string,
 			mse::TRefCountingFixedPointer<A>>. s_safe_ptr1 here is essentially a pointer to 
 			rcfpvector.front()->s with a copy of rcfpvector.front() welded to it to make sure that the
 			object is not deallocated while s_safe_ptr1 is still around. */

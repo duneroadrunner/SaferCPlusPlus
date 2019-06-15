@@ -139,6 +139,13 @@ namespace mse {
 	template<typename _Ty> auto xscope_ifptr_to(_Ty&& _X) { return std::addressof(_X); }
 	template<typename _Ty> auto xscope_ifptr_to(const _Ty& _X) { return std::addressof(_X); }
 
+	namespace us {
+		template<typename _Ty>
+		TXScopeItemFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref);
+		template<typename _Ty>
+		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref);
+	}
+
 	//template<typename _Ty> const _Ty& return_value(const _Ty& _X) { return _X; }
 	//template<typename _Ty> _Ty&& return_value(_Ty&& _X) { return std::forward<decltype(_X)>(_X); }
 	template<typename _TROy> using TNonXScopeObj = _TROy;
@@ -540,50 +547,6 @@ namespace mse {
 	}
 
 
-	template <class _TTargetType, class _TLeaseType> class TXScopeStrongFixedConstPointer;
-
-	template <class _TTargetType, class _TLeaseType>
-	class TXScopeStrongFixedPointer : public TStrongFixedPointer<_TTargetType, _TLeaseType>, public mse::us::impl::XScopeTagBase {
-	public:
-		typedef TStrongFixedPointer<_TTargetType, _TLeaseType> base_class;
-
-		TXScopeStrongFixedPointer(const TXScopeStrongFixedPointer&) = default;
-		template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
-		TXScopeStrongFixedPointer(const TXScopeStrongFixedPointer<_TTargetType, _TLeaseType2>& src_cref) : base_class(static_cast<const TStrongFixedPointer<_TTargetType, _TLeaseType2>&>(src_cref)) {}
-
-		template <class _TTargetType2, class _TLeaseType2>
-		static TXScopeStrongFixedPointer make(_TTargetType2& target, const _TLeaseType2& lease) {
-			return base_class::make(target, lease);
-		}
-		template <class _TTargetType2, class _TLeaseType2>
-		static TXScopeStrongFixedPointer make(_TTargetType2& target, _TLeaseType2&& lease) {
-			return base_class::make(target, std::forward<decltype(lease)>(lease));
-		}
-
-	protected:
-		TXScopeStrongFixedPointer(_TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
-			: base_class(target, lease) {}
-		TXScopeStrongFixedPointer(_TTargetType& target/* often a struct member */, _TLeaseType&& lease)
-			: base_class(target, std::forward<decltype(lease)>(lease)) {}
-	private:
-		TXScopeStrongFixedPointer(const base_class& src_cref) : base_class(src_cref) {}
-		
-		TXScopeStrongFixedPointer & operator=(const TXScopeStrongFixedPointer& _Right_cref) = delete;
-		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
-
-		friend class TXScopeStrongFixedConstPointer<_TTargetType, _TLeaseType>;
-	};
-
-	template <class _TTargetType, class _TLeaseType>
-	TXScopeStrongFixedPointer<_TTargetType, _TLeaseType> make_xscope_strong(_TTargetType& target, const _TLeaseType& lease) {
-		return TXScopeStrongFixedPointer<_TTargetType, _TLeaseType>::make(target, lease);
-	}
-	template <class _TTargetType, class _TLeaseType>
-	auto make_xscope_strong(_TTargetType& target, _TLeaseType&& lease) -> TXScopeStrongFixedPointer<_TTargetType, typename std::remove_reference<_TLeaseType>::type> {
-		return TXScopeStrongFixedPointer<_TTargetType, typename std::remove_reference<_TLeaseType>::type>::make(target, std::forward<decltype(lease)>(lease));
-	}
-
-
 	namespace us {
 		/* A couple of unsafe functions for internal use. */
 		template<typename _Ty>
@@ -591,6 +554,7 @@ namespace mse {
 		template<typename _Ty>
 		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref);
 	}
+
 
 	namespace impl {
 		/* This template type alias is only used because msvc2017(v15.9.0) crashes if the type expression is used directly. */
@@ -895,6 +859,119 @@ namespace mse {
 	/* end of template specializations */
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
+
+
+	namespace us {
+		template <class _TTargetType, class _TLeaseType> class TXScopeStrongFixedConstPointer;
+
+		template <class _TTargetType, class _TLeaseType>
+		class TXScopeStrongFixedPointer : public TStrongFixedPointer<_TTargetType, _TLeaseType>, public mse::us::impl::XScopeTagBase {
+		public:
+			typedef TStrongFixedPointer<_TTargetType, _TLeaseType> base_class;
+
+			TXScopeStrongFixedPointer(const TXScopeStrongFixedPointer&) = default;
+			template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
+			TXScopeStrongFixedPointer(const TXScopeStrongFixedPointer<_TTargetType, _TLeaseType2>& src_cref) : base_class(static_cast<const TStrongFixedPointer<_TTargetType, _TLeaseType2>&>(src_cref)) {}
+
+			template <class _TTargetType2, class _TLeaseType2>
+			static TXScopeStrongFixedPointer make(_TTargetType2& target, const _TLeaseType2& lease) {
+				return base_class::make(target, lease);
+			}
+			template <class _TTargetType2, class _TLeaseType2>
+			static TXScopeStrongFixedPointer make(_TTargetType2& target, _TLeaseType2&& lease) {
+				return base_class::make(target, std::forward<decltype(lease)>(lease));
+			}
+
+			mse::TXScopeFixedPointer<_TTargetType> xscope_ptr() const & {
+				return mse::us::unsafe_make_xscope_pointer_to(*(*this));
+			}
+			mse::TXScopeFixedPointer<_TTargetType> xscope_ptr() const && = delete;
+			operator mse::TXScopeFixedPointer<_TTargetType>() const & {
+				return xscope_ptr();
+			}
+			operator mse::TXScopeFixedPointer<_TTargetType>() const && = delete;
+
+		protected:
+			TXScopeStrongFixedPointer(_TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
+				: base_class(target, lease) {}
+			TXScopeStrongFixedPointer(_TTargetType& target/* often a struct member */, _TLeaseType&& lease)
+				: base_class(target, std::forward<decltype(lease)>(lease)) {}
+		private:
+			TXScopeStrongFixedPointer(const base_class& src_cref) : base_class(src_cref) {}
+
+			TXScopeStrongFixedPointer & operator=(const TXScopeStrongFixedPointer& _Right_cref) = delete;
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+			friend class TXScopeStrongFixedConstPointer<_TTargetType, _TLeaseType>;
+		};
+
+		template <class _TTargetType, class _TLeaseType>
+		TXScopeStrongFixedPointer<_TTargetType, _TLeaseType> make_xscope_strong(_TTargetType& target, const _TLeaseType& lease) {
+			return TXScopeStrongFixedPointer<_TTargetType, _TLeaseType>::make(target, lease);
+		}
+		template <class _TTargetType, class _TLeaseType>
+		auto make_xscope_strong(_TTargetType& target, _TLeaseType&& lease) -> TXScopeStrongFixedPointer<_TTargetType, typename std::remove_reference<_TLeaseType>::type> {
+			return TXScopeStrongFixedPointer<_TTargetType, typename std::remove_reference<_TLeaseType>::type>::make(target, std::forward<decltype(lease)>(lease));
+		}
+
+		template <class _TTargetType, class _TLeaseType>
+		class TXScopeStrongFixedConstPointer : public TStrongFixedConstPointer<_TTargetType, _TLeaseType>, public mse::us::impl::XScopeTagBase {
+		public:
+			typedef TStrongFixedConstPointer<_TTargetType, _TLeaseType> base_class;
+
+			TXScopeStrongFixedConstPointer(const TXScopeStrongFixedConstPointer&) = default;
+			template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
+			TXScopeStrongFixedConstPointer(const TXScopeStrongFixedConstPointer<_TTargetType, _TLeaseType2>& src_cref) : base_class(static_cast<const TStrongFixedConstPointer<_TTargetType, _TLeaseType2>&>(src_cref)) {}
+			TXScopeStrongFixedConstPointer(const TXScopeStrongFixedPointer<_TTargetType, _TLeaseType>& src_cref) : base_class(static_cast<const TStrongFixedConstPointer<_TTargetType, _TLeaseType>&>(src_cref)) {}
+			template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
+			TXScopeStrongFixedConstPointer(const TXScopeStrongFixedPointer<_TTargetType, _TLeaseType2>& src_cref) : base_class(static_cast<const TStrongFixedConstPointer<_TTargetType, _TLeaseType2>&>(src_cref)) {}
+
+			template <class _TTargetType2, class _TLeaseType2>
+			static TXScopeStrongFixedConstPointer make(const _TTargetType2& target, const _TLeaseType2& lease) {
+				return base_class::make(target, lease);
+			}
+			template <class _TTargetType2, class _TLeaseType2>
+			static TXScopeStrongFixedConstPointer make(const _TTargetType2& target, _TLeaseType2&& lease) {
+				return base_class::make(target, std::forward<decltype(lease)>(lease));
+			}
+
+			mse::TXScopeFixedConstPointer<_TTargetType> xscope_ptr() const & {
+				return mse::us::unsafe_make_xscope_const_pointer_to(*(*this));
+			}
+			mse::TXScopeFixedConstPointer<_TTargetType> xscope_ptr() const && = delete;
+			operator mse::TXScopeFixedConstPointer<_TTargetType>() const & {
+				return xscope_ptr();
+			}
+			operator mse::TXScopeFixedConstPointer<_TTargetType>() const && = delete;
+
+		protected:
+			TXScopeStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
+				: base_class(target, lease) {}
+			TXScopeStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeaseType&& lease)
+				: base_class(target, std::forward<decltype(lease)>(lease)) {}
+		private:
+			TXScopeStrongFixedConstPointer(const base_class& src_cref) : base_class(src_cref) {}
+
+			TXScopeStrongFixedConstPointer & operator=(const TXScopeStrongFixedConstPointer& _Right_cref) = delete;
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+		};
+
+		template <class _TTargetType, class _TLeaseType>
+		TXScopeStrongFixedConstPointer<_TTargetType, _TLeaseType> make_xscope_const_strong(const _TTargetType& target, const _TLeaseType& lease) {
+			return TXScopeStrongFixedConstPointer<_TTargetType, _TLeaseType>::make(target, lease);
+		}
+		template <class _TTargetType, class _TLeaseType>
+		auto make_xscope_const_strong(const _TTargetType& target, _TLeaseType&& lease) -> TXScopeStrongFixedConstPointer<_TTargetType, typename std::remove_reference<_TLeaseType>::type> {
+			return TXScopeStrongFixedConstPointer<_TTargetType, typename std::remove_reference<_TLeaseType>::type>::make(target, std::forward<decltype(lease)>(lease));
+		}
+	}
+	template <class _TTargetType, class _TLeaseType>
+	using TXScopeStrongFixedPointer MSE_DEPRECATED = us::TXScopeStrongFixedPointer<_TTargetType, _TLeaseType>;
+	template <class _TTargetType, class _TLeaseType>
+	MSE_DEPRECATED auto make_xscope_strong(_TTargetType& target, const _TLeaseType& lease) { return us::make_xscope_strong(target, lease); }
+	template <class _TTargetType, class _TLeaseType>
+	MSE_DEPRECATED auto make_xscope_strong(_TTargetType& target, _TLeaseType&& lease) { return us::make_xscope_strong(target, std::forward<decltype(lease)>(lease)); }
+
 
 	namespace impl {
 		template<typename _Ty, class... Args>
@@ -1668,28 +1745,28 @@ namespace mse {
 		-> mse::impl::make_xscope_pointer_to_member_v2_return_type1<_Ty, _TMemberObjectPointer> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemPointerBase<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>(
-			mse::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
+			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemConstPointerBase<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>(
-			mse::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
+			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemConstPointerBase<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>(
-			mse::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
+			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemConstPointerBase<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>(
-			mse::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
+			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
 #else // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 	template<class _Ty, class _TMemberObjectPointer>

@@ -2067,45 +2067,45 @@ namespace mse {
 
 #if defined(MSEPOINTERBASICS_H)
 	template<class _TTargetType, class _Ty>
-	TStrongFixedPointer<_TTargetType, typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::writelock_ptr_t> make_pointer_to_member(_TTargetType& target, const typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::writelock_ptr_t &lease_pointer) {
-		return TStrongFixedPointer<_TTargetType, typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::writelock_ptr_t>::make(target, lease_pointer);
+	us::TStrongFixedPointer<_TTargetType, typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::writelock_ptr_t> make_pointer_to_member(_TTargetType& target, const typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::writelock_ptr_t &lease_pointer) {
+		return us::TStrongFixedPointer<_TTargetType, typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::writelock_ptr_t>::make(target, lease_pointer);
 	}
 	template<class _TTargetType, class _Ty>
-	TStrongFixedConstPointer<_TTargetType, typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::readlock_ptr_t> make_const_pointer_to_member(const _TTargetType& target, const typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::readlock_ptr_t &lease_pointer) {
-		return TStrongFixedConstPointer<_TTargetType, typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::readlock_ptr_t>::make(target, lease_pointer);
+	us::TStrongFixedConstPointer<_TTargetType, typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::readlock_ptr_t> make_const_pointer_to_member(const _TTargetType& target, const typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::readlock_ptr_t &lease_pointer) {
+		return us::TStrongFixedConstPointer<_TTargetType, typename TAsyncSharedV2ReadWriteAccessRequester<_Ty>::readlock_ptr_t>::make(target, lease_pointer);
 	}
 	template<class _TTargetType, class _Ty>
-	TStrongFixedConstPointer<_TTargetType, typename TAsyncSharedV2ReadOnlyAccessRequester<_Ty>::readlock_ptr_t> make_const_pointer_to_member(const _TTargetType& target, const typename TAsyncSharedV2ReadOnlyAccessRequester<_Ty>::readlock_ptr_t &lease_pointer) {
-		return TStrongFixedConstPointer<_TTargetType, typename TAsyncSharedV2ReadOnlyAccessRequester<_Ty>::readlock_ptr_t>::make(target, lease_pointer);
+	us::TStrongFixedConstPointer<_TTargetType, typename TAsyncSharedV2ReadOnlyAccessRequester<_Ty>::readlock_ptr_t> make_const_pointer_to_member(const _TTargetType& target, const typename TAsyncSharedV2ReadOnlyAccessRequester<_Ty>::readlock_ptr_t &lease_pointer) {
+		return us::TStrongFixedConstPointer<_TTargetType, typename TAsyncSharedV2ReadOnlyAccessRequester<_Ty>::readlock_ptr_t>::make(target, lease_pointer);
 	}
 	template<class _TTargetType, class _Ty>
-	TStrongFixedConstPointer<_TTargetType, TAsyncSharedV2ImmutableFixedPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedV2ImmutableFixedPointer<_Ty> &lease_pointer) {
-		return TStrongFixedConstPointer<_TTargetType, TAsyncSharedV2ImmutableFixedPointer<_Ty>>::make(target, lease_pointer);
+	us::TStrongFixedConstPointer<_TTargetType, TAsyncSharedV2ImmutableFixedPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedV2ImmutableFixedPointer<_Ty> &lease_pointer) {
+		return us::TStrongFixedConstPointer<_TTargetType, TAsyncSharedV2ImmutableFixedPointer<_Ty>>::make(target, lease_pointer);
 	}
 
 	template<class _Ty, class _TMemberObjectPointer>
 	static auto make_pointer_to_member_v2(const TAsyncSharedV2ReadWritePointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
-		return TStrongFixedPointer<_TTarget, TAsyncSharedV2ReadWritePointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
+		return us::TStrongFixedPointer<_TTarget, TAsyncSharedV2ReadWritePointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	static auto make_const_pointer_to_member_v2(const TAsyncSharedV2ReadWriteConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
-		return TStrongFixedConstPointer<_TTarget, TAsyncSharedV2ReadWriteConstPointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
+		return us::TStrongFixedConstPointer<_TTarget, TAsyncSharedV2ReadWriteConstPointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	static auto make_const_pointer_to_member_v2(const TAsyncSharedV2ReadOnlyConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
-		return TStrongFixedConstPointer<_TTarget, TAsyncSharedV2ReadOnlyConstPointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
+		return us::TStrongFixedConstPointer<_TTarget, TAsyncSharedV2ReadOnlyConstPointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	static auto make_const_pointer_to_member_v2(const TAsyncSharedV2ImmutableFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
-		return TStrongFixedConstPointer<_TTarget, TAsyncSharedV2ImmutableFixedPointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
+		return us::TStrongFixedConstPointer<_TTarget, TAsyncSharedV2ImmutableFixedPointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 #endif // defined(MSEPOINTERBASICS_H)
 
@@ -3787,34 +3787,34 @@ namespace mse {
 #if defined(MSEPOINTERBASICS_H)
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TStrongFixedPointer<_TTargetType, TAsyncSharedReadWritePointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TAsyncSharedReadWritePointer<_Ty> &lease_pointer) {
-		return TStrongFixedPointer<_TTargetType, TAsyncSharedReadWritePointer<_Ty>>::make(target, lease_pointer);
+	MSE_DEPRECATED us::TStrongFixedPointer<_TTargetType, TAsyncSharedReadWritePointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TAsyncSharedReadWritePointer<_Ty> &lease_pointer) {
+		return us::TStrongFixedPointer<_TTargetType, TAsyncSharedReadWritePointer<_Ty>>::make(target, lease_pointer);
 	}
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadWriteConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedReadWriteConstPointer<_Ty> &lease_pointer) {
-		return TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadWriteConstPointer<_Ty>>::make(target, lease_pointer);
+	MSE_DEPRECATED us::TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadWriteConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedReadWriteConstPointer<_Ty> &lease_pointer) {
+		return us::TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadWriteConstPointer<_Ty>>::make(target, lease_pointer);
 	}
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadOnlyConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedReadOnlyConstPointer<_Ty> &lease_pointer) {
-		return TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadOnlyConstPointer<_Ty>>::make(target, lease_pointer);
+	MSE_DEPRECATED us::TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadOnlyConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedReadOnlyConstPointer<_Ty> &lease_pointer) {
+		return us::TStrongFixedConstPointer<_TTargetType, TAsyncSharedReadOnlyConstPointer<_Ty>>::make(target, lease_pointer);
 	}
 
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TStrongFixedPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> &lease_pointer) {
-		return TStrongFixedPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>::make(target, lease_pointer);
+	MSE_DEPRECATED us::TStrongFixedPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty> &lease_pointer) {
+		return us::TStrongFixedPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>::make(target, lease_pointer);
 	}
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> &lease_pointer) {
-		return TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>::make(target, lease_pointer);
+	MSE_DEPRECATED us::TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty> &lease_pointer) {
+		return us::TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>::make(target, lease_pointer);
 	}
 	/* deprecated */
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> &lease_pointer) {
-		return TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>>::make(target, lease_pointer);
+	MSE_DEPRECATED us::TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty> &lease_pointer) {
+		return us::TStrongFixedConstPointer<_TTargetType, TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer<_Ty>>::make(target, lease_pointer);
 	}
 #endif // defined(MSEPOINTERBASICS_H)
 
