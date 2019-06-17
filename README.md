@@ -2928,6 +2928,7 @@ usage example:
         {
             mse::TXScopeItemFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
             auto xscp_citer1 = mse::make_xscope_begin_const_iterator(xscptr);
+            xscp_citer1 += 2;
             auto xscp_cptr1 = mse::xscope_const_pointer(xscp_citer1);
             auto res1 = *xscp_cptr1;
         }
