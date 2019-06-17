@@ -816,6 +816,9 @@ namespace mse {
 				bool operator==(const Txscope_structure_lock_guard& rhs) const {
 					return (rhs.m_stored_ptr == m_stored_ptr);
 				}
+				operator bool() const {
+					return m_stored_ptr;
+				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
 
@@ -895,6 +898,9 @@ namespace mse {
 				bool operator==(const Txscope_const_structure_lock_guard& rhs) const {
 					return (rhs.m_stored_ptr == m_stored_ptr);
 				}
+				operator bool() const {
+					return m_stored_ptr;
+				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
 
@@ -969,6 +975,12 @@ namespace mse {
 				}
 				const auto* operator->() const {
 					return std::addressof(*m_stored_ptr);
+				}
+				bool operator==(const Txscope_ewconst_structure_lock_guard& rhs) const {
+					return (rhs.m_stored_ptr == m_stored_ptr);
+				}
+				operator bool() const {
+					return m_stored_ptr;
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
@@ -1047,6 +1059,9 @@ namespace mse {
 				bool operator==(const Txscope_structure_lock_guard_of_wrapper& rhs) const {
 					return (rhs.m_stored_ptr == m_stored_ptr);
 				}
+				operator bool() const {
+					return m_stored_ptr;
+				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
 
@@ -1120,6 +1135,9 @@ namespace mse {
 				}
 				bool operator==(const Txscope_const_structure_lock_guard_of_wrapper& rhs) const {
 					return (rhs.m_stored_ptr == m_stored_ptr);
+				}
+				operator bool() const {
+					return m_stored_ptr;
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}

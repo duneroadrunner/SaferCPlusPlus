@@ -169,7 +169,7 @@ void msetl_example2() {
 			mse::TXScopeObj<mse::mtnii_vector<int> > vector1_xscpobj = mse::mtnii_vector<int>{ 1, 2, 3 };
 
 			{
-				/* Here we're obtaining a scope iterator to the vector. */
+				/* Here we're obtaining scope iterators to the vector. */
 				auto xscp_iter1 = mse::make_xscope_begin_iterator(&vector1_xscpobj);
 				auto xscp_iter2 = mse::make_xscope_end_iterator(&vector1_xscpobj);
 
@@ -183,7 +183,7 @@ void msetl_example2() {
 				auto res2 = xscp_citer3[0];
 
 				/* Note that scope iterators to vectors (and other dynamic containers), "lock the structure" of the container
-				so that, for example, it cannot be resized. This allows us to obtain a scope pointer to the iterator's
+				so that, for example, it cannot be resized. This allows us to obtain a scope pointer to the (lvalue) iterator's
 				target element. */
 				auto xscp_ptr1 = mse::xscope_pointer(xscp_citer3);
 				auto res3 = *xscp_ptr1;
@@ -206,9 +206,10 @@ void msetl_example2() {
 
 		{
 			mse::TXScopeItemFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
-			auto xxscp_vector1_change_lock_guard = mse::make_xscope_structure_lock_guard(xscptr);
-			auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
-			auto res4 = *xscp_ptr1;
+			auto xscp_citer1 = mse::make_xscope_begin_const_iterator(xscptr);
+			xscp_citer1 += 2;
+			auto xscp_cptr1 = mse::xscope_const_pointer(xscp_citer1);
+			auto res1 = *xscp_cptr1;
 		}
 		vector1_xscpobj.push_back(4);
 
@@ -292,9 +293,9 @@ void msetl_example2() {
 
 				std::sort(xscp_iter1, xscp_iter2);
 
-				/* Note that scope iterators to vectors (and other dynamic containers), "lock the structure" of the container
-				so that, for example, it cannot be resized. This allows us to obtain a scope pointer to the iterator's
-				target element. */
+				/* Note that nii_vector<>'s scope non-const iterators "lock the structure" of the container so that, for
+				example, it cannot be resized. This allows us to obtain a scope pointer to the (lvalue) iterator's target
+				element. */
 				auto xscp_ptr1 = mse::xscope_pointer(xscp_iter1);
 				auto res3 = *xscp_ptr1;
 
@@ -314,13 +315,20 @@ void msetl_example2() {
 			pointer to the nii_vector<>. (nii_vector<> is the only one of the library's vectors that has this shortcoming.)
 			However, for vectors that are access controlled with an "exclusive writer" access policy, you can use an
 			"exclusive writer" const pointer to obtain a direct scope const pointer to a vector element. */
-			mse::TXScopeObj<mse::TExclusiveWriterObj<mse::nii_vector<int> > > vector2_ewxsobj = mse::nii_vector<int>{ 1, 2, 3 };
+			auto xs_ew_niivec1 = mse::make_xscope(mse::make_exclusive_writer(mse::nii_vector<int>{ 1, 2, 3 }));
+			// which can also be written as:
+			// mse::TXScopeObj<mse::TExclusiveWriterObj<mse::nii_vector<int> > > xs_ew_niivec1 = mse::nii_vector<int>{ 1, 2, 3 };
 			{
-				auto xxscp_vector1_change_lock_guard = mse::make_xscope_structure_lock_guard(vector2_ewxsobj.const_pointer());
-				auto xscp_ptr1 = xxscp_vector1_change_lock_guard.xscope_ptr_to_element(2);
-				auto res4 = *xscp_ptr1;
+				auto xs_ew_cptr1 = mse::make_xscope_access_controlled_const_pointer(xs_ew_niivec1);
+				/* The following scope iterator is of a type that reflects that it was constructed from an "exclusive writer"
+				const pointer. */
+				auto xs_citer1 = mse::make_xscope_begin_const_iterator(xs_ew_cptr1);
+				xs_citer1 += 2;
+				/* We can obtain a (zero-overhead) scope pointer from the (lvalue) iterator. */
+				auto xs_cptr1 = mse::xscope_const_pointer(xs_citer1);
+				auto val1 = *xs_cptr1;
 			}
-			vector2_ewxsobj.pointer()->push_back(4);
+			mse::make_xscope_access_controlled_pointer(xs_ew_niivec1)->push_back(4);
 		}
 	}
 
@@ -667,6 +675,71 @@ void msetl_example2() {
 		/****************/
 		/*  optional<>  */
 		/****************/
+
+		{
+			/* mstd::optional<> is essentially just a safe implementation of std::optional<>. But you may, on occasion, also
+			need a (safe) pointer that directly targets the contained element. You could make the element type a "registered"
+			or "norad" object. Alternatively, you can obtain a safe pointer to the contained element from a pointer to the
+			optional<> object like so: */
+			auto opt1_refcptr = mse::make_refcounting<mse::mstd::optional<mse::mstd::string> >("abc");
+			auto elem_ptr1 = mse::make_optional_element_pointer(opt1_refcptr);
+			auto val1 = *elem_ptr1;
+		}
+		{
+			/* More commonly, the optional<> object might be declared as a scope object. */
+			auto xs_opt1 = mse::make_xscope(mse::mstd::make_optional(mse::mstd::string("abc")));
+			// which can also be written as
+			// auto xs_opt1 = mse::TXScopeObj<mse::mstd::optional<mse::mstd::string> >("abc");
+			auto xs_elem_ptr1 = mse::make_xscope_optional_element_pointer(&xs_opt1);
+
+			/* Note that the scope version of the "optional element pointer", like scope vector iterators, has the side-effect,
+			while it exists, of "locking" the optional<> (scope) object so as to prevent any operation that might destroy the
+			contained element. This property allows us to obtain a "regular" scope pointer to the element from the scope
+			"optional element pointer". */
+
+			auto xs_ptr1 = mse::xscope_pointer(xs_elem_ptr1);
+			auto val1 = *xs_ptr1;
+		}
+		{
+			/* The reason is subtle, but the implementation mstd::optional<> uses to support the ability to obtain a scope
+			(const) pointer to its contained element from a const reference to the mstd::optional<> makes it ineligible to be
+			shared among threads. Analogous to mtnii_vector<>, mt_optional<> is a version that is eligible to be shared among
+			threads, at cost of slightly higher run-time overhead. */
+			auto opt1_access_requester = mse::make_asyncsharedv2readwrite<mse::mt_optional<mse::mtnii_string> >("abc");
+			auto elem_ptr1 = mse::make_optional_element_pointer(opt1_access_requester.writelock_ptr());
+			auto val1 = *elem_ptr1;
+		}
+		{
+			/* While mstd::optional<> and mt_optional<> can, like any other type, be declared as a scope type (using
+			mse::make_xscope() / mse::TXScopeObj<>). But they do not support using scope types as their contained element
+			type. It is (intended to be) uncommon to need such capability. But the library does provide a couple of
+			versions that support it. xscope_mt_optional<> is eligible to be shared among (scope) threads, while
+			xscope_st_optional<> is not. */
+
+			/* Here we're creating a (string) object of scope type. */
+			auto xs_str1 = mse::make_xscope(mse::mstd::string("abc"));
+
+			/* Here we're creating an xscope_st_optional<> object that contains a scope pointer to the (scope) string object.
+			mstd::optional<>, for example, would not support this. */
+			auto xsopt1 = mse::make_xscope_st_optional(&xs_str1);
+			// which can also be written as
+			// auto xsopt1 = mse::xscope_st_optional<mse::TXScopeFixedPointer<mse::mstd::string> >(&xs_str1);
+
+			auto val1 = *(xsopt1.value());
+		}
+
+		{
+			/* You might think of optional<> as a dynamic container like a vector<> that supports a maximum of one element.
+			That would make mse::optional<> ananlogous to mse::nii_vector<>. That is, it is eligible to be shared among
+			threads while having lower overhead than mt_optional<>, but the trade-off being that you cannot, in general,
+			obtain a direct scope pointer to the contained element from a const reference to the mse::optional<> container.
+			But, like nii_vector<>, you can if the mse::optional<> container is declared as an "exclusive writer" object: */
+			auto xs_ac_opt1 = mse::make_xscope(mse::make_exclusive_writer(mse::optional<mse::mtnii_string>("abc")));
+			auto xs_ac_cptr1 = mse::make_xscope_access_controlled_const_pointer(xs_ac_opt1);
+			auto xs_elem_cptr1 = mse::make_xscope_optional_element_const_pointer(xs_ac_cptr1);
+			auto xs_ptr1 = mse::xscope_pointer(xs_elem_cptr1);
+			auto val1 = *xs_ptr1;
+		}
 
 		mse::self_test::COptionalTest1::s_test1();
 	}
@@ -1373,14 +1446,30 @@ void msetl_example2() {
 		auto access_requester1 = mse::make_asyncsharedv2readwrite<mtnii_basic_string1_t>(mtnii_basic_string1_t{ "abc" });
 
 		{
-			/* Here we're obtaining a scope const pointer to the basic_string from a readlock pointer to the basic_string. */
-			auto xs_strong_pointer_store = mse::make_xscope_strong_pointer_store(access_requester1.readlock_ptr());
-			auto basic_string_xscope_const_ptr = xs_strong_pointer_store.xscope_ptr();
+			/* Here we're obtaining a scope pointer to the basic_string from a writelock pointer to the basic_string. */
+			auto xs_strong_pointer_store = mse::make_xscope_strong_pointer_store(access_requester1.writelock_ptr());
+			auto basic_string_xscope_ptr = xs_strong_pointer_store.xscope_ptr();
 
-			auto xs_size_change_lock_guard = mse::make_xscope_structure_lock_guard(basic_string_xscope_const_ptr);
-			auto element1_xscope_const_ptr = xs_size_change_lock_guard.xscope_ptr_to_element(1);
+			/* Here we're obtaining scope iterators to the string. */
+			auto xscp_iter1 = mse::make_xscope_begin_iterator(basic_string_xscope_ptr);
+			auto xscp_iter2 = mse::make_xscope_end_iterator(basic_string_xscope_ptr);
 
-			assert((*element1_xscope_const_ptr) == 'b');
+			std::sort(xscp_iter1, xscp_iter2);
+
+			auto xscp_citer3 = mse::make_xscope_begin_const_iterator(basic_string_xscope_ptr);
+			xscp_citer3 = xscp_iter1;
+			xscp_citer3 = mse::make_xscope_begin_const_iterator(basic_string_xscope_ptr);
+			xscp_citer3 += 1;
+			auto res1 = *xscp_citer3;
+			auto res2 = xscp_citer3[0];
+
+			/* Note that scope iterators to strings (and other dynamic containers), "lock the structure" of the container
+			so that, for example, it cannot be resized. This allows us to obtain a scope pointer to the (lvalue) iterator's
+			target element. */
+			auto xscp_ptr1 = mse::xscope_pointer(xscp_citer3);
+			auto res3 = *xscp_ptr1;
+
+			assert(res3 == 'b');
 		}
 
 		/* stnii_basic_string<>s can be (efficiently) swapped with stnii_basic_string<>s. */
@@ -1402,9 +1491,10 @@ void msetl_example2() {
 
 		{
 			mse::TXScopeItemFixedConstPointer<mse::stnii_basic_string<char> > xscptr = &basic_string1_xscpobj;
-			auto xxscp_basic_string1_change_lock_guard = mse::make_xscope_structure_lock_guard(xscptr);
-			auto xscp_ptr1 = xxscp_basic_string1_change_lock_guard.xscope_ptr_to_element(2);
-			auto res4 = *xscp_ptr1;
+			auto xscp_citer1 = mse::make_xscope_begin_const_iterator(xscptr);
+			xscp_citer1 += 2;
+			auto xscp_cptr1 = mse::xscope_const_pointer(xscp_citer1);
+			auto res1 = *xscp_cptr1;
 		}
 		basic_string1_xscpobj.push_back(4);
 

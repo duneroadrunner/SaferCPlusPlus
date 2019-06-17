@@ -1894,8 +1894,6 @@ namespace mse {
 	public:
 		typedef TXScopeAsyncSharedV2XWPReadWriteAccessRequester<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
 		typedef decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer()) _TExclusiveWritePointer;
-		typedef mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
-		typedef mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
 
 		TXScopeAsyncSharedV2ACOReadWriteAccessRequester(const TXScopeAsyncSharedV2ACOReadWriteAccessRequester& src_cref) = default;
 
@@ -1904,12 +1902,28 @@ namespace mse {
 			valid_if_Ty_is_marked_as_xscope_shareable();
 		}
 
+		typedef mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
+		typedef mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
 		static auto make(const xsac_obj_xscpptr_t& xscpptr) {
 			return TXScopeAsyncSharedV2ACOReadWriteAccessRequester((*xscpptr).exclusive_pointer());
 		}
 		static auto make(const ac_obj_xscpptr_t& xscpptr) {
 			return TXScopeAsyncSharedV2ACOReadWriteAccessRequester((*xscpptr).exclusive_pointer());
 		}
+#ifndef MSE_SCOPEPOINTER_DISABLED
+		typedef mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpfptr_t;
+		typedef mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpfptr_t;
+		static auto make(const xsac_obj_xscpfptr_t& xscpptr) {
+			return TXScopeAsyncSharedV2ACOReadWriteAccessRequester((*xscpptr).exclusive_pointer());
+		}
+		static auto make(const ac_obj_xscpfptr_t& xscpptr) {
+			return TXScopeAsyncSharedV2ACOReadWriteAccessRequester((*xscpptr).exclusive_pointer());
+		}
+#endif //!MSE_SCOPEPOINTER_DISABLED
+		static auto make(mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex>& xs_aco) {
+			return TXScopeAsyncSharedV2ACOReadWriteAccessRequester(xs_aco.exclusive_pointer());
+		}
+		static void make(mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex>&&) = delete;
 
 		void xscope_async_shareable_and_passable_tag() const {}
 
@@ -1932,7 +1946,6 @@ namespace mse {
 		-> TXScopeAsyncSharedV2ACOReadWriteAccessRequester<typename TXScopeAccessControlledObj1::object_type, typename TXScopeAccessControlledObj1::access_mutex_type> {
 		return TXScopeAsyncSharedV2ACOReadWriteAccessRequester<typename TXScopeAccessControlledObj1::object_type, typename TXScopeAccessControlledObj1::access_mutex_type>::make(xscpptr);
 	}
-
 #ifndef MSE_SCOPEPOINTER_DISABLED
 	template <typename TXScopeAccessControlledObj1>
 	auto make_xscope_asyncsharedv2acoreadwrite(const mse::TXScopeFixedPointer<TXScopeAccessControlledObj1>& xscpptr)
@@ -1940,6 +1953,13 @@ namespace mse {
 		return TXScopeAsyncSharedV2ACOReadWriteAccessRequester<typename TXScopeAccessControlledObj1::object_type, typename TXScopeAccessControlledObj1::access_mutex_type>::make(xscpptr);
 	}
 #endif //!MSE_SCOPEPOINTER_DISABLED
+	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	auto make_xscope_asyncsharedv2acoreadwrite(mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex>& xs_aco)
+		-> TXScopeAsyncSharedV2ACOReadWriteAccessRequester<_Ty, _TAccessMutex> {
+		return TXScopeAsyncSharedV2ACOReadWriteAccessRequester<_Ty, _TAccessMutex>::make(xs_aco);
+	}
+	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	void make_xscope_asyncsharedv2acoreadwrite(mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex>&& xs_aco) = delete;
 
 
 	/* For situations where the shared object is immutable (i.e. is never modified), you don't even need locks or access requesters. */

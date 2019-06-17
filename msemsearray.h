@@ -641,14 +641,16 @@ namespace mse {
 					((*this).m_ra_container_pointer) = std::forward<decltype(_Right_cref)>(_Right_cref).m_ra_container_pointer;
 				}
 				void assignment_helper1(std::false_type, const TRAIteratorBase& _Right_cref) {
-					const auto& this_m_ra_container_pointer_lvaluecref = *((*this).m_ra_container_pointer);
-					const auto& Right_m_ra_container_pointer_lvaluecref = *(_Right_cref.m_ra_container_pointer);
-					if (std::addressof(this_m_ra_container_pointer_lvaluecref) != std::addressof(Right_m_ra_container_pointer_lvaluecref)
-						|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
-						/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
-						example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
-						pointing to the same container. */
-						MSE_THROW(nii_array_range_error("invalid argument - TRAIteratorBase& operator=(const TRAIteratorBase& _Right) - TRAIteratorBase"));
+					if (((*this).m_ra_container_pointer) && (_Right_cref.m_ra_container_pointer)) {
+						const auto& this_m_ra_container_pointer_lvaluecref = *((*this).m_ra_container_pointer);
+						const auto& Right_m_ra_container_pointer_lvaluecref = *(_Right_cref.m_ra_container_pointer);
+						if (std::addressof(this_m_ra_container_pointer_lvaluecref) != std::addressof(Right_m_ra_container_pointer_lvaluecref)
+							|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
+							/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
+							example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
+							pointing to the same container. */
+							MSE_THROW(nii_array_range_error("invalid argument - TRAIteratorBase& operator=(const TRAIteratorBase& _Right) - TRAIteratorBase"));
+						}
 					}
 					(*this).m_index = _Right_cref.m_index;
 				}
@@ -889,14 +891,16 @@ namespace mse {
 					((*this).m_ra_container_pointer) = std::forward<decltype(_Right_cref)>(_Right_cref).m_ra_container_pointer;
 				}
 				void assignment_helper1(std::false_type, const TRAConstIteratorBase& _Right_cref) {
-					const auto& this_m_ra_container_pointer_lvaluecref = *((*this).m_ra_container_pointer);
-					const auto& Right_m_ra_container_pointer_lvaluecref = *(_Right_cref.m_ra_container_pointer);
-					if (std::addressof(this_m_ra_container_pointer_lvaluecref) != std::addressof(Right_m_ra_container_pointer_lvaluecref)
-						|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
-						/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
-						example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
-						pointing to the same container. */
-						MSE_THROW(nii_array_range_error("invalid argument - TRAConstIteratorBase& operator=(const TRAConstIteratorBase& _Right) - TRAConstIteratorBase"));
+					if (((*this).m_ra_container_pointer) && (_Right_cref.m_ra_container_pointer)) {
+						const auto& this_m_ra_container_pointer_lvaluecref = *((*this).m_ra_container_pointer);
+						const auto& Right_m_ra_container_pointer_lvaluecref = *(_Right_cref.m_ra_container_pointer);
+						if (std::addressof(this_m_ra_container_pointer_lvaluecref) != std::addressof(Right_m_ra_container_pointer_lvaluecref)
+							|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
+							/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
+							example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
+							pointing to the same container. */
+							MSE_THROW(nii_array_range_error("invalid argument - TRAConstIteratorBase& operator=(const TRAConstIteratorBase& _Right) - TRAConstIteratorBase"));
+						}
 					}
 					(*this).m_index = _Right_cref.m_index;
 				}
@@ -6377,7 +6381,7 @@ namespace mse {
 		auto xscope_pointer() {
 			return base_class::xscope_exclusive_pointer();
 		}
-		auto xscope_try_exclusive_pointer() {
+		auto xscope_try_pointer() {
 			return base_class::xscope_try_exclusive_pointer();
 		}
 		template<class _Rep, class _Period>
@@ -6392,7 +6396,7 @@ namespace mse {
 		auto pointer() {
 			return base_class::exclusive_pointer();
 		}
-		auto try_exclusive_pointer() {
+		auto try_pointer() {
 			return base_class::try_exclusive_pointer();
 		}
 		template<class _Rep, class _Period>
@@ -6495,6 +6499,45 @@ namespace mse {
 	auto make_access_controlled_exclusive_pointer(const mse::TXScopeItemFixedPointer<TExclusiveWriterObj<_Ty, _TAccessMutex> >& xs_ptr) { return make_access_controlled_exclusive_pointer(*xs_ptr); }
 	template<class _Ty, class _TAccessMutex = non_thread_safe_shared_mutex>
 	auto make_access_controlled_exclusive_pointer(const mse::TXScopeItemFixedConstPointer<TExclusiveWriterObj<_Ty, _TAccessMutex> >& xs_ptr) { return make_access_controlled_exclusive_pointer(*xs_ptr); }
+
+	/* It should be safe to obtain a scope pointer to target of an lvalue (but not rvalue) scope iterator based on
+	a TXScopeAccessControlledConstPointer<>. While the TXScopeAccessControlledConstPointer<> exists (inside the scope iterator)
+	it ensures that the container (exists and) is not modified (in a away that might destroy the target element). */
+	template <typename _TRAContainer, class _TAccessMutex>
+	auto xscope_const_pointer(const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& iter) {
+		mse::impl::T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>();
+		return mse::us::unsafe_make_xscope_const_pointer_to(*iter);
+	}
+	template <typename _TRAContainer, class _TAccessMutex>
+	auto xscope_const_pointer(mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& iter) = delete;
+	template <typename _TRAContainer, class _TAccessMutex>
+	auto xscope_const_pointer(const mse::TXScopeItemFixedConstPointer<mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >& iter_xscptr) {
+		mse::impl::T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>();
+		return mse::us::unsafe_make_xscope_const_pointer_to(*(*iter_xscptr));
+	}
+	template <typename _TRAContainer, class _TAccessMutex>
+	auto xscope_const_pointer(const mse::TXScopeItemFixedPointer<mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >& iter_xscptr) {
+		mse::impl::T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>();
+		return mse::us::unsafe_make_xscope_const_pointer_to(*(*iter_xscptr));
+	}
+
+	template <typename _TRAContainer, class _TAccessMutex>
+	auto xscope_pointer(const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& iter) {
+		mse::impl::T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>();
+		return mse::us::unsafe_make_xscope_const_pointer_to(*iter);
+	}
+	template <typename _TRAContainer, class _TAccessMutex>
+	auto xscope_pointer(mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& iter) = delete;
+	template <typename _TRAContainer, class _TAccessMutex>
+	auto xscope_pointer(const mse::TXScopeItemFixedConstPointer<mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >& iter_xscptr) {
+		mse::impl::T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>();
+		return mse::us::unsafe_make_xscope_const_pointer_to(*(*iter_xscptr));
+	}
+	template <typename _TRAContainer, class _TAccessMutex>
+	auto xscope_pointer(const mse::TXScopeItemFixedPointer<mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >& iter_xscptr) {
+		mse::impl::T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>();
+		return mse::us::unsafe_make_xscope_const_pointer_to(*(*iter_xscptr));
+	}
 
 
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_shared_mutex, class = typename std::enable_if<(mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value), void>::type>
