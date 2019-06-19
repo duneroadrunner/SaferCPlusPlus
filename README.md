@@ -128,7 +128,10 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     4. [TAnyNRPStringSection](#txscopeanynrpstringsection-txscopeanynrpstringconstsection-tanynrpstringsection-tanynrpstringconstsection)
     5. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
     6. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
-22. [optional](#optional-xscope_optional)
+22. [Optionals](#optionals)
+    1. [optional](#optional)
+    2. [mt_optional](#mt_optional)
+    3. [xscope_mt_optional, xscope_st_optional](#xscope_mt_optional-xscope_st_optional)
 23. [tuple](#tuple-xscope_tuple)
 24. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
@@ -3485,9 +3488,91 @@ usage example:
     }
 ```
 
-### optional, xscope_optional
+### Optionals
 
-`mse::mstd::optional<>` is simply a safe implementation of `std::optional<>`. `mse::xscope_optional<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_optional<>` rather than just `mse::TXScopeObj<mse::mstd::optional<> >` is that `mse::xscope_optional<>` supports using scope types (including scope pointer types) as its element type. 
+Conceptually, you might think of an `optional<>` as a dynamic container, like a `vector<>`, that supports a maximum of one element. So the library provides a few versions of `optional<>` that roughly correspond to their [`vector<>` counterparts](#vectors). The library introduces "optional element" pointers, which would loosely correspond to iterators. Like their iterator counterparts, scope optional element pointers, while they exist, hold a ["structure lock"](#structure-locking) on their target `optional<>` object which prevents the contained element from being destroyed.
+
+### optional
+
+`mstd::optional<>` is essentially just a safe implementation of std::optional<>. 
+
+usage example:
+
+```cpp
+    #include "mseoptional.h"
+    #include "msemstdstring.h"
+    #include "mserefcounting.h"
+    
+    void main(int argc, char* argv[]) {
+        {
+            /* mstd::optional<> is essentially just a safe implementation of std::optional<>. But you may, on occasion, also
+            need a (safe) pointer that directly targets the contained element. You could make the element type a "registered"
+            or "norad" object. Alternatively, you can obtain a safe pointer to the contained element from a pointer to the
+            optional<> object like so: */
+            auto opt1_refcptr = mse::make_refcounting<mse::mstd::optional<mse::mstd::string> >("abc");
+            auto elem_ptr1 = mse::make_optional_element_pointer(opt1_refcptr);
+            auto val1 = *elem_ptr1;
+        }
+        {
+            /* More commonly, the optional<> object might be declared as a scope object. */
+            auto xs_opt1 = mse::make_xscope(mse::mstd::make_optional(mse::mstd::string("abc")));
+            // which can also be written as
+            // auto xs_opt1 = mse::TXScopeObj<mse::mstd::optional<mse::mstd::string> >("abc");
+
+            auto xs_elem_ptr1 = mse::make_xscope_optional_element_pointer(&xs_opt1);
+
+            /* Note that the scope version of the "optional element pointer", like scope vector iterators, has the side-effect,
+            while it exists, of "locking" the optional<> (scope) object so as to prevent any operation that might destroy the
+            contained element. This property allows us to obtain a "regular" scope pointer to the element from the scope
+            "optional element pointer". */
+
+            auto xs_ptr1 = mse::xscope_pointer(xs_elem_ptr1);
+            auto val1 = *xs_ptr1;
+        }
+    }
+```
+
+### mt_optional
+
+The reason is subtle, but the implementation `mstd::optional<>` uses to support the ability to obtain a scope (const) pointer to its contained element from a const reference to the `mstd::optional<>` makes it ineligible to be shared among threads. Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` is a version that is eligible to be shared among threads, at cost of slightly higher run-time overhead.
+
+usage example:
+
+```cpp
+    #include "mseoptional.h"
+    #include "msemsestring.h"
+    #include "mseasyncshared.h"
+    
+    void main(int argc, char* argv[]) {
+        auto opt1_access_requester = mse::make_asyncsharedv2readwrite<mse::mt_optional<mse::mtnii_string> >("abc");
+        auto elem_ptr1 = mse::make_optional_element_pointer(opt1_access_requester.writelock_ptr());
+        auto val1 = *elem_ptr1;
+    }
+```
+
+### xscope_mt_optional, xscope_st_optional
+
+[`mstd::optional<>`](#optional) and [`mt_optional<>`](#mt_optional) can, like any other type, be declared as a [scope type](#scope-pointers) (using `mse::make_xscope()` / `mse::TXScopeObj<>`). But they do not support using scope types as their contained element type. It is (intended to be) uncommon to need such capability. But the library does provide a couple of versions that support it. `xscope_mt_optional<>` is eligible to be shared among (scope) threads, while `xscope_st_optional<>` is not. `xscope_mt_optional<>` and `xscope_st_optional<>` are of course themselves scope types and subject to the corresponding usage restrictions.
+
+usage example:
+
+```cpp
+    #include "mseoptional.h"
+    #include "msemstdstring.h"
+    
+    void main(int argc, char* argv[]) {
+        /* Here we're creating a (string) object of scope type. */
+        auto xs_str1 = mse::make_xscope(mse::mstd::string("abc"));
+
+        /* Here we're creating an xscope_st_optional<> object that contains a scope pointer to the (scope) string object.
+        mstd::optional<>, for example, would not support this. */
+        auto xsopt1 = mse::make_xscope_st_optional(&xs_str1);
+        // which can also be written as
+        // auto xsopt1 = mse::xscope_st_optional<mse::TXScopeFixedPointer<mse::mstd::string> >(&xs_str1);
+
+        auto val1 = *(xsopt1.value());
+    }
+```
 
 ### tuple, xscope_tuple
 
