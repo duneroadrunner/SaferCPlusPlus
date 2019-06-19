@@ -119,7 +119,7 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     2. [mtnii_string](#mtnii_string)
     3. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
     4. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
-    5. [string_view](#string_view)
+    5. [mstd::string_view](#string_view)
     6. [nrp_string_view](#nrp_string_view)
 21. Poly Iterators and Sections
     1. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
@@ -129,7 +129,7 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     5. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
     6. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
 22. [Optionals](#optionals)
-    1. [optional](#optional)
+    1. [mstd::optional](#optional)
     2. [mt_optional](#mt_optional)
     3. [xscope_mt_optional, xscope_st_optional](#xscope_mt_optional-xscope_st_optional)
 23. [tuple](#tuple-xscope_tuple)
