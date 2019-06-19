@@ -1,4 +1,4 @@
-Apr 2019
+Jun 2019
 
 ### Overview
 
@@ -119,7 +119,7 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     2. [mtnii_string](#mtnii_string)
     3. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
     4. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
-    5. [mstd::string_view](#string_view)
+    5. [string_view](#string_view)
     6. [nrp_string_view](#nrp_string_view)
 21. Poly Iterators and Sections
     1. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
