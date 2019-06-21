@@ -3534,7 +3534,7 @@ usage example:
 
 ### mt_optional
 
-The reason is subtle, but the implementation `mstd::optional<>` uses to support the ability to obtain a scope (const) pointer to its contained element from a const reference to the `mstd::optional<>` makes it ineligible to be shared among threads. Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` is a version that is eligible to be shared among threads, at cost of slightly higher run-time overhead.
+The reason is subtle, but the implementation `mstd::optional<>` uses to support the ability to obtain a scope (const) pointer to its contained element from a const reference to the `mstd::optional<>` makes it ineligible to be shared among threads. Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` is a version that is [eligible to be shared](#asynchronously-shared-objects) among threads (when its contained element is eligible to be shared), at cost of slightly higher run-time overhead.
 
 usage example:
 
