@@ -171,6 +171,9 @@ namespace mse {
 
 			void async_shareable_tag() const {}
 			void async_passable_tag() const {}
+
+		private:
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
 
 		template<class _This, class... _Rest>
@@ -197,6 +200,9 @@ namespace mse {
 				&& (mse::impl::is_marked_as_passable_msemsearray<_This2>::value)
 				&& (mse::impl::conjunction<mse::impl::is_marked_as_passable_msemsearray<_Rest>...>::value), void>::type>
 			void async_passable_tag() const {}
+
+		private:
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
 
 #ifdef MSE_HAS_CXX17
@@ -481,6 +487,398 @@ namespace std {
 #endif // GPP6_COMPATIBLE
 
 namespace mse {
+
+	namespace impl {
+		namespace ns_tuple {
+			template<size_t Index, typename TPointerToTuple>
+			struct ByIndexTypeInfoFromPointerToTuple1 {
+				typedef typename std::remove_reference<decltype(std::get<Index>(*std::declval<TPointerToTuple>()))>::type value_t;
+			};
+		}
+	}
+
+	template<size_t Index, typename TXScopeTuplePointer>
+	class TXScopeTupleElementByIndexFixedConstPointer;
+
+	template<size_t Index, typename TXScopeTuplePointer>
+	class TXScopeTupleElementByIndexFixedPointer : public mse::us::TXScopeStrongFixedPointer<typename impl::ns_tuple::ByIndexTypeInfoFromPointerToTuple1<Index, TXScopeTuplePointer>::value_t, TXScopeTuplePointer> {
+	public:
+		typedef mse::us::TXScopeStrongFixedPointer<typename impl::ns_tuple::ByIndexTypeInfoFromPointerToTuple1<Index, TXScopeTuplePointer>::value_t, TXScopeTuplePointer> base_class;
+		typedef typename impl::ns_tuple::ByIndexTypeInfoFromPointerToTuple1<Index, TXScopeTuplePointer>::value_t value_t;
+
+		TXScopeTupleElementByIndexFixedPointer(const TXScopeTupleElementByIndexFixedPointer&) = default;
+		TXScopeTupleElementByIndexFixedPointer(TXScopeTupleElementByIndexFixedPointer&&) = default;
+
+		TXScopeTupleElementByIndexFixedPointer(const TXScopeTuplePointer& lease)
+			: base_class(std::get<Index>(*lease), lease) {}
+		TXScopeTupleElementByIndexFixedPointer(TXScopeTuplePointer&& lease)
+			: base_class(std::get<Index>(*lease), std::forward<decltype(lease)>(lease)) {}
+
+	private:
+		TXScopeTupleElementByIndexFixedPointer(const base_class& src_cref) : base_class(src_cref) {}
+
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+		template<size_t Index2, typename TXScopeTuplePointer2>
+		friend class TXScopeTupleElementByIndexFixedConstPointer;
+	};
+
+	template<size_t Index, typename TXScopeTuplePointer>
+	class TXScopeTupleElementByIndexFixedConstPointer : public mse::us::TXScopeStrongFixedConstPointer<typename impl::ns_tuple::ByIndexTypeInfoFromPointerToTuple1<Index, TXScopeTuplePointer>::value_t, TXScopeTuplePointer> {
+	public:
+		typedef mse::us::TXScopeStrongFixedConstPointer<typename impl::ns_tuple::ByIndexTypeInfoFromPointerToTuple1<Index, TXScopeTuplePointer>::value_t, TXScopeTuplePointer> base_class;
+		typedef typename impl::ns_tuple::ByIndexTypeInfoFromPointerToTuple1<Index, TXScopeTuplePointer>::value_t value_t;
+
+		TXScopeTupleElementByIndexFixedConstPointer(const TXScopeTupleElementByIndexFixedConstPointer&) = default;
+		TXScopeTupleElementByIndexFixedConstPointer(TXScopeTupleElementByIndexFixedConstPointer&&) = default;
+
+		template<size_t Index2, typename TXScopeTuplePointer2>
+		TXScopeTupleElementByIndexFixedConstPointer(const TXScopeTupleElementByIndexFixedPointer<Index2, TXScopeTuplePointer2>& src) : base_class(src) {}
+		template<size_t Index2, typename TXScopeTuplePointer2>
+		TXScopeTupleElementByIndexFixedConstPointer(TXScopeTupleElementByIndexFixedPointer<Index2, TXScopeTuplePointer2>&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		TXScopeTupleElementByIndexFixedConstPointer(const TXScopeTuplePointer& lease)
+			: base_class(std::get<Index>(*lease), lease) {}
+		TXScopeTupleElementByIndexFixedConstPointer(TXScopeTuplePointer&& lease)
+			: base_class(std::get<Index>(*lease), std::forward<decltype(lease)>(lease)) {}
+
+	private:
+		TXScopeTupleElementByIndexFixedConstPointer(const base_class& src_cref) : base_class(src_cref) {}
+
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+	};
+
+	template<size_t Index, typename TXScopeTuplePointer>
+	auto xscope_pointer(const TXScopeTupleElementByIndexFixedPointer<Index, TXScopeTuplePointer>& param) {
+		return mse::us::unsafe_make_xscope_pointer_to(*param);
+	}
+	template<size_t Index, typename TXScopeTuplePointer>
+	auto xscope_pointer(const TXScopeTupleElementByIndexFixedPointer<Index, TXScopeTuplePointer>&& param) = delete;
+	template<size_t Index, typename TXScopeTuplePointer>
+	auto xscope_pointer(const TXScopeTupleElementByIndexFixedConstPointer<Index, TXScopeTuplePointer>& param) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*param);
+	}
+	template<size_t Index, typename TXScopeTuplePointer>
+	auto xscope_pointer(const TXScopeTupleElementByIndexFixedConstPointer<Index, TXScopeTuplePointer>&& param) = delete;
+
+	template<size_t Index, typename TXScopeTuplePointer>
+	auto make_xscope_tuple_element_pointer(const TXScopeTuplePointer& ptr) -> TXScopeTupleElementByIndexFixedPointer<Index, TXScopeTuplePointer> {
+		return TXScopeTupleElementByIndexFixedPointer<Index, TXScopeTuplePointer>(ptr);
+	}
+	template<size_t Index, typename TXScopeTuplePointer>
+	auto make_xscope_tuple_element_pointer(TXScopeTuplePointer&& ptr) -> TXScopeTupleElementByIndexFixedPointer<Index, TXScopeTuplePointer> {
+		return TXScopeTupleElementByIndexFixedPointer<Index, TXScopeTuplePointer>(std::forward<decltype(ptr)>(ptr));
+	}
+	template<size_t Index, typename TXScopeTuplePointer>
+	auto make_xscope_tuple_element_const_pointer(const TXScopeTuplePointer& ptr) -> TXScopeTupleElementByIndexFixedConstPointer<Index, TXScopeTuplePointer> {
+		return TXScopeTupleElementByIndexFixedConstPointer<Index, TXScopeTuplePointer>(ptr);
+	}
+	template<size_t Index, typename TXScopeTuplePointer>
+	auto make_xscope_tuple_element_const_pointer(TXScopeTuplePointer&& ptr) -> TXScopeTupleElementByIndexFixedConstPointer<Index, TXScopeTuplePointer> {
+		return TXScopeTupleElementByIndexFixedConstPointer<Index, TXScopeTuplePointer>(std::forward<decltype(ptr)>(ptr));
+	}
+
+
+	template<size_t Index, typename TTuplePointer>
+	class TTupleElementByIndexFixedConstPointer;
+
+	template<size_t Index, typename TTuplePointer>
+	class TTupleElementByIndexFixedPointer : public std::conditional<mse::impl::is_strong_ptr<typename std::remove_reference<TTuplePointer>::type>::value
+		, mse::us::impl::StrongPointerTagBase, mse::impl::TPlaceHolder<TTupleElementByIndexFixedPointer<Index, TTuplePointer> > >::type {
+	public:
+		typedef typename std::remove_reference<TTuplePointer>::type TTuplePointerRR;
+		typedef typename impl::ns_tuple::ByIndexTypeInfoFromPointerToTuple1<Index, TTuplePointerRR>::value_t value_t;
+
+		TTupleElementByIndexFixedPointer(const TTupleElementByIndexFixedPointer&) = default;
+		TTupleElementByIndexFixedPointer(TTupleElementByIndexFixedPointer&&) = default;
+
+		TTupleElementByIndexFixedPointer(const TTuplePointerRR& src) : m_tuple_ptr(src) {}
+		TTupleElementByIndexFixedPointer(TTuplePointerRR&& src) : m_tuple_ptr(std::forward<decltype(src)>(src)) {}
+
+		~TTupleElementByIndexFixedPointer() {
+#ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+			mse::impl::T_valid_if_not_an_xscope_type<TTuplePointerRR>();
+#endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+		}
+
+		value_t& operator*() const {
+			return std::get<Index>(*m_tuple_ptr);
+		}
+		value_t* operator->() const {
+			return std::addressof(std::get<Index>(*m_tuple_ptr));
+		}
+
+		bool operator==(const value_t* _Right_cref) const { return (_Right_cref == std::addressof(*(*this))); }
+		bool operator!=(const value_t* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TTupleElementByIndexFixedPointer &_Right_cref) const { return ((*this) == std::addressof(*_Right_cref)); }
+		bool operator!=(const TTupleElementByIndexFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+		operator bool() const { return true; }
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		TTuplePointerRR m_tuple_ptr;
+
+		template<size_t Index2, typename TTuplePointer2>
+		friend class TTupleElementByIndexFixedConstPointer;
+	};
+
+	template<size_t Index, typename TTuplePointer>
+	class TTupleElementByIndexFixedConstPointer : public std::conditional<mse::impl::is_strong_ptr<typename std::remove_reference<TTuplePointer>::type>::value
+		, mse::us::impl::StrongPointerTagBase, mse::impl::TPlaceHolder<TTupleElementByIndexFixedConstPointer<Index, TTuplePointer> > >::type {
+	public:
+		typedef typename std::remove_reference<TTuplePointer>::type TTuplePointerRR;
+		typedef typename impl::ns_tuple::ByIndexTypeInfoFromPointerToTuple1<Index, TTuplePointerRR>::value_t value_t;
+
+		TTupleElementByIndexFixedConstPointer(const TTupleElementByIndexFixedConstPointer&) = default;
+		TTupleElementByIndexFixedConstPointer(TTupleElementByIndexFixedConstPointer&&) = default;
+
+		template<size_t Index2, typename TTuplePointerRR2>
+		TTupleElementByIndexFixedConstPointer(const TTupleElementByIndexFixedPointer<Index2, TTuplePointerRR2>& src) : m_tuple_ptr(src.m_tuple_ptr) {}
+		template<size_t Index2, typename TTuplePointerRR2>
+		TTupleElementByIndexFixedConstPointer(TTupleElementByIndexFixedPointer<Index2, TTuplePointerRR2>&& src) : m_tuple_ptr(std::forward<decltype(src)>(src).m_tuple_ptr) {}
+
+		TTupleElementByIndexFixedConstPointer(const TTuplePointerRR& src) : m_tuple_ptr(src) {}
+		TTupleElementByIndexFixedConstPointer(TTuplePointerRR&& src) : m_tuple_ptr(std::forward<src>(src)) {}
+
+		~TTupleElementByIndexFixedConstPointer() {
+#ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+			mse::impl::T_valid_if_not_an_xscope_type<TTuplePointerRR>();
+#endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+		}
+
+		const value_t& operator*() const {
+			return std::get<Index>(*m_tuple_ptr);
+		}
+		const value_t* operator->() const {
+			return std::addressof(std::get<Index>(*m_tuple_ptr));
+		}
+
+		bool operator==(const value_t* _Right_cref) const { return (_Right_cref == std::addressof(*(*this))); }
+		bool operator!=(const value_t* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TTupleElementByIndexFixedConstPointer &_Right_cref) const { return ((*this) == std::addressof(*_Right_cref)); }
+		bool operator!=(const TTupleElementByIndexFixedConstPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+		operator bool() const { return true; }
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		TTuplePointerRR m_tuple_ptr;
+	};
+
+	template<size_t Index, typename TTuplePointer>
+	auto make_tuple_element_pointer(const TTuplePointer& ptr) {
+		return TTupleElementByIndexFixedPointer<Index, TTuplePointer>(ptr);
+	}
+	template<size_t Index, typename TTuplePointer>
+	auto make_tuple_element_pointer(TTuplePointer&& ptr) {
+		return TTupleElementByIndexFixedPointer<Index, TTuplePointer>(std::forward<decltype(ptr)>(ptr));
+	}
+	template<size_t Index, typename TTuplePointer>
+	auto make_tuple_element_const_pointer(const TTuplePointer& ptr) {
+		return TTupleElementByIndexFixedConstPointer<Index, TTuplePointer>(ptr);
+	}
+	template<size_t Index, typename TTuplePointer>
+	auto make_tuple_element_const_pointer(TTuplePointer&& ptr) {
+		return TTupleElementByIndexFixedConstPointer<Index, TTuplePointer>(std::forward<decltype(ptr)>(ptr));
+	}
+
+
+	namespace impl {
+		namespace ns_tuple {
+			template<class TIndex, typename TPointerToTuple>
+			struct TypeInfoFromPointerToTuple1 {
+				typedef typename std::remove_reference<decltype(std::get<TIndex>(*std::declval<TPointerToTuple>()))>::type value_t;
+			};
+		}
+	}
+
+	template<class TIndex, typename TXScopeTuplePointer>
+	class TXScopeTupleElementFixedConstPointer;
+
+	template<class TIndex, typename TXScopeTuplePointer>
+	class TXScopeTupleElementFixedPointer : public mse::us::TXScopeStrongFixedPointer<typename impl::ns_tuple::TypeInfoFromPointerToTuple1<TIndex, TXScopeTuplePointer>::value_t, TXScopeTuplePointer> {
+	public:
+		typedef mse::us::TXScopeStrongFixedPointer<typename impl::ns_tuple::TypeInfoFromPointerToTuple1<TIndex, TXScopeTuplePointer>::value_t, TXScopeTuplePointer> base_class;
+		typedef typename impl::ns_tuple::TypeInfoFromPointerToTuple1<TIndex, TXScopeTuplePointer>::value_t value_t;
+
+		TXScopeTupleElementFixedPointer(const TXScopeTupleElementFixedPointer&) = default;
+		TXScopeTupleElementFixedPointer(TXScopeTupleElementFixedPointer&&) = default;
+
+		TXScopeTupleElementFixedPointer(const TXScopeTuplePointer& lease)
+			: base_class(std::get<TIndex>(*lease), lease) {}
+		TXScopeTupleElementFixedPointer(TXScopeTuplePointer&& lease)
+			: base_class(std::get<TIndex>(*lease), std::forward<decltype(lease)>(lease)) {}
+
+	private:
+		TXScopeTupleElementFixedPointer(const base_class& src_cref) : base_class(src_cref) {}
+
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+		template<class TIndex2, typename TXScopeTuplePointer2>
+		friend class TXScopeTupleElementFixedConstPointer;
+	};
+
+	template<class TIndex, typename TXScopeTuplePointer>
+	class TXScopeTupleElementFixedConstPointer : public mse::us::TXScopeStrongFixedConstPointer<typename impl::ns_tuple::TypeInfoFromPointerToTuple1<TIndex, TXScopeTuplePointer>::value_t, TXScopeTuplePointer> {
+	public:
+		typedef mse::us::TXScopeStrongFixedConstPointer<typename impl::ns_tuple::TypeInfoFromPointerToTuple1<TIndex, TXScopeTuplePointer>::value_t, TXScopeTuplePointer> base_class;
+		typedef typename impl::ns_tuple::TypeInfoFromPointerToTuple1<TIndex, TXScopeTuplePointer>::value_t value_t;
+
+		TXScopeTupleElementFixedConstPointer(const TXScopeTupleElementFixedConstPointer&) = default;
+		TXScopeTupleElementFixedConstPointer(TXScopeTupleElementFixedConstPointer&&) = default;
+
+		template<class TIndex2, typename TXScopeTuplePointer2>
+		TXScopeTupleElementFixedConstPointer(const TXScopeTupleElementFixedPointer<TIndex2, TXScopeTuplePointer2>& src) : base_class(src) {}
+		template<class TIndex2, typename TXScopeTuplePointer2>
+		TXScopeTupleElementFixedConstPointer(TXScopeTupleElementFixedPointer<TIndex2, TXScopeTuplePointer2>&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+		TXScopeTupleElementFixedConstPointer(const TXScopeTuplePointer& lease)
+			: base_class(std::get<TIndex>(*lease), lease) {}
+		TXScopeTupleElementFixedConstPointer(TXScopeTuplePointer&& lease)
+			: base_class(std::get<TIndex>(*lease), std::forward<decltype(lease)>(lease)) {}
+
+	private:
+		TXScopeTupleElementFixedConstPointer(const base_class& src_cref) : base_class(src_cref) {}
+
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+	};
+
+	template<class TIndex, typename TXScopeTuplePointer>
+	auto xscope_pointer(const TXScopeTupleElementFixedPointer<TIndex, TXScopeTuplePointer>& param) {
+		return mse::us::unsafe_make_xscope_pointer_to(*param);
+	}
+	template<class TIndex, typename TXScopeTuplePointer>
+	auto xscope_pointer(const TXScopeTupleElementFixedPointer<TIndex, TXScopeTuplePointer>&& param) = delete;
+	template<class TIndex, typename TXScopeTuplePointer>
+	auto xscope_pointer(const TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer>& param) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*param);
+	}
+	template<class TIndex, typename TXScopeTuplePointer>
+	auto xscope_pointer(const TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer>&& param) = delete;
+
+	template<class TIndex, typename TXScopeTuplePointer>
+	auto make_xscope_tuple_element_pointer(const TXScopeTuplePointer& ptr) -> TXScopeTupleElementFixedPointer<TIndex, TXScopeTuplePointer> {
+		return TXScopeTupleElementFixedPointer<TIndex, TXScopeTuplePointer>(ptr);
+	}
+	template<class TIndex, typename TXScopeTuplePointer>
+	auto make_xscope_tuple_element_pointer(TXScopeTuplePointer&& ptr) -> TXScopeTupleElementFixedPointer<TIndex, TXScopeTuplePointer> {
+		return TXScopeTupleElementFixedPointer<TIndex, TXScopeTuplePointer>(std::forward<decltype(ptr)>(ptr));
+	}
+	template<class TIndex, typename TXScopeTuplePointer>
+	auto make_xscope_tuple_element_const_pointer(const TXScopeTuplePointer& ptr) -> TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer> {
+		return TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer>(ptr);
+	}
+	template<class TIndex, typename TXScopeTuplePointer>
+	auto make_xscope_tuple_element_const_pointer(TXScopeTuplePointer&& ptr) -> TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer> {
+		return TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer>(std::forward<decltype(ptr)>(ptr));
+	}
+
+
+	template<class TIndex, typename TTuplePointer>
+	class TTupleElementFixedConstPointer;
+
+	template<class TIndex, typename TTuplePointer>
+	class TTupleElementFixedPointer : public std::conditional<mse::impl::is_strong_ptr<typename std::remove_reference<TTuplePointer>::type>::value
+		, mse::us::impl::StrongPointerTagBase, mse::impl::TPlaceHolder<TTupleElementFixedPointer<TIndex, TTuplePointer> > >::type {
+	public:
+		typedef typename std::remove_reference<TTuplePointer>::type TTuplePointerRR;
+		typedef typename impl::ns_tuple::TypeInfoFromPointerToTuple1<TIndex, TTuplePointerRR>::value_t value_t;
+
+		TTupleElementFixedPointer(const TTupleElementFixedPointer&) = default;
+		TTupleElementFixedPointer(TTupleElementFixedPointer&&) = default;
+
+		TTupleElementFixedPointer(const TTuplePointerRR& src) : m_tuple_ptr(src) {}
+		TTupleElementFixedPointer(TTuplePointerRR&& src) : m_tuple_ptr(std::forward<decltype(src)>(src)) {}
+
+		~TTupleElementFixedPointer() {
+#ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+			mse::impl::T_valid_if_not_an_xscope_type<TIndex, TTuplePointerRR>();
+#endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+		}
+
+		value_t& operator*() const {
+			return std::get<TIndex>(*m_tuple_ptr);
+		}
+		value_t* operator->() const {
+			return std::addressof(std::get<TIndex>(*m_tuple_ptr));
+		}
+
+		bool operator==(const value_t* _Right_cref) const { return (_Right_cref == std::addressof(*(*this))); }
+		bool operator!=(const value_t* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TTupleElementFixedPointer &_Right_cref) const { return ((*this) == std::addressof(*_Right_cref)); }
+		bool operator!=(const TTupleElementFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+		operator bool() const { return true; }
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		TTuplePointerRR m_tuple_ptr;
+
+		template<class TIndex2, typename TTuplePointer2>
+		friend class TTupleElementFixedConstPointer;
+	};
+
+	template<class TIndex, typename TTuplePointer>
+	class TTupleElementFixedConstPointer : public std::conditional<mse::impl::is_strong_ptr<typename std::remove_reference<TTuplePointer>::type>::value
+		, mse::us::impl::StrongPointerTagBase, mse::impl::TPlaceHolder<TTupleElementFixedConstPointer<TIndex, TTuplePointer> > >::type {
+	public:
+		typedef typename std::remove_reference<TTuplePointer>::type TTuplePointerRR;
+		typedef typename impl::ns_tuple::TypeInfoFromPointerToTuple1<TIndex, TTuplePointerRR>::value_t value_t;
+
+		TTupleElementFixedConstPointer(const TTupleElementFixedConstPointer&) = default;
+		TTupleElementFixedConstPointer(TTupleElementFixedConstPointer&&) = default;
+
+		template<class TIndex2, typename TTuplePointer2>
+		TTupleElementFixedConstPointer(const TTupleElementFixedPointer<TIndex2, TTuplePointer2>& src) : m_tuple_ptr(src.m_tuple_ptr) {}
+		template<class TIndex2, typename TTuplePointer2>
+		TTupleElementFixedConstPointer(TTupleElementFixedPointer<TIndex2, TTuplePointer2>&& src) : m_tuple_ptr(std::forward<decltype(src)>(src).m_tuple_ptr) {}
+
+		TTupleElementFixedConstPointer(const TTuplePointerRR& src) : m_tuple_ptr(src) {}
+		TTupleElementFixedConstPointer(TTuplePointerRR&& src) : m_tuple_ptr(std::forward<src>(src)) {}
+
+		~TTupleElementFixedConstPointer() {
+#ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+			mse::impl::T_valid_if_not_an_xscope_type<TIndex, TTuplePointerRR>();
+#endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+		}
+
+		const value_t& operator*() const {
+			return std::get<TIndex>(*m_tuple_ptr);
+		}
+		const value_t* operator->() const {
+			return std::addressof(std::get<TIndex>(*m_tuple_ptr));
+		}
+
+		bool operator==(const value_t* _Right_cref) const { return (_Right_cref == std::addressof(*(*this))); }
+		bool operator!=(const value_t* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TTupleElementFixedConstPointer &_Right_cref) const { return ((*this) == std::addressof(*_Right_cref)); }
+		bool operator!=(const TTupleElementFixedConstPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+		operator bool() const { return true; }
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		TTuplePointerRR m_tuple_ptr;
+	};
+
+	template<class TIndex, typename TTuplePointer>
+	auto make_tuple_element_pointer(const TTuplePointer& ptr) {
+		return TTupleElementFixedPointer<TIndex, TTuplePointer>(ptr);
+	}
+	template<class TIndex, typename TTuplePointer>
+	auto make_tuple_element_pointer(TTuplePointer&& ptr) {
+		return TTupleElementFixedPointer<TIndex, TTuplePointer>(std::forward<decltype(ptr)>(ptr));
+	}
+	template<class TIndex, typename TTuplePointer>
+	auto make_tuple_element_const_pointer(const TTuplePointer& ptr) {
+		return TTupleElementFixedConstPointer<TIndex, TTuplePointer>(ptr);
+	}
+	template<class TIndex, typename TTuplePointer>
+	auto make_tuple_element_const_pointer(TTuplePointer&& ptr) {
+		return TTupleElementFixedConstPointer<TIndex, TTuplePointer>(std::forward<decltype(ptr)>(ptr));
+	}
+
 
 #ifdef __clang__
 #pragma clang diagnostic push

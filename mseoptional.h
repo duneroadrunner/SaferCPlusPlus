@@ -1793,6 +1793,8 @@ namespace mse {
 
 				private:
 
+					MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 					template<class _Mutex>
 					class structure_change_guard {
 					public:
@@ -2169,6 +2171,9 @@ namespace mse {
 		//using base_class::operator=;
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 #ifdef MSE_HAS_CXX17
@@ -2240,6 +2245,9 @@ namespace mse {
 		//using base_class::operator=;
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 #ifdef MSE_HAS_CXX17
@@ -2309,6 +2317,9 @@ namespace mse {
 		}
 
 		//using base_class::operator=;
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
 #ifdef MSE_HAS_CXX17
@@ -2392,6 +2403,9 @@ namespace mse {
 			}
 
 			//using base_class::operator=;
+
+		private:
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
 
 #ifdef MSE_HAS_CXX17
@@ -4550,6 +4564,8 @@ namespace mse {
 			return mse::us::make_xscope_strong((*xs_structure_lock_guard1).value(), std::move(xs_structure_lock_guard1));
 		}
 
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
 		template<typename TXScopeOptionalPointer2>
 		friend class TXScopeOptionalElementFixedConstPointer;
 	};
@@ -4571,7 +4587,7 @@ namespace mse {
 		template<typename TXScopeOptionalPointer2>
 		TXScopeOptionalElementFixedConstPointer(const TXScopeOptionalElementFixedPointer<TXScopeOptionalPointer2>& src) : base_class(src) {}
 		template<typename TXScopeOptionalPointer2>
-		TXScopeOptionalElementFixedConstPointer(TXScopeOptionalElementFixedPointer<TXScopeOptionalPointer2>&& src) : base_class(std::forward<src>(src)) {}
+		TXScopeOptionalElementFixedConstPointer(TXScopeOptionalElementFixedPointer<TXScopeOptionalPointer2>&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
 		TXScopeOptionalElementFixedConstPointer(const TXScopeOptionalPointer& src) : base_class(construction_helper1(src)) {}
 		TXScopeOptionalElementFixedConstPointer(TXScopeOptionalPointer&& src) : base_class(construction_helper1(std::forward<decltype(src)>(src))) {}
@@ -4585,6 +4601,8 @@ namespace mse {
 			auto xs_structure_lock_guard1 = mse::make_xscope_optional_structure_lock_guard(std::forward<decltype(src)>(src));
 			return mse::us::make_xscope_const_strong((*xs_structure_lock_guard1).value(), std::move(xs_structure_lock_guard1));
 		}
+
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
 	template<typename TXScopeOptionalPointer>
@@ -4637,10 +4655,10 @@ namespace mse {
 #endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 		}
 
-		const value_t& operator*() const {
+		value_t& operator*() const {
 			return (*m_optional_ptr).value();
 		}
-		const value_t* operator->() const {
+		value_t* operator->() const {
 			return std::addressof((*m_optional_ptr).value());
 		}
 
@@ -4651,6 +4669,7 @@ namespace mse {
 		operator bool() const { return true; }
 
 	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		TOptionalPointer m_optional_ptr;
 
@@ -4694,6 +4713,7 @@ namespace mse {
 		operator bool() const { return true; }
 
 	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		TOptionalPointer m_optional_ptr;
 	};
