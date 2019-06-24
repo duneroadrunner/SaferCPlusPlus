@@ -5721,14 +5721,14 @@ namespace mse {
 
 		private:
 			template <typename _TRAContainer>
-			mse::TXScopeItemFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
+			static mse::TXScopeItemFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
 				return mse::rsv::TXScopeItemFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
 			}
-			mse::TXScopeRandomAccessConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>& caged_xscpsection) {
+			static mse::TXScopeRandomAccessConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>& caged_xscpsection) {
 				return caged_xscpsection.uncaged_ra_section();
 			}
 			template <typename _TRALoneParam>
-			auto construction_helper1(std::false_type, const _TRALoneParam& param) {
+			static auto construction_helper1(std::false_type, const _TRALoneParam& param) {
 				return param;
 			}
 

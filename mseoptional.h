@@ -4559,7 +4559,7 @@ namespace mse {
 		TXScopeOptionalElementFixedPointer(const TXScopeOptionalPointer& src) : base_class(construction_helper1(src)) {}
 
 	private:
-		auto construction_helper1(const TXScopeOptionalPointer& src) {
+		static auto construction_helper1(const TXScopeOptionalPointer& src) {
 			auto xs_structure_lock_guard1 = mse::make_xscope_optional_structure_lock_guard(src);
 			return mse::us::make_xscope_strong((*xs_structure_lock_guard1).value(), std::move(xs_structure_lock_guard1));
 		}
@@ -4593,11 +4593,11 @@ namespace mse {
 		TXScopeOptionalElementFixedConstPointer(TXScopeOptionalPointer&& src) : base_class(construction_helper1(std::forward<decltype(src)>(src))) {}
 
 	private:
-		auto construction_helper1(const TXScopeOptionalPointer& src) {
+		static auto construction_helper1(const TXScopeOptionalPointer& src) {
 			auto xs_structure_lock_guard1 = mse::make_xscope_optional_structure_lock_guard(src);
 			return mse::us::make_xscope_const_strong((*xs_structure_lock_guard1).value(), std::move(xs_structure_lock_guard1));
 		}
-		auto construction_helper1(TXScopeOptionalPointer&& src) {
+		static auto construction_helper1(TXScopeOptionalPointer&& src) {
 			auto xs_structure_lock_guard1 = mse::make_xscope_optional_structure_lock_guard(std::forward<decltype(src)>(src));
 			return mse::us::make_xscope_const_strong((*xs_structure_lock_guard1).value(), std::move(xs_structure_lock_guard1));
 		}

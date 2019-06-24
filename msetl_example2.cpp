@@ -751,10 +751,10 @@ void msetl_example2() {
 		/*************/
 
 		{
-			/* mstd::tuple<> is essentially just an implementation of std::tuple<> that supports the library's data race
-			safety mechanism. But you may, on occasion, also need a (safe) pointer that directly targets a contained
-			element. You could make the element type a "registered" or "norad" object. Alternatively, you can obtain a safe
-			pointer to a contained element from a pointer to the tuple<> object like so: */
+			/* mstd::tuple<> is essentially just an implementation of std::tuple<> that supports the library's scope and
+			data race safety mechanisms. But you may, on occasion, also need a (safe) pointer that directly targets a
+			contained element. You could make the element type a "registered" or "norad" object. Alternatively, you can
+			obtain a safe pointer to a contained element from a pointer to the tuple<> object like so: */
 			auto tup1_refcptr = mse::make_refcounting<mse::mstd::tuple<double, char, mse::mstd::string> >(mse::mstd::make_tuple(3.8, 'A', mse::mstd::string("Lisa Simpson")));
 			auto elem_ptr1 = mse::make_tuple_element_pointer<double>(tup1_refcptr);
 			auto val1 = *elem_ptr1;

@@ -2002,14 +2002,14 @@ namespace mse {
 
 		private:
 			template <typename _TRAContainer>
-			mse::TXScopeItemFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
+			static mse::TXScopeItemFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
 				return mse::rsv::TXScopeItemFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
 			}
-			mse::TXScopeStringConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>& caged_xscpsection) {
+			static mse::TXScopeStringConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>& caged_xscpsection) {
 				return caged_xscpsection.uncaged_string_section();
 			}
 			template <typename _TRALoneParam>
-			auto construction_helper1(std::false_type, const _TRALoneParam& param) {
+			static auto construction_helper1(std::false_type, const _TRALoneParam& param) {
 				return param;
 			}
 
@@ -2742,14 +2742,14 @@ namespace mse {
 
 		private:
 			template <typename _TRAContainer>
-			mse::TXScopeItemFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
+			static mse::TXScopeItemFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
 				return mse::rsv::TXScopeItemFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
 			}
-			mse::TXScopeNRPStringConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>& caged_xscpsection) {
+			static mse::TXScopeNRPStringConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>& caged_xscpsection) {
 				return caged_xscpsection.uncaged_string_section();
 			}
 			template <typename _TRALoneParam>
-			auto construction_helper1(std::false_type, const _TRALoneParam& param) {
+			static auto construction_helper1(std::false_type, const _TRALoneParam& param) {
 				return param;
 			}
 
