@@ -132,7 +132,9 @@ Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     1. [mstd::optional](#optional)
     2. [mt_optional](#mt_optional)
     3. [xscope_mt_optional, xscope_st_optional](#xscope_mt_optional-xscope_st_optional)
-23. [tuple](#tuple-xscope_tuple)
+23. [Tuples](#tuples)
+    1. [mstd::tuple](#tuple)
+    2. [xscope_tuple](#xscope_tuple)
 24. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
@@ -3534,7 +3536,7 @@ usage example:
 
 ### mt_optional
 
-The reason is subtle, but the implementation `mstd::optional<>` uses to support the ability to obtain a scope (const) pointer to its contained element from a const reference to the `mstd::optional<>` makes it ineligible to be shared among threads. Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` is a version that is [eligible to be shared](#asynchronously-shared-objects) among threads (when its contained element is eligible to be shared), at cost of slightly higher run-time overhead.
+The reason is subtle, but the implementation [`mstd::optional<>`](#optional) uses to support the ability to obtain a scope (const) pointer to its contained element from a const reference to the `mstd::optional<>` makes it ineligible to be shared among threads. Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` is a version that is [eligible to be shared](#asynchronously-shared-objects) among threads (when its contained element is eligible to be shared), at cost of slightly higher run-time overhead.
 
 usage example:
 
@@ -3574,9 +3576,70 @@ usage example:
     }
 ```
 
-### tuple, xscope_tuple
+### Tuples
 
-`mse::mstd::tuple<>` is simply a drop-in replacement for `std::tuple<>`. `mse::xscope_tuple<>` is the scope version which is subject to the restrictions of all scope objects. The (uncommon) reason you might need to use `mse::xscope_tuple<>` rather than just `mse::TXScopeObj<mse::mstd::tuple<> >` is that `mse::xscope_tuple<>` supports using scope types (including scope pointer types) among its element types.
+Tuples present fewer safety issues than containers with iterators or dynamic structure. But the provided tuple types, aside from supporting the library's scope and data race safety mechanisms, also come with safe pointer types that directly target individual tuple elements.
+
+### tuple
+
+`mstd::tuple<>` is essentially a drop-in substitute for `std::tuple<>`. 
+
+usage example:
+
+```cpp
+    #include "msetuple.h"
+    #include "msemstdstring.h"
+    #include "mserefcounting.h"
+    
+    void main(int argc, char* argv[]) {
+        {
+            /* You may, on occasion, need a (safe) pointer that directly targets a tuple element. You
+            could make the element type a "registered" or "norad" object. Alternatively, you can obtain a safe
+            pointer to a contained element from a pointer to the tuple<> object like so: */
+            auto tup1_refcptr = mse::make_refcounting<mse::mstd::tuple<double, char, mse::mstd::string> >(mse::mstd::make_tuple(3.8, 'A', mse::mstd::string("Lisa Simpson")));
+            auto elem_ptr1 = mse::make_tuple_element_pointer<double>(tup1_refcptr);
+            auto val1 = *elem_ptr1;
+        }
+        
+        {
+            /* More commonly, the tuple<> object might be declared as a scope object. */
+            auto xs_tup1 = mse::make_xscope(mse::mstd::make_tuple(3.8, 'A', mse::mstd::string("Lisa Simpson")));
+            // which can also be written as
+            // auto xs_tup1 = mse::TXScopeObj<mse::mstd::tuple<double, char, mse::mstd::string> >(3.8, 'A', mse::mstd::string("Lisa Simpson"));
+
+            auto xs_elem_ptr1 = mse::make_xscope_tuple_element_pointer<2>(&xs_tup1);
+
+            /* Here we obtain a "regular" scope pointer to the element from the scope "tuple element pointer". */
+            auto xs_ptr1 = mse::xscope_pointer(xs_elem_ptr1);
+            auto val1 = *xs_ptr1;
+        }
+    }
+```
+
+### xscope_tuple
+
+[`mstd::tuple<>`](#tuple) can, like any other type, be declared as a [scope type](#scope-pointers) (using `mse::make_xscope()` / `mse::TXScopeObj<>`). But it does not support using scope types as a contained element type. It is (intended to be) uncommon to need such capability. But the library does provide a version, `xscope_tuple<>`, that supports it.
+
+usage example:
+
+```cpp
+    #include "msetuple.h"
+    #include "msemstdstring.h"
+    
+    void main(int argc, char* argv[]) {
+            
+            /* Here we're creating a (string) object of scope type. */
+            auto xs_str1 = mse::make_xscope(mse::mstd::string("abc"));
+            
+            /* Here we're creating an xscope_tuple<> object that contains a scope pointer to the (scope) string object.
+            mstd::tuple<>, for example, would not support this. */
+            auto xstup1 = mse::make_xscope_tuple(&xs_str1);
+            // which can also be written as
+            // auto xstup1 = mse::xscope_tuple<mse::TXScopeFixedPointer<mse::mstd::string> >(&xs_str1);
+            
+            auto val1 = *(std::get<0>(xstup1));
+    }
+```
 
 ### Algorithms
 
