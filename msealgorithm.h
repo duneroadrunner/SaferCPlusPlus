@@ -47,7 +47,7 @@ namespace mse {
 		template<class _InIt>
 		class TXScopeSpecializedFirstAndLast {
 		public:
-			TXScopeSpecializedFirstAndLast(const _InIt& _First, const _InIt& _Last) : m_first(_First), m_last(_Last) {}
+			TXScopeSpecializedFirstAndLast(_InIt _First, _InIt _Last) : m_first(std::move(_First)), m_last(std::move(_Last)) {}
 			const auto& first() const {
 				return m_first;
 			}
@@ -56,84 +56,119 @@ namespace mse {
 			}
 
 		private:
-			const _InIt& m_first;
-			const _InIt& m_last;
+			_InIt m_first;
+			_InIt m_last;
 		};
-
-		template<class _InIt>
-		using item_pointer_type_from_iterator = typename std::remove_const<typename std::remove_reference<
-				decltype(impl::TXScopeSpecializedFirstAndLast<_InIt>(std::declval<_InIt>(), std::declval<_InIt>()).first())
-			>::type>::type;
-
-		template<class _ContainerPointer>
-		class TXScopeRangeIterProvider {
-		public:
-			typedef decltype(mse::make_xscope_begin_iterator(std::declval<_ContainerPointer>())) iter_t;
-			TXScopeRangeIterProvider(const _ContainerPointer& _XscpPtr) : m_begin(mse::make_xscope_begin_iterator(_XscpPtr))
-				, m_end(mse::make_xscope_end_iterator(_XscpPtr)) {}
-			const auto& begin() const {
-				return m_begin;
-			}
-			const auto& end() const {
-				return m_end;
-			}
-
-		private:
-			iter_t m_begin;
-			iter_t m_end;
-		};
-
-		template<class _ContainerPointer>
-		using item_pointer_type_from_container_pointer = item_pointer_type_from_iterator<
-			typename std::remove_const<typename std::remove_reference<
-				decltype(TXScopeRangeIterProvider<_ContainerPointer>(std::declval<_ContainerPointer>()).begin())
-			>::type>::type>;
-
 
 		template<class T, class EqualTo>
-		struct IsSupportedByMakeXScopeIterator_msemsearray_impl
+		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(mse::make_xscope_iterator(std::declval<U>()), mse::make_xscope_iterator(std::declval<V>()), bool(true));
+			static auto test(U*) -> decltype(make_xscope_specialized_first_and_last_overloaded(std::declval<U>(), std::declval<U>()), make_xscope_specialized_first_and_last_overloaded(std::declval<V>(), std::declval<V>()), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
 			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
 		};
 		template<class T, class EqualTo = T>
-		struct IsSupportedByMakeXScopeIterator_msemsearray : IsSupportedByMakeXScopeIterator_msemsearray_impl<
+		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded : IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded_impl<
 			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
+		template<class _InIt>
+		auto make_xscope_specialized_first_and_last_helper1(std::true_type, const _InIt& _First, const _InIt& _Last) {
+			return make_xscope_specialized_first_and_last_overloaded(_First, _Last);
+		}
+		template<class _InIt>
+		auto make_xscope_specialized_first_and_last_helper1(std::false_type, const _InIt& _First, const _InIt& _Last) {
+			return TXScopeSpecializedFirstAndLast<_InIt>(_First, _Last);
+		}
+
+		template<class _InIt>
+		auto make_xscope_specialized_first_and_last(const _InIt& _First, const _InIt& _Last) {
+			return make_xscope_specialized_first_and_last_helper1(
+				typename IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded<_InIt>::type(), _First, _Last);
+		}
+
+		template<class _InIt>
+		using item_pointer_type_from_iterator = typename std::remove_const<typename std::remove_reference<
+				decltype(make_xscope_specialized_first_and_last(std::declval<_InIt>(), std::declval<_InIt>()).first())
+			>::type>::type;
+
+
 		template<class _ContainerPointer>
-		class TRangeIterProvider {
+		class TXScopeRangeIterProvider {
 		public:
-			typedef decltype(mse::make_begin_iterator(std::declval<_ContainerPointer>())) iter_t;
-			TRangeIterProvider(const _ContainerPointer& _XscpPtr) : m_begin(mse::make_begin_iterator(_XscpPtr))
-				, m_end(mse::make_end_iterator(_XscpPtr)) {}
+			typedef decltype(mse::make_xscope_begin_iterator(std::declval<_ContainerPointer>())) iter_t;
+			typedef decltype(make_xscope_specialized_first_and_last(std::declval<iter_t>(), std::declval<iter_t>())) specialized_first_and_last_t;
+
+			TXScopeRangeIterProvider(const _ContainerPointer& _XscpPtr)
+				: m_specialized_first_and_last(mse::make_xscope_begin_iterator(_XscpPtr), mse::make_xscope_end_iterator(_XscpPtr)) {}
 			const auto& begin() const {
-				return m_begin;
+				return m_specialized_first_and_last.first();
 			}
 			const auto& end() const {
-				return m_end;
+				return m_specialized_first_and_last.last();
 			}
 
 		private:
-			iter_t m_begin;
-			iter_t m_end;
+			specialized_first_and_last_t m_specialized_first_and_last;
 		};
 
 		template<class _ContainerPointer>
+		using item_pointer_type_from_container_pointer = item_pointer_type_from_iterator<
+			typename std::remove_const<typename std::remove_reference<
+				decltype(make_xscope_range_iter_provider(std::declval<_ContainerPointer>()).begin())
+			>::type>::type>;
+
+		template<class T, class EqualTo>
+		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(make_xscope_specialized_range_iter_provider_overloaded(std::declval<U>(), std::declval<U>()), make_xscope_specialized_range_iter_provider_overloaded(std::declval<V>(), std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded : IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider_helper1(std::true_type, const _ContainerPointer& ptr) {
-			return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
+			return mse::impl::make_xscope_specialized_range_iter_provider_overloaded(*ptr);
 		}
 		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider_helper1(std::false_type, const _ContainerPointer& ptr) {
-			return TRangeIterProvider<decltype(ptr)>(ptr);
+			return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
 		}
 
 		template<class _ContainerPointer>
+		auto make_xscope_range_iter_provider_helper2(const _ContainerPointer& ptr) {
+			return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
+		}
+		template<class _Container>
+		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeItemFixedConstPointer<_Container>& ptr) {
+			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
+		}
+		template<class _Container>
+		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeItemFixedPointer<_Container>& ptr) {
+			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
+		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _Container>
+		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeFixedConstPointer<_Container>& ptr) {
+			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
+		}
+		template<class _Container>
+		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeFixedPointer<_Container>& ptr) {
+			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
+		}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider(const _ContainerPointer& ptr) {
-			return make_xscope_range_iter_provider_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, _ContainerPointer>::type(), ptr);
+			return make_xscope_range_iter_provider_helper2(ptr);
 		}
 	}
 
@@ -153,7 +188,7 @@ namespace mse {
 			c_find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred) : result(eval(_First, _Last, _Pred)) {}
 		private:
 			static result_type eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
-				const auto xs_iters = TXScopeSpecializedFirstAndLast<_InIt>(_First, _Last);
+				const auto xs_iters = make_xscope_specialized_first_and_last(_First, _Last);
 				auto current = xs_iters.first();
 				for (; current != xs_iters.last(); ++current) {
 					if (_Pred(current)) {
@@ -176,7 +211,7 @@ namespace mse {
 			static result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred) {
 				/* Note that since we're returning a (wrapped const) reference, we need to be careful that it refers to an
 				element in the original container, not an (ephemeral) copy. */
-				const auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
+				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
 				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr>(xs_iters.begin(), xs_iters.end(), _Pred).result;
 				if (xs_iters.end() == res_it) {
 					return result_type{};
@@ -199,7 +234,7 @@ namespace mse {
 			result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred) {
 				/* Note that since we're returning a (const) reference, we need to be careful that it refers to an
 				element in the original container, not an (ephemeral) copy. */
-				const auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
+				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
 				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr>(xs_iters.begin(), xs_iters.end(), _Pred).result;
 				if (xs_iters.end() == res_it) {
 					MSE_THROW(std::logic_error("element not found - xscope_c_range_get_ref_to_element_known_to_be_present"));
@@ -272,7 +307,7 @@ namespace mse {
 			c_for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func) : result(eval(_First, _Last, _Func)) {}
 		private:
 			static result_type eval(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
-				const auto xs_iters = TXScopeSpecializedFirstAndLast<_InIt>(_First, _Last);
+				const auto xs_iters = make_xscope_specialized_first_and_last(_First, _Last);
 				auto current = xs_iters.first();
 				for (; current != xs_iters.last(); ++current) {
 					_Func(current);
@@ -291,7 +326,7 @@ namespace mse {
 				: result(eval(_XscpPtr, _Func)) {}
 		private:
 			result_type eval(const _ContainerPointer& _XscpPtr, _Fn _Func) {
-				const auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
+				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
 				return c_for_each_ptr<decltype(xs_iters.begin()), _Fn>(xs_iters.begin(), xs_iters.end(), _Func).result;
 			}
 		};
@@ -342,7 +377,7 @@ namespace mse {
 			xscope_c_range_sort(const _ContainerPointer& _XscpPtr) { eval(_XscpPtr); }
 		private:
 			static void eval(const _ContainerPointer& _XscpPtr) {
-				const auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
+				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
 				std::sort(xs_iters.begin(), xs_iters.end());
 			}
 		};
@@ -394,7 +429,7 @@ namespace mse {
 				: result(eval(_XscpPtr, _First2)) {}
 		private:
 			result_type eval(const _ContainerPointer& _XscpPtr, _InIt2 _First2) {
-				auto xs_iters = TXScopeRangeIterProvider<_ContainerPointer>(_XscpPtr);
+				auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
 				return m_equal(xs_iters.begin(), xs_iters.end(), _First2);
 			}
 		};

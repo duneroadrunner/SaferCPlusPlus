@@ -1505,6 +1505,126 @@ namespace mse {
 		return mse::us::unsafe_make_xscope_const_pointer_to(*(*iter_xscptr));
 	}
 
+
+	/* Forward declaration of some algorithm elements we're going to specialize/overload. We can't just include
+	"msealgorithm.h" (where they are declared), because msealgorithm.h includes this file ("msemsearray.h"). */
+	namespace impl {
+
+		namespace us {
+			template<class _InIt> auto iterator_pair_to_raw_pointers_checked(const _InIt& first, const _InIt& last);
+		}
+		template<class _InIt> class TXScopeSpecializedFirstAndLast;
+		template<class _ContainerPointer> class TXScopeRangeIterProvider;
+		template<class _ContainerPointer> class TRangeIterProvider;
+		template<class _ContainerPointer> auto make_xscope_range_iter_provider(const _ContainerPointer& ptr);
+	}
+	template<class _InIt, class _Pr> inline _InIt find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred);
+	template<class _InIt, class _Fn> inline auto for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func);
+	template<class _RanIt> inline void sort(const _RanIt& _First, const _RanIt& _Last);
+
+	namespace impl {
+
+		/* Some algorithm implementation specializations for TXScopeCSSSStrongRA(Const)Iterator<>s.  */
+
+		/* Provides raw pointer iterators from the given iterators of a "random access" container. */
+		template<class _InIt>
+		class TXScopeRawPointerRAFirstAndLast {
+		public:
+			typedef decltype(us::iterator_pair_to_raw_pointers_checked(std::declval<_InIt>(), std::declval<_InIt>())) raw_pair_t;
+			TXScopeRawPointerRAFirstAndLast(const _InIt& _First, const _InIt& _Last)
+				: m_raw_pair(us::iterator_pair_to_raw_pointers_checked(_First, _Last)) {}
+			const auto& first() const {
+				return m_raw_pair.first;
+			}
+			const auto& last() const {
+				return m_raw_pair.second;
+			}
+
+		private:
+			raw_pair_t m_raw_pair;
+		};
+
+		/* Provides raw pointer iterators for the given "random access" container. */
+		template<class _ContainerPointer>
+		class TXScopeRARangeRawPointerIterProvider {
+		public:
+			typedef decltype(std::addressof((*std::declval<_ContainerPointer>())[0])) iter_t;
+			TXScopeRARangeRawPointerIterProvider(const _ContainerPointer& _XscpPtr) : m_begin(std::addressof((*_XscpPtr)[0]))
+				, m_end(std::addressof((*_XscpPtr)[0]) + mse::as_a_size_t((*_XscpPtr).size())) {}
+			const auto& begin() const { return m_begin; }
+			const auto& end() const { return m_end; }
+
+		private:
+			iter_t m_begin;
+			iter_t m_end;
+		};
+
+		/* Specializations of TXScopeRawPointerRAFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+		when it's safe to do so. In this case TXScopeCSSSStrongRA(Const)Iterator<>s. */
+		template <typename _TRAContainerPointer>
+		class TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> >
+			: public TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> > {
+		public:
+			typedef TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> > base_class;
+			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+		};
+
+		template <typename _TRAContainerPointer>
+		auto make_xscope_specialized_first_and_last_overloaded(const TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>& _First, const TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>& _Last) {
+			return TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> >(_First, _Last);
+		}
+
+		template <typename _TRAContainerPointer>
+		class TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> >
+			: public TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> > {
+		public:
+			typedef TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> > base_class;
+			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+		};
+
+		template <typename _TRAContainerPointer>
+		auto make_xscope_specialized_first_and_last_overloaded(const TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _First, const TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _Last) {
+			return TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> >(_First, _Last);
+		}
+	}
+}
+
+namespace std {
+
+	/* Overloads of standard algorithm functions for TXScopeCSSSStrongRA(Const)Iterator<>s. */
+
+	template<class _Pr, typename _TRAContainerPointer>
+	inline auto find_if(const mse::TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>& _First, const mse::TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>& _Last, _Pr _Pred) -> mse::TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> {
+		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+		return mse::find_if_ptr(_First, _Last, pred2);
+	}
+	template<class _Pr, typename _TRAContainerPointer>
+	inline auto find_if(const mse::TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _First, const mse::TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _Last, _Pr _Pred) -> mse::TXScopeCSSSStrongRAIterator<_TRAContainerPointer> {
+		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+		return mse::find_if_ptr(_First, _Last, pred2);
+	}
+
+	template<class _Fn, typename _TRAContainerPointer>
+	inline _Fn for_each(const mse::TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>& _First, const mse::TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>& _Last, _Fn _Func) {
+		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
+		mse::for_each_ptr(_First, _Last, func2);
+		return (_Func);
+	}
+	template<class _Fn, typename _TRAContainerPointer>
+	inline _Fn for_each(const mse::TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _First, const mse::TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _Last, _Fn _Func) {
+		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
+		mse::for_each_ptr(_First, _Last, func2);
+		return (_Func);
+	}
+
+	template <typename _TRAContainerPointer>
+	inline void sort(const mse::TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _First, const mse::TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _Last) {
+		mse::sort(_First, _Last);
+	}
+}
+
+namespace mse {
+
 	template <typename _TRAContainer>
 	using TXScopeCSSSXSRAConstIterator = TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<_TRAContainer> >;
 	template <typename _TRAContainer>
@@ -2692,145 +2812,43 @@ namespace mse {
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-
-	/* Forward declaration of some algorithm elements we're going to specialize/overload. We can't just include
-	"msealgorithm.h" (where they are declared), because msealgorithm.h includes this file ("msemsearray.h"). */
-	namespace impl {
-
-		namespace us {
-			template<class _InIt> auto iterator_pair_to_raw_pointers_checked(const _InIt& first, const _InIt& last);
-		}
-		template<class _InIt> class TXScopeSpecializedFirstAndLast;
-		template<class _ContainerPointer> class TXScopeRangeIterProvider;
-		template<class _ContainerPointer> class TRangeIterProvider;
-		template<class _ContainerPointer> auto make_xscope_range_iter_provider(const _ContainerPointer& ptr);
-	}
-	template<class _InIt, class _Pr> inline _InIt find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred);
-	template<class _InIt, class _Fn> inline auto for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func);
-	template<class _RanIt> inline void sort(const _RanIt& _First, const _RanIt& _Last);
-
 	namespace impl {
 
 		/* Some algorithm implementation specializations for nii_array<>.  */
 
-		/* Provides raw pointer iterators from the given iterators of a "random access" container. */
-		template<class _InIt>
-		class TXScopeRawPointerRAFirstAndLast {
+		/* Provides raw pointer iterators from the given "random access" container. */
+		template<class _Container>
+		class TXScopeRangeRawPointerIterProvider {
 		public:
-			typedef decltype(us::iterator_pair_to_raw_pointers_checked(std::declval<_InIt>(), std::declval<_InIt>())) raw_pair_t;
-			TXScopeRawPointerRAFirstAndLast(const _InIt& _First, const _InIt& _Last)
-				: m_raw_pair(us::iterator_pair_to_raw_pointers_checked(_First, _Last)) {}
-			const auto& first() const {
-				return m_raw_pair.first;
+			typedef decltype(std::addressof(std::declval<_Container>()[0])) raw_pointer_iter_t;
+
+			TXScopeRangeRawPointerIterProvider(_Container& container) {
+				const auto size = mse::container_size(container);
+				if (1 <= size) {
+					m_begin = std::addressof(container[0]);
+					m_end = m_begin + size;
+				}
 			}
-			const auto& last() const {
-				return m_raw_pair.second;
+			const auto& begin() const {
+				return m_begin;
+			}
+			const auto& end() const {
+				return m_end;
 			}
 
 		private:
-			raw_pair_t m_raw_pair;
+			raw_pointer_iter_t m_begin = nullptr;
+			raw_pointer_iter_t m_end = nullptr;
 		};
 
-		/* Provides raw pointer iterators for the given "random access" container. */
-		template<class _ContainerPointer>
-		class TXScopeRARangeRawPointerIterProvider {
-		public:
-			typedef decltype(std::addressof((*std::declval<_ContainerPointer>())[0])) iter_t;
-			TXScopeRARangeRawPointerIterProvider(const _ContainerPointer& _XscpPtr) : m_begin(std::addressof((*_XscpPtr)[0]))
-				, m_end(std::addressof((*_XscpPtr)[0]) + mse::as_a_size_t((*_XscpPtr).size())) {}
-			const auto& begin() const { return m_begin; }
-			const auto& end() const { return m_end; }
-
-		private:
-			iter_t m_begin;
-			iter_t m_end;
-		};
-
-		/* Specializations of TXScopeRawPointerRAFirstAndLast<> that replace regular iterators with fast (raw pointer) iterators for
-		data types for which it's safe to do so. In this case nii_array<>. */
 		template<class _Ty, size_t _Size, class _TStateMutex>
-		class TXScopeSpecializedFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> >
-			: public TXScopeRawPointerRAFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
+		auto make_xscope_specialized_range_iter_provider_overloaded(mse::nii_array< _Ty, _Size, _TStateMutex>& array_ref) {
+			return TXScopeRangeRawPointerIterProvider<typename std::remove_reference<decltype(array_ref)>::type>(array_ref);
+		}
 		template<class _Ty, size_t _Size, class _TStateMutex>
-		class TXScopeSpecializedFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> >
-			: public TXScopeRawPointerRAFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
-
-		/* Specializations of TXScopeRangeIterProvider<> that replace regular iterators with fast (raw pointer) iterators for
-		data types for which it's safe to do so. In this case nii_array<>. */
-		template<class _Ty, size_t _Size, class _TStateMutex>
-		class TXScopeRangeIterProvider<mse::TXScopeItemFixedConstPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > >
-			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedConstPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > {
-		public:
-			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedConstPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > base_class;
-			MSE_USING(TXScopeRangeIterProvider, base_class);
-		};
-		template<class _Ty, size_t _Size, class _TStateMutex>
-		class TXScopeRangeIterProvider<mse::TXScopeItemFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > >
-			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > {
-		public:
-			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > base_class;
-			MSE_USING(TXScopeRangeIterProvider, base_class);
-		};
-
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _Ty, size_t _Size, class _TStateMutex>
-		class TXScopeRangeIterProvider<mse::TXScopeFixedConstPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > >
-			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedConstPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > {
-		public:
-			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedConstPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > base_class;
-			MSE_USING(TXScopeRangeIterProvider, base_class);
-		};
-		template<class _Ty, size_t _Size, class _TStateMutex>
-		class TXScopeRangeIterProvider<mse::TXScopeFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > >
-			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > {
-		public:
-			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > base_class;
-			MSE_USING(TXScopeRangeIterProvider, base_class);
-		};
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
-	}
-}
-
-namespace std {
-
-	/* Overloads of standard algorithm functions for nii_array<> iterators. */
-
-	template<class _Pr, class _Ty, size_t _Size, class _TStateMutex>
-	inline auto find_if(const mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>& _Last, _Pr _Pred) -> mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex> {
-		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
-		return mse::find_if_ptr(_First, _Last, pred2);
-	}
-	template<class _Pr, class _Ty, size_t _Size, class _TStateMutex>
-	inline auto find_if(const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _Last, _Pr _Pred) -> mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex> {
-		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
-		return mse::find_if_ptr(_First, _Last, pred2);
-	}
-
-	template<class _Fn, class _Ty, size_t _Size, class _TStateMutex>
-	inline _Fn for_each(const mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type<_Ty, _Size, _TStateMutex>& _Last, _Fn _Func) {
-		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
-		mse::for_each_ptr(_First, _Last, func2);
-		return (_Func);
-	}
-	template<class _Fn, class _Ty, size_t _Size, class _TStateMutex>
-	inline _Fn for_each(const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _Last, _Fn _Func) {
-		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
-		mse::for_each_ptr(_First, _Last, func2);
-		return (_Func);
-	}
-
-	template<class _Ty, size_t _Size, class _TStateMutex>
-	inline void sort(const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _First, const mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type<_Ty, _Size, _TStateMutex>& _Last) {
-		mse::sort(_First, _Last);
+		auto make_xscope_specialized_range_iter_provider_overloaded(const mse::nii_array< _Ty, _Size, _TStateMutex>& array_ref) {
+			return TXScopeRangeRawPointerIterProvider<typename std::remove_reference<decltype(array_ref)>::type>(array_ref);
+		}
 	}
 }
 
@@ -3432,11 +3450,20 @@ namespace mse {
 			}
 
 			template <typename _TRALoneParam>
-			auto xscope_begin_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
-				/* The parameter is not a recognized iterator, so we'll presume it's a pointer to a container. */
-				typedef typename std::remove_reference<_TRALoneParam>::type _TRAPointer;
-				static_assert(typename mse::impl::IsDereferenceable_msemsearray<_TRAPointer>::type(), "");
+			auto xscope_begin_iter_from_lone_param2(std::false_type, const _TRALoneParam& ra_container) {
+				/* The parameter doesn't seem to be a pointer. So we'll use std::begin() to obtain an iterator. If you get
+				a compile error here, then construction from the given parameter type isn't supported. */
+				return mse::make_xscope(std::begin(ra_container));
+			}
+			template <typename _TRAPointer>
+			auto xscope_begin_iter_from_lone_param2(std::true_type, const _TRAPointer& ptr) {
 				return xscope_begin_iter_from_ptr_helper2(typename mse::impl::IsNonOwningScopeOrIndeterminatePointer<_TRAPointer>::type(), ptr);
+			}
+			template <typename _TRALoneParam>
+			auto xscope_begin_iter_from_lone_param1(std::false_type, const _TRALoneParam& param) {
+				/* The parameter is not a recognized iterator. */
+				typedef typename std::remove_reference<_TRALoneParam>::type _TRAPointer;
+				return xscope_begin_iter_from_lone_param2(typename mse::impl::IsDereferenceable_msemsearray<_TRAPointer>::type(), param);
 			}
 			template <typename _TRALoneParam>
 			auto xscope_begin_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_iterator) {
@@ -3538,11 +3565,20 @@ namespace mse {
 			}
 
 			template <typename _TRALoneParam>
-			auto xscope_begin_const_iter_from_lone_param1(std::false_type, const _TRALoneParam& ptr) {
-				/* The parameter is not a recognized iterator, so we'll presume it's a pointer to a container. */
-				typedef typename std::remove_reference<_TRALoneParam>::type _TRAPointer;
-				static_assert(typename mse::impl::IsDereferenceable_msemsearray<_TRAPointer>::type(), "");
+			auto xscope_begin_const_iter_from_lone_param2(std::false_type, const _TRALoneParam& ra_container) {
+				/* The parameter doesn't seem to be a pointer. So we'll use std::cbegin() to obtain an iterator. If you get
+				a compile error here, then construction from the given parameter type isn't supported. */
+				return mse::make_xscope(std::cbegin(ra_container));
+			}
+			template <typename _TRAPointer>
+			auto xscope_begin_const_iter_from_lone_param2(std::true_type, const _TRAPointer& ptr) {
 				return xscope_begin_const_iter_from_ptr_helper2(typename mse::impl::IsNonOwningScopeOrIndeterminatePointer<_TRAPointer>::type(), ptr);
+			}
+			template <typename _TRALoneParam>
+			auto xscope_begin_const_iter_from_lone_param1(std::false_type, const _TRALoneParam& param) {
+				/* The parameter is not a recognized iterator. */
+				typedef typename std::remove_reference<_TRALoneParam>::type _TRAPointer;
+				return xscope_begin_const_iter_from_lone_param2(typename mse::impl::IsDereferenceable_msemsearray<_TRAPointer>::type(), param);
 			}
 			template <typename _TRALoneParam>
 			auto xscope_begin_const_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_const_iterator) {
@@ -3595,11 +3631,11 @@ namespace mse {
 
 	template<class _TArrayPointer>
 	auto make_xscope_end_const_iterator(const _TArrayPointer& owner_ptr) {
-		return mse::make_xscope_begin_const_iterator(owner_ptr) + (*owner_ptr).size();
+		return mse::make_xscope_begin_const_iterator(owner_ptr) + mse::container_size(owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_xscope_end_iterator(const _TArrayPointer& owner_ptr) {
-		return mse::make_xscope_begin_iterator(owner_ptr) + (*owner_ptr).size();
+		return mse::make_xscope_begin_iterator(owner_ptr) + mse::container_size(owner_ptr);
 	}
 
 	namespace impl {

@@ -374,6 +374,86 @@ namespace mse {
 		}
 	}
 
+	namespace impl {
+
+		/* Specializations of TXScopeRawPointerRAFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+		when it's safe to do so. In this case mse::us::impl::TXScopeCSLSStrongRA(Const)Iterator<>s. */
+		template <typename _TRAContainerPointer, typename _TStructureLockPointer>
+		class TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> >
+			: public TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAConstIterator<typename std::remove_const<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>::type> > {
+		public:
+			typedef TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAConstIterator<typename std::remove_const<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>::type> > base_class;
+			typedef mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> iter_t;
+			TXScopeSpecializedFirstAndLast(iter_t first, const iter_t& last) : base_class(first, last), m_first(std::move(first)) {}
+
+		private:
+			/* We need to store one of the given iterators (or a copy of it) as it holds, while it exists, a "structure lock"
+			on the container (ensuring that it is not resized). */
+			iter_t m_first;
+		};
+
+		template <typename _TRAContainerPointer, typename _TStructureLockPointer>
+		auto make_xscope_specialized_first_and_last_overloaded(const mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& _First, const mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& _Last) {
+			return TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> >(_First, _Last);
+		}
+
+		template <typename _TRAContainerPointer, typename _TStructureLockPointer>
+		class TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> >
+			: public TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAIterator<typename std::remove_const<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>::type> > {
+		public:
+			typedef TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAIterator<typename std::remove_const<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>::type> > base_class;
+			typedef mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> iter_t;
+			TXScopeSpecializedFirstAndLast(iter_t first, const iter_t& last) : base_class(first, last), m_first(std::move(first)) {}
+
+		private:
+			/* We need to store one of the given iterators (or a copy of it) as it holds, while it exists, a "structure lock"
+			on the container (ensuring that it is not resized). */
+			iter_t m_first;
+		};
+
+		template <typename _TRAContainerPointer, typename _TStructureLockPointer>
+		auto make_xscope_specialized_first_and_last_overloaded(const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _First, const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _Last) {
+			return TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> >(_First, _Last);
+		}
+	}
+}
+
+namespace std {
+
+	/* Overloads of standard algorithm functions for mse::us::impl::TXScopeCSLSStrongRA(Const)Iterator<>s. */
+
+	template<class _Pr, typename _TRAContainerPointer, typename _TStructureLockPointer>
+	inline auto find_if(const mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& _First, const mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& _Last, _Pr _Pred) -> mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> {
+		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+		return mse::find_if_ptr(_First, _Last, pred2);
+	}
+	template<class _Pr, typename _TRAContainerPointer, typename _TStructureLockPointer>
+	inline auto find_if(const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _First, const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _Last, _Pr _Pred) -> mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> {
+		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+		return mse::find_if_ptr(_First, _Last, pred2);
+	}
+
+	template<class _Fn, typename _TRAContainerPointer, typename _TStructureLockPointer>
+	inline _Fn for_each(const mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& _First, const mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& _Last, _Fn _Func) {
+		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
+		mse::for_each_ptr(_First, _Last, func2);
+		return (_Func);
+	}
+	template<class _Fn, typename _TRAContainerPointer, typename _TStructureLockPointer>
+	inline _Fn for_each(const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _First, const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _Last, _Fn _Func) {
+		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
+		mse::for_each_ptr(_First, _Last, func2);
+		return (_Func);
+	}
+
+	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
+	inline void sort(const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _First, const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _Last) {
+		mse::sort(_First, _Last);
+	}
+}
+
+namespace mse {
+
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	auto xscope_pointer(const us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& iter_cref) {
 		return xscope_pointer(TXScopeCSSSStrongRAIterator<_TStructureLockPointer>(iter_cref));
@@ -2232,80 +2312,6 @@ namespace mse {
 		auto make_xscope_vector_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) -> decltype(make_xscope_structure_lock_guard(owner_ptr)) {
 			return make_xscope_structure_lock_guard(owner_ptr);
 		}
-	}
-
-	namespace impl {
-
-		/* Some algorithm implementation specializations for mse::us::impl::gnii_vector<>.  */
-
-		/* Specializations of TXScopeRawPointerRAFirstAndLast<> that replace regular iterators with fast (raw pointer) iterators for
-		data types for which it's safe to do so. In this case mse::us::impl::gnii_vector<>. */
-		template<class _Ty, class _A, class _TStateMutex>
-		class TXScopeSpecializedFirstAndLast<mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> >
-			: public TXScopeRawPointerRAFirstAndLast<mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> > {
-		public:
-			typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> iter_t;
-			typedef TXScopeRawPointerRAFirstAndLast<mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> > base_class;
-			TXScopeSpecializedFirstAndLast(const iter_t& _First, const iter_t& _Last) : base_class(_First, _Last)
-				, m_structure_lock_obj(make_xscope_structure_lock_guard(_First.target_container_ptr())) {}
-		private:
-			typedef decltype(make_xscope_structure_lock_guard(std::declval<iter_t>().target_container_ptr())) xscope_structure_lock_guard_t;
-			xscope_structure_lock_guard_t m_structure_lock_obj;
-		};
-
-		/* Specializations of TXScopeRangeIterProvider<> that replace regular iterators with fast (raw pointer) iterators for
-		data types for which it's safe to do so. In this case mse::us::impl::gnii_vector<>. */
-		template<class _Ty, class _A, class _TStateMutex>
-		class TXScopeRangeIterProvider<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > >
-			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > {
-		public:
-			typedef mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > container_pointer_t;
-			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > base_class;
-			TXScopeRangeIterProvider(const container_pointer_t& _XscpPtr) : base_class(_XscpPtr)
-				, m_structure_lock_obj(make_xscope_structure_lock_guard(_XscpPtr)) {}
-		private:
-			typedef decltype(make_xscope_structure_lock_guard(std::declval<container_pointer_t>())) xscope_structure_lock_guard_t;
-			xscope_structure_lock_guard_t m_structure_lock_obj;
-		};
-
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _Ty, class _A, class _TStateMutex>
-		class TXScopeRangeIterProvider<mse::TXScopeFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > >
-			: public TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > {
-		public:
-			typedef mse::TXScopeFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > container_pointer_t;
-			typedef TXScopeRARangeRawPointerIterProvider<mse::TXScopeFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > base_class;
-			TXScopeRangeIterProvider(const container_pointer_t& _XscpPtr) : base_class(_XscpPtr)
-				, m_structure_lock_obj(make_xscope_structure_lock_guard(_XscpPtr)) {}
-		private:
-			typedef decltype(make_xscope_structure_lock_guard(std::declval<container_pointer_t>())) xscope_structure_lock_guard_t;
-			xscope_structure_lock_guard_t m_structure_lock_obj;
-		};
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
-	}
-}
-
-namespace std {
-
-	/* Overloads of standard algorithm functions for mse::us::impl::gnii_vector<> iterators. */
-
-	template<class _Pr, class _Ty, class _A, class _TStateMutex>
-	inline auto find_if(const mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _First, const mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _Last, _Pr _Pred) -> mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> {
-		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
-		return mse::find_if_ptr(_First, _Last, pred2);
-	}
-
-	template<class _Fn, class _Ty, class _A, class _TStateMutex>
-	inline _Fn for_each(const mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _First, const mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _Last, _Fn _Func) {
-		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
-		mse::for_each_ptr(_First, _Last, func2);
-		return (_Func);
-	}
-
-	template<class _Ty, class _A, class _TStateMutex>
-	inline void sort(const mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _First, const mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex>& _Last) {
-		mse::sort(_First, _Last);
 	}
 }
 
