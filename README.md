@@ -3871,9 +3871,11 @@ It's a little bit tricky, but the `emplace_back()` call on the last line of the 
 
 But because the parent container (i.e. the thing invoking the constructor) is an element of the library, it has run-time checks to ensure that its destructor is not executed while in the middle of one of its (non-static) member functions, like `emplace_back()` (or a constructor or the destructor). So in this case, rather than execute its destructor in the middle of the `emplace_back()` call, the program will terminate.
 
-Because constructors and destructors of dynamically (i.e. heap) allocated objects can only be invoked via elements of the library, those elements can (and do) ensure that the `this` pointer remains valid for the whole constructor/destructor call in all cases.
+Because constructors and destructors of dynamically (i.e. heap) allocated objects can only be invoked via elements of the library, those elements can (and do) ensure that the `this` pointer remains pointing to validly allocated memory for the whole constructor/destructor call in all cases.
 
-The remaining case is when a local variable is declared (on the stack). In this case the `this` pointer is intrinsically guaranteed to point to a validly allocated object, not just for the duration of the constructor, but indeed for the duration of the scope. Unfortunately, C++ does permit you to reference the object before the completion of its construction. For example, in this declaration
+The remaining case is when a local variable is declared (on the stack). In this case the `this` pointer is intrinsically guaranteed to point to a validly allocated object, not just for the duration of the constructor, but indeed for the duration of the scope. (Same goes for variables with static or thread_local storage if you're using those.)
+
+Unfortunately, C++ does permit you to reference the object before the completion of its construction. For example, in this declaration
 
 ```cpp
     {
@@ -3881,9 +3883,26 @@ The remaining case is when a local variable is declared (on the stack). In this 
     }
 ```
 
-the local variable `v1` is used after it has been allocated, but before its constructor has been executed. In theory, the library's elements could attempt to detect use-before-construction at run-time, but this kind of bug is probably quite rare and probably more appropriately addressed by a static tool, like the lifetime checker, or frankly, the compiler itself. (Same goes for variables with static or thread_local storage if you're using those.)
+the local variable `v1` is used after it has been allocated, but before its constructor has been executed. It's also an issue inside constructors as in this example:
 
-While we can generally ensure that the `this` pointer remains valid in constructors/destructors, we cannot do the same for native reference parameters. This means that technically, without a lifetime checker, the safety of (user-defined) constructors which take native reference parameters, like copy and move constructors, cannot be ensured.
+```cpp
+    {
+        struct W {
+            W(int i) : j(i) {}
+            int j;
+        };
+
+        struct Y {
+            W w1;
+            W w2;
+            Y() : w1(w2.j), w2(w1.j) {}
+        };
+    }
+```
+
+This kind of bug is probably quite rare and would probably need to be addressed by a static tool, like the lifetime checker, or frankly, the compiler itself.
+
+While we can generally ensure that the `this` pointer remains pointing to a validly allocated object in constructors/destructors, we cannot do the same for native reference parameters. This means that technically, without a lifetime checker, the safety of (user-defined) constructors which take native reference parameters, like copy and move constructors, cannot be ensured.
 
 Also note that explicitly calling `std::move()` (the one in the `<utility>` library, not the one in the `<algorithm>` library) is potentially unsafe, particularly if applied to certain scope objects. Basically, just let the compiler decide when a reference is an rvalue reference.
 
