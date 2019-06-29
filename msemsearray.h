@@ -1518,8 +1518,8 @@ namespace mse {
 		template<class _ContainerPointer> class TRangeIterProvider;
 		template<class _ContainerPointer> auto make_xscope_range_iter_provider(const _ContainerPointer& ptr);
 	}
-	template<class _InIt, class _Pr> inline _InIt find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred);
-	template<class _InIt, class _Fn> inline auto for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func);
+	template<class _InIt, class _Pr, class... Args> inline _InIt find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args);
+	template<class _InIt, class _Fn, class... Args> inline auto for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func, const Args&... args);
 	template<class _RanIt> inline void sort(const _RanIt& _First, const _RanIt& _Last);
 
 	namespace impl {

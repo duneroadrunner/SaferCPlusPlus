@@ -179,19 +179,19 @@ namespace mse {
 			auto retval = [](auto) { return true; };
 			return retval;
 		};
-		template<class _InIt, class _Pr = decltype(find_if_ptr_placeholder_predicate())>
+		template<class _InIt, class _Pr, class... Args>
 		class c_find_if_ptr {
 		public:
 			typedef item_pointer_type_from_iterator<_InIt> item_pointer_type;
 			typedef typename std::remove_reference<_InIt>::type result_type;
 			result_type result;
-			c_find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred) : result(eval(_First, _Last, _Pred)) {}
+			c_find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) : result(eval(_First, _Last, _Pred, args...)) {}
 		private:
-			static result_type eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
+			static result_type eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
 				const auto xs_iters = make_xscope_specialized_first_and_last(_First, _Last);
 				auto current = xs_iters.first();
 				for (; current != xs_iters.last(); ++current) {
-					if (_Pred(current)) {
+					if (_Pred(current, args...)) {
 						break;
 					}
 				}
@@ -199,20 +199,20 @@ namespace mse {
 			}
 		};
 
-		template<class _ContainerPointer, class _Pr = decltype(find_if_ptr_placeholder_predicate())>
+		template<class _ContainerPointer, class _Pr, class... Args>
 		class xscope_c_range_get_ref_if_ptr {
 		public:
 			typedef item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
 			typedef mse::xscope_optional<decltype(mse::us::unsafe_make_xscope_pointer_to(*std::declval<item_pointer_type>()))> result_type;
 			result_type result;
-			xscope_c_range_get_ref_if_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred)
-				: result(eval(_XscpPtr, _Pred)) {}
+			xscope_c_range_get_ref_if_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
+				: result(eval(_XscpPtr, _Pred, args...)) {}
 		private:
-			static result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred) {
+			static result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 				/* Note that since we're returning a (wrapped const) reference, we need to be careful that it refers to an
 				element in the original container, not an (ephemeral) copy. */
 				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
-				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr>(xs_iters.begin(), xs_iters.end(), _Pred).result;
+				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr, Args...>(xs_iters.begin(), xs_iters.end(), _Pred, args...).result;
 				if (xs_iters.end() == res_it) {
 					return result_type{};
 				}
@@ -222,20 +222,20 @@ namespace mse {
 			}
 		};
 
-		template<class _ContainerPointer, class _Pr = decltype(find_if_ptr_placeholder_predicate())>
+		template<class _ContainerPointer, class _Pr, class... Args>
 		class xscope_c_range_get_ref_to_element_known_to_be_present_ptr {
 		public:
 			typedef item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
 			typedef decltype(mse::us::unsafe_make_xscope_pointer_to(*std::declval<item_pointer_type>())) result_type;
 			result_type result;
-			xscope_c_range_get_ref_to_element_known_to_be_present_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred)
-				: result(eval(_XscpPtr, _Pred)) {}
+			xscope_c_range_get_ref_to_element_known_to_be_present_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
+				: result(eval(_XscpPtr, _Pred, args...)) {}
 		private:
-			result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred) {
+			result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 				/* Note that since we're returning a (const) reference, we need to be careful that it refers to an
 				element in the original container, not an (ephemeral) copy. */
 				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
-				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr>(xs_iters.begin(), xs_iters.end(), _Pred).result;
+				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr, Args...>(xs_iters.begin(), xs_iters.end(), _Pred, args...).result;
 				if (xs_iters.end() == res_it) {
 					MSE_THROW(std::logic_error("element not found - xscope_c_range_get_ref_to_element_known_to_be_present"));
 				}
@@ -245,50 +245,50 @@ namespace mse {
 			}
 		};
 	}
-	template<class _InIt> using find_if_ptr_type = typename impl::c_find_if_ptr<_InIt>::item_pointer_type;
-	template<class _InIt, class _Pr>
-	inline _InIt find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
-		return impl::c_find_if_ptr<_InIt, _Pr>(_First, _Last, _Pred).result;
+	template<class _InIt> using find_if_ptr_type = typename impl::c_find_if_ptr<_InIt, decltype(impl::find_if_ptr_placeholder_predicate())>::item_pointer_type;
+	template<class _InIt, class _Pr, class... Args>
+	inline _InIt find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
+		return impl::c_find_if_ptr<_InIt, _Pr, Args...>(_First, _Last, _Pred, args...).result;
 	}
 
-	template<class _InIt, class _Pr>
-	inline _InIt find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred) {
+	template<class _InIt, class _Pr, class... Args>
+	inline _InIt find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
 		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
 		return find_if_ptr(_First, _Last, pred2);
 	}
 
 	/* This function returns a (scope) optional that contains a scope pointer to the found element. */
-	template<class _XScopeContainerPointer> using xscope_range_get_ref_if_ptr_type = typename impl::xscope_c_range_get_ref_if_ptr<_XScopeContainerPointer>::item_pointer_type;
-	template<class _XScopeContainerPointer, class _Pr>
-	inline auto xscope_range_get_ref_if_ptr(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
-		return impl::xscope_c_range_get_ref_if_ptr<_XScopeContainerPointer, _Pr>(_XscpPtr, _Pred).result;
+	template<class _XScopeContainerPointer> using xscope_range_get_ref_if_ptr_type = typename impl::xscope_c_range_get_ref_if_ptr<_XScopeContainerPointer, decltype(impl::find_if_ptr_placeholder_predicate())>::item_pointer_type;
+	template<class _XScopeContainerPointer, class _Pr, class... Args>
+	inline auto xscope_range_get_ref_if_ptr(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
+		return impl::xscope_c_range_get_ref_if_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
 	}
 
 	/* This function returns a (scope) optional that contains a scope pointer to the found element. */
-	template<class _XScopeContainerPointer, class _Pr>
-	inline auto xscope_range_get_ref_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
+	template<class _XScopeContainerPointer, class _Pr, class... Args>
+	inline auto xscope_range_get_ref_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
 		return xscope_range_get_ref_if_ptr(_XscpPtr, pred2);
 	}
 
 	/* This function returns a scope pointer to the element. (Or throws an exception if it a suitable element isn't found.) */
-	template<class _XScopeContainerPointer> using xscope_range_get_ref_to_element_known_to_be_present_ptr_type = typename impl::xscope_c_range_get_ref_to_element_known_to_be_present_ptr<_XScopeContainerPointer>::item_pointer_type;
-	template<class _XScopeContainerPointer, class _Pr>
-	inline auto xscope_range_get_ref_to_element_known_to_be_present_ptr(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
-		return impl::xscope_c_range_get_ref_to_element_known_to_be_present_ptr<_XScopeContainerPointer, _Pr>(_XscpPtr, _Pred).result;
+	template<class _XScopeContainerPointer> using xscope_range_get_ref_to_element_known_to_be_present_ptr_type = typename impl::xscope_c_range_get_ref_to_element_known_to_be_present_ptr<_XScopeContainerPointer, decltype(impl::find_if_ptr_placeholder_predicate())>::item_pointer_type;
+	template<class _XScopeContainerPointer, class _Pr, class... Args>
+	inline auto xscope_range_get_ref_to_element_known_to_be_present_ptr(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
+		return impl::xscope_c_range_get_ref_to_element_known_to_be_present_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
 	}
 
 	/* This function returns a scope pointer to the element. (Or throws an exception if it a suitable element isn't found.) */
-	template<class _XScopeContainerPointer, class _Pr>
-	inline auto xscope_range_get_ref_to_element_known_to_be_present(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
+	template<class _XScopeContainerPointer, class _Pr, class... Args>
+	inline auto xscope_range_get_ref_to_element_known_to_be_present(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
 		return xscope_range_get_ref_to_element_known_to_be_present_ptr(_XscpPtr, pred2);
 	}
 
 	/* deprecated alias */
-	template<class _XScopeContainerPointer, class _Pr>
-	MSE_DEPRECATED inline auto xscope_ra_const_find_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
-		return xscope_range_get_ref_if(_XscpPtr, _Pred);
+	template<class _XScopeContainerPointer, class _Pr, class... Args>
+	MSE_DEPRECATED inline auto xscope_ra_const_find_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
+		return xscope_range_get_ref_if(_XscpPtr, _Pred, args...);
 	}
 
 	/* for_each() */
@@ -298,62 +298,62 @@ namespace mse {
 			auto retval = [](auto) {};
 			return retval;
 		};
-		template<class _InIt, class _Fn = decltype(for_each_ptr_placeholder_function())>
+		template<class _InIt, class _Fn, class... Args>
 		class c_for_each_ptr {
 		public:
 			typedef item_pointer_type_from_iterator<_InIt> item_pointer_type;
 			typedef _Fn result_type;
 			result_type result;
-			c_for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func) : result(eval(_First, _Last, _Func)) {}
+			c_for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func, const Args&... args) : result(eval(_First, _Last, _Func, args...)) {}
 		private:
-			static result_type eval(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
+			static result_type eval(const _InIt& _First, const _InIt& _Last, _Fn _Func, const Args&... args) {
 				const auto xs_iters = make_xscope_specialized_first_and_last(_First, _Last);
 				auto current = xs_iters.first();
 				for (; current != xs_iters.last(); ++current) {
-					_Func(current);
+					_Func(current, args...);
 				}
 				return (_Func);
 			}
 		};
 
-		template<class _ContainerPointer, class _Fn = decltype(for_each_ptr_placeholder_function())>
+		template<class _ContainerPointer, class _Fn, class... Args>
 		class xscope_c_range_for_each_ptr {
 		public:
 			typedef item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
 			typedef _Fn result_type;
 			result_type result;
-			xscope_c_range_for_each_ptr(const _ContainerPointer& _XscpPtr, _Fn _Func)
-				: result(eval(_XscpPtr, _Func)) {}
+			xscope_c_range_for_each_ptr(const _ContainerPointer& _XscpPtr, _Fn _Func, const Args&... args)
+				: result(eval(_XscpPtr, _Func, args...)) {}
 		private:
-			result_type eval(const _ContainerPointer& _XscpPtr, _Fn _Func) {
+			result_type eval(const _ContainerPointer& _XscpPtr, _Fn _Func, const Args&... args) {
 				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
-				return c_for_each_ptr<decltype(xs_iters.begin()), _Fn>(xs_iters.begin(), xs_iters.end(), _Func).result;
+				return c_for_each_ptr<decltype(xs_iters.begin()), _Fn>(xs_iters.begin(), xs_iters.end(), _Func, args...).result;
 			}
 		};
 	}
-	template<class _InIt> using for_each_ptr_type = typename impl::c_for_each_ptr<_InIt>::item_pointer_type;
-	template<class _InIt, class _Fn>
-	inline auto for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
-		return impl::c_for_each_ptr<_InIt, _Fn>(_First, _Last, _Func).result;
+	template<class _InIt> using for_each_ptr_type = typename impl::c_for_each_ptr<_InIt, decltype(impl::for_each_ptr_placeholder_function())>::item_pointer_type;
+	template<class _InIt, class _Fn, class... Args>
+	inline auto for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func, const Args&... args) {
+		return impl::c_for_each_ptr<_InIt, _Fn, Args...>(_First, _Last, _Func, args...).result;
 	}
 
-	template<class _InIt, class _Fn>
-	inline auto for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func) {
+	template<class _InIt, class _Fn, class... Args>
+	inline auto for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func, const Args&... args) {
 		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
-		for_each_ptr(_First, _Last, func2);
+		for_each_ptr(_First, _Last, func2, args...);
 		return (_Func);
 	}
 
-	template<class _XScopeContainerPointer> using xscope_range_for_each_ptr_type = typename impl::xscope_c_range_for_each_ptr<_XScopeContainerPointer>::item_pointer_type;
-	template<class _XScopeContainerPointer, class _Fn>
-	inline auto xscope_range_for_each_ptr(const _XScopeContainerPointer& _XscpPtr, _Fn _Func) {
-		return impl::xscope_c_range_for_each_ptr<_XScopeContainerPointer, _Fn>(_XscpPtr, _Func).result;
+	template<class _XScopeContainerPointer> using xscope_range_for_each_ptr_type = typename impl::xscope_c_range_for_each_ptr<_XScopeContainerPointer, decltype(impl::for_each_ptr_placeholder_function())>::item_pointer_type;
+	template<class _XScopeContainerPointer, class _Fn, class... Args>
+	inline auto xscope_range_for_each_ptr(const _XScopeContainerPointer& _XscpPtr, _Fn _Func, const Args&... args) {
+		return impl::xscope_c_range_for_each_ptr<_XScopeContainerPointer, _Fn>(_XscpPtr, _Func, args...).result;
 	}
 
-	template<class _XScopeContainerPointer, class _Fn>
-	inline auto xscope_range_for_each(const _XScopeContainerPointer& _XscpPtr, _Fn _Func) {
+	template<class _XScopeContainerPointer, class _Fn, class... Args>
+	inline auto xscope_range_for_each(const _XScopeContainerPointer& _XscpPtr, _Fn _Func, const Args&... args) {
 		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
-		xscope_range_for_each_ptr(_XscpPtr, func2);
+		xscope_range_for_each_ptr(_XscpPtr, func2, args...);
 		return (_Func);
 	}
 
