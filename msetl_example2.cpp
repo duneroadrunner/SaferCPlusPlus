@@ -861,11 +861,13 @@ void msetl_example2() {
 		/* It is (intended to be) uncommon to need to define your own scope types. In general, if you want to use a
 		type as a scope type, you can just wrap it with the mse::TXScopeObj<> template. */
 
-		/* But in cases where you're going to use a scope type as a member of a class or struct, that class or
-		struct must itself be a scope type. Improperly defining a scope type could result in unsafe code. */
+		/* But in cases where you're going to use a scope type as a member of a class or struct, that class or struct
+		must itself be a scope type. Improperly defining a scope type could result in unsafe code. Thus defining your
+		own scope types is discouraged. You can avoid the safety risk by instead using an mse::xscope_tuple<> rather
+		than a class or struct in cases where you want to use a scope type as a data member. */
 
-		/* Scope types need to publicly inherit from mse::us::impl::XScopeTagBase. And by convention, be named with a prefix
-		indicating that it's a scope type. */
+		/* Scope types need to publicly inherit from mse::us::impl::XScopeTagBase. And by convention, be named with a
+		prefix indicating that it's a scope type. */
 		class xscope_my_type1 : public mse::us::impl::XScopeTagBase {
 		public:
 			xscope_my_type1(const mse::xscope_optional<mse::mstd::string>& xscp_maybe_string)

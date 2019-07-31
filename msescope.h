@@ -1278,12 +1278,21 @@ namespace mse {
 		}
 
 		template<typename _Ty>
-		auto as_a_returnable_fparam(const _Ty& param) -> decltype(impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, _Ty>::type(), param)) {
-			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, typename std::remove_reference<_Ty>::type>::type(), param);
+		struct is_potentially_xscope : std::integral_constant<bool, mse::impl::disjunction<
+			std::is_base_of<mse::us::impl::XScopeTagBase, typename std::remove_reference<_Ty>::type>
+#ifdef MSE_SCOPEPOINTER_DISABLED
+			, std::is_pointer<typename std::remove_reference<_Ty>::type>
+#endif // MSE_SCOPEPOINTER_DISABLED
+		>::value> {};
+
+		template<typename _Ty>
+		auto as_a_returnable_fparam(const _Ty& param)
+			-> decltype(impl::returnable_fparam::as_a_returnable_fparam_helper1(typename is_potentially_xscope<_Ty>::type(), param)) {
+			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename is_potentially_xscope<_Ty>::type(), param);
 		}
 		template<typename _Ty>
 		auto as_a_returnable_fparam(_Ty&& param) {
-			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, typename std::remove_reference<_Ty>::type>::type(), std::forward<_Ty>(param));
+			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename is_potentially_xscope<_Ty>::type(), std::forward<_Ty>(param));
 		}
 
 		template<typename _Ty>
