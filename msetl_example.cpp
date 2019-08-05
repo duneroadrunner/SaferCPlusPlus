@@ -1154,8 +1154,17 @@ int main(int argc, char* argv[]) {
 
 		private:
 			mse::TRegisteredPointer<mse::CInt> m_node_count_ptr;
-			mse::mstd::optional<rcnode_strongptr_regobj_t> m_maybe_child_ptr;
 			rcnode_strongptr_weakptr_t m_root_ptr_ptr;
+
+#if (1920 <= _MSC_VER) && defined(MSE_HAS_CXX17)
+/* msvc2019 seems to have introduced a bug in its "intellisense" feature where it sometimes has difficulty dealing
+with the library's (safe) optional<> types. */
+#define CRCNODE_STD_OPTIONAL std::optional
+#else // (1920 <= _MSC_VER) && defined(MSE_HAS_CXX17)
+#define CRCNODE_STD_OPTIONAL mse::mstd::optional
+#endif // (1920 <= _MSC_VER) && defined(MSE_HAS_CXX17)
+
+			CRCNODE_STD_OPTIONAL<rcnode_strongptr_regobj_t> m_maybe_child_ptr;
 		};
 
 		mse::TRegisteredObj<mse::CInt> node_counter = 0;
@@ -1259,7 +1268,7 @@ int main(int argc, char* argv[]) {
 			/***********************************/
 
 			/* Another alternative if you want to return a scope pointer (or any object containing a scope reference)
-			function parameter from is to (immediately) create a "returnable" version of it using the
+			function parameter is to (immediately) create a "returnable" version of it using the
 			rsv::as_a_returnable_fparam() function.
 			
 			Normally the return_value() function wrapper will reject (with a compile error) scope pointers as unsafe return

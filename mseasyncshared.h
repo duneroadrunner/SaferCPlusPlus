@@ -2761,19 +2761,23 @@ namespace mse {
 			return retval;
 		}
 
-		auto xscope_ptr(const handle_t& handle) {
+		auto xscope_ptr(const handle_t& handle) -> mse::xscope_optional<mse::TXScopeItemFixedPointer<xscope_thread> > {
 			auto it = m_xscope_thread_map.find(handle);
-			typedef mse::xscope_optional<mse::TXScopeItemFixedPointer<xscope_thread> > retval_t;
-			retval_t retval = (m_xscope_thread_map.end() == it)
-				? retval_t{} : retval_t{ mse::TXScopeItemFixedPointer<xscope_thread>(mse::us::unsafe_make_xscope_pointer_to((*it).second)) };
-			return retval;
+			if (m_xscope_thread_map.end() == it) {
+				return {};
+			}
+			else {
+				return mse::TXScopeItemFixedPointer<xscope_thread>(mse::us::unsafe_make_xscope_pointer_to((*it).second));
+			}
 		}
-		auto xscope_ptr(const handle_t& handle) const {
+		auto xscope_ptr(const handle_t& handle) const -> mse::xscope_optional<mse::TXScopeItemFixedConstPointer<xscope_thread> > {
 			auto cit = m_xscope_thread_map.find(handle);
-			typedef mse::xscope_optional<mse::TXScopeItemFixedConstPointer<xscope_thread> > retval_t;
-			retval_t retval = (m_xscope_thread_map.cend() == cit)
-				? retval_t{} : retval_t{ mse::TXScopeItemFixedConstPointer<xscope_thread>(mse::us::unsafe_make_xscope_const_pointer_to((*cit).second)) };
-			return retval;
+			if (m_xscope_thread_map.cend() == cit) {
+				return {};
+			}
+			else {
+				return mse::TXScopeItemFixedConstPointer<xscope_thread>(mse::us::unsafe_make_xscope_const_pointer_to((*cit).second));
+			}
 		}
 		auto xscope_ptr_at(const handle_t& handle) {
 			return mse::us::unsafe_make_xscope_pointer_to(m_xscope_thread_map.at(handle));
