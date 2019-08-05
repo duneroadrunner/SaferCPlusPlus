@@ -1280,7 +1280,11 @@ namespace mse {
 		template<typename _Ty>
 		struct is_potentially_xscope : std::integral_constant<bool, mse::impl::disjunction<
 			std::is_base_of<mse::us::impl::XScopeTagBase, typename std::remove_reference<_Ty>::type>
+			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::rsv::TReturnableFParam>
+			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::rsv::TFParam>
 #ifdef MSE_SCOPEPOINTER_DISABLED
+			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::us::impl::TPointerForLegacy>
+			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::us::impl::TPointer>
 			, std::is_pointer<typename std::remove_reference<_Ty>::type>
 #endif // MSE_SCOPEPOINTER_DISABLED
 		>::value> {};
@@ -1348,6 +1352,19 @@ namespace mse {
 		const _Ty& lease_pointer_base_ref = lease_pointer;
 		typedef decltype(make_xscope_const_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr)) base_return_type;
 		return rsv::TReturnableFParam<base_return_type>(make_xscope_const_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr));
+	}
+
+	template<class _Ty>
+	auto xscope_pointer(const rsv::TReturnableFParam<_Ty>& lone_param) {
+		const _Ty& lone_param_base_ref = lone_param;
+		typedef decltype(xscope_pointer(lone_param_base_ref)) base_return_type;
+		return rsv::TReturnableFParam<base_return_type>(xscope_pointer(lone_param_base_ref));
+	}
+	template<class _Ty>
+	auto xscope_const_pointer(const rsv::TReturnableFParam<_Ty>& lone_param) {
+		const _Ty& lone_param_base_ref = lone_param;
+		typedef decltype(xscope_const_pointer(lone_param_base_ref)) base_return_type;
+		return rsv::TReturnableFParam<base_return_type>(xscope_const_pointer(lone_param_base_ref));
 	}
 
 	template<typename _TROy>

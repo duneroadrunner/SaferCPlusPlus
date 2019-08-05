@@ -91,9 +91,9 @@ public:
 		return (*i1ptr) + (*i2ptr);
 	}
 
-	/* This function will be used to demonstrate using rsv::as_a_returnable_fparam() to enable template (or non-template)
-	functions to return one of their function parameters, potentially of the scope reference variety which would otherwise
-	be rejected (with a compile error) as an unsafe return value. */
+	/* This function will be used to demonstrate using rsv::as_a_returnable_fparam() to enable template functions to
+	return one of their function parameters, potentially of the scope reference variety which would otherwise be
+	rejected (with a compile error) as an unsafe return value. */
 	template<class _TString1Pointer, class _TString2Pointer>
 	static auto longest(const _TString1Pointer& string1_ptr, const _TString2Pointer& string2_ptr) {
 		auto l_string1_ptr = mse::rsv::as_a_returnable_fparam(string1_ptr);
@@ -102,20 +102,34 @@ public:
 		if (l_string1_ptr->length() > l_string2_ptr->length()) {
 			/* If string1_ptr were a regular TXScopeItemFixedPointer<mse::mtnii_string> and we tried to return it
 			directly instead of l_string1_ptr, it would have induced a compile error. */
+
 			return mse::return_value(l_string1_ptr);
 		}
 		else {
 			/* mse::return_value() usually just returns its input argument unmolested, but in this case, where the
-			argument was obtained from the mse::rsv::as_a_returnable_fparam() it will return the type of the original
-			function parameter. */
+			argument was obtained from the mse::rsv::as_a_returnable_fparam() it will convert it back the type of
+			the original function parameter (thereby removing the "returnability" attribute that was added by
+			mse::rsv::as_a_returnable_fparam()). */
+
 			return mse::return_value(l_string2_ptr);
 		}
 	}
-	/* This function will be used to demonstrate nested functions (safely) returning scope pointer/references. */
+	/* This function will be used to demonstrate nested function calls (safely) returning scope pointer/references. */
 	template<class _TString1Pointer, class _TString2Pointer>
 	static auto nested_longest(const _TString1Pointer& string1_ptr, const _TString2Pointer& string2_ptr) {
 		auto l_string1_ptr = mse::rsv::as_a_returnable_fparam(string1_ptr);
 		auto l_string2_ptr = mse::rsv::as_a_returnable_fparam(string2_ptr);
+
+		/* Note that with functions (potentially) returning a scope reference parameter (or an object derived
+		from a scope reference parameter), you generally want the function to be a template function with the
+		scope reference parameters types being (deduced) template parameters, as with this function, rather
+		than more explicitly specified scope reference types or template types. The reason for this is that in
+		the case of nested function calls, the number of nested function calls from which a scope reference
+		object can be (safely) returned is embedded in the scope reference object's type. That is, the exact
+		type of a returnable scope reference object depends on how many (levels of) nested function calls it
+		has been passed through. And you generally want your functions that return scope reference objects to
+		preserve the exact type of the scope reference passed, otherwise you may not be allowed (i.e. induced
+		compile error) to return the scope reference all the way back to the scope it originated from. */
 
 		return mse::return_value(longest(l_string1_ptr, l_string2_ptr));
 	}
@@ -132,11 +146,18 @@ public:
 
 		/* "Pointers to members" based on returnable pointers inherit the "returnability". */
 		auto returnable_cpointer_to_member = mse::make_xscope_const_pointer_to_member_v2(returnable_CE_ptr, &CE::m_string1);
+
 		/* "scope nrp string const sections" based on returnable pointers (or iterators) inherit the "returnability". */
-		auto returnable_string_const_section = mse::make_xscope_nrp_string_const_section(returnable_cpointer_to_member);
+		auto returnable_string_const_section = mse::make_xscope_string_const_section(returnable_cpointer_to_member);
 		/* Subsections of returnable sections inherit the "returnability". */
-		auto returnable_string_const_section2 = returnable_string_const_section.xscope_subsection(1, 3);
+		auto returnable_string_const_section2 = mse::make_xscope_subsection(returnable_string_const_section, 1, 3);
 		return mse::return_value(returnable_string_const_section2);
+	}
+	template<class _TPointer1>
+	static auto nested_xscope_string_const_section_to_member_of_CE(_TPointer1 CE_ptr) {
+		auto returnable_CE_ptr = mse::rsv::as_a_returnable_fparam(CE_ptr);
+
+		return mse::return_value(xscope_string_const_section_to_member_of_CE(returnable_CE_ptr));
 	}
 
 	/* This function will be used to demonstrate using rsv::as_an_fparam() to enable template functions to accept scope 
@@ -1265,6 +1286,9 @@ int main(int argc, char* argv[]) {
 			mse::TXScopeObj<H::CE> e_xscpobj;
 			auto xscope_string_const_section1 = H::xscope_string_const_section_to_member_of_CE(&e_xscpobj);
 			assert(xscope_string_const_section1 == "bcd");
+
+			auto xscope_string_const_section2 = H::nested_xscope_string_const_section_to_member_of_CE(&e_xscpobj);
+			assert(xscope_string_const_section2 == "bcd");
 		}
 
 		{

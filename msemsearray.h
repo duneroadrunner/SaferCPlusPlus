@@ -3619,6 +3619,19 @@ namespace mse {
 		typedef decltype(make_xscope_iterator(param_base_ref)) base_return_type;
 		return rsv::TReturnableFParam<base_return_type>(make_xscope_iterator(param_base_ref));
 	}
+	/* We had iterators in mind with these overloads of operator+ and operator-. */
+	template <typename _Ty, typename _Tz>
+	auto operator+(const rsv::TReturnableFParam<_Ty>& y, const _Tz& z) {
+		const _Ty& param_base_ref = y;
+		typedef decltype(param_base_ref + z) base_return_type;
+		return rsv::TReturnableFParam<base_return_type>(param_base_ref + z);
+	}
+	template <typename _Ty, typename _Tz>
+	auto operator-(const rsv::TReturnableFParam<_Ty>& y, const _Tz& z) {
+		const _Ty& param_base_ref = y;
+		typedef decltype(param_base_ref - z) base_return_type;
+		return rsv::TReturnableFParam<base_return_type>(param_base_ref - z);
+	}
 
 	template<class _TArrayPointer>
 	auto make_xscope_begin_const_iterator(const _TArrayPointer& owner_ptr) {
@@ -4196,6 +4209,33 @@ namespace mse {
 		return mse::us::unsafe_make_xscope_const_pointer_to(*(*iter_xscptr));
 	}
 
+
+	/* "Random access sections" are basically the library's safe version of std::span<>. */
+
+	/* These are some free functions to obtain a subsection of a given section. */
+	template <typename _TSection>
+	auto make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos = 0, typename _TSection::size_type n = _TSection::npos)
+		-> decltype(xs_section.xscope_subsection_pv(pos, n)) {
+		return xs_section.xscope_subsection_pv(pos, n);
+	}
+	template <typename _TSection>
+	auto make_subsection(const _TSection& section, typename _TSection::size_type pos = 0, typename _TSection::size_type n = _TSection::npos)
+		-> decltype(section.subsection_pv(pos, n)) {
+		return section.subsection_pv(pos, n);
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	template <typename _TSection, class... Args>
+	auto make_xscope_subsection(const rsv::TReturnableFParam<_TSection>& xs_section, Args... args) {
+		const _TSection& xs_section_base_ref = xs_section;
+		typedef decltype(make_xscope_subsection(xs_section_base_ref, args...)) base_return_type;
+		return rsv::TReturnableFParam<base_return_type>(make_xscope_subsection(xs_section_base_ref, args...));
+	}
+	template <typename _TSection, class... Args>
+	auto make_subsection(const rsv::TReturnableFParam<_TSection>& section, Args... args) {
+		const _TSection& section_base_ref = section;
+		typedef decltype(make_subsection(section_base_ref, args...)) base_return_type;
+		return rsv::TReturnableFParam<base_return_type>(make_subsection(section_base_ref, args...));
+	}
 
 	template <typename _TRAIterator> class TXScopeRandomAccessSection;
 	template <typename _TRAIterator> class TXScopeRandomAccessConstSection;
@@ -4907,19 +4947,16 @@ namespace mse {
 
 		MSE_USING(TXScopeRandomAccessConstSection, base_class);
 
-		TXScopeRandomAccessConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
-			return pos > (*this).size()
-				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessConstSection xscope_subsection() const - TXScopeRandomAccessConstSection")))
-				: TXScopeRandomAccessConstSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		/* use the make_xscope_subsection() free function instead */
+		MSE_DEPRECATED TXScopeRandomAccessConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection_pv(pos, n);
 		}
-		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSection, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
-		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
-			return pos > (*this).size()
-				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection<_TRAIterator> subsection() const - TXScopeRandomAccessConstSection")))
-				: subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		/* prefer the make_subsection() free function instead */
+		auto subsection(size_type pos = 0, size_type n = npos) const {
+			return subsection_pv(pos, n);
 		}
-		auto first(size_type count) const { return subsection(0, count); }
-		auto last(size_type count) const { return subsection(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
+		auto first(size_type count) const { return subsection_pv(0, count); }
+		auto last(size_type count) const { return subsection_pv(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
 		//typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
@@ -4933,8 +4970,27 @@ namespace mse {
 		auto cend() const { return (*this).xscope_cend(); }
 
 	private:
+
+		TXScopeRandomAccessConstSection xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessConstSection xscope_subsection() const - TXScopeRandomAccessConstSection")))
+				: TXScopeRandomAccessConstSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		}
+		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSection, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
+		subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection<_TRAIterator> subsection() const - TXScopeRandomAccessConstSection")))
+				: subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		}
+
 		TXScopeRandomAccessConstSection<_TRAIterator>& operator=(const TXScopeRandomAccessConstSection<_TRAIterator>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+		template <typename _TSection>
+		friend auto make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xscope_subsection_pv(pos, n));
+		template <typename _TSection>
+		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
+			-> decltype(section.subsection_pv(pos, n));
 	};
 
 	template <typename _TRAIterator>
@@ -4953,18 +5009,16 @@ namespace mse {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
-		TXScopeRandomAccessConstSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
-			return pos > (*this).size()
-				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessConstSection xscope_subsection() const - TRandomAccessSection")))
-				: TXScopeRandomAccessConstSection<_TRAIterator>((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		/* use the make_xscope_subsection() free function instead */
+		MSE_DEPRECATED TXScopeRandomAccessConstSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection_pv(pos, n);
 		}
-		TRandomAccessConstSection subsection(size_type pos = 0, size_type n = npos) const {
-			return pos > (*this).size()
-				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection subsection() const - TRandomAccessConstSection")))
-				: TRandomAccessConstSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		/* prefer the make_subsection() free function instead */
+		auto subsection(size_type pos = 0, size_type n = npos) const {
+			return subsection_pv(pos, n);
 		}
-		auto first(size_type count) const { return subsection(0, count); }
-		auto last(size_type count) const { return subsection(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
+		auto first(size_type count) const { return subsection_pv(0, count); }
+		auto last(size_type count) const { return subsection_pv(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
 		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
 		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
@@ -4989,7 +5043,29 @@ namespace mse {
 			return (rend());
 		}
 
+	private:
+
+		TXScopeRandomAccessConstSection<_TRAIterator> xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessConstSection xscope_subsection() const - TRandomAccessConstSection")))
+				: TXScopeRandomAccessConstSection<_TRAIterator>((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		}
+		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSection<_TRAIterator>, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
+		subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection<_TRAIterator> subsection() const - TRandomAccessConstSection")))
+				: subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		}
+
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
+
+		template <typename _TSection>
+		friend auto make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xscope_subsection_pv(pos, n));
+		template <typename _TSection>
+		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
+			-> decltype(section.subsection_pv(pos, n));
 	};
 
 	namespace us {
@@ -5448,19 +5524,16 @@ namespace mse {
 
 		MSE_USING(TXScopeRandomAccessSection, base_class);
 
-		TXScopeRandomAccessSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
-			return pos > (*this).size()
-				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessSection xscope_subsection() const - TXScopeRandomAccessSection")))
-				: TXScopeRandomAccessSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		/* use the make_xscope_subsection() free function instead */
+		MSE_DEPRECATED TXScopeRandomAccessSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection_pv(pos, n);
 		}
-		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessSection, TRandomAccessSection<_TRAIterator> >::type subsection_t;
-		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
-			return pos > (*this).size()
-				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection<_TRAIterator> subsection() const - TXScopeRandomAccessSection")))
-				: subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		/* prefer the make_subsection() free function instead */
+		auto subsection(size_type pos = 0, size_type n = npos) const {
+			return subsection_pv(pos, n);
 		}
-		auto first(size_type count) const { return subsection(0, count); }
-		auto last(size_type count) const { return subsection(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
+		auto first(size_type count) const { return subsection_pv(0, count); }
+		auto last(size_type count) const { return subsection_pv(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
 		typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
@@ -5477,8 +5550,27 @@ namespace mse {
 		auto cend() const { return (*this).xscope_cend(); }
 
 	private:
+
+		TXScopeRandomAccessSection xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessSection xscope_subsection() const - TXScopeRandomAccessSection")))
+				: TXScopeRandomAccessSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		}
+		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessSection, TRandomAccessSection<_TRAIterator> >::type subsection_t;
+		subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection<_TRAIterator> subsection() const - TXScopeRandomAccessSection")))
+				: subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		}
+
 		TXScopeRandomAccessSection<_TRAIterator>& operator=(const TXScopeRandomAccessSection<_TRAIterator>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+		template <typename _TSection>
+		friend auto make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xscope_subsection_pv(pos, n));
+		template <typename _TSection>
+		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
+			-> decltype(section.subsection_pv(pos, n));
 	};
 
 	template <typename _TRAIterator>
@@ -5499,18 +5591,16 @@ namespace mse {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
-		TXScopeRandomAccessSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
-			return pos > (*this).size()
-				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessSection xscope_subsection() const - TRandomAccessSection")))
-				: TXScopeRandomAccessSection<_TRAIterator>((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		/* use the make_xscope_subsection() free function instead */
+		MSE_DEPRECATED TXScopeRandomAccessSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection_pv(pos, n);
 		}
-		TRandomAccessSection subsection(size_type pos = 0, size_type n = npos) const {
-			return pos > (*this).size()
-				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection subsection() const - TRandomAccessSection")))
-				: TRandomAccessSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		/* prefer the make_subsection() free function instead */
+		auto subsection(size_type pos = 0, size_type n = npos) const {
+			return subsection_pv(pos, n);
 		}
-		auto first(size_type count) const { return subsection(0, count); }
-		auto last(size_type count) const { return subsection(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
+		auto first(size_type count) const { return subsection_pv(0, count); }
+		auto last(size_type count) const { return subsection_pv(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
 
 		typedef TRASectionIterator<_TRAIterator> iterator;
@@ -5550,9 +5640,31 @@ namespace mse {
 			return (rend());
 		}
 
+	private:
+
+		TXScopeRandomAccessSection<_TRAIterator> xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessSection xscope_subsection() const - TRandomAccessSection")))
+				: TXScopeRandomAccessSection<_TRAIterator>((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		}
+		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessSection<_TRAIterator>, TRandomAccessSection<_TRAIterator> >::type subsection_t;
+		subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return pos > (*this).size()
+				? (MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection<_TRAIterator> subsection() const - TRandomAccessSection")))
+				: subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+		}
+
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		friend class TXScopeRandomAccessSection<_TRAIterator>;
 		friend class TXScopeRandomAccessConstSection<_TRAIterator>;
 		friend class TRandomAccessConstSection<_TRAIterator>;
+
+		template <typename _TSection>
+		friend auto make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xscope_subsection_pv(pos, n));
+		template <typename _TSection>
+		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
+			-> decltype(section.subsection_pv(pos, n));
 	};
 
 	template <typename _TElement>
@@ -5637,17 +5749,11 @@ namespace mse {
 	/* This function basically just calls the give section's subsection() member function and returns the value.  */
 	template<typename _Ty>
 	auto random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
-		return ra_section.subsection(std::get<0>(start_and_length), std::get<1>(start_and_length));
+		return make_subsection(ra_section, std::get<0>(start_and_length), std::get<1>(start_and_length));
 	}
 	template<typename _Ty>
 	auto xscope_random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
-		return ra_section.xscope_subsection(std::get<0>(start_and_length), std::get<1>(start_and_length));
-	}
-	template<typename _Ty>
-	auto xscope_random_access_subsection(const rsv::TReturnableFParam<_Ty>& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
-		const _Ty& ra_section_base_ref = ra_section;
-		typedef decltype(xscope_random_access_subsection(ra_section_base_ref, start_and_length)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(xscope_random_access_subsection(ra_section_base_ref, start_and_length));
+		return make_xscope_subsection(ra_section, std::get<0>(start_and_length), std::get<1>(start_and_length));
 	}
 
 	template <typename _TRAIterator>
@@ -5741,13 +5847,16 @@ namespace mse {
 				, std::true_type, std::false_type>::type(), param)) {
 			}
 
-			TXScopeRandomAccessConstSectionFParam xscope_subsection(size_type pos = 0, size_type n = npos) const {
-				return base_class::xscope_subsection(pos, n);
+			/* use the make_xscope_subsection() free function instead */
+			MSE_DEPRECATED TXScopeRandomAccessConstSectionFParam xscope_subsection(size_type pos = 0, size_type n = npos) const {
+				return xscope_subsection_pv(pos, n);
 			}
-			typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSectionFParam, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
-			subsection_t subsection(size_type pos = 0, size_type n = npos) const {
-				return base_class::subsection(pos, n);
+			/* prefer the make_subsection() free function instead */
+			auto subsection(size_type pos = 0, size_type n = npos) const {
+				return subsection_pv(pos, n);
 			}
+			auto first(size_type count) const { return subsection_pv(0, count); }
+			auto last(size_type count) const { return subsection_pv(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
 			//typedef typename base_class::xscope_iterator xscope_iterator;
 			typedef typename base_class::xscope_const_iterator xscope_const_iterator;
@@ -5768,7 +5877,21 @@ namespace mse {
 				return param;
 			}
 
+			TXScopeRandomAccessConstSectionFParam xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
+				return mse::make_xscope_subsection(*(static_cast<const base_class*>(this)), pos, n);
+			}
+			typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSectionFParam, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
+			subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
+				return mse::make_subsection(*(static_cast<const base_class*>(this)), pos, n);
+			}
+
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+			template <typename _TSection>
+			friend auto mse::make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xscope_subsection_pv(pos, n));
+			template <typename _TSection>
+			friend auto mse::make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
+				-> decltype(section.subsection_pv(pos, n));
 		};
 	}
 
@@ -5821,15 +5944,15 @@ namespace mse {
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
-			/* Subsections of TReturnableFParam<mse::TXScopeRandomAccessConstSection<_Ty> > can inherit the "returnability"
-			of the original section. */
-			auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
-				typedef decltype(base_class::xscope_subsection(pos, n)) base_return_type;
-				return TReturnableFParam<base_return_type>(base_class::xscope_subsection(pos, n));
+			/* use the make_xscope_subsection() free function instead */
+			MSE_DEPRECATED auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(mse::make_xscope_subsection(*(static_cast<const base_class*>(this)), pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(mse::make_xscope_subsection(*(static_cast<const base_class*>(this)), pos, n));
 			}
+			/* prefer the make_subsection() free function instead */
 			auto subsection(size_type pos = 0, size_type n = npos) const {
-				typedef decltype(base_class::subsection(pos, n)) base_return_type;
-				return TReturnableFParam<base_return_type>(base_class::subsection(pos, n));
+				typedef decltype(mse::make_subsection(*(static_cast<const base_class*>(this)), pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(mse::make_subsection(*(static_cast<const base_class*>(this)), pos, n));
 			}
 
 			void returnable_once_tag() const {}
@@ -5847,15 +5970,15 @@ namespace mse {
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
-			/* Subsections of TReturnableFParam<const mse::TXScopeRandomAccessConstSection<_Ty> > can inherit the "returnability"
-			of the original section. */
-			auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
-				typedef decltype(base_class::xscope_subsection(pos, n)) base_return_type;
-				return TReturnableFParam<base_return_type>(base_class::xscope_subsection(pos, n));
+			/* use the make_xscope_subsection() free function instead */
+			MSE_DEPRECATED auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(mse::make_xscope_subsection(*(static_cast<const base_class*>(this)), pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(mse::make_xscope_subsection(*(static_cast<const base_class*>(this)), pos, n));
 			}
+			/* prefer the make_subsection() free function instead */
 			auto subsection(size_type pos = 0, size_type n = npos) const {
-				typedef decltype(base_class::subsection(pos, n)) base_return_type;
-				return TReturnableFParam<base_return_type>(base_class::subsection(pos, n));
+				typedef decltype(mse::make_subsection(*(static_cast<const base_class*>(this)), pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(mse::make_subsection(*(static_cast<const base_class*>(this)), pos, n));
 			}
 
 			void returnable_once_tag() const {}
@@ -5873,15 +5996,15 @@ namespace mse {
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
-			/* Subsections of TReturnableFParam<mse::TXScopeRandomAccessSection<_Ty> > can inherit the "returnability"
-			of the original section. */
-			auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
-				typedef decltype(base_class::xscope_subsection(pos, n)) base_return_type;
-				return TReturnableFParam<base_return_type>(base_class::xscope_subsection(pos, n));
+			/* use the make_xscope_subsection() free function instead */
+			MSE_DEPRECATED auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(mse::make_xscope_subsection(*(static_cast<const base_class*>(this)), pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(mse::make_xscope_subsection(*(static_cast<const base_class*>(this)), pos, n));
 			}
+			/* prefer the make_subsection() free function instead */
 			auto subsection(size_type pos = 0, size_type n = npos) const {
-				typedef decltype(base_class::subsection(pos, n)) base_return_type;
-				return TReturnableFParam<base_return_type>(base_class::subsection(pos, n));
+				typedef decltype(mse::make_subsection(*(static_cast<const base_class*>(this)), pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(mse::make_subsection(*(static_cast<const base_class*>(this)), pos, n));
 			}
 
 			void returnable_once_tag() const {}
@@ -5899,15 +6022,15 @@ namespace mse {
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
-			/* Subsections of TReturnableFParam<const mse::TXScopeRandomAccessSection<_Ty> > can inherit the "returnability"
-			of the original section. */
-			auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
-				typedef decltype(base_class::xscope_subsection(pos, n)) base_return_type;
-				return TReturnableFParam<base_return_type>(base_class::xscope_subsection(pos, n));
+			/* use the make_xscope_subsection() free function instead */
+			MSE_DEPRECATED auto xscope_subsection(size_type pos = 0, size_type n = npos) const {
+				typedef decltype(mse::make_xscope_subsection(*(static_cast<const base_class*>(this)), pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(mse::make_xscope_subsection(*(static_cast<const base_class*>(this)), pos, n));
 			}
+			/* prefer the make_subsection() free function instead */
 			auto subsection(size_type pos = 0, size_type n = npos) const {
-				typedef decltype(base_class::subsection(pos, n)) base_return_type;
-				return TReturnableFParam<base_return_type>(base_class::subsection(pos, n));
+				typedef decltype(mse::make_subsection(*(static_cast<const base_class*>(this)), pos, n)) base_return_type;
+				return TReturnableFParam<base_return_type>(mse::make_subsection(*(static_cast<const base_class*>(this)), pos, n));
 			}
 
 			void returnable_once_tag() const {}

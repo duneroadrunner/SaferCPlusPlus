@@ -1136,6 +1136,18 @@ namespace mse {
 	/* "String sections" are essentially "random access sections" that support the string output stream operator ("<<").
 	So a const string section is the functional equivalent of an std::string_view, with a very similar interface. */
 
+	/* These are some free functions to obtain a substring_section of a given string_section. */
+	template <typename _TSection>
+	auto make_xscope_substr(const _TSection& xs_section, typename _TSection::size_type pos = 0, typename _TSection::size_type n = _TSection::npos)
+		-> decltype(make_xscope_subsection(xs_section, pos, n)) {
+		return make_xscope_subsection(xs_section, pos, n);
+	}
+	template <typename _TSection>
+	auto make_substr(const _TSection& section, typename _TSection::size_type pos = 0, typename _TSection::size_type n = _TSection::npos)
+		-> decltype(make_subsection(section, pos, n)) {
+		return make_subsection(section, pos, n);
+	}
+
 	namespace impl {
 		namespace ra_section {
 			template <typename _Ty> using mkxsscsh1_TRAIterator = typename std::remove_reference<decltype(mse::us::impl::TRandomAccessConstSectionBase<char *>::s_xscope_iter_from_lone_param(std::declval<mse::TXScopeItemFixedConstPointer<_Ty> >()))>::type;
@@ -1339,17 +1351,18 @@ namespace mse {
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		TXScopeStringSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
 
-		TXScopeStringSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
-			return base_class::subsection(pos, n);
+		/* use the make_xscope_subsection() free function instead */
+		MSE_DEPRECATED TXScopeStringSection<_TRAIterator, _Traits> xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection_pv(pos, n);
 		}
-		TXScopeStringSection xscope_substr(size_type pos = 0, size_type n = npos) const {
+		MSE_DEPRECATED TXScopeStringSection xscope_substr(size_type pos = 0, size_type n = npos) const {
 			return xscope_subsection(pos, n);
 		}
-		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeStringSection, TStringSection<_TRAIterator, _Traits> >::type subsection_t;
-		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
-			return base_class::subsection(pos, n);
+		/* prefer the make_subsection() free function instead */
+		auto subsection(size_type pos = 0, size_type n = npos) const {
+			return subsection_pv(pos, n);
 		}
-		subsection_t substr(size_type pos = 0, size_type n = npos) const {
+		auto substr(size_type pos = 0, size_type n = npos) const {
 			return subsection(pos, n);
 		}
 
@@ -1366,6 +1379,15 @@ namespace mse {
 		auto cend() const { return (*this).xscope_cend(); }
 
 	private:
+
+		TXScopeStringSection xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeStringSection, TStringSection<_TRAIterator, _Traits> >::type subsection_t;
+		subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+
 		TXScopeStringSection<_TRAIterator, _Traits>& operator=(const TXScopeStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -1374,6 +1396,12 @@ namespace mse {
 			_Ostr << static_cast<const base_class&>(_Str);
 			return _Ostr;
 		}
+
+		template <typename _TSection>
+		friend auto make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xscope_subsection_pv(pos, n));
+		template <typename _TSection>
+		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
+			-> decltype(section.subsection_pv(pos, n));
 	};
 
 	template <typename _TRAIterator, class _Traits>
@@ -1399,16 +1427,18 @@ namespace mse {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
-		TXScopeStringSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
-			return base_class::subsection(pos, n);
+		/* use the make_xscope_subsection() free function instead */
+		MSE_DEPRECATED TXScopeStringSection<_TRAIterator, _Traits> xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection_pv(pos, n);
 		}
-		TXScopeStringSection<_TRAIterator> xscope_substr(size_type pos = 0, size_type n = npos) const {
+		MSE_DEPRECATED TXScopeStringSection<_TRAIterator, _Traits> xscope_substr(size_type pos = 0, size_type n = npos) const {
 			return xscope_subsection(pos, n);
 		}
-		TStringSection subsection(size_type pos = 0, size_type n = npos) const {
-			return base_class::subsection(pos, n);
+		/* prefer the make_subsection() free function instead */
+		auto subsection(size_type pos = 0, size_type n = npos) const {
+			return subsection_pv(pos, n);
 		}
-		TStringSection substr(size_type pos = 0, size_type n = npos) const {
+		auto substr(size_type pos = 0, size_type n = npos) const {
 			return subsection(pos, n);
 		}
 
@@ -1441,6 +1471,17 @@ namespace mse {
 			return (rend());
 		}
 
+	private:
+
+		TXScopeStringSection<_TRAIterator> xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+		TStringSection subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		friend class TXScopeStringSection<_TRAIterator, _Traits>;
 		friend class TXScopeStringConstSection<_TRAIterator, _Traits>;
 		friend class TStringConstSection<_TRAIterator, _Traits>;
@@ -1449,6 +1490,12 @@ namespace mse {
 			_Ostr << static_cast<const base_class&>(_Str);
 			return _Ostr;
 		}
+
+		template <typename _TSection>
+		friend auto make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xscope_subsection_pv(pos, n));
+		template <typename _TSection>
+		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
+			-> decltype(section.subsection_pv(pos, n));
 	};
 
 	template <typename _TRASection, typename _TRAConstSection>
@@ -1643,17 +1690,18 @@ namespace mse {
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		TXScopeStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
 
-		TXScopeStringConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
-			return base_class::subsection(pos, n);
+		/* use the make_xscope_subsection() free function instead */
+		MSE_DEPRECATED TXScopeStringConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection_pv(pos, n);
 		}
-		TXScopeStringConstSection xscope_substr(size_type pos = 0, size_type n = npos) const {
+		MSE_DEPRECATED TXScopeStringConstSection xscope_substr(size_type pos = 0, size_type n = npos) const {
 			return xscope_subsection(pos, n);
 		}
-		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeStringConstSection, TStringConstSection<_TRAIterator, _Traits> >::type subsection_t;
-		subsection_t subsection(size_type pos = 0, size_type n = npos) const {
-			return base_class::subsection(pos, n);
+		/* prefer the make_subsection() free function instead */
+		auto subsection(size_type pos = 0, size_type n = npos) const {
+			return subsection_pv(pos, n);
 		}
-		subsection_t substr(size_type pos = 0, size_type n = npos) const {
+		auto substr(size_type pos = 0, size_type n = npos) const {
 			return subsection(pos, n);
 		}
 
@@ -1668,6 +1716,15 @@ namespace mse {
 		auto cend() const { return (*this).xscope_cend(); }
 
 	private:
+
+		TXScopeStringConstSection xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeStringConstSection, TStringConstSection<_TRAIterator, _Traits> >::type subsection_t;
+		subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+
 		TXScopeStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -1676,6 +1733,12 @@ namespace mse {
 			_Ostr << static_cast<const base_class&>(_Str);
 			return _Ostr;
 		}
+
+		template <typename _TSection>
+		friend auto make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xscope_subsection_pv(pos, n));
+		template <typename _TSection>
+		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
+			-> decltype(section.subsection_pv(pos, n));
 	};
 
 	template <typename _TRAIterator, class _Traits>
@@ -1702,14 +1765,16 @@ namespace mse {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
-		TXScopeStringConstSection<_TRAIterator> xscope_subsection(size_type pos = 0, size_type n = npos) const {
-			return base_class::subsection(pos, n);
+		/* use the make_xscope_subsection() free function instead */
+		MSE_DEPRECATED TXScopeStringConstSection<_TRAIterator, _Traits> xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection_pv(pos, n);
 		}
-		TXScopeStringConstSection<_TRAIterator> xscope_substr(size_type pos = 0, size_type n = npos) const {
+		MSE_DEPRECATED TXScopeStringConstSection<_TRAIterator, _Traits> xscope_substr(size_type pos = 0, size_type n = npos) const {
 			return xscope_subsection(pos, n);
 		}
+		/* prefer the make_subsection() free function instead */
 		TStringConstSection subsection(size_type pos = 0, size_type n = npos) const {
-			return base_class::subsection(pos, n);
+			return subsection_pv(pos, n);
 		}
 		TStringConstSection substr(size_type pos = 0, size_type n = npos) const {
 			return subsection(pos, n);
@@ -1734,12 +1799,29 @@ namespace mse {
 			return (rend());
 		}
 
+	private:
+
+		TXScopeStringConstSection<_TRAIterator, _Traits> xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+		TStringConstSection subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
 		friend class TXScopeStringConstSection<_TRAIterator, _Traits>;
 		template<class _Ty2, class _Traits2>
 		friend std::basic_ostream<_Ty2, _Traits2>& operator<<(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const TStringConstSection& _Str) {
 			_Ostr << static_cast<const base_class&>(_Str);
 			return _Ostr;
 		}
+
+		template <typename _TSection>
+		friend auto make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xscope_subsection_pv(pos, n));
+		template <typename _TSection>
+		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
+			-> decltype(section.subsection_pv(pos, n));
 	};
 
 	template <typename _TElement, class _Traits = std::char_traits<_TElement> >

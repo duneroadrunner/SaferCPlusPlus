@@ -1105,7 +1105,7 @@ void msetl_example2() {
 		xscope_mtnii_string_t xscp_nstring1("some text");
 		auto xscp_citer1 = mse::make_xscope_begin_const_iterator(&xscp_nstring1);
 		auto xscp_string_section1 = mse::make_xscope_string_const_section(xscp_citer1 + 1, 7);
-		auto xscp_string_section2 = xscp_string_section1.xscope_substr(4, 3);
+		auto xscp_string_section2 = mse::make_xscope_substr(xscp_string_section1, 4, 3);
 		assert(xscp_string_section2.front() == 't');
 		assert(xscp_string_section2.back() == 'x');
 

@@ -744,10 +744,10 @@ namespace mse {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 					if (nullptr == m_ptr) {
 						int q = 3; /* just a line of code for putting a debugger break point */
-				}
+					}
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
 					return m_ptr;
-			}
+				}
 
 				_Ty* m_ptr;
 
