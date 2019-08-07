@@ -1858,18 +1858,7 @@ namespace mse {
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
-	template <typename _TRAIterator>
-	auto make_xscope_string_const_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeStringConstSection<_TRAIterator>::size_type count) {
-		const typename rsv::TReturnableFParam<_TRAIterator>::base_class& start_iter_base_ref = start_iter;
-		typedef decltype(make_xscope_string_const_section(start_iter_base_ref, count)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_string_const_section(start_iter_base_ref, count));
-	}
-	template <typename _TRALoneParam>
-	auto make_xscope_string_const_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
-		const typename rsv::TReturnableFParam<_TRALoneParam>::base_class& param_base_ref = param;
-		typedef decltype(make_xscope_string_const_section(param_base_ref)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_string_const_section(param_base_ref));
-	}
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_string_const_section)
 
 	template <typename _TRAIterator>
 	auto make_string_const_section(const _TRAIterator& start_iter, typename TStringConstSection<_TRAIterator>::size_type count) {
@@ -1905,18 +1894,7 @@ namespace mse {
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
-	template <typename _TRAIterator>
-	auto make_xscope_string_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeStringSection<_TRAIterator>::size_type count) {
-		const typename rsv::TReturnableFParam<_TRAIterator>::base_class& start_iter_base_ref = start_iter;
-		typedef decltype(make_xscope_string_section(start_iter_base_ref, count)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_string_section(start_iter_base_ref, count));
-	}
-	template <typename _TRALoneParam>
-	auto make_xscope_string_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
-		const typename rsv::TReturnableFParam<_TRALoneParam>::base_class& param_base_ref = param;
-		typedef decltype(make_xscope_string_section(param_base_ref)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_string_section(param_base_ref));
-	}
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_string_section)
 
 	/* This function basically just calls the give section's subsection() member function and returns the value.  */
 	template<typename _Ty>
@@ -2486,18 +2464,7 @@ namespace mse {
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
-	template <typename _TRAIterator>
-	auto make_xscope_nrp_string_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeNRPStringSection<_TRAIterator>::size_type count) {
-		const typename rsv::TReturnableFParam<_TRAIterator>::base_class& start_iter_base_ref = start_iter;
-		typedef decltype(make_xscope_nrp_string_section(start_iter_base_ref, count)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_nrp_string_section(start_iter_base_ref, count));
-	}
-	template <typename _TRALoneParam>
-	auto make_xscope_nrp_string_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
-		const typename rsv::TReturnableFParam<_TRALoneParam>::base_class& param_base_ref = param;
-		typedef decltype(make_xscope_nrp_string_section(param_base_ref)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_nrp_string_section(param_base_ref));
-	}
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_nrp_string_section)
 
 	template <typename _TRAIterator, class _Traits>
 	class TNRPStringSection : public TStringSection<_TRAIterator, _Traits> {
@@ -2665,20 +2632,7 @@ namespace mse {
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
-	template <typename _TRAIterator>
-	auto make_xscope_nrp_string_const_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count) {
-		//const typename rsv::TReturnableFParam<_TRAIterator>::base_class& start_iter_base_ref = start_iter;
-		const _TRAIterator& start_iter_base_ref = start_iter;
-		typedef decltype(make_xscope_nrp_string_const_section(start_iter_base_ref, count)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_nrp_string_const_section(start_iter_base_ref, count));
-	}
-	template <typename _TRALoneParam>
-	auto make_xscope_nrp_string_const_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
-		//const typename rsv::TReturnableFParam<_TRALoneParam>::base_class& param_base_ref = param;
-		const _TRALoneParam& param_base_ref = param;
-		typedef decltype(make_xscope_nrp_string_const_section(param_base_ref)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_nrp_string_const_section(param_base_ref));
-	}
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_nrp_string_const_section)
 
 	template <typename _TRAIterator, class _Traits>
 	class TNRPStringConstSection : public TStringConstSection<_TRAIterator, _Traits> {
@@ -5494,17 +5448,23 @@ namespace mse {
 	auto make_xscope_basic_string_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) -> decltype(make_xscope_structure_lock_guard(owner_ptr)) {
 		return make_xscope_structure_lock_guard(owner_ptr);
 	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_basic_string_size_change_lock_guard)
 	namespace mstd {
 		template<class _TDynamicContainerPointer>
 		auto make_xscope_basic_string_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) -> decltype(make_xscope_structure_lock_guard(owner_ptr)) {
 			return make_xscope_structure_lock_guard(owner_ptr);
 		}
+		/* Overloads for rsv::TReturnableFParam<>. */
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_basic_string_size_change_lock_guard)
 	}
 	namespace us {
 		template<class _TDynamicContainerPointer>
 		auto make_xscope_basic_string_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) -> decltype(make_xscope_structure_lock_guard(owner_ptr)) {
 			return make_xscope_structure_lock_guard(owner_ptr);
 		}
+		/* Overloads for rsv::TReturnableFParam<>. */
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_basic_string_size_change_lock_guard)
 	}
 }
 

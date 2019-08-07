@@ -3946,6 +3946,11 @@ namespace mse {
 	auto make_xscope_access_controlled_exclusive_pointer(const mse::TXScopeFixedConstPointer<TAccessControlledObj<_Ty, _TAccessMutex> >& xs_ptr) = delete;
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_access_controlled_pointer)
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_access_controlled_const_pointer)
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_access_controlled_exclusive_pointer)
+
 	template<class _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	auto make_access_controlled_pointer(TAccessControlledObj<_Ty, _TAccessMutex>& src) {
 		return src.pointer();
@@ -4528,6 +4533,8 @@ namespace mse {
 		return make_xscope_optional_structure_lock_guard(mse::TXScopeItemFixedPointer<typename xscope_st_optional<T>::base_class>(owner_ptr));
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_optional_structure_lock_guard)
 
 	namespace impl {
 		namespace ns_optional {
@@ -4634,6 +4641,9 @@ namespace mse {
 	auto make_xscope_optional_element_const_pointer(TXScopeOptionalPointer&& ptr) {
 		return TXScopeOptionalElementFixedConstPointer<typename std::remove_reference<TXScopeOptionalPointer>::type>(std::forward<decltype(ptr)>(ptr));
 	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_optional_element_pointer)
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_optional_element_const_pointer)
 
 	template<typename TOptionalPointer>
 	class TOptionalElementFixedConstPointer;

@@ -773,6 +773,9 @@ namespace mse {
 	auto make_xscope_tuple_element_const_pointer(TXScopeTuplePointer&& ptr) -> TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer> {
 		return TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer>(std::forward<decltype(ptr)>(ptr));
 	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_tuple_element_pointer)
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_tuple_element_const_pointer)
 
 
 	template<class TIndex, typename TTuplePointer>

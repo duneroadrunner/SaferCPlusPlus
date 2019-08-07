@@ -1308,6 +1308,22 @@ namespace mse {
 			return as_a_returnable_fparam(std::forward<_Ty>(param));
 		}
 
+#define MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_function) \
+		template <typename _Ty, class... _Args> \
+		auto make_xscope_function(const rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax) \
+			-> rsv::TReturnableFParam<decltype(make_xscope_function(std::declval<const _Ty&>(), std::forward<_Args>(_Ax)...))> { \
+			const _Ty& param_base_ref = param; \
+			typedef decltype(make_xscope_function(param_base_ref, std::forward<_Args>(_Ax)...)) base_return_type; \
+			return rsv::TReturnableFParam<base_return_type>(make_xscope_function(param_base_ref, std::forward<_Args>(_Ax)...)); \
+		} \
+		template <typename _Ty, class... _Args> \
+		auto make_xscope_function(rsv::TReturnableFParam<_Ty>&& param, _Args&&... _Ax) { \
+			typedef typename std::remove_reference<decltype(make_xscope_function(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...))>::type base_return_type; \
+			return rsv::TReturnableFParam<base_return_type>(make_xscope_function(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...)); \
+		}
+
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(xscope_pointer)
+
 		/* Template specializations of TReturnableFParam<>. */
 
 		template<typename _Ty>
@@ -1341,18 +1357,9 @@ namespace mse {
 
 	/* If a rsv::TReturnableFParam<> wrapped reference is used to make a pointer to a member of its target object, then the
 	created pointer to member can inherit the "returnability" of the original wrapped reference. */
-	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_pointer_to_member_v2(const rsv::TReturnableFParam<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		const _Ty& lease_pointer_base_ref = lease_pointer;
-		typedef decltype(make_xscope_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr));
-	}
-	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_const_pointer_to_member_v2(const rsv::TReturnableFParam<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		const _Ty& lease_pointer_base_ref = lease_pointer;
-		typedef decltype(make_xscope_const_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_const_pointer_to_member_v2(lease_pointer_base_ref, member_object_ptr));
-	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_pointer_to_member_v2)
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_const_pointer_to_member_v2)
 
 	template<class _Ty>
 	auto xscope_pointer(const rsv::TReturnableFParam<_Ty>& lone_param) {
@@ -2181,6 +2188,9 @@ namespace mse {
 		typedef typename std::remove_reference<decltype(*stored_ptr)>::type _TTargetNR;
 		return impl::ns_xscope_strong_pointer_store::make_xscope_strong_pointer_store_helper2<_TStrongPointerNR>(typename std::is_const<_TTargetNR>::type(), std::forward<decltype(stored_ptr)>(stored_ptr));
 	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_strong_const_pointer_store)
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_strong_pointer_store)
 
 	template<typename _Ty> using TXScopeXScopeItemFixedStore = TXScopeStrongNotNullPointerStore<TXScopeItemFixedPointer<_Ty> >;
 	template<typename _Ty> using TXScopeXScopeItemFixedConstStore = TXScopeStrongNotNullConstPointerStore<TXScopeItemFixedConstPointer<_Ty> >;

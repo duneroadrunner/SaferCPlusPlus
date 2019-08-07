@@ -806,6 +806,13 @@ namespace mse {
 		auto make_xscope_end_iterator(const _TArrayPointer& owner_ptr) {
 			return mse::mstd::make_xscope_begin_iterator(owner_ptr) + (*owner_ptr).size();
 		}
+		/* Overloads for rsv::TReturnableFParam<>. */
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_begin_const_iterator)
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_begin_iterator)
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_end_const_iterator)
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_end_iterator)
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_const_iterator)
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_iterator)
 
 		template<class _Ty, size_t _Size>
 		TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const xscope_array_iterator<array<_Ty, _Size> >& iter_cref) {
@@ -844,6 +851,9 @@ namespace mse {
 			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+		/* Overloads for rsv::TReturnableFParam<>. */
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(xscope_pointer_to_array_element)
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(xscope_const_pointer_to_array_element)
 
 		class array_test {
 		public:

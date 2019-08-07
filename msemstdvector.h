@@ -818,6 +818,9 @@ namespace mse {
 	namespace mstd {
 
 #endif /*MSE_MSTDVECTOR_DISABLED*/
+
+		/* Overloads for rsv::TReturnableFParam<>. */
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_structure_lock_guard)
 	}
 }
 

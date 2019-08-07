@@ -2098,6 +2098,9 @@ namespace mse {
 		typedef typename std::remove_reference<_TRAContainerPointer>::type _TRAContainerPointerRR;
 		return TXScopeRandomAccessConstIterator<_TRAContainerPointerRR>(ra_container_pointer, index);
 	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_random_access_const_iterator)
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_random_access_iterator)
 
 	template <typename _TRAContainerPointer>
 	auto make_random_access_const_iterator(_TRAContainerPointer&& ra_container_pointer, typename TRandomAccessConstIterator<typename std::remove_reference<_TRAContainerPointer>::type>::size_type index = 0) {
@@ -3607,18 +3610,8 @@ namespace mse {
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
-	template <typename _Ty>
-	auto make_xscope_const_iterator(const rsv::TReturnableFParam<_Ty>& param) {
-		const _Ty& param_base_ref = param;
-		typedef decltype(make_xscope_const_iterator(param_base_ref)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_const_iterator(param_base_ref));
-	}
-	template <typename _Ty>
-	auto make_xscope_iterator(const rsv::TReturnableFParam<_Ty>& param) -> rsv::TReturnableFParam<decltype(make_xscope_iterator(std::declval<const _Ty&>()))> {
-		const _Ty& param_base_ref = param;
-		typedef decltype(make_xscope_iterator(param_base_ref)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_iterator(param_base_ref));
-	}
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_const_iterator)
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_iterator)
 	/* We had iterators in mind with these overloads of operator+ and operator-. */
 	template <typename _Ty, typename _Tz>
 	auto operator+(const rsv::TReturnableFParam<_Ty>& y, const _Tz& z) {
@@ -4224,12 +4217,8 @@ namespace mse {
 		return section.subsection_pv(pos, n);
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
-	template <typename _TSection, class... Args>
-	auto make_xscope_subsection(const rsv::TReturnableFParam<_TSection>& xs_section, Args... args) {
-		const _TSection& xs_section_base_ref = xs_section;
-		typedef decltype(make_xscope_subsection(xs_section_base_ref, args...)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_subsection(xs_section_base_ref, args...));
-	}
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_subsection)
+
 	template <typename _TSection, class... Args>
 	auto make_subsection(const rsv::TReturnableFParam<_TSection>& section, Args... args) {
 		const _TSection& section_base_ref = section;
@@ -5676,18 +5665,7 @@ namespace mse {
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
-	template <typename _TRAIterator>
-	auto make_xscope_random_access_const_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
-		const _TRAIterator& start_iter_base_ref = start_iter;
-		typedef decltype(make_xscope_random_access_const_section(start_iter_base_ref, count)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_random_access_const_section(start_iter_base_ref, count));
-	}
-	template <typename _TRALoneParam>
-	auto make_xscope_random_access_const_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
-		const _TRALoneParam& param_base_ref = param;
-		typedef decltype(make_xscope_random_access_const_section(param_base_ref)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_random_access_const_section(param_base_ref));
-	}
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_random_access_const_section)
 
 	template <typename _TRAIterator>
 	auto make_random_access_const_section(const _TRAIterator& start_iter, typename TRandomAccessConstSection<_TRAIterator>::size_type count) {
@@ -5723,18 +5701,7 @@ namespace mse {
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
-	template <typename _TRAIterator>
-	auto make_xscope_random_access_section(const rsv::TReturnableFParam<_TRAIterator>& start_iter, typename TXScopeRandomAccessSection<_TRAIterator>::size_type count) {
-		const _TRAIterator& start_iter_base_ref = start_iter;
-		typedef decltype(make_xscope_random_access_section(start_iter_base_ref, count)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_random_access_section(start_iter_base_ref, count));
-	}
-	template <typename _TRALoneParam>
-	auto make_xscope_random_access_section(const rsv::TReturnableFParam<_TRALoneParam>& param) {
-		const _TRALoneParam& param_base_ref = param;
-		typedef decltype(make_xscope_random_access_section(param_base_ref)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(make_xscope_random_access_section(param_base_ref));
-	}
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_random_access_section)
 
 	/* This function basically just calls the give section's subsection() member function and returns the value.  */
 	template<typename _Ty>
@@ -6502,6 +6469,8 @@ namespace mse {
 		return TXScopeACOLockerForSharing<typename TXScopeAccessControlledObj1::object_type, typename TXScopeAccessControlledObj1::access_mutex_type>::make(xscpptr);
 	}
 #endif //!MSE_SCOPEPOINTER_DISABLED
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_aco_locker_for_sharing)
 
 	/* This class is just a version of the TXScopeACOLockerForSharing<> class for use as a function parameter type. */
 	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
@@ -6776,6 +6745,8 @@ namespace mse {
 	TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<_TExclusiveStrongPointer> make_xscope_exclusive_strong_pointer_store_for_exclusive_writer_access(_TExclusiveStrongPointer&& stored_ptr) {
 		return TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<_TExclusiveStrongPointer, _TAccessMutex>(std::forward<decltype(stored_ptr)>(stored_ptr));
 	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_exclusive_strong_pointer_store_for_exclusive_writer_access)
 
 	/* This is just an alias of the TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<> class for use as a function parameter type. */
 	template<typename _TExclusiveStrongPointer>

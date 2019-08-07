@@ -2288,6 +2288,8 @@ namespace mse {
 		return mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_structure_lock_guard)
 
 	/* For objects that are access controlled under an "exclusive writer" access policy, the object is immutable
 	while a const pointer to the object exists. So given an "exclusive writer" const pointer to a vector, it is
@@ -2301,17 +2303,23 @@ namespace mse {
 	auto make_xscope_vector_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) -> decltype(make_xscope_structure_lock_guard(owner_ptr)) {
 		return make_xscope_structure_lock_guard(owner_ptr);
 	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_vector_size_change_lock_guard)
 	namespace mstd {
 		template<class _TDynamicContainerPointer>
 		auto make_xscope_vector_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) -> decltype(make_xscope_structure_lock_guard(owner_ptr)) {
 			return make_xscope_structure_lock_guard(owner_ptr);
 		}
+		/* Overloads for rsv::TReturnableFParam<>. */
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_vector_size_change_lock_guard)
 	}
 	namespace us {
 		template<class _TDynamicContainerPointer>
 		auto make_xscope_vector_size_change_lock_guard(const _TDynamicContainerPointer& owner_ptr) -> decltype(make_xscope_structure_lock_guard(owner_ptr)) {
 			return make_xscope_structure_lock_guard(owner_ptr);
 		}
+		/* Overloads for rsv::TReturnableFParam<>. */
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_vector_size_change_lock_guard)
 	}
 }
 
@@ -4939,6 +4947,9 @@ namespace mse {
 		return typename _TVector::xscope_ipointer(owner_ptr);
 	}
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_cipointer)
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_ipointer)
 }
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED

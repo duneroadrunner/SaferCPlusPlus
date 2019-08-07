@@ -718,6 +718,8 @@ namespace mse {
 		typedef typename std::remove_reference<X>::type nrX;
 		return impl::make_xscope_atomic_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TXScopeAtomicObj>::type(), std::forward<decltype(arg)>(arg));
 	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_atomic)
 
 	namespace us {
 		namespace impl {
