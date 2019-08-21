@@ -343,11 +343,11 @@ void msetl_example3() {
 				static void foo1(mse::TAsyncSharedV2ReadWriteAccessRequester<ShareableA> A_ashar, int id) {
 					auto readlock_ptr = A_ashar.readlock_ptr();
 					std::this_thread::sleep_for(std::chrono::seconds(1));
-					try {
+					MSE_TRY {
 						auto writelock_ptr = A_ashar.writelock_ptr();
 						std::this_thread::sleep_for(std::chrono::seconds(1));
 					}
-					catch (...) {
+					MSE_CATCH_ANY {
 						// likely exception due to potential deadlock
 						std::cout << "deadlock detected ";
 						std::cout << std::endl;

@@ -1048,10 +1048,10 @@ namespace mse {
 				A_refcounting_ptr2 = nullptr;
 #ifndef MSE_REFCOUNTINGPOINTER_DISABLED
 				bool expected_exception = false;
-				try {
+				MSE_TRY {
 					int i = A_refcounting_ptr2->b; /* this is gonna throw an exception */
 				}
-				catch (...) {
+				MSE_CATCH_ANY {
 					//std::cerr << "expected exception" << std::endl;
 					expected_exception = true;
 					/* The exception is triggered by an attempt to dereference a null "refcounting pointer". */

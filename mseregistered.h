@@ -1085,10 +1085,10 @@ namespace mse {
 					A_registered_ptr2 = nullptr;
 #ifndef MSE_REGISTEREDPOINTER_DISABLED
 					bool expected_exception = false;
-					try {
+					MSE_TRY {
 						int i = A_registered_ptr2->b; /* this is gonna throw an exception */
 					}
-					catch (...) {
+					MSE_CATCH_ANY {
 						//std::cerr << "expected exception" << std::endl;
 						expected_exception = true;
 						/* The exception is triggered by an attempt to dereference a null "registered pointer". */
@@ -1133,11 +1133,11 @@ namespace mse {
 
 				bool expected_exception = false;
 #ifndef MSE_REGISTEREDPOINTER_DISABLED
-				try {
+				MSE_TRY {
 					/* A_registered_ptr1 "knows" that the (registered) object it was pointing to has now been deallocated. */
 					int i = A_registered_ptr1->b; /* So this is gonna throw an exception */
 				}
-				catch (...) {
+				MSE_CATCH_ANY {
 					//std::cerr << "expected exception" << std::endl;
 					expected_exception = true;
 				}
@@ -1152,11 +1152,11 @@ namespace mse {
 					mse::registered_delete<A>(A_registered_ptr3);
 					bool expected_exception = false;
 #ifndef MSE_REGISTEREDPOINTER_DISABLED
-					try {
+					MSE_TRY {
 						/* A_registered_ptr3 "knows" that the (registered) object it was pointing to has now been deallocated. */
 						int i = A_registered_ptr3->b; /* So this is gonna throw an exception */
 					}
-					catch (...) {
+					MSE_CATCH_ANY {
 						//std::cerr << "expected exception" << std::endl;
 						expected_exception = true;
 					}

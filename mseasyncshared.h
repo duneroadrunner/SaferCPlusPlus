@@ -498,11 +498,11 @@ namespace mse {
 				assert(!m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock);
 				m_writelock_or_suspended_shared_lock_thread_id = this_thread_id;
 				m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = true;
-				try {
+				MSE_TRY {
 					std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
 					m_thread_id_readlock_count_map.insert(item);
 				}
-				catch (...) {
+				MSE_CATCH_ANY {
 					m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = false;
 					MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
 				}
@@ -513,7 +513,7 @@ namespace mse {
 					unlock_guard<std::mutex> unlock1(m_state_mutex1);
 					base_class::lock_shared();
 				}
-				try {
+				MSE_TRY {
 					/* Things could've changed so we have to check again. */
 					const auto l_found_it = m_thread_id_readlock_count_map.find(this_thread_id);
 					if (m_thread_id_readlock_count_map.end() != l_found_it) {
@@ -525,7 +525,7 @@ namespace mse {
 						m_thread_id_readlock_count_map.insert(item);
 					}
 				}
-				catch (...) {
+				MSE_CATCH_ANY {
 					base_class::unlock_shared();
 					MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
 				}
@@ -550,13 +550,13 @@ namespace mse {
 				assert(!m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock);
 				m_writelock_or_suspended_shared_lock_thread_id = this_thread_id;
 				m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = true;
-				try {
+				MSE_TRY {
 					std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
 					m_thread_id_readlock_count_map.insert(item);
 					m_readlock_count += 1;
 					retval = true;
 				}
-				catch (...) {
+				MSE_CATCH_ANY {
 					m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = false;
 					MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
 				}
@@ -564,7 +564,7 @@ namespace mse {
 			else {
 				retval = base_class::try_lock_shared();
 				if (retval) {
-					try {
+					MSE_TRY {
 						if (m_thread_id_readlock_count_map.end() != found_it) {
 							assert(0 <= (*found_it).second);
 							(*found_it).second += 1;
@@ -575,7 +575,7 @@ namespace mse {
 						}
 						m_readlock_count += 1;
 					}
-					catch (...) {
+					MSE_CATCH_ANY {
 						base_class::unlock_shared();
 						MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
 					}
@@ -608,13 +608,13 @@ namespace mse {
 				assert(!m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock);
 				m_writelock_or_suspended_shared_lock_thread_id = this_thread_id;
 				m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = true;
-				try {
+				MSE_TRY {
 					std::unordered_map<std::thread::id, int>::value_type item(this_thread_id, 1);
 					m_thread_id_readlock_count_map.insert(item);
 					m_readlock_count += 1;
 					retval = true;
 				}
-				catch (...) {
+				MSE_CATCH_ANY {
 					m_a_shared_lock_is_suspended_to_allow_an_exclusive_lock = false;
 					MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
 				}
@@ -625,7 +625,7 @@ namespace mse {
 					retval = base_class::try_lock_shared_until(_Abs_time);
 				}
 				if (retval) {
-					try {
+					MSE_TRY {
 						if (m_thread_id_readlock_count_map.end() != found_it) {
 							assert(0 <= (*found_it).second);
 							(*found_it).second += 1;
@@ -636,7 +636,7 @@ namespace mse {
 						}
 						m_readlock_count += 1;
 					}
-					catch (...) {
+					MSE_CATCH_ANY {
 						base_class::unlock_shared();
 						MSE_THROW(asyncshared_runtime_error("std::unordered_map<>::insert() failed? - mse::recursive_shared_timed_mutex"));
 					}

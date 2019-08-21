@@ -2140,8 +2140,8 @@ namespace mse {
 				template<class _Mutex>
 				class structure_change_guard {
 				public:
-					structure_change_guard(_Mutex& _Mtx) try : m_lock_guard(_Mtx) {}
-					catch (...) {
+					structure_change_guard(_Mutex& _Mtx) MSE_FUNCTION_TRY : m_lock_guard(_Mtx) {}
+					MSE_FUNCTION_CATCH_ANY {
 						MSE_THROW(mse::structure_lock_violation_error("structure lock violation - Attempting to modify \
 							the structure (size/capacity) of a container while a reference (iterator) to one of its elements \
 							still exists?"));
@@ -4711,7 +4711,7 @@ namespace mse {
 			template<class _Mutex>
 			class structure_change_guard {
 			public:
-				structure_change_guard(_Mutex& _Mtx) try : m_lock_guard(_Mtx) {} catch (...) {
+				structure_change_guard(_Mutex& _Mtx) MSE_FUNCTION_TRY : m_lock_guard(_Mtx) {} MSE_FUNCTION_CATCH_ANY {
 					MSE_THROW(mse::structure_lock_violation_error("structure lock violation - Attempting to modify \
 							the structure (size/capacity) of a container while a reference (iterator) to one of its elements \
 							still exists?"));

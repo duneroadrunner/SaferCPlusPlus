@@ -207,10 +207,10 @@ int main(int argc, char* argv[]) {
 		mse::mstd::vector<double> v4;
 #endif /*MSVC2010_COMPATIBLE*/
 #ifndef MSE_MSTDVECTOR_DISABLED
-		try {
+		MSE_TRY {
 			v4.insert(v4.begin(), v2.begin(), v3.begin());
 		}
-		catch (...) {
+		MSE_CATCH_ANY {
 			std::cerr << "expected exception" << std::endl;
 			/* The exception is triggered by a comparision of incompatible "safe" iterators. */
 		}
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
 		vvi.clear();
 
 #if !defined(MSE_MSTDVECTOR_DISABLED) && !defined(MSE_MSTD_VECTOR_CHECK_USE_AFTER_FREE)
-		try {
+		MSE_TRY {
 			/* At this point, the vint_type object is cleared from vvi, but (with the current library implementation) it has
 			not actually been deallocated/destructed yet because it "knows" that there is an iterator, namely vi_it, that is
 			still referencing it. It will be deallocated when there are no more iterators referencing it. */
@@ -256,7 +256,7 @@ int main(int argc, char* argv[]) {
 			/* The vint_type object that vi_it was originally pointing to is now deallocated/destructed, because vi_it no longer
 			references it. */
 		}
-		catch (...) {
+		MSE_CATCH_ANY {
 			/* At present, no exception will be thrown. With future library implementations, maybe. */
 			std::cerr << "potentially expected exception" << std::endl;
 		}
@@ -439,13 +439,13 @@ int main(int argc, char* argv[]) {
 		mse::mstd::array<int, 3> a2 = { 11, 12, 13 };
 
 #ifndef MSE_MSTDARRAY_DISABLED
-		try {
+		MSE_TRY {
 			for (auto it1 = a1.begin(); it1 != a2.end(); it1++) {
 				/* It's not going to make it here. The invalid iterator comparison will throw an exception. */
 				std::cerr << "unexpected execution" << std::endl;
 			}
 		}
-		catch (...) {
+		MSE_CATCH_ANY {
 			std::cerr << "expected exception" << std::endl;
 		}
 
@@ -456,12 +456,12 @@ int main(int argc, char* argv[]) {
 			it1 = a3.begin();
 			assert(5 == (*it1));
 		}
-		try {
+		MSE_TRY {
 			/* it1 "knows" that its target has been destroyed. It will throw an exception on any attempt to dereference it. */
 			int i = (*it1);
 			std::cerr << "unexpected execution" << std::endl;
 		}
-		catch (...) {
+		MSE_CATCH_ANY {
 			std::cerr << "expected exception" << std::endl;
 		}
 #endif // !MSE_MSTDARRAY_DISABLED
@@ -532,11 +532,11 @@ int main(int argc, char* argv[]) {
 		//bool bres1 = (a1.begin() == a2.end());
 		/* The previous commented out line would result in "undefined behavior. */
 
-		try {
+		MSE_TRY {
 			/* The behavior of the next line is not "undefined". It's going to throw an exception. */
 			bool bres2 = (a1.ss_begin() == a2.ss_end());
 		}
-		catch (...) {
+		MSE_CATCH_ANY {
 			std::cerr << "expected exception" << std::endl;
 		}
 
@@ -657,21 +657,21 @@ int main(int argc, char* argv[]) {
 													 consider size_t an intrinsically error prone type. */
 #endif // !MSVC2010_COMPATIBLE
 
-		try {
+		MSE_TRY {
 			mse::CNDSize_t mse_szt2 = 0;
 			mse_szt2 = -3;
 		}
-		catch (...) {
+		MSE_CATCH_ANY {
 			std::cerr << "expected exception" << std::endl;
 			/* The exception is triggered by an "out of range" assignment to an mse::CSize_t. */
 		}
 
-		try {
+		MSE_TRY {
 			mse::CSize_t mse_szt3 = 3;
 			mse_szt3 -= 1; /* this is fine */
 			mse_szt3 -= 4; /* this is gonna throw an exception */
 		}
-		catch (...) {
+		MSE_CATCH_ANY {
 			std::cerr << "expected exception" << std::endl;
 			/* The exception is triggered by an attempt to set an mse::CSize_t to an "out of range" value. */
 		}
@@ -725,10 +725,10 @@ int main(int argc, char* argv[]) {
 			mse::TRegisteredPointer<A> A_registered_ptr2 = &registered_a;
 			A_registered_ptr2 = nullptr;
 #ifndef MSE_REGISTEREDPOINTER_DISABLED
-			try {
+			MSE_TRY {
 				int i = A_registered_ptr2->b; /* this is gonna throw an exception */
 			}
-			catch (...) {
+			MSE_CATCH_ANY {
 				std::cerr << "expected exception" << std::endl;
 				/* The exception is triggered by an attempt to dereference a null "registered pointer". */
 			}
@@ -758,11 +758,11 @@ int main(int argc, char* argv[]) {
 		}
 
 #ifndef MSE_REGISTEREDPOINTER_DISABLED
-		try {
+		MSE_TRY {
 			/* A_registered_ptr1 "knows" that the (registered) object it was pointing to has now been deallocated. */
 			int i = A_registered_ptr1->b; /* So this is gonna throw an exception */
 		}
-		catch (...) {
+		MSE_CATCH_ANY {
 			std::cerr << "expected exception" << std::endl;
 		}
 #endif // !MSE_REGISTEREDPOINTER_DISABLED
@@ -774,11 +774,11 @@ int main(int argc, char* argv[]) {
 			assert(3 == A_registered_ptr3->b);
 			mse::registered_delete<A>(A_registered_ptr3);
 #ifndef MSE_REGISTEREDPOINTER_DISABLED
-			try {
+			MSE_TRY {
 				/* A_registered_ptr3 "knows" that the (registered) object it was pointing to has now been deallocated. */
 				int i = A_registered_ptr3->b; /* So this is gonna throw an exception */
 			}
-			catch (...) {
+			MSE_CATCH_ANY {
 				std::cerr << "expected exception" << std::endl;
 			}
 #endif // !MSE_REGISTEREDPOINTER_DISABLED
@@ -1866,7 +1866,11 @@ with the library's (safe) optional<> types. */
 				CF* cf_ptr = item1.m_next_item_ptr;
 				for (int i = 0; i < number_of_loops2; i += 1) {
 					cf_ptr = cf_ptr->m_next_item_ptr;
-					if (!cf_ptr) { throw(""); }
+					if (!cf_ptr) {
+#if __cpp_exceptions >= 199711
+						throw("");
+#endif // __cpp_exceptions >= 199711
+					}
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);

@@ -1239,12 +1239,12 @@ void msetl_example2() {
 			msv1 = mse::mstd::string_view(mstring1);
 		}
 #if !defined(MSE_MSTDSTRING_DISABLED) && !defined(MSE_MSTD_STRING_CHECK_USE_AFTER_FREE)
-		try {
+		MSE_TRY {
 			/* This is not undefined (or unsafe) behavior. */
 			auto ch1 = msv1[3]; /* In debug mode this will fail an assert. In non-debug mode it'll just work (safely). */
 			assert('e' == ch1);
 		}
-		catch (...) {
+		MSE_CATCH_ANY {
 			/* At present, no exception will be thrown. Instead, the lifespan of the string data is extended to match
 			that of the mstd::string_view. It's possible that in future library implementations, an exception may be thrown. */
 		}
@@ -1274,11 +1274,11 @@ void msetl_example2() {
 
 			mse::mstd::string s = "Hellooooooooooooooo ";
 			mse::nrp_string_view sv = s + "World\n";
-			try {
+			MSE_TRY {
 				/* This is not undefined (or unsafe) behavior. */
 				std::cout << sv; /* In debug mode this will fail an assert. In non-debug mode it'll just work (safely). */
 			}
-			catch(...) {
+			MSE_CATCH_ANY {
 				/* At present, no exception will be thrown. Instead, the lifespan of the string data is extended to match
 				that of the mse::nrp_string_view. It's possible that in future library implementations, an exception may be thrown. */
 			}
@@ -1332,10 +1332,10 @@ void msetl_example2() {
 #ifndef MSE_REGISTEREDPOINTER_DISABLED
 			std::string s = "Hellooooooooooooooo ";
 			auto sv = mse::make_nrp_string_const_section(&mse::TRegisteredObj<std::string>(s + "World\n"));
-			try {
+			MSE_TRY {
 				std::cout << sv;
 			}
-			catch (...) {
+			MSE_CATCH_ANY {
 				std::cout << "expected exception\n";
 			}
 #endif //!MSE_REGISTEREDPOINTER_DISABLED
@@ -1344,10 +1344,10 @@ void msetl_example2() {
 #ifndef MSE_REGISTEREDPOINTER_DISABLED
 			std::string s = "Hellooooooooooooooo ";
 			auto sv = mse::mknscs(&mse::make_registered(s + "World\n"));
-			try {
+			MSE_TRY {
 				std::cout << sv;
 			}
-			catch (...) {
+			MSE_CATCH_ANY {
 				std::cout << "expected exception\n";
 			}
 #endif //!MSE_REGISTEREDPOINTER_DISABLED

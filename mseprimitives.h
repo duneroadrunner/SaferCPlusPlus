@@ -36,6 +36,24 @@
 #endif /*((5 > __GNUC__) && (!defined(__clang__)))*/
 #endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
+
+#if __cpp_exceptions >= 199711
+#define MSE_TRY try
+#define MSE_CATCH(x) catch(x)
+#define MSE_CATCH_ANY catch(...)
+#define MSE_FUNCTION_TRY try
+#define MSE_FUNCTION_CATCH(x) catch(x)
+#define MSE_FUNCTION_CATCH_ANY catch(...)
+#else // __cpp_exceptions >= 199711
+#define MSE_TRY if (true)
+#define MSE_CATCH(x) if (false)
+#define MSE_CATCH_ANY if (false)
+#define MSE_FUNCTION_TRY
+#define MSE_FUNCTION_CATCH(x) void mse_placeholder_function_catch(x)
+#define MSE_FUNCTION_CATCH_ANY void mse_placeholder_function_catch_any()
+#define MSE_CUSTOM_THROW_DEFINITION(x) exit(-11)
+#endif // __cpp_exceptions >= 199711
+
 #endif /*ndef MSEPOINTERBASICS_H*/
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED

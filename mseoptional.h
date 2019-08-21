@@ -95,10 +95,10 @@ namespace mse {
 		class destructor_lock_guard1 {
 		public:
 			explicit destructor_lock_guard1(_StateMutex& _Mtx) : _MyStateMutex(_Mtx) {
-				try {
+				MSE_TRY {
 					_Mtx.lock();
 				}
-				catch (...) {
+				MSE_CATCH_ANY {
 					/* It may not be safe to continue if the object is destroyed while the object state is locked (and presumably
 					in use) by another part of the code. */
 					std::cerr << "\n\nFatal Error: mse::destructor_lock_guard1() failed \n\n";
@@ -1798,8 +1798,8 @@ namespace mse {
 					template<class _Mutex>
 					class structure_change_guard {
 					public:
-						structure_change_guard(_Mutex& _Mtx) try : m_lock_guard(_Mtx) {}
-						catch (...) {
+						structure_change_guard(_Mutex& _Mtx) MSE_FUNCTION_TRY : m_lock_guard(_Mtx) {}
+						MSE_FUNCTION_CATCH_ANY {
 							MSE_THROW(mse::structure_lock_violation_error("structure lock violation - Attempting to modify \
 							the structure (size/capacity) of a container while a reference to one of its elements \
 							still exists?"));
@@ -3428,11 +3428,11 @@ namespace mse {
 				TAccessControlledObjBase(Args&&... args) : m_obj(constructor_helper1(std::forward<Args>(args)...)) {}
 
 				virtual ~TAccessControlledObjBase() {
-					try {
+					MSE_TRY {
 						m_mutex1.nonrecursive_lock();
 						m_mutex1.nonrecursive_unlock();
 					}
-					catch (...) {
+					MSE_CATCH_ANY {
 						/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object (in
 						this thread). */
 						std::cerr << "\n\nFatal Error: mse::us::impl::TAccessControlledObjBase<> destructed with outstanding references in the same thread \n\n";
@@ -4842,11 +4842,13 @@ namespace mse {
 				{
 					mse::mstd::optional<int> opt = {};
 
-					try {
+					MSE_TRY {
 						int n = opt.value();
 					}
-					catch (const std::exception& e) {
+					MSE_CATCH (const std::exception& e) {
+#if __cpp_exceptions >= 199711
 						std::cout << e.what() << '\n';
+#endif // __cpp_exceptions >= 199711
 					}
 				}
 				{
@@ -4913,11 +4915,13 @@ namespace mse {
 				{
 					mse::xscope_optional<int> opt = {};
 
-					try {
+					MSE_TRY {
 						int n = opt.value();
 					}
-					catch (const std::exception& e) {
+					MSE_CATCH (const std::exception& e) {
+#if __cpp_exceptions >= 199711
 						std::cout << e.what() << '\n';
+#endif // __cpp_exceptions >= 199711
 					}
 				}
 

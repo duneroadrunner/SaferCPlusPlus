@@ -418,15 +418,15 @@ namespace mse {
 			EXAM_CHECK(cv.at(0) == 20);
 
 #if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
-			try {
+			MSE_TRY {
 				v.at(1) = 20;
 				//EXAM_ERROR("out_of_range exception expected");
 				EXAM_CHECK(false);
 			}
-			catch (std::out_of_range const&) {
+			MSE_CATCH (std::out_of_range const&) {
 				//EXAM_MESSAGE("out_of_range exception, as expected");
 			}
-			catch (...) {
+			MSE_CATCH_ANY {
 				//EXAM_ERROR("out_of_range exception expected");
 				EXAM_CHECK(false);
 			}

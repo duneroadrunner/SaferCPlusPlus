@@ -935,7 +935,11 @@ namespace mse {
 							if (id == 0) return mse::mstd::make_tuple(3.8, 'A', "Lisa Simpson");
 							if (id == 1) return mse::mstd::make_tuple(2.9, 'C', "Milhouse Van Houten");
 							if (id == 2) return mse::mstd::make_tuple(1.7, 'D', "Ralph Wiggum");
+#if __cpp_exceptions >= 199711
 							throw std::invalid_argument("id");
+#else // __cpp_exceptions >= 199711
+							return mse::mstd::make_tuple(0.0, 'Z', "invalid");
+#endif // __cpp_exceptions >= 199711
 						}
 					};
 
@@ -1041,7 +1045,11 @@ namespace mse {
 							if (id == 0) return mse::mstd::make_tuple(3.8, 'A', "Lisa Simpson");
 							if (id == 1) return mse::mstd::make_tuple(2.9, 'C', "Milhouse Van Houten");
 							if (id == 2) return mse::mstd::make_tuple(1.7, 'D', "Ralph Wiggum");
+#if __cpp_exceptions >= 199711
 							throw std::invalid_argument("id");
+#else // __cpp_exceptions >= 199711
+							return mse::mstd::make_tuple(0.0, 'Z', "invalid");
+#endif // __cpp_exceptions >= 199711
 						}
 					};
 

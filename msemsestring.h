@@ -198,7 +198,7 @@ namespace mse {
 #define _LIBCPP_NODISCARD_AFTER_CXX17
 #define _LIBCPP_ASSERT(x, y) assert(x)
 #define _VSTD std
-#define __throw_out_of_range(x) throw(x)
+#define __throw_out_of_range(x) MSE_THROW(x)
 
 			typedef decltype(std::declval<int*>() - std::declval<int*>()) ptrdiff_t;
 
@@ -3649,7 +3649,7 @@ namespace mse {
 				gnii_basic_string& assign_helper2(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
 					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 						: difference_type(_Count);
-					if (0 > adjusted_count) { throw(std::out_of_range(" gnii_basic_string::assign() ")); }
+					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" gnii_basic_string::assign() ")); }
 					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
 					return assign(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count));
 				}
@@ -4448,7 +4448,7 @@ namespace mse {
 				gnii_basic_string& append_helper2(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
 					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 						: difference_type(_Count);
-					if (0 > adjusted_count) { throw(std::out_of_range(" gnii_basic_string::append() ")); }
+					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" gnii_basic_string::append() ")); }
 					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
 					return append(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count));
 				}
@@ -4569,7 +4569,7 @@ namespace mse {
 				gnii_basic_string& replace_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
 					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 						: difference_type(_Count);
-					if (0 > adjusted_count) { throw(std::out_of_range(" gnii_basic_string::replace() ")); }
+					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" gnii_basic_string::replace() ")); }
 					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
 					return replace(_Off, _N0, xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count));
 				}
@@ -4650,7 +4650,7 @@ namespace mse {
 				gnii_basic_string& replace(const size_type _Off, const size_type _N0, const _Iter _First2, const _Iter _Last2) {
 					smoke_check_source_iterators(_First2, _Last2);
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					if (m_basic_string.size() <= (mse::msev_as_a_size_t(_Off) + mse::msev_as_a_size_t(_N0))) { throw(std::out_of_range(" gnii_basic_string::replace() ")); }
+					if (m_basic_string.size() <= (mse::msev_as_a_size_t(_Off) + mse::msev_as_a_size_t(_N0))) { MSE_THROW(std::out_of_range(" gnii_basic_string::replace() ")); }
 					auto iter1 = m_basic_string.begin() + mse::msev_as_a_size_t(_Off);
 					m_basic_string.replace(iter1, iter1 + mse::msev_as_a_size_t(_N0), _First2, _Last2);
 					return (*this);
@@ -4750,7 +4750,7 @@ namespace mse {
 				int compare_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) const {
 					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 						: difference_type(_Count);
-					if (0 > adjusted_count) { throw(std::out_of_range(" gnii_basic_string::compare() ")); }
+					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" gnii_basic_string::compare() ")); }
 					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
 					return compare(_Off, _N0, gnii_basic_string(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count)));
 				}
@@ -5111,8 +5111,8 @@ namespace mse {
 				template<class _Mutex>
 				class structure_change_guard {
 				public:
-					structure_change_guard(_Mutex& _Mtx) try : m_lock_guard(_Mtx) {}
-					catch (...) {
+					structure_change_guard(_Mutex& _Mtx) MSE_FUNCTION_TRY : m_lock_guard(_Mtx) {}
+					MSE_FUNCTION_CATCH_ANY {
 						MSE_THROW(mse::structure_lock_violation_error("structure lock violation - Attempting to modify \
 							the structure (size/capacity) of a container while a reference (iterator) to one of its elements \
 							still exists?"));
@@ -8165,8 +8165,8 @@ namespace mse {
 			template<class _Mutex>
 			class structure_change_guard {
 			public:
-				structure_change_guard(_Mutex& _Mtx) try : m_lock_guard(_Mtx) {}
-				catch (...) {
+				structure_change_guard(_Mutex& _Mtx) MSE_FUNCTION_TRY : m_lock_guard(_Mtx) {}
+				MSE_FUNCTION_CATCH_ANY {
 					MSE_THROW(mse::structure_lock_violation_error("structure lock violation - Attempting to modify \
 							the structure (size/capacity) of a container while a reference (iterator) to one of its elements \
 							still exists?"));

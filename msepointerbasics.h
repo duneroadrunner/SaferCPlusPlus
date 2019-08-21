@@ -16,7 +16,8 @@
 #include <unordered_set>
 #include <functional>
 
-//ifndef MSEPRIMITIVES_H
+#ifndef MSEPRIMITIVES_H
+
 #if __cplusplus >= 201703L
 #define MSE_HAS_CXX17
 #endif // __cplusplus >= 201703L
@@ -42,7 +43,25 @@
 #endif /*((5 > __GNUC__) && (!defined(__clang__)))*/
 #endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
-//endif /*ndef MSEPRIMITIVES_H*/
+
+#if __cpp_exceptions >= 199711
+#define MSE_TRY try
+#define MSE_CATCH(x) catch(x)
+#define MSE_CATCH_ANY catch(...)
+#define MSE_FUNCTION_TRY try
+#define MSE_FUNCTION_CATCH(x) catch(x)
+#define MSE_FUNCTION_CATCH_ANY catch(...)
+#else // __cpp_exceptions >= 199711
+#define MSE_TRY if (true)
+#define MSE_CATCH(x) if (false)
+#define MSE_CATCH_ANY if (false)
+#define MSE_FUNCTION_TRY
+#define MSE_FUNCTION_CATCH(x) void mse_placeholder_function_catch(x)
+#define MSE_FUNCTION_CATCH_ANY void mse_placeholder_function_catch_any()
+#define MSE_CUSTOM_THROW_DEFINITION(x) exit(-11)
+#endif // __cpp_exceptions >= 199711
+
+#endif /*ndef MSEPRIMITIVES_H*/
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_POINTERBASICS_DISABLED
@@ -199,6 +218,7 @@ namespace mse {
 #define MSE_CHECK_USE_BEFORE_SET
 #endif // !MSE_SUPPRESS_CHECK_USE_BEFORE_SET
 #endif // !NDEBUG
+
 
 	/* This macro roughly simulates constructor inheritance. */
 #define MSE_USING_V1(Derived, Base) \

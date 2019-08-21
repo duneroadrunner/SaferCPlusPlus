@@ -6185,11 +6185,11 @@ namespace mse {
 			mse::impl::is_valid_if_strong_pointer<_TExclusiveStrongPointer>::no_op();
 			mse::impl::is_valid_if_exclusive_pointer<_TExclusiveStrongPointer>::no_op();
 
-			try {
+			MSE_TRY {
 				m_mutex1.nonrecursive_lock();
 				//m_mutex1.nonrecursive_unlock();
 			}
-			catch (...) {
+			MSE_CATCH_ANY {
 				/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object (in
 				this thread). */
 				std::cerr << "\n\nFatal Error: mse::us::impl::TAccessControlledObjBase<> destructed with outstanding references in the same thread \n\n";
