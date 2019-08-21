@@ -1,4 +1,4 @@
-Jun 2019
+Aug 2019
 
 ### Overview
 
@@ -24,7 +24,7 @@ And the library also addresses the data race issue, where the Core Guidelines do
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
-Tested with msvc2017(v15.9.0), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. Note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
+Tested with msvc2019(v16.1.6), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. Note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
 
 
 ### Table of contents
@@ -150,9 +150,7 @@ When a completed lifetime checker is/becomes available, some of the most used el
 
 While using the library can incur a modest performance penalty, because the library elements are largely compatible with their native counterparts, they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them, for example, to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.
 
-And note that the safe components of this library can be adopted completely incrementally. New code written with these safe elements will play nicely with existing code, and native C++ elements can be replaced selectively without breaking the existing code. So there is really no excuse for not using the library in pretty much any situation.
-
-Though for real time embedded applications, note the dependence on the standard library. You may also want to override the default behavior (of throwing an exception) upon invalid memory operations (using `MSE_CUSTOM_THROW_DEFINITION(x)`).
+And note that the safe components of this library can be adopted completely incrementally. New code written with these safe elements will play nicely with existing code, and native C++ elements can be replaced selectively without breaking the existing code. So there is really no excuse for not using the library in pretty much any situation. Though for real time embedded applications, note the dependence on the standard library.
 
 ### Setup and dependencies
 
@@ -174,7 +172,7 @@ The Clang/LLVM compiler provides a set of "sanitizers" (adopted by gcc) that add
 - SaferCPlusPlus supports the mixing of "safe" and (high-performance) "unsafe" code at a granular level, where Clang/LLVM Sanitizers apply to entire modules, or as in the case of the MemorySanitizer, all modules, requiring recompilation of any linked libraries.
 - Clang's ThreadSanitizer tries to detect data race bugs, while SaferCPlusPlus provides [data types](#asynchronously-shared-objects) that eliminate the possibility of data race bugs (and a superset we call "object race" bugs).
 
-Clang/LLVM Sanitizers are intended for debugging purposes, not to be used in deployed executables. As such, by design, some of their debugging convenience features themselves introduce [opportunities](http://seclists.org/oss-sec/2016/q1/363) for malicious exploitation. SaferCPlusPlus on the other hand, is designed to be used in deployed executables, as well as for debugging and testing. And that's reflected in its performance, security and "completeness of solution". So it's not really SaferCPlusPlus "versus" Clang/LLVM Sanitizers. They are not incompatible, and there's no reason you couldn't use both simultaneously, although there would be significant redundancies.
+Clang/LLVM Sanitizers are intended for debugging purposes, not to be used in deployed executables. As such, by design, some of their debugging convenience features themselves introduce [opportunities](http://seclists.org/oss-sec/2016/q1/363) for malicious exploitation. SaferCPlusPlus on the other hand, is designed to be used in deployed executables, as well as for debugging and testing. And that's reflected in its performance, security and "completeness of solution". But SaferCPlusPlus and the Clang/LLVM Sanitizers are not incompatible, and there's no reason you couldn't use both simultaneously, although there would be significant redundancies.
 
 ### SaferCPlusPlus versus Rust
 
@@ -201,10 +199,6 @@ Probably the biggest difference though, is that SaferCPlusPlus does not (univers
 
 There are situations where restrictions on object accessibility can be beneficial or essential for reasons other than (single-threaded) memory safety. (To help ensure data race safety of asynchronously shared objects, for example.) For those cases, the library does provide facilities for the enforcement of "access control" restrictions, including essentially the [equivalent](#exclusive-writer-objects) of Rust's `RefCell` wrapper.
 
-Another difference is the available options for dealing with scope lifetime restrictions. For example, let's say that instead of a list (or whatever container) of objects, you have a list of references to existing objects. And let's say that at some point you want to insert a reference to local variable (allocated on the stack) (as with the C++ example [here](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md#snippet-4)). Unfortunately, Rust only allows you to (safely) do so in cases where the variable is "structurally" guaranteed to outlive the list container itself. This is understandable, as otherwise you could end up with the list containing a reference that is no longer valid.
-
-But you could imagine scenarios where you might want to temporarily insert a reference to a (stack allocated) local variable that does not outlive the container. In order to (safely) support this you'd need a reference type that can safely handle the potential disappearance of its target object. In Rust, the `Weak` reference is the only one that has this property. But `Weak` references cannot target (stack allocated) local variables, so we're kind of out of luck. SaferCPlusPlus' registered pointers, on the other hand, safely handle the potential disappearance of their target and are able to target (stack allocated) local variables. Registered pointers do have a run-time cost, but that is often outweighed by the benefit of allowing the target object to be a (stack allocated) local variable, rather than, say, a (heap allocated) "reference counted" object.
-
 Overall though, there's probably more commonality than difference between the Rust and the SaferCPlusPlus memory safety strategies. At least compared to other current languages. So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.
 
 ### SaferCPlusPlus versus Checked C
@@ -215,15 +209,9 @@ Checked C and SaferCPlusPlus are more complementary than competitive. Checked C 
 
 ### Getting started on safening existing code
 
-The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#vector) and [`mse::mstd::array<>`](#array). Update for C++17: `std::string_view` seems to be quite [prone](https://github.com/isocpp/CppCoreGuidelines/issues/1038) to use-after-free bugs. You can substitute them with [`mse::nrp_string_view`](#nrp_string_view), and your `std::string`s with [`mse::mstd::string`](#string).
+The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#vector) and [`mse::mstd::array<>`](#array). You can substitute `std::string_view` with [`mse::nrp_string_view`](#nrp_string_view), and your `std::string`s with [`mse::mstd::string`](#string).
 
-Statistically speaking, doing this should already catch a significant chunk of potential memory bugs. By default, an exception will be thrown upon any attempt to access invalid memory. If your project is not using C++ exceptions, you'll probably want to override the default exception behavior by defining the `MSE_CUSTOM_THROW_DEFINITION()` preprocessor macro prior to inclusion of the header files. For example:
-
-```cpp
-    #define MSE_CUSTOM_THROW_DEFINITION(x) std::cerr << std::endl << x.what(); exit(-11)
-```
-
-will cause the error description to be written to stderr before program termination.
+Statistically speaking, doing this should already catch a significant chunk of potential memory bugs. By default, an exception will be thrown upon any attempt to access invalid memory (or the program will terminate if compiled with support for exceptions disabled). This behavior can be customized (for example, to notify a custom logger of any invalid memory access attempts) by defining the `MSE_CUSTOM_THROW_DEFINITION()` preprocessor function macro.
 
 The next most effective thing to do, in terms of improving memory safety, is probably to replace calls to `new`/`malloc` and `delete`/`free`. The direct substitutes provided in the library (for items not shared between threads) are `mse::registered_new()` and `mse::registered_delete()`. The pointer type returned by `mse::registered_new()` is an [`mse::TRegisteredPointer<>`](#tregisteredpointer). If you need this pointer to interact with legacy interfaces, it can be explicitly cast to a corresponding native pointer. But ultimately you're going to want to minimize the amount of casting to (unsafe) native pointers by updating your (function) interfaces to accomodate these safe pointers directly. (See the "[Safely passing parameters by reference](#safely-passing-parameters-by-reference)" section.)
 
@@ -902,13 +890,11 @@ For safety reasons, non-owning scope pointers (or any objects containing a scope
 
 [*provisional*]
 
-Another alternative if you want to return a scope pointer (or any object containing a scope reference) input parameter from a function is to wrap the parameter type with the `rsv::TXScopeReturnableFParam<>` transparent template wrapper when declaring the parameter. 
+Another alternative if you want to return a scope pointer (or any object containing a scope reference) function parameter is to (immediately) create a "returnable" version of it using the `rsv::as_a_returnable_fparam()` function.
 
-Normally the [`return_value()`](#return_value) function wrapper will reject (with a compile error) scope pointers as unsafe return values. But if the scope pointer type is wrapped in the `rsv::TXScopeReturnableFParam<>` transparent template wrapper, then it will be accepted as a safe return value. Because it's generally safe to return a reference to an object if that reference was passed as an input parameter. Well, as long as the object is not a temporary one. So unlike with [`rsv::TXScopeFParam<>`](#as_an_fparam), scope reference types wrapped with `rsv::TXScopeReturnableFParam<>` will not enable support for (scope) references to temporaries, as returning a (scope) reference to a temporary could be unsafe even if the reference was passed as a function parameter. So for scope reference parameters you have to choose between being able to use it as a return value, or supporting references to temporaries. (Or neither.)
+Normally the [`return_value()`](#return_value) function wrapper will reject (with a compile error) scope pointers as unsafe return values. But the `rsv::as_a_returnable_fparam()` function can be used to (immediately) obtain a "returnable" version of a scope pointer function parameter. Because it's generally safe to return a reference to an object if that reference was passed as a parameter. Well, as long as the object is not a temporary object. So unlike [`rsv::as_an_fparam()`](#as_an_fparam), `rsv::as_a_returnable_fparam()` will not accept scope pointers to temporaries, as returning a (scope) reference to a temporary would be unsafe even if the reference was passed as a function parameter. So for scope reference parameters you have to choose between being able to use it as a return value, or supporting references to temporaries. (Or neither.)
 
-In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the `rsv::TXScopeReturnableFParam<>` wrapper can interfere with that. In those cases you can instead convert parameters to their wrapped type after-the-fact using the `rsv::xscope_as_a_returnable_fparam()` function. Note that using this function (or the `rsv::TXScopeReturnableFParam<>` wrapper) on anything other than function parameters is unsafe, and currently there is no compile-time enforcement of this restriction.
-
-`rsv::TReturnableFParam<>` and `rsv::as_a_returnable_fparam()` can be used for situations when the type of the input parameter is itself a template parameter and not necessarily always a scope type or treated as a scope type. 
+Note that using the `rsv::as_a_returnable_fparam()` function on anything other than local function parameters is unsafe, and currently there is no compile-time enforcement of this restriction.
 
 usage example:
 
@@ -918,70 +904,92 @@ usage example:
     
 class H {
 public:
-    /* This function will be used to demonstrate using rsv::as_a_returnable_fparam() to enable template functions to return
-    one of their function parameters, potentially of the scope reference variety which would otherwise be rejected (with a
-    compile error) as an unsafe return value. */
-    template<class _TPointer1, class _TPointer2>
-    static auto longest(const _TPointer1& string1_xscpptr, const _TPointer2& string2_xscpptr) {
-        auto l_string1_xscpptr = mse::rsv::as_a_returnable_fparam(string1_xscpptr);
-        auto l_string2_xscpptr = mse::rsv::as_a_returnable_fparam(string2_xscpptr);
-        if (l_string1_xscpptr->length() > l_string2_xscpptr->length()) {
-            /* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::mtnii_string> and we tried to return it
-            directly instead of l_string1_xscpptr, it would have induced a compile error. */
-            return mse::return_value(l_string1_xscpptr);
+    /* This function will be used to demonstrate using rsv::as_a_returnable_fparam() to enable template functions to
+    return one of their function parameters, potentially of the scope reference variety which would otherwise be
+    rejected (with a compile error) as an unsafe return value. */
+    template<class _TString1Pointer, class _TString2Pointer>
+    static auto longest(const _TString1Pointer& string1_ptr, const _TString2Pointer& string2_ptr) {
+        auto l_string1_ptr = mse::rsv::as_a_returnable_fparam(string1_ptr);
+        auto l_string2_ptr = mse::rsv::as_a_returnable_fparam(string2_ptr);
+
+        if (l_string1_ptr->length() > l_string2_ptr->length()) {
+            /* If string1_ptr were a regular TXScopeItemFixedPointer<mse::mtnii_string> and we tried to return it
+            directly instead of l_string1_ptr, it would have induced a compile error. */
+
+            return mse::return_value(l_string1_ptr);
         }
         else {
-            /* mse::return_value() usually returns its input argument unmolested, but in this case it will return
-            a type different from the input type. This is to prevent any function that receives this return value
-            from, in turn, returning the value, as that might be unsafe. */
-            return mse::return_value(l_string2_xscpptr);
+            /* mse::return_value() usually just returns its input argument unmolested, but in this case, where the
+            argument was obtained from the mse::rsv::as_a_returnable_fparam() it will convert it back the type of
+            the original function parameter (thereby removing the "returnability" attribute that was added by
+            mse::rsv::as_a_returnable_fparam()). */
+
+            return mse::return_value(l_string2_ptr);
         }
+    }
+    /* This function will be used to demonstrate nested function calls (safely) returning scope pointer/references. */
+    template<class _TString1Pointer, class _TString2Pointer>
+    static auto nested_longest(const _TString1Pointer& string1_ptr, const _TString2Pointer& string2_ptr) {
+        auto l_string1_ptr = mse::rsv::as_a_returnable_fparam(string1_ptr);
+        auto l_string2_ptr = mse::rsv::as_a_returnable_fparam(string2_ptr);
+
+        /* Note that with functions (potentially) returning a scope reference parameter (or an object derived
+        from a scope reference parameter), you generally want the function to be a template function with the
+        scope reference parameters types being (deduced) template parameters, as with this function, rather
+        than more explicitly specified scope reference types or template types. The reason for this is that in
+        the case of nested function calls, the number of nested function calls from which a scope reference
+        object can be (safely) returned is embedded in the scope reference object's type. That is, the exact
+        type of a returnable scope reference object depends on how many (levels of) nested function calls it
+        has been passed through. And you generally want your functions that return scope reference objects to
+        preserve the exact type of the scope reference passed, otherwise you may not be allowed (i.e. induced
+        compile error) to return the scope reference all the way back to the scope it originated from. */
+
+        return mse::return_value(longest(l_string1_ptr, l_string2_ptr));
+    }
+
+    struct CE {
+        mse::mtnii_string m_string1 = "abcde";
+    };
+
+    /* This function demonstrates scope reference objects inheriting the "returnability" trait from the reference objects
+    from which they were derived. */
+    template<class _TPointer1>
+    static auto xscope_string_const_section_to_member_of_CE(_TPointer1 CE_ptr) {
+        auto returnable_CE_ptr = mse::rsv::as_a_returnable_fparam(CE_ptr);
+
+        /* "Pointers to members" based on returnable pointers inherit the "returnability". */
+        auto returnable_cpointer_to_member = mse::make_xscope_const_pointer_to_member_v2(returnable_CE_ptr, &CE::m_string1);
+
+        /* "scope nrp string const sections" based on returnable pointers (or iterators) inherit the "returnability". */
+        auto returnable_string_const_section = mse::make_xscope_string_const_section(returnable_cpointer_to_member);
+        /* Subsections of returnable sections inherit the "returnability". */
+        auto returnable_string_const_section2 = mse::make_xscope_subsection(returnable_string_const_section, 1, 3);
+        return mse::return_value(returnable_string_const_section2);
+    }
+    template<class _TPointer1>
+    static auto nested_xscope_string_const_section_to_member_of_CE(_TPointer1 CE_ptr) {
+        auto returnable_CE_ptr = mse::rsv::as_a_returnable_fparam(CE_ptr);
+
+        return mse::return_value(xscope_string_const_section_to_member_of_CE(returnable_CE_ptr));
     }
 };
     
 void main(int argc, char* argv[]) {
-    class CD {
-    public:
-        static auto longest(mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::mtnii_string> > string1_xscpptr
-            , mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedPointer<mse::mtnii_string> > string2_xscpptr) {
-            if (string1_xscpptr->length() > string2_xscpptr->length()) {
-                /* If string1_xscpptr were a regular TXScopeItemFixedPointer<mse::mtnii_string> the next line would have
-                induced a compile error. */
-                return mse::return_value(string1_xscpptr);
-            }
-            else {
-                /* mse::return_value() usually returns its input argument unmolested, but in this case it will return
-                a type (slightly) different from the input type. This is to prevent any function that receives this
-                return value from, in turn, returning the value, as that might be unsafe. */
-                return mse::return_value(string2_xscpptr);
-            }
-        }
-    };
     mse::TXScopeObj<mse::mtnii_string> xscope_string1 = "abc";
     mse::TXScopeObj<mse::mtnii_string> xscope_string2 = "abcd";
-    auto longer_string_xscpptr = CD::longest(&xscope_string1, &xscope_string2);
-    auto copy_of_longer_string = *longer_string_xscpptr;
 
-    auto longer_string2_xscpptr = H::longest(&xscope_string1, &xscope_string2);
+    auto longer_string_xscpptr = H::longest(&xscope_string1, &xscope_string2);
+    auto length1 = (*longer_string_xscpptr).length();
 
-    class CE {
-    public:
-        static auto xscope_string_const_section_to_member(mse::rsv::TXScopeReturnableFParam<mse::TXScopeItemFixedConstPointer<CE> > returnable_this_cpointer) {
-            /* "Pointers to members" based on returnable pointers inherit the "returnability". */
-            auto returnable_cpointer_to_member = mse::make_xscope_const_pointer_to_member_v2(returnable_this_cpointer, &CE::m_string1);
-            /* "scope nrp string const sections" based on returnable pointers (or iterators) inherit the "returnability". */
-            auto returnable_string_const_section = mse::make_xscope_nrp_string_const_section(returnable_cpointer_to_member);
-            /* Subsections of returnable sections inherit the "returnability". */
-            auto returnable_string_const_section2 = returnable_string_const_section.xscope_subsection(1, 3);
-            return mse::return_value(returnable_string_const_section2);
-        }
-    private:
-        mse::mtnii_string m_string1 = "abcde";
-    };
+    auto longer_string_xscpptr2 = H::nested_longest(&xscope_string1, &xscope_string2);
+    auto length2 = (*longer_string_xscpptr2).length();
 
-    mse::TXScopeObj<CE> e_xscpobj;
-    auto xscope_string_const_section1 = mse::TXScopeObj<CE>::xscope_string_const_section_to_member(&e_xscpobj);
+    mse::TXScopeObj<H::CE> e_xscpobj;
+    auto xscope_string_const_section1 = H::xscope_string_const_section_to_member_of_CE(&e_xscpobj);
     assert(xscope_string_const_section1 == "bcd");
+
+    auto xscope_string_const_section2 = H::nested_xscope_string_const_section_to_member_of_CE(&e_xscpobj);
+    assert(xscope_string_const_section2 == "bcd");
 }
 ```
 
@@ -1136,49 +1144,51 @@ example:
 
 void main(int argc, char* argv[]) {
 
-		/* Defining your own scope types. */
+    /* Defining your own scope types. */
 
-		/* It is (intended to be) uncommon to need to define your own scope types. In general, if you want to use a
-		type as a scope type, you can just wrap it with the mse::TXScopeObj<> template. */
+    /* It is (intended to be) uncommon to need to define your own scope types. In general, if you want to use a
+    type as a scope type, you can just wrap it with the mse::TXScopeObj<> template. */
 
-		/* But in cases where you're going to use a scope type as a member of a class or struct, that class or
-		struct must itself be a scope type. Improperly defining a scope type could result in unsafe code. */
+    /* But in cases where you're going to use a scope type as a member of a class or struct, that class or struct
+    must itself be a scope type. Improperly defining a scope type could result in unsafe code. Thus defining your
+    own scope types is discouraged. You can avoid the safety risk by instead using an mse::xscope_tuple<> rather
+    than a class or struct in cases where you want to use a scope type as a data member. */
 
-		/* Scope types need to publicly inherit from mse::XScopeTagBase. And by convention, be named with a prefix
-		indicating that it's a scope type. */
-		class xscope_my_type1 : public mse::XScopeTagBase {
-		public:
-			xscope_my_type1(const mse::xscope_optional<mse::mstd::string>& xscp_maybe_string)
-				: m_xscp_maybe_string1(xscp_maybe_string) {}
+    /* Scope types need to publicly inherit from mse::XScopeTagBase. And by convention, be named with a prefix
+    indicating that it's a scope type. */
+    class xscope_my_type1 : public mse::XScopeTagBase {
+    public:
+        xscope_my_type1(const mse::xscope_optional<mse::mstd::string>& xscp_maybe_string)
+            : m_xscp_maybe_string1(xscp_maybe_string) {}
 
-			/* If your scope type does not contain any non-owning scope pointers, then it should be safe to use
-			as a function return type. You can "mark" it as such by adding the following member function. If the
-			type does contain non-owning scope pointers, then doing so could result in unsafe code. */
-			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+        /* If your scope type does not contain any non-owning scope pointers, then it should be safe to use
+        as a function return type. You can "mark" it as such by adding the following member function. If the
+        type does contain non-owning scope pointers, then doing so could result in unsafe code. */
+        void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
-			mse::xscope_optional<mse::mstd::string> m_xscp_maybe_string1;
-		};
+        mse::xscope_optional<mse::mstd::string> m_xscp_maybe_string1;
+    };
 
-		/* If your type contains or owns any non-owning scope pointers, then it must also publicly inherit
-		from mse::ContainsNonOwningScopeReferenceTagBase. If your type contains or owns any item that can be
-		independently targeted by scope pointers (i.e. basically has a '&' ("address of" operator) that yeilds
-		a scope pointer), then it must also publicly inherit from mse::ReferenceableByScopePointerTagBase.
-		Failure to do so could result in unsafe code. */
-		class xscope_my_type2 : public mse::XScopeTagBase, public mse::ContainsNonOwningScopeReferenceTagBase
-			, public mse::ReferenceableByScopePointerTagBase
-		{
-		public:
-			typedef mse::TXScopeItemFixedConstPointer<mse::mstd::string> xscope_string_ptr_t;
+    /* If your type contains or owns any non-owning scope pointers, then it must also publicly inherit
+    from mse::ContainsNonOwningScopeReferenceTagBase. If your type contains or owns any item that can be
+    independently targeted by scope pointers (i.e. basically has a '&' ("address of" operator) that yeilds
+    a scope pointer), then it must also publicly inherit from mse::ReferenceableByScopePointerTagBase.
+    Failure to do so could result in unsafe code. */
+    class xscope_my_type2 : public mse::XScopeTagBase, public mse::ContainsNonOwningScopeReferenceTagBase
+        , public mse::ReferenceableByScopePointerTagBase
+    {
+    public:
+        typedef mse::TXScopeItemFixedConstPointer<mse::mstd::string> xscope_string_ptr_t;
 
-			xscope_my_type2(const mse::xscope_optional<xscope_string_ptr_t>& xscp_maybe_string_ptr) : m_xscp_maybe_string_ptr(xscp_maybe_string_ptr) {}
+        xscope_my_type2(const mse::xscope_optional<xscope_string_ptr_t>& xscp_maybe_string_ptr) : m_xscp_maybe_string_ptr(xscp_maybe_string_ptr) {}
 
-			/* This item (potentially) contains a non-owning scope pointer. */
-			mse::xscope_optional<xscope_string_ptr_t> m_xscp_maybe_string_ptr;
+        /* This item (potentially) contains a non-owning scope pointer. */
+        mse::xscope_optional<xscope_string_ptr_t> m_xscp_maybe_string_ptr;
 
-			/* This item owns an object that can be independently targeted by scope pointers. That is,
-			&(*m_xscp_string_owner_ptr) yields a scope pointer. */
-			mse::TXScopeOwnerPointer<mse::mstd::string> m_xscp_string_owner_ptr;
-		};
+        /* This item owns an object that can be independently targeted by scope pointers. That is,
+        &(*m_xscp_string_owner_ptr) yields a scope pointer. */
+        mse::TXScopeOwnerPointer<mse::mstd::string> m_xscp_string_owner_ptr;
+    };
 }
 ```
 
