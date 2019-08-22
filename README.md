@@ -813,7 +813,7 @@ usage example:
 
 ### xscope_ifptr_to()
 
-Scope pointers cannot (currently) be retargeted after construction. If you need a pointer that will point to multiple different scope objects over its lifespan, you can use a registered pointer. This means that the target objects will also need to be registered objects. If the object is a registered scope object, then the `&` operator will will return a registered pointer. But at some point we're going to need a scope pointer to the base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. 
+Scope pointers cannot (currently) be retargeted after construction. If you need a pointer that will point to multiple different scope objects over its lifespan, you can use a registered pointer. You could make the target objects registered objects in addition to being scope objects. If the object is a registered scope object, then the `&` operator will will return a registered pointer. But at some point we're going to need a scope pointer to the base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. 
 
 usage example:
 
@@ -850,6 +850,65 @@ usage example:
         }
         /* Attempting to dereference registered_ptr1 here would result in an exception. */
         //*registered_ptr1;
+
+        {
+            /* The drawback with the above technique of declaring a scope object to additionally be a registered object
+            in order to support retargetable pointers is that the decision (of whether to support retargetable pointers)
+            needs to be made when and where the object is declared rather than when and where the retargetable pointers
+            are needed. A more flexible alternative might be to add an extra level of indirection. That is, use
+            registered pointers that target scope pointers that, in turn, target the scope object rather than registered
+            pointers that target the scope object directly. This way the scope object does not need to be additionally
+            declared as a registered object. The scope pointers would need to be declared as registered objects, but you
+            can declare such scope pointers when and where you need them.
+            */
+
+            typedef mse::TXScopeObj<mse::mtnii_string> xscp_nstring_t;
+            typedef mse::TXScopeItemFixedPointer<mse::mtnii_string> xscp_nstring_ptr_t;
+            class CB {
+            public:
+                static void foo1(xscp_nstring_ptr_t xscope_ptr1) {
+                    std::cout << *xscope_ptr1;
+                }
+            };
+            xscp_nstring_t scp_nstring1("some text");
+
+            CB::foo1(&scp_nstring1);
+
+            {
+                typedef mse::TRegisteredObj< xscp_nstring_ptr_t > reg_xscp_nstring_ptr_t;
+                typedef mse::TRegisteredPointer<xscp_nstring_ptr_t> reg_xscp_nstring_ptr_ptr_t;
+
+                reg_xscp_nstring_ptr_t reg_xscp_nstring_ptr1 = &scp_nstring1;
+
+                reg_xscp_nstring_ptr_ptr_t reg_xscp_nstring_ptr_ptr1 = &reg_xscp_nstring_ptr1;
+
+                CB::foo1(*reg_xscp_nstring_ptr_ptr1);
+
+                xscp_nstring_t scp_nstring2("some other text");
+
+                reg_xscp_nstring_ptr_t reg_xscp_nstring_ptr2 = &scp_nstring2;
+
+                reg_xscp_nstring_ptr_ptr1 = &reg_xscp_nstring_ptr2;
+
+                CB::foo1(*reg_xscp_nstring_ptr_ptr1);
+
+                {
+                    xscp_nstring_t scp_nstring3("other text");
+
+                    {
+                        reg_xscp_nstring_ptr_t reg_xscp_nstring_ptr3 = &scp_nstring3;
+
+                        {
+                            reg_xscp_nstring_ptr_ptr1 = &reg_xscp_nstring_ptr3;
+                        }
+
+                        CB::foo1(*reg_xscp_nstring_ptr_ptr1);
+                    }
+                    /* Attempting to dereference reg_xscp_nstring_ptr_ptr1 here would result in an exception. */
+                    //*reg_xscp_nstring_ptr_ptr1;
+                }
+            }
+        }
     }
 ```
 
