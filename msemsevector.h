@@ -216,9 +216,16 @@ namespace mse {
 	}
 
 
+	namespace impl {
+		namespace ns_gnii_vector {
+			template<typename _TVector>
+			class Tgnii_vector_xscope_ss_const_iterator_type;
+		}
+	}
+
 	namespace us {
 		namespace impl {
-			template<class _Ty, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/>
+			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex, template<typename> class _TTXScopeConstIterator = mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type>
 			class gnii_vector;
 		}
 	}
@@ -233,30 +240,30 @@ namespace mse {
 
 	namespace impl {
 		namespace ns_gnii_vector {
-			template<class _Ty, class _A, class _TStateMutex>
+			template<class _TContainer>
 			class xscope_structure_lock_guard;
-			template<class _Ty, class _A, class _TStateMutex, class _TAccessMutex/* = mse::non_thread_safe_shared_mutex*/>
+			template<class _TContainer, class _TAccessMutex/* = mse::non_thread_safe_shared_mutex*/>
 			class xscope_ewconst_structure_lock_guard;
 		}
 	}
 	namespace us {
 		namespace impl {
 			namespace ns_gnii_vector {
-				template<class _Ty, class _A, class _TStateMutex>
+				template<class _TContainer>
 				class xscope_const_structure_lock_guard;
 			}
 		}
 	}
 
 	//template<class _Ty> auto make_xscope_structure_lock_guard(const _Ty& owner_ptr);
-	template<class _Ty, class _A, class _TStateMutex>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr)->mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>;
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator>
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator> >& owner_ptr)->mse::impl::ns_gnii_vector::xscope_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator> >;
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _Ty, class _A, class _TStateMutex>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr)->mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>;
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator>
+	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator> >& owner_ptr)->mse::impl::ns_gnii_vector::xscope_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator> >;
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _Ty, class _A, class _TStateMutex, class _TAccessMutex/* = mse::non_thread_safe_shared_mutex*/>
-	auto make_xscope_structure_lock_guard(const mse::TAccessControlledConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>, _TAccessMutex>& owner_ptr)->mse::impl::ns_gnii_vector::xscope_ewconst_structure_lock_guard<_Ty, _A, _TStateMutex, _TAccessMutex>;
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator, class _TAccessMutex/* = mse::non_thread_safe_shared_mutex*/>
+	auto make_xscope_structure_lock_guard(const mse::TAccessControlledConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>, _TAccessMutex>& owner_ptr)->mse::impl::ns_gnii_vector::xscope_ewconst_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>, _TAccessMutex>;
 
 	namespace us {
 		namespace impl {
@@ -505,15 +512,17 @@ namespace mse {
 			/* The reason we specify the default parameter in the definition instead of this forward declaration is that there seems to be a
 			bug in clang (3.8.0) such that if we don't specify the default parameter in the definition it seems to subsequently behave as if
 			one were never specified. g++ and msvc don't seem to have the same issue. */
-			template<typename _TVectorPointer, class _Ty, class _A, class _TStateMutex>
+			template<typename _TVectorPointer>
 			class Tgnii_vector_ss_iterator_type;
 
 			/* Tgnii_vector_ss_const_iterator_type is a bounds checked const_iterator. */
-			template<typename _TVectorConstPointer, class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			template<typename _TVectorConstPointer>
 			class Tgnii_vector_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TVectorConstPointer> > {
 			public:
 				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TVectorConstPointer> > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+				typedef typename std::remove_reference<typename std::remove_const<decltype(*std::declval<_TVectorConstPointer>())>::type>::type _TVector;
 
 				template<class _TVectorConstPointer2 = _TVectorConstPointer, class = typename std::enable_if<(std::is_same<_TVectorConstPointer2, _TVectorConstPointer>::value) && (std::is_default_constructible<_TVectorConstPointer>::value), void>::type>
 				Tgnii_vector_ss_const_iterator_type() {}
@@ -524,9 +533,9 @@ namespace mse {
 				Tgnii_vector_ss_const_iterator_type(Tgnii_vector_ss_const_iterator_type&& src) = default;
 				Tgnii_vector_ss_const_iterator_type(const Tgnii_vector_ss_const_iterator_type& src) = default;
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TVectorConstPointer>::value, void>::type>
-				Tgnii_vector_ss_const_iterator_type(const Tgnii_vector_ss_const_iterator_type<_Ty2, _Ty, _A, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+				Tgnii_vector_ss_const_iterator_type(const Tgnii_vector_ss_const_iterator_type<_Ty2>& src) : base_class(src.target_container_ptr(), src.position()) {}
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TVectorConstPointer>::value, void>::type>
-				Tgnii_vector_ss_const_iterator_type(const Tgnii_vector_ss_iterator_type<_Ty2, _Ty, _A, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+				Tgnii_vector_ss_const_iterator_type(const Tgnii_vector_ss_iterator_type<_Ty2>& src) : base_class(src.target_container_ptr(), src.position()) {}
 
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 				auto& operator=(Tgnii_vector_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
@@ -558,14 +567,16 @@ namespace mse {
 
 			private:
 
-				friend class /*_Myt*/mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>;
+				friend _TVector;
 			};
 			/* Tgnii_vector_ss_iterator_type is a bounds checked iterator. */
-			template<typename _TVectorPointer, class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			template<typename _TVectorPointer>
 			class Tgnii_vector_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TVectorPointer> > {
 			public:
 				typedef mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TVectorPointer> > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+				typedef typename std::remove_reference<typename std::remove_const<decltype(*std::declval<_TVectorPointer>())>::type>::type _TVector;
 
 				template<class _TVectorPointer2 = _TVectorPointer, class = typename std::enable_if<(std::is_same<_TVectorPointer2, _TVectorPointer>::value) && (std::is_default_constructible<_TVectorPointer>::value), void>::type>
 				Tgnii_vector_ss_iterator_type() {}
@@ -576,7 +587,7 @@ namespace mse {
 				Tgnii_vector_ss_iterator_type(Tgnii_vector_ss_iterator_type&& src) = default;
 				Tgnii_vector_ss_iterator_type(const Tgnii_vector_ss_iterator_type& src) = default;
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TVectorPointer>::value, void>::type>
-				Tgnii_vector_ss_iterator_type(const Tgnii_vector_ss_iterator_type<_Ty2, _Ty, _A, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+				Tgnii_vector_ss_iterator_type(const Tgnii_vector_ss_iterator_type<_Ty2>& src) : base_class(src.target_container_ptr(), src.position()) {}
 
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 				auto& operator=(Tgnii_vector_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
@@ -608,38 +619,38 @@ namespace mse {
 
 			private:
 
-				friend class /*_Myt*/mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>;
-				template<typename _TVectorConstPointer, class _Ty2, class _A2, class _TStateMutex2>
+				friend _TVector;
+				template<typename _TVectorConstPointer2>
 				friend class Tgnii_vector_ss_const_iterator_type;
 			};
 
-			template<typename _TVectorPointer, class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			using Tgnii_vector_ss_reverse_iterator_type = std::reverse_iterator<Tgnii_vector_ss_iterator_type<_TVectorPointer, _Ty, _A, _TStateMutex> >;
-			template<typename _TVectorConstPointer, class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			using Tgnii_vector_ss_const_reverse_iterator_type = std::reverse_iterator<Tgnii_vector_ss_const_iterator_type<_TVectorConstPointer, _Ty, _A, _TStateMutex> >;
+			template<typename _TVectorPointer>
+			using Tgnii_vector_ss_reverse_iterator_type = std::reverse_iterator<Tgnii_vector_ss_iterator_type<_TVectorPointer> >;
+			template<typename _TVectorConstPointer>
+			using Tgnii_vector_ss_const_reverse_iterator_type = std::reverse_iterator<Tgnii_vector_ss_const_iterator_type<_TVectorConstPointer> >;
 
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			using Tgnii_vector_rp_ss_iterator_type = Tgnii_vector_ss_iterator_type<msev_pointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >, _Ty, _A, _TStateMutex>;
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			using Tgnii_vector_rp_ss_const_iterator_type = Tgnii_vector_ss_const_iterator_type<msev_pointer<const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >, _Ty, _A, _TStateMutex>;
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			using Tgnii_vector_rp_ss_reverse_iterator_type = Tgnii_vector_ss_iterator_type<msev_pointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >, _Ty, _A, _TStateMutex>;
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			using Tgnii_vector_rp_ss_const_reverse_iterator_type = Tgnii_vector_ss_const_reverse_iterator_type<msev_pointer<const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >, _Ty, _A, _TStateMutex>;
+			template<typename _TVector>
+			using Tgnii_vector_rp_ss_iterator_type = Tgnii_vector_ss_iterator_type<msev_pointer<_TVector> >;
+			template<typename _TVector>
+			using Tgnii_vector_rp_ss_const_iterator_type = Tgnii_vector_ss_const_iterator_type<msev_pointer<const _TVector> >;
+			template<typename _TVector>
+			using Tgnii_vector_rp_ss_reverse_iterator_type = Tgnii_vector_ss_iterator_type<msev_pointer<_TVector> >;
+			template<typename _TVector>
+			using Tgnii_vector_rp_ss_const_reverse_iterator_type = Tgnii_vector_ss_const_reverse_iterator_type<msev_pointer<const _TVector> >;
 
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			using TXScopeVectorPointer = mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >;
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			using TXScopeVectorConstPointer = mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >;
+			template<typename _TVector>
+			using TXScopeVectorPointer = mse::TXScopeItemFixedPointer<_TVector>;
+			template<typename _TVector>
+			using TXScopeVectorConstPointer = mse::TXScopeItemFixedConstPointer<_TVector>;
 
-			template<class _Ty, class _A, class _TStateMutex>
+			template<typename _TVector>
 			class Tgnii_vector_xscope_cslsstrong_iterator_type;
 
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class Tgnii_vector_xscope_cslsstrong_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeVectorConstPointer<_Ty, _A, _TStateMutex>, mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<_Ty, _A, _TStateMutex> > >
+			template<typename _TVector>
+			class Tgnii_vector_xscope_cslsstrong_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeVectorConstPointer<_TVector>, mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<_TVector> > >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeVectorConstPointer<_Ty, _A, _TStateMutex>, mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<_Ty, _A, _TStateMutex> > > base_class;
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeVectorConstPointer<_TVector>, mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<_TVector> > > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_vector_xscope_cslsstrong_const_iterator_type, base_class);
@@ -675,16 +686,16 @@ namespace mse {
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-				friend class /*_Myt*/mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>;
-				template<class _Ty2, class _A2, class _TStateMutex2>
+				friend _TVector;
+				template<class _TVector2>
 				friend class Tgnii_vector_xscope_cslsstrong_iterator_type;
 			};
 
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class Tgnii_vector_xscope_cslsstrong_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeVectorPointer<_Ty, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeVectorPointer<_Ty, _A, _TStateMutex> >()))> >
+			template<typename _TVector>
+			class Tgnii_vector_xscope_cslsstrong_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeVectorPointer<_TVector>, mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_TVector> > >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeVectorPointer<_Ty, _A, _TStateMutex>, decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeVectorPointer<_Ty, _A, _TStateMutex> >()))> > base_class;
+				typedef mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeVectorPointer<_TVector>, mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_TVector> > > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_vector_xscope_cslsstrong_iterator_type, base_class);
@@ -720,17 +731,17 @@ namespace mse {
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-				friend class /*_Myt*/mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>;
+				friend _TVector;
 			};
 
-			template<class _Ty, class _A, class _TStateMutex>
+			template<typename _TVector>
 			class Tgnii_vector_xscope_ss_iterator_type;
 
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class Tgnii_vector_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > >
+			template<typename _TVector>
+			class Tgnii_vector_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<_TVector> > >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > > base_class;
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<_TVector> > > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_vector_xscope_ss_const_iterator_type, base_class);
@@ -740,23 +751,23 @@ namespace mse {
 				This class requires a TXScopeItemFixedConstPointer<> to the container, but the other class instead holds an
 				xscope_structure_lock_guard<>, which can be converted to the needed TXScopeItemFixedConstPointer<> with an
 				explicit intermediary conversion (to a TXScopeItemFixedPointer<>). */
-				Tgnii_vector_xscope_ss_const_iterator_type(const Tgnii_vector_xscope_cslsstrong_iterator_type<_Ty, _A, _TStateMutex>& src)
-					: base_class(mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >(src.target_container_ptr()), src.position()) {}
+				Tgnii_vector_xscope_ss_const_iterator_type(const Tgnii_vector_xscope_cslsstrong_iterator_type<_TVector>& src)
+					: base_class(mse::TXScopeItemFixedPointer<_TVector>(src.target_container_ptr()), src.position()) {}
 
 				//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 				/* Normally we would just use the macro for inheriting assignment operators, but here we need to exclude any
 				that handle Tgnii_vector_xscope_cslsstrong_iterator_type<>s, because that class needs to be handled a bit
 				differently. */
 				template<class _Ty2mse_uao, class _Tbase_class2 = base_class, typename = typename std::enable_if<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_Tbase_class2>::value \
-					&& (!std::is_same<Tgnii_vector_xscope_cslsstrong_iterator_type<_Ty, _A, _TStateMutex>, typename std::remove_reference<_Ty2mse_uao>::type>::value) \
+					&& (!std::is_same<Tgnii_vector_xscope_cslsstrong_iterator_type<_TVector>, typename std::remove_reference<_Ty2mse_uao>::type>::value) \
 					&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_Tbase_class2, _Ty2mse_uao>::value) || std::is_same<_Tbase_class2, typename std::remove_reference<_Ty2mse_uao>::type>::value)>::type> \
 				auto& operator=(_Ty2mse_uao&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
 				template<class _Ty2mse_uao, class _Tbase_class2 = base_class, typename = typename std::enable_if<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_Tbase_class2>::value \
-					&& (!std::is_same<Tgnii_vector_xscope_cslsstrong_iterator_type<_Ty, _A, _TStateMutex>, typename std::remove_reference<_Ty2mse_uao>::type>::value) \
+					&& (!std::is_same<Tgnii_vector_xscope_cslsstrong_iterator_type<_TVector>, typename std::remove_reference<_Ty2mse_uao>::type>::value) \
 					&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<_Tbase_class2, _Ty2mse_uao>::value) || std::is_same<_Tbase_class2, typename std::remove_reference<_Ty2mse_uao>::type>::value)>::type> \
 				auto& operator=(const _Ty2mse_uao& _X) { base_class::operator=(_X); return (*this); }
 
-				auto& operator=(const Tgnii_vector_xscope_cslsstrong_iterator_type<_Ty, _A, _TStateMutex>& _X) { base_class::operator=(Tgnii_vector_xscope_ss_const_iterator_type(_X)); return (*this); }
+				auto& operator=(const Tgnii_vector_xscope_cslsstrong_iterator_type<_TVector>& _X) { base_class::operator=(Tgnii_vector_xscope_ss_const_iterator_type(_X)); return (*this); }
 
 				auto& operator=(Tgnii_vector_xscope_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 				auto& operator=(const Tgnii_vector_xscope_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
@@ -781,15 +792,15 @@ namespace mse {
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-				friend class /*_Myt*/mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>;
-				template<class _Ty2, class _A2, class _TStateMutex2>
+				friend _TVector;
+				template<class _TVector2>
 				friend class Tgnii_vector_xscope_ss_iterator_type;
 			};
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class Tgnii_vector_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > >
+			template<typename _TVector>
+			class Tgnii_vector_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<_TVector> > >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > > > base_class;
+				typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<_TVector> > > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_vector_xscope_ss_iterator_type, base_class);
@@ -817,7 +828,7 @@ namespace mse {
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-				friend class /*_Myt*/mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>;
+				friend _TVector;
 			};
 		}
 	}
@@ -1234,19 +1245,17 @@ namespace mse {
 
 	namespace us {
 		namespace impl {
-			namespace ns_gnii_vector {
-				template<class _Ty, class _A, class _TStateMutex>
-				class xscope_const_structure_lock_guard;
-			}
 
 			/* mse::us::impl::gnii_vector<> is essentially a memory-safe vector that does not expose (unprotected) non-static member functions
 			like begin() or end() which return (memory) unsafe iterators. It does provide static member function templates
 			like ss_begin<>(...) and ss_end<>(...) which take a pointer parameter and return a (bounds-checked) iterator that
 			inherits the safety of the given pointer. mse::us::impl::gnii_vector<> also supports "scope" iterators which are safe without any
 			run-time overhead. mse::us::impl::gnii_vector<> is a data type that is eligible to be shared between asynchronous threads. */
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+			template<class _Ty, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/, template<typename> class _TTXScopeConstIterator/* = mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type*/>
 			class gnii_vector : public us::impl::ContiguousSequenceContainerTagBase {
 			public:
+				typedef _TStateMutex state_mutex_type;
+
 				typedef std::vector<_Ty, _A> std_vector;
 				typedef std_vector _MV;
 				typedef gnii_vector _Myt;
@@ -1450,8 +1459,8 @@ namespace mse {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_vector.swap(_Other);
 				}
-				template<typename _TStateMutex2>
-				void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex2>& _Other) {	// swap contents with _Other
+				template<typename _TStateMutex2, template<typename> class _TTXScopeConstIterator2>
+				void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex2, _TTXScopeConstIterator2>& _Other) {	// swap contents with _Other
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					m_vector.swap(_Other.m_vector);
 				}
@@ -1514,20 +1523,20 @@ namespace mse {
 				typedef mse::impl::random_access_const_iterator_base<_Ty> nv_const_iterator_base;
 				typedef mse::impl::random_access_iterator_base<_Ty> nv_iterator_base;
 
-				template<typename _TVectorConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorConstPointer>::value), void>::type>
-				using Tss_const_iterator_type = mse::impl::ns_gnii_vector::Tgnii_vector_ss_const_iterator_type<_TVectorConstPointer, _Ty, _A, _TStateMutex>;
-				template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorPointer>::value), void>::type>
-				using Tss_iterator_type = mse::impl::ns_gnii_vector::Tgnii_vector_ss_iterator_type<_TVectorPointer, _Ty, _A, _TStateMutex>;
+				template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
+				using Tss_const_iterator_type = mse::impl::ns_gnii_vector::Tgnii_vector_ss_const_iterator_type<_TVectorConstPointer>;
+				template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
+				using Tss_iterator_type = mse::impl::ns_gnii_vector::Tgnii_vector_ss_iterator_type<_TVectorPointer>;
 
-				template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorPointer>::value), void>::type>
-				using Tss_reverse_iterator_type = mse::impl::ns_gnii_vector::Tgnii_vector_ss_reverse_iterator_type<_TVectorPointer, _Ty, _A, _TStateMutex>;
-				template<typename _TVectorConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorConstPointer>::value), void>::type>
-				using Tss_const_reverse_iterator_type = mse::impl::ns_gnii_vector::Tgnii_vector_ss_const_reverse_iterator_type<_TVectorConstPointer, _Ty, _A, _TStateMutex>;
+				template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
+				using Tss_reverse_iterator_type = mse::impl::ns_gnii_vector::Tgnii_vector_ss_reverse_iterator_type<_TVectorPointer>;
+				template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
+				using Tss_const_reverse_iterator_type = mse::impl::ns_gnii_vector::Tgnii_vector_ss_const_reverse_iterator_type<_TVectorConstPointer>;
 
-				typedef mse::impl::ns_gnii_vector::Tgnii_vector_rp_ss_iterator_type<_Ty, _A, _TStateMutex> ss_iterator_type;
-				typedef mse::impl::ns_gnii_vector::Tgnii_vector_rp_ss_const_iterator_type<_Ty, _A, _TStateMutex> ss_const_iterator_type;
-				typedef mse::impl::ns_gnii_vector::Tgnii_vector_rp_ss_reverse_iterator_type<_Ty, _A, _TStateMutex> ss_reverse_iterator_type;
-				typedef mse::impl::ns_gnii_vector::Tgnii_vector_rp_ss_const_reverse_iterator_type<_Ty, _A, _TStateMutex> ss_const_reverse_iterator_type;
+				typedef mse::impl::ns_gnii_vector::Tgnii_vector_rp_ss_iterator_type<_Myt> ss_iterator_type;
+				typedef mse::impl::ns_gnii_vector::Tgnii_vector_rp_ss_const_iterator_type<_Myt> ss_const_iterator_type;
+				typedef mse::impl::ns_gnii_vector::Tgnii_vector_rp_ss_reverse_iterator_type<_Myt> ss_reverse_iterator_type;
+				typedef mse::impl::ns_gnii_vector::Tgnii_vector_rp_ss_const_reverse_iterator_type<_Myt> ss_const_reverse_iterator_type;
 
 			private:
 				/* ss_iterator_type is bounds checked, but not safe against "use-after-free", so the member functions that
@@ -1960,12 +1969,13 @@ namespace mse {
 				}
 
 
-				typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type<_Ty, _A, _TStateMutex> xscope_ss_const_iterator_type;
-				typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Ty, _A, _TStateMutex> xscope_ss_iterator_type;
+				typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type<_Myt> xscope_ss_const_iterator_type;
+				typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type<_Myt> xscope_ss_iterator_type;
 
-				typedef xscope_ss_const_iterator_type xscope_const_iterator;
+				//typedef xscope_ss_const_iterator_type xscope_const_iterator;
+				typedef _TTXScopeConstIterator<_Myt> xscope_const_iterator;
 				//typedef xscope_ss_iterator_type xscope_iterator;
-				typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_iterator_type<_Ty, _A, _TStateMutex> xscope_iterator;
+				typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_iterator_type<_Myt> xscope_iterator;
 
 				template<typename _TVectorPointer1>
 				static auto insert(_TVectorPointer1 this_ptr, const xscope_const_iterator& pos, _Ty&& _X) {
@@ -1987,7 +1997,7 @@ namespace mse {
 				static auto insert(_TVectorPointer1 this_ptr, const xscope_const_iterator& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist) {
 					return insert(this_ptr, pos.position(), _Ilist);
 				}
-				template<typename _TVectorPointer1, typename _TVectorPointer2, class ..._Valty, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorPointer2>::value), void>::type>
+				template<typename _TVectorPointer1, class ..._Valty>
 				static auto emplace(_TVectorPointer1 this_ptr, const xscope_const_iterator& pos, _Valty&& ..._Val) {
 					return emplace(this_ptr, pos.position(), std::forward<_Valty>(_Val)...);
 				}
@@ -2020,7 +2030,7 @@ namespace mse {
 				static auto insert(_TVectorPointer1 this_ptr, const xscope_iterator& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist) {
 					return insert(this_ptr, xscope_const_iterator(pos), _Ilist);
 				}
-				template<typename _TVectorPointer1, typename _TVectorPointer2, class ..._Valty, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorPointer2>::value), void>::type>
+				template<typename _TVectorPointer1, class ..._Valty>
 				static auto emplace(_TVectorPointer1 this_ptr, const xscope_iterator& pos, _Valty&& ..._Val) {
 					return emplace(this_ptr, xscope_const_iterator(pos), std::forward<_Valty>(_Val)...);
 				}
@@ -2064,7 +2074,7 @@ namespace mse {
 
 				/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 				(intended) compile error. */
-				template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value), void>::type>
+				template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value), void>::type>
 				void valid_if_Ty_is_not_an_xscope_type() const {}
 
 				template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_same<bool, _Ty2>::value), void>::type>
@@ -2164,7 +2174,7 @@ namespace mse {
 
 				friend /*class */xscope_ss_const_iterator_type;
 				friend /*class */xscope_ss_iterator_type;
-				template<class _Ty2, class _A2, class _TStateMutex2> friend class gnii_vector;
+				template<class _Ty2, class _A2, class _TStateMutex2, template<typename> class _TTXScopeConstIterator2> friend class gnii_vector;
 				//friend class us::msevector<_Ty, _A>;
 				template<class _Ty2, class _A2, class _TStateMutex2> friend class us::msevector;
 				friend class mse::us::impl::Txscope_structure_lock_guard<_Myt>;
@@ -2182,23 +2192,23 @@ namespace mse {
 				->gnii_vector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
 #endif /* MSE_HAS_CXX17 */
 
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex> inline bool operator!=(const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left,
-				const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Right) {	// test for vector inequality
+			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex, template<typename> class _TTXScopeConstIterator = mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type> inline bool operator!=(const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Left,
+				const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) {	// test for vector inequality
 				return (!(_Left == _Right));
 			}
 
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex> inline bool operator>(const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left,
-				const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Right) {	// test if _Left > _Right for vectors
+			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex, template<typename> class _TTXScopeConstIterator = mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type> inline bool operator>(const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Left,
+				const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) {	// test if _Left > _Right for vectors
 				return (_Right < _Left);
 			}
 
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex> inline bool operator<=(const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left,
-				const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Right) {	// test if _Left <= _Right for vectors
+			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex, template<typename> class _TTXScopeConstIterator = mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type> inline bool operator<=(const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Left,
+				const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) {	// test if _Left <= _Right for vectors
 				return (!(_Right < _Left));
 			}
 
-			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex> inline bool operator>=(const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left,
-				const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Right) {	// test if _Left >= _Right for vectors
+			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex, template<typename> class _TTXScopeConstIterator = mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type> inline bool operator>=(const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Left,
+				const mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) {	// test if _Left >= _Right for vectors
 				return (!(_Left < _Right));
 			}
 
@@ -2214,13 +2224,13 @@ namespace mse {
 				constructed from const references and ensure their safety by either indicating that they are not eligible to
 				be shared between threads (like stnii_vector<> does), or ensuring that m_structure_change_mutex is thread safe
 				(like mtnii_vector<> does). */
-				template<class _Ty, class _A, class _TStateMutex>
-				class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard<gnii_vector<_Ty, _A, _TStateMutex> > {
+				template<class _TContainer>
+				class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard<_TContainer> {
 				public:
-					typedef mse::us::impl::Txscope_const_structure_lock_guard<gnii_vector<_Ty, _A, _TStateMutex> > base_class;
+					typedef mse::us::impl::Txscope_const_structure_lock_guard<_TContainer> base_class;
 					using base_class::base_class;
 
-					operator mse::TXScopeItemFixedConstPointer<gnii_vector<_Ty, _A, _TStateMutex> >() const {
+					operator mse::TXScopeItemFixedConstPointer<_TContainer>() const {
 						return static_cast<const base_class&>(*this);
 					}
 				private:
@@ -2235,11 +2245,11 @@ namespace mse {
 			/* While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
 			individual elements in the vector do not become invalid by preventing any operation that might resize the vector
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-			template<class _Ty, class _A, class _TStateMutex>
-			class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > {
+			template<class _TContainer>
+			class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard<_TContainer> {
 			public:
-				typedef mse::us::impl::Txscope_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> > base_class;
-				typedef mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> TDynamicContainer;
+				typedef mse::us::impl::Txscope_structure_lock_guard<_TContainer> base_class;
+				typedef _TContainer TDynamicContainer;
 				using base_class::base_class;
 
 				operator mse::TXScopeItemFixedPointer<TDynamicContainer>() const {
@@ -2258,13 +2268,13 @@ namespace mse {
 			/* For objects that are access controlled under an "exclusive writer" access policy, the object is immutable
 			while a const pointer to the object exists. So given an "exclusive writer" const pointer to a vector, it is
 			safe to provide a direct scope const pointer to any of its elements. */
-			template<class _Ty, class _A, class _TStateMutex, class _TAccessMutex = mse::non_thread_safe_shared_mutex>
-			class xscope_ewconst_structure_lock_guard : public mse::us::impl::Txscope_ewconst_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>, _TAccessMutex> {
+			template<class _TContainer, class _TAccessMutex = mse::non_thread_safe_shared_mutex>
+			class xscope_ewconst_structure_lock_guard : public mse::us::impl::Txscope_ewconst_structure_lock_guard<_TContainer, _TAccessMutex> {
 			public:
-				typedef mse::us::impl::Txscope_ewconst_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>, _TAccessMutex> base_class;
+				typedef mse::us::impl::Txscope_ewconst_structure_lock_guard<_TContainer, _TAccessMutex> base_class;
 				using base_class::base_class;
 
-				typedef mse::TAccessControlledConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>, _TAccessMutex> exclusive_writer_const_pointer_t;
+				typedef mse::TAccessControlledConstPointer<_TContainer, _TAccessMutex> exclusive_writer_const_pointer_t;
 
 				operator exclusive_writer_const_pointer_t() const {
 					return static_cast<const base_class&>(*this);
@@ -2278,14 +2288,14 @@ namespace mse {
 	/* While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
 	individual elements in the vector do not become invalid by preventing any operation that might resize the vector
 	or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-	template<class _Ty, class _A, class _TStateMutex>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) -> mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex> {
-		return mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator>
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator> >& owner_ptr) -> mse::impl::ns_gnii_vector::xscope_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator> > {
+		return mse::impl::ns_gnii_vector::xscope_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator> >(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _Ty, class _A, class _TStateMutex>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex> >& owner_ptr) -> mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex> {
-		return mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator>
+	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator> >& owner_ptr) -> mse::impl::ns_gnii_vector::xscope_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator> > {
+		return mse::impl::ns_gnii_vector::xscope_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator> >(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 	/* Overloads for rsv::TReturnableFParam<>. */
@@ -2294,9 +2304,9 @@ namespace mse {
 	/* For objects that are access controlled under an "exclusive writer" access policy, the object is immutable
 	while a const pointer to the object exists. So given an "exclusive writer" const pointer to a vector, it is
 	safe to provide a direct scope const pointer to any of its elements. */
-	template<class _Ty, class _A, class _TStateMutex, class _TAccessMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_structure_lock_guard(const mse::TAccessControlledConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>, _TAccessMutex>& owner_ptr) -> mse::impl::ns_gnii_vector::xscope_ewconst_structure_lock_guard<_Ty, _A, _TStateMutex, _TAccessMutex> {
-		return mse::impl::ns_gnii_vector::xscope_ewconst_structure_lock_guard<_Ty, _A, _TStateMutex, _TAccessMutex>(owner_ptr);
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator, class _TAccessMutex = mse::non_thread_safe_shared_mutex>
+	auto make_xscope_structure_lock_guard(const mse::TAccessControlledConstPointer<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>, _TAccessMutex>& owner_ptr) -> mse::impl::ns_gnii_vector::xscope_ewconst_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>, _TAccessMutex> {
+		return mse::impl::ns_gnii_vector::xscope_ewconst_structure_lock_guard<mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>, _TAccessMutex>(owner_ptr);
 	}
 
 	template<class _TDynamicContainerPointer>
@@ -2325,23 +2335,23 @@ namespace mse {
 
 namespace std {
 
-	template<class _Ty, class _A, class _TStateMutex>
-	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator>
+	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{
 		_Left.swap(_Right);
 	}
-	template<class _Ty, class _A, class _TStateMutex, class _TStateMutex2, class = typename std::enable_if<!std::is_same<_TStateMutex, _TStateMutex2>::value, void>::type>
-	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex2>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator, class _TStateMutex2, template<typename> class _TTXScopeConstIterator2, class = typename std::enable_if<!std::is_same<_TStateMutex, _TStateMutex2>::value, void>::type>
+	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex2, _TTXScopeConstIterator2>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{
 		_Left.swap(_Right);
 	}
-	template<class _Ty, class _A, class _TStateMutex>
-	void swap(vector<_Ty, _A>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator>
+	void swap(vector<_Ty, _A>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap vectors
 		return (_Right.swap(_Left));
 	}
-	template<class _Ty, class _A, class _TStateMutex>
-	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>& _Left, vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator>
+	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Left, vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{
 		_Left.swap(_Right);
 	}
@@ -2351,10 +2361,10 @@ namespace mse {
 
 	/* mtnii_vector<> is a vector that is eligible to be shared among threads and does not support implicit
 	iterators. */
-	template<class _Ty, class _A = std::allocator<_Ty>>
-	class mtnii_vector : public mse::us::impl::gnii_vector<_Ty, _A, mse::shareable_dynamic_container_mutex> {
+	template<class _Ty, class _A = std::allocator<_Ty> >
+	class mtnii_vector : public mse::us::impl::gnii_vector<_Ty, _A, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type> {
 	public:
-		typedef mse::us::impl::gnii_vector<_Ty, _A, mse::shareable_dynamic_container_mutex> base_class;
+		typedef mse::us::impl::gnii_vector<_Ty, _A, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type> base_class;
 		typedef mse::shareable_dynamic_container_mutex _TStateMutex;
 
 		typedef typename base_class::allocator_type allocator_type;
@@ -2365,13 +2375,13 @@ namespace mse {
 		typedef typename base_class::reverse_iterator reverse_iterator;
 		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
 
-		template<typename _TVectorConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorConstPointer>::value), void>::type>
+		template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
 		using Tss_const_iterator_type = typename base_class::template Tss_const_iterator_type<_TVectorConstPointer>;
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorPointer>::value), void>::type>
+		template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
 		using Tss_iterator_type = typename base_class::template Tss_iterator_type<_TVectorPointer>;
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorPointer>::value), void>::type>
+		template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
 		using Tss_reverse_iterator_type = typename base_class::template Tss_reverse_iterator_type<_TVectorPointer>;
-		template<typename _TVectorConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorConstPointer>::value), void>::type>
+		template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
 		using Tss_const_reverse_iterator_type = typename base_class::template Tss_const_reverse_iterator_type<_TVectorConstPointer>;
 		typedef typename base_class::ss_iterator_type ss_iterator_type;
 		typedef typename base_class::ss_const_iterator_type ss_const_iterator_type;
@@ -2381,8 +2391,8 @@ namespace mse {
 		typedef typename base_class::xscope_ss_const_iterator_type xscope_ss_const_iterator_type;
 		typedef typename base_class::xscope_ss_iterator_type xscope_ss_iterator_type;
 
-		//typedef typename base_class::xscope_const_iterator xscope_const_iterator;
-		typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type<_Ty, _A, _TStateMutex> xscope_const_iterator;
+		//typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type<_Myt> xscope_const_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 		typedef typename base_class::xscope_iterator xscope_iterator;
 
 		MSE_USING(mtnii_vector, base_class);
@@ -2399,11 +2409,11 @@ namespace mse {
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 			/* The following xscope_const_structure_lock_guard constructed from a const reference is thread safe because
 			mtnii_vector<> is uses an atomic "state mutex". */
-			template<class _Ty, class _A>
-			using xscope_const_structure_lock_guard = mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<_Ty, _A, mse::shareable_dynamic_container_mutex>;
+			template<class _TContainer>
+			using xscope_const_structure_lock_guard = mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<typename _TContainer::base_class>;
 
-			template<class _Ty, class _A>
-			using xscope_structure_lock_guard = mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, mse::shareable_dynamic_container_mutex>;
+			template<class _TContainer>
+			using xscope_structure_lock_guard = mse::impl::ns_gnii_vector::xscope_structure_lock_guard<typename _TContainer::base_class>;
 		}
 	}
 
@@ -2412,25 +2422,25 @@ namespace mse {
 	or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 	/* The returned xscope_structure_lock_guard constructed from a const reference is only safe because
 	mtnii_vector<> is not eligible to be shared between threads. */
-	template<class _Ty, class _A, class _TStateMutex>
+	template<class _Ty, class _A>
 	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<mtnii_vector<_Ty, _A> >& owner_ptr) {
-		return mse::impl::ns_mtnii_vector::xscope_const_structure_lock_guard<_Ty, _A>(owner_ptr);
+		return mse::impl::ns_mtnii_vector::xscope_const_structure_lock_guard<mtnii_vector<_Ty, _A> >(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A>
 	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<mtnii_vector<_Ty, _A> >& owner_ptr) {
-		return mse::impl::ns_mtnii_vector::xscope_const_structure_lock_guard<_Ty, _A>(owner_ptr);
+		return mse::impl::ns_mtnii_vector::xscope_const_structure_lock_guard<mtnii_vector<_Ty, _A> >(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	template<class _Ty, class _A>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mtnii_vector<_Ty, _A> >& owner_ptr) {
-		return mse::impl::ns_mtnii_vector::xscope_structure_lock_guard<_Ty, _A>(owner_ptr);
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mtnii_vector<mtnii_vector<_Ty, _A> > >& owner_ptr) {
+		return mse::impl::ns_mtnii_vector::xscope_structure_lock_guard<mtnii_vector<_Ty, _A> >(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A>
 	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<mtnii_vector<_Ty, _A> >& owner_ptr) {
-		return mse::impl::ns_mtnii_vector::xscope_structure_lock_guard<_Ty, _A>(owner_ptr);
+		return mse::impl::ns_mtnii_vector::xscope_structure_lock_guard<mtnii_vector<_Ty, _A> >(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
@@ -2438,9 +2448,9 @@ namespace mse {
 	/* stnii_basic_vector<> is a "low-overhead" vector that is not eligible to be shared among threads and does not
 	support implicit iterators. */
 	template<class _Ty, class _A = std::allocator<_Ty> >
-	class stnii_vector : public mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex>, public us::impl::AsyncNotShareableTagBase {
+	class stnii_vector : public mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type>, public us::impl::AsyncNotShareableTagBase {
 	public:
-		typedef mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex> base_class;
+		typedef mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type> base_class;
 		typedef mse::non_thread_safe_shared_mutex _TStateMutex;
 
 		typedef typename base_class::allocator_type allocator_type;
@@ -2451,13 +2461,13 @@ namespace mse {
 		typedef typename base_class::reverse_iterator reverse_iterator;
 		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
 
-		template<typename _TVectorConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorConstPointer>::value), void>::type>
+		template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
 		using Tss_const_iterator_type = typename base_class::template Tss_const_iterator_type<_TVectorConstPointer>;
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorPointer>::value), void>::type>
+		template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
 		using Tss_iterator_type = typename base_class::template Tss_iterator_type<_TVectorPointer>;
-		template<typename _TVectorPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorPointer>::value), void>::type>
+		template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
 		using Tss_reverse_iterator_type = typename base_class::template Tss_reverse_iterator_type<_TVectorPointer>;
-		template<typename _TVectorConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TVectorConstPointer>::value), void>::type>
+		template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
 		using Tss_const_reverse_iterator_type = typename base_class::template Tss_const_reverse_iterator_type<_TVectorConstPointer>;
 		typedef typename base_class::ss_iterator_type ss_iterator_type;
 		typedef typename base_class::ss_const_iterator_type ss_const_iterator_type;
@@ -2467,8 +2477,8 @@ namespace mse {
 		typedef typename base_class::xscope_ss_const_iterator_type xscope_ss_const_iterator_type;
 		typedef typename base_class::xscope_ss_iterator_type xscope_ss_iterator_type;
 
-		//typedef typename base_class::xscope_const_iterator xscope_const_iterator;
-		typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type<_Ty, _A, _TStateMutex> xscope_const_iterator;
+		//typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type<_Myt> xscope_const_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 		typedef typename base_class::xscope_iterator xscope_iterator;
 
 		MSE_USING(stnii_vector, base_class);
@@ -2483,11 +2493,11 @@ namespace mse {
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 			/* The following xscope_const_structure_lock_guard constructed from a const reference is only safe because
 			stnii_vector<> is not eligible to be shared between threads. */
-			template<class _Ty, class _A>
-			using xscope_const_structure_lock_guard = mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<_Ty, _A, mse::non_thread_safe_shared_mutex>;
+			template<class _TContainer>
+			using xscope_const_structure_lock_guard = mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<typename _TContainer::base_class>;
 
-			template<class _Ty, class _A>
-			using xscope_structure_lock_guard = mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, mse::non_thread_safe_shared_mutex>;
+			template<class _TContainer>
+			using xscope_structure_lock_guard = mse::impl::ns_gnii_vector::xscope_structure_lock_guard<typename _TContainer::base_class>;
 		}
 	}
 
@@ -2498,23 +2508,23 @@ namespace mse {
 	stnii_vector<> is not eligible to be shared between threads. */
 	template<class _Ty, class _A>
 	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<stnii_vector<_Ty, _A> >& owner_ptr) {
-		return mse::impl::ns_stnii_vector::xscope_const_structure_lock_guard<_Ty, _A>(owner_ptr);
+		return mse::impl::ns_stnii_vector::xscope_const_structure_lock_guard<stnii_vector<_Ty, _A> >(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A>
 	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<stnii_vector<_Ty, _A> >& owner_ptr) {
-		return mse::impl::ns_stnii_vector::xscope_const_structure_lock_guard<_Ty, _A>(owner_ptr);
+		return mse::impl::ns_stnii_vector::xscope_const_structure_lock_guard<stnii_vector<_Ty, _A> >(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	template<class _Ty, class _A>
 	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<stnii_vector<_Ty, _A> >& owner_ptr) {
-		return mse::impl::ns_stnii_vector::xscope_structure_lock_guard<_Ty, _A>(owner_ptr);
+		return mse::impl::ns_stnii_vector::xscope_structure_lock_guard<stnii_vector<_Ty, _A> >(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A>
 	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<stnii_vector<_Ty, _A> >& owner_ptr) {
-		return mse::impl::ns_stnii_vector::xscope_structure_lock_guard<_Ty, _A>(owner_ptr);
+		return mse::impl::ns_stnii_vector::xscope_structure_lock_guard<stnii_vector<_Ty, _A> >(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
@@ -2531,8 +2541,8 @@ namespace mse {
 	namespace us {
 
 		namespace ns_msevector {
-			template<class _Ty, class _A, class _TStateMutex> class xscope_structure_lock_guard;
-			template<class _Ty, class _A, class _TStateMutex> class xscope_const_structure_lock_guard;
+			template<class _TContainer> class xscope_structure_lock_guard;
+			template<class _TContainer> class xscope_const_structure_lock_guard;
 		}
 
 		/* msevector<> is an unsafe extension of stnii_vector<> that provides the traditional begin() and end() (non-static)
@@ -3068,8 +3078,8 @@ namespace mse {
 				(*this).swap(static_cast<base_class&>(_X));
 				m_mmitset.reset();
 			}
-			template<typename _TStateMutex2>
-			void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex2>& _X) {
+			template<typename _TStateMutex2, template<typename> class _TTXScopeConstIterator2>
+			void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex2, _TTXScopeConstIterator2>& _X) {
 				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				base_class::swap(_X);
 				/*m_debug_size = size();*/
@@ -3397,7 +3407,7 @@ namespace mse {
 				msev_size_t m_index = 0;
 				const _Myt* m_owner_cptr = nullptr;
 				friend class mm_iterator_set_type;
-				friend class /*_Myt*/msevector<_Ty, _A>;
+				friend class /*_Myt*/msevector<_Ty, _A, _TStateMutex>;
 				friend class mm_iterator_type;
 			};
 			/* mm_iterator_type acts much like a list iterator. */
@@ -4740,8 +4750,8 @@ namespace mse {
 			auto contained_vector() const -> decltype(base_class::contained_vector()) { return base_class::contained_vector(); }
 			auto contained_vector() -> decltype(base_class::contained_vector()) { return base_class::contained_vector(); }
 
-			friend class mse::us::ns_msevector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>;
-			friend class mse::us::ns_msevector::xscope_const_structure_lock_guard<_Ty, _A, _TStateMutex>;
+			friend class mse::us::ns_msevector::xscope_structure_lock_guard<_Myt>;
+			friend class mse::us::ns_msevector::xscope_const_structure_lock_guard<_Myt>;
 			friend class mse::us::impl::Txscope_structure_lock_guard<_Myt>;
 			friend class mse::us::impl::Txscope_const_structure_lock_guard<_Myt>;
 #ifndef MSE_MSTDVECTOR_DISABLED
@@ -4782,11 +4792,11 @@ namespace mse {
 			/* While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
 			individual elements in the vector do not become invalid by preventing any operation that might resize the vector
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-			template<class _Ty, class _A, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard<mse::us::msevector<_Ty, _A, _TStateMutex> > {
+			template<class _TContainer>
+			class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard<_TContainer> {
 			public:
-				typedef mse::us::impl::Txscope_structure_lock_guard<mse::us::msevector<_Ty, _A, _TStateMutex> > base_class;
-				typedef mse::us::msevector<_Ty, _A, _TStateMutex> MV;
+				typedef mse::us::impl::Txscope_structure_lock_guard<_TContainer> base_class;
+				typedef _TContainer MV;
 
 				xscope_structure_lock_guard(const xscope_structure_lock_guard&) = default;
 				xscope_structure_lock_guard(xscope_structure_lock_guard&&) = default;
@@ -4822,21 +4832,21 @@ namespace mse {
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-				mse::impl::ns_gnii_vector::xscope_structure_lock_guard<_Ty, _A, mse::non_thread_safe_shared_mutex> m_base_xscope_structure_lock_guard;
+				mse::impl::ns_stnii_vector::xscope_structure_lock_guard<typename _TContainer::base_class> m_base_xscope_structure_lock_guard;
 
-				friend class xscope_const_structure_lock_guard<_Ty, _A, _TStateMutex>;
+				friend class xscope_const_structure_lock_guard<_TContainer>;
 			};
-			template<class _Ty, class _A, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-			class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard<mse::us::msevector<_Ty, _A, _TStateMutex> > {
+			template<class _TContainer>
+			class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard<_TContainer> {
 			public:
-				typedef mse::us::impl::Txscope_const_structure_lock_guard<mse::us::msevector<_Ty, _A, _TStateMutex> > base_class;
-				typedef mse::us::msevector<_Ty, _A, _TStateMutex> MV;
+				typedef mse::us::impl::Txscope_const_structure_lock_guard<_TContainer> base_class;
+				typedef _TContainer MV;
 
 				xscope_const_structure_lock_guard(const xscope_const_structure_lock_guard&) = default;
 				xscope_const_structure_lock_guard(xscope_const_structure_lock_guard&&) = default;
 
-				xscope_const_structure_lock_guard(const xscope_structure_lock_guard<_Ty, _A, _TStateMutex>& src) : base_class(src), m_base_xscope_structure_lock_guard(src.m_base_xscope_structure_lock_guard) {}
-				xscope_const_structure_lock_guard(xscope_structure_lock_guard<_Ty, _A, _TStateMutex>&& src) : base_class(std::forward<decltype(src)>(src)), m_base_xscope_structure_lock_guard(std::forward<decltype(src)>(src).m_base_xscope_structure_lock_guard) {}
+				xscope_const_structure_lock_guard(const xscope_structure_lock_guard<_TContainer>& src) : base_class(src), m_base_xscope_structure_lock_guard(src.m_base_xscope_structure_lock_guard) {}
+				xscope_const_structure_lock_guard(xscope_structure_lock_guard<_TContainer>&& src) : base_class(std::forward<decltype(src)>(src)), m_base_xscope_structure_lock_guard(std::forward<decltype(src)>(src).m_base_xscope_structure_lock_guard) {}
 
 				xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<MV>& owner_ptr) : base_class(owner_ptr)
 					, m_base_xscope_structure_lock_guard(owner_ptr) {}
@@ -4863,7 +4873,7 @@ namespace mse {
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-				mse::us::impl::ns_gnii_vector::xscope_const_structure_lock_guard<_Ty, _A, mse::non_thread_safe_shared_mutex> m_base_xscope_structure_lock_guard;
+				mse::impl::ns_stnii_vector::xscope_const_structure_lock_guard<typename _TContainer::base_class> m_base_xscope_structure_lock_guard;
 			};
 		}
 
@@ -4872,22 +4882,22 @@ namespace mse {
 		or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 		template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
 		auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
-			return ns_msevector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+			return ns_msevector::xscope_structure_lock_guard<msevector<_Ty, _A, _TStateMutex> >(owner_ptr);
 		}
 	#if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
 		auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
-			return ns_msevector::xscope_structure_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+			return ns_msevector::xscope_structure_lock_guard<msevector<_Ty, _A, _TStateMutex> >(owner_ptr);
 		}
 	#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
 		auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
-			return ns_msevector::xscope_const_structure_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+			return ns_msevector::xscope_const_structure_lock_guard<msevector<_Ty, _A, _TStateMutex> >(owner_ptr);
 		}
 	#if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
 		auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
-			return ns_msevector::xscope_const_structure_lock_guard<_Ty, _A, _TStateMutex>(owner_ptr);
+			return ns_msevector::xscope_const_structure_lock_guard<msevector<_Ty, _A, _TStateMutex> >(owner_ptr);
 		}
 	#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 	}
@@ -4897,22 +4907,22 @@ namespace mse {
 	using msevector MSE_DEPRECATED = us::msevector< _Ty, _A, _TStateMutex>;
 
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<us::msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<us::msevector<_Ty, _A, _TStateMutex> > & owner_ptr) {
 		return us::make_xscope_structure_lock_guard(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<us::msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<us::msevector<_Ty, _A, _TStateMutex> > & owner_ptr) {
 		return us::make_xscope_structure_lock_guard(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<us::msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<us::msevector<_Ty, _A, _TStateMutex> > & owner_ptr) {
 		return us::make_xscope_structure_lock_guard(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<us::msevector<_Ty, _A, _TStateMutex> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<us::msevector<_Ty, _A, _TStateMutex> > & owner_ptr) {
 		return us::make_xscope_structure_lock_guard(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)

@@ -276,7 +276,7 @@ namespace mse {
 #ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class X2 = X, class = typename std::enable_if<(std::is_same<X2, X>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, X2>::value), void>::type>
+		template<class X2 = X, class = typename std::enable_if<(std::is_same<X2, X>::value) && (mse::impl::is_potentially_not_xscope<X2>::value), void>::type>
 #endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		void valid_if_X_is_not_an_xscope_type() const {}
 
@@ -518,7 +518,7 @@ namespace mse {
 #ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class X2 = X, class = typename std::enable_if<(std::is_same<X2, X>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, X2>::value), void>::type>
+		template<class X2 = X, class = typename std::enable_if<(std::is_same<X2, X>::value) && (mse::impl::is_potentially_not_xscope<X2>::value), void>::type>
 #endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		void valid_if_X_is_not_an_xscope_type() const {}
 

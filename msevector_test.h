@@ -2005,7 +2005,7 @@ namespace mse {
 				std::reverse(v4.ss_begin(v4_nnregptr), v4.ss_end(v4_nnregptr));
 				v4.assign(v.ss_begin(), v.ss_end());
 				auto v4_iter1 = v4.insert(v4_nnregptr, v4.ss_cbegin(v4_nnregptr) + 1, v.ss_begin(), v.ss_end());
-				typedef decltype(v4.ss_cbegin(v4_nnregptr)) const_iter_type1;
+				typedef decltype(mse::make_begin_const_iterator(v4_nnregptr)) const_iter_type1;
 				v4_iter1 = v4.insert(v4_nnregptr, const_iter_type1(v4_iter1) + 1, { 10, 11 });
 				v4_iter1 = v4.insert(v4_nnregptr, v4_iter1 + 1, { 20, 21 });
 				v4_iter1 = v4.erase(v4_nnregptr, const_iter_type1(v4_iter1) - 1);

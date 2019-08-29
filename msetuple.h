@@ -796,7 +796,7 @@ namespace mse {
 
 		~TTupleElementFixedPointer() {
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
-			mse::impl::T_valid_if_not_an_xscope_type<TIndex, TTuplePointerRR>();
+			mse::impl::T_valid_if_not_an_xscope_type<TTuplePointerRR>();
 #endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 		}
 

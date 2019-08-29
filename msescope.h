@@ -527,7 +527,7 @@ namespace mse {
 		//void xscope_contains_accessible_scope_address_of_operator_tag() const {}
 		/* This type can be safely used as a function return value if _Ty is also safely returnable. */
 		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -1118,12 +1118,12 @@ namespace mse {
 		}
 
 		template<typename _Ty>
-		auto as_an_fparam(const _Ty& param) -> decltype(impl::fparam::as_an_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, _Ty>::type(), param)) {
-			return impl::fparam::as_an_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, typename std::remove_reference<_Ty>::type>::type(), param);
+		auto as_an_fparam(const _Ty& param) -> decltype(impl::fparam::as_an_fparam_helper1(typename mse::impl::is_potentially_xscope<_Ty>::type(), param)) {
+			return impl::fparam::as_an_fparam_helper1(typename mse::impl::is_potentially_xscope<typename std::remove_reference<_Ty>::type>::type(), param);
 		}
 		template<typename _Ty>
 		auto as_an_fparam(_Ty&& param) {
-			return impl::fparam::as_an_fparam_helper1(typename std::is_base_of<mse::us::impl::XScopeTagBase, typename std::remove_reference<_Ty>::type>::type(), std::forward<_Ty>(param));
+			return impl::fparam::as_an_fparam_helper1(typename mse::impl::is_potentially_xscope<typename std::remove_reference<_Ty>::type>::type(), std::forward<_Ty>(param));
 		}
 
 		template<typename _Ty>
@@ -1250,7 +1250,7 @@ namespace mse {
 			return std::forward<_Ty>(_X);
 		}
 		template<typename _Ty>
-		auto returnable_fparam_as_base_type(const TReturnableFParam<_Ty>& _X) -> const typename TReturnableFParam<_Ty>::base_class& {
+		auto returnable_fparam_as_base_type(const TReturnableFParam<_Ty>& _X) -> const typename TReturnableFParam<_Ty>::base_class & {
 			return static_cast<const typename TReturnableFParam<_Ty>::base_class&>(_X);
 		}
 
@@ -1278,25 +1278,13 @@ namespace mse {
 		}
 
 		template<typename _Ty>
-		struct is_potentially_xscope : std::integral_constant<bool, mse::impl::disjunction<
-			std::is_base_of<mse::us::impl::XScopeTagBase, typename std::remove_reference<_Ty>::type>
-			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::rsv::TReturnableFParam>
-			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::rsv::TFParam>
-#ifdef MSE_SCOPEPOINTER_DISABLED
-			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::us::impl::TPointerForLegacy>
-			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::us::impl::TPointer>
-			, std::is_pointer<typename std::remove_reference<_Ty>::type>
-#endif // MSE_SCOPEPOINTER_DISABLED
-		>::value> {};
-
-		template<typename _Ty>
 		auto as_a_returnable_fparam(const _Ty& param)
-			-> decltype(impl::returnable_fparam::as_a_returnable_fparam_helper1(typename is_potentially_xscope<_Ty>::type(), param)) {
-			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename is_potentially_xscope<_Ty>::type(), param);
+			-> decltype(impl::returnable_fparam::as_a_returnable_fparam_helper1(typename mse::impl::is_potentially_xscope<_Ty>::type(), param)) {
+			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename mse::impl::is_potentially_xscope<_Ty>::type(), param);
 		}
 		template<typename _Ty>
 		auto as_a_returnable_fparam(_Ty&& param) {
-			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename is_potentially_xscope<_Ty>::type(), std::forward<_Ty>(param));
+			return impl::returnable_fparam::as_a_returnable_fparam_helper1(typename mse::impl::is_potentially_xscope<_Ty>::type(), std::forward<_Ty>(param));
 		}
 
 		template<typename _Ty>
@@ -1384,13 +1372,13 @@ namespace mse {
 			valid_if_TROy_is_marked_as_returnable_or_not_xscope_type();
 		}
 
-		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value), void>::type>
+		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 
 	private:
 		/* If _TROy is not recognized as safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TROy>::value)
+		template<class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TROy>::value)
 			|| (!std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
 			|| ((std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_TROy>::Has>())
 				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
@@ -1408,7 +1396,7 @@ namespace mse {
 		typedef TReturnValue<_TROy> base_class;
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TXScopeReturnValue, base_class);
 
-		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value), void>::type>
+		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 
 	private:
@@ -1573,7 +1561,7 @@ namespace mse {
 		void xscope_tag() const {}
 		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -1683,7 +1671,7 @@ namespace mse {
 				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/, void>::type>
 				void valid_if_TROy_is_not_marked_as_unreturn_value() const {}
 
-			template<class = typename std::enable_if<std::is_base_of<mse::us::impl::XScopeTagBase, _TROy>::value, void>::type>
+			template<class = typename std::enable_if<mse::impl::is_potentially_xscope<_TROy>::value, void>::type>
 			void valid_if_TROy_is_an_xscope_type() const {}
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -1956,7 +1944,7 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};
@@ -2006,7 +1994,7 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};
@@ -2055,7 +2043,7 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};
@@ -2098,7 +2086,7 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};

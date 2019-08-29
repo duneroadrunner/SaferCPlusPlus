@@ -21,6 +21,7 @@
 #include "msemstdarray.h"
 #include "msemsestring.h"
 #include "msemstdstring.h"
+#include "msestaticimmutable.h"
 #include <memory>
 #include <iostream>
 #include <utility>
@@ -326,6 +327,19 @@ namespace mse {
 		friend struct std::hash<mse::TXScopeAnyPointer<_Ty> >;
 	};
 
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_any_pointer(const _Ty& x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeAnyPointer<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_any_pointer(_Ty&& x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeAnyPointer<_Tx2>(std::forward<decltype(x)>(x));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_pointer)
+
 	/* The intended semantics of "any" pointers is that they always contain a valid pointer (or iterator) to a valid
 	object. If you need a "null" state, consider using optional<> (or mse::TNullableAnyPointer<>). */
 	template <typename _Ty>
@@ -355,6 +369,17 @@ namespace mse {
 		friend struct std::hash<mse::TAnyPointer<_Ty> >;
 	};
 
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_any_pointer(const _Ty & x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TAnyPointer<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_any_pointer(_Ty && x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TAnyPointer<_Tx2>(std::forward<decltype(x)>(x));
+	}
+
 	template <typename _Ty>
 	class TXScopeAnyConstPointer : public us::impl::TAnyConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
@@ -380,6 +405,20 @@ namespace mse {
 
 		friend struct std::hash<mse::TXScopeAnyConstPointer<_Ty> >;
 	};
+
+
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_any_const_pointer(const _Ty & x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeAnyConstPointer<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_any_const_pointer(_Ty && x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeAnyConstPointer<_Tx2>(std::forward<decltype(x)>(x));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_const_pointer)
 
 	template <typename _Ty>
 	class TAnyConstPointer : public us::impl::TAnyConstPointerBase<_Ty> {
@@ -408,6 +447,17 @@ namespace mse {
 
 		friend struct std::hash<mse::TAnyConstPointer<_Ty> >;
 	};
+
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_any_const_pointer(const _Ty & x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TAnyConstPointer<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_any_const_pointer(_Ty && x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TAnyConstPointer<_Tx2>(std::forward<decltype(x)>(x));
+	}
 
 	namespace rsv {
 		template<typename _Ty>
@@ -656,6 +706,19 @@ namespace mse {
 		friend struct std::hash<mse::TXScopePolyPointer<_Ty> >;
 	};
 
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_poly_pointer(const _Ty & x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopePolyPointer<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_poly_pointer(_Ty && x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopePolyPointer<_Tx2>(std::forward<decltype(x)>(x));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_poly_pointer)
+
 	/* The intended semantics of poly pointers is that they always contain a valid pointer (or iterator) to a valid
 	object. If you need a "null" state, consider using optional<>. */
 	template<typename _Ty>
@@ -683,6 +746,17 @@ namespace mse {
 
 		friend struct std::hash<mse::TPolyPointer<_Ty> >;
 	};
+
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_poly_pointer(const _Ty & x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TPolyPointer<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_poly_pointer(_Ty && x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TPolyPointer<_Tx2>(std::forward<decltype(x)>(x));
+	}
 
 	namespace us {
 		namespace impl {
@@ -867,6 +941,19 @@ namespace mse {
 		friend struct std::hash<mse::TXScopePolyConstPointer<_Ty> >;
 	};
 
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_poly_const_pointer(const _Ty & x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopePolyConstPointer<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_poly_const_pointer(_Ty && x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopePolyConstPointer<_Tx2>(std::forward<decltype(x)>(x));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_poly_const_pointer)
+
 	template<typename _Ty>
 	class TPolyConstPointer : public us::impl::TPolyConstPointerBase<_Ty> {
 	public:
@@ -891,6 +978,17 @@ namespace mse {
 
 		friend struct std::hash<mse::TPolyConstPointer<_Ty> >;
 	};
+
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_poly_const_pointer(const _Ty & x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TPolyConstPointer<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_poly_const_pointer(_Ty && x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TPolyConstPointer<_Tx2>(std::forward<decltype(x)>(x));
+	}
 
 	namespace rsv {
 		template<typename _Ty>
@@ -1261,6 +1359,19 @@ namespace mse {
 		friend class TAnyRandomAccessIterator<_Ty>;
 	};
 
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_any_random_access_iterator(const _Ty & x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeAnyRandomAccessIterator<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_any_random_access_iterator(_Ty && x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeAnyRandomAccessIterator<_Tx2>(std::forward<decltype(x)>(x));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_random_access_iterator)
+
 	template <typename _Ty>
 	class TXScopeAnyRandomAccessConstIterator : public us::impl::TAnyRandomAccessConstIteratorBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
@@ -1292,6 +1403,19 @@ namespace mse {
 
 		friend class TAnyRandomAccessConstIterator<_Ty>;
 	};
+
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_any_random_access_const_iterator(const _Ty & x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeAnyRandomAccessConstIterator<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_any_random_access_const_iterator(_Ty && x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeAnyRandomAccessConstIterator<_Tx2>(std::forward<decltype(x)>(x));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_random_access_const_iterator)
 
 	template <typename _Ty>
 	class TAnyRandomAccessIterator : public us::impl::TAnyRandomAccessIteratorBase<_Ty> {
@@ -1326,6 +1450,17 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_any_random_access_iterator(const _Ty & x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TAnyRandomAccessIterator<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_any_random_access_iterator(_Ty && x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TAnyRandomAccessIterator<_Tx2>(std::forward<decltype(x)>(x));
+	}
+
 	template <typename _Ty>
 	class TAnyRandomAccessConstIterator : public us::impl::TAnyRandomAccessConstIteratorBase<_Ty> {
 	public:
@@ -1342,6 +1477,9 @@ namespace mse {
 			, void>::type>
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : base_class(random_access_const_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessConstIterator1>();
+#if (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED))
+			//mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessConstIterator1>();
+#endif // (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED))
 		}
 
 		TAnyRandomAccessConstIterator& operator ++() { base_class::operator ++(); return (*this); }
@@ -1361,15 +1499,37 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
 
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_any_random_access_const_iterator(const _Ty & x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TAnyRandomAccessConstIterator<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_any_random_access_const_iterator(_Ty && x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TAnyRandomAccessConstIterator<_Tx2>(std::forward<decltype(x)>(x));
+	}
+
 
 	template <typename _Ty>
 	class TXScopeAnyRandomAccessSection : public TXScopeRandomAccessSection<TXScopeAnyRandomAccessIterator<_Ty>> {
 	public:
 		typedef TXScopeRandomAccessSection<TXScopeAnyRandomAccessIterator<_Ty>> base_class;
+		typedef TXScopeAnyRandomAccessIterator<_Ty> iterator_type;
+		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+
 		MSE_USING(TXScopeAnyRandomAccessSection, base_class);
 
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
+
+	template <class... _Args>
+	auto make_xscope_any_random_access_section(_Args&& ... _Ax) {
+		typedef decltype(make_xscope_random_access_section(std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_random_access_section(std::forward<_Args>(_Ax)...));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_random_access_section)
 
 	template <typename _Ty>
 	class TAnyRandomAccessSection : public TRandomAccessSection<TAnyRandomAccessIterator<_Ty>> {
@@ -1380,6 +1540,12 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
+	template <class... _Args>
+	auto make_any_random_access_section(_Args&& ... _Ax) {
+		typedef decltype(make_random_access_section(std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TAnyRandomAccessSection<typename ra_section_t::value_type>(make_random_access_section(std::forward<_Args>(_Ax)...));
+	}
+
 	template <typename _Ty>
 	class TXScopeAnyRandomAccessConstSection : public TXScopeRandomAccessConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>> {
 	public:
@@ -1389,6 +1555,14 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
+	template <class... _Args>
+	auto make_xscope_any_random_access_const_section(_Args&& ... _Ax) {
+		typedef decltype(make_xscope_random_access_const_section(std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_random_access_const_section(std::forward<_Args>(_Ax)...));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_random_access_const_section)
+
 	template <typename _Ty>
 	class TAnyRandomAccessConstSection : public TRandomAccessConstSection<TAnyRandomAccessConstIterator<_Ty>> {
 	public:
@@ -1397,6 +1571,12 @@ namespace mse {
 
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
+
+	template <class... _Args>
+	auto make_any_random_access_const_section(_Args&& ... _Ax) {
+		typedef decltype(make_random_access_const_section(std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_random_access_const_section(std::forward<_Args>(_Ax)...));
+	}
 
 	namespace rsv {
 		template<typename _Ty>
@@ -1442,23 +1622,45 @@ namespace mse {
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	using TXScopeAnyStringSection = TXScopeStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits>;
 
+	template <class... _Args>
+	auto make_xscope_any_string_section(_Args&& ... _Ax) {
+		typedef decltype(make_xscope_string_section(std::forward<_Args>(_Ax)...)) str_section_t;
+		return TXScopeAnyStringSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_xscope_string_section(std::forward<_Args>(_Ax)...));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_string_section)
+
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	using TAnyStringSection = TStringSection<TAnyRandomAccessIterator<_Ty>, _Traits>;
+
+	template <class... _Args>
+	auto make_any_string_section(_Args&& ... _Ax) {
+		typedef decltype(make_string_section(std::forward<_Args>(_Ax)...)) str_section_t;
+		return TAnyStringSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_string_section(std::forward<_Args>(_Ax)...));
+	}
 
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	class TXScopeAnyStringConstSection : public TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TXScopeStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
-		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+		MSE_INHERITED_STRING_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		MSE_USING(TXScopeAnyStringConstSection, base_class);
-		TXScopeAnyStringConstSection() : base_class(&s_default_string_ref()) {}
+		TXScopeAnyStringConstSection() : base_class(s_default_string_siptr()) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
 
 	private:
-		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
+		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
+
+	template <class... _Args>
+	auto make_xscope_any_string_const_section(_Args&& ... _Ax) {
+		typedef decltype(make_xscope_string_const_section(std::forward<_Args>(_Ax)...)) str_section_t;
+		return TXScopeAnyStringConstSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_xscope_string_const_section(std::forward<_Args>(_Ax)...));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_string_const_section)
 
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	class TAnyStringConstSection : public TStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> {
@@ -1467,13 +1669,19 @@ namespace mse {
 		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		MSE_USING(TAnyStringConstSection, base_class);
-		TAnyStringConstSection() : base_class(&s_default_string_ref()) {}
+		TAnyStringConstSection() : base_class(s_default_string_siptr()) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
 
 	private:
-		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
+		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
+
+	template <class... _Args>
+	auto make_any_string_const_section(_Args&& ... _Ax) {
+		typedef decltype(make_string_const_section(std::forward<_Args>(_Ax)...)) str_section_t;
+		return TAnyStringConstSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_string_const_section(std::forward<_Args>(_Ax)...));
+	}
 
 	namespace rsv {
 		template<typename _Ty>
@@ -1552,7 +1760,7 @@ namespace mse {
 	class TXScopeAnyNRPStringSection : public TXScopeNRPStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> {
 	public:
 		typedef TXScopeNRPStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits> base_class;
-		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+		MSE_INHERITED_STRING_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//MSE_USING(TXScopeAnyNRPStringSection, base_class);
 		TXScopeAnyNRPStringSection(const TXScopeAnyNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -1576,11 +1784,19 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
+	template <class... _Args>
+	auto make_xscope_any_nrp_string_section(_Args&& ... _Ax) {
+		typedef decltype(make_xscope_nrp_string_section(std::forward<_Args>(_Ax)...)) str_section_t;
+		return TXScopeAnyNRPStringSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_xscope_nrp_string_section(std::forward<_Args>(_Ax)...));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_nrp_string_section)
+
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	class TAnyNRPStringSection : public TNRPStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> {
 	public:
 		typedef TNRPStringSection<TAnyRandomAccessIterator<_Ty>, _Traits> base_class;
-		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+		MSE_INHERITED_STRING_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//MSE_USING(TAnyNRPStringSection, base_class);
 		TAnyNRPStringSection(const TAnyNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -1599,11 +1815,17 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
+	template <class... _Args>
+	auto make_any_nrp_string_section(_Args&& ... _Ax) {
+		typedef decltype(make_nrp_string_section(std::forward<_Args>(_Ax)...)) str_section_t;
+		return TAnyNRPStringSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_nrp_string_section(std::forward<_Args>(_Ax)...));
+	}
+
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	class TXScopeAnyNRPStringConstSection : public TXScopeNRPStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TXScopeNRPStringConstSection<TXScopeAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
-		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+		MSE_INHERITED_STRING_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//MSE_USING(TXScopeAnyNRPStringConstSection, base_class);
 		TXScopeAnyNRPStringConstSection(const TXScopeAnyNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -1623,7 +1845,7 @@ namespace mse {
 		TXScopeAnyNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {
 			impl::T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
 		}
-		TXScopeAnyNRPStringConstSection() : base_class(&s_default_string_ref()) {}
+		TXScopeAnyNRPStringConstSection() : base_class(s_default_string_siptr()) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		explicit TXScopeAnyNRPStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
@@ -1636,14 +1858,22 @@ namespace mse {
 		template<size_t Tn>
 		explicit TXScopeAnyNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array) {}
 
-		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
+		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
+
+	template <class... _Args>
+	auto make_xscope_any_nrp_string_const_section(_Args&& ... _Ax) {
+		typedef decltype(make_xscope_nrp_string_const_section(std::forward<_Args>(_Ax)...)) str_section_t;
+		return TXScopeAnyNRPStringConstSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_xscope_nrp_string_const_section(std::forward<_Args>(_Ax)...));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_nrp_string_const_section)
 
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	class TAnyNRPStringConstSection : public TNRPStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> {
 	public:
 		typedef TNRPStringConstSection<TAnyRandomAccessConstIterator<_Ty>, _Traits> base_class;
-		MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+		MSE_INHERITED_STRING_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 		//MSE_USING(TAnyNRPStringConstSection, base_class);
 		TAnyNRPStringConstSection(const TAnyNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
@@ -1657,7 +1887,7 @@ namespace mse {
 		TAnyNRPStringConstSection(const _TRALoneParam& param) : base_class(param) {
 			impl::T_valid_if_not_an_unsupported_NRPStringSection_lone_parameter_msepoly<_Ty, _TRALoneParam>();
 		}
-		TAnyNRPStringConstSection() : base_class(&s_default_string_ref()) {}
+		TAnyNRPStringConstSection() : base_class(s_default_string_siptr()) {}
 
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		explicit TAnyNRPStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
@@ -1670,8 +1900,14 @@ namespace mse {
 		template<size_t Tn>
 		explicit TAnyNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array) {}
 
-		static auto& s_default_string_ref() { static /*const*/ mse::nii_basic_string<nonconst_value_type, _Traits> s_default_string; return s_default_string; }
+		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
+
+	template <class... _Args>
+	auto make_any_nrp_string_const_section(_Args&& ... _Ax) {
+		typedef decltype(make_nrp_string_const_section(std::forward<_Args>(_Ax)...)) str_section_t;
+		return TAnyNRPStringConstSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_nrp_string_const_section(std::forward<_Args>(_Ax)...));
+	}
 }
 
 namespace std {
@@ -1712,7 +1948,7 @@ namespace mse {
 		class basic_string_view : public TAnyStringConstSection<_Ty, _Traits> {
 		public:
 			typedef TAnyStringConstSection<_Ty, _Traits> base_class;
-			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+			MSE_INHERITED_STRING_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 			MSE_USING(basic_string_view, base_class);
 			explicit basic_string_view(const char* sz) : base_class(sz, _Traits::length(sz)) {}
@@ -1722,7 +1958,7 @@ namespace mse {
 		class xscope_basic_string_view : public TXScopeAnyStringConstSection<_Ty, _Traits> {
 		public:
 			typedef TXScopeAnyStringConstSection<_Ty, _Traits> base_class;
-			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+			MSE_INHERITED_STRING_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
 			MSE_USING(xscope_basic_string_view, base_class);
 			explicit xscope_basic_string_view(const char* sz) : base_class(sz, _Traits::length(sz)) {}
@@ -1736,6 +1972,13 @@ namespace mse {
 		typedef xscope_basic_string_view<char16_t> xscope_u16string_view;
 		typedef xscope_basic_string_view<char32_t> xscope_u32string_view;
 		typedef xscope_basic_string_view<wchar_t>  xscope_wstring_view;
+
+		template <class... _Args>
+		auto make_xscope_string_view(_Args&& ... _Ax) {
+			return xscope_string_view(make_xscope_string_const_section(std::forward<_Args>(_Ax)...));
+		}
+		/* Overloads for rsv::TReturnableFParam<>. */
+		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_string_view)
 	}
 
 	template <typename _Ty, class _Traits = std::char_traits<_Ty> >
@@ -1752,6 +1995,13 @@ namespace mse {
 	typedef xscope_nrp_basic_string_view<char16_t> xscope_nrp_u16string_view;
 	typedef xscope_nrp_basic_string_view<char32_t> xscope_nrp_u32string_view;
 	typedef xscope_nrp_basic_string_view<wchar_t>  xscope_nrp_wstring_view;
+
+	template <class... _Args>
+	auto make_xscope_nrp_string_view(_Args&& ... _Ax) {
+		return xscope_nrp_string_view(std::forward<_Args>(_Ax)...);
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_nrp_string_view)
 
 
 	template <typename _Ty>

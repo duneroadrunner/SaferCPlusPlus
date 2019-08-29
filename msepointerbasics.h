@@ -296,6 +296,10 @@ namespace mse {
 #define MSE_SOME_POINTER_TYPE_IS_DISABLED
 #endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED) || defined(MSE_THREADLOCALPOINTER_DISABLED) || defined(MSE_STATICPOINTER_DISABLED)*/
 
+#if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED) || defined(MSE_THREADLOCALPOINTER_DISABLED) || defined(MSE_STATICPOINTER_DISABLED)
+#define MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED
+#endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED) || defined(MSE_THREADLOCALPOINTER_DISABLED) || defined(MSE_STATICPOINTER_DISABLED)*/
+
 #if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 #define MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
 #else /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
@@ -310,6 +314,32 @@ namespace mse {
 
 
 #define MSE_FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
+
+	namespace impl {
+		namespace ns_is_instantiation_of {
+			template <template <typename...> class Template, typename Type>
+			struct is_instance_of : std::false_type {};
+			template <template <typename...> class Template, typename... Args>
+			struct is_instance_of<Template, Template<Args...>> : std::true_type {};
+			template <template <typename...> class Template, typename Type>
+			constexpr bool is_instance_of_v = is_instance_of<Template, Type>::value;
+		}
+
+		/* determines if a given type is an instantiation of a given template */
+		template<typename Type, template<typename...> class Template>
+		struct is_instantiation_of : ns_is_instantiation_of::is_instance_of<Template, Type> { };
+
+		template<class...> struct conjunction : std::true_type { };
+		template<class B1> struct conjunction<B1> : B1 { };
+		template<class B1, class... Bn> struct conjunction<B1, Bn...> : std::conditional<bool(B1::value), conjunction<Bn...>, B1>::type {};
+
+		template<class...> struct disjunction : std::false_type { };
+		template<class B1> struct disjunction<B1> : B1 { };
+		template<class B1, class... Bn> struct disjunction<B1, Bn...> : std::conditional_t<bool(B1::value), B1, disjunction<Bn...>> { };
+
+		template<class B>
+		struct negation : std::integral_constant<bool, !bool(B::value)> { };
+	}
 
 	namespace us {
 		namespace impl {
@@ -352,13 +382,70 @@ namespace mse {
 
 			class ContainsNonOwningScopeReferenceTagBase {};
 			class XScopeContainsNonOwningScopeReferenceTagBase : public ContainsNonOwningScopeReferenceTagBase, public XScopeTagBase {};
+
+			template<typename _Ty, typename _TID/* = TPointerID<_Ty>*/>
+			class TPointer;
+			template<typename _Ty, typename _TID/* = TPointerID<_Ty>*/>
+			class TPointerForLegacy;
+		}
+	}
+
+	namespace rsv {
+		template<typename _Ty>
+		class TFParam;
+		template<typename _Ty>
+		class TReturnableFParam;
+
+		namespace impl {
+			template<typename _Ty>
+			struct remove_fparam {
+				typedef _Ty type;
+			};
+			template<typename _Ty>
+			struct remove_fparam<mse::rsv::TReturnableFParam<_Ty> > {
+				typedef typename remove_fparam<_Ty>::type type;
+			};
+			template<typename _Ty>
+			struct remove_fparam<mse::rsv::TFParam<_Ty> > {
+				typedef typename remove_fparam<_Ty>::type type;
+			};
 		}
 	}
 
 	namespace impl {
+
+		template<typename _Ty>
+		struct is_potentially_xscope : std::integral_constant<bool, mse::impl::disjunction<
+			std::is_base_of<mse::us::impl::XScopeTagBase
+			, typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type>
+#ifdef MSE_SCOPEPOINTER_DISABLED
+			, mse::impl::is_instantiation_of<typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type
+			, mse::us::impl::TPointerForLegacy>
+			, mse::impl::is_instantiation_of<typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type
+			, mse::us::impl::TPointer>
+			, std::is_pointer<typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type>
+#endif // MSE_SCOPEPOINTER_DISABLED
+		>::value> {};
+
+		template<typename _Ty>
+		struct is_potentially_not_xscope : std::integral_constant<bool, mse::impl::conjunction<
+			mse::impl::negation<std::is_base_of<mse::us::impl::XScopeTagBase
+				, typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type> >
+#ifdef MSE_SCOPEPOINTER_DISABLED
+#if (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED))
+			/* When scope pointers are disabled and no other library safe pointer is disabled, we'll consider raw pointers
+			to necessarily be scope pointers. */
+			//, mse::impl::negation<std::is_pointer<typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type> >
+#endif // (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED))
+#endif // MSE_SCOPEPOINTER_DISABLED
+		>::value> {};
+
+		template<typename _Ty>
+		struct is_xscope : mse::impl::negation<is_potentially_not_xscope<_Ty> > {};
+
 		/* The purpose of these template functions are just to produce a compile error on attempts to instantiate
 		when certain conditions are not met. */
-		template<class _Ty, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty>::value), void>::type>
+		template<class _Ty, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_Ty>::value), void>::type>
 		void T_valid_if_not_an_xscope_type() {}
 
 		template<class _Ty>
@@ -668,32 +755,6 @@ namespace mse {
 	, MSE_INHERIT_COMMON_POINTER_TAG_BASE_SET_FROM(class2, class3)
 
 #define MSE_INHERIT_COMMON_XSCOPE_OBJ_TAG_BASE_SET_FROM(class2, class3) MSE_INHERIT_COMMON_XSCOPE_POINTER_TAG_BASE_SET_FROM(class2, class3)
-
-	namespace impl {
-		namespace ns_is_instantiation_of {
-			template <template <typename...> class Template, typename Type>
-			struct is_instance_of : std::false_type {};
-			template <template <typename...> class Template, typename... Args>
-			struct is_instance_of<Template, Template<Args...>> : std::true_type {};
-			template <template <typename...> class Template, typename Type>
-			constexpr bool is_instance_of_v = is_instance_of<Template, Type>::value;
-		}
-
-		/* determines if a given type is an instantiation of a given template */
-		template<typename Type, template<typename...> class Template>
-		struct is_instantiation_of : ns_is_instantiation_of::is_instance_of<Template, Type> { };
-
-		template<class...> struct conjunction : std::true_type { };
-		template<class B1> struct conjunction<B1> : B1 { };
-		template<class B1, class... Bn> struct conjunction<B1, Bn...> : std::conditional<bool(B1::value), conjunction<Bn...>, B1>::type {};
-
-		template<class...> struct disjunction : std::false_type { };
-		template<class B1> struct disjunction<B1> : B1 { };
-		template<class B1, class... Bn> struct disjunction<B1, Bn...> : std::conditional_t<bool(B1::value), B1, disjunction<Bn...>> { };
-
-		template<class B>
-		struct negation : std::integral_constant<bool, !bool(B::value)> { };
-	}
 
 	namespace us {
 		namespace impl {

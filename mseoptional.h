@@ -2523,7 +2523,7 @@ namespace mse {
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, T2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -2659,7 +2659,7 @@ namespace mse {
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, T2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
 			), void>::type>
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -2795,7 +2795,7 @@ namespace mse {
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, T2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
 			), void>::type>
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 

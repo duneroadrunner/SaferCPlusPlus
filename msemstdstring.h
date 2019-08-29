@@ -448,10 +448,9 @@ namespace mse {
 			void clear() { m_shptr->clear(); }
 			void swap(_MBS& _X) { m_shptr->swap(_X); }
 			void swap(_Myt& _X) { m_shptr->swap(_X.msebasic_string()); }
-			void swap(mse::nii_basic_string<_Ty, _Traits, _A>& _X) { m_shptr->swap(_X); }
 			void swap(std::basic_string<_Ty, _Traits, _A>& _X) { m_shptr->swap(_X); }
-			template<typename _TStateMutex2>
-			void swap(mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex2>& _X) { m_shptr->swap(_X); }
+			template<typename _TStateMutex2, template<typename> class _TTXScopeConstIterator2>
+			void swap(mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex2, _TTXScopeConstIterator2>& _X) { m_shptr->swap(_X); }
 
 			basic_string(_XSTD initializer_list<typename _MBS::value_type> _Ilist, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_Ilist, _Al)) {}
 			_Myt& operator=(_XSTD initializer_list<typename _MBS::value_type> _Ilist) { msebasic_string() = (_Ilist); return (*this); }
@@ -1340,6 +1339,7 @@ namespace mse {
 			template<class _Ty2, class _Traits2/* = std::char_traits<_Ty2>*/, class _A2/* = std::allocator<_Ty2> */>
 			friend std::basic_ostream<_Ty2, _Traits2>& impl::bs::out_to_stream(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const basic_string<_Ty2, _Traits2, _A2>& _Str);
 
+			/*
 			friend void swap(_Myt& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
 			friend void swap(_Myt& a, _MBS& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
 			friend void swap(_Myt& a, mse::nii_basic_string<_Ty, _A>& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
@@ -1347,6 +1347,7 @@ namespace mse {
 			friend void swap(_MBS& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
 			friend void swap(mse::nii_basic_string<_Ty, _A>& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
 			friend void swap(std::basic_string<_Ty, _A>& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
+			*/
 
 			friend class mse::mstd::ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>;
 			friend class mse::mstd::ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A>;
@@ -1529,9 +1530,9 @@ namespace mse {
 			individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-			class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_structure_lock_guard<_Ty, _Traits, _A> > {
+			class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > {
 			public:
-				typedef mse::us::impl::Txscope_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_structure_lock_guard<_Ty, _Traits, _A> > base_class;
+				typedef mse::us::impl::Txscope_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > base_class;
 				using base_class::base_class;
 
 				xscope_structure_lock_guard(const mse::TXScopeFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
@@ -1547,9 +1548,9 @@ namespace mse {
 				friend class xscope_const_structure_lock_guard<_Ty, _Traits, _A>;
 			};
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-			class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A> > {
+			class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_const_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > {
 			public:
-				typedef mse::us::impl::Txscope_const_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A> > base_class;
+				typedef mse::us::impl::Txscope_const_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_const_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > base_class;
 				using base_class::base_class;
 
 				xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
@@ -1636,8 +1637,8 @@ namespace std {
 	{	// swap basic_strings
 		return (_Left.swap(_Right));
 	}
-	template<class _Ty, class _Traits, class _A, class _TStateMutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
-	void swap(mse::mstd::basic_string<_Ty, _Traits, _A>& _Left, mse::nii_basic_string<_Ty, _Traits, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	template<class _Ty, class _Traits, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::mstd::basic_string<_Ty, _Traits, _A>& _Left, mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap basic_strings
 		return (_Left.swap(_Right));
 	}
@@ -1652,8 +1653,8 @@ namespace std {
 		return (_Left.swap(_Right));
 	}
 
-	template<class _Ty, class _Traits, class _A, class _TStateMutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
-	void swap(mse::nii_basic_string<_Ty, _Traits, _A, _TStateMutex>& _Left, mse::mstd::basic_string<_Ty, _Traits, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	template<class _Ty, class _Traits, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Left, mse::mstd::basic_string<_Ty, _Traits, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap basic_strings
 		return (_Right.swap(_Left));
 	}

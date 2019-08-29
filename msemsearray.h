@@ -1119,7 +1119,7 @@ namespace mse {
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void iterator_tag() const {}
 		template<class base_class2 = base_class, class = typename std::enable_if<(std::is_same<base_class2, base_class>::value)
-			&& (std::is_base_of<mse::us::impl::XScopeTagBase, base_class2>::value), void>::type>
+			&& (mse::impl::is_potentially_xscope<base_class2>::value), void>::type>
 		void xscope_tag() const {}
 
 	private:
@@ -1233,7 +1233,7 @@ namespace mse {
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void iterator_tag() const {}
 		template<class base_class2 = base_class, class = typename std::enable_if<(std::is_same<base_class2, base_class>::value)
-			&& (std::is_base_of<mse::us::impl::XScopeTagBase, base_class2>::value), void>::type>
+			&& (mse::impl::is_potentially_xscope<base_class2>::value), void>::type>
 		void xscope_tag() const {}
 
 	private:
@@ -2245,9 +2245,9 @@ namespace mse {
 				friend class Tnii_array_ss_const_iterator_type;
 			};
 
-			template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type*/>
+			template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value), void>::type*/>
 			using Tnii_array_ss_reverse_iterator_type = std::reverse_iterator<Tnii_array_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex> >;
-			template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type*/>
+			template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value), void>::type*/>
 			using Tnii_array_ss_const_reverse_iterator_type = std::reverse_iterator<Tnii_array_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex> >;
 
 			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
@@ -2509,14 +2509,14 @@ namespace mse {
 		typedef mse::impl::random_access_const_iterator_base<_Ty> na_const_iterator_base;
 		typedef mse::impl::random_access_iterator_base<_Ty> na_iterator_base;
 
-		template<typename _TArrayConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type>
+		template<typename _TArrayConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value), void>::type>
 		using Tss_const_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
-		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type>
+		template<typename _TArrayPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value), void>::type>
 		using Tss_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
 
-		template<typename _TArrayPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayPointer>::value), void>::type>
+		template<typename _TArrayPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value), void>::type>
 		using Tss_reverse_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_reverse_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
-		template<typename _TArrayConstPointer, class = typename std::enable_if<(!std::is_base_of<mse::us::impl::XScopeTagBase, _TArrayConstPointer>::value), void>::type>
+		template<typename _TArrayConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value), void>::type>
 		using Tss_const_reverse_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_const_reverse_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
 
 		typedef mse::impl::ns_nii_array::Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex> ss_iterator_type;
@@ -2662,7 +2662,7 @@ namespace mse {
 	private:
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value), void>::type>
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value), void>::type>
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		ss_iterator_type ss_begin() {	// return std_array::iterator for beginning of mutable sequence
@@ -3354,7 +3354,8 @@ namespace mse {
 		struct HasOrInheritsXScopeIteratorMemberType_msemsearray_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(typename U::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<U> >()), typename V::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<V> >()), bool(true));
+			//static auto test(U*) -> decltype(typename U::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<U> >()), typename V::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<V> >()), bool(true));
+			static auto test(U*) -> decltype(std::declval<typename U::xscope_iterator>(), std::declval<typename V::xscope_iterator>(), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
@@ -3406,7 +3407,7 @@ namespace mse {
 			}
 			template <typename _TRAPointer>
 			auto begin_iter_from_lone_param2(std::true_type, const _TRAPointer& ptr) {
-				return begin_iter_from_ptr_helper2(typename std::is_base_of<mse::us::impl::XScopeTagBase, _TRAPointer>::type(), ptr);
+				return begin_iter_from_ptr_helper2(typename mse::impl::IsNonOwningScopePointer<_TRAPointer>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
 			auto begin_iter_from_lone_param1(std::false_type, const _TRALoneParam& param) {
@@ -3523,7 +3524,7 @@ namespace mse {
 			}
 			template <typename _TRAPointer>
 			auto begin_const_iter_from_lone_param2(std::true_type, const _TRAPointer& ptr) {
-				return begin_const_iter_from_ptr_helper2(typename std::is_base_of<mse::us::impl::XScopeTagBase, _TRAPointer>::type(), ptr);
+				return begin_const_iter_from_ptr_helper2(typename mse::impl::IsNonOwningScopePointer<_TRAPointer>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
 			auto begin_const_iter_from_lone_param1(std::false_type, const _TRALoneParam& param) {
@@ -4928,9 +4929,9 @@ namespace mse {
 
 		//TXScopeRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		//TXScopeRandomAccessConstSection(const TXScopeRandomAccessConstSection& src) = default;
-		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value), void>::type>
+		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value), void>::type>
 		//TXScopeRandomAccessConstSection(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& src) : base_class(src) {}
-		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value), void>::type>
+		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value), void>::type>
 		//TXScopeRandomAccessConstSection(const us::impl::TRandomAccessSectionBase<_TRAIterator>& src) : base_class(src) {}
 
 		MSE_USING(TXScopeRandomAccessConstSection, base_class);
@@ -4963,7 +4964,7 @@ namespace mse {
 			if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessConstSection xscope_subsection() const - TXScopeRandomAccessConstSection")); }
 			return TXScopeRandomAccessConstSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
-		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSection, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
+		typedef typename std::conditional<mse::impl::is_xscope<_TRAIterator>::value, TXScopeRandomAccessConstSection, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
 		subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
 			if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection<_TRAIterator> subsection() const - TXScopeRandomAccessConstSection")); }
 			return subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
@@ -5035,7 +5036,7 @@ namespace mse {
 			if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessConstSection xscope_subsection() const - TRandomAccessConstSection")); }
 			return TXScopeRandomAccessConstSection<_TRAIterator>((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
-		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSection<_TRAIterator>, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
+		typedef typename std::conditional<mse::impl::is_xscope<_TRAIterator>::value, TXScopeRandomAccessConstSection<_TRAIterator>, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
 		subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
 			if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSection<_TRAIterator> subsection() const - TRandomAccessConstSection")); }
 			return subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
@@ -5501,7 +5502,7 @@ namespace mse {
 
 		//TXScopeRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter,count) {}
 		//TXScopeRandomAccessSection(const TXScopeRandomAccessSection& src) = default;
-		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value), void>::type>
+		//template<class _Ty2 = _TRAIterator, class = typename std::enable_if<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value), void>::type>
 		//TXScopeRandomAccessSection(const TRandomAccessSection<_TRAIterator>& src) : base_class(src) {}
 		//TXScopeRandomAccessSection(const base_class& src) : base_class(src) {}
 
@@ -5538,7 +5539,7 @@ namespace mse {
 			if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessSection xscope_subsection() const - TXScopeRandomAccessSection")); }
 			return TXScopeRandomAccessSection((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
-		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessSection, TRandomAccessSection<_TRAIterator> >::type subsection_t;
+		typedef typename std::conditional<mse::impl::is_xscope<_TRAIterator>::value, TXScopeRandomAccessSection, TRandomAccessSection<_TRAIterator> >::type subsection_t;
 		subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
 			if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection<_TRAIterator> subsection() const - TXScopeRandomAccessSection")); }
 			return subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
@@ -5627,7 +5628,7 @@ namespace mse {
 			if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TXScopeRandomAccessSection xscope_subsection() const - TRandomAccessSection")); }
 			return TXScopeRandomAccessSection<_TRAIterator>((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 		}
-		typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessSection<_TRAIterator>, TRandomAccessSection<_TRAIterator> >::type subsection_t;
+		typedef typename std::conditional<mse::impl::is_xscope<_TRAIterator>::value, TXScopeRandomAccessSection<_TRAIterator>, TRandomAccessSection<_TRAIterator> >::type subsection_t;
 		subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
 			if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSection<_TRAIterator> subsection() const - TRandomAccessSection")); }
 			return subsection_t((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
@@ -5837,7 +5838,7 @@ namespace mse {
 			TXScopeRandomAccessConstSectionFParam xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
 				return mse::make_xscope_subsection(*(static_cast<const base_class*>(this)), pos, n);
 			}
-			typedef typename std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value, TXScopeRandomAccessConstSectionFParam, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
+			typedef typename std::conditional<mse::impl::is_xscope<_TRAIterator>::value, TXScopeRandomAccessConstSectionFParam, TRandomAccessConstSection<_TRAIterator> >::type subsection_t;
 			subsection_t subsection_pv(size_type pos = 0, size_type n = npos) const {
 				return mse::make_subsection(*(static_cast<const base_class*>(this)), pos, n);
 			}
@@ -6258,7 +6259,7 @@ namespace mse {
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TExclusiveStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TExclusiveStrongPointer>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -6394,7 +6395,7 @@ namespace mse {
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TExclusiveStrongPointer, class = typename std::enable_if<(std::is_same<_Ty2, _TExclusiveStrongPointer>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (!std::is_base_of<mse::us::impl::XScopeTagBase, _Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -6843,9 +6844,9 @@ namespace mse {
 			to ensure safe "async shareability". */
 			template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
 				&& (mse::impl::is_marked_as_shareable_msemsearray<value_type2>::value)
-				&& ((std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value) || (std::is_base_of<mse::us::impl::XScopeTagBase, _TRAIterator>::value))
+				&& ((std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value) || (mse::impl::is_potentially_xscope<_TRAIterator>::value))
 				, void>::type>
-				void xscope_async_shareable_tag() const {}
+			void xscope_async_shareable_tag() const {}
 
 		private:
 			TXScopeSplitterRandomAccessSection(const TXScopeSplitterRandomAccessSection& src) = default;
