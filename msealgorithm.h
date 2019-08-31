@@ -64,7 +64,7 @@ namespace mse {
 		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(make_xscope_specialized_first_and_last_overloaded(std::declval<U>(), std::declval<U>()), make_xscope_specialized_first_and_last_overloaded(std::declval<V>(), std::declval<V>()), bool(true));
+			static auto test(U* u) -> decltype(make_xscope_specialized_first_and_last_overloaded(*u, *u), std::declval<V>(), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
@@ -124,7 +124,7 @@ namespace mse {
 		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(make_xscope_specialized_range_iter_provider_overloaded(std::declval<U>(), std::declval<U>()), make_xscope_specialized_range_iter_provider_overloaded(std::declval<V>(), std::declval<V>()), bool(true));
+			static auto test(U* u) -> decltype(make_xscope_specialized_range_iter_provider_overloaded(*u, *u), std::declval<V>(), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 

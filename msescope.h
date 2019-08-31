@@ -86,7 +86,8 @@ namespace mse {
 		struct IsNonOwningScopePointer_impl
 		{
 			static const bool value = ((std::is_base_of<mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, T>::value
-				&& std::is_base_of<mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, T>::value));
+					&& std::is_base_of<mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, T>::value)
+				|| (std::is_pointer<T>::value && (!mse::impl::is_potentially_not_xscope<T>::value)));
 			using type = std::integral_constant<bool, value>;
 		};
 		template<class T, class EqualTo = T>

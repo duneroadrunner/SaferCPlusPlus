@@ -532,6 +532,37 @@ namespace mse {
 				difference_type m_index = 0;
 				/*const */_TRAContainerPointerRR m_ra_container_pointer;
 
+				/* some construction helper functions and types */
+				template<class _TRAIterator>
+				static _TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return _TRAContainerPointerRR(src.target_container_ptr()); }
+				template<class _TRAIterator>
+				static _TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, _TRAIterator&& src) { return _TRAContainerPointerRR(std::forward< _TRAIterator>(src).target_container_ptr()); }
+				template<class _Ty2>
+				static _TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return _TRAContainerPointerRR(param); }
+				template<class _Ty2>
+				static _TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return _TRAContainerPointerRR(std::forward<_Ty2>(param)); }
+				template<class _TRAIterator>
+				static auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
+				template<class _Ty2>
+				static difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
+
+				template<class T, class EqualTo>
+				struct lone_param_seems_valid_impl
+				{
+					template<class U, class V>
+					static auto test(U* u) -> decltype(
+						_TRAContainerPointerRR(ra_container_pointer_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<U>::type(), *u))
+						, std::declval<V>(), bool(true));
+					template<typename, typename>
+					static auto test(...)->std::false_type;
+
+					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				};
+				template<class T, class EqualTo = T>
+				struct lone_param_seems_valid : lone_param_seems_valid_impl<
+					typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
 			public:
 				template<class _Ty2 = _TRAContainerPointerRR, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointerRR>::value) && (std::is_default_constructible<_Ty2>::value), void>::type>
 				TRAIteratorBase() {}
@@ -551,11 +582,11 @@ namespace mse {
 				template<class _TRAContainerPointerRR2>
 				TRAIteratorBase(_TRAContainerPointerRR2&& param, size_type index) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(std::forward<_TRAContainerPointerRR2>(param)) {}
 
-				template<class _TLoneParam>
+				template<class _TLoneParam, class = typename std::enable_if<lone_param_seems_valid<_TLoneParam>::value, void>::type>
 				TRAIteratorBase(const _TLoneParam& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
 					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
 					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
-				template<class _TLoneParam>
+				template<class _TLoneParam, class = typename std::enable_if<lone_param_seems_valid<_TLoneParam>::value, void>::type>
 				TRAIteratorBase(_TLoneParam&& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
 					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
 					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
@@ -601,6 +632,13 @@ namespace mse {
 					assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointerRR>::type(), std::forward<decltype(_Right_cref)>(_Right_cref));
 					return (*this);
 				}
+				/* This assignment operator accepts iterators of different types (but pointing to the same container) and
+				attempts to obtain (and adopt) the given iterator's index position. */
+				template<typename _Ty2, class = typename std::enable_if<(!std::is_convertible<_Ty2, TRAIteratorBase>::value) && (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
+				TRAIteratorBase& operator=(const _Ty2& _Right_cref) {
+					assignment_helper1(std::false_type(), _Right_cref);
+					return (*this);
+				}
 
 				void set_to_beginning() {
 					m_index = 0;
@@ -615,24 +653,11 @@ namespace mse {
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TRAContainerPointerRR);
 
 			private:
-				template<class _TRAIterator>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return _TRAContainerPointerRR(src.target_container_ptr()); }
-				template<class _TRAIterator>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, _TRAIterator&& src) { return _TRAContainerPointerRR(std::forward< _TRAIterator>(src).target_container_ptr()); }
-				template<class _Ty2>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return _TRAContainerPointerRR(param); }
-				template<class _Ty2>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return _TRAContainerPointerRR(std::forward<_Ty2>(param)); }
-				template<class _TRAIterator>
-				auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
-				template<class _Ty2>
-				difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
-
 				template<class _Ty2 = _TRAContainerPointerRR, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointerRR>::value)
 					&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
 				void assignment_helper1(std::true_type, const TRAIteratorBase& _Right_cref) {
-					((*this).m_ra_container_pointer) = _Right_cref.m_ra_container_pointer;
-					(*this).m_index = _Right_cref.m_index;
+					((*this).m_ra_container_pointer) = _Right_cref.target_container_ptr();
+					(*this).m_index = _Right_cref.position();
 				}
 				template<class _Ty2 = _TRAContainerPointerRR, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointerRR>::value)
 					&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
@@ -640,19 +665,20 @@ namespace mse {
 					(*this).m_index = _Right_cref.m_index;
 					((*this).m_ra_container_pointer) = std::forward<decltype(_Right_cref)>(_Right_cref).m_ra_container_pointer;
 				}
-				void assignment_helper1(std::false_type, const TRAIteratorBase& _Right_cref) {
-					if (((*this).m_ra_container_pointer) && (_Right_cref.m_ra_container_pointer)) {
+				template<typename _Ty2>
+				void assignment_helper1(std::false_type, const _Ty2& _Right_cref) {
+					if (((*this).m_ra_container_pointer) && (_Right_cref.target_container_ptr())) {
 						const auto& this_m_ra_container_pointer_lvaluecref = *((*this).m_ra_container_pointer);
-						const auto& Right_m_ra_container_pointer_lvaluecref = *(_Right_cref.m_ra_container_pointer);
+						const auto& Right_m_ra_container_pointer_lvaluecref = *(_Right_cref.target_container_ptr());
 						if (std::addressof(this_m_ra_container_pointer_lvaluecref) != std::addressof(Right_m_ra_container_pointer_lvaluecref)
-							|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
+							/*|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.target_container_ptr()))>::type>::value)*/) {
 							/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
 							example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
 							pointing to the same container. */
 							MSE_THROW(nii_array_range_error("invalid argument - TRAIteratorBase& operator=(const TRAIteratorBase& _Right) - TRAIteratorBase"));
 						}
 					}
-					(*this).m_index = _Right_cref.m_index;
+					(*this).m_index = _Right_cref.position();
 				}
 
 				friend class TRAConstIteratorBase<_TRAContainerPointerRR>;
@@ -777,6 +803,37 @@ namespace mse {
 				difference_type m_index = 0;
 				/*const */_TRAContainerPointerRR m_ra_container_pointer;
 
+				/* some construction helper functions and types */
+				template<class _TRAIterator>
+				static _TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return _TRAContainerPointerRR(src.target_container_ptr()); }
+				template<class _TRAIterator>
+				static _TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, _TRAIterator&& src) { return _TRAContainerPointerRR(std::forward< _TRAIterator>(src).target_container_ptr()); }
+				template<class _Ty2>
+				static _TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return _TRAContainerPointerRR(param); }
+				template<class _Ty2>
+				static _TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return _TRAContainerPointerRR(std::forward<_Ty2>(param)); }
+				template<class _TRAIterator>
+				static auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
+				template<class _Ty2>
+				static difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
+
+				template<class T, class EqualTo>
+				struct lone_param_seems_valid_impl
+				{
+					template<class U, class V>
+					static auto test(U* u) -> decltype(
+						_TRAContainerPointerRR(ra_container_pointer_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<U>::type(), *u))
+						, std::declval<V>(), bool(true));
+					template<typename, typename>
+					static auto test(...)->std::false_type;
+
+					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				};
+				template<class T, class EqualTo = T>
+				struct lone_param_seems_valid : lone_param_seems_valid_impl<
+					typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
 			public:
 				template<class _Ty2 = _TRAContainerPointerRR, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointerRR>::value) && (std::is_default_constructible<_Ty2>::value), void>::type>
 				TRAConstIteratorBase() {}
@@ -803,11 +860,11 @@ namespace mse {
 				template<class _TRAContainerPointerRR2>
 				TRAConstIteratorBase(_TRAContainerPointerRR2&& param, size_type index) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(std::forward<_TRAContainerPointerRR2>(param)) {}
 
-				template<class _TLoneParam>
+				template<class _TLoneParam, class = typename std::enable_if<lone_param_seems_valid<_TLoneParam>::value, void>::type>
 				TRAConstIteratorBase(const _TLoneParam& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
 					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
 					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
-				template<class _TLoneParam>
+				template<class _TLoneParam, class = typename std::enable_if<lone_param_seems_valid<_TLoneParam>::value, void>::type>
 				TRAConstIteratorBase(_TLoneParam&& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
 					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
 					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
@@ -853,6 +910,13 @@ namespace mse {
 					assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointerRR>::type(), std::forward<decltype(_Right_cref)>(_Right_cref));
 					return (*this);
 				}
+				/* This assignment operator accepts iterators of different types (but pointing to the same container) and
+				attempts to obtain (and adopt) the given iterator's index position. */
+				template<typename _Ty2, class = typename std::enable_if<(!std::is_convertible<_Ty2, TRAConstIteratorBase>::value) && (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
+				TRAConstIteratorBase& operator=(const _Ty2& _Right_cref) {
+					assignment_helper1(std::false_type(), _Right_cref);
+					return (*this);
+				}
 
 				void set_to_beginning() {
 					m_index = 0;
@@ -865,24 +929,11 @@ namespace mse {
 				}
 
 			private:
-				template<class _TRAIterator>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, const _TRAIterator& src) { return _TRAContainerPointerRR(src.target_container_ptr()); }
-				template<class _TRAIterator>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::true_type, _TRAIterator&& src) { return _TRAContainerPointerRR(std::forward< _TRAIterator>(src).target_container_ptr()); }
-				template<class _Ty2>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, const _Ty2& param) { return _TRAContainerPointerRR(param); }
-				template<class _Ty2>
-				_TRAContainerPointerRR ra_container_pointer_from_lone_param(std::false_type, _Ty2&& param) { return _TRAContainerPointerRR(std::forward<_Ty2>(param)); }
-				template<class _TRAIterator>
-				auto index_from_lone_param(std::true_type, const _TRAIterator& src) { return src.position(); }
-				template<class _Ty2>
-				difference_type index_from_lone_param(std::false_type, const _Ty2& param) { return 0; }
-
 				template<class _Ty2 = _TRAContainerPointerRR, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointerRR>::value)
 					&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
 				void assignment_helper1(std::true_type, const TRAConstIteratorBase& _Right_cref) {
-					((*this).m_ra_container_pointer) = _Right_cref.m_ra_container_pointer;
-					(*this).m_index = _Right_cref.m_index;
+					((*this).m_ra_container_pointer) = _Right_cref.target_container_ptr();
+					(*this).m_index = _Right_cref.position();
 				}
 				template<class _Ty2 = _TRAContainerPointerRR, class = typename std::enable_if<(std::is_same<_Ty2, _TRAContainerPointerRR>::value)
 					&& (mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_Ty2>::value), void>::type>
@@ -890,19 +941,20 @@ namespace mse {
 					(*this).m_index = _Right_cref.m_index;
 					((*this).m_ra_container_pointer) = std::forward<decltype(_Right_cref)>(_Right_cref).m_ra_container_pointer;
 				}
-				void assignment_helper1(std::false_type, const TRAConstIteratorBase& _Right_cref) {
-					if (((*this).m_ra_container_pointer) && (_Right_cref.m_ra_container_pointer)) {
+				template<typename _Ty2>
+				void assignment_helper1(std::false_type, const _Ty2& _Right_cref) {
+					if (((*this).m_ra_container_pointer) && (_Right_cref.target_container_ptr())) {
 						const auto& this_m_ra_container_pointer_lvaluecref = *((*this).m_ra_container_pointer);
-						const auto& Right_m_ra_container_pointer_lvaluecref = *(_Right_cref.m_ra_container_pointer);
+						const auto& Right_m_ra_container_pointer_lvaluecref = *(_Right_cref.target_container_ptr());
 						if (std::addressof(this_m_ra_container_pointer_lvaluecref) != std::addressof(Right_m_ra_container_pointer_lvaluecref)
-							|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.m_ra_container_pointer))>::type>::value)) {
+							/*|| (!std::is_same<typename std::remove_const<decltype(*((*this).m_ra_container_pointer))>::type, typename std::remove_const<decltype(*(_Right_cref.target_container_ptr()))>::type>::value)*/) {
 							/* In cases where the container pointer type stored by this iterator doesn't support assignment (as with, for
 							example, mse::TRegisteredFixedPointer<>), this iterator may only be assigned the value of another iterator
 							pointing to the same container. */
 							MSE_THROW(nii_array_range_error("invalid argument - TRAConstIteratorBase& operator=(const TRAConstIteratorBase& _Right) - TRAConstIteratorBase"));
 						}
 					}
-					(*this).m_index = _Right_cref.m_index;
+					(*this).m_index = _Right_cref.position();
 				}
 			};
 		}
@@ -3297,8 +3349,7 @@ namespace mse {
 		struct SupportsStdBegin_msemsearray_impl
 		{
 			template<class U, class V>
-			//static auto test(U*) -> decltype(std::declval<U>().begin(), std::declval<V>().begin(), bool(true));
-			static auto test(U*) -> decltype(std::begin(std::declval<U>()), std::begin(std::declval<V>()), bool(true));
+			static auto test(U* u) -> decltype(std::begin(*u), std::declval<V>(), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
@@ -3326,7 +3377,7 @@ namespace mse {
 		struct HasOrInheritsStaticSSBeginMethod_msemsearray_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(U::ss_begin(std::declval<U*>()), V::ss_begin(std::declval<V*>()), bool(true));
+			static auto test(U* u) -> decltype(U::ss_begin(std::declval<mse::us::impl::TPointer<U> >()), std::declval<V*>(), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
@@ -3340,7 +3391,7 @@ namespace mse {
 		struct HasOrInheritsStaticXScopeSSBeginMethod_msemsearray_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(U::xscope_ss_begin(std::declval<U*>()), V::xscope_ss_begin(std::declval<V*>()), bool(true));
+			static auto test(U* u) -> decltype(U::xscope_ss_begin(std::declval<mse::TXScopeItemFixedPointer<U> >()), std::declval<V>(), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
@@ -3354,7 +3405,6 @@ namespace mse {
 		struct HasOrInheritsXScopeIteratorMemberType_msemsearray_impl
 		{
 			template<class U, class V>
-			//static auto test(U*) -> decltype(typename U::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<U> >()), typename V::xscope_iterator(std::declval<mse::TXScopeItemFixedPointer<V> >()), bool(true));
 			static auto test(U*) -> decltype(std::declval<typename U::xscope_iterator>(), std::declval<typename V::xscope_iterator>(), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;

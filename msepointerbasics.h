@@ -264,7 +264,7 @@ namespace mse {
 		struct HasOrInheritsAssignmentOperator_msepointerbasics_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>() = std::declval<V>(), bool(true));
+			static auto test(U* u) -> decltype(*u = *u, std::declval<V>(), bool(true));
 			template<typename, typename>
 			static auto test(...)->std::false_type;
 
@@ -461,7 +461,7 @@ namespace mse {
 			struct HasOrInheritsFunctionCallOperator_msemsearray_impl
 			{
 				template<class U, class V>
-				static auto test(U*) -> decltype(std::declval<U>().operator() == std::declval<V>().operator(), bool(true));
+				static auto test(U*) -> decltype(std::declval<U>().operator(), std::declval<V>(), bool(true));
 				template<typename, typename>
 				static auto test(...)->std::false_type;
 

@@ -1885,7 +1885,7 @@ namespace mse {
 					(*this_ptr).erase(_P);
 
 					auto retval = mse::make_begin_iterator(this_ptr);
-					retval.advance(typename Tss_iterator_type<_TVectorPointer1>::difference_type(pos_index));
+					retval.advance(typename decltype(retval)::difference_type(pos_index));
 					return retval;
 				}
 				template<typename _TVectorPointer1>
@@ -1898,7 +1898,7 @@ namespace mse {
 					(*this_ptr).erase(_F, _L);
 
 					auto retval = mse::make_begin_iterator(this_ptr);
-					retval.advance(typename Tss_iterator_type<_TVectorPointer1>::difference_type(pos_index));
+					retval.advance(typename decltype(retval)::difference_type(pos_index));
 					return retval;
 				}
 

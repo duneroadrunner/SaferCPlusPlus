@@ -99,13 +99,21 @@ namespace mse {
 			mse::msev_int resss5 = msevector_test1.msevec_test_ss5();
 			mse::msev_int resss6 = msevector_test1.msevec_test_ss6();
 			mse::msev_int resss7 = msevector_test1.msevec_test_ss7();
+			mse::msev_int resmt1 = msevector_test1.msevec_test_mt1();
+			mse::msev_int resmt2 = msevector_test1.msevec_test_mt2();
+			mse::msev_int resmt3 = msevector_test1.msevec_test_mt3();
+			mse::msev_int resmt4 = msevector_test1.msevec_test_mt4();
+			mse::msev_int resmt5 = msevector_test1.msevec_test_mt5();
+			mse::msev_int resmt6 = msevector_test1.msevec_test_mt6();
+			mse::msev_int resmt7 = msevector_test1.msevec_test_mt7();
 			mse::msev_int res_mvec_as_stdvec = res1 + res2 + res3 + res4 + res5 + res6 + res7 + res_cap + res_at + res_ptr + res_aref
 				/*+ res_oc */ + res_asschk + res_its + res_ebo + res_bvec1;
 			mse::msev_int res_mvec = resm1 + resm2 + resm3 + resm4 + resm5 + resm6 + resm7;
 			mse::msev_int res_ivec = resi1 + resi2 + resi3 + resi4 + resi5 + resi6 + resi7;
 			mse::msev_int res_svec = ress1 + ress2 + ress3 + ress4 + ress5 + ress6 + ress7;
 			mse::msev_int res_ssvec = resss1 + resss2 + resss3 + resss4 + resss5 + resss6 + resss7;
-			mse::msev_int resall = res_mvec_as_stdvec + res_mvec + res_ivec + res_svec + res_ssvec;
+			mse::msev_int res_mtvec = resmt1 + resmt2 + resmt3 + resmt4 + resmt5 + resmt6 + resmt7;
+			mse::msev_int resall = res_mvec_as_stdvec + res_mvec + res_ivec + res_svec + res_ssvec + res_mtvec;
 			int q = 7;
 		}
 
@@ -2015,6 +2023,283 @@ namespace mse {
 				EXAM_CHECK(v4[1] == 10);
 				EXAM_CHECK(v4[2] == 4);
 #endif // MSEREGISTERED_H_
+			}
+
+			return EXAM_RESULT;
+		}
+
+
+		//int EXAM_IMPL(vector_test::vec_test_1)
+		msev_int msevec_test_mt1()
+		{
+			mse::TXScopeObj<mse::mtnii_vector<int> > v1; // Empty vector of integers.
+
+			EXAM_CHECK(v1.empty() == true);
+			EXAM_CHECK(v1.size() == 0);
+
+			// EXAM_CHECK( v1.max_size() == INT_MAX / sizeof(int) );
+			// cout << "max_size = " << v1.max_size() << endl;
+			v1.push_back(42); // Add an integer to the vector.
+
+			EXAM_CHECK(v1.size() == 1);
+
+			EXAM_CHECK(v1[0] == 42);
+
+			{
+				mse::TXScopeObj<mse::mtnii_vector<mse::mtnii_vector<int> > > vect(10);
+				//mse::TXScopeObj<mse::mtnii_vector<mse::mtnii_vector<int> > >::iterator it(vect.begin()), end(vect.end());
+				auto it = mse::make_xscope_begin_iterator(&vect);
+				auto end = mse::make_xscope_end_iterator(&vect);
+				for (; end != it; it++) {
+					EXAM_CHECK((*it).empty());
+					EXAM_CHECK((*it).size() == 0);
+					EXAM_CHECK((*it).capacity() == 0);
+					//EXAM_CHECK((*it).begin() == (*it).end());
+					EXAM_CHECK(mse::make_xscope_begin_iterator(mse::xscope_pointer(it)) == mse::make_xscope_end_iterator(mse::xscope_pointer(it)));
+				}
+			}
+
+			return EXAM_RESULT;
+		}
+
+		//int EXAM_IMPL(vector_test::vec_test_2)
+		msev_int msevec_test_mt2()
+		{
+			mse::TXScopeObj<mse::mtnii_vector<double> > v1; // Empty vector of doubles.
+			v1.push_back(32.1);
+			v1.push_back(40.5);
+			mse::TXScopeObj<mse::mtnii_vector<double> > v2; // Another empty vector of doubles.
+			v2.push_back(3.56);
+
+			EXAM_CHECK(v1.size() == 2);
+			EXAM_CHECK(v1[0] == 32.1);
+			EXAM_CHECK(v1[1] == 40.5);
+
+			EXAM_CHECK(v2.size() == 1);
+			EXAM_CHECK(v2[0] == 3.56);
+			msev_size_t v1Cap = v1.capacity();
+			msev_size_t v2Cap = v2.capacity();
+
+			v1.swap(v2); // Swap the vector's contents.
+
+			EXAM_CHECK(v1.size() == 1);
+			EXAM_CHECK(v1.capacity() == v2Cap);
+			EXAM_CHECK(v1[0] == 3.56);
+
+			EXAM_CHECK(v2.size() == 2);
+			EXAM_CHECK(v2.capacity() == v1Cap);
+			EXAM_CHECK(v2[0] == 32.1);
+			EXAM_CHECK(v2[1] == 40.5);
+
+			v2 = v1; // Assign one vector to another.
+
+			EXAM_CHECK(v2.size() == 1);
+			EXAM_CHECK(v2[0] == 3.56);
+
+			return EXAM_RESULT;
+		}
+
+		//int EXAM_IMPL(vector_test::vec_test_3)
+		msev_int msevec_test_mt3()
+		{
+			typedef mse::mtnii_vector<char> vec_type;
+
+			mse::TXScopeObj<vec_type> v1; // Empty vector of characters.
+			v1.push_back('h');
+			v1.push_back('i');
+
+			EXAM_CHECK(v1.size() == 2);
+			EXAM_CHECK(v1[0] == 'h');
+			EXAM_CHECK(v1[1] == 'i');
+
+			auto it1 = mse::make_xscope_begin_const_iterator(&v1);
+			auto it2 = mse::make_xscope_end_const_iterator(&v1);
+			mse::TXScopeObj<vec_type> v2(it1, it2);
+			v2[1] = 'o'; // Replace second character.
+
+			EXAM_CHECK(v2.size() == 2);
+			EXAM_CHECK(v2[0] == 'h');
+			EXAM_CHECK(v2[1] == 'o');
+
+			EXAM_CHECK((v1 == v2) == false);
+
+			EXAM_CHECK((v1 < v2) == true);
+
+			return EXAM_RESULT;
+		}
+
+		//int EXAM_IMPL(vector_test::vec_test_4)
+		msev_int msevec_test_mt4()
+		{
+			mse::TXScopeObj<mse::mtnii_vector<int> > v(4);
+
+			v[0] = 1;
+			v[1] = 4;
+			v[2] = 9;
+			v[3] = 16;
+
+			EXAM_CHECK(v.front() == 1);
+			EXAM_CHECK(v.back() == 16);
+
+			v.push_back(25);
+
+			EXAM_CHECK(v.back() == 25);
+			EXAM_CHECK(v.size() == 5);
+
+			v.pop_back();
+
+			EXAM_CHECK(v.back() == 16);
+			EXAM_CHECK(v.size() == 4);
+
+			return EXAM_RESULT;
+		}
+
+		//int EXAM_IMPL(vector_test::vec_test_5)
+		msev_int msevec_test_mt5()
+		{
+			int array[] = { 1, 4, 9, 16 };
+
+#ifdef MSVC2010_COMPATIBLE
+			mse::TXScopeObj<mse::mtnii_vector<int> > v(array, array + 4);
+#else /*MSVC2010_COMPATIBLE*/
+			auto v = mse::make_xscope(mse::mtnii_vector<int>{ 1, 4, 9, 16 });
+#endif /*MSVC2010_COMPATIBLE*/
+
+			EXAM_CHECK(v.size() == 4);
+
+			EXAM_CHECK(v[0] == 1);
+			EXAM_CHECK(v[1] == 4);
+			EXAM_CHECK(v[2] == 9);
+			EXAM_CHECK(v[3] == 16);
+
+			return EXAM_RESULT;
+		}
+
+		//int EXAM_IMPL(vector_test::vec_test_6)
+		msev_int msevec_test_mt6()
+		{
+			int array[] = { 1, 4, 9, 16, 25, 36 };
+
+#ifdef MSVC2010_COMPATIBLE
+			mse::TXScopeObj<mse::mtnii_vector<int> > v(array, array + 6);
+#else /*MSVC2010_COMPATIBLE*/
+			auto v = mse::make_xscope(mse::mtnii_vector<int>{ 1, 4, 9, 16, 25, 36 });
+#endif /*MSVC2010_COMPATIBLE*/
+			//auto xs_vit = mse::make_xscope_begin_iterator(&v);
+
+			EXAM_CHECK(v.size() == 6);
+			EXAM_CHECK(v[0] == 1);
+			EXAM_CHECK(v[1] == 4);
+			EXAM_CHECK(v[2] == 9);
+			EXAM_CHECK(v[3] == 16);
+			EXAM_CHECK(v[4] == 25);
+			EXAM_CHECK(v[5] == 36);
+
+			//vit = v.erase(v.begin()); // Erase first element.
+			{
+				auto xs_vit = v.erase(&v, 0); // Erase first element.
+				EXAM_CHECK(*xs_vit == 4);
+			}
+
+			EXAM_CHECK(v.size() == 5);
+			EXAM_CHECK(v[0] == 4);
+			EXAM_CHECK(v[1] == 9);
+			EXAM_CHECK(v[2] == 16);
+			EXAM_CHECK(v[3] == 25);
+			EXAM_CHECK(v[4] == 36);
+
+			//vit = v.erase(v.end() - 1); // Erase last element.
+			{
+				auto xs_vit = v.erase(&v, v.size() - 1); // Erase first element.
+				EXAM_CHECK(mse::make_xscope_end_iterator(&v) == xs_vit);
+			}
+
+			EXAM_CHECK(v.size() == 4);
+			EXAM_CHECK(v[0] == 4);
+			EXAM_CHECK(v[1] == 9);
+			EXAM_CHECK(v[2] == 16);
+			EXAM_CHECK(v[3] == 25);
+
+			//v.erase(v.begin() + 1, v.end() - 1); // Erase all but first and last.
+			v.erase(&v, 0 + 1, v.size() - 1); // Erase all but first and last.
+
+			EXAM_CHECK(v.size() == 2);
+			EXAM_CHECK(v[0] == 4);
+			EXAM_CHECK(v[1] == 25);
+
+			return EXAM_RESULT;
+		}
+
+		//int EXAM_IMPL(vector_test::vec_test_7)
+		msev_int msevec_test_mt7()
+		{
+			int array1[] = { 1, 4, 25 };
+			int array2[] = { 9, 16 };
+
+#ifdef MSVC2010_COMPATIBLE
+			mse::TXScopeObj<mse::mtnii_vector<int> > v(array1, array1 + 3);
+#else /*MSVC2010_COMPATIBLE*/
+			auto v = mse::make_xscope(mse::mtnii_vector<int>{ 1, 4, 25 });
+#endif /*MSVC2010_COMPATIBLE*/
+			//auto xs_vit = mse::make_xscope_begin_iterator(&v);
+
+			//xs_vit = v.insert(v.begin(), 0); // Insert before first element.
+			{
+				auto xs_vit = v.insert(&v, 0, 0); // Insert before first element.
+				EXAM_CHECK(*xs_vit == 0);
+			}
+
+			//xs_vit = v.insert(v.end(), 36);  // Insert after last element.
+			{
+				auto xs_vit = v.insert(&v, v.size(), 36); // Insert after last element.
+				EXAM_CHECK(*xs_vit == 36);
+			}
+
+			EXAM_CHECK(v.size() == 5);
+			EXAM_CHECK(v[0] == 0);
+			EXAM_CHECK(v[1] == 1);
+			EXAM_CHECK(v[2] == 4);
+			EXAM_CHECK(v[3] == 25);
+			EXAM_CHECK(v[4] == 36);
+
+			// Insert contents of array2 before fourth element.
+			//v.insert(v.begin() + 3, array2, array2 + 2);
+			//v.insert(v.begin() + 3, { 9, 16 });
+#ifdef MSVC2010_COMPATIBLE
+			v.insert(&v, 0 + 3, 16);
+			v.insert(&v, 0 + 3, 9);
+#else /*MSVC2010_COMPATIBLE*/
+			v.insert(&v, 0 + 3, { 9, 16 });
+#endif /*MSVC2010_COMPATIBLE*/
+
+			EXAM_CHECK(v.size() == 7);
+
+			EXAM_CHECK(v[0] == 0);
+			EXAM_CHECK(v[1] == 1);
+			EXAM_CHECK(v[2] == 4);
+			EXAM_CHECK(v[3] == 9);
+			EXAM_CHECK(v[4] == 16);
+			EXAM_CHECK(v[5] == 25);
+			EXAM_CHECK(v[6] == 36);
+
+			v.clear();
+			EXAM_CHECK(v.empty());
+
+			//v.insert(v.begin(), 5, 10);
+			v.insert(&v, 0, 5, 10);
+			EXAM_CHECK(v.size() == 5);
+			EXAM_CHECK(v[0] == 10);
+			EXAM_CHECK(v[1] == 10);
+			EXAM_CHECK(v[2] == 10);
+			EXAM_CHECK(v[3] == 10);
+			EXAM_CHECK(v[4] == 10);
+
+			{
+				//mse::TXScopeObj<mse::mtnii_vector<float> > vf(2.0f, 3.0f);
+				mse::TXScopeObj<mse::mtnii_vector<float> > vf(2, 3.0f);
+				EXAM_CHECK( vf.size() == 2 );
+				EXAM_CHECK( vf.front() == 3.0f );
+				EXAM_CHECK( vf.back() == 3.0f );
 			}
 
 			return EXAM_RESULT;
