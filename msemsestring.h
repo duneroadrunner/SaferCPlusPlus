@@ -10,6 +10,7 @@
 
 #include <string>
 #include <iostream>
+MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
 #include "msemsevector.h"
 #include "msealgorithm.h"
 #ifdef MSE_HAS_CXX17
@@ -49,6 +50,7 @@
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
+MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
@@ -5631,45 +5633,7 @@ namespace mse {
 	/* mtnii_basic_string<> is a string that is eligible to be shared among threads and does not support implicit
 	iterators. */
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-	class mtnii_basic_string : public mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type> {
-	public:
-		typedef mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type> base_class;
-		typedef mse::shareable_dynamic_container_mutex _TStateMutex;
-
-		typedef typename base_class::allocator_type allocator_type;
-		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
-
-		typedef typename base_class::iterator iterator;
-		typedef typename base_class::const_iterator const_iterator;
-		typedef typename base_class::reverse_iterator reverse_iterator;
-		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
-
-		template<typename _TBasicStringConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TBasicStringConstPointer>::value), void>::type>
-		using Tss_const_iterator_type = typename base_class::template Tss_const_iterator_type<_TBasicStringConstPointer>;
-		template<typename _TBasicStringPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value), void>::type>
-		using Tss_iterator_type = typename base_class::template Tss_iterator_type<_TBasicStringPointer>;
-		template<typename _TBasicStringPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value), void>::type>
-		using Tss_reverse_iterator_type = typename base_class::template Tss_reverse_iterator_type<_TBasicStringPointer>;
-		template<typename _TBasicStringConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TBasicStringConstPointer>::value), void>::type>
-		using Tss_const_reverse_iterator_type = typename base_class::template Tss_const_reverse_iterator_type<_TBasicStringConstPointer>;
-		typedef typename base_class::ss_iterator_type ss_iterator_type;
-		typedef typename base_class::ss_const_iterator_type ss_const_iterator_type;
-		typedef typename base_class::ss_reverse_iterator_type ss_reverse_iterator_type;
-		typedef typename base_class::ss_const_reverse_iterator_type ss_const_reverse_iterator_type;
-
-		typedef typename base_class::xscope_ss_const_iterator_type xscope_ss_const_iterator_type;
-		typedef typename base_class::xscope_ss_iterator_type xscope_ss_iterator_type;
-
-		//typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type<_Myt> xscope_const_iterator;
-		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
-		typedef typename base_class::xscope_iterator xscope_iterator;
-
-		MSE_USING(mtnii_basic_string, base_class);
-
-		mtnii_basic_string(_XSTD initializer_list<value_type> _Ilist, const _A& _Al = _A()) : base_class(_Ilist, _Al) {}
-
-		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
-	};
+	using mtnii_basic_string = mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type>;
 
 	namespace impl {
 		namespace ns_mtnii_basic_string {
@@ -5713,7 +5677,7 @@ namespace mse {
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-	MSE_STRING_INHERIT_FREE_OPERATORS(mtnii_basic_string, mse::us::impl::gnii_basic_string, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type)
+	//MSE_STRING_INHERIT_FREE_OPERATORS(mtnii_basic_string, mse::us::impl::gnii_basic_string, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type)
 
 	using mtnii_string = mtnii_basic_string<char>;
 	using mtnii_wstring = mtnii_basic_string<wchar_t>;

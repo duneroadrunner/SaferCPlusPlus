@@ -34,6 +34,7 @@
 
 #ifdef MSE_SELF_TESTS
 #include <iostream>
+MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
 #endif // MSE_SELF_TESTS
 
 
@@ -56,6 +57,7 @@ reduction of functionality/compatibility. */
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
+MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
@@ -1197,11 +1199,13 @@ namespace mse {
 				}
 
 				constexpr T const& value() const {
-					return initialized() ? contained_val() : (MSE_THROW(bad_optional_access("bad optional access")), contained_val());
+					if (!initialized()) { MSE_THROW(bad_optional_access("bad optional access")); }
+					return contained_val();
 				}
 
 				T& value() {
-					return initialized() ? contained_val() : (MSE_THROW(bad_optional_access("bad optional access")), contained_val());
+					if (!initialized()) { MSE_THROW(bad_optional_access("bad optional access")); }
+					return contained_val();
 				}
 
 # endif

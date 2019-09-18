@@ -46,6 +46,7 @@
 //include <mutex>
 #include <algorithm>
 #include <iostream>
+MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
 #ifdef MSE_HAS_CXX17
 //include <variant>
 #include <string_view>
@@ -88,6 +89,7 @@ so you can't disable mstd::vector<> without also disabling mstd::array<>. */
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
+MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)

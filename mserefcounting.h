@@ -14,6 +14,7 @@
 #endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 #include <memory>
 #include <iostream>
+MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
 #include <utility>
 #include <cassert>
 #include <stdexcept>
@@ -39,6 +40,7 @@
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
+MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)

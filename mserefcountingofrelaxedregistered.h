@@ -14,6 +14,7 @@
 #include "mserefcounting.h"
 #include <memory>
 #include <iostream>
+MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
 #include <utility>
 
 /* for the test functions */
