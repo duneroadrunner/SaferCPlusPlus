@@ -25,7 +25,7 @@ objects of a given type. */
 //include <typeinfo>      // std::bad_cast
 #include <stdexcept>
 #include <iostream>
-MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
+#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_NORADPOINTER_DISABLED
@@ -38,7 +38,7 @@ MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
-MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
+#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)

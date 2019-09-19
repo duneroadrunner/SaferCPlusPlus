@@ -34,7 +34,7 @@
 
 #ifdef MSE_SELF_TESTS
 #include <iostream>
-MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
+#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 #endif // MSE_SELF_TESTS
 
 
@@ -57,7 +57,7 @@ reduction of functionality/compatibility. */
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
-MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
+#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)

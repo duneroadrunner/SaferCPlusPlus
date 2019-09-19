@@ -14,7 +14,7 @@
 #include "mserefcounting.h"
 #include <memory>
 #include <iostream>
-MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
+#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 #include <utility>
 
 /* for the test functions */

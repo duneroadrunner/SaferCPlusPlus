@@ -61,17 +61,6 @@
 #define MSE_CUSTOM_THROW_DEFINITION(x) exit(-11)
 #endif // __cpp_exceptions >= 199711
 
-#define MSE_IMPL_HASH #
-#define MSE_IMPL_IDENTITY(x) x
-
-#ifdef SCPPTOOL_BUILD
-/* libtooling (version 8 at least) seems to sometimes misbehave after processing an #include <iostream> directive. It seems
-to be ok when that directive is followed by an #include<stdlib.h> directive. */
-#define MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8 MSE_IMPL_IDENTITY(MSE_IMPL_HASH)include<stdlib.h>
-#else // SCPPTOOL_BUILD
-#define MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
-#endif // SCPPTOOL_BUILD
-
 #endif /*ndef MSEPRIMITIVES_H*/
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
@@ -197,7 +186,7 @@ MSE_STATICPOINTER_DISABLED will ultimately be defined. */
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #include <iostream>
-MSE_IOSTREAM_INCLUDE_POSTFIX_WORKAROUND_FOR_LIBTOOLING8
+#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
@@ -769,7 +758,14 @@ namespace mse {
 #define MSE_INHERIT_COMMON_XSCOPE_OBJ_TAG_BASE_SET_FROM(class2, class3) MSE_INHERIT_COMMON_XSCOPE_POINTER_TAG_BASE_SET_FROM(class2, class3)
 
 	namespace rsv {
-		inline void suppress_checks_directive() {}
+		namespace impl {
+			struct CSuppressChecks {
+				static void suppress_checks_directive() {}
+			};
+		}
+		inline void suppress_checks_directive() {
+			impl::CSuppressChecks::suppress_checks_directive();
+		}
 #define MSE_SUPPRESS_CHECKS_IN_XSCOPE \
 		mse::rsv::suppress_checks_directive();
 
