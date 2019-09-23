@@ -9,12 +9,12 @@ This example file has become quite large (and has spilled into msetl_example2.cp
 types. Your best bet is probably to use a find/search to get to the data type your interested in.
 */
 
+#include "msetl_example_defs.h"
+
 #include "msetl_example2.h"
 #include "msetl_example3.h"
 
 #ifndef EXCLUDE_MSETL_EXAMPLE
-
-#include "msetl_example_defs.h"
 
 #include "mseprimitives.h"
 #include "mseregistered.h"
@@ -31,7 +31,6 @@ types. Your best bet is probably to use a find/search to get to the data type yo
 #include "mseivector.h"
 #include "msevector_test.h"
 #include "msemstdstring.h"
-#include <iostream>
 
 /* This block of includes is required for the mse::TRegisteredRefWrapper example */
 #include <algorithm>

@@ -185,8 +185,6 @@ MSE_STATICPOINTER_DISABLED will ultimately be defined. */
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
-#include <iostream>
-#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
@@ -758,19 +756,16 @@ namespace mse {
 #define MSE_INHERIT_COMMON_XSCOPE_OBJ_TAG_BASE_SET_FROM(class2, class3) MSE_INHERIT_COMMON_XSCOPE_POINTER_TAG_BASE_SET_FROM(class2, class3)
 
 	namespace rsv {
-		namespace impl {
-			struct CSuppressChecks {
-				static void suppress_checks_directive() {}
-			};
-		}
-		inline void suppress_checks_directive() {
-			impl::CSuppressChecks::suppress_checks_directive();
-		}
-#define MSE_SUPPRESS_CHECKS_IN_XSCOPE \
-		mse::rsv::suppress_checks_directive();
+		inline void suppress_check_directive() {}
+#define MSE_SUPPRESS_CHECK_IN_XSCOPE \
+		mse::rsv::suppress_check_directive();
 
-#define MSE_SUPPRESS_CHECKS_IN_DECLSCOPE \
-		static void mse_suppress_checks_directive##__LINE__() {}
+#define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_MERGE_(a,b)  a##b
+#define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_LABEL_(a) MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_MERGE_(mse_suppress_checks_directive_, a)
+#define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_LABEL_(__LINE__)
+
+#define MSE_SUPPRESS_CHECK_IN_DECLSCOPE \
+		static void MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME() {}
 
 	}
 

@@ -31,8 +31,6 @@ Note that this (pre-C++17) implementation doesn't really support over-aligned ty
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
-#include <iostream>
-#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)

@@ -46,7 +46,6 @@
 //include <mutex>
 #include <algorithm>
 #include <iostream>
-#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 #ifdef MSE_HAS_CXX17
 //include <variant>
 #include <string_view>
@@ -88,8 +87,6 @@ so you can't disable mstd::vector<> without also disabling mstd::array<>. */
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
-#include <iostream>
-#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
@@ -6245,6 +6242,9 @@ namespace mse {
 			MSE_CATCH_ANY {
 				/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object (in
 				this thread). */
+#ifdef MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER
+				MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER("Fatal Error: mse::us::impl::TAccessControlledObjBase<> destructed with outstanding references in the same thread \n");
+#endif // MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER
 				std::cerr << "\n\nFatal Error: mse::us::impl::TAccessControlledObjBase<> destructed with outstanding references in the same thread \n\n";
 				assert(false); std::terminate();
 			}

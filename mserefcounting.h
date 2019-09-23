@@ -13,15 +13,14 @@
 #include "msescope.h"
 #endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 #include <memory>
-#include <iostream>
-#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 #include <utility>
 #include <cassert>
 #include <stdexcept>
 
-/* for the test functions */
+#ifdef MSE_SELF_TESTS
 #include <map>
 #include <string>
+#endif // MSE_SELF_TESTS
 
 #ifdef _MSC_VER
 #pragma warning( push )  
@@ -39,8 +38,6 @@
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
-#include <iostream>
-#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
 #else // MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) throw(x)
@@ -893,6 +890,7 @@ namespace mse {
 
 	class TRefCountingPointer_test {
 	public:
+#ifdef MSE_SELF_TESTS
 		// sensed events
 		typedef std::map<std::string, int> Events;
 		/*static */Events constructions, destructions;
@@ -908,6 +906,7 @@ namespace mse {
 		};
 
 		typedef TRefCountingPointer<Trackable> target_t;
+#endif // MSE_SELF_TESTS
 
 
 #define MTXASSERT_EQ(a, b, c) a &= (b==c)
@@ -974,11 +973,13 @@ namespace mse {
 			return ok;
 		}
 
+#ifdef MSE_SELF_TESTS
 		struct Linked : Trackable
 		{
 			Linked(TRefCountingPointer_test* state_ptr, const std::string&t) :Trackable(state_ptr, t) {}
 			TRefCountingPointer<Linked> next;
 		};
+#endif // MSE_SELF_TESTS
 
 		bool testLinked()
 		{

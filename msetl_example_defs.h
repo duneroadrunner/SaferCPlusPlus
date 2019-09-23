@@ -24,6 +24,7 @@ options rather than "#define" directives in the code such as the ones here (for 
 //#define MSE_NORADPOINTER_DISABLED
 
 /* The following will result in program termination instead of exceptions being thrown when an invalid memory access is attempted. */
+//#include <iostream>
 //#define MSE_CUSTOM_THROW_DEFINITION(x) std::cerr << std::endl << x.what(); exit(-11)
 
 /* The following adds run-time checks to scope pointers in non-debug mode. */

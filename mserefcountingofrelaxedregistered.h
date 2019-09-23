@@ -12,14 +12,6 @@
 
 #include "msecregistered.h"
 #include "mserefcounting.h"
-#include <memory>
-#include <iostream>
-#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
-#include <utility>
-
-/* for the test functions */
-#include <map>
-#include <string>
 
 #ifdef _MSC_VER
 #pragma warning( push )  

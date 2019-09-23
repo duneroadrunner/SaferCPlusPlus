@@ -24,8 +24,6 @@ objects of a given type. */
 #include <cassert>
 //include <typeinfo>      // std::bad_cast
 #include <stdexcept>
-#include <iostream>
-#include <stdlib.h> // we include this after including iostream as a workaround for an apparent bug in libtooling8
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #define MSE_NORADPOINTER_DISABLED
@@ -662,7 +660,9 @@ namespace mse {
 				virtual ~TGNoradObj() {
 					if (0 != m_counter) {
 						/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object. */
-						std::cerr << "\n\nFatal Error: mse::TGNoradObj<> destructed with outstanding references \n\n";
+#ifdef MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER
+						MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER("Fatal Error: mse::TGNoradObj<> destructed with outstanding references \n");
+#endif // MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER
 						assert(false); std::terminate();
 					}
 				}
@@ -1398,7 +1398,9 @@ namespace mse {
 		virtual ~TNDNoradObj() {
 			if (0 != m_counter) {
 				/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object. */
-				std::cerr << "\n\nFatal Error: mse::TNDNoradObj<> destructed with outstanding references \n\n";
+#ifdef MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER
+				MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER("Fatal Error: mse::TNDNoradObj<> destructed with outstanding references \n");
+#endif // MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER
 				assert(false); std::terminate();
 			}
 		}
