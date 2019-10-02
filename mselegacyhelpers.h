@@ -49,6 +49,9 @@
 #define MSE_LH_MEMCPY(destination, source, num_bytes) memcpy(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) memset(ptr, value, num_bytes)
 
+#define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
+#define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE
+
 #else /*MSE_LEGACYHELPERS_DISABLED*/
 
 #define MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) mse::lh::TNativeArrayReplacement< 
@@ -71,6 +74,9 @@
 #define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<element_type> >::memset(ptr, value, num_bytes)
 #define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((destination)[0])>::type> >::memcpy(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::memset(ptr, value, num_bytes)
+
+#define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
+#define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE MSE_SUPPRESS_CHECK_IN_DECLSCOPE
 
 namespace mse {
 	namespace lh {

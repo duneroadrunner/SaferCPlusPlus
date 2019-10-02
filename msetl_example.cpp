@@ -1516,7 +1516,7 @@ with the library's (safe) optional<> types. */
 		}
 	}
 
-	{
+	MSE_SUPPRESS_CHECK_IN_XSCOPE {
 		/*************************/
 		/*   Simple Benchmarks   */
 		/*************************/

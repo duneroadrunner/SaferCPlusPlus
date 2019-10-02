@@ -868,7 +868,7 @@ void msetl_example2() {
 
 		/* Scope types need to publicly inherit from mse::us::impl::XScopeTagBase. And by convention, be named with a
 		prefix indicating that it's a scope type. */
-		class xscope_my_type1 : public mse::us::impl::XScopeTagBase {
+		MSE_SUPPRESS_CHECK_IN_XSCOPE class xscope_my_type1 : public mse::us::impl::XScopeTagBase {
 		public:
 			xscope_my_type1(const mse::xscope_optional<mse::mstd::string>& xscp_maybe_string)
 				: m_xscp_maybe_string1(xscp_maybe_string) {}
@@ -886,7 +886,7 @@ void msetl_example2() {
 		independently targeted by scope pointers (i.e. basically has a '&' ("address of" operator) that yeilds
 		a scope pointer), then it must also publicly inherit from mse::us::impl::ReferenceableByScopePointerTagBase.
 		Failure to do so could result in unsafe code. */
-		class xscope_my_type2 : public mse::us::impl::XScopeTagBase, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase
+		MSE_SUPPRESS_CHECK_IN_XSCOPE class xscope_my_type2 : public mse::us::impl::XScopeTagBase, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase
 			, public mse::us::impl::ReferenceableByScopePointerTagBase
 		{
 		public:
