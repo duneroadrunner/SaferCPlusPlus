@@ -1078,7 +1078,7 @@ namespace mse {
 		"functionally disabled" counterparts.
 		*/
 		template<typename _Ty>
-		class TFParam : public _Ty {
+		class TFParam : public _Ty, public std::conditional<mse::impl::is_potentially_xscope<_Ty>::value, mse::impl::TPlaceHolder<TFParam<_Ty> >, mse::us::impl::XScopeTagBase>::type {
 		public:
 			typedef _Ty base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
@@ -1174,7 +1174,7 @@ namespace mse {
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
 		template<typename _Ty>
-		class TFParam<_Ty*> : public mse::us::impl::TPointerForLegacy<_Ty> {
+		class TFParam<_Ty*> : public mse::us::impl::TPointerForLegacy<_Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
@@ -1183,7 +1183,7 @@ namespace mse {
 		};
 
 		template<typename _Ty>
-		class TFParam<_Ty* const> : public mse::us::impl::TPointerForLegacy<_Ty> {
+		class TFParam<_Ty* const> : public mse::us::impl::TPointerForLegacy<_Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
@@ -1195,7 +1195,7 @@ namespace mse {
 		as_an_fparam() on a native array, msvc2017 will try to instantiate a TFParam<> with the native array even though it is
 		determined at compile that it will never be used. clang6, for example, doesn't have the same issue. */
 		template<typename _Ty, size_t _Size>
-		class TFParam<const _Ty[_Size]> : public mse::us::impl::TPointerForLegacy<const _Ty> {
+		class TFParam<const _Ty[_Size]> : public mse::us::impl::TPointerForLegacy<const _Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<const _Ty> base_class;
 			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
@@ -1204,7 +1204,7 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
 		template<typename _Ty, size_t _Size>
-		class TFParam<_Ty[_Size]> : public mse::us::impl::TPointerForLegacy<_Ty> {
+		class TFParam<_Ty[_Size]> : public mse::us::impl::TPointerForLegacy<_Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
 			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
@@ -1222,7 +1222,7 @@ namespace mse {
 		rsv::TReturnableFParam<> does not enable the function to accept scope pointer/reference temporaries.
 		*/
 		template<typename _Ty>
-		class TReturnableFParam : public _Ty {
+		class TReturnableFParam : public _Ty, public std::conditional<mse::impl::is_potentially_xscope<_Ty>::value, mse::impl::TPlaceHolder<TReturnableFParam<_Ty> >, mse::us::impl::XScopeTagBase>::type {
 		public:
 			typedef _Ty base_class;
 			typedef _Ty returnable_fparam_contained_type;
@@ -1316,7 +1316,7 @@ namespace mse {
 		/* Template specializations of TReturnableFParam<>. */
 
 		template<typename _Ty>
-		class TReturnableFParam<_Ty*> : public mse::us::impl::TPointerForLegacy<_Ty> {
+		class TReturnableFParam<_Ty*> : public mse::us::impl::TPointerForLegacy<_Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
@@ -1330,7 +1330,7 @@ namespace mse {
 		};
 
 		template<typename _Ty>
-		class TReturnableFParam<_Ty* const> : public mse::us::impl::TPointerForLegacy<_Ty> {
+		class TReturnableFParam<_Ty* const> : public mse::us::impl::TPointerForLegacy<_Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
