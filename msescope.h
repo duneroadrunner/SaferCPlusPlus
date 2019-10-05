@@ -1078,7 +1078,7 @@ namespace mse {
 		"functionally disabled" counterparts.
 		*/
 		template<typename _Ty>
-		class TFParam : public _Ty, public std::conditional<mse::impl::is_potentially_xscope<_Ty>::value, mse::impl::TPlaceHolder<TFParam<_Ty> >, mse::us::impl::XScopeTagBase>::type {
+		class TFParam : public _Ty, public std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _Ty>::value, mse::impl::TPlaceHolder<TFParam<_Ty> >, mse::us::impl::XScopeTagBase>::type {
 		public:
 			typedef _Ty base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
@@ -1214,6 +1214,20 @@ namespace mse {
 		};
 
 
+		/* Some forward declarations needed to support "cyclic friending". */
+		template<typename _Ty>
+		class TReturnableFParam;
+
+		namespace impl {
+			namespace returnable_fparam {
+				template<typename _Ty>
+				auto as_a_returnable_fparam_helper1(std::true_type, const _Ty& param)->TReturnableFParam<typename std::remove_reference<_Ty>::type>;
+
+				template<typename _Ty>
+				auto as_a_returnable_fparam_helper1(std::true_type, _Ty&& param)->TReturnableFParam<typename std::remove_reference<_Ty>::type>;
+			}
+		}
+
 		/* rsv::TReturnableFParam<> is just a transparent template wrapper for function parameter declarations. Like
 		us::FParam<>, in most cases use of this wrapper is not necessary, but in some cases it enables functionality
 		only available to variables that are function parameters. Specifically, rsv::TReturnableFParam<> "marks"
@@ -1222,17 +1236,24 @@ namespace mse {
 		rsv::TReturnableFParam<> does not enable the function to accept scope pointer/reference temporaries.
 		*/
 		template<typename _Ty>
-		class TReturnableFParam : public _Ty, public std::conditional<mse::impl::is_potentially_xscope<_Ty>::value, mse::impl::TPlaceHolder<TReturnableFParam<_Ty> >, mse::us::impl::XScopeTagBase>::type {
+		class TReturnableFParam : public _Ty, public std::conditional<std::is_base_of<mse::us::impl::XScopeTagBase, _Ty>::value, mse::impl::TPlaceHolder<TReturnableFParam<_Ty> >, mse::us::impl::XScopeTagBase>::type {
 		public:
 			typedef _Ty base_class;
 			typedef _Ty returnable_fparam_contained_type;
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
+			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam);
 
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 
 		private:
+			MSE_USING(TReturnableFParam, base_class);
+
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+
+			template<typename _Ty2>
+			friend auto impl::returnable_fparam::as_a_returnable_fparam_helper1(std::true_type, const _Ty2& param)->TReturnableFParam<typename std::remove_reference<_Ty2>::type>;
+			template<typename _Ty2>
+			friend auto impl::returnable_fparam::as_a_returnable_fparam_helper1(std::true_type, _Ty2&& param)->TReturnableFParam<typename std::remove_reference<_Ty2>::type>;
 		};
 
 #ifdef MSE_HAS_CXX17
@@ -1300,15 +1321,13 @@ namespace mse {
 #define MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_function) \
 		template <typename _Ty, class... _Args> \
 		auto make_xscope_function(const rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax) \
-			-> rsv::TReturnableFParam<decltype(make_xscope_function(std::declval<const _Ty&>(), std::forward<_Args>(_Ax)...))> { \
+			-> decltype(mse::rsv::as_a_returnable_fparam(make_xscope_function(std::declval<const _Ty&>(), std::forward<_Args>(_Ax)...))) { \
 			const _Ty& param_base_ref = param; \
-			typedef decltype(make_xscope_function(param_base_ref, std::forward<_Args>(_Ax)...)) base_return_type; \
-			return rsv::TReturnableFParam<base_return_type>(make_xscope_function(param_base_ref, std::forward<_Args>(_Ax)...)); \
+			return mse::rsv::as_a_returnable_fparam(make_xscope_function(param_base_ref, std::forward<_Args>(_Ax)...)); \
 		} \
 		template <typename _Ty, class... _Args> \
 		auto make_xscope_function(rsv::TReturnableFParam<_Ty>&& param, _Args&&... _Ax) { \
-			typedef typename std::remove_reference<decltype(make_xscope_function(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...))>::type base_return_type; \
-			return rsv::TReturnableFParam<base_return_type>(make_xscope_function(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...)); \
+			return mse::rsv::as_a_returnable_fparam(make_xscope_function(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...)); \
 		}
 
 		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(xscope_pointer)
@@ -1641,6 +1660,22 @@ namespace mse {
 		template<typename _Ty>
 		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_pointer_to(const _Ty& cref) {
 			return unsafe_make_xscope_const_pointer_to(cref);
+		}
+	}
+
+	namespace rsv {
+		/* Obtain a scope pointer to any object. Requires static verification. */
+		template<typename _Ty>
+		TXScopeItemFixedPointer<_Ty> make_xscope_pointer_to(_Ty& ref) {
+			return mse::us::unsafe_make_xscope_pointer_to(ref);
+		}
+		template<typename _Ty>
+		TXScopeItemFixedConstPointer<_Ty> make_xscope_const_pointer_to(const _Ty& cref) {
+			return mse::us::unsafe_make_xscope_const_pointer_to(cref);
+		}
+		template<typename _Ty>
+		TXScopeItemFixedConstPointer<_Ty> make_xscope_pointer_to(const _Ty& cref) {
+			return make_xscope_const_pointer_to(cref);
 		}
 	}
 
