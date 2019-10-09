@@ -931,9 +931,9 @@ namespace mse {
 					struct CB {
 						static mse::mstd::tuple<double, char, std::string> get_student(int id)
 						{
-							if (id == 0) return mse::mstd::make_tuple(3.8, 'A', "Lisa Simpson");
-							if (id == 1) return mse::mstd::make_tuple(2.9, 'C', "Milhouse Van Houten");
-							if (id == 2) return mse::mstd::make_tuple(1.7, 'D', "Ralph Wiggum");
+							if (id == 0) return mse::mstd::make_tuple(3.8, 'A', std::string("Lisa Simpson"));
+							if (id == 1) return mse::mstd::make_tuple(2.9, 'C', std::string("Milhouse Van Houten"));
+							if (id == 2) return mse::mstd::make_tuple(1.7, 'D', std::string("Ralph Wiggum"));
 #if __cpp_exceptions >= 199711
 							throw std::invalid_argument("id");
 #else // __cpp_exceptions >= 199711
@@ -984,7 +984,7 @@ namespace mse {
 				{
 					/* example from https://en.cppreference.com/w/cpp/utility/tuple/swap */
 					mse::mstd::tuple<int, std::string, double> p1, p2;
-					p1 = mse::mstd::make_tuple(10, "test", 3.14);
+					p1 = mse::mstd::make_tuple(10, std::string("test"), 3.14);
 					p2.swap(p1);
 					std::cout << "(" << std::get<0>(p2)
 						<< ", " << std::get<1>(p2)
@@ -1003,7 +1003,7 @@ namespace mse {
 					{
 						// heterogeneous tuple construction
 						int n = 1;
-						auto t = mse::mstd::make_tuple(10, "Test", 3.14, std::ref(n), n);
+						auto t = mse::mstd::make_tuple(10, std::string("Test"), 3.14, std::ref(n), n);
 						n = 7;
 						std::cout << "The value of t is " << "("
 							<< std::get<0>(t) << ", " << std::get<1>(t) << ", "
@@ -1021,7 +1021,7 @@ namespace mse {
 					{
 						mse::mstd::tuple<int, std::string, double> t1(10, "Test", 3.14);
 						int n = 7;
-						auto t2 = mse::mstd::tuple_cat(t1, std::make_pair("Foo", "bar"), t1, std::tie(n));
+						auto t2 = mse::mstd::tuple_cat(t1, std::make_pair(std::string("Foo"), std::string("bar")), t1, std::tie(n));
 						n = 10;
 						print(t2);
 					}
@@ -1041,9 +1041,9 @@ namespace mse {
 					struct CB {
 						static mse::xscope_tuple<double, char, std::string> get_student(int id)
 						{
-							if (id == 0) return mse::mstd::make_tuple(3.8, 'A', "Lisa Simpson");
-							if (id == 1) return mse::mstd::make_tuple(2.9, 'C', "Milhouse Van Houten");
-							if (id == 2) return mse::mstd::make_tuple(1.7, 'D', "Ralph Wiggum");
+							if (id == 0) return mse::mstd::make_tuple(3.8, 'A', std::string("Lisa Simpson"));
+							if (id == 1) return mse::mstd::make_tuple(2.9, 'C', std::string("Milhouse Van Houten"));
+							if (id == 2) return mse::mstd::make_tuple(1.7, 'D', std::string("Ralph Wiggum"));
 #if __cpp_exceptions >= 199711
 							throw std::invalid_argument("id");
 #else // __cpp_exceptions >= 199711
@@ -1094,7 +1094,7 @@ namespace mse {
 				{
 					/* example from https://en.cppreference.com/w/cpp/utility/tuple/swap */
 					mse::xscope_tuple<int, std::string, double> p1, p2;
-					p1 = mse::mstd::make_tuple(10, "test", 3.14);
+					p1 = mse::mstd::make_tuple(10, std::string("test"), 3.14);
 					p2.swap(p1);
 					std::cout << "(" << std::get<0>(p2)
 						<< ", " << std::get<1>(p2)
@@ -1113,7 +1113,7 @@ namespace mse {
 					{
 						// heterogeneous tuple construction
 						int n = 1;
-						auto t = mse::mstd::make_tuple(10, "Test", 3.14, std::ref(n), n);
+						auto t = mse::mstd::make_tuple(10, std::string("Test"), 3.14, std::ref(n), n);
 						n = 7;
 						std::cout << "The value of t is " << "("
 							<< std::get<0>(t) << ", " << std::get<1>(t) << ", "
@@ -1131,7 +1131,7 @@ namespace mse {
 					{
 						mse::xscope_tuple<int, std::string, double> t1(10, "Test", 3.14);
 						int n = 7;
-						auto t2 = mse::xscope_tuple_cat(t1, std::make_pair("Foo", "bar"), t1, std::tie(n));
+						auto t2 = mse::xscope_tuple_cat(t1, std::make_pair(std::string("Foo"), std::string("bar")), t1, std::tie(n));
 						n = 10;
 						print(t2);
 					}

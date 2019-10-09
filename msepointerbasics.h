@@ -416,27 +416,21 @@ namespace mse {
 		template<typename _Ty>
 		struct is_potentially_xscope : std::integral_constant<bool, mse::impl::disjunction<
 			std::is_base_of<mse::us::impl::XScopeTagBase
-			, typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type>
+			, typename std::remove_reference<_Ty>::type>
+			, std::is_pointer<typename std::remove_reference<_Ty>::type>
 #ifdef MSE_SCOPEPOINTER_DISABLED
-			, mse::impl::is_instantiation_of<typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type
-			, mse::us::impl::TPointerForLegacy>
-			, mse::impl::is_instantiation_of<typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type
-			, mse::us::impl::TPointer>
-			, std::is_pointer<typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type>
+			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::us::impl::TPointerForLegacy>
+			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::us::impl::TPointer>
 #endif // MSE_SCOPEPOINTER_DISABLED
 		>::value> {};
 
 		template<typename _Ty>
 		struct is_potentially_not_xscope : std::integral_constant<bool, mse::impl::conjunction<
 			mse::impl::negation<std::is_base_of<mse::us::impl::XScopeTagBase
-				, typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type> >
-#ifdef MSE_SCOPEPOINTER_DISABLED
-#if (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED))
-			/* When scope pointers are disabled and no other library safe pointer is disabled, we'll consider raw pointers
-			to necessarily be scope pointers. */
-			//, mse::impl::negation<std::is_pointer<typename mse::rsv::impl::remove_fparam<typename std::remove_reference<_Ty>::type>::type> >
-#endif // (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED))
-#endif // MSE_SCOPEPOINTER_DISABLED
+				, typename std::remove_reference<_Ty>::type> >
+#if (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS))
+			, mse::impl::negation<std::is_pointer<typename std::remove_reference<_Ty>::type> >
+#endif // (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS))
 		>::value> {};
 
 		template<typename _Ty>

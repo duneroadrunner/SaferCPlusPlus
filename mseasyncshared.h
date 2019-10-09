@@ -2427,7 +2427,7 @@ namespace mse {
 		typedef _TExclusiveWritelockPtr exclusive_writelock_ptr_t;
 		typedef typename std::remove_reference<decltype(*(std::declval<exclusive_writelock_ptr_t>()))>::type _TContainer;
 		typedef typename std::remove_reference<decltype(std::declval<_TContainer>()[0])>::type element_t;
-		typedef mse::TRAIterator<_TContainer*> ra_iterator_t;
+		typedef mse::TRAIterator<mse::us::impl::TPointerForLegacy<_TContainer> > ra_iterator_t;
 		typedef decltype(mse::us::impl::make_strong_iterator(std::declval<ra_iterator_t>(), std::declval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
 		typedef mse::TXScopeAsyncSplitterRandomAccessSection<strong_ra_iterator_t> xscope_splitter_ra_section_t;
 		typedef decltype(std::declval<xscope_splitter_ra_section_t>().size()) size_type;
@@ -2510,7 +2510,7 @@ namespace mse {
 		typedef _TExclusiveWritelockPtr exclusive_writelock_ptr_t;
 		typedef typename std::remove_reference<decltype(*(std::declval<exclusive_writelock_ptr_t>()))>::type _TContainer;
 		typedef typename std::remove_reference<decltype(std::declval<_TContainer>()[0])>::type element_t;
-		typedef mse::TRAIterator<_TContainer*> ra_iterator_t;
+		typedef mse::TRAIterator<mse::us::impl::TPointerForLegacy<_TContainer> > ra_iterator_t;
 		typedef decltype(mse::us::impl::make_strong_iterator(std::declval<ra_iterator_t>(), std::declval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
 		typedef TAsyncSplitterRASectionReadWriteAccessRequester<strong_ra_iterator_t> ras_ar_t;
 

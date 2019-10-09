@@ -4764,6 +4764,7 @@ namespace mse {
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
+
 	namespace self_test {
 		class COptionalTest1 {
 		public:
@@ -4823,10 +4824,12 @@ namespace mse {
 					std::cout << *o2 << ' ' << *o3 << ' ' << *o4 << ' ' << *o5 << ' ' << *o6 << '\n';
 				}
 				{
+#ifdef MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS
 					mse::mstd::optional<const char*> s1 = "abc", s2; // constructor
 					s2 = s1; // assignment
 					s1 = "def"; // decaying assignment (U = char[4], T = const char*)
 					std::cout << *s2 << ' ' << *s1 << '\n';
+#endif // MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS
 				}
 				{
 					using namespace std::string_literals;
@@ -4858,12 +4861,13 @@ namespace mse {
 					}
 				}
 				{
+#ifdef MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS
 					class CB {
 					public:
 						static mse::mstd::optional<const char*> maybe_getenv(const char* n)
 						{
 #ifdef _MSC_VER
-							char *x;
+							char* x;
 							size_t len;
 							errno_t err = _dupenv_s(&x, &len, n);
 							if ((!err) && (1 <= len))
@@ -4874,8 +4878,9 @@ namespace mse {
 							else
 								return {};
 						}
-					};
+				};
 					std::cout << CB::maybe_getenv("MYPWD").value_or("(none)") << '\n';
+#endif // MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS
 				}
 
 				{

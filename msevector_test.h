@@ -446,11 +446,13 @@ namespace mse {
 		//int EXAM_IMPL(msevector_test::pointer)
 		msev_int pointer()
 		{
-			us::msevector<int *> v1;
-			us::msevector<int *> v2 = v1;
-			us::msevector<int *> v3;
+#ifdef MSEREGISTERED_H_
+			us::msevector<mse::TRegisteredPointer<int> > v1;
+			us::msevector<mse::TRegisteredPointer<int> > v2 = v1;
+			us::msevector<mse::TRegisteredPointer<int> > v3;
 
 			v3.insert(v3.end(), v1.begin(), v1.end());
+#endif // MSEREGISTERED_H_
 
 			return EXAM_RESULT;
 		}
