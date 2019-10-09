@@ -448,6 +448,54 @@ namespace mse {
 	}
 
 	namespace impl {
+
+		template<typename _Ty>
+		struct potentially_contains_non_owning_scope_reference : std::integral_constant<bool, mse::impl::disjunction<
+			std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase
+			, typename std::remove_reference<_Ty>::type>
+			, std::is_pointer<typename std::remove_reference<_Ty>::type>
+#ifdef MSE_SCOPEPOINTER_DISABLED
+			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::us::impl::TPointerForLegacy>
+			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::us::impl::TPointer>
+#endif // MSE_SCOPEPOINTER_DISABLED
+		>::value> {};
+
+		template<typename _Ty>
+		struct potentially_does_not_contain_non_owning_scope_reference : std::integral_constant<bool, mse::impl::conjunction<
+			mse::impl::negation<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase
+				, typename std::remove_reference<_Ty>::type> >
+#if (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS))
+			, mse::impl::negation<std::is_pointer<typename std::remove_reference<_Ty>::type> >
+#endif // (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS))
+		>::value> {};
+
+		template<typename _Ty>
+		struct contains_non_owning_scope_reference : mse::impl::negation<potentially_does_not_contain_non_owning_scope_reference<_Ty> > {};
+	}
+
+	namespace impl {
+
+		template<typename _Ty>
+		struct is_potentially_referenceable_by_scope_pointer : std::integral_constant<bool, mse::impl::disjunction<
+			std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, typename std::remove_reference<_Ty>::type>
+#ifdef MSE_SCOPEPOINTER_DISABLED
+			, std::true_type
+#endif // MSE_SCOPEPOINTER_DISABLED
+		>::value> {};
+
+		template<typename _Ty>
+		struct is_potentially_not_referenceable_by_scope_pointer : std::integral_constant<bool, mse::impl::conjunction<
+			mse::impl::negation<std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, typename std::remove_reference<_Ty>::type> >
+#ifdef MSE_SCOPEPOINTER_DISABLED
+			, std::true_type
+#endif // MSE_SCOPEPOINTER_DISABLED
+		>::value> {};
+
+		template<typename _Ty>
+		struct is_referenceable_by_scope_pointer : mse::impl::negation<is_potentially_not_referenceable_by_scope_pointer<_Ty> > {};
+	}
+
+	namespace impl {
 		namespace lambda {
 
 			template<class T, class EqualTo>

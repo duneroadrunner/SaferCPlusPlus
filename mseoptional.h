@@ -2479,17 +2479,24 @@ namespace mse {
 		xscope_optional(const xscope_optional& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
 		//xscope_optional(const mstd::optional<T>& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
 
+		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value) && (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value), void>::type>
 		xscope_optional& operator=(nullopt_t) noexcept {
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::clear();
 			return *this;
 		}
+		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value)
+			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)
+			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value), void>::type>
 		xscope_optional& operator=(const xscope_optional& rhs) {
 			valid_if_T_is_not_marked_as_unreturnable<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::operator=(rhs);
 			return *this;
 		}
+		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value)
+			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)
+			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value), void>::type>
 		xscope_optional& operator=(xscope_optional&& rhs) noexcept(std::is_nothrow_move_assignable<T>::value && std::is_nothrow_move_constructible<T>::value) {
 			valid_if_T_is_not_marked_as_unreturnable<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
@@ -2515,10 +2522,14 @@ namespace mse {
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::emplace(il, std::forward<Args>(args)...);
 		}
+		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value) && (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value), void>::type>
 		void reset() noexcept {
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::reset();
 		}
+		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value)
+			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)
+			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value), void>::type>
 		void swap(xscope_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
 			valid_if_T_is_not_marked_as_unreturnable<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
@@ -2537,13 +2548,13 @@ namespace mse {
 		/* If T is "marked" as not safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class T2, class = typename std::enable_if<(std::is_same<T2, T>::value)
-			&& (!std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, T2>::value), void>::type>
+			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value), void>::type>
 		void valid_if_T_is_not_marked_as_unreturnable() const {}
 
 		/* If T is "marked" as containing an accessible "scope address of" operator, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class T2, class = typename std::enable_if<(std::is_same<T2, T>::value)
-			&& (!std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, T2>::value)
+			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value)
 			, void>::type>
 		void valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
 
@@ -2673,13 +2684,13 @@ namespace mse {
 		/* If T is "marked" as not safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class T2, class = typename std::enable_if<(std::is_same<T2, T>::value)
-			&& (!std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, T2>::value), void>::type>
+			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value), void>::type>
 			void valid_if_T_is_not_marked_as_unreturnable() const {}
 
 		/* If T is "marked" as containing an accessible "scope address of" operator, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class T2, class = typename std::enable_if<(std::is_same<T2, T>::value)
-			&& (!std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, T2>::value)
+			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value)
 			, void>::type>
 			void valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
 
@@ -2807,13 +2818,13 @@ namespace mse {
 		/* If T is "marked" as not safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class T2, class = typename std::enable_if<(std::is_same<T2, T>::value)
-			&& (!std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, T2>::value), void>::type>
+			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value), void>::type>
 			void valid_if_T_is_not_marked_as_unreturnable() const {}
 
 		/* If T is "marked" as containing an accessible "scope address of" operator, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class T2, class = typename std::enable_if<(std::is_same<T2, T>::value)
-			&& (!std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, T2>::value)
+			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value)
 			, void>::type>
 			void valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
 
@@ -4901,7 +4912,7 @@ namespace mse {
 					std::cout << *o2 << ' ' << *o3 << ' ' << *o4 << ' ' << *o5 << ' ' << *o6 << '\n';
 				}
 				{
-					mse::xscope_optional<const char*> s1("abc"), s2; // constructor
+					mse::xscope_optional<std::string> s1("abc"), s2; // constructor
 					s2 = s1; // assignment
 					s1 = "def"; // decaying assignment (U = char[4], T = const char*)
 					std::cout << *s2 << ' ' << *s1 << '\n';

@@ -1399,7 +1399,7 @@ namespace mse {
 		/* If _TROy is not recognized as safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TROy>::value)
-			|| (!std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
+			|| (mse::impl::potentially_does_not_contain_non_owning_scope_reference<_TROy>::value)
 			|| ((std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_TROy>::Has>())
 				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
 				), void>::type>
@@ -1703,7 +1703,7 @@ namespace mse {
 
 			/* If _TROy is "marked" as not safe to use as a function return value, then the following member function
 			will not instantiate, causing an (intended) compile error. */
-			template<class = typename std::enable_if<(!std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TROy>::value)
+			template<class = typename std::enable_if<(mse::impl::potentially_does_not_contain_non_owning_scope_reference<_TROy>::value)
 				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/, void>::type>
 				void valid_if_TROy_is_not_marked_as_unreturn_value() const {}
 

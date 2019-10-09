@@ -265,12 +265,12 @@ namespace mse {
 	template <class _This, class... _Rest>
 	class xscope_tuple<_This, _Rest...> : public std::tuple<_This, _Rest...>, public mse::us::impl::XScopeTagBase
 		, public std::conditional<
-				(std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _This>::value)
-				|| (mse::impl::disjunction<std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, _Rest>...>::value)
+				(mse::impl::is_referenceable_by_scope_pointer<_This>::value)
+				|| (mse::impl::disjunction<mse::impl::is_referenceable_by_scope_pointer<_Rest>...>::value)
 			, mse::us::impl::ReferenceableByScopePointerTagBase, mse::impl::TPlaceHolder<mse::us::impl::ReferenceableByScopePointerTagBase, xscope_tuple<_This, _Rest...> > >::type
 		, public std::conditional<
-				(std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _This>::value)
-				|| (mse::impl::disjunction<std::is_base_of<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Rest>...>::value)
+				(mse::impl::contains_non_owning_scope_reference<_This>::value)
+				|| (mse::impl::disjunction<mse::impl::contains_non_owning_scope_reference<_Rest>...>::value)
 			, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, xscope_tuple<_This, _Rest...> > >::type
 	{
 	public:
