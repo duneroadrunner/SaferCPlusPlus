@@ -4912,10 +4912,12 @@ namespace mse {
 					std::cout << *o2 << ' ' << *o3 << ' ' << *o4 << ' ' << *o5 << ' ' << *o6 << '\n';
 				}
 				{
+#if (!defined(_MSC_VER)) || defined(MSE_HAS_CXX17) /* There seems to be a bug with pre-C++17 msvc that causes a link error. */
 					mse::xscope_optional<std::string> s1("abc"), s2; // constructor
 					s2 = s1; // assignment
 					s1 = "def"; // decaying assignment (U = char[4], T = const char*)
 					std::cout << *s2 << ' ' << *s1 << '\n';
+#endif // (!defined(_MSC_VER)) || defined(MSE_HAS_CXX17)
 				}
 				{
 					using namespace std::string_literals;
