@@ -1,4 +1,4 @@
-Aug 2019
+Oct 2019
 
 ### Overview
 
@@ -1188,7 +1188,7 @@ usage example:
 
 ### TMemberObj
 
-Scope types have built in protection that prevents them from being allocated dynamically. But those protections are circumvented if a scope type is used as a member of a class or struct. So `TMemberObj<>` is a transparent wrapper that can be used to wrap class/struct member types to ensure that they are not scope types. This is particularly relevant in cases when the member type is, or is derived from, a template parameter.
+Scope types have built in protection that prevents them from being allocated dynamically. But those protections are circumvented if a scope type is used as a member of a class or struct. So `TMemberObj<>` is a transparent wrapper that can be used to wrap class/struct member types to ensure that they are not scope types. This is particularly relevant in cases when the member type is, or is derived from, a template parameter. Note though that this wrapper is no longer really necessary if you're using a conformance-enforcing tool like [scpptool](https://github.com/duneroadrunner/scpptool) that will detect such potential misuses.
 
 ### Defining your own scope types
 
@@ -1211,7 +1211,7 @@ void main(int argc, char* argv[]) {
 
     /* Scope types need to publicly inherit from mse::XScopeTagBase. And by convention, be named with a prefix
     indicating that it's a scope type. */
-    class xscope_my_type1 : public mse::XScopeTagBase {
+    MSE_SUPPRESS_CHECK_IN_XSCOPE class xscope_my_type1 : public mse::XScopeTagBase {
     public:
         xscope_my_type1(const mse::xscope_optional<mse::mstd::string>& xscp_maybe_string)
             : m_xscp_maybe_string1(xscp_maybe_string) {}
@@ -1229,7 +1229,7 @@ void main(int argc, char* argv[]) {
     independently targeted by scope pointers (i.e. basically has a '&' ("address of" operator) that yeilds
     a scope pointer), then it must also publicly inherit from mse::ReferenceableByScopePointerTagBase.
     Failure to do so could result in unsafe code. */
-    class xscope_my_type2 : public mse::XScopeTagBase, public mse::ContainsNonOwningScopeReferenceTagBase
+    MSE_SUPPRESS_CHECK_IN_XSCOPE class xscope_my_type2 : public mse::XScopeTagBase, public mse::ContainsNonOwningScopeReferenceTagBase
         , public mse::ReferenceableByScopePointerTagBase
     {
     public:
