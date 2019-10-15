@@ -84,7 +84,7 @@ public:
 			buffer[0] = '\0';
 			ctime_s(buffer, buffer_size, &tt);
 #else /*_MSC_VER*/
-			auto buffer = ctime(&tt);
+			const auto buffer = ctime(&tt);
 #endif /*_MSC_VER*/
 
 			std::string now_str(buffer);
@@ -96,13 +96,13 @@ public:
 	/* This function just obtains a writelock_ra_section from the given "splitter access requester" and calls the given
 	function with the writelock_ra_section as the first argument. */
 	template<class TAsyncSplitterRASectionReadWriteAccessRequester, class TFunction, class... Args>
-	static void invoke_with_writelock_ra_section1(TAsyncSplitterRASectionReadWriteAccessRequester ar, TFunction function1, Args&&... args) {
+	static void invoke_with_writelock_ra_section1(TAsyncSplitterRASectionReadWriteAccessRequester ar, const TFunction function1, Args&&... args) {
 		function1(ar.writelock_ra_section(), args...);
 	}
 	/* This function just obtains an xscope_random_access_section from the given access controlled pointer and calls the given
 	function with the xscope_random_access_section as the first argument. */
 	template<class Ty, class TFunction, class... Args>
-	static void invoke_with_ra_section(mse::TXScopeExclusiveStrongPointerStoreForAccessControl<Ty> xs_ac_store, TFunction function1, Args&&... args) {
+	static void invoke_with_ra_section(mse::TXScopeExclusiveStrongPointerStoreForAccessControl<Ty> xs_ac_store, const TFunction function1, Args&&... args) {
 		auto xscope_ra_section = mse::make_xscope_random_access_section(xs_ac_store.xscope_pointer());
 		function1(xscope_ra_section, args...);
 	}
@@ -121,7 +121,7 @@ public:
 			buffer[0] = '\0';
 			ctime_s(buffer, buffer_size, &tt);
 #else /*_MSC_VER*/
-			auto buffer = ctime(&tt);
+			const auto buffer = ctime(&tt);
 #endif /*_MSC_VER*/
 
 			std::string now_str(buffer);
@@ -132,7 +132,7 @@ public:
 	}
 	template<class _TAPointer>
 	static void foo17b(_TAPointer a_ptr) {
-		static int s_count = 0;
+		static std::atomic<int> s_count(0);
 		s_count += 1;
 		a_ptr->s = std::to_string(s_count);
 
@@ -370,8 +370,8 @@ void msetl_example3() {
 			/* This block demonstrates safely allowing different threads to (simultaneously) modify different
 			sections of a vector. (We use vectors in this example, but it works just as well with arrays.) */
 
-			static const size_t num_sections = 10;
-			static const size_t section_size = 5;
+			MSE_DECLARE_STATIC_IMMUTABLE(size_t) num_sections = 10;
+			MSE_DECLARE_STATIC_IMMUTABLE(size_t) section_size = 5;
 			const size_t num_elements = num_sections * section_size;
 
 			typedef mse::mtnii_vector<mse::mtnii_string> async_shareable_vector1_t;
@@ -381,9 +381,9 @@ void msetl_example3() {
 			vector1.resize(num_elements);
 			{
 				size_t count = 0;
-				for (auto& item_ref : vector1) {
+				for (auto iter = vector1.begin(); vector1.end() != iter; iter++) {
 					count += 1;
-					item_ref = "text" + std::to_string(count);
+					*iter = "text" + std::to_string(count);
 				}
 			}
 
@@ -405,7 +405,7 @@ void msetl_example3() {
 
 				/* The K::foo8 template function is just an example function that operates on containers of strings. In our case the
 				containers will be the random access sections we just created. We'll create an instance of the function here. */
-				auto my_foo8_function = K::foo8<decltype(ar1.writelock_ra_section())>;
+				const auto my_foo8_function = K::foo8<decltype(ar1.writelock_ra_section())>;
 
 				/* We want to execute the my_foo8 function in a separate thread. The function takes a "random access section"
 				as an argument. But as we're not allowed to pass random access sections between threads, we must pass an
@@ -414,7 +414,7 @@ void msetl_example3() {
 				function, in this case my_foo8, with that random access section. So here we'll use it to create a proxy
 				function that we can execute directly in a separate thread and will accept an access requester as a
 				parameter. */
-				auto my_foo8_proxy_function = K::invoke_with_writelock_ra_section1<decltype(ar1), decltype(my_foo8_function)>;
+				const auto my_foo8_proxy_function = K::invoke_with_writelock_ra_section1<decltype(ar1), decltype(my_foo8_function)>;
 
 				std::list<mse::mstd::thread> threads;
 				/* So this thread will modify the first section of the vector. */
@@ -443,8 +443,8 @@ void msetl_example3() {
 				mse::TAsyncRASectionSplitter<decltype(ash_access_requester)> ra_section_split1(ash_access_requester, section_sizes);
 				auto ar0 = ra_section_split1.ra_section_access_requester(0);
 
-				auto my_foo8_function = K::foo8<decltype(ar0.writelock_ra_section())>;
-				auto my_foo8_proxy_function = K::invoke_with_writelock_ra_section1<decltype(ar0), decltype(my_foo8_function)>;
+				const auto my_foo8_function = K::foo8<decltype(ar0.writelock_ra_section())>;
+				const auto my_foo8_proxy_function = K::invoke_with_writelock_ra_section1<decltype(ar0), decltype(my_foo8_function)>;
 
 				{
 					/* Here we demonstrate scope threads. Scope threads don't support being copied or moved. Unlike mstd::thread,
@@ -666,8 +666,8 @@ void msetl_example3() {
 			modify different sections of a vector. The difference is just that here the shared vector is a pre-existing one
 			declared as a local variable. */
 
-			static const size_t num_sections = 10;
-			static const size_t section_size = 5;
+			MSE_DECLARE_STATIC_IMMUTABLE(size_t) num_sections = 10;
+			MSE_DECLARE_STATIC_IMMUTABLE(size_t) section_size = 5;
 			const size_t num_elements = num_sections * section_size;
 
 			typedef mse::mtnii_vector<mse::mtnii_string> async_shareable_vector1_t;
@@ -677,9 +677,9 @@ void msetl_example3() {
 			vector1.resize(num_elements);
 			{
 				size_t count = 0;
-				for (auto& item_ref : vector1) {
+				for (auto iter = vector1.begin(); vector1.end() != iter; iter++) {
 					count += 1;
-					item_ref = "text" + std::to_string(count);
+					*iter = "text" + std::to_string(count);
 				}
 			}
 
@@ -721,7 +721,7 @@ void msetl_example3() {
 
 				/* The K::foo8 template function is just an example function that operates on containers of strings. In this case the
 				containers will be the random access sections we just created. We'll create an instance of the function here. */
-				auto my_foo8_function = K::foo8<mse::TXScopeAnyRandomAccessSection<mse::mtnii_string> >;
+				const auto my_foo8_function = K::foo8<mse::TXScopeAnyRandomAccessSection<mse::mtnii_string> >;
 				typedef decltype(my_foo8_function) my_foo8_function_type;
 
 				mse::xscope_thread_carrier threads;
@@ -750,9 +750,9 @@ void msetl_example3() {
 				mse::TXScopeAsyncACORASectionSplitter<async_shareable_vector1_t> xscope_ra_section_split1(&xscope_acobj, section_sizes);
 				auto ar0 = xscope_ra_section_split1.ra_section_access_requester(0);
 
-				auto my_foo8_function = K::foo8<decltype(ar0.writelock_ra_section())>;
+				const auto my_foo8_function = K::foo8<decltype(ar0.writelock_ra_section())>;
 				typedef decltype(my_foo8_function) my_foo8_function_type;
-				auto my_foo8_proxy_function = K::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
+				const auto my_foo8_proxy_function = K::invoke_with_writelock_ra_section1<decltype(ar0), my_foo8_function_type>;
 
 				{
 					mse::xscope_thread_carrier xscope_threads;

@@ -1170,7 +1170,7 @@ void msetl_example2() {
 		mse::mstd::string mstring1("some text");
 		mse::TAnyStringSection<char> any_string_section1(mstring1.begin()+5, 3);
 
-		auto string_literal = "some text";
+		const auto string_literal = "some text";
 		mse::TAnyStringConstSection<char> any_string_const_section2(string_literal+5, 3);
 
 		typedef mse::TRegisteredObj<mse::mtnii_string> reg_mtnii_string_t;
@@ -1379,7 +1379,7 @@ void msetl_example2() {
 			typedef mse::for_each_ptr_type<decltype(ma1.begin())> item_ptr_t;
 			mse::for_each_ptr(ma1.begin(), ma1.end(), [](item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
 
-			mse::for_each_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
+			mse::for_each_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
 
 			/* A "scope range" version is also available that bypasses the use of iterators. As well as often being more
 			convenient, it can theoretically be little more performance optimal. */
@@ -1388,8 +1388,8 @@ void msetl_example2() {
 
 			/* Note that for performance (and safety) reasons, vectors may be "structure locked" for the duration of the loop.
 			That is, any attempt to modify the size of the vector during the loop may result in an exception. */
-			mse::for_each_ptr(xscope_nv1_begin_iter, xscope_nv1_end_iter, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
-			mse::xscope_range_for_each_ptr(&xscope_nv1, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
+			mse::for_each_ptr(xscope_nv1_begin_iter, xscope_nv1_end_iter, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+			mse::xscope_range_for_each_ptr(&xscope_nv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
 		}
 		{
 			/* find_if_ptr() */
@@ -1398,7 +1398,7 @@ void msetl_example2() {
 			auto found_citer1 = mse::find_if_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](item_ptr_t x_ptr) { return 2 == *x_ptr; });
 			auto res1 = *found_citer1;
 
-			auto found_citer3 = mse::find_if_ptr(ma1.cbegin(), ma1.cend(), [](auto x_ptr) { return 2 == *x_ptr; });
+			auto found_citer3 = mse::find_if_ptr(ma1.cbegin(), ma1.cend(), [](const auto x_ptr) { return 2 == *x_ptr; });
 
 			/* This version returns an optional scope pointer to the found item rather than an iterator. */
 			typedef mse::xscope_range_get_ref_if_ptr_type<decltype(&xscope_na1)> range_item_ptr_t;
@@ -1407,7 +1407,7 @@ void msetl_example2() {
 
 			/* This version returns a scope pointer to the found item or throws an exception if an appropriate item isn't
 			found. */
-			auto xscope_pointer5 = mse::xscope_range_get_ref_to_element_known_to_be_present_ptr(&xscope_na1, [](auto x_ptr) { return 2 == *x_ptr; });
+			auto xscope_pointer5 = mse::xscope_range_get_ref_to_element_known_to_be_present_ptr(&xscope_na1, [](const auto x_ptr) { return 2 == *x_ptr; });
 			auto res5 = *xscope_pointer5;
 		}
 	}

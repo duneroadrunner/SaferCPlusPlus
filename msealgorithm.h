@@ -89,7 +89,7 @@ namespace mse {
 		}
 
 		template<class _InIt>
-		using item_pointer_type_from_iterator = typename std::remove_const<typename std::remove_reference<
+		using item_pointer_type_from_iterator = typename std::add_const<typename std::remove_reference<
 				decltype(make_xscope_specialized_first_and_last(std::declval<_InIt>(), std::declval<_InIt>()).first())
 			>::type>::type;
 
