@@ -2553,7 +2553,7 @@ void main(int argc, char* argv[]) {
 }
 ```
 
-Note that proper use of the `MSE_RSV_DECLARE_GLOBAL_IMMUTABLE()` macro is not currently fully enforced at compile-time. In debug builds any unsafe use will be caught at run-time. You can enable the run-time checking in non-debug builds by defining the `MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol.
+Note that proper use of the `MSE_RSV_DECLARE_GLOBAL_IMMUTABLE()` macro is not fully enforced in the type system. Full enforcement requires the use of a tool like [scpptool](https://github.com/duneroadrunner/scpptool). In debug builds any unsafe use will be caught at run-time. (This is (now) kind of redundant if you're using an aforementioned enforcement tool.) You can enable the run-time checking in non-debug builds by defining the `MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol.
 
 #### static atomics
 
