@@ -165,7 +165,7 @@ void msetl_example3() {
 			mse::mtnii_string s = "some text ";
 		};
 		/* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
-		typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> ShareableA;
+		typedef mse::rsv::TAsyncShareableAndPassableObj<A> ShareableA;
 
 		/* trivially copyable class */
 		class D {
@@ -175,7 +175,7 @@ void msetl_example3() {
 			int b = 3;
 		};
 		/* User-defined classes need to be declared as (safely) shareable in order to be used with the atomic templates. */
-		typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<D> ShareableD;
+		typedef mse::rsv::TAsyncShareableAndPassableObj<D> ShareableD;
 
 		class B {
 		public:

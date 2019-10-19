@@ -6176,39 +6176,93 @@ namespace mse {
 			typedef TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TAsyncShareableAndPassableObj, base_class);
 		};
+
+		namespace impl {
+			template<typename _TROy>
+			auto make_async_shareable_helper1(std::true_type, const _TROy& src) {
+				return src;
+			}
+			template<typename _TROy>
+			auto make_async_shareable_helper1(std::false_type, const _TROy& src) -> TAsyncShareableObj<_TROy> {
+				return src;
+			}
+			template<typename _TROy>
+			auto make_async_shareable_helper1(std::true_type, _TROy&& src) {
+				return src;
+			}
+			template<typename _TROy>
+			auto make_async_shareable_helper1(std::false_type, _TROy&& src) -> TAsyncShareableObj<_TROy> {
+				return std::forward<decltype(src)>(src);
+			}
+		}
+		template<typename _TROy>
+		auto make_async_shareable(const _TROy& src) {
+			return impl::make_async_shareable_helper1(typename mse::impl::is_marked_as_shareable_msemsearray<_TROy>::type(), src);
+		}
+		template<typename _TROy>
+		auto make_async_shareable(_TROy&& src) {
+			return impl::make_async_shareable_helper1(typename mse::impl::is_marked_as_shareable_msemsearray<_TROy>::type(), std::forward<decltype(src)>(src));
+		}
+
+		namespace impl {
+			template<typename _TROy>
+			auto make_async_passable_helper1(std::true_type, const _TROy& src) {
+				return src;
+			}
+			template<typename _TROy>
+			auto make_async_passable_helper1(std::false_type, const _TROy& src) -> TAsyncPassableObj<_TROy> {
+				return src;
+			}
+			template<typename _TROy>
+			auto make_async_passable_helper1(std::true_type, _TROy&& src) {
+				return src;
+			}
+			template<typename _TROy>
+			auto make_async_passable_helper1(std::false_type, _TROy&& src) -> TAsyncPassableObj<_TROy> {
+				return std::forward<decltype(src)>(src);
+			}
+		}
+		template<typename _TROy>
+		auto make_async_passable(const _TROy& src) {
+			return impl::make_async_passable_helper1(typename mse::impl::is_marked_as_passable_msemsearray<_TROy>::type(), src);
+		}
+		template<typename _TROy>
+		auto make_async_passable(_TROy&& src) {
+			return impl::make_async_passable_helper1(typename mse::impl::is_marked_as_passable_msemsearray<_TROy>::type(), std::forward<decltype(src)>(src));
+		}
+
+		namespace impl {
+			template<typename _TROy>
+			auto make_async_shareable_and_passable_helper1(std::true_type, const _TROy& src) {
+				return src;
+			}
+			template<typename _TROy>
+			auto make_async_shareable_and_passable_helper1(std::false_type, const _TROy& src) -> TAsyncShareableAndPassableObj<_TROy> {
+				return src;
+			}
+			template<typename _TROy>
+			auto make_async_shareable_and_passable_helper1(std::true_type, _TROy&& src) {
+				return src;
+			}
+			template<typename _TROy>
+			auto make_async_shareable_and_passable_helper1(std::false_type, _TROy&& src) -> TAsyncShareableAndPassableObj<_TROy> {
+				return std::forward<decltype(src)>(src);
+			}
+		}
+		template<typename _TROy>
+		auto make_async_shareable_and_passable(const _TROy& src) {
+			return impl::make_async_shareable_and_passable_helper1(typename mse::impl::is_marked_as_shareable_and_passable_msemsearray<_TROy>::type(), src);
+		}
+		template<typename _TROy>
+		auto make_async_shareable_and_passable(_TROy&& src) {
+			return impl::make_async_shareable_and_passable_helper1(typename mse::impl::is_marked_as_shareable_and_passable_msemsearray<_TROy>::type(), std::forward<decltype(src)>(src));
+		}
 	}
 
 	namespace us {
 		template<typename _TROy> using TUserDeclaredAsyncShareableObj = mse::rsv::TAsyncShareableObj<_TROy>;
 		template<typename _TROy> using TUserDeclaredAsyncPassableObj = mse::rsv::TAsyncPassableObj<_TROy>;
 		template<typename _TROy> using TUserDeclaredAsyncShareableAndPassableObj = mse::rsv::TAsyncShareableAndPassableObj<_TROy>;
-
-		namespace impl {
-			template<typename _TROy>
-			auto make_user_declared_async_passable_helper1(std::true_type, const _TROy& src) {
-				return src;
-			}
-			template<typename _TROy>
-			auto make_user_declared_async_passable_helper1(std::false_type, const _TROy& src) -> TUserDeclaredAsyncPassableObj<_TROy> {
-				return src;
-			}
-			template<typename _TROy>
-			auto make_user_declared_async_passable_helper1(std::true_type, _TROy&& src) {
-				return src;
-			}
-			template<typename _TROy>
-			auto make_user_declared_async_passable_helper1(std::false_type, _TROy&& src) -> TUserDeclaredAsyncPassableObj<_TROy> {
-				return std::forward<decltype(src)>(src);
-			}
-		}
-		template<typename _TROy>
-		auto make_user_declared_async_passable(const _TROy& src) {
-			return impl::make_user_declared_async_passable_helper1(typename mse::impl::is_marked_as_passable_msemsearray<_TROy>::type(), src);
-		}
-		template<typename _TROy>
-		auto make_user_declared_async_passable(_TROy&& src) {
-			return impl::make_user_declared_async_passable_helper1(typename mse::impl::is_marked_as_passable_msemsearray<_TROy>::type(), std::forward<decltype(src)>(src));
-		}
 	}
 
 
@@ -6498,7 +6552,7 @@ namespace mse {
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
 			&& (mse::impl::is_marked_as_xscope_shareable_and_passable_msemsearray<_Ty2>::value), void>::type>
 		void valid_if_Ty_is_marked_as_xscope_shareable() const {}

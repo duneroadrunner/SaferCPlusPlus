@@ -1292,7 +1292,7 @@ namespace mse {
 
 		/* If the target type is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
 		template<class _target_type2 = target_type, class = typename std::enable_if<(std::is_same<_target_type2, target_type>::value)
 			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_target_type2>::value), void>::type>
 		void valid_if_target_type_is_marked_as_xscope_shareable() const {}
@@ -1375,7 +1375,7 @@ namespace mse {
 
 		/* If the target type is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
 		template<class _target_type2 = target_type, class = typename std::enable_if<(std::is_same<_target_type2, target_type>::value) && (
 			mse::impl::is_marked_as_shareable_msemsearray<_target_type2>::value), void>::type>
 		void valid_if_target_type_is_marked_as_shareable() const {}
@@ -1678,7 +1678,7 @@ namespace mse {
 
 		/* If the target type is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
 		template<class _target_type2 = target_type, class = typename std::enable_if<(std::is_same<_target_type2, target_type>::value)
 			&& (mse::impl::is_marked_as_xscope_shareable_and_passable_msemsearray<_target_type2>::value), void>::type>
 		void valid_if_target_type_is_marked_as_xscope_shareable_and_passable() const {}
@@ -1733,7 +1733,7 @@ namespace mse {
 
 		/* If the target type is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
 		template<class _target_type2 = target_type, class = typename std::enable_if<(std::is_same<_target_type2, target_type>::value) && (
 			mse::impl::is_marked_as_shareable_msemsearray<_target_type2>::value), void>::type>
 			void valid_if_target_type_is_marked_as_shareable() const {}
@@ -1795,7 +1795,7 @@ namespace mse {
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value, void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
@@ -1872,7 +1872,7 @@ namespace mse {
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value, void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
@@ -1933,7 +1933,7 @@ namespace mse {
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "xscope_async_shareable_and_passable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
 			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value), void>::type>
 		void valid_if_Ty_is_marked_as_xscope_shareable() const {}
@@ -2001,7 +2001,7 @@ namespace mse {
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value, void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
@@ -2063,7 +2063,7 @@ namespace mse {
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
-		objects can be marked safe to share by wrapping them with us::TUserDeclaredAsyncShareableObj<>. */
+		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_and_passable_msemsearray<_Ty2>::value, void>::type>
 		void valid_if_Ty_is_marked_as_shareable() const {}
 

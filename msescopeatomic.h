@@ -1022,7 +1022,7 @@ namespace mse {
 					int b = 3;
 				};
 				/* Here we're declaring that A can be safely shared between asynchronous threads. */
-				typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> shareable_A_t;
+				typedef mse::rsv::TAsyncShareableAndPassableObj<A> shareable_A_t;
 
 				class B {
 				public:
@@ -1093,7 +1093,7 @@ namespace mse {
 
 						int b = 3;
 					};
-					typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<A> shareable_A_t;
+					typedef mse::rsv::TAsyncShareableAndPassableObj<A> shareable_A_t;
 
 					class B {
 					public:

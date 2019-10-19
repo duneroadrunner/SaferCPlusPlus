@@ -171,7 +171,7 @@ public:
 	mse::mtnii_string m_string1 = "initial text";
 };
 /* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
-typedef mse::us::TUserDeclaredAsyncShareableAndPassableObj<H> ShareableH;
+typedef mse::rsv::TAsyncShareableAndPassableObj<H> ShareableH;
 
 int main(int argc, char* argv[]) {
 
