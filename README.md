@@ -72,12 +72,12 @@ Tested with msvc2019(v16.1.6), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
 13. [pointer_to()](#pointer_to)
 14. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
 15. [Multithreading](#multithreading)
-    1. [TAsyncPassableObj](#tuserdeclaredasyncpassableobj)
+    1. [TAsyncPassableObj](#tasyncpassableobj)
     2. [thread](#thread)
     3. [async()](#async)
     4. [Asynchronously shared objects](#asynchronously-shared-objects)
-        1. [TAsyncShareableObj](#tuserdeclaredasyncshareableobj)
-        2. [TAsyncShareableAndPassableObj](#tuserdeclaredasyncshareableandpassableobj)
+        1. [TAsyncShareableObj](#tasyncshareableobj)
+        2. [TAsyncShareableAndPassableObj](#tasyncshareableandpassableobj)
         3. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
         4. [TAsyncSharedV2ReadOnlyAccessRequester](#tasyncsharedv2readonlyaccessrequester)
         5. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
@@ -1516,7 +1516,7 @@ Note that not all types are safe to share between threads. For example, because 
 
 ### TAsyncShareableObj
 
-As with [passing](#tuserdeclaredasyncpassableobj) objects between threads, when using the library to share an object among threads, the object must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely shareable, but can't automatically deduce whether or not a user-defined type is safe to share. So in order to share a user-defined type, you need to "declare" that it is safely shareable by wrapping it with the transparent `rsv::TAsyncShareableObj<>` template.
+As with [passing](#tasyncpassableobj) objects between threads, when using the library to share an object among threads, the object must be of a type identified as being safe to do so. If not, a compiler error will be induced. The library knows which of its own types and the standard types are and aren't safely shareable, but can't automatically deduce whether or not a user-defined type is safe to share. So in order to share a user-defined type, you need to "declare" that it is safely shareable by wrapping it with the transparent `rsv::TAsyncShareableObj<>` template.
 
 A type that is safe to share should contain no indirect objects (i.e. pointers, references, etc.) that are not known to be safe to share among threads, and should not provide any facilities for obtaining such indirect objects. Note that this would disqualify, for example, container types that have a (non-static) `begin()` member function that returns an iterator (which is an indirect/reference object). (The library provides containers such as [`nii_array<>`](#nii_array) that are more appropriate for sharing among threads.)
 
@@ -1528,7 +1528,7 @@ Using `rsv::TAsyncShareableObj<>` to indicate that a user-defined type is safely
 
 ### TAsyncShareableAndPassableObj
 
-Many objects that qualify as safely [shareable](#tuserdeclaredasyncshareableobj) or [passable](#tuserdeclaredasyncpassableobj) between threads qualify as both.
+Many objects that qualify as safely [shareable](#tasyncshareableobj) or [passable](#tasyncpassableobj) between threads qualify as both.
 
 usage example: ([see below](#async-aggregate-usage-example))
 
@@ -1936,7 +1936,7 @@ void main(int argc, char* argv[]) {
 
 `xscope_thread` is the scope counterpart to [`mstd::thread`](#thread). `xscope_thread` ensures that the actual associated thread doesn't outlive it (and therefore doesn't outlive the scope), blocking in its destructor if necessary. Note that objects shared with an `mstd::thread` generally have dynamic allocation (i.e. are allocated on the heap), whereas objects shared with a scope thread can themselves be scope objects (i.e. allocated on the stack). Which would generally be the primary reason for using scope threads over non-scope threads. 
 
-Any data type that qualifies as "[shareable](#tuserdeclaredasyncshareableobj)" (or "[passable](#tuserdeclaredasyncpassableobj)") with non-scope threads also qualifies as shareable (or passable) with scope threads. (But not necessarily the other way around.) 
+Any data type that qualifies as "[shareable](#tasyncshareableobj)" (or "[passable](#tasyncpassableobj)") with non-scope threads also qualifies as shareable (or passable) with scope threads. (But not necessarily the other way around.) 
 
 #### access controlled objects
 
@@ -2511,7 +2511,7 @@ void main(int argc, char* argv[]) {
 
 [*provisional*]
 
-While not encouraging the use of `static` or (non-[`thread_local`](#thread_local)) global variables, the library does provide some facilities for their use. Note that because `static` and non-`thread_local` global variables can be accessible from multiple threads, their type must be one that is [recognized or declared](#tuserdeclaredasyncshareableobj) as safely shareable.
+While not encouraging the use of `static` or (non-[`thread_local`](#thread_local)) global variables, the library does provide some facilities for their use. Note that because `static` and non-`thread_local` global variables can be accessible from multiple threads, their type must be one that is [recognized or declared](#tasyncshareableobj) as safely shareable.
 
 #### static immutables
 
