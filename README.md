@@ -1,4 +1,4 @@
-Aug 2019
+Oct 2019
 
 ### Overview
 
@@ -221,7 +221,7 @@ While the library provides these direct substitutes for `new`/`malloc` and `dele
 
 For items shared between asynchronous threads, use one of the [data types designed for safe asynchronous sharing](#asynchronously-shared-objects).
 
-After that, it's just a matter of replacing the remaining unsafe elements in your code (generally native pointers and references) with the safer substitute that works best. You might want to leave C++ references for last, because a) they seem to be empirically (if not theoretically) less prone to bugs than pointers, and b) the library does not provide a directly compatible substitute (although [`TRegisteredRefWrapper<>`](#tregisteredrefwrapper) can be used in some situations), so references generally have to be substituted with pointers, which involves the extra bit of work of changing your dots to arrows.
+After that, it's just a matter of replacing the remaining unsafe elements in your code (such as native pointers) with the safer substitute that works best.
 
 And if at some point you feel that these new elements involve a lot of typing, note that many of the elements have short aliases that can be used instead. Just search for "shorter aliases" in the header files. Or, of course, you can create your own to suit your preferences.
 
@@ -670,9 +670,7 @@ Scope pointers are pointers that live (only) to the end of the scope in which th
 
 Scope pointers generally satisfy the restrictions the lifetime checker would impose on raw pointers, and could be considered as basically a stand-in for raw pointers for situations where a complete lifetime checker is not available. When a lifetime checker is/becomes available, scope pointers can be "disabled", i.e. aliased to their corresponding raw pointers, by simply defining the `MSE_SCOPEPOINTER_DISABLED` preprocessor symbol. 
 
-Indeed, unlike other pointers in this library, the safety of scope pointers is not fully enforced at compile-time currently, so if even a partially functioning lifetime checker is available, you'd probably want to use it on your code to augment scope pointers' existing compile-time safety features. 
-
-In lieu of full compile-time enforcement, run-time checking is used in debug builds to catch any unsafe misuses of scope pointers. Defining the `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol will enable run-time checking in non-debug builds as well. 
+Unlike other elements of the library, proper use of scope types is not fully enforced in the type system. Full enforcement requires the use of a tool like [scpptool](https://github.com/duneroadrunner/scpptool) (or the eventually-completed lifetime checker). Note that run-time checking is used in debug builds to catch unsafe misuses of scope types. (This is (now) kind of redundant if you're using an aforementioned enforcement tool.) Defining the MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED preprocessor symbol will enable run-time checking in non-debug builds as well. 
 
 Scope pointers usually point to scope objects. Scope objects are objects that live to the end of the scope in which they are declared. You can designate pretty much any type to be a scope object type by wrapping it in the `mse::TXScopeObj<>` (transparent) wrapper template. As with registered objects, this wrapper does not support some types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#cndint-cndsize_t-and-cndbool) that can act as base classes. 
 
@@ -691,7 +689,7 @@ The rules for using scope pointers and objects are essentially as follows:
 	- In the uncommon cases that you really want to use a scope type as a function return type, it must be wrapped in the [`mse::TXScopeReturnValue<>`](#return_value) transparent template wrapper.
 	- `mse::TXScopeReturnValue<>` will not accept non-owning scope pointer types. Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen()`](#xscope_chosen) function.
 
-Again, currently, most, but not all, inadvertent misuses of scope objects should result in compile errors. At some point the restrictions will be fully enforced at compile-time (either by the lifetime checker or a separate tool), but for now hopefully these rules are intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is premised on the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond the scope in which they are declared, so that a scope pointer cannot outlive its target scope object.
+Again, most inadvertent misuses of scope objects should result in compile errors. The remaining potential misuses would be caught by a companion tool like the aforementioned [scpptool](https://github.com/duneroadrunner/scpptool). But these rules should be intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is premised on the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond the scope in which they are declared, so that a scope pointer cannot outlive its target scope object.
 
 Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPointer<>`](#txscopeownerpointer) and [`TXScopeItemFixedPointer<>`](#txscopeitemfixedpointer). `TXScopeOwnerPointer<>` is similar to `boost::scoped_ptr<>` in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to also include "declaration scope".)
 `TXScopeItemFixedPointer<>` is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is primarily intended for the purpose of passing scope objects by reference as function arguments. 
@@ -953,7 +951,7 @@ Another alternative if you want to return a scope pointer (or any object contain
 
 Normally the [`return_value()`](#return_value) function wrapper will reject (with a compile error) scope pointers as unsafe return values. But the `rsv::as_a_returnable_fparam()` function can be used to (immediately) obtain a "returnable" version of a scope pointer function parameter. Because it's generally safe to return a reference to an object if that reference was passed as a parameter. Well, as long as the object is not a temporary object. So unlike [`rsv::as_an_fparam()`](#as_an_fparam), `rsv::as_a_returnable_fparam()` will not accept scope pointers to temporaries, as returning a (scope) reference to a temporary would be unsafe even if the reference was passed as a function parameter. So for scope reference parameters you have to choose between being able to use it as a return value, or supporting references to temporaries. (Or neither.)
 
-Note that using the `rsv::as_a_returnable_fparam()` function on anything other than local function parameters is unsafe, and currently there is no compile-time enforcement of this restriction.
+Note that using the `rsv::as_a_returnable_fparam()` function on anything other than local function parameters would be unsafe, and wouldn't be prevented by the type system. Safety enforcement is reliant on a companion tool like [scpptool](https://github.com/duneroadrunner/scpptool).
 
 usage example:
 
@@ -1058,7 +1056,7 @@ void main(int argc, char* argv[]) {
 
 `rsv::TFParam<>` is just a transparent template wrapper for function parameter declarations. In most cases use of this wrapper is not necessary, but in some cases it enables functionality only available to variables that are function parameters. Specifically, it allows functions to support arguments that are scope pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so in the case of function parameters, the `rsv::TFParam<>` wrapper enables certain scope pointer/reference types (like `TXScopeItemFixedConstPointer<>`, and "[random access const sections](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" scope types) to be constructed from their "functionally disabled" counterparts.
 
-In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the `mse::rsv::TFParam<>` wrapper can interfere with that. In those cases you can instead convert parameters to their wrapped type after-the-fact using the `rsv::as_an_fparam()` function. Note that using this function (or the `rsv::TFParam<>` wrapper) on anything other than function parameters is unsafe, and currently there is no compile-time enforcement of this restriction.
+In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the `mse::rsv::TFParam<>` wrapper can interfere with that. In those cases you can instead convert parameters to their wrapped type after-the-fact using the `rsv::as_an_fparam()` function. Note that using this function (or the `rsv::TFParam<>` wrapper) on anything other than function parameters would be unsafe, and wouldn't be prevented by the type system. Safety enforcement is reliant on a companion tool like [scpptool](https://github.com/duneroadrunner/scpptool).
 
 `rsv::TXScopeFParam<>` and `rsv::xscope_as_an_fparam()` can be used for situations when the types are necessarily scope types.
 
@@ -1112,13 +1110,11 @@ void main(int argc, char* argv[]) {
 
 ### Conformance helpers
 
-As mentioned, in the future we expect that there will be a "compile helper tool" to verify that scope objects are not misused (even if it ends up just being the completed lifetime checker). Until then, a couple of "conformance helpers" are provided that can be used to help catch inadvertent misuse.
-
 ### return_value()
 
 The safety of non-owning scope pointers is premised on the fact that they will not outlive the scope in which they are declared. So returning a non-owning scope pointer, or any object that contains or owns a non-owning scope pointer, from a function would be potentially unsafe. However, it could be safe to return a scope object if that object does not contain or own any non-owning scope pointers.
 
-The `return_value()` function just returns its argument and verifies that it is of a type that is safe to return from a function (basically, doesn't contain any scope pointers). If not it will induce a compile error. Functions that do or could return scope types should wrap their return value with this function. 
+The `return_value()` function just returns its argument and verifies that it is of a type that is safe to return from a function (basically, doesn't contain any scope pointers). If not it will induce a compile error. Functions that do or could return scope types should wrap their return value with this function. Note that the [scpptool](https://github.com/duneroadrunner/scpptool) actually enforces this.
 
 `TReturnValue<>` is a transparent template wrapper that verifies that the type is safe to use as a function return type. If not it will induce a compile error. Functions that do or could return scope types and explicitly specify their return types (rather than just using the `auto` return type) should wrap their return type with this template. Alternatively, you can use `TXScopeReturnValue<>` which additionally ensures that the return type is a scope type. 
 
@@ -1192,7 +1188,7 @@ usage example:
 
 ### TMemberObj
 
-Scope types have built in protection that prevents them from being allocated dynamically. But those protections are circumvented if a scope type is used as a member of a class or struct. So `TMemberObj<>` is a transparent wrapper that can be used to wrap class/struct member types to ensure that they are not scope types. This is particularly relevant in cases when the member type is, or is derived from, a template parameter.
+Scope types have built in protection that prevents them from being allocated dynamically. But those protections are circumvented if a scope type is used as a member of a class or struct. So `TMemberObj<>` is a transparent wrapper that can be used to wrap class/struct member types to ensure that they are not scope types. This is particularly relevant in cases when the member type is, or is derived from, a template parameter. Note though that this wrapper is no longer really necessary if you're using a conformance-enforcing tool like [scpptool](https://github.com/duneroadrunner/scpptool) that will detect such potential misuses.
 
 ### Defining your own scope types
 
@@ -1215,7 +1211,7 @@ void main(int argc, char* argv[]) {
 
     /* Scope types need to publicly inherit from mse::XScopeTagBase. And by convention, be named with a prefix
     indicating that it's a scope type. */
-    class xscope_my_type1 : public mse::XScopeTagBase {
+    MSE_SUPPRESS_CHECK_IN_XSCOPE class xscope_my_type1 : public mse::XScopeTagBase {
     public:
         xscope_my_type1(const mse::xscope_optional<mse::mstd::string>& xscp_maybe_string)
             : m_xscp_maybe_string1(xscp_maybe_string) {}
@@ -1233,7 +1229,7 @@ void main(int argc, char* argv[]) {
     independently targeted by scope pointers (i.e. basically has a '&' ("address of" operator) that yeilds
     a scope pointer), then it must also publicly inherit from mse::ReferenceableByScopePointerTagBase.
     Failure to do so could result in unsafe code. */
-    class xscope_my_type2 : public mse::XScopeTagBase, public mse::ContainsNonOwningScopeReferenceTagBase
+    MSE_SUPPRESS_CHECK_IN_XSCOPE class xscope_my_type2 : public mse::XScopeTagBase, public mse::ContainsNonOwningScopeReferenceTagBase
         , public mse::ReferenceableByScopePointerTagBase
     {
     public:
@@ -2557,7 +2553,7 @@ void main(int argc, char* argv[]) {
 }
 ```
 
-Note that proper use of the `MSE_RSV_DECLARE_GLOBAL_IMMUTABLE()` macro is not currently fully enforced at compile-time. In debug builds any unsafe use will be caught at run-time. You can enable the run-time checking in non-debug builds by defining the `MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol.
+Note that proper use of the `MSE_RSV_DECLARE_GLOBAL_IMMUTABLE()` macro is not fully enforced in the type system. Full enforcement requires the use of a tool like [scpptool](https://github.com/duneroadrunner/scpptool). In debug builds any unsafe use will be caught at run-time. (This is (now) kind of redundant if you're using an aforementioned enforcement tool.) You can enable the run-time checking in non-debug builds by defining the `MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol.
 
 #### static atomics
 
