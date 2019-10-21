@@ -862,32 +862,27 @@ void msetl_example2() {
 		type as a scope type, you can just wrap it with the mse::TXScopeObj<> template. */
 
 		/* But in cases where you're going to use a scope type as a member of a class or struct, that class or struct
-		must itself be a scope type. Improperly defining a scope type could result in unsafe code. Thus defining your
-		own scope types is discouraged. You can avoid the safety risk by instead using an mse::xscope_tuple<> rather
-		than a class or struct in cases where you want to use a scope type as a data member. */
+		must itself be a scope type. Improperly defining a scope type could result in unsafe code. Use of a safety
+		enforcement helper tool, like scpptool, is required to ensure that your scope type is defined properly. 
+		And note that mse::xscope_tuple<> also supports scope type elements/fields. */
 
-		/* Scope types need to publicly inherit from mse::us::impl::XScopeTagBase. And by convention, be named with a
+		/* Scope types need to publicly inherit from mse::rsv::XScopeTagBase. And by convention, be named with a
 		prefix indicating that it's a scope type. */
-		MSE_SUPPRESS_CHECK_IN_XSCOPE class xscope_my_type1 : public mse::us::impl::XScopeTagBase {
+		class xscope_my_type1 : public mse::rsv::XScopeTagBase {
 		public:
 			xscope_my_type1(const mse::xscope_optional<mse::mstd::string>& xscp_maybe_string)
 				: m_xscp_maybe_string1(xscp_maybe_string) {}
-
-			/* If your scope type does not contain any non-owning scope pointers, then it should be safe to use
-			as a function return type. You can "mark" it as such by adding the following member function. If the
-			type does contain non-owning scope pointers, then doing so could result in unsafe code. */
-			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 			mse::xscope_optional<mse::mstd::string> m_xscp_maybe_string1;
 		};
 
 		/* If your type contains or owns any non-owning scope pointers, then it must also publicly inherit
-		from mse::us::impl::ContainsNonOwningScopeReferenceTagBase. If your type contains or owns any item that can be
+		from mse::rsv::ContainsNonOwningScopeReferenceTagBase. If your type contains or owns any item that can be
 		independently targeted by scope pointers (i.e. basically has a '&' ("address of" operator) that yeilds
-		a scope pointer), then it must also publicly inherit from mse::us::impl::ReferenceableByScopePointerTagBase.
-		Failure to do so could result in unsafe code. */
-		MSE_SUPPRESS_CHECK_IN_XSCOPE class xscope_my_type2 : public mse::us::impl::XScopeTagBase, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase
-			, public mse::us::impl::ReferenceableByScopePointerTagBase
+		a scope pointer), then it must also publicly inherit from mse::rsv::ReferenceableByScopePointerTagBase.
+		Failure to do so could result in unsafe code. The scpptool, for example, will check for any such failure. */
+		class xscope_my_type2 : public mse::rsv::XScopeTagBase, public mse::rsv::ContainsNonOwningScopeReferenceTagBase
+			, public mse::rsv::ReferenceableByScopePointerTagBase
 		{
 		public:
 			typedef mse::TXScopeItemFixedConstPointer<mse::mstd::string> xscope_string_ptr_t;

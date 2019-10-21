@@ -1499,7 +1499,8 @@ namespace mse {
 		will not instantiate, causing an (intended) compile error. */
 		template<class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TROy>::value)
 			|| (mse::impl::potentially_does_not_contain_non_owning_scope_reference<_TROy>::value)
-			|| ((std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_TROy>::Has>())
+			|| (true
+				/*&& (std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_TROy>::Has>())*/
 				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
 				), void>::type>
 		void valid_if_TROy_is_marked_as_returnable_or_not_xscope_type() const {}

@@ -388,6 +388,11 @@ namespace mse {
 			class TPointerForLegacy;
 		}
 	}
+	namespace rsv {
+		class XScopeTagBase : public mse::us::impl::XScopeTagBase { public: void xscope_tag() const {} };
+		class ContainsNonOwningScopeReferenceTagBase : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {};
+		class ReferenceableByScopePointerTagBase : public mse::us::impl::ReferenceableByScopePointerTagBase {};
+	}
 
 	namespace rsv {
 		template<typename _Ty>
