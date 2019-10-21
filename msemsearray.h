@@ -1765,7 +1765,7 @@ namespace mse {
 		};
 		template<typename _TRAIterator2>
 		struct container_pointer_type_from_iterator_type<std::false_type, _TRAIterator2> {
-			typedef CDummy* type;
+			typedef CDummy* const type;
 		};
 		template<typename _TRAIterator2>
 		struct container_type_from_iterator_type {
@@ -1926,7 +1926,7 @@ namespace mse {
 		};
 		template<typename _TRAIterator2>
 		struct container_pointer_type_from_iterator_type<std::false_type, _TRAIterator2> {
-			typedef CDummy* type;
+			typedef CDummy* const type;
 		};
 		template<typename _TRAIterator2>
 		struct container_type_from_iterator_type {
@@ -6128,21 +6128,52 @@ namespace mse {
 		/* template specializations */
 
 		template<typename _Ty>
+		class TAsyncShareableObj<_Ty*> : public TAsyncShareableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
+		public:
+			typedef TAsyncShareableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+			MSE_USING(TAsyncShareableObj, base_class);
+			virtual ~TAsyncShareableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
+		};
+		template<typename _Ty>
+		class TAsyncShareableObj<const _Ty*> : public TAsyncShareableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
+		public:
+			typedef TAsyncShareableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+			MSE_USING(TAsyncShareableObj, base_class);
+			virtual ~TAsyncShareableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
+		};
+
+		template<typename _Ty>
+		class TAsyncShareableObj<_Ty* const> : public TAsyncShareableObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
+		public:
+			typedef TAsyncShareableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+			MSE_USING(TAsyncShareableObj, base_class);
+		};
+		template<typename _Ty>
+		class TAsyncShareableObj<const _Ty* const> : public TAsyncShareableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
+		public:
+			typedef TAsyncShareableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+			MSE_USING(TAsyncShareableObj, base_class);
+		};
+
+		template<typename _Ty>
 		class TAsyncPassableObj<_Ty*> : public TAsyncPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
 			typedef TAsyncPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TAsyncPassableObj, base_class);
+			virtual ~TAsyncPassableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
+		template<typename _Ty>
+		class TAsyncPassableObj<const _Ty*> : public TAsyncPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
+		public:
+			typedef TAsyncPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+			MSE_USING(TAsyncPassableObj, base_class);
+			virtual ~TAsyncPassableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
+		};
+
 		template<typename _Ty>
 		class TAsyncPassableObj<_Ty* const> : public TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
 			typedef TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-			MSE_USING(TAsyncPassableObj, base_class);
-		};
-		template<typename _Ty>
-		class TAsyncPassableObj<const _Ty *> : public TAsyncPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
-		public:
-			typedef TAsyncPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TAsyncPassableObj, base_class);
 		};
 		template<typename _Ty>
@@ -6157,17 +6188,20 @@ namespace mse {
 		public:
 			typedef TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TAsyncShareableAndPassableObj, base_class);
+			virtual ~TAsyncShareableAndPassableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
+		template<typename _Ty>
+		class TAsyncShareableAndPassableObj<const _Ty*> : public TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
+		public:
+			typedef TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+			MSE_USING(TAsyncShareableAndPassableObj, base_class);
+			virtual ~TAsyncShareableAndPassableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
+		};
+
 		template<typename _Ty>
 		class TAsyncShareableAndPassableObj<_Ty* const> : public TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
 			typedef TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-			MSE_USING(TAsyncShareableAndPassableObj, base_class);
-		};
-		template<typename _Ty>
-		class TAsyncShareableAndPassableObj<const _Ty *> : public TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
-		public:
-			typedef TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TAsyncShareableAndPassableObj, base_class);
 		};
 		template<typename _Ty>

@@ -751,17 +751,20 @@ namespace mse {
 	public:
 		typedef TNDRegisteredObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TNDRegisteredObj, base_class);
+		virtual ~TNDRegisteredObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 	};
+	template<typename _Ty>
+	class TNDRegisteredObj<const _Ty*> : public TNDRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
+	public:
+		typedef TNDRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TNDRegisteredObj, base_class);
+		virtual ~TNDRegisteredObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
+	};
+
 	template<typename _Ty>
 	class TNDRegisteredObj<_Ty* const> : public TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
 		typedef TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TNDRegisteredObj, base_class);
-	};
-	template<typename _Ty>
-	class TNDRegisteredObj<const _Ty *> : public TNDRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
-	public:
-		typedef TNDRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TNDRegisteredObj, base_class);
 	};
 	template<typename _Ty>

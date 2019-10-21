@@ -495,17 +495,20 @@ namespace mse {
 		public:
 			typedef TStaticImmutableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TStaticImmutableObj, base_class);
+			virtual ~TStaticImmutableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
+		template<typename _Ty>
+		class TStaticImmutableObj<const _Ty*> : public TStaticImmutableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
+		public:
+			typedef TStaticImmutableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+			MSE_USING(TStaticImmutableObj, base_class);
+			virtual ~TStaticImmutableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
+		};
+
 		template<typename _Ty>
 		class TStaticImmutableObj<_Ty* const> : public TStaticImmutableObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
 			typedef TStaticImmutableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-			MSE_USING(TStaticImmutableObj, base_class);
-		};
-		template<typename _Ty>
-		class TStaticImmutableObj<const _Ty *> : public TStaticImmutableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
-		public:
-			typedef TStaticImmutableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TStaticImmutableObj, base_class);
 		};
 		template<typename _Ty>

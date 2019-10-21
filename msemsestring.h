@@ -2373,9 +2373,9 @@ namespace mse {
 			typedef typename type::const_iterator const_iterator;
 #else /* MSE_HAS_CXX17 */
 			struct CDummy {};
-			typedef CDummy* type;
-			typedef CDummy* iterator;
-			typedef const CDummy* const_iterator;
+			typedef CDummy* const type;
+			typedef CDummy* const iterator;
+			typedef const CDummy* const const_iterator;
 #endif /* MSE_HAS_CXX17 */
 		};
 		template<class _TRAIterator>
