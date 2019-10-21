@@ -810,6 +810,7 @@ usage example:
 ```
 
 ### xscope_ifptr_to()
+#### retargetable references to scope objects
 
 Scope pointers cannot (currently) be retargeted after construction. If you need a pointer that will point to multiple different scope objects over its lifespan, you can use a registered pointer. You could make the target objects registered objects in addition to being scope objects. If the object is a registered scope object, then the `&` operator will will return a registered pointer. But at some point we're going to need a scope pointer to the base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. 
 
