@@ -3266,6 +3266,8 @@ usage example:
     }
 ```
 
+See also [TXScopeCSSSXSTEStringSection](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/README.md#txscopecsssxstestringsection-txscopecsssxstenrpstringsection).
+
 ### nrp_string_view
 
 `mse::nrp_string_view` is just a version of [`mse::mstd::string_view`](#string_view) that, for enhanced safety, does not support construction from unsafe raw pointer iterators or (unsafe) `std::string` iterators.
