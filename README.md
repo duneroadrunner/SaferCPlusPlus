@@ -3180,6 +3180,9 @@ usage example:
         assert(xscp_ra_section3.length() == 1);
     }
 ```
+
+Note that scope sections, like (non-owning) scope pointers, are not retargetable (i.e. don't support the assignment operator). If you find yourself needing a retargetable scope section, you can use the technique of adding a level of indirection and using a (retargetable) registered (or norad) pointer to the scope sections, is [demonstrated](#retargetable-references-to-scope-objects) with scope pointers.
+
 See also [TXScopeCSSSXSTERandomAccessSection](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/README.md#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection).
 
 ### Strings
