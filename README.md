@@ -3176,6 +3176,7 @@ usage example:
         assert(xscp_ra_section3.length() == 1);
     }
 ```
+See also [TXScopeCSSSXSTERandomAccessSection](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/README.md#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection).
 
 ### Strings
 
