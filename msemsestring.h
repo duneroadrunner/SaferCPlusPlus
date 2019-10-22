@@ -1836,11 +1836,6 @@ namespace mse {
 			-> decltype(section.subsection_pv(pos, n));
 	};
 
-	template <typename _TElement, class _Traits = std::char_traits<_TElement> >
-	using TXScopeCSSSXSTEStringConstSection = TXScopeStringConstSection<TXScopeCSSSXSTERAConstIterator<_TElement>, _Traits>;
-	template <typename _TElement, class _Traits = std::char_traits<_TElement> >
-	using TXScopeCSSSXSTEStringSection = TXScopeStringSection<TXScopeCSSSXSTERAIterator<_TElement>, _Traits>;
-
 	template <typename _TRAIterator>
 	auto make_xscope_string_const_section(const _TRAIterator& start_iter, typename TXScopeStringConstSection<_TRAIterator>::size_type count) {
 		return TXScopeStringConstSection<_TRAIterator>(start_iter, count);
@@ -1964,6 +1959,37 @@ namespace mse {
 	TXScopeStringConstSection(_TRALoneParam)
 		->TXScopeStringConstSection<typename decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
 #endif /* MSE_HAS_CXX17 */
+
+	template <typename _TElement, class _Traits = std::char_traits<_TElement> >
+	using TXScopeCSSSXSTEStringConstSection = TXScopeStringConstSection<TXScopeCSSSXSTERAConstIterator<_TElement>, _Traits>;
+	template <typename _TElement, class _Traits = std::char_traits<_TElement> >
+	using TXScopeCSSSXSTEStringSection = TXScopeStringSection<TXScopeCSSSXSTERAIterator<_TElement>, _Traits>;
+
+	template <typename _TRAIterator>
+	auto make_xscope_csssxste_string_const_section(const _TRAIterator& start_iter, typename TXScopeStringConstSection<_TRAIterator>::size_type count) {
+		typedef typename std::remove_const<typename std::remove_reference<decltype(*start_iter)>::type>::type _TElement;
+		return TXScopeCSSSXSTEStringConstSection<_TElement>(TXScopeCSSSXSTERAConstIterator<_TElement>(start_iter), count);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_csssxste_string_const_section(const _TRALoneParam& param) {
+		typedef typename std::remove_const<typename std::remove_reference<decltype(make_xscope_string_const_section(param)[0])>::type>::type _TElement;
+		return TXScopeCSSSXSTEStringConstSection<_TElement>(make_xscope_string_const_section(param));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_csssxste_string_const_section)
+
+		template <typename _TRAIterator>
+	auto make_xscope_csssxste_string_section(const _TRAIterator& start_iter, typename TXScopeStringSection<_TRAIterator>::size_type count) {
+		typedef typename std::remove_const<typename std::remove_reference<decltype(*start_iter)>::type>::type _TElement;
+		return TXScopeCSSSXSTEStringSection<_TElement>(TXScopeCSSSXSTERAIterator<_TElement>(start_iter), count);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_csssxste_string_section(const _TRALoneParam& param) {
+		typedef typename std::remove_const<typename std::remove_reference<decltype(make_xscope_string_section(param)[0])>::type>::type _TElement;
+		return TXScopeCSSSXSTEStringSection<_TElement>(make_xscope_string_section(param));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_csssxste_string_section)
 
 
 	/* "nrp string sections" are derived from "string sections". Rather than define their own associtaed

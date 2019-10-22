@@ -511,9 +511,9 @@ void msetl_example2() {
 			ra_iter1 = ra_iter2;
 		}
 
-		mse::TXScopeObj<mse::mstd::array<int, 4> > mstd_array3_scbobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
-		auto mstd_array_scpiter3 = mse::mstd::make_xscope_begin_iterator(&mstd_array3_scbobj);
-		//mstd_array_scpiter3 = mstd_array3_scbobj.begin();
+		mse::TXScopeObj<mse::mstd::array<int, 4> > mstd_array3_scpobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
+		auto mstd_array_scpiter3 = mse::mstd::make_xscope_begin_iterator(&mstd_array3_scpobj);
+		//mstd_array_scpiter3 = mstd_array3_scpobj.begin();
 		++mstd_array_scpiter3;
 		B::foo1(mstd_array_scpiter3);
 
@@ -636,8 +636,8 @@ void msetl_example2() {
 			xs_te_iter1 = xs_te_iter2;
 		}
 
-		mse::TXScopeObj<mse::mstd::array<int, 4> > mstd_array3_scbobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
-		auto mstd_array_scpiter3 = mse::mstd::make_xscope_begin_iterator(&mstd_array3_scbobj);
+		mse::TXScopeObj<mse::mstd::array<int, 4> > mstd_array3_scpobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
+		auto mstd_array_scpiter3 = mse::mstd::make_xscope_begin_iterator(&mstd_array3_scpobj);
 		++mstd_array_scpiter3;
 		B::foo1(mstd_array_scpiter3);
 
@@ -669,6 +669,9 @@ void msetl_example2() {
 		B::foo3(xs_ra_section1);
 		auto xs_ra_const_section2 = mse::make_xscope_random_access_const_section(mse::make_xscope_begin_const_iterator(&xs_mstd_vec1), 2);
 		B::foo4(xs_ra_const_section2);
+
+		auto nii_array4_scpobj = mse::make_xscope(mse::nii_array<int, 4>{ 1, 2, 3, 4 });
+		auto xscp_ra_section3 = mse::make_xscope_csssxste_random_access_section(&nii_array4_scpobj);
 	}
 
 	{

@@ -1397,8 +1397,8 @@ with the library's (safe) optional<> types. */
 			/* The drawback with the above technique of declaring a scope object to additionally be a registered object
 			in order to support retargetable pointers is that the decision (of whether to support retargetable pointers)
 			needs to be made when and where the object is declared rather than when and where the retargetable pointers
-			are needed. A more flexible alternative might be to add an extra level of indirection. That is, use
-			registered pointers that target scope pointers that, in turn, target the scope object rather than registered
+			are needed. A more flexible alternative is to add an extra level of indirection. That is, use registered
+			(or norad) pointers that target scope pointers that, in turn, target the scope object rather than registered
 			pointers that target the scope object directly. This way the scope object does not need to be additionally
 			declared as a registered object. The scope pointers would need to be declared as registered objects, but you
 			can declare such scope pointers when and where you need them.

@@ -5696,11 +5696,6 @@ namespace mse {
 			-> decltype(section.subsection_pv(pos, n));
 	};
 
-	template <typename _TElement>
-	using TXScopeCSSSXSTERandomAccessConstSection = TXScopeRandomAccessConstSection<TXScopeCSSSXSTERAConstIterator<_TElement> >;
-	template <typename _TElement>
-	using TXScopeCSSSXSTERandomAccessSection = TXScopeRandomAccessSection<TXScopeCSSSXSTERAIterator<_TElement> >;
-
 	template <typename _TRAIterator>
 	auto make_xscope_random_access_const_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
 		return TXScopeRandomAccessConstSection<_TRAIterator>(start_iter, count);
@@ -6047,6 +6042,37 @@ namespace mse {
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
 	}
+
+	template <typename _TElement>
+	using TXScopeCSSSXSTERandomAccessConstSection = TXScopeRandomAccessConstSection<TXScopeCSSSXSTERAConstIterator<_TElement> >;
+	template <typename _TElement>
+	using TXScopeCSSSXSTERandomAccessSection = TXScopeRandomAccessSection<TXScopeCSSSXSTERAIterator<_TElement> >;
+
+	template <typename _TRAIterator>
+	auto make_xscope_csssxste_random_access_const_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
+		typedef typename std::remove_const<typename std::remove_reference<decltype(*start_iter)>::type>::type _TElement;
+		return TXScopeCSSSXSTERandomAccessConstSection<_TElement>(TXScopeCSSSXSTERAConstIterator<_TElement>(start_iter), count);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_csssxste_random_access_const_section(const _TRALoneParam& param) {
+		typedef typename std::remove_const<typename std::remove_reference<decltype(make_xscope_random_access_const_section(param)[0])>::type>::type _TElement;
+		return TXScopeCSSSXSTERandomAccessConstSection<_TElement>(make_xscope_random_access_const_section(param));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_csssxste_random_access_const_section)
+
+	template <typename _TRAIterator>
+	auto make_xscope_csssxste_random_access_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessSection<_TRAIterator>::size_type count) {
+		typedef typename std::remove_const<typename std::remove_reference<decltype(*start_iter)>::type>::type _TElement;
+		return TXScopeCSSSXSTERandomAccessSection<_TElement>(TXScopeCSSSXSTERAIterator<_TElement>(start_iter), count);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_csssxste_random_access_section(const _TRALoneParam& param) {
+		typedef typename std::remove_const<typename std::remove_reference<decltype(make_xscope_random_access_section(param)[0])>::type>::type _TElement;
+		return TXScopeCSSSXSTERandomAccessSection<_TElement>(make_xscope_random_access_section(param));
+	}
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_csssxste_random_access_section)
 
 
 	namespace rsv {
