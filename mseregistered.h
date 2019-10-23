@@ -750,15 +750,23 @@ namespace mse {
 	class TNDRegisteredObj<_Ty*> : public TNDRegisteredObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
 		typedef TNDRegisteredObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+	private:
+		TNDRegisteredObj(std::nullptr_t) {}
+		TNDRegisteredObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		MSE_USING(TNDRegisteredObj, base_class);
-		virtual ~TNDRegisteredObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 	};
 	template<typename _Ty>
 	class TNDRegisteredObj<const _Ty*> : public TNDRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
 		typedef TNDRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+	private:
+		TNDRegisteredObj(std::nullptr_t) {}
+		TNDRegisteredObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		MSE_USING(TNDRegisteredObj, base_class);
-		virtual ~TNDRegisteredObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 	};
 
 	template<typename _Ty>
@@ -766,12 +774,22 @@ namespace mse {
 	public:
 		typedef TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TNDRegisteredObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+	private:
+		TNDRegisteredObj(std::nullptr_t) {}
+		TNDRegisteredObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 	};
 	template<typename _Ty>
 	class TNDRegisteredObj<const _Ty * const> : public TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
 		typedef TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TNDRegisteredObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+	private:
+		TNDRegisteredObj(std::nullptr_t) {}
+		TNDRegisteredObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 	};
 
 	template<typename _Ty>

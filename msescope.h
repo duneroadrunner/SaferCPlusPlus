@@ -808,15 +808,23 @@ namespace mse {
 	class TXScopeObj<_Ty*> : public TXScopeObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
 		typedef TXScopeObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+	private:
+		TXScopeObj(std::nullptr_t) {}
+		TXScopeObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		MSE_USING(TXScopeObj, base_class);
-		virtual ~TXScopeObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 	};
 	template<typename _Ty>
 	class TXScopeObj<const _Ty*> : public TXScopeObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
 		typedef TXScopeObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+	private:
+		TXScopeObj(std::nullptr_t) {}
+		TXScopeObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		MSE_USING(TXScopeObj, base_class);
-		virtual ~TXScopeObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 	};
 
 	template<typename _Ty>
@@ -824,12 +832,22 @@ namespace mse {
 	public:
 		typedef TXScopeObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 		MSE_USING(TXScopeObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+	private:
+		TXScopeObj(std::nullptr_t) {}
+		TXScopeObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 	};
 	template<typename _Ty>
 	class TXScopeObj<const _Ty * const> : public TXScopeObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
 		typedef TXScopeObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 		MSE_USING(TXScopeObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+	private:
+		TXScopeObj(std::nullptr_t) {}
+		TXScopeObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 	};
 
 	template<typename _Ty>
@@ -1230,8 +1248,12 @@ namespace mse {
 		class TFParam<_Ty*> : public mse::us::impl::TPointerForLegacy<_Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TFParam(std::nullptr_t) {}
+			TFParam() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
-			virtual ~TFParam() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -1239,8 +1261,12 @@ namespace mse {
 		class TFParam<const _Ty*> : public mse::us::impl::TPointerForLegacy<const _Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<const _Ty> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TFParam(std::nullptr_t) {}
+			TFParam() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
-			virtual ~TFParam() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -1250,6 +1276,11 @@ namespace mse {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TFParam(std::nullptr_t) {}
+			TFParam() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -1258,6 +1289,11 @@ namespace mse {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<const _Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TFParam(std::nullptr_t) {}
+			TFParam() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -1409,13 +1445,17 @@ namespace mse {
 		class TReturnableFParam<_Ty*> : public mse::us::impl::TPointerForLegacy<_Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
-			virtual ~TReturnableFParam() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 
 #if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TReturnableFParam(std::nullptr_t) {}
+			TReturnableFParam() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -1423,13 +1463,17 @@ namespace mse {
 		class TReturnableFParam<const _Ty*> : public mse::us::impl::TPointerForLegacy<const _Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<const _Ty> base_class;
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
-			virtual ~TReturnableFParam() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 
 #if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TReturnableFParam(std::nullptr_t) {}
+			TReturnableFParam() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -1444,6 +1488,11 @@ namespace mse {
 			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TReturnableFParam(std::nullptr_t) {}
+			TReturnableFParam() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -1457,6 +1506,11 @@ namespace mse {
 			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TReturnableFParam(std::nullptr_t) {}
+			TReturnableFParam() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};

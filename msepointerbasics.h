@@ -815,20 +815,6 @@ namespace mse {
 		static void MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME() {}
 	}
 
-	namespace impl {
-		template<class _Ty, class = typename std::enable_if<(std::is_same<_Ty, void>::value) ||
-#if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			true
-#else // defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			false
-#endif // defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		>::type>
-		void valid_if_safe_pointers_are_disabled(const _Ty&) {}
-
-		template<class _Ty>
-		void valid_if_retargetable_raw_pointers_are_supported(const _Ty& x) { valid_if_safe_pointers_are_disabled(x); }
-	}
-
 
 	namespace us {
 		namespace impl {

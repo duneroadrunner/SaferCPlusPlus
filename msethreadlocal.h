@@ -414,15 +414,23 @@ namespace mse {
 		class TThreadLocalObj<_Ty*> : public TThreadLocalObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
 			typedef TThreadLocalObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TThreadLocalObj(std::nullptr_t) {}
+			TThreadLocalObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING(TThreadLocalObj, base_class);
-			virtual ~TThreadLocalObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
 		template<typename _Ty>
 		class TThreadLocalObj<const _Ty*> : public TThreadLocalObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
 			typedef TThreadLocalObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TThreadLocalObj(std::nullptr_t) {}
+			TThreadLocalObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING(TThreadLocalObj, base_class);
-			virtual ~TThreadLocalObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
 
 		template<typename _Ty>
@@ -430,12 +438,22 @@ namespace mse {
 		public:
 			typedef TThreadLocalObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TThreadLocalObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TThreadLocalObj(std::nullptr_t) {}
+			TThreadLocalObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		};
 		template<typename _Ty>
 		class TThreadLocalObj<const _Ty * const> : public TThreadLocalObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
 			typedef TThreadLocalObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TThreadLocalObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TThreadLocalObj(std::nullptr_t) {}
+			TThreadLocalObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		};
 
 #ifdef MSEPRIMITIVES_H

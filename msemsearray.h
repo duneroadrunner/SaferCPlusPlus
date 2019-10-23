@@ -6157,15 +6157,23 @@ namespace mse {
 		class TAsyncShareableObj<_Ty*> : public TAsyncShareableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
 			typedef TAsyncShareableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncShareableObj(std::nullptr_t) {}
+			TAsyncShareableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING(TAsyncShareableObj, base_class);
-			virtual ~TAsyncShareableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
 		template<typename _Ty>
 		class TAsyncShareableObj<const _Ty*> : public TAsyncShareableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
 			typedef TAsyncShareableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncShareableObj(std::nullptr_t) {}
+			TAsyncShareableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING(TAsyncShareableObj, base_class);
-			virtual ~TAsyncShareableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
 
 		template<typename _Ty>
@@ -6173,27 +6181,45 @@ namespace mse {
 		public:
 			typedef TAsyncShareableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TAsyncShareableObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncShareableObj(std::nullptr_t) {}
+			TAsyncShareableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		};
 		template<typename _Ty>
 		class TAsyncShareableObj<const _Ty* const> : public TAsyncShareableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
 			typedef TAsyncShareableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TAsyncShareableObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncShareableObj(std::nullptr_t) {}
+			TAsyncShareableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		};
 
 		template<typename _Ty>
 		class TAsyncPassableObj<_Ty*> : public TAsyncPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
 			typedef TAsyncPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncPassableObj(std::nullptr_t) {}
+			TAsyncPassableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING(TAsyncPassableObj, base_class);
-			virtual ~TAsyncPassableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
 		template<typename _Ty>
 		class TAsyncPassableObj<const _Ty*> : public TAsyncPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
 			typedef TAsyncPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncPassableObj(std::nullptr_t) {}
+			TAsyncPassableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING(TAsyncPassableObj, base_class);
-			virtual ~TAsyncPassableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
 
 		template<typename _Ty>
@@ -6201,27 +6227,45 @@ namespace mse {
 		public:
 			typedef TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TAsyncPassableObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncPassableObj(std::nullptr_t) {}
+			TAsyncPassableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		};
 		template<typename _Ty>
 		class TAsyncPassableObj<const _Ty * const> : public TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
 			typedef TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TAsyncPassableObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncPassableObj(std::nullptr_t) {}
+			TAsyncPassableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		};
 
 		template<typename _Ty>
 		class TAsyncShareableAndPassableObj<_Ty*> : public TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
 			typedef TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncShareableAndPassableObj(std::nullptr_t) {}
+			TAsyncShareableAndPassableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING(TAsyncShareableAndPassableObj, base_class);
-			virtual ~TAsyncShareableAndPassableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
 		template<typename _Ty>
 		class TAsyncShareableAndPassableObj<const _Ty*> : public TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
 			typedef TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncShareableAndPassableObj(std::nullptr_t) {}
+			TAsyncShareableAndPassableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING(TAsyncShareableAndPassableObj, base_class);
-			virtual ~TAsyncShareableAndPassableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
 
 		template<typename _Ty>
@@ -6229,12 +6273,22 @@ namespace mse {
 		public:
 			typedef TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TAsyncShareableAndPassableObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncShareableAndPassableObj(std::nullptr_t) {}
+			TAsyncShareableAndPassableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		};
 		template<typename _Ty>
 		class TAsyncShareableAndPassableObj<const _Ty * const> : public TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
 			typedef TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TAsyncShareableAndPassableObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TAsyncShareableAndPassableObj(std::nullptr_t) {}
+			TAsyncShareableAndPassableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		};
 
 		namespace impl {

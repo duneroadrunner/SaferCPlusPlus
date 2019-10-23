@@ -494,15 +494,23 @@ namespace mse {
 		class TStaticImmutableObj<_Ty*> : public TStaticImmutableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 		public:
 			typedef TStaticImmutableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TStaticImmutableObj(std::nullptr_t) {}
+			TStaticImmutableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING(TStaticImmutableObj, base_class);
-			virtual ~TStaticImmutableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
 		template<typename _Ty>
 		class TStaticImmutableObj<const _Ty*> : public TStaticImmutableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
 			typedef TStaticImmutableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TStaticImmutableObj(std::nullptr_t) {}
+			TStaticImmutableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			MSE_USING(TStaticImmutableObj, base_class);
-			virtual ~TStaticImmutableObj() { mse::impl::valid_if_retargetable_raw_pointers_are_supported(*this); }
 		};
 
 		template<typename _Ty>
@@ -510,12 +518,22 @@ namespace mse {
 		public:
 			typedef TStaticImmutableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 			MSE_USING(TStaticImmutableObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TStaticImmutableObj(std::nullptr_t) {}
+			TStaticImmutableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		};
 		template<typename _Ty>
 		class TStaticImmutableObj<const _Ty * const> : public TStaticImmutableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 		public:
 			typedef TStaticImmutableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 			MSE_USING(TStaticImmutableObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+		private:
+			TStaticImmutableObj(std::nullptr_t) {}
+			TStaticImmutableObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		};
 
 #ifdef MSEPRIMITIVES_H
