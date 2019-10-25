@@ -2420,66 +2420,66 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 
-	/* The purpose of the xscope_chosen_pointer() function is simply to take two scope pointers as input parameters and return one of
-	them. Which of the pointers is returned is determined by a "decider" function that is passed, as the first parameter, to
+	/* The purpose of the xscope_chosen_pointer() function is simply to take two scope pointers as input parameters and return (a copy
+	of) one of them. Which of the pointers is returned is determined by a "decider" function that is passed, as the first parameter, to
 	xscope_chosen_pointer(). The "decider" function needs to return a bool and take the two scope pointers as its first two parameters.
 	The reason this xscope_chosen_pointer() function is needed is that (non-owning) scope pointers are, in general, not allowed to be
 	used as a function return value. (Because you might accidentally return a pointer to a local scope object (which is bad)
 	instead of one of the pointers given as an input parameter (which is fine).) So the xscope_chosen_pointer() template is the
 	sanctioned way of creating a function that returns a non-owning scope pointer. */
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	const auto& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b, Args&&... args) {
+	auto xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	const auto& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b, Args&&... args) {
+	auto xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	const auto& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b, Args&&... args) {
+	auto xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	const auto& xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b, Args&&... args) {
+	auto xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	template<typename _Ty>
-	const auto& xscope_chosen_pointer(bool choose_the_second, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b) {
+	auto xscope_chosen_pointer(bool choose_the_second, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b) {
 		return choose_the_second ? b : a;
 	}
 	template<typename _Ty>
-	const auto& xscope_chosen_pointer(bool choose_the_second, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b) {
+	auto xscope_chosen_pointer(bool choose_the_second, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b) {
 		return choose_the_second ? b : a;
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<typename _Ty>
-	const auto& xscope_chosen_pointer(bool choose_the_second, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b) {
+	auto xscope_chosen_pointer(bool choose_the_second, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b) {
 		return choose_the_second ? b : a;
 	}
 	template<typename _Ty>
-	const auto& xscope_chosen_pointer(bool choose_the_second, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b) {
+	auto xscope_chosen_pointer(bool choose_the_second, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b) {
 		return choose_the_second ? b : a;
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	/* Just the generalization of xscope_chosen_pointer(). */
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	const auto& chosen(const _TBoolFunction& function1, const _Ty& a, const _Ty& b, Args&&... args) {
+	auto chosen(const _TBoolFunction& function1, const _Ty& a, const _Ty& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	const auto& xscope_chosen(const _TBoolFunction& function1, const _Ty& a, const _Ty& b, Args&&... args) {
+	auto xscope_chosen(const _TBoolFunction& function1, const _Ty& a, const _Ty& b, Args&&... args) {
 		return chosen(function1, a, b, std::forward<Args>(args)...);
 	}
 	template<typename _Ty>
-	const auto& chosen(bool choose_the_second, const _Ty& a, const _Ty& b) {
+	auto chosen(bool choose_the_second, const _Ty& a, const _Ty& b) {
 		return choose_the_second ? b : a;
 	}
 	template<typename _Ty>
-	const auto& xscope_chosen(bool choose_the_second, const _Ty& a, const _Ty& b) {
+	auto xscope_chosen(bool choose_the_second, const _Ty& a, const _Ty& b) {
 		return chosen(choose_the_second, a, b);
 	}
 
