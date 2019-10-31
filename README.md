@@ -634,31 +634,31 @@ This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_p
                 (*retval).m_root_ptr_ptr = &retval;
                 return retval;
             }
-            auto MaybeStrongChildPtr() const { return m_maybe_child_ptr; }
-            rcnode_strongptr_regobj_t MakeChild() {
-                m_maybe_child_ptr.emplace(rcnode_strongptr_regobj_t{ mse::make_refcounting<CRCNode>(m_node_count_ptr, m_root_ptr_ptr) });
-                return m_maybe_child_ptr.value();
+            static auto MaybeStrongChildPtr(const rcnode_strongptr_regobj_t this_ptr) { return this_ptr->m_maybe_child_ptr; }
+            static rcnode_strongptr_regobj_t MakeChild(const rcnode_strongptr_regobj_t this_ptr) {
+                this_ptr->m_maybe_child_ptr.emplace(rcnode_strongptr_regobj_t{ mse::make_refcounting<CRCNode>(this_ptr->m_node_count_ptr, this_ptr->m_root_ptr_ptr) });
+                return this_ptr->m_maybe_child_ptr.value();
             }
-            void DisposeOfChild() {
-                m_maybe_child_ptr.reset();
+            static void DisposeOfChild(const rcnode_strongptr_regobj_t this_ptr) {
+                this_ptr->m_maybe_child_ptr.reset();
             }
 
         private:
             mse::TRegisteredPointer<mse::CInt> m_node_count_ptr;
-            mse::mstd::optional<rcnode_strongptr_regobj_t> m_maybe_child_ptr;
             rcnode_strongptr_weakptr_t m_root_ptr_ptr;
+            CRCNODE_STD_OPTIONAL<rcnode_strongptr_regobj_t> m_maybe_child_ptr;
         };
 
         mse::TRegisteredObj<mse::CInt> node_counter = 0;
         {
             auto root_owner_ptr = CRCNode::MakeRoot(&node_counter);
-            auto kid1 = root_owner_ptr->MakeChild();
+            auto kid1 = root_owner_ptr->MakeChild(root_owner_ptr);
             {
-                auto kid2 = kid1->MakeChild();
-                auto kid3 = kid2->MakeChild();
+                auto kid2 = kid1->MakeChild(kid1);
+                auto kid3 = kid2->MakeChild(kid2);
             }
             assert(4 == node_counter);
-            kid1->DisposeOfChild();
+            kid1->DisposeOfChild(kid1);
             assert(2 == node_counter);
         }
         assert(0 == node_counter);
@@ -919,7 +919,7 @@ example:
 
 [*provisional*]
 
-For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted to be used as function return values. (The [`return_value()`](#return_value) function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be a `min(a, b)` function which takes two objects by reference and returns the reference to the lesser of the two objects. For these cases you could use the `xscope_chosen()` function which takes two objects of the same type (in this case it will be two scope pointers) and returns one of the objects (scope pointers), which one depending on the value of a given "decider" function. You could use this function to implement the equivalent of a `min(a, b)` function like so:
+For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted to be used as function return values. (The [`return_value()`](#return_value) function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be a `min(a, b)` function which takes two objects by reference and returns the reference to the lesser of the two objects. For these cases you could use the `xscope_chosen()` function which takes two objects of the same type (in this case it will be two scope pointers) and returns (a copy of) one of the objects (scope pointers), which one depending on the value of a given "decider" function. You could use this function to implement the equivalent of a `min(a, b)` function like so:
 
 ```cpp
     #include "msescope.h"
