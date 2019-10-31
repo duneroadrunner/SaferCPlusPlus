@@ -1142,13 +1142,13 @@ int main(int argc, char* argv[]) {
 				(*retval).m_root_ptr_ptr = &retval;
 				return retval;
 			}
-			auto MaybeStrongChildPtr() const { return m_maybe_child_ptr; }
-			rcnode_strongptr_regobj_t MakeChild() {
-				m_maybe_child_ptr.emplace(rcnode_strongptr_regobj_t{ mse::make_refcounting<CRCNode>(m_node_count_ptr, m_root_ptr_ptr) });
-				return m_maybe_child_ptr.value();
+			static auto MaybeStrongChildPtr(const rcnode_strongptr_regobj_t this_ptr) { return this_ptr->m_maybe_child_ptr; }
+			static rcnode_strongptr_regobj_t MakeChild(const rcnode_strongptr_regobj_t this_ptr) {
+				this_ptr->m_maybe_child_ptr.emplace(rcnode_strongptr_regobj_t{ mse::make_refcounting<CRCNode>(this_ptr->m_node_count_ptr, this_ptr->m_root_ptr_ptr) });
+				return this_ptr->m_maybe_child_ptr.value();
 			}
-			void DisposeOfChild() {
-				m_maybe_child_ptr.reset();
+			static void DisposeOfChild(const rcnode_strongptr_regobj_t this_ptr) {
+				this_ptr->m_maybe_child_ptr.reset();
 			}
 
 		private:
@@ -1169,13 +1169,13 @@ with the library's (safe) optional<> types. */
 		mse::TRegisteredObj<mse::CInt> node_counter = 0;
 		{
 			auto root_owner_ptr = CRCNode::MakeRoot(&node_counter);
-			auto kid1 = root_owner_ptr->MakeChild();
+			auto kid1 = root_owner_ptr->MakeChild(root_owner_ptr);
 			{
-				auto kid2 = kid1->MakeChild();
-				auto kid3 = kid2->MakeChild();
+				auto kid2 = kid1->MakeChild(kid1);
+				auto kid3 = kid2->MakeChild(kid2);
 			}
 			assert(4 == node_counter);
-			kid1->DisposeOfChild();
+			kid1->DisposeOfChild(kid1);
 			assert(2 == node_counter);
 		}
 		assert(0 == node_counter);
