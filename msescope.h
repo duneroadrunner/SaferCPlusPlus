@@ -2420,6 +2420,31 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 
+	namespace rsv {
+		namespace impl {
+			template<typename _Ty>
+			class TContainsNonOwningScopeReferenceWrapper : public _Ty, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
+				typedef _Ty base_class;
+			public:
+				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TContainsNonOwningScopeReferenceWrapper, _Ty);
+				virtual ~TContainsNonOwningScopeReferenceWrapper() {}
+			};
+		}
+		template<typename _TLambda>
+		auto make_xscope_reference_or_pointer_capture_lambda(const _TLambda& lambda) {
+			return mse::make_xscope(mse::rsv::impl::TContainsNonOwningScopeReferenceWrapper<_TLambda>(lambda));
+		}
+		template<typename _TLambda>
+		auto make_xscope_non_reference_or_pointer_capture_lambda(const _TLambda& lambda) {
+			return mse::make_xscope(lambda);
+		}
+		template<typename _TLambda>
+		auto make_xscope_non_capture_lambda(const _TLambda& lambda) {
+			return mse::make_xscope(lambda);
+		}
+	}
+
+
 	/* The purpose of the xscope_chosen_pointer() function is simply to take two scope pointers as input parameters and return (a copy
 	of) one of them. Which of the pointers is returned is determined by a "decider" function that is passed, as the first parameter, to
 	xscope_chosen_pointer(). The "decider" function needs to return a bool and take the two scope pointers as its first two parameters.
