@@ -58,10 +58,11 @@ Tested with msvc2019(v16.1.6), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
     4. [xscope_ifptr_to()](#xscope_ifptr_to)
-    5. [xscope_chosen()](#xscope_chosen)
-    6. [as_a_returnable_fparam()](#as_a_returnable_fparam)
-    7. [as_an_fparam()](#as_an_fparam)
-    8. [Conformance helpers](#conformance-helpers)
+    5. [Retargetable references to scope objects](#retargetable-references-to-scope-objects)
+    6. [xscope_chosen()](#xscope_chosen)
+    7. [as_a_returnable_fparam()](#as_a_returnable_fparam)
+    8. [as_an_fparam()](#as_an_fparam)
+    9. [Conformance helpers](#conformance-helpers)
         1. [return_value()](#return_value)
         2. [TMemberObj](#tmemberobj)
 11. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
@@ -633,31 +634,31 @@ This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_p
                 (*retval).m_root_ptr_ptr = &retval;
                 return retval;
             }
-            auto MaybeStrongChildPtr() const { return m_maybe_child_ptr; }
-            rcnode_strongptr_regobj_t MakeChild() {
-                m_maybe_child_ptr.emplace(rcnode_strongptr_regobj_t{ mse::make_refcounting<CRCNode>(m_node_count_ptr, m_root_ptr_ptr) });
-                return m_maybe_child_ptr.value();
+            static auto MaybeStrongChildPtr(const rcnode_strongptr_regobj_t this_ptr) { return this_ptr->m_maybe_child_ptr; }
+            static rcnode_strongptr_regobj_t MakeChild(const rcnode_strongptr_regobj_t this_ptr) {
+                this_ptr->m_maybe_child_ptr.emplace(rcnode_strongptr_regobj_t{ mse::make_refcounting<CRCNode>(this_ptr->m_node_count_ptr, this_ptr->m_root_ptr_ptr) });
+                return this_ptr->m_maybe_child_ptr.value();
             }
-            void DisposeOfChild() {
-                m_maybe_child_ptr.reset();
+            static void DisposeOfChild(const rcnode_strongptr_regobj_t this_ptr) {
+                this_ptr->m_maybe_child_ptr.reset();
             }
 
         private:
             mse::TRegisteredPointer<mse::CInt> m_node_count_ptr;
-            mse::mstd::optional<rcnode_strongptr_regobj_t> m_maybe_child_ptr;
             rcnode_strongptr_weakptr_t m_root_ptr_ptr;
+            CRCNODE_STD_OPTIONAL<rcnode_strongptr_regobj_t> m_maybe_child_ptr;
         };
 
         mse::TRegisteredObj<mse::CInt> node_counter = 0;
         {
             auto root_owner_ptr = CRCNode::MakeRoot(&node_counter);
-            auto kid1 = root_owner_ptr->MakeChild();
+            auto kid1 = root_owner_ptr->MakeChild(root_owner_ptr);
             {
-                auto kid2 = kid1->MakeChild();
-                auto kid3 = kid2->MakeChild();
+                auto kid2 = kid1->MakeChild(kid1);
+                auto kid3 = kid2->MakeChild(kid2);
             }
             assert(4 == node_counter);
-            kid1->DisposeOfChild();
+            kid1->DisposeOfChild(kid1);
             assert(2 == node_counter);
         }
         assert(0 == node_counter);
@@ -810,7 +811,6 @@ usage example:
 ```
 
 ### xscope_ifptr_to()
-#### retargetable references to scope objects
 
 Scope pointers cannot (currently) be retargeted after construction. If you need a pointer that will point to multiple different scope objects over its lifespan, you can use a registered pointer. You could make the target objects registered objects in addition to being scope objects. If the object is a registered scope object, then the `&` operator will will return a registered pointer. But at some point we're going to need a scope pointer to the base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. 
 
@@ -849,18 +849,22 @@ usage example:
         }
         /* Attempting to dereference registered_ptr1 here would result in an exception. */
         //*registered_ptr1;
+    }
+```
 
+### Retargetable references to scope objects
+
+The drawback with the above technique of declaring a scope object to additionally be a registered object in order to support retargetable pointers is that the decision (of whether to support retargetable pointers) needs to be made when and where the object is declared rather than when and where the retargetable pointers are needed. A more flexible alternative is to add an extra level of indirection. That is, use registered (or norad) pointers that target scope pointers that, in turn, target the scope object rather than registered pointers that target the scope object directly. This way the scope object does not need to be additionally declared as a registered object. The scope pointers would need to be declared as registered objects, but you can declare such scope pointers when and where you need them.
+
+example:
+
+```cpp
+    #include "msescope.h"
+    #include "mseregistered.h"
+    #include "msemsestring.h"
+    
+    void main(int argc, char* argv[]) {
         {
-            /* The drawback with the above technique of declaring a scope object to additionally be a registered object
-            in order to support retargetable pointers is that the decision (of whether to support retargetable pointers)
-            needs to be made when and where the object is declared rather than when and where the retargetable pointers
-            are needed. A more flexible alternative might be to add an extra level of indirection. That is, use
-            registered pointers that target scope pointers that, in turn, target the scope object rather than registered
-            pointers that target the scope object directly. This way the scope object does not need to be additionally
-            declared as a registered object. The scope pointers would need to be declared as registered objects, but you
-            can declare such scope pointers when and where you need them.
-            */
-
             typedef mse::TXScopeObj<mse::mtnii_string> xscp_nstring_t;
             typedef mse::TXScopeItemFixedPointer<mse::mtnii_string> xscp_nstring_ptr_t;
             class CB {
@@ -915,7 +919,7 @@ usage example:
 
 [*provisional*]
 
-For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted to be used as function return values. (The [`return_value()`](#return_value) function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be a `min(a, b)` function which takes two objects by reference and returns the reference to the lesser of the two objects. For these cases you could use the `xscope_chosen()` function which takes two objects of the same type (in this case it will be two scope pointers) and returns one of the objects (scope pointers), which one depending on the value of a given "decider" function. You could use this function to implement the equivalent of a `min(a, b)` function like so:
+For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted to be used as function return values. (The [`return_value()`](#return_value) function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be a `min(a, b)` function which takes two objects by reference and returns the reference to the lesser of the two objects. For these cases you could use the `xscope_chosen()` function which takes two objects of the same type (in this case it will be two scope pointers) and returns (a copy of) one of the objects (scope pointers), which one depending on the value of a given "decider" function. You could use this function to implement the equivalent of a `min(a, b)` function like so:
 
 ```cpp
     #include "msescope.h"
@@ -3177,6 +3181,10 @@ usage example:
     }
 ```
 
+Note that scope sections, like (non-owning) scope pointers, are not retargetable (i.e. don't support the assignment operator). If you find yourself needing a retargetable scope section, you can use the technique of adding a level of indirection and using a (retargetable) registered (or norad) pointer to the scope sections, is [demonstrated](#retargetable-references-to-scope-objects) with scope pointers.
+
+See also [TXScopeCSSSXSTERandomAccessSection](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/README.md#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection).
+
 ### Strings
 
 From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A couple of string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#string) is simply a memory-safe drop-in replacement for std::string. Due to their iterators, strings are not, in general, safe to share among threads. [`mtnii_string`](#mtnii_string) is designed for safe sharing among asynchronous threads. 
@@ -3265,6 +3273,8 @@ usage example:
         assert(msv2 == "other t");
     }
 ```
+
+See also [TXScopeCSSSXSTEStringSection](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/README.md#txscopecsssxstestringsection-txscopecsssxstenrpstringsection).
 
 ### nrp_string_view
 
