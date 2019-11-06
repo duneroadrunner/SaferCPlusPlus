@@ -214,17 +214,9 @@ The elements in this library are straightforward enough that a separate tutorial
 
 Statistically speaking, doing this should already catch a significant chunk of potential memory bugs. By default, an exception will be thrown upon any attempt to access invalid memory (or the program will terminate if compiled with support for exceptions disabled). This behavior can be customized (for example, to notify a custom logger of any invalid memory access attempts) by defining the `MSE_CUSTOM_THROW_DEFINITION()` preprocessor function macro.
 
-The next most effective thing to do, in terms of improving memory safety, is probably to replace calls to `new`/`malloc` and `delete`/`free`. The direct substitutes provided in the library (for items not shared between threads) are `mse::registered_new()` and `mse::registered_delete()`. The pointer type returned by `mse::registered_new()` is an [`mse::TRegisteredPointer<>`](#tregisteredpointer). If you need this pointer to interact with legacy interfaces, it can be explicitly cast to a corresponding native pointer. But ultimately you're going to want to minimize the amount of casting to (unsafe) native pointers by updating your (function) interfaces to accomodate these safe pointers directly. (See the "[Safely passing parameters by reference](#safely-passing-parameters-by-reference)" section.)
+Achieving a more comprehensive degree of safety (while maintaining efficiency) takes a bit more effort. First, you'll want to get acquainted with [scope pointers and objects](#scope-pointers). You'll want to, for example, understand how to [obtain a scope iterator](#structure-locking), and in turn, a scope pointer to a vector element (as demonstrated, for example, in the [`mtnii_vector<>`](#mtnii_vector) example). You'll want to understand how to obtain a scope pointer to [a class/struct member](#make_pointer_to_member_v2) from a scope pointer to the class/struct. You'll want to understand how to obtain a scope pointer to the [target of a strong/owning pointer](#make_xscope_strong_pointer_store).
 
-Based on reported vulnerabilities, these two things alone should catch most memory bugs.
-
-While the library provides these direct substitutes for `new`/`malloc` and `delete`/`free`, they are usually not the optimal solution. In most cases, you can instead use [`mse::TXScopeOwnerPointer<>`](#txscopeownerpointer) or [`TRefCountingNotNullPointer<>`](#trefcountingnotnullpointer), which are faster and automatically deallocate the item for you.
-
-For items shared between asynchronous threads, use one of the [data types designed for safe asynchronous sharing](#asynchronously-shared-objects).
-
-After that, it's just a matter of replacing the remaining unsafe elements in your code (such as native pointers) with the safer substitute that works best.
-
-And if at some point you feel that these new elements involve a lot of typing, note that many of the elements have short aliases that can be used instead. Just search for "shorter aliases" in the header files. Or, of course, you can create your own to suit your preferences.
+Once you've embraced the scope pointer lifestyle, you can use a conformance helper tool like [scpptool](https://github.com/duneroadrunner/scpptool) to analyze your source files and flag parts of your code that it can't verify to be safe. Appeasing the tool largely involves simply obtaining scope pointers to the objects in question. 
 
 ### Registered pointers
 
@@ -235,7 +227,6 @@ Two types of registered pointers are provided - [`TRegisteredPointer<>`](#tregis
 Note that these registered pointers cannot target some types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. The library provides safer [substitutes](#cndint-cndsize_t-and-cndbool) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library.
 
 Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead. In fact, even when registered pointers are used, rather than using them to access the target object directly, you may find it often preferable to use the registered pointer to obtain a scope pointer to the object and use the scope pointer instead. Though for the sake of simplicity, we don't use scope pointers in the registered pointer usage examples.  
-
 
 ### TRegisteredPointer
 
