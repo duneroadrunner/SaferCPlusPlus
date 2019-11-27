@@ -492,7 +492,7 @@ namespace mse {
 		virtual ~TXScopeObj() {}
 
 		TXScopeObj& operator=(TXScopeObj&& _X) {
-			mse::impl::valid_if_not_rvalue_reference_of_given_type<TXScopeObj, decltype(_X)>(_X);
+			//mse::impl::valid_if_not_rvalue_reference_of_given_type<TXScopeObj, decltype(_X)>(_X);
 			mse::us::impl::TXScopeObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
 			return (*this);
 		}
@@ -808,23 +808,23 @@ namespace mse {
 	class TXScopeObj<_Ty*> : public TXScopeObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
 		typedef TXScopeObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TXScopeObj, base_class);
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 	private:
 		TXScopeObj(std::nullptr_t) {}
 		TXScopeObj() {}
 #endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		MSE_USING(TXScopeObj, base_class);
 	};
 	template<typename _Ty>
 	class TXScopeObj<const _Ty*> : public TXScopeObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
 		typedef TXScopeObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TXScopeObj, base_class);
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 	private:
 		TXScopeObj(std::nullptr_t) {}
 		TXScopeObj() {}
 #endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		MSE_USING(TXScopeObj, base_class);
 	};
 
 	template<typename _Ty>

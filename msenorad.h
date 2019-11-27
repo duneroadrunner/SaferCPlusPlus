@@ -813,24 +813,44 @@ namespace mse {
 			public:
 				typedef TGNoradObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 				MSE_USING(TGNoradObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+			private:
+				TGNoradObj(std::nullptr_t) {}
+				TGNoradObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			};
 			template<typename _Ty, typename _TRefCounter>
 			class TGNoradObj<_Ty* const, _TRefCounter> : public TGNoradObj<const mse::us::impl::TPointerForLegacy<_Ty>, _TRefCounter> {
 			public:
 				typedef TGNoradObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
 				MSE_USING(TGNoradObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+			private:
+				TGNoradObj(std::nullptr_t) {}
+				TGNoradObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			};
 			template<typename _Ty, typename _TRefCounter>
 			class TGNoradObj<const _Ty *, _TRefCounter> : public TGNoradObj<mse::us::impl::TPointerForLegacy<const _Ty>, _TRefCounter> {
 			public:
 				typedef TGNoradObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 				MSE_USING(TGNoradObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+			private:
+				TGNoradObj(std::nullptr_t) {}
+				TGNoradObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			};
 			template<typename _Ty, typename _TRefCounter>
 			class TGNoradObj<const _Ty * const, _TRefCounter> : public TGNoradObj<const mse::us::impl::TPointerForLegacy<const _Ty>, _TRefCounter> {
 			public:
 				typedef TGNoradObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
 				MSE_USING(TGNoradObj, base_class);
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+			private:
+				TGNoradObj(std::nullptr_t) {}
+				TGNoradObj() {}
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			};
 
 			template<typename _Ty, typename _TRefCounter>
@@ -1512,23 +1532,23 @@ namespace mse {
 	class TNDNoradObj<_Ty*> : public TNDNoradObj<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
 		typedef TNDNoradObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TNDNoradObj, base_class);
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 	private:
 		TNDNoradObj(std::nullptr_t) {}
 		TNDNoradObj() {}
 #endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		MSE_USING(TNDNoradObj, base_class);
 	};
 	template<typename _Ty>
 	class TNDNoradObj<const _Ty*> : public TNDNoradObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
 		typedef TNDNoradObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TNDNoradObj, base_class);
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 	private:
 		TNDNoradObj(std::nullptr_t) {}
 		TNDNoradObj() {}
 #endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		MSE_USING(TNDNoradObj, base_class);
 	};
 
 	template<typename _Ty>

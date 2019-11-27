@@ -1397,11 +1397,14 @@ namespace mse {
 	namespace impl {
 		template <typename T> struct is_shared_ptr : std::false_type {};
 		template <typename T> struct is_shared_ptr<std::shared_ptr<T> > : std::true_type {};
+		template <typename T> struct is_unique_ptr : std::false_type {};
+		template <typename T> struct is_unique_ptr<std::unique_ptr<T> > : std::true_type {};
 
 		template <typename _TStrongPointer> struct is_strong_ptr : std::conditional<
 			(std::is_base_of<mse::us::impl::StrongPointerTagBase, _TStrongPointer>::value)
 			|| (std::is_pointer<_TStrongPointer>::value)/* for when scope pointers are "disabled" */
 			|| (is_shared_ptr<_TStrongPointer>::value)/* for when refcounting pointers are "disabled" */
+			|| (is_unique_ptr<_TStrongPointer>::value)/* for when TXScopeOwningPointer<>s are "disabled" */
 			, std::true_type, std::false_type>::type {};
 
 		template<typename _TStrongPointer, class = typename std::enable_if<is_strong_ptr<_TStrongPointer>::value, void>::type>
