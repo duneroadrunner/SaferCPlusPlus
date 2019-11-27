@@ -535,7 +535,9 @@ namespace mse {
 	private:
 		void* operator new(size_t size) { return ::operator new(size); }
 
-		friend class TXScopeOwnerPointer<_TROy>;
+		template<typename _TROy2>
+		friend class TXScopeOwnerPointer;
+		//friend class TXScopeOwnerPointer<_TROy>;
 	};
 
 	template<typename _Ty>
