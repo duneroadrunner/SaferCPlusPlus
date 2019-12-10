@@ -298,19 +298,16 @@ namespace mse {
 			return (*this);
 		}
 
-		/* The dereference operator could be (indirectly) called during destruction, when (in this implementation) the value
-		will be nullptr. So dispensing with the nullptr check would require checking/ensuring that a dereference does not
-		(indirectly) occur during destruction. */
-#if 0
 		_Ty& operator*() const {
+			//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingPointer")); }
 			_Ty* x_ptr = (*this).unchecked_get();
 			return *x_ptr;
 		}
 		_Ty* operator->() const {
+			//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingPointer")); }
 			_Ty* x_ptr = (*this).unchecked_get();
 			return x_ptr;
 		}
-#endif // 0
 
 		template <class... Args>
 		static TRefCountingNotNullPointer make(Args&&... args) {
@@ -544,19 +541,16 @@ namespace mse {
 			return (*this);
 		}
 
-		/* The dereference operator could be (indirectly) called during destruction, when (in this implementation) the value
-		will be nullptr. So dispensing with the nullptr check would require checking/ensuring that a dereference does not
-		(indirectly) occur during destruction. */
-#if 0
 		const _Ty& operator*() const {
+			//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
 			const _Ty* x_ptr = (*this).unchecked_get();
 			return *x_ptr;
 		}
 		const _Ty* operator->() const {
+			//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
 			const _Ty* x_ptr = (*this).unchecked_get();
 			return x_ptr;
 		}
-#endif // 0
 
 	private:
 		/* If you want to use this constructor, use not_null_from_nullable() instead. */
