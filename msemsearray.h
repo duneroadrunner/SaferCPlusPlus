@@ -381,11 +381,11 @@ namespace mse {
 	}
 
 	typedef
-#if !defined(NDEBUG) || defined(MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT)
+#if (!defined(NDEBUG)) || (!defined(MSE_DISABLE_REENTRANCY_CHECKS_BY_DEFAULT))
 		non_thread_safe_mutex
-#else // !defined(NDEBUG) || defined(MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT)
+#else // (!defined(NDEBUG)) || (!defined(MSE_DISABLE_REENTRANCY_CHECKS_BY_DEFAULT))
 		dummy_recursive_shared_timed_mutex
-#endif // !defined(NDEBUG) || defined(MSE_ENABLE_REENTRANCY_CHECKS_BY_DEFAULT)
+#endif // (!defined(NDEBUG)) || (!defined(MSE_DISABLE_REENTRANCY_CHECKS_BY_DEFAULT))
 		default_state_mutex;
 
 	namespace impl {
@@ -2394,6 +2394,10 @@ namespace mse {
 	template<class _Ty, size_t _Size, class _TStateMutex/* = default_state_mutex*/>
 	class nii_array : public mse::us::impl::ContiguousSequenceStaticStructureContainerTagBase {
 	public:
+		/* A (non-thread safe) mutex is used to enforce safety against potentially mischievous element constructors/destructors. 
+		There are no such concerns with trivial element types, so in those cases we'll just use a "no-op dummy" mutex. */
+		typedef typename std::conditional<std::is_trivial<_Ty>::value, dummy_recursive_shared_timed_mutex, _TStateMutex>::type state_mutex_t;
+
 		typedef std::array<_Ty, _Size> std_array;
 		typedef std_array _MA;
 		typedef nii_array _Myt;
@@ -2447,7 +2451,7 @@ namespace mse {
 		}
 
 		~nii_array() {
-			mse::impl::destructor_lock_guard1<_TStateMutex> lock1(m_mutex1);
+			mse::impl::destructor_lock_guard1<state_mutex_t> lock1(m_mutex1);
 
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			valid_if_Ty_is_not_an_xscope_type();
@@ -2486,23 +2490,23 @@ namespace mse {
 
 		void assign(const _Ty& _Value)
 		{	// assign value to all elements
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<state_mutex_t> lock1(m_mutex1);
 			m_array.assign(_Value);
 		}
 
 		void fill(const _Ty& _Value)
 		{	// assign value to all elements
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<state_mutex_t> lock1(m_mutex1);
 			m_array.fill(_Value);
 		}
 
 		void swap(_Myt& _Other) {	// swap contents with _Other
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<state_mutex_t> lock1(m_mutex1);
 			m_array.swap(_Other.m_array);
 		}
 
 		void swap(_MA& _Other) {	// swap contents with _Other
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<state_mutex_t> lock1(m_mutex1);
 			m_array.swap(_Other);
 		}
 
@@ -2542,13 +2546,13 @@ namespace mse {
 		}
 
 		nii_array& operator=(const nii_array& _Right_cref) {
-			std::lock_guard<_TStateMutex> lock1(m_mutex1);
+			std::lock_guard<state_mutex_t> lock1(m_mutex1);
 			m_array = _Right_cref.m_array;
 			return (*this);
 		}
 		/*
 		nii_array& operator=(const std_array& _Right_cref) {
-		std::lock_guard<_TStateMutex> lock1(m_mutex1);
+		std::lock_guard<state_mutex_t> lock1(m_mutex1);
 		m_array = _Right_cref;
 		return (*this);
 		}
@@ -2770,7 +2774,7 @@ namespace mse {
 		auto&& contained_array() { return m_array; }
 
 		std_array m_array;
-		_TStateMutex m_mutex1;
+		state_mutex_t m_mutex1;
 
 		friend /*class */xscope_ss_const_iterator_type;
 		friend /*class */xscope_ss_iterator_type;
