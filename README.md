@@ -1520,9 +1520,9 @@ usage example: ([see below](#async-aggregate-usage-example))
 
 ### TAsyncSharedV2ReadWriteAccessRequester
 
-Use the `writelock_ptr()` and `readlock_ptr()` member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock for as long as they exist. Their locks are released when the pointers are destroyed. (Generally when they go out of scope).  
+Use the `mse::make_asyncsharedv2readwrite<>(...)` function (in a manner analogous to `std::make_shared<>(...)`) to create an object to be shared and obtain an associated "access requester", which is just an object that holds shared ownership of the shared object. Unlike `std::shared_ptr<>`, you cannot dereference an access requester directly. Instead you use the `writelock_ptr()` and `readlock_ptr()` member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock for as long as they exist. Their locks are released when the pointers are destroyed. (Generally when they go out of scope).  
 
-Use the `mse::make_asyncsharedv2readwrite<>()` function to obtain a `TAsyncSharedV2ReadWriteAccessRequester<>`. `TAsyncSharedV2ReadWriteAccessRequester<>` can be copied and passed-by-value as a parameter (to another thread, generally).
+Acccess requesters can be copied and passed-by-value as a parameter (to another thread, generally).
 
 Non-blocking `try_writelock_ptr()` and `try_readlock_ptr()` member functions are also available. As are the limited-blocking `try_writelock_ptr_for()`, `try_readlock_ptr_for()`, `try_writelock_ptr_until()` and `try_readlock_ptr_until()`.
 
@@ -1530,12 +1530,12 @@ Note that while a "write-lock" pointer will not simultaneously co-exist with any
 
 One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. The access requesters detect these situations, and will throw an exception (or whatever user-specified behavior) when they occur.
 
-Just as `std::weak_ptr<>` is the "weak" counterpart of `std::shared_ptr<>`, `TAsyncSharedV2WeakReadWriteAccessRequester<>` is the weak counter part of `TAsyncSharedV2ReadWriteAccessRequester<>`. Its constructor takes a `TAsyncSharedV2ReadWriteAccessRequester<>`, and its `try_strong_access_requester()` member function returns an `optional` value containing the associated `TAsyncSharedV2ReadWriteAccessRequester<>` if available.
+Just as `std::weak_ptr<>` is the "weak" counterpart of `std::shared_ptr<>`, `TAsyncSharedV2WeakReadWriteAccessRequester<>` is the weak counter part of `TAsyncSharedV2ReadWriteAccessRequester<>`. Its constructor takes a regular (strong) access requester (`TAsyncSharedV2ReadWriteAccessRequester<>`), and its `try_strong_access_requester()` member function returns an `optional` value containing the associated strong access requester, if available.
 
 usage example: ([see below](#async-aggregate-usage-example))
 
 ### TAsyncSharedV2ReadOnlyAccessRequester
-Same as `TAsyncSharedV2ReadWriteAccessRequester<>`, but only supports `readlock_ptr()`, not `writelock_ptr()`. You can use the `mse::make_asyncsharedv2readonly<>()` function to obtain a `TAsyncSharedV2ReadOnlyAccessRequester<>`. `TAsyncSharedV2ReadOnlyAccessRequester<>` can also be copy constructed from a `TAsyncSharedV2ReadWriteAccessRequester<>`.
+You can use the `mse::make_asyncsharedv2readonly<>()` function to create a shared object and obtain a "read only" access requester that has a `readlock_ptr()` member function, but not a `writelock_ptr()` member function. "Read only" access requesters can also be copy constructed from a regular [(read-write) access requester (`TAsyncSharedV2ReadWriteAccessRequester<>`)](#tasyncsharedv2readwriteaccessrequester).
 
 usage example: ([see below](#async-aggregate-usage-example))
 
