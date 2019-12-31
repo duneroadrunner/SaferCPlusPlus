@@ -291,7 +291,7 @@ namespace mse {
 	class TRefCountingNotNullPointer : public TRefCountingPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 	public:
 		TRefCountingNotNullPointer(const TRefCountingNotNullPointer& src_cref) : TRefCountingPointer<_Ty>(src_cref) {}
-		TRefCountingNotNullPointer(TRefCountingNotNullPointer&& src_ref) : TRefCountingPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TRefCountingNotNullPointer(TRefCountingNotNullPointer&& src_ref) : TRefCountingPointer<_Ty>(src_ref) {}
 		virtual ~TRefCountingNotNullPointer() {}
 		TRefCountingNotNullPointer<_Ty>& operator=(const TRefCountingNotNullPointer<_Ty>& _Right_cref) {
 			TRefCountingPointer<_Ty>::operator=(_Right_cref);
@@ -533,8 +533,8 @@ namespace mse {
 	public:
 		TRefCountingNotNullConstPointer(const TRefCountingNotNullConstPointer& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {}
 		TRefCountingNotNullConstPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {}
-		TRefCountingNotNullConstPointer(TRefCountingNotNullConstPointer&& src_ref) : TRefCountingConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
-		TRefCountingNotNullConstPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TRefCountingNotNullConstPointer(TRefCountingNotNullConstPointer&& src_ref) : TRefCountingConstPointer<_Ty>(src_ref) {}
+		TRefCountingNotNullConstPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingConstPointer<_Ty>(src_ref) {}
 		virtual ~TRefCountingNotNullConstPointer() {}
 		TRefCountingNotNullConstPointer<_Ty>& operator=(const TRefCountingNotNullConstPointer<_Ty>& _Right_cref) {
 			TRefCountingConstPointer<_Ty>::operator=(_Right_cref);

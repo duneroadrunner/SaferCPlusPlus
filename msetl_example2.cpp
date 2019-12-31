@@ -1371,7 +1371,7 @@ void msetl_example2() {
 		{
 			/* for_each_ptr() */
 
-			/*  mse::for_each_ptr() is like std:::for_each() but instead of passing, to the given function, a reference
+			/*  mse::for_each_ptr() is like std::for_each() but instead of passing, to the given function, a reference
 			to each item it passes a (safe) pointer to each item. The actual type of the pointer varies depending on the
 			type of the given iterators. */
 			typedef mse::for_each_ptr_type<decltype(ma1.begin())> item_ptr_t;
