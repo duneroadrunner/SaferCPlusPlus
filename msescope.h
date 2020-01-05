@@ -1743,7 +1743,8 @@ namespace mse {
 	*/
 	template<typename _Ty>
 	class TXScopeOwnerPointer : public mse::us::impl::XScopeTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase
-		, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(_Ty, TXScopeOwnerPointer<_Ty>)
+		, mse::us::impl::ReferenceableByScopePointerTagBase
+		, MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, TXScopeOwnerPointer<_Ty>)
 	{
 	public:
 		TXScopeOwnerPointer(TXScopeOwnerPointer<_Ty>&& src_ref) = default;
@@ -1796,6 +1797,14 @@ namespace mse {
 		void constructor_helper2(std::true_type, _TSoleArg&& sole_arg) {
 			/* The sole parameter is derived from, or of this type, so we're going to consider the constructor
 			a move constructor. */
+#ifdef MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY
+			/* You would probably only consider defining MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY for extra safety if for
+			some reason you couldn't rely on the availability of a tool (like scpptool) to statically enforce the safety of
+			these moves. */
+#ifdef MSE_HAS_CXX17
+			static_assert(false, "The MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY preprocessor symbol is defined, which prohibits the use of TXScopeOwnerPointer<>'s move constructor. ");
+#endif // MSE_HAS_CXX17
+#endif // MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY
 			m_ptr = std::forward<decltype(sole_arg.m_ptr)>(sole_arg.m_ptr);
 		}
 		template <class _TSoleArg>
@@ -1812,6 +1821,7 @@ namespace mse {
 		void constructor_helper1(_TSoleArg&& sole_arg) {
 			/* The constructor was given exactly one parameter. If the parameter is derived from, or of this type,
 			then we're going to consider the constructor a move constructor. */
+
 			constructor_helper2(typename std::is_base_of<TXScopeOwnerPointer, _TSoleArg>::type(), std::forward<decltype(sole_arg)>(sole_arg));
 		}
 
