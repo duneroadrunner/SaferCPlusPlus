@@ -417,11 +417,16 @@ namespace mse {
 	}
 
 	namespace impl {
+		template <typename T> struct is_shared_ptr : std::false_type {};
+		template <typename T> struct is_shared_ptr<std::shared_ptr<T> > : std::true_type {};
+		template <typename T> struct is_unique_ptr : std::false_type {};
+		template <typename T> struct is_unique_ptr<std::unique_ptr<T> > : std::true_type {};
 
 		template<typename _Ty>
 		struct is_potentially_xscope : std::integral_constant<bool, mse::impl::disjunction<
 			std::is_base_of<mse::us::impl::XScopeTagBase
 			, typename std::remove_reference<_Ty>::type>
+			, mse::impl::is_unique_ptr<typename std::remove_reference<_Ty>::type>
 			, std::is_pointer<typename std::remove_reference<_Ty>::type>
 #ifdef MSE_SCOPEPOINTER_DISABLED
 			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::us::impl::TPointerForLegacy>
@@ -433,6 +438,7 @@ namespace mse {
 		struct is_potentially_not_xscope : std::integral_constant<bool, mse::impl::conjunction<
 			mse::impl::negation<std::is_base_of<mse::us::impl::XScopeTagBase
 				, typename std::remove_reference<_Ty>::type> >
+			, mse::impl::negation<mse::impl::is_unique_ptr<typename std::remove_reference<_Ty>::type> >
 #if (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS))
 			, mse::impl::negation<std::is_pointer<typename std::remove_reference<_Ty>::type> >
 #endif // (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS))
@@ -464,6 +470,9 @@ namespace mse {
 			, mse::impl::is_instantiation_of<typename std::remove_reference<_Ty>::type, mse::us::impl::TPointer>
 #endif // MSE_SCOPEPOINTER_DISABLED
 		>::value> {};
+		/* std::unique_ptr<> is handled as a special case. */
+		template<typename _Ty>
+		struct potentially_contains_non_owning_scope_reference<std::unique_ptr<_Ty> > : potentially_contains_non_owning_scope_reference<_Ty> {};
 
 		template<typename _Ty>
 		struct potentially_does_not_contain_non_owning_scope_reference : std::integral_constant<bool, mse::impl::conjunction<
@@ -473,6 +482,9 @@ namespace mse {
 			, mse::impl::negation<std::is_pointer<typename std::remove_reference<_Ty>::type> >
 #endif // (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS))
 		>::value> {};
+		/* std::unique_ptr<> is handled as a special case. */
+		template<typename _Ty>
+		struct potentially_does_not_contain_non_owning_scope_reference<std::unique_ptr<_Ty> > : potentially_does_not_contain_non_owning_scope_reference<_Ty> {};
 
 		template<typename _Ty>
 		struct contains_non_owning_scope_reference : mse::impl::negation<potentially_does_not_contain_non_owning_scope_reference<_Ty> > {};
@@ -483,6 +495,7 @@ namespace mse {
 		template<typename _Ty>
 		struct is_potentially_referenceable_by_scope_pointer : std::integral_constant<bool, mse::impl::disjunction<
 			std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, typename std::remove_reference<_Ty>::type>
+			, mse::impl::is_unique_ptr<typename std::remove_reference<_Ty>::type>
 #ifdef MSE_SCOPEPOINTER_DISABLED
 			, std::true_type
 #endif // MSE_SCOPEPOINTER_DISABLED
@@ -491,6 +504,7 @@ namespace mse {
 		template<typename _Ty>
 		struct is_potentially_not_referenceable_by_scope_pointer : std::integral_constant<bool, mse::impl::conjunction<
 			mse::impl::negation<std::is_base_of<mse::us::impl::ReferenceableByScopePointerTagBase, typename std::remove_reference<_Ty>::type> >
+			, mse::impl::negation<mse::impl::is_unique_ptr<typename std::remove_reference<_Ty>::type> >
 #ifdef MSE_SCOPEPOINTER_DISABLED
 			, std::true_type
 #endif // MSE_SCOPEPOINTER_DISABLED
@@ -1395,11 +1409,6 @@ namespace mse {
 	}
 
 	namespace impl {
-		template <typename T> struct is_shared_ptr : std::false_type {};
-		template <typename T> struct is_shared_ptr<std::shared_ptr<T> > : std::true_type {};
-		template <typename T> struct is_unique_ptr : std::false_type {};
-		template <typename T> struct is_unique_ptr<std::unique_ptr<T> > : std::true_type {};
-
 		template <typename _TStrongPointer> struct is_strong_ptr : std::conditional<
 			(std::is_base_of<mse::us::impl::StrongPointerTagBase, _TStrongPointer>::value)
 			|| (std::is_pointer<_TStrongPointer>::value)/* for when scope pointers are "disabled" */
