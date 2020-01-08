@@ -1,4 +1,4 @@
-Oct 2019
+Jan 2020
 
 ### Overview
 
@@ -680,11 +680,11 @@ The rules for using scope pointers and objects are essentially as follows:
 
 Again, most inadvertent misuses of scope objects should result in compile errors. The remaining potential misuses would be caught by a companion tool like the aforementioned [scpptool](https://github.com/duneroadrunner/scpptool). But these rules should be intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is premised on the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond the scope in which they are declared, so that a scope pointer cannot outlive its target scope object.
 
-Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPointer<>`](#txscopeownerpointer) and [`TXScopeItemFixedPointer<>`](#txscopeitemfixedpointer). `TXScopeOwnerPointer<>` is similar to `boost::scoped_ptr<>` in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to also include "declaration scope".)
-`TXScopeItemFixedPointer<>` is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is primarily intended for the purpose of passing scope objects by reference as function arguments. 
+Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPointer<>`](#txscopeownerpointer) and [`TXScopeItemFixedPointer<>`](#txscopeitemfixedpointer). `TXScopeOwnerPointer<>` is kind of like `std::unique_ptr<>`, but restricted by the rules of scope objects. It creates an instance of a given class on the heap and destroys that instance in its destructor. 
+`TXScopeItemFixedPointer<>` is a (zero-overhead) "non-owning" pointer to objects that are known (at compile-time) to outlive it. 
 
 ### TXScopeItemFixedPointer
-`TXScopeItemFixedPointer<>` is primarily intended to be used to pass scope objects by reference as function arguments. It may not be used as a function return type (as enforced by the [`return_value()`](#return_value) function wrapper). And as with any other scope object, it may not be used as a member of any class or struct that is not itself a scope object. (Attempting to do so would generally produce a compile error).  
+`TXScopeItemFixedPointer<>`s are (zero-overhead) "non-owning", non-retargetable pointers. They may only be declared such that they do not outlive the scope in which they are declared (i.e. basically as non-static local variables, and may only point to objects known (at compile-time) to live at least that long. 
 
 usage example:
 
@@ -723,7 +723,9 @@ usage example:
 #### TXScopeItemFixedConstPointer
 
 ### TXScopeOwnerPointer
-`TXScopeOwnerPointer<>` is similar to `boost::scoped_ptr<>` in functionality, but more limited in intended use. In particular, as a scope object, `TXScopeOwnerPointer<>` should not be used as a member of any class or struct that is not itself a scope object. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its construction arguments to the object's constructor.  
+`TXScopeOwnerPointer<>` is kind of like an `std::unique_ptr<>` whose use is restricted by the rules of scope objects. So, it must live to the end of the scope in which it is declared (i.e. basically be declared as a non-static local (or `thread_local` variable)) and can only be used as a member of objects which are themselves scope objects. You can use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Unlike `std::unique_ptr<>`s, you may not use `std::move()` with `TXScopeOwnerPointer<>`s. If you're not using a conformance helper tool like [scpptool](https://github.com/duneroadrunner/scpptool) to enforce this, you can disable `TXScopeOwnerPointer<>`'s move constructor by defining the `MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY` preprocessor symbol.
+
+Instead of its constructor taking a native pointer pointing to an already allocated object, it allocates the object itself and forwards its construction arguments to the object's constructor. You may also use `mse::make_xscope_owner<>()` to create a `TXScopeOwnerPointer<>` in a manner akin to `std::make_unique<>()`.
 
 usage example:
 
@@ -748,7 +750,10 @@ usage example:
             ~B() {}
         };
     
+        /* You can either pass the object's constructor arguments to mse::TXScopeOwnerPointer<>'s constructor, */
         mse::TXScopeOwnerPointer<A> xscp_a_ownerptr(7);
+        /* or you can use mse::make_xscope_owner<>() in a manner akin to std::make_unique<>() */
+        auto xscp_a_ownerptr2 = mse::make_xscope_owner<A>(7);
         int res4 = B::foo2(xscp_a_ownerptr);
         int res4b = B::foo2(&(*xscp_a_ownerptr));
     }
