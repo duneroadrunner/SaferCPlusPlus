@@ -326,7 +326,9 @@ namespace mse {
 
 		/* determines if a given type is an instantiation of a given template */
 		template<typename Type, template<typename...> class Template>
-		struct is_instantiation_of : ns_is_instantiation_of::is_instance_of<Template, Type> { };
+		struct is_unqualified_instantiation_of : ns_is_instantiation_of::is_instance_of<Template, Type> { };
+		template<typename Type, template<typename...> class Template>
+		struct is_instantiation_of : is_unqualified_instantiation_of<typename std::remove_cv<Type>::type, Template> { };
 
 		template<class...> struct conjunction : std::true_type { };
 		template<class B1> struct conjunction<B1> : B1 { };
@@ -417,10 +419,12 @@ namespace mse {
 	}
 
 	namespace impl {
-		template <typename T> struct is_shared_ptr : std::false_type {};
-		template <typename T> struct is_shared_ptr<std::shared_ptr<T> > : std::true_type {};
-		template <typename T> struct is_unique_ptr : std::false_type {};
-		template <typename T> struct is_unique_ptr<std::unique_ptr<T> > : std::true_type {};
+		template <typename T> struct is_unqualified_shared_ptr : std::false_type {};
+		template <typename T> struct is_unqualified_shared_ptr<std::shared_ptr<T> > : std::true_type {};
+		template <typename T> struct is_shared_ptr : is_unqualified_shared_ptr<typename std::remove_cv<T>::type> {};
+		template <typename T> struct is_unqualified_unique_ptr : std::false_type {};
+		template <typename T> struct is_unqualified_unique_ptr<std::unique_ptr<T> > : std::true_type {};
+		template <typename T> struct is_unique_ptr : is_unqualified_unique_ptr<typename std::remove_cv<T>::type> {};
 
 		template<typename _Ty>
 		struct is_potentially_xscope : std::integral_constant<bool, mse::impl::disjunction<
