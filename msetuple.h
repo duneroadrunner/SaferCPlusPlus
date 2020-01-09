@@ -937,7 +937,7 @@ namespace mse {
 #if __cpp_exceptions >= 199711
 							throw std::invalid_argument("id");
 #else // __cpp_exceptions >= 199711
-							return mse::mstd::make_tuple(0.0, 'Z', "invalid");
+							return mse::mstd::make_tuple(0.0, 'Z', std::string("invalid"));
 #endif // __cpp_exceptions >= 199711
 						}
 					};
@@ -1047,7 +1047,7 @@ namespace mse {
 #if __cpp_exceptions >= 199711
 							throw std::invalid_argument("id");
 #else // __cpp_exceptions >= 199711
-							return mse::mstd::make_tuple(0.0, 'Z', "invalid");
+							return mse::mstd::make_tuple(0.0, 'Z', std::string("invalid"));
 #endif // __cpp_exceptions >= 199711
 						}
 					};
