@@ -1751,16 +1751,16 @@ namespace mse {
 					_NODISCARD constexpr const T * operator->() const {
 						return std::addressof((*this).value());
 					}
-					_NODISCARD constexpr T * operator->() {
+					_NODISCARD /*constexpr*/ T * operator->() {
 						return std::addressof((*this).value());
 					}
 					_NODISCARD constexpr const T& operator*() const & {
 						return (*this).value();
 					}
-					_NODISCARD constexpr T& operator*() & {
+					_NODISCARD /*constexpr*/ T& operator*() & {
 						return (*this).value();
 					}
-					_NODISCARD constexpr T&& operator*() && {
+					_NODISCARD /*constexpr*/ T&& operator*() && {
 						return std::move((*this).value());
 					}
 					_NODISCARD constexpr const T&& operator*() const && {

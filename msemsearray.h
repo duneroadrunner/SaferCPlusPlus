@@ -1079,19 +1079,19 @@ namespace mse {
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 		void assert_valid_index() const {
-			if (difference_type((*this).target_container_ptr()->size()) < (*this).position()) { MSE_THROW(nii_array_range_error("invalid index - void assert_valid_index() const - TFriendlyAugmentedRAIterator")); }
+			if (difference_type((*this).target_container_ptr()->size() - 0) < (*this).position()) { MSE_THROW(nii_array_range_error("invalid index - void assert_valid_index() const - TFriendlyAugmentedRAIterator")); }
 		}
 		void reset() { set_to_end_marker(); }
 		bool points_to_an_item() const {
-			if (difference_type((*this).target_container_ptr()->size()) > (*this).position()) { return true; }
+			if (difference_type((*this).target_container_ptr()->size() - 0) > (*this).position()) { return true; }
 			else {
-				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
+				assert((*this).position() == difference_type((*this).target_container_ptr()->size() - 0));
 				return false;
 			}
 		}
 		bool points_to_end_marker() const {
 			if (false == points_to_an_item()) {
-				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
+				assert((*this).position() == difference_type((*this).target_container_ptr()->size() - 0));
 				return true;
 			}
 			else { return false; }
@@ -1109,12 +1109,12 @@ namespace mse {
 		}
 		void set_to_end_marker() {
 			(*this).set_to_beginning();
-			advance((*this).target_container_ptr()->size());
+			advance(difference_type((*this).target_container_ptr()->size() - 0));
 		}
 		void set_to_next() {
 			if (points_to_an_item()) {
 				advance(1);
-				assert(difference_type((*this).target_container_ptr()->size()) >= (*this).position());
+				assert(difference_type((*this).target_container_ptr()->size() - 0) >= (*this).position());
 			}
 			else {
 				MSE_THROW(nii_array_range_error("attempt to use invalid item_pointer - void set_to_next() - TFriendlyAugmentedRAIterator"));
@@ -1193,19 +1193,19 @@ namespace mse {
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 		void assert_valid_index() const {
-			if (difference_type((*this).target_container_ptr()->size()) < (*this).position()) { MSE_THROW(nii_array_range_error("invalid index - void assert_valid_index() const - TFriendlyAugmentedRAConstIterator")); }
+			if (difference_type((*this).target_container_ptr()->size() - 0) < (*this).position()) { MSE_THROW(nii_array_range_error("invalid index - void assert_valid_index() const - TFriendlyAugmentedRAConstIterator")); }
 		}
 		void reset() { set_to_end_marker(); }
 		bool points_to_an_item() const {
-			if (difference_type((*this).target_container_ptr()->size()) > (*this).position()) { return true; }
+			if (difference_type((*this).target_container_ptr()->size() - 0) > (*this).position()) { return true; }
 			else {
-				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
+				assert((*this).position() == difference_type((*this).target_container_ptr()->size() - 0));
 				return false;
 			}
 		}
 		bool points_to_end_marker() const {
 			if (false == points_to_an_item()) {
-				assert((*this).position() == difference_type((*this).target_container_ptr()->size()));
+				assert((*this).position() == difference_type((*this).target_container_ptr()->size() - 0));
 				return true;
 			}
 			else { return false; }
@@ -1228,7 +1228,7 @@ namespace mse {
 		void set_to_next() {
 			if (points_to_an_item()) {
 				advance(1);
-				assert(difference_type((*this).target_container_ptr()->size()) >= (*this).position());
+				assert(difference_type((*this).target_container_ptr()->size() - 0) >= (*this).position());
 			}
 			else {
 				MSE_THROW(nii_array_range_error("attempt to use invalid const_item_pointer - void set_to_next() - TFriendlyAugmentedRAConstIterator"));
@@ -1388,6 +1388,38 @@ namespace mse {
 		return impl::container_size_helper(typename mse::impl::IsDereferenceable_msemsearray<_TArrayPointer>::type(), owner_ptr);
 	}
 
+	namespace impl {
+		template<class T, class EqualTo>
+		struct HasDifferenceTypeMember_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<typename U::difference_type>() == std::declval<typename V::difference_type>(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasDifferenceTypeMember_msemsearray : HasDifferenceTypeMember_msemsearray_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+		template<bool, class TIter>
+		struct difference_type_of_iterator_helper;
+		template<class TIter>
+		struct difference_type_of_iterator_helper<false, TIter> {
+			typedef msear_int type;
+		};
+		template<class TIter>
+		struct difference_type_of_iterator_helper<true, TIter> {
+			typedef typename TIter::difference_type type;
+		};
+	}
+	template<class TIter>
+	struct difference_type_of_iterator {
+		typedef typename impl::difference_type_of_iterator_helper<impl::HasDifferenceTypeMember_msemsearray<TIter>::value, TIter>::type type;
+	};
+
 	template <typename _TRAContainerPointer> class TXScopeCSSSStrongRAIterator;
 	template <typename _TRAContainerPointer> class TXScopeCSSSStrongRAConstIterator;
 
@@ -1425,7 +1457,7 @@ namespace mse {
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 		bool is_valid() const {
-			return ((0 <= (*this).position()) && (mse::container_size(*(*this).target_container_ptr()) >= (*this).position()));
+			return ((0 <= (*this).position()) && (difference_type(mse::container_size(*(*this).target_container_ptr())) >= (*this).position()));
 		}
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
@@ -1481,7 +1513,7 @@ namespace mse {
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 		bool is_valid() const {
-			return ((0 <= (*this).position()) && (mse::container_size(*(*this).target_container_ptr()) >= (*this).position()));
+			return ((0 <= (*this).position()) && (difference_type(mse::container_size(*(*this).target_container_ptr())) >= (*this).position()));
 		}
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
@@ -2879,12 +2911,13 @@ namespace mse {
 		class TXScopeRangeRawPointerIterProvider {
 		public:
 			typedef decltype(std::addressof(std::declval<_Container>()[0])) raw_pointer_iter_t;
+			typedef decltype(std::declval<raw_pointer_iter_t>() - std::declval<raw_pointer_iter_t>()) difference_type;
 
 			TXScopeRangeRawPointerIterProvider(_Container& container) {
 				const auto size = mse::container_size(container);
 				if (1 <= size) {
 					m_begin = std::addressof(container[0]);
-					m_end = m_begin + size;
+					m_end = m_begin + difference_type(size);
 				}
 			}
 			const auto& begin() const {
@@ -3691,11 +3724,13 @@ namespace mse {
 
 	template<class _TArrayPointer>
 	auto make_xscope_end_const_iterator(const _TArrayPointer& owner_ptr) {
-		return mse::make_xscope_begin_const_iterator(owner_ptr) + mse::container_size(owner_ptr);
+		typedef typename mse::difference_type_of_iterator<decltype(mse::make_xscope_begin_const_iterator(owner_ptr))>::type difference_type;
+		return mse::make_xscope_begin_const_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
 	}
 	template<class _TArrayPointer>
 	auto make_xscope_end_iterator(const _TArrayPointer& owner_ptr) {
-		return mse::make_xscope_begin_iterator(owner_ptr) + mse::container_size(owner_ptr);
+		typedef typename mse::difference_type_of_iterator<decltype(mse::make_xscope_begin_iterator(owner_ptr))>::type difference_type;
+		return mse::make_xscope_begin_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
 	}
 
 	namespace impl {
@@ -3809,11 +3844,13 @@ namespace mse {
 	}
 	template<class _TArrayPointer>
 	auto make_end_const_iterator(const _TArrayPointer& owner_ptr) {
-		return mse::make_begin_const_iterator(owner_ptr) + mse::container_size(owner_ptr);
+		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_const_iterator(owner_ptr))>::type difference_type;
+		return mse::make_begin_const_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
 	}
 	template<class _TArrayPointer>
 	auto make_end_iterator(const _TArrayPointer& owner_ptr) {
-		return mse::make_begin_iterator(owner_ptr) + mse::container_size(owner_ptr);
+		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(owner_ptr))>::type difference_type;
+		return mse::make_begin_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
 	}
 
 

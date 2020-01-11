@@ -3308,10 +3308,10 @@ namespace mse {
 			class Tgnii_basic_string_xscope_ss_iterator_type;
 
 			template<typename _TBasicString>
-			class Tgnii_basic_string_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_basic_string<_TBasicString> > > >
+			class Tgnii_basic_string_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<_TBasicString> > >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<mse::us::impl::gnii_basic_string<_TBasicString> > > > base_class;
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeRAConstIterator<mse::TXScopeItemFixedConstPointer<_TBasicString> > > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_ss_const_iterator_type, base_class);
@@ -3322,7 +3322,7 @@ namespace mse {
 				xscope_structure_lock_guard<>, which can be converted to the needed TXScopeItemFixedConstPointer<> with an
 				explicit intermediary conversion (to a TXScopeItemFixedPointer<>). */
 				Tgnii_basic_string_xscope_ss_const_iterator_type(const Tgnii_basic_string_xscope_cslsstrong_iterator_type<_TBasicString>& src)
-					: base_class(mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_TBasicString> >(src.target_container_ptr()), src.position()) {}
+					: base_class(mse::TXScopeItemFixedPointer<_TBasicString>(src.target_container_ptr()), src.position()) {}
 
 				//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 				/* Normally we would just use the macro for inheriting assignment operators, but here we need to exclude any
@@ -3365,10 +3365,10 @@ namespace mse {
 				friend class Tgnii_basic_string_xscope_ss_iterator_type;
 			};
 			template<typename _TBasicString>
-			class Tgnii_basic_string_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_TBasicString> > > >
+			class Tgnii_basic_string_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<_TBasicString> > >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<mse::us::impl::gnii_basic_string<_TBasicString> > > > base_class;
+				typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeRAIterator<mse::TXScopeItemFixedPointer<_TBasicString> > > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tgnii_basic_string_xscope_ss_iterator_type, base_class);
@@ -6008,7 +6008,7 @@ namespace mse {
 					base_class::push_back(std::forward<decltype(_X)>(_X));
 					/*m_debug_size = size();*/
 
-					assert((original_size + 1) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size + 1) == msev_size_t((*this).size()));
 					m_mmitset.shift_inclusive_range(original_size, original_size, 1); /*shift the end markers*/
 					auto new_capacity = msev_size_t((*this).capacity());
 					bool realloc_occured = (new_capacity != original_capacity);
@@ -6029,7 +6029,7 @@ namespace mse {
 					base_class::push_back(_X);
 					/*m_debug_size = size();*/
 
-					assert((original_size + 1) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size + 1) == msev_size_t((*this).size()));
 					m_mmitset.shift_inclusive_range(original_size, original_size, 1); /*shift the end markers*/
 					auto new_capacity = msev_size_t((*this).capacity());
 					bool realloc_occured = (new_capacity != original_capacity);
@@ -6051,7 +6051,7 @@ namespace mse {
 					base_class::pop_back();
 					/*m_debug_size = size();*/
 
-					assert((original_size - 1) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size - 1) == msev_size_t((*this).size()));
 					m_mmitset.invalidate_inclusive_range(msev_size_t(original_size - 1), msev_size_t(original_size - 1));
 					m_mmitset.shift_inclusive_range(original_size, original_size, -1); /*shift the end markers*/
 					auto new_capacity = msev_size_t((*this).capacity());
@@ -6167,7 +6167,7 @@ namespace mse {
 					typename base_class::iterator retval = base_class::insert(_P, _X);
 					/*m_debug_size = size();*/
 
-					assert((original_size + 1) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size + 1) == msev_size_t((*this).size()));
 					assert(di == std::distance(base_class::begin(), retval));
 					m_mmitset.shift_inclusive_range(d, original_size, 1);
 					auto new_capacity = msev_size_t((*this).capacity());
@@ -6198,7 +6198,7 @@ namespace mse {
 					typename base_class::iterator retval = base_class::insert(_P, msev_as_a_size_t(_M), _X);
 					/*m_debug_size = size();*/
 
-					assert((original_size + _M) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size + _M) == msev_size_t((*this).size()));
 					assert(di == std::distance(base_class::begin(), retval));
 					m_mmitset.shift_inclusive_range(d, original_size, msev_int(_M));
 					auto new_capacity = msev_size_t((*this).capacity());
@@ -6232,7 +6232,7 @@ namespace mse {
 					auto retval = base_class::insert(_Where, _First, _Last);
 					/*m_debug_size = size();*/
 
-					assert((original_size + _M) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size + _M) == msev_size_t((*this).size()));
 					assert(di == std::distance(base_class::begin(), retval));
 					m_mmitset.shift_inclusive_range(d, original_size, _M);
 					auto new_capacity = msev_size_t((*this).capacity());
@@ -6262,7 +6262,7 @@ namespace mse {
 				base_class::insert(_P, _M, _X);
 				/*m_debug_size = size();*/
 
-				assert((original_size + _M) == msev_size_t((*this).size()));
+				assert(msev_size_t(original_size + _M) == msev_size_t((*this).size()));
 				/*assert(di == std::distance(base_class::begin(), retval));*/
 				m_mmitset.shift_inclusive_range(d, original_size, _M);
 				auto new_capacity = msev_size_t((*this).capacity());
@@ -6290,7 +6290,7 @@ namespace mse {
 				base_class::insert(_Where, _First, _Last);
 				/*m_debug_size = size();*/
 
-				assert((original_size + _M) == msev_size_t((*this).size()));
+				assert(msev_size_t(original_size + _M) == msev_size_t((*this).size()));
 				/*assert(di == std::distance(base_class::begin(), retval));*/
 				m_mmitset.shift_inclusive_range(d, original_size, _M);
 				auto new_capacity = msev_size_t((*this).capacity());
@@ -6320,7 +6320,7 @@ namespace mse {
 					typename base_class::iterator retval = base_class::insert(_P, _X);
 					/*m_debug_size = size();*/
 
-					assert((original_size + _X.length()) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size + _X.length()) == msev_size_t((*this).size()));
 					assert(di == std::distance(base_class::begin(), retval));
 					m_mmitset.shift_inclusive_range(d, original_size, msev_int(_X.length()));
 					auto new_capacity = msev_size_t((*this).capacity());
@@ -6347,7 +6347,7 @@ namespace mse {
 					base_class::emplace_back(std::forward<_Valty>(_Val)...);
 					/*m_debug_size = size();*/
 
-					assert((original_size + 1) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size + 1) == msev_size_t((*this).size()));
 					m_mmitset.shift_inclusive_range(original_size, original_size, 1); /*shift the end markers*/
 					auto new_capacity = msev_size_t((*this).capacity());
 					bool realloc_occured = (new_capacity != original_capacity);
@@ -6388,7 +6388,7 @@ namespace mse {
 					auto retval = base_class::emplace(_Where, std::forward<_Valty>(_Val)...);
 					/*m_debug_size = size();*/
 
-					assert((original_size + 1) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size + 1) == msev_size_t((*this).size()));
 					assert(di == std::distance(base_class::begin(), retval));
 					m_mmitset.shift_inclusive_range(d, original_size, 1);
 					auto new_capacity = msev_size_t((*this).capacity());
@@ -6418,7 +6418,7 @@ namespace mse {
 					typename base_class::iterator retval = base_class::erase(_P);
 					/*m_debug_size = size();*/
 
-					assert((original_size - 1) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size - 1) == msev_size_t((*this).size()));
 					assert(di == std::distance(base_class::begin(), retval));
 					{
 						m_mmitset.invalidate_inclusive_range(d, d);
@@ -6454,7 +6454,7 @@ namespace mse {
 					typename base_class::iterator retval = base_class::erase(_F, _L);
 					/*m_debug_size = size();*/
 
-					assert((original_size - _M) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size - _M) == msev_size_t((*this).size()));
 					assert(di == std::distance(base_class::begin(), retval));
 					{
 						if (1 <= _M) {
@@ -6532,7 +6532,7 @@ namespace mse {
 				/*auto retval = */base_class::insert(_Where, _Ilist);
 				/*m_debug_size = size();*/
 
-				assert((original_size + _M) == msev_size_t((*this).size()));
+				assert(msev_size_t(original_size + _M) == msev_size_t((*this).size()));
 				/*assert(di == std::distance(base_class::begin(), retval));*/
 				m_mmitset.shift_inclusive_range(d, original_size, _M);
 				auto new_capacity = msev_size_t((*this).capacity());
@@ -6562,7 +6562,7 @@ namespace mse {
 					auto retval = base_class::insert(_Where, _Ilist);
 					/*m_debug_size = size();*/
 
-					assert((original_size + _M) == msev_size_t((*this).size()));
+					assert(msev_size_t(original_size + _M) == msev_size_t((*this).size()));
 					assert(di == std::distance(base_class::begin(), retval));
 					m_mmitset.shift_inclusive_range(d, original_size, msev_int(_M));
 					auto new_capacity = msev_size_t((*this).capacity());

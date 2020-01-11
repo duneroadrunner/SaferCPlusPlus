@@ -54,11 +54,18 @@
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma push_macro("_NOEXCEPT")
+#pragma push_macro("MSE_THROW")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifndef _NOEXCEPT
 #define _NOEXCEPT
 #endif /*_NOEXCEPT*/
+
+#ifdef MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
+#else // MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) throw(x)
+#endif // MSE_CUSTOM_THROW_DEFINITION
 
 
 namespace mse {
@@ -241,6 +248,40 @@ namespace mse {
 				private:
 					mutable CNoOpCopyAtomicInt m_atomic_counter = 0;
 				};
+
+				/* template specializations */
+
+				template<>
+				class TCheckedThreadSafeObj<int> : public TCheckedThreadSafeObj<mse::TInt<int> > {
+					typedef TCheckedThreadSafeObj<mse::TInt<int> > base_class;
+					MSE_USING(TCheckedThreadSafeObj, base_class);
+				};
+				template<>
+				class TCheckedThreadSafeObj<const int> : public TCheckedThreadSafeObj<const mse::TInt<int> > {
+					typedef TCheckedThreadSafeObj<const mse::TInt<int> > base_class;
+					MSE_USING(TCheckedThreadSafeObj, base_class);
+				};
+				template<>
+				class TCheckedThreadSafePointer<int> : public TCheckedThreadSafePointer<mse::TInt<int> > {
+					typedef TCheckedThreadSafePointer<mse::TInt<int> > base_class;
+					MSE_USING(TCheckedThreadSafePointer, base_class);
+				};
+				template<>
+				class TCheckedThreadSafePointer<const int> : public TCheckedThreadSafePointer<const mse::TInt<int> > {
+					typedef TCheckedThreadSafePointer<const mse::TInt<int> > base_class;
+					MSE_USING(TCheckedThreadSafePointer, base_class);
+				};
+				template<>
+				class TCheckedThreadSafeConstPointer<int> : public TCheckedThreadSafeConstPointer<mse::TInt<int> > {
+					typedef TCheckedThreadSafeConstPointer<mse::TInt<int> > base_class;
+					MSE_USING(TCheckedThreadSafeConstPointer, base_class);
+				};
+				template<>
+				class TCheckedThreadSafeConstPointer<const int> : public TCheckedThreadSafeConstPointer<const mse::TInt<int> > {
+					typedef TCheckedThreadSafeConstPointer<const mse::TInt<int> > base_class;
+					MSE_USING(TCheckedThreadSafeConstPointer, base_class);
+				};
+
 #endif // !MSE_CHECKED_THREAD_SAFE_DO_NOT_USE_GNORAD
 			}
 		}
@@ -256,9 +297,9 @@ namespace mse {
 		template<typename _Ty> using TStaticImmutableFixedConstPointer = const _Ty* /*const*/;
 		template<typename _Ty> using TStaticImmutableFixedPointer = TStaticImmutableFixedConstPointer<_Ty>;
 		namespace impl {
-			template<typename _TROy> using TStaticImmutableObjBase = _TROy;
+			template<typename _TROy> using TStaticImmutableObjBase = const _TROy;
 		}
-		template<typename _TROy> using TStaticImmutableObj = _TROy;
+		template<typename _TROy> using TStaticImmutableObj = const _TROy;
 
 		template<typename _Ty> auto static_fptr_to(_Ty&& _X) { return std::addressof(_X); }
 		template<typename _Ty> auto static_fptr_to(const _Ty& _X) { return std::addressof(_X); }
@@ -268,8 +309,8 @@ namespace mse {
 #if defined(MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED)
 		
 		namespace impl {
-			template<typename _TROz> using TStaticImmutableObjBase = mse::rsv::impl::cts::TCheckedThreadSafeObj<_TROz>;
-			template<typename _Ty> using TStaticImmutableConstPointerBase = mse::rsv::impl::cts::TCheckedThreadSafeConstPointer<_Ty>;
+			template<typename _TROz> using TStaticImmutableObjBase = mse::rsv::impl::cts::TCheckedThreadSafeObj<const _TROz>;
+			template<typename _Ty> using TStaticImmutableConstPointerBase = mse::rsv::impl::cts::TCheckedThreadSafeConstPointer<const _Ty>;
 		}
 
 #else // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
@@ -699,6 +740,7 @@ namespace mse {
 }
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
 #pragma pop_macro("_NOEXCEPT")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
