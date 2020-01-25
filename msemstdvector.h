@@ -300,7 +300,7 @@ namespace mse {
 			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
 			vector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MV>(_First, _Last, _Al)) {}
 
-			virtual ~vector() {
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~vector() {
 				msevector().note_parent_destruction();
 			}
 

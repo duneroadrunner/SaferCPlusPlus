@@ -2990,7 +2990,7 @@ namespace mse {
 				template<typename _Ty2>
 				TAccessControlledPointerBase(const TAccessControlledPointerBase<_Ty2, _TAccessMutex>& src) : m_obj_ptr(src.m_obj_ptr), m_mutex_ptr(src.m_mutex_ptr), m_write_lock(*(src.m_mutex_ptr)) {}
 
-				virtual ~TAccessControlledPointerBase() {
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAccessControlledPointerBase() {
 					valid_if_TAccessMutex_is_supported<_TAccessMutex>();
 				}
 
@@ -3138,7 +3138,7 @@ namespace mse {
 				template<typename _Ty2>
 				TAccessControlledConstPointerBase(const TAccessControlledConstPointerBase<_Ty2, _TAccessMutex>& src) : m_obj_ptr(src.m_obj_ptr), m_mutex_ptr(src.m_mutex_ptr), m_read_lock(*(src.m_mutex_ptr)) {}
 
-				virtual ~TAccessControlledConstPointerBase() {
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAccessControlledConstPointerBase() {
 					valid_if_TAccessMutex_is_supported<_TAccessMutex>();
 				}
 
@@ -3282,7 +3282,7 @@ namespace mse {
 				template<typename _Ty2>
 				TAccessControlledExclusivePointerBase(TAccessControlledExclusivePointerBase<_Ty2, _TAccessMutex>&& src) : m_obj_ptr(src.m_obj_ptr), m_exclusive_write_lock(std::forward<decltype(src)>(src).m_exclusive_write_lock) {}
 
-				virtual ~TAccessControlledExclusivePointerBase() {
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAccessControlledExclusivePointerBase() {
 					valid_if_TAccessMutex_is_supported<_TAccessMutex>();
 				}
 
@@ -3422,27 +3422,13 @@ namespace mse {
 				typedef _Ty object_type;
 				typedef _TAccessMutex access_mutex_type;
 
-				TAccessControlledObjBase(const TAccessControlledObjBase& src) : m_access_right_to_source_parameter_holder(typename CAccessRightToSourceParameterHolder::copy_construction_t(), src)
-					, m_obj(src.m_obj) {
-					/* In order to copy an access controlled object, we must have read access rights to the contained
-					object. The m_access_right_to_source_parameter_holder member variable will obtain the required
-					access rights in its constructor so that we can safely access the contained object. Here we're
-					releasing the access rights after the contained object has finished being copy constructed. */
-					m_access_right_to_source_parameter_holder.release_access_right(typename CAccessRightToSourceParameterHolder::copy_construction_t());
-				}
-				TAccessControlledObjBase(TAccessControlledObjBase&& src) : m_access_right_to_source_parameter_holder(typename CAccessRightToSourceParameterHolder::move_construction_t(), src)
-					, m_obj(std::forward<decltype(src)>(src).m_obj) {
-					/* In order to move an access controlled object, we must have write access rights to the contained
-					object. The m_access_right_to_source_parameter_holder member variable will obtain the required
-					access rights in its constructor so that we can safely access the contained object. Here we're
-					releasing the access rights after the contained object has finished being move constructed. */
-					m_access_right_to_source_parameter_holder.release_access_right(typename CAccessRightToSourceParameterHolder::move_construction_t());
-				}
+				TAccessControlledObjBase(const TAccessControlledObjBase& src) : m_obj(CReadLockedSrcRefHolder(src).ref().m_obj) {}
+				TAccessControlledObjBase(TAccessControlledObjBase&& src) : m_obj(CWriteLockedSrc(std::forward<decltype(src)>(src)).ref().m_obj) {}
 
 				template <class... Args>
 				TAccessControlledObjBase(Args&&... args) : m_obj(constructor_helper1(std::forward<Args>(args)...)) {}
 
-				virtual ~TAccessControlledObjBase() {
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAccessControlledObjBase() {
 					MSE_TRY {
 						m_mutex1.nonrecursive_lock();
 						m_mutex1.nonrecursive_unlock();
@@ -3663,51 +3649,32 @@ namespace mse {
 
 				typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
 
-				/* The purpose of the CAccessRightToSourceParameterHolder class is to obtain (and hold) the required write or read
-				access to the source object as the first operation in a move or copy construction. */
-				class CAccessRightToSourceParameterHolder {
+				/* The purpose of the CReadLockedSrcRefHolder class is to obtain (and hold) read
+				access to the source object. Used in the copy constructor. */
+				typedef std::shared_lock<_TWrappedAccessMutex> read_lock_t;
+				class CReadLockedSrcRefHolder : private read_lock_t {
 				public:
-					struct move_construction_t {};
-					struct copy_construction_t {};
-					typedef std::unique_lock<_TWrappedAccessMutex> write_lock_t;
-					typedef std::shared_lock<_TWrappedAccessMutex> read_lock_t;
-					CAccessRightToSourceParameterHolder() {}
-#ifdef MSE_HAS_CXX17
-					CAccessRightToSourceParameterHolder(move_construction_t, TAccessControlledObjBase& src) {
-						m_lock_holder_variant.template emplace<write_lock_t>(write_lock_t(src.m_mutex1));
+					CReadLockedSrcRefHolder(const TAccessControlledObjBase& src) : read_lock_t(src.m_mutex1), m_ptr(&src) {}
+					const TAccessControlledObjBase& ref() const {
+						return *m_ptr;
 					}
-					CAccessRightToSourceParameterHolder(copy_construction_t, const TAccessControlledObjBase& src) {
-						m_lock_holder_variant.template emplace<read_lock_t>(read_lock_t(src.m_mutex1));
+				private:
+					const TAccessControlledObjBase* m_ptr = nullptr;
+				};
+				/* The purpose of the CWriteLockedSrc class is to obtain (and hold) write
+				access to a source object about to be moved from. Used in the move constructor. */
+				typedef std::unique_lock<_TWrappedAccessMutex> write_lock_t;
+				class CWriteLockedSrc : private write_lock_t {
+				public:
+					CWriteLockedSrc(TAccessControlledObjBase&& src) : write_lock_t(src.m_mutex1), m_ref(std::forward<decltype(src)>(src)) {}
+					auto&& ref() const {
+						return m_ref;
 					}
-					void release_access_right(move_construction_t) {
-						m_lock_holder_variant.template emplace<bool>(bool(false));
-					}
-					void release_access_right(copy_construction_t) {
-						m_lock_holder_variant.template emplace<bool>(bool(false));
-					}
-					std::variant<write_lock_t, read_lock_t, bool> m_lock_holder_variant = bool(false);
-#else // MSE_HAS_CXX17
-					typedef TAccessControlledPointer<_Ty, _TAccessMutex> write_ptr_t;
-					typedef TAccessControlledConstPointer<_Ty, _TAccessMutex> read_ptr_t;
-					CAccessRightToSourceParameterHolder(move_construction_t, TAccessControlledObjBase& src) {
-						m_write_shptr = std::make_shared<write_ptr_t>(src.pointer());
-					}
-					CAccessRightToSourceParameterHolder(copy_construction_t, const TAccessControlledObjBase& src) {
-						m_read_shptr = std::make_shared<read_ptr_t>(src.const_pointer());
-					}
-					void release_access_right(move_construction_t) {
-						m_write_shptr.reset();
-					}
-					void release_access_right(copy_construction_t) {
-						m_read_shptr.reset();
-					}
-					/* This is suboptimal, but concise, exception safe, movable and copyable. */
-					std::shared_ptr<write_ptr_t> m_write_shptr;
-					std::shared_ptr<read_ptr_t> m_read_shptr;
-#endif // MSE_HAS_CXX17
+				private:
+					TAccessControlledObjBase&& m_ref;
 				};
 
-				CAccessRightToSourceParameterHolder m_access_right_to_source_parameter_holder; /* must be constructed before m_obj */
+				//CAccessRightToSourceParameterHolder m_access_right_to_source_parameter_holder; /* must be constructed before m_obj */
 				_Ty m_obj;
 
 				mutable _TWrappedAccessMutex m_mutex1;
@@ -3849,7 +3816,7 @@ namespace mse {
 
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TAccessControlledObj, base_class);
 
-		virtual ~TAccessControlledObj() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAccessControlledObj() {
 			mse::impl::T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
 		}
 

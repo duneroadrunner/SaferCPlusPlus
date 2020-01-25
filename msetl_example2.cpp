@@ -1008,13 +1008,13 @@ void msetl_example2() {
 		auto comp_res1 = str2.compare(str1);
 		auto mtnii_str2 = mtnii_str1 + mtnii_str1;
 		mtnii_str2.replace(1, 2, mtnii_str1);
-		mtnii_str2.compare(mtnii_str1);
+		auto comp_res2 = mtnii_str2.compare(mtnii_str1);
 		auto msestr2 = msestr1 + msestr1;
 		msestr2.replace(1, 2, msestr1);
-		msestr2.compare(msestr1);
+		auto comp_res3 = msestr2.compare(msestr1);
 		auto mstdstr2 = mstdstr1 + mstdstr1;
 		mstdstr2.replace(1, 2, mstdstr1);
-		mstdstr2.compare(mstdstr1);
+		auto comp_res4 = mstdstr2.compare(mstdstr1);
 
 		std::string str3 = "some text";
 		mse::TXScopeObj<mse::mtnii_string> xscp_mtnii_str3 = "some text";

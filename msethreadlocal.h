@@ -147,7 +147,7 @@ namespace mse {
 		class TThreadLocalPointer : public TThreadLocalPointerBase<_Ty>, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
 			typedef Tthread_local_obj_base_ptr<_Ty> scope_obj_base_ptr_t;
-			virtual ~TThreadLocalPointer() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalPointer() {}
 		private:
 			TThreadLocalPointer() : TThreadLocalPointerBase<_Ty>() {}
 			TThreadLocalPointer(scope_obj_base_ptr_t ptr) : TThreadLocalPointerBase<_Ty>(ptr) {}
@@ -187,7 +187,7 @@ namespace mse {
 		class TThreadLocalConstPointer : public TThreadLocalConstPointerBase<const _Ty>, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
 			typedef Tthread_local_obj_base_const_ptr<_Ty> scope_obj_base_const_ptr_t;
-			virtual ~TThreadLocalConstPointer() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalConstPointer() {}
 		private:
 			TThreadLocalConstPointer() : TThreadLocalConstPointerBase<const _Ty>() {}
 			TThreadLocalConstPointer(scope_obj_base_const_ptr_t ptr) : TThreadLocalConstPointerBase<const _Ty>(ptr) {}
@@ -227,7 +227,7 @@ namespace mse {
 		template<typename _Ty>
 		class TThreadLocalNotNullPointer : public TThreadLocalPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 		public:
-			virtual ~TThreadLocalNotNullPointer() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalNotNullPointer() {}
 		private:
 			TThreadLocalNotNullPointer(typename TThreadLocalPointer<_Ty>::scope_obj_base_ptr_t src_cref) : TThreadLocalPointer<_Ty>(src_cref) {}
 			TThreadLocalNotNullPointer(TThreadLocalObj<_Ty>* ptr) : TThreadLocalPointer<_Ty>(ptr) {}
@@ -251,7 +251,7 @@ namespace mse {
 		template<typename _Ty>
 		class TThreadLocalNotNullConstPointer : public TThreadLocalConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 		public:
-			virtual ~TThreadLocalNotNullConstPointer() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalNotNullConstPointer() {}
 		private:
 			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullConstPointer<_Ty>& src_cref) : TThreadLocalConstPointer<_Ty>(src_cref) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -276,7 +276,7 @@ namespace mse {
 			TThreadLocalFixedPointer(const TThreadLocalFixedPointer& src_cref) : TThreadLocalNotNullPointer<_Ty>(src_cref) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 			TThreadLocalFixedPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : TThreadLocalNotNullPointer<_Ty>(src_cref) {}
-			virtual ~TThreadLocalFixedPointer() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedPointer() {}
 			operator bool() const { return (*static_cast<const TThreadLocalNotNullPointer<_Ty>*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 			explicit operator _Ty*() const { return TThreadLocalNotNullPointer<_Ty>::operator _Ty*(); }
@@ -305,7 +305,7 @@ namespace mse {
 			TThreadLocalFixedConstPointer(const TThreadLocalFixedPointer<_Ty>& src_cref) : TThreadLocalNotNullConstPointer<_Ty>(src_cref) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 			TThreadLocalFixedConstPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : TThreadLocalNotNullConstPointer<_Ty>(src_cref) {}
-			virtual ~TThreadLocalFixedConstPointer() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const TThreadLocalNotNullConstPointer<_Ty>*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 			explicit operator const _Ty*() const { return TThreadLocalNotNullConstPointer<_Ty>::operator const _Ty*(); }
@@ -330,7 +330,7 @@ namespace mse {
 #endif // !MSE_THREADLOCAL_DISABLE_MOVE_RESTRICTIONS
 
 			MSE_THREADLOCAL_USING(TThreadLocalObj, TThreadLocalObjBase<_TROy>);
-			virtual ~TThreadLocalObj() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalObj() {}
 
 			TThreadLocalObj& operator=(TThreadLocalObj&& _X) {
 				valid_if_not_rvalue_reference_of_given_type_msethreadlocal<TThreadLocalObj, decltype(_X)>(_X);

@@ -344,7 +344,7 @@ namespace mse {
 			explicit basic_string(const _TStringSection& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
 #endif /* MSE_HAS_CXX17 */
 
-			virtual ~basic_string() {
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~basic_string() {
 				msebasic_string().note_parent_destruction();
 			}
 

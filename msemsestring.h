@@ -1434,7 +1434,7 @@ namespace mse {
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		TStringSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
 
-		virtual ~TStringSection() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStringSection() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
@@ -1773,7 +1773,7 @@ namespace mse {
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
 		TStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
 
-		virtual ~TStringConstSection() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStringConstSection() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
@@ -2454,7 +2454,7 @@ namespace mse {
 		template <typename _TRALoneParam>
 		TXScopeNRPStringSection(const _TRALoneParam& param) : base_class(param) {}
 
-		virtual ~TXScopeNRPStringSection() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeNRPStringSection() {
 			/* Note: Use TXScopeNRPStringConstSection instead if referencing a string literal. */
 			valid_if_TRAIterator_is_not_a_native_pointer();
 			mse::impl::T_valid_if_not_an_nrp_unsupported_iterator_msemsestring<_TRAIterator>();
@@ -2515,7 +2515,7 @@ namespace mse {
 		TNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
 		TNRPStringSection(const _TRALoneParam& param) : base_class(param) {}
-		virtual ~TNRPStringSection() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNRPStringSection() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 			/* Note: Use TNRPStringConstSection instead if referencing a string literal. */
 			valid_if_TRAIterator_is_not_a_native_pointer();
@@ -2596,7 +2596,7 @@ namespace mse {
 			}
 		}
 
-		virtual ~TXScopeNRPStringConstSection() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeNRPStringConstSection() {
 			mse::impl::T_valid_if_not_an_nrp_unsupported_iterator_msemsestring<_TRAIterator>();
 		}
 
@@ -2702,7 +2702,7 @@ namespace mse {
 			}
 		}
 
-		virtual ~TNRPStringConstSection() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNRPStringConstSection() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 			mse::impl::T_valid_if_not_an_nrp_unsupported_iterator_msemsestring<_TRAIterator>();
 		}
@@ -3426,7 +3426,7 @@ namespace mse {
 			run-time overhead. gnii_basic_string<> is a data type that is eligible to be shared between asynchronous threads. */
 			/* Default template parameter values are specified in the forward declaration. */
 			template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/, template<typename> class _TTXScopeConstIterator/* = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type*/>
-			class gnii_basic_string : public us::impl::ContiguousSequenceContainerTagBase {
+			class gnii_basic_string : private mse::impl::TOpaqueWrapper<std::basic_string<_Ty, _Traits, _A> >, public us::impl::ContiguousSequenceContainerTagBase {
 			private:
 		#ifdef MSE_HAS_CXX17
 				/* Helper classes for converting from string_views. */
@@ -3442,10 +3442,11 @@ namespace mse {
 			public:
 				typedef _TStateMutex state_mutex_type;
 
+				/* We (privately) inherit the underlying data type rather than make it a data member to ensure it's the "first" component in the structure.*/
+				typedef mse::impl::TOpaqueWrapper<std::basic_string<_Ty, _Traits, _A> > base_class;
 				typedef std::basic_string<_Ty, _Traits, _A> std_basic_string;
 				typedef std_basic_string _MBS;
 				typedef gnii_basic_string _Myt;
-				typedef std_basic_string base_class;
 
 				typedef typename std_basic_string::allocator_type allocator_type;
 				typedef typename std_basic_string::value_type value_type;
@@ -3465,37 +3466,44 @@ namespace mse {
 				typedef typename std_basic_string::reverse_iterator reverse_iterator;
 				typedef typename std_basic_string::const_reverse_iterator const_reverse_iterator;
 
-				explicit gnii_basic_string(const _A& _Al = _A()) : m_basic_string(_Al) { /*m_debug_size = size();*/ }
-				//explicit gnii_basic_string(size_type _N) : m_basic_string(msev_as_a_size_t(_N)) { /*m_debug_size = size();*/ }
+			private:
+				const _MBS& contained_basic_string() const& { return (*this).value(); }
+				const _MBS& contained_basic_string() const&& { return (*this).value(); }
+				_MBS& contained_basic_string() & { return (*this).value(); }
+				auto&& contained_basic_string() && { return std::forward<decltype(*this)>(*this).value(); }
+
+			public:
+				explicit gnii_basic_string(const _A& _Al = _A()) : base_class(_Al) { /*m_debug_size = size();*/ }
+				//explicit gnii_basic_string(size_type _N) : base_class(msev_as_a_size_t(_N)) { /*m_debug_size = size();*/ }
 		#ifdef MSE_HAS_CXX17
 				template<class _Alloc2 = _A, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc2>::value, int> = 0>
 		#endif /* MSE_HAS_CXX17 */
-				explicit gnii_basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_basic_string(msev_as_a_size_t(_N), _V, _Al) { /*m_debug_size = size();*/ }
-				gnii_basic_string(std_basic_string&& _X) : m_basic_string(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
-				gnii_basic_string(const std_basic_string& _X) : m_basic_string(_X) { /*m_debug_size = size();*/ }
-				gnii_basic_string(_Myt&& _X) : m_basic_string(std::forward<decltype(_X)>(_X).m_basic_string) { /*m_debug_size = size();*/ }
-				gnii_basic_string(const _Myt& _X) : m_basic_string(_X.contained_basic_string()) { /*m_debug_size = size();*/ }
+				explicit gnii_basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A()) : base_class(msev_as_a_size_t(_N), _V, _Al) { /*m_debug_size = size();*/ }
+				gnii_basic_string(std_basic_string&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
+				gnii_basic_string(const std_basic_string& _X) : base_class(_X) { /*m_debug_size = size();*/ }
+				gnii_basic_string(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_basic_string()) { /*m_debug_size = size();*/ }
+				gnii_basic_string(const _Myt& _X) : base_class(_X.contained_basic_string()) { /*m_debug_size = size();*/ }
 				typedef typename std_basic_string::const_iterator _It;
 				/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
-				gnii_basic_string(_It _F, _It _L, const _A& _Al = _A()) : m_basic_string(_F, _L, _Al) { /*m_debug_size = size();*/ }
-				gnii_basic_string(const _Ty*  _F, const _Ty*  _L, const _A& _Al = _A()) : m_basic_string(_F, _L, _Al) { /*m_debug_size = size();*/ }
+				gnii_basic_string(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
+				gnii_basic_string(const _Ty*  _F, const _Ty*  _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
 				template<class _Iter
 					//, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type
 					, class = mse::impl::_mse_RequireInputIter<_Iter> >
-					gnii_basic_string(const _Iter& _First, const _Iter& _Last) : m_basic_string(_First, _Last) { /*m_debug_size = size();*/ }
+					gnii_basic_string(const _Iter& _First, const _Iter& _Last) : base_class(_First, _Last) { /*m_debug_size = size();*/ }
 				template<class _Iter
 					//, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type
 					, class = mse::impl::_mse_RequireInputIter<_Iter> >
-					//gnii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : m_basic_string(_First, _Last, _Al) { /*m_debug_size = size();*/ }
-					gnii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : m_basic_string(_First, _Last, _Al) { /*m_debug_size = size();*/ }
-				gnii_basic_string(const _Ty* const _Ptr) : m_basic_string(_Ptr) { /*m_debug_size = size();*/ }
-				gnii_basic_string(const _Ty* const _Ptr, const size_t _Count) : m_basic_string(_Ptr, mse::msev_as_a_size_t(_Count)) { /*m_debug_size = size();*/ }
-				gnii_basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_basic_string(_X.contained_basic_string(), _Roff, npos, _Al) { /*m_debug_size = size();*/ }
-				gnii_basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_basic_string(_X.contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
+					//gnii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+					gnii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+				gnii_basic_string(const _Ty* const _Ptr) : base_class(_Ptr) { /*m_debug_size = size();*/ }
+				gnii_basic_string(const _Ty* const _Ptr, const size_t _Count) : base_class(_Ptr, mse::msev_as_a_size_t(_Count)) { /*m_debug_size = size();*/ }
+				gnii_basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : base_class(_X.contained_basic_string(), _Roff, npos, _Al) { /*m_debug_size = size();*/ }
+				gnii_basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(_X.contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
 
-				gnii_basic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr) : m_basic_string(xs_ptr->contained_basic_string()) { /*m_debug_size = size();*/ }
-				gnii_basic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const _A& _Al = _A()) : m_basic_string(xs_ptr->contained_basic_string(), _Roff, npos, _Al) { /*m_debug_size = size();*/ }
-				gnii_basic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_basic_string(xs_ptr->contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
+				gnii_basic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr) : base_class(xs_ptr->contained_basic_string()) { /*m_debug_size = size();*/ }
+				gnii_basic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const _A& _Al = _A()) : base_class(xs_ptr->contained_basic_string(), _Roff, npos, _Al) { /*m_debug_size = size();*/ }
+				gnii_basic_string(const mse::TXScopeItemFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(xs_ptr->contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
 
 		#ifdef MSE_HAS_CXX17
 				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
@@ -3503,30 +3511,30 @@ namespace mse {
 
 				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
 				gnii_basic_string(const _TParam1& _Right, const size_type _Roff, const size_type _Count, const _A& _Al = _A())
-				: m_basic_string(_Al) {
+				: base_class(_Al) {
 					assign(_Right, _Roff, _Count);
 				}
 		#else /* MSE_HAS_CXX17 */
 				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
-				explicit gnii_basic_string(const _TStringSection& _X) : m_basic_string(_X.cbegin(), _X.cend()) { /*m_debug_size = size();*/ }
+				explicit gnii_basic_string(const _TStringSection& _X) : base_class(_X.cbegin(), _X.cend()) { /*m_debug_size = size();*/ }
 		#endif /* MSE_HAS_CXX17 */
 
 				/*
 				_Myt& operator=(const std_basic_string& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.operator =(_X);
+					contained_basic_string().operator =(_X);
 					//m_debug_size = size();
 					return (*this);
 				}
 				*/
 				_Myt& operator=(_Myt&& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.operator=(std::forward<decltype(_X)>(_X).contained_basic_string());
+					contained_basic_string().operator=(std::forward<decltype(_X)>(_X).contained_basic_string());
 					return (*this);
 				}
 				_Myt& operator=(const _Myt& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.operator=(_X.contained_basic_string());
+					contained_basic_string().operator=(_X.contained_basic_string());
 					return (*this);
 				}
 
@@ -3542,19 +3550,19 @@ namespace mse {
 				void reserve(size_type _Count)
 				{	// determine new minimum length of allocated storage
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.reserve(msev_as_a_size_t(_Count));
+					contained_basic_string().reserve(msev_as_a_size_t(_Count));
 				}
 				size_type capacity() const _NOEXCEPT
 				{	// return current length of allocated storage
-					return m_basic_string.capacity();
+					return contained_basic_string().capacity();
 				}
 				void shrink_to_fit() {	// reduce capacity
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.shrink_to_fit();
+					contained_basic_string().shrink_to_fit();
 				}
 				void resize(size_type _N, const _Ty& _X = _Ty()) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.resize(msev_as_a_size_t(_N), _X);
+					contained_basic_string().resize(msev_as_a_size_t(_N), _X);
 				}
 				typename std_basic_string::const_reference operator[](msev_size_t _P) const {
 					return (*this).at(msev_as_a_size_t(_P));
@@ -3564,37 +3572,37 @@ namespace mse {
 				}
 				typename std_basic_string::reference front() {	// return first element of mutable sequence
 					if (0 == (*this).size()) { MSE_THROW(gnii_basic_string_range_error("front() on empty - typename std_basic_string::reference front() - gnii_basic_string")); }
-					return m_basic_string.front();
+					return contained_basic_string().front();
 				}
 				typename std_basic_string::const_reference front() const {	// return first element of nonmutable sequence
 					if (0 == (*this).size()) { MSE_THROW(gnii_basic_string_range_error("front() on empty - typename std_basic_string::const_reference front() - gnii_basic_string")); }
-					return m_basic_string.front();
+					return contained_basic_string().front();
 				}
 				typename std_basic_string::reference back() {	// return last element of mutable sequence
 					if (0 == (*this).size()) { MSE_THROW(gnii_basic_string_range_error("back() on empty - typename std_basic_string::reference back() - gnii_basic_string")); }
-					return m_basic_string.back();
+					return contained_basic_string().back();
 				}
 				typename std_basic_string::const_reference back() const {	// return last element of nonmutable sequence
 					if (0 == (*this).size()) { MSE_THROW(gnii_basic_string_range_error("back() on empty - typename std_basic_string::const_reference back() - gnii_basic_string")); }
-					return m_basic_string.back();
+					return contained_basic_string().back();
 				}
 				void push_back(_Ty&& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.push_back(std::forward<decltype(_X)>(_X));
+					contained_basic_string().push_back(std::forward<decltype(_X)>(_X));
 				}
 				void push_back(const _Ty& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.push_back(_X);
+					contained_basic_string().push_back(_X);
 				}
 				void pop_back() {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.pop_back();
+					contained_basic_string().pop_back();
 				}
 
 
 				gnii_basic_string& assign(mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.assign(xs_ptr->m_basic_string);
+					contained_basic_string().assign(xs_ptr->contained_basic_string());
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -3604,7 +3612,7 @@ namespace mse {
 				}
 				gnii_basic_string& assign(mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr, const size_type _Roff, size_type _Count = npos) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.assign(xs_ptr->m_basic_string, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
+					contained_basic_string().assign(xs_ptr->contained_basic_string(), mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -3615,19 +3623,19 @@ namespace mse {
 
 				gnii_basic_string& assign(const _Ty * const _Ptr, const size_type _Count) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.assign(_Ptr, mse::as_a_size_t(_Count));
+					contained_basic_string().assign(_Ptr, mse::as_a_size_t(_Count));
 					//m_debug_size = size();
 					return (*this);
 				}
 				gnii_basic_string& assign(const _Ty * const _Ptr) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.assign(_Ptr);
+					contained_basic_string().assign(_Ptr);
 					//m_debug_size = size();
 					return (*this);
 				}
 				gnii_basic_string& assign(const size_type _Count, const _Ty& _Ch) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.assign(mse::as_a_size_t(_Count), _Ch);
+					contained_basic_string().assign(mse::as_a_size_t(_Count), _Ch);
 					//m_debug_size = size();
 					return (*this);
 				}
@@ -3635,7 +3643,7 @@ namespace mse {
 				gnii_basic_string& assign(const _Iter _First, const _Iter _Last) {
 					smoke_check_source_iterators(_First, _Last);
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.assign(_First, _Last);
+					contained_basic_string().assign(_First, _Last);
 					//m_debug_size = size();
 					return (*this);
 				}
@@ -3646,7 +3654,7 @@ namespace mse {
 				gnii_basic_string& assign_helper2(std::true_type, const _StringViewIsh& _Right) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.assign(_As_view);
+					contained_basic_string().assign(_As_view);
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -3674,7 +3682,7 @@ namespace mse {
 				gnii_basic_string& assign_helper2(std::true_type, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.assign(_As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
+					contained_basic_string().assign(_As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -3703,7 +3711,7 @@ namespace mse {
 				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 				gnii_basic_string& assign(const _TStringSection& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.assign(_X.cbegin(), _X.cend());
+					contained_basic_string().assign(_X.cbegin(), _X.cend());
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -3747,84 +3755,84 @@ namespace mse {
 				void emplace_back(_Valty&& ..._Val)
 				{	// insert by moving into element at end
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.emplace_back(std::forward<_Valty>(_Val)...);
+					contained_basic_string().emplace_back(std::forward<_Valty>(_Val)...);
 					/*m_debug_size = size();*/
 				}
 				void clear() {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.clear();
+					contained_basic_string().clear();
 					/*m_debug_size = size();*/
 				}
 
 				void swap(_Myt& _Other) {	// swap contents with _Other
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.swap(_Other.m_basic_string);
+					contained_basic_string().swap(_Other.contained_basic_string());
 				}
 				void swap(_MBS& _Other) {	// swap contents with _Other
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.swap(_Other);
+					contained_basic_string().swap(_Other);
 				}
 				template<typename _TStateMutex2, template<typename> class _TTXScopeConstIterator2>
 				void swap(mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex2, _TTXScopeConstIterator2>& _Other) {	// swap contents with _Other
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.swap(_Other.m_basic_string);
+					contained_basic_string().swap(_Other.contained_basic_string());
 				}
 
 				size_type length() const _NOEXCEPT
 				{	// return length of sequence
-					return m_basic_string.length();
+					return contained_basic_string().length();
 				}
 
 				size_type size() const _NOEXCEPT
 				{	// return length of sequence
-					return m_basic_string.size();
+					return contained_basic_string().size();
 				}
 
 				size_type max_size() const _NOEXCEPT
 				{	// return maximum possible length of sequence
-					return m_basic_string.max_size();
+					return contained_basic_string().max_size();
 				}
 
 				bool empty() const _NOEXCEPT
 				{	// test if sequence is empty
-					return m_basic_string.empty();
+					return contained_basic_string().empty();
 				}
 				_A get_allocator() const _NOEXCEPT
 				{	// return allocator object for values
-					return m_basic_string.get_allocator();
+					return contained_basic_string().get_allocator();
 				}
 
 				reference at(msev_size_t _Pos)
 				{	// subscript mutable sequence with checking
-					return m_basic_string.at(msev_as_a_size_t(_Pos));
+					return contained_basic_string().at(msev_as_a_size_t(_Pos));
 				}
 
 				const_reference at(msev_size_t _Pos) const
 				{	// subscript nonmutable sequence with checking
-					return m_basic_string.at(msev_as_a_size_t(_Pos));
+					return contained_basic_string().at(msev_as_a_size_t(_Pos));
 				}
 
 				gnii_basic_string(_XSTD initializer_list<typename std_basic_string::value_type> _Ilist, const _A& _Al = _A())
-					: m_basic_string(_Ilist, _Al) {	// construct from initializer_list
+					: base_class(_Ilist, _Al) {	// construct from initializer_list
 												/*m_debug_size = size();*/
 				}
 				_Myt& operator=(_XSTD initializer_list<typename std_basic_string::value_type> _Ilist) {	// assign initializer_list
-					m_basic_string.operator=(static_cast<std_basic_string>(_Ilist));
+					contained_basic_string().operator=(static_cast<std_basic_string>(_Ilist));
 					return (*this);
 				}
 				void assign(_XSTD initializer_list<typename std_basic_string::value_type> _Ilist) {	// assign initializer_list
-					m_basic_string.assign(_Ilist);
+					contained_basic_string().assign(_Ilist);
 					/*m_debug_size = size();*/
 				}
 
 				value_type *data() _NOEXCEPT
 				{	// return pointer to mutable data basic_string
-					return m_basic_string.data();
+					return contained_basic_string().data();
 				}
 
 				const value_type *data() const _NOEXCEPT
 				{	// return pointer to nonmutable data basic_string
-					return m_basic_string.data();
+					return contained_basic_string().data();
 				}
 
 				//class nbs_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
@@ -3904,7 +3912,7 @@ namespace mse {
 				}
 
 				gnii_basic_string(const ss_const_iterator_type &start, const ss_const_iterator_type &end, const _A& _Al = _A())
-					: m_basic_string(_Al) {
+					: base_class(_Al) {
 					/*m_debug_size = size();*/
 					assign(start, end);
 				}
@@ -3924,7 +3932,7 @@ namespace mse {
 					if (pos.m_owner_cptr != this) { MSE_THROW(gnii_basic_string_range_error("invalid argument - void insert_before() - gnii_basic_string")); }
 					pos.assert_valid_index();
 					msev_size_t original_pos = pos.position();
-					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->m_basic_string.cbegin() + pos.position();
+					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->contained_basic_string().cbegin() + pos.position();
 					(*this).insert(_P, _M, _X);
 					ss_iterator_type retval = ss_begin();
 					retval.advance(msev_int(original_pos));
@@ -3939,7 +3947,7 @@ namespace mse {
 					//if (start.m_owner_cptr != end.m_owner_cptr) { MSE_THROW(gnii_basic_string_range_error("invalid arguments - void insert_before(const ss_const_iterator_type &pos, const ss_const_iterator_type &start, const ss_const_iterator_type &end) - gnii_basic_string")); }
 					pos.assert_valid_index();
 					msev_size_t original_pos = pos.position();
-					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->m_basic_string.cbegin() + pos.position();
+					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->contained_basic_string().cbegin() + pos.position();
 					(*this).insert(_P, start, end);
 					ss_iterator_type retval = ss_begin();
 					retval.advance(msev_int(original_pos));
@@ -3959,7 +3967,7 @@ namespace mse {
 					if (start > end) { MSE_THROW(gnii_basic_string_range_error("invalid arguments - ss_iterator_type insert_before() - gnii_basic_string")); }
 					pos.assert_valid_index();
 					msev_size_t original_pos = pos.position();
-					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->m_basic_string.cbegin() + pos.position();
+					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->contained_basic_string().cbegin() + pos.position();
 					(*this).insert(_P, start, end);
 					ss_iterator_type retval = ss_begin();
 					retval.advance(msev_int(original_pos));
@@ -3977,7 +3985,7 @@ namespace mse {
 					if (pos.m_owner_ptr != this) { MSE_THROW(gnii_basic_string_range_error("invalid arguments - void insert_before() - gnii_basic_string")); }
 					pos.assert_valid_index();
 					msev_size_t original_pos = pos.position();
-					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->m_basic_string.cbegin() + pos.position();
+					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->contained_basic_string().cbegin() + pos.position();
 					(*this).insert(_P, _Ilist);
 					ss_iterator_type retval = ss_begin();
 					retval.advance(msev_int(original_pos));
@@ -3988,7 +3996,7 @@ namespace mse {
 					if (pos.m_owner_ptr != this) { MSE_THROW(gnii_basic_string_range_error("invalid arguments - void insert_before() - gnii_basic_string")); }
 					pos.assert_valid_index();
 					msev_size_t original_pos = pos.position();
-					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->m_basic_string.cbegin() + pos.position();
+					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->contained_basic_string().cbegin() + pos.position();
 					(*this).insert(_P, _X);
 					ss_iterator_type retval = ss_begin();
 					retval.advance(msev_int(original_pos));
@@ -4014,7 +4022,7 @@ namespace mse {
 				if (pos.m_owner_cptr != this) { MSE_THROW(gnii_basic_string_range_error("invalid arguments - void emplace() - gnii_basic_string")); }
 				pos.assert_valid_index();
 				msev_size_t original_pos = pos.position();
-				typename std_basic_string::const_iterator _P = pos.target_container_ptr()->m_basic_string.cbegin() + pos.position();
+				typename std_basic_string::const_iterator _P = pos.target_container_ptr()->contained_basic_string().cbegin() + pos.position();
 				(*this).emplace(_P, std::forward<_Valty>(_Val)...);
 				ss_iterator_type retval = ss_begin();
 				retval.advance(msev_int(original_pos));
@@ -4025,7 +4033,7 @@ namespace mse {
 				if (!pos.points_to_an_item()) { MSE_THROW(gnii_basic_string_range_error("invalid arguments - void erase() - gnii_basic_string")); }
 				auto pos_index = pos.position();
 
-				typename std_basic_string::const_iterator _P = pos.target_container_ptr()->m_basic_string.cbegin() + pos.position();
+				typename std_basic_string::const_iterator _P = pos.target_container_ptr()->contained_basic_string().cbegin() + pos.position();
 				(*this).erase(_P);
 
 				ss_iterator_type retval = (*this).ss_begin();
@@ -4054,7 +4062,7 @@ namespace mse {
 				void erase_previous_item(const ss_const_iterator_type &pos) {
 					if (pos.m_owner_cptr != this) { MSE_THROW(gnii_basic_string_range_error("invalid arguments - void erase_previous_item() - gnii_basic_string")); }
 					if (!(pos.has_previous())) { MSE_THROW(gnii_basic_string_range_error("invalid arguments - void erase_previous_item() - gnii_basic_string")); }
-					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->m_basic_string.cbegin() + pos.position();
+					typename std_basic_string::const_iterator _P = pos.target_container_ptr()->contained_basic_string().cbegin() + pos.position();
 					_P--;
 					(*this).erase(_P);
 				}
@@ -4137,7 +4145,7 @@ namespace mse {
 				static auto insert(_TBasicStringPointer1 this_ptr, size_type pos, _Ty _X) {
 					s_assert_valid_index(this_ptr, pos);
 					msev_size_t original_pos = pos;
-					typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
+					typename std_basic_string::const_iterator _P = (*this_ptr).contained_basic_string().cbegin() + difference_type(pos);
 					(*this_ptr).insert(_P, _X);
 					auto retval = mse::make_begin_iterator(this_ptr);
 					retval.advance(msev_int(original_pos));
@@ -4147,7 +4155,7 @@ namespace mse {
 				static auto insert(_TBasicStringPointer1 this_ptr, size_type pos, size_type _M, _Ty _X) {
 					s_assert_valid_index(this_ptr, pos);
 					msev_size_t original_pos = pos;
-					typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
+					typename std_basic_string::const_iterator _P = (*this_ptr).contained_basic_string().cbegin() + difference_type(pos);
 					(*this_ptr).insert(_P, _M, _X);
 					auto retval = mse::make_begin_iterator(this_ptr);
 					retval.advance(msev_int(original_pos));
@@ -4157,7 +4165,7 @@ namespace mse {
 				static auto insert(_TBasicStringPointer1 this_ptr, size_type pos, const _Iter& _First, const _Iter& _Last) {
 					s_assert_valid_index(this_ptr, pos);
 					msev_size_t original_pos = pos;
-					typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
+					typename std_basic_string::const_iterator _P = (*this_ptr).contained_basic_string().cbegin() + difference_type(pos);
 					(*this_ptr).insert(_P, _First, _Last);
 					auto retval = mse::make_begin_iterator(this_ptr);
 					retval.advance(msev_int(original_pos));
@@ -4167,7 +4175,7 @@ namespace mse {
 				static auto& insert(_TBasicStringPointer1 this_ptr, size_type pos, const _Ty* const s, size_type count) {
 					s_assert_valid_index(this_ptr, pos);
 					msev_size_t original_pos = pos;
-					typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
+					typename std_basic_string::const_iterator _P = (*this_ptr).contained_basic_string().cbegin() + difference_type(pos);
 					(*this_ptr).insert(_P, s, count);
 					auto retval = mse::make_begin_iterator(this_ptr);
 					retval.advance(msev_int(original_pos));
@@ -4177,7 +4185,7 @@ namespace mse {
 				static auto insert(_TBasicStringPointer1 this_ptr, size_type pos, _XSTD initializer_list<typename std_basic_string::value_type> _Ilist) {
 					s_assert_valid_index(this_ptr, pos);
 					msev_size_t original_pos = pos;
-					typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
+					typename std_basic_string::const_iterator _P = (*this_ptr).contained_basic_string().cbegin() + difference_type(pos);
 					(*this_ptr).insert(_P, _Ilist);
 					auto retval = mse::make_begin_iterator(this_ptr);
 					retval.advance(msev_int(original_pos));
@@ -4187,7 +4195,7 @@ namespace mse {
 				static auto& insert(_TBasicStringPointer1 this_ptr, size_type pos, const _TStringSection& _X) {
 					s_assert_valid_index(this_ptr, pos);
 					msev_size_t original_pos = pos;
-					typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
+					typename std_basic_string::const_iterator _P = (*this_ptr).contained_basic_string().cbegin() + difference_type(pos);
 					(*this_ptr).insert(_P, _X);
 					auto retval = mse::make_begin_iterator(this_ptr);
 					retval.advance(msev_int(original_pos));
@@ -4198,7 +4206,7 @@ namespace mse {
 				{	// insert by moving _Val at _Where
 					s_assert_valid_index(this_ptr, pos);
 					msev_size_t original_pos = pos;
-					typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
+					typename std_basic_string::const_iterator _P = (*this_ptr).contained_basic_string().cbegin() + difference_type(pos);
 					(*this_ptr).emplace(_P, std::forward<_Valty>(_Val)...);
 					auto retval = mse::make_begin_iterator(this_ptr);
 					retval.advance(msev_int(original_pos));
@@ -4209,7 +4217,7 @@ namespace mse {
 					s_assert_valid_index(this_ptr, pos);
 					auto pos_index = pos;
 
-					typename std_basic_string::const_iterator _P = (*this_ptr).m_basic_string.cbegin() + difference_type(pos);
+					typename std_basic_string::const_iterator _P = (*this_ptr).contained_basic_string().cbegin() + difference_type(pos);
 					(*this_ptr).erase(_P);
 
 					auto retval = mse::make_begin_iterator(this_ptr);
@@ -4221,8 +4229,8 @@ namespace mse {
 					if (start > end) { MSE_THROW(gnii_basic_string_range_error("invalid arguments - void erase() - gnii_basic_string")); }
 					auto pos_index = start;
 
-					typename std_basic_string::const_iterator _F = (*this_ptr).m_basic_string.cbegin() + difference_type(start);
-					typename std_basic_string::const_iterator _L = (*this_ptr).m_basic_string.cbegin() + difference_type(end);
+					typename std_basic_string::const_iterator _F = (*this_ptr).contained_basic_string().cbegin() + difference_type(start);
+					typename std_basic_string::const_iterator _L = (*this_ptr).contained_basic_string().cbegin() + difference_type(end);
 					(*this_ptr).erase(_F, _L);
 
 					auto retval = mse::make_begin_iterator(this_ptr);
@@ -4380,16 +4388,16 @@ namespace mse {
 
 
 				bool operator==(const _Myt& _Right) const {	// test for basic_string equality
-					return (_Right.m_basic_string == m_basic_string);
+					return (_Right.contained_basic_string() == contained_basic_string());
 				}
 				bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for basic_strings
-					return (m_basic_string < _Right.m_basic_string);
+					return (contained_basic_string() < _Right.contained_basic_string());
 				}
 
 
 				gnii_basic_string& append(mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.append(xs_ptr->m_basic_string);
+					contained_basic_string().append(xs_ptr->contained_basic_string());
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -4399,7 +4407,7 @@ namespace mse {
 				}
 				gnii_basic_string& append(mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr, const size_type _Roff, size_type _Count = npos) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.append(xs_ptr->m_basic_string, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
+					contained_basic_string().append(xs_ptr->contained_basic_string(), mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -4410,19 +4418,19 @@ namespace mse {
 
 				gnii_basic_string& append(const _Ty * const _Ptr, const size_type _Count) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.append(_Ptr, mse::as_a_size_t(_Count));
+					contained_basic_string().append(_Ptr, mse::as_a_size_t(_Count));
 					//m_debug_size = size();
 					return (*this);
 				}
 				gnii_basic_string& append(const _Ty * const _Ptr) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.append(_Ptr);
+					contained_basic_string().append(_Ptr);
 					//m_debug_size = size();
 					return (*this);
 				}
 				gnii_basic_string& append(const size_type _Count, const _Ty& _Ch) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.append(mse::as_a_size_t(_Count), _Ch);
+					contained_basic_string().append(mse::as_a_size_t(_Count), _Ch);
 					//m_debug_size = size();
 					return (*this);
 				}
@@ -4430,13 +4438,13 @@ namespace mse {
 				gnii_basic_string& append(const _Iter _First, const _Iter _Last) {
 					smoke_check_source_iterators(_First, _Last);
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.append(_First, _Last);
+					contained_basic_string().append(_First, _Last);
 					//m_debug_size = size();
 					return (*this);
 				}
 				gnii_basic_string& append(std::initializer_list<_Ty> _Ilist) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.append(_Ilist);
+					contained_basic_string().append(_Ilist);
 					return (*this);
 				}
 
@@ -4446,7 +4454,7 @@ namespace mse {
 				gnii_basic_string& append_helper2(std::true_type, const _StringViewIsh& _Right) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.append(_As_view);
+					contained_basic_string().append(_As_view);
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -4474,7 +4482,7 @@ namespace mse {
 				gnii_basic_string& append_helper2(std::true_type, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.append(_As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
+					contained_basic_string().append(_As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -4503,7 +4511,7 @@ namespace mse {
 				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 				gnii_basic_string& append(const _TStringSection& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.append(_X.cbegin(), _X.cend());
+					contained_basic_string().append(_X.cbegin(), _X.cend());
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -4540,25 +4548,25 @@ namespace mse {
 
 				gnii_basic_string& replace(const size_type _Off, const size_type _N0, mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string());
+					contained_basic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string());
 					return (*this);
 				}
 				gnii_basic_string& replace(const size_type _Off, const size_type _N0, const gnii_basic_string& _Right) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string());
+					contained_basic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string());
 					return (*this);
 				}
 
 				gnii_basic_string& replace(const size_type _Off, size_type _N0,
 					mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr, const size_type _Roff, size_type _Count = npos) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string(), mse::msev_as_a_size_t(_Roff), mse::msev_as_a_size_t(_Count));
+					contained_basic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string(), mse::msev_as_a_size_t(_Roff), mse::msev_as_a_size_t(_Count));
 					return (*this);
 				}
 				gnii_basic_string& replace(const size_type _Off, size_type _N0,
 					const gnii_basic_string& _Right, const size_type _Roff, size_type _Count = npos) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string(), mse::msev_as_a_size_t(_Roff), mse::msev_as_a_size_t(_Count));
+					contained_basic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string(), mse::msev_as_a_size_t(_Roff), mse::msev_as_a_size_t(_Count));
 					return (*this);
 				}
 
@@ -4568,7 +4576,7 @@ namespace mse {
 				gnii_basic_string& replace_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view);
+					contained_basic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view);
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -4595,7 +4603,7 @@ namespace mse {
 				gnii_basic_string& replace_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count) {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
+					contained_basic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -4623,7 +4631,7 @@ namespace mse {
 				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 				gnii_basic_string& replace(const size_type _Off, const size_type _N0, const _TStringSection& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _X.cbegin(), _X.cend());
+					contained_basic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _X.cbegin(), _X.cend());
 					/*m_debug_size = size();*/
 					return (*this);
 				}
@@ -4631,7 +4639,7 @@ namespace mse {
 
 				gnii_basic_string& replace(const size_type _Off, size_type _N0, const _Ty * const _Ptr, const size_type _Count) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr, mse::msev_as_a_size_t(_Count));
+					contained_basic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr, mse::msev_as_a_size_t(_Count));
 					return (*this);
 				}
 
@@ -4641,7 +4649,7 @@ namespace mse {
 
 				gnii_basic_string& replace(const size_type _Off, size_type _N0, const size_type _Count, const _Ty _Ch) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					m_basic_string.replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), mse::msev_as_a_size_t(_Count), _Ch);
+					contained_basic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), mse::msev_as_a_size_t(_Count), _Ch);
 					return (*this);
 				}
 
@@ -4684,44 +4692,44 @@ namespace mse {
 				gnii_basic_string& replace(const size_type _Off, const size_type _N0, const _Iter _First2, const _Iter _Last2) {
 					smoke_check_source_iterators(_First2, _Last2);
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					if (m_basic_string.size() <= (mse::msev_as_a_size_t(_Off) + mse::msev_as_a_size_t(_N0))) { MSE_THROW(std::out_of_range(" gnii_basic_string::replace() ")); }
-					auto iter1 = m_basic_string.begin() + mse::msev_as_a_size_t(_Off);
-					m_basic_string.replace(iter1, iter1 + mse::msev_as_a_size_t(_N0), _First2, _Last2);
+					if (contained_basic_string().size() <= (mse::msev_as_a_size_t(_Off) + mse::msev_as_a_size_t(_N0))) { MSE_THROW(std::out_of_range(" gnii_basic_string::replace() ")); }
+					auto iter1 = contained_basic_string().begin() + mse::msev_as_a_size_t(_Off);
+					contained_basic_string().replace(iter1, iter1 + mse::msev_as_a_size_t(_N0), _First2, _Last2);
 					return (*this);
 				}
 
 				int compare(mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr) const _NOEXCEPT {
-					return m_basic_string.compare((*xs_ptr).contained_basic_string());
+					return contained_basic_string().compare((*xs_ptr).contained_basic_string());
 				}
 				int compare(const gnii_basic_string& _Right) const _NOEXCEPT {
-					return m_basic_string.compare(_Right.contained_basic_string());
+					return contained_basic_string().compare(_Right.contained_basic_string());
 				}
 				int compare(size_type _Off, size_type _N0, mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr) const {
-					return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string());
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string());
 				}
 				int compare(size_type _Off, size_type _N0, const gnii_basic_string& _Right) const {
-					return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string());
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string());
 				}
 				int compare(const size_type _Off, const size_type _N0, mse::TXScopeItemFixedConstPointer<gnii_basic_string> xs_ptr,
 					const size_type _Roff, const size_type _Count = npos) const {
-					return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string(), _Roff, _Count);
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string(), _Roff, _Count);
 				}
 				int compare(const size_type _Off, const size_type _N0, const gnii_basic_string& _Right,
 					const size_type _Roff, const size_type _Count = npos) const {
-					return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string(), _Roff, _Count);
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string(), _Roff, _Count);
 				}
 
 				int compare(const _Ty * const _Ptr) const _NOEXCEPT {
-					return m_basic_string.compare(_Ptr);
+					return contained_basic_string().compare(_Ptr);
 				}
 
 				int compare(const size_type _Off, const size_type _N0, const _Ty * const _Ptr) const {
-					return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr);
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr);
 				}
 
 				int compare(const size_type _Off, const size_type _N0, const _Ty * const _Ptr,
 					const size_type _Count) const {
-					return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr, mse::msev_as_a_size_t(_Count));
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr, mse::msev_as_a_size_t(_Count));
 				}
 
 		#ifdef MSE_HAS_CXX17
@@ -4729,12 +4737,12 @@ namespace mse {
 				template<class _StringViewIsh>
 				int compare_helper2(std::true_type, const _StringViewIsh& _Right) const {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-					return m_basic_string.compare(_As_view);
+					return contained_basic_string().compare(_As_view);
 				}
 				template<class _TParam1>
 				int compare_helper2(std::false_type, const _TParam1& _Right) const {
 					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
-					return std::lexicographical_compare(m_basic_string.cbegin(), m_basic_string.cend(), xs_iters.begin(), xs_iters.end());
+					return std::lexicographical_compare(contained_basic_string().cbegin(), contained_basic_string().cend(), xs_iters.begin(), xs_iters.end());
 					//return compare(gnii_basic_string(xs_iters.begin(), xs_iters.end()));
 				}
 				int compare_helper1(std::true_type, const gnii_basic_string& _Right) const {
@@ -4754,7 +4762,7 @@ namespace mse {
 				template<class _StringViewIsh>
 				int compare_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right) const {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-					return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view);
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view);
 				}
 				template<class _TParam1>
 				int compare_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
@@ -4778,7 +4786,7 @@ namespace mse {
 				template<class _StringViewIsh>
 				int compare_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count) const {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-					return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
 				}
 				template<class _TParam1>
 				int compare_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) const {
@@ -4803,7 +4811,7 @@ namespace mse {
 		#else /* MSE_HAS_CXX17 */
 				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 				int compare(const size_type _Off, const size_type _N0, const _TStringSection& _X) const {
-					return m_basic_string.compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), gnii_basic_string(_X.cbegin(), _X.cend()));
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), gnii_basic_string(_X.cbegin(), _X.cend()));
 				}
 		#endif /* MSE_HAS_CXX17 */
 
@@ -4812,7 +4820,7 @@ namespace mse {
 				template<class _StringViewIsh>
 				size_type find_helper2(std::true_type, const _StringViewIsh& _Right, const size_type _Off = npos) const {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-					return m_basic_string.find(_As_view, mse::as_a_size_t(_Off));
+					return contained_basic_string().find(_As_view, mse::as_a_size_t(_Off));
 				}
 				template<class _TParam1>
 				size_type find_helper2(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
@@ -4834,24 +4842,24 @@ namespace mse {
 		#else /* MSE_HAS_CXX17 */
 				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 				size_type find(const _TStringSection& _X, const size_type _Off = npos) const {
-					return m_basic_string.find(gnii_basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
+					return contained_basic_string().find(gnii_basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 				}
 		#endif /* MSE_HAS_CXX17 */
 
 				size_type find(const gnii_basic_string& _Right, const size_type _Off = 0) const _NOEXCEPT {
-					return m_basic_string.find(_Right.contained_basic_string(), _Off);
+					return contained_basic_string().find(_Right.contained_basic_string(), _Off);
 				}
 
 				size_type find(const _Ty * const _Ptr, const size_type _Off, const size_type _Count) const _NOEXCEPT {
-					return m_basic_string.find(_Ptr, _Off, _Count);
+					return contained_basic_string().find(_Ptr, _Off, _Count);
 				}
 
 				size_type find(const _Ty * const _Ptr, const size_type _Off = 0) const _NOEXCEPT {
-					return m_basic_string.find(_Ptr, _Off);
+					return contained_basic_string().find(_Ptr, _Off);
 				}
 
 				size_type find(const _Ty _Ch, const size_type _Off = 0) const _NOEXCEPT {
-					return m_basic_string.find(_Ch, _Off);
+					return contained_basic_string().find(_Ch, _Off);
 				}
 
 		#ifdef MSE_HAS_CXX17
@@ -4859,7 +4867,7 @@ namespace mse {
 				template<class _StringViewIsh>
 				size_type rfind_helper2(std::true_type, const _StringViewIsh& _Right, const size_type _Off = npos) const {
 					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
-					return m_basic_string.rfind(_As_view, mse::as_a_size_t(_Off));
+					return contained_basic_string().rfind(_As_view, mse::as_a_size_t(_Off));
 				}
 				template<class _TParam1>
 				size_type rfind_helper2(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
@@ -4881,24 +4889,24 @@ namespace mse {
 		#else /* MSE_HAS_CXX17 */
 				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
 				size_type rfind(const _TStringSection& _X, const size_type _Off = npos) const {
-					return m_basic_string.rfind(gnii_basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
+					return contained_basic_string().rfind(gnii_basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 				}
 		#endif /* MSE_HAS_CXX17 */
 
 				size_type rfind(const gnii_basic_string& _Right, const size_type _Off = npos) const _NOEXCEPT {
-					return m_basic_string.rfind(_Right.contained_basic_string(), _Off);
+					return contained_basic_string().rfind(_Right.contained_basic_string(), _Off);
 				}
 
 				size_type rfind(const _Ty * const _Ptr, const size_type _Off, const size_type _Count) const _NOEXCEPT {
-					return m_basic_string.rfind(_Ptr, _Off, _Count);
+					return contained_basic_string().rfind(_Ptr, _Off, _Count);
 				}
 
 				size_type rfind(const _Ty * const _Ptr, const size_type _Off = npos) const _NOEXCEPT {
-					return m_basic_string.rfind(_Ptr, _Off);
+					return contained_basic_string().rfind(_Ptr, _Off);
 				}
 
 				size_type rfind(const _Ty _Ch, const size_type _Off = npos) const _NOEXCEPT {
-					return m_basic_string.rfind(_Ch, _Off);
+					return contained_basic_string().rfind(_Ch, _Off);
 				}
 
 		#if 0//_HAS_CXX17
@@ -4911,20 +4919,20 @@ namespace mse {
 		#endif /* _HAS_CXX17 */
 
 				size_type find_first_of(const gnii_basic_string& _Right, const size_type _Off = 0) const _NOEXCEPT {
-					return m_basic_string.find_first_of(_Right.contained_basic_string(), _Off);
+					return contained_basic_string().find_first_of(_Right.contained_basic_string(), _Off);
 				}
 
 				size_type find_first_of(const _Ty * const _Ptr, const size_type _Off,
 					const size_type _Count) const _NOEXCEPT {
-					return m_basic_string.find_first_of(_Ptr, _Off, _Count);
+					return contained_basic_string().find_first_of(_Ptr, _Off, _Count);
 				}
 
 				size_type find_first_of(const _Ty * const _Ptr, const size_type _Off = 0) const _NOEXCEPT {
-					return m_basic_string.find_first_of(_Ptr, _Off);
+					return contained_basic_string().find_first_of(_Ptr, _Off);
 				}
 
 				size_type find_first_of(const _Ty _Ch, const size_type _Off = 0) const _NOEXCEPT {
-					return m_basic_string.find_first_of(_Ch, _Off);
+					return contained_basic_string().find_first_of(_Ch, _Off);
 				}
 
 		#if 0//_HAS_CXX17
@@ -4937,20 +4945,20 @@ namespace mse {
 		#endif /* _HAS_CXX17 */
 
 				size_type find_last_of(const gnii_basic_string& _Right, size_type _Off = npos) const _NOEXCEPT {
-					return m_basic_string.find_last_of(_Right.contained_basic_string(), _Off);
+					return contained_basic_string().find_last_of(_Right.contained_basic_string(), _Off);
 				}
 
 				size_type find_last_of(const _Ty * const _Ptr, const size_type _Off,
 					const size_type _Count) const _NOEXCEPT {
-					return m_basic_string.find_last_of(_Ptr, _Off, _Count);
+					return contained_basic_string().find_last_of(_Ptr, _Off, _Count);
 				}
 
 				size_type find_last_of(const _Ty * const _Ptr, const size_type _Off = npos) const _NOEXCEPT {
-					return m_basic_string.find_last_of(_Ptr, _Off);
+					return contained_basic_string().find_last_of(_Ptr, _Off);
 				}
 
 				size_type find_last_of(const _Ty _Ch, const size_type _Off = npos) const _NOEXCEPT {
-					return m_basic_string.find_last_of(_Ch, _Off);
+					return contained_basic_string().find_last_of(_Ch, _Off);
 				}
 
 		#if 0//_HAS_CXX17
@@ -4964,20 +4972,20 @@ namespace mse {
 		#endif /* _HAS_CXX17 */
 
 				size_type find_first_not_of(const gnii_basic_string& _Right, const size_type _Off = 0) const _NOEXCEPT {
-					return m_basic_string.find_first_not_of(_Right.contained_basic_string(), _Off);
+					return contained_basic_string().find_first_not_of(_Right.contained_basic_string(), _Off);
 				}
 
 				size_type find_first_not_of(const _Ty * const _Ptr, const size_type _Off,
 					const size_type _Count) const _NOEXCEPT {
-					return m_basic_string.find_first_not_of(_Ptr, _Off, _Count);
+					return contained_basic_string().find_first_not_of(_Ptr, _Off, _Count);
 				}
 
 				size_type find_first_not_of(const _Ty * const _Ptr, size_type _Off = 0) const _NOEXCEPT {
-					return m_basic_string.find_first_not_of(_Ptr, _Off);
+					return contained_basic_string().find_first_not_of(_Ptr, _Off);
 				}
 
 				size_type find_first_not_of(const _Ty _Ch, const size_type _Off = 0) const _NOEXCEPT {
-					return m_basic_string.find_first_not_of(_Ch, _Off);
+					return contained_basic_string().find_first_not_of(_Ch, _Off);
 				}
 
 		#if 0//_HAS_CXX17
@@ -4991,20 +4999,20 @@ namespace mse {
 		#endif /* _HAS_CXX17 */
 
 				size_type find_last_not_of(const gnii_basic_string& _Right, const size_type _Off = npos) const _NOEXCEPT {
-					return m_basic_string.find_last_not_of(_Right.contained_basic_string(), _Off);
+					return contained_basic_string().find_last_not_of(_Right.contained_basic_string(), _Off);
 				}
 
 				size_type find_last_not_of(const _Ty * const _Ptr, const size_type _Off,
 					const size_type _Count) const _NOEXCEPT {
-					return m_basic_string.find_last_not_of(_Ptr, _Off, _Count);
+					return contained_basic_string().find_last_not_of(_Ptr, _Off, _Count);
 				}
 
 				size_type find_last_not_of(const _Ty * const _Ptr, const size_type _Off = npos) const _NOEXCEPT {
-					return m_basic_string.find_last_not_of(_Ptr, _Off);
+					return contained_basic_string().find_last_not_of(_Ptr, _Off);
 				}
 
 				size_type find_last_not_of(const _Ty _Ch, const size_type _Off = npos) const _NOEXCEPT {
-					return m_basic_string.find_last_not_of(_Ch, _Off);
+					return contained_basic_string().find_last_not_of(_Ch, _Off);
 				}
 
 				template <typename _TRAIterator2>
@@ -5018,7 +5026,7 @@ namespace mse {
 						}
 					}
 					for (size_type i = 0; i < n; i += 1) {
-						(*target_iter) = m_basic_string[mse::msev_as_a_size_t(i)];
+						(*target_iter) = contained_basic_string()[mse::msev_as_a_size_t(i)];
 						++target_iter;
 					}
 					return n;
@@ -5026,7 +5034,7 @@ namespace mse {
 
 				gnii_basic_string substr(const size_type _Off = 0, const size_type _Count = npos) const {
 					//return (gnii_basic_string(*this, _Off, _Count, get_allocator()));
-					return (gnii_basic_string(m_basic_string.substr(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_Count))));
+					return (gnii_basic_string(contained_basic_string().substr(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_Count))));
 				}
 
 				static gnii_basic_string& _Myt_ref(gnii_basic_string& nbs_ref) {
@@ -5058,30 +5066,30 @@ namespace mse {
 				template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value), void>::type>
 				void valid_if_Ty_is_not_an_xscope_type() const {}
 
-				auto begin() { return m_basic_string.begin(); }
-				auto end() { return m_basic_string.end(); }
-				auto begin() const { return m_basic_string.begin(); }
-				auto end() const { return m_basic_string.end(); }
-				auto cbegin() const { return m_basic_string.cbegin(); }
-				auto cend() const { return m_basic_string.cend(); }
+				auto begin() { return contained_basic_string().begin(); }
+				auto end() { return contained_basic_string().end(); }
+				auto begin() const { return contained_basic_string().begin(); }
+				auto end() const { return contained_basic_string().end(); }
+				auto cbegin() const { return contained_basic_string().cbegin(); }
+				auto cend() const { return contained_basic_string().cend(); }
 
-				auto rbegin() { return m_basic_string.rbegin(); }
-				auto rend() { return m_basic_string.rend(); }
-				auto rbegin() const { return m_basic_string.rbegin(); }
-				auto rend() const { return m_basic_string.rend(); }
-				auto crbegin() const { return m_basic_string.crbegin(); }
-				auto crend() const { return m_basic_string.crend(); }
+				auto rbegin() { return contained_basic_string().rbegin(); }
+				auto rend() { return contained_basic_string().rend(); }
+				auto rbegin() const { return contained_basic_string().rbegin(); }
+				auto rend() const { return contained_basic_string().rend(); }
+				auto crbegin() const { return contained_basic_string().crbegin(); }
+				auto crend() const { return contained_basic_string().crend(); }
 
 
 				typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, _Ty _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					typename std_basic_string::iterator retval = m_basic_string.insert(_P, _X);
+					typename std_basic_string::iterator retval = contained_basic_string().insert(_P, _X);
 					/*m_debug_size = size();*/
 					return retval;
 				}
 				typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, size_type _M, _Ty _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					typename std_basic_string::iterator retval = m_basic_string.insert(_P, msev_as_a_size_t(_M), _X);
+					typename std_basic_string::iterator retval = contained_basic_string().insert(_P, msev_as_a_size_t(_M), _X);
 					/*m_debug_size = size();*/
 					return retval;
 				}
@@ -5091,7 +5099,7 @@ namespace mse {
 				typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _Where, const _Iter& _First, const _Iter& _Last) {	// insert [_First, _Last) at _Where
 					smoke_check_source_iterators(_First, _Last);
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					auto retval = m_basic_string.insert(_Where, _First, _Last);
+					auto retval = contained_basic_string().insert(_Where, _First, _Last);
 					/*m_debug_size = size();*/
 					return retval;
 				}
@@ -5101,7 +5109,7 @@ namespace mse {
 					/* todo: optimize? In most cases a temporary copy shouldn't be necessary, but what about when the string section
 					refers to a section of the target string? */
 					const _Myt temp_nii_str(_X);
-					typename std_basic_string::iterator retval = m_basic_string.insert(_P, temp_nii_str.m_basic_string.cbegin(), temp_nii_str.m_basic_string.cend());
+					typename std_basic_string::iterator retval = contained_basic_string().insert(_P, temp_nii_str.contained_basic_string().cbegin(), temp_nii_str.contained_basic_string().cend());
 					/*m_debug_size = size();*/
 					return retval;
 				}
@@ -5109,25 +5117,25 @@ namespace mse {
 				typename std_basic_string::iterator emplace(typename std_basic_string::const_iterator _Where, _Valty&& ..._Val)
 				{	// insert by moving _Val at _Where
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					auto retval = m_basic_string.insert(_Where, std::forward<_Valty>(_Val)...);
+					auto retval = contained_basic_string().insert(_Where, std::forward<_Valty>(_Val)...);
 					/*m_debug_size = size();*/
 					return retval;
 				}
 				typename std_basic_string::iterator erase(typename std_basic_string::const_iterator _P) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					typename std_basic_string::iterator retval = m_basic_string.erase(_P);
+					typename std_basic_string::iterator retval = contained_basic_string().erase(_P);
 					/*m_debug_size = size();*/
 					return retval;
 				}
 				typename std_basic_string::iterator erase(typename std_basic_string::const_iterator _F, typename std_basic_string::const_iterator _L) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-					typename std_basic_string::iterator retval = m_basic_string.erase(_F, _L);
+					typename std_basic_string::iterator retval = contained_basic_string().erase(_F, _L);
 					/*m_debug_size = size();*/
 					return retval;
 				}
 
 				typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _Where, _XSTD initializer_list<typename std_basic_string::value_type> _Ilist) {	// insert initializer_list
-					auto retval = m_basic_string.insert(_Where, _Ilist);
+					auto retval = contained_basic_string().insert(_Where, _Ilist);
 					/*m_debug_size = size();*/
 					return retval;
 				}
@@ -5155,11 +5163,7 @@ namespace mse {
 					std::lock_guard<_Mutex> m_lock_guard;
 				};
 
-
-				const _MBS& contained_basic_string() const { return m_basic_string; }
-				auto&& contained_basic_string() { return m_basic_string; }
-
-				std_basic_string m_basic_string;
+				//std_basic_string m_basic_string;
 				//_TStateMutex m_mutex1;
 
 				/* The "mutability" of m_structure_change_mutex is not actually required or utilized by this class, and thus

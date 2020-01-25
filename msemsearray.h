@@ -750,7 +750,7 @@ namespace mse {
 		template <typename _TLoneParam>
 		TRAIterator(_TLoneParam&& lone_param) : base_class(std::forward<_TLoneParam>(lone_param)) {}
 
-		virtual ~TRAIterator() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRAIterator() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAContainerPointerRR>();
 		}
 
@@ -1026,7 +1026,7 @@ namespace mse {
 		template <typename _TLoneParam>
 		TRAConstIterator(_TLoneParam&& lone_param) : base_class(std::forward<_TLoneParam>(lone_param)) {}
 
-		virtual ~TRAConstIterator() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRAConstIterator() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAContainerPointerRR>();
 		}
 
@@ -2214,6 +2214,24 @@ namespace mse {
 
 
 	namespace impl {
+		template <typename _Ty>
+		class TOpaqueWrapper {
+		public:
+			TOpaqueWrapper(const _Ty& value_param) : m_value(value_param) {}
+			TOpaqueWrapper(_Ty&& value_param) : m_value(std::forward<decltype(value_param)>(value_param)) {}
+
+			template<typename ...Args, typename = typename std::enable_if<std::is_constructible<_Ty, Args...>::value
+				&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<TOpaqueWrapper, Args...>::value>::type>
+			TOpaqueWrapper(Args&&...args) : m_value(std::forward<Args>(args)...) {}
+
+			_Ty& value() & { return m_value; }
+			auto&& value() && { return std::forward<decltype(m_value)>(m_value); }
+			const _Ty& value() const & { return m_value; }
+			const _Ty& value() const && { return m_value; }
+
+			_Ty m_value;
+		};
+
 		namespace ns_nii_array {
 			/* Following are a bunch of template (iterator) classes that, organizationally, should be members of nii_array<>. (And they
 			used to be.) However, being a member of nii_array<> makes them "dependent types", and dependent types do not participate
@@ -2424,12 +2442,14 @@ namespace mse {
 	inherits the safety of the given pointer. nii_array<> also supports "scope" iterators which are safe without any
 	run-time overhead. nii_array<> is a data type that is eligible to be shared between asynchronous threads. */
 	template<class _Ty, size_t _Size, class _TStateMutex/* = default_state_mutex*/>
-	class nii_array : public mse::us::impl::ContiguousSequenceStaticStructureContainerTagBase {
+	class nii_array : private mse::impl::TOpaqueWrapper<std::array<_Ty, _Size> >, public mse::us::impl::ContiguousSequenceStaticStructureContainerTagBase {
 	public:
 		/* A (non-thread safe) mutex is used to enforce safety against potentially mischievous element constructors/destructors. 
 		There are no such concerns with trivial element types, so in those cases we'll just use a "no-op dummy" mutex. */
 		typedef typename std::conditional<std::is_trivial<_Ty>::value, dummy_recursive_shared_timed_mutex, _TStateMutex>::type state_mutex_t;
 
+		/* We (privately) inherit the underlying data type rather than make it a data member to ensure it's the "first" component in the structure.*/
+		typedef mse::impl::TOpaqueWrapper<std::array<_Ty, _Size> > base_class;
 		typedef std::array<_Ty, _Size> std_array;
 		typedef std_array _MA;
 		typedef nii_array _Myt;
@@ -2443,12 +2463,19 @@ namespace mse {
 		typedef typename ra_it_base::const_reference const_reference;
 		typedef typename ra_it_base::size_type size_type;
 
+	private:
+		const _MA& contained_array() const& { return (*this).value(); }
+		const _MA& contained_array() const && { return (*this).value(); }
+		_MA& contained_array() & { return (*this).value(); }
+		auto&& contained_array() && { return std::forward<decltype(*this)>(*this).value(); }
+
+	public:
 		nii_array() {}
-		nii_array(_MA&& _X) : m_array(std::forward<decltype(_X)>(_X)) {}
-		nii_array(const _MA& _X) : m_array(_X) {}
-		nii_array(_Myt&& _X) : m_array(std::forward<decltype(_X)>(_X).contained_array()) {}
-		nii_array(const _Myt& _X) : m_array(_X.contained_array()) {}
-		//nii_array(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : m_array(_Ilist) {}
+		nii_array(_MA&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+		nii_array(const _MA& _X) : base_class(_X) {}
+		nii_array(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_array()) {}
+		nii_array(const _Myt& _X) : base_class(_X.contained_array()) {}
+		//nii_array(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : base_class(_Ilist) {}
 		static std::array<_Ty, _Size> std_array_initial_value(std::true_type, _XSTD initializer_list<_Ty> _Ilist) {
 			/* _Ty is default constructible. */
 			std::array<_Ty, _Size> retval;
@@ -2471,7 +2498,7 @@ namespace mse {
 			/* _Ty is not default constructible. */
 			return impl::array_helper::array_helper_type<_Ty, _Size>::std_array_initial_value2(_Ilist);
 		}
-		nii_array(_XSTD initializer_list<_Ty> _Ilist) : m_array(std_array_initial_value(std::is_default_constructible<_Ty>(), _Ilist)) {
+		nii_array(_XSTD initializer_list<_Ty> _Ilist) : base_class(std_array_initial_value(std::is_default_constructible<_Ty>(), _Ilist)) {
 			/* std::array<> is an "aggregate type" (basically a POD struct with no base class, constructors or private
 			data members (details here: http://en.cppreference.com/w/cpp/language/aggregate_initialization)). As such,
 			support for construction from initializer list is automatically generated by the compiler. Specifically,
@@ -2499,19 +2526,19 @@ namespace mse {
 		}
 		typename std_array::reference front() {	// return first element of mutable sequence
 			if (0 == (*this).size()) { MSE_THROW(nii_array_range_error("front() on empty - typename std_array::reference front() - nii_array")); }
-			return m_array.front();
+			return contained_array().front();
 		}
 		_CONST_FUN typename std_array::const_reference front() const {	// return first element of nonmutable sequence
 			if (0 == (*this).size()) { MSE_THROW(nii_array_range_error("front() on empty - typename std_array::const_reference front() - nii_array")); }
-			return m_array.front();
+			return contained_array().front();
 		}
 		typename std_array::reference back() {	// return last element of mutable sequence
 			if (0 == (*this).size()) { MSE_THROW(nii_array_range_error("back() on empty - typename std_array::reference back() - nii_array")); }
-			return m_array.back();
+			return contained_array().back();
 		}
 		_CONST_FUN typename std_array::const_reference back() const {	// return last element of nonmutable sequence
 			if (0 == (*this).size()) { MSE_THROW(nii_array_range_error("back() on empty - typename std_array::const_reference back() - nii_array")); }
-			return m_array.back();
+			return contained_array().back();
 		}
 
 		typedef typename std_array::iterator iterator;
@@ -2523,69 +2550,69 @@ namespace mse {
 		void assign(const _Ty& _Value)
 		{	// assign value to all elements
 			std::lock_guard<state_mutex_t> lock1(m_mutex1);
-			m_array.assign(_Value);
+			contained_array().assign(_Value);
 		}
 
 		void fill(const _Ty& _Value)
 		{	// assign value to all elements
 			std::lock_guard<state_mutex_t> lock1(m_mutex1);
-			m_array.fill(_Value);
+			contained_array().fill(_Value);
 		}
 
 		void swap(_Myt& _Other) {	// swap contents with _Other
 			std::lock_guard<state_mutex_t> lock1(m_mutex1);
-			m_array.swap(_Other.m_array);
+			contained_array().swap(_Other.contained_array());
 		}
 
 		void swap(_MA& _Other) {	// swap contents with _Other
 			std::lock_guard<state_mutex_t> lock1(m_mutex1);
-			m_array.swap(_Other);
+			contained_array().swap(_Other);
 		}
 
 		size_type size() const _NOEXCEPT
 		{	// return length of sequence
-			return m_array.size();
+			return contained_array().size();
 		}
 
 		size_type max_size() const _NOEXCEPT
 		{	// return maximum possible length of sequence
-			return m_array.max_size();
+			return contained_array().max_size();
 		}
 
 		_CONST_FUN bool empty() const _NOEXCEPT
 		{	// test if sequence is empty
-			return m_array.empty();
+			return contained_array().empty();
 		}
 
 		reference at(msear_size_t _Pos)
 		{	// subscript mutable sequence with checking
-			return m_array.at(msear_as_a_size_t(_Pos));
+			return contained_array().at(msear_as_a_size_t(_Pos));
 		}
 
 		const_reference at(msear_size_t _Pos) const
 		{	// subscript nonmutable sequence with checking
-			return m_array.at(msear_as_a_size_t(_Pos));
+			return contained_array().at(msear_as_a_size_t(_Pos));
 		}
 
 		value_type *data() _NOEXCEPT
 		{	// return pointer to mutable data array
-			return m_array.data();
+			return contained_array().data();
 		}
 
 		const value_type *data() const _NOEXCEPT
 		{	// return pointer to nonmutable data array
-			return m_array.data();
+			return contained_array().data();
 		}
 
 		nii_array& operator=(const nii_array& _Right_cref) {
 			std::lock_guard<state_mutex_t> lock1(m_mutex1);
-			m_array = _Right_cref.m_array;
+			contained_array() = _Right_cref.contained_array();
 			return (*this);
 		}
 		/*
 		nii_array& operator=(const std_array& _Right_cref) {
 		std::lock_guard<state_mutex_t> lock1(m_mutex1);
-		m_array = _Right_cref;
+		contained_array() = _Right_cref;
 		return (*this);
 		}
 		*/
@@ -2721,10 +2748,10 @@ namespace mse {
 
 
 		bool operator==(const _Myt& _Right) const {	// test for array equality
-			return (_Right.m_array == m_array);
+			return (_Right.contained_array() == contained_array());
 		}
 		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for arrays
-			return (m_array < _Right.m_array);
+			return (contained_array() < _Right.contained_array());
 		}
 
 		template<class _Ty2, class _Traits2>
@@ -2802,10 +2829,7 @@ namespace mse {
 			return (const_reverse_iterator(ss_begin()));
 		}
 
-		const _MA& contained_array() const { return m_array; }
-		auto&& contained_array() { return m_array; }
-
-		std_array m_array;
+		//std_array m_array;
 		state_mutex_t m_mutex1;
 
 		friend /*class */xscope_ss_const_iterator_type;
@@ -3983,7 +4007,7 @@ namespace mse {
 			: base_class(src) {}
 		template <typename _TRAIterator1>
 		TRASectionIterator(_TRAIterator1 ra_iterator, size_type count, size_type index = 0) : base_class(ra_iterator, count, index) {}
-		virtual ~TRASectionIterator() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRASectionIterator() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
@@ -4137,7 +4161,7 @@ namespace mse {
 		template <typename _TRAIterator1>
 		TRASectionConstIterator(_TRAIterator1 ra_iterator, size_type count, size_type index = 0)
 			: base_class(ra_iterator, count, index) {}
-		virtual ~TRASectionConstIterator() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRASectionConstIterator() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
@@ -5082,7 +5106,7 @@ namespace mse {
 		TRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
 		TRandomAccessConstSection(const _TRALoneParam& param) : base_class(base_class::s_iter_from_lone_param(param), base_class::s_count_from_lone_param(param)) {}
-		virtual ~TRandomAccessConstSection() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRandomAccessConstSection() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
@@ -5659,7 +5683,7 @@ namespace mse {
 		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
 		TRandomAccessSection(value_type(&native_array)[Tn]) : base_class(native_array) {}
-		virtual ~TRandomAccessSection() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRandomAccessSection() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
@@ -6440,7 +6464,7 @@ namespace mse {
 		TXScopeExclusiveStrongPointerStoreForAccessControl(_TExclusiveStrongPointer&& stored_ptr) : m_stored_ptr(std::forward<decltype(stored_ptr)>(stored_ptr)) {
 			*m_stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
-		virtual ~TXScopeExclusiveStrongPointerStoreForAccessControl() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeExclusiveStrongPointerStoreForAccessControl() {
 			mse::impl::is_valid_if_strong_pointer<_TExclusiveStrongPointer>::no_op();
 			mse::impl::is_valid_if_exclusive_pointer<_TExclusiveStrongPointer>::no_op();
 
@@ -6638,7 +6662,7 @@ namespace mse {
 		TXScopeExclusiveStrongPointerStoreForSharing(_TExclusiveStrongPointer&& stored_ptr) : m_stored_ptr(std::forward<decltype(stored_ptr)>(stored_ptr)) {
 			*m_stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
 		}
-		virtual ~TXScopeExclusiveStrongPointerStoreForSharing() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeExclusiveStrongPointerStoreForSharing() {
 			mse::impl::is_valid_if_strong_pointer<_TExclusiveStrongPointer>::no_op();
 		}
 
@@ -6754,7 +6778,7 @@ namespace mse {
 		typedef TXScopeAccessControlledObj<_Ty, _TAccessMutex> base_class;
 		MSE_USING(TXScopeExclusiveWriterObj, base_class);
 
-		virtual ~TXScopeExclusiveWriterObj() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeExclusiveWriterObj() {
 			mse::impl::T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>();
 		}
 
@@ -6821,7 +6845,7 @@ namespace mse {
 		typedef TAccessControlledObj<_Ty, _TAccessMutex> base_class;
 		MSE_USING(TExclusiveWriterObj, base_class);
 
-		virtual ~TExclusiveWriterObj() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TExclusiveWriterObj() {
 			mse::impl::T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>();
 		}
 
@@ -7135,7 +7159,7 @@ namespace mse {
 			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			TSplitterRandomAccessSection(TSplitterRandomAccessSection&& src) = default;
-			virtual ~TSplitterRandomAccessSection() {
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TSplitterRandomAccessSection() {
 				mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 			}
 
@@ -7212,7 +7236,7 @@ namespace mse {
 		}
 		TXScopeRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, size_t split_index)
 			: TXScopeRASectionSplitterXWP(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr), std::array<size_t, 1>{ {split_index}}) {}
-		virtual ~TXScopeRASectionSplitterXWP() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeRASectionSplitterXWP() {
 			mse::impl::is_valid_if_exclusive_pointer<exclusive_writelock_ptr_t>::no_op();
 		}
 
@@ -7289,7 +7313,7 @@ namespace mse {
 		}
 		TRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, size_t split_index)
 			: TRASectionSplitterXWP(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr), std::array<size_t, 1>{ {split_index}}) {}
-		virtual ~TRASectionSplitterXWP() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRASectionSplitterXWP() {
 			mse::impl::T_valid_if_not_an_xscope_type<exclusive_writelock_ptr_t>();
 			mse::impl::is_valid_if_exclusive_pointer<exclusive_writelock_ptr_t>::no_op();
 		}

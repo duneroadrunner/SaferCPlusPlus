@@ -239,7 +239,7 @@ namespace mse {
 			}
 		}
 		TNDRegisteredPointer(std::nullptr_t) : mse::us::TSaferPtr<TNDRegisteredObj<_Ty>>(nullptr) {}
-		virtual ~TNDRegisteredPointer() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredPointer() {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).unregister_pointer(*this);
 			}
@@ -332,7 +332,7 @@ namespace mse {
 			}
 		}
 		TNDRegisteredConstPointer(std::nullptr_t) : mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>(nullptr) {}
-		virtual ~TNDRegisteredConstPointer() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredConstPointer() {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).unregister_pointer(*this);
 			}
@@ -405,7 +405,7 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TNDRegisteredNotNullPointer(const TNDRegisteredNotNullPointer<_Ty2>& src_cref) : TNDRegisteredPointer<_Ty>(src_cref) {}
 
-		virtual ~TNDRegisteredNotNullPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredNotNullPointer() {}
 		/*
 		TNDRegisteredNotNullPointer<_Ty>& operator=(const TNDRegisteredNotNullPointer<_Ty>& _Right_cref) {
 		TNDRegisteredPointer<_Ty>::operator=(_Right_cref);
@@ -450,7 +450,7 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {}
 
-		virtual ~TNDRegisteredNotNullConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TNDRegisteredConstPointer<_Ty>::operator const _Ty*(); }
 		explicit operator const TNDRegisteredObj<_Ty>*() const { return TNDRegisteredConstPointer<_Ty>::operator const TNDRegisteredObj<_Ty>*(); }
@@ -503,7 +503,7 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TNDRegisteredFixedPointer(const TNDRegisteredNotNullPointer<_Ty2>& src_cref) : TNDRegisteredNotNullPointer<_Ty>(src_cref) {}
 
-		virtual ~TNDRegisteredFixedPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredFixedPointer() {}
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TNDRegisteredNotNullPointer<_Ty>::operator _Ty*(); }
@@ -540,7 +540,7 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TNDRegisteredFixedConstPointer(const TNDRegisteredNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 
-		virtual ~TNDRegisteredFixedConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TNDRegisteredNotNullConstPointer<_Ty>::operator const _Ty*(); }
 		explicit operator const TNDRegisteredObj<_Ty>*() const { return TNDRegisteredNotNullConstPointer<_Ty>::operator const TNDRegisteredObj<_Ty>*(); }
@@ -573,7 +573,7 @@ namespace mse {
 		MSE_CREGISTERED_OBJ_USING(TNDRegisteredObj, _TROFLy);
 		TNDRegisteredObj(const TNDRegisteredObj& _X) : _TROFLy(_X) {}
 		TNDRegisteredObj(TNDRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
-		virtual ~TNDRegisteredObj() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredObj() {
 			unregister_and_set_outstanding_pointers_to_null();
 		}
 

@@ -605,7 +605,7 @@ namespace mse {
 		MSE_CREGISTERED_OBJ_USING(TNDCRegisteredObj, _TROFLy);
 		TNDCRegisteredObj(const TNDCRegisteredObj& _X) : _TROFLy(_X) {}
 		TNDCRegisteredObj(TNDCRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
-		virtual ~TNDCRegisteredObj() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDCRegisteredObj() {
 			unregister_and_set_outstanding_pointers_to_null();
 		}
 

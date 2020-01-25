@@ -218,6 +218,7 @@ namespace mse {
 #endif // !MSE_SUPPRESS_CHECK_USE_BEFORE_SET
 #endif // !NDEBUG
 
+#define MSE_IMPL_DESTRUCTOR_PREFIX1
 
 	/* This macro roughly simulates constructor inheritance. */
 #define MSE_USING_V1(Derived, Base) \
@@ -848,7 +849,7 @@ namespace mse {
 				TPointer(const TPointer<_Ty, _TID>& src) : m_ptr(src.m_ptr) { note_value_assignment(); }
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
 				TPointer(const TPointer<_Ty2, TPointerID<_Ty2> >& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
-				virtual ~TPointer() {}
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TPointer() {}
 
 				void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
 				_Ty* raw_pointer() const { return m_ptr; }
@@ -927,7 +928,7 @@ namespace mse {
 				TPointerForLegacy(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value, void>::type>
 				TPointerForLegacy(const TPointerForLegacy<_Ty2, _TID>& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
-				virtual ~TPointerForLegacy() {}
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TPointerForLegacy() {}
 
 				void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
 				_Ty* raw_pointer() const { return m_ptr; }
@@ -1208,7 +1209,7 @@ namespace mse {
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
 		TSyncWeakFixedPointer(const TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
 		_TTargetType& operator*() const {
-			/*const auto &test_cref =*/ *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
+			dummy_foo(*m_lease_pointer); // this should throw if m_lease_pointer is no longer valid
 			return (*m_target_pointer);
 		}
 		_TTargetType* operator->() const {
@@ -1247,6 +1248,7 @@ namespace mse {
 		TSyncWeakFixedPointer(_TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a registered pointer */)
 			: m_target_pointer(&target), m_lease_pointer(lease_pointer) {}
 		TSyncWeakFixedPointer& operator=(const TSyncWeakFixedPointer& _Right_cref) = delete;
+		static void dummy_foo(const decltype(*std::declval<_TLeasePointerType>())&) {}
 
 		_TTargetType* m_target_pointer;
 		_TLeasePointerType m_lease_pointer;
@@ -1464,7 +1466,7 @@ namespace mse {
 			TStrongFixedPointer(const TStrongFixedPointer&) = default;
 			template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
 			TStrongFixedPointer(const TStrongFixedPointer<_TTargetType, _TLeaseType2>&src) : m_target_pointer(std::addressof(*src)), m_lease(src.lease()) {}
-			virtual ~TStrongFixedPointer() {
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStrongFixedPointer() {
 				/* This is just a no-op function that will cause a compile error when _TLeaseType is not an eligible type. */
 				mse::impl::is_valid_if_strong_pointer<_TLeaseType>::no_op();
 			}
@@ -1539,7 +1541,7 @@ namespace mse {
 			TStrongFixedConstPointer(const TStrongFixedPointer<_TTargetType, _TLeaseType>&src) : m_target_pointer(src.m_target_pointer), m_lease(src.m_lease) {}
 			template<class _TLeaseType2, class = typename std::enable_if<std::is_convertible<_TLeaseType2, _TLeaseType>::value, void>::type>
 			TStrongFixedConstPointer(const TStrongFixedPointer<_TTargetType, _TLeaseType2>&src) : m_target_pointer(std::addressof(*src)), m_lease(src.lease()) {}
-			virtual ~TStrongFixedConstPointer() {
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStrongFixedConstPointer() {
 				/* This is just a no-op function that will cause a compile error when _TLeaseType is not an eligible type. */
 				mse::impl::is_valid_if_strong_pointer<_TLeaseType>::no_op();
 			}

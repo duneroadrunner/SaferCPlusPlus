@@ -185,7 +185,7 @@ namespace mse {
 			tuple(const base_class& src) : base_class(src) {}
 			tuple(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
-			virtual ~tuple() {
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~tuple() {
 				mse::mstd::impl::tuple::s_invoke_T_valid_if_not_an_xscope_type_on_each_type<_This, _Rest...>();
 			}
 

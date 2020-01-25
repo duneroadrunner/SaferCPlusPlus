@@ -289,7 +289,7 @@ namespace mse {
 	template<typename _Ty>
 	class TXScopePointer : public mse::us::impl::TXScopePointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
-		virtual ~TXScopePointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopePointer() {}
 	private:
 		TXScopePointer() : mse::us::impl::TXScopePointerBase<_Ty>() {}
 		TXScopePointer(TXScopeObj<_Ty>& scpobj_ref) : mse::us::impl::TXScopePointerBase<_Ty>(scpobj_ref) {}
@@ -328,7 +328,7 @@ namespace mse {
 	template<typename _Ty>
 	class TXScopeConstPointer : public mse::us::impl::TXScopeConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
-		virtual ~TXScopeConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeConstPointer() {}
 	private:
 		TXScopeConstPointer() : mse::us::impl::TXScopeConstPointerBase<_Ty>() {}
 		TXScopeConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : mse::us::impl::TXScopeConstPointerBase<_Ty>(scpobj_cref) {}
@@ -369,7 +369,7 @@ namespace mse {
 	template<typename _Ty>
 	class TXScopeNotNullPointer : public TXScopePointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 	public:
-		virtual ~TXScopeNotNullPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeNotNullPointer() {}
 	private:
 		TXScopeNotNullPointer(TXScopeObj<_Ty>& scpobj_ref) : TXScopePointer<_Ty>(scpobj_ref) {}
 		TXScopeNotNullPointer(TXScopeObj<_Ty>* ptr) : TXScopePointer<_Ty>(ptr) {}
@@ -393,7 +393,7 @@ namespace mse {
 	template<typename _Ty>
 	class TXScopeNotNullConstPointer : public TXScopeConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 	public:
-		virtual ~TXScopeNotNullConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeNotNullConstPointer() {}
 	private:
 		TXScopeNotNullConstPointer(const TXScopeNotNullConstPointer<_Ty>& src_cref) : TXScopeConstPointer<_Ty>(src_cref) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -420,7 +420,7 @@ namespace mse {
 		TXScopeFixedPointer(const TXScopeFixedPointer& src_cref) : TXScopeNotNullPointer<_Ty>(src_cref) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		//TXScopeFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopeNotNullPointer<_Ty>(src_cref) {}
-		virtual ~TXScopeFixedPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {}
 		operator bool() const { return (*static_cast<const TXScopeNotNullPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TXScopeNotNullPointer<_Ty>::operator _Ty*(); }
@@ -455,7 +455,7 @@ namespace mse {
 		TXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TXScopeNotNullConstPointer<_Ty>(src_cref) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		//TXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopeNotNullConstPointer<_Ty>(src_cref) {}
-		virtual ~TXScopeFixedConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {}
 		operator bool() const { return (*static_cast<const TXScopeNotNullConstPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TXScopeNotNullConstPointer<_Ty>::operator const _Ty*(); }
@@ -489,7 +489,7 @@ namespace mse {
 #endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 
 		MSE_SCOPE_USING(TXScopeObj, mse::us::impl::TXScopeObjBase<_TROy>);
-		virtual ~TXScopeObj() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObj() {}
 
 		TXScopeObj& operator=(TXScopeObj&& _X) {
 			//mse::impl::valid_if_not_rvalue_reference_of_given_type<TXScopeObj, decltype(_X)>(_X);
@@ -583,7 +583,7 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TXScopeItemFixedPointer(const TXScopeOwnerPointer<_Ty2>& src_cref) : TXScopeItemFixedPointer(&(*src_cref)) {}
 
-		virtual ~TXScopeItemFixedPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeItemFixedPointer() {}
 
 		operator bool() const { return true; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -631,7 +631,7 @@ namespace mse {
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TXScopeItemFixedConstPointer(const TXScopeOwnerPointer<_Ty2>& src_cref) : TXScopeItemFixedConstPointer(&(*src_cref)) {}
 
-		virtual ~TXScopeItemFixedConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeItemFixedConstPointer() {}
 
 		operator bool() const { return true; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -787,7 +787,7 @@ namespace mse {
 		MSE_USING(TNonXScopeObj, _TROy);
 		TNonXScopeObj(const TNonXScopeObj& _X) : _TROy(_X) {}
 		TNonXScopeObj(TNonXScopeObj&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
-		virtual ~TNonXScopeObj() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNonXScopeObj() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TROy>();
 		}
 
@@ -1103,7 +1103,7 @@ namespace mse {
 			TXScopeItemFixedPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
-			virtual ~TXScopeItemFixedPointerFParam() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeItemFixedPointerFParam() {}
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
@@ -1129,7 +1129,7 @@ namespace mse {
 			TXScopeItemFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
-			virtual ~TXScopeItemFixedConstPointerFParam() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeItemFixedConstPointerFParam() {}
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
@@ -1542,7 +1542,7 @@ namespace mse {
 	public:
 		typedef _TROy base_class;
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TReturnValue, _TROy);
-		virtual ~TReturnValue() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TReturnValue() {
 			/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
 			valid_if_TROy_is_marked_as_returnable_or_not_xscope_type();
 		}
@@ -1639,7 +1639,7 @@ namespace mse {
 	public:
 		typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TReturnValue, base_class);
-		virtual ~TReturnValue() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TReturnValue() {
 			valid_if_safe_pointers_are_disabled();
 		}
 
@@ -1660,7 +1660,7 @@ namespace mse {
 	public:
 		typedef mse::us::impl::TPointerForLegacy<const _Ty> base_class;
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TReturnValue, base_class);
-		virtual ~TReturnValue() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TReturnValue() {
 			valid_if_safe_pointers_are_disabled();
 		}
 
@@ -1682,7 +1682,7 @@ namespace mse {
 	public:
 		typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TReturnValue, base_class);
-		virtual ~TReturnValue() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TReturnValue() {
 			valid_if_safe_pointers_are_disabled();
 		}
 
@@ -1703,7 +1703,7 @@ namespace mse {
 	public:
 		typedef mse::us::impl::TPointerForLegacy<const _Ty> base_class;
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TReturnValue, base_class);
-		virtual ~TReturnValue() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TReturnValue() {
 			valid_if_safe_pointers_are_disabled();
 		}
 
@@ -1894,7 +1894,7 @@ namespace mse {
 			MSE_USING(TXScopeUserDeclaredReturnable, _TROy);
 			TXScopeUserDeclaredReturnable(const TXScopeUserDeclaredReturnable& _X) : _TROy(_X) {}
 			TXScopeUserDeclaredReturnable(TXScopeUserDeclaredReturnable&& _X) : _TROy(std::forward<decltype(_X)>(_X)) {}
-			virtual ~TXScopeUserDeclaredReturnable() {
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeUserDeclaredReturnable() {
 				/* This is just a no-op function that will cause a compile error when _TROy is a prohibited type. */
 				valid_if_TROy_is_not_marked_as_unreturn_value();
 				valid_if_TROy_is_an_xscope_type();
@@ -2200,6 +2200,7 @@ namespace mse {
 	private:
 		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
 		_TStrongPointerNR m_stored_ptr;
+		static void dummy_foo(const decltype(*std::declval<_TStrongPointerNR>())&) {}
 
 	public:
 		typedef TXScopeStrongConstPointerStore _Myt;
@@ -2209,7 +2210,7 @@ namespace mse {
 		TXScopeStrongConstPointerStore(TXScopeStrongConstPointerStore&&) = default;
 
 		TXScopeStrongConstPointerStore(const _TStrongPointerNR& stored_ptr) : m_stored_ptr(stored_ptr) {
-			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
+			dummy_foo(*stored_ptr); /* Just verifying that stored_ptr points to a valid target. */
 		}
 		~TXScopeStrongConstPointerStore() {
 			mse::impl::is_valid_if_strong_pointer<_TStrongPointerNR>::no_op();
@@ -2439,7 +2440,7 @@ namespace mse {
 				typedef _Ty base_class;
 			public:
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TContainsNonOwningScopeReferenceWrapper, _Ty);
-				virtual ~TContainsNonOwningScopeReferenceWrapper() {}
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TContainsNonOwningScopeReferenceWrapper() {}
 			};
 		}
 		template<typename _TLambda>

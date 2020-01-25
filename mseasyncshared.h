@@ -744,7 +744,7 @@ namespace mse {
 			public:
 				TAsyncSharedV2ReadWritePointerBase(const TAsyncSharedV2ReadWritePointerBase& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 				TAsyncSharedV2ReadWritePointerBase(TAsyncSharedV2ReadWritePointerBase&& src) = default;
-				virtual ~TAsyncSharedV2ReadWritePointerBase() {}
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ReadWritePointerBase() {}
 
 				operator bool() const {
 					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointerBase")); }
@@ -808,7 +808,7 @@ namespace mse {
 
 		TXScopeAsyncSharedV2ReadWritePointer(const TXScopeAsyncSharedV2ReadWritePointer& src) = default;
 		TXScopeAsyncSharedV2ReadWritePointer(TXScopeAsyncSharedV2ReadWritePointer&& src) = default;
-		virtual ~TXScopeAsyncSharedV2ReadWritePointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeAsyncSharedV2ReadWritePointer() {}
 
 		void async_not_passable_tag() const {}
 	private:
@@ -831,7 +831,7 @@ namespace mse {
 
 		TAsyncSharedV2ReadWritePointer(const TAsyncSharedV2ReadWritePointer& src) = default;
 		TAsyncSharedV2ReadWritePointer(TAsyncSharedV2ReadWritePointer&& src) = default;
-		virtual ~TAsyncSharedV2ReadWritePointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ReadWritePointer() {}
 
 		void async_not_passable_tag() const {}
 	private:
@@ -855,7 +855,7 @@ namespace mse {
 				TAsyncSharedV2ReadWriteConstPointerBase(const TAsyncSharedV2ReadWriteConstPointerBase& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 				TAsyncSharedV2ReadWriteConstPointerBase(TAsyncSharedV2ReadWriteConstPointerBase&& src) = default;
 				TAsyncSharedV2ReadWriteConstPointerBase(const mse::us::impl::TAsyncSharedV2ReadWritePointerBase<_TAccessLease>& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
-				virtual ~TAsyncSharedV2ReadWriteConstPointerBase() {}
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ReadWriteConstPointerBase() {}
 
 				operator bool() const {
 					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWriteConstPointerBase")); }
@@ -917,7 +917,7 @@ namespace mse {
 
 		TXScopeAsyncSharedV2ReadWriteConstPointer(const TXScopeAsyncSharedV2ReadWriteConstPointer& src) = default;
 		TXScopeAsyncSharedV2ReadWriteConstPointer(TXScopeAsyncSharedV2ReadWriteConstPointer&& src) = default;
-		virtual ~TXScopeAsyncSharedV2ReadWriteConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeAsyncSharedV2ReadWriteConstPointer() {}
 
 		void async_not_passable_tag() const {}
 	private:
@@ -940,7 +940,7 @@ namespace mse {
 
 		TAsyncSharedV2ReadWriteConstPointer(const TAsyncSharedV2ReadWriteConstPointer& src) = default;
 		TAsyncSharedV2ReadWriteConstPointer(TAsyncSharedV2ReadWriteConstPointer&& src) = default;
-		virtual ~TAsyncSharedV2ReadWriteConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ReadWriteConstPointer() {}
 
 		void async_not_passable_tag() const {}
 	private:
@@ -963,7 +963,7 @@ namespace mse {
 			public:
 				TAsyncSharedV2ExclusiveReadWritePointerBase(const TAsyncSharedV2ExclusiveReadWritePointerBase& src) = delete;
 				TAsyncSharedV2ExclusiveReadWritePointerBase(TAsyncSharedV2ExclusiveReadWritePointerBase&& src) = default;
-				virtual ~TAsyncSharedV2ExclusiveReadWritePointerBase() {}
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ExclusiveReadWritePointerBase() {}
 
 				operator bool() const {
 					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ExclusiveReadWritePointerBase")); }
@@ -1025,7 +1025,7 @@ namespace mse {
 
 		TXScopeAsyncSharedV2ExclusiveReadWritePointer(const TXScopeAsyncSharedV2ExclusiveReadWritePointer& src) = delete;
 		TXScopeAsyncSharedV2ExclusiveReadWritePointer(TXScopeAsyncSharedV2ExclusiveReadWritePointer&& src) = default;
-		virtual ~TXScopeAsyncSharedV2ExclusiveReadWritePointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeAsyncSharedV2ExclusiveReadWritePointer() {}
 
 		void async_not_passable_tag() const {}
 	private:
@@ -1048,7 +1048,7 @@ namespace mse {
 
 		TAsyncSharedV2ExclusiveReadWritePointer(const TAsyncSharedV2ExclusiveReadWritePointer& src) = delete;
 		TAsyncSharedV2ExclusiveReadWritePointer(TAsyncSharedV2ExclusiveReadWritePointer&& src) = default;
-		virtual ~TAsyncSharedV2ExclusiveReadWritePointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ExclusiveReadWritePointer() {}
 
 		void async_not_passable_tag() const {}
 	private:
@@ -1073,7 +1073,7 @@ namespace mse {
 				TAsyncSharedV2XWPReadWriteAccessRequesterBase(_TAccessLease&& exclusive_write_pointer) {
 					m_shptr = std::make_shared<TAsyncSharedXWPAccessLeaseObj<_TAccessLease> >(std::forward<decltype(exclusive_write_pointer)>(exclusive_write_pointer));
 				}
-				virtual ~TAsyncSharedV2XWPReadWriteAccessRequesterBase() {
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2XWPReadWriteAccessRequesterBase() {
 					valid_if_TAccessLease_is_marked_as_an_exclusive_pointer();
 					valid_if_TAccessLease_is_marked_as_a_strong_pointer();
 				}
@@ -1239,7 +1239,7 @@ namespace mse {
 		typedef typename std::remove_reference<decltype(*std::declval<_TAccessLease>())>::type target_type;
 		TXScopeAsyncSharedV2XWPReadWriteAccessRequester(const TXScopeAsyncSharedV2XWPReadWriteAccessRequester& src_cref) = default;
 		TXScopeAsyncSharedV2XWPReadWriteAccessRequester(_TAccessLease&& exclusive_write_pointer) : base_class(std::forward<decltype(exclusive_write_pointer)>(exclusive_write_pointer)) {}
-		virtual ~TXScopeAsyncSharedV2XWPReadWriteAccessRequester() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeAsyncSharedV2XWPReadWriteAccessRequester() {
 			valid_if_target_type_is_marked_as_xscope_shareable();
 		}
 
@@ -1316,7 +1316,7 @@ namespace mse {
 		typedef typename std::remove_reference<decltype(*std::declval<_TAccessLease>())>::type target_type;
 		TAsyncSharedV2XWPReadWriteAccessRequester(const TAsyncSharedV2XWPReadWriteAccessRequester& src_cref) = default;
 		TAsyncSharedV2XWPReadWriteAccessRequester(_TAccessLease&& exclusive_write_pointer) : base_class(std::forward<decltype(exclusive_write_pointer)>(exclusive_write_pointer)) {}
-		virtual ~TAsyncSharedV2XWPReadWriteAccessRequester() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2XWPReadWriteAccessRequester() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TAccessLease>();
 			valid_if_target_type_is_marked_as_shareable();
 		}
@@ -1435,7 +1435,7 @@ namespace mse {
 				TAsyncSharedV2ReadOnlyConstPointerBase(const TAsyncSharedV2ReadOnlyConstPointerBase& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 				TAsyncSharedV2ReadOnlyConstPointerBase(TAsyncSharedV2ReadOnlyConstPointerBase&& src) = default;
 				//TAsyncSharedV2ReadOnlyConstPointerBase(const TAsyncSharedV2ReadOnlyPointerBase<_TAccessLease>& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
-				virtual ~TAsyncSharedV2ReadOnlyConstPointerBase() {}
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ReadOnlyConstPointerBase() {}
 
 				operator bool() const {
 					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadOnlyConstPointerBase")); }
@@ -1498,7 +1498,7 @@ namespace mse {
 
 		TXScopeAsyncSharedV2ReadOnlyConstPointer(const TXScopeAsyncSharedV2ReadOnlyConstPointer& src) = default;
 		TXScopeAsyncSharedV2ReadOnlyConstPointer(TXScopeAsyncSharedV2ReadOnlyConstPointer&& src) = default;
-		virtual ~TXScopeAsyncSharedV2ReadOnlyConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeAsyncSharedV2ReadOnlyConstPointer() {}
 
 		void async_not_passable_tag() const {}
 	private:
@@ -1522,7 +1522,7 @@ namespace mse {
 
 		TAsyncSharedV2ReadOnlyConstPointer(const TAsyncSharedV2ReadOnlyConstPointer& src) = default;
 		TAsyncSharedV2ReadOnlyConstPointer(TAsyncSharedV2ReadOnlyConstPointer&& src) = default;
-		virtual ~TAsyncSharedV2ReadOnlyConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ReadOnlyConstPointer() {}
 
 		void async_not_passable_tag() const {}
 	private:
@@ -1549,7 +1549,7 @@ namespace mse {
 				TAsyncSharedV2XWPReadOnlyAccessRequesterBase(_TAccessLease&& exclusive_write_pointer) {
 					m_shptr = std::make_shared<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>(std::forward<decltype(exclusive_write_pointer)>(exclusive_write_pointer));
 				}
-				virtual ~TAsyncSharedV2XWPReadOnlyAccessRequesterBase() {
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2XWPReadOnlyAccessRequesterBase() {
 					valid_if_TAccessLease_is_marked_as_an_exclusive_pointer();
 					valid_if_TAccessLease_is_marked_as_a_strong_pointer();
 				}
@@ -1645,7 +1645,7 @@ namespace mse {
 		TXScopeAsyncSharedV2XWPReadOnlyAccessRequester(const TXScopeAsyncSharedV2XWPReadOnlyAccessRequester& src_cref) = default;
 		TXScopeAsyncSharedV2XWPReadOnlyAccessRequester(const TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>& src_cref) : base_class(src_cref) {}
 		TXScopeAsyncSharedV2XWPReadOnlyAccessRequester(_TAccessLease&& exclusive_write_pointer) : base_class(std::forward<decltype(exclusive_write_pointer)>(exclusive_write_pointer)) {}
-		virtual ~TXScopeAsyncSharedV2XWPReadOnlyAccessRequester() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeAsyncSharedV2XWPReadOnlyAccessRequester() {
 			valid_if_target_type_is_marked_as_xscope_shareable_and_passable();
 		}
 
@@ -1701,7 +1701,7 @@ namespace mse {
 		TAsyncSharedV2XWPReadOnlyAccessRequester(const TAsyncSharedV2XWPReadOnlyAccessRequester& src_cref) = default;
 		TAsyncSharedV2XWPReadOnlyAccessRequester(const TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>& src_cref) : base_class(src_cref) {}
 		TAsyncSharedV2XWPReadOnlyAccessRequester(_TAccessLease&& exclusive_write_pointer) : base_class(std::forward<decltype(exclusive_write_pointer)>(exclusive_write_pointer)) {}
-		virtual ~TAsyncSharedV2XWPReadOnlyAccessRequester() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2XWPReadOnlyAccessRequester() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TAccessLease>();
 			valid_if_target_type_is_marked_as_shareable();
 		}
@@ -1972,7 +1972,7 @@ namespace mse {
 	class TAsyncSharedV2ImmutableFixedPointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullTagBase {
 	public:
 		TAsyncSharedV2ImmutableFixedPointer(const TAsyncSharedV2ImmutableFixedPointer& src_cref) = default;
-		virtual ~TAsyncSharedV2ImmutableFixedPointer() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ImmutableFixedPointer() {
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			valid_if_Ty_is_marked_as_shareable();
 			valid_if_Ty_is_not_an_xscope_type();
@@ -2033,7 +2033,7 @@ namespace mse {
 	class TAsyncSharedV2AtomicFixedPointer : public mse::us::impl::AsyncSharedStrongPointerNeverNullTagBase {
 	public:
 		TAsyncSharedV2AtomicFixedPointer(const TAsyncSharedV2AtomicFixedPointer& src_cref) = default;
-		virtual ~TAsyncSharedV2AtomicFixedPointer() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2AtomicFixedPointer() {
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			//valid_if_Ty_is_marked_as_shareable();
 			mse::impl::T_valid_if_is_marked_as_shareable_msemsearray<_Ty>();
@@ -2186,7 +2186,7 @@ namespace mse {
 		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 		TAsyncSplitterRandomAccessSection(TAsyncSplitterRandomAccessSection&& src) = default;
-		virtual ~TAsyncSplitterRandomAccessSection() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSplitterRandomAccessSection() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
 
@@ -2221,7 +2221,7 @@ namespace mse {
 
 		TXScopeAsyncSplitterRASectionReadWriteAccessRequester(const TXScopeAsyncSplitterRASectionReadWriteAccessRequester& src) = default;
 		TXScopeAsyncSplitterRASectionReadWriteAccessRequester(TXScopeAsyncSplitterRASectionReadWriteAccessRequester&& src) = default;
-		virtual ~TXScopeAsyncSplitterRASectionReadWriteAccessRequester() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeAsyncSplitterRASectionReadWriteAccessRequester() {
 			mse::impl::is_valid_if_exclusive_pointer<_TAccessLease>::no_op();
 		}
 
@@ -2465,7 +2465,7 @@ namespace mse {
 		}
 		TXScopeAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, size_t split_index)
 			: TXScopeAsyncRASectionSplitterXWP(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr), std::array<size_t, 1>{ {split_index}}) {}
-		virtual ~TXScopeAsyncRASectionSplitterXWP() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeAsyncRASectionSplitterXWP() {
 			mse::impl::is_valid_if_exclusive_pointer<exclusive_writelock_ptr_t>::no_op();
 		}
 
@@ -2540,7 +2540,7 @@ namespace mse {
 		}
 		TAsyncRASectionSplitterXWP(exclusive_writelock_ptr_t&& exclusive_writelock_ptr, size_t split_index)
 			: TAsyncRASectionSplitterXWP(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr), std::array<size_t, 1>{ {split_index}}) {}
-		virtual ~TAsyncRASectionSplitterXWP() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncRASectionSplitterXWP() {
 			mse::impl::T_valid_if_not_an_xscope_type<exclusive_writelock_ptr_t>();
 			mse::impl::is_valid_if_exclusive_pointer<exclusive_writelock_ptr_t>::no_op();
 		}
@@ -3023,7 +3023,7 @@ namespace mse {
 		TAsyncSharedReadWritePointer(const TAsyncSharedReadWriteAccessRequester<_Ty>& src);
 		TAsyncSharedReadWritePointer(const TAsyncSharedReadWritePointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedReadWritePointer(TAsyncSharedReadWritePointer&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
-		virtual ~TAsyncSharedReadWritePointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedReadWritePointer() {}
 
 		operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
@@ -3082,7 +3082,7 @@ namespace mse {
 		TAsyncSharedReadWriteConstPointer(const TAsyncSharedReadWriteConstPointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedReadWriteConstPointer(TAsyncSharedReadWriteConstPointer&& src) = default;
 		TAsyncSharedReadWriteConstPointer(const TAsyncSharedReadWritePointer<_Ty>& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
-		virtual ~TAsyncSharedReadWriteConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedReadWriteConstPointer() {}
 
 		operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
@@ -3139,7 +3139,7 @@ namespace mse {
 	public:
 		TAsyncSharedExclusiveReadWritePointer(const TAsyncSharedExclusiveReadWritePointer& src) = delete;
 		TAsyncSharedExclusiveReadWritePointer(TAsyncSharedExclusiveReadWritePointer&& src) = default;
-		virtual ~TAsyncSharedExclusiveReadWritePointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedExclusiveReadWritePointer() {}
 
 		operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedExclusiveReadWritePointer")); }
@@ -3292,7 +3292,7 @@ namespace mse {
 	public:
 		TAsyncSharedReadOnlyConstPointer(const TAsyncSharedReadOnlyConstPointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedReadOnlyConstPointer(TAsyncSharedReadOnlyConstPointer&& src) = default;
-		virtual ~TAsyncSharedReadOnlyConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedReadOnlyConstPointer() {}
 
 		operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
@@ -3405,7 +3405,7 @@ namespace mse {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer&& src) = default;
-		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer() {}
 
 		operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
@@ -3464,7 +3464,7 @@ namespace mse {
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer&& src) = default;
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
-		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer() {}
 
 		operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
@@ -3521,7 +3521,7 @@ namespace mse {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer& src) = delete;
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer&& src) = default;
-		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer() {}
 
 		operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer")); }
@@ -3669,7 +3669,7 @@ namespace mse {
 	public:
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer&& src) = default;
-		virtual ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer() {}
 
 		operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
@@ -3782,7 +3782,7 @@ namespace mse {
 	class MSE_DEPRECATED TStdSharedImmutableFixedPointer : public std::shared_ptr<const _Ty>, public mse::us::impl::AsyncSharedStrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
 	public:
 		TStdSharedImmutableFixedPointer(const TStdSharedImmutableFixedPointer& src_cref) : std::shared_ptr<const _Ty>(src_cref) {}
-		virtual ~TStdSharedImmutableFixedPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStdSharedImmutableFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return std::shared_ptr<const _Ty>::operator _Ty*(); }
 

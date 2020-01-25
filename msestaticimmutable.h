@@ -115,7 +115,7 @@ namespace mse {
 					TCheckedThreadSafePointer(TCheckedThreadSafePointer&& src_ref) : base_class(std::forward<decltype(src_ref)>(src_ref).m_ptr) {
 						src_ref.m_ptr = nullptr;
 					}
-					virtual ~TCheckedThreadSafePointer() {
+					MSE_IMPL_DESTRUCTOR_PREFIX1 ~TCheckedThreadSafePointer() {
 						if (*this) { (*(*this)).decrement_refcount(); }
 					}
 					TCheckedThreadSafePointer<_Ty>& operator=(const TCheckedThreadSafePointer<_Ty>& _Right_cref) {
@@ -172,7 +172,7 @@ namespace mse {
 					TCheckedThreadSafeConstPointer(const TCheckedThreadSafePointer<_Ty>& src_cref) : base_class(src_cref) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					virtual ~TCheckedThreadSafeConstPointer() {
+					MSE_IMPL_DESTRUCTOR_PREFIX1 ~TCheckedThreadSafeConstPointer() {
 						if (*this) { (*(*this)).decrement_refcount(); }
 					}
 					TCheckedThreadSafeConstPointer<_Ty>& operator=(const TCheckedThreadSafeConstPointer<_Ty>& _Right_cref) {
@@ -219,7 +219,7 @@ namespace mse {
 					MSE_USING(TCheckedThreadSafeObj, _TROFLy);
 					TCheckedThreadSafeObj(const TCheckedThreadSafeObj& _X) : _TROFLy(_X) {}
 					TCheckedThreadSafeObj(TCheckedThreadSafeObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
-					virtual ~TCheckedThreadSafeObj() {
+					MSE_IMPL_DESTRUCTOR_PREFIX1 ~TCheckedThreadSafeObj() {
 						if (0 != m_atomic_counter.load()) {
 							/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object. */
 #ifdef MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER
@@ -372,7 +372,7 @@ namespace mse {
 		{
 		public:
 			typedef impl::TStaticImmutableConstPointerBase<_Ty> base_class;
-			virtual ~TStaticImmutableConstPointer() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableConstPointer() {}
 		private:
 			TStaticImmutableConstPointer() : base_class() {}
 			TStaticImmutableConstPointer(const base_class& ptr) : base_class(ptr) {}
@@ -412,7 +412,7 @@ namespace mse {
 		template<typename _Ty>
 		class TStaticImmutableNotNullConstPointer : public TStaticImmutableConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 		public:
-			virtual ~TStaticImmutableNotNullConstPointer() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableNotNullConstPointer() {}
 		private:
 			TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullConstPointer<_Ty>& src_cref) : TStaticImmutableConstPointer<_Ty>(src_cref) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -440,7 +440,7 @@ namespace mse {
 			//TStaticImmutableFixedConstPointer(const TStaticImmutableFixedPointer<_Ty>& src_cref) : TStaticImmutableNotNullConstPointer<_Ty>(src_cref) {}
 			//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 			//TStaticImmutableFixedConstPointer(const TStaticImmutableFixedPointer<_Ty2>& src_cref) : TStaticImmutableNotNullConstPointer<_Ty>(src_cref) {}
-			virtual ~TStaticImmutableFixedConstPointer() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const TStaticImmutableNotNullConstPointer<_Ty>*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 			explicit operator const _Ty*() const { return TStaticImmutableNotNullConstPointer<_Ty>::operator const _Ty*(); }
@@ -464,7 +464,7 @@ namespace mse {
 			TStaticImmutableObj(TStaticImmutableObj&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 
 			MSE_STATIC_USING(TStaticImmutableObj, base_class);
-			virtual ~TStaticImmutableObj() {
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableObj() {
 				mse::impl::T_valid_if_is_marked_as_xscope_shareable_msemsearray<_TROy>();
 			}
 

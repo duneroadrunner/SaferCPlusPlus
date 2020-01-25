@@ -255,7 +255,7 @@ namespace mse {
 					src_ref.m_ptr = nullptr;
 				}
 				TGNoradPointer(std::nullptr_t) : m_ptr(nullptr) {}
-				virtual ~TGNoradPointer() {
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TGNoradPointer() {
 					if (m_ptr) { (*m_ptr).decrement_refcount(); }
 				}
 				TGNoradPointer<_Ty, _TRefCounter>& operator=(const TGNoradPointer<_Ty, _TRefCounter>& _Right_cref) {
@@ -374,7 +374,7 @@ namespace mse {
 				}
 
 				TGNoradConstPointer(std::nullptr_t) : m_ptr(nullptr) {}
-				virtual ~TGNoradConstPointer() {
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TGNoradConstPointer() {
 					if (m_ptr) { (*m_ptr).decrement_refcount(); }
 				}
 				TGNoradConstPointer<_Ty, _TRefCounter>& operator=(const TGNoradConstPointer<_Ty, _TRefCounter>& _Right_cref) {
@@ -450,7 +450,7 @@ namespace mse {
 				TGNoradNotNullPointer(const TGNoradNotNullPointer<_Ty2, _TRefCounter>& src_cref) : TGNoradPointer<_Ty, _TRefCounter>(src_cref) {}
 				TGNoradNotNullPointer(TGNoradNotNullPointer&& src_ref) : TGNoradPointer<_Ty, _TRefCounter>(std::forward<decltype(src_ref)>(src_ref)) {}
 
-				virtual ~TGNoradNotNullPointer() {}
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TGNoradNotNullPointer() {}
 				/*
 				TGNoradNotNullPointer<_Ty, _TRefCounter>& operator=(const TGNoradNotNullPointer<_Ty, _TRefCounter>& _Right_cref) {
 				TGNoradPointer<_Ty, _TRefCounter>::operator=(_Right_cref);
@@ -508,7 +508,7 @@ namespace mse {
 				TGNoradNotNullConstPointer(TGNoradNotNullPointer<_Ty, _TRefCounter>&& src_ref) : TGNoradConstPointer<_Ty, _TRefCounter>(std::forward<decltype(src_ref)>(src_ref)) {}
 				TGNoradNotNullConstPointer(TGNoradNotNullConstPointer<_Ty, _TRefCounter>&& src_ref) : TGNoradConstPointer<_Ty, _TRefCounter>(std::forward<decltype(src_ref)>(src_ref)) {}
 
-				virtual ~TGNoradNotNullConstPointer() {}
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TGNoradNotNullConstPointer() {}
 
 				const TGNoradObj<_Ty, _TRefCounter>& operator*() const {
 					//if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
@@ -574,7 +574,7 @@ namespace mse {
 				TGNoradFixedPointer(TGNoradFixedPointer&& src_ref) : TGNoradNotNullPointer<_Ty, _TRefCounter>(std::forward<decltype(src_ref)>(src_ref)) {}
 				TGNoradFixedPointer(TGNoradNotNullPointer<_Ty, _TRefCounter>&& src_ref) : TGNoradNotNullPointer<_Ty, _TRefCounter>(std::forward<decltype(src_ref)>(src_ref)) {}
 
-				virtual ~TGNoradFixedPointer() {}
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TGNoradFixedPointer() {}
 
 				/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 				explicit operator _Ty*() const { return TGNoradNotNullPointer<_Ty, _TRefCounter>::operator _Ty*(); }
@@ -617,7 +617,7 @@ namespace mse {
 				TGNoradFixedConstPointer(TGNoradNotNullPointer<_Ty, _TRefCounter>&& src_ref) : TGNoradNotNullConstPointer<_Ty, _TRefCounter>(std::forward<decltype(src_ref)>(src_ref)) {}
 				TGNoradFixedConstPointer(TGNoradNotNullConstPointer<_Ty, _TRefCounter>&& src_ref) : TGNoradNotNullConstPointer<_Ty, _TRefCounter>(std::forward<decltype(src_ref)>(src_ref)) {}
 
-				virtual ~TGNoradFixedConstPointer() {}
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TGNoradFixedConstPointer() {}
 				/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 				explicit operator const _Ty*() const { return TGNoradNotNullConstPointer<_Ty, _TRefCounter>::operator const _Ty*(); }
 				explicit operator const TGNoradObj<_Ty, _TRefCounter>*() const { return TGNoradNotNullConstPointer<_Ty, _TRefCounter>::operator const TGNoradObj<_Ty, _TRefCounter>*(); }
@@ -657,7 +657,7 @@ namespace mse {
 				MSE_NORAD_OBJ_USING(TGNoradObj, _TROFLy);
 				TGNoradObj(const TGNoradObj& _X) : _TROFLy(_X) {}
 				TGNoradObj(TGNoradObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
-				virtual ~TGNoradObj() {
+				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TGNoradObj() {
 					if (0 != m_counter) {
 						/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object. */
 #ifdef MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER
@@ -1042,7 +1042,7 @@ namespace mse {
 			src_ref.m_ptr = nullptr;
 		}
 		TNDNoradPointer(std::nullptr_t) : mse::us::impl::TPointer<TNDNoradObj<_Ty>>(nullptr) {}
-		virtual ~TNDNoradPointer() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradPointer() {
 			if (*this) { (*(*this)).decrement_refcount(); }
 		}
 		TNDNoradPointer<_Ty>& operator=(const TNDNoradPointer<_Ty>& _Right_cref) {
@@ -1135,7 +1135,7 @@ namespace mse {
 		}
 
 		TNDNoradConstPointer(std::nullptr_t) : mse::us::impl::TPointer<const TNDNoradObj<_Ty>>(nullptr) {}
-		virtual ~TNDNoradConstPointer() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradConstPointer() {
 			if (*this) { (*(*this)).decrement_refcount(); }
 		}
 		TNDNoradConstPointer<_Ty>& operator=(const TNDNoradConstPointer<_Ty>& _Right_cref) {
@@ -1208,7 +1208,7 @@ namespace mse {
 		TNDNoradNotNullPointer(const TNDNoradNotNullPointer<_Ty2>& src_cref) : TNDNoradPointer<_Ty>(src_cref) {}
 		TNDNoradNotNullPointer(TNDNoradNotNullPointer&& src_ref) : TNDNoradPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 
-		virtual ~TNDNoradNotNullPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradNotNullPointer() {}
 		/*
 		TNDNoradNotNullPointer<_Ty>& operator=(const TNDNoradNotNullPointer<_Ty>& _Right_cref) {
 		TNDNoradPointer<_Ty>::operator=(_Right_cref);
@@ -1266,7 +1266,7 @@ namespace mse {
 		TNDNoradNotNullConstPointer(TNDNoradNotNullPointer<_Ty>&& src_ref) : TNDNoradConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 		TNDNoradNotNullConstPointer(TNDNoradNotNullConstPointer<_Ty>&& src_ref) : TNDNoradConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 
-		virtual ~TNDNoradNotNullConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradNotNullConstPointer() {}
 
 		const TNDNoradObj<_Ty>& operator*() const {
 			//if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
@@ -1332,7 +1332,7 @@ namespace mse {
 		TNDNoradFixedPointer(TNDNoradFixedPointer&& src_ref) : TNDNoradNotNullPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 		TNDNoradFixedPointer(TNDNoradNotNullPointer<_Ty>&& src_ref) : TNDNoradNotNullPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 
-		virtual ~TNDNoradFixedPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradFixedPointer() {}
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return TNDNoradNotNullPointer<_Ty>::operator _Ty*(); }
@@ -1375,7 +1375,7 @@ namespace mse {
 		TNDNoradFixedConstPointer(TNDNoradNotNullPointer<_Ty>&& src_ref) : TNDNoradNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 		TNDNoradFixedConstPointer(TNDNoradNotNullConstPointer<_Ty>&& src_ref) : TNDNoradNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 
-		virtual ~TNDNoradFixedConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return TNDNoradNotNullConstPointer<_Ty>::operator const _Ty*(); }
 		explicit operator const TNDNoradObj<_Ty>*() const { return TNDNoradNotNullConstPointer<_Ty>::operator const TNDNoradObj<_Ty>*(); }
@@ -1415,7 +1415,7 @@ namespace mse {
 		MSE_NORAD_OBJ_USING(TNDNoradObj, _TROFLy);
 		TNDNoradObj(const TNDNoradObj& _X) : _TROFLy(_X) {}
 		TNDNoradObj(TNDNoradObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
-		virtual ~TNDNoradObj() {
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradObj() {
 			if (0 != m_counter) {
 				/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object. */
 #ifdef MSE_CUSTOM_FATAL_ERROR_MESSAGE_HANDLER

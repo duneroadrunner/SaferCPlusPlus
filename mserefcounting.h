@@ -292,7 +292,7 @@ namespace mse {
 	public:
 		TRefCountingNotNullPointer(const TRefCountingNotNullPointer& src_cref) : TRefCountingPointer<_Ty>(src_cref) {}
 		TRefCountingNotNullPointer(TRefCountingNotNullPointer&& src_ref) : TRefCountingPointer<_Ty>(src_ref) {}
-		virtual ~TRefCountingNotNullPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingNotNullPointer() {}
 		TRefCountingNotNullPointer<_Ty>& operator=(const TRefCountingNotNullPointer<_Ty>& _Right_cref) {
 			TRefCountingPointer<_Ty>::operator=(_Right_cref);
 			return (*this);
@@ -340,7 +340,7 @@ namespace mse {
 		TRefCountingFixedPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
 		TRefCountingFixedPointer(TRefCountingFixedPointer<_Ty>&& src_ref) : TRefCountingNotNullPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 		TRefCountingFixedPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingNotNullPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
-		virtual ~TRefCountingFixedPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingFixedPointer() {}
 
 		template <class... Args>
 		static TRefCountingFixedPointer make(Args&&... args) {
@@ -535,7 +535,7 @@ namespace mse {
 		TRefCountingNotNullConstPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {}
 		TRefCountingNotNullConstPointer(TRefCountingNotNullConstPointer&& src_ref) : TRefCountingConstPointer<_Ty>(src_ref) {}
 		TRefCountingNotNullConstPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingConstPointer<_Ty>(src_ref) {}
-		virtual ~TRefCountingNotNullConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingNotNullConstPointer() {}
 		TRefCountingNotNullConstPointer<_Ty>& operator=(const TRefCountingNotNullConstPointer<_Ty>& _Right_cref) {
 			TRefCountingConstPointer<_Ty>::operator=(_Right_cref);
 			return (*this);
@@ -583,7 +583,7 @@ namespace mse {
 		TRefCountingFixedConstPointer(TRefCountingNotNullConstPointer<_Ty>&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 		TRefCountingFixedConstPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
 
-		virtual ~TRefCountingFixedConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingFixedConstPointer() {}
 
 	private:
 		/* If you want to use this constructor, use not_null_from_nullable() instead. */
