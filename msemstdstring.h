@@ -1681,17 +1681,17 @@ namespace mse {
 
 		inline namespace literals {
 			inline namespace string_literals {
-				inline mse::mstd::basic_string<char> operator "" _mstds(const char *__str, size_t __len) _NOEXCEPT {
-					return mse::mstd::basic_string<char>(__str, __len);
+				inline mse::mstd::basic_string<char> operator "" _mstds(const char *_str, size_t _len) _NOEXCEPT {
+					return mse::mstd::basic_string<char>(_str, _len);
 				}
-				inline mse::mstd::basic_string<wchar_t> operator "" _mstds(const wchar_t *__str, size_t __len) _NOEXCEPT {
-					return mse::mstd::basic_string<wchar_t>(__str, __len);
+				inline mse::mstd::basic_string<wchar_t> operator "" _mstds(const wchar_t *_str, size_t _len) _NOEXCEPT {
+					return mse::mstd::basic_string<wchar_t>(_str, _len);
 				}
-				inline mse::mstd::basic_string<char16_t> operator "" _mstds(const char16_t *__str, size_t __len) _NOEXCEPT {
-					return mse::mstd::basic_string<char16_t>(__str, __len);
+				inline mse::mstd::basic_string<char16_t> operator "" _mstds(const char16_t *_str, size_t _len) _NOEXCEPT {
+					return mse::mstd::basic_string<char16_t>(_str, _len);
 				}
-				inline mse::mstd::basic_string<char32_t> operator "" _mstds(const char32_t *__str, size_t __len) _NOEXCEPT {
-					return mse::mstd::basic_string<char32_t>(__str, __len);
+				inline mse::mstd::basic_string<char32_t> operator "" _mstds(const char32_t *_str, size_t _len) _NOEXCEPT {
+					return mse::mstd::basic_string<char32_t>(_str, _len);
 				}
 			}
 		}
