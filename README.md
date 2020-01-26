@@ -1114,8 +1114,6 @@ The safety of non-owning scope pointers is premised on the fact that they will n
 
 The `return_value()` function just returns its argument and verifies that it is of a type that is safe to return from a function (basically, doesn't contain any scope pointers). If not it will induce a compile error. Functions that do or could return scope types should wrap their return value with this function. Note that the [scpptool](https://github.com/duneroadrunner/scpptool) actually enforces this.
 
-`TReturnValue<>` is a transparent template wrapper that verifies that the type is safe to use as a function return type. If not it will induce a compile error. Functions that do or could return scope types and explicitly specify their return types (rather than just using the `auto` return type) should wrap their return type with this template. Alternatively, you can use `TXScopeReturnValue<>` which additionally ensures that the return type is a scope type. 
-
 usage example:
 
 ```cpp
@@ -1128,9 +1126,14 @@ usage example:
     public:
         template<typename _TParam>
         static auto foo10(_TParam param) {
-            auto l_obj = param;
+            _TParam l_obj = param;
+
+            auto ret_ptr = &l_obj;
+            /* ret_ptr may be a smart pointer if the 'operator&' is overloaded.*/
+            /* If ret_ptr is a scope pointer (or native pointer) it would be unsafe to return it. In those cases the
+             'mse::return_value(ret_ptr)' expression will induce a compile error. */
             /* Functions that could return a scope type need to wrap their return value with the return_value() function. */
-            return mse::return_value(mse::pointer_to(l_obj));
+            return mse::return_value(ret_ptr);
         }
     };
     
@@ -1144,41 +1147,33 @@ usage example:
                 mse::TXScopeObj<mse::mstd::string> xscp_string1("some text");
                 return mse::return_value(xscp_string1);
             }
-    
+
             /* In the less common case where the scope type doesn't have an underlying non-scope type, it may be safe
-            to return the scope object. But in order to use a scope type as a function return value, it must be
-            wrapped in the transparent mse::TReturnValue<> or mse::TXScopeReturnValue<> wrapper template, which will
-            induce a compile error if it deems the scope type potentially unsafe to use as a return type. */
-            static mse::TXScopeReturnValue<mse::xscope_optional<mse::mstd::string> > foo2() {
+            to return the scope object.  */
+            static mse::xscope_optional<mse::mstd::string> foo2() {
                 mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
                 return mse::return_value(xscp_returnable_obj1);
             }
-    
-            /* "auto" return types don't need to be wrapped, but the return value needs to be wrapped with the
-            return_value() function. */
+
             static auto foo3() {
-                mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
-                return mse::return_value(xscp_returnable_obj1);
+                mse::TXScopeObj<mse::mstd::string> xscp_string1("some text");
+                auto xscp_ptr = &xscp_string1;
+
+                /* Returning a scope pointer (to a local variable for example) could be unsafe. So mse::return_value()
+                induces a compile error if the return value contains a scope pointer/reference. */
+                //return mse::return_value(xscp_ptr);
+
+                return mse::return_value(xscp_string1);
             }
         };
-    
-        mse::TXScopeObj<mse::mstd::string> xscp_res1(CB::foo1());
-        mse::xscope_optional<mse::mstd::string> xscp_res2(CB::foo2());
-    
+
+        mse::TXScopeObj<mse::mstd::string> xscp_res1 = CB::foo1();
+        mse::xscope_optional<mse::mstd::string> xscp_res2 = CB::foo2();
+
         typedef mse::TXScopeObj<mse::mstd::string> xscope_string_t;
         xscope_string_t xscp_str1 = "some text";
-        /* TXScopeReturnValue<> deems xscope_string_t to be an acceptable return type because it doesn't contain
-        any scope pointers. */
-        mse::TXScopeReturnValue<xscope_string_t> xscpr_str1("some text");
-        auto xscp_rstr1 = mse::return_value(xscp_str1);
-    
-        typedef decltype(&xscp_str1) xscope_string_ptr_t;
-        /* TXScopeReturnValue<> deems xscope_string_ptr_t to be an unsafe return type because it is (or contains)
-        a scope pointer. So the next line would result in a compile error. */
-        //mse::TXScopeReturnValue<xscope_string_ptr_t> xscpr_sfptr1 = &xscp_str1;
-        //auto xscp_rstr_ptr1 = mse::return_value(&xscp_str1);
-    
-        mse::TRegisteredObj<mse::mstd::string> reg_str1 = "some text";
+
+        mse::TNDRegisteredObj<mse::mstd::string> reg_str1 = "some text";
         auto reg_ptr_res1 = J::foo10(reg_str1);
         //auto xscp_ptr_res1 = J::foo10(xscp_str1); // <-- would induce a compile error inside J::foo10() 
     }
