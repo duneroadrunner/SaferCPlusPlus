@@ -17,8 +17,14 @@
 
 #define MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
 
+#if __cplusplus >= 201703L
+#define MSE_HAS_CXX17
+#endif // __cplusplus >= 201703L
 /*compiler specific defines*/
 #ifdef _MSC_VER
+#if _MSVC_LANG >= 201703L || (defined(_HAS_CXX17) && (_HAS_CXX17 >= 1))
+#define MSE_HAS_CXX17
+#endif // _MSVC_LANG >= 201703L || (defined(_HAS_CXX17) && (_HAS_CXX17 >= 1))
 #if (1700 > _MSC_VER)
 #define MSVC2010_COMPATIBLE 1
 #endif /*(1700 > _MSC_VER)*/

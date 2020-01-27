@@ -280,8 +280,10 @@ int main(int argc, char* argv[]) {
 			std::sort(scp_iter1, scp_iter2);
 
 			auto scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
-			scp_citer3 = scp_iter1;
-			scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
+			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
+				scp_citer3 = scp_iter1;
+				scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
+			);
 			scp_citer3 += 2;
 			auto res1 = *scp_citer3;
 			auto res2 = scp_citer3[0];
@@ -392,8 +394,10 @@ int main(int argc, char* argv[]) {
 				std::sort(scp_ss_iter1, scp_ss_iter2);
 
 				auto scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
-				scp_ss_citer3 = scp_ss_iter1;
-				scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
+				IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
+					scp_ss_citer3 = scp_ss_iter1;
+					scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
+				);
 				scp_ss_citer3 += 2;
 				auto res1 = *scp_ss_citer3;
 				auto res2 = scp_ss_citer3[0];
@@ -448,6 +452,7 @@ int main(int argc, char* argv[]) {
 			std::cerr << "expected exception" << std::endl;
 		}
 
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		/* Here we're demonstrating mse::mstd::array<> and its iterator's "lifespan awareness".  */
 		mse::mstd::array<int, 2>::iterator it1;
 		{
@@ -455,14 +460,16 @@ int main(int argc, char* argv[]) {
 			it1 = a3.begin();
 			assert(5 == (*it1));
 		}
-		MSE_TRY {
+		MSE_TRY{
 			/* it1 "knows" that its target has been destroyed. It will throw an exception on any attempt to dereference it. */
 			int i = (*it1);
 			std::cerr << "unexpected execution" << std::endl;
 		}
-		MSE_CATCH_ANY {
-			std::cerr << "expected exception" << std::endl;
+			MSE_CATCH_ANY{
+				std::cerr << "expected exception" << std::endl;
 		}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+
 #endif // !MSE_MSTDARRAY_DISABLED
 
 		/* And of course the iterators can be used with the standard algorithms, just like those of std::array. */
@@ -485,8 +492,10 @@ int main(int argc, char* argv[]) {
 			std::sort(scp_array_iter1, scp_array_iter2);
 
 			auto scp_array_citer3 = mse::mstd::make_xscope_begin_const_iterator(&array1_scpobj);
-			scp_array_citer3 = scp_array_iter1;
-			scp_array_citer3 = mse::mstd::make_xscope_begin_const_iterator(&array1_scpobj);
+			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
+				scp_array_citer3 = scp_array_iter1;
+				scp_array_citer3 = mse::mstd::make_xscope_begin_const_iterator(&array1_scpobj);
+			);
 			scp_array_citer3 += 2;
 			auto res1 = *scp_array_citer3;
 			auto res2 = scp_array_citer3[0];
@@ -563,7 +572,11 @@ int main(int argc, char* argv[]) {
 			std::sort(scp_ss_iter1, scp_ss_iter2);
 
 			auto scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&array1_scpobj);
-			scp_ss_citer3 = scp_ss_iter1;
+			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
+				scp_ss_citer3 = scp_ss_iter1;
+				scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&array1_scpobj);
+			);
+
 			scp_ss_citer3 += 2;
 			auto res1 = *scp_ss_citer3;
 			auto res2 = scp_ss_citer3[0];
@@ -1155,13 +1168,13 @@ int main(int argc, char* argv[]) {
 			mse::TRegisteredPointer<mse::CInt> m_node_count_ptr;
 			rcnode_strongptr_weakptr_t m_root_ptr_ptr;
 
-#if (1920 <= _MSC_VER) && defined(MSE_HAS_CXX17)
+#if defined(EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1) && defined(MSE_HAS_CXX17)
 /* msvc2019 seems to have introduced a bug in its "intellisense" feature where it sometimes has difficulty dealing
-with the library's (safe) optional<> types. */
+with the library's (safe) optional<> types. The compiler has no problem with it, just the "intellisense" feature. */
 #define CRCNODE_STD_OPTIONAL std::optional
-#else // (1920 <= _MSC_VER) && defined(MSE_HAS_CXX17)
+#else // defined(EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1) && defined(MSE_HAS_CXX17)
 #define CRCNODE_STD_OPTIONAL mse::mstd::optional
-#endif // (1920 <= _MSC_VER) && defined(MSE_HAS_CXX17)
+#endif // defined(EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1) && defined(MSE_HAS_CXX17)
 
 			CRCNODE_STD_OPTIONAL<rcnode_strongptr_regobj_t> m_maybe_child_ptr;
 		};
@@ -1295,11 +1308,13 @@ with the library's (safe) optional<> types. */
 			auto length2 = (*longer_string_xscpptr2).length();
 
 			mse::TXScopeObj<H::CE> e_xscpobj;
-			auto xscope_string_const_section1 = H::xscope_string_const_section_to_member_of_CE(&e_xscpobj);
-			assert(xscope_string_const_section1 == "bcd");
+			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
+				auto xscope_string_const_section1 = H::xscope_string_const_section_to_member_of_CE(&e_xscpobj);
+				assert(xscope_string_const_section1 == "bcd");
 
-			auto xscope_string_const_section2 = H::nested_xscope_string_const_section_to_member_of_CE(&e_xscpobj);
-			assert(xscope_string_const_section2 == "bcd");
+				auto xscope_string_const_section2 = H::nested_xscope_string_const_section_to_member_of_CE(&e_xscpobj);
+				assert(xscope_string_const_section2 == "bcd");
+			);
 		}
 
 		{

@@ -130,7 +130,7 @@ void msetl_example2() {
 		iterator using the make_begin_iterator() et al. functions, which take a (safe) pointer to the container. */
 		auto iter1 = mse::make_begin_iterator(vo1_regptr1);
 		auto citer1 = mse::make_end_const_iterator(vo1_regptr1);
-		citer1 = iter1;
+		IF_NOT_MSVC2019_INTELLISENSE_BUGS1(citer1 = iter1;);
 		rg_vo1.emplace(vo1_regptr1, citer1, "some other text");
 		rg_vo1.insert(vo1_regptr1, citer1, "some other text");
 		mse::mtnii_string str1 = "some other text";
@@ -181,8 +181,10 @@ void msetl_example2() {
 				std::sort(xscp_iter1, xscp_iter2);
 
 				auto xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
-				xscp_citer3 = xscp_iter1;
-				xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+				IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
+					xscp_citer3 = xscp_iter1;
+					xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+				);
 				xscp_citer3 += 2;
 				auto res1 = *xscp_citer3;
 				auto res2 = xscp_citer3[0];
@@ -248,7 +250,7 @@ void msetl_example2() {
 		iterator using the make_begin_iterator() et al. functions, which take a (safe) pointer to the container. */
 		auto iter1 = mse::make_begin_iterator(vo1_regptr1);
 		auto citer1 = mse::make_end_const_iterator(vo1_regptr1);
-		citer1 = iter1;
+		IF_NOT_MSVC2019_INTELLISENSE_BUGS1(citer1 = iter1;);
 		rg_vo1.emplace(vo1_regptr1, citer1, "some other text");
 		rg_vo1.insert(vo1_regptr1, citer1, "some other text");
 		mse::mtnii_string str1 = "some other text";
@@ -305,8 +307,11 @@ void msetl_example2() {
 				auto res3 = *xscp_ptr1;
 
 				auto xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
-				xscp_citer3 = xscp_iter1;
-				xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+				IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
+					xscp_citer3 = xscp_iter1;
+					xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+				);
+
 				xscp_citer3 += 2;
 				auto res1 = *xscp_citer3;
 				auto res2 = xscp_citer3[0];
@@ -575,6 +580,7 @@ void msetl_example2() {
 				const_ra_iter1--;
 				return const_ra_iter1[2];
 			}
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 			static void foo3(mse::TXScopeCSSSXSTERandomAccessSection<int> ra_section) {
 				for (mse::TXScopeCSSSXSTERandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
 					ra_section[i] = 0;
@@ -594,6 +600,7 @@ void msetl_example2() {
 				}
 				return retval;
 			}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		};
 
 		auto xs_mstd_array_iter1 = mse::make_xscope_begin_iterator(&xs_mstd_array1);
@@ -631,14 +638,14 @@ void msetl_example2() {
 		auto xs_mstd_vec1_end_citer1 = mse::make_xscope_end_iterator(&xs_mstd_vec1);
 		mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter2 = xs_mstd_vec1_end_citer1;
 		auto res5 = xs_te_iter2 - xs_te_iter1;
-		xs_te_iter1 = xs_te_iter2;
+		IF_NOT_MSVC2019_INTELLISENSE_BUGS1(xs_te_iter1 = xs_te_iter2;);
 
 		{
 			auto std_array1 = mse::make_xscope(std::array<int, 4>{ 1, 2, 3, 4 });
 			mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter1(mse::make_xscope_begin_iterator(&std_array1));
 			mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter2 = mse::make_xscope_end_iterator(&std_array1);
 			auto res5 = xs_te_iter2 - xs_te_iter1;
-			xs_te_iter1 = xs_te_iter2;
+			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(xs_te_iter1 = xs_te_iter2;);
 		}
 
 		mse::TXScopeObj<mse::mstd::array<int, 4> > mstd_array3_scpobj = mse::mstd::array<int, 4>({ 1, 2, 3, 4 });
@@ -646,9 +653,9 @@ void msetl_example2() {
 		++mstd_array_scpiter3;
 		B::foo1(mstd_array_scpiter3);
 
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		mse::TXScopeCSSSXSTERandomAccessSection<int> xscp_ra_section1(xs_mstd_array_iter1++, 2);
 		B::foo3(xscp_ra_section1);
-
 		auto xs_mstd_vec_iter1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
 		mse::TXScopeCSSSXSTERandomAccessSection<int> xscp_ra_section2(++xs_mstd_vec_iter1, 3);
 		/*
@@ -665,11 +672,6 @@ void msetl_example2() {
 		B::foo3(xscp_ra_section2);
 		auto res7 = B::foo4(xscp_ra_section2);
 
-		auto xscp_ra_section1_xscp_iter1 = xscp_ra_section1.xscope_begin();
-		auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
-		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
-		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
-
 		auto xs_ra_section1 = mse::make_xscope_random_access_section(xs_mstd_array_iter1, 2);
 		B::foo3(xs_ra_section1);
 		auto xs_ra_const_section2 = mse::make_xscope_random_access_const_section(mse::make_xscope_begin_const_iterator(&xs_mstd_vec1), 2);
@@ -677,6 +679,12 @@ void msetl_example2() {
 
 		auto nii_array4_scpobj = mse::make_xscope(mse::nii_array<int, 4>{ 1, 2, 3, 4 });
 		auto xscp_ra_section3 = mse::make_xscope_csssxste_random_access_section(&nii_array4_scpobj);
+
+		auto xscp_ra_section1_xscp_iter1 = xscp_ra_section1.xscope_begin();
+		auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
+		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
+		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
 
 	{
@@ -693,6 +701,7 @@ void msetl_example2() {
 			auto elem_ptr1 = mse::make_optional_element_pointer(opt1_refcptr);
 			auto val1 = *elem_ptr1;
 		}
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
 			/* More commonly, the optional<> object might be declared as a scope object. */
 			auto xs_opt1 = mse::make_xscope(mse::mstd::make_optional(mse::mstd::string("abc")));
@@ -709,6 +718,7 @@ void msetl_example2() {
 			auto xs_ptr1 = mse::xscope_pointer(xs_elem_ptr1);
 			auto val1 = *xs_ptr1;
 		}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
 			/* The reason is subtle, but the implementation mstd::optional<> uses to support the ability to obtain a scope
 			(const) pointer to its contained element from a const reference to the mstd::optional<> makes it ineligible to be
@@ -718,6 +728,7 @@ void msetl_example2() {
 			auto elem_ptr1 = mse::make_optional_element_pointer(opt1_access_requester.writelock_ptr());
 			auto val1 = *elem_ptr1;
 		}
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
 			/* mstd::optional<> and mt_optional<> can, like any other type, be declared as a scope type (using
 			mse::make_xscope() / mse::TXScopeObj<>). But they do not support using scope types as their contained element
@@ -751,6 +762,7 @@ void msetl_example2() {
 		}
 
 		mse::self_test::COptionalTest1::s_test1();
+#endif // EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
 
 	{
@@ -819,12 +831,14 @@ void msetl_example2() {
 				return mse::return_value(xscp_string1);
 			}
 
-			/* In the less common case where the scope type doesn't have an underlying non-scope type, it may be safe
-			to return the scope object.  */
-			static mse::xscope_optional<mse::mstd::string> foo2() {
-				mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
-				return mse::return_value(xscp_returnable_obj1);
-			}
+			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
+				/* In the less common case where the scope type doesn't have an underlying non-scope type, it may be safe
+				to return the scope object.  */
+				static mse::xscope_optional<mse::mstd::string> foo2() {
+					mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
+					return mse::return_value(xscp_returnable_obj1);
+				}
+			)
 
 			static auto foo3() {
 				mse::TXScopeObj<mse::mstd::string> xscp_string1("some text");
@@ -839,7 +853,7 @@ void msetl_example2() {
 		};
 
 		mse::TXScopeObj<mse::mstd::string> xscp_res1 = CB::foo1();
-		mse::xscope_optional<mse::mstd::string> xscp_res2 = CB::foo2();
+		IF_NOT_MSVC2019_INTELLISENSE_BUGS1(mse::xscope_optional<mse::mstd::string> xscp_res2 = CB::foo2(););
 
 		typedef mse::TXScopeObj<mse::mstd::string> xscope_string_t;
 		xscope_string_t xscp_str1 = "some text";
@@ -849,6 +863,7 @@ void msetl_example2() {
 		//auto xscp_ptr_res1 = J::foo10(xscp_str1); // <-- would induce a compile error inside J::foo10() 
 	}
 
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	{
 		/* Defining your own scope types. */
 
@@ -891,6 +906,7 @@ void msetl_example2() {
 			mse::TXScopeOwnerPointer<mse::mstd::string> m_xscp_string_owner_ptr;
 		};
 	}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 
 	{
 		/****************************/
@@ -927,6 +943,7 @@ void msetl_example2() {
 		auto xscp_ra_section3 = mse::random_access_subsection(xscp_ra_section1, std::make_tuple(0, xscp_ra_section1.length()/2));
 		assert(xscp_ra_section3.length() == 1);
 
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
 			/* In this block we demonstrate the rsv::TXScopeFParam<> specializations that enable passing temporary objects to
 			functions expecting scope random access section arguments. */
@@ -955,6 +972,7 @@ void msetl_example2() {
 			auto res3 = CD::second_is_longer_any(xscope_ra_csection1, mse::make_xscope_random_access_const_section(
 				mse::pointer_to(mse::TXScopeObj<mse::mtnii_vector<int> >(mse::mtnii_vector<int>{ 1, 2, 3, 4}))));
 		}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
 
 	{
@@ -1093,6 +1111,7 @@ void msetl_example2() {
 		typedef mse::TXScopeObj< mse::mtnii_string > xscope_mtnii_string_t;
 		xscope_mtnii_string_t xscp_nstring1("some text");
 		auto xscp_citer1 = mse::make_xscope_begin_const_iterator(&xscp_nstring1);
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		auto xscp_string_section1 = mse::make_xscope_string_const_section(xscp_citer1 + 1, 7);
 		auto xscp_string_section2 = mse::make_xscope_substr(xscp_string_section1, 4, 3);
 		assert(xscp_string_section2.front() == 't');
@@ -1145,6 +1164,7 @@ void msetl_example2() {
 			auto res3 = CD::second_is_longer_any(xscope_string_csection1, mse::make_xscope_string_const_section(
 				mse::pointer_to(mse::TXScopeObj<mse::mtnii_string >(mse::mtnii_string{"abcd"}))));
 		}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
 
 	{
@@ -1167,6 +1187,7 @@ void msetl_example2() {
 		/* This is a different type of (safe) iterator to a different type of string. */
 		auto iter = reg_mtnii_string_t::ss_begin(&reg_mtnii_string3);
 
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		/* Resulting in a different type of string section. */
 		auto string_section3 = mse::make_string_section(iter+11, 3);
 
@@ -1176,8 +1197,10 @@ void msetl_example2() {
 		assert(any_string_section1.back() == 'x');
 		any_string_section1 = string_section3;
 		any_string_section1[1] = 'E';
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
 
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	{
 		/************************************/
 		/*  TXScopeCSSSXSTEStringSection<>  */
@@ -1211,6 +1234,7 @@ void msetl_example2() {
 		assert(xs_csssxste_string_section1.back() == 'x');
 		xs_csssxste_string_section1[1] = 'E';
 	}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 
 	{
 		/***********************/
@@ -1287,12 +1311,14 @@ void msetl_example2() {
 			The '&' operator is overloaded. */
 			auto xscope_pointer = &xscope_s2;
 
-			/* Here we create a safe "string_view"-like object we call a "string section". This version has no extra
-			run-time overhead. The "xscope_" prefix indicates that this version also has scope lifetime (enforced to the
-			extent possible). */
-			auto xscope_sv = mse::make_xscope_nrp_string_const_section(xscope_pointer);
+			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
+				/* Here we create a safe "string_view"-like object we call a "string section". This version has no extra
+				run-time overhead. The "xscope_" prefix indicates that this version also has scope lifetime (enforced to the
+				extent possible). */
+				auto xscope_sv = mse::make_xscope_nrp_string_const_section(xscope_pointer);
 
-			std::cout << xscope_sv;
+				std::cout << xscope_sv;
+			);
 
 			/* The preceding block, while a little more verbose, is memory safe without extra run-time overhead. */
 
@@ -1307,6 +1333,7 @@ void msetl_example2() {
 			/* Passing a temporary scope string section that references a temporary string as a function argument is
 			supported. But only if the function parameter is declared to support it. */
 		}
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
 			std::string s = "Hellooooooooooooooo ";
 			auto sv = mse::make_nrp_string_const_section(mse::make_refcounting<std::string>(s + "World\n"));
@@ -1341,6 +1368,7 @@ void msetl_example2() {
 			}
 #endif //!MSE_REGISTEREDPOINTER_DISABLED
 		}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
 
 	{
@@ -1389,10 +1417,12 @@ void msetl_example2() {
 
 			auto found_citer3 = mse::find_if_ptr(ma1.cbegin(), ma1.cend(), [](const auto x_ptr) { return 2 == *x_ptr; });
 
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 			/* This version returns an optional scope pointer to the found item rather than an iterator. */
 			typedef mse::xscope_range_get_ref_if_ptr_type<decltype(&xscope_na1)> range_item_ptr_t;
 			auto xscope_optional_xscpptr4 = mse::xscope_range_get_ref_if_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { return 2 == *x_ptr; });
 			auto res4 = xscope_optional_xscpptr4.value();
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 
 			/* This version returns a scope pointer to the found item or throws an exception if an appropriate item isn't
 			found. */
@@ -1488,8 +1518,10 @@ void msetl_example2() {
 			std::sort(xscp_iter1, xscp_iter2);
 
 			auto xscp_citer3 = mse::make_xscope_begin_const_iterator(basic_string_xscope_ptr);
-			xscp_citer3 = xscp_iter1;
-			xscp_citer3 = mse::make_xscope_begin_const_iterator(basic_string_xscope_ptr);
+			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
+				xscp_citer3 = xscp_iter1;
+				xscp_citer3 = mse::make_xscope_begin_const_iterator(basic_string_xscope_ptr);
+			);
 			xscp_citer3 += 1;
 			auto res1 = *xscp_citer3;
 			auto res2 = xscp_citer3[0];
@@ -1610,7 +1642,6 @@ void msetl_example2() {
 			auto res18 = array2[1];
 		}
 	}
-
 }
 
 

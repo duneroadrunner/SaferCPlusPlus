@@ -263,6 +263,7 @@ void msetl_example3() {
 			}
 			std::cout << std::endl;
 		}
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
 			/* Just demonstrating the existence of the "try" versions. */
 			auto access_requester = mse::make_asyncsharedv2readwrite<mse::mtnii_string>("some text");
@@ -274,6 +275,7 @@ void msetl_example3() {
 			auto readlock_ptr2 = access_requester.try_readlock_ptr_for(std::chrono::seconds(1));
 			auto writelock_ptr3 = access_requester.try_writelock_ptr_until(std::chrono::steady_clock::now() + std::chrono::seconds(1));
 		}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
 			/* TAsyncSharedV2WeakReadWriteAccessRequester<> is the weak counterpart to TAsyncSharedV2ReadWriteAccessRequester<>
 			analogous to how std::weak_ptr<> is the weak counterpart to std::shared_ptr<>. */
@@ -661,6 +663,7 @@ void msetl_example3() {
 			int res2 = (*xscope_D_atomic_ptr).load().b;
 		}
 
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
 			/* This block is similar to a previous one that demonstrates safely allowing different threads to (simultaneously)
 			modify different sections of a vector. The difference is just that here the shared vector is a pre-existing one
@@ -771,6 +774,7 @@ void msetl_example3() {
 
 			int q = 5;
 		}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
 }
 

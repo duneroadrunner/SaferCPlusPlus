@@ -73,4 +73,16 @@ them to be enabled. */
 
 #define MSE_SELF_TESTS
 
+#if (1916 <= _MSC_VER) && !defined(MSETL_IGNORE_INTELLISENSE_BUGS)
+/* msvc2019 seems to have introduced bugs in its "intellisense" feature where it sometimes has difficulty dealing
+with some of the library's elements (like iterator assignment operators and xscope_optional<>s). The compiler has no
+problem with them, just the "intellisense" feature.  Unfortunately, the presence of these elements completely breaks
+the intellisense feature, so here we define a couple of macros to exclude parts of the example code that intellisense
+can't handle. */
+#define EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+#define IF_NOT_MSVC2019_INTELLISENSE_BUGS1(x) ;
+#else // (1916 <= _MSC_VER) && !defined(IGNORE_INTELLISENSE_BUG1)
+#define IF_NOT_MSVC2019_INTELLISENSE_BUGS1(x) x
+#endif // (1916 <= _MSC_VER) && !defined(IGNORE_INTELLISENSE_BUG1)
+
 #endif /*ndef MSETL_EXAMPLE_DEFS_H*/
