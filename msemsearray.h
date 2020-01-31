@@ -3882,7 +3882,9 @@ namespace mse {
 	template<class _TArrayPointer>
 	auto make_xscope_end_iterator(const _TArrayPointer& owner_ptr) {
 		typedef typename mse::difference_type_of_iterator<decltype(mse::make_xscope_begin_iterator(owner_ptr))>::type difference_type;
-		return mse::make_xscope_begin_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
+		auto retval = mse::make_xscope_begin_iterator(owner_ptr);
+		retval += difference_type(mse::container_size(owner_ptr) - 0);
+		return retval;
 	}
 
 	namespace impl {
@@ -4002,7 +4004,9 @@ namespace mse {
 	template<class _TArrayPointer>
 	auto make_end_iterator(const _TArrayPointer& owner_ptr) {
 		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(owner_ptr))>::type difference_type;
-		return mse::make_begin_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
+		auto retval = mse::make_begin_iterator(owner_ptr);
+		retval += difference_type(mse::container_size(owner_ptr) - 0);
+		return retval;
 	}
 
 
@@ -5212,16 +5216,23 @@ namespace mse {
 				class xscope_const_iterator : public xscope_const_iterator_base {
 				public:
 					typedef xscope_const_iterator_base base_class;
+					MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+					xscope_const_iterator(const xscope_const_iterator&) = default;
+					xscope_const_iterator(xscope_const_iterator&&) = default;
 
-					MSE_USING(xscope_const_iterator, base_class);
-					template<class _TRASectionPointer>
-					xscope_const_iterator(const _TRASectionPointer& ptr) : base_class((*ptr).m_start_iter, (*ptr).m_count) {}
+					//MSE_USING(xscope_const_iterator, base_class);
+					template<class _TRASectionPointer, class = typename std::enable_if<!std::is_base_of<base_class, _TRASectionPointer>::value, void>::type>
+					xscope_const_iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+				private:
+					xscope_const_iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
+					friend class TRandomAccessConstSectionBase;
 				};
+				typedef xscope_const_iterator xscope_iterator;
 				xscope_const_iterator xscope_begin() const { return (*this).xscope_cbegin(); }
-				xscope_const_iterator xscope_cbegin() const { return xscope_const_iterator((*this).m_start_iter, (*this).m_count); }
+				xscope_const_iterator xscope_cbegin() const { return xscope_const_iterator((*this).m_start_iter, (*this).m_count, 0); }
 				xscope_const_iterator xscope_end() const { return (*this).xscope_cend(); }
 				xscope_const_iterator xscope_cend() const {
-					auto retval(xscope_const_iterator((*this).m_start_iter, (*this).m_count));
+					auto retval(xscope_const_iterator((*this).m_start_iter, (*this).m_count, 0));
 					retval += mse::msear_as_a_size_t((*this).m_count);
 					return retval;
 				}
@@ -5355,11 +5366,27 @@ namespace mse {
 		auto first(size_type count) const { return subsection_pv(0, count); }
 		auto last(size_type count) const { return subsection_pv(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
-		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
-		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+		typedef TRASectionConstIterator<_TRAIterator> const_iterator_base;
+		class const_iterator : public const_iterator_base {
+		public:
+			typedef const_iterator_base base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+			const_iterator(const const_iterator&) = default;
+			const_iterator(const_iterator&&) = default;
+
+			//MSE_USING(const_iterator, base_class);
+			template<class _TRASectionPointer, class = typename std::enable_if<!std::is_base_of<base_class, _TRASectionPointer>::value, void>::type>
+			const_iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+		private:
+			const_iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
+			friend class TRandomAccessConstSection;
+		};
+		typedef const_iterator iterator;
+
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count, 0); }
 		const_iterator begin() const { return cbegin(); }
 		const_iterator cend() const {
-			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count, 0));
 			retval += mse::msear_as_a_size_t((*this).m_count);
 			return retval;
 		}
@@ -5767,12 +5794,16 @@ namespace mse {
 				class xscope_iterator : public xscope_iterator_base {
 				public:
 					typedef xscope_iterator_base base_class;
+					MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 					xscope_iterator(const xscope_iterator&) = default;
 					xscope_iterator(xscope_iterator&&) = default;
 
-					MSE_USING(xscope_iterator, base_class);
-					template<class _TRASectionPointer, class = typename std::enable_if<(!std::is_base_of<xscope_iterator_base, _TRASectionPointer>::value), void>::type>
-					xscope_iterator(const _TRASectionPointer& ptr) : base_class((*ptr).m_start_iter, (*ptr).m_count) {}
+					//MSE_USING(xscope_iterator, base_class);
+					template<class _TRASectionPointer, class = typename std::enable_if<!std::is_base_of<base_class, _TRASectionPointer>::value, void>::type>
+					xscope_iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+				private:
+					xscope_iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
+					friend class TRandomAccessSectionBase;
 				};
 
 				typedef typename std::conditional<mse::impl::is_instantiation_of<_TRAIterator, mse::TXScopeCSSSStrongRAConstIterator>::value
@@ -5786,19 +5817,22 @@ namespace mse {
 					xscope_const_iterator(const xscope_const_iterator&) = default;
 					xscope_const_iterator(xscope_const_iterator&&) = default;
 
-					MSE_USING(xscope_const_iterator, base_class);
-					template<class _TRASectionPointer, class = typename std::enable_if<(!std::is_base_of<xscope_iterator_base, _TRASectionPointer>::value), void>::type>
-					xscope_const_iterator(const _TRASectionPointer& ptr) : base_class((*ptr).m_start_iter, (*ptr).m_count) {}
+					//MSE_USING(xscope_const_iterator, base_class);
+					template<class _TRASectionPointer, class = typename std::enable_if<!std::is_base_of<base_class, _TRASectionPointer>::value, void>::type>
+					xscope_const_iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+				private:
+					xscope_const_iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
+					friend class TRandomAccessSectionBase;
 				};
-				xscope_iterator xscope_begin() const { return xscope_iterator((*this).m_start_iter, (*this).m_count); }
-				xscope_const_iterator xscope_cbegin() const { return xscope_const_iterator((*this).m_start_iter, (*this).m_count); }
+				xscope_iterator xscope_begin() const { return xscope_iterator((*this).m_start_iter, (*this).m_count, 0); }
+				xscope_const_iterator xscope_cbegin() const { return xscope_const_iterator((*this).m_start_iter, (*this).m_count, 0); }
 				xscope_iterator xscope_end() const {
-					auto retval(xscope_iterator((*this).m_start_iter, (*this).m_count));
+					auto retval(xscope_iterator((*this).m_start_iter, (*this).m_count, 0));
 					retval += mse::msear_as_a_size_t((*this).m_count);
 					return retval;
 				}
 				xscope_const_iterator xscope_cend() const {
-					auto retval(xscope_const_iterator((*this).m_start_iter, (*this).m_count));
+					auto retval(xscope_const_iterator((*this).m_start_iter, (*this).m_count, 0));
 					retval += mse::msear_as_a_size_t((*this).m_count);
 					return retval;
 				}
@@ -5936,20 +5970,48 @@ namespace mse {
 		auto first(size_type count) const { return subsection_pv(0, count); }
 		auto last(size_type count) const { return subsection_pv(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
+		typedef TRASectionIterator<_TRAIterator> iterator_base;
+		class iterator : public iterator_base {
+		public:
+			typedef iterator_base base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+			iterator(const iterator&) = default;
+			iterator(iterator&&) = default;
 
-		typedef TRASectionIterator<_TRAIterator> iterator;
-		typedef TRASectionConstIterator<_TRAIterator> const_iterator;
-		iterator begin() { return iterator((*this).m_start_iter, (*this).m_count); }
+			//MSE_USING(iterator, base_class);
+			template<class _TRASectionPointer, class = typename std::enable_if<!std::is_base_of<base_class, _TRASectionPointer>::value, void>::type>
+			iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+		private:
+			iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
+			friend class TRandomAccessSection;
+		};
+		typedef TRASectionConstIterator<_TRAIterator> const_iterator_base;
+		class const_iterator : public const_iterator_base {
+		public:
+			typedef const_iterator_base base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+			const_iterator(const const_iterator&) = default;
+			const_iterator(const_iterator&&) = default;
+
+			//MSE_USING(const_iterator, base_class);
+			template<class _TRASectionPointer, class = typename std::enable_if<!std::is_base_of<base_class, _TRASectionPointer>::value, void>::type>
+			const_iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+		private:
+			const_iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
+			friend class TRandomAccessSection;
+		};
+
+		iterator begin() { return iterator((*this).m_start_iter, (*this).m_count, 0); }
 		const_iterator begin() const { return cbegin(); }
-		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count); }
+		const_iterator cbegin() const { return const_iterator((*this).m_start_iter, (*this).m_count, 0); }
 		iterator end() {
-			auto retval(iterator((*this).m_start_iter, (*this).m_count));
+			auto retval(iterator((*this).m_start_iter, (*this).m_count, 0));
 			retval += mse::msear_as_a_size_t((*this).m_count);
 			return retval;
 		}
 		const_iterator end() const { return cend(); }
 		const_iterator cend() const {
-			auto retval(const_iterator((*this).m_start_iter, (*this).m_count));
+			auto retval(const_iterator((*this).m_start_iter, (*this).m_count, 0));
 			retval += mse::msear_as_a_size_t((*this).m_count);
 			return retval;
 		}

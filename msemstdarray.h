@@ -742,7 +742,9 @@ namespace mse {
 		}
 		template<class _TArrayPointer>
 		auto make_xscope_end_iterator(const _TArrayPointer& owner_ptr) {
-			return mse::mstd::make_xscope_begin_iterator(owner_ptr) + (*owner_ptr).size();
+			auto retval = mse::mstd::make_xscope_begin_iterator(owner_ptr);
+			retval += (*owner_ptr).size();
+			return retval;
 		}
 		/* Overloads for rsv::TReturnableFParam<>. */
 		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_begin_const_iterator)
