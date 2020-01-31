@@ -284,7 +284,7 @@ namespace mse {
 		};
 
 		template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty> */>
-		class basic_string : public mse::us::impl::AsyncNotShareableTagBase, public us::impl::ContiguousSequenceContainerTagBase {
+		class basic_string : public mse::us::impl::AsyncNotShareableTagBase, public us::impl::ContiguousSequenceContainerTagBase, public us::impl::LockableStructureContainerTagBase {
 		public:
 			typedef basic_string _Myt;
 			typedef mse::us::msebasic_string<_Ty, _Traits, _A> _MBS;

@@ -3426,7 +3426,7 @@ namespace mse {
 			run-time overhead. gnii_basic_string<> is a data type that is eligible to be shared between asynchronous threads. */
 			/* Default template parameter values are specified in the forward declaration. */
 			template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/, template<typename> class _TTXScopeConstIterator/* = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type*/>
-			class gnii_basic_string : private mse::impl::TOpaqueWrapper<std::basic_string<_Ty, _Traits, _A> >, public us::impl::ContiguousSequenceContainerTagBase {
+			class gnii_basic_string : private mse::impl::TOpaqueWrapper<std::basic_string<_Ty, _Traits, _A> >, public us::impl::ContiguousSequenceContainerTagBase, public us::impl::LockableStructureContainerTagBase {
 			private:
 		#ifdef MSE_HAS_CXX17
 				/* Helper classes for converting from string_views. */

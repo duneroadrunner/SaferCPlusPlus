@@ -199,6 +199,9 @@ namespace mse {
 		using _mse_Guide_size_type_t = typename std::allocator_traits<std::conditional_t<_mse_Is_allocator<_Alloc>::value, _Alloc, std::allocator<int>>>::size_type;
 #endif /* MSE_HAS_CXX17 */
 
+		template <typename _Ty> struct is_contiguous_sequence_container<std::vector<_Ty> > : std::true_type {};
+		template <typename _Ty, typename _A> struct is_contiguous_sequence_container<std::vector<_Ty, _A> > : std::true_type {};
+
 		template<class T, class EqualTo>
 		struct HasOrInheritsLessThanOperator_msemsevector_impl
 		{
@@ -303,15 +306,6 @@ namespace mse {
 					return mse::us::unsafe_make_xscope_csss_strong_ra_iterator<_TStructureLockPointer>((*this).target_container_ptr(), (*this).position());
 				}
 				void xscope_csss_strong_ra_iterator() const && = delete;
-				operator TXScopeCSSSStrongRAIterator<_TStructureLockPointer>() const & {
-					return mse::us::unsafe_make_xscope_csss_strong_ra_iterator<_TStructureLockPointer>((*this).target_container_ptr(), (*this).position());
-				}
-				operator TXScopeCSSSStrongRAIterator<_TStructureLockPointer>() const && = delete;
-				operator TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>() const & {
-					return mse::us::unsafe_make_xscope_csss_strong_ra_iterator<_TStructureLockPointer>((*this).target_container_ptr(), (*this).position());
-				}
-				operator TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>() const && = delete;
-				/* todo: implement operator TXScopeCagedCSSSStrongRAIterator<>() const &&. */
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_iterator_tag() const {}
@@ -364,11 +358,6 @@ namespace mse {
 					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator<_TStructureLockPointer>((*this).target_container_ptr(), (*this).position());
 				}
 				void xscope_csss_strong_ra_iterator() const && = delete;
-				operator TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>() const & {
-					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator<_TStructureLockPointer>((*this).target_container_ptr(), (*this).position());
-				}
-				operator TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>() const && = delete;
-				/* todo: implement operator TXScopeCagedCSSSStrongRAConstIterator<>() const &&. */
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_iterator_tag() const {}
@@ -462,45 +451,29 @@ namespace mse {
 
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	auto xscope_pointer(const us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& iter_cref) {
-		return xscope_pointer(TXScopeCSSSStrongRAIterator<_TStructureLockPointer>(iter_cref));
+		//return xscope_pointer(static_cast<const TXScopeCSSSStrongRAIterator<_TStructureLockPointer>&>(iter_cref));
+		return xscope_pointer(static_cast<const TXScopeCSSSStrongRAIterator<_TStructureLockPointer>&>(iter_cref));
 	}
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	void xscope_pointer(const us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>&& iter_cref) = delete;
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	auto xscope_pointer(const us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& iter_cref) {
-		return xscope_pointer(TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>(iter_cref));
+		return xscope_pointer(static_cast<const TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>&>(iter_cref));
 	}
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	void xscope_pointer(const us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>&& iter_cref) = delete;
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	auto xscope_const_pointer(const us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& iter_cref) {
-		return xscope_const_pointer(TXScopeCSSSStrongRAIterator<_TStructureLockPointer>(iter_cref));
+		return xscope_const_pointer(static_cast<const TXScopeCSSSStrongRAIterator<_TStructureLockPointer>&>(iter_cref));
 	}
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	void xscope_const_pointer(const us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>&& iter_cref) = delete;
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	auto xscope_const_pointer(const us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& iter_cref) {
-		return xscope_const_pointer(TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>(iter_cref));
+		return xscope_const_pointer(static_cast<const TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>&>(iter_cref));
 	}
 	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 	void xscope_const_pointer(const us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>&& iter_cref) = delete;
-
-	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
-	auto xscope_pointer(const mse::TXScopeItemFixedConstPointer<us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> >& iter_xscptr) {
-		return xscope_pointer(TXScopeCSSSStrongRAIterator<_TStructureLockPointer>(*iter_xscptr));
-	}
-	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
-	auto xscope_pointer(const mse::TXScopeItemFixedConstPointer<us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> >& iter_xscptr) {
-		return xscope_pointer(TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>(*iter_xscptr));
-	}
-	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
-	auto xscope_const_pointer(const mse::TXScopeItemFixedConstPointer<us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> >& iter_xscptr) {
-		return xscope_const_pointer(TXScopeCSSSStrongRAIterator<_TStructureLockPointer>(*iter_xscptr));
-	}
-	template <typename _TRAContainerPointer, typename _TStructureLockPointer>
-	auto xscope_const_pointer(const mse::TXScopeItemFixedConstPointer<us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> >& iter_xscptr) {
-		return xscope_const_pointer(TXScopeCSSSStrongRAConstIterator<_TStructureLockPointer>(*iter_xscptr));
-	}
 
 	namespace impl {
 		namespace ns_gnii_vector {
@@ -843,7 +816,8 @@ namespace mse {
 			template<class TDynamicContainer> class Txscope_const_structure_lock_guard;
 
 			template<class TDynamicContainer>
-			class Txscope_structure_lock_guard : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+			class Txscope_structure_lock_guard : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase
+				, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::StructureLockTagBase {
 			public:
 				Txscope_structure_lock_guard(Txscope_structure_lock_guard&& src) : m_stored_ptr(std::forward<decltype(src)>(src).m_stored_ptr) { lock_the_target(); }
 				template<class TDynamicContainer2, class = typename std::enable_if<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value, void>::type>
@@ -927,7 +901,8 @@ namespace mse {
 				friend class Txscope_const_structure_lock_guard<TDynamicContainer>;
 			};
 			template<class TDynamicContainer>
-			class Txscope_const_structure_lock_guard : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+			class Txscope_const_structure_lock_guard : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase
+				, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::StructureLockTagBase {
 			public:
 				Txscope_const_structure_lock_guard(Txscope_const_structure_lock_guard&& src) : m_stored_ptr(std::forward<decltype(src)>(src).m_stored_ptr) { lock_the_target(); }
 				template<class TDynamicContainer2, class = typename std::enable_if<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value, void>::type>
@@ -1011,7 +986,8 @@ namespace mse {
 			while a const pointer to the object exists. So given an "exclusive writer" const pointer to a dynamic
 			container, it is safe to store the pointer and provide a direct scope const pointer to any of its elements. */
 			template<class TDynamicContainer, class _TAccessMutex = mse::non_thread_safe_shared_mutex>
-			class Txscope_ewconst_structure_lock_guard : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+			class Txscope_ewconst_structure_lock_guard : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase
+				, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::StructureLockTagBase {
 			public:
 				typedef mse::TAccessControlledConstPointer<TDynamicContainer, _TAccessMutex> exclusive_writer_const_pointer_t;
 
@@ -1084,7 +1060,8 @@ namespace mse {
 			template<class TDynamicContainer, class TBaseContainerStructureLockGuard> class Txscope_const_structure_lock_guard_of_wrapper;
 
 			template<class TDynamicContainer, class TBaseContainerStructureLockGuard>
-			class Txscope_structure_lock_guard_of_wrapper : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+			class Txscope_structure_lock_guard_of_wrapper : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase
+				, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::StructureLockTagBase {
 			public:
 				Txscope_structure_lock_guard_of_wrapper(const Txscope_structure_lock_guard_of_wrapper&) = default;
 				template<class TDynamicContainer2, class TBaseContainerStructureLockGuard2, class = typename std::enable_if<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value && std::is_convertible<TBaseContainerStructureLockGuard2, TBaseContainerStructureLockGuard>::value, void>::type>
@@ -1165,7 +1142,8 @@ namespace mse {
 				friend class Txscope_const_structure_lock_guard_of_wrapper;
 			};
 			template<class TDynamicContainer, class TBaseContainerStructureLockGuard>
-			class Txscope_const_structure_lock_guard_of_wrapper : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+			class Txscope_const_structure_lock_guard_of_wrapper : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase
+				, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::StructureLockTagBase {
 			public:
 				Txscope_const_structure_lock_guard_of_wrapper(const Txscope_const_structure_lock_guard_of_wrapper&) = default;
 				template<class TDynamicContainer2, class TBaseContainerStructureLockGuard2, class = typename std::enable_if<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value && std::is_convertible<TBaseContainerStructureLockGuard2, TBaseContainerStructureLockGuard>::value, void>::type>
@@ -1251,7 +1229,7 @@ namespace mse {
 			inherits the safety of the given pointer. mse::us::impl::gnii_vector<> also supports "scope" iterators which are safe without any
 			run-time overhead. mse::us::impl::gnii_vector<> is a data type that is eligible to be shared between asynchronous threads. */
 			template<class _Ty, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/, template<typename> class _TTXScopeConstIterator/* = mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type*/>
-			class gnii_vector : private mse::impl::TOpaqueWrapper<std::vector<_Ty, _A> >, public us::impl::ContiguousSequenceContainerTagBase {
+			class gnii_vector : private mse::impl::TOpaqueWrapper<std::vector<_Ty, _A> >, public us::impl::ContiguousSequenceContainerTagBase, public us::impl::LockableStructureContainerTagBase {
 			public:
 				typedef _TStateMutex state_mutex_type;
 

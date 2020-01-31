@@ -71,7 +71,7 @@
 
 /* start of scope pointer defines */
 
-/* This is done here rather than in msescope.h because some elements in this file have to know whether or not
+/* This is done here rather than in msescope.h because some elements in this file need to know whether or not
 MSE_SCOPEPOINTER_DISABLED will ultimately be defined. */
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
@@ -106,7 +106,7 @@ MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug 
 
 /* start of thread_local pointer defines */
 
-/* This is done here rather than in msethreadlocal.h because some elements in this file have to know whether or not
+/* This is done here rather than in msethreadlocal.h because some elements in this file need to know whether or not
 MSE_THREADLOCALPOINTER_DISABLED will ultimately be defined. */
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
@@ -136,7 +136,7 @@ MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-
 
 /* start of static pointer defines */
 
-/* This is done here rather than in msethreadlocal.h because some elements in this file have to know whether or not
+/* This is done here rather than in msestaticimmutable.h because some elements in this file need to know whether or not
 MSE_STATICPOINTER_DISABLED will ultimately be defined. */
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
@@ -161,6 +161,22 @@ MSE_STATICPOINTER_DISABLED will ultimately be defined. */
 #endif // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 
 /* end of static pointer defines */
+
+/* start of mstd::array and mstd::vector defines */
+
+/* This is done here rather than in msemstdarray.h because some elements in both the msescope.h and msemsearray.h files
+need to know whether or not MSE_MSTDARRAY_DISABLED and MSE_MSTDVECTOR_DISABLED will ultimately be defined. */
+
+#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+#define MSE_MSTDARRAY_DISABLED
+#endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
+#ifdef MSE_MSTDVECTOR_DISABLED
+/* At the moment, the implementation of "disabled" mstd::vector<> is dependent on the implementation of disabled mstd::array<>,
+so you can't disable mstd::vector<> without also disabling mstd::array<>. */
+#define MSE_MSTDARRAY_DISABLED
+#endif /*MSE_MSTDVECTOR_DISABLED*/
+
+/* end of mstd::array and mstd::vector defines */
 
 
 #if defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
@@ -341,6 +357,9 @@ namespace mse {
 
 		template<class B>
 		struct negation : std::integral_constant<bool, !bool(B::value)> { };
+
+		template<class _Derived, class _Base>
+		struct is_derived_from : std::is_base_of<_Base, _Derived> {};
 	}
 
 	namespace us {
@@ -797,10 +816,6 @@ namespace mse {
 	public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::AsyncNotShareableTagBase, class2, class3) \
 	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::AsyncNotPassableTagBase, class2, class3)
 
-#define MSE_INHERIT_COMMON_ITERATOR_TAG_BASE_SET_FROM(class2, class3) \
-	MSE_INHERIT_ASYNC_TAG_BASE_SET_FROM(class2, class3) \
-	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ExclusivePointerTagBase, class2, class3)
-
 #define MSE_INHERIT_COMMON_POINTER_TAG_BASE_SET_FROM(class2, class3) \
 	MSE_INHERIT_ASYNC_TAG_BASE_SET_FROM(class2, class3) \
 	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::StrongPointerTagBase, class2, class3) \
@@ -810,10 +825,6 @@ namespace mse {
 #define MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(class2, class3) \
 	public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ReferenceableByScopePointerTagBase, class2, class3) \
 	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, class2, class3)
-
-#define MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(class2, class3) \
-	MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(class2, class3) \
-	, MSE_INHERIT_COMMON_ITERATOR_TAG_BASE_SET_FROM(class2, class3)
 
 #define MSE_INHERIT_COMMON_XSCOPE_POINTER_TAG_BASE_SET_FROM(class2, class3) \
 	MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(class2, class3) \
@@ -1409,6 +1420,11 @@ namespace mse {
 				void exclusive_pointer_tag() const {}
 			};
 			class StrongExclusivePointerTagBase : public StrongPointerTagBase, public ExclusivePointerTagBase {};
+
+			class StrongIteratorTagBase {
+			public:
+				void strong_iterator_tag() const {}
+			};
 
 			class XScopeStructureLockGuardTagBase : public XScopeContainsNonOwningScopeReferenceTagBase, public StrongPointerAsyncNotShareableAndNotPassableTagBase {};
 		}

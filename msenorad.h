@@ -644,10 +644,10 @@ namespace mse {
 		TGNoradObj can be used with objects allocated on the stack. */
 			template<typename _TROFLy, typename _TRefCounter>
 			class TGNoradObj : public _TROFLy
-				, public std::conditional<(!std::is_convertible<_TROFLy const * const, mse::us::impl::AsyncNotShareableTagBase const * const>::value)
+				, public std::conditional<(!mse::impl::is_derived_from<_TROFLy, mse::us::impl::AsyncNotShareableTagBase>::value)
 					&& (std::is_arithmetic/*as opposed to say, atomic*/<_TRefCounter>::value)
 					, mse::us::impl::AsyncNotShareableTagBase, mse::impl::TPlaceHolder<mse::us::impl::AsyncNotShareableTagBase, TGNoradObj<_TROFLy, _TRefCounter> > >::type
-				, public std::conditional<(!std::is_convertible<_TROFLy const * const, mse::us::impl::AsyncNotPassableTagBase const * const>::value)
+				, public std::conditional<(!mse::impl::is_derived_from<_TROFLy, mse::us::impl::AsyncNotPassableTagBase>::value)
 					&& (std::is_arithmetic/*as opposed to say, atomic*/<_TRefCounter>::value)
 					, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder<mse::us::impl::AsyncNotPassableTagBase, TGNoradObj<_TROFLy, _TRefCounter> > >::type
 			{

@@ -2154,7 +2154,7 @@ namespace mse {
 		to ensure safe "async shareability". */
 		template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
 			&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<value_type2>::value)
-			&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
+			&& (mse::impl::is_strong_container_reference_holding_iterator<_TRAIterator>::value)
 			, void>::type>
 		void xscope_async_shareable_and_passable_tag() const {}
 
@@ -2195,7 +2195,7 @@ namespace mse {
 		to ensure safe "async shareability". */
 		template<class value_type2 = value_type, class = typename std::enable_if<(std::is_same<value_type2, value_type>::value)
 			&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<value_type2>::value)
-			&& (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value)
+			&& (mse::impl::is_strong_container_reference_holding_iterator<_TRAIterator>::value)
 			, void>::type>
 		void async_shareable_and_passable_tag() const {}
 

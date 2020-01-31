@@ -569,7 +569,7 @@ namespace mse {
 	TXScopeObj<>, any member of a TXScopeObj<>, or various other items with scope lifetime that, for various reasons, aren't
 	declared as TXScopeObj<>. */
 	template<typename _Ty>
-	class TXScopeItemFixedPointer : public mse::us::impl::TXScopeItemPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+	class TXScopeItemFixedPointer : public mse::us::impl::TXScopeItemPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase {
 	public:
 		TXScopeItemFixedPointer(const TXScopeItemFixedPointer& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -609,7 +609,7 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TXScopeItemFixedConstPointer : public mse::us::impl::TXScopeItemConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+	class TXScopeItemFixedConstPointer : public mse::us::impl::TXScopeItemConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase {
 	public:
 		TXScopeItemFixedConstPointer(const TXScopeItemFixedConstPointer<_Ty>& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
@@ -934,6 +934,134 @@ namespace mse {
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
+
+#ifdef MSE_MSTDARRAY_DISABLED
+
+	/* When mstd::array is "disabled" it is just aliased to std::array. But since std::array (and std::vector, etc.)
+	iterators are dependent types, they do not participate in overload resolution. So the xscope_pointer() overload for
+	those iterators actually needs to be a "universal" (template) overload that accepts any type. The reason it needs
+	to be here (rather than in the msemstdarray.h file) is that if scope pointers are disabled, then it's possible that
+	both scope pointers and std::array iterators could manifest as raw pointers and so would need to be handled (and
+	(heuristically) disambiguated) by the same overload implementation. */
+
+	namespace impl {
+
+		template<class T, class EqualTo>
+		struct HasOrInheritsIteratorCategoryMemberType_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<typename U::iterator_category>(), std::declval<typename V::iterator_category>(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsIteratorCategoryMemberType : HasOrInheritsIteratorCategoryMemberType_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+		template<class _Ty>
+		struct is_non_pointer_iterator : std::integral_constant<bool, HasOrInheritsIteratorCategoryMemberType<_Ty>::value> {};
+
+		namespace ns_xscope_pointer {
+
+			template<class _Ty>
+			auto xscope_const_pointer_helper2(std::true_type, const _Ty& ptr_to_iter) {
+				return mse::us::unsafe_make_xscope_const_pointer_to(*(*ptr_to_iter));
+			}
+			template<class TPointerIter>
+			auto xscope_const_pointer_helper2(std::false_type, const TPointerIter& ptr_iter) {
+				return mse::us::unsafe_make_xscope_const_pointer_to(*ptr_iter);
+			}
+			template<class TIter>
+			auto xscope_const_pointer_helper1(std::true_type, const TIter& iter) {
+				return mse::us::unsafe_make_xscope_const_pointer_to(*iter);
+			}
+			template<class TPointer>
+			auto xscope_const_pointer_helper1(std::false_type, const TPointer& ptr) {
+				return xscope_const_pointer_helper2(typename mse::impl::is_non_pointer_iterator<typename std::remove_reference<decltype(*ptr)>::type>::type(), ptr);
+			}
+
+			template<class _Ty>
+			auto xscope_pointer_helper2(std::true_type, const _Ty& ptr_to_iter) {
+				return mse::us::unsafe_make_xscope_pointer_to(*(*ptr_to_iter));
+			}
+			template<class TPointerIter>
+			auto xscope_pointer_helper2(std::false_type, const TPointerIter& ptr_iter) {
+				return mse::us::unsafe_make_xscope_pointer_to(*ptr_iter);
+			}
+			template<class TIter>
+			auto xscope_pointer_helper1(std::true_type, const TIter& iter) {
+				return mse::us::unsafe_make_xscope_pointer_to(*iter);
+			}
+			template<class TPointer>
+			auto xscope_pointer_helper1(std::false_type, const TPointer& ptr) {
+				return xscope_pointer_helper2(typename mse::impl::is_non_pointer_iterator<typename std::remove_reference<decltype(*ptr)>::type>::type(), ptr);
+			}
+		}
+	}
+	template<class _Ty>
+	auto xscope_const_pointer(const _Ty& param) {
+		return impl::ns_xscope_pointer::xscope_const_pointer_helper1(typename mse::impl::is_non_pointer_iterator<_Ty>::type(), param);
+	}
+	template<class _Ty>
+	auto xscope_pointer(const _Ty& param) {
+		return impl::ns_xscope_pointer::xscope_pointer_helper1(typename mse::impl::is_non_pointer_iterator<_Ty>::type(), param);
+	}
+#endif // MSE_MSTDARRAY_DISABLED
+
+#if defined(MSE_SCOPEPOINTER_DISABLED) && defined(MSE_MSTDARRAY_DISABLED)
+#define MSE_SCOPE_POINTERS_AND_ITERATORS_MAY_BOTH_BE_RAW_POINTERS
+#endif // defined(MSE_SCOPEPOINTER_DISABLED) && defined(MSE_MSTDARRAY_DISABLED)
+
+#ifndef MSE_SCOPE_POINTERS_AND_ITERATORS_MAY_BOTH_BE_RAW_POINTERS
+	/* When mstd::arrays, etc. are disabled, a "universal" overload of xscope_pointer() is provided for their iterators. 
+	That overload already handles raw pointers (which may be potentially ambiguous in that situation), so we shouldn't
+	provide another one. */
+	template <typename _Ty>
+	auto xscope_pointer(const mse::TXScopeItemFixedPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_pointer(obj_ref);
+	}
+	template <typename _Ty>
+	auto xscope_const_pointer(const mse::TXScopeItemFixedPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_const_pointer(obj_ref);
+	}
+	template <typename _Ty>
+	auto xscope_pointer(const mse::TXScopeItemFixedConstPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_pointer(obj_ref);
+	}
+	template <typename _Ty>
+	auto xscope_const_pointer(const mse::TXScopeItemFixedConstPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_const_pointer(obj_ref);
+	}
+#ifndef MSE_SCOPEPOINTER_DISABLED
+	template <typename _Ty>
+	auto xscope_pointer(const mse::TXScopeFixedPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_pointer(obj_ref);
+	}
+	template <typename _Ty>
+	auto xscope_const_pointer(const mse::TXScopeFixedPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_const_pointer(obj_ref);
+	}
+	template <typename _Ty>
+	auto xscope_pointer(const mse::TXScopeFixedConstPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_pointer(obj_ref);
+	}
+	template <typename _Ty>
+	auto xscope_const_pointer(const mse::TXScopeFixedConstPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_const_pointer(obj_ref);
+	}
+#endif //!MSE_SCOPEPOINTER_DISABLED
+#else // !MSE_SCOPE_POINTERS_AND_ITERATORS_MAY_BOTH_BE_RAW_POINTERS
+
+#endif // !MSE_SCOPE_POINTERS_AND_ITERATORS_MAY_BOTH_BE_RAW_POINTERS
 
 	namespace us {
 		template <class _TTargetType, class _TLeaseType> class TXScopeStrongFixedConstPointer;

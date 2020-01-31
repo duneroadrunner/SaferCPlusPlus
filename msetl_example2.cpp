@@ -680,8 +680,8 @@ void msetl_example2() {
 		auto nii_array4_scpobj = mse::make_xscope(mse::nii_array<int, 4>{ 1, 2, 3, 4 });
 		auto xscp_ra_section3 = mse::make_xscope_csssxste_random_access_section(&nii_array4_scpobj);
 
-		auto xscp_ra_section1_xscp_iter1 = xscp_ra_section1.xscope_begin();
-		auto xscp_ra_section1_xscp_iter2 = xscp_ra_section1.xscope_end();
+		auto xscp_ra_section1_xscp_iter1 = mse::make_xscope_begin_iterator(xscp_ra_section1);
+		auto xscp_ra_section1_xscp_iter2 = mse::make_xscope_end_iterator(xscp_ra_section1);
 		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
 		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
 #endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
