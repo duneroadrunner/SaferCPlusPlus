@@ -4013,17 +4013,10 @@ namespace mse {
 	template <typename _TRAIterator> class TXScopeRASectionIterator;
 	template <typename _TRAIterator> class TXScopeRASectionConstIterator;
 
-	template <typename _TRAIterator>
-	auto xscope_pointer(const TXScopeRASectionIterator<_TRAIterator>& iter_cref);
-	template <typename _TRAIterator>
-	auto xscope_pointer(const TXScopeRASectionConstIterator<_TRAIterator>& iter_cref);
-	template <typename _TRAIterator>
-	auto xscope_const_pointer(const TXScopeRASectionIterator<_TRAIterator>& iter_cref);
-	template <typename _TRAIterator>
-	auto xscope_const_pointer(const TXScopeRASectionConstIterator<_TRAIterator>& iter_cref);
-
 	namespace us {
 		namespace impl {
+			template <typename _TRAIterator> class TRASectionIteratorBaseFriend1;
+
 			template <typename _TRAIterator> class TRASectionConstIteratorBase;
 
 			template <typename _TRAIterator>
@@ -4039,25 +4032,6 @@ namespace mse {
 				const _TRAIterator m_ra_iterator;
 				const size_type m_count = 0;
 				difference_type m_index = 0;
-
-				static auto base_xscope_pointer(const TRASectionIteratorBase& ra_section_iter) {
-					ra_section_iter.dereference_bounds_check();
-					auto ra_iter = ra_section_iter.m_ra_iterator + ra_section_iter.m_index;
-					return xscope_pointer(ra_iter);
-				}
-				static auto base_xscope_pointer(TRASectionIteratorBase&& ra_section_iter) {
-					ra_section_iter.dereference_bounds_check();
-					return xscope_pointer(std::forward<decltype(ra_section_iter)>(ra_section_iter).m_ra_iterator + ra_section_iter.m_index);
-				}
-				static auto base_xscope_const_pointer(const TRASectionIteratorBase& ra_section_iter) {
-					ra_section_iter.dereference_bounds_check();
-					auto ra_iter = ra_section_iter.m_ra_iterator + ra_section_iter.m_index;
-					return xscope_const_pointer(ra_iter);
-				}
-				static auto base_xscope_const_pointer(TRASectionIteratorBase&& ra_section_iter) {
-					ra_section_iter.dereference_bounds_check();
-					return xscope_const_pointer(std::forward<decltype(ra_section_iter)>(ra_section_iter).m_ra_iterator + ra_section_iter.m_index);
-				}
 
 			public:
 				TRASectionIteratorBase(const TRASectionIteratorBase& src)
@@ -4114,9 +4088,35 @@ namespace mse {
 					m_index = _Right_cref.m_index;
 					return (*this);
 				}
+
 				friend class TRASectionConstIteratorBase<_TRAIterator>;
 				template <typename _TRAIterator2>
 				friend class TXScopeRASectionIterator;
+				template <typename _TRAIterator2>
+				friend class TRASectionIteratorBaseFriend1;
+			};
+
+			template <typename _TRAIterator>
+			class TRASectionIteratorBaseFriend1 {
+			public:
+				static auto xscope_pointer(const TRASectionIteratorBase<_TRAIterator>& ra_section_iter) {
+					ra_section_iter.dereference_bounds_check();
+					auto ra_iter = ra_section_iter.m_ra_iterator + ra_section_iter.m_index;
+					return mse::xscope_pointer(ra_iter);
+				}
+				static auto xscope_pointer(TRASectionIteratorBase<_TRAIterator>&& ra_section_iter) {
+					ra_section_iter.dereference_bounds_check();
+					return mse::xscope_pointer(std::forward<decltype(ra_section_iter)>(ra_section_iter).m_ra_iterator + ra_section_iter.m_index);
+				}
+				static auto xscope_const_pointer(const TRASectionIteratorBase<_TRAIterator>& ra_section_iter) {
+					ra_section_iter.dereference_bounds_check();
+					auto ra_iter = ra_section_iter.m_ra_iterator + ra_section_iter.m_index;
+					return mse::xscope_const_pointer(ra_iter);
+				}
+				static auto xscope_const_pointer(TRASectionIteratorBase<_TRAIterator>&& ra_section_iter) {
+					ra_section_iter.dereference_bounds_check();
+					return mse::xscope_const_pointer(std::forward<decltype(ra_section_iter)>(ra_section_iter).m_ra_iterator + ra_section_iter.m_index);
+				}
 			};
 		}
 	}
@@ -4157,30 +4157,9 @@ namespace mse {
 		void xscope_tag() const {}
 		void xscope_iterator_tag() const {}
 		void async_not_shareable_and_not_passable_tag() const {}
+
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
-
-		static auto xscope_const_pointer(const TXScopeRASectionIterator& ra_section_iter) {
-			return base_class::base_xscope_const_pointer(ra_section_iter);
-		}
-		static auto xscope_const_pointer(TXScopeRASectionIterator&& ra_section_iter) {
-			return base_class::base_xscope_const_pointer(std::forward<decltype(ra_section_iter)>(ra_section_iter));
-		}
-		static auto xscope_pointer(const TXScopeRASectionIterator& ra_section_iter) {
-			return base_class::base_xscope_pointer(ra_section_iter);
-		}
-		static auto xscope_pointer(TXScopeRASectionIterator&& ra_section_iter) {
-			return base_class::base_xscope_pointer(std::forward<decltype(ra_section_iter)>(ra_section_iter));
-		}
-
-		template <typename _TRAIterator2>
-		friend auto xscope_pointer(const TXScopeRASectionIterator<_TRAIterator2>& iter_cref);
-		template <typename _TRAIterator2>
-		friend auto xscope_const_pointer(const TXScopeRASectionIterator<_TRAIterator2>& iter_cref);
-		template <typename _TRAIterator2>
-		friend auto xscope_pointer(TXScopeRASectionIterator<_TRAIterator2>&& iter_cref);
-		template <typename _TRAIterator2>
-		friend auto xscope_const_pointer(TXScopeRASectionIterator<_TRAIterator2>&& iter_cref);
 	};
 
 	template <typename _TRAIterator>
@@ -4222,6 +4201,8 @@ namespace mse {
 
 	namespace us {
 		namespace impl {
+			template <typename _TRAIterator> class TRASectionConstIteratorBaseFriend1;
+
 			template <typename _TRAIterator>
 			class TRASectionConstIteratorBase : public mse::impl::random_access_const_iterator_base_from_ra_iterator<_TRAIterator>
 				, MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(_TRAIterator, TRASectionConstIteratorBase<_TRAIterator>)
@@ -4235,16 +4216,6 @@ namespace mse {
 				const _TRAIterator m_ra_iterator;
 				const size_type m_count = 0;
 				difference_type m_index = 0;
-
-				static auto base_xscope_const_pointer(const TRASectionConstIteratorBase& ra_section_iter) {
-					ra_section_iter.dereference_bounds_check();
-					auto ra_iter = ra_section_iter.m_ra_iterator + ra_section_iter.m_index;
-					return xscope_const_pointer(ra_iter);
-				}
-				static auto base_xscope_const_pointer(TRASectionConstIteratorBase&& ra_section_iter) {
-					ra_section_iter.dereference_bounds_check();
-					return xscope_const_pointer(std::forward<decltype(ra_section_iter)>(ra_section_iter).m_ra_iterator + ra_section_iter.m_index);
-				}
 
 			public:
 				TRASectionConstIteratorBase(const TRASectionConstIteratorBase& src)
@@ -4303,8 +4274,25 @@ namespace mse {
 					m_index = _Right_cref.m_index;
 					return (*this);
 				}
+
 				template <typename _TRAIterator2>
 				friend class TXScopeRASectionConstIterator;
+				template <typename _TRAIterator2>
+				friend class TRASectionConstIteratorBaseFriend1;
+			};
+
+			template <typename _TRAIterator>
+			class TRASectionConstIteratorBaseFriend1 {
+			public:
+				static auto xscope_const_pointer(const TRASectionConstIteratorBase<_TRAIterator>& ra_section_iter) {
+					ra_section_iter.dereference_bounds_check();
+					auto ra_iter = ra_section_iter.m_ra_iterator + ra_section_iter.m_index;
+					return mse::xscope_const_pointer(ra_iter);
+				}
+				static auto xscope_const_pointer(TRASectionConstIteratorBase<_TRAIterator>&& ra_section_iter) {
+					ra_section_iter.dereference_bounds_check();
+					return mse::xscope_const_pointer(std::forward<decltype(ra_section_iter)>(ra_section_iter).m_ra_iterator + ra_section_iter.m_index);
+				}
 			};
 		}
 	}
@@ -4345,30 +4333,9 @@ namespace mse {
 		void xscope_tag() const {}
 		void xscope_iterator_tag() const {}
 		void async_not_shareable_and_not_passable_tag() const {}
+
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
-
-		static auto xscope_const_pointer(const TXScopeRASectionConstIterator& ra_section_iter) {
-			return base_class::base_xscope_const_pointer(ra_section_iter);
-		}
-		static auto xscope_const_pointer(TXScopeRASectionConstIterator&& ra_section_iter) {
-			return base_class::base_xscope_const_pointer(std::forward<decltype(ra_section_iter)>(ra_section_iter));
-		}
-		static auto xscope_pointer(const TXScopeRASectionConstIterator& ra_section_iter) {
-			return xscope_const_pointer(ra_section_iter);
-		}
-		static auto xscope_pointer(TXScopeRASectionConstIterator&& ra_section_iter) {
-			return xscope_const_pointer(std::forward<decltype(ra_section_iter)>(ra_section_iter));
-		}
-
-		template <typename _TRAIterator2>
-		friend auto xscope_pointer(const TXScopeRASectionConstIterator<_TRAIterator2>& iter_cref);
-		template <typename _TRAIterator2>
-		friend auto xscope_const_pointer(const TXScopeRASectionConstIterator<_TRAIterator2>& iter_cref);
-		template <typename _TRAIterator2>
-		friend auto xscope_pointer(TXScopeRASectionConstIterator<_TRAIterator2>&& iter_cref);
-		template <typename _TRAIterator2>
-		friend auto xscope_const_pointer(TXScopeRASectionConstIterator<_TRAIterator2>&& iter_cref);
 	};
 
 	template <typename _TRAIterator>
@@ -4410,36 +4377,36 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	auto xscope_pointer(const TXScopeRASectionIterator<_TRAIterator>& iter_cref) {
-		return TXScopeRASectionIterator<_TRAIterator>::xscope_pointer(iter_cref);
+		return mse::us::impl::TRASectionIteratorBaseFriend1<_TRAIterator>::xscope_pointer(iter_cref);
 	}
 	template <typename _TRAIterator>
 	auto xscope_pointer(const TXScopeRASectionConstIterator<_TRAIterator>& iter_cref) {
-		return TXScopeRASectionConstIterator<_TRAIterator>::xscope_const_pointer(iter_cref);
+		return mse::us::impl::TRASectionConstIteratorBaseFriend1<_TRAIterator>::xscope_const_pointer(iter_cref);
 	}
 	template <typename _TRAIterator>
 	auto xscope_const_pointer(const TXScopeRASectionIterator<_TRAIterator>& iter_cref) {
-		return TXScopeRASectionIterator<_TRAIterator>::xscope_const_pointer(iter_cref);
+		return mse::us::impl::TRASectionIteratorBaseFriend1<_TRAIterator>::xscope_const_pointer(iter_cref);
 	}
 	template <typename _TRAIterator>
 	auto xscope_const_pointer(const TXScopeRASectionConstIterator<_TRAIterator>& iter_cref) {
-		return TXScopeRASectionConstIterator<_TRAIterator>::xscope_const_pointer(iter_cref);
+		return mse::us::impl::TRASectionConstIteratorBaseFriend1<_TRAIterator>::xscope_const_pointer(iter_cref);
 	}
 
 	template <typename _TRAIterator>
 	auto xscope_pointer(TXScopeRASectionIterator<_TRAIterator>&& iter_cref) {
-		return TXScopeRASectionIterator<_TRAIterator>::xscope_const_pointer(std::forward<decltype(iter_cref)>(iter_cref));
+		return mse::us::impl::TRASectionIteratorBaseFriend1<_TRAIterator>::xscope_const_pointer(std::forward<decltype(iter_cref)>(iter_cref));
 	}
 	template <typename _TRAIterator>
 	auto xscope_pointer(TXScopeRASectionConstIterator<_TRAIterator>&& iter_cref) {
-		return TXScopeRASectionConstIterator<_TRAIterator>::xscope_const_pointer(std::forward<decltype(iter_cref)>(iter_cref));
+		return mse::us::impl::TRASectionConstIteratorBaseFriend1<_TRAIterator>::xscope_const_pointer(std::forward<decltype(iter_cref)>(iter_cref));
 	}
 	template <typename _TRAIterator>
 	auto xscope_const_pointer(TXScopeRASectionIterator<_TRAIterator>&& iter_cref) {
-		return TXScopeRASectionIterator<_TRAIterator>::xscope_const_pointer(std::forward<decltype(iter_cref)>(iter_cref));
+		return mse::us::impl::TRASectionIteratorBaseFriend1<_TRAIterator>::xscope_const_pointer(std::forward<decltype(iter_cref)>(iter_cref));
 	}
 	template <typename _TRAIterator>
 	auto xscope_const_pointer(TXScopeRASectionConstIterator<_TRAIterator>&& iter_cref) {
-		return TXScopeRASectionConstIterator<_TRAIterator>::xscope_const_pointer(std::forward<decltype(iter_cref)>(iter_cref));
+		return mse::us::impl::TRASectionConstIteratorBaseFriend1<_TRAIterator>::xscope_const_pointer(std::forward<decltype(iter_cref)>(iter_cref));
 	}
 
 	namespace us {
