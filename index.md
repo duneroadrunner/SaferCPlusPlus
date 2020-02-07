@@ -1,4 +1,4 @@
-Oct 2019
+Jan 2020
 
 ### Overview
 
@@ -24,7 +24,7 @@ And the library also addresses the data race issue, where the Core Guidelines do
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
-Tested with msvc2019(v16.1.6), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. Note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
+Tested with msvc2019(v16.4.3), g++7.4.0 and clang++6.0.0. Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. Note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
 
 
 ### Table of contents
@@ -57,8 +57,8 @@ Tested with msvc2019(v16.1.6), g++7.3 & 5.4 and clang++6.0 & 3.8. Support for ve
     1. [TXScopeItemFixedPointer](#txscopeitemfixedpointer)
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
-    4. [xscope_ifptr_to()](#xscope_ifptr_to)
-    5. [Retargetable references to scope objects](#retargetable-references-to-scope-objects)
+    4. [TRegisteredProxyPointer](#tregisteredproxypointer)
+    5. [TNoradProxyPointer](#tnoradproxypointer)
     6. [xscope_chosen()](#xscope_chosen)
     7. [as_a_returnable_fparam()](#as_a_returnable_fparam)
     8. [as_an_fparam()](#as_an_fparam)
@@ -226,7 +226,7 @@ Two types of registered pointers are provided - [`TRegisteredPointer<>`](#tregis
 
 Note that these registered pointers cannot target some types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. The library provides safer [substitutes](#cndint-cndsize_t-and-cndbool) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library.
 
-Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead. In fact, even when registered pointers are used, rather than using them to access the target object directly, you may find it often preferable to use the registered pointer to obtain a scope pointer to the object and use the scope pointer instead. Though for the sake of simplicity, we don't use scope pointers in the registered pointer usage examples.  
+Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead. In fact, even when registered pointers are used, they would be expected to be commonly used in [conjuction with scope pointers](#tregisteredproxypointer). Though for the sake of simplicity, we don't use scope pointers in the registered pointer usage examples.  
 
 ### TRegisteredPointer
 
@@ -674,20 +674,17 @@ The rules for using scope pointers and objects are essentially as follows:
 - Do not use scope types as members of classes or structs.
 	- Note that you can use the [`mse::make_xscope_pointer_to_member_v2()`](#make_pointer_to_member_v2) function to obtain a scope pointer to a member of a scope object. So it's generally not necessary for any class/struct member to be declared as a scope object.
 	- In the uncommon cases that you really want to use a scope type as a member of a class or struct, that class or struct must itself be a scope type. User defined scope types must adhere to the [rules](#defining-your-own-scope-types) of scope types.
-- Do not use scope types as base classes.
-	- There probably isn't much motivation to do this anyway.
-	- In the uncommon cases that you really want to use a scope type as a base class/struct, the derived class/struct must itself be a scope type. User defined scope types must adhere to the [rules](#defining-your-own-scope-types) of scope types.
 - Do not use scope types as function return types.
 	- In the uncommon cases that you really want to use a scope type as a function return type, it must be wrapped in the [`mse::TXScopeReturnValue<>`](#return_value) transparent template wrapper.
 	- `mse::TXScopeReturnValue<>` will not accept non-owning scope pointer types. Pretty much the only time you would legitimately want to return a non-owning pointer to a scope object is when that pointer is one of the function's input parameters. In those cases you can use the [`xscope_chosen()`](#xscope_chosen) function.
 
 Again, most inadvertent misuses of scope objects should result in compile errors. The remaining potential misuses would be caught by a companion tool like the aforementioned [scpptool](https://github.com/duneroadrunner/scpptool). But these rules should be intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is premised on the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond the scope in which they are declared, so that a scope pointer cannot outlive its target scope object.
 
-Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPointer<>`](#txscopeownerpointer) and [`TXScopeItemFixedPointer<>`](#txscopeitemfixedpointer). `TXScopeOwnerPointer<>` is similar to `boost::scoped_ptr<>` in functionality (but more limited in intended use). It creates an instance of a given class on the heap and destroys that instance in its destructor. (We use "scope" to mean "execution scope", where in boost it seems to also include "declaration scope".)
-`TXScopeItemFixedPointer<>` is a "non-owning" pointer to scope objects. It is (intentionally) limited in its functionality, and is primarily intended for the purpose of passing scope objects by reference as function arguments. 
+Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPointer<>`](#txscopeownerpointer) and [`TXScopeItemFixedPointer<>`](#txscopeitemfixedpointer). `TXScopeOwnerPointer<>` is kind of like `std::unique_ptr<>`, but restricted by the rules of scope objects. It creates an instance of a given class on the heap and destroys that instance in its destructor. 
+`TXScopeItemFixedPointer<>` is a (zero-overhead) "non-owning" pointer to objects that are known (at compile-time) to outlive it. 
 
 ### TXScopeItemFixedPointer
-`TXScopeItemFixedPointer<>` is primarily intended to be used to pass scope objects by reference as function arguments. It may not be used as a function return type (as enforced by the [`return_value()`](#return_value) function wrapper). And as with any other scope object, it may not be used as a member of any class or struct that is not itself a scope object. (Attempting to do so would generally produce a compile error).  
+`TXScopeItemFixedPointer<>`s are (zero-overhead) "non-owning", non-retargetable pointers. They may only be declared such that they do not outlive the scope in which they are declared (i.e. basically as non-static local variables, and may only point to objects known (at compile-time) to live at least that long. 
 
 usage example:
 
@@ -726,7 +723,9 @@ usage example:
 #### TXScopeItemFixedConstPointer
 
 ### TXScopeOwnerPointer
-`TXScopeOwnerPointer<>` is similar to `boost::scoped_ptr<>` in functionality, but more limited in intended use. In particular, as a scope object, `TXScopeOwnerPointer<>` should not be used as a member of any class or struct that is not itself a scope object. Use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Also, instead of its constructor taking a native pointer pointing to the already allocated object, it allocates the object itself and passes its construction arguments to the object's constructor.  
+`TXScopeOwnerPointer<>` is kind of like an `std::unique_ptr<>` whose use is restricted by the rules of scope objects. So, it must live to the end of the scope in which it is declared (i.e. basically be declared as a non-static local (or `thread_local` variable)) and can only be used as a member of objects which are themselves scope objects. You can use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Unlike `std::unique_ptr<>`s, you may not use `std::move()` with `TXScopeOwnerPointer<>`s. If you're not using a conformance helper tool like [scpptool](https://github.com/duneroadrunner/scpptool) to enforce this, you can disable `TXScopeOwnerPointer<>`'s move constructor by defining the `MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY` preprocessor symbol.
+
+Instead of its constructor taking a native pointer pointing to an already allocated object, it allocates the object itself and forwards its construction arguments to the object's constructor. You may also use `mse::make_xscope_owner<>()` to create a `TXScopeOwnerPointer<>` in a manner akin to `std::make_unique<>()`.
 
 usage example:
 
@@ -751,7 +750,10 @@ usage example:
             ~B() {}
         };
     
+        /* You can either pass the object's constructor arguments to mse::TXScopeOwnerPointer<>'s constructor, */
         mse::TXScopeOwnerPointer<A> xscp_a_ownerptr(7);
+        /* or you can use mse::make_xscope_owner<>() in a manner akin to std::make_unique<>() */
+        auto xscp_a_ownerptr2 = mse::make_xscope_owner<A>(7);
         int res4 = B::foo2(xscp_a_ownerptr);
         int res4b = B::foo2(&(*xscp_a_ownerptr));
     }
@@ -801,110 +803,133 @@ usage example:
     }
 ```
 
-### xscope_ifptr_to()
+### Retargetable references to scope objects
 
-Scope pointers cannot (currently) be retargeted after construction. If you need a pointer that will point to multiple different scope objects over its lifespan, you can use a registered pointer. You could make the target objects registered objects in addition to being scope objects. If the object is a registered scope object, then the `&` operator will will return a registered pointer. But at some point we're going to need a scope pointer to the base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. 
+### TRegisteredProxyPointer
+
+Scope pointers have limitations, (currently) for example, in terms of their ability to be retargeted, and their ability to be stored in dynamic containers. When necessary, you can circumvent these sorts of limitations by creating "registered proxy" pointers corresponding to given scope pointers. 
+
+Registered proxy pointers are basically just [registered pointers](#registered-pointers) which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TRegisteredProxyPointer<T>` is similar to a `TRegisteredConstPointer<TXScopeItemFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the `TXScopeItemFixedPointer<T>`. They are also convertible back to scope pointers when needed. 
+
+To be clear, a `TRegisteredProxyPointer<T>` doesn't have any functionality that a `TRegisteredConstPointer<TXScopeItemFixedPointer<T> >` does not already have, it's just more convenient in some situations.
 
 usage example:
 
 ```cpp
     #include "msescope.h"
-    #include "mseregistered.h"
+    #include "mseregisteredproxy.h"
     #include "msemsestring.h"
     
     void main(int argc, char* argv[]) {
-        typedef mse::TXScopeObj<mse::mtnii_string> xscp_nstring_t;
-        typedef mse::TXScopeItemFixedPointer<mse::mtnii_string> xscp_nstring_ptr_t;
         class CB {
         public:
-            static void foo1(xscp_nstring_ptr_t xscope_ptr1) {
+            static void foo1(mse::TXScopeItemFixedPointer<mse::mtnii_string> xscope_ptr1) {
                 std::cout << *xscope_ptr1;
             }
         };
-        typedef mse::TRegisteredObj< xscp_nstring_t > regxscp_nstring_t;
-        typedef mse::TRegisteredPointer< xscp_nstring_t > regxscp_nstring_ptr_t;
-        regxscp_nstring_t regxscp_nstring1("some text");
-        regxscp_nstring_ptr_t registered_ptr1 = &regxscp_nstring1;
+        auto xscp_nstring1 = mse::make_xscope(mse::mtnii_string("some text"));
 
-        auto xscope_ptr1 = mse::xscope_ifptr_to(*registered_ptr1);
-        CB::foo1(xscope_ptr1);
-
-        regxscp_nstring_t regxscp_nstring2("some other text");
-        registered_ptr1 = &regxscp_nstring2;
-        CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
+        CB::foo1(&xscp_nstring1);
 
         {
-            regxscp_nstring_t regxscp_nstring3("other text");
-            registered_ptr1 = &regxscp_nstring3;
-            CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
+            auto xscp_proxy_obj1 = mse::make_xscope_registered_proxy(&xscp_nstring1);
+            mse::TRegisteredProxyPointer<mse::mtnii_string> registered_proxy_ptr1 = mse::registered_proxy_fptr(xscp_proxy_obj1);
+
+            /* Registered proxy pointers implicitly convert to scope pointers. */
+            CB::foo1(registered_proxy_ptr1);
+
+            auto xscp_nstring2 = mse::make_xscope(mse::mtnii_string("some other text"));
+            auto xscp_proxy_obj2 = mse::make_xscope_registered_proxy(&xscp_nstring2);
+
+            /* Registered proxy pointers are retargetable. */
+            registered_proxy_ptr1 = mse::registered_proxy_fptr(xscp_proxy_obj2);
+
+            CB::foo1(registered_proxy_ptr1);
+
+            {
+                auto xscp_nstring3 = mse::make_xscope(mse::mtnii_string("other text"));
+
+                {
+                    auto xscp_proxy_obj3 = mse::make_xscope_registered_proxy(&xscp_nstring3);
+
+                    {
+                        registered_proxy_ptr1 = mse::registered_proxy_fptr(xscp_proxy_obj3);
+                    }
+
+                    CB::foo1(registered_proxy_ptr1);
+                }
+                /* Attempting to dereference registered_proxy_ptr1 here would result in an exception. */
+                //*registered_proxy_ptr1;
+            }
         }
-        /* Attempting to dereference registered_ptr1 here would result in an exception. */
-        //*registered_ptr1;
     }
 ```
 
-### Retargetable references to scope objects
+#### TRegisteredProxyPointer, TRegisteredProxyNotNullPointer, TRegisteredProxyFixedPointer, TRegisteredProxyConstPointer, TRegisteredProxyNotNullConstPointer, TRegisteredProxyFixedConstPointer
 
-The drawback with the above technique of declaring a scope object to additionally be a registered object in order to support retargetable pointers is that the decision (of whether to support retargetable pointers) needs to be made when and where the object is declared rather than when and where the retargetable pointers are needed. A more flexible alternative is to add an extra level of indirection. That is, use registered (or norad) pointers that target scope pointers that, in turn, target the scope object rather than registered pointers that target the scope object directly. This way the scope object does not need to be additionally declared as a registered object. The scope pointers would need to be declared as registered objects, but you can declare such scope pointers when and where you need them.
+### TNoradProxyPointer
 
-example:
+"norad proxy" pointers are to ["registered proxy" pointers](#tregisteredproxypointer) as [norad pointers](#norad-pointers) are to [registered pointers](#registered-pointers). That is, the difference is that the destruction of a a norad proxy object while a norad proxy pointer still references it will result in program termination. So like their registered counterparts:
+
+Norad proxy pointers are basically just norad pointers which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TNoradProxyPointer<T>` is similar to a `TNoradPointer<TXScopeItemFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the `TXScopeItemFixedPointer<T>`. They are also convertible back to scope pointers when needed.
+
+To be clear, a `TNoradProxyPointer<T>` doesn't have any functionality that a `TNoradPointer<TXScopeItemFixedPointer<T> >` does not already have, it's just more convenient in some  situations.
+
+usage example:
 
 ```cpp
     #include "msescope.h"
-    #include "mseregistered.h"
+    #include "msenoradproxy.h"
     #include "msemsestring.h"
     
     void main(int argc, char* argv[]) {
-        {
-            typedef mse::TXScopeObj<mse::mtnii_string> xscp_nstring_t;
-            typedef mse::TXScopeItemFixedPointer<mse::mtnii_string> xscp_nstring_ptr_t;
-            class CB {
-            public:
-                static void foo1(xscp_nstring_ptr_t xscope_ptr1) {
-                    std::cout << *xscope_ptr1;
-                }
-            };
-            xscp_nstring_t scp_nstring1("some text");
+        class CB {
+        public:
+            static void foo1(mse::TXScopeItemFixedPointer<mse::mtnii_string> xscope_ptr1) {
+                std::cout << *xscope_ptr1;
+            }
+        };
+        auto xscp_nstring1 = mse::make_xscope(mse::mtnii_string("some text"));
 
-            CB::foo1(&scp_nstring1);
+        CB::foo1(&xscp_nstring1);
+
+        {
+            auto xscp_proxy_obj1 = mse::make_xscope_norad_proxy(&xscp_nstring1);
+            mse::TNoradProxyPointer<mse::mtnii_string> norad_proxy_ptr1 = mse::norad_proxy_fptr(xscp_proxy_obj1);
+
+            /* Norad proxy pointers implicitly convert to scope pointers. */
+            CB::foo1(norad_proxy_ptr1);
+
+            auto xscp_nstring2 = mse::make_xscope(mse::mtnii_string("some other text"));
+            auto xscp_proxy_obj2 = mse::make_xscope_norad_proxy(&xscp_nstring2);
+
+            /* Norad proxy pointers are retargetable. */
+            norad_proxy_ptr1 = mse::norad_proxy_fptr(xscp_proxy_obj2);
+
+            CB::foo1(norad_proxy_ptr1);
 
             {
-                typedef mse::TRegisteredObj< xscp_nstring_ptr_t > reg_xscp_nstring_ptr_t;
-                typedef mse::TRegisteredPointer<xscp_nstring_ptr_t> reg_xscp_nstring_ptr_ptr_t;
-
-                reg_xscp_nstring_ptr_t reg_xscp_nstring_ptr1 = &scp_nstring1;
-
-                reg_xscp_nstring_ptr_ptr_t reg_xscp_nstring_ptr_ptr1 = &reg_xscp_nstring_ptr1;
-
-                CB::foo1(*reg_xscp_nstring_ptr_ptr1);
-
-                xscp_nstring_t scp_nstring2("some other text");
-
-                reg_xscp_nstring_ptr_t reg_xscp_nstring_ptr2 = &scp_nstring2;
-
-                reg_xscp_nstring_ptr_ptr1 = &reg_xscp_nstring_ptr2;
-
-                CB::foo1(*reg_xscp_nstring_ptr_ptr1);
+                auto xscp_nstring3 = mse::make_xscope(mse::mtnii_string("other text"));
 
                 {
-                    xscp_nstring_t scp_nstring3("other text");
+                    auto xscp_proxy_obj3 = mse::make_xscope_norad_proxy(&xscp_nstring3);
 
                     {
-                        reg_xscp_nstring_ptr_t reg_xscp_nstring_ptr3 = &scp_nstring3;
-
-                        {
-                            reg_xscp_nstring_ptr_ptr1 = &reg_xscp_nstring_ptr3;
-                        }
-
-                        CB::foo1(*reg_xscp_nstring_ptr_ptr1);
+                        norad_proxy_ptr1 = mse::norad_proxy_fptr(xscp_proxy_obj3);
                     }
-                    /* Attempting to dereference reg_xscp_nstring_ptr_ptr1 here would result in an exception. */
-                    //*reg_xscp_nstring_ptr_ptr1;
+
+                    CB::foo1(norad_proxy_ptr1);
+
+                    /* Forgetting to detarget norad proxy pointers before their target object is destroyed (in this case, by
+                    going out of scope) would result in program termination. */
+                    norad_proxy_ptr1 = nullptr;
                 }
             }
         }
     }
 ```
+
+#### TNoradProxyPointer, TNoradProxyNotNullPointer, TNoradProxyFixedPointer, TNoradProxyConstPointer, TNoradProxyNotNullConstPointer, TNoradProxyFixedConstPointer
 
 ### xscope_chosen()
 
@@ -1112,8 +1137,6 @@ The safety of non-owning scope pointers is premised on the fact that they will n
 
 The `return_value()` function just returns its argument and verifies that it is of a type that is safe to return from a function (basically, doesn't contain any scope pointers). If not it will induce a compile error. Functions that do or could return scope types should wrap their return value with this function. Note that the [scpptool](https://github.com/duneroadrunner/scpptool) actually enforces this.
 
-`TReturnValue<>` is a transparent template wrapper that verifies that the type is safe to use as a function return type. If not it will induce a compile error. Functions that do or could return scope types and explicitly specify their return types (rather than just using the `auto` return type) should wrap their return type with this template. Alternatively, you can use `TXScopeReturnValue<>` which additionally ensures that the return type is a scope type. 
-
 usage example:
 
 ```cpp
@@ -1126,9 +1149,14 @@ usage example:
     public:
         template<typename _TParam>
         static auto foo10(_TParam param) {
-            auto l_obj = param;
+            _TParam l_obj = param;
+
+            auto ret_ptr = &l_obj;
+            /* ret_ptr may be a smart pointer if the 'operator&' is overloaded.*/
+            /* If ret_ptr is a scope pointer (or native pointer) it would be unsafe to return it. In those cases the
+             'mse::return_value(ret_ptr)' expression will induce a compile error. */
             /* Functions that could return a scope type need to wrap their return value with the return_value() function. */
-            return mse::return_value(mse::pointer_to(l_obj));
+            return mse::return_value(ret_ptr);
         }
     };
     
@@ -1142,41 +1170,33 @@ usage example:
                 mse::TXScopeObj<mse::mstd::string> xscp_string1("some text");
                 return mse::return_value(xscp_string1);
             }
-    
+
             /* In the less common case where the scope type doesn't have an underlying non-scope type, it may be safe
-            to return the scope object. But in order to use a scope type as a function return value, it must be
-            wrapped in the transparent mse::TReturnValue<> or mse::TXScopeReturnValue<> wrapper template, which will
-            induce a compile error if it deems the scope type potentially unsafe to use as a return type. */
-            static mse::TXScopeReturnValue<mse::xscope_optional<mse::mstd::string> > foo2() {
+            to return the scope object.  */
+            static mse::xscope_optional<mse::mstd::string> foo2() {
                 mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
                 return mse::return_value(xscp_returnable_obj1);
             }
-    
-            /* "auto" return types don't need to be wrapped, but the return value needs to be wrapped with the
-            return_value() function. */
+
             static auto foo3() {
-                mse::xscope_optional<mse::mstd::string> xscp_returnable_obj1(mse::mstd::string("some text"));
-                return mse::return_value(xscp_returnable_obj1);
+                mse::TXScopeObj<mse::mstd::string> xscp_string1("some text");
+                auto xscp_ptr = &xscp_string1;
+
+                /* Returning a scope pointer (to a local variable for example) could be unsafe. So mse::return_value()
+                induces a compile error if the return value contains a scope pointer/reference. */
+                //return mse::return_value(xscp_ptr);
+
+                return mse::return_value(xscp_string1);
             }
         };
-    
-        mse::TXScopeObj<mse::mstd::string> xscp_res1(CB::foo1());
-        mse::xscope_optional<mse::mstd::string> xscp_res2(CB::foo2());
-    
+
+        mse::TXScopeObj<mse::mstd::string> xscp_res1 = CB::foo1();
+        mse::xscope_optional<mse::mstd::string> xscp_res2 = CB::foo2();
+
         typedef mse::TXScopeObj<mse::mstd::string> xscope_string_t;
         xscope_string_t xscp_str1 = "some text";
-        /* TXScopeReturnValue<> deems xscope_string_t to be an acceptable return type because it doesn't contain
-        any scope pointers. */
-        mse::TXScopeReturnValue<xscope_string_t> xscpr_str1("some text");
-        auto xscp_rstr1 = mse::return_value(xscp_str1);
-    
-        typedef decltype(&xscp_str1) xscope_string_ptr_t;
-        /* TXScopeReturnValue<> deems xscope_string_ptr_t to be an unsafe return type because it is (or contains)
-        a scope pointer. So the next line would result in a compile error. */
-        //mse::TXScopeReturnValue<xscope_string_ptr_t> xscpr_sfptr1 = &xscp_str1;
-        //auto xscp_rstr_ptr1 = mse::return_value(&xscp_str1);
-    
-        mse::TRegisteredObj<mse::mstd::string> reg_str1 = "some text";
+
+        mse::TNDRegisteredObj<mse::mstd::string> reg_str1 = "some text";
         auto reg_ptr_res1 = J::foo10(reg_str1);
         //auto xscp_ptr_res1 = J::foo10(xscp_str1); // <-- would induce a compile error inside J::foo10() 
     }
@@ -1523,9 +1543,9 @@ usage example: ([see below](#async-aggregate-usage-example))
 
 ### TAsyncSharedV2ReadWriteAccessRequester
 
-Use the `writelock_ptr()` and `readlock_ptr()` member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock for as long as they exist. Their locks are released when the pointers are destroyed. (Generally when they go out of scope).  
+Use the `mse::make_asyncsharedv2readwrite<>(...)` function (in a manner analogous to `std::make_shared<>(...)`) to create an object to be shared and obtain an associated "access requester", which is just an object that holds shared ownership of the shared object. Unlike `std::shared_ptr<>`, you cannot dereference an access requester directly. Instead you use the `writelock_ptr()` and `readlock_ptr()` member functions to obtain pointers to the shared object. Those functions will block until they can obtain the needed lock on the shared object. The obtained pointers will hold on to their lock for as long as they exist. Their locks are released when the pointers are destroyed. (Generally when they go out of scope).  
 
-Use the `mse::make_asyncsharedv2readwrite<>()` function to obtain a `TAsyncSharedV2ReadWriteAccessRequester<>`. `TAsyncSharedV2ReadWriteAccessRequester<>` can be copied and passed-by-value as a parameter (to another thread, generally).
+Acccess requesters can be copied and passed-by-value as a parameter (to another thread, generally).
 
 Non-blocking `try_writelock_ptr()` and `try_readlock_ptr()` member functions are also available. As are the limited-blocking `try_writelock_ptr_for()`, `try_readlock_ptr_for()`, `try_writelock_ptr_until()` and `try_readlock_ptr_until()`.
 
@@ -1533,12 +1553,12 @@ Note that while a "write-lock" pointer will not simultaneously co-exist with any
 
 One caveat is that this introduces a new possible deadlock scenario where two threads hold read locks and both are blocked indefinitely waiting for write locks. The access requesters detect these situations, and will throw an exception (or whatever user-specified behavior) when they occur.
 
-Just as `std::weak_ptr<>` is the "weak" counterpart of `std::shared_ptr<>`, `TAsyncSharedV2WeakReadWriteAccessRequester<>` is the weak counter part of `TAsyncSharedV2ReadWriteAccessRequester<>`. Its constructor takes a `TAsyncSharedV2ReadWriteAccessRequester<>`, and its `try_strong_access_requester()` member function returns an `optional` value containing the associated `TAsyncSharedV2ReadWriteAccessRequester<>` if available.
+Just as `std::weak_ptr<>` is the "weak" counterpart of `std::shared_ptr<>`, `TAsyncSharedV2WeakReadWriteAccessRequester<>` is the weak counter part of `TAsyncSharedV2ReadWriteAccessRequester<>`. Its constructor takes a regular (strong) access requester (`TAsyncSharedV2ReadWriteAccessRequester<>`), and its `try_strong_access_requester()` member function returns an `optional` value containing the associated strong access requester, if available.
 
 usage example: ([see below](#async-aggregate-usage-example))
 
 ### TAsyncSharedV2ReadOnlyAccessRequester
-Same as `TAsyncSharedV2ReadWriteAccessRequester<>`, but only supports `readlock_ptr()`, not `writelock_ptr()`. You can use the `mse::make_asyncsharedv2readonly<>()` function to obtain a `TAsyncSharedV2ReadOnlyAccessRequester<>`. `TAsyncSharedV2ReadOnlyAccessRequester<>` can also be copy constructed from a `TAsyncSharedV2ReadWriteAccessRequester<>`.
+You can use the `mse::make_asyncsharedv2readonly<>()` function to create a shared object and obtain a "read only" access requester that has a `readlock_ptr()` member function, but not a `writelock_ptr()` member function. "Read only" access requesters can also be copy constructed from a regular [(read-write) access requester (`TAsyncSharedV2ReadWriteAccessRequester<>`)](#tasyncsharedv2readwriteaccessrequester).
 
 usage example: ([see below](#async-aggregate-usage-example))
 
