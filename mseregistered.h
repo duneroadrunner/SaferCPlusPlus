@@ -14,6 +14,9 @@
 #include <unordered_set>
 #include <functional>
 #include <cassert>
+#ifdef MSE_SELF_TESTS
+#include <string>
+#endif // MSE_SELF_TESTS
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma push_macro("MSE_THROW")
@@ -554,7 +557,7 @@ namespace mse {
 	};
 
 	/* This macro roughly simulates constructor inheritance. */
-#define MSE_CREGISTERED_OBJ_USING(Derived, Base) \
+#define MSE_REGISTERED_OBJ_USING(Derived, Base) \
     template<typename ...Args, typename = typename std::enable_if< \
 	std::is_constructible<Base, Args...>::value \
 	&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
@@ -570,7 +573,7 @@ namespace mse {
 	public:
 		typedef _TROFLy base_class;
 
-		MSE_CREGISTERED_OBJ_USING(TNDRegisteredObj, _TROFLy);
+		MSE_REGISTERED_OBJ_USING(TNDRegisteredObj, _TROFLy);
 		TNDRegisteredObj(const TNDRegisteredObj& _X) : _TROFLy(_X) {}
 		TNDRegisteredObj(TNDRegisteredObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredObj() {

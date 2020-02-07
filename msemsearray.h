@@ -4394,7 +4394,7 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	auto xscope_pointer(TXScopeRASectionIterator<_TRAIterator>&& iter_cref) {
-		return mse::us::impl::TRASectionIteratorBaseFriend1<_TRAIterator>::xscope_const_pointer(std::forward<decltype(iter_cref)>(iter_cref));
+		return mse::us::impl::TRASectionIteratorBaseFriend1<_TRAIterator>::xscope_pointer(std::forward<decltype(iter_cref)>(iter_cref));
 	}
 	template <typename _TRAIterator>
 	auto xscope_pointer(TXScopeRASectionConstIterator<_TRAIterator>&& iter_cref) {

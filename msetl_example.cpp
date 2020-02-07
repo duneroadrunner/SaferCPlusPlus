@@ -31,6 +31,8 @@ types. Your best bet is probably to use a find/search to get to the data type yo
 #include "mseivector.h"
 #include "msevector_test.h"
 #include "msemstdstring.h"
+#include "mseregisteredproxy.h"
+#include "msenoradproxy.h"
 
 /* This block of includes is required for the mse::TRegisteredRefWrapper example */
 #include <algorithm>
@@ -1372,102 +1374,131 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 		}
 
 		{
-			/***********************/
-			/*  xscope_ifptr_to()  */
-			/***********************/
+			/*******************************/
+			/*   TRegisteredProxyPointer   */
+			/*******************************/
 
-			/* Scope pointers cannot (currently) be retargeted after construction. If you need a pointer that will point to
-			multiple different scope objects over its lifespan, you can use a registered pointer. You could make the target
-			object a registered object in addition to being a scope object. If the object is a registered scope object, then
-			the '&' operator will will return a registered pointer. But at some point we're going to need a scope pointer to
-			the base scope object. A convenient way to get one is to use the xscope_ifptr_to() function. */
+			/* Scope pointers (currently) have limitations, for example, in terms of their ability to be retargeted, and their
+			ability to be stored in dynamic containers. When necessary, you can circumvent these sorts of limitations by
+			creating "registered proxy" pointers corresponding to given scope pointers. 
 
-			typedef mse::TXScopeObj<mse::mtnii_string> xscp_nstring_t;
-			typedef mse::TXScopeItemFixedPointer<mse::mtnii_string> xscp_nstring_ptr_t;
+			Registered proxy pointers are basically just registered pointers which target scope pointers, except that (more
+			conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is,
+			a `TRegisteredProxyPointer<T>` is similar to a `TRegisteredPointer<TXScopeItemFixedPointer<T> >`, except that it
+			dereferences to the object of type `T` rather than the `TXScopeItemFixedPointer<T>`. They are also convertible
+			back to scope pointers when needed. 
+			
+			To be clear, a `TRegisteredProxyPointer<T>` doesn't have any functionality that a
+			`TRegisteredPointer<TXScopeItemFixedPointer<T> >` does not already have, it's just more convenient in some
+			situations. */
+
 			class CB {
 			public:
-				static void foo1(xscp_nstring_ptr_t xscope_ptr1) {
+				static void foo1(mse::TXScopeItemFixedPointer<mse::mtnii_string> xscope_ptr1) {
 					std::cout << *xscope_ptr1;
 				}
 			};
-			typedef mse::TRegisteredObj< xscp_nstring_t > regxscp_nstring_t;
-			typedef mse::TRegisteredPointer<xscp_nstring_t> regxscp_nstring_ptr_t;
-			regxscp_nstring_t regxscp_nstring1("some text");
-			regxscp_nstring_ptr_t registered_ptr1 = &regxscp_nstring1;
+			auto xscp_nstring1 = mse::make_xscope(mse::mtnii_string("some text"));
 
-			auto xscope_ptr1 = mse::xscope_ifptr_to(*registered_ptr1);
-			CB::foo1(xscope_ptr1);
-
-			regxscp_nstring_t regxscp_nstring2("some other text");
-			registered_ptr1 = &regxscp_nstring2;
-			CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
+			CB::foo1(&xscp_nstring1);
 
 			{
-				regxscp_nstring_t regxscp_nstring3("other text");
-				registered_ptr1 = &regxscp_nstring3;
-				CB::foo1(mse::xscope_ifptr_to(*registered_ptr1));
+				auto xscp_proxy_obj1 = mse::make_xscope_registered_proxy(&xscp_nstring1);
+				mse::TRegisteredProxyPointer<mse::mtnii_string> registered_proxy_ptr1 = mse::registered_proxy_fptr(xscp_proxy_obj1);
+
+				/* Registered proxy pointers implicitly convert to scope pointers. */
+				CB::foo1(registered_proxy_ptr1);
+
+				auto xscp_nstring2 = mse::make_xscope(mse::mtnii_string("some other text"));
+				auto xscp_proxy_obj2 = mse::make_xscope_registered_proxy(&xscp_nstring2);
+
+				/* Registered proxy pointers are retargetable. */
+				registered_proxy_ptr1 = mse::registered_proxy_fptr(xscp_proxy_obj2);
+
+				CB::foo1(registered_proxy_ptr1);
+
+				{
+					auto xscp_nstring3 = mse::make_xscope(mse::mtnii_string("other text"));
+
+					{
+						auto xscp_proxy_obj3 = mse::make_xscope_registered_proxy(&xscp_nstring3);
+
+						{
+							registered_proxy_ptr1 = mse::registered_proxy_fptr(xscp_proxy_obj3);
+						}
+
+						CB::foo1(registered_proxy_ptr1);
+					}
+					/* Attempting to dereference registered_proxy_ptr1 here would result in an exception. */
+					//*registered_proxy_ptr1;
+				}
 			}
-			/* Attempting to dereference registered_ptr1 here would result in an exception. */
-			//*registered_ptr1;
+			mse::self_test::CRegProxyPtrTest1::s_test1();
 		}
 
 		{
-			/* The drawback with the above technique of declaring a scope object to additionally be a registered object
-			in order to support retargetable pointers is that the decision (of whether to support retargetable pointers)
-			needs to be made when and where the object is declared rather than when and where the retargetable pointers
-			are needed. A more flexible alternative is to add an extra level of indirection. That is, use registered
-			(or norad) pointers that target scope pointers that, in turn, target the scope object rather than registered
-			pointers that target the scope object directly. This way the scope object does not need to be additionally
-			declared as a registered object. The scope pointers would need to be declared as registered objects, but you
-			can declare such scope pointers when and where you need them.
-			*/
+			/**************************/
+			/*   TNoradProxyPointer   */
+			/**************************/
 
-			typedef mse::TXScopeObj<mse::mtnii_string> xscp_nstring_t;
-			typedef mse::TXScopeItemFixedPointer<mse::mtnii_string> xscp_nstring_ptr_t;
+			/* "norad proxy" pointers are to "registered proxy" pointers as norad pointers are to registered pointers.
+			That is, the difference is that the destruction of a a norad proxy object while a norad proxy pointer still
+			references it will result in program termination. So like their registered counterparts:
+
+			Norad proxy pointers are basically just norad pointers which target scope pointers, except that (more
+			conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is,
+			a `TNoradProxyPointer<T>` is similar to a `TNoradPointer<TXScopeItemFixedPointer<T> >`, except that it
+			dereferences to the object of type `T` rather than the `TXScopeItemFixedPointer<T>`. They are also convertible
+			back to scope pointers when needed.
+
+			To be clear, a `TNoradProxyPointer<T>` doesn't have any functionality that a
+			`TNoradPointer<TXScopeItemFixedPointer<T> >` does not already have, it's just more convenient in some
+			situations. */
+
 			class CB {
 			public:
-				static void foo1(xscp_nstring_ptr_t xscope_ptr1) {
+				static void foo1(mse::TXScopeItemFixedPointer<mse::mtnii_string> xscope_ptr1) {
 					std::cout << *xscope_ptr1;
 				}
 			};
-			xscp_nstring_t scp_nstring1("some text");
+			auto xscp_nstring1 = mse::make_xscope(mse::mtnii_string("some text"));
 
-			CB::foo1(&scp_nstring1);
+			CB::foo1(&xscp_nstring1);
 
 			{
-				typedef mse::TRegisteredObj< xscp_nstring_ptr_t > reg_xscp_nstring_ptr_t;
-				typedef mse::TRegisteredPointer<xscp_nstring_ptr_t> reg_xscp_nstring_ptr_ptr_t;
+				auto xscp_proxy_obj1 = mse::make_xscope_norad_proxy(&xscp_nstring1);
+				mse::TNoradProxyPointer<mse::mtnii_string> norad_proxy_ptr1 = mse::norad_proxy_fptr(xscp_proxy_obj1);
 
-				reg_xscp_nstring_ptr_t reg_xscp_nstring_ptr1 = &scp_nstring1;
+				/* Norad proxy pointers implicitly convert to scope pointers. */
+				CB::foo1(norad_proxy_ptr1);
 
-				reg_xscp_nstring_ptr_ptr_t reg_xscp_nstring_ptr_ptr1 = &reg_xscp_nstring_ptr1;
+				auto xscp_nstring2 = mse::make_xscope(mse::mtnii_string("some other text"));
+				auto xscp_proxy_obj2 = mse::make_xscope_norad_proxy(&xscp_nstring2);
 
-				CB::foo1(*reg_xscp_nstring_ptr_ptr1);
+				/* Norad proxy pointers are retargetable. */
+				norad_proxy_ptr1 = mse::norad_proxy_fptr(xscp_proxy_obj2);
 
-				xscp_nstring_t scp_nstring2("some other text");
-
-				reg_xscp_nstring_ptr_t reg_xscp_nstring_ptr2 = &scp_nstring2;
-
-				reg_xscp_nstring_ptr_ptr1 = &reg_xscp_nstring_ptr2;
-
-				CB::foo1(*reg_xscp_nstring_ptr_ptr1);
+				CB::foo1(norad_proxy_ptr1);
 
 				{
-					xscp_nstring_t scp_nstring3("other text");
+					auto xscp_nstring3 = mse::make_xscope(mse::mtnii_string("other text"));
 
 					{
-						reg_xscp_nstring_ptr_t reg_xscp_nstring_ptr3 = &scp_nstring3;
+						auto xscp_proxy_obj3 = mse::make_xscope_norad_proxy(&xscp_nstring3);
 
 						{
-							reg_xscp_nstring_ptr_ptr1 = &reg_xscp_nstring_ptr3;
+							norad_proxy_ptr1 = mse::norad_proxy_fptr(xscp_proxy_obj3);
 						}
 
-						CB::foo1(*reg_xscp_nstring_ptr_ptr1);
+						CB::foo1(norad_proxy_ptr1);
+
+						/* Forgetting to detarget norad_proxy pointers before their target object is destroyed (in this case, by
+						going out of scope) would result in program termination. */
+						norad_proxy_ptr1 = nullptr;
 					}
-					/* Attempting to dereference reg_xscp_nstring_ptr_ptr1 here would result in an exception. */
-					//*reg_xscp_nstring_ptr_ptr1;
 				}
 			}
+			mse::self_test::CNoradProxyPtrTest1::s_test1();
 		}
 
 		mse::self_test::CXScpPtrTest1::s_test1();
