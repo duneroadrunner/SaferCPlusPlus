@@ -274,8 +274,6 @@
     <ClInclude Include="msepoly.h" />
     <ClInclude Include="mseprimitives.h" />
     <ClInclude Include="mserefcounting.h" />
-    <ClInclude Include="mserefcountingofregistered.h" />
-    <ClInclude Include="mserefcountingofrelaxedregistered.h" />
     <ClInclude Include="mseregistered.h" />
     <ClInclude Include="mseregisteredproxy.h" />
     <ClInclude Include="mserelaxedregistered.h" />

@@ -39,12 +39,6 @@
     <ClInclude Include="mserelaxedregistered.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mserefcountingofrelaxedregistered.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mserefcountingofregistered.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="mserefcounting.h">
       <Filter>Header Files</Filter>
     </ClInclude>
