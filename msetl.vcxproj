@@ -276,7 +276,6 @@
     <ClInclude Include="mserefcounting.h" />
     <ClInclude Include="mseregistered.h" />
     <ClInclude Include="mseregisteredproxy.h" />
-    <ClInclude Include="mserelaxedregistered.h" />
     <ClInclude Include="msescope.h" />
     <ClInclude Include="msescopeatomic.h" />
     <ClInclude Include="msestaticimmutable.h" />

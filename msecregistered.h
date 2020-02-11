@@ -251,9 +251,8 @@ namespace mse {
 		}
 	}
 
-	/* TNDCRegisteredPointer is similar to TNDRegisteredPointer but uses a different implementation that allows it to be be declared
-	before its target type is fully defined. (This is necessary to support mutual and cyclic references.) It's also generally more
-	memory efficient. But maybe a bit slower in some cases. */
+	/* TNDCRegisteredPointer is similar to TNDRegisteredPointer but uses a slightly different implementation with a little
+	more overhead but better worse-case performance. */
 	template<typename _Ty>
 	class TNDCRegisteredPointer : public mse::us::TSaferPtr<TNDCRegisteredObj<_Ty>>, public mse::us::impl::CCRegisteredNode {
 	public:
