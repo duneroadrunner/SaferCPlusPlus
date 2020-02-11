@@ -1,4 +1,4 @@
-Jan 2020
+Feb 2020
 
 ### Overview
 
@@ -54,7 +54,7 @@ Tested with msvc2019(v16.4.3), g++7.4.0 and clang++6.0.0. Support for versions o
         3. [TRefCountingConstPointer](#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer)
     2. [Using registered pointers as weak pointers](#using-registered-pointers-as-weak-pointers-with-reference-counting-pointers)
 10. [Scope pointers](#scope-pointers)
-    1. [TXScopeItemFixedPointer](#txscopeitemfixedpointer)
+    1. [TXScopeFixedPointer](#txscopefixedpointer)
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
     4. [TRegisteredProxyPointer](#tregisteredproxypointer)
@@ -662,7 +662,7 @@ Scope pointers are pointers that live (only) to the end of the scope in which th
 
 Scope pointers generally satisfy the restrictions the lifetime checker would impose on raw pointers, and could be considered as basically a stand-in for raw pointers for situations where a complete lifetime checker is not available. When a lifetime checker is/becomes available, scope pointers can be "disabled", i.e. aliased to their corresponding raw pointers, by simply defining the `MSE_SCOPEPOINTER_DISABLED` preprocessor symbol. 
 
-Unlike other elements of the library, proper use of scope types is not fully enforced in the type system. Full enforcement requires the use of a tool like [scpptool](https://github.com/duneroadrunner/scpptool) (or the eventually-completed lifetime checker). Note that run-time checking is used in debug builds to catch unsafe misuses of scope types. (This is (now) kind of redundant if you're using an aforementioned enforcement tool.) Defining the MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED preprocessor symbol will enable run-time checking in non-debug builds as well. 
+Unlike other elements of the library, proper use of scope types is not fully enforced in the type system. Full enforcement requires the use of a tool like [scpptool](https://github.com/duneroadrunner/scpptool) (or the eventually-completed lifetime checker). Run-time checking is (still) available to catch unsafe misuses of scope types by defining the `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol. (Though this is (now) kind of redundant if you're using an aforementioned enforcement tool.)
 
 Scope pointers usually point to scope objects. Scope objects are objects that live to the end of the scope in which they are declared. You can designate pretty much any type to be a scope object type by wrapping it in the `mse::TXScopeObj<>` (transparent) wrapper template. As with registered objects, this wrapper does not support some types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#cndint-cndsize_t-and-cndbool) that can act as base classes. 
 
@@ -680,11 +680,11 @@ The rules for using scope pointers and objects are essentially as follows:
 
 Again, most inadvertent misuses of scope objects should result in compile errors. The remaining potential misuses would be caught by a companion tool like the aforementioned [scpptool](https://github.com/duneroadrunner/scpptool). But these rules should be intuitive enough that adherence should be fairly natural. Just remember that the safety of scope pointers is premised on the fact that scope objects are never deallocated before the end of the scope in which they are declared, and (non-owning) scope pointers (and any copies of them) never survive beyond the scope in which they are declared, so that a scope pointer cannot outlive its target scope object.
 
-Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPointer<>`](#txscopeownerpointer) and [`TXScopeItemFixedPointer<>`](#txscopeitemfixedpointer). `TXScopeOwnerPointer<>` is kind of like `std::unique_ptr<>`, but restricted by the rules of scope objects. It creates an instance of a given class on the heap and destroys that instance in its destructor. 
-`TXScopeItemFixedPointer<>` is a (zero-overhead) "non-owning" pointer to objects that are known (at compile-time) to outlive it. 
+Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPointer<>`](#txscopeownerpointer) and [`TXScopeFixedPointer<>`](#txscopefixedpointer). `TXScopeOwnerPointer<>` is kind of like `std::unique_ptr<>`, but restricted by the rules of scope objects. It creates an instance of a given class on the heap and destroys that instance in its destructor. 
+`TXScopeFixedPointer<>` is a (zero-overhead) "non-owning" pointer to objects that are known (at compile-time) to outlive it. 
 
-### TXScopeItemFixedPointer
-`TXScopeItemFixedPointer<>`s are (zero-overhead) "non-owning", non-retargetable pointers. They may only be declared such that they do not outlive the scope in which they are declared (i.e. basically as non-static local variables, and may only point to objects known (at compile-time) to live at least that long. 
+### TXScopeFixedPointer
+`TXScopeFixedPointer<>`s are (zero-overhead) "non-owning", non-retargetable pointers. They may only be declared such that they do not outlive the scope in which they are declared (i.e. basically as non-static local variables, and may only point to objects known (at compile-time) to live at least that long. 
 
 usage example:
 
@@ -703,8 +703,8 @@ usage example:
         };
         class B {
         public:
-            static int foo2(mse::TXScopeItemFixedPointer<A> A_scpifptr) { return A_scpifptr->b; }
-            static int foo3(mse::TXScopeItemFixedConstPointer<A> A_scpifcptr) { return A_scpifcptr->b; }
+            static int foo2(mse::TXScopeFixedPointer<A> A_scpifptr) { return A_scpifptr->b; }
+            static int foo3(mse::TXScopeFixedConstPointer<A> A_scpifcptr) { return A_scpifcptr->b; }
         protected:
             ~B() {}
         };
@@ -720,7 +720,7 @@ usage example:
     }
 ```
 
-#### TXScopeItemFixedConstPointer
+#### TXScopeFixedConstPointer
 
 ### TXScopeOwnerPointer
 `TXScopeOwnerPointer<>` is kind of like an `std::unique_ptr<>` whose use is restricted by the rules of scope objects. So, it must live to the end of the scope in which it is declared (i.e. basically be declared as a non-static local (or `thread_local` variable)) and can only be used as a member of objects which are themselves scope objects. You can use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Unlike `std::unique_ptr<>`s, you may not use `std::move()` with `TXScopeOwnerPointer<>`s. If you're not using a conformance helper tool like [scpptool](https://github.com/duneroadrunner/scpptool) to enforce this, you can disable `TXScopeOwnerPointer<>`'s move constructor by defining the `MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY` preprocessor symbol.
@@ -744,8 +744,8 @@ usage example:
         };
         class B {
         public:
-            static int foo2(mse::TXScopeItemFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-            static int foo3(mse::TXScopeItemFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+            static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+            static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
         protected:
             ~B() {}
         };
@@ -758,11 +758,6 @@ usage example:
         int res4b = B::foo2(&(*xscp_a_ownerptr));
     }
 ```
-
-### TXScopeFixedPointer
-`TXScopeFixedPointer<>` is the actual type of the pointer value returned by the `&` (ampersand) operator of an object declared as a "scope" object (by virtue of being wrapped in the `TXScopeObj<>` transparent wrapper template). Generally, you don't need to use this type directly. `TXScopeFixedPointer<>` implicitly converts to a `TXScopeItemFixedPointer<>`, which can point to both explicitly declared and implicit scope objects. So generally you would just use the latter.
-
-#### TXScopeFixedConstPointer
 
 ### make_xscope_strong_pointer_store()
 
@@ -786,8 +781,8 @@ usage example:
         };
         class B {
         public:
-            static int foo2(mse::TXScopeItemFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-            static int foo3(mse::TXScopeItemFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+            static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+            static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
         protected:
             ~B() {}
         };
@@ -798,7 +793,7 @@ usage example:
         auto xscp_refc_cstore = mse::make_xscope_strong_pointer_store(refc_cptr1);
         auto xscp_cptr1 = xscp_refc_cstore.xscope_ptr();
         int res6 = B::foo3(xscp_cptr1);
-        mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
+        mse::TXScopeFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
         A res7 = *xscp_cptr2;
     }
 ```
@@ -809,9 +804,9 @@ usage example:
 
 Scope pointers have limitations, (currently) for example, in terms of their ability to be retargeted, and their ability to be stored in dynamic containers. When necessary, you can circumvent these sorts of limitations by creating "registered proxy" pointers corresponding to given scope pointers. 
 
-Registered proxy pointers are basically just [registered pointers](#registered-pointers) which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TRegisteredProxyPointer<T>` is similar to a `TRegisteredConstPointer<TXScopeItemFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the `TXScopeItemFixedPointer<T>`. They are also convertible back to scope pointers when needed. 
+Registered proxy pointers are basically just [registered pointers](#registered-pointers) which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TRegisteredProxyPointer<T>` is similar to a `TRegisteredConstPointer<TXScopeFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the `TXScopeFixedPointer<T>`. They are also convertible back to scope pointers when needed. 
 
-To be clear, a `TRegisteredProxyPointer<T>` doesn't have any functionality that a `TRegisteredConstPointer<TXScopeItemFixedPointer<T> >` does not already have, it's just more convenient in some situations.
+To be clear, a `TRegisteredProxyPointer<T>` doesn't have any functionality that a `TRegisteredConstPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some situations.
 
 usage example:
 
@@ -823,7 +818,7 @@ usage example:
     void main(int argc, char* argv[]) {
         class CB {
         public:
-            static void foo1(mse::TXScopeItemFixedPointer<mse::mtnii_string> xscope_ptr1) {
+            static void foo1(mse::TXScopeFixedPointer<mse::mtnii_string> xscope_ptr1) {
                 std::cout << *xscope_ptr1;
             }
         };
@@ -871,9 +866,9 @@ usage example:
 
 "norad proxy" pointers are to ["registered proxy" pointers](#tregisteredproxypointer) as [norad pointers](#norad-pointers) are to [registered pointers](#registered-pointers). That is, the difference is that the destruction of a a norad proxy object while a norad proxy pointer still references it will result in program termination. So like their registered counterparts:
 
-Norad proxy pointers are basically just norad pointers which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TNoradProxyPointer<T>` is similar to a `TNoradPointer<TXScopeItemFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the `TXScopeItemFixedPointer<T>`. They are also convertible back to scope pointers when needed.
+Norad proxy pointers are basically just norad pointers which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TNoradProxyPointer<T>` is similar to a `TNoradPointer<TXScopeFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the `TXScopeFixedPointer<T>`. They are also convertible back to scope pointers when needed.
 
-To be clear, a `TNoradProxyPointer<T>` doesn't have any functionality that a `TNoradPointer<TXScopeItemFixedPointer<T> >` does not already have, it's just more convenient in some  situations.
+To be clear, a `TNoradProxyPointer<T>` doesn't have any functionality that a `TNoradPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some  situations.
 
 usage example:
 
@@ -885,7 +880,7 @@ usage example:
     void main(int argc, char* argv[]) {
         class CB {
         public:
-            static void foo1(mse::TXScopeItemFixedPointer<mse::mtnii_string> xscope_ptr1) {
+            static void foo1(mse::TXScopeFixedPointer<mse::mtnii_string> xscope_ptr1) {
                 std::cout << *xscope_ptr1;
             }
         };
@@ -991,7 +986,7 @@ public:
         auto l_string2_ptr = mse::rsv::as_a_returnable_fparam(string2_ptr);
 
         if (l_string1_ptr->length() > l_string2_ptr->length()) {
-            /* If string1_ptr were a regular TXScopeItemFixedPointer<mse::mtnii_string> and we tried to return it
+            /* If string1_ptr were a regular TXScopeFixedPointer<mse::mtnii_string> and we tried to return it
             directly instead of l_string1_ptr, it would have induced a compile error. */
 
             return mse::return_value(l_string1_ptr);
@@ -1075,7 +1070,7 @@ void main(int argc, char* argv[]) {
 
 [*provisional*]
 
-`rsv::TFParam<>` is just a transparent template wrapper for function parameter declarations. In most cases use of this wrapper is not necessary, but in some cases it enables functionality only available to variables that are function parameters. Specifically, it allows functions to support arguments that are scope pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so in the case of function parameters, the `rsv::TFParam<>` wrapper enables certain scope pointer/reference types (like `TXScopeItemFixedConstPointer<>`, and "[random access const sections](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" scope types) to be constructed from their "functionally disabled" counterparts.
+`rsv::TFParam<>` is just a transparent template wrapper for function parameter declarations. In most cases use of this wrapper is not necessary, but in some cases it enables functionality only available to variables that are function parameters. Specifically, it allows functions to support arguments that are scope pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so in the case of function parameters, the `rsv::TFParam<>` wrapper enables certain scope pointer/reference types (like `TXScopeFixedConstPointer<>`, and "[random access const sections](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" scope types) to be constructed from their "functionally disabled" counterparts.
 
 In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the `mse::rsv::TFParam<>` wrapper can interfere with that. In those cases you can instead convert parameters to their wrapped type after-the-fact using the `rsv::as_an_fparam()` function. Note that using this function (or the `rsv::TFParam<>` wrapper) on anything other than function parameters would be unsafe, and wouldn't be prevented by the type system. Safety enforcement is reliant on a companion tool like [scpptool](https://github.com/duneroadrunner/scpptool).
 
@@ -1101,8 +1096,8 @@ public:
 void main(int argc, char* argv[]) {
     class CD {
     public:
-        static bool second_is_longer(mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::mtnii_string> > string1_xscpptr
-            , mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::mtnii_string> > string2_xscpptr) {
+        static bool second_is_longer(mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::mtnii_string> > string1_xscpptr
+            , mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::mtnii_string> > string2_xscpptr) {
 
             return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
         }
@@ -1244,7 +1239,7 @@ void main(int argc, char* argv[]) {
         , public mse::rsv::ReferenceableByScopePointerTagBase
     {
     public:
-        typedef mse::TXScopeItemFixedConstPointer<mse::mstd::string> xscope_string_ptr_t;
+        typedef mse::TXScopeFixedConstPointer<mse::mstd::string> xscope_string_ptr_t;
 
         xscope_my_type2(const mse::xscope_optional<xscope_string_ptr_t>& xscp_maybe_string_ptr) : m_xscp_maybe_string_ptr(xscp_maybe_string_ptr) {}
 
@@ -3005,7 +3000,7 @@ usage example:
         mse::TXScopeObj<mse::stnii_vector<int> > vector1_xscpobj = mse::stnii_vector<int>{ 1, 2, 3 };
 
         {
-            mse::TXScopeItemFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
+            mse::TXScopeFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
             auto xscp_citer1 = mse::make_xscope_begin_const_iterator(xscptr);
             xscp_citer1 += 2;
             auto xscp_cptr1 = mse::xscope_const_pointer(xscp_citer1);
