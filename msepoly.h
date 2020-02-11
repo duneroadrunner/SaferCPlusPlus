@@ -482,7 +482,7 @@ namespace mse {
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
-				return TXScopeItemFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+				return TXScopeFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
 			}
 			template<typename _TRALoneParam>
 			auto constructor_helper1(std::false_type, _TRALoneParam&& param) { return std::forward<_TRALoneParam>(param); }
@@ -564,8 +564,8 @@ namespace mse {
 			public:
 				using poly_variant = tdp_pointer_variant <
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
+					mse::TXScopeObjFixedPointer<_Ty>,
 					mse::TXScopeFixedPointer<_Ty>,
-					mse::TXScopeItemFixedPointer<_Ty>,
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 					mse::TRegisteredPointer<_Ty>,
@@ -597,12 +597,12 @@ namespace mse {
 				TPolyPointerBase(const us::impl::TPolyPointerBase<_Ty>& p) : m_pointer(p.m_pointer) {}
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
+				TPolyPointerBase(const mse::TXScopeObjFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeObjFixedPointer<_Ty>>(p); }
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				TPolyPointerBase(const mse::TXScopeObjFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeObjFixedPointer<_Ty>>(p); }
 				TPolyPointerBase(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 				TPolyPointerBase(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
-				TPolyPointerBase(const mse::TXScopeItemFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeItemFixedPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-				TPolyPointerBase(const mse::TXScopeItemFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeItemFixedPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 				TPolyPointerBase(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
@@ -764,8 +764,8 @@ namespace mse {
 			public:
 				using poly_variant = tdp_pointer_variant <
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
+					mse::TXScopeObjFixedConstPointer<_Ty>,
 					mse::TXScopeFixedConstPointer<_Ty>,
-					mse::TXScopeItemFixedConstPointer<_Ty>,
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 					mse::TRegisteredConstPointer<_Ty>,
@@ -799,6 +799,14 @@ namespace mse {
 				TPolyConstPointerBase(const mse::us::impl::TPolyPointerBase<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(mse::TXScopeAnyConstPointer<_Ty>(p)); }
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
+				TPolyConstPointerBase(const mse::TXScopeObjFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				TPolyConstPointerBase(const mse::TXScopeObjFixedConstPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
+
+				TPolyConstPointerBase(const mse::TXScopeObjFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
+				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				TPolyConstPointerBase(const mse::TXScopeObjFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
+
 				TPolyConstPointerBase(const mse::TXScopeFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 				TPolyConstPointerBase(const mse::TXScopeFixedConstPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
@@ -806,14 +814,6 @@ namespace mse {
 				TPolyConstPointerBase(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 				TPolyConstPointerBase(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
-
-				TPolyConstPointerBase(const mse::TXScopeItemFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeItemFixedConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-				TPolyConstPointerBase(const mse::TXScopeItemFixedConstPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeItemFixedConstPointer<_Ty>>(p); }
-
-				TPolyConstPointerBase(const mse::TXScopeItemFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeItemFixedConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-				TPolyConstPointerBase(const mse::TXScopeItemFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeItemFixedConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 				TPolyConstPointerBase(const mse::TRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
@@ -1013,7 +1013,7 @@ namespace mse {
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
-				return TXScopeItemFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+				return TXScopeFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
 			}
 			template<typename _TRALoneParam>
 			auto constructor_helper1(std::false_type, _TRALoneParam&& param) { return std::forward<_TRALoneParam>(param); }
@@ -1604,7 +1604,7 @@ namespace mse {
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
-				return TXScopeItemFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+				return TXScopeFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
 			}
 			template<typename _TRAIterator>
 			auto constructor_helper1(std::true_type, TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>&& param) {
@@ -1710,7 +1710,7 @@ namespace mse {
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
-				return TXScopeItemFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+				return TXScopeFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
 			}
 			template<typename _TRAIterator>
 			auto constructor_helper1(std::true_type, TXScopeCagedStringConstSectionToRValue<_TRAIterator>&& param) {
@@ -2132,9 +2132,9 @@ namespace mse {
 		TRefCountingOrXScopeFixedPointer(const TRefCountingPointer<_Ty>& src_cref) : TXScopePolyPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRefCountingOrXScopeFixedPointer(const TRefCountingPointer<_Ty2>& src_cref) : TXScopePolyPointer<_Ty>(TRefCountingPointer<_Ty>(src_cref)) {}
-		TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TXScopePolyPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedPointer(const TXScopeObjFixedPointer<_Ty>& src_cref) : TXScopePolyPointer<_Ty>(src_cref) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TRefCountingOrXScopeFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopePolyPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
+		//TRefCountingOrXScopeFixedPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : TXScopePolyPointer<_Ty>(TXScopeObjFixedPointer<_Ty>(src_cref)) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingOrXScopeFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const { return std::addressof((*this).operator*()); }
@@ -2163,14 +2163,14 @@ namespace mse {
 		TRefCountingOrXScopeFixedConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 		TRefCountingOrXScopeFixedConstPointer(const TRefCountingPointer<_Ty2>& src_cref) : TXScopePolyConstPointer<_Ty>(TRefCountingPointer<_Ty>(src_cref)) {}
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : TXScopePolyConstPointer<_Ty>(TXScopeFixedConstPointer<_Ty>(src_cref)) {}
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<_Ty2>& src_cref) : TXScopePolyConstPointer<_Ty>(TXScopeObjFixedConstPointer<_Ty>(src_cref)) {}
 #ifndef MSE_SCOPEPOINTER_DISABLED
-		TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
+		TRefCountingOrXScopeFixedConstPointer(const TXScopeObjFixedPointer<_Ty>& src_cref) : TXScopePolyConstPointer<_Ty>(src_cref) {}
 #endif // !MSE_SCOPEPOINTER_DISABLED
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TRefCountingOrXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopePolyConstPointer<_Ty>(TXScopeFixedPointer<_Ty>(src_cref)) {}
+		//TRefCountingOrXScopeFixedConstPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : TXScopePolyConstPointer<_Ty>(TXScopeObjFixedPointer<_Ty>(src_cref)) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingOrXScopeFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const { return std::addressof((*this).operator*()); }
@@ -2383,9 +2383,9 @@ namespace mse {
 						mse::TXScopeObj<D> d_xscpobj(7);
 						D d_obj(11);
 						int res11 = B::foo1(D_refcfp);
-						int res12 = B::foo1(mse::TXScopeItemFixedPointer<D>(&d_xscpobj));
+						int res12 = B::foo1(mse::TXScopeFixedPointer<D>(&d_xscpobj));
 						int res13 = B::foo2(D_refcfp);
-						int res14 = B::foo2(mse::TXScopeItemFixedPointer<D>(&d_xscpobj));
+						int res14 = B::foo2(mse::TXScopeFixedPointer<D>(&d_xscpobj));
 					}
 
 #ifdef MSE_POLY_SELF_TEST_DEPRECATED_POLY_POINTERS
@@ -2434,7 +2434,7 @@ namespace mse {
 
 						my_var d;
 
-						d.set<mse::TScopeFixedPointer<A>>(&a_xscpobj);
+						d.set<mse::TXScopeFixedPointer<A>>(&a_xscpobj);
 						//std::cout << d.get<mse::TScopeFixedPointer<A>>()->b << std::endl;
 
 						d.set<mse::TRefCountingFixedPointer<A>>(A_refcfp);

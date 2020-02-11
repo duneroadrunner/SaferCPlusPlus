@@ -85,9 +85,9 @@ MSE_SCOPEPOINTER_DISABLED will ultimately be defined. */
 
 /* By default, norad pointers are used to catch unsafe misuse of scope pointers in debug mode. Defining
 MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug modes as well. */
-#if (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED) && (!defined(MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED)))
-#define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
-#endif // (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED) && (!defined(MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED)))
+//#if (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED) && (!defined(MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED)))
+//#define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+//#endif // (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED) && (!defined(MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED)))
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
 #undef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED

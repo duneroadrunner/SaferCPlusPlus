@@ -80,6 +80,15 @@ namespace mse {
 		template<class _TArray> using xscope_array_iterator = typename _TArray::iterator;
 
 		template<class _TArray>
+		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeObjFixedConstPointer<_TArray>& owner_ptr) {
+			return (*owner_ptr).cbegin();
+		}
+		template<class _TArray>
+		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeObjFixedPointer<_TArray>& owner_ptr) {
+			return (*owner_ptr).cbegin();
+		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _TArray>
 		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
 			return (*owner_ptr).cbegin();
 		}
@@ -87,24 +96,15 @@ namespace mse {
 		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
 			return (*owner_ptr).cbegin();
 		}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _TArray>
-		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-			return (*owner_ptr).cbegin();
-		}
-		template<class _TArray>
-		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-			return (*owner_ptr).cbegin();
-		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 		template<class _TArray>
-		xscope_array_iterator<_TArray> make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+		xscope_array_iterator<_TArray> make_xscope_iterator(const mse::TXScopeObjFixedPointer<_TArray>& owner_ptr) {
 			return (*owner_ptr).begin();
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _TArray>
-		xscope_array_iterator<_TArray> make_xscope_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+		xscope_array_iterator<_TArray> make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
 			return (*owner_ptr).begin();
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -160,10 +160,10 @@ namespace mse {
 		class Tarray_xscope_iterator;
 
 		template<class _Ty, size_t _Size>
-		class Tarray_xscope_const_iterator : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<array<_Ty, _Size> > > >
+		class Tarray_xscope_const_iterator : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeFixedConstPointer<array<_Ty, _Size> > > >
 			/*, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
 		public:
-			typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeItemFixedConstPointer<array<_Ty, _Size> > > > base_class;
+			typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeFixedConstPointer<array<_Ty, _Size> > > > base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tarray_xscope_const_iterator, base_class);
@@ -196,10 +196,10 @@ namespace mse {
 			friend class Tarray_xscope_iterator;
 		};
 		template<class _Ty, size_t _Size>
-		class Tarray_xscope_iterator : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeItemFixedPointer<array<_Ty, _Size> > > >
+		class Tarray_xscope_iterator : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeFixedPointer<array<_Ty, _Size> > > >
 			/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
 		public:
-			typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeItemFixedPointer<array<_Ty, _Size> > > > base_class;
+			typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeFixedPointer<array<_Ty, _Size> > > > base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tarray_xscope_iterator, base_class);
@@ -617,6 +617,15 @@ namespace mse {
 		template<class _TArray> using xscope_array_iterator = typename _TArray::xscope_iterator;
 
 		template<class _TArray>
+		auto make_xscope_const_iterator(const mse::TXScopeObjFixedConstPointer<_TArray>& owner_ptr) {
+			return mse::make_xscope_const_iterator(owner_ptr);
+		}
+		template<class _TArray>
+		auto make_xscope_const_iterator(const mse::TXScopeObjFixedPointer<_TArray>& owner_ptr) {
+			return mse::make_xscope_const_iterator(owner_ptr);
+		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _TArray>
 		auto make_xscope_const_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
 			return mse::make_xscope_const_iterator(owner_ptr);
 		}
@@ -624,24 +633,15 @@ namespace mse {
 		auto make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
 			return mse::make_xscope_const_iterator(owner_ptr);
 		}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _TArray>
-		auto make_xscope_const_iterator(const mse::TXScopeItemFixedConstPointer<_TArray>& owner_ptr) {
-			return mse::make_xscope_const_iterator(owner_ptr);
-		}
-		template<class _TArray>
-		auto make_xscope_const_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
-			return mse::make_xscope_const_iterator(owner_ptr);
-		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 		template<class _TArray>
-		auto make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+		auto make_xscope_iterator(const mse::TXScopeObjFixedPointer<_TArray>& owner_ptr) {
 			return mse::make_xscope_iterator(owner_ptr);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _TArray>
-		auto make_xscope_iterator(const mse::TXScopeItemFixedPointer<_TArray>& owner_ptr) {
+		auto make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
 			return mse::make_xscope_iterator(owner_ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -755,39 +755,39 @@ namespace mse {
 		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_iterator)
 
 		template<class _Ty, size_t _Size>
-		TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const xscope_array_iterator<array<_Ty, _Size> >& iter_cref) {
+		TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const xscope_array_iterator<array<_Ty, _Size> >& iter_cref) {
 			return mse::us::unsafe_make_xscope_pointer_to(*iter_cref);
 		}
 		template<class _Ty, size_t _Size>
-		TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeItemFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
+		TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
 			return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, size_t _Size>
-		TXScopeItemFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
+		TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeObjFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
 			return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 		template<class _Ty, size_t _Size>
-		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const xscope_array_const_iterator<array<_Ty, _Size> >& iter_cref) {
+		TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const xscope_array_const_iterator<array<_Ty, _Size> >& iter_cref) {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
 		}
 		template<class _Ty, size_t _Size>
-		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedConstPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
+		TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
 			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 		template<class _Ty, size_t _Size>
-		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeItemFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
+		TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
 			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, size_t _Size>
-		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
+		TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedConstPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
 			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 		template<class _Ty, size_t _Size>
-		TXScopeItemFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
+		TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedPointer<array<_Ty, _Size> >& ptr, typename array<_Ty, _Size>::size_type _P) {
 			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)

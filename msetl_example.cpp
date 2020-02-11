@@ -101,7 +101,7 @@ public:
 		auto l_string2_ptr = mse::rsv::as_a_returnable_fparam(string2_ptr);
 
 		if (l_string1_ptr->length() > l_string2_ptr->length()) {
-			/* If string1_ptr were a regular TXScopeItemFixedPointer<mse::mtnii_string> and we tried to return it
+			/* If string1_ptr were a regular TXScopeFixedPointer<mse::mtnii_string> and we tried to return it
 			directly instead of l_string1_ptr, it would have induced a compile error. */
 
 			return mse::return_value(l_string1_ptr);
@@ -1198,7 +1198,7 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 
 	{
 		/*****************************/
-		/*  TXScopeItemFixedPointer  */
+		/*  TXScopeFixedPointer  */
 		/*****************************/
 
 		/* The "xscope" templates basically allow the programmer to indicate that the target object has "scope
@@ -1220,8 +1220,8 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 		class B {
 		public:
 			static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-			static int foo2(mse::TXScopeItemFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-			static int foo3(mse::TXScopeItemFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+			static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+			static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
 		protected:
 			~B() {}
 		};
@@ -1251,7 +1251,7 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 		auto xscp_s_const_ptr1 = mse::make_xscope_const_pointer_to_member_v2((&a_scpobj), &A::s);
 
 		/* The return type of mse::make_xscope_pointer_to_member_v2() depends on the type of the parameters passed
-		to it. In this case, the type of xscp_s_ptr1 is mse::TXScopeItemFixedPointer<A>. */
+		to it. In this case, the type of xscp_s_ptr1 is mse::TXScopeFixedPointer<A>. */
 
 		auto res5 = H::foo6(xscp_s_ptr1, xscp_s_const_ptr1);
 
@@ -1262,7 +1262,7 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 		auto xscp_refc_cstore = mse::make_xscope_strong_pointer_store(refc_cptr1);
 		auto xscp_cptr1 = xscp_refc_cstore.xscope_ptr();
 		int res6 = B::foo3(xscp_cptr1);
-		mse::TXScopeItemFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
+		mse::TXScopeFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
 		A res7 = *xscp_cptr2;
 
 		/* For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted
@@ -1331,7 +1331,7 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 			pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to
 			temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types.
 			Because it's safe to do so in the case of function parameters, the rsv::TFParam<> wrapper enables certain
-			scope pointer/reference types (like TXScopeItemFixedPointer<>, and "random access section" scope types) to
+			scope pointer/reference types (like TXScopeFixedPointer<>, and "random access section" scope types) to
 			be constructed from their "functionally disabled" counterparts.
 
 			In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the
@@ -1346,8 +1346,8 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 
 			class CD {
 			public:
-				static bool second_is_longer(mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::mtnii_string> > string1_xscpptr
-					, mse::rsv::TXScopeFParam<mse::TXScopeItemFixedConstPointer<mse::mtnii_string> > string2_xscpptr) {
+				static bool second_is_longer(mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::mtnii_string> > string1_xscpptr
+					, mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::mtnii_string> > string2_xscpptr) {
 
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
@@ -1384,17 +1384,17 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 
 			Registered proxy pointers are basically just registered pointers which target scope pointers, except that (more
 			conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is,
-			a `TRegisteredProxyPointer<T>` is similar to a `TRegisteredPointer<TXScopeItemFixedPointer<T> >`, except that it
-			dereferences to the object of type `T` rather than the `TXScopeItemFixedPointer<T>`. They are also convertible
+			a `TRegisteredProxyPointer<T>` is similar to a `TRegisteredPointer<TXScopeFixedPointer<T> >`, except that it
+			dereferences to the object of type `T` rather than the `TXScopeFixedPointer<T>`. They are also convertible
 			back to scope pointers when needed. 
 			
 			To be clear, a `TRegisteredProxyPointer<T>` doesn't have any functionality that a
-			`TRegisteredPointer<TXScopeItemFixedPointer<T> >` does not already have, it's just more convenient in some
+			`TRegisteredPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some
 			situations. */
 
 			class CB {
 			public:
-				static void foo1(mse::TXScopeItemFixedPointer<mse::mtnii_string> xscope_ptr1) {
+				static void foo1(mse::TXScopeFixedPointer<mse::mtnii_string> xscope_ptr1) {
 					std::cout << *xscope_ptr1;
 				}
 			};
@@ -1447,17 +1447,17 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 
 			Norad proxy pointers are basically just norad pointers which target scope pointers, except that (more
 			conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is,
-			a `TNoradProxyPointer<T>` is similar to a `TNoradPointer<TXScopeItemFixedPointer<T> >`, except that it
-			dereferences to the object of type `T` rather than the `TXScopeItemFixedPointer<T>`. They are also convertible
+			a `TNoradProxyPointer<T>` is similar to a `TNoradPointer<TXScopeFixedPointer<T> >`, except that it
+			dereferences to the object of type `T` rather than the `TXScopeFixedPointer<T>`. They are also convertible
 			back to scope pointers when needed.
 
 			To be clear, a `TNoradProxyPointer<T>` doesn't have any functionality that a
-			`TNoradPointer<TXScopeItemFixedPointer<T> >` does not already have, it's just more convenient in some
+			`TNoradPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some
 			situations. */
 
 			class CB {
 			public:
-				static void foo1(mse::TXScopeItemFixedPointer<mse::mtnii_string> xscope_ptr1) {
+				static void foo1(mse::TXScopeFixedPointer<mse::mtnii_string> xscope_ptr1) {
 					std::cout << *xscope_ptr1;
 				}
 			};

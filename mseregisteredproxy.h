@@ -68,19 +68,6 @@ namespace mse {
 	}
 
 	template <class X>
-	auto make_xscope_ndregistered_proxy(const mse::TXScopeItemFixedPointer<X>& xs_ptr) {
-		return TNDXScopeRegisteredProxyObj<X>(xs_ptr);
-	}
-	template <class X>
-	auto make_xscope_ndregistered_proxy(const mse::TXScopeItemFixedConstPointer<X>& xs_ptr) {
-		return TNDXScopeRegisteredConstProxyObj<X>(xs_ptr);
-	}
-	template <class X>
-	auto make_xscope_ndregistered_const_proxy(const mse::TXScopeItemFixedConstPointer<X>& xs_ptr) {
-		return TNDXScopeRegisteredConstProxyObj<X>(xs_ptr);
-	}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template <class X>
 	auto make_xscope_ndregistered_proxy(const mse::TXScopeFixedPointer<X>& xs_ptr) {
 		return TNDXScopeRegisteredProxyObj<X>(xs_ptr);
 	}
@@ -90,6 +77,19 @@ namespace mse {
 	}
 	template <class X>
 	auto make_xscope_ndregistered_const_proxy(const mse::TXScopeFixedConstPointer<X>& xs_ptr) {
+		return TNDXScopeRegisteredConstProxyObj<X>(xs_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template <class X>
+	auto make_xscope_ndregistered_proxy(const mse::TXScopeObjFixedPointer<X>& xs_ptr) {
+		return TNDXScopeRegisteredProxyObj<X>(xs_ptr);
+	}
+	template <class X>
+	auto make_xscope_ndregistered_proxy(const mse::TXScopeObjFixedConstPointer<X>& xs_ptr) {
+		return TNDXScopeRegisteredConstProxyObj<X>(xs_ptr);
+	}
+	template <class X>
+	auto make_xscope_ndregistered_const_proxy(const mse::TXScopeObjFixedConstPointer<X>& xs_ptr) {
 		return TNDXScopeRegisteredConstProxyObj<X>(xs_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -121,12 +121,12 @@ namespace mse {
 		return make_xscope_ndregistered_const_proxy(arg);
 	}
 
-	/* TNDRegisteredProxyPointer<_Ty> is just an mse::TNDRegisteredPointer<mse::TXScopeItemFixedPointer<_Ty> > that
-	dereferences to the target of type _Ty rather than the mse::TXScopeItemFixedPointer<_Ty>. */
+	/* TNDRegisteredProxyPointer<_Ty> is just an mse::TNDRegisteredPointer<mse::TXScopeFixedPointer<_Ty> > that
+	dereferences to the target of type _Ty rather than the mse::TXScopeFixedPointer<_Ty>. */
 	template<typename _Ty>
-	class TNDRegisteredProxyPointer : public mse::TNDRegisteredConstPointer<mse::TXScopeItemFixedPointer<_Ty> > {
+	class TNDRegisteredProxyPointer : public mse::TNDRegisteredConstPointer<mse::TXScopeFixedPointer<_Ty> > {
 	public:
-		typedef mse::TNDRegisteredConstPointer<mse::TXScopeItemFixedPointer<_Ty> > base_class;
+		typedef mse::TNDRegisteredConstPointer<mse::TXScopeFixedPointer<_Ty> > base_class;
 		typedef base_class _MP;
 
 		MSE_USING(TNDRegisteredProxyPointer, base_class);
@@ -152,10 +152,10 @@ namespace mse {
 		}
 
 		operator bool() const { return bool(contained_pointer()) && bool(*contained_pointer()); }
-		operator mse::TXScopeItemFixedPointer<_Ty>() const {
+		operator mse::TXScopeFixedPointer<_Ty>() const {
 			return (*contained_pointer());
 		}
-		operator mse::TXScopeItemFixedConstPointer<_Ty>() const {
+		operator mse::TXScopeFixedConstPointer<_Ty>() const {
 			return (*contained_pointer());
 		}
 
@@ -191,9 +191,9 @@ namespace mse {
 	}
 
 	template<typename _Ty>
-	class TNDRegisteredProxyConstPointer : public mse::TNDRegisteredConstPointer<mse::TXScopeItemFixedConstPointer<_Ty> > {
+	class TNDRegisteredProxyConstPointer : public mse::TNDRegisteredConstPointer<mse::TXScopeFixedConstPointer<_Ty> > {
 	public:
-		typedef mse::TNDRegisteredConstPointer<mse::TXScopeItemFixedConstPointer<_Ty> > base_class;
+		typedef mse::TNDRegisteredConstPointer<mse::TXScopeFixedConstPointer<_Ty> > base_class;
 		typedef base_class _MP;
 
 		MSE_USING(TNDRegisteredProxyConstPointer, base_class);
@@ -222,7 +222,7 @@ namespace mse {
 		}
 
 		operator bool() const { return bool(contained_pointer()) && bool(*contained_pointer()); }
-		operator mse::TXScopeItemFixedConstPointer<_Ty>() const {
+		operator mse::TXScopeFixedConstPointer<_Ty>() const {
 			return (*contained_pointer());
 		}
 
@@ -240,10 +240,10 @@ namespace mse {
 			/* Reinterpreting a TNDXScopeRegisteredProxyObj<_Ty> as a TNDXScopeRegisteredProxyObj<const _Ty> should be fine. */
 			return reinterpret_cast<const TNDXScopeRegisteredProxyObj<const _Ty>*>(ptr);
 		}
-		static const auto& RegCPtrXSPtrToRegCPtrXSConstPtr(const mse::TNDRegisteredConstPointer<mse::TXScopeItemFixedPointer<_Ty> >& src) {
-			/* Reinterpreting a mse::TNDRegisteredConstPointer<mse::TXScopeItemFixedPointer<_Ty> > as an
-			mse::TNDRegisteredConstPointer<mse::TXScopeItemFixedConstPointer<_Ty> > should be fine. */
-			return reinterpret_cast<const mse::TNDRegisteredConstPointer<mse::TXScopeItemFixedConstPointer<_Ty> >&>(src);
+		static const auto& RegCPtrXSPtrToRegCPtrXSConstPtr(const mse::TNDRegisteredConstPointer<mse::TXScopeFixedPointer<_Ty> >& src) {
+			/* Reinterpreting a mse::TNDRegisteredConstPointer<mse::TXScopeFixedPointer<_Ty> > as an
+			mse::TNDRegisteredConstPointer<mse::TXScopeFixedConstPointer<_Ty> > should be fine. */
+			return reinterpret_cast<const mse::TNDRegisteredConstPointer<mse::TXScopeFixedConstPointer<_Ty> >&>(src);
 		}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -416,7 +416,7 @@ namespace mse {
 		friend class TNDXScopeRegisteredConstProxyObj<_Ty>;
 	};
 
-	template<typename _TROFLy> using TNDXScopeRegisteredProxyObjBase = mse::TNDRegisteredObj<mse::TXScopeItemFixedPointer<_TROFLy> >;
+	template<typename _TROFLy> using TNDXScopeRegisteredProxyObjBase = mse::TNDRegisteredObj<mse::TXScopeFixedPointer<_TROFLy> >;
 
 	/* TNDXScopeRegisteredProxyObj is intended as a transparent wrapper for scope pointers. The purpose is to register the scope pointer's
 	destruction so that TNDRegisteredProxyPointers will avoid referencing destroyed scope pointers. */
@@ -427,9 +427,9 @@ namespace mse {
 	public:
 		typedef TNDXScopeRegisteredProxyObjBase<_TROFLy> base_class;
 
-		TNDXScopeRegisteredProxyObj(const mse::TXScopeItemFixedPointer<_TROFLy> & xs_ptr) : base_class(xs_ptr) {}
+		TNDXScopeRegisteredProxyObj(const mse::TXScopeFixedPointer<_TROFLy> & xs_ptr) : base_class(xs_ptr) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-		TNDXScopeRegisteredProxyObj(const mse::TXScopeFixedPointer<_TROFLy>& xs_ptr) : base_class(mse::TXScopeItemFixedPointer<_TROFLy>(xs_ptr)) {}
+		TNDXScopeRegisteredProxyObj(const mse::TXScopeObjFixedPointer<_TROFLy>& xs_ptr) : base_class(mse::TXScopeFixedPointer<_TROFLy>(xs_ptr)) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		TNDXScopeRegisteredProxyObj(const TNDXScopeRegisteredProxyObj& _X) : base_class(_X) {}
 		TNDXScopeRegisteredProxyObj(TNDXScopeRegisteredProxyObj&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
@@ -454,7 +454,7 @@ namespace mse {
 		template<typename _Ty2> friend class TNDRegisteredProxyConstPointer;
 	};
 
-	template<typename _TROFLy> using TNDXScopeRegisteredConstProxyObjBase = mse::TNDRegisteredObj<mse::TXScopeItemFixedConstPointer<_TROFLy> >;
+	template<typename _TROFLy> using TNDXScopeRegisteredConstProxyObjBase = mse::TNDRegisteredObj<mse::TXScopeFixedConstPointer<_TROFLy> >;
 
 	template<typename _TROFLy>
 	class TNDXScopeRegisteredConstProxyObj : public TNDXScopeRegisteredConstProxyObjBase<_TROFLy>, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotShareableTagBase, TNDXScopeRegisteredConstProxyObjBase<_TROFLy>, TNDXScopeRegisteredConstProxyObj<_TROFLy>)
@@ -463,9 +463,9 @@ namespace mse {
 	public:
 		typedef TNDXScopeRegisteredConstProxyObjBase<_TROFLy> base_class;
 
-		TNDXScopeRegisteredConstProxyObj(const mse::TXScopeItemFixedConstPointer<_TROFLy> & xs_ptr) : base_class(xs_ptr) {}
+		TNDXScopeRegisteredConstProxyObj(const mse::TXScopeFixedConstPointer<_TROFLy> & xs_ptr) : base_class(xs_ptr) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-		TNDXScopeRegisteredConstProxyObj(const mse::TXScopeFixedConstPointer<_TROFLy>& xs_ptr) : base_class(mse::TXScopeItemFixedConstPointer<_TROFLy>(xs_ptr)) {}
+		TNDXScopeRegisteredConstProxyObj(const mse::TXScopeObjFixedConstPointer<_TROFLy>& xs_ptr) : base_class(mse::TXScopeFixedConstPointer<_TROFLy>(xs_ptr)) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		TNDXScopeRegisteredConstProxyObj(const TNDXScopeRegisteredConstProxyObj & _X) : base_class(_X) {}
 		TNDXScopeRegisteredConstProxyObj(TNDXScopeRegisteredConstProxyObj && _X) : base_class(std::forward<decltype(_X)>(_X)) {}
@@ -571,19 +571,19 @@ namespace mse {
 
 	template <typename _Ty>
 	auto xscope_pointer(const TNDRegisteredProxyPointer<_Ty>& proxy_ptr) {
-		return static_cast<mse::TXScopeItemFixedPointer<_Ty> >(proxy_ptr);
+		return static_cast<mse::TXScopeFixedPointer<_Ty> >(proxy_ptr);
 	}
 	template <typename _Ty>
 	auto xscope_pointer(const TNDRegisteredProxyConstPointer<_Ty>& proxy_ptr) {
-		return static_cast<mse::TXScopeItemFixedConstPointer<_Ty> >(proxy_ptr);
+		return static_cast<mse::TXScopeFixedConstPointer<_Ty> >(proxy_ptr);
 	}
 	template <typename _Ty>
 	auto xscope_const_pointer(const TNDRegisteredProxyPointer<_Ty>& proxy_ptr) {
-		return static_cast<mse::TXScopeItemFixedConstPointer<_Ty> >(TNDRegisteredProxyConstPointer<_Ty>(proxy_ptr));
+		return static_cast<mse::TXScopeFixedConstPointer<_Ty> >(TNDRegisteredProxyConstPointer<_Ty>(proxy_ptr));
 	}
 	template <typename _Ty>
 	auto xscope_const_pointer(const TNDRegisteredProxyConstPointer<_Ty>& proxy_ptr) {
-		return static_cast<mse::TXScopeItemFixedConstPointer<_Ty> >(proxy_ptr);
+		return static_cast<mse::TXScopeFixedConstPointer<_Ty> >(proxy_ptr);
 	}
 
 	/* shorter aliases */
@@ -639,7 +639,7 @@ namespace mse {
 				public:
 					static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
 					static int foo2(mse::TRegisteredProxyPointer<A> A_registered_proxy_ptr) { return A_registered_proxy_ptr->b; }
-					static int foo3(mse::TXScopeItemFixedConstPointer<A> A_scope_ptr) { return A_scope_ptr->b; }
+					static int foo3(mse::TXScopeFixedConstPointer<A> A_scope_ptr) { return A_scope_ptr->b; }
 				protected:
 					~B() {}
 				};
@@ -680,13 +680,13 @@ namespace mse {
 					/* registered_proxy pointers can be explicitly converted to scope pointers. */
 					B::foo3(mse::xscope_pointer(A_registered_proxy_ptr1));
 					B::foo3(mse::xscope_const_pointer(A_registered_proxy_ptr1));
-					mse::TXScopeItemFixedPointer<A> A_scope_ptr1 = mse::xscope_pointer(A_registered_proxy_ptr1);
-					mse::TXScopeItemFixedConstPointer<A> A_scope_cptr1 = mse::xscope_const_pointer(A_registered_proxy_ptr1);
+					mse::TXScopeFixedPointer<A> A_scope_ptr1 = mse::xscope_pointer(A_registered_proxy_ptr1);
+					mse::TXScopeFixedConstPointer<A> A_scope_cptr1 = mse::xscope_const_pointer(A_registered_proxy_ptr1);
 
 					/* registered_proxy pointers implicitly convert to scope pointers. */
 					B::foo3(A_registered_proxy_ptr1);
-					mse::TXScopeItemFixedPointer<A> A_scope_ptr2 = A_registered_proxy_ptr1;
-					mse::TXScopeItemFixedConstPointer<A> A_scope_cptr2 = A_registered_proxy_ptr1;
+					mse::TXScopeFixedPointer<A> A_scope_ptr2 = A_registered_proxy_ptr1;
+					mse::TXScopeFixedConstPointer<A> A_scope_cptr2 = A_registered_proxy_ptr1;
 
 					if (A_registered_proxy_ptr2) {
 						assert(false);
@@ -740,7 +740,7 @@ namespace mse {
 				}
 				{
 					mse::TXScopeObj<A> scope_a;
-					mse::TXScopeItemFixedConstPointer<A> a_xs_cptr1 = &scope_a;
+					mse::TXScopeFixedConstPointer<A> a_xs_cptr1 = &scope_a;
 					auto a_xs_reg_cproxy_obj1 = mse::make_xscope_registered_proxy(a_xs_cptr1);
 					auto a_xs_reg_proxy_cptr1 = mse::registered_proxy_fptr(a_xs_reg_cproxy_obj1);
 				}

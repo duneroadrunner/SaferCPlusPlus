@@ -212,7 +212,7 @@ void msetl_example2() {
 		mse::TXScopeObj<mse::stnii_vector<int> > vector1_xscpobj = mse::stnii_vector<int>{ 1, 2, 3 };
 
 		{
-			mse::TXScopeItemFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
+			mse::TXScopeFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
 			auto xscp_citer1 = mse::make_xscope_begin_const_iterator(xscptr);
 			xscp_citer1 += 2;
 			auto xscp_cptr1 = mse::xscope_const_pointer(xscp_citer1);
@@ -894,7 +894,7 @@ void msetl_example2() {
 			, public mse::rsv::ReferenceableByScopePointerTagBase
 		{
 		public:
-			typedef mse::TXScopeItemFixedConstPointer<mse::mstd::string> xscope_string_ptr_t;
+			typedef mse::TXScopeFixedConstPointer<mse::mstd::string> xscope_string_ptr_t;
 
 			xscope_my_type2(const mse::xscope_optional<xscope_string_ptr_t>& xscp_maybe_string_ptr) : m_xscp_maybe_string_ptr(xscp_maybe_string_ptr) {}
 
@@ -1138,7 +1138,7 @@ void msetl_example2() {
 				instead either make the function a function template or use a polymorphic string section type which are more concise
 				and give the caller flexibility in terms of the type of string section they can pass. */
 
-				typedef decltype(mse::make_xscope_string_const_section(std::declval<mse::TXScopeItemFixedConstPointer<mse::mtnii_string> >())) xscope_string_csection_t;
+				typedef decltype(mse::make_xscope_string_const_section(std::declval<mse::TXScopeFixedConstPointer<mse::mtnii_string> >())) xscope_string_csection_t;
 				static bool second_is_longer(mse::rsv::TXScopeFParam<xscope_string_csection_t> xscope_string_csection1
 					, mse::rsv::TXScopeFParam<xscope_string_csection_t> xscope_string_csection2) {
 
@@ -1553,7 +1553,7 @@ void msetl_example2() {
 		mse::TXScopeObj<mse::stnii_basic_string<char> > basic_string1_xscpobj = mse::stnii_basic_string<char>{ "abc" };
 
 		{
-			mse::TXScopeItemFixedConstPointer<mse::stnii_basic_string<char> > xscptr = &basic_string1_xscpobj;
+			mse::TXScopeFixedConstPointer<mse::stnii_basic_string<char> > xscptr = &basic_string1_xscpobj;
 			auto xscp_citer1 = mse::make_xscope_begin_const_iterator(xscptr);
 			xscp_citer1 += 2;
 			auto xscp_cptr1 = mse::xscope_const_pointer(xscp_citer1);

@@ -115,13 +115,13 @@ namespace mse {
 	}
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
-	template<typename _Ty> using TXScopePointer = _Ty * ;
-	template<typename _Ty> using TXScopeConstPointer = const _Ty*;
-	template<typename _Ty> using TXScopeNotNullPointer = _Ty * ;
-	template<typename _Ty> using TXScopeNotNullConstPointer = const _Ty*;
-	template<typename _Ty> using TXScopeFixedPointer = _Ty * /*const*/; /* Can't be const qualified because standard
+	template<typename _Ty> using TXScopeObjPointer = _Ty * ;
+	template<typename _Ty> using TXScopeObjConstPointer = const _Ty*;
+	template<typename _Ty> using TXScopeObjNotNullPointer = _Ty * ;
+	template<typename _Ty> using TXScopeObjNotNullConstPointer = const _Ty*;
+	template<typename _Ty> using TXScopeObjFixedPointer = _Ty * /*const*/; /* Can't be const qualified because standard
 																	   library containers don't support const elements. */
-	template<typename _Ty> using TXScopeFixedConstPointer = const _Ty* /*const*/;
+	template<typename _Ty> using TXScopeObjFixedConstPointer = const _Ty* /*const*/;
 
 	namespace us {
 		namespace impl {
@@ -129,8 +129,8 @@ namespace mse {
 		}
 	}
 	template<typename _TROy> using TXScopeObj = _TROy;
-	template<typename _Ty> using TXScopeItemFixedPointer = _Ty * /*const*/;
-	template<typename _Ty> using TXScopeItemFixedConstPointer = const _Ty* /*const*/;
+	template<typename _Ty> using TXScopeFixedPointer = _Ty * /*const*/;
+	template<typename _Ty> using TXScopeFixedConstPointer = const _Ty* /*const*/;
 	template<typename _Ty> using TXScopeCagedItemFixedPointerToRValue = _Ty * /*const*/;
 	template<typename _Ty> using TXScopeCagedItemFixedConstPointerToRValue = const _Ty* /*const*/;
 	//template<typename _TROy> using TXScopeReturnValue = _TROy;
@@ -142,9 +142,9 @@ namespace mse {
 
 	namespace us {
 		template<typename _Ty>
-		TXScopeItemFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref);
+		TXScopeFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref);
 		template<typename _Ty>
-		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref);
+		TXScopeFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref);
 	}
 
 	//template<typename _Ty> const _Ty& return_value(const _Ty& _X) { return _X; }
@@ -165,12 +165,12 @@ namespace mse {
 			template<typename _Ty> using TXScopeItemConstPointerBase = mse::us::impl::TAnyConstPointerBase<_Ty>;
 
 			template<typename _Ty>
-			class TXScopePointerBase : public mse::TNDNoradPointer<_Ty> {
+			class TXScopeObjPointerBase : public mse::TNDNoradPointer<_Ty> {
 			public:
 				typedef mse::TNDNoradPointer<_Ty> base_class;
-				TXScopePointerBase(const TXScopePointerBase&) = default;
-				TXScopePointerBase(TXScopePointerBase&&) = default;
-				TXScopePointerBase(TXScopeObj<_Ty>& scpobj_ref) : base_class(&(static_cast<TXScopeObjBase<_Ty>&>(scpobj_ref))) {}
+				TXScopeObjPointerBase(const TXScopeObjPointerBase&) = default;
+				TXScopeObjPointerBase(TXScopeObjPointerBase&&) = default;
+				TXScopeObjPointerBase(TXScopeObj<_Ty>& scpobj_ref) : base_class(&(static_cast<TXScopeObjBase<_Ty>&>(scpobj_ref))) {}
 
 				TXScopeObj<_Ty>& operator*() const {
 					return static_cast<TXScopeObj<_Ty>& >(*(static_cast<const base_class&>(*this)));
@@ -181,13 +181,13 @@ namespace mse {
 			};
 
 			template<typename _Ty>
-			class TXScopeConstPointerBase : public mse::TNDNoradConstPointer<_Ty> {
+			class TXScopeObjConstPointerBase : public mse::TNDNoradConstPointer<_Ty> {
 			public:
 				typedef mse::TNDNoradConstPointer<_Ty> base_class;
-				TXScopeConstPointerBase(const TXScopeConstPointerBase&) = default;
-				TXScopeConstPointerBase(TXScopeConstPointerBase&&) = default;
-				TXScopeConstPointerBase(const TXScopePointerBase<_Ty>& src_cref) : base_class(src_cref) {}
-				TXScopeConstPointerBase(const TXScopeObj<_Ty>& scpobj_cref) : base_class(&(static_cast<const TXScopeObjBase<_Ty>&>(scpobj_cref))) {}
+				TXScopeObjConstPointerBase(const TXScopeObjConstPointerBase&) = default;
+				TXScopeObjConstPointerBase(TXScopeObjConstPointerBase&&) = default;
+				TXScopeObjConstPointerBase(const TXScopeObjPointerBase<_Ty>& src_cref) : base_class(src_cref) {}
+				TXScopeObjConstPointerBase(const TXScopeObj<_Ty>& scpobj_cref) : base_class(&(static_cast<const TXScopeObjBase<_Ty>&>(scpobj_cref))) {}
 
 				const TXScopeObj<_Ty>& operator*() const {
 					return static_cast<const TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this)));
@@ -222,12 +222,12 @@ namespace mse {
 			};
 
 			template<typename _Ty>
-			class TXScopePointerBase : public mse::us::impl::TPointerForLegacy<TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> {
+			class TXScopeObjPointerBase : public mse::us::impl::TPointerForLegacy<TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> {
 			public:
 				typedef mse::us::impl::TPointerForLegacy<TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> base_class;
-				TXScopePointerBase(const TXScopePointerBase&) = default;
-				TXScopePointerBase(TXScopePointerBase&&) = default;
-				TXScopePointerBase(TXScopeObj<_Ty>& scpobj_ref) : base_class(&(static_cast<TXScopeObjBase<_Ty>&>(scpobj_ref))) {}
+				TXScopeObjPointerBase(const TXScopeObjPointerBase&) = default;
+				TXScopeObjPointerBase(TXScopeObjPointerBase&&) = default;
+				TXScopeObjPointerBase(TXScopeObj<_Ty>& scpobj_ref) : base_class(&(static_cast<TXScopeObjBase<_Ty>&>(scpobj_ref))) {}
 
 				TXScopeObj<_Ty>& operator*() const {
 					return static_cast<TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this)));
@@ -238,13 +238,13 @@ namespace mse {
 			};
 
 			template<typename _Ty>
-			class TXScopeConstPointerBase : public mse::us::impl::TPointerForLegacy<const TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> {
+			class TXScopeObjConstPointerBase : public mse::us::impl::TPointerForLegacy<const TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> {
 			public:
 				typedef mse::us::impl::TPointerForLegacy<const TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> base_class;
-				TXScopeConstPointerBase(const TXScopeConstPointerBase&) = default;
-				TXScopeConstPointerBase(TXScopeConstPointerBase&&) = default;
-				TXScopeConstPointerBase(const TXScopePointerBase<_Ty>& src_cref) : base_class(src_cref) {}
-				TXScopeConstPointerBase(const TXScopeObj<_Ty>& scpobj_cref) : base_class(&(static_cast<const TXScopeObjBase<_Ty>&>(scpobj_cref))) {}
+				TXScopeObjConstPointerBase(const TXScopeObjConstPointerBase&) = default;
+				TXScopeObjConstPointerBase(TXScopeObjConstPointerBase&&) = default;
+				TXScopeObjConstPointerBase(const TXScopeObjPointerBase<_Ty>& src_cref) : base_class(src_cref) {}
+				TXScopeObjConstPointerBase(const TXScopeObj<_Ty>& scpobj_cref) : base_class(&(static_cast<const TXScopeObjBase<_Ty>&>(scpobj_cref))) {}
 
 				const TXScopeObj<_Ty>& operator*() const {
 					return static_cast<const TXScopeObj<_Ty>&>(*(static_cast<const base_class&>(*this)));
@@ -263,19 +263,19 @@ namespace mse {
 	}
 
 	template<typename _Ty> class TXScopeObj;
-	template<typename _Ty> class TXScopeNotNullPointer;
-	template<typename _Ty> class TXScopeNotNullConstPointer;
-	template<typename _Ty> class TXScopeFixedPointer;
-	template<typename _Ty> class TXScopeFixedConstPointer;
+	template<typename _Ty> class TXScopeObjNotNullPointer;
+	template<typename _Ty> class TXScopeObjNotNullConstPointer;
+	template<typename _Ty> class TXScopeObjFixedPointer;
+	template<typename _Ty> class TXScopeObjFixedConstPointer;
 	template<typename _Ty> class TXScopeOwnerPointer;
 
-	template<typename _Ty> class TXScopeItemFixedPointer;
-	template<typename _Ty> class TXScopeItemFixedConstPointer;
+	template<typename _Ty> class TXScopeFixedPointer;
+	template<typename _Ty> class TXScopeFixedConstPointer;
 	template<typename _Ty> class TXScopeCagedItemFixedPointerToRValue;
 	template<typename _Ty> class TXScopeCagedItemFixedConstPointerToRValue;
 	namespace rsv {
-		template<typename _Ty> class TXScopeItemFixedPointerFParam;
-		template<typename _Ty> class TXScopeItemFixedConstPointerFParam;
+		template<typename _Ty> class TXScopeFixedPointerFParam;
+		template<typename _Ty> class TXScopeFixedConstPointerFParam;
 	}
 
 	namespace us {
@@ -285,186 +285,186 @@ namespace mse {
 		}
 	}
 
-	/* Use TXScopeFixedPointer instead. */
+	/* Use TXScopeObjFixedPointer instead. */
 	template<typename _Ty>
-	class TXScopePointer : public mse::us::impl::TXScopePointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+	class TXScopeObjPointer : public mse::us::impl::TXScopeObjPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
-		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopePointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjPointer() {}
 	private:
-		TXScopePointer() : mse::us::impl::TXScopePointerBase<_Ty>() {}
-		TXScopePointer(TXScopeObj<_Ty>& scpobj_ref) : mse::us::impl::TXScopePointerBase<_Ty>(scpobj_ref) {}
-		TXScopePointer(const TXScopePointer& src_cref) : mse::us::impl::TXScopePointerBase<_Ty>(
-			static_cast<const mse::us::impl::TXScopePointerBase<_Ty>&>(src_cref)) {}
+		TXScopeObjPointer() : mse::us::impl::TXScopeObjPointerBase<_Ty>() {}
+		TXScopeObjPointer(TXScopeObj<_Ty>& scpobj_ref) : mse::us::impl::TXScopeObjPointerBase<_Ty>(scpobj_ref) {}
+		TXScopeObjPointer(const TXScopeObjPointer& src_cref) : mse::us::impl::TXScopeObjPointerBase<_Ty>(
+			static_cast<const mse::us::impl::TXScopeObjPointerBase<_Ty>&>(src_cref)) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TXScopePointer(const TXScopePointer<_Ty2>& src_cref) : mse::us::impl::TXScopePointerBase<_Ty>(mse::us::impl::TXScopePointerBase<_Ty2>(src_cref)) {}
-		TXScopePointer<_Ty>& operator=(TXScopeObj<_Ty>* ptr) {
-			return mse::us::impl::TXScopePointerBase<_Ty>::operator=(ptr);
+		//TXScopeObjPointer(const TXScopeObjPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeObjPointerBase<_Ty>(mse::us::impl::TXScopeObjPointerBase<_Ty2>(src_cref)) {}
+		TXScopeObjPointer<_Ty>& operator=(TXScopeObj<_Ty>* ptr) {
+			return mse::us::impl::TXScopeObjPointerBase<_Ty>::operator=(ptr);
 		}
-		TXScopePointer<_Ty>& operator=(const TXScopePointer<_Ty>& _Right_cref) {
-			return mse::us::impl::TXScopePointerBase<_Ty>::operator=(_Right_cref);
+		TXScopeObjPointer<_Ty>& operator=(const TXScopeObjPointer<_Ty>& _Right_cref) {
+			return mse::us::impl::TXScopeObjPointerBase<_Ty>::operator=(_Right_cref);
 		}
 		operator bool() const {
-			bool retval = (bool(*static_cast<const mse::us::impl::TXScopePointerBase<_Ty>*>(this)));
+			bool retval = (bool(*static_cast<const mse::us::impl::TXScopeObjPointerBase<_Ty>*>(this)));
 			return retval;
 		}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator _Ty*() const {
-			_Ty* retval = std::addressof(*(*this))/*(*static_cast<const mse::us::impl::TXScopePointerBase<_Ty>*>(this))*/;
+			_Ty* retval = std::addressof(*(*this))/*(*static_cast<const mse::us::impl::TXScopeObjPointerBase<_Ty>*>(this))*/;
 			return retval;
 		}
 		explicit operator TXScopeObj<_Ty>*() const {
-			TXScopeObj<_Ty>* retval = (*static_cast<const mse::us::impl::TXScopePointerBase<_Ty>*>(this));
+			TXScopeObj<_Ty>* retval = (*static_cast<const mse::us::impl::TXScopeObjPointerBase<_Ty>*>(this));
 			return retval;
 		}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		friend class TXScopeNotNullPointer<_Ty>;
-		friend class us::impl::TCommonizedPointer<_Ty, TXScopePointer<_Ty> >;
-		friend class us::impl::TCommonizedConstPointer<const _Ty, TXScopePointer<_Ty> >;
+		friend class TXScopeObjNotNullPointer<_Ty>;
+		friend class us::impl::TCommonizedPointer<_Ty, TXScopeObjPointer<_Ty> >;
+		friend class us::impl::TCommonizedConstPointer<const _Ty, TXScopeObjPointer<_Ty> >;
 	};
 
-	/* Use TXScopeFixedConstPointer instead. */
+	/* Use TXScopeObjFixedConstPointer instead. */
 	template<typename _Ty>
-	class TXScopeConstPointer : public mse::us::impl::TXScopeConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+	class TXScopeObjConstPointer : public mse::us::impl::TXScopeObjConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
-		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjConstPointer() {}
 	private:
-		TXScopeConstPointer() : mse::us::impl::TXScopeConstPointerBase<_Ty>() {}
-		TXScopeConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : mse::us::impl::TXScopeConstPointerBase<_Ty>(scpobj_cref) {}
-		TXScopeConstPointer(const TXScopeConstPointer& src_cref) : mse::us::impl::TXScopeConstPointerBase<_Ty>(
-			static_cast<const mse::us::impl::TXScopeConstPointerBase<_Ty>&>(src_cref)) {}
+		TXScopeObjConstPointer() : mse::us::impl::TXScopeObjConstPointerBase<_Ty>() {}
+		TXScopeObjConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : mse::us::impl::TXScopeObjConstPointerBase<_Ty>(scpobj_cref) {}
+		TXScopeObjConstPointer(const TXScopeObjConstPointer& src_cref) : mse::us::impl::TXScopeObjConstPointerBase<_Ty>(
+			static_cast<const mse::us::impl::TXScopeObjConstPointerBase<_Ty>&>(src_cref)) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TXScopeConstPointer(const TXScopeConstPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeConstPointerBase<_Ty>(src_cref) {}
-		TXScopeConstPointer(const TXScopePointer<_Ty>& src_cref) : mse::us::impl::TXScopeConstPointerBase<_Ty>(src_cref) {}
+		//TXScopeObjConstPointer(const TXScopeObjConstPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeObjConstPointerBase<_Ty>(src_cref) {}
+		TXScopeObjConstPointer(const TXScopeObjPointer<_Ty>& src_cref) : mse::us::impl::TXScopeObjConstPointerBase<_Ty>(src_cref) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TXScopeConstPointer(const TXScopePointer<_Ty2>& src_cref) : mse::us::impl::TXScopeConstPointerBase<_Ty>(mse::us::impl::TXScopeItemConstPointerBase<_Ty2>(src_cref)) {}
-		TXScopeConstPointer<_Ty>& operator=(const TXScopeObj<_Ty>* ptr) {
+		//TXScopeObjConstPointer(const TXScopeObjPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeObjConstPointerBase<_Ty>(mse::us::impl::TXScopeItemConstPointerBase<_Ty2>(src_cref)) {}
+		TXScopeObjConstPointer<_Ty>& operator=(const TXScopeObj<_Ty>* ptr) {
 			return mse::us::impl::TXScopeItemConstPointerBase<_Ty>::operator=(ptr);
 		}
-		TXScopeConstPointer<_Ty>& operator=(const TXScopeConstPointer<_Ty>& _Right_cref) {
+		TXScopeObjConstPointer<_Ty>& operator=(const TXScopeObjConstPointer<_Ty>& _Right_cref) {
 			return mse::us::impl::TXScopeItemConstPointerBase<_Ty>::operator=(_Right_cref);
 		}
 		operator bool() const {
-			bool retval = (bool(*static_cast<const mse::us::impl::TXScopeConstPointerBase<_Ty>*>(this)));
+			bool retval = (bool(*static_cast<const mse::us::impl::TXScopeObjConstPointerBase<_Ty>*>(this)));
 			return retval;
 		}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		explicit operator const _Ty*() const {
-			const _Ty* retval = (*static_cast<const mse::us::impl::TXScopeConstPointerBase<_Ty>*>(this));
+			const _Ty* retval = (*static_cast<const mse::us::impl::TXScopeObjConstPointerBase<_Ty>*>(this));
 			return retval;
 		}
 		explicit operator const TXScopeObj<_Ty>*() const {
-			const TXScopeObj<_Ty>* retval = (*static_cast<const mse::us::impl::TXScopeConstPointerBase<_Ty>*>(this));
+			const TXScopeObj<_Ty>* retval = (*static_cast<const mse::us::impl::TXScopeObjConstPointerBase<_Ty>*>(this));
 			return retval;
 		}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		friend class TXScopeNotNullConstPointer<_Ty>;
-		friend class us::impl::TCommonizedConstPointer<const _Ty, TXScopeConstPointer<_Ty> >;
+		friend class TXScopeObjNotNullConstPointer<_Ty>;
+		friend class us::impl::TCommonizedConstPointer<const _Ty, TXScopeObjConstPointer<_Ty> >;
 	};
 
-	/* Use TXScopeFixedPointer instead. */
+	/* Use TXScopeObjFixedPointer instead. */
 	template<typename _Ty>
-	class TXScopeNotNullPointer : public TXScopePointer<_Ty>, public mse::us::impl::NeverNullTagBase {
+	class TXScopeObjNotNullPointer : public TXScopeObjPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 	public:
-		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeNotNullPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjNotNullPointer() {}
 	private:
-		TXScopeNotNullPointer(TXScopeObj<_Ty>& scpobj_ref) : TXScopePointer<_Ty>(scpobj_ref) {}
-		TXScopeNotNullPointer(TXScopeObj<_Ty>* ptr) : TXScopePointer<_Ty>(ptr) {}
+		TXScopeObjNotNullPointer(TXScopeObj<_Ty>& scpobj_ref) : TXScopeObjPointer<_Ty>(scpobj_ref) {}
+		TXScopeObjNotNullPointer(TXScopeObj<_Ty>* ptr) : TXScopeObjPointer<_Ty>(ptr) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TXScopeNotNullPointer(const TXScopeNotNullPointer<_Ty2>& src_cref) : TXScopePointer<_Ty>(src_cref) {}
-		TXScopeNotNullPointer<_Ty>& operator=(const TXScopePointer<_Ty>& _Right_cref) {
-			TXScopePointer<_Ty>::operator=(_Right_cref);
+		//TXScopeObjNotNullPointer(const TXScopeObjNotNullPointer<_Ty2>& src_cref) : TXScopeObjPointer<_Ty>(src_cref) {}
+		TXScopeObjNotNullPointer<_Ty>& operator=(const TXScopeObjPointer<_Ty>& _Right_cref) {
+			TXScopeObjPointer<_Ty>::operator=(_Right_cref);
 			return (*this);
 		}
-		operator bool() const { return (*static_cast<const TXScopePointer<_Ty>*>(this)); }
+		operator bool() const { return (*static_cast<const TXScopeObjPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TXScopePointer<_Ty>::operator _Ty*(); }
-		explicit operator TXScopeObj<_Ty>*() const { return TXScopePointer<_Ty>::operator TXScopeObj<_Ty>*(); }
+		explicit operator _Ty*() const { return TXScopeObjPointer<_Ty>::operator _Ty*(); }
+		explicit operator TXScopeObj<_Ty>*() const { return TXScopeObjPointer<_Ty>::operator TXScopeObj<_Ty>*(); }
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		friend class TXScopeFixedPointer<_Ty>;
+		friend class TXScopeObjFixedPointer<_Ty>;
 	};
 
-	/* Use TXScopeFixedConstPointer instead. */
+	/* Use TXScopeObjFixedConstPointer instead. */
 	template<typename _Ty>
-	class TXScopeNotNullConstPointer : public TXScopeConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
+	class TXScopeObjNotNullConstPointer : public TXScopeObjConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 	public:
-		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeNotNullConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjNotNullConstPointer() {}
 	private:
-		TXScopeNotNullConstPointer(const TXScopeNotNullConstPointer<_Ty>& src_cref) : TXScopeConstPointer<_Ty>(src_cref) {}
+		TXScopeObjNotNullConstPointer(const TXScopeObjNotNullConstPointer<_Ty>& src_cref) : TXScopeObjConstPointer<_Ty>(src_cref) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TXScopeNotNullConstPointer(const TXScopeNotNullConstPointer<_Ty2>& src_cref) : TXScopeConstPointer<_Ty>(src_cref) {}
-		TXScopeNotNullConstPointer(const TXScopeNotNullPointer<_Ty>& src_cref) : TXScopeConstPointer<_Ty>(src_cref) {}
+		//TXScopeObjNotNullConstPointer(const TXScopeObjNotNullConstPointer<_Ty2>& src_cref) : TXScopeObjConstPointer<_Ty>(src_cref) {}
+		TXScopeObjNotNullConstPointer(const TXScopeObjNotNullPointer<_Ty>& src_cref) : TXScopeObjConstPointer<_Ty>(src_cref) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TXScopeNotNullConstPointer(const TXScopeNotNullPointer<_Ty2>& src_cref) : TXScopeConstPointer<_Ty>(src_cref) {}
-		TXScopeNotNullConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : TXScopeConstPointer<_Ty>(scpobj_cref) {}
-		operator bool() const { return (*static_cast<const TXScopeConstPointer<_Ty>*>(this)); }
+		//TXScopeObjNotNullConstPointer(const TXScopeObjNotNullPointer<_Ty2>& src_cref) : TXScopeObjConstPointer<_Ty>(src_cref) {}
+		TXScopeObjNotNullConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : TXScopeObjConstPointer<_Ty>(scpobj_cref) {}
+		operator bool() const { return (*static_cast<const TXScopeObjConstPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TXScopeConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TXScopeObj<_Ty>*() const { return TXScopeConstPointer<_Ty>::operator const TXScopeObj<_Ty>*(); }
+		explicit operator const _Ty*() const { return TXScopeObjConstPointer<_Ty>::operator const _Ty*(); }
+		explicit operator const TXScopeObj<_Ty>*() const { return TXScopeObjConstPointer<_Ty>::operator const TXScopeObj<_Ty>*(); }
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		friend class TXScopeFixedConstPointer<_Ty>;
+		friend class TXScopeObjFixedConstPointer<_Ty>;
 	};
 
-	/* A TXScopeFixedPointer points to a TXScopeObj. Its intended for very limited use. Basically just to pass a TXScopeObj
-	by reference as a function parameter. TXScopeFixedPointers can be obtained from TXScopeObj's "&" (address of) operator. */
+	/* A TXScopeObjFixedPointer points to a TXScopeObj. Its intended for very limited use. Basically just to pass a TXScopeObj
+	by reference as a function parameter. TXScopeObjFixedPointers can be obtained from TXScopeObj's "&" (address of) operator. */
 	template<typename _Ty>
-	class TXScopeFixedPointer : public TXScopeNotNullPointer<_Ty> {
+	class TXScopeObjFixedPointer : public TXScopeObjNotNullPointer<_Ty> {
 	public:
-		TXScopeFixedPointer(const TXScopeFixedPointer& src_cref) : TXScopeNotNullPointer<_Ty>(src_cref) {}
+		TXScopeObjFixedPointer(const TXScopeObjFixedPointer& src_cref) : TXScopeObjNotNullPointer<_Ty>(src_cref) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TXScopeFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopeNotNullPointer<_Ty>(src_cref) {}
-		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {}
-		operator bool() const { return (*static_cast<const TXScopeNotNullPointer<_Ty>*>(this)); }
+		//TXScopeObjFixedPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : TXScopeObjNotNullPointer<_Ty>(src_cref) {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedPointer() {}
+		operator bool() const { return (*static_cast<const TXScopeObjNotNullPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TXScopeNotNullPointer<_Ty>::operator _Ty*(); }
-		explicit operator TXScopeObj<_Ty>*() const { return TXScopeNotNullPointer<_Ty>::operator TXScopeObj<_Ty>*(); }
+		explicit operator _Ty*() const { return TXScopeObjNotNullPointer<_Ty>::operator _Ty*(); }
+		explicit operator TXScopeObj<_Ty>*() const { return TXScopeObjNotNullPointer<_Ty>::operator TXScopeObj<_Ty>*(); }
 		void xscope_tag() const {}
 
 	private:
-		TXScopeFixedPointer(TXScopeObj<_Ty>& scpobj_ref) : TXScopeNotNullPointer<_Ty>(scpobj_ref) {}
+		TXScopeObjFixedPointer(TXScopeObj<_Ty>& scpobj_ref) : TXScopeObjNotNullPointer<_Ty>(scpobj_ref) {}
 #ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 		/* Disabling public move construction prevents some unsafe operations, like some, but not all,
-		attempts to use a TXScopeFixedPointer<> as a return value. But it also prevents some safe
+		attempts to use a TXScopeObjFixedPointer<> as a return value. But it also prevents some safe
 		operations too, like initialization via '=' (assignment operator). And the set of prevented
 		operations might not be consistent across compilers. We're deciding here that the minor safety
 		benefits outweigh the minor inconveniences. Note that we can't disable public move construction
 		in the other scope pointers as it would interfere with implicit conversions. */
-		TXScopeFixedPointer(TXScopeFixedPointer&& src_ref) : TXScopeNotNullPointer<_Ty>(src_ref) {
+		TXScopeObjFixedPointer(TXScopeObjFixedPointer&& src_ref) : TXScopeObjNotNullPointer<_Ty>(src_ref) {
 			int q = 5;
 		}
 #endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		TXScopeFixedPointer<_Ty>& operator=(const TXScopeFixedPointer<_Ty>& _Right_cref) = delete;
+		TXScopeObjFixedPointer<_Ty>& operator=(const TXScopeObjFixedPointer<_Ty>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TXScopeObj<_Ty>;
 	};
 
 	template<typename _Ty>
-	class TXScopeFixedConstPointer : public TXScopeNotNullConstPointer<_Ty> {
+	class TXScopeObjFixedConstPointer : public TXScopeObjNotNullConstPointer<_Ty> {
 	public:
-		TXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) : TXScopeNotNullConstPointer<_Ty>(src_cref) {}
+		TXScopeObjFixedConstPointer(const TXScopeObjFixedConstPointer<_Ty>& src_cref) : TXScopeObjNotNullConstPointer<_Ty>(src_cref) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : TXScopeNotNullConstPointer<_Ty>(src_cref) {}
-		TXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : TXScopeNotNullConstPointer<_Ty>(src_cref) {}
+		//TXScopeObjFixedConstPointer(const TXScopeObjFixedConstPointer<_Ty2>& src_cref) : TXScopeObjNotNullConstPointer<_Ty>(src_cref) {}
+		TXScopeObjFixedConstPointer(const TXScopeObjFixedPointer<_Ty>& src_cref) : TXScopeObjNotNullConstPointer<_Ty>(src_cref) {}
 		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		//TXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : TXScopeNotNullConstPointer<_Ty>(src_cref) {}
-		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {}
-		operator bool() const { return (*static_cast<const TXScopeNotNullConstPointer<_Ty>*>(this)); }
+		//TXScopeObjFixedConstPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : TXScopeObjNotNullConstPointer<_Ty>(src_cref) {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedConstPointer() {}
+		operator bool() const { return (*static_cast<const TXScopeObjNotNullConstPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TXScopeNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TXScopeObj<_Ty>*() const { return TXScopeNotNullConstPointer<_Ty>::operator const TXScopeObj<_Ty>*(); }
+		explicit operator const _Ty*() const { return TXScopeObjNotNullConstPointer<_Ty>::operator const _Ty*(); }
+		explicit operator const TXScopeObj<_Ty>*() const { return TXScopeObjNotNullConstPointer<_Ty>::operator const TXScopeObj<_Ty>*(); }
 		void xscope_tag() const {}
 
 	private:
-		TXScopeFixedConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : TXScopeNotNullConstPointer<_Ty>(scpobj_cref) {}
-		TXScopeFixedConstPointer<_Ty>& operator=(const TXScopeFixedConstPointer<_Ty>& _Right_cref) = delete;
+		TXScopeObjFixedConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : TXScopeObjNotNullConstPointer<_Ty>(scpobj_cref) {}
+		TXScopeObjFixedConstPointer<_Ty>& operator=(const TXScopeObjFixedConstPointer<_Ty>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TXScopeObj<_Ty>;
@@ -506,20 +506,20 @@ namespace mse {
 		TXScopeObj& operator=(const _Ty2& _X) { mse::us::impl::TXScopeObjBase<_TROy>::operator=(_X); return (*this); }
 
 		const TXScopeFixedPointer<_TROy> operator&() & {
-			return *this;
+			return TXScopeObjFixedPointer<_TROy>(*this);
 		}
 		const TXScopeFixedConstPointer<_TROy> operator&() const & {
-			return *this;
+			return TXScopeObjFixedConstPointer<_TROy>(*this);
 		}
-		const TXScopeItemFixedPointer<_TROy> mse_xscope_ifptr() & { return &(*this); }
-		const TXScopeItemFixedConstPointer<_TROy> mse_xscope_ifptr() const & { return &(*this); }
+		const TXScopeFixedPointer<_TROy> mse_xscope_ifptr() & { return &(*this); }
+		const TXScopeFixedConstPointer<_TROy> mse_xscope_ifptr() const & { return &(*this); }
 
 		TXScopeCagedItemFixedConstPointerToRValue<_TROy> operator&() && {
-			//return TXScopeItemFixedConstPointer<_TROy>(TXScopeFixedPointer<_TROy>(&(*static_cast<mse::us::impl::TXScopeObjBase<_TROy>*>(this))));
-			return TXScopeItemFixedConstPointer<_TROy>(TXScopeFixedPointer<_TROy>(*this));
+			//return TXScopeFixedConstPointer<_TROy>(TXScopeObjFixedPointer<_TROy>(&(*static_cast<mse::us::impl::TXScopeObjBase<_TROy>*>(this))));
+			return TXScopeFixedConstPointer<_TROy>(TXScopeObjFixedPointer<_TROy>(*this));
 		}
 		TXScopeCagedItemFixedConstPointerToRValue<_TROy> operator&() const && {
-			return TXScopeFixedConstPointer<_TROy>(TXScopeConstPointer<_TROy>(&(*static_cast<const mse::us::impl::TXScopeObjBase<_TROy>*>(this))));
+			return TXScopeObjFixedConstPointer<_TROy>(TXScopeObjConstPointer<_TROy>(&(*static_cast<const mse::us::impl::TXScopeObjBase<_TROy>*>(this))));
 		}
 		const TXScopeCagedItemFixedConstPointerToRValue<_TROy> mse_xscope_ifptr() && { return &(*this); }
 		const TXScopeCagedItemFixedConstPointerToRValue<_TROy> mse_xscope_ifptr() const && { return &(*this); }
@@ -553,37 +553,37 @@ namespace mse {
 	namespace us {
 		/* A couple of unsafe functions for internal use. */
 		template<typename _Ty>
-		TXScopeItemFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref);
+		TXScopeFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref);
 		template<typename _Ty>
-		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref);
+		TXScopeFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref);
 	}
 
 
 	namespace impl {
 		/* This template type alias is only used because msvc2017(v15.9.0) crashes if the type expression is used directly. */
 		template<class _Ty2, class _TMemberObjectPointer>
-		using make_xscope_pointer_to_member_v2_return_type1 = TXScopeItemFixedPointer<typename std::remove_reference<decltype(std::declval<_Ty2>().*std::declval<_TMemberObjectPointer>())>::type>;
+		using make_xscope_pointer_to_member_v2_return_type1 = TXScopeFixedPointer<typename std::remove_reference<decltype(std::declval<_Ty2>().*std::declval<_TMemberObjectPointer>())>::type>;
 	}
 
-	/* While TXScopeFixedPointer<> points to a TXScopeObj<>, TXScopeItemFixedPointer<> is intended to be able to point to a
+	/* While TXScopeObjFixedPointer<> points to a TXScopeObj<>, TXScopeFixedPointer<> is intended to be able to point to a
 	TXScopeObj<>, any member of a TXScopeObj<>, or various other items with scope lifetime that, for various reasons, aren't
 	declared as TXScopeObj<>. */
 	template<typename _Ty>
-	class TXScopeItemFixedPointer : public mse::us::impl::TXScopeItemPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase {
+	class TXScopeFixedPointer : public mse::us::impl::TXScopeItemPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase {
 	public:
-		TXScopeItemFixedPointer(const TXScopeItemFixedPointer& src_cref) = default;
+		TXScopeFixedPointer(const TXScopeFixedPointer& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeItemFixedPointer(const TXScopeItemFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
+		TXScopeFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
 
-		TXScopeItemFixedPointer(const TXScopeFixedPointer<_Ty>& src_cref) : mse::us::impl::TXScopeItemPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty>&>(src_cref)) {}
+		TXScopeFixedPointer(const TXScopeObjFixedPointer<_Ty>& src_cref) : mse::us::impl::TXScopeItemPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty>&>(src_cref)) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeItemFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
+		TXScopeFixedPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
 
-		//TXScopeItemFixedPointer(const TXScopeOwnerPointer<_Ty>& src_cref) : TXScopeItemFixedPointer(&(*src_cref)) {}
+		//TXScopeFixedPointer(const TXScopeOwnerPointer<_Ty>& src_cref) : TXScopeFixedPointer(&(*src_cref)) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeItemFixedPointer(const TXScopeOwnerPointer<_Ty2>& src_cref) : TXScopeItemFixedPointer(&(*src_cref)) {}
+		TXScopeFixedPointer(const TXScopeOwnerPointer<_Ty2>& src_cref) : TXScopeFixedPointer(&(*src_cref)) {}
 
-		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeItemFixedPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {}
 
 		operator bool() const { return true; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -591,47 +591,47 @@ namespace mse {
 		void xscope_tag() const {}
 
 	private:
-		TXScopeItemFixedPointer(_Ty* ptr) : mse::us::impl::TXScopeItemPointerBase<_Ty>(ptr) {}
-		TXScopeItemFixedPointer(const mse::us::impl::TXScopeItemPointerBase<_Ty>& ptr) : mse::us::impl::TXScopeItemPointerBase<_Ty>(ptr) {}
-		TXScopeItemFixedPointer<_Ty>& operator=(const TXScopeItemFixedPointer<_Ty>& _Right_cref) = delete;
+		TXScopeFixedPointer(_Ty* ptr) : mse::us::impl::TXScopeItemPointerBase<_Ty>(ptr) {}
+		TXScopeFixedPointer(const mse::us::impl::TXScopeItemPointerBase<_Ty>& ptr) : mse::us::impl::TXScopeItemPointerBase<_Ty>(ptr) {}
+		TXScopeFixedPointer<_Ty>& operator=(const TXScopeFixedPointer<_Ty>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		template<class _Ty2, class _TMemberObjectPointer>
-		friend auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+		friend auto make_xscope_pointer_to_member_v2(const TXScopeFixedPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 			-> mse::impl::make_xscope_pointer_to_member_v2_return_type1<_Ty2, _TMemberObjectPointer>;
 		/* These versions of make_xscope_pointer_to_member() are actually now deprecated. */
 		template<class _TTargetType, class _Ty2>
-		friend TXScopeItemFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty2> &lease_pointer);
+		friend TXScopeFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeObjFixedPointer<_Ty2> &lease_pointer);
 		template<class _TTargetType, class _Ty2>
-		friend TXScopeItemFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeItemFixedPointer<_Ty2> &lease_pointer);
+		friend TXScopeFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty2> &lease_pointer);
 
-		template<class _Ty2> friend TXScopeItemFixedPointer<_Ty2> us::unsafe_make_xscope_pointer_to(_Ty2& ref);
+		template<class _Ty2> friend TXScopeFixedPointer<_Ty2> us::unsafe_make_xscope_pointer_to(_Ty2& ref);
 	};
 
 	template<typename _Ty>
-	class TXScopeItemFixedConstPointer : public mse::us::impl::TXScopeItemConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase {
+	class TXScopeFixedConstPointer : public mse::us::impl::TXScopeItemConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase {
 	public:
-		TXScopeItemFixedConstPointer(const TXScopeItemFixedConstPointer<_Ty>& src_cref) = default;
+		TXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) = default;
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeItemFixedConstPointer(const TXScopeItemFixedConstPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<_Ty2>&>(src_cref)) {}
+		TXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<_Ty2>&>(src_cref)) {}
 
-		TXScopeItemFixedConstPointer(const TXScopeItemFixedPointer<_Ty>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty>&>(src_cref)) {}
+		TXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty>&>(src_cref)) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeItemFixedConstPointer(const TXScopeItemFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
+		TXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
 
-		TXScopeItemFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<_Ty>&>(src_cref)) {}
+		TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<_Ty>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<_Ty>&>(src_cref)) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeItemFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<_Ty2>&>(src_cref)) {}
+		TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<_Ty2>&>(src_cref)) {}
 
-		TXScopeItemFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty>&>(src_cref)) {}
+		TXScopeFixedConstPointer(const TXScopeObjFixedPointer<_Ty>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty>&>(src_cref)) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeItemFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
+		TXScopeFixedConstPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
 
-		//TXScopeItemFixedConstPointer(const TXScopeOwnerPointer<_Ty>& src_cref) : TXScopeItemFixedConstPointer(&(*src_cref)) {}
+		//TXScopeFixedConstPointer(const TXScopeOwnerPointer<_Ty>& src_cref) : TXScopeFixedConstPointer(&(*src_cref)) {}
 		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-		TXScopeItemFixedConstPointer(const TXScopeOwnerPointer<_Ty2>& src_cref) : TXScopeItemFixedConstPointer(&(*src_cref)) {}
+		TXScopeFixedConstPointer(const TXScopeOwnerPointer<_Ty2>& src_cref) : TXScopeFixedConstPointer(&(*src_cref)) {}
 
-		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeItemFixedConstPointer() {}
+		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {}
 
 		operator bool() const { return true; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
@@ -639,39 +639,39 @@ namespace mse {
 		void xscope_tag() const {}
 
 	private:
-		TXScopeItemFixedConstPointer(const _Ty* ptr) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(ptr) {}
-		TXScopeItemFixedConstPointer(const mse::us::impl::TXScopeItemConstPointerBase<_Ty>& ptr) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(ptr) {}
-		TXScopeItemFixedConstPointer<_Ty>& operator=(const TXScopeItemFixedConstPointer<_Ty>& _Right_cref) = delete;
+		TXScopeFixedConstPointer(const _Ty* ptr) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(ptr) {}
+		TXScopeFixedConstPointer(const mse::us::impl::TXScopeItemConstPointerBase<_Ty>& ptr) : mse::us::impl::TXScopeItemConstPointerBase<_Ty>(ptr) {}
+		TXScopeFixedConstPointer<_Ty>& operator=(const TXScopeFixedConstPointer<_Ty>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		template<class _Ty2, class _TMemberObjectPointer>
-		friend auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-			->TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>;
+		friend auto make_xscope_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+			->TXScopeFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>;
 		template<class _Ty2, class _TMemberObjectPointer>
-		friend auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-			->TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>;
+		friend auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+			->TXScopeFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>;
 		template<class _Ty2, class _TMemberObjectPointer>
-		friend auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-			->TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>;
+		friend auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty2> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+			->TXScopeFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>;
 		/* These versions of make_xscope_pointer_to_member() are actually now deprecated. */
 		template<class _TTargetType, class _Ty2>
-		friend TXScopeItemFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty2> &lease_pointer);
+		friend TXScopeFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType& target, const TXScopeObjFixedConstPointer<_Ty2> &lease_pointer);
 		template<class _TTargetType, class _Ty2>
-		friend TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedPointer<_Ty2> &lease_pointer);
+		friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeObjFixedPointer<_Ty2> &lease_pointer);
 		template<class _TTargetType, class _Ty2>
-		friend TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty2> &lease_pointer);
+		friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeObjFixedConstPointer<_Ty2> &lease_pointer);
 
 		template<class _TTargetType, class _Ty2>
-		friend TXScopeItemFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedConstPointer<_Ty2> &lease_pointer);
+		friend TXScopeFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty2> &lease_pointer);
 		template<class _TTargetType, class _Ty2>
-		friend TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedPointer<_Ty2> &lease_pointer);
+		friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedPointer<_Ty2> &lease_pointer);
 		template<class _TTargetType, class _Ty2>
-		friend TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedConstPointer<_Ty2> &lease_pointer);
-		template<class _Ty2> friend TXScopeItemFixedConstPointer<_Ty2> us::unsafe_make_xscope_const_pointer_to(const _Ty2& cref);
+		friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty2> &lease_pointer);
+		template<class _Ty2> friend TXScopeFixedConstPointer<_Ty2> us::unsafe_make_xscope_const_pointer_to(const _Ty2& cref);
 	};
 
-	/* TXScopeCagedItemFixedPointerToRValue<> holds a TXScopeItemFixedPointer<> that points to an r-value which can only be
-	accessed when converted to a rsv::TXScopeItemFixedPointerFParam<>. */
+	/* TXScopeCagedItemFixedPointerToRValue<> holds a TXScopeFixedPointer<> that points to an r-value which can only be
+	accessed when converted to a rsv::TXScopeFixedPointerFParam<>. */
 	template<typename _Ty>
 	class TXScopeCagedItemFixedPointerToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
@@ -680,7 +680,7 @@ namespace mse {
 	private:
 		TXScopeCagedItemFixedPointerToRValue(const TXScopeCagedItemFixedPointerToRValue&) = delete;
 		TXScopeCagedItemFixedPointerToRValue(TXScopeCagedItemFixedPointerToRValue&&) = default;
-		TXScopeCagedItemFixedPointerToRValue(const TXScopeItemFixedPointer<_Ty>& ptr) : m_xscope_ptr(ptr) {}
+		TXScopeCagedItemFixedPointerToRValue(const TXScopeFixedPointer<_Ty>& ptr) : m_xscope_ptr(ptr) {}
 #ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 		TXScopeCagedItemFixedPointerToRValue(TXScopeCagedItemFixedPointerToRValue&& src_ref) : m_xscope_ptr(src_ref) {}
 #endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
@@ -692,11 +692,11 @@ namespace mse {
 		TXScopeCagedItemFixedPointerToRValue<_Ty>& operator=(const TXScopeCagedItemFixedPointerToRValue<_Ty>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		TXScopeItemFixedPointer<_Ty> m_xscope_ptr;
+		TXScopeFixedPointer<_Ty> m_xscope_ptr;
 
 		friend class TXScopeObj<_Ty>;
-		template<class _Ty2> friend class rsv::TXScopeItemFixedPointerFParam;
-		template<class _Ty2> friend class rsv::TXScopeItemFixedConstPointerFParam;
+		template<class _Ty2> friend class rsv::TXScopeFixedPointerFParam;
+		template<class _Ty2> friend class rsv::TXScopeFixedConstPointerFParam;
 		template<class _Ty2> friend class TXScopeStrongPointerStore;
 	};
 
@@ -708,7 +708,7 @@ namespace mse {
 	private:
 		TXScopeCagedItemFixedConstPointerToRValue(const TXScopeCagedItemFixedConstPointerToRValue& src_cref) = delete;
 		TXScopeCagedItemFixedConstPointerToRValue(TXScopeCagedItemFixedConstPointerToRValue&& src_cref) = default;
-		TXScopeCagedItemFixedConstPointerToRValue(const TXScopeItemFixedConstPointer<_Ty>& ptr) : m_xscope_ptr(ptr) {}
+		TXScopeCagedItemFixedConstPointerToRValue(const TXScopeFixedConstPointer<_Ty>& ptr) : m_xscope_ptr(ptr) {}
 #ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 		TXScopeCagedItemFixedConstPointerToRValue(TXScopeCagedItemFixedConstPointerToRValue&& src_ref) : m_xscope_ptr(src_ref) {}
 #endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
@@ -718,28 +718,16 @@ namespace mse {
 		TXScopeCagedItemFixedConstPointerToRValue<_Ty>& operator=(const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-		TXScopeItemFixedConstPointer<_Ty> m_xscope_ptr;
+		TXScopeFixedConstPointer<_Ty> m_xscope_ptr;
 
 		friend class TXScopeObj<_Ty>;
-		template<class _Ty2> friend class rsv::TXScopeItemFixedConstPointerFParam;
+		template<class _Ty2> friend class rsv::TXScopeFixedConstPointerFParam;
 		template<typename _Ty2> friend auto pointer_to(_Ty2&& _X) -> decltype(&std::forward<_Ty2>(_X));
 		template<class _Ty2> friend class TXScopeStrongConstPointerStore;
 	};
 }
 
 namespace std {
-	template<class _Ty>
-	struct hash<mse::TXScopeItemFixedPointer<_Ty> > {	// hash functor
-		typedef mse::TXScopeItemFixedPointer<_Ty> argument_type;
-		typedef size_t result_type;
-		size_t operator()(const mse::TXScopeItemFixedPointer<_Ty>& _Keyval) const _NOEXCEPT {
-			const _Ty* ptr1 = nullptr;
-			if (_Keyval) {
-				ptr1 = std::addressof(*_Keyval);
-			}
-			return (hash<const _Ty *>()(ptr1));
-		}
-	};
 	template<class _Ty>
 	struct hash<mse::TXScopeFixedPointer<_Ty> > {	// hash functor
 		typedef mse::TXScopeFixedPointer<_Ty> argument_type;
@@ -752,12 +740,24 @@ namespace std {
 			return (hash<const _Ty *>()(ptr1));
 		}
 	};
+	template<class _Ty>
+	struct hash<mse::TXScopeObjFixedPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeObjFixedPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeObjFixedPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty *>()(ptr1));
+		}
+	};
 
 	template<class _Ty>
-	struct hash<mse::TXScopeItemFixedConstPointer<_Ty> > {	// hash functor
-		typedef mse::TXScopeItemFixedConstPointer<_Ty> argument_type;
+	struct hash<mse::TXScopeFixedConstPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeFixedConstPointer<_Ty> argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::TXScopeItemFixedConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+		size_t operator()(const mse::TXScopeFixedConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
 			const _Ty* ptr1 = nullptr;
 			if (_Keyval) {
 				ptr1 = std::addressof(*_Keyval);
@@ -766,10 +766,10 @@ namespace std {
 		}
 	};
 	template<class _Ty>
-	struct hash<mse::TXScopeFixedConstPointer<_Ty> > {	// hash functor
-		typedef mse::TXScopeFixedConstPointer<_Ty> argument_type;
+	struct hash<mse::TXScopeObjFixedConstPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeObjFixedConstPointer<_Ty> argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::TXScopeFixedConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
+		size_t operator()(const mse::TXScopeObjFixedConstPointer<_Ty>& _Keyval) const _NOEXCEPT {
 			const _Ty* ptr1 = nullptr;
 			if (_Keyval) {
 				ptr1 = std::addressof(*_Keyval);
@@ -853,53 +853,103 @@ namespace mse {
 	};
 
 	template<typename _Ty>
-	class TXScopeItemFixedPointer<_Ty*> : public TXScopeItemFixedPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
+	class TXScopeFixedPointer<_Ty*> : public TXScopeFixedPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TXScopeItemFixedPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TXScopeItemFixedPointer, base_class);
+		typedef TXScopeFixedPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TXScopeFixedPointer, base_class);
 	};
 	template<typename _Ty>
-	class TXScopeItemFixedPointer<_Ty* const> : public TXScopeItemFixedPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
+	class TXScopeFixedPointer<_Ty* const> : public TXScopeFixedPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TXScopeItemFixedPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TXScopeItemFixedPointer, base_class);
+		typedef TXScopeFixedPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TXScopeFixedPointer, base_class);
 	};
 	template<typename _Ty>
-	class TXScopeItemFixedPointer<const _Ty*> : public TXScopeItemFixedPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
+	class TXScopeFixedPointer<const _Ty*> : public TXScopeFixedPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TXScopeItemFixedPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TXScopeItemFixedPointer, base_class);
+		typedef TXScopeFixedPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TXScopeFixedPointer, base_class);
 	};
 	template<typename _Ty>
-	class TXScopeItemFixedPointer<const _Ty* const> : public TXScopeItemFixedPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
+	class TXScopeFixedPointer<const _Ty* const> : public TXScopeFixedPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TXScopeItemFixedPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TXScopeItemFixedPointer, base_class);
+		typedef TXScopeFixedPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TXScopeFixedPointer, base_class);
 	};
 
 	template<typename _Ty>
-	class TXScopeItemFixedConstPointer<_Ty*> : public TXScopeItemFixedConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
+	class TXScopeFixedConstPointer<_Ty*> : public TXScopeFixedConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TXScopeItemFixedConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TXScopeItemFixedConstPointer, base_class);
+		typedef TXScopeFixedConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TXScopeFixedConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TXScopeItemFixedConstPointer<_Ty* const> : public TXScopeItemFixedConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
+	class TXScopeFixedConstPointer<_Ty* const> : public TXScopeFixedConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
 	public:
-		typedef TXScopeItemFixedConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TXScopeItemFixedConstPointer, base_class);
+		typedef TXScopeFixedConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TXScopeFixedConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TXScopeItemFixedConstPointer<const _Ty*> : public TXScopeItemFixedConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
+	class TXScopeFixedConstPointer<const _Ty*> : public TXScopeFixedConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TXScopeItemFixedConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TXScopeItemFixedConstPointer, base_class);
+		typedef TXScopeFixedConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TXScopeFixedConstPointer, base_class);
 	};
 	template<typename _Ty>
-	class TXScopeItemFixedConstPointer<const _Ty* const> : public TXScopeItemFixedConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
+	class TXScopeFixedConstPointer<const _Ty* const> : public TXScopeFixedConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
 	public:
-		typedef TXScopeItemFixedConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TXScopeItemFixedConstPointer, base_class);
+		typedef TXScopeFixedConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TXScopeFixedConstPointer, base_class);
+	};
+
+	template<typename _Ty>
+	class TXScopeObjFixedPointer<_Ty*> : public TXScopeObjFixedPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
+	public:
+		typedef TXScopeObjFixedPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TXScopeObjFixedPointer, base_class);
+	};
+	template<typename _Ty>
+	class TXScopeObjFixedPointer<_Ty* const> : public TXScopeObjFixedPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
+	public:
+		typedef TXScopeObjFixedPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TXScopeObjFixedPointer, base_class);
+	};
+	template<typename _Ty>
+	class TXScopeObjFixedPointer<const _Ty*> : public TXScopeObjFixedPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
+	public:
+		typedef TXScopeObjFixedPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TXScopeObjFixedPointer, base_class);
+	};
+	template<typename _Ty>
+	class TXScopeObjFixedPointer<const _Ty* const> : public TXScopeObjFixedPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
+	public:
+		typedef TXScopeObjFixedPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TXScopeObjFixedPointer, base_class);
+	};
+
+	template<typename _Ty>
+	class TXScopeObjFixedConstPointer<_Ty*> : public TXScopeObjFixedConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
+	public:
+		typedef TXScopeObjFixedConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TXScopeObjFixedConstPointer, base_class);
+	};
+	template<typename _Ty>
+	class TXScopeObjFixedConstPointer<_Ty* const> : public TXScopeObjFixedConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
+	public:
+		typedef TXScopeObjFixedConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+		MSE_USING(TXScopeObjFixedConstPointer, base_class);
+	};
+	template<typename _Ty>
+	class TXScopeObjFixedConstPointer<const _Ty*> : public TXScopeObjFixedConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
+	public:
+		typedef TXScopeObjFixedConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TXScopeObjFixedConstPointer, base_class);
+	};
+	template<typename _Ty>
+	class TXScopeObjFixedConstPointer<const _Ty* const> : public TXScopeObjFixedConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
+	public:
+		typedef TXScopeObjFixedConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
+		MSE_USING(TXScopeObjFixedConstPointer, base_class);
 	};
 
 #ifdef MSEPRIMITIVES_H
@@ -934,6 +984,8 @@ namespace mse {
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
+	template<typename _Ty> using TXScopeItemFixedPointer = TXScopeFixedPointer<_Ty>;
+	template<typename _Ty> using TXScopeItemFixedConstPointer = TXScopeFixedConstPointer<_Ty>;
 
 #ifdef MSE_MSTDARRAY_DISABLED
 
@@ -1018,27 +1070,6 @@ namespace mse {
 	That overload already handles raw pointers (which may be potentially ambiguous in that situation), so we shouldn't
 	provide another one. */
 	template <typename _Ty>
-	auto xscope_pointer(const mse::TXScopeItemFixedPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_pointer(obj_ref);
-	}
-	template <typename _Ty>
-	auto xscope_const_pointer(const mse::TXScopeItemFixedPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_const_pointer(obj_ref);
-	}
-	template <typename _Ty>
-	auto xscope_pointer(const mse::TXScopeItemFixedConstPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_pointer(obj_ref);
-	}
-	template <typename _Ty>
-	auto xscope_const_pointer(const mse::TXScopeItemFixedConstPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_const_pointer(obj_ref);
-	}
-#ifndef MSE_SCOPEPOINTER_DISABLED
-	template <typename _Ty>
 	auto xscope_pointer(const mse::TXScopeFixedPointer<_Ty>& xsptr) {
 		auto& obj_ref = *xsptr;
 		return xscope_pointer(obj_ref);
@@ -1055,6 +1086,27 @@ namespace mse {
 	}
 	template <typename _Ty>
 	auto xscope_const_pointer(const mse::TXScopeFixedConstPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_const_pointer(obj_ref);
+	}
+#ifndef MSE_SCOPEPOINTER_DISABLED
+	template <typename _Ty>
+	auto xscope_pointer(const mse::TXScopeObjFixedPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_pointer(obj_ref);
+	}
+	template <typename _Ty>
+	auto xscope_const_pointer(const mse::TXScopeObjFixedPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_const_pointer(obj_ref);
+	}
+	template <typename _Ty>
+	auto xscope_pointer(const mse::TXScopeObjFixedConstPointer<_Ty>& xsptr) {
+		auto& obj_ref = *xsptr;
+		return xscope_pointer(obj_ref);
+	}
+	template <typename _Ty>
+	auto xscope_const_pointer(const mse::TXScopeObjFixedConstPointer<_Ty>& xsptr) {
 		auto& obj_ref = *xsptr;
 		return xscope_const_pointer(obj_ref);
 	}
@@ -1084,14 +1136,14 @@ namespace mse {
 				return base_class::make(target, std::forward<decltype(lease)>(lease));
 			}
 
-			mse::TXScopeFixedPointer<_TTargetType> xscope_ptr() const & {
+			mse::TXScopeObjFixedPointer<_TTargetType> xscope_ptr() const & {
 				return mse::us::unsafe_make_xscope_pointer_to(*(*this));
 			}
-			mse::TXScopeFixedPointer<_TTargetType> xscope_ptr() const && = delete;
-			operator mse::TXScopeFixedPointer<_TTargetType>() const & {
+			mse::TXScopeObjFixedPointer<_TTargetType> xscope_ptr() const && = delete;
+			operator mse::TXScopeObjFixedPointer<_TTargetType>() const & {
 				return xscope_ptr();
 			}
-			operator mse::TXScopeFixedPointer<_TTargetType>() const && = delete;
+			operator mse::TXScopeObjFixedPointer<_TTargetType>() const && = delete;
 
 		protected:
 			TXScopeStrongFixedPointer(_TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
@@ -1137,14 +1189,14 @@ namespace mse {
 				return base_class::make(target, std::forward<decltype(lease)>(lease));
 			}
 
-			mse::TXScopeFixedConstPointer<_TTargetType> xscope_ptr() const & {
+			mse::TXScopeObjFixedConstPointer<_TTargetType> xscope_ptr() const & {
 				return mse::us::unsafe_make_xscope_const_pointer_to(*(*this));
 			}
-			mse::TXScopeFixedConstPointer<_TTargetType> xscope_ptr() const && = delete;
-			operator mse::TXScopeFixedConstPointer<_TTargetType>() const & {
+			mse::TXScopeObjFixedConstPointer<_TTargetType> xscope_ptr() const && = delete;
+			operator mse::TXScopeObjFixedConstPointer<_TTargetType>() const & {
 				return xscope_ptr();
 			}
-			operator mse::TXScopeFixedConstPointer<_TTargetType>() const && = delete;
+			operator mse::TXScopeObjFixedConstPointer<_TTargetType>() const && = delete;
 
 		protected:
 			TXScopeStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
@@ -1204,66 +1256,66 @@ namespace mse {
 	namespace us {
 		namespace impl {
 #ifdef MSE_SCOPEPOINTER_DISABLED
-			template<typename _Ty> using TXScopeItemFixedPointerFParamBase = mse::us::impl::TPointer<_Ty>;
-			template<typename _Ty> using TXScopeItemFixedConstPointerFParamBase = mse::us::impl::TPointer<const _Ty>;
+			template<typename _Ty> using TXScopeFixedPointerFParamBase = mse::us::impl::TPointer<_Ty>;
+			template<typename _Ty> using TXScopeFixedConstPointerFParamBase = mse::us::impl::TPointer<const _Ty>;
 #else /*MSE_SCOPEPOINTER_DISABLED*/
-			template<typename _Ty> using TXScopeItemFixedPointerFParamBase = TXScopeItemFixedPointer<_Ty>;
-			template<typename _Ty> using TXScopeItemFixedConstPointerFParamBase = TXScopeItemFixedConstPointer<_Ty>;
+			template<typename _Ty> using TXScopeFixedPointerFParamBase = TXScopeFixedPointer<_Ty>;
+			template<typename _Ty> using TXScopeFixedConstPointerFParamBase = TXScopeFixedConstPointer<_Ty>;
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 		}
 	}
 
 	namespace rsv {
-		/* TXScopeItemFixedPointerFParam<> is just a version of TXScopeItemFixedPointer<> which may only be used for
+		/* TXScopeFixedPointerFParam<> is just a version of TXScopeFixedPointer<> which may only be used for
 		function parameter declations. It has the extra ability to accept (caged) scope pointers to r-value scope objects
 		(i.e. supports temporaries by scope reference). */
 
 		template<typename _Ty>
-		class TXScopeItemFixedPointerFParam : public mse::us::impl::TXScopeItemFixedPointerFParamBase<_Ty> {
+		class TXScopeFixedPointerFParam : public mse::us::impl::TXScopeFixedPointerFParamBase<_Ty> {
 		public:
-			typedef mse::us::impl::TXScopeItemFixedPointerFParamBase<_Ty> base_class;
-			MSE_SCOPE_USING(TXScopeItemFixedPointerFParam, base_class);
+			typedef mse::us::impl::TXScopeFixedPointerFParamBase<_Ty> base_class;
+			MSE_SCOPE_USING(TXScopeFixedPointerFParam, base_class);
 
-			TXScopeItemFixedPointerFParam(const TXScopeItemFixedPointerFParam& src_cref) = default;
+			TXScopeFixedPointerFParam(const TXScopeFixedPointerFParam& src_cref) = default;
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
+			TXScopeFixedPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
-			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeItemFixedPointerFParam() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointerFParam() {}
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
 
 		private:
-			TXScopeItemFixedPointerFParam<_Ty>& operator=(const TXScopeItemFixedPointerFParam<_Ty>& _Right_cref) = delete;
+			TXScopeFixedPointerFParam<_Ty>& operator=(const TXScopeFixedPointerFParam<_Ty>& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
 
 		template<typename _Ty>
-		class TXScopeItemFixedConstPointerFParam : public mse::us::impl::TXScopeItemFixedConstPointerFParamBase<_Ty> {
+		class TXScopeFixedConstPointerFParam : public mse::us::impl::TXScopeFixedConstPointerFParamBase<_Ty> {
 		public:
-			typedef mse::us::impl::TXScopeItemFixedConstPointerFParamBase<_Ty> base_class;
-			MSE_SCOPE_USING(TXScopeItemFixedConstPointerFParam, base_class);
+			typedef mse::us::impl::TXScopeFixedConstPointerFParamBase<_Ty> base_class;
+			MSE_SCOPE_USING(TXScopeFixedConstPointerFParam, base_class);
 
-			TXScopeItemFixedConstPointerFParam(const TXScopeItemFixedConstPointerFParam<_Ty>& src_cref) = default;
-			TXScopeItemFixedConstPointerFParam(const TXScopeItemFixedPointerFParam<_Ty>& src_cref) : base_class(src_cref) {}
+			TXScopeFixedConstPointerFParam(const TXScopeFixedConstPointerFParam<_Ty>& src_cref) = default;
+			TXScopeFixedConstPointerFParam(const TXScopeFixedPointerFParam<_Ty>& src_cref) : base_class(src_cref) {}
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
+			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TXScopeItemFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
+			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
-			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeItemFixedConstPointerFParam() {}
+			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointerFParam() {}
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
 
 		private:
-			TXScopeItemFixedConstPointerFParam<_Ty>& operator=(const TXScopeItemFixedConstPointerFParam<_Ty>& _Right_cref) = delete;
+			TXScopeFixedConstPointerFParam<_Ty>& operator=(const TXScopeFixedConstPointerFParam<_Ty>& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
 	}
@@ -1275,7 +1327,7 @@ namespace mse {
 		temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually
 		"functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so
 		in the case of function parameters, the rsv::TFParam<> wrapper enables certain scope pointer/reference types
-		(like TXScopeItemFixedPointer<>, and "random access section" types) to be constructed from their
+		(like TXScopeFixedPointer<>, and "random access section" types) to be constructed from their
 		"functionally disabled" counterparts.
 		*/
 		template<typename _Ty>
@@ -1341,9 +1393,9 @@ namespace mse {
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 		template<typename _Ty>
-		class TFParam<mse::TXScopeItemFixedConstPointer<_Ty> > : public TXScopeItemFixedConstPointerFParam<_Ty> {
+		class TFParam<mse::TXScopeFixedConstPointer<_Ty> > : public TXScopeFixedConstPointerFParam<_Ty> {
 		public:
-			typedef TXScopeItemFixedConstPointerFParam<_Ty> base_class;
+			typedef TXScopeFixedConstPointerFParam<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
@@ -1352,9 +1404,9 @@ namespace mse {
 		};
 
 		template<typename _Ty>
-		class TFParam<const mse::TXScopeItemFixedConstPointer<_Ty> > : public TXScopeItemFixedConstPointerFParam<_Ty> {
+		class TFParam<const mse::TXScopeFixedConstPointer<_Ty> > : public TXScopeFixedConstPointerFParam<_Ty> {
 		public:
-			typedef TXScopeItemFixedConstPointerFParam<_Ty> base_class;
+			typedef TXScopeFixedConstPointerFParam<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
@@ -1363,9 +1415,9 @@ namespace mse {
 		};
 
 		template<typename _Ty>
-		class TFParam<mse::TXScopeCagedItemFixedConstPointerToRValue<_Ty> > : public TXScopeItemFixedConstPointerFParam<_Ty> {
+		class TFParam<mse::TXScopeCagedItemFixedConstPointerToRValue<_Ty> > : public TXScopeFixedConstPointerFParam<_Ty> {
 		public:
-			typedef TXScopeItemFixedConstPointerFParam<_Ty> base_class;
+			typedef TXScopeFixedConstPointerFParam<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
@@ -1986,15 +2038,15 @@ namespace mse {
 	namespace us {
 		/* (Unsafely) obtain a scope pointer to any object. */
 		template<typename _Ty>
-		TXScopeItemFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref) {
-			return TXScopeItemFixedPointer<_Ty>(std::addressof(ref));
+		TXScopeFixedPointer<_Ty> unsafe_make_xscope_pointer_to(_Ty& ref) {
+			return TXScopeFixedPointer<_Ty>(std::addressof(ref));
 		}
 		template<typename _Ty>
-		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref) {
-			return TXScopeItemFixedConstPointer<_Ty>(std::addressof(cref));
+		TXScopeFixedConstPointer<_Ty> unsafe_make_xscope_const_pointer_to(const _Ty& cref) {
+			return TXScopeFixedConstPointer<_Ty>(std::addressof(cref));
 		}
 		template<typename _Ty>
-		TXScopeItemFixedConstPointer<_Ty> unsafe_make_xscope_pointer_to(const _Ty& cref) {
+		TXScopeFixedConstPointer<_Ty> unsafe_make_xscope_pointer_to(const _Ty& cref) {
 			return unsafe_make_xscope_const_pointer_to(cref);
 		}
 	}
@@ -2002,15 +2054,15 @@ namespace mse {
 	namespace rsv {
 		/* Obtain a scope pointer to any object. Requires static verification. */
 		template<typename _Ty>
-		TXScopeItemFixedPointer<_Ty> make_xscope_pointer_to(_Ty& ref) {
+		TXScopeFixedPointer<_Ty> make_xscope_pointer_to(_Ty& ref) {
 			return mse::us::unsafe_make_xscope_pointer_to(ref);
 		}
 		template<typename _Ty>
-		TXScopeItemFixedConstPointer<_Ty> make_xscope_const_pointer_to(const _Ty& cref) {
+		TXScopeFixedConstPointer<_Ty> make_xscope_const_pointer_to(const _Ty& cref) {
 			return mse::us::unsafe_make_xscope_const_pointer_to(cref);
 		}
 		template<typename _Ty>
-		TXScopeItemFixedConstPointer<_Ty> make_xscope_pointer_to(const _Ty& cref) {
+		TXScopeFixedConstPointer<_Ty> make_xscope_pointer_to(const _Ty& cref) {
 			return make_xscope_const_pointer_to(cref);
 		}
 	}
@@ -2052,74 +2104,74 @@ namespace mse {
 
 
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeItemFixedPointer<_Ty> &lease_pointer) {
-		return TXScopeItemFixedPointer<_TTargetType>(std::addressof(target));
+	MSE_DEPRECATED TXScopeFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty> &lease_pointer) {
+		return TXScopeFixedPointer<_TTargetType>(std::addressof(target));
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedConstPointer<_Ty> &lease_pointer) {
-		return TXScopeItemFixedConstPointer<_TTargetType>(std::addressof(target));
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty> &lease_pointer) {
+		return TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedPointer<_Ty> &lease_pointer) {
-		return TXScopeItemFixedConstPointer<_TTargetType>(std::addressof(target));
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedPointer<_Ty> &lease_pointer) {
+		return TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedConstPointer<_Ty> &lease_pointer) {
-		return TXScopeItemFixedConstPointer<_TTargetType>(std::addressof(target));
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty> &lease_pointer) {
+		return TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
 	}
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty> &lease_pointer) {
-		return TXScopeItemFixedPointer<_TTargetType>(std::addressof(target));
+	MSE_DEPRECATED TXScopeFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeObjFixedPointer<_Ty> &lease_pointer) {
+		return TXScopeFixedPointer<_TTargetType>(std::addressof(target));
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty> &lease_pointer) {
-		return TXScopeItemFixedConstPointer<_TTargetType>(std::addressof(target));
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType& target, const TXScopeObjFixedConstPointer<_Ty> &lease_pointer) {
+		return TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedPointer<_Ty> &lease_pointer) {
-		return TXScopeItemFixedConstPointer<_TTargetType>(std::addressof(target));
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeObjFixedPointer<_Ty> &lease_pointer) {
+		return TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty> &lease_pointer) {
-		return TXScopeItemFixedConstPointer<_TTargetType>(std::addressof(target));
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeObjFixedConstPointer<_Ty> &lease_pointer) {
+		return TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 #ifndef MSE_SCOPE_DISABLE_MAKE_POINTER_TO_MEMBER
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedPointer<_TTargetType> make_pointer_to_member(_TTargetType& target, const TXScopeItemFixedPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TXScopeFixedPointer<_TTargetType> make_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty> &lease_pointer) {
 		return make_xscope_pointer_to_member(target, lease_pointer);
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedConstPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty> &lease_pointer) {
 		return make_xscope_pointer_to_member(target, lease_pointer);
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedPointer<_Ty> &lease_pointer) {
 		return make_xscope_const_pointer_to_member(target, lease_pointer);
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const TXScopeItemFixedConstPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty> &lease_pointer) {
 		return make_xscope_const_pointer_to_member(target, lease_pointer);
 	}
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedPointer<_TTargetType> make_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TXScopeFixedPointer<_TTargetType> make_pointer_to_member(_TTargetType& target, const TXScopeObjFixedPointer<_Ty> &lease_pointer) {
 		return make_xscope_pointer_to_member(target, lease_pointer);
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_pointer_to_member(const _TTargetType& target, const TXScopeObjFixedConstPointer<_Ty> &lease_pointer) {
 		return make_xscope_pointer_to_member(target, lease_pointer);
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const TXScopeObjFixedPointer<_Ty> &lease_pointer) {
 		return make_xscope_const_pointer_to_member(target, lease_pointer);
 	}
 	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED TXScopeItemFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty> &lease_pointer) {
+	MSE_DEPRECATED TXScopeFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const TXScopeObjFixedConstPointer<_Ty> &lease_pointer) {
 		return make_xscope_const_pointer_to_member(target, lease_pointer);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -2128,117 +2180,100 @@ namespace mse {
 	namespace impl {
 		/* This template type alias is only used because msvc2017(v15.9.0) crashes if the type expression is used directly. */
 		template<class _Ty2, class _TMemberObjectPointer>
-		using make_xscope_pointer_to_member_v2_return_type1 = TXScopeItemFixedPointer<typename std::remove_reference<decltype(std::declval<_Ty2>().*std::declval<_TMemberObjectPointer>())>::type>;
+		using make_xscope_pointer_to_member_v2_return_type1 = TXScopeFixedPointer<typename std::remove_reference<decltype(std::declval<_Ty2>().*std::declval<_TMemberObjectPointer>())>::type>;
 	}
 #endif // MSE_SCOPEPOINTER_DISABLED
 
 #ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+	auto make_xscope_pointer_to_member_v2(const TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> mse::impl::make_xscope_pointer_to_member_v2_return_type1<_Ty, _TMemberObjectPointer> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemPointerBase<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>(
 			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-		-> TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
+	auto make_xscope_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+		-> TXScopeFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemConstPointerBase<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>(
 			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-		-> TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
+	auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+		-> TXScopeFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemConstPointerBase<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>(
 			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-		-> TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
+	auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+		-> TXScopeFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemConstPointerBase<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type>(
 			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
 #else // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+	auto make_xscope_pointer_to_member_v2(const TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> mse::impl::make_xscope_pointer_to_member_v2_return_type1<_Ty, _TMemberObjectPointer> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
-		/* Originally, this function itself was a friend of TXScopeItemFixedPointer<>, but that seemed to confuse msvc2017 (but not
+		/* Originally, this function itself was a friend of TXScopeFixedPointer<>, but that seemed to confuse msvc2017 (but not
 		g++ or clang) in some cases. */
 		//typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
-		//return TXScopeItemFixedPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
+		//return TXScopeFixedPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
 		return mse::us::unsafe_make_xscope_pointer_to((*lease_pointer).*member_object_ptr);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-		-> TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
+	auto make_xscope_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+		-> TXScopeFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
-		/* Originally, this function itself was a friend of TXScopeItemFixedConstPointer<>, but that seemed to confuse msvc2017 (but not
+		/* Originally, this function itself was a friend of TXScopeFixedConstPointer<>, but that seemed to confuse msvc2017 (but not
 		g++ or clang) in some cases. */
 		//typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
-		//return TXScopeItemFixedConstPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
+		//return TXScopeFixedConstPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
 		return mse::us::unsafe_make_xscope_const_pointer_to((*lease_pointer).*member_object_ptr);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-		-> TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
+	auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+		-> TXScopeFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
-		/* Originally, this function itself was a friend of TXScopeItemFixedConstPointer<>, but that seemed to confuse msvc2017 (but not
+		/* Originally, this function itself was a friend of TXScopeFixedConstPointer<>, but that seemed to confuse msvc2017 (but not
 		g++ or clang) in some cases. */
 		//typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
-		//return TXScopeItemFixedConstPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
+		//return TXScopeFixedConstPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
 		return mse::us::unsafe_make_xscope_const_pointer_to((*lease_pointer).*member_object_ptr);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_const_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
-		-> TXScopeItemFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
+	auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
+		-> TXScopeFixedConstPointer<typename std::remove_const<typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type>::type> {
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
-		/* Originally, this function itself was a friend of TXScopeItemFixedConstPointer<>, but that seemed to confuse msvc2017 (but not
+		/* Originally, this function itself was a friend of TXScopeFixedConstPointer<>, but that seemed to confuse msvc2017 (but not
 		g++ or clang) in some cases. */
 		//typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
-		//return TXScopeItemFixedConstPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
+		//return TXScopeFixedConstPointer<_TTarget>(std::addressof((*lease_pointer).*member_object_ptr));
 		return mse::us::unsafe_make_xscope_const_pointer_to((*lease_pointer).*member_object_ptr);
 	}
 #endif // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_pointer_to_member_v2(const TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		return make_xscope_pointer_to_member_v2(TXScopeItemFixedPointer<_Ty>(lease_pointer), member_object_ptr);
+	auto make_xscope_pointer_to_member_v2(const TXScopeObjFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_pointer_to_member_v2(TXScopeFixedPointer<_Ty>(lease_pointer), member_object_ptr);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		return make_xscope_pointer_to_member_v2(TXScopeItemFixedConstPointer<_Ty>(lease_pointer), member_object_ptr);
+	auto make_xscope_pointer_to_member_v2(const TXScopeObjFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_pointer_to_member_v2(TXScopeFixedConstPointer<_Ty>(lease_pointer), member_object_ptr);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		return make_xscope_const_pointer_to_member_v2(TXScopeItemFixedPointer<_Ty>(lease_pointer), member_object_ptr);
+	auto make_xscope_const_pointer_to_member_v2(const TXScopeObjFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_const_pointer_to_member_v2(TXScopeFixedPointer<_Ty>(lease_pointer), member_object_ptr);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		return make_xscope_const_pointer_to_member_v2(TXScopeItemFixedConstPointer<_Ty>(lease_pointer), member_object_ptr);
+	auto make_xscope_const_pointer_to_member_v2(const TXScopeObjFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_const_pointer_to_member_v2(TXScopeFixedConstPointer<_Ty>(lease_pointer), member_object_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-	template<class _Ty, class _TMemberObjectPointer>
-	auto make_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		return make_xscope_pointer_to_member_v2(lease_pointer, member_object_ptr);
-	}
-	template<class _Ty, class _TMemberObjectPointer>
-	auto make_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		return make_xscope_pointer_to_member_v2(lease_pointer, member_object_ptr);
-	}
-	template<class _Ty, class _TMemberObjectPointer>
-	auto make_const_pointer_to_member_v2(const TXScopeItemFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		return make_xscope_const_pointer_to_member_v2(lease_pointer, member_object_ptr);
-	}
-	template<class _Ty, class _TMemberObjectPointer>
-	auto make_const_pointer_to_member_v2(const TXScopeItemFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		return make_xscope_const_pointer_to_member_v2(lease_pointer, member_object_ptr);
-	}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_pointer_to_member_v2(const TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		return make_xscope_pointer_to_member_v2(lease_pointer, member_object_ptr);
@@ -2253,6 +2288,23 @@ namespace mse {
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_const_pointer_to_member_v2(const TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_const_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_pointer_to_member_v2(const TXScopeObjFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_pointer_to_member_v2(const TXScopeObjFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_const_pointer_to_member_v2(const TXScopeObjFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+		return make_xscope_const_pointer_to_member_v2(lease_pointer, member_object_ptr);
+	}
+	template<class _Ty, class _TMemberObjectPointer>
+	auto make_const_pointer_to_member_v2(const TXScopeObjFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		return make_xscope_const_pointer_to_member_v2(lease_pointer, member_object_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -2294,12 +2346,12 @@ namespace mse {
 		}
 		const _TStrongPointerNR& stored_ptr() const { return m_stored_ptr; }
 
-		operator mse::TXScopeItemFixedPointer<target_t>() const & {
+		operator mse::TXScopeFixedPointer<target_t>() const & {
 			return m_stored_ptr;
 		}
 		/*
-		template<class target_t2 = target_t, class = typename std::enable_if<!std::is_same<mse::TXScopeItemFixedConstPointer<target_t2>, mse::TXScopeItemFixedPointer<target_t> >::value, void>::type>
-		explicit operator mse::TXScopeItemFixedConstPointer<target_t2>() const & {
+		template<class target_t2 = target_t, class = typename std::enable_if<!std::is_same<mse::TXScopeFixedConstPointer<target_t2>, mse::TXScopeFixedPointer<target_t> >::value, void>::type>
+		explicit operator mse::TXScopeFixedConstPointer<target_t2>() const & {
 			return m_stored_ptr;
 		}
 		*/
@@ -2351,7 +2403,7 @@ namespace mse {
 		}
 		const _TStrongPointerNR& stored_ptr() const { return m_stored_ptr; }
 
-		operator mse::TXScopeItemFixedConstPointer<target_t>() const & {
+		operator mse::TXScopeFixedConstPointer<target_t>() const & {
 			return m_stored_ptr;
 		}
 		auto& operator*() const {
@@ -2394,12 +2446,12 @@ namespace mse {
 		void xscope_ptr() const && = delete;
 		const _TStrongPointerNR& stored_ptr() const { return m_stored_ptr; }
 
-		operator mse::TXScopeItemFixedPointer<target_t>() const & {
+		operator mse::TXScopeFixedPointer<target_t>() const & {
 			return m_stored_ptr;
 		}
 		/*
-		template<class target_t2 = target_t, class = typename std::enable_if<!std::is_same<mse::TXScopeItemFixedConstPointer<target_t2>, mse::TXScopeItemFixedPointer<target_t> >::value, void>::type>
-		explicit operator mse::TXScopeItemFixedConstPointer<target_t2>() const & {
+		template<class target_t2 = target_t, class = typename std::enable_if<!std::is_same<mse::TXScopeFixedConstPointer<target_t2>, mse::TXScopeFixedPointer<target_t> >::value, void>::type>
+		explicit operator mse::TXScopeFixedConstPointer<target_t2>() const & {
 			return m_stored_ptr;
 		}
 		*/
@@ -2443,7 +2495,7 @@ namespace mse {
 		void xscope_ptr() const && = delete;
 		const _TStrongPointerNR& stored_ptr() const { return m_stored_ptr; }
 
-		operator mse::TXScopeItemFixedConstPointer<target_t>() const & {
+		operator mse::TXScopeFixedConstPointer<target_t>() const & {
 			return m_stored_ptr;
 		}
 		auto& operator*() const {
@@ -2553,11 +2605,11 @@ namespace mse {
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_strong_const_pointer_store)
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_strong_pointer_store)
 
-	template<typename _Ty> using TXScopeXScopeItemFixedStore = TXScopeStrongNotNullPointerStore<TXScopeItemFixedPointer<_Ty> >;
-	template<typename _Ty> using TXScopeXScopeItemFixedConstStore = TXScopeStrongNotNullConstPointerStore<TXScopeItemFixedConstPointer<_Ty> >;
+	template<typename _Ty> using TXScopeXScopeItemFixedStore = TXScopeStrongNotNullPointerStore<TXScopeFixedPointer<_Ty> >;
+	template<typename _Ty> using TXScopeXScopeItemFixedConstStore = TXScopeStrongNotNullConstPointerStore<TXScopeFixedConstPointer<_Ty> >;
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<typename _Ty> using TXScopeXScopeFixedStore = TXScopeStrongNotNullPointerStore<TXScopeFixedPointer<_Ty> >;
-	template<typename _Ty> using TXScopeXScopeFixedConstStore = TXScopeStrongNotNullConstPointerStore<TXScopeFixedConstPointer<_Ty> >;
+	template<typename _Ty> using TXScopeXScopeFixedStore = TXScopeStrongNotNullPointerStore<TXScopeObjFixedPointer<_Ty> >;
+	template<typename _Ty> using TXScopeXScopeFixedConstStore = TXScopeStrongNotNullConstPointerStore<TXScopeObjFixedConstPointer<_Ty> >;
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 
@@ -2594,15 +2646,6 @@ namespace mse {
 	instead of one of the pointers given as an input parameter (which is fine).) So the xscope_chosen_pointer() template is the
 	sanctioned way of creating a function that returns a non-owning scope pointer. */
 	template<typename _TBoolFunction, typename _Ty, class... Args>
-	auto xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b, Args&&... args) {
-		return function1(a, b, std::forward<Args>(args)...) ? b : a;
-	}
-	template<typename _TBoolFunction, typename _Ty, class... Args>
-	auto xscope_chosen_pointer(_TBoolFunction function1, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b, Args&&... args) {
-		return function1(a, b, std::forward<Args>(args)...) ? b : a;
-	}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<typename _TBoolFunction, typename _Ty, class... Args>
 	auto xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
@@ -2610,23 +2653,32 @@ namespace mse {
 	auto xscope_chosen_pointer(_TBoolFunction function1, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b, Args&&... args) {
 		return function1(a, b, std::forward<Args>(args)...) ? b : a;
 	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<typename _TBoolFunction, typename _Ty, class... Args>
+	auto xscope_chosen_pointer(_TBoolFunction function1, const TXScopeObjFixedConstPointer<_Ty>& a, const TXScopeObjFixedConstPointer<_Ty>& b, Args&&... args) {
+		return function1(a, b, std::forward<Args>(args)...) ? b : a;
+	}
+	template<typename _TBoolFunction, typename _Ty, class... Args>
+	auto xscope_chosen_pointer(_TBoolFunction function1, const TXScopeObjFixedPointer<_Ty>& a, const TXScopeObjFixedPointer<_Ty>& b, Args&&... args) {
+		return function1(a, b, std::forward<Args>(args)...) ? b : a;
+	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-	template<typename _Ty>
-	auto xscope_chosen_pointer(bool choose_the_second, const TXScopeItemFixedConstPointer<_Ty>& a, const TXScopeItemFixedConstPointer<_Ty>& b) {
-		return choose_the_second ? b : a;
-	}
-	template<typename _Ty>
-	auto xscope_chosen_pointer(bool choose_the_second, const TXScopeItemFixedPointer<_Ty>& a, const TXScopeItemFixedPointer<_Ty>& b) {
-		return choose_the_second ? b : a;
-	}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<typename _Ty>
 	auto xscope_chosen_pointer(bool choose_the_second, const TXScopeFixedConstPointer<_Ty>& a, const TXScopeFixedConstPointer<_Ty>& b) {
 		return choose_the_second ? b : a;
 	}
 	template<typename _Ty>
 	auto xscope_chosen_pointer(bool choose_the_second, const TXScopeFixedPointer<_Ty>& a, const TXScopeFixedPointer<_Ty>& b) {
+		return choose_the_second ? b : a;
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<typename _Ty>
+	auto xscope_chosen_pointer(bool choose_the_second, const TXScopeObjFixedConstPointer<_Ty>& a, const TXScopeObjFixedConstPointer<_Ty>& b) {
+		return choose_the_second ? b : a;
+	}
+	template<typename _Ty>
+	auto xscope_chosen_pointer(bool choose_the_second, const TXScopeObjFixedPointer<_Ty>& a, const TXScopeObjFixedPointer<_Ty>& b) {
 		return choose_the_second ? b : a;
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -2650,21 +2702,21 @@ namespace mse {
 	}
 
 	/* shorter aliases */
-	template<typename _Ty> using sfp = TXScopeFixedPointer<_Ty>;
-	template<typename _Ty> using sfcp = TXScopeFixedConstPointer<_Ty>;
+	template<typename _Ty> using sfp = TXScopeObjFixedPointer<_Ty>;
+	template<typename _Ty> using sfcp = TXScopeObjFixedConstPointer<_Ty>;
 	template<typename _TROy> using so = TXScopeObj<_TROy>;
-	template<typename _Ty> using sifp = TXScopeItemFixedPointer<_Ty>;
-	template<typename _Ty> using sifcp = TXScopeItemFixedConstPointer<_Ty>;
+	template<typename _Ty> using sifp = TXScopeFixedPointer<_Ty>;
+	template<typename _Ty> using sifcp = TXScopeFixedConstPointer<_Ty>;
 
 	/* deprecated aliases */
-	template<typename _Ty> using scpfp MSE_DEPRECATED = TXScopeFixedPointer<_Ty>;
-	template<typename _Ty> using scpfcp MSE_DEPRECATED = TXScopeFixedConstPointer<_Ty>;
+	template<typename _Ty> using scpfp MSE_DEPRECATED = TXScopeObjFixedPointer<_Ty>;
+	template<typename _Ty> using scpfcp MSE_DEPRECATED = TXScopeObjFixedConstPointer<_Ty>;
 	template<typename _TROy> using scpo MSE_DEPRECATED = TXScopeObj<_TROy>;
-	template<class _TTargetType, class _TXScopePointerType> using scpwkfp MSE_DEPRECATED = TSyncWeakFixedPointer<_TTargetType, _TXScopePointerType>;
-	template<class _TTargetType, class _TXScopePointerType> using scpwkfcp MSE_DEPRECATED = TSyncWeakFixedConstPointer<_TTargetType, _TXScopePointerType>;
+	template<class _TTargetType, class _TXScopeObjPointerType> using scpwkfp MSE_DEPRECATED = TSyncWeakFixedPointer<_TTargetType, _TXScopeObjPointerType>;
+	template<class _TTargetType, class _TXScopeObjPointerType> using scpwkfcp MSE_DEPRECATED = TSyncWeakFixedConstPointer<_TTargetType, _TXScopeObjPointerType>;
 
-	template<typename _Ty> using TScopeFixedPointer MSE_DEPRECATED = TXScopeFixedPointer<_Ty>;
-	template<typename _Ty> using TScopeFixedConstPointer MSE_DEPRECATED = TXScopeFixedConstPointer<_Ty>;
+	template<typename _Ty> using TScopeFixedPointer MSE_DEPRECATED = TXScopeObjFixedPointer<_Ty>;
+	template<typename _Ty> using TScopeFixedConstPointer MSE_DEPRECATED = TXScopeObjFixedConstPointer<_Ty>;
 	template<typename _TROy> using TScopeObj MSE_DEPRECATED = TXScopeObj<_TROy>;
 	template<typename _Ty> using TScopeOwnerPointer MSE_DEPRECATED = TXScopeOwnerPointer<_Ty>;
 
@@ -2688,7 +2740,7 @@ namespace mse {
 				class B {
 				public:
 					static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-					static int foo2(mse::TXScopeItemFixedPointer<A> A_scope_ptr) { return A_scope_ptr->b; }
+					static int foo2(mse::TXScopeFixedPointer<A> A_scope_ptr) { return A_scope_ptr->b; }
 				protected:
 					~B() {}
 				};
@@ -2704,11 +2756,11 @@ namespace mse {
 					assert(a.b == scope_a.b);
 					A_native_ptr = &a;
 
-					mse::TXScopeItemFixedPointer<A> A_scope_ptr1(&scope_a);
+					mse::TXScopeFixedPointer<A> A_scope_ptr1(&scope_a);
 					assert(A_native_ptr->b == A_scope_ptr1->b);
-					mse::TXScopeItemFixedPointer<A> A_scope_ptr2 = &scope_a;
+					mse::TXScopeFixedPointer<A> A_scope_ptr2 = &scope_a;
 
-					/* mse::TXScopeItemFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
+					/* mse::TXScopeFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
 					B::foo1(static_cast<A*>(A_scope_ptr1));
 
 					if (!A_scope_ptr2) {
@@ -2735,10 +2787,10 @@ namespace mse {
 					scope_a2 = a;
 					scope_a2 = scope_a;
 
-					mse::TXScopeItemFixedConstPointer<A> rcp = A_scope_ptr1;
-					mse::TXScopeItemFixedConstPointer<A> rcp2 = rcp;
+					mse::TXScopeFixedConstPointer<A> rcp = A_scope_ptr1;
+					mse::TXScopeFixedConstPointer<A> rcp2 = rcp;
 					const mse::TXScopeObj<A> cscope_a(11);
-					mse::TXScopeItemFixedConstPointer<A> rfcp = &cscope_a;
+					mse::TXScopeFixedConstPointer<A> rfcp = &cscope_a;
 
 					mse::TXScopeOwnerPointer<A> A_scpoptr(11);
 					//B::foo2(A_scpoptr);
@@ -2757,10 +2809,10 @@ namespace mse {
 					/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
 					class GE : public E {};
 					mse::TXScopeObj<GE> scope_ge;
-					mse::TXScopeItemFixedPointer<GE> GE_scope_ifptr1 = &scope_ge;
-					mse::TXScopeItemFixedPointer<E> E_scope_ifptr5 = GE_scope_ifptr1;
-					mse::TXScopeItemFixedPointer<E> E_scope_ifptr2(&scope_ge);
-					mse::TXScopeItemFixedConstPointer<E> E_scope_fcptr2 = &scope_ge;
+					mse::TXScopeFixedPointer<GE> GE_scope_ifptr1 = &scope_ge;
+					mse::TXScopeFixedPointer<E> E_scope_ifptr5 = GE_scope_ifptr1;
+					mse::TXScopeFixedPointer<E> E_scope_ifptr2(&scope_ge);
+					mse::TXScopeFixedConstPointer<E> E_scope_fcptr2 = &scope_ge;
 				}
 
 				{
@@ -2775,8 +2827,8 @@ namespace mse {
 					class B {
 					public:
 						static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
-						static int foo2(mse::TXScopeItemFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
-						static int foo3(mse::TXScopeItemFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+						static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+						static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
 					protected:
 						~B() {}
 					};
@@ -2849,10 +2901,10 @@ namespace mse {
 					/* Polymorphic conversions that would not be supported by mse::TRegisteredPointer. */
 					class GE : public E {};
 					mse::TXScopeObj<GE> scope_ge;
-					mse::TXScopeItemFixedPointer<GE> GE_scope_ifptr1 = &scope_ge;
-					mse::TXScopeItemFixedPointer<E> E_scope_ptr5(GE_scope_ifptr1);
-					mse::TXScopeItemFixedPointer<E> E_scope_ifptr2(&scope_ge);
-					mse::TXScopeItemFixedConstPointer<E> E_scope_fcptr2 = &scope_ge;
+					mse::TXScopeFixedPointer<GE> GE_scope_ifptr1 = &scope_ge;
+					mse::TXScopeFixedPointer<E> E_scope_ptr5(GE_scope_ifptr1);
+					mse::TXScopeFixedPointer<E> E_scope_ifptr2(&scope_ge);
+					mse::TXScopeFixedConstPointer<E> E_scope_fcptr2 = &scope_ge;
 				}
 
 #endif // MSE_SELF_TESTS

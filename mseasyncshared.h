@@ -1905,8 +1905,8 @@ namespace mse {
 			valid_if_Ty_is_marked_as_xscope_shareable();
 		}
 
-		typedef mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
-		typedef mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
+		typedef mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
+		typedef mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
 		static auto make(const xsac_obj_xscpptr_t& xscpptr) {
 			return TXScopeAsyncSharedV2ACOReadWriteAccessRequester((*xscpptr).exclusive_pointer());
 		}
@@ -1914,8 +1914,8 @@ namespace mse {
 			return TXScopeAsyncSharedV2ACOReadWriteAccessRequester((*xscpptr).exclusive_pointer());
 		}
 #ifndef MSE_SCOPEPOINTER_DISABLED
-		typedef mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpfptr_t;
-		typedef mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpfptr_t;
+		typedef mse::TXScopeObjFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpfptr_t;
+		typedef mse::TXScopeObjFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpfptr_t;
 		static auto make(const xsac_obj_xscpfptr_t& xscpptr) {
 			return TXScopeAsyncSharedV2ACOReadWriteAccessRequester((*xscpptr).exclusive_pointer());
 		}
@@ -1945,13 +1945,13 @@ namespace mse {
 	};
 
 	template <typename TXScopeAccessControlledObj1>
-	auto make_xscope_asyncsharedv2acoreadwrite(const mse::TXScopeItemFixedPointer<TXScopeAccessControlledObj1>& xscpptr)
+	auto make_xscope_asyncsharedv2acoreadwrite(const mse::TXScopeFixedPointer<TXScopeAccessControlledObj1>& xscpptr)
 		-> TXScopeAsyncSharedV2ACOReadWriteAccessRequester<typename TXScopeAccessControlledObj1::object_type, typename TXScopeAccessControlledObj1::access_mutex_type> {
 		return TXScopeAsyncSharedV2ACOReadWriteAccessRequester<typename TXScopeAccessControlledObj1::object_type, typename TXScopeAccessControlledObj1::access_mutex_type>::make(xscpptr);
 	}
 #ifndef MSE_SCOPEPOINTER_DISABLED
 	template <typename TXScopeAccessControlledObj1>
-	auto make_xscope_asyncsharedv2acoreadwrite(const mse::TXScopeFixedPointer<TXScopeAccessControlledObj1>& xscpptr)
+	auto make_xscope_asyncsharedv2acoreadwrite(const mse::TXScopeObjFixedPointer<TXScopeAccessControlledObj1>& xscpptr)
 		-> TXScopeAsyncSharedV2ACOReadWriteAccessRequester<typename TXScopeAccessControlledObj1::object_type, typename TXScopeAccessControlledObj1::access_mutex_type> {
 		return TXScopeAsyncSharedV2ACOReadWriteAccessRequester<typename TXScopeAccessControlledObj1::object_type, typename TXScopeAccessControlledObj1::access_mutex_type>::make(xscpptr);
 	}
@@ -2619,8 +2619,8 @@ namespace mse {
 	class TXScopeAsyncACORASectionSplitter : public TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
 	public:
 		typedef TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
-		typedef mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
-		typedef mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
+		typedef mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
+		typedef mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
 
 		TXScopeAsyncACORASectionSplitter(const xsac_obj_xscpptr_t& xsptr, size_t split_index) : base_class(xsptr->exclusive_pointer(), split_index) {}
 		template<typename _TList>
@@ -2638,15 +2638,6 @@ namespace mse {
 #ifdef MSE_HAS_CXX17
 	/* deduction guide */
 	template <typename _Ty, class _TAccessMutex>
-	TXScopeAsyncACORASectionSplitter(mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
-	template<typename _Ty, class _TAccessMutex, typename _TList>
-	TXScopeAsyncACORASectionSplitter(mse::TXScopeItemFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
-	template <typename _Ty, class _TAccessMutex>
-	TXScopeAsyncACORASectionSplitter(mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
-	template<typename _Ty, class _TAccessMutex, typename _TList>
-	TXScopeAsyncACORASectionSplitter(mse::TXScopeItemFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template <typename _Ty, class _TAccessMutex>
 	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
 	template<typename _Ty, class _TAccessMutex, typename _TList>
 	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
@@ -2654,6 +2645,15 @@ namespace mse {
 	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
 	template<typename _Ty, class _TAccessMutex, typename _TList>
 	TXScopeAsyncACORASectionSplitter(mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template <typename _Ty, class _TAccessMutex>
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeObjFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+	template<typename _Ty, class _TAccessMutex, typename _TList>
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeObjFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+	template <typename _Ty, class _TAccessMutex>
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeObjFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, size_t)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
+	template<typename _Ty, class _TAccessMutex, typename _TList>
+	TXScopeAsyncACORASectionSplitter(mse::TXScopeObjFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> >, _TList)->TXScopeAsyncACORASectionSplitter<_Ty, _TAccessMutex>;
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #endif /* MSE_HAS_CXX17 */
 
@@ -2766,22 +2766,22 @@ namespace mse {
 			return retval;
 		}
 
-		auto xscope_ptr(const handle_t& handle) -> mse::xscope_optional<mse::TXScopeItemFixedPointer<xscope_thread> > {
+		auto xscope_ptr(const handle_t& handle) -> mse::xscope_optional<mse::TXScopeFixedPointer<xscope_thread> > {
 			auto it = m_xscope_thread_map.find(handle);
 			if (m_xscope_thread_map.end() == it) {
 				return {};
 			}
 			else {
-				return mse::TXScopeItemFixedPointer<xscope_thread>(mse::us::unsafe_make_xscope_pointer_to((*it).second));
+				return mse::TXScopeFixedPointer<xscope_thread>(mse::us::unsafe_make_xscope_pointer_to((*it).second));
 			}
 		}
-		auto xscope_ptr(const handle_t& handle) const -> mse::xscope_optional<mse::TXScopeItemFixedConstPointer<xscope_thread> > {
+		auto xscope_ptr(const handle_t& handle) const -> mse::xscope_optional<mse::TXScopeFixedConstPointer<xscope_thread> > {
 			auto cit = m_xscope_thread_map.find(handle);
 			if (m_xscope_thread_map.cend() == cit) {
 				return {};
 			}
 			else {
-				return mse::TXScopeItemFixedConstPointer<xscope_thread>(mse::us::unsafe_make_xscope_const_pointer_to((*cit).second));
+				return mse::TXScopeFixedConstPointer<xscope_thread>(mse::us::unsafe_make_xscope_const_pointer_to((*cit).second));
 			}
 		}
 		auto xscope_ptr_at(const handle_t& handle) {
@@ -2908,14 +2908,14 @@ namespace mse {
 
 		auto xscope_ptr(const handle_t& handle) {
 			auto it = m_xscope_future_map.find(handle);
-			mse::xscope_optional<mse::TXScopeItemFixedPointer<xscope_future<_Ty> > > retval = (m_xscope_future_map.end() == it)
-				? mse::xscope_optional<mse::TXScopeItemFixedPointer<xscope_future<_Ty> > >{} : mse::us::unsafe_make_xscope_pointer_to((*it).second);
+			mse::xscope_optional<mse::TXScopeFixedPointer<xscope_future<_Ty> > > retval = (m_xscope_future_map.end() == it)
+				? mse::xscope_optional<mse::TXScopeFixedPointer<xscope_future<_Ty> > >{} : mse::us::unsafe_make_xscope_pointer_to((*it).second);
 			return retval;
 		}
 		auto xscope_ptr(const handle_t& handle) const {
 			auto cit = m_xscope_future_map.find(handle);
-			mse::xscope_optional<mse::TXScopeItemFixedConstPointer<xscope_future<_Ty> > > retval = (m_xscope_future_map.cend() == cit)
-				? mse::xscope_optional<mse::TXScopeItemFixedConstPointer<xscope_future<_Ty> > >{} : mse::us::unsafe_make_xscope_const_pointer_to((*cit).second);
+			mse::xscope_optional<mse::TXScopeFixedConstPointer<xscope_future<_Ty> > > retval = (m_xscope_future_map.cend() == cit)
+				? mse::xscope_optional<mse::TXScopeFixedConstPointer<xscope_future<_Ty> > >{} : mse::us::unsafe_make_xscope_const_pointer_to((*cit).second);
 			return retval;
 		}
 		auto xscope_ptr_at(const handle_t& handle) {

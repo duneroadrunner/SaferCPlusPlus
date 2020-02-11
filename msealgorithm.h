@@ -147,20 +147,20 @@ namespace mse {
 			return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
 		}
 		template<class _Container>
-		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeItemFixedConstPointer<_Container>& ptr) {
-			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
-		}
-		template<class _Container>
-		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeItemFixedPointer<_Container>& ptr) {
-			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
-		}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _Container>
 		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeFixedConstPointer<_Container>& ptr) {
 			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
 		}
 		template<class _Container>
 		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeFixedPointer<_Container>& ptr) {
+			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
+		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _Container>
+		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeObjFixedConstPointer<_Container>& ptr) {
+			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
+		}
+		template<class _Container>
+		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeObjFixedPointer<_Container>& ptr) {
 			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)

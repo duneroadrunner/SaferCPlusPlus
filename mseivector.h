@@ -370,14 +370,14 @@ namespace mse {
 			typedef typename _MV::cipointer::pointer pointer;
 			typedef typename _MV::cipointer::reference reference;
 
+			xscope_cipointer(const mse::TXScopeObjFixedConstPointer<ivector>& owner_ptr)
+				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+			xscope_cipointer(const mse::TXScopeObjFixedPointer<ivector>& owner_ptr)
+				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
 			xscope_cipointer(const mse::TXScopeFixedConstPointer<ivector>& owner_ptr)
 				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
 			xscope_cipointer(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
-				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xscope_cipointer(const mse::TXScopeItemFixedConstPointer<ivector>& owner_ptr)
-				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
-			xscope_cipointer(const mse::TXScopeItemFixedPointer<ivector>& owner_ptr)
 				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
@@ -477,10 +477,10 @@ namespace mse {
 			typedef typename _MV::ipointer::pointer pointer;
 			typedef typename _MV::ipointer::reference reference;
 
-			xscope_ipointer(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
+			xscope_ipointer(const mse::TXScopeObjFixedPointer<ivector>& owner_ptr)
 				: m_xscope_ipointer(mse::make_xscope_pointer_to_member(_MV_ref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xscope_ipointer(const mse::TXScopeItemFixedPointer<ivector>& owner_ptr)
+			xscope_ipointer(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
 				: m_xscope_ipointer(mse::make_xscope_pointer_to_member(_MV_ref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
@@ -569,10 +569,10 @@ namespace mse {
 			xscope_structure_lock_guard(const xscope_structure_lock_guard&) = default;
 			xscope_structure_lock_guard(xscope_structure_lock_guard&&) = default;
 
-			xscope_structure_lock_guard(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
+			xscope_structure_lock_guard(const mse::TXScopeObjFixedPointer<ivector>& owner_ptr)
 				: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<ivector>& owner_ptr)
+			xscope_structure_lock_guard(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
 				: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		};
@@ -583,10 +583,10 @@ namespace mse {
 			xscope_const_structure_lock_guard(const xscope_const_structure_lock_guard&) = default;
 			xscope_const_structure_lock_guard(xscope_const_structure_lock_guard&&) = default;
 
-			xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<ivector>& owner_ptr)
+			xscope_const_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<ivector>& owner_ptr)
 				: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xscope_const_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<ivector>& owner_ptr)
+			xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<ivector>& owner_ptr)
 				: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		};
@@ -630,22 +630,22 @@ namespace mse {
 	individual elements in the vector do not become invalid by preventing any operation that might resize the vector
 	or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 	template<class _Ty, class _A = std::allocator<_Ty> >
-	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<ivector<_Ty, _A> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeObjFixedPointer<ivector<_Ty, _A> >& owner_ptr) {
 		return typename ivector<_Ty, _A>::xscope_structure_lock_guard(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A = std::allocator<_Ty> >
-	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedPointer<ivector<_Ty, _A> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<ivector<_Ty, _A> >& owner_ptr) {
 		return typename ivector<_Ty, _A>::xscope_structure_lock_guard(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A = std::allocator<_Ty> >
-	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<ivector<_Ty, _A> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<ivector<_Ty, _A> >& owner_ptr) {
 		return ivector<_Ty, _A>::xscope_const_structure_lock_guard(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _A = std::allocator<_Ty> >
-	auto make_xscope_structure_lock_guard(const mse::TXScopeItemFixedConstPointer<ivector<_Ty, _A> >& owner_ptr) {
+	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<ivector<_Ty, _A> >& owner_ptr) {
 		return ivector<_Ty, _A>::xscope_const_structure_lock_guard(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -655,6 +655,15 @@ namespace mse {
 	template<class _Ty> using xscope_ivector_ipointer = typename ivector<_Ty>::xscope_ipointer;
 
 	template<class _Ty>
+	xscope_ivector_cipointer<_Ty> make_xscope_cipointer(const mse::TXScopeObjFixedConstPointer<ivector<_Ty>>& owner_ptr) {
+		return xscope_ivector_cipointer<_Ty>(owner_ptr);
+	}
+	template<class _Ty>
+	xscope_ivector_cipointer<_Ty> make_xscope_cipointer(const mse::TXScopeObjFixedPointer<ivector<_Ty>>& owner_ptr) {
+		return xscope_ivector_cipointer<_Ty>(owner_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _Ty>
 	xscope_ivector_cipointer<_Ty> make_xscope_cipointer(const mse::TXScopeFixedConstPointer<ivector<_Ty>>& owner_ptr) {
 		return xscope_ivector_cipointer<_Ty>(owner_ptr);
 	}
@@ -662,24 +671,15 @@ namespace mse {
 	xscope_ivector_cipointer<_Ty> make_xscope_cipointer(const mse::TXScopeFixedPointer<ivector<_Ty>>& owner_ptr) {
 		return xscope_ivector_cipointer<_Ty>(owner_ptr);
 	}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _Ty>
-	xscope_ivector_cipointer<_Ty> make_xscope_cipointer(const mse::TXScopeItemFixedConstPointer<ivector<_Ty>>& owner_ptr) {
-		return xscope_ivector_cipointer<_Ty>(owner_ptr);
-	}
-	template<class _Ty>
-	xscope_ivector_cipointer<_Ty> make_xscope_cipointer(const mse::TXScopeItemFixedPointer<ivector<_Ty>>& owner_ptr) {
-		return xscope_ivector_cipointer<_Ty>(owner_ptr);
-	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	template<class _Ty>
-	xscope_ivector_ipointer<_Ty> make_xscope_ipointer(const mse::TXScopeFixedPointer<ivector<_Ty>>& owner_ptr) {
+	xscope_ivector_ipointer<_Ty> make_xscope_ipointer(const mse::TXScopeObjFixedPointer<ivector<_Ty>>& owner_ptr) {
 		return xscope_ivector_ipointer<_Ty>(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty>
-	xscope_ivector_ipointer<_Ty> make_xscope_ipointer(const mse::TXScopeItemFixedPointer<ivector<_Ty>>& owner_ptr) {
+	xscope_ivector_ipointer<_Ty> make_xscope_ipointer(const mse::TXScopeFixedPointer<ivector<_Ty>>& owner_ptr) {
 		return xscope_ivector_ipointer<_Ty>(owner_ptr);
 	}
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
