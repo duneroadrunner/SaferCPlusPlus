@@ -25,6 +25,7 @@
 #include "msestaticimmutable.h"
 #include "mseoptional.h"
 #include "msetuple.h"
+#include "msefunctional.h"
 
 #include <iostream>
 #include <sstream>
@@ -1567,6 +1568,44 @@ void msetl_example2() {
 		/* Or mstd::basic_string<>s. */
 		auto mstdbs1 = mse::mstd::string();
 		std::swap(basic_string1_xscpobj, mstdbs1);
+	}
+
+	{
+		/****************/
+		/*  function<>  */
+		/****************/
+
+		{
+			/* mstd::function<> is essentially just an implementation of std::function<> that supports the library's scope and
+			data race safety mechanisms. */
+			mse::mstd::function<int()> function1 = []() { return 3; };
+			function1 = []() { return 5; };
+			int res1 = function1();
+		}
+		{
+			/* xscope_function<>s support scope function objects as well. */
+			mse::xscope_function<int()> xs_function1 = []() { return 5; };
+
+			auto xs_int1 = mse::make_xscope(int(5));
+			auto int1_xsptr = &xs_int1;
+
+			struct xscope_my_function_obj_t : public mse::rsv::XScopeTagBase, public mse::rsv::ContainsNonOwningScopeReferenceTagBase {
+				xscope_my_function_obj_t(decltype(int1_xsptr) int_xsptr) : m_int_xsptr(int_xsptr) {}
+				decltype(int1_xsptr) m_int_xsptr; /* this is a scope pointer */
+				int operator()() const { return *m_int_xsptr; }
+			};
+			/* xscope_my_function_obj_t is a scope type with a scope (pointer) member. */
+			xscope_my_function_obj_t xscope_my_function_obj1(int1_xsptr);
+			xs_function1 = xscope_my_function_obj1;
+			int res1 = xs_function1();
+
+			/*  Just as structs with scope pointer/reference members need to be declared as such, lambdas that
+			capture scope pointer/references must be declared as such. */
+			auto xs_lambda1 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([int1_xsptr]() { return *int1_xsptr; });
+			xs_function1 = xs_lambda1;
+		}
+
+		mse::self_test::CFunctionTest1::s_test1();
 	}
 
 	{

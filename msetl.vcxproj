@@ -259,6 +259,7 @@
     <ClInclude Include="mseany.h" />
     <ClInclude Include="mseasyncshared.h" />
     <ClInclude Include="msecregistered.h" />
+    <ClInclude Include="msefunctional.h" />
     <ClInclude Include="mseivector.h" />
     <ClInclude Include="mselegacyhelpers.h" />
     <ClInclude Include="msemsearray.h" />

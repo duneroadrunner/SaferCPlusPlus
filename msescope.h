@@ -482,28 +482,30 @@ namespace mse {
 		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::ReferenceableByScopePointerTagBase, mse::us::impl::TXScopeObjBase<_TROy>, TXScopeObj<_TROy>)
 	{
 	public:
-		TXScopeObj(const TXScopeObj& _X) : mse::us::impl::TXScopeObjBase<_TROy>(_X) {}
+		typedef mse::us::impl::TXScopeObjBase<_TROy> base_class;
+
+		TXScopeObj(const TXScopeObj& _X) : base_class(_X) {}
 
 #ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		explicit TXScopeObj(TXScopeObj&& _X) : mse::us::impl::TXScopeObjBase<_TROy>(std::forward<decltype(_X)>(_X)) {}
+		explicit TXScopeObj(TXScopeObj&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 
-		MSE_SCOPE_USING(TXScopeObj, mse::us::impl::TXScopeObjBase<_TROy>);
+		MSE_SCOPE_USING(TXScopeObj, base_class);
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObj() {}
 
 		TXScopeObj& operator=(TXScopeObj&& _X) {
 			//mse::impl::valid_if_not_rvalue_reference_of_given_type<TXScopeObj, decltype(_X)>(_X);
-			mse::us::impl::TXScopeObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
+			base_class::operator=(std::forward<decltype(_X)>(_X));
 			return (*this);
 		}
-		TXScopeObj& operator=(const TXScopeObj& _X) { mse::us::impl::TXScopeObjBase<_TROy>::operator=(_X); return (*this); }
+		TXScopeObj& operator=(const TXScopeObj& _X) { base_class::operator=(_X); return (*this); }
 		template<class _Ty2>
 		TXScopeObj& operator=(_Ty2&& _X) {
-			mse::us::impl::TXScopeObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
+			base_class::operator=(std::forward<decltype(_X)>(_X));
 			return (*this);
 		}
 		template<class _Ty2>
-		TXScopeObj& operator=(const _Ty2& _X) { mse::us::impl::TXScopeObjBase<_TROy>::operator=(_X); return (*this); }
+		TXScopeObj& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
 		const TXScopeFixedPointer<_TROy> operator&() & {
 			return TXScopeObjFixedPointer<_TROy>(*this);
@@ -515,11 +517,11 @@ namespace mse {
 		const TXScopeFixedConstPointer<_TROy> mse_xscope_ifptr() const & { return &(*this); }
 
 		TXScopeCagedItemFixedConstPointerToRValue<_TROy> operator&() && {
-			//return TXScopeFixedConstPointer<_TROy>(TXScopeObjFixedPointer<_TROy>(&(*static_cast<mse::us::impl::TXScopeObjBase<_TROy>*>(this))));
+			//return TXScopeFixedConstPointer<_TROy>(TXScopeObjFixedPointer<_TROy>(&(*static_cast<base_class*>(this))));
 			return TXScopeFixedConstPointer<_TROy>(TXScopeObjFixedPointer<_TROy>(*this));
 		}
 		TXScopeCagedItemFixedConstPointerToRValue<_TROy> operator&() const && {
-			return TXScopeObjFixedConstPointer<_TROy>(TXScopeObjConstPointer<_TROy>(&(*static_cast<const mse::us::impl::TXScopeObjBase<_TROy>*>(this))));
+			return TXScopeObjFixedConstPointer<_TROy>(TXScopeObjConstPointer<_TROy>(&(*static_cast<const base_class*>(this))));
 		}
 		const TXScopeCagedItemFixedConstPointerToRValue<_TROy> mse_xscope_ifptr() && { return &(*this); }
 		const TXScopeCagedItemFixedConstPointerToRValue<_TROy> mse_xscope_ifptr() const && { return &(*this); }
@@ -533,7 +535,7 @@ namespace mse {
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
-		void* operator new(size_t size) { return ::operator new(size); }
+		MSE_DEFAULT_OPERATOR_NEW_DECLARATION
 
 		template<typename _TROy2>
 		friend class TXScopeOwnerPointer;
@@ -2632,8 +2634,61 @@ namespace mse {
 			return mse::make_xscope(lambda);
 		}
 		template<typename _TLambda>
+		auto make_xscope_capture_lambda(const _TLambda& lambda) {
+			return make_xscope_non_reference_or_pointer_capture_lambda(lambda);
+		}
+		template<typename _TLambda>
 		auto make_xscope_non_capture_lambda(const _TLambda& lambda) {
 			return mse::make_xscope(lambda);
+		}
+	}
+
+	namespace us {
+		namespace impl {
+			/* The new() operator of scope objects is (often) private. The implementation of some elements (like those that
+			use std::any<> or std::function<> type-erasure) may require access to the new() operator. This is just a
+			transparent wrapper that doesn't "hide" its new() operator and can be used to wrap scope objects that do. */
+			template<typename _TROy>
+			class TNewableXScopeObj : public _TROy {
+			public:
+				typedef _TROy base_class;
+				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TNewableXScopeObj, base_class);
+
+				MSE_DEFAULT_OPERATOR_NEW_DECLARATION
+			};
+			namespace impl {
+				template<typename _Ty>
+				auto make_newable_xscope_helper(std::false_type, const _Ty& arg) {
+					/* Objects that don't derive from mse::us::impl::XScopeTagBase generally don't hide their new() operators
+					and may not be usable as a base class. */
+					return arg;
+				}
+				template<typename _Ty>
+				auto make_newable_xscope_helper(std::false_type, _Ty&& arg) {
+					/* Objects that don't derive from mse::us::impl::XScopeTagBase generally don't hide their new() operators
+					and may not be usable as a base class. */
+					return std::forward<decltype(arg)>(arg);
+				}
+
+				template<typename _Ty>
+				auto make_newable_xscope_helper(std::true_type, const _Ty& arg) {
+					return TNewableXScopeObj<_Ty>(arg);
+				}
+				template<typename _Ty>
+				auto make_newable_xscope_helper(std::true_type, _Ty&& arg) {
+					return TNewableXScopeObj<_Ty>(std::forward<decltype(arg)>(arg));
+				}
+			}
+			template <class X>
+			auto make_newable_xscope(const X& arg) {
+				typedef typename std::remove_reference<X>::type nrX;
+				return impl::make_newable_xscope_helper<nrX>(typename std::is_base_of<mse::us::impl::XScopeTagBase, nrX>::type(), arg);
+			}
+			template <class X>
+			auto make_newable_xscope(X&& arg) {
+				typedef typename std::remove_reference<X>::type nrX;
+				return impl::make_newable_xscope_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TNewableXScopeObj>::type(), std::forward<decltype(arg)>(arg));
+			}
 		}
 	}
 
