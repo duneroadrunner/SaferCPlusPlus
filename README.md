@@ -1488,9 +1488,10 @@ A conformance-enforcment helper tool like scpptool [restricts](https://github.co
 
 Alternatively, instead of native references you can use scope pointers directly as reference parameters. 
 
-Functions that return scope pointer/reference types are a special case that must be handled differently. The challenge is to ensure that any returned scope pointer/reference doesn't outlive its original source, and therefore its target. (Btw, a scope [section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) would be an example of a scope reference type.) The general way to implement this case is demonstrated in the [`as_a_returnable_fparam()`](#as_a_returnable_fparam) section. It involves a significant amount of "ceremony", but perhaps that's not necessarily inappropriate, as it's kind of an insidously dangerous case in traditional C++.
-
 In cases where the function takes (some degree of) "ownership" of the referenced parameter, and you want some flexibility in the (owning) pointer/reference parameter type, you probably want to make your function a function template. Another option would be to make your pointer parameters [poly pointers](#poly-pointers). 
+
+### Safely returning references
+While non-scope reference types can be safely returned just like value types, functions that return (or potentially return) scope pointer/reference types are a special case that must be handled differently. The challenge is to ensure that any returned scope pointer/reference doesn't outlive its original source, and therefore its target. (Btw, a "scope [section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" would be an example of a scope reference type.) The general way to implement this case is demonstrated in the [`as_a_returnable_fparam()`](#as_a_returnable_fparam) section. It involves a significant amount of "ceremony", but perhaps that's not necessarily inappropriate, as it's kind of an insidously dangerous case in traditional C++. (Conformance-enforcment helper tools like [scpptool](https://github.com/duneroadrunner/scpptool) will catch attempts to return scope references unsafely.)
 
 ### Multithreading
 
