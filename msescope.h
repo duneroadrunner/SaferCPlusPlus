@@ -1016,50 +1016,14 @@ namespace mse {
 		template<class _Ty>
 		struct is_non_pointer_iterator : std::integral_constant<bool, HasOrInheritsIteratorCategoryMemberType<_Ty>::value> {};
 
-		namespace ns_xscope_pointer {
-
-			template<class _Ty>
-			auto xscope_const_pointer_helper2(std::true_type, const _Ty& ptr_to_iter) {
-				return mse::us::unsafe_make_xscope_const_pointer_to(*(*ptr_to_iter));
-			}
-			template<class TPointerIter>
-			auto xscope_const_pointer_helper2(std::false_type, const TPointerIter& ptr_iter) {
-				return mse::us::unsafe_make_xscope_const_pointer_to(*ptr_iter);
-			}
-			template<class TIter>
-			auto xscope_const_pointer_helper1(std::true_type, const TIter& iter) {
-				return mse::us::unsafe_make_xscope_const_pointer_to(*iter);
-			}
-			template<class TPointer>
-			auto xscope_const_pointer_helper1(std::false_type, const TPointer& ptr) {
-				return xscope_const_pointer_helper2(typename mse::impl::is_non_pointer_iterator<typename std::remove_reference<decltype(*ptr)>::type>::type(), ptr);
-			}
-
-			template<class _Ty>
-			auto xscope_pointer_helper2(std::true_type, const _Ty& ptr_to_iter) {
-				return mse::us::unsafe_make_xscope_pointer_to(*(*ptr_to_iter));
-			}
-			template<class TPointerIter>
-			auto xscope_pointer_helper2(std::false_type, const TPointerIter& ptr_iter) {
-				return mse::us::unsafe_make_xscope_pointer_to(*ptr_iter);
-			}
-			template<class TIter>
-			auto xscope_pointer_helper1(std::true_type, const TIter& iter) {
-				return mse::us::unsafe_make_xscope_pointer_to(*iter);
-			}
-			template<class TPointer>
-			auto xscope_pointer_helper1(std::false_type, const TPointer& ptr) {
-				return xscope_pointer_helper2(typename mse::impl::is_non_pointer_iterator<typename std::remove_reference<decltype(*ptr)>::type>::type(), ptr);
-			}
-		}
 	}
 	template<class _Ty>
 	auto xscope_const_pointer(const _Ty& param) {
-		return impl::ns_xscope_pointer::xscope_const_pointer_helper1(typename mse::impl::is_non_pointer_iterator<_Ty>::type(), param);
+		return mse::us::unsafe_make_xscope_const_pointer_to(*param);
 	}
 	template<class _Ty>
 	auto xscope_pointer(const _Ty& param) {
-		return impl::ns_xscope_pointer::xscope_pointer_helper1(typename mse::impl::is_non_pointer_iterator<_Ty>::type(), param);
+		return mse::us::unsafe_make_xscope_pointer_to(*param);
 	}
 #endif // MSE_MSTDARRAY_DISABLED
 
@@ -1073,44 +1037,36 @@ namespace mse {
 	provide another one. */
 	template <typename _Ty>
 	auto xscope_pointer(const mse::TXScopeFixedPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_pointer(obj_ref);
+		return xsptr;
 	}
 	template <typename _Ty>
 	auto xscope_const_pointer(const mse::TXScopeFixedPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_const_pointer(obj_ref);
+		return xsptr;
 	}
 	template <typename _Ty>
 	auto xscope_pointer(const mse::TXScopeFixedConstPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_pointer(obj_ref);
+		return xsptr;
 	}
 	template <typename _Ty>
 	auto xscope_const_pointer(const mse::TXScopeFixedConstPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_const_pointer(obj_ref);
+		return xsptr;
 	}
 #ifndef MSE_SCOPEPOINTER_DISABLED
 	template <typename _Ty>
 	auto xscope_pointer(const mse::TXScopeObjFixedPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_pointer(obj_ref);
+		return xsptr;
 	}
 	template <typename _Ty>
 	auto xscope_const_pointer(const mse::TXScopeObjFixedPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_const_pointer(obj_ref);
+		return xsptr;
 	}
 	template <typename _Ty>
 	auto xscope_pointer(const mse::TXScopeObjFixedConstPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_pointer(obj_ref);
+		return xsptr;
 	}
 	template <typename _Ty>
 	auto xscope_const_pointer(const mse::TXScopeObjFixedConstPointer<_Ty>& xsptr) {
-		auto& obj_ref = *xsptr;
-		return xscope_const_pointer(obj_ref);
+		return xsptr;
 	}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 #else // !MSE_SCOPE_POINTERS_AND_ITERATORS_MAY_BOTH_BE_RAW_POINTERS
