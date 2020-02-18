@@ -81,15 +81,9 @@ namespace mse {
 
 #ifndef MSE_FUNCTIONAL_NO_XSCOPE_DEPENDENCE
 
-	template<class _Fty>
-	class xscope_function;
-
 	template <class _Fty>
 	class xscope_function : public std::function<_Fty>, public mse::us::impl::XScopeTagBase
-		, public std::conditional<(mse::impl::is_referenceable_by_scope_pointer<_Fty>::value)
-			, mse::us::impl::ReferenceableByScopePointerTagBase, mse::impl::TPlaceHolder<mse::us::impl::ReferenceableByScopePointerTagBase, xscope_function<_Fty> > >::type
-		, public std::conditional<(mse::impl::contains_non_owning_scope_reference<_Fty>::value)
-			, mse::us::impl::ContainsNonOwningScopeReferenceTagBase, mse::impl::TPlaceHolder<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, xscope_function<_Fty> > >::type
+		, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase
 	{
 	public:
 		typedef std::function<_Fty> base_class;
