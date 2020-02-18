@@ -140,8 +140,11 @@ Tested with msvc2019(v16.4.3), g++7.4.0 and clang++6.0.0. Support for versions o
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
 25. [thread_local](#thread_local)
-26. [Practical limitations](#practical-limitations)
-27. [Questions and comments](#questions-and-comments)
+26. [(Type-erased) function objects](#type-erased-function-objects)
+    1. [mstd::function](#function)
+    2. [xscope_function](#xscope_function)
+27. [Practical limitations](#practical-limitations)
+28. [Questions and comments](#questions-and-comments)
 
 ### Use cases
 
@@ -1485,9 +1488,10 @@ A conformance-enforcment helper tool like scpptool [restricts](https://github.co
 
 Alternatively, instead of native references you can use scope pointers directly as reference parameters. 
 
-Functions that return scope pointer/reference types are a special case that must be handled differently. The challenge is to ensure that any returned scope pointer/reference doesn't outlive its original source, and therefore its target. (Btw, a scope [section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) would be an example of a scope reference type.) The general way to implement this case is demonstrated in the [`as_a_returnable_fparam()`](#as_a_returnable_fparam) section. It involves a significant amount of "ceremony", but perhaps that's not necessarily inappropriate, as it's kind of an insidously dangerous case in traditional C++.
-
 In cases where the function takes (some degree of) "ownership" of the referenced parameter, and you want some flexibility in the (owning) pointer/reference parameter type, you probably want to make your function a function template. Another option would be to make your pointer parameters [poly pointers](#poly-pointers). 
+
+### Safely returning references
+While non-scope reference types can be safely returned just like value types, functions that return (or potentially return) scope pointer/reference types are a special case that must be handled differently. The challenge is to ensure that any returned scope pointer/reference doesn't outlive its original source, and therefore its target. (Btw, a "scope [section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" would be an example of a scope reference type.) The general way to implement this case is demonstrated in the [`as_a_returnable_fparam()`](#as_a_returnable_fparam) section. It involves a significant amount of "ceremony", but perhaps that's not necessarily inappropriate, as it's kind of an insidously dangerous case in traditional C++. (Conformance-enforcment helper tools like [scpptool](https://github.com/duneroadrunner/scpptool) will catch attempts to return scope references unsafely.)
 
 ### Multithreading
 
@@ -3846,6 +3850,59 @@ void main(int argc, char* argv[]) {
     }
 
 }
+```
+
+### (Type-erased) function objects
+
+### function
+
+`mstd::function<>` is essentially a drop-in replacement for `std::function<>`. 
+
+usage example:
+
+```cpp
+    #include "msefunction.h"
+    
+    void main(int argc, char* argv[]) {
+        /* mstd::function<> is essentially just an implementation of std::function<> that supports the library's scope and
+        data race safety mechanisms. */
+        mse::mstd::function<int()> function1 = []() { return 3; };
+        function1 = []() { return 5; };
+        int res1 = function1();
+    }
+```
+
+### xscope_function
+
+Some function objects, like functors and capture lambdas, can be scope types and would not be supported by [`mstd::function<>`](#function).
+
+usage example:
+
+```cpp
+    #include "msefunction.h"
+    
+    void main(int argc, char* argv[]) {
+        /* xscope_function<>s support scope function objects as well. */
+        mse::xscope_function<int()> xs_function1 = []() { return 5; };
+
+        auto xs_int1 = mse::make_xscope(int(5));
+        auto int1_xsptr = &xs_int1;
+
+        struct xscope_my_function_obj_t : public mse::rsv::XScopeTagBase, public mse::rsv::ContainsNonOwningScopeReferenceTagBase {
+            xscope_my_function_obj_t(decltype(int1_xsptr) int_xsptr) : m_int_xsptr(int_xsptr) {}
+            decltype(int1_xsptr) m_int_xsptr; /* this is a scope pointer */
+            int operator()() const { return *m_int_xsptr; }
+        };
+        /* xscope_my_function_obj_t is a scope type with a scope (pointer) member. */
+        xscope_my_function_obj_t xscope_my_function_obj1(int1_xsptr);
+        xs_function1 = xscope_my_function_obj1;
+        int res1 = xs_function1();
+
+        /* Just as structs with scope pointer/reference members need to be declared as such, lambdas that
+        capture scope pointer/references must be declared as such. */
+        auto xs_lambda1 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([int1_xsptr]() { return *int1_xsptr; });
+        xs_function1 = xs_lambda1;
+    }
 ```
 
 ### Practical limitations
