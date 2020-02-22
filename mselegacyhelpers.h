@@ -58,7 +58,7 @@
 #define MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) , size >
 #define MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size) 
 #define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) element_type MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) name MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size)
-#define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TIPointerWithBundledVector< element_type >
+#define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TStrongVectorIterator< element_type >
 
 #define MSE_LH_ALLOC(element_type, ptr, num_bytes) mse::lh::allocate(ptr, num_bytes)
 #define MSE_LH_REALLOC(element_type, ptr, num_bytes) mse::lh::reallocate(ptr, num_bytes)
@@ -81,94 +81,78 @@
 namespace mse {
 	namespace lh {
 
-		template <typename _Ty>
-		class TOpaqueWrapper {
-		public:
-			TOpaqueWrapper(const _Ty& value_param) : m_value(value_param) {}
-			_Ty& value() { return m_value; }
-			const _Ty& value() const { return m_value; }
-
-			_Ty m_value;
-		};
-		template <typename _Ty> using TVectorRefcfptrWrapper = TOpaqueWrapper<mse::TRefCountingFixedPointer<mse::us::msevector<_Ty>>>;
-
 		/* This data type was motivated by the need for a direct substitute for native pointers targeting dynamically
 		allocated (native) arrays, which can kind of play a dual role as a reference to the array object and/or as an
-		iterator. I'm not sure about this implementation though. We could base it on an mse::ivector::ipointer
-		instead... */
+		iterator. */
 		template <typename _Ty>
-		class TIPointerWithBundledVector : private TVectorRefcfptrWrapper<_Ty>, public mse::us::msevector<_Ty>::ipointer {
+		class TStrongVectorIterator : public mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>> {
 		public:
-			typedef typename mse::us::msevector<_Ty>::ipointer ipointer_base_class;
-			typedef typename mse::us::msevector<_Ty>::size_type size_type;
+			typedef mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>> base_class;
+			typedef typename mse::stnii_vector<_Ty>::size_type size_type;
 
-			TIPointerWithBundledVector() : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::us::msevector<_Ty>>())
-				, ipointer_base_class(*vector_refcptr()) {}
-			TIPointerWithBundledVector(const std::nullptr_t& src) : TIPointerWithBundledVector() {}
-			TIPointerWithBundledVector(const TIPointerWithBundledVector& src) : TVectorRefcfptrWrapper<_Ty>(src.vector_refcptr())
-				, ipointer_base_class(*vector_refcptr()) {
-				ipointer_base_class::operator=(src);
-			}
-			TIPointerWithBundledVector(_XSTD initializer_list<_Ty> _Ilist) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::us::msevector<_Ty>>(_Ilist))
-				, ipointer_base_class(*vector_refcptr()) {}
-			explicit TIPointerWithBundledVector(size_type _N) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::us::msevector<_Ty>>(_N))
-				, ipointer_base_class(*vector_refcptr()) {}
-			explicit TIPointerWithBundledVector(size_type _N, const _Ty& _V) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::us::msevector<_Ty>>(_N, _V))
-				, ipointer_base_class(*vector_refcptr()) {}
+			TStrongVectorIterator() = default;
+			TStrongVectorIterator(const std::nullptr_t& src) : TStrongVectorIterator() {}
+			TStrongVectorIterator(const TStrongVectorIterator& src) = default;
+			TStrongVectorIterator(TStrongVectorIterator&& src) = default;
+			TStrongVectorIterator(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_Ilist), 0) {}
+			explicit TStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N), 0) {}
+			explicit TStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N, _V), 0) {}
 			/*
 			template <class... Args>
-			TIPointerWithBundledVector(Args&&... args) : TVectorRefcfptrWrapper<_Ty>(mse::make_refcounting<mse::us::msevector<_Ty>>(std::forward<Args>(args)...))
-				, ipointer_base_class(*vector_refcptr()) {}
-				*/
+			TStrongVectorIterator(Args&&... args) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(std::forward<Args>(args)...), 0) {}
+			*/
 
 			size_type size() const {
 				return (*vector_refcptr()).size();
 			}
 			void resize(size_type _N, const _Ty& _X = _Ty()) {
-				auto old_size = size();
+				if (!vector_refcptr()) {
+					base_class::operator=(base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(), 0));
+				}
+
+				//auto old_size = size();
 
 				(*vector_refcptr()).resize(_N, _X);
 				(*vector_refcptr()).shrink_to_fit();
 
+				/*
 				if (true || (0 == old_size)) {
 					(*this).set_to_beginning();
 				}
+				*/
 			}
 
-			bool operator==(const std::nullptr_t& _Right_cref) const { return (0 == size()); }
-			TIPointerWithBundledVector& operator=(const std::nullptr_t& _Right_cref) {
-				return operator=(TIPointerWithBundledVector());
+			TStrongVectorIterator& operator=(const std::nullptr_t& _Right_cref) {
+				return operator=(TStrongVectorIterator());
 			}
-			TIPointerWithBundledVector& operator=(const TIPointerWithBundledVector& _Right_cref) {
-				if (_Right_cref.vector_refcptr() == vector_refcptr()) {
-					ipointer_base_class::operator=(_Right_cref);
-				}
-				else {
-					(*this).~TIPointerWithBundledVector();
-					::new (this) TIPointerWithBundledVector(_Right_cref);
-				}
+			TStrongVectorIterator& operator=(const TStrongVectorIterator& _Right_cref) {
+				base_class::operator=(_Right_cref);
 				return(*this);
 			}
 
-			explicit operator bool() const {
-				return ((*this).size() != 0);
-			}
-
 			template <class... Args>
-			static TIPointerWithBundledVector make(Args&&... args) {
-				return TIPointerWithBundledVector(std::forward<Args>(args)...);
+			static TStrongVectorIterator make(Args&&... args) {
+				return TStrongVectorIterator(std::forward<Args>(args)...);
 			}
 
 		private:
-			mse::TRefCountingFixedPointer<mse::us::msevector<_Ty>>& vector_refcptr() { return (*this).value(); }
-			const mse::TRefCountingFixedPointer<mse::us::msevector<_Ty>>& vector_refcptr() const { return (*this).value(); }
-			//mse::TRefCountingFixedPointer<mse::us::msevector<_Ty>> m_vector_refcptr;
+			auto vector_refcptr() { return (*this).target_container_ptr(); }
+			auto vector_refcptr() const { return (*this).target_container_ptr(); }
 		};
 
 		template <class X, class... Args>
-		TIPointerWithBundledVector<X> make_ipointer_with_bundled_vector(Args&&... args) {
-			return TIPointerWithBundledVector<X>::make(std::forward<Args>(args)...);
+		TStrongVectorIterator<X> make_string_vector_iterator(Args&&... args) {
+			return TStrongVectorIterator<X>::make(std::forward<Args>(args)...);
 		}
+
+		/* deprecated aliases */
+		template <typename _Ty>
+		using TIPointerWithBundledVector = TStrongVectorIterator<_Ty>;
+		template <class X, class... Args>
+		TIPointerWithBundledVector<X> make_ipointer_with_bundled_vector(Args&&... args) {
+			return make_string_vector_iterator(std::forward<Args>(args)...);
+		}
+
 
 		template <typename _Ty, size_t _Size>
 		class TNativeArrayReplacement : public mse::mstd::array<_Ty, _Size> {
@@ -266,7 +250,7 @@ namespace mse {
 			static size_t fread(_Ty* ptr, size_t size, size_t count, FILE * stream) {
 				return ::fread(ptr, size, count, stream);
 			}
-			static size_t fwrite(_Ty ptr, size_t size, size_t count, FILE * stream) {
+			static size_t fwrite(_Ty* ptr, size_t size, size_t count, FILE * stream) {
 				return ::fwrite(ptr, size, count, stream);
 			}
 		};

@@ -856,11 +856,11 @@ namespace mse {
 			return base_class::operator-(_Right_cref);
 		}
 
-		auto& operator=(const TXScopeRAIterator& _Right_cref) {
+		TXScopeRAIterator& operator=(const TXScopeRAIterator& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
-		auto& operator=(TXScopeRAIterator&& _Right_cref) {
+		TXScopeRAIterator& operator=(TXScopeRAIterator&& _Right_cref) {
 			base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref));
 			return (*this);
 		}
@@ -916,11 +916,11 @@ namespace mse {
 			return base_class::operator-(_Right_cref);
 		}
 
-		auto& operator=(const TRAIterator& _Right_cref) {
+		TRAIterator& operator=(const TRAIterator& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
-		auto& operator=(TRAIterator&& _Right_cref) {
+		TRAIterator& operator=(TRAIterator&& _Right_cref) {
 			base_class::operator=(std::forward<decltype(_Right_cref )>(_Right_cref));
 			return (*this);
 		}
@@ -1140,11 +1140,11 @@ namespace mse {
 			return base_class::operator-(_Right_cref);
 		}
 
-		auto& operator=(const TXScopeRAConstIterator& _Right_cref) {
+		TXScopeRAConstIterator& operator=(const TXScopeRAConstIterator& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
-		auto& operator=(TXScopeRAConstIterator&& _Right_cref) {
+		TXScopeRAConstIterator& operator=(TXScopeRAConstIterator&& _Right_cref) {
 			base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref));
 			return (*this);
 		}
@@ -1202,11 +1202,11 @@ namespace mse {
 			return base_class::operator-(_Right_cref);
 		}
 
-		auto& operator=(const TRAConstIterator& _Right_cref) {
+		TRAConstIterator& operator=(const TRAConstIterator& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
-		auto& operator=(TRAConstIterator&& _Right_cref) {
+		TRAConstIterator& operator=(TRAConstIterator&& _Right_cref) {
 			base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref));
 			return (*this);
 		}
