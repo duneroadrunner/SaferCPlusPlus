@@ -166,11 +166,11 @@ namespace mse {
 				return retval;
 			}
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			explicit operator _Ty*() const {
+			MSE_DEPRECATED explicit operator _Ty*() const {
 				_Ty* retval = std::addressof(*(*this))/*(*static_cast<const TThreadLocalPointerBase<_Ty>*>(this))*/;
 				return retval;
 			}
-			explicit operator TThreadLocalObj<_Ty>*() const {
+			MSE_DEPRECATED explicit operator TThreadLocalObj<_Ty>*() const {
 				TThreadLocalObj<_Ty>* retval = (*static_cast<const TThreadLocalPointerBase<_Ty>*>(this));
 				return retval;
 			}
@@ -208,11 +208,11 @@ namespace mse {
 				return retval;
 			}
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			explicit operator const _Ty*() const {
+			MSE_DEPRECATED explicit operator const _Ty*() const {
 				const _Ty* retval = (*static_cast<const TThreadLocalConstPointerBase<const _Ty>*>(this));
 				return retval;
 			}
-			explicit operator const TThreadLocalObj<_Ty>*() const {
+			MSE_DEPRECATED explicit operator const TThreadLocalObj<_Ty>*() const {
 				const TThreadLocalObj<_Ty>* retval = (*static_cast<const TThreadLocalConstPointerBase<const _Ty>*>(this));
 				return retval;
 			}
@@ -239,8 +239,8 @@ namespace mse {
 			}
 			operator bool() const { return (*static_cast<const TThreadLocalPointer<_Ty>*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			explicit operator _Ty*() const { return TThreadLocalPointer<_Ty>::operator _Ty*(); }
-			explicit operator TThreadLocalObj<_Ty>*() const { return TThreadLocalPointer<_Ty>::operator TThreadLocalObj<_Ty>*(); }
+			MSE_DEPRECATED explicit operator _Ty*() const { return TThreadLocalPointer<_Ty>::operator _Ty*(); }
+			MSE_DEPRECATED explicit operator TThreadLocalObj<_Ty>*() const { return TThreadLocalPointer<_Ty>::operator TThreadLocalObj<_Ty>*(); }
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -261,8 +261,8 @@ namespace mse {
 			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullPointer<_Ty2>& src_cref) : TThreadLocalConstPointer<_Ty>(src_cref) {}
 			operator bool() const { return (*static_cast<const TThreadLocalConstPointer<_Ty>*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			explicit operator const _Ty*() const { return TThreadLocalConstPointer<_Ty>::operator const _Ty*(); }
-			explicit operator const TThreadLocalObj<_Ty>*() const { return TThreadLocalConstPointer<_Ty>::operator const TThreadLocalObj<_Ty>*(); }
+			MSE_DEPRECATED explicit operator const _Ty*() const { return TThreadLocalConstPointer<_Ty>::operator const _Ty*(); }
+			MSE_DEPRECATED explicit operator const TThreadLocalObj<_Ty>*() const { return TThreadLocalConstPointer<_Ty>::operator const TThreadLocalObj<_Ty>*(); }
 			TThreadLocalNotNullConstPointer(typename TThreadLocalConstPointer<_Ty>::scope_obj_base_const_ptr_t ptr) : TThreadLocalConstPointer<_Ty>(ptr) {}
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -279,8 +279,8 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedPointer() {}
 			operator bool() const { return (*static_cast<const TThreadLocalNotNullPointer<_Ty>*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			explicit operator _Ty*() const { return TThreadLocalNotNullPointer<_Ty>::operator _Ty*(); }
-			explicit operator TThreadLocalObj<_Ty>*() const { return TThreadLocalNotNullPointer<_Ty>::operator TThreadLocalObj<_Ty>*(); }
+			MSE_DEPRECATED explicit operator _Ty*() const { return TThreadLocalNotNullPointer<_Ty>::operator _Ty*(); }
+			MSE_DEPRECATED explicit operator TThreadLocalObj<_Ty>*() const { return TThreadLocalNotNullPointer<_Ty>::operator TThreadLocalObj<_Ty>*(); }
 			void thread_local_tag() const {}
 
 		private:
@@ -308,8 +308,8 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const TThreadLocalNotNullConstPointer<_Ty>*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			explicit operator const _Ty*() const { return TThreadLocalNotNullConstPointer<_Ty>::operator const _Ty*(); }
-			explicit operator const TThreadLocalObj<_Ty>*() const { return TThreadLocalNotNullConstPointer<_Ty>::operator const TThreadLocalObj<_Ty>*(); }
+			MSE_DEPRECATED explicit operator const _Ty*() const { return TThreadLocalNotNullConstPointer<_Ty>::operator const _Ty*(); }
+			MSE_DEPRECATED explicit operator const TThreadLocalObj<_Ty>*() const { return TThreadLocalNotNullConstPointer<_Ty>::operator const TThreadLocalObj<_Ty>*(); }
 			void thread_local_tag() const {}
 
 		private:
@@ -533,7 +533,7 @@ namespace mse {
 					mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr2 = &thread_local_a;
 
 					/* mse::rsv::TThreadLocalFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-					B::foo1(static_cast<A*>(A_thread_local_ptr1));
+					//B::foo1(static_cast<A*>(A_thread_local_ptr1));
 
 					if (!A_thread_local_ptr2) {
 						assert(false);
@@ -615,7 +615,7 @@ namespace mse {
 					mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr2 = &thread_local_a;
 
 					/* mse::rsv::TThreadLocalFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-					B::foo1(static_cast<A*>(A_thread_local_ptr1));
+					//B::foo1(static_cast<A*>(A_thread_local_ptr1));
 
 					if (!A_thread_local_ptr2) {
 						assert(false);

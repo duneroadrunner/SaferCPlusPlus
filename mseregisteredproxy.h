@@ -282,9 +282,6 @@ namespace mse {
 		return (*this);
 		}
 		*/
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TNDRegisteredProxyPointer<_Ty>::operator _Ty*(); }
-		explicit operator TNDXScopeRegisteredProxyObj<_Ty>*() const { return TNDRegisteredProxyPointer<_Ty>::operator TNDXScopeRegisteredProxyObj<_Ty>*(); }
 
 	private:
 		TNDRegisteredProxyNotNullPointer(const TNDXScopeRegisteredProxyObj<_Ty>* ptr) : TNDRegisteredProxyPointer<_Ty>(ptr) {}
@@ -317,8 +314,8 @@ namespace mse {
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredProxyNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TNDRegisteredProxyConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TNDXScopeRegisteredProxyObj<_Ty>*() const { return TNDRegisteredProxyConstPointer<_Ty>::operator const TNDXScopeRegisteredProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDRegisteredProxyConstPointer<_Ty>::operator const _Ty*(); }
+		MSE_DEPRECATED explicit operator const TNDXScopeRegisteredProxyObj<_Ty>*() const { return TNDRegisteredProxyConstPointer<_Ty>::operator const TNDXScopeRegisteredProxyObj<_Ty>*(); }
 
 	private:
 		TNDRegisteredProxyNotNullConstPointer(const TNDXScopeRegisteredProxyObj<_Ty>* ptr) : TNDRegisteredProxyConstPointer<_Ty>(ptr) {}
@@ -403,8 +400,8 @@ namespace mse {
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredProxyFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TNDRegisteredProxyNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TNDXScopeRegisteredProxyObj<_Ty>*() const { return TNDRegisteredProxyNotNullConstPointer<_Ty>::operator const TNDXScopeRegisteredProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDRegisteredProxyNotNullConstPointer<_Ty>::operator const _Ty*(); }
+		MSE_DEPRECATED explicit operator const TNDXScopeRegisteredProxyObj<_Ty>*() const { return TNDRegisteredProxyNotNullConstPointer<_Ty>::operator const TNDXScopeRegisteredProxyObj<_Ty>*(); }
 
 	private:
 		TNDRegisteredProxyFixedConstPointer(const TNDXScopeRegisteredProxyObj<_Ty>* ptr) : TNDRegisteredProxyNotNullConstPointer<_Ty>(ptr) {}

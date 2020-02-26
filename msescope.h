@@ -308,7 +308,7 @@ namespace mse {
 			return retval;
 		}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const {
+		MSE_DEPRECATED explicit operator _Ty*() const {
 			_Ty* retval = std::addressof(*(*this))/*(*static_cast<const mse::us::impl::TXScopeObjPointerBase<_Ty>*>(this))*/;
 			return retval;
 		}
@@ -350,11 +350,11 @@ namespace mse {
 			return retval;
 		}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const {
+		MSE_DEPRECATED explicit operator const _Ty*() const {
 			const _Ty* retval = (*static_cast<const mse::us::impl::TXScopeObjConstPointerBase<_Ty>*>(this));
 			return retval;
 		}
-		explicit operator const TXScopeObj<_Ty>*() const {
+		MSE_DEPRECATED explicit operator const TXScopeObj<_Ty>*() const {
 			const TXScopeObj<_Ty>* retval = (*static_cast<const mse::us::impl::TXScopeObjConstPointerBase<_Ty>*>(this));
 			return retval;
 		}
@@ -381,7 +381,7 @@ namespace mse {
 		}
 		operator bool() const { return (*static_cast<const TXScopeObjPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TXScopeObjPointer<_Ty>::operator _Ty*(); }
+		MSE_DEPRECATED explicit operator _Ty*() const { return TXScopeObjPointer<_Ty>::operator _Ty*(); }
 		explicit operator TXScopeObj<_Ty>*() const { return TXScopeObjPointer<_Ty>::operator TXScopeObj<_Ty>*(); }
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -404,8 +404,8 @@ namespace mse {
 		TXScopeObjNotNullConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : TXScopeObjConstPointer<_Ty>(scpobj_cref) {}
 		operator bool() const { return (*static_cast<const TXScopeObjConstPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TXScopeObjConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TXScopeObj<_Ty>*() const { return TXScopeObjConstPointer<_Ty>::operator const TXScopeObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty*() const { return TXScopeObjConstPointer<_Ty>::operator const _Ty*(); }
+		MSE_DEPRECATED explicit operator const TXScopeObj<_Ty>*() const { return TXScopeObjConstPointer<_Ty>::operator const TXScopeObj<_Ty>*(); }
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -423,7 +423,7 @@ namespace mse {
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedPointer() {}
 		operator bool() const { return (*static_cast<const TXScopeObjNotNullPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TXScopeObjNotNullPointer<_Ty>::operator _Ty*(); }
+		MSE_DEPRECATED explicit operator _Ty*() const { return TXScopeObjNotNullPointer<_Ty>::operator _Ty*(); }
 		explicit operator TXScopeObj<_Ty>*() const { return TXScopeObjNotNullPointer<_Ty>::operator TXScopeObj<_Ty>*(); }
 		void xscope_tag() const {}
 
@@ -458,8 +458,8 @@ namespace mse {
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedConstPointer() {}
 		operator bool() const { return (*static_cast<const TXScopeObjNotNullConstPointer<_Ty>*>(this)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TXScopeObjNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TXScopeObj<_Ty>*() const { return TXScopeObjNotNullConstPointer<_Ty>::operator const TXScopeObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty*() const { return TXScopeObjNotNullConstPointer<_Ty>::operator const _Ty*(); }
+		MSE_DEPRECATED explicit operator const TXScopeObj<_Ty>*() const { return TXScopeObjNotNullConstPointer<_Ty>::operator const TXScopeObj<_Ty>*(); }
 		void xscope_tag() const {}
 
 	private:
@@ -589,7 +589,7 @@ namespace mse {
 
 		operator bool() const { return true; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeItemPointerBase<_Ty>::operator _Ty*()*/; }
+		MSE_DEPRECATED explicit operator _Ty*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeItemPointerBase<_Ty>::operator _Ty*()*/; }
 		void xscope_tag() const {}
 
 	private:
@@ -637,7 +637,7 @@ namespace mse {
 
 		operator bool() const { return true; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeItemConstPointerBase<_Ty>::operator const _Ty*()*/; }
+		MSE_DEPRECATED explicit operator const _Ty*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeItemConstPointerBase<_Ty>::operator const _Ty*()*/; }
 		void xscope_tag() const {}
 
 	private:
@@ -2772,7 +2772,7 @@ namespace mse {
 					mse::TXScopeFixedPointer<A> A_scope_ptr2 = &scope_a;
 
 					/* mse::TXScopeFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-					B::foo1(static_cast<A*>(A_scope_ptr1));
+					//B::foo1(static_cast<A*>(A_scope_ptr1));
 
 					if (!A_scope_ptr2) {
 						assert(false);
@@ -2873,7 +2873,7 @@ namespace mse {
 					mse::TXScopeFixedPointer<A> A_scope_ptr2 = &scope_a;
 
 					/* mse::TXScopeFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-					B::foo1(static_cast<A*>(A_scope_ptr1));
+					//B::foo1(static_cast<A*>(A_scope_ptr1));
 
 					if (!A_scope_ptr2) {
 						assert(false);

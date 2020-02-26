@@ -3784,7 +3784,7 @@ namespace mse {
 		TStdSharedImmutableFixedPointer(const TStdSharedImmutableFixedPointer& src_cref) : std::shared_ptr<const _Ty>(src_cref) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStdSharedImmutableFixedPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return std::shared_ptr<const _Ty>::operator _Ty*(); }
+		MSE_DEPRECATED explicit operator const _Ty*() const { return std::shared_ptr<const _Ty>::operator _Ty*(); }
 
 		template <class... Args>
 		static TStdSharedImmutableFixedPointer make(Args&&... args) {

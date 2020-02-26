@@ -197,7 +197,7 @@ namespace mse {
 
 					operator bool() const { return !(!((*this).m_ptr)); }
 					/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-					explicit operator const _Ty*() const {
+					MSE_DEPRECATED explicit operator const _Ty*() const {
 						return std::addressof(*(*this));
 					}
 
@@ -393,11 +393,11 @@ namespace mse {
 				return retval;
 			}
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			explicit operator const _Ty*() const {
+			MSE_DEPRECATED explicit operator const _Ty*() const {
 				const _Ty* retval = std::addressof(*(*static_cast<const base_class*>(this)));
 				return retval;
 			}
-			explicit operator const TStaticImmutableObj<_Ty>*() const {
+			MSE_DEPRECATED explicit operator const TStaticImmutableObj<_Ty>*() const {
 				const TStaticImmutableObj<_Ty>* retval = std::addressof(*(*static_cast<const base_class*>(this)));
 				return retval;
 			}
@@ -422,8 +422,8 @@ namespace mse {
 			//TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullPointer<_Ty2>& src_cref) : TStaticImmutableConstPointer<_Ty>(src_cref) {}
 			operator bool() const { return (*static_cast<const TStaticImmutableConstPointer<_Ty>*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			explicit operator const _Ty*() const { return TStaticImmutableConstPointer<_Ty>::operator const _Ty*(); }
-			explicit operator const TStaticImmutableObj<_Ty>*() const { return TStaticImmutableConstPointer<_Ty>::operator const TStaticImmutableObj<_Ty>*(); }
+			MSE_DEPRECATED explicit operator const _Ty*() const { return TStaticImmutableConstPointer<_Ty>::operator const _Ty*(); }
+			MSE_DEPRECATED explicit operator const TStaticImmutableObj<_Ty>*() const { return TStaticImmutableConstPointer<_Ty>::operator const TStaticImmutableObj<_Ty>*(); }
 			TStaticImmutableNotNullConstPointer(const typename TStaticImmutableConstPointer<_Ty>::base_class& ptr) : TStaticImmutableConstPointer<_Ty>(ptr) {}
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -443,8 +443,8 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const TStaticImmutableNotNullConstPointer<_Ty>*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			explicit operator const _Ty*() const { return TStaticImmutableNotNullConstPointer<_Ty>::operator const _Ty*(); }
-			explicit operator const TStaticImmutableObj<_Ty>*() const { return TStaticImmutableNotNullConstPointer<_Ty>::operator const TStaticImmutableObj<_Ty>*(); }
+			MSE_DEPRECATED explicit operator const _Ty*() const { return TStaticImmutableNotNullConstPointer<_Ty>::operator const _Ty*(); }
+			MSE_DEPRECATED explicit operator const TStaticImmutableObj<_Ty>*() const { return TStaticImmutableNotNullConstPointer<_Ty>::operator const TStaticImmutableObj<_Ty>*(); }
 			void static_tag() const {}
 			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
@@ -653,7 +653,7 @@ namespace mse {
 					mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr2 = &static_a;
 
 					/* mse::rsv::TStaticImmutableFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-					B::foo1(static_cast<const shareable_A*>(shareable_A_static_ptr1));
+					//B::foo1(static_cast<const shareable_A*>(shareable_A_static_ptr1));
 
 					if (!shareable_A_static_ptr2) {
 						assert(false);
@@ -714,7 +714,7 @@ namespace mse {
 					mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr2 = &static_a;
 
 					/* mse::rsv::TStaticImmutableFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-					B::foo1(static_cast<const shareable_A*>(shareable_A_static_ptr1));
+					//B::foo1(static_cast<const shareable_A*>(shareable_A_static_ptr1));
 
 					if (!shareable_A_static_ptr2) {
 						assert(false);

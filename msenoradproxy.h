@@ -271,15 +271,6 @@ namespace mse {
 		TNDNoradProxyNotNullPointer(const TNDNoradProxyNotNullPointer<_Ty2>& src_cref) : TNDNoradProxyPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradProxyNotNullPointer() {}
-		/*
-		TNDNoradProxyNotNullPointer<_Ty>& operator=(const TNDNoradProxyNotNullPointer<_Ty>& _Right_cref) {
-		TNDNoradProxyPointer<_Ty>::operator=(_Right_cref);
-		return (*this);
-		}
-		*/
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TNDNoradProxyPointer<_Ty>::operator _Ty*(); }
-		explicit operator TNDXScopeNoradProxyObj<_Ty>*() const { return TNDNoradProxyPointer<_Ty>::operator TNDXScopeNoradProxyObj<_Ty>*(); }
 
 	private:
 		TNDNoradProxyNotNullPointer(const TNDXScopeNoradProxyObj<_Ty>* ptr) : TNDNoradProxyPointer<_Ty>(ptr) {}
@@ -312,8 +303,8 @@ namespace mse {
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradProxyNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TNDNoradProxyConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TNDXScopeNoradProxyObj<_Ty>*() const { return TNDNoradProxyConstPointer<_Ty>::operator const TNDXScopeNoradProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDNoradProxyConstPointer<_Ty>::operator const _Ty*(); }
+		MSE_DEPRECATED explicit operator const TNDXScopeNoradProxyObj<_Ty>*() const { return TNDNoradProxyConstPointer<_Ty>::operator const TNDXScopeNoradProxyObj<_Ty>*(); }
 
 	private:
 		TNDNoradProxyNotNullConstPointer(const TNDXScopeNoradProxyObj<_Ty>* ptr) : TNDNoradProxyConstPointer<_Ty>(ptr) {}
@@ -367,8 +358,8 @@ namespace mse {
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradProxyFixedPointer() {}
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TNDNoradProxyNotNullPointer<_Ty>::operator _Ty*(); }
-		explicit operator TNDXScopeNoradProxyObj<_Ty>*() const { return TNDNoradProxyNotNullPointer<_Ty>::operator TNDXScopeNoradProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator _Ty*() const { return TNDNoradProxyNotNullPointer<_Ty>::operator _Ty*(); }
+		MSE_DEPRECATED explicit operator TNDXScopeNoradProxyObj<_Ty>*() const { return TNDNoradProxyNotNullPointer<_Ty>::operator TNDXScopeNoradProxyObj<_Ty>*(); }
 
 	private:
 		TNDNoradProxyFixedPointer(const TNDXScopeNoradProxyObj<_Ty>* ptr) : TNDNoradProxyNotNullPointer<_Ty>(ptr) {}
@@ -398,8 +389,8 @@ namespace mse {
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradProxyFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TNDNoradProxyNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TNDXScopeNoradProxyObj<_Ty>*() const { return TNDNoradProxyNotNullConstPointer<_Ty>::operator const TNDXScopeNoradProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDNoradProxyNotNullConstPointer<_Ty>::operator const _Ty*(); }
+		MSE_DEPRECATED explicit operator const TNDXScopeNoradProxyObj<_Ty>*() const { return TNDNoradProxyNotNullConstPointer<_Ty>::operator const TNDXScopeNoradProxyObj<_Ty>*(); }
 
 	private:
 		TNDNoradProxyFixedConstPointer(const TNDXScopeNoradProxyObj<_Ty>* ptr) : TNDNoradProxyNotNullConstPointer<_Ty>(ptr) {}

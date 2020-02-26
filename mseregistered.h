@@ -263,7 +263,7 @@ namespace mse {
 		}
 		operator bool() const { return !(!((*this).m_ptr)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const {
+		MSE_DEPRECATED explicit operator _Ty*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
@@ -357,7 +357,7 @@ namespace mse {
 
 		operator bool() const { return !(!((*this).m_ptr)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const {
+		MSE_DEPRECATED explicit operator const _Ty*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == (*this).m_ptr) {
 				int q = 5; /* just a line of code for putting a debugger break point */
@@ -416,8 +416,8 @@ namespace mse {
 		}
 		*/
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TNDRegisteredPointer<_Ty>::operator _Ty*(); }
-		explicit operator TNDRegisteredObj<_Ty>*() const { return TNDRegisteredPointer<_Ty>::operator TNDRegisteredObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator _Ty*() const { return TNDRegisteredPointer<_Ty>::operator _Ty*(); }
+		MSE_DEPRECATED explicit operator TNDRegisteredObj<_Ty>*() const { return TNDRegisteredPointer<_Ty>::operator TNDRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDRegisteredNotNullPointer(TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredPointer<_Ty>(ptr) {}
@@ -455,8 +455,8 @@ namespace mse {
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TNDRegisteredConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TNDRegisteredObj<_Ty>*() const { return TNDRegisteredConstPointer<_Ty>::operator const TNDRegisteredObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDRegisteredConstPointer<_Ty>::operator const _Ty*(); }
+		MSE_DEPRECATED explicit operator const TNDRegisteredObj<_Ty>*() const { return TNDRegisteredConstPointer<_Ty>::operator const TNDRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredConstPointer<_Ty>(ptr) {}
@@ -509,8 +509,8 @@ namespace mse {
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredFixedPointer() {}
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TNDRegisteredNotNullPointer<_Ty>::operator _Ty*(); }
-		explicit operator TNDRegisteredObj<_Ty>*() const { return TNDRegisteredNotNullPointer<_Ty>::operator TNDRegisteredObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator _Ty*() const { return TNDRegisteredNotNullPointer<_Ty>::operator _Ty*(); }
+		MSE_DEPRECATED explicit operator TNDRegisteredObj<_Ty>*() const { return TNDRegisteredNotNullPointer<_Ty>::operator TNDRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDRegisteredFixedPointer(TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredNotNullPointer<_Ty>(ptr) {}
@@ -545,8 +545,8 @@ namespace mse {
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const _Ty*() const { return TNDRegisteredNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TNDRegisteredObj<_Ty>*() const { return TNDRegisteredNotNullConstPointer<_Ty>::operator const TNDRegisteredObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDRegisteredNotNullConstPointer<_Ty>::operator const _Ty*(); }
+		MSE_DEPRECATED explicit operator const TNDRegisteredObj<_Ty>*() const { return TNDRegisteredNotNullConstPointer<_Ty>::operator const TNDRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDRegisteredFixedConstPointer(const TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredNotNullConstPointer<_Ty>(ptr) {}
@@ -1120,7 +1120,7 @@ namespace mse {
 #endif // !MSE_REGISTEREDPOINTER_DISABLED
 
 					/* mse::TRegisteredPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-					B::foo1(static_cast<A*>(A_registered_ptr1));
+					//B::foo1(static_cast<A*>(A_registered_ptr1));
 
 					if (A_registered_ptr2) {
 						assert(false);

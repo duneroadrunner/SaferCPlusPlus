@@ -748,9 +748,6 @@ int main(int argc, char* argv[]) {
 			}
 #endif // !MSE_REGISTEREDPOINTER_DISABLED
 
-			/* mse::TRegisteredPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-			B::foo1(static_cast<A*>(A_registered_ptr1));
-
 			B::foo3(&registered_a);
 			/* mse::TRegisteredPointers don't convert directly into mse::TRegisteredFixedConstPointers because
 			mse::TRegisteredFixedConstPointers are never supposed to be null, where mse::TRegisteredPointers can be. But you
@@ -2083,9 +2080,9 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 				item2.m_next_item_ptr = &item3;
 				item3.m_next_item_ptr = &item1;
 				auto t1 = std::chrono::high_resolution_clock::now();
-				CF* cf_ptr = static_cast<CF*>(item1.m_next_item_ptr);
+				CF* cf_ptr = std::addressof(*(item1.m_next_item_ptr));
 				for (int i = 0; i < number_of_loops2; i += 1) {
-					cf_ptr = static_cast<CF*>(cf_ptr->m_next_item_ptr);
+					cf_ptr = std::addressof(*(cf_ptr->m_next_item_ptr));
 				}
 				auto t2 = std::chrono::high_resolution_clock::now();
 				auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
