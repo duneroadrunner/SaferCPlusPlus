@@ -10,6 +10,9 @@
 
 #include "msepointerbasics.h"
 #include "mseprimitives.h"
+#ifndef MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
+#include "msescope.h"
+#endif // !MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
 #include <utility>
 #include <unordered_set>
 #include <functional>
@@ -146,32 +149,35 @@ namespace mse {
 		template<typename _Ty>
 		class TThreadLocalPointer : public TThreadLocalPointerBase<_Ty>, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
+			typedef TThreadLocalPointerBase<_Ty> base_class;
 			typedef Tthread_local_obj_base_ptr<_Ty> scope_obj_base_ptr_t;
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalPointer() {}
 		private:
-			TThreadLocalPointer() : TThreadLocalPointerBase<_Ty>() {}
-			TThreadLocalPointer(scope_obj_base_ptr_t ptr) : TThreadLocalPointerBase<_Ty>(ptr) {}
-			TThreadLocalPointer(const TThreadLocalPointer& src_cref) : TThreadLocalPointerBase<_Ty>(
-				static_cast<const TThreadLocalPointerBase<_Ty>&>(src_cref)) {}
+			TThreadLocalPointer() : base_class() {}
+			TThreadLocalPointer(scope_obj_base_ptr_t ptr) : base_class(ptr) {}
+			TThreadLocalPointer(const TThreadLocalPointer& src_cref) : base_class(
+				static_cast<const base_class&>(src_cref)) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TThreadLocalPointer(const TThreadLocalPointer<_Ty2>& src_cref) : TThreadLocalPointerBase<_Ty>(TThreadLocalPointerBase<_Ty2>(src_cref)) {}
+			TThreadLocalPointer(const TThreadLocalPointer<_Ty2>& src_cref) : base_class(TThreadLocalPointerBase<_Ty2>(src_cref)) {}
 			TThreadLocalPointer<_Ty>& operator=(TThreadLocalObj<_Ty>* ptr) {
-				return TThreadLocalPointerBase<_Ty>::operator=(ptr);
+				base_class::operator=(ptr);
+				return *this;
 			}
 			TThreadLocalPointer<_Ty>& operator=(const TThreadLocalPointer<_Ty>& _Right_cref) {
-				return TThreadLocalPointerBase<_Ty>::operator=(_Right_cref);
+				base_class::operator=(_Right_cref);
+				return *this;
 			}
 			operator bool() const {
-				bool retval = (bool(*static_cast<const TThreadLocalPointerBase<_Ty>*>(this)));
+				bool retval = (bool(*static_cast<const base_class*>(this)));
 				return retval;
 			}
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 			MSE_DEPRECATED explicit operator _Ty*() const {
-				_Ty* retval = std::addressof(*(*this))/*(*static_cast<const TThreadLocalPointerBase<_Ty>*>(this))*/;
+				_Ty* retval = std::addressof(*(*this))/*(*static_cast<const base_class*>(this))*/;
 				return retval;
 			}
 			MSE_DEPRECATED explicit operator TThreadLocalObj<_Ty>*() const {
-				TThreadLocalObj<_Ty>* retval = (*static_cast<const TThreadLocalPointerBase<_Ty>*>(this));
+				TThreadLocalObj<_Ty>* retval = (*static_cast<const base_class*>(this));
 				return retval;
 			}
 
@@ -186,34 +192,37 @@ namespace mse {
 		template<typename _Ty>
 		class TThreadLocalConstPointer : public TThreadLocalConstPointerBase<const _Ty>, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
+			typedef TThreadLocalConstPointerBase<const _Ty> base_class;
 			typedef Tthread_local_obj_base_const_ptr<_Ty> scope_obj_base_const_ptr_t;
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalConstPointer() {}
 		private:
-			TThreadLocalConstPointer() : TThreadLocalConstPointerBase<const _Ty>() {}
-			TThreadLocalConstPointer(scope_obj_base_const_ptr_t ptr) : TThreadLocalConstPointerBase<const _Ty>(ptr) {}
-			TThreadLocalConstPointer(const TThreadLocalConstPointer& src_cref) : TThreadLocalConstPointerBase<const _Ty>(static_cast<const TThreadLocalConstPointerBase<const _Ty>&>(src_cref)) {}
+			TThreadLocalConstPointer() : base_class() {}
+			TThreadLocalConstPointer(scope_obj_base_const_ptr_t ptr) : base_class(ptr) {}
+			TThreadLocalConstPointer(const TThreadLocalConstPointer& src_cref) : base_class(static_cast<const base_class&>(src_cref)) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TThreadLocalConstPointer(const TThreadLocalConstPointer<_Ty2>& src_cref) : TThreadLocalConstPointerBase<const _Ty>(src_cref) {}
-			TThreadLocalConstPointer(const TThreadLocalPointer<_Ty>& src_cref) : TThreadLocalConstPointerBase<const _Ty>(src_cref) {}
+			TThreadLocalConstPointer(const TThreadLocalConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
+			TThreadLocalConstPointer(const TThreadLocalPointer<_Ty>& src_cref) : base_class(src_cref) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TThreadLocalConstPointer(const TThreadLocalPointer<_Ty2>& src_cref) : TThreadLocalConstPointerBase<const _Ty>(TThreadLocalConstPointerBase<_Ty2>(src_cref)) {}
+			TThreadLocalConstPointer(const TThreadLocalPointer<_Ty2>& src_cref) : base_class(TThreadLocalConstPointerBase<_Ty2>(src_cref)) {}
 			TThreadLocalConstPointer<_Ty>& operator=(const TThreadLocalObj<_Ty>* ptr) {
-				return TThreadLocalConstPointerBase<_Ty>::operator=(ptr);
+				base_class::operator=(ptr);
+				return *this;
 			}
 			TThreadLocalConstPointer<_Ty>& operator=(const TThreadLocalConstPointer<_Ty>& _Right_cref) {
-				return TThreadLocalConstPointerBase<_Ty>::operator=(_Right_cref);
+				base_class::operator=(_Right_cref);
+				return *this;
 			}
 			operator bool() const {
-				bool retval = (bool(*static_cast<const TThreadLocalConstPointerBase<const _Ty>*>(this)));
+				bool retval = (bool(*static_cast<const base_class*>(this)));
 				return retval;
 			}
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 			MSE_DEPRECATED explicit operator const _Ty*() const {
-				const _Ty* retval = (*static_cast<const TThreadLocalConstPointerBase<const _Ty>*>(this));
+				const _Ty* retval = (*static_cast<const base_class*>(this));
 				return retval;
 			}
 			MSE_DEPRECATED explicit operator const TThreadLocalObj<_Ty>*() const {
-				const TThreadLocalObj<_Ty>* retval = (*static_cast<const TThreadLocalConstPointerBase<const _Ty>*>(this));
+				const TThreadLocalObj<_Ty>* retval = (*static_cast<const base_class*>(this));
 				return retval;
 			}
 
@@ -227,20 +236,33 @@ namespace mse {
 		template<typename _Ty>
 		class TThreadLocalNotNullPointer : public TThreadLocalPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 		public:
+			typedef TThreadLocalPointer<_Ty> base_class;
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalNotNullPointer() {}
+			operator bool() const { return (*static_cast<const base_class*>(this)); }
+#ifndef MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
+			operator mse::TXScopeFixedPointer<_Ty>() const {
+				return mse::us::unsafe_make_xscope_pointer_to(*(*this));
+			}
+			explicit operator mse::TXScopeFixedConstPointer<_Ty>() const {
+				return mse::us::unsafe_make_xscope_const_pointer_to(*(*this));
+			}
+#endif // !MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
+			void thread_local_tag() const {}
+
 		private:
-			TThreadLocalNotNullPointer(typename TThreadLocalPointer<_Ty>::scope_obj_base_ptr_t src_cref) : TThreadLocalPointer<_Ty>(src_cref) {}
-			TThreadLocalNotNullPointer(TThreadLocalObj<_Ty>* ptr) : TThreadLocalPointer<_Ty>(ptr) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TThreadLocalNotNullPointer(const TThreadLocalNotNullPointer<_Ty2>& src_cref) : TThreadLocalPointer<_Ty>(src_cref) {}
-			TThreadLocalNotNullPointer<_Ty>& operator=(const TThreadLocalPointer<_Ty>& _Right_cref) {
-				TThreadLocalPointer<_Ty>::operator=(_Right_cref);
+			TThreadLocalNotNullPointer(typename base_class::scope_obj_base_ptr_t src_cref) : base_class(src_cref) {}
+			TThreadLocalNotNullPointer(TThreadLocalObj<_Ty>* ptr) : base_class(ptr) {}
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			TThreadLocalNotNullPointer(const TThreadLocalNotNullPointer<_Ty2>& src_cref) : base_class(src_cref) {}
+
+			TThreadLocalNotNullPointer<_Ty>& operator=(const TThreadLocalNotNullPointer<_Ty>& _Right_cref) {
+				base_class::operator=(_Right_cref);
 				return (*this);
 			}
-			operator bool() const { return (*static_cast<const TThreadLocalPointer<_Ty>*>(this)); }
+
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator _Ty*() const { return TThreadLocalPointer<_Ty>::operator _Ty*(); }
-			MSE_DEPRECATED explicit operator TThreadLocalObj<_Ty>*() const { return TThreadLocalPointer<_Ty>::operator TThreadLocalObj<_Ty>*(); }
+			MSE_DEPRECATED explicit operator _Ty*() const { return base_class::operator _Ty*(); }
+			MSE_DEPRECATED explicit operator TThreadLocalObj<_Ty>*() const { return base_class::operator TThreadLocalObj<_Ty>*(); }
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -251,19 +273,33 @@ namespace mse {
 		template<typename _Ty>
 		class TThreadLocalNotNullConstPointer : public TThreadLocalConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 		public:
+			typedef TThreadLocalConstPointer<_Ty> base_class;
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalNotNullConstPointer() {}
+			operator bool() const { return (*static_cast<const base_class*>(this)); }
+#ifndef MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
+			operator mse::TXScopeFixedConstPointer<_Ty>() const {
+				return mse::us::unsafe_make_xscope_const_pointer_to(*(*this));
+			}
+#endif // !MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
+			void thread_local_tag() const {}
+
 		private:
-			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullConstPointer<_Ty>& src_cref) : TThreadLocalConstPointer<_Ty>(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullConstPointer<_Ty2>& src_cref) : TThreadLocalConstPointer<_Ty>(src_cref) {}
-			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullPointer<_Ty>& src_cref) : TThreadLocalConstPointer<_Ty>(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullPointer<_Ty2>& src_cref) : TThreadLocalConstPointer<_Ty>(src_cref) {}
-			operator bool() const { return (*static_cast<const TThreadLocalConstPointer<_Ty>*>(this)); }
+			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
+			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullPointer<_Ty>& src_cref) : base_class(src_cref) {}
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullPointer<_Ty2>& src_cref) : base_class(src_cref) {}
+
+			TThreadLocalNotNullConstPointer<_Ty>& operator=(const TThreadLocalNotNullConstPointer<_Ty>& _Right_cref) {
+				base_class::operator=(_Right_cref);
+				return *this;
+			}
+
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator const _Ty*() const { return TThreadLocalConstPointer<_Ty>::operator const _Ty*(); }
-			MSE_DEPRECATED explicit operator const TThreadLocalObj<_Ty>*() const { return TThreadLocalConstPointer<_Ty>::operator const TThreadLocalObj<_Ty>*(); }
-			TThreadLocalNotNullConstPointer(typename TThreadLocalConstPointer<_Ty>::scope_obj_base_const_ptr_t ptr) : TThreadLocalConstPointer<_Ty>(ptr) {}
+			MSE_DEPRECATED explicit operator const _Ty* () const { return base_class::operator const _Ty * (); }
+			MSE_DEPRECATED explicit operator const TThreadLocalObj<_Ty>* () const { return base_class::operator const TThreadLocalObj<_Ty> * (); }
+			TThreadLocalNotNullConstPointer(typename base_class::scope_obj_base_const_ptr_t ptr) : base_class(ptr) {}
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -273,20 +309,21 @@ namespace mse {
 		template<typename _Ty>
 		class TThreadLocalFixedPointer : public TThreadLocalNotNullPointer<_Ty> {
 		public:
-			TThreadLocalFixedPointer(const TThreadLocalFixedPointer& src_cref) : TThreadLocalNotNullPointer<_Ty>(src_cref) {}
+			typedef TThreadLocalNotNullPointer<_Ty> base_class;
+			TThreadLocalFixedPointer(const TThreadLocalFixedPointer& src_cref) : base_class(src_cref) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TThreadLocalFixedPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : TThreadLocalNotNullPointer<_Ty>(src_cref) {}
+			TThreadLocalFixedPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedPointer() {}
-			operator bool() const { return (*static_cast<const TThreadLocalNotNullPointer<_Ty>*>(this)); }
+			operator bool() const { return (*static_cast<const base_class*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator _Ty*() const { return TThreadLocalNotNullPointer<_Ty>::operator _Ty*(); }
-			MSE_DEPRECATED explicit operator TThreadLocalObj<_Ty>*() const { return TThreadLocalNotNullPointer<_Ty>::operator TThreadLocalObj<_Ty>*(); }
+			MSE_DEPRECATED explicit operator _Ty*() const { return base_class::operator _Ty*(); }
+			MSE_DEPRECATED explicit operator TThreadLocalObj<_Ty>*() const { return base_class::operator TThreadLocalObj<_Ty>*(); }
 			void thread_local_tag() const {}
 
 		private:
-			TThreadLocalFixedPointer(typename TThreadLocalPointer<_Ty>::scope_obj_base_ptr_t ptr) : TThreadLocalNotNullPointer<_Ty>(ptr) {}
+			TThreadLocalFixedPointer(typename TThreadLocalPointer<_Ty>::scope_obj_base_ptr_t ptr) : base_class(ptr) {}
 #ifdef MSE_THREADLOCAL_DISABLE_MOVE_RESTRICTIONS
-			TThreadLocalFixedPointer(TThreadLocalFixedPointer&& src_ref) : TThreadLocalNotNullPointer<_Ty>(src_ref) {
+			TThreadLocalFixedPointer(TThreadLocalFixedPointer&& src_ref) : base_class(src_ref) {
 				int q = 5;
 		}
 #endif // !MSE_THREADLOCAL_DISABLE_MOVE_RESTRICTIONS
@@ -294,26 +331,27 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 			friend class TThreadLocalObj<_Ty>;
-	};
+		};
 
 		template<typename _Ty>
 		class TThreadLocalFixedConstPointer : public TThreadLocalNotNullConstPointer<_Ty> {
 		public:
-			TThreadLocalFixedConstPointer(const TThreadLocalFixedConstPointer<_Ty>& src_cref) : TThreadLocalNotNullConstPointer<_Ty>(src_cref) {}
+			typedef TThreadLocalNotNullConstPointer<_Ty> base_class;
+			TThreadLocalFixedConstPointer(const TThreadLocalFixedConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TThreadLocalFixedConstPointer(const TThreadLocalFixedConstPointer<_Ty2>& src_cref) : TThreadLocalNotNullConstPointer<_Ty>(src_cref) {}
-			TThreadLocalFixedConstPointer(const TThreadLocalFixedPointer<_Ty>& src_cref) : TThreadLocalNotNullConstPointer<_Ty>(src_cref) {}
+			TThreadLocalFixedConstPointer(const TThreadLocalFixedConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
+			TThreadLocalFixedConstPointer(const TThreadLocalFixedPointer<_Ty>& src_cref) : base_class(src_cref) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TThreadLocalFixedConstPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : TThreadLocalNotNullConstPointer<_Ty>(src_cref) {}
+			TThreadLocalFixedConstPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedConstPointer() {}
-			operator bool() const { return (*static_cast<const TThreadLocalNotNullConstPointer<_Ty>*>(this)); }
+			operator bool() const { return (*static_cast<const base_class*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator const _Ty*() const { return TThreadLocalNotNullConstPointer<_Ty>::operator const _Ty*(); }
-			MSE_DEPRECATED explicit operator const TThreadLocalObj<_Ty>*() const { return TThreadLocalNotNullConstPointer<_Ty>::operator const TThreadLocalObj<_Ty>*(); }
+			MSE_DEPRECATED explicit operator const _Ty*() const { return base_class::operator const _Ty*(); }
+			MSE_DEPRECATED explicit operator const TThreadLocalObj<_Ty>*() const { return base_class::operator const TThreadLocalObj<_Ty>*(); }
 			void thread_local_tag() const {}
 
 		private:
-			TThreadLocalFixedConstPointer(typename TThreadLocalConstPointer<_Ty>::scope_obj_base_const_ptr_t ptr) : TThreadLocalNotNullConstPointer<_Ty>(ptr) {}
+			TThreadLocalFixedConstPointer(typename TThreadLocalConstPointer<_Ty>::scope_obj_base_const_ptr_t ptr) : base_class(ptr) {}
 			TThreadLocalFixedConstPointer<_Ty>& operator=(const TThreadLocalFixedConstPointer<_Ty>& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -495,6 +533,29 @@ namespace mse {
 #define MSE_DECLARE_THREAD_LOCAL_GLOBAL_CONST(type) MSE_DECLARE_THREAD_LOCAL_CONST(type) 
 
 
+#ifndef MSE_THREADLOCALPOINTER_DISABLED
+#ifndef MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
+	template <typename _Ty>
+	auto xscope_pointer(const rsv::TThreadLocalFixedPointer<_Ty>& ptr) {
+		return mse::us::unsafe_make_xscope_pointer_to(*ptr);
+	}
+	template <typename _Ty>
+	auto xscope_pointer(const rsv::TThreadLocalFixedConstPointer<_Ty>& ptr) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*ptr);
+	}
+	template <typename _Ty>
+	auto xscope_const_pointer(const rsv::TThreadLocalFixedPointer<_Ty>& ptr) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*ptr);
+	}
+	template <typename _Ty>
+	auto xscope_const_pointer(const rsv::TThreadLocalFixedConstPointer<_Ty>& ptr) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*ptr);
+	}
+#endif // !MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
+#endif // !MSE_THREADLOCALPOINTER_DISABLED
+
+
+
 	namespace self_test {
 		class CThreadLocalPtrTest1 {
 		public:
@@ -634,8 +695,15 @@ namespace mse {
 
 					mse::rsv::TThreadLocalFixedConstPointer<A> rcp = A_thread_local_ptr1;
 					mse::rsv::TThreadLocalFixedConstPointer<A> rcp2 = rcp;
+
 					MSE_DECLARE_THREAD_LOCAL_CONST(A) cthread_local_a(11);
 					mse::rsv::TThreadLocalFixedConstPointer<A> rfcp = &cthread_local_a;
+
+#ifndef MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
+					mse::TXScopeFixedPointer<A> xsptr = A_thread_local_ptr1;
+					mse::TXScopeFixedPointer<A> xsptr2 = mse::xscope_pointer(A_thread_local_ptr1);
+					mse::TXScopeFixedConstPointer<A> xscptr2 = mse::xscope_const_pointer(A_thread_local_ptr1);
+#endif // !MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
 				}
 
 				{

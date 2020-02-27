@@ -1463,6 +1463,8 @@ void msetl_example2() {
 		auto xs_cptr3 = xs_tl_store3.xscope_ptr();
 		*xs_cptr3 += "def";
 		std::cout << *xs_cptr3 << std::endl;
+
+		mse::self_test::CThreadLocalPtrTest1::s_test1();
 	}
 
 	{
@@ -1494,6 +1496,8 @@ void msetl_example2() {
 		auto xs_simm_store3 = mse::make_xscope_strong_pointer_store(simm_ptr3);
 		auto xs_cptr3 = xs_simm_store3.xscope_ptr();
 		std::cout << *xs_cptr3 << std::endl;
+
+		mse::self_test::CStaticImmutablePtrTest1::s_test1();
 	}
 
 	{

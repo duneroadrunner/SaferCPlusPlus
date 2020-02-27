@@ -11,7 +11,9 @@
 #include "msepointerbasics.h"
 #include "mseprimitives.h"
 #include "msemsearray.h"
-//#include "mseasyncshared.h"
+#ifndef MSE_STATIC_NO_XSCOPE_DEPENDENCE
+#include "msescope.h"
+#endif // !MSE_STATIC_NO_XSCOPE_DEPENDENCE
 #include <utility>
 #include <unordered_set>
 #include <functional>
@@ -383,10 +385,12 @@ namespace mse {
 			//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
 			//TStaticImmutableConstPointer(const TStaticImmutablePointer<_Ty2>& src_cref) : base_class(impl::TStaticImmutableConstPointerBase<_Ty2>(src_cref)) {}
 			TStaticImmutableConstPointer<_Ty>& operator=(const TStaticImmutableObj<_Ty>* ptr) {
-				return base_class::operator=(ptr);
+				base_class::operator=(ptr);
+				return *this;
 			}
 			TStaticImmutableConstPointer<_Ty>& operator=(const TStaticImmutableConstPointer<_Ty>& _Right_cref) {
-				return base_class::operator=(_Right_cref);
+				base_class::operator=(_Right_cref);
+				return *this;
 			}
 			operator bool() const {
 				bool retval = (bool(*static_cast<const base_class*>(this)));
@@ -412,19 +416,34 @@ namespace mse {
 		template<typename _Ty>
 		class TStaticImmutableNotNullConstPointer : public TStaticImmutableConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 		public:
+			typedef TStaticImmutableConstPointer<_Ty> base_class;
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableNotNullConstPointer() {}
+			operator bool() const { return (*static_cast<const base_class*>(this)); }
+#ifndef MSE_STATIC_NO_XSCOPE_DEPENDENCE
+			operator mse::TXScopeFixedConstPointer<_Ty>() const {
+				return mse::us::unsafe_make_xscope_const_pointer_to(*(*this));
+			}
+#endif // !MSE_STATIC_NO_XSCOPE_DEPENDENCE
+			void static_tag() const {}
+			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+
 		private:
-			TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullConstPointer<_Ty>& src_cref) : TStaticImmutableConstPointer<_Ty>(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullConstPointer<_Ty2>& src_cref) : TStaticImmutableConstPointer<_Ty>(src_cref) {}
-			//TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullPointer<_Ty>& src_cref) : TStaticImmutableConstPointer<_Ty>(src_cref) {}
+			TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
+			//TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullPointer<_Ty>& src_cref) : base_class(src_cref) {}
 			//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			//TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullPointer<_Ty2>& src_cref) : TStaticImmutableConstPointer<_Ty>(src_cref) {}
-			operator bool() const { return (*static_cast<const TStaticImmutableConstPointer<_Ty>*>(this)); }
+			//TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullPointer<_Ty2>& src_cref) : base_class(src_cref) {}
+
+			TStaticImmutableNotNullConstPointer<_Ty>& operator=(const TStaticImmutableNotNullConstPointer<_Ty>& _Right_cref) {
+				base_class::operator=(_Right_cref);
+				return *this;
+			}
+
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator const _Ty*() const { return TStaticImmutableConstPointer<_Ty>::operator const _Ty*(); }
-			MSE_DEPRECATED explicit operator const TStaticImmutableObj<_Ty>*() const { return TStaticImmutableConstPointer<_Ty>::operator const TStaticImmutableObj<_Ty>*(); }
-			TStaticImmutableNotNullConstPointer(const typename TStaticImmutableConstPointer<_Ty>::base_class& ptr) : TStaticImmutableConstPointer<_Ty>(ptr) {}
+			MSE_DEPRECATED explicit operator const _Ty*() const { return base_class::operator const _Ty*(); }
+			MSE_DEPRECATED explicit operator const TStaticImmutableObj<_Ty>*() const { return base_class::operator const TStaticImmutableObj<_Ty>*(); }
+			TStaticImmutableNotNullConstPointer(const typename base_class::base_class& ptr) : base_class(ptr) {}
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -434,22 +453,23 @@ namespace mse {
 		template<typename _Ty>
 		class TStaticImmutableFixedConstPointer : public TStaticImmutableNotNullConstPointer<_Ty> {
 		public:
-			TStaticImmutableFixedConstPointer(const TStaticImmutableFixedConstPointer<_Ty>& src_cref) : TStaticImmutableNotNullConstPointer<_Ty>(src_cref) {}
+			typedef TStaticImmutableNotNullConstPointer<_Ty> base_class;
+			TStaticImmutableFixedConstPointer(const TStaticImmutableFixedConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			TStaticImmutableFixedConstPointer(const TStaticImmutableFixedConstPointer<_Ty2>& src_cref) : TStaticImmutableNotNullConstPointer<_Ty>(src_cref) {}
-			//TStaticImmutableFixedConstPointer(const TStaticImmutableFixedPointer<_Ty>& src_cref) : TStaticImmutableNotNullConstPointer<_Ty>(src_cref) {}
+			TStaticImmutableFixedConstPointer(const TStaticImmutableFixedConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
+			//TStaticImmutableFixedConstPointer(const TStaticImmutableFixedPointer<_Ty>& src_cref) : base_class(src_cref) {}
 			//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
-			//TStaticImmutableFixedConstPointer(const TStaticImmutableFixedPointer<_Ty2>& src_cref) : TStaticImmutableNotNullConstPointer<_Ty>(src_cref) {}
+			//TStaticImmutableFixedConstPointer(const TStaticImmutableFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableFixedConstPointer() {}
-			operator bool() const { return (*static_cast<const TStaticImmutableNotNullConstPointer<_Ty>*>(this)); }
+			operator bool() const { return (*static_cast<const base_class*>(this)); }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator const _Ty*() const { return TStaticImmutableNotNullConstPointer<_Ty>::operator const _Ty*(); }
-			MSE_DEPRECATED explicit operator const TStaticImmutableObj<_Ty>*() const { return TStaticImmutableNotNullConstPointer<_Ty>::operator const TStaticImmutableObj<_Ty>*(); }
+			MSE_DEPRECATED explicit operator const _Ty*() const { return base_class::operator const _Ty*(); }
+			MSE_DEPRECATED explicit operator const TStaticImmutableObj<_Ty>*() const { return base_class::operator const TStaticImmutableObj<_Ty>*(); }
 			void static_tag() const {}
 			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 		private:
-			TStaticImmutableFixedConstPointer(const typename TStaticImmutableConstPointer<_Ty>::base_class& ptr) : TStaticImmutableNotNullConstPointer<_Ty>(ptr) {}
+			TStaticImmutableFixedConstPointer(const typename TStaticImmutableConstPointer<_Ty>::base_class& ptr) : base_class(ptr) {}
 			TStaticImmutableFixedConstPointer<_Ty>& operator=(const TStaticImmutableFixedConstPointer<_Ty>& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -614,6 +634,23 @@ namespace mse {
 #define MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(type) const mse::rsv::TStaticImmutableObj<type> 
 
 
+#ifndef MSE_STATICPOINTER_DISABLED
+#ifndef MSE_STATIC_NO_XSCOPE_DEPENDENCE
+	template <typename _Ty>
+	auto xscope_pointer(const rsv::TStaticImmutableFixedConstPointer<_Ty>& ptr) {
+		const _Ty& ref = *ptr;
+		return mse::us::unsafe_make_xscope_const_pointer_to(ref);
+	}
+	template <typename _Ty>
+	auto xscope_const_pointer(const rsv::TStaticImmutableFixedConstPointer<_Ty>& ptr) {
+		const _Ty& ref = *ptr;
+		return mse::us::unsafe_make_xscope_const_pointer_to(ref);
+	}
+#endif // !MSE_STATIC_NO_XSCOPE_DEPENDENCE
+#endif // !MSE_STATICPOINTER_DISABLED
+
+
+
 	namespace self_test {
 		class CStaticImmutablePtrTest1 {
 		public:
@@ -731,6 +768,11 @@ namespace mse {
 
 					mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> rcp = shareable_A_static_ptr1;
 					mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> rcp2 = rcp;
+
+#ifndef MSE_STATIC_NO_XSCOPE_DEPENDENCE
+					mse::TXScopeFixedConstPointer<shareable_A> xsptr = shareable_A_static_ptr1;
+					mse::TXScopeFixedConstPointer<shareable_A> xscptr2 = mse::xscope_const_pointer(shareable_A_static_ptr1);
+#endif // !MSE_STATIC_NO_XSCOPE_DEPENDENCE
 				}
 
 #endif // MSE_SELF_TESTS
