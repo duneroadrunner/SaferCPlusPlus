@@ -749,176 +749,140 @@ namespace mse {
 
 	/* template specializations */
 
-	template<typename _Ty>
-	class TNDRegisteredObj<_Ty*> : public TNDRegisteredObj<mse::us::impl::TPointerForLegacy<_Ty>> {
-	public:
-		typedef TNDRegisteredObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TNDRegisteredObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-	private:
-		TNDRegisteredObj(std::nullptr_t) {}
-		TNDRegisteredObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-	};
-	template<typename _Ty>
-	class TNDRegisteredObj<const _Ty*> : public TNDRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
-	public:
-		typedef TNDRegisteredObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TNDRegisteredObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-	private:
-		TNDRegisteredObj(std::nullptr_t) {}
-		TNDRegisteredObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-	};
+#define MSE_NDREGISTERED_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name) \
+		auto& operator=(class_name&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+		auto& operator=(const class_name& _X) { base_class::operator=(_X); return (*this); } \
+		template<class _Ty2> auto& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+		template<class _Ty2> auto& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
-	template<typename _Ty>
-	class TNDRegisteredObj<_Ty* const> : public TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
-	public:
-		typedef TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TNDRegisteredObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-	private:
-		TNDRegisteredObj(std::nullptr_t) {}
-		TNDRegisteredObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-	};
-	template<typename _Ty>
-	class TNDRegisteredObj<const _Ty * const> : public TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
-	public:
-		typedef TNDRegisteredObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TNDRegisteredObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-	private:
-		TNDRegisteredObj(std::nullptr_t) {}
-		TNDRegisteredObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-	};
+#define MSE_NDREGISTERED_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(class_name) \
+		class_name(const class_name&) = default; \
+		class_name(class_name&&) = default; \
+		MSE_NDREGISTERED_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name);
 
-	template<typename _Ty>
-	class TNDRegisteredPointer<_Ty*> : public TNDRegisteredPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
-	public:
-		typedef TNDRegisteredPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TNDRegisteredPointer, base_class);
-	};
-	template<typename _Ty>
-	class TNDRegisteredPointer<_Ty* const> : public TNDRegisteredPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
-	public:
-		typedef TNDRegisteredPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TNDRegisteredPointer, base_class);
-	};
-	template<typename _Ty>
-	class TNDRegisteredPointer<const _Ty *> : public TNDRegisteredPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
-	public:
-		typedef TNDRegisteredPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TNDRegisteredPointer, base_class);
-	};
-	template<typename _Ty>
-	class TNDRegisteredPointer<const _Ty * const> : public TNDRegisteredPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
-	public:
-		typedef TNDRegisteredPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TNDRegisteredPointer, base_class);
-	};
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+#define MSE_NDREGISTERED_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name) \
+			class_name(std::nullptr_t) {} \
+			class_name() {}
+#else // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+#define MSE_NDREGISTERED_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name)
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 
-	template<typename _Ty>
-	class TNDRegisteredConstPointer<_Ty*> : public TNDRegisteredConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> {
-	public:
-		typedef TNDRegisteredConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TNDRegisteredConstPointer, base_class);
-	};
-	template<typename _Ty>
-	class TNDRegisteredConstPointer<_Ty* const> : public TNDRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> {
-	public:
-		typedef TNDRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-		MSE_USING(TNDRegisteredConstPointer, base_class);
-	};
-	template<typename _Ty>
-	class TNDRegisteredConstPointer<const _Ty *> : public TNDRegisteredConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> {
-	public:
-		typedef TNDRegisteredConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TNDRegisteredConstPointer, base_class);
-	};
-	template<typename _Ty>
-	class TNDRegisteredConstPointer<const _Ty * const> : public TNDRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> {
-	public:
-		typedef TNDRegisteredConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-		MSE_USING(TNDRegisteredConstPointer, base_class);
-	};
+	/* Note that because we explicitly define some (private) constructors, default copy and move constructors
+	and assignment operators won't be generated, so we have to define those as well. */
+#define MSE_NDREGISTERED_IMPL_OBJ_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		template<typename _Ty> \
+		class TNDRegisteredObj<specified_type> : public TNDRegisteredObj<mapped_type> { \
+		public: \
+			typedef TNDRegisteredObj<mapped_type> base_class; \
+			MSE_USING(TNDRegisteredObj, base_class); \
+			MSE_NDREGISTERED_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(TNDRegisteredObj); \
+		private: \
+			MSE_NDREGISTERED_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(TNDRegisteredObj); \
+		};
+
+#define MSE_NDREGISTERED_IMPL_PTR_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		template<typename _Ty> \
+		class TNDRegisteredPointer<specified_type> : public TNDRegisteredPointer<mapped_type> { \
+		public: \
+			typedef TNDRegisteredPointer<mapped_type> base_class; \
+			MSE_USING(TNDRegisteredPointer, base_class); \
+		}; \
+		template<typename _Ty> \
+		class TNDRegisteredConstPointer<specified_type> : public TNDRegisteredConstPointer<mapped_type> { \
+		public: \
+			typedef TNDRegisteredConstPointer<mapped_type> base_class; \
+			MSE_USING(TNDRegisteredConstPointer, base_class); \
+		}; \
+		template<typename _Ty> \
+		class TNDRegisteredNotNullPointer<specified_type> : public TNDRegisteredNotNullPointer<mapped_type> { \
+		public: \
+			typedef TNDRegisteredNotNullPointer<mapped_type> base_class; \
+			MSE_USING(TNDRegisteredNotNullPointer, base_class); \
+		}; \
+		template<typename _Ty> \
+		class TNDRegisteredNotNullConstPointer<specified_type> : public TNDRegisteredNotNullConstPointer<mapped_type> { \
+		public: \
+			typedef TNDRegisteredNotNullConstPointer<mapped_type> base_class; \
+			MSE_USING(TNDRegisteredNotNullConstPointer, base_class); \
+		}; \
+		template<typename _Ty> \
+		class TNDRegisteredFixedPointer<specified_type> : public TNDRegisteredFixedPointer<mapped_type> { \
+		public: \
+			typedef TNDRegisteredFixedPointer<mapped_type> base_class; \
+			MSE_USING(TNDRegisteredFixedPointer, base_class); \
+		}; \
+		template<typename _Ty> \
+		class TNDRegisteredFixedConstPointer<specified_type> : public TNDRegisteredFixedConstPointer<mapped_type> { \
+		public: \
+			typedef TNDRegisteredFixedConstPointer<mapped_type> base_class; \
+			MSE_USING(TNDRegisteredFixedConstPointer, base_class); \
+		};
+
+#define MSE_NDREGISTERED_IMPL_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		MSE_NDREGISTERED_IMPL_PTR_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type); \
+		MSE_NDREGISTERED_IMPL_OBJ_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type);
+
+	MSE_NDREGISTERED_IMPL_NATIVE_POINTER_SPECIALIZATION(_Ty*, mse::us::impl::TPointerForLegacy<_Ty>);
+	MSE_NDREGISTERED_IMPL_NATIVE_POINTER_SPECIALIZATION(_Ty* const, const mse::us::impl::TPointerForLegacy<_Ty>);
 
 #ifdef MSEPRIMITIVES_H
-	template<>
-	class TNDRegisteredObj<int> : public TNDRegisteredObj<mse::TInt<int>> {
-	public:
-		typedef TNDRegisteredObj<mse::TInt<int>> base_class;
-		MSE_USING(TNDRegisteredObj, base_class);
-	};
-	template<>
-	class TNDRegisteredObj<const int> : public TNDRegisteredObj<const mse::TInt<int>> {
-	public:
-		typedef TNDRegisteredObj<const mse::TInt<int>> base_class;
-		MSE_USING(TNDRegisteredObj, base_class);
-	};
-	template<>
-	class TNDRegisteredPointer<int> : public TNDRegisteredPointer<mse::TInt<int>> {
-	public:
-		typedef TNDRegisteredPointer<mse::TInt<int>> base_class;
-		MSE_USING(TNDRegisteredPointer, base_class);
-	};
-	template<>
-	class TNDRegisteredPointer<const int> : public TNDRegisteredPointer<const mse::TInt<int>> {
-	public:
-		typedef TNDRegisteredPointer<const mse::TInt<int>> base_class;
-		MSE_USING(TNDRegisteredPointer, base_class);
-	};
-	template<>
-	class TNDRegisteredConstPointer<int> : public TNDRegisteredConstPointer<mse::TInt<int>> {
-	public:
-		typedef TNDRegisteredConstPointer<mse::TInt<int>> base_class;
-		MSE_USING(TNDRegisteredConstPointer, base_class);
-	};
-	template<>
-	class TNDRegisteredConstPointer<const int> : public TNDRegisteredConstPointer<const mse::TInt<int>> {
-	public:
-		typedef TNDRegisteredConstPointer<const mse::TInt<int>> base_class;
-		MSE_USING(TNDRegisteredConstPointer, base_class);
-	};
 
-	template<>
-	class TNDRegisteredObj<size_t> : public TNDRegisteredObj<mse::TInt<size_t>> {
-	public:
-		typedef TNDRegisteredObj<mse::TInt<size_t>> base_class;
-		MSE_USING(TNDRegisteredObj, base_class);
-	};
-	template<>
-	class TNDRegisteredObj<const size_t> : public TNDRegisteredObj<const mse::TInt<size_t>> {
-	public:
-		typedef TNDRegisteredObj<const mse::TInt<size_t>> base_class;
-		MSE_USING(TNDRegisteredObj, base_class);
-	};
-	template<>
-	class TNDRegisteredPointer<size_t> : public TNDRegisteredPointer<mse::TInt<size_t>> {
-	public:
-		typedef TNDRegisteredPointer<mse::TInt<size_t>> base_class;
-		MSE_USING(TNDRegisteredPointer, base_class);
-	};
-	template<>
-	class TNDRegisteredPointer<const size_t> : public TNDRegisteredPointer<const mse::TInt<size_t>> {
-	public:
-		typedef TNDRegisteredPointer<const mse::TInt<size_t>> base_class;
-		MSE_USING(TNDRegisteredPointer, base_class);
-	};
-	template<>
-	class TNDRegisteredConstPointer<size_t> : public TNDRegisteredConstPointer<mse::TInt<size_t>> {
-	public:
-		typedef TNDRegisteredConstPointer<mse::TInt<size_t>> base_class;
-		MSE_USING(TNDRegisteredConstPointer, base_class);
-	};
-	template<>
-	class TNDRegisteredConstPointer<const size_t> : public TNDRegisteredConstPointer<const mse::TInt<size_t>> {
-	public:
-		typedef TNDRegisteredConstPointer<const mse::TInt<size_t>> base_class;
-		MSE_USING(TNDRegisteredConstPointer, base_class);
-	};
+#define MSE_NDREGISTERED_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+		template<> \
+		class TNDRegisteredObj<integral_type> : public TNDRegisteredObj<mse::TInt<integral_type>> { \
+		public: \
+			typedef TNDRegisteredObj<mse::TInt<integral_type>> base_class; \
+			MSE_USING(TNDRegisteredObj, base_class); \
+		};
+
+#define MSE_NDREGISTERED_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type) \
+		template<> \
+		class TNDRegisteredPointer<integral_type> : public TNDRegisteredPointer<mse::TInt<integral_type>> { \
+		public: \
+			typedef TNDRegisteredPointer<mse::TInt<integral_type>> base_class; \
+			MSE_USING(TNDRegisteredPointer, base_class); \
+		}; \
+		template<> \
+		class TNDRegisteredConstPointer<integral_type> : public TNDRegisteredConstPointer<mse::TInt<integral_type>> { \
+		public: \
+			typedef TNDRegisteredConstPointer<mse::TInt<integral_type>> base_class; \
+			MSE_USING(TNDRegisteredConstPointer, base_class); \
+		}; \
+		template<> \
+		class TNDRegisteredNotNullPointer<integral_type> : public TNDRegisteredNotNullPointer<mse::TInt<integral_type>> { \
+		public: \
+			typedef TNDRegisteredNotNullPointer<mse::TInt<integral_type>> base_class; \
+			MSE_USING(TNDRegisteredNotNullPointer, base_class); \
+		}; \
+		template<> \
+		class TNDRegisteredNotNullConstPointer<integral_type> : public TNDRegisteredNotNullConstPointer<mse::TInt<integral_type>> { \
+		public: \
+			typedef TNDRegisteredNotNullConstPointer<mse::TInt<integral_type>> base_class; \
+			MSE_USING(TNDRegisteredNotNullConstPointer, base_class); \
+		}; \
+		template<> \
+		class TNDRegisteredFixedPointer<integral_type> : public TNDRegisteredFixedPointer<mse::TInt<integral_type>> { \
+		public: \
+			typedef TNDRegisteredFixedPointer<mse::TInt<integral_type>> base_class; \
+			MSE_USING(TNDRegisteredFixedPointer, base_class); \
+		}; \
+		template<> \
+		class TNDRegisteredFixedConstPointer<integral_type> : public TNDRegisteredFixedConstPointer<mse::TInt<integral_type>> { \
+		public: \
+			typedef TNDRegisteredFixedConstPointer<mse::TInt<integral_type>> base_class; \
+			MSE_USING(TNDRegisteredFixedConstPointer, base_class); \
+		};
+
+#define MSE_NDREGISTERED_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
+		MSE_NDREGISTERED_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type); \
+		MSE_NDREGISTERED_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
+		MSE_NDREGISTERED_IMPL_PTR_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type); \
+		MSE_NDREGISTERED_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+
+	MSE_NDREGISTERED_IMPL_INTEGRAL_SPECIALIZATION(int);
+	MSE_NDREGISTERED_IMPL_INTEGRAL_SPECIALIZATION(size_t);
+
 #endif /*MSEPRIMITIVES_H*/
 
 	/* end of template specializations */

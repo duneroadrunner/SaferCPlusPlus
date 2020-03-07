@@ -444,7 +444,7 @@ namespace mse {
 		*/
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		MSE_DEPRECATED explicit operator _Ty*() const { return TNDCRegisteredPointer<_Ty>::operator _Ty*(); }
-		explicit operator TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredPointer<_Ty>::operator TNDCRegisteredObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredPointer<_Ty>::operator TNDCRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDCRegisteredNotNullPointer(TNDCRegisteredObj<_Ty>* ptr) : TNDCRegisteredPointer<_Ty>(ptr) {}
@@ -483,7 +483,7 @@ namespace mse {
 		virtual ~TNDCRegisteredNotNullConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDCRegisteredConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredConstPointer<_Ty>::operator const TNDCRegisteredObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredConstPointer<_Ty>::operator const TNDCRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDCRegisteredNotNullConstPointer(const TNDCRegisteredObj<_Ty>* ptr) : TNDCRegisteredConstPointer<_Ty>(ptr) {}
@@ -537,7 +537,7 @@ namespace mse {
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		MSE_DEPRECATED explicit operator _Ty*() const { return TNDCRegisteredNotNullPointer<_Ty>::operator _Ty*(); }
-		explicit operator TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredNotNullPointer<_Ty>::operator TNDCRegisteredObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredNotNullPointer<_Ty>::operator TNDCRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDCRegisteredFixedPointer(TNDCRegisteredObj<_Ty>* ptr) : TNDCRegisteredNotNullPointer<_Ty>(ptr) {}
@@ -573,7 +573,7 @@ namespace mse {
 		virtual ~TNDCRegisteredFixedConstPointer() {}
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDCRegisteredNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		explicit operator const TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredNotNullConstPointer<_Ty>::operator const TNDCRegisteredObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredNotNullConstPointer<_Ty>::operator const TNDCRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDCRegisteredFixedConstPointer(const TNDCRegisteredObj<_Ty>* ptr) : TNDCRegisteredNotNullConstPointer<_Ty>(ptr) {}

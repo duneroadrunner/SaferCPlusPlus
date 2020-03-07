@@ -369,8 +369,8 @@ namespace mse {
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredProxyFixedPointer() {}
 
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator _Ty*() const { return TNDRegisteredProxyNotNullPointer<_Ty>::operator _Ty*(); }
-		explicit operator TNDXScopeRegisteredProxyObj<_Ty>*() const { return TNDRegisteredProxyNotNullPointer<_Ty>::operator TNDXScopeRegisteredProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator _Ty*() const { return TNDRegisteredProxyNotNullPointer<_Ty>::operator _Ty*(); }
+		MSE_DEPRECATED explicit operator TNDXScopeRegisteredProxyObj<_Ty>*() const { return TNDRegisteredProxyNotNullPointer<_Ty>::operator TNDXScopeRegisteredProxyObj<_Ty>*(); }
 
 	private:
 		TNDRegisteredProxyFixedPointer(const TNDXScopeRegisteredProxyObj<_Ty>* ptr) : TNDRegisteredProxyNotNullPointer<_Ty>(ptr) {}

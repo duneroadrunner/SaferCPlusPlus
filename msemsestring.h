@@ -2419,9 +2419,9 @@ namespace mse {
 				(!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_iterator(std::declval<mse::TXScopeFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
 				&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
 				&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeFixedConstPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
-				&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_iterator(std::declval<mse::TXScopeObjFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
-				&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeObjFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
-				&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeObjFixedConstPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+				//&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_iterator(std::declval<mse::TXScopeObjFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+				//&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeObjFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
+				//&& (!std::is_same<_TRAIterator, typename std::remove_reference<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeObjFixedConstPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))>::type>::value)
 			> {};
 		/* The following template function will instantiate iff the given iterator is not an xscope iterator of an
 		std::basic_string_view<>. */

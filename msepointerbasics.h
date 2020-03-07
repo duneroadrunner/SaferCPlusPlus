@@ -83,12 +83,6 @@ MSE_SCOPEPOINTER_DISABLED will ultimately be defined. */
 #define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 #endif // MSE_SCOPEPOINTER_USE_RELAXED_REGISTERED
 
-/* By default, norad pointers are used to catch unsafe misuse of scope pointers in debug mode. Defining
-MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug modes as well. */
-//#if (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED) && (!defined(MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED)))
-//#define MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
-//#endif // (!defined(NDEBUG)) && (!defined(MSE_SCOPEPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED) && (!defined(MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED)))
-
 #ifdef MSE_SCOPEPOINTER_DISABLED
 #undef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 #endif // MSE_SCOPEPOINTER_DISABLED
@@ -125,11 +119,6 @@ MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-
 
 #ifdef MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
 #undef MSE_SAFERPTR_DISABLED
-#else // MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
-#ifdef NDEBUG
-/* By default we make thread_local pointers simply an alias for native pointers in non-debug builds. */
-#define MSE_THREADLOCALPOINTER_DISABLED
-#endif // NDEBUG
 #endif // MSE_THREADLOCALPOINTER_RUNTIME_CHECKS_ENABLED
 
 /* end of thread_local pointer defines */
@@ -143,6 +132,8 @@ MSE_STATICPOINTER_DISABLED will ultimately be defined. */
 #define MSE_STATICPOINTER_DISABLED
 #endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)*/
 
+/* By default, norad pointers are used to catch unsafe misuse of static immutable pointers in debug mode. Defining
+MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED will cause them to be used in non-debug modes as well. */
 #if (!defined(NDEBUG)) && (!defined(MSE_STATICPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED))
 #define MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 #endif // (!defined(NDEBUG)) && (!defined(MSE_STATICPOINTER_DEBUG_RUNTIME_CHECKS_DISABLED))
@@ -150,15 +141,6 @@ MSE_STATICPOINTER_DISABLED will ultimately be defined. */
 #ifdef MSE_STATICPOINTER_DISABLED
 #undef MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 #endif // MSE_STATICPOINTER_DISABLED
-
-#ifdef MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
-#undef MSE_SAFERPTR_DISABLED
-#else // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
-#ifdef NDEBUG
-/* By default we make static pointers simply an alias for native pointers in non-debug builds. */
-#define MSE_STATICPOINTER_DISABLED
-#endif // NDEBUG
-#endif // MSE_STATICIMMUTABLEPOINTER_RUNTIME_CHECKS_ENABLED
 
 /* end of static pointer defines */
 

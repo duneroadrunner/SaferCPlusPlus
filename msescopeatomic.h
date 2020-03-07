@@ -531,7 +531,7 @@ namespace mse {
 
 		operator bool() const { return true; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator std::atomic<_Ty>*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>::operator _Ty*()*/; }
+		MSE_DEPRECATED explicit operator std::atomic<_Ty>*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>::operator _Ty*()*/; }
 		void xscope_tag() const {}
 
 	private:
@@ -570,7 +570,7 @@ namespace mse {
 
 		operator bool() const { return true; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		explicit operator const std::atomic<_Ty>*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>::operator const _Ty*()*/; }
+		MSE_DEPRECATED explicit operator const std::atomic<_Ty>*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>::operator const _Ty*()*/; }
 		void xscope_tag() const {}
 
 	private:
@@ -1046,9 +1046,6 @@ namespace mse {
 					mse::TXScopeAtomicItemFixedPointer<shareable_A_t> A_scope_ptr1(&scope_a);
 					assert(A_native_ptr->load().b == A_scope_ptr1->load().b);
 					mse::TXScopeAtomicItemFixedPointer<shareable_A_t> A_scope_ptr2 = &scope_a;
-
-					/* mse::TXScopeAtomicItemFixedPointers can be coerced into native pointers if you need to interact with legacy code or libraries. */
-					B::foo1(static_cast<std::atomic<shareable_A_t>*>(A_scope_ptr1));
 
 					if (!A_scope_ptr2) {
 						assert(false);
