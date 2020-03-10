@@ -210,11 +210,19 @@ namespace mse {
 		using std::logic_error::logic_error;
 	};
 
-#ifndef NDEBUG
+	/* This automatic (potential) definition of MSE_CHECK_USE_BEFORE_SET is also done in mseprimitives.h */
 #ifndef MSE_SUPPRESS_CHECK_USE_BEFORE_SET
+#ifndef MSE_CHECK_USE_BEFORE_SET
+#ifndef NDEBUG
 #define MSE_CHECK_USE_BEFORE_SET
-#endif // !MSE_SUPPRESS_CHECK_USE_BEFORE_SET
 #endif // !NDEBUG
+
+#if defined(MSE_NON_THREADSAFE_CHECK_USE_BEFORE_SET) && !defined(MSE_CHECK_USE_BEFORE_SET)
+#define MSE_CHECK_USE_BEFORE_SET
+#endif // defined(MSE_NON_THREADSAFE_CHECK_USE_BEFORE_SET) && !defined(MSE_CHECK_USE_BEFORE_SET)
+#endif // !MSE_CHECK_USE_BEFORE_SET
+#endif // !MSE_SUPPRESS_CHECK_USE_BEFORE_SET
+
 
 #define MSE_IMPL_DESTRUCTOR_PREFIX1
 

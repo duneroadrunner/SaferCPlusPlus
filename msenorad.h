@@ -808,212 +808,140 @@ namespace mse {
 
 			/* template specializations */
 
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradObj<_Ty*, _TRefCounter> : public TGNoradObj<mse::us::impl::TPointerForLegacy<_Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-				MSE_USING(TGNoradObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			private:
-				TGNoradObj(std::nullptr_t) {}
-				TGNoradObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			};
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradObj<_Ty* const, _TRefCounter> : public TGNoradObj<const mse::us::impl::TPointerForLegacy<_Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-				MSE_USING(TGNoradObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			private:
-				TGNoradObj(std::nullptr_t) {}
-				TGNoradObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			};
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradObj<const _Ty *, _TRefCounter> : public TGNoradObj<mse::us::impl::TPointerForLegacy<const _Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-				MSE_USING(TGNoradObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			private:
-				TGNoradObj(std::nullptr_t) {}
-				TGNoradObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			};
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradObj<const _Ty * const, _TRefCounter> : public TGNoradObj<const mse::us::impl::TPointerForLegacy<const _Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-				MSE_USING(TGNoradObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			private:
-				TGNoradObj(std::nullptr_t) {}
-				TGNoradObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			};
+#define MSE_GNORAD_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name) \
+		auto& operator=(class_name&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+		auto& operator=(const class_name& _X) { base_class::operator=(_X); return (*this); } \
+		template<class _Ty2> auto& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+		template<class _Ty2> auto& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradPointer<_Ty*, _TRefCounter> : public TGNoradPointer<mse::us::impl::TPointerForLegacy<_Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-				MSE_USING(TGNoradPointer, base_class);
-			};
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradPointer<_Ty* const, _TRefCounter> : public TGNoradPointer<const mse::us::impl::TPointerForLegacy<_Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-				MSE_USING(TGNoradPointer, base_class);
-			};
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradPointer<const _Ty *, _TRefCounter> : public TGNoradPointer<mse::us::impl::TPointerForLegacy<const _Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-				MSE_USING(TGNoradPointer, base_class);
-			};
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradPointer<const _Ty * const, _TRefCounter> : public TGNoradPointer<const mse::us::impl::TPointerForLegacy<const _Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-				MSE_USING(TGNoradPointer, base_class);
-			};
+#define MSE_GNORAD_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(class_name) \
+		class_name(const class_name&) = default; \
+		class_name(class_name&&) = default; \
+		MSE_GNORAD_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name);
 
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradConstPointer<_Ty*, _TRefCounter> : public TGNoradConstPointer<mse::us::impl::TPointerForLegacy<_Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradConstPointer<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-				MSE_USING(TGNoradConstPointer, base_class);
-			};
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradConstPointer<_Ty* const, _TRefCounter> : public TGNoradConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradConstPointer<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-				MSE_USING(TGNoradConstPointer, base_class);
-			};
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradConstPointer<const _Ty *, _TRefCounter> : public TGNoradConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradConstPointer<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-				MSE_USING(TGNoradConstPointer, base_class);
-			};
-			template<typename _Ty, typename _TRefCounter>
-			class TGNoradConstPointer<const _Ty * const, _TRefCounter> : public TGNoradConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>, _TRefCounter> {
-			public:
-				typedef TGNoradConstPointer<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-				MSE_USING(TGNoradConstPointer, base_class);
-			};
+#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+#define MSE_GNORAD_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name) \
+			class_name(std::nullptr_t) {} \
+			class_name() {}
+#else // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+#define MSE_GNORAD_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name)
+#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+
+	/* Note that because we explicitly define some (private) constructors, default copy and move constructors
+	and assignment operators won't be generated, so we have to define those as well. */
+#define MSE_GNORAD_IMPL_OBJ_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		template<typename _Ty, typename _TRefCounter> \
+		class TGNoradObj<specified_type, _TRefCounter> : public TGNoradObj<mapped_type, _TRefCounter> { \
+		public: \
+			typedef TGNoradObj<mapped_type, _TRefCounter> base_class; \
+			MSE_USING(TGNoradObj, base_class); \
+			MSE_GNORAD_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(TGNoradObj); \
+		private: \
+			MSE_GNORAD_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(TGNoradObj); \
+		};
+
+#define MSE_GNORAD_IMPL_PTR_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		template<typename _Ty, typename _TRefCounter> \
+		class TGNoradPointer<specified_type, _TRefCounter> : public TGNoradPointer<mapped_type, _TRefCounter> { \
+		public: \
+			typedef TGNoradPointer<mapped_type, _TRefCounter> base_class; \
+			MSE_USING(TGNoradPointer, base_class); \
+		}; \
+		template<typename _Ty, typename _TRefCounter> \
+		class TGNoradConstPointer<specified_type, _TRefCounter> : public TGNoradConstPointer<mapped_type, _TRefCounter> { \
+		public: \
+			typedef TGNoradConstPointer<mapped_type, _TRefCounter> base_class; \
+			MSE_USING(TGNoradConstPointer, base_class); \
+		}; \
+		template<typename _Ty, typename _TRefCounter> \
+		class TGNoradNotNullPointer<specified_type, _TRefCounter> : public TGNoradNotNullPointer<mapped_type, _TRefCounter> { \
+		public: \
+			typedef TGNoradNotNullPointer<mapped_type, _TRefCounter> base_class; \
+			MSE_USING(TGNoradNotNullPointer, base_class); \
+		}; \
+		template<typename _Ty, typename _TRefCounter> \
+		class TGNoradNotNullConstPointer<specified_type, _TRefCounter> : public TGNoradNotNullConstPointer<mapped_type, _TRefCounter> { \
+		public: \
+			typedef TGNoradNotNullConstPointer<mapped_type, _TRefCounter> base_class; \
+			MSE_USING(TGNoradNotNullConstPointer, base_class); \
+		}; \
+		template<typename _Ty, typename _TRefCounter> \
+		class TGNoradFixedPointer<specified_type, _TRefCounter> : public TGNoradFixedPointer<mapped_type, _TRefCounter> { \
+		public: \
+			typedef TGNoradFixedPointer<mapped_type, _TRefCounter> base_class; \
+			MSE_USING(TGNoradFixedPointer, base_class); \
+		}; \
+		template<typename _Ty, typename _TRefCounter> \
+		class TGNoradFixedConstPointer<specified_type, _TRefCounter> : public TGNoradFixedConstPointer<mapped_type, _TRefCounter> { \
+		public: \
+			typedef TGNoradFixedConstPointer<mapped_type, _TRefCounter> base_class; \
+			MSE_USING(TGNoradFixedConstPointer, base_class); \
+		};
+
+#define MSE_GNORAD_IMPL_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		MSE_GNORAD_IMPL_PTR_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type); \
+		MSE_GNORAD_IMPL_OBJ_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type);
+
+			MSE_GNORAD_IMPL_NATIVE_POINTER_SPECIALIZATION(_Ty*, mse::us::impl::TPointerForLegacy<_Ty>);
+			MSE_GNORAD_IMPL_NATIVE_POINTER_SPECIALIZATION(_Ty* const, const mse::us::impl::TPointerForLegacy<_Ty>);
 
 #ifdef MSEPRIMITIVES_H
-			template<typename _TRefCounter>
-			class TGNoradObj<int, _TRefCounter> : public TGNoradObj<mse::TInt<int>, _TRefCounter> {
-			public:
-				typedef TGNoradObj<mse::TInt<int>, _TRefCounter> base_class;
-				MSE_USING(TGNoradObj, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradObj<const int, _TRefCounter> : public TGNoradObj<const mse::TInt<int>, _TRefCounter> {
-			public:
-				typedef TGNoradObj<const mse::TInt<int>, _TRefCounter> base_class;
-				MSE_USING(TGNoradObj, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradPointer<int, _TRefCounter> : public TGNoradPointer<mse::TInt<int>, _TRefCounter> {
-			public:
-				typedef TGNoradPointer<mse::TInt<int>, _TRefCounter> base_class;
-				MSE_USING(TGNoradPointer, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradPointer<const int, _TRefCounter> : public TGNoradPointer<const mse::TInt<int>, _TRefCounter> {
-			public:
-				typedef TGNoradPointer<const mse::TInt<int>, _TRefCounter> base_class;
-				MSE_USING(TGNoradPointer, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradConstPointer<int, _TRefCounter> : public TGNoradConstPointer<mse::TInt<int>, _TRefCounter> {
-			public:
-				typedef TGNoradConstPointer<mse::TInt<int>, _TRefCounter> base_class;
-				MSE_USING(TGNoradConstPointer, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradConstPointer<const int, _TRefCounter> : public TGNoradConstPointer<const mse::TInt<int>, _TRefCounter> {
-			public:
-				typedef TGNoradConstPointer<const mse::TInt<int>, _TRefCounter> base_class;
-				MSE_USING(TGNoradConstPointer, base_class);
-			};
 
-			template<typename _TRefCounter>
-			class TGNoradObj<size_t, _TRefCounter> : public TGNoradObj<mse::TInt<size_t>, _TRefCounter> {
-			public:
-				typedef TGNoradObj<mse::TInt<size_t>, _TRefCounter> base_class;
-				MSE_USING(TGNoradObj, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradObj<const size_t, _TRefCounter> : public TGNoradObj<const mse::TInt<size_t>, _TRefCounter> {
-			public:
-				typedef TGNoradObj<const mse::TInt<size_t>, _TRefCounter> base_class;
-				MSE_USING(TGNoradObj, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradPointer<size_t, _TRefCounter> : public TGNoradPointer<mse::TInt<size_t>, _TRefCounter> {
-			public:
-				typedef TGNoradPointer<mse::TInt<size_t>, _TRefCounter> base_class;
-				MSE_USING(TGNoradPointer, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradPointer<const size_t, _TRefCounter> : public TGNoradPointer<const mse::TInt<size_t>, _TRefCounter> {
-			public:
-				typedef TGNoradPointer<const mse::TInt<size_t>, _TRefCounter> base_class;
-				MSE_USING(TGNoradPointer, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradConstPointer<size_t, _TRefCounter> : public TGNoradConstPointer<mse::TInt<size_t>, _TRefCounter> {
-			public:
-				typedef TGNoradConstPointer<mse::TInt<size_t>, _TRefCounter> base_class;
-				MSE_USING(TGNoradConstPointer, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradConstPointer<const size_t, _TRefCounter> : public TGNoradConstPointer<const mse::TInt<size_t>, _TRefCounter> {
-			public:
-				typedef TGNoradConstPointer<const mse::TInt<size_t>, _TRefCounter> base_class;
-				MSE_USING(TGNoradConstPointer, base_class);
-			};
+#define MSE_GNORAD_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+		template<typename _TRefCounter> \
+		class TGNoradObj<integral_type, _TRefCounter> : public TGNoradObj<mse::TInt<integral_type>, _TRefCounter> { \
+		public: \
+			typedef TGNoradObj<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			MSE_USING(TGNoradObj, base_class); \
+		};
 
-			template<typename _TRefCounter>
-			class TGNoradObj<char, _TRefCounter> : public TGNoradObj<mse::TInt<char>, _TRefCounter> {
-			public:
-				typedef TGNoradObj<mse::TInt<char>, _TRefCounter> base_class;
-				MSE_USING(TGNoradObj, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradObj<const char, _TRefCounter> : public TGNoradObj<const mse::TInt<char>, _TRefCounter> {
-			public:
-				typedef TGNoradObj<const mse::TInt<char>, _TRefCounter> base_class;
-				MSE_USING(TGNoradObj, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradPointer<char, _TRefCounter> : public TGNoradPointer<mse::TInt<char>, _TRefCounter> {
-			public:
-				typedef TGNoradPointer<mse::TInt<char>, _TRefCounter> base_class;
-				MSE_USING(TGNoradPointer, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradPointer<const char, _TRefCounter> : public TGNoradPointer<const mse::TInt<char>, _TRefCounter> {
-			public:
-				typedef TGNoradPointer<const mse::TInt<char>, _TRefCounter> base_class;
-				MSE_USING(TGNoradPointer, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradConstPointer<char, _TRefCounter> : public TGNoradConstPointer<mse::TInt<char>, _TRefCounter> {
-			public:
-				typedef TGNoradConstPointer<mse::TInt<char>, _TRefCounter> base_class;
-				MSE_USING(TGNoradConstPointer, base_class);
-			};
-			template<typename _TRefCounter>
-			class TGNoradConstPointer<const char, _TRefCounter> : public TGNoradConstPointer<const mse::TInt<char>, _TRefCounter> {
-			public:
-				typedef TGNoradConstPointer<const mse::TInt<char>, _TRefCounter> base_class;
-				MSE_USING(TGNoradConstPointer, base_class);
-			};
+#define MSE_GNORAD_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type) \
+		template<typename _TRefCounter> \
+		class TGNoradPointer<integral_type, _TRefCounter> : public TGNoradPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		public: \
+			typedef TGNoradPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			MSE_USING(TGNoradPointer, base_class); \
+		}; \
+		template<typename _TRefCounter> \
+		class TGNoradConstPointer<integral_type, _TRefCounter> : public TGNoradConstPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		public: \
+			typedef TGNoradConstPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			MSE_USING(TGNoradConstPointer, base_class); \
+		}; \
+		template<typename _TRefCounter> \
+		class TGNoradNotNullPointer<integral_type, _TRefCounter> : public TGNoradNotNullPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		public: \
+			typedef TGNoradNotNullPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			MSE_USING(TGNoradNotNullPointer, base_class); \
+		}; \
+		template<typename _TRefCounter> \
+		class TGNoradNotNullConstPointer<integral_type, _TRefCounter> : public TGNoradNotNullConstPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		public: \
+			typedef TGNoradNotNullConstPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			MSE_USING(TGNoradNotNullConstPointer, base_class); \
+		}; \
+		template<typename _TRefCounter> \
+		class TGNoradFixedPointer<integral_type, _TRefCounter> : public TGNoradFixedPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		public: \
+			typedef TGNoradFixedPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			MSE_USING(TGNoradFixedPointer, base_class); \
+		}; \
+		template<typename _TRefCounter> \
+		class TGNoradFixedConstPointer<integral_type, _TRefCounter> : public TGNoradFixedConstPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		public: \
+			typedef TGNoradFixedConstPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			MSE_USING(TGNoradFixedConstPointer, base_class); \
+		};
+
+#define MSE_GNORAD_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
+		MSE_GNORAD_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type); \
+		MSE_GNORAD_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
+		MSE_GNORAD_IMPL_PTR_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type); \
+		MSE_GNORAD_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+
+			MSE_GNORAD_IMPL_INTEGRAL_SPECIALIZATION(int);
+			MSE_GNORAD_IMPL_INTEGRAL_SPECIALIZATION(size_t);
+
 #endif /*MSEPRIMITIVES_H*/
 
 			/* end of template specializations */

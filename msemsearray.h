@@ -6483,145 +6483,184 @@ namespace mse {
 #endif // defined(MSE_HAS_CXX17) || ((!defined(__GNUC__)) && (!defined(__GNUG__)))
 		};
 
+
 		/* template specializations */
 
-		template<typename _Ty>
-		class TAsyncShareableObj<_Ty*> : public TAsyncShareableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
-		public:
-			typedef TAsyncShareableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+#define MSE_ASYNC_SHAREABLE_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name) \
+		auto& operator=(class_name&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+		auto& operator=(const class_name& _X) { base_class::operator=(_X); return (*this); } \
+		template<class _Ty2> auto& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+		template<class _Ty2> auto& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+
+#define MSE_ASYNC_SHAREABLE_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(class_name) \
+		class_name(const class_name&) = default; \
+		class_name(class_name&&) = default; \
+		MSE_ASYNC_SHAREABLE_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name);
+
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncShareableObj(std::nullptr_t) {}
-			TAsyncShareableObj() {}
+#define MSE_ASYNC_SHAREABLE_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name) \
+			class_name(std::nullptr_t) {} \
+			class_name() {}
+#else // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+#define MSE_ASYNC_SHAREABLE_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name)
 #endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			MSE_USING(TAsyncShareableObj, base_class);
-		};
-		template<typename _Ty>
-		class TAsyncShareableObj<const _Ty*> : public TAsyncShareableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
-		public:
-			typedef TAsyncShareableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncShareableObj(std::nullptr_t) {}
-			TAsyncShareableObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			MSE_USING(TAsyncShareableObj, base_class);
+
+	/* Note that because we explicitly define some (private) constructors, default copy and move constructors
+	and assignment operators won't be generated, so we have to define those as well. */
+#define MSE_ASYNC_SHAREABLE_IMPL_OBJ_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		template<typename _Ty> \
+		class TAsyncShareableObj<specified_type> : public TAsyncShareableObj<mapped_type> { \
+		public: \
+			typedef TAsyncShareableObj<mapped_type> base_class; \
+			MSE_USING(TAsyncShareableObj, base_class); \
+			MSE_ASYNC_SHAREABLE_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(TAsyncShareableObj); \
+		private: \
+			MSE_ASYNC_SHAREABLE_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(TAsyncShareableObj); \
 		};
 
-		template<typename _Ty>
-		class TAsyncShareableObj<_Ty* const> : public TAsyncShareableObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
-		public:
-			typedef TAsyncShareableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-			MSE_USING(TAsyncShareableObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncShareableObj(std::nullptr_t) {}
-			TAsyncShareableObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		};
-		template<typename _Ty>
-		class TAsyncShareableObj<const _Ty* const> : public TAsyncShareableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
-		public:
-			typedef TAsyncShareableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-			MSE_USING(TAsyncShareableObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncShareableObj(std::nullptr_t) {}
-			TAsyncShareableObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+#define MSE_ASYNC_SHAREABLE_IMPL_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		MSE_ASYNC_SHAREABLE_IMPL_OBJ_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type);
+
+		MSE_ASYNC_SHAREABLE_IMPL_NATIVE_POINTER_SPECIALIZATION(_Ty*, mse::us::impl::TPointerForLegacy<_Ty>);
+		MSE_ASYNC_SHAREABLE_IMPL_NATIVE_POINTER_SPECIALIZATION(_Ty* const, const mse::us::impl::TPointerForLegacy<_Ty>);
+
+#ifdef MSEPRIMITIVES_H
+
+#define MSE_ASYNC_SHAREABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+		template<> \
+		class TAsyncShareableObj<integral_type> : public TAsyncShareableObj<mse::TInt<integral_type>> { \
+		public: \
+			typedef TAsyncShareableObj<mse::TInt<integral_type>> base_class; \
+			MSE_USING(TAsyncShareableObj, base_class); \
 		};
 
-		template<typename _Ty>
-		class TAsyncPassableObj<_Ty*> : public TAsyncPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
-		public:
-			typedef TAsyncPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+#define MSE_ASYNC_SHAREABLE_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
+		MSE_ASYNC_SHAREABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
+		MSE_ASYNC_SHAREABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+
+		MSE_ASYNC_SHAREABLE_IMPL_INTEGRAL_SPECIALIZATION(int);
+		MSE_ASYNC_SHAREABLE_IMPL_INTEGRAL_SPECIALIZATION(size_t);
+
+#endif /*MSEPRIMITIVES_H*/
+
+
+#define MSE_ASYNC_PASSABLE_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name) \
+		auto& operator=(class_name&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+		auto& operator=(const class_name& _X) { base_class::operator=(_X); return (*this); } \
+		template<class _Ty2> auto& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+		template<class _Ty2> auto& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+
+#define MSE_ASYNC_PASSABLE_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(class_name) \
+		class_name(const class_name&) = default; \
+		class_name(class_name&&) = default; \
+		MSE_ASYNC_PASSABLE_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name);
+
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncPassableObj(std::nullptr_t) {}
-			TAsyncPassableObj() {}
+#define MSE_ASYNC_PASSABLE_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name) \
+			class_name(std::nullptr_t) {} \
+			class_name() {}
+#else // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+#define MSE_ASYNC_PASSABLE_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name)
 #endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			MSE_USING(TAsyncPassableObj, base_class);
-		};
-		template<typename _Ty>
-		class TAsyncPassableObj<const _Ty*> : public TAsyncPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
-		public:
-			typedef TAsyncPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncPassableObj(std::nullptr_t) {}
-			TAsyncPassableObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			MSE_USING(TAsyncPassableObj, base_class);
+
+		/* Note that because we explicitly define some (private) constructors, default copy and move constructors
+		and assignment operators won't be generated, so we have to define those as well. */
+#define MSE_ASYNC_PASSABLE_IMPL_OBJ_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		template<typename _Ty> \
+		class TAsyncPassableObj<specified_type> : public TAsyncPassableObj<mapped_type> { \
+		public: \
+			typedef TAsyncPassableObj<mapped_type> base_class; \
+			MSE_USING(TAsyncPassableObj, base_class); \
+			MSE_ASYNC_PASSABLE_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(TAsyncPassableObj); \
+		private: \
+			MSE_ASYNC_PASSABLE_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(TAsyncPassableObj); \
 		};
 
-		template<typename _Ty>
-		class TAsyncPassableObj<_Ty* const> : public TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
-		public:
-			typedef TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-			MSE_USING(TAsyncPassableObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncPassableObj(std::nullptr_t) {}
-			TAsyncPassableObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		};
-		template<typename _Ty>
-		class TAsyncPassableObj<const _Ty * const> : public TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
-		public:
-			typedef TAsyncPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-			MSE_USING(TAsyncPassableObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncPassableObj(std::nullptr_t) {}
-			TAsyncPassableObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+#define MSE_ASYNC_PASSABLE_IMPL_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		MSE_ASYNC_PASSABLE_IMPL_OBJ_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type);
+
+		MSE_ASYNC_PASSABLE_IMPL_NATIVE_POINTER_SPECIALIZATION(_Ty*, mse::us::impl::TPointerForLegacy<_Ty>);
+		MSE_ASYNC_PASSABLE_IMPL_NATIVE_POINTER_SPECIALIZATION(_Ty* const, const mse::us::impl::TPointerForLegacy<_Ty>);
+
+#ifdef MSEPRIMITIVES_H
+
+#define MSE_ASYNC_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+		template<> \
+		class TAsyncPassableObj<integral_type> : public TAsyncPassableObj<mse::TInt<integral_type>> { \
+		public: \
+			typedef TAsyncPassableObj<mse::TInt<integral_type>> base_class; \
+			MSE_USING(TAsyncPassableObj, base_class); \
 		};
 
-		template<typename _Ty>
-		class TAsyncShareableAndPassableObj<_Ty*> : public TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> {
-		public:
-			typedef TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<_Ty>> base_class;
+#define MSE_ASYNC_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
+		MSE_ASYNC_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
+		MSE_ASYNC_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+
+		MSE_ASYNC_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION(int);
+		MSE_ASYNC_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION(size_t);
+
+#endif /*MSEPRIMITIVES_H*/
+
+
+#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name) \
+		auto& operator=(class_name&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+		auto& operator=(const class_name& _X) { base_class::operator=(_X); return (*this); } \
+		template<class _Ty2> auto& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+		template<class _Ty2> auto& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+
+#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(class_name) \
+		class_name(const class_name&) = default; \
+		class_name(class_name&&) = default; \
+		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name);
+
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncShareableAndPassableObj(std::nullptr_t) {}
-			TAsyncShareableAndPassableObj() {}
+#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name) \
+			class_name(std::nullptr_t) {} \
+			class_name() {}
+#else // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name)
 #endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			MSE_USING(TAsyncShareableAndPassableObj, base_class);
-		};
-		template<typename _Ty>
-		class TAsyncShareableAndPassableObj<const _Ty*> : public TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> {
-		public:
-			typedef TAsyncShareableAndPassableObj<mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncShareableAndPassableObj(std::nullptr_t) {}
-			TAsyncShareableAndPassableObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			MSE_USING(TAsyncShareableAndPassableObj, base_class);
+
+		/* Note that because we explicitly define some (private) constructors, default copy and move constructors
+		and assignment operators won't be generated, so we have to define those as well. */
+#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		template<typename _Ty> \
+		class TAsyncShareableAndPassableObj<specified_type> : public TAsyncShareableAndPassableObj<mapped_type> { \
+		public: \
+			typedef TAsyncShareableAndPassableObj<mapped_type> base_class; \
+			MSE_USING(TAsyncShareableAndPassableObj, base_class); \
+			MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(TAsyncShareableAndPassableObj); \
+		private: \
+			MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(TAsyncShareableAndPassableObj); \
 		};
 
-		template<typename _Ty>
-		class TAsyncShareableAndPassableObj<_Ty* const> : public TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> {
-		public:
-			typedef TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<_Ty>> base_class;
-			MSE_USING(TAsyncShareableAndPassableObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncShareableAndPassableObj(std::nullptr_t) {}
-			TAsyncShareableAndPassableObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
+#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
+		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type);
+
+		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_NATIVE_POINTER_SPECIALIZATION(_Ty*, mse::us::impl::TPointerForLegacy<_Ty>);
+		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_NATIVE_POINTER_SPECIALIZATION(_Ty* const, const mse::us::impl::TPointerForLegacy<_Ty>);
+
+#ifdef MSEPRIMITIVES_H
+
+#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+		template<> \
+		class TAsyncShareableAndPassableObj<integral_type> : public TAsyncShareableAndPassableObj<mse::TInt<integral_type>> { \
+		public: \
+			typedef TAsyncShareableAndPassableObj<mse::TInt<integral_type>> base_class; \
+			MSE_USING(TAsyncShareableAndPassableObj, base_class); \
 		};
-		template<typename _Ty>
-		class TAsyncShareableAndPassableObj<const _Ty * const> : public TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> {
-		public:
-			typedef TAsyncShareableAndPassableObj<const mse::us::impl::TPointerForLegacy<const _Ty>> base_class;
-			MSE_USING(TAsyncShareableAndPassableObj, base_class);
-#if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		private:
-			TAsyncShareableAndPassableObj(std::nullptr_t) {}
-			TAsyncShareableAndPassableObj() {}
-#endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		};
+
+#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
+		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
+		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+
+		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION(int);
+		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION(size_t);
+
+#endif /*MSEPRIMITIVES_H*/
+
+		/* end of template specializations */
+
 
 		namespace impl {
 			template<typename _TROy>

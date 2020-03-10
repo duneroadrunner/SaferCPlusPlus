@@ -96,6 +96,63 @@ be done at run time, at significant cost. So by default we disable range checks 
 #define _NOEXCEPT
 #endif /*_NOEXCEPT*/
 
+/* This automatic (potential) definition of MSE_CHECK_USE_BEFORE_SET is also done in msepointerbasics.h */
+#ifndef MSE_SUPPRESS_CHECK_USE_BEFORE_SET
+#ifndef MSE_CHECK_USE_BEFORE_SET
+#ifndef NDEBUG
+#define MSE_CHECK_USE_BEFORE_SET
+#endif // !NDEBUG
+
+#if defined(MSE_NON_THREADSAFE_CHECK_USE_BEFORE_SET) && !defined(MSE_CHECK_USE_BEFORE_SET)
+#define MSE_CHECK_USE_BEFORE_SET
+#endif // defined(MSE_NON_THREADSAFE_CHECK_USE_BEFORE_SET) && !defined(MSE_CHECK_USE_BEFORE_SET)
+#endif // !MSE_CHECK_USE_BEFORE_SET
+#endif // !MSE_SUPPRESS_CHECK_USE_BEFORE_SET
+
+#ifdef MSE_NON_THREADSAFE_CHECK_USE_BEFORE_SET
+#define MSE_PRIMITIVES_IMPL_INITIALIZED_FLAG_TYPE bool
+#else // MSE_NON_THREADSAFE_CHECK_USE_BEFORE_SET
+#ifdef MSE_CHECK_USE_BEFORE_SET
+#include <atomic>
+#ifdef MSE_HAS_CXX17
+#define MSE_PRIMITIVES_IMPL_INITIALIZED_FLAG_TYPE std::atomic_bool
+#else // MSE_HAS_CXX17
+namespace mse {
+	namespace impl {
+		namespace primitives {
+			template<typename _ITYPE>
+			class TAtomic : public std::atomic<_ITYPE> {
+			public:
+				typedef std::atomic<_ITYPE> _ATOMIC_ITYPE;
+				using value_type = _ITYPE;
+				using difference_type = _ITYPE;
+
+				TAtomic() noexcept = default;
+
+				constexpr TAtomic(_ITYPE _Val) noexcept
+					: _ATOMIC_ITYPE{ /*(_ATOMIC_UINT)*/_Val }
+				{	// construct from _Val, initialization is not TAtomic
+				}
+				constexpr TAtomic(const TAtomic& src) noexcept : _ATOMIC_ITYPE{ src.load() } {}
+
+				_ITYPE operator=(_ITYPE _Val) volatile noexcept
+				{	// assign from _Val
+					return (_ATOMIC_ITYPE::operator=(_Val));
+				}
+
+				_ITYPE operator=(_ITYPE _Val) noexcept
+				{	// assign from _Val
+					return (_ATOMIC_ITYPE::operator=(_Val));
+				}
+			};
+		}
+	}
+}
+#define MSE_PRIMITIVES_IMPL_INITIALIZED_FLAG_TYPE mse::impl::primitives::TAtomic<bool>
+#endif // MSE_HAS_CXX17
+#endif // MSE_CHECK_USE_BEFORE_SET
+#endif // MSE_NON_THREADSAFE_CHECK_USE_BEFORE_SET
+
 
 #ifndef MSE_CINT_BASE_INTEGER_TYPE
 #if (SIZE_MAX <= UINT_MAX) ||(!defined(MSE_MATCH_CINT_SIZE_TO_CSIZE_T))
@@ -140,12 +197,6 @@ namespace mse {
 		using std::range_error::range_error;
 	};
 
-#ifndef NDEBUG
-#ifndef MSE_SUPPRESS_CHECK_USE_BEFORE_SET
-#define MSE_CHECK_USE_BEFORE_SET
-#endif // !MSE_SUPPRESS_CHECK_USE_BEFORE_SET
-#endif // !NDEBUG
-
 	/* This class is just meant to act like the "bool" type, except that it has a default intialization value (false). */
 	class CNDBool {
 	public:
@@ -188,7 +239,7 @@ namespace mse {
 
 #ifdef MSE_CHECK_USE_BEFORE_SET
 		void note_value_assignment() { m_initialized = true; }
-		bool m_initialized = false;
+		MSE_PRIMITIVES_IMPL_INITIALIZED_FLAG_TYPE m_initialized = false;
 #else // MSE_CHECK_USE_BEFORE_SET
 		void note_value_assignment() {}
 #endif // MSE_CHECK_USE_BEFORE_SET
@@ -420,7 +471,7 @@ namespace mse {
 #ifdef MSE_CHECK_USE_BEFORE_SET
 			void note_value_assignment() { m_initialized = true; }
 			void assert_initialized() const { assert(m_initialized); }
-			bool m_initialized = false;
+			MSE_PRIMITIVES_IMPL_INITIALIZED_FLAG_TYPE m_initialized = false;
 #else // MSE_CHECK_USE_BEFORE_SET
 			void note_value_assignment() {}
 			void assert_initialized() const {}
