@@ -90,8 +90,8 @@ namespace mse {
 			typedef mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>> base_class;
 			typedef typename mse::stnii_vector<_Ty>::size_type size_type;
 
-			TStrongVectorIterator() : TStrongVectorIterator(size_type(0)) {}
-			explicit TStrongVectorIterator(const std::nullptr_t& src) : TStrongVectorIterator(size_type(0)) {}
+			TStrongVectorIterator() = default;
+			TStrongVectorIterator(const std::nullptr_t& src) : TStrongVectorIterator() {}
 			TStrongVectorIterator(const TStrongVectorIterator& src) = default;
 			TStrongVectorIterator(TStrongVectorIterator&& src) = default;
 			TStrongVectorIterator(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_Ilist), 0) {}
@@ -128,10 +128,6 @@ namespace mse {
 			TStrongVectorIterator& operator=(const TStrongVectorIterator& _Right_cref) {
 				base_class::operator=(_Right_cref);
 				return(*this);
-			}
-
-			explicit operator bool() const {
-				return ((*this).size() != 0);
 			}
 
 			template <class... Args>
@@ -212,16 +208,16 @@ namespace mse {
 			}
 		};
 		template<class _Ty>
-		class CAllocF<mse::lh::TStrongVectorIterator<_Ty>> {
+		class CAllocF<mse::lh::TIPointerWithBundledVector<_Ty>> {
 		public:
-			static void free(mse::lh::TStrongVectorIterator<_Ty>& ptr) {
-				ptr = mse::lh::TStrongVectorIterator<_Ty>();
+			static void free(mse::lh::TIPointerWithBundledVector<_Ty>& ptr) {
+				ptr = mse::lh::TIPointerWithBundledVector<_Ty>();
 			}
-			static void allocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
-				mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
+			static void allocate(mse::lh::TIPointerWithBundledVector<_Ty>& ptr, size_t num_bytes) {
+				mse::lh::TIPointerWithBundledVector<_Ty> tmp(num_bytes / sizeof(_Ty));
 				ptr = tmp;
 			}
-			static void reallocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
+			static void reallocate(mse::lh::TIPointerWithBundledVector<_Ty>& ptr, size_t num_bytes) {
 				ptr.resize(num_bytes / sizeof(_Ty));
 			}
 		};
