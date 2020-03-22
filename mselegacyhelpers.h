@@ -130,6 +130,10 @@ namespace mse {
 				return(*this);
 			}
 
+			explicit operator bool() const {
+				return ((*this).size() != 0);
+			}
+
 			template <class... Args>
 			static TStrongVectorIterator make(Args&&... args) {
 				return TStrongVectorIterator(std::forward<Args>(args)...);
@@ -208,16 +212,16 @@ namespace mse {
 			}
 		};
 		template<class _Ty>
-		class CAllocF<mse::lh::TIPointerWithBundledVector<_Ty>> {
+		class CAllocF<mse::lh::TStrongVectorIterator<_Ty>> {
 		public:
-			static void free(mse::lh::TIPointerWithBundledVector<_Ty>& ptr) {
-				ptr = mse::lh::TIPointerWithBundledVector<_Ty>();
+			static void free(mse::lh::TStrongVectorIterator<_Ty>& ptr) {
+				ptr = mse::lh::TStrongVectorIterator<_Ty>();
 			}
-			static void allocate(mse::lh::TIPointerWithBundledVector<_Ty>& ptr, size_t num_bytes) {
-				mse::lh::TIPointerWithBundledVector<_Ty> tmp(num_bytes / sizeof(_Ty));
+			static void allocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
+				mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
 				ptr = tmp;
 			}
-			static void reallocate(mse::lh::TIPointerWithBundledVector<_Ty>& ptr, size_t num_bytes) {
+			static void reallocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
 				ptr.resize(num_bytes / sizeof(_Ty));
 			}
 		};
