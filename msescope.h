@@ -685,9 +685,6 @@ namespace mse {
 		TXScopeCagedItemFixedPointerToRValue(const TXScopeCagedItemFixedPointerToRValue&) = delete;
 		TXScopeCagedItemFixedPointerToRValue(TXScopeCagedItemFixedPointerToRValue&&) = default;
 		TXScopeCagedItemFixedPointerToRValue(const TXScopeFixedPointer<_Ty>& ptr) : m_xscope_ptr(ptr) {}
-#ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		TXScopeCagedItemFixedPointerToRValue(TXScopeCagedItemFixedPointerToRValue&& src_ref) : m_xscope_ptr(src_ref) {}
-#endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 
 		auto uncaged_pointer() const {
 			return m_xscope_ptr;
@@ -1320,10 +1317,23 @@ namespace mse {
 			TXScopeFixedConstPointerFParam(const TXScopeFixedPointerFParam<_Ty>& src_cref) : base_class(src_cref) {}
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			TXScopeFixedConstPointerFParam(TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& src_cref) : base_class(src_cref.uncaged_pointer()) {}
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			TXScopeFixedConstPointerFParam(TXScopeCagedItemFixedPointerToRValue<_Ty2>&& src_cref) : base_class(src_cref.uncaged_pointer()) {}
+
+#ifndef MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) = delete;
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) = delete;
+#else // !MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
 			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
 			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
+#endif // !MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
+
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointerFParam() {}

@@ -581,6 +581,9 @@ void msetl_example2() {
 				const_ra_iter1--;
 				return const_ra_iter1[2];
 			}
+			static int foo2b(mse::rsv::TFParam<mse::TXScopeCSSSXSTERandomAccessConstIterator<int> > const_ra_iter1) {
+				return foo2(const_ra_iter1);
+			}
 #ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 			static void foo3(mse::TXScopeCSSSXSTERandomAccessSection<int> ra_section) {
 				for (mse::TXScopeCSSSXSTERandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
@@ -627,6 +630,14 @@ void msetl_example2() {
 		to create a TXScopeCSSSXSTERandomAccessIterator<> that outlives the period when the container is "structure locked".
 		"Non-resizable" containers, like arrays, do not have the same issue, so this restriction does not apply to their
 		(scope) iterators.
+		*/
+
+		auto res3c = B::foo2b(mse::make_xscope_begin_const_iterator(&xs_mstd_vec1));
+		/*
+		However, note that, unlike B::foo2(), B::foo2b() "annotates" its (non-returnable) parameter with the rsv::TFParam<>
+		template wrapper. This allows it to accept temporary/rvalue (scope) iterators of dynamic containers. This is safe
+		because we know that (even temporary) function arguments will outlive their corresponding (non-returnable) parameter
+		values.
 		*/
 
 		auto xs_mstd_vec1_citer2 = ++mse::make_xscope_begin_iterator(&xs_mstd_vec1);

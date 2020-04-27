@@ -164,9 +164,9 @@ public:
 	/* This function will be used to demonstrate using rsv::as_an_fparam() to enable template functions to accept scope 
 	pointers to temporary objects. */
 	template<class _TPointer1, class _TPointer2>
-	static bool second_is_longer(const _TPointer1& string1_xscpptr, const _TPointer2& string2_xscpptr) {
-		auto l_string1_xscpptr = mse::rsv::as_an_fparam(string1_xscpptr);
-		auto l_string2_xscpptr = mse::rsv::as_an_fparam(string2_xscpptr);
+	static bool second_is_longer(_TPointer1&& string1_xscpptr, _TPointer2&& string2_xscpptr) {
+		auto l_string1_xscpptr = mse::rsv::as_an_fparam(std::forward<decltype(string1_xscpptr)>(string1_xscpptr));
+		auto l_string2_xscpptr = mse::rsv::as_an_fparam(std::forward<decltype(string2_xscpptr)>(string2_xscpptr));
 		return (l_string1_xscpptr->length() > l_string2_xscpptr->length()) ? false : true;
 	}
 

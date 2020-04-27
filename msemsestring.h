@@ -1165,11 +1165,15 @@ namespace mse {
 
 			template <typename _Ty> auto make_xscope_string_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
 				->impl::ra_section::mkxsscsh1_ReturnType<_Ty>;
+			template <typename _Ty> auto make_xscope_string_const_section_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty>&& param)
+				->impl::ra_section::mkxsscsh1_ReturnType<_Ty>;
 			template <typename _TRALoneParam> auto make_xscope_string_const_section_helper1(std::false_type, const _TRALoneParam& param);
 		}
 	}
 	template <typename _TRALoneParam> auto make_xscope_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
 		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+	template <typename _TRALoneParam> auto make_xscope_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
+		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), std::forward<decltype(param)>(param)));
 
 	template <typename _TRASection, typename _TRAConstSection, class _Traits>
 	class TStringSectionBase : public _TRASection, public mse::us::impl::StringSectionTagBase {
@@ -1850,6 +1854,14 @@ namespace mse {
 				mse::TXScopeStringConstSection<_TRAIterator> ra_section(adj_param);
 				return mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>(ra_section);
 			}
+			template <typename _Ty>
+			auto make_xscope_string_const_section_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty>&& param)
+				-> impl::ra_section::mkxsscsh1_ReturnType<_Ty> {
+				mse::TXScopeFixedConstPointer<_Ty> adj_param = mse::rsv::TXScopeFixedConstPointerFParam<_Ty>(std::forward<decltype(param)>(param));
+				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessConstSectionBase<char*>::s_xscope_iter_from_lone_param(adj_param))>::type _TRAIterator;
+				mse::TXScopeStringConstSection<_TRAIterator> ra_section(adj_param);
+				return mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>(ra_section);
+			}
 			template <typename _TRALoneParam>
 			auto make_xscope_string_const_section_helper1(std::false_type, const _TRALoneParam& param) {
 				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessConstSectionBase<char *>::s_xscope_iter_from_lone_param(param))>::type _TRAIterator;
@@ -1862,6 +1874,12 @@ namespace mse {
 		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param)) {
 		return mse::impl::ra_section::make_xscope_string_const_section_helper1(
 			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
+		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), std::forward<decltype(param)>(param))) {
+		return mse::impl::ra_section::make_xscope_string_const_section_helper1(
+			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), std::forward<decltype(param)>(param));
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
@@ -2016,6 +2034,8 @@ namespace mse {
 		namespace ra_section {
 			template <typename _Ty>
 			auto make_xscope_nrp_string_const_section_helper1(std::true_type, const _Ty& param) -> decltype(make_xscope_string_const_section(param));
+			template <typename _Ty>
+			auto make_xscope_nrp_string_const_section_helper1(std::true_type, _Ty&& param) -> decltype(make_xscope_string_const_section(std::forward<decltype(param)>(param)));
 			template <typename _TRALoneParam>
 			auto make_xscope_nrp_string_const_section_helper1(std::false_type, const _TRALoneParam& param)
 				//-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(param))::iterator_type>(make_xscope_string_const_section(param)));
@@ -2025,6 +2045,9 @@ namespace mse {
 	template <typename _TRALoneParam>
 	auto make_xscope_nrp_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
 		typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), param));
+	template <typename _TRALoneParam>
+	auto make_xscope_nrp_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
+		typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), std::forward<decltype(param)>(param)));
 
 	/* TXScopeCagedStringConstSectionToRValue<> represents a "string const section" that refers to a temporary string object.
 	The "string const section" is inaccessible ("caged") by default because it is, in general, unsafe. Its copyability and 
@@ -2050,18 +2073,29 @@ namespace mse {
 		template <typename _Ty>
 		friend auto impl::ra_section::make_xscope_string_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
 			->impl::ra_section::mkxsscsh1_ReturnType<_Ty>;
+		template <typename _Ty>
+		friend auto impl::ra_section::make_xscope_string_const_section_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty>&& param)
+			->impl::ra_section::mkxsscsh1_ReturnType<_Ty>;
 		template <typename _TRALoneParam>
 		friend auto make_xscope_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
 			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+		template <typename _TRALoneParam>
+		friend auto make_xscope_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
+			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), std::forward<decltype(param)>(param)));
 
 		/* For now, "nrp string sections" are also using this class rather than creating an "nrp" specific one. So we need to
 		friend their associated elements too. */
 		friend class rsv::TXScopeNRPStringConstSectionFParam<_TRAIterator>;
 		template <typename _Ty>
 		friend auto impl::ra_section::make_xscope_nrp_string_const_section_helper1(std::true_type, const _Ty& param) -> decltype(make_xscope_string_const_section(param));
+		template <typename _Ty>
+		friend auto impl::ra_section::make_xscope_nrp_string_const_section_helper1(std::true_type, _Ty&& param) -> decltype(make_xscope_string_const_section(std::forward<decltype(param)>(param)));
 		template <typename _TRALoneParam>
 		friend auto make_xscope_nrp_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
 			typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), param));
+		template <typename _TRALoneParam>
+		friend auto make_xscope_nrp_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
+			typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), std::forward<decltype(param)>(param)));
 	};
 
 	namespace rsv {
@@ -2651,6 +2685,10 @@ namespace mse {
 			auto make_xscope_nrp_string_const_section_helper1(std::true_type, const _Ty& param) -> decltype(make_xscope_string_const_section(param)) {
 				return make_xscope_string_const_section(param);
 			}
+			template <typename _Ty>
+			auto make_xscope_nrp_string_const_section_helper1(std::true_type, _Ty&& param) -> decltype(make_xscope_string_const_section(std::forward<decltype(param)>(param))) {
+				return make_xscope_string_const_section(std::forward<decltype(param)>(param));
+			}
 			template <typename _TRALoneParam>
 			auto make_xscope_nrp_string_const_section_helper1(std::false_type, const _TRALoneParam& param)
 				//-> decltype(TXScopeNRPStringConstSection<typename decltype(make_xscope_string_const_section(param))::iterator_type>(make_xscope_string_const_section(param))) {
@@ -2667,6 +2705,14 @@ namespace mse {
 		return mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase,
 			decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type()
 			, param);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_nrp_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
+		typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), std::forward<decltype(param)>(param))) {
+
+		return mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase,
+			decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type()
+			, std::forward<decltype(param)>(param));
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
