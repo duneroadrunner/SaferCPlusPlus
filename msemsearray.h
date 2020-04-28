@@ -1884,6 +1884,46 @@ namespace mse {
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
+
+		template<typename _Ty>
+		class TFParam<mse::TXScopeCSSSXSRAIterator<_Ty> > : public TXScopeCSSSXSRAIterator<_Ty> {
+		public:
+			typedef TXScopeCSSSXSRAIterator<_Ty> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+
+			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
+			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
+			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
+			rsv::TFParam<> object). */
+			template <typename _TRALoneParam>
+			TFParam(_TRALoneParam&& param) : base_class(param) {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+
+		template<typename _Ty>
+		class TFParam<const mse::TXScopeCSSSXSRAIterator<_Ty> > : public TXScopeCSSSXSRAIterator<_Ty> {
+		public:
+			typedef TXScopeCSSSXSRAIterator<_Ty> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+
+			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
+			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
+			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
+			rsv::TFParam<> object). */
+			template <typename _TRALoneParam>
+			TFParam(_TRALoneParam&& param) : base_class(param) {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
 	}
 
 	namespace us {
@@ -2337,6 +2377,46 @@ namespace mse {
 		class TFParam<const mse::TXScopeCSSSXSTERAConstIterator<_Ty> > : public TXScopeCSSSXSTERAConstIterator<_Ty> {
 		public:
 			typedef TXScopeCSSSXSTERAConstIterator<_Ty> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+
+			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
+			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
+			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
+			rsv::TFParam<> object). */
+			template <typename _TRALoneParam>
+			TFParam(_TRALoneParam&& param) : base_class(param) {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+
+		template<typename _Ty>
+		class TFParam<mse::TXScopeCSSSXSTERAIterator<_Ty> > : public TXScopeCSSSXSTERAIterator<_Ty> {
+		public:
+			typedef TXScopeCSSSXSTERAIterator<_Ty> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+
+			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
+			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
+			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
+			rsv::TFParam<> object). */
+			template <typename _TRALoneParam>
+			TFParam(_TRALoneParam&& param) : base_class(param) {}
+
+			void xscope_not_returnable_tag() const {}
+			void xscope_tag() const {}
+		private:
+			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+		};
+
+		template<typename _Ty>
+		class TFParam<const mse::TXScopeCSSSXSTERAIterator<_Ty> > : public TXScopeCSSSXSTERAIterator<_Ty> {
+		public:
+			typedef TXScopeCSSSXSTERAIterator<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 
@@ -6168,6 +6248,10 @@ namespace mse {
 			auto make_xscope_random_access_section_helper1(std::true_type, const mse::TXScopeCagedItemFixedPointerToRValue<_Ty>& param) {
 				return mse::make_xscope_random_access_const_section(param);
 			}
+			template <typename _Ty>
+			auto make_xscope_random_access_section_helper1(std::true_type, mse::TXScopeCagedItemFixedPointerToRValue<_Ty>&& param) {
+				return mse::make_xscope_random_access_const_section(std::forward<decltype(param)>(param));
+			}
 			template <typename _TRALoneParam>
 			auto make_xscope_random_access_section_helper1(std::false_type, const _TRALoneParam& param) {
 				typedef typename std::remove_reference<decltype(mse::us::impl::TRandomAccessSectionBase<char *>::s_xscope_iter_from_lone_param(param))>::type _TRAIterator;
@@ -6179,6 +6263,11 @@ namespace mse {
 	auto make_xscope_random_access_section(const _TRALoneParam& param) {
 		return mse::impl::ra_section::make_xscope_random_access_section_helper1(
 			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
+	}
+	template <typename _TRALoneParam>
+	auto make_xscope_random_access_section(_TRALoneParam&& param) {
+		return mse::impl::ra_section::make_xscope_random_access_section_helper1(
+			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), std::forward<decltype(param)>(param));
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
