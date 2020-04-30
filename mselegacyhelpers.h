@@ -94,13 +94,15 @@ namespace mse {
 		class TStrongVectorIterator : public mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>> {
 		public:
 			typedef mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>> base_class;
-			typedef typename mse::stnii_vector<_Ty>::size_type size_type;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			TStrongVectorIterator() = default;
 			TStrongVectorIterator(const std::nullptr_t& src) : TStrongVectorIterator() {}
 			TStrongVectorIterator(const TStrongVectorIterator& src) = default;
 			TStrongVectorIterator(TStrongVectorIterator&& src) = default;
 			TStrongVectorIterator(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_Ilist), 0) {}
+			TStrongVectorIterator(const base_class& src) : base_class(src) {}
+			TStrongVectorIterator(const mse::TXScopeRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>>& src) : base_class(src) {}
 			explicit TStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N), 0) {}
 			explicit TStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N, _V), 0) {}
 			/*
@@ -151,9 +153,87 @@ namespace mse {
 		};
 
 		template <class X, class... Args>
-		TStrongVectorIterator<X> make_string_vector_iterator(Args&&... args) {
+		TStrongVectorIterator<X> make_strong_vector_iterator(Args&&... args) {
 			return TStrongVectorIterator<X>::make(std::forward<Args>(args)...);
 		}
+
+		template <typename _Ty>
+		class TXScopeStrongVectorIterator : public mse::TXScopeRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>> {
+		public:
+			typedef mse::TXScopeRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			TXScopeStrongVectorIterator() = default;
+			TXScopeStrongVectorIterator(const std::nullptr_t& src) : TXScopeStrongVectorIterator() {}
+			TXScopeStrongVectorIterator(const TXScopeStrongVectorIterator& src) = default;
+			TXScopeStrongVectorIterator(TXScopeStrongVectorIterator&& src) = default;
+			TXScopeStrongVectorIterator(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_Ilist), 0) {}
+			TXScopeStrongVectorIterator(const base_class& src) : base_class(src) {}
+			TXScopeStrongVectorIterator(const mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>>& src) : base_class(src) {}
+			explicit TXScopeStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N), 0) {}
+			explicit TXScopeStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N, _V), 0) {}
+			/*
+			template <class... Args>
+			TXScopeStrongVectorIterator(Args&&... args) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(std::forward<Args>(args)...), 0) {}
+			*/
+
+			size_type size() const {
+				return (*vector_refcptr()).size();
+			}
+			void resize(size_type _N, const _Ty& _X = _Ty()) {
+				if (!vector_refcptr()) {
+					base_class::operator=(base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(), 0));
+				}
+
+				//auto old_size = size();
+
+				(*vector_refcptr()).resize(_N, _X);
+				(*vector_refcptr()).shrink_to_fit();
+
+				/*
+				if (true || (0 == old_size)) {
+					(*this).set_to_beginning();
+				}
+				*/
+			}
+
+			TXScopeStrongVectorIterator& operator=(const std::nullptr_t& _Right_cref) {
+				return operator=(TXScopeStrongVectorIterator());
+			}
+			TXScopeStrongVectorIterator& operator=(const TXScopeStrongVectorIterator& _Right_cref) {
+				base_class::operator=(_Right_cref);
+				return(*this);
+			}
+
+			explicit operator bool() const {
+				return ((*this).size() != 0);
+			}
+
+			template <class... Args>
+			static TXScopeStrongVectorIterator make(Args&&... args) {
+				return TXScopeStrongVectorIterator(std::forward<Args>(args)...);
+			}
+
+		private:
+			auto vector_refcptr() { return (*this).target_container_ptr(); }
+			auto vector_refcptr() const { return (*this).target_container_ptr(); }
+		};
+
+		template <class X, class... Args>
+		TXScopeStrongVectorIterator<X> make_xscope_strong_vector_iterator(Args&&... args) {
+			return TXScopeStrongVectorIterator<X>::make(std::forward<Args>(args)...);
+		}
+
+		/* TXScopeStrongVectorIterator<> does not directly convert to mse::rsv::TFParam<mse::TXScopeCSSSXSTERandomAccessIterator<> >.
+		But the following function can be used to obtain a "locking" scope iterator that does. */
+		template <class X>
+		auto make_xscope_locking_vector_iterator(const TXScopeStrongVectorIterator<X>& xs_strong_iter) {
+			auto retval = mse::make_xscope_begin_iterator(mse::us::unsafe_make_xscope_pointer_to(*xs_strong_iter.target_container_ptr()));
+			retval += xs_strong_iter.position();
+			return retval;
+		}
+		template <class X>
+		auto make_xscope_locking_vector_iterator(TXScopeStrongVectorIterator<X>&& xs_strong_iter) = delete;
 
 		/* deprecated aliases */
 		template <typename _Ty>
