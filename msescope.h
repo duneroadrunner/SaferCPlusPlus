@@ -1963,12 +1963,16 @@ namespace mse {
 			constructor_helper1(std::forward<Args>(args)...);
 		}
 
-		TXScopeObj<_Ty>& operator*() const {
+		TXScopeObj<_Ty>& operator*() const & {
 			return (*m_ptr);
 		}
-		TXScopeObj<_Ty>* operator->() const {
+		TXScopeObj<_Ty>&& operator*() const&& {
+			return std::move(*m_ptr);
+		}
+		TXScopeObj<_Ty>* operator->() const & {
 			return std::addressof(*m_ptr);
 		}
+		void operator->() const && = delete;
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
 		operator _Ty*() const {
