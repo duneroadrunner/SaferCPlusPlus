@@ -1701,9 +1701,22 @@ namespace mse {
 				class optional_base2 : public optional_base1<T> {
 				public:
 					typedef optional_base1<T> base_class;
+					typedef base_class _MO;
 					typedef optional_base2 _Myt;
 					typedef typename base_class::value_type value_type;
 
+				private:
+					const _MO& contained_optional() const& { return (*this); }
+					const _MO& contained_optional() const&& { return (*this); }
+					_MO& contained_optional()& { return (*this); }
+					auto contained_optional()&& {
+						/* We're making sure that the optional is not "structure locked", because in that case it might not be
+						safe to to allow the contained optional to be moved from (when made movable with std::move()). */
+						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+						return mse::us::impl::as_ref<base_class>(std::move(*this));
+					}
+
+				public:
 #ifdef MSE_HAS_CXX17
 #ifdef MSE_OPTIONAL_IMPLEMENTATION1
 
@@ -1742,25 +1755,28 @@ namespace mse {
 					explicit optional_base2(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
 
-					optional_base2(const optional_base2& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
+					optional_base2(const optional_base2& src_ref) : base_class((src_ref).contained_optional()) {}
+					optional_base2(optional_base2&& src_ref) : base_class(std::forward<decltype(src_ref)>(src_ref).contained_optional()) {}
 
 					~optional_base2() {
 						mse::impl::destructor_lock_guard1<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					}
 
-					_NODISCARD constexpr const T * operator->() const {
+					_NODISCARD constexpr const T * operator->() const & {
 						return std::addressof((*this).value());
 					}
-					_NODISCARD /*constexpr*/ T * operator->() {
+					_NODISCARD constexpr const T* operator->() const && = delete;
+					_NODISCARD constexpr T * operator->() & {
 						return std::addressof((*this).value());
 					}
+					_NODISCARD constexpr const T* operator->() && = delete;
 					_NODISCARD constexpr const T& operator*() const & {
 						return (*this).value();
 					}
-					_NODISCARD /*constexpr*/ T& operator*() & {
+					_NODISCARD constexpr T& operator*() & {
 						return (*this).value();
 					}
-					_NODISCARD /*constexpr*/ T&& operator*() && {
+					_NODISCARD constexpr T&& operator*() && {
 						return std::move((*this).value());
 					}
 					_NODISCARD constexpr const T&& operator*() const && {
@@ -1768,13 +1784,17 @@ namespace mse {
 					}
 
 					optional_base2& operator=(const optional_base2& rhs) {
+						if (std::addressof(rhs) == this) { return (*this); }
 						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-						base_class::operator=(static_cast<const base_class&>(rhs));
+						//base_class::operator=(static_cast<const base_class&>(rhs));
+						mse::us::impl::as_ref<base_class>(*this).operator=(mse::us::impl::as_ref<base_class>(rhs));
 						return (*this);
 					}
 					optional_base2& operator=(optional_base2&& rhs) {
+						if (std::addressof(rhs) == this) { return (*this); }
 						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-						base_class::operator=(base_class(std::forward<decltype(rhs)>(rhs)));
+						//base_class::operator=(base_class(std::forward<decltype(rhs)>(rhs)));
+						mse::us::impl::as_ref<base_class>(*this).operator=(mse::us::impl::as_ref<base_class>(std::forward<decltype(rhs)>(rhs)));
 						return (*this);
 					}
 					template<typename ...Args>
@@ -2164,7 +2184,8 @@ namespace mse {
 		explicit optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
 
-		optional(const optional& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
+		optional(const optional& src) : base_class(mse::us::impl::as_ref<base_class>(src)) {}
+		//optional(optional&& src) : base_class(mse::us::impl::as_ref<base_class>(std::forward<decltype(src)>(src))) {}
 
 		~optional() {
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
@@ -2238,7 +2259,8 @@ namespace mse {
 		explicit mt_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
 
-		mt_optional(const mt_optional& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
+		mt_optional(const mt_optional& src_ref) : base_class(mse::us::impl::as_ref<base_class>(src_ref)) {}
+		//mt_optional(mt_optional&& src_ref) : base_class(mse::us::impl::as_ref<base_class>(std::forward<decltype(src_ref)>(src_ref))) {}
 
 		~mt_optional() {
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
@@ -2312,7 +2334,8 @@ namespace mse {
 		explicit st_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
 
-		st_optional(const st_optional& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
+		st_optional(const st_optional& src_ref) : base_class(mse::us::impl::as_ref<base_class>(src_ref)) {}
+		//st_optional(st_optional&& src_ref) : base_class(mse::us::impl::as_ref<base_class>(std::forward<decltype(src_ref)>(src_ref))) {}
 
 		~st_optional() {
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
@@ -2476,31 +2499,25 @@ namespace mse {
 		explicit xscope_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
 
-		xscope_optional(const xscope_optional& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
-		//xscope_optional(const mstd::optional<T>& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
+		xscope_optional(const xscope_optional& src_ref) : base_class(mse::us::impl::as_ref<base_class>(src_ref)) {}
+		xscope_optional(xscope_optional&& src_ref) : base_class(mse::us::impl::as_ref<base_class>(std::forward<decltype(src_ref)>(src_ref))) {}
+		//xscope_optional(const mstd::optional<T>& src_ref) : base_class(mse::us::impl::as_ref<base_class>(src_ref)) {}
 
-		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value) && (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value), void>::type>
 		xscope_optional& operator=(nullopt_t) noexcept {
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::clear();
 			return *this;
 		}
-		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value)
-			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)
-			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value), void>::type>
 		xscope_optional& operator=(const xscope_optional& rhs) {
 			valid_if_T_is_not_marked_as_unreturnable<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
-			base_class::operator=(rhs);
+			base_class::operator=(mse::us::impl::as_ref<base_class>(rhs));
 			return *this;
 		}
-		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value)
-			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)
-			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value), void>::type>
 		xscope_optional& operator=(xscope_optional&& rhs) noexcept(std::is_nothrow_move_assignable<T>::value && std::is_nothrow_move_constructible<T>::value) {
 			valid_if_T_is_not_marked_as_unreturnable<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
-			base_class::operator=(std::forward<base_class>(rhs));
+			base_class::operator=(mse::us::impl::as_ref<base_class>(std::forward<decltype(rhs)>(rhs)));
 			return *this;
 		}
 		template <class U, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_optional, U> >
@@ -2640,7 +2657,7 @@ namespace mse {
 		xscope_mt_optional& operator=(xscope_mt_optional&& rhs) noexcept(std::is_nothrow_move_assignable<T>::value && std::is_nothrow_move_constructible<T>::value) {
 			valid_if_T_is_not_marked_as_unreturnable<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
-			base_class::operator=(std::forward<base_class>(rhs));
+			base_class::operator=(mse::us::impl::as_ref<base_class>(std::forward<decltype(rhs)>(rhs)));
 			return *this;
 		}
 		template <class U, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_mt_optional, U> >
@@ -2776,7 +2793,7 @@ namespace mse {
 		xscope_st_optional& operator=(xscope_st_optional&& rhs) noexcept(std::is_nothrow_move_assignable<T>::value && std::is_nothrow_move_constructible<T>::value) {
 			valid_if_T_is_not_marked_as_unreturnable<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
-			base_class::operator=(std::forward<base_class>(rhs));
+			base_class::operator=(mse::us::impl::as_ref<base_class>(std::forward<decltype(rhs)>(rhs)));
 			return *this;
 		}
 		template <class U, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_st_optional, U> >
@@ -4914,6 +4931,9 @@ namespace mse {
 						std::cout << e.what() << '\n';
 #endif // __cpp_exceptions >= 199711
 					}
+
+					mse::xscope_optional<int> opt2 = opt;
+					mse::xscope_optional<int> opt3 = std::move(opt);
 				}
 
 #endif // MSE_SELF_TESTS

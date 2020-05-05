@@ -366,7 +366,7 @@ namespace mse {
 				}
 			}
 			template<typename _Ty, typename _Ty2>
-			auto as_ref(_Ty2&& x) -> decltype(ns_as_ref::as_ref_helper1(typename std::is_rvalue_reference<decltype(x)>::type(), std::forward<decltype(x)>(x))) {
+			auto as_ref(_Ty2&& x) -> decltype(ns_as_ref::as_ref_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), std::forward<decltype(x)>(x))) {
 				return ns_as_ref::as_ref_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), std::forward<decltype(x)>(x));
 			}
 			template<typename _Ty, typename _Ty2>

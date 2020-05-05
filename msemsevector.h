@@ -287,8 +287,8 @@ namespace mse {
 
 				auto& operator=(const TXScopeCSLSStrongRAIterator& _Right_cref) & { base_class::operator=(_Right_cref); return (*this); }
 				auto& operator=(TXScopeCSLSStrongRAIterator&& _Right_cref) & { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
-				TXScopeCSLSStrongRAIterator operator=(TXScopeCSLSStrongRAIterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::forward<decltype(*this)>(*this); }
-				TXScopeCSLSStrongRAIterator operator=(const TXScopeCSLSStrongRAIterator _X) && { base_class::operator=(_X); return std::forward<decltype(*this)>(*this); }
+				TXScopeCSLSStrongRAIterator operator=(TXScopeCSLSStrongRAIterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::move(*this); }
+				TXScopeCSLSStrongRAIterator operator=(const TXScopeCSLSStrongRAIterator _X) && { base_class::operator=(_X); return std::move(*this); }
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 				typedef typename std::remove_const<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>::type _TRAContainer;
@@ -339,8 +339,8 @@ namespace mse {
 
 				auto& operator=(const TXScopeCSLSStrongRAConstIterator& _Right_cref) & { base_class::operator=(_Right_cref); return (*this); }
 				auto& operator=(TXScopeCSLSStrongRAConstIterator&& _Right_cref) & { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
-				TXScopeCSLSStrongRAConstIterator operator=(TXScopeCSLSStrongRAConstIterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::forward<decltype(*this)>(*this); }
-				TXScopeCSLSStrongRAConstIterator operator=(const TXScopeCSLSStrongRAConstIterator _X) && { base_class::operator=(_X); return std::forward<decltype(*this)>(*this); }
+				TXScopeCSLSStrongRAConstIterator operator=(TXScopeCSLSStrongRAConstIterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::move(*this); }
+				TXScopeCSLSStrongRAConstIterator operator=(const TXScopeCSLSStrongRAConstIterator _X) && { base_class::operator=(_X); return std::move(*this); }
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 				typedef typename std::remove_const<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>::type _TRAContainer;
@@ -643,12 +643,12 @@ namespace mse {
 				difference_type operator-(const Tgnii_vector_xscope_cslsstrong_const_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
 				const_reference operator*() const { return base_class::operator*(); }
 
-				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator=(Tgnii_vector_xscope_cslsstrong_const_iterator_type&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::forward<decltype(*this)>(*this); }
-				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator=(const Tgnii_vector_xscope_cslsstrong_const_iterator_type& _X) && { base_class::operator=(_X); return std::forward<decltype(*this)>(*this); }
-				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator ++() && { base_class::operator ++(); return std::forward<decltype(*this)>(*this); }
-				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator --() && { base_class::operator --(); return std::forward<decltype(*this)>(*this); }
-				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator +=(difference_type n) && { base_class::operator +=(n); return std::forward<decltype(*this)>(*this); }
-				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator -=(difference_type n) && { base_class::operator -=(n); return std::forward<decltype(*this)>(*this); }
+				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator=(Tgnii_vector_xscope_cslsstrong_const_iterator_type&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::move(*this); }
+				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator=(const Tgnii_vector_xscope_cslsstrong_const_iterator_type& _X) && { base_class::operator=(_X); return std::move(*this); }
+				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator ++() && { base_class::operator ++(); return std::move(*this); }
+				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator --() && { base_class::operator --(); return std::move(*this); }
+				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator +=(difference_type n) && { base_class::operator +=(n); return std::move(*this); }
+				Tgnii_vector_xscope_cslsstrong_const_iterator_type operator -=(difference_type n) && { base_class::operator -=(n); return std::move(*this); }
 
 				void set_to_const_item_pointer(const Tgnii_vector_xscope_cslsstrong_const_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
 
@@ -688,12 +688,12 @@ namespace mse {
 				difference_type operator-(const Tgnii_vector_xscope_cslsstrong_iterator_type& _Right_cref) const { return base_class::operator-(_Right_cref); }
 				const_reference operator*() const { return base_class::operator*(); }
 
-				Tgnii_vector_xscope_cslsstrong_iterator_type operator=(Tgnii_vector_xscope_cslsstrong_iterator_type&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::forward<decltype(*this)>(*this); }
-				Tgnii_vector_xscope_cslsstrong_iterator_type operator=(const Tgnii_vector_xscope_cslsstrong_iterator_type& _X) && { base_class::operator=(_X); return std::forward<decltype(*this)>(*this); }
-				Tgnii_vector_xscope_cslsstrong_iterator_type operator ++() && { base_class::operator ++(); return std::forward<decltype(*this)>(*this); }
-				Tgnii_vector_xscope_cslsstrong_iterator_type operator --() && { base_class::operator --(); return std::forward<decltype(*this)>(*this); }
-				Tgnii_vector_xscope_cslsstrong_iterator_type operator +=(difference_type n) && { base_class::operator +=(n); return std::forward<decltype(*this)>(*this); }
-				Tgnii_vector_xscope_cslsstrong_iterator_type operator -=(difference_type n) && { base_class::operator -=(n); return std::forward<decltype(*this)>(*this); }
+				Tgnii_vector_xscope_cslsstrong_iterator_type operator=(Tgnii_vector_xscope_cslsstrong_iterator_type&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::move(*this); }
+				Tgnii_vector_xscope_cslsstrong_iterator_type operator=(const Tgnii_vector_xscope_cslsstrong_iterator_type& _X) && { base_class::operator=(_X); return std::move(*this); }
+				Tgnii_vector_xscope_cslsstrong_iterator_type operator ++() && { base_class::operator ++(); return std::move(*this); }
+				Tgnii_vector_xscope_cslsstrong_iterator_type operator --() && { base_class::operator --(); return std::move(*this); }
+				Tgnii_vector_xscope_cslsstrong_iterator_type operator +=(difference_type n) && { base_class::operator +=(n); return std::move(*this); }
+				Tgnii_vector_xscope_cslsstrong_iterator_type operator -=(difference_type n) && { base_class::operator -=(n); return std::move(*this); }
 
 				void set_to_item_pointer(const Tgnii_vector_xscope_cslsstrong_iterator_type& _Right_cref) { base_class::set_to_item_pointer(_Right_cref); }
 
@@ -1260,7 +1260,12 @@ namespace mse {
 				const _MV& contained_vector() const& { return (*this).value(); }
 				const _MV& contained_vector() const&& { return (*this).value(); }
 				_MV& contained_vector() & { return (*this).value(); }
-				auto&& contained_vector() && { return std::forward<decltype(*this)>(*this).value(); }
+				auto&& contained_vector() && {
+					/* We're making sure that the vector is not "structure locked", because in that case it might not be
+					safe to to allow the contained vector to be moved from (when made movable with std::move()). */
+					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					return std::move(*this).value();
+				}
 
 			public:
 				explicit gnii_vector(const _A& _Al = _A())
@@ -1299,11 +1304,13 @@ namespace mse {
 					return (*this);
 				}
 				_Myt& operator=(_Myt&& _X) {
+					if (std::addressof(_X) == this) { return (*this); }
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					contained_vector().operator=(std::forward<decltype(_X)>(_X).contained_vector());
 					return (*this);
 				}
 				_Myt& operator=(const _Myt& _X) {
+					if (std::addressof(_X) == this) { return (*this); }
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					contained_vector().operator=(_X.contained_vector());
 					return (*this);

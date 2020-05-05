@@ -2765,7 +2765,7 @@ namespace mse {
 		const _MA& contained_array() const& { return (*this).value(); }
 		const _MA& contained_array() const && { return (*this).value(); }
 		_MA& contained_array() & { return (*this).value(); }
-		auto&& contained_array() && { return std::forward<decltype(*this)>(*this).value(); }
+		auto&& contained_array() && { return std::move(*this).value(); }
 
 	public:
 		nii_array() {}

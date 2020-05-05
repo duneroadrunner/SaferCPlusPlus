@@ -245,7 +245,7 @@ namespace mse {
 			const _RMA& contained_array() const& { return (*this).value(); }
 			const _RMA& contained_array() const&& { return (*this).value(); }
 			_RMA& contained_array()& { return (*this).value(); }
-			auto&& contained_array()&& { return std::forward<decltype(*this)>(*this).value(); }
+			auto&& contained_array()&& { return std::move(*this).value(); }
 
 			operator _MA() const { return as_nii_array(); }
 			operator std::array<_Ty, _Size>() const { return as_nii_array(); }

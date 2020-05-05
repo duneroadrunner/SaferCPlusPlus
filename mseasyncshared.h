@@ -2673,7 +2673,7 @@ namespace mse {
 				s_valid_if_passable(_Fx);
 			}
 
-			thread(thread&& _Other) _NOEXCEPT : base_class(std::forward<base_class>(_Other)) {}
+			thread(thread&& _Other) _NOEXCEPT : base_class(mse::us::impl::as_ref<base_class>(std::forward<decltype(_Other)>(_Other))) {}
 
 			thread& operator=(thread&& _Other) _NOEXCEPT {
 				base_class::operator=(std::forward<decltype(_Other)>(_Other));
@@ -2746,7 +2746,7 @@ namespace mse {
 		static void s_valid_if_xscope_passable() {}
 
 	private:
-		xscope_thread(xscope_thread&& _Other) _NOEXCEPT : base_class(std::forward<base_class>(_Other)) {}
+		xscope_thread(xscope_thread&& _Other) _NOEXCEPT : base_class(mse::us::impl::as_ref<base_class>(std::forward<decltype(_Other)>(_Other))) {}
 
 		void detach() { base_class::detach(); }
 
