@@ -311,6 +311,39 @@ namespace mse {
 				ptr.resize(num_bytes / sizeof(_Ty));
 			}
 		};
+		template<class _Ty>
+		class CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>> {
+		public:
+			static void free(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr) {
+				ptr = mse::lh::TXScopeStrongVectorIterator<_Ty>();
+			}
+			static void allocate(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
+				mse::lh::TXScopeStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
+				ptr = tmp;
+			}
+			static void reallocate(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
+				ptr.resize(num_bytes / sizeof(_Ty));
+			}
+		};
+		template<class _Ty>
+		class CAllocF<mse::TRefCountingPointer<_Ty>> {
+		public:
+			static void free(mse::TRefCountingPointer<_Ty>& ptr) {
+				ptr = nullptr;
+			}
+			static void allocate(mse::TRefCountingPointer<_Ty>& ptr, size_t num_bytes) {
+				ptr = mse::TRefCountingPointer<_Ty>();
+			}
+			static void reallocate(mse::TRefCountingPointer<_Ty>& ptr, size_t num_bytes) {
+				if (0 == num_bytes) {
+					ptr = nullptr;
+				}
+				else {
+					assert(false);
+				}
+			}
+		};
+
 		template<class _TDynArrayIter>
 		_TDynArrayIter& allocate(_TDynArrayIter& ptr, size_t num_bytes) {
 			CAllocF<_TDynArrayIter>::allocate(ptr, num_bytes);

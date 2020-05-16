@@ -88,6 +88,9 @@ namespace mse {
 	public:
 		typedef std::function<_Fty> base_class;
 
+		xscope_function(const xscope_function& src) = default;
+		xscope_function(xscope_function&& src) = default;
+
 		xscope_function(const base_class& src) : base_class(src) {}
 		xscope_function(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
@@ -97,14 +100,24 @@ namespace mse {
 		template <typename _Fty2, class = typename std::enable_if<(!std::is_convertible<const _Fty2*, const xscope_function*>::value), void>::type>
 		xscope_function(_Fty2&& func) : base_class(mse::us::impl::make_newable_xscope(std::forward<decltype(func)>(func))) {}
 
+		void async_not_shareable_and_not_passable_tag() const {}
+
+	private:
+
 		xscope_function& operator=(const xscope_function& _Right_cref) {
 			base_class::operator=(static_cast<const base_class&>(_Right_cref));
 			return (*this);
 		}
+		xscope_function& operator=(xscope_function&& _Right_cref) {
+			base_class::operator=(mse::us::impl::as_ref<base_class>(std::forward<decltype(_Right_cref)>(_Right_cref)));
+			return (*this);
+		}
+		template <class _Fx, class = typename std::enable_if<!std::is_base_of<xscope_function, _Fx>::value>::type>
+		xscope_function& operator=(_Fx&& _Func) {
+			base_class::operator=(mse::us::impl::as_ref<base_class>(std::forward<decltype(_Func)>(_Func)));
+			return (*this);
+		}
 
-		void async_not_shareable_and_not_passable_tag() const {}
-
-	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
@@ -364,8 +377,8 @@ namespace mse {
 						n = 2;
 						CB::call(f);
 
-						f = CB::normal_function;
-						CB::call(f);
+						mse::xscope_function<int()> f2 = CB::normal_function;
+						CB::call(f2);
 					}
 					{
 						// from https://en.cppreference.com/w/cpp/utility/functional/function/operator_bool
@@ -412,13 +425,13 @@ namespace mse {
 						};
 						/* xscope_my_function_obj_t is a scope type with a scope (pointer) member. */
 						xscope_my_function_obj_t xscope_my_function_obj1(int1_xsptr);
-						xs_function1 = xscope_my_function_obj1;
-						int res1 = xs_function1();
+						mse::xscope_function<int()> xs_function2 = xscope_my_function_obj1;
+						int res1 = xs_function2();
 
 						/*  Just as structs with scope pointer/reference members need to be declared as such, lambdas that
 						capture scope pointer/references must be declared as such. */
 						auto xs_lambda1 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([int1_xsptr]() { return *int1_xsptr; });
-						xs_function1 = xs_lambda1;
+						mse::xscope_function<int()> xs_function3 = xs_lambda1;
 					}
 				}
 #endif // MSE_SELF_TESTS

@@ -1172,7 +1172,7 @@ namespace mse {
 	}
 	template <typename _TRALoneParam> auto make_xscope_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
 		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
-	template <typename _TRALoneParam> auto make_xscope_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
+	template <typename _TRALoneParam, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRALoneParam)> auto make_xscope_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
 		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), std::forward<decltype(param)>(param)));
 
 	template <typename _TRASection, typename _TRAConstSection, class _Traits>
@@ -1875,7 +1875,7 @@ namespace mse {
 		return mse::impl::ra_section::make_xscope_string_const_section_helper1(
 			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
 	}
-	template <typename _TRALoneParam>
+	template <typename _TRALoneParam, class>
 	auto make_xscope_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
 		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), std::forward<decltype(param)>(param))) {
 		return mse::impl::ra_section::make_xscope_string_const_section_helper1(
@@ -2079,7 +2079,7 @@ namespace mse {
 		template <typename _TRALoneParam>
 		friend auto make_xscope_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
 			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
-		template <typename _TRALoneParam>
+		template <typename _TRALoneParam, class>
 		friend auto make_xscope_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
 			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), std::forward<decltype(param)>(param)));
 

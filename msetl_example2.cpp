@@ -1117,7 +1117,6 @@ void msetl_example2() {
 		string_section2[0] = 'T';
 		std::cout << string_section2;
 		assert(mstring1 == "some Text");
-		std::cout << string_section2;
 
 		/* The (run-time overhead free) scope (and const) versions. */
 		typedef mse::TXScopeObj< mse::mtnii_string > xscope_mtnii_string_t;
@@ -1611,13 +1610,13 @@ void msetl_example2() {
 			};
 			/* xscope_my_function_obj_t is a scope type with a scope (pointer) member. */
 			xscope_my_function_obj_t xscope_my_function_obj1(int1_xsptr);
-			xs_function1 = xscope_my_function_obj1;
-			int res1 = xs_function1();
+			mse::xscope_function<int()> xs_function2 = xscope_my_function_obj1;
+			int res1 = xs_function2();
 
 			/*  Just as structs with scope pointer/reference members need to be declared as such, lambdas that
 			capture scope pointer/references must be declared as such. */
 			auto xs_lambda1 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([int1_xsptr]() { return *int1_xsptr; });
-			xs_function1 = xs_lambda1;
+			mse::xscope_function<int()> xs_function3 = xs_lambda1;
 		}
 
 		mse::self_test::CFunctionTest1::s_test1();

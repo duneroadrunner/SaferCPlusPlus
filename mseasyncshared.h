@@ -1300,7 +1300,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
-	template<typename _TAccessLease>
+	template<typename _TAccessLease, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TAccessLease)>
 	auto make_xscope_asyncsharedv2xwpreadwrite(_TAccessLease&& exclusive_write_pointer) {
 		return TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>::make(std::forward<_TAccessLease>(exclusive_write_pointer));
 	}
@@ -1686,7 +1686,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
 
-	template<typename _TAccessLease>
+	template<typename _TAccessLease, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TAccessLease)>
 	auto make_xscope_asyncsharedv2xwpreadonly(_TAccessLease&& exclusive_write_pointer) {
 		return TXScopeAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>::make(std::forward<_TAccessLease>(exclusive_write_pointer));
 	}
@@ -1961,7 +1961,7 @@ namespace mse {
 		-> TXScopeAsyncSharedV2ACOReadWriteAccessRequester<_Ty, _TAccessMutex> {
 		return TXScopeAsyncSharedV2ACOReadWriteAccessRequester<_Ty, _TAccessMutex>::make(xs_aco);
 	}
-	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
+	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	void make_xscope_asyncsharedv2acoreadwrite(mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex>&& xs_aco) = delete;
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_asyncsharedv2acoreadwrite)
@@ -2698,7 +2698,7 @@ namespace mse {
 			// ensure that the function arguments are of a safely passable type
 			thread::s_valid_if_passable(_Args...);
 			// ensure that the function return value is of a safely passable type
-			mse::impl::T_valid_if_is_marked_as_passable_or_shareable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
+			mse::impl::T_valid_if_is_marked_as_passable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
 			thread::s_valid_if_passable(_Fnarg);
 			return (std::async(_Policy, std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...));
 		}
@@ -2708,7 +2708,7 @@ namespace mse {
 			// ensure that the function arguments are of a safely passable type
 			thread::s_valid_if_passable(_Args...);
 			// ensure that the function return value is of a safely passable type
-			mse::impl::T_valid_if_is_marked_as_passable_or_shareable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
+			mse::impl::T_valid_if_is_marked_as_passable_msemsearray<decltype(_Fnarg(std::forward<_ArgTypes>(_Args)...))>();
 			return (std::async(std::forward<_Fty>(_Fnarg), std::forward<_ArgTypes>(_Args)...));
 		}
 	}

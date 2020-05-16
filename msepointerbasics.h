@@ -715,15 +715,15 @@ namespace mse {
 			|| (std::is_same<_Ty, void>::value)> {};
 
 		template<class _Ty, class = typename std::enable_if<(is_marked_as_passable_msemsearray<_Ty>::value), void>::type>
-		void T_valid_if_is_marked_as_passable_or_shareable_msemsearray() {}
+		void T_valid_if_is_marked_as_passable_msemsearray() {}
 		template<typename _Ty>
 		const _Ty& async_passable(const _Ty& _X) {
-			T_valid_if_is_marked_as_passable_or_shareable_msemsearray<_Ty>();
+			T_valid_if_is_marked_as_passable_msemsearray<_Ty>();
 			return _X;
 		}
 		template<typename _Ty>
 		_Ty&& async_passable(_Ty&& _X) {
-			T_valid_if_is_marked_as_passable_or_shareable_msemsearray<typename std::remove_reference<_Ty>::type>();
+			T_valid_if_is_marked_as_passable_msemsearray<typename std::remove_reference<_Ty>::type>();
 			return std::forward<decltype(_X)>(_X);
 		}
 

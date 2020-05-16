@@ -128,12 +128,20 @@ namespace mse {
 				else
 					tdp_variant_helper<Ts...>::copy(old_t, old_v, new_v);
 			}
+
+			template<typename T>
+			struct is_supported_type : public mse::impl::disjunction<
+					std::is_same<F, T>
+					, typename tdp_variant_helper<Ts...>::template is_supported_type<T>
+				>::type {};
 		};
 
 		template<> struct tdp_variant_helper<> {
 			inline static void destroy(std::type_index id, void * data) { }
 			inline static void move(std::type_index old_t, void * old_v, void * new_v) { }
 			inline static void copy(std::type_index old_t, const void * old_v, void * new_v) { }
+
+			template<typename T> struct is_supported_type : public std::is_same<void, T> {};
 		};
 	}
 
@@ -203,6 +211,7 @@ namespace mse {
 		template<typename T, typename... Args>
 		void set(Args&&... args)
 		{
+			static_assert(helper_t::template is_supported_type<T>::value, "type is not a member type of the tdp_variant");
 			// First we destroy the current contents    
 			auto held_type_id = type_id;
 			type_id = invalid_type();
@@ -331,7 +340,7 @@ namespace mse {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopeAnyPointer<_Tx2>(x);
 	}
-	template <typename _Tx = void, typename _Ty = void>
+	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_pointer(_Ty&& x) {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopeAnyPointer<_Tx2>(std::forward<decltype(x)>(x));
@@ -411,7 +420,7 @@ namespace mse {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopeAnyConstPointer<_Tx2>(x);
 	}
-	template <typename _Tx = void, typename _Ty = void>
+	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_const_pointer(_Ty && x) {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopeAnyConstPointer<_Tx2>(std::forward<decltype(x)>(x));
@@ -710,7 +719,7 @@ namespace mse {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopePolyPointer<_Tx2>(x);
 	}
-	template <typename _Tx = void, typename _Ty = void>
+	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_poly_pointer(_Ty && x) {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopePolyPointer<_Tx2>(std::forward<decltype(x)>(x));
@@ -945,7 +954,7 @@ namespace mse {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopePolyConstPointer<_Tx2>(x);
 	}
-	template <typename _Tx = void, typename _Ty = void>
+	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_poly_const_pointer(_Ty && x) {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopePolyConstPointer<_Tx2>(std::forward<decltype(x)>(x));
@@ -1363,7 +1372,7 @@ namespace mse {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopeAnyRandomAccessIterator<_Tx2>(x);
 	}
-	template <typename _Tx = void, typename _Ty = void>
+	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_random_access_iterator(_Ty && x) {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopeAnyRandomAccessIterator<_Tx2>(std::forward<decltype(x)>(x));
@@ -1408,7 +1417,7 @@ namespace mse {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopeAnyRandomAccessConstIterator<_Tx2>(x);
 	}
-	template <typename _Tx = void, typename _Ty = void>
+	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_random_access_const_iterator(_Ty && x) {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TXScopeAnyRandomAccessConstIterator<_Tx2>(std::forward<decltype(x)>(x));
@@ -1522,10 +1531,15 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
-	template <class... _Args>
-	auto make_xscope_any_random_access_section(_Args&& ... _Ax) {
-		typedef decltype(make_xscope_random_access_section(std::forward<_Args>(_Ax)...)) ra_section_t;
-		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_random_access_section(std::forward<_Args>(_Ax)...));
+	template <typename _Ty, class... _Args>
+	auto make_xscope_any_random_access_section(const _Ty& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_random_access_section(arg1, std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_random_access_section(arg1, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
+	auto make_xscope_any_random_access_section(_Ty&& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_random_access_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_random_access_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_random_access_section)
@@ -1554,10 +1568,15 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
-	template <class... _Args>
-	auto make_xscope_any_random_access_const_section(_Args&& ... _Ax) {
-		typedef decltype(make_xscope_random_access_const_section(std::forward<_Args>(_Ax)...)) ra_section_t;
-		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_random_access_const_section(std::forward<_Args>(_Ax)...));
+	template <typename _Ty, class... _Args>
+	auto make_xscope_any_random_access_const_section(const _Ty& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_random_access_const_section(arg1, std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_random_access_const_section(arg1, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
+	auto make_xscope_any_random_access_const_section(_Ty&& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_random_access_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_random_access_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_random_access_const_section)
@@ -1621,10 +1640,15 @@ namespace mse {
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	using TXScopeAnyStringSection = TXScopeStringSection<TXScopeAnyRandomAccessIterator<_Ty>, _Traits>;
 
-	template <class... _Args>
-	auto make_xscope_any_string_section(_Args&& ... _Ax) {
-		typedef decltype(make_xscope_string_section(std::forward<_Args>(_Ax)...)) str_section_t;
-		return TXScopeAnyStringSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_xscope_string_section(std::forward<_Args>(_Ax)...));
+	template <typename _Ty, class... _Args>
+	auto make_xscope_any_string_section(const _Ty& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_string_section(arg1, std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_string_section(arg1, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
+	auto make_xscope_any_string_section(_Ty&& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_string_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_string_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_string_section)
@@ -1653,10 +1677,15 @@ namespace mse {
 		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
 
-	template <class... _Args>
-	auto make_xscope_any_string_const_section(_Args&& ... _Ax) {
-		typedef decltype(make_xscope_string_const_section(std::forward<_Args>(_Ax)...)) str_section_t;
-		return TXScopeAnyStringConstSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_xscope_string_const_section(std::forward<_Args>(_Ax)...));
+	template <typename _Ty, class... _Args>
+	auto make_xscope_any_string_const_section(const _Ty& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_string_const_section(arg1, std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_string_const_section(arg1, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
+	auto make_xscope_any_string_const_section(_Ty&& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_string_const_section)
@@ -1783,10 +1812,15 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
-	template <class... _Args>
-	auto make_xscope_any_nrp_string_section(_Args&& ... _Ax) {
-		typedef decltype(make_xscope_nrp_string_section(std::forward<_Args>(_Ax)...)) str_section_t;
-		return TXScopeAnyNRPStringSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_xscope_nrp_string_section(std::forward<_Args>(_Ax)...));
+	template <typename _Ty, class... _Args>
+	auto make_xscope_any_nrp_string_section(const _Ty& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_nrp_string_section(arg1, std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_nrp_string_section(arg1, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
+	auto make_xscope_any_nrp_string_section(_Ty&& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_nrp_string_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_nrp_string_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_nrp_string_section)
@@ -1860,10 +1894,15 @@ namespace mse {
 		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
 
-	template <class... _Args>
-	auto make_xscope_any_nrp_string_const_section(_Args&& ... _Ax) {
-		typedef decltype(make_xscope_nrp_string_const_section(std::forward<_Args>(_Ax)...)) str_section_t;
-		return TXScopeAnyNRPStringConstSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_xscope_nrp_string_const_section(std::forward<_Args>(_Ax)...));
+	template <typename _Ty, class... _Args>
+	auto make_xscope_any_nrp_string_const_section(const _Ty& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_nrp_string_const_section(arg1, std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_nrp_string_const_section(arg1, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
+	auto make_xscope_any_nrp_string_const_section(_Ty&& arg1, _Args&& ... _Ax) {
+		typedef decltype(make_xscope_nrp_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_nrp_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_nrp_string_const_section)
@@ -1972,9 +2011,13 @@ namespace mse {
 		typedef xscope_basic_string_view<char32_t> xscope_u32string_view;
 		typedef xscope_basic_string_view<wchar_t>  xscope_wstring_view;
 
-		template <class... _Args>
-		auto make_xscope_string_view(_Args&& ... _Ax) {
-			return xscope_string_view(make_xscope_string_const_section(std::forward<_Args>(_Ax)...));
+		template <typename _Ty, class... _Args>
+		auto make_xscope_string_view(const _Ty& arg1, _Args&& ... _Ax) {
+			return xscope_string_view(make_xscope_string_const_section(arg1, std::forward<_Args>(_Ax)...));
+		}
+		template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
+		auto make_xscope_string_view(_Ty&& arg1, _Args&& ... _Ax) {
+			return xscope_string_view(make_xscope_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
 		}
 		/* Overloads for rsv::TReturnableFParam<>. */
 		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_string_view)
@@ -1995,9 +2038,13 @@ namespace mse {
 	typedef xscope_nrp_basic_string_view<char32_t> xscope_nrp_u32string_view;
 	typedef xscope_nrp_basic_string_view<wchar_t>  xscope_nrp_wstring_view;
 
-	template <class... _Args>
-	auto make_xscope_nrp_string_view(_Args&& ... _Ax) {
-		return xscope_nrp_string_view(std::forward<_Args>(_Ax)...);
+	template <typename _Ty, class... _Args>
+	auto make_xscope_nrp_string_view(const _Ty& arg1, _Args&& ... _Ax) {
+		return xscope_nrp_string_view(make_xscope_nrp_string_const_section(arg1, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
+	auto make_xscope_nrp_string_view(_Ty&& arg1, _Args&& ... _Ax) {
+		return xscope_nrp_string_view(make_xscope_nrp_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_nrp_string_view)
@@ -2297,12 +2344,12 @@ namespace mse {
 						auto A_refcfp = mse::make_refcounting<A>(5);
 						mse::TXScopeObj<A> a_xscpobj(7);
 
-						using my_var = tdp_variant<A*, mse::TScopeFixedPointer<A>, mse::TRefCountingFixedPointer<A>>;
+						using my_var = tdp_variant<A*, mse::TXScopeFixedPointer<A>, mse::TRefCountingFixedPointer<A>>;
 
 						my_var d;
 
 						d.set<mse::TXScopeFixedPointer<A>>(&a_xscpobj);
-						//std::cout << d.get<mse::TScopeFixedPointer<A>>()->b << std::endl;
+						//std::cout << d.get<mse::TXScopeFixedPointer<A>>()->b << std::endl;
 
 						d.set<mse::TRefCountingFixedPointer<A>>(A_refcfp);
 						d.get<mse::TRefCountingFixedPointer<A>>()->b = 42;

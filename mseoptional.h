@@ -4617,20 +4617,20 @@ namespace mse {
 	auto xscope_pointer(const TXScopeOptionalElementFixedPointer<TXScopeOptionalPointer>& param) {
 		return mse::us::unsafe_make_xscope_pointer_to(*param);
 	}
-	template<typename TXScopeOptionalPointer>
+	template<typename TXScopeOptionalPointer, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(TXScopeOptionalPointer)>
 	auto xscope_pointer(const TXScopeOptionalElementFixedPointer<TXScopeOptionalPointer>&& param) = delete;
 	template<typename TXScopeOptionalPointer>
 	auto xscope_pointer(const TXScopeOptionalElementFixedConstPointer<TXScopeOptionalPointer>& param) {
 		return mse::us::unsafe_make_xscope_const_pointer_to(*param);
 	}
-	template<typename TXScopeOptionalPointer>
+	template<typename TXScopeOptionalPointer, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(TXScopeOptionalPointer)>
 	auto xscope_pointer(const TXScopeOptionalElementFixedConstPointer<TXScopeOptionalPointer>&& param) = delete;
 
 	template<typename TXScopeOptionalPointer>
 	auto make_xscope_optional_element_pointer(const TXScopeOptionalPointer& ptr) {
 		return TXScopeOptionalElementFixedPointer<typename std::remove_reference<TXScopeOptionalPointer>::type>(ptr);
 	}
-	template<typename TXScopeOptionalPointer>
+	template<typename TXScopeOptionalPointer, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(TXScopeOptionalPointer)>
 	auto make_xscope_optional_element_pointer(TXScopeOptionalPointer&& ptr) {
 		return TXScopeOptionalElementFixedPointer<typename std::remove_reference<TXScopeOptionalPointer>::type>(std::forward<decltype(ptr)>(ptr));
 	}
@@ -4638,7 +4638,7 @@ namespace mse {
 	auto make_xscope_optional_element_const_pointer(const TXScopeOptionalPointer& ptr) {
 		return TXScopeOptionalElementFixedConstPointer<typename std::remove_reference<TXScopeOptionalPointer>::type>(ptr);
 	}
-	template<typename TXScopeOptionalPointer>
+	template<typename TXScopeOptionalPointer, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(TXScopeOptionalPointer)>
 	auto make_xscope_optional_element_const_pointer(TXScopeOptionalPointer&& ptr) {
 		return TXScopeOptionalElementFixedConstPointer<typename std::remove_reference<TXScopeOptionalPointer>::type>(std::forward<decltype(ptr)>(ptr));
 	}

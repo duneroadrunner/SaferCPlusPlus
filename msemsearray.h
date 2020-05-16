@@ -2458,7 +2458,7 @@ namespace mse {
 		return TXScopeRandomAccessIterator<_TRAContainerPointerRR>(ra_container_pointer, index);
 	}
 
-	template <typename _TRAContainerPointer>
+	template <typename _TRAContainerPointer, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRAContainerPointer)>
 	auto make_random_access_iterator(_TRAContainerPointer&& ra_container_pointer, typename TRandomAccessIterator<typename std::remove_reference<_TRAContainerPointer>::type>::size_type index = 0) {
 		typedef typename std::remove_reference<_TRAContainerPointer>::type _TRAContainerPointerRR;
 		return TRandomAccessIterator<_TRAContainerPointerRR>(std::forward<_TRAContainerPointer>(ra_container_pointer), index);
@@ -2469,7 +2469,7 @@ namespace mse {
 		return TRandomAccessIterator<_TRAContainerPointerRR>(ra_container_pointer, index);
 	}
 
-	template <typename _TRAContainerPointer>
+	template <typename _TRAContainerPointer, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRAContainerPointer)>
 	auto make_xscope_random_access_const_iterator(_TRAContainerPointer&& ra_container_pointer, typename TXScopeRandomAccessConstIterator<typename std::remove_reference<_TRAContainerPointer>::type>::size_type index = 0) {
 		typedef typename std::remove_reference<_TRAContainerPointer>::type _TRAContainerPointerRR;
 		return TXScopeRandomAccessConstIterator<_TRAContainerPointerRR>(std::forward<_TRAContainerPointer>(ra_container_pointer), index);
@@ -4021,6 +4021,7 @@ namespace mse {
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_const_iterator)
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_iterator)
+
 	/* We had iterators in mind with these overloads of operator+ and operator-. */
 	template <typename _Ty, typename _Tz>
 	auto operator+(const rsv::TReturnableFParam<_Ty>& y, const _Tz& z) {
@@ -6217,7 +6218,7 @@ namespace mse {
 			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
 	}
 
-	template <typename _TRALoneParam>
+	template <typename _TRALoneParam, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRALoneParam)>
 	auto make_xscope_random_access_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
 		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), std::forward<decltype(param)>(param))) {
 
@@ -6264,7 +6265,7 @@ namespace mse {
 		return mse::impl::ra_section::make_xscope_random_access_section_helper1(
 			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
 	}
-	template <typename _TRALoneParam>
+	template <typename _TRALoneParam, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRALoneParam)>
 	auto make_xscope_random_access_section(_TRALoneParam&& param) {
 		return mse::impl::ra_section::make_xscope_random_access_section_helper1(
 			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), std::forward<decltype(param)>(param));
@@ -6356,7 +6357,7 @@ namespace mse {
 		template <typename _TRALoneParam>
 		friend auto make_xscope_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
 			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
-		template <typename _TRALoneParam>
+		template <typename _TRALoneParam, class>
 		friend auto make_xscope_random_access_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
 			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), std::forward<decltype(param)>(param)));
 	};
@@ -7522,7 +7523,7 @@ namespace mse {
 	template<typename _TExclusiveStrongPointer, class _TAccessMutex = non_thread_safe_shared_mutex, class = typename std::enable_if<(mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value), void>::type>
 	using TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess = TXScopeExclusiveStrongPointerStoreForAccessControl<_TExclusiveStrongPointer, _TAccessMutex>;
 
-	template<typename _TExclusiveStrongPointer, class _TAccessMutex = non_thread_safe_shared_mutex>
+	template<typename _TExclusiveStrongPointer, class _TAccessMutex = non_thread_safe_shared_mutex, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TExclusiveStrongPointer)>
 	TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<_TExclusiveStrongPointer> make_xscope_exclusive_strong_pointer_store_for_exclusive_writer_access(_TExclusiveStrongPointer&& stored_ptr) {
 		return TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<_TExclusiveStrongPointer, _TAccessMutex>(std::forward<decltype(stored_ptr)>(stored_ptr));
 	}

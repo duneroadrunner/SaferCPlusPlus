@@ -1280,6 +1280,7 @@ namespace mse {
 	}
 
 	namespace rsv {
+
 		/* TXScopeFixedPointerFParam<> is just a version of TXScopeFixedPointer<> which may only be used for
 		function parameter declations. It has the extra ability to accept (caged) scope pointers to r-value scope objects
 		(i.e. supports temporaries by scope reference). */
@@ -1294,7 +1295,16 @@ namespace mse {
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			TXScopeFixedPointerFParam(TXScopeCagedItemFixedPointerToRValue<_Ty2>&& src_cref) : base_class(src_cref.uncaged_pointer()) {}
+
+#ifndef MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			TXScopeFixedPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) { intentional_compile_error<_Ty2>(); }
+#else // !MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
 			TXScopeFixedPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
+#endif // !MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
+
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointerFParam() {}
@@ -1303,6 +1313,14 @@ namespace mse {
 			void xscope_tag() const {}
 
 		private:
+			template<class _Ty2>
+			void intentional_compile_error() const {
+				/*
+				You are attempting to use an lvalue "scope pointer to a temporary". (Currently) only rvalue
+				"scope pointer to a temporary"s are supported.
+				*/
+				mse::impl::T_valid_if_same_msepointerbasics<_Ty2, void>();
+			}
 			TXScopeFixedPointerFParam<_Ty>& operator=(const TXScopeFixedPointerFParam<_Ty>& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
@@ -1324,9 +1342,9 @@ namespace mse {
 
 #ifndef MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
-			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) = delete;
+			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) { intentional_compile_error<_Ty2>(); }
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
-			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) = delete;
+			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) { intentional_compile_error<_Ty2>(); }
 #else // !MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
 			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
 			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
@@ -1342,6 +1360,14 @@ namespace mse {
 			void xscope_tag() const {}
 
 		private:
+			template<class _Ty2>
+			void intentional_compile_error() const {
+				/*
+				You are attempting to use an lvalue "scope pointer to a temporary". (Currently) only rvalue 
+				"scope pointer to a temporary"s are supported.
+				*/
+				mse::impl::T_valid_if_same_msepointerbasics<_Ty2, void>();
+			}
 			TXScopeFixedConstPointerFParam<_Ty>& operator=(const TXScopeFixedConstPointerFParam<_Ty>& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
@@ -1646,7 +1672,7 @@ namespace mse {
 			return mse::rsv::as_a_returnable_fparam(make_xscope_function(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...)); \
 		}
 
-		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(xscope_pointer)
+#define MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(x) 		typename std::enable_if<!mse::impl::is_instantiation_of<typename std::remove_reference<x>::type, mse::rsv::TReturnableFParam>::value, void>::type
 
 		/* Template specializations of TReturnableFParam<>. */
 
@@ -1731,18 +1757,7 @@ namespace mse {
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_pointer_to_member_v2)
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_const_pointer_to_member_v2)
 
-	template<class _Ty>
-	auto xscope_pointer(const rsv::TReturnableFParam<_Ty>& lone_param) {
-		const _Ty& lone_param_base_ref = lone_param;
-		typedef decltype(xscope_pointer(lone_param_base_ref)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(xscope_pointer(lone_param_base_ref));
-	}
-	template<class _Ty>
-	auto xscope_const_pointer(const rsv::TReturnableFParam<_Ty>& lone_param) {
-		const _Ty& lone_param_base_ref = lone_param;
-		typedef decltype(xscope_const_pointer(lone_param_base_ref)) base_return_type;
-		return rsv::TReturnableFParam<base_return_type>(xscope_const_pointer(lone_param_base_ref));
-	}
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(xscope_pointer)
 
 	template<typename _TROy>
 	class TReturnValue : public _TROy {
@@ -1763,7 +1778,7 @@ namespace mse {
 		template<class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TROy>::value)
 			|| (mse::impl::potentially_does_not_contain_non_owning_scope_reference<_TROy>::value)
 			|| (true
-				/*&& (std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_TROy>::Has>())*/
+				&& (std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_TROy>::Has>())
 				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
 				), void>::type>
 		void valid_if_TROy_is_marked_as_returnable_or_not_xscope_type() const {}
@@ -2574,7 +2589,7 @@ namespace mse {
 		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
 		return impl::ns_xscope_strong_pointer_store::make_xscope_strong_const_pointer_store_helper1<_TStrongPointerNR>(typename std::is_base_of<mse::us::impl::NeverNullTagBase, _TStrongPointerNR>::type(), stored_ptr);
 	}
-	template<typename _TStrongPointer>
+	template<typename _TStrongPointer, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TStrongPointer)>
 	auto make_xscope_strong_const_pointer_store(_TStrongPointer&& stored_ptr) {
 		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
 		return impl::ns_xscope_strong_pointer_store::make_xscope_strong_const_pointer_store_helper1<_TStrongPointerNR>(typename std::is_base_of<mse::us::impl::NeverNullTagBase, _TStrongPointerNR>::type(), std::forward<decltype(stored_ptr)>(stored_ptr));
@@ -2626,7 +2641,7 @@ namespace mse {
 		typedef typename std::remove_reference<decltype(*stored_ptr)>::type _TTargetNR;
 		return impl::ns_xscope_strong_pointer_store::make_xscope_strong_pointer_store_helper2<_TStrongPointerNR>(typename std::is_const<_TTargetNR>::type(), stored_ptr);
 	}
-	template<typename _TStrongPointer>
+	template<typename _TStrongPointer, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TStrongPointer)>
 	auto make_xscope_strong_pointer_store(_TStrongPointer&& stored_ptr) {
 		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
 		typedef typename std::remove_reference<decltype(*stored_ptr)>::type _TTargetNR;

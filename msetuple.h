@@ -122,16 +122,23 @@ namespace mse {
 			};
 			template<class _Ty>
 			struct adjusted_tuple_cat_argument_type_helper1<_Ty, true> {
+				//using type = const typename _Ty::base_class &;
 				using type = typename _Ty::base_class;
+			};
+			template<class _Ty>
+			struct adjusted_tuple_cat_argument_type_helper2 {
+				typedef typename std::remove_reference<_Ty>::type NoRefTy;
+				using type = typename adjusted_tuple_cat_argument_type_helper1<NoRefTy,
+						mse::impl::is_instantiation_of<NoRefTy, mse::mstd::tuple>::value
+						|| mse::impl::is_instantiation_of<NoRefTy, mse::xscope_tuple>::value
+					>::type;
 			};
 
 			template<class _Ty>
-			static auto adjusted_tuple_cat_argument(_Ty&& x) {
-				typedef typename std::remove_reference<_Ty>::type NoRefTy;
-				return std::forward<typename adjusted_tuple_cat_argument_type_helper1<NoRefTy,
-						mse::impl::is_instantiation_of<NoRefTy, mse::mstd::tuple>::value
-						|| mse::impl::is_instantiation_of<NoRefTy, mse::xscope_tuple>::value
-					>::type>(x);
+			static auto adjusted_tuple_cat_argument(_Ty&& x)
+				-> decltype(mse::us::impl::as_ref<typename adjusted_tuple_cat_argument_type_helper2<_Ty>::type>(std::forward<decltype(x)>(x)))
+			{
+				return mse::us::impl::as_ref<typename adjusted_tuple_cat_argument_type_helper2<_Ty>::type>(std::forward<decltype(x)>(x));
 			}
 		}
 	}
@@ -760,7 +767,7 @@ namespace mse {
 	auto make_xscope_tuple_element_pointer(const TXScopeTuplePointer& ptr) -> TXScopeTupleElementFixedPointer<TIndex, TXScopeTuplePointer> {
 		return TXScopeTupleElementFixedPointer<TIndex, TXScopeTuplePointer>(ptr);
 	}
-	template<class TIndex, typename TXScopeTuplePointer>
+	template<class TIndex, typename TXScopeTuplePointer, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(TXScopeTuplePointer)>
 	auto make_xscope_tuple_element_pointer(TXScopeTuplePointer&& ptr) -> TXScopeTupleElementFixedPointer<TIndex, TXScopeTuplePointer> {
 		return TXScopeTupleElementFixedPointer<TIndex, TXScopeTuplePointer>(std::forward<decltype(ptr)>(ptr));
 	}
@@ -768,7 +775,7 @@ namespace mse {
 	auto make_xscope_tuple_element_const_pointer(const TXScopeTuplePointer& ptr) -> TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer> {
 		return TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer>(ptr);
 	}
-	template<class TIndex, typename TXScopeTuplePointer>
+	template<class TIndex, typename TXScopeTuplePointer, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(TXScopeTuplePointer)>
 	auto make_xscope_tuple_element_const_pointer(TXScopeTuplePointer&& ptr) -> TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer> {
 		return TXScopeTupleElementFixedConstPointer<TIndex, TXScopeTuplePointer>(std::forward<decltype(ptr)>(ptr));
 	}

@@ -713,7 +713,7 @@ namespace mse {
 		typedef typename std::remove_reference<X>::type nrX;
 		return impl::make_xscope_atomic_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TXScopeAtomicObj>::type(), arg);
 	}
-	template <class X>
+	template <class X, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(X)>
 	auto make_xscope_atomic(X&& arg) {
 		typedef typename std::remove_reference<X>::type nrX;
 		return impl::make_xscope_atomic_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TXScopeAtomicObj>::type(), std::forward<decltype(arg)>(arg));
