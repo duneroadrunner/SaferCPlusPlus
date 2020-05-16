@@ -282,10 +282,8 @@ int main(int argc, char* argv[]) {
 			std::sort(scp_iter1, scp_iter2);
 
 			auto scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
-			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
-				scp_citer3 = scp_iter1;
-				scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
-			);
+			scp_citer3 = scp_iter1;
+			scp_citer3 = mse::mstd::make_xscope_begin_const_iterator(&vector1_scpobj);
 			scp_citer3 += 2;
 			auto res1 = *scp_citer3;
 			auto res2 = scp_citer3[0];
@@ -396,10 +394,8 @@ int main(int argc, char* argv[]) {
 				std::sort(scp_ss_iter1, scp_ss_iter2);
 
 				auto scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
-				IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
-					scp_ss_citer3 = scp_ss_iter1;
-					scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
-				);
+				scp_ss_citer3 = scp_ss_iter1;
+				scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&vector1_scpobj);
 				scp_ss_citer3 += 2;
 				auto res1 = *scp_ss_citer3;
 				auto res2 = scp_ss_citer3[0];
@@ -494,10 +490,8 @@ int main(int argc, char* argv[]) {
 			std::sort(scp_array_iter1, scp_array_iter2);
 
 			auto scp_array_citer3 = mse::mstd::make_xscope_begin_const_iterator(&array1_scpobj);
-			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
-				scp_array_citer3 = scp_array_iter1;
-				scp_array_citer3 = mse::mstd::make_xscope_begin_const_iterator(&array1_scpobj);
-			);
+			scp_array_citer3 = scp_array_iter1;
+			scp_array_citer3 = mse::mstd::make_xscope_begin_const_iterator(&array1_scpobj);
 			scp_array_citer3 += 2;
 			auto res1 = *scp_array_citer3;
 			auto res2 = scp_array_citer3[0];
@@ -574,10 +568,8 @@ int main(int argc, char* argv[]) {
 			std::sort(scp_ss_iter1, scp_ss_iter2);
 
 			auto scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&array1_scpobj);
-			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
-				scp_ss_citer3 = scp_ss_iter1;
-				scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&array1_scpobj);
-			);
+			scp_ss_citer3 = scp_ss_iter1;
+			scp_ss_citer3 = mse::make_xscope_begin_const_iterator(&array1_scpobj);
 
 			scp_ss_citer3 += 2;
 			auto res1 = *scp_ss_citer3;
@@ -1307,13 +1299,11 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 			auto length2 = (*longer_string_xscpptr2).length();
 
 			mse::TXScopeObj<H::CE> e_xscpobj;
-			IF_NOT_MSVC2019_INTELLISENSE_BUGS1(
-				auto xscope_string_const_section1 = H::xscope_string_const_section_to_member_of_CE(&e_xscpobj);
-				assert(xscope_string_const_section1 == "bcd");
+			auto xscope_string_const_section1 = H::xscope_string_const_section_to_member_of_CE(&e_xscpobj);
+			assert(xscope_string_const_section1 == "bcd");
 
-				auto xscope_string_const_section2 = H::nested_xscope_string_const_section_to_member_of_CE(&e_xscpobj);
-				assert(xscope_string_const_section2 == "bcd");
-			);
+			auto xscope_string_const_section2 = H::nested_xscope_string_const_section_to_member_of_CE(&e_xscpobj);
+			assert(xscope_string_const_section2 == "bcd");
 		}
 
 		{
