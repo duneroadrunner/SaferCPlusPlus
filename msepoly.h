@@ -21,11 +21,14 @@
 #include "msemstdarray.h"
 #include "msemsestring.h"
 #include "msemstdstring.h"
+#ifdef MSE_SELF_TESTS
 #include "msestaticimmutable.h"
+#endif // MSE_SELF_TESTS
+
+
 #include <memory>
 #include <utility>
 #include <cassert>
-
 
 #include <typeinfo>
 #include <typeindex>
@@ -571,6 +574,8 @@ namespace mse {
 			template<typename _Ty>
 			class TPolyPointerBase {
 			public:
+				template<typename _Ty2> using writelock_ptr_t = decltype(std::declval<mse::TAsyncSharedV2ReadWriteAccessRequester<_Ty2> >().writelock_ptr());
+
 				using poly_variant = tdp_pointer_variant <
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 					mse::TXScopeObjFixedPointer<_Ty>,
@@ -598,9 +603,7 @@ namespace mse {
 
 					mse::us::impl::TPointer<_Ty, mse::impl::TPolyPointerID<const _Ty>>,
 
-					/* deprecated */
-					mse::TAsyncSharedReadWritePointer<_Ty>,
-					mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>
+					writelock_ptr_t<_Ty>
 				> ;
 
 				TPolyPointerBase(const us::impl::TPolyPointerBase<_Ty>& p) : m_pointer(p.m_pointer) {}
@@ -649,9 +652,7 @@ namespace mse {
 				TPolyPointerBase(const mse::us::impl::TPointer<_Ty>& p) { m_pointer.template set<mse::us::impl::TPointer<_Ty, mse::impl::TPolyPointerID<const _Ty>>>(p); }
 				TPolyPointerBase(_Ty* p) { m_pointer.template set<mse::us::impl::TPointer<_Ty, mse::impl::TPolyPointerID<const _Ty>>>(p); }
 
-				/* deprecated */
-				TPolyPointerBase(const mse::TAsyncSharedReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWritePointer<_Ty>>(p); }
-				TPolyPointerBase(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>>(p); }
+				TPolyPointerBase(const writelock_ptr_t<_Ty>& p) { m_pointer.template set<writelock_ptr_t<_Ty>>(p); }
 
 				_Ty& operator*() const {
 					return *(static_cast<_Ty*>(m_pointer.arrow_operator()));
@@ -771,6 +772,9 @@ namespace mse {
 			template<typename _Ty>
 			class TPolyConstPointerBase {
 			public:
+				template<typename _Ty2> using writelock_ptr_t = decltype(std::declval<mse::TAsyncSharedV2ReadWriteAccessRequester<_Ty2> >().writelock_ptr());
+				template<typename _Ty2> using readlock_ptr_t = decltype(std::declval<mse::TAsyncSharedV2ReadWriteAccessRequester<_Ty2> >().readlock_ptr());
+
 				using poly_variant = tdp_pointer_variant <
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 					mse::TXScopeObjFixedConstPointer<_Ty>,
@@ -799,9 +803,8 @@ namespace mse {
 					//mse::TXScopePolyPointer<_Ty>,
 					mse::us::impl::TPointer<const _Ty, mse::impl::TPolyPointerID<const _Ty>>,
 
-					/* deprecated */
-					mse::TAsyncSharedReadWriteConstPointer<_Ty>,
-					mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>
+					readlock_ptr_t<_Ty>,
+					writelock_ptr_t<_Ty>
 				> ;
 
 				TPolyConstPointerBase(const us::impl::TPolyConstPointerBase<_Ty>& p) : m_pointer(p.m_pointer) {}
@@ -885,11 +888,8 @@ namespace mse {
 				TPolyConstPointerBase(const mse::us::impl::TPointer<_Ty>& p) { m_pointer.template set<mse::us::impl::TPointer<const _Ty, mse::impl::TPolyPointerID<const _Ty>>>(p); }
 				TPolyConstPointerBase(const _Ty* p) { m_pointer.template set<mse::us::impl::TPointer<const _Ty, mse::impl::TPolyPointerID<const _Ty>>>(p); }
 
-				/* deprecated */
-				TPolyConstPointerBase(const mse::TAsyncSharedReadWriteConstPointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWriteConstPointer<_Ty>>(p); }
-				TPolyConstPointerBase(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>(p); }
-				TPolyConstPointerBase(const mse::TAsyncSharedReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedReadWriteConstPointer<_Ty>>(p); }
-				TPolyConstPointerBase(const mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& p) { m_pointer.template set<mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer<_Ty>>(p); }
+				TPolyConstPointerBase(const readlock_ptr_t<_Ty>& p) { m_pointer.template set<readlock_ptr_t<_Ty>>(p); }
+				TPolyConstPointerBase(const writelock_ptr_t<_Ty>& p) { m_pointer.template set<writelock_ptr_t<_Ty>>(p); }
 
 				const _Ty& operator*() const {
 					return *(static_cast<const _Ty*>(m_pointer.const_arrow_operator()));
@@ -2187,14 +2187,15 @@ namespace mse {
 			static void s_test1() {
 #ifdef MSE_SELF_TESTS
 				{
-					class A {
+					class A1 {
 					public:
-						A() {}
-						A(int x) : b(x) {}
-						virtual ~A() {}
+						A1() {}
+						A1(int x) : b(x) {}
+						virtual ~A1() {}
 
 						int b = 3;
 					};
+					typedef mse::rsv::TAsyncShareableAndPassableObj<A1> A;
 					class D : public A {
 					public:
 						D(int x) : A(x) {}
@@ -2259,7 +2260,7 @@ namespace mse {
 					auto a_msevec_ssiter = a_msevec.ss_begin();
 
 					/* And don't forget the safe async sharing pointers. */
-					auto a_access_requester = mse::make_asyncsharedreadwrite<A>();
+					auto a_access_requester = mse::make_asyncsharedv2readwrite<A>();
 					auto a_writelock_ptr = a_access_requester.writelock_ptr();
 					auto a_stdshared_const_ptr = mse::make_stdsharedimmutable<A>();
 

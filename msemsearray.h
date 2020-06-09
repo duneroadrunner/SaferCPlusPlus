@@ -731,7 +731,8 @@ namespace mse {
 				TRAIteratorBase(const _TLoneParam& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
 					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
 					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
-				template<class _TLoneParam, class = typename std::enable_if<lone_param_seems_valid<_TLoneParam>::value, void>::type>
+				template<class _TLoneParam, class = typename std::enable_if<lone_param_seems_valid<_TLoneParam>::value
+					&& (!std::is_base_of<TRAIteratorBase, _TLoneParam>::value), void>::type>
 				TRAIteratorBase(_TLoneParam&& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
 					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
 					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
@@ -893,7 +894,7 @@ namespace mse {
 		TRAIterator(_TRAContainerPointer1&& ra_container_pointer, size_type index) : base_class(std::forward<_TRAContainerPointer1>(ra_container_pointer), index) {}
 		template <typename _TLoneParam>
 		TRAIterator(const _TLoneParam& lone_param) : base_class(lone_param) {}
-		template <typename _TLoneParam>
+		template <typename _TLoneParam, class = typename std::enable_if<(!std::is_base_of<TRAIterator, _TLoneParam>::value), void>::type>
 		TRAIterator(_TLoneParam&& lone_param) : base_class(std::forward<_TLoneParam>(lone_param)) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRAIterator() {
@@ -1019,7 +1020,8 @@ namespace mse {
 				TRAConstIteratorBase(const _TLoneParam& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
 					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
 					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param)) {}
-				template<class _TLoneParam, class = typename std::enable_if<lone_param_seems_valid<_TLoneParam>::value, void>::type>
+				template<class _TLoneParam, class = typename std::enable_if<lone_param_seems_valid<_TLoneParam>::value
+					&& (!std::is_base_of<TRAConstIteratorBase, _TLoneParam>::value), void>::type>
 				TRAConstIteratorBase(_TLoneParam&& param) : m_index(index_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), param))
 					, m_ra_container_pointer(ra_container_pointer_from_lone_param(
 					typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TLoneParam>::type(), std::forward<_TLoneParam>(param))) {}
@@ -1179,7 +1181,7 @@ namespace mse {
 		TRAConstIterator(_TRAContainerPointer1&& ra_container_pointer, size_type index) : base_class(std::forward<_TRAContainerPointer1>(ra_container_pointer), index) {}
 		template <typename _TLoneParam>
 		TRAConstIterator(const _TLoneParam& lone_param) : base_class(lone_param) {}
-		template <typename _TLoneParam>
+		template <typename _TLoneParam, class = typename std::enable_if<(!std::is_base_of<TRAConstIterator, _TLoneParam>::value), void>::type>
 		TRAConstIterator(_TLoneParam&& lone_param) : base_class(std::forward<_TLoneParam>(lone_param)) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRAConstIterator() {

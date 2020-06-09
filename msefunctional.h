@@ -53,10 +53,17 @@ namespace mse {
 			function(const base_class& src) : base_class(src) {}
 			function(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
-			function() : base_class() {}
+			function() noexcept : base_class() {}
+			function(std::nullptr_t) noexcept : base_class(nullptr) {}
 
-			template <typename _Fty2, class = typename std::enable_if<(!std::is_convertible<const _Fty2*, const function*>::value), void>::type>
+			template <typename _Fty2, class = typename std::enable_if<(!std::is_convertible<const _Fty2*, const function*>::value)
+				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value), void>::type>
 			function(const _Fty2& func) : base_class(func) {
+				mse::impl::T_valid_if_not_an_xscope_type<_Fty2>();
+			}
+			template <typename _Fty2, class = typename std::enable_if<(!std::is_convertible<const _Fty2*, const function*>::value)
+				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value), void>::type>
+			function(_Fty2&& func) : base_class(std::forward<decltype(func)>(func)) {
 				mse::impl::T_valid_if_not_an_xscope_type<_Fty2>();
 			}
 
@@ -94,10 +101,13 @@ namespace mse {
 		xscope_function(const base_class& src) : base_class(src) {}
 		xscope_function(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
-		xscope_function() : base_class() {}
-		template <typename _Fty2, class = typename std::enable_if<(!std::is_convertible<const _Fty2*, const xscope_function*>::value), void>::type>
+		xscope_function() noexcept : base_class() {}
+		xscope_function(std::nullptr_t) noexcept : base_class(nullptr) {}
+		template <typename _Fty2, class = typename std::enable_if<(!std::is_convertible<const _Fty2*, const xscope_function*>::value)
+			&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value), void>::type>
 		xscope_function(const _Fty2& func) : base_class(mse::us::impl::make_newable_xscope(func)) {}
-		template <typename _Fty2, class = typename std::enable_if<(!std::is_convertible<const _Fty2*, const xscope_function*>::value), void>::type>
+		template <typename _Fty2, class = typename std::enable_if<(!std::is_convertible<const _Fty2*, const xscope_function*>::value)
+			&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value), void>::type>
 		xscope_function(_Fty2&& func) : base_class(mse::us::impl::make_newable_xscope(std::forward<decltype(func)>(func))) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
