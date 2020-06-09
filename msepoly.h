@@ -21,9 +21,7 @@
 #include "msemstdarray.h"
 #include "msemsestring.h"
 #include "msemstdstring.h"
-#ifdef MSE_SELF_TESTS
 #include "msestaticimmutable.h"
-#endif // MSE_SELF_TESTS
 
 
 #include <memory>
