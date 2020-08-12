@@ -260,21 +260,26 @@ namespace mse {
 			//array(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : base_class(_Ilist) {}
 			static std::array<_Ty, _Size> std_array_initial_value(std::true_type, _XSTD initializer_list<_Ty> _Ilist) {
 				/* _Ty is default constructible. */
-				std::array<_Ty, _Size> retval;
+				typedef typename std::remove_const<_Ty>::type _NCTy;
+				std::array<_NCTy, _Size> nc_retval;
 				assert(_Size >= _Ilist.size());
 				auto stop_size = _Size;
 				if (_Size > _Ilist.size()) {
 					stop_size = _Ilist.size();
-					/* just to make sure that all the retval elements are initialized as if by aggregate initialization. */
-					retval = std::array<_Ty, _Size>{};
+					/* just to make sure that all the nc_retval elements are initialized as if by aggregate initialization. */
+					nc_retval = std::array<_NCTy, _Size>{};
 				}
 				msear_size_t count = 0;
 				auto Il_it = _Ilist.begin();
-				auto target_it = retval.begin();
+				auto target_it = nc_retval.begin();
 				for (; (count < stop_size); Il_it++, count += 1, target_it++) {
 					(*target_it) = (*Il_it);
 				}
-				return retval;
+
+				/* We're just reinterpreting an std::array<T, Size> as (potentially) an std::array<const T, Size> which
+				should be safe. Right?*/
+				auto& retval_ref = reinterpret_cast<std::array<_Ty, _Size>&>(nc_retval);
+				return retval_ref;
 			}
 			static std::array<_Ty, _Size> std_array_initial_value(std::false_type, _XSTD initializer_list<_Ty> _Ilist) {
 				/* _Ty is not default constructible. */

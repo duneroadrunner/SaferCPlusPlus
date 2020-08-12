@@ -84,6 +84,8 @@
 #define MSE_LH_IF_ENABLED(x) x
 #define MSE_LH_IF_DISABLED(x)
 
+#endif /*MSE_LEGACYHELPERS_DISABLED*/
+
 namespace mse {
 	namespace lh {
 
@@ -262,10 +264,13 @@ namespace mse {
 			operator typename mse::mstd::array<_Ty, _Size>::iterator() {
 				return base_class::begin();
 			}
+			template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+				&& (!std::is_same<typename mse::mstd::array<_Ty2, _Size>::const_iterator, typename mse::mstd::array<_Ty2, _Size>::iterator>::value), void>::type>
 			operator typename mse::mstd::array<_Ty, _Size>::const_iterator() {
 				return base_class::cbegin();
 			}
-			template <class = typename std::enable_if<(!std::is_const<_Ty>::value), void>::type>
+			template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+				&& (!std::is_const<_Ty2>::value), void>::type>
 			operator mse::TNullableAnyRandomAccessIterator<const _Ty>() {
 				return base_class::begin();
 			}
@@ -274,7 +279,14 @@ namespace mse {
 			typename base_class::difference_type operator-(const typename base_class::iterator& _Right_cref) const { return base_class::begin() - _Right_cref; }
 			typename base_class::const_iterator operator+(typename base_class::difference_type n) const { return base_class::cbegin() + n; }
 			typename base_class::const_iterator operator-(typename base_class::difference_type n) const { return base_class::cbegin() - n; }
+			template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+				&& (!std::is_same<typename mse::mstd::array<_Ty2, _Size>::const_iterator, typename mse::mstd::array<_Ty2, _Size>::iterator>::value), void>::type>
 			typename base_class::difference_type operator-(const typename base_class::const_iterator& _Right_cref) const { return base_class::cbegin() - _Right_cref; }
+
+#ifdef MSE_LEGACYHELPERS_DISABLED
+			TNativeArrayReplacement(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::nii_array<_Ty, _Size>(_Ilist)) {}
+#endif // MSE_LEGACYHELPERS_DISABLED
+
 		};
 
 		template<class _Ty>
@@ -458,8 +470,6 @@ namespace mse {
 		};
 	}
 }
-
-#endif /*MSE_LEGACYHELPERS_DISABLED*/
 
 #ifdef _MSC_VER
 #pragma warning( pop )  
