@@ -113,7 +113,12 @@ namespace mse {
 			*/
 
 			size_type size() const {
-				return (*vector_refcptr()).size();
+				if (vector_refcptr()) {
+					return (*vector_refcptr()).size();
+				}
+				else {
+					return 0;
+				}
 			}
 			void resize(size_type _N, const _Ty& _X = _Ty()) {
 				if (!vector_refcptr()) {
@@ -180,7 +185,12 @@ namespace mse {
 			*/
 
 			size_type size() const {
-				return (*vector_refcptr()).size();
+				if (vector_refcptr()) {
+					return (*vector_refcptr()).size();
+				}
+				else {
+					return 0;
+				}
 			}
 			void resize(size_type _N, const _Ty& _X = _Ty()) {
 				if (!vector_refcptr()) {
