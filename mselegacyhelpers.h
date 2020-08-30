@@ -35,7 +35,7 @@
 #define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) element_type *
 
 #define MSE_LH_ALLOC(element_type, ptr, num_bytes) ptr = (element_type *)malloc(num_bytes)
-#define MSE_LH_REALLOC(element_type, ptr, num_bytes) ptr = (element_type *)realloc(ptr, num_bytes)
+#define MSE_LH_REALLOC(element_type, ptr, num_bytes) (element_type *)realloc(ptr, num_bytes)
 #define MSE_LH_FREE(ptr) free(ptr)
 #define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) (iterator_type)malloc(num_bytes)
 
@@ -48,6 +48,10 @@
 #define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) memset(ptr, value, num_bytes)
 #define MSE_LH_MEMCPY(destination, source, num_bytes) memcpy(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) memset(ptr, value, num_bytes)
+
+#define MSE_LH_ADDRESSABLE_TYPE(object_type) object_type
+#define MSE_LH_POINTER_TYPE(element_type) element_type *
+#define MSE_LH_ALLOC_POINTER_TYPE(element_type) element_type *
 
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE
@@ -77,6 +81,10 @@
 #define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<element_type> >::memset(ptr, value, num_bytes)
 #define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((destination)[0])>::type> >::memcpy(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::memset(ptr, value, num_bytes)
+
+#define MSE_LH_ADDRESSABLE_TYPE(object_type) mse::TRegisteredObj< object_type >
+#define MSE_LH_POINTER_TYPE(element_type) mse::TNullableAnyPointer< element_type >
+#define MSE_LH_ALLOC_POINTER_TYPE(element_type) mse::TRefCountingPointer< element_type >
 
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE MSE_SUPPRESS_CHECK_IN_DECLSCOPE
@@ -334,6 +342,18 @@ namespace mse {
 			}
 		};
 		template<class _Ty>
+		class CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>> {
+		public:
+			static void free(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr) {
+				ptr = mse::lh::TStrongVectorIterator<_Ty>();
+			}
+			static void allocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
+				mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
+				ptr = tmp;
+			}
+			//static void reallocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
+		};
+		template<class _Ty>
 		class CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>> {
 		public:
 			static void free(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr) {
@@ -365,6 +385,27 @@ namespace mse {
 				}
 			}
 		};
+		template<class _Ty>
+		class CAllocF<mse::TNullableAnyPointer<_Ty>> {
+		public:
+			static void free(mse::TNullableAnyPointer<_Ty>& ptr) {
+				ptr = nullptr;
+			}
+			static void allocate(mse::TNullableAnyPointer<_Ty>& ptr, size_t num_bytes) {
+				if (0 == num_bytes) {
+					ptr = nullptr;
+				}
+				else if (sizeof(_Ty) == num_bytes) {
+					ptr = mse::make_refcounting<_Ty>();
+				}
+				else {
+					assert(false);
+					ptr = mse::make_refcounting<_Ty>();
+					//MSE_THROW(std::bad_alloc("the given allocation size is not supported for this pointer type - CAllocF<mse::TNullableAnyPointer<_Ty>>::allocate()"));
+				}
+			}
+			//static void reallocate(mse::TNullableAnyPointer<_Ty>& ptr, size_t num_bytes);
+		};
 
 		template<class _TDynArrayIter>
 		_TDynArrayIter& allocate(_TDynArrayIter& ptr, size_t num_bytes) {
@@ -372,7 +413,8 @@ namespace mse {
 			return ptr;
 		}
 		template<class _TDynArrayIter>
-		_TDynArrayIter& reallocate(_TDynArrayIter& ptr, size_t num_bytes) {
+		auto reallocate(const _TDynArrayIter& ptr2, size_t num_bytes) {
+			auto ptr = ptr2;
 			CAllocF<_TDynArrayIter>::reallocate(ptr, num_bytes);
 			return ptr;
 		}

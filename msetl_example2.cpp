@@ -1621,10 +1621,12 @@ void msetl_example2() {
 			MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int) iptrwbv1 = MSE_LH_ALLOC_DYN_ARRAY1(MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int), 2 * sizeof(int));
 			iptrwbv1[0] = 1;
 			iptrwbv1[1] = 2;
-			MSE_LH_REALLOC(int, iptrwbv1, 5 * sizeof(int));
-			auto res10 = iptrwbv1[0];
-			auto res11 = iptrwbv1[1];
-			auto res12 = iptrwbv1[2];
+			MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int) iptrwbv2 = MSE_LH_REALLOC(int, iptrwbv1, 5 * sizeof(int));
+			if (iptrwbv2) {
+				auto res10 = iptrwbv2[0];
+				auto res11 = iptrwbv2[1];
+				auto res12 = iptrwbv2[2];
+			}
 		}
 
 		{
