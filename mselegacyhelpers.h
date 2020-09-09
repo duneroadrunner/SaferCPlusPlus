@@ -34,10 +34,13 @@
 #define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) element_type MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) name MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size)
 #define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) element_type *
 
-#define MSE_LH_ALLOC(element_type, ptr, num_bytes) ptr = (element_type *)malloc(num_bytes)
+#define MSE_LH_ALLOC_POINTER1(element_type) (element_type *)malloc(sizeof(element_type))
+#define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) (iterator_type)malloc(num_bytes)
 #define MSE_LH_REALLOC(element_type, ptr, num_bytes) (element_type *)realloc(ptr, num_bytes)
 #define MSE_LH_FREE(ptr) free(ptr)
-#define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) (iterator_type)malloc(num_bytes)
+
+/* generally prefer MSE_LH_ALLOC_DYN_ARRAY1() or MSE_LH_ALLOC_POINTER1() over MSE_LH_ALLOC() */
+#define MSE_LH_ALLOC(element_type, ptr, num_bytes) ptr = (element_type *)malloc(num_bytes)
 
 #define MSE_LH_ARRAY_ITERATOR_TYPE(element_type) element_type *
 
@@ -67,10 +70,13 @@
 #define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) element_type MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) name MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size)
 #define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TStrongVectorIterator< element_type >
 
-#define MSE_LH_ALLOC(element_type, ptr, num_bytes) mse::lh::allocate(ptr, num_bytes)
+#define MSE_LH_ALLOC_POINTER1(element_type) mse::lh::allocate<mse::TNullableAnyPointer<element_type> >()
+#define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) mse::lh::allocate_dyn_array1<iterator_type>(num_bytes)
 #define MSE_LH_REALLOC(element_type, ptr, num_bytes) mse::lh::reallocate(ptr, num_bytes)
 #define MSE_LH_FREE(ptr) mse::lh::CAllocF<typename std::remove_reference<decltype(ptr)>::type>::free(ptr)
-#define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) mse::lh::allocate_dyn_array1<iterator_type>(num_bytes)
+
+/* generally prefer MSE_LH_ALLOC_DYN_ARRAY1() or MSE_LH_ALLOC_POINTER1() over MSE_LH_ALLOC() */
+#define MSE_LH_ALLOC(element_type, ptr, num_bytes) mse::lh::allocate(ptr, num_bytes)
 
 #define MSE_LH_ARRAY_ITERATOR_TYPE(element_type) mse::TNullableAnyRandomAccessIterator< element_type >
 
@@ -410,6 +416,13 @@ namespace mse {
 		template<class _TDynArrayIter>
 		_TDynArrayIter& allocate(_TDynArrayIter& ptr, size_t num_bytes) {
 			CAllocF<_TDynArrayIter>::allocate(ptr, num_bytes);
+			return ptr;
+		}
+		template<class _TPointer>
+		_TPointer allocate() {
+			_TPointer ptr;
+			auto num_bytes = sizeof(decltype(*ptr));
+			CAllocF<_TPointer>::allocate(ptr, num_bytes);
 			return ptr;
 		}
 		template<class _TDynArrayIter>

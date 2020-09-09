@@ -1663,18 +1663,36 @@ void msetl_example2() {
 			naraiter1 = naraiter2;
 			naraiter1 = iptrwbv1;
 			auto res17 = naraiter1[1];
+
+			MSE_LH_FREE(iptrwbv1);
 		}
 
 		{
 			typedef int dyn_arr2_element_type;
 			MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(dyn_arr2_element_type) dyn_arr2;
-			MSE_LH_ALLOC(dyn_arr2_element_type, dyn_arr2, 64/*bytes*/);
-			//dyn_arr2 = MSE_LH_ALLOC_DYN_ARRAY1(MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(dyn_arr2_element_type), 64/*bytes*/);
+			dyn_arr2 = MSE_LH_ALLOC_DYN_ARRAY1(MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(dyn_arr2_element_type), 64/*bytes*/);
 
 			MSE_LH_MEMSET(dyn_arr2, 99, 64/*bytes*/);
 			auto dyn_arr2b = dyn_arr2;
 
 			MSE_LH_FREE(dyn_arr2);
+		}
+
+		{
+			MSE_LH_POINTER_TYPE(int) ptr0 = MSE_LH_ALLOC_POINTER1(int);
+			*ptr0 = 7;
+
+			MSE_LH_POINTER_TYPE(int) ptr1;
+			MSE_LH_POINTER_TYPE(int) ptr2 = nullptr;
+			MSE_LH_POINTER_TYPE(int) ptr3 = ptr0;
+			ptr1 = nullptr;
+			ptr1 = 0;
+			ptr1 = NULL;
+			ptr1 = ptr2;
+			ptr1 = ptr0;
+			auto res17 = *ptr1;
+
+			MSE_LH_FREE(ptr0);
 		}
 
 		{

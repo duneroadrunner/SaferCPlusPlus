@@ -2061,7 +2061,7 @@ namespace mse {
 			(!std::is_convertible<_TRandomAccessIterator1, TNullableAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
-			&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
+			//&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
 			, void>::type>
 		TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TAnyRandomAccessIterator<_Ty>(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
@@ -2100,19 +2100,19 @@ namespace mse {
 	class TNullableAnyPointer : public TAnyPointer<_Ty> {
 	public:
 		typedef TAnyPointer<_Ty> base_class;
-		TNullableAnyPointer() : base_class(mse::TRegisteredPointer<_Ty>()), m_is_null(true) {}
+		TNullableAnyPointer() : base_class(mse::TRefCountingPointer<_Ty>()), m_is_null(true) {}
 		TNullableAnyPointer(const std::nullptr_t& src) : TNullableAnyPointer() {}
 		TNullableAnyPointer(const TNullableAnyPointer& src) : base_class(src) {}
 		TNullableAnyPointer(const base_class& src) : base_class(src) {}
 
-		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
-			(!std::is_convertible<_TRandomAccessIterator1, TNullableAnyPointer>::value)
-			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
-			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
-			&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
+		template <typename _TPointer1, class = typename std::enable_if<
+			(!std::is_convertible<_TPointer1, TNullableAnyPointer>::value)
+			&& (!std::is_base_of<base_class, _TPointer1>::value)
+			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
+			//&& (!std::is_convertible<_TPointer1, int>::value)
 			, void>::type>
-		TNullableAnyPointer(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {
-			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
+		TNullableAnyPointer(const _TPointer1& random_access_iterator) : base_class(random_access_iterator) {
+			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
 
 		friend void swap(TNullableAnyPointer& first, TNullableAnyPointer& second) {
