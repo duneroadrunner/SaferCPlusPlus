@@ -2801,13 +2801,17 @@ namespace mse {
 	}
 
 	/* shorter aliases */
-	template<typename _Ty> using sfp = TXScopeObjFixedPointer<_Ty>;
-	template<typename _Ty> using sfcp = TXScopeObjFixedConstPointer<_Ty>;
 	template<typename _TROy> using so = TXScopeObj<_TROy>;
 	template<typename _Ty> using sifp = TXScopeFixedPointer<_Ty>;
 	template<typename _Ty> using sifcp = TXScopeFixedConstPointer<_Ty>;
 
+	template<typename _TROy> using xs_obj = TXScopeObj<_TROy>;
+	template<typename _Ty> using xs_fptr = TXScopeFixedPointer<_Ty>;
+	template<typename _Ty> using xs_fcptr = TXScopeFixedConstPointer<_Ty>;
+
 	/* deprecated aliases */
+	template<typename _Ty> using sfp MSE_DEPRECATED = TXScopeObjFixedPointer<_Ty>;
+	template<typename _Ty> using sfcp MSE_DEPRECATED = TXScopeObjFixedConstPointer<_Ty>;
 	template<typename _Ty> using scpfp MSE_DEPRECATED = TXScopeObjFixedPointer<_Ty>;
 	template<typename _Ty> using scpfcp MSE_DEPRECATED = TXScopeObjFixedConstPointer<_Ty>;
 	template<typename _TROy> using scpo MSE_DEPRECATED = TXScopeObj<_TROy>;

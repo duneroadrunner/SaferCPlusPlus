@@ -1639,6 +1639,15 @@ namespace mse {
 	template<typename _Ty> using nfp = TNoradFixedPointer<_Ty>;
 	template<typename _Ty> using nfcp = TNoradFixedConstPointer<_Ty>;
 	template<typename _TROFLy> using no = TNoradObj<_TROFLy>;
+
+	template<typename _Ty> using nrd_ptr = TNoradPointer<_Ty>;
+	template<typename _Ty> using nrd_cptr = TNoradConstPointer<_Ty>;
+	template<typename _Ty> using nrd_nnptr = TNoradNotNullPointer<_Ty>;
+	template<typename _Ty> using nrd_nncptr = TNoradNotNullConstPointer<_Ty>;
+	template<typename _Ty> using nrd_fptr = TNoradFixedPointer<_Ty>;
+	template<typename _Ty> using nrd_fcptr = TNoradFixedConstPointer<_Ty>;
+	template<typename _TROFLy> using nrd_obj = TNoradObj<_TROFLy>;
+
 	template <class _Ty, class... Args>
 	TNoradPointer<_Ty> nnew(Args&&... args) { return norad_new<_Ty>(std::forward<Args>(args)...); }
 	template <class _Ty>

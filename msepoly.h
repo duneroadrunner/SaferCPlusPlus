@@ -2165,6 +2165,11 @@ namespace mse {
 	template<typename _Ty> using anyp = TAnyPointer<_Ty>;
 	template<typename _Ty> using anycp = TAnyConstPointer<_Ty>;
 
+	template<typename _Ty> using poly_ptr = TPolyPointer<_Ty>;
+	template<typename _Ty> using poly_cptr = TPolyConstPointer<_Ty>;
+	template<typename _Ty> using any_ptr = TAnyPointer<_Ty>;
+	template<typename _Ty> using any_cptr = TAnyConstPointer<_Ty>;
+
 
 #ifdef __clang__
 #pragma clang diagnostic push

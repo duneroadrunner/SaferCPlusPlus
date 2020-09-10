@@ -855,6 +855,13 @@ namespace mse {
 	template<typename _Ty> using refcfp = TRefCountingFixedPointer<_Ty>;
 	template<typename _Ty> using refcfcp = TRefCountingFixedConstPointer<_Ty>;
 
+	template<typename _Ty> using refc_ptr = TRefCountingPointer<_Ty>;
+	template<typename _Ty> using refc_cptr = TRefCountingConstPointer<_Ty>;
+	template<typename _Ty> using refc_nnptr = TRefCountingNotNullPointer<_Ty>;
+	template<typename _Ty> using refc_nncptr = TRefCountingNotNullConstPointer<_Ty>;
+	template<typename _Ty> using refc_fptr = TRefCountingFixedPointer<_Ty>;
+	template<typename _Ty> using refc_fcptr = TRefCountingFixedConstPointer<_Ty>;
+
 	template <class X, class... Args>
 	auto mkrc(Args&&... args) {
 		return make_refcounting<X>(std::forward<Args>(args)...);

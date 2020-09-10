@@ -949,6 +949,15 @@ namespace mse {
 	template<typename _Ty> using rfp = TRegisteredFixedPointer<_Ty>;
 	template<typename _Ty> using rfcp = TRegisteredFixedConstPointer<_Ty>;
 	template<typename _TROy> using ro = TRegisteredObj<_TROy>;
+
+	template<typename _Ty> using reg_ptr = TRegisteredPointer<_Ty>;
+	template<typename _Ty> using reg_cptr = TRegisteredConstPointer<_Ty>;
+	template<typename _Ty> using reg_nnptr = TRegisteredNotNullPointer<_Ty>;
+	template<typename _Ty> using reg_nncptr = TRegisteredNotNullConstPointer<_Ty>;
+	template<typename _Ty> using reg_fptr = TRegisteredFixedPointer<_Ty>;
+	template<typename _Ty> using reg_fcptr = TRegisteredFixedConstPointer<_Ty>;
+	template<typename _TROy> using reg_obj = TRegisteredObj<_TROy>;
+
 	template <class _Ty, class... Args>
 	TRegisteredPointer<_Ty> rnew(Args&&... args) { return registered_new<_Ty>(std::forward<Args>(args)...); }
 	template <class _Ty>
