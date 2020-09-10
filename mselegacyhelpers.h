@@ -413,28 +413,48 @@ namespace mse {
 			//static void reallocate(mse::TNullableAnyPointer<_Ty>& ptr, size_t num_bytes);
 		};
 
-		template<class _TDynArrayIter>
-		_TDynArrayIter& allocate(_TDynArrayIter& ptr, size_t num_bytes) {
-			CAllocF<_TDynArrayIter>::allocate(ptr, num_bytes);
-			return ptr;
-		}
 		template<class _TPointer>
 		_TPointer allocate() {
 			_TPointer ptr;
 			auto num_bytes = sizeof(decltype(*ptr));
-			CAllocF<_TPointer>::allocate(ptr, num_bytes);
-			return ptr;
-		}
-		template<class _TDynArrayIter>
-		auto reallocate(const _TDynArrayIter& ptr2, size_t num_bytes) {
-			auto ptr = ptr2;
-			CAllocF<_TDynArrayIter>::reallocate(ptr, num_bytes);
+			MSE_TRY{
+				CAllocF<_TPointer>::allocate(ptr, num_bytes);
+			}
+			MSE_CATCH_ANY{
+				return _TPointer();
+			}
 			return ptr;
 		}
 		template<class _TDynArrayIter>
 		_TDynArrayIter allocate_dyn_array1(size_t num_bytes) {
 			_TDynArrayIter ptr;
-			CAllocF<_TDynArrayIter>::allocate(ptr, num_bytes);
+			MSE_TRY{
+				CAllocF<_TDynArrayIter>::allocate(ptr, num_bytes);
+			}
+			MSE_CATCH_ANY{
+				return _TDynArrayIter();
+			}
+			return ptr;
+		}
+		template<class _TDynArrayIter>
+		_TDynArrayIter reallocate(const _TDynArrayIter& ptr2, size_t num_bytes) {
+			_TDynArrayIter ptr = ptr2;
+			MSE_TRY{
+				CAllocF<_TDynArrayIter>::reallocate(ptr, num_bytes);
+			}
+			MSE_CATCH_ANY{
+				return _TDynArrayIter();
+			}
+			return ptr;
+		}
+		template<class _TDynArrayIter>
+		_TDynArrayIter allocate(_TDynArrayIter& ptr, size_t num_bytes) {
+			MSE_TRY{
+				CAllocF<_TDynArrayIter>::allocate(ptr, num_bytes);
+			}
+			MSE_CATCH_ANY{
+				return _TDynArrayIter();
+			}
 			return ptr;
 		}
 
