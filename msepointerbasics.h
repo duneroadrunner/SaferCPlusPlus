@@ -318,6 +318,16 @@ namespace mse {
 #define MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(Base)	\
 	MSE_USING_ASSIGNMENT_OPERATOR(Base) MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION
 
+#define MSE_INHERIT_ASSIGNMENT_OPERATOR_FROM(base_class, this_class) \
+	this_class& operator=(const this_class& _Right_cref) { \
+		base_class::operator=(_Right_cref); \
+		return (*this); \
+	} \
+	this_class& operator=(this_class&& _Right_cref) { \
+		base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); \
+		return (*this); \
+	}
+
 
 #define MSE_FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
 

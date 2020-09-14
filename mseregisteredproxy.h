@@ -313,9 +313,11 @@ namespace mse {
 		TNDRegisteredProxyNotNullConstPointer(const TNDRegisteredProxyNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredProxyConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredProxyNotNullConstPointer() {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDRegisteredProxyConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TNDXScopeRegisteredProxyObj<_Ty>*() const { return TNDRegisteredProxyConstPointer<_Ty>::operator const TNDXScopeRegisteredProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty* () const { return TNDRegisteredProxyConstPointer<_Ty>::operator const _Ty * (); }
+		MSE_DEPRECATED explicit operator const TNDXScopeRegisteredProxyObj<_Ty>* () const { return TNDRegisteredProxyConstPointer<_Ty>::operator const TNDXScopeRegisteredProxyObj<_Ty> * (); }
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	private:
 		TNDRegisteredProxyNotNullConstPointer(const TNDXScopeRegisteredProxyObj<_Ty>* ptr) : TNDRegisteredProxyConstPointer<_Ty>(ptr) {}
@@ -368,9 +370,11 @@ namespace mse {
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredProxyFixedPointer() {}
 
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const { return TNDRegisteredProxyNotNullPointer<_Ty>::operator _Ty*(); }
-		MSE_DEPRECATED explicit operator TNDXScopeRegisteredProxyObj<_Ty>*() const { return TNDRegisteredProxyNotNullPointer<_Ty>::operator TNDXScopeRegisteredProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator _Ty* () const { return TNDRegisteredProxyNotNullPointer<_Ty>::operator _Ty * (); }
+		MSE_DEPRECATED explicit operator TNDXScopeRegisteredProxyObj<_Ty>* () const { return TNDRegisteredProxyNotNullPointer<_Ty>::operator TNDXScopeRegisteredProxyObj<_Ty> * (); }
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	private:
 		TNDRegisteredProxyFixedPointer(const TNDXScopeRegisteredProxyObj<_Ty>* ptr) : TNDRegisteredProxyNotNullPointer<_Ty>(ptr) {}
@@ -399,9 +403,11 @@ namespace mse {
 		TNDRegisteredProxyFixedConstPointer(const TNDRegisteredProxyNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredProxyNotNullConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredProxyFixedConstPointer() {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDRegisteredProxyNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TNDXScopeRegisteredProxyObj<_Ty>*() const { return TNDRegisteredProxyNotNullConstPointer<_Ty>::operator const TNDXScopeRegisteredProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty* () const { return TNDRegisteredProxyNotNullConstPointer<_Ty>::operator const _Ty * (); }
+		MSE_DEPRECATED explicit operator const TNDXScopeRegisteredProxyObj<_Ty>* () const { return TNDRegisteredProxyNotNullConstPointer<_Ty>::operator const TNDXScopeRegisteredProxyObj<_Ty> * (); }
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	private:
 		TNDRegisteredProxyFixedConstPointer(const TNDXScopeRegisteredProxyObj<_Ty>* ptr) : TNDRegisteredProxyNotNullConstPointer<_Ty>(ptr) {}
@@ -684,6 +690,7 @@ namespace mse {
 					B::foo3(A_registered_proxy_ptr1);
 					mse::TXScopeFixedPointer<A> A_scope_ptr2 = A_registered_proxy_ptr1;
 					mse::TXScopeFixedConstPointer<A> A_scope_cptr2 = A_registered_proxy_ptr1;
+					/* But doing the conversion explicitly may be necessary in some cases to avoid ambiguity. */
 
 					if (A_registered_proxy_ptr2) {
 						assert(false);
@@ -741,6 +748,28 @@ namespace mse {
 					auto a_xs_reg_cproxy_obj1 = mse::make_xscope_registered_proxy(a_xs_cptr1);
 					auto a_xs_reg_proxy_cptr1 = mse::registered_proxy_fptr(a_xs_reg_cproxy_obj1);
 				}
+#ifdef MSE_HAS_CXX17
+				{
+					auto xscp_narr1 = mse::make_xscope(mse::nii_array<int, 3>({ 11, 12, 13 }));
+					auto xscp_proxy_obj1 = mse::make_xscope_registered_proxy(&xscp_narr1);
+
+					auto xscope_ptr1 = &xscp_narr1;
+					mse::TXScopeFixedConstPointer<mse::nii_array<int, 3> > xscope_cptr1 = &xscp_narr1;
+					auto proxy_ptr1 = mse::registered_proxy_fptr(xscp_proxy_obj1);
+
+					auto xscope_random_access_section1 = mse::make_xscope_random_access_section(xscope_ptr1);
+					auto xscope_random_access_const_section1 = mse::make_xscope_random_access_const_section(xscope_cptr1);
+					auto proxy_random_access_section1 = mse::make_random_access_section(proxy_ptr1);
+
+					/* Here a random access section based on a registered proxy pointer is implicitly converting to a
+					random access section based on a scope pointer. */
+					decltype(xscope_random_access_section1) xscope_random_access_section2 = proxy_random_access_section1;
+					decltype(xscope_random_access_const_section1) xscope_random_access_const_section2 = proxy_random_access_section1;
+
+					assert(xscp_narr1[0] == xscope_random_access_section2[0]);
+					assert(xscp_narr1[1] == xscope_random_access_const_section2[1]);
+				}
+#endif /* MSE_HAS_CXX17 */
 
 #endif // MSE_SELF_TESTS
 			}

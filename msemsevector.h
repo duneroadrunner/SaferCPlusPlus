@@ -285,6 +285,11 @@ namespace mse {
 				TXScopeCSLSStrongRAIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0)
 					: base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {}
 
+				TXScopeCSLSStrongRAIterator(const TXScopeRAIterator<_TRAContainerPointer>& ra_iterator)
+					: base_class(ra_iterator.target_container_ptr(), ra_iterator.position()) {}
+				TXScopeCSLSStrongRAIterator(TXScopeRAIterator<_TRAContainerPointer>&& ra_iterator)
+					: base_class(std::forward<decltype(ra_iterator)>(ra_iterator).target_container_ptr(), ra_iterator.position()) {}
+
 				auto& operator=(const TXScopeCSLSStrongRAIterator& _Right_cref) & { base_class::operator=(_Right_cref); return (*this); }
 				auto& operator=(TXScopeCSLSStrongRAIterator&& _Right_cref) & { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 				TXScopeCSLSStrongRAIterator operator=(TXScopeCSLSStrongRAIterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::move(*this); }
@@ -336,6 +341,11 @@ namespace mse {
 					: base_class(ra_container_pointer, index) {}
 				TXScopeCSLSStrongRAConstIterator(_TRAContainerPointer&& ra_container_pointer, size_type index = 0)
 					: base_class(std::forward<decltype(ra_container_pointer)>(ra_container_pointer), index) {}
+
+				TXScopeCSLSStrongRAConstIterator(const TXScopeRAConstIterator<_TRAContainerPointer>& ra_iterator)
+					: base_class(ra_iterator.target_container_ptr(), ra_iterator.position()) {}
+				TXScopeCSLSStrongRAConstIterator(TXScopeRAConstIterator<_TRAContainerPointer>&& ra_iterator)
+					: base_class(std::forward<decltype(ra_iterator)>(ra_iterator).target_container_ptr(), ra_iterator.position()) {}
 
 				auto& operator=(const TXScopeCSLSStrongRAConstIterator& _Right_cref) & { base_class::operator=(_Right_cref); return (*this); }
 				auto& operator=(TXScopeCSLSStrongRAConstIterator&& _Right_cref) & { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }

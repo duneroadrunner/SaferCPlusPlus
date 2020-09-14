@@ -302,9 +302,11 @@ namespace mse {
 		TNDNoradProxyNotNullConstPointer(const TNDNoradProxyNotNullConstPointer<_Ty2>& src_cref) : TNDNoradProxyConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradProxyNotNullConstPointer() {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDNoradProxyConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TNDXScopeNoradProxyObj<_Ty>*() const { return TNDNoradProxyConstPointer<_Ty>::operator const TNDXScopeNoradProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty* () const { return TNDNoradProxyConstPointer<_Ty>::operator const _Ty * (); }
+		MSE_DEPRECATED explicit operator const TNDXScopeNoradProxyObj<_Ty>* () const { return TNDNoradProxyConstPointer<_Ty>::operator const TNDXScopeNoradProxyObj<_Ty> * (); }
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	private:
 		TNDNoradProxyNotNullConstPointer(const TNDXScopeNoradProxyObj<_Ty>* ptr) : TNDNoradProxyConstPointer<_Ty>(ptr) {}
@@ -357,9 +359,11 @@ namespace mse {
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradProxyFixedPointer() {}
 
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const { return TNDNoradProxyNotNullPointer<_Ty>::operator _Ty*(); }
-		MSE_DEPRECATED explicit operator TNDXScopeNoradProxyObj<_Ty>*() const { return TNDNoradProxyNotNullPointer<_Ty>::operator TNDXScopeNoradProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator _Ty* () const { return TNDNoradProxyNotNullPointer<_Ty>::operator _Ty * (); }
+		MSE_DEPRECATED explicit operator TNDXScopeNoradProxyObj<_Ty>* () const { return TNDNoradProxyNotNullPointer<_Ty>::operator TNDXScopeNoradProxyObj<_Ty> * (); }
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	private:
 		TNDNoradProxyFixedPointer(const TNDXScopeNoradProxyObj<_Ty>* ptr) : TNDNoradProxyNotNullPointer<_Ty>(ptr) {}
@@ -388,9 +392,11 @@ namespace mse {
 		TNDNoradProxyFixedConstPointer(const TNDNoradProxyNotNullConstPointer<_Ty2>& src_cref) : TNDNoradProxyNotNullConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradProxyFixedConstPointer() {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDNoradProxyNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TNDXScopeNoradProxyObj<_Ty>*() const { return TNDNoradProxyNotNullConstPointer<_Ty>::operator const TNDXScopeNoradProxyObj<_Ty>*(); }
+		MSE_DEPRECATED explicit operator const _Ty* () const { return TNDNoradProxyNotNullConstPointer<_Ty>::operator const _Ty * (); }
+		MSE_DEPRECATED explicit operator const TNDXScopeNoradProxyObj<_Ty>* () const { return TNDNoradProxyNotNullConstPointer<_Ty>::operator const TNDXScopeNoradProxyObj<_Ty> * (); }
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	private:
 		TNDNoradProxyFixedConstPointer(const TNDXScopeNoradProxyObj<_Ty>* ptr) : TNDNoradProxyNotNullConstPointer<_Ty>(ptr) {}
@@ -673,6 +679,7 @@ namespace mse {
 					B::foo3(A_norad_proxy_ptr1);
 					mse::TXScopeFixedPointer<A> A_scope_ptr2 = A_norad_proxy_ptr1;
 					mse::TXScopeFixedConstPointer<A> A_scope_cptr2 = A_norad_proxy_ptr1;
+					/* But doing the conversion explicitly may be necessary in some cases to avoid ambiguity. */
 
 					if (A_norad_proxy_ptr2) {
 						assert(false);
@@ -723,6 +730,28 @@ namespace mse {
 					auto a_xs_nrd_cproxy_obj1 = mse::make_xscope_norad_proxy(a_xs_cptr1);
 					auto a_xs_nrd_proxy_cptr1 = mse::norad_proxy_fptr(a_xs_nrd_cproxy_obj1);
 				}
+#ifdef MSE_HAS_CXX17
+				{
+					auto xscp_narr1 = mse::make_xscope(mse::nii_array<int, 3>({ 11, 12, 13 }));
+					auto xscp_proxy_obj1 = mse::make_xscope_norad_proxy(&xscp_narr1);
+
+					auto xscope_ptr1 = &xscp_narr1;
+					mse::TXScopeFixedConstPointer<mse::nii_array<int, 3> > xscope_cptr1 = &xscp_narr1;
+					auto proxy_ptr1 = mse::norad_proxy_fptr(xscp_proxy_obj1);
+
+					auto xscope_random_access_section1 = mse::make_xscope_random_access_section(xscope_ptr1);
+					auto xscope_random_access_const_section1 = mse::make_xscope_random_access_const_section(xscope_cptr1);
+					auto proxy_random_access_section1 = mse::make_random_access_section(proxy_ptr1);
+
+					/* Here a random access section based on a norad proxy pointer is implicitly converting to a
+					random access section based on a scope pointer. */
+					decltype(xscope_random_access_section1) xscope_random_access_section2 = proxy_random_access_section1;
+					decltype(xscope_random_access_const_section1) xscope_random_access_const_section2 = proxy_random_access_section1;
+
+					assert(xscp_narr1[0] == xscope_random_access_section2[0]);
+					assert(xscp_narr1[1] == xscope_random_access_const_section2[1]);
+				}
+#endif /* MSE_HAS_CXX17 */
 
 #endif // MSE_SELF_TESTS
 			}

@@ -1420,6 +1420,31 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 					//*registered_proxy_ptr1;
 				}
 			}
+#ifdef MSE_HAS_CXX17
+			{
+				/* With C++17 and later, the fact that registered proxy pointers implicitly convert to scope pointers
+				means that iterators and "random access sections" (including string sections) based on registered
+				proxy pointers also implicitly convert to the corresponding iterators and random access sections based
+				on scope pointers. */
+				auto xscp_proxy_obj1 = mse::make_xscope_registered_proxy(&xscp_nstring1);
+
+				auto xscope_ptr1 = &xscp_nstring1;
+				mse::TXScopeFixedConstPointer<mse::mtnii_string> xscope_cptr1 = &xscp_nstring1;
+				auto proxy_ptr1 = mse::registered_proxy_fptr(xscp_proxy_obj1);
+
+				auto xscope_string_section1 = mse::make_xscope_string_section(xscope_ptr1);
+				auto xscope_string_const_section1 = mse::make_xscope_string_const_section(xscope_ptr1);
+				auto proxy_string_section1 = mse::make_string_section(proxy_ptr1);
+
+				/* Here a string section based on a registered proxy pointer is implicitly converting to a string section
+				based on a scope pointer. */
+				decltype(xscope_string_section1) xscope_string_section2 = proxy_string_section1;
+				decltype(xscope_string_const_section1) xscope_string_const_section2 = proxy_string_section1;
+
+				assert(xscp_nstring1[0] == xscope_string_section2[0]);
+				assert(xscp_nstring1[1] == xscope_string_const_section2[1]);
+			}
+#endif /* MSE_HAS_CXX17 */
 			mse::self_test::CRegProxyPtrTest1::s_test1();
 		}
 
@@ -1485,6 +1510,31 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 					}
 				}
 			}
+#ifdef MSE_HAS_CXX17
+			{
+				/* With C++17 and later, the fact that norad proxy pointers implicitly convert to scope pointers
+				means that iterators and "random access sections" (including string sections) based on norad
+				proxy pointers also implicitly convert to the corresponding iterators and random access sections based
+				on scope pointers. */
+				auto xscp_proxy_obj1 = mse::make_xscope_norad_proxy(&xscp_nstring1);
+
+				auto xscope_ptr1 = &xscp_nstring1;
+				mse::TXScopeFixedConstPointer<mse::mtnii_string> xscope_cptr1 = &xscp_nstring1;
+				auto proxy_ptr1 = mse::norad_proxy_fptr(xscp_proxy_obj1);
+
+				auto xscope_string_section1 = mse::make_xscope_string_section(xscope_ptr1);
+				auto xscope_string_const_section1 = mse::make_xscope_string_const_section(xscope_ptr1);
+				auto proxy_string_section1 = mse::make_string_section(proxy_ptr1);
+
+				/* Here a string section based on a norad proxy pointer is implicitly converting to a string section
+				based on a scope pointer. */
+				decltype(xscope_string_section1) xscope_string_section2 = proxy_string_section1;
+				decltype(xscope_string_const_section1) xscope_string_const_section2 = proxy_string_section1;
+
+				assert(xscp_nstring1[0] == xscope_string_section2[0]);
+				assert(xscp_nstring1[1] == xscope_string_const_section2[1]);
+			}
+#endif /* MSE_HAS_CXX17 */
 			mse::self_test::CNoradProxyPtrTest1::s_test1();
 		}
 

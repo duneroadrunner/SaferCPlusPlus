@@ -82,31 +82,10 @@ namespace mse {
 		};
 		*/
 
-		template<class T, class EqualTo>
-		struct IsNonOwningScopePointer_impl
-		{
-			static const bool value = ((std::is_base_of<mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, T>::value
-					&& std::is_base_of<mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, T>::value)
-				|| (std::is_pointer<T>::value && (!mse::impl::is_potentially_not_xscope<T>::value)));
-			using type = std::integral_constant<bool, value>;
-		};
-		template<class T, class EqualTo = T>
-		struct IsNonOwningScopePointer : IsNonOwningScopePointer_impl<
-			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
-
-		template<class T, class EqualTo>
-		struct IsNonOwningScopeOrIndeterminatePointer_impl
-		{
-			static const bool value = (IsNonOwningScopePointer<T>::value)
-#ifdef MSE_SCOPEPOINTER_DISABLED
-				|| (std::is_pointer<T>::value)
-#endif // MSE_SCOPEPOINTER_DISABLED
-				;
-			using type = std::integral_constant<bool, value>;
-		};
-		template<class T, class EqualTo = T>
-		struct IsNonOwningScopeOrIndeterminatePointer : IsNonOwningScopeOrIndeterminatePointer_impl<
-			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+		template<typename T>
+		struct is_nonowning_scope_pointer : std::integral_constant<bool, ((std::is_base_of<mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, T>::value
+			&& std::is_base_of<mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, T>::value)
+			|| (std::is_pointer<T>::value && (!mse::impl::is_potentially_not_xscope<T>::value)))> {};
 
 		template <class _Ty, class _Ty2, class = typename std::enable_if<
 			(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
@@ -1044,6 +1023,28 @@ namespace mse {
 
 	template<typename _Ty> using TXScopeItemFixedPointer = TXScopeFixedPointer<_Ty>;
 	template<typename _Ty> using TXScopeItemFixedConstPointer = TXScopeFixedConstPointer<_Ty>;
+
+	namespace impl {
+
+		template<typename TPtr, typename TTarget>
+		struct is_convertible_to_nonowning_scope_pointer_helper1 : std::integral_constant<bool,
+			std::is_convertible<TPtr, mse::TXScopeFixedPointer<TTarget>>::value || std::is_convertible<TPtr, mse::TXScopeFixedConstPointer<TTarget>>::value> {};
+		template<typename TPtr>
+		struct is_convertible_to_nonowning_scope_pointer : is_convertible_to_nonowning_scope_pointer_helper1<TPtr
+			, typename std::remove_reference<decltype(*std::declval<TPtr>())>::type> {};
+
+		template<typename TPtr, typename TTarget>
+		struct is_convertible_to_nonowning_scope_or_indeterminate_pointer_helper1 : std::integral_constant<bool,
+			is_convertible_to_nonowning_scope_pointer<TPtr>::value
+#ifdef MSE_SCOPEPOINTER_DISABLED
+			|| std::is_convertible<TPtr, TTarget*>::value
+#endif // MSE_SCOPEPOINTER_DISABLED
+		> {};
+		template<typename TPtr>
+		struct is_convertible_to_nonowning_scope_or_indeterminate_pointer : is_convertible_to_nonowning_scope_or_indeterminate_pointer_helper1
+			<TPtr, typename std::remove_reference<decltype(*std::declval<TPtr>())>::type> {};
+
+	}
 
 #ifdef MSE_MSTDARRAY_DISABLED
 
