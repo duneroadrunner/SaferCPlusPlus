@@ -1,4 +1,4 @@
-Feb 2020
+Sep 2020
 
 ### Overview
 
@@ -24,7 +24,7 @@ And the library also addresses the data race issue, where the Core Guidelines do
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
-Tested with msvc2019(v16.4.3), g++7.4.0 and clang++6.0.0. Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. Note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
+Tested with msvc2019(v16.4.3), g++7.4.0 and clang++6.0.0. Versions of g++ prior to version 5 are not supported. Elements in this library are currently based on the C++17 version of their counterpart APIs. Note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
 
 
 ### Table of contents
@@ -2692,6 +2692,10 @@ You might choose to use `nii_array<>`s over `mstd::array<>`s even in cases where
 
 usage example: (see the similar [`mtnii_vector<>`](#mtnii_vector))
 
+### xscope_nii_array<>
+
+Not yet available. For now, as a work-around you might substitute any scope pointer/references that you want to store with [proxy](#tregisteredproxypointer) references, and just use a regular (non-xscope) [`nii_array<>`](#nii_array).
+
 
 ### msearray
 
@@ -3120,6 +3124,17 @@ usage example:
         mse::ivector<int>::ipointer ivip = iv.begin();
     }
 ```
+
+### xscope_fixed_nii_vector<>
+
+Not yet available. An `xscope_fixed_nii_vector<>` is basically like an [`xscope_nii_array<>`](#xscope_nii_array) (i.e. not resizable) whose size is specified at construction (rather than at compile-time).
+
+### xscope_borrowing_fixed_nii_vector<>
+
+[*provisional*]
+
+Not yet available. `xscope_borrowing_fixed_nii_vector<>` is a kind of [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector) that, at construction, "borrows" (or temporarily "steals" via `swap()`) the contents of a specified existing (scope object) vector, then, upon destruction "returns" the (possibly modified) contents back to the original owner.
+
 
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
