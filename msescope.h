@@ -847,7 +847,7 @@ namespace mse {
 			template<class specified_type2, class _TMemberObjectPointer> \
 			friend auto make_xscope_pointer_to_member_v2(const TXScopeFixedPointer<specified_type2> & lease_pointer, const _TMemberObjectPointer & member_object_ptr) \
 				->mse::impl::make_xscope_pointer_to_member_v2_return_type1<specified_type2, _TMemberObjectPointer>; \
-			template<class specified_type2> friend TXScopeFixedPointer<specified_type2> us::unsafe_make_xscope_pointer_to(specified_type2 & ref); \
+			template<class _Ty2> friend TXScopeFixedPointer<_Ty2> us::unsafe_make_xscope_pointer_to(_Ty2 & ref); \
 		}; \
 		template<typename _Ty> \
 		class TXScopeFixedConstPointer<specified_type> : public TXScopeFixedConstPointer<mapped_type> { \
@@ -1151,14 +1151,14 @@ namespace mse {
 				return base_class::make(target, std::forward<decltype(lease)>(lease));
 			}
 
-			mse::TXScopeObjFixedPointer<_TTargetType> xscope_ptr() const & {
+			auto xscope_ptr() const & {
 				return mse::us::unsafe_make_xscope_pointer_to(*(*this));
 			}
-			mse::TXScopeObjFixedPointer<_TTargetType> xscope_ptr() const && = delete;
-			operator mse::TXScopeObjFixedPointer<_TTargetType>() const & {
+			auto xscope_ptr() const && = delete;
+			operator mse::TXScopeFixedPointer<_TTargetType>() const & {
 				return xscope_ptr();
 			}
-			operator mse::TXScopeObjFixedPointer<_TTargetType>() const && = delete;
+			operator mse::TXScopeFixedPointer<_TTargetType>() const && = delete;
 
 		protected:
 			TXScopeStrongFixedPointer(_TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
@@ -1204,14 +1204,14 @@ namespace mse {
 				return base_class::make(target, std::forward<decltype(lease)>(lease));
 			}
 
-			mse::TXScopeObjFixedConstPointer<_TTargetType> xscope_ptr() const & {
+			auto xscope_ptr() const & {
 				return mse::us::unsafe_make_xscope_const_pointer_to(*(*this));
 			}
-			mse::TXScopeObjFixedConstPointer<_TTargetType> xscope_ptr() const && = delete;
-			operator mse::TXScopeObjFixedConstPointer<_TTargetType>() const & {
+			auto xscope_ptr() const && = delete;
+			operator mse::TXScopeFixedConstPointer<_TTargetType>() const & {
 				return xscope_ptr();
 			}
-			operator mse::TXScopeObjFixedConstPointer<_TTargetType>() const && = delete;
+			operator mse::TXScopeFixedConstPointer<_TTargetType>() const && = delete;
 
 		protected:
 			TXScopeStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
@@ -2958,7 +2958,7 @@ namespace mse {
 					auto int_native_ptr = &a;
 
 					mse::TXScopeFixedPointer<int> int_scope_ptr1 = &scope_a;
-					mse::TXScopeFixedPointer<int> int_scope_ptr2 = &scope_a;
+					mse::TXScopeFixedPointer<int> int_scope_ptr2 = int_scope_ptr1;
 
 					if (!int_scope_ptr2) {
 						assert(false);

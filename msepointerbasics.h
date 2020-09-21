@@ -832,13 +832,14 @@ namespace mse {
 
 #define MSE_INHERIT_COMMON_XSCOPE_OBJ_TAG_BASE_SET_FROM(class2, class3) MSE_INHERIT_COMMON_XSCOPE_POINTER_TAG_BASE_SET_FROM(class2, class3)
 
+#define MSE_IMPL_MACRO_TEXT_CONCAT_(a,b)  a##b
+
 	namespace rsv {
 		inline void suppress_check_directive() {}
 #define MSE_SUPPRESS_CHECK_IN_XSCOPE \
 		mse::rsv::suppress_check_directive();
 
-#define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_MERGE_(a,b)  a##b
-#define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_LABEL_(a) MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_MERGE_(mse_suppress_check_directive_, a)
+#define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_LABEL_(a) MSE_IMPL_MACRO_TEXT_CONCAT_(mse_suppress_check_directive_, a)
 #define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_LABEL_(__LINE__)
 
 #define MSE_SUPPRESS_CHECK_IN_DECLSCOPE \
