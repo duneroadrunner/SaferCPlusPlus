@@ -73,20 +73,20 @@
 #define MSE_LH_ALLOC_POINTER1(element_type) mse::lh::allocate<mse::TNullableAnyPointer<element_type> >()
 #define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) mse::lh::allocate_dyn_array1<iterator_type>(num_bytes)
 #define MSE_LH_REALLOC(element_type, ptr, num_bytes) mse::lh::reallocate(ptr, num_bytes)
-#define MSE_LH_FREE(ptr) mse::lh::CAllocF<typename std::remove_reference<decltype(ptr)>::type>::free(ptr)
+#define MSE_LH_FREE(ptr) mse::lh::free(ptr)
 
 /* generally prefer MSE_LH_ALLOC_DYN_ARRAY1() or MSE_LH_ALLOC_POINTER1() over MSE_LH_ALLOC() */
 #define MSE_LH_ALLOC(element_type, ptr, num_bytes) mse::lh::allocate(ptr, num_bytes)
 
 #define MSE_LH_ARRAY_ITERATOR_TYPE(element_type) mse::TNullableAnyRandomAccessIterator< element_type >
 
-#define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fread(ptr, size, count, stream)
-#define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fwrite(ptr, size, count, stream)
+#define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::fread(ptr, size, count, stream)
+#define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::fwrite(ptr, size, count, stream)
 
-#define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<element_type> >::memcpy(destination, source, num_bytes)
-#define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<element_type> >::memset(ptr, value, num_bytes)
-#define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((destination)[0])>::type> >::memcpy(destination, source, num_bytes)
-#define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::memset(ptr, value, num_bytes)
+#define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) mse::lh::memset< mse::TNullableAnyRandomAccessIterator<element_type> >::memcpy(destination, source, num_bytes)
+#define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) mse::lh::memset< mse::TNullableAnyRandomAccessIterator<element_type> >::memset(ptr, value, num_bytes)
+#define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::memcpy(destination, source, num_bytes)
+#define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::memset(ptr, value, num_bytes)
 
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) mse::TRegisteredObj< object_type >
 #define MSE_LH_POINTER_TYPE(element_type) mse::TNullableAnyPointer< element_type >
@@ -457,6 +457,10 @@ namespace mse {
 			}
 			return ptr;
 		}
+		template<class _TDynArrayIter>
+		void free(_TDynArrayIter& ptr) {
+			CAllocF<_TDynArrayIter>::free(ptr);
+		}
 
 		template<class _Ty>
 		class CFileF {
@@ -509,6 +513,14 @@ namespace mse {
 				return res;
 			}
 		};
+		template<class _TIter>
+		size_t fread(_TIter ptr, size_t size, size_t count, FILE* stream) {
+			return CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fread(ptr, size, count, stream);
+		}
+		template<class _TIter>
+		size_t fwrite(_TIter ptr, size_t size, size_t count, FILE* stream) {
+			return CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fread(ptr, size, count, stream);
+		}
 
 		template<class _Ty>
 		class CMemF {
@@ -553,6 +565,14 @@ namespace mse {
 				CMemF< mse::TNullableAnyRandomAccessIterator<_Ty> >::memset(ptr, value, num_bytes);
 			}
 		};
+		template<class _TIter>
+		void memcpy(_TIter destination, _TIter source, size_t num) {
+			CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((destination)[0])>::type> >::memcpy(destination, source, num);
+		}
+		template<class _TIter>
+		void memset(_TIter ptr, int value, size_t num) {
+			CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::memset(ptr, value, num);
+		}
 	}
 }
 
