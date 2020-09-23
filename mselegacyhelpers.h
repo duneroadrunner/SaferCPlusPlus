@@ -462,116 +462,101 @@ namespace mse {
 			CAllocF<_TDynArrayIter>::free(ptr);
 		}
 
-		template<class _Ty>
-		class CFileF {
-		public:
-			static size_t fread(_Ty ptr, size_t size, size_t count, FILE * stream);
-			static size_t fwrite(_Ty ptr, size_t size, size_t count, FILE * stream);
-		};
-		template<class _Ty>
-		class CFileF<_Ty*> {
-		public:
-			static size_t fread(_Ty* ptr, size_t size, size_t count, FILE * stream) {
-				return ::fread(ptr, size, count, stream);
-			}
-			static size_t fwrite(_Ty* ptr, size_t size, size_t count, FILE * stream) {
-				return ::fwrite(ptr, size, count, stream);
-			}
-		};
-		template<class _Ty>
-		class CFileF<mse::TNullableAnyRandomAccessIterator<_Ty>> {
-		public:
-			static size_t fread(mse::TNullableAnyRandomAccessIterator<_Ty> ptr, size_t size, size_t count, FILE * stream) {
-				static std::vector<unsigned char> v;
-				v.resize(size * count);
-				auto num_bytes_read = ::fread(v.data(), size, count, stream);
-				auto num_items_read = num_bytes_read / sizeof(_Ty);
-				size_t uc_index = 0;
-				size_t Ty_index = 0;
-				for (; Ty_index < num_items_read; uc_index += sizeof(_Ty), Ty_index += 1) {
-					unsigned char* uc_ptr = &(v[uc_index]);
-					_Ty* Ty_ptr = reinterpret_cast<_Ty*>(uc_ptr);
-					ptr[Ty_index] = (*Ty_ptr);
-				}
-				v.resize(0);
-				return num_bytes_read;
-			}
-			static size_t fwrite(mse::TNullableAnyRandomAccessIterator<_Ty> ptr, size_t size, size_t count, FILE * stream) {
-				typedef typename std::remove_const<_Ty>::type non_const_Ty;
-				static std::vector<unsigned char> v;
-				v.resize(size * count);
-				auto num_items_to_write = size * count / sizeof(_Ty);
-				size_t uc_index = 0;
-				size_t Ty_index = 0;
-				for (; Ty_index < num_items_to_write; uc_index += sizeof(_Ty), Ty_index += 1) {
-					unsigned char* uc_ptr = &(v[uc_index]);
-					non_const_Ty* Ty_ptr = reinterpret_cast<non_const_Ty*>(uc_ptr);
-					(*Ty_ptr) = ptr[Ty_index];
-				}
-				auto res = ::fwrite(v.data(), size, count, stream);
-				v.resize(0);
-				return res;
-			}
-		};
+		/* Memory safe approximation of fread(). */
 		template<class _TIter>
 		size_t fread(_TIter ptr, size_t size, size_t count, FILE* stream) {
-			return CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fread(ptr, size, count, stream);
+			typedef typename std::remove_reference<decltype((ptr)[0])>::type element_t;
+			thread_local std::vector<unsigned char> v;
+			v.resize(size * count);
+			auto num_bytes_read = ::fread(v.data(), size, count, stream);
+			auto num_items_read = num_bytes_read / sizeof(element_t);
+			size_t uc_index = 0;
+			size_t element_index = 0;
+			for (; element_index < num_items_read; uc_index += sizeof(element_t), element_index += 1) {
+				unsigned char* uc_ptr = &(v[uc_index]);
+				if (false) {
+					element_t* element_ptr = reinterpret_cast<element_t*>(uc_ptr);
+					ptr[element_index] = (*element_ptr);
+				}
+				else {
+					long long int adjusted_value = 0;
+					static_assert(sizeof(adjusted_value) >= sizeof(element_t), "The (memory safe) lh::fread() function does not support element types larger than `long long int`. ");
+					for (size_t i = 0; i < sizeof(element_t); i += 1) {
+						adjusted_value |= ((uc_ptr[i]) << (8 * ((sizeof(element_t) - 1) - i)));
+					}
+					/* Only element types that are (or can be constructed from) integral types are supported. */
+					ptr[element_index] = element_t(adjusted_value);
+				}
+			}
+			v.resize(0);
+			v.shrink_to_fit();
+			return num_bytes_read;
 		}
+		/* Memory safe approximation of fwrite(). */
 		template<class _TIter>
 		size_t fwrite(_TIter ptr, size_t size, size_t count, FILE* stream) {
-			return CFileF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::fread(ptr, size, count, stream);
+			typedef typename std::remove_reference<decltype((ptr)[0])>::type element_t;
+			auto num_items_to_write = size * count / sizeof(element_t);
+			thread_local std::vector<unsigned char> v;
+			v.resize(size * count);
+			//assert(num_items_to_write * sizeof(element_t) == size * count);
+			size_t uc_index = 0;
+			size_t element_index = 0;
+			for (; element_index < num_items_to_write; uc_index += sizeof(element_t), element_index += 1) {
+				unsigned char* uc_ptr = &(v[uc_index]);
+				if (false) {
+					typedef typename std::remove_const<element_t>::type non_const_element_t;
+					non_const_element_t* element_ptr = reinterpret_cast<non_const_element_t*>(uc_ptr);
+					(*element_ptr) = ptr[element_index];
+				}
+				else {
+					/* Only element types that are (or convert to) integral types are supported. */
+					long long int value(ptr[element_index]);
+					static_assert(sizeof(value) >= sizeof(element_t), "The (memory safe) lh::write() function does not support element types larger than `long long int`. ");
+					for (size_t i = 0; i < sizeof(element_t); i += 1) {
+						uc_ptr[i] = ((value >> (8 * ((sizeof(element_t) - 1) - i))) & 0xff);
+					}
+				}
+			}
+			auto res = ::fwrite(v.data(), size, count, stream);
+			v.resize(0);
+			v.shrink_to_fit();
+			return res;
 		}
 
-		template<class _Ty>
-		class CMemF {
-		public:
-			static void memcpy(_Ty destination, _Ty source, size_t num);
-			static void memset(_Ty ptr, int value, size_t num);
-		};
-		template<class _Ty>
-		class CMemF<_Ty*> {
-		public:
-			static void memcpy(_Ty* destination, _Ty* source, size_t num) {
-				::memcpy(destination, source, num);
-			}
-			static void memset(_Ty ptr, int value, size_t num) {
-				::memset(ptr, value, num);
-			}
-		};
-		template<class _Ty>
-		class CMemF<mse::TNullableAnyRandomAccessIterator<_Ty>> {
-		public:
-			static void memcpy(mse::TNullableAnyRandomAccessIterator<_Ty> destination, mse::TNullableAnyRandomAccessIterator<_Ty> source, size_t num_bytes) {
-				auto num_items = num_bytes / sizeof(_Ty);
-				for (size_t i = 0; i < num_items; i += 1) {
-					destination[i] = source[i];
-				}
-			}
-			static void memset(mse::TNullableAnyRandomAccessIterator<_Ty> ptr, int value, size_t num_bytes) {
-				auto Ty_value = _Ty(value);
-				auto num_items = num_bytes / sizeof(_Ty);
-				for (size_t i = 0; i < num_items; i += 1) {
-					ptr[i] = Ty_value;
-				}
-			}
-		};
-		template<class _Ty>
-		class CMemF<mse::lh::TIPointerWithBundledVector<_Ty>> {
-		public:
-			static void memcpy(mse::TNullableAnyRandomAccessIterator<_Ty> destination, mse::TNullableAnyRandomAccessIterator<_Ty> source, size_t num_bytes) {
-				CMemF< mse::TNullableAnyRandomAccessIterator<_Ty> >::memcpy(destination, source, num_bytes);
-			}
-			static void memset(mse::TNullableAnyRandomAccessIterator<_Ty> ptr, int value, size_t num_bytes) {
-				CMemF< mse::TNullableAnyRandomAccessIterator<_Ty> >::memset(ptr, value, num_bytes);
-			}
-		};
+		/* Memory safe approximation of memcpy(). */
 		template<class _TIter>
-		void memcpy(_TIter destination, _TIter source, size_t num) {
-			CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((destination)[0])>::type> >::memcpy(destination, source, num);
+		void memcpy(_TIter destination, _TIter source, size_t num_bytes) {
+			typedef typename std::remove_reference<decltype((destination)[0])>::type element_t;
+			auto num_items = num_bytes / sizeof(element_t);
+			//assert(num_items * sizeof(element_t) == num_bytes);
+			for (size_t i = 0; i < num_items; i += 1) {
+				destination[i] = source[i];
+			}
 		}
+		/* Memory safe approximation of memset(). */
 		template<class _TIter>
-		void memset(_TIter ptr, int value, size_t num) {
-			CMemF< mse::TNullableAnyRandomAccessIterator<typename std::remove_reference<decltype((ptr)[0])>::type> >::memset(ptr, value, num);
+		void memset(_TIter iter, int value, size_t num_bytes) {
+			typedef typename std::remove_reference<decltype((iter)[0])>::type element_t;
+			value &= 0xff;
+			long long int adjusted_value = value;
+			if (sizeof(adjusted_value) >= sizeof(element_t)) {
+				for (size_t i = 1; i < sizeof(element_t); i += 1) {
+					adjusted_value |= (value << (8 * i));
+				}
+			}
+			else {
+				/* In this case, if the value being set is non-zero, then it's likely that this function won't
+				faithfully emulate the standard memset() function. */
+				assert(0 == value);
+			}
+			/* Only element types that are (or can be constructed from) integral types are supported. */
+			const auto element_value = element_t(adjusted_value);
+			auto num_items = num_bytes / sizeof(element_t);
+			//assert(num_items * sizeof(element_t) == num_bytes);
+			for (size_t i = 0; i < num_items; i += 1) {
+				iter[i] = element_value;
+			}
 		}
 	}
 }
