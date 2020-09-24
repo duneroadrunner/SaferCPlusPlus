@@ -57,6 +57,8 @@
 #define MSE_LH_ALLOC_POINTER_TYPE(element_type) element_type *
 #define MSE_LH_NULL_POINTER NULL
 
+#define MSE_LH_CAST(type, value) ((type)value)
+
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE
 
@@ -93,6 +95,8 @@
 #define MSE_LH_POINTER_TYPE(element_type) mse::lh::TLHNullableAnyPointer< element_type >
 #define MSE_LH_ALLOC_POINTER_TYPE(element_type) mse::TRefCountingPointer< element_type >
 #define MSE_LH_NULL_POINTER nullptr
+
+#define MSE_LH_CAST(type, value) type(value)
 
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE MSE_SUPPRESS_CHECK_IN_DECLSCOPE
