@@ -55,6 +55,7 @@
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) object_type
 #define MSE_LH_POINTER_TYPE(element_type) element_type *
 #define MSE_LH_ALLOC_POINTER_TYPE(element_type) element_type *
+#define MSE_LH_NULL_POINTER NULL
 
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE
@@ -78,19 +79,20 @@
 /* generally prefer MSE_LH_ALLOC_DYN_ARRAY1() or MSE_LH_ALLOC_POINTER1() over MSE_LH_ALLOC() */
 #define MSE_LH_ALLOC(element_type, ptr, num_bytes) mse::lh::allocate(ptr, num_bytes)
 
-#define MSE_LH_ARRAY_ITERATOR_TYPE(element_type) mse::TNullableAnyRandomAccessIterator< element_type >
+#define MSE_LH_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TLHNullableAnyRandomAccessIterator< element_type >
 
 #define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::fwrite(ptr, size, count, stream)
 
-#define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) mse::lh::memset< mse::TNullableAnyRandomAccessIterator<element_type> >::memcpy(destination, source, num_bytes)
-#define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) mse::lh::memset< mse::TNullableAnyRandomAccessIterator<element_type> >::memset(ptr, value, num_bytes)
+#define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) mse::lh::memset< mse::lh::TLHNullableAnyRandomAccessIterator<element_type> >::memcpy(destination, source, num_bytes)
+#define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) mse::lh::memset< mse::lh::TLHNullableAnyRandomAccessIterator<element_type> >::memset(ptr, value, num_bytes)
 #define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::memcpy(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::memset(ptr, value, num_bytes)
 
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) mse::TRegisteredObj< object_type >
-#define MSE_LH_POINTER_TYPE(element_type) mse::TNullableAnyPointer< element_type >
+#define MSE_LH_POINTER_TYPE(element_type) mse::lh::TLHNullableAnyPointer< element_type >
 #define MSE_LH_ALLOC_POINTER_TYPE(element_type) mse::TRefCountingPointer< element_type >
+#define MSE_LH_NULL_POINTER nullptr
 
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE MSE_SUPPRESS_CHECK_IN_DECLSCOPE
@@ -102,6 +104,81 @@
 
 namespace mse {
 	namespace lh {
+
+		template <typename _Ty>
+		class TLHNullableAnyPointer : public mse::TNullableAnyPointer<_Ty> {
+		public:
+			typedef mse::TNullableAnyPointer<_Ty> base_class;
+			MSE_USING(TLHNullableAnyPointer, base_class);
+			TLHNullableAnyPointer(const TLHNullableAnyPointer& src) = default;
+			TLHNullableAnyPointer(const int val) : base_class(std::nullptr_t()) {
+				/* This constructor is just to support zero being used as a null pointer value. */
+				assert(0 == val);
+			}
+
+			friend void swap(TLHNullableAnyPointer& first, TLHNullableAnyPointer& second) {
+				base_class::swap(first, second);
+			}
+
+			bool operator==(const std::nullptr_t& _Right_cref) const { return base_class::operator==(_Right_cref); }
+			TLHNullableAnyPointer& operator=(const std::nullptr_t& _Right_cref) {
+				base_class::operator=(_Right_cref);
+				return *this;
+			}
+			TLHNullableAnyPointer& operator=(const TLHNullableAnyPointer& _Right_cref) {
+				base_class::operator=(_Right_cref);
+				return (*this);
+			}
+
+			operator bool() const {
+				return base_class::operator bool();
+			}
+
+			void async_not_shareable_and_not_passable_tag() const {}
+
+		private:
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+		};
+
+		template <typename _Ty>
+		class TLHNullableAnyRandomAccessIterator : public mse::TNullableAnyRandomAccessIterator<_Ty> {
+		public:
+			typedef mse::TNullableAnyRandomAccessIterator<_Ty> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			MSE_USING(TLHNullableAnyRandomAccessIterator, base_class);
+			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator& src) = default;
+
+			TLHNullableAnyRandomAccessIterator(const int val) : base_class(std::nullptr_t()) {
+				/* This constructor is just to support zero being used as a null pointer/iterator value. */
+				assert(0 == val);
+			}
+
+			friend void swap(TLHNullableAnyRandomAccessIterator& first, TLHNullableAnyRandomAccessIterator& second) {
+				base_class::swap(first, second);
+			}
+
+			bool operator==(const std::nullptr_t& _Right_cref) const { return base_class::operator==(_Right_cref); }
+			TLHNullableAnyRandomAccessIterator& operator=(const std::nullptr_t& _Right_cref) {
+				base_class::operator=(_Right_cref);
+				return *this;
+			}
+			TLHNullableAnyRandomAccessIterator& operator=(const TLHNullableAnyRandomAccessIterator& _Right_cref) {
+				base_class::operator=(_Right_cref);
+				return (*this);
+			}
+
+			explicit operator bool() const {
+				return base_class::operator bool();
+			}
+
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TLHNullableAnyRandomAccessIterator);
+
+			void async_not_shareable_and_not_passable_tag() const {}
+
+		private:
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+		};
 
 		/* This data type was motivated by the need for a direct substitute for native pointers targeting dynamically
 		allocated (native) arrays, which can kind of play a dual role as a reference to the array object and/or as an
@@ -158,6 +235,8 @@ namespace mse {
 				base_class::operator=(_Right_cref);
 				return(*this);
 			}
+
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TStrongVectorIterator);
 
 			explicit operator bool() const {
 				return ((*this).size() != 0);
@@ -231,6 +310,8 @@ namespace mse {
 				return(*this);
 			}
 
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeStrongVectorIterator);
+
 			explicit operator bool() const {
 				return ((*this).size() != 0);
 			}
@@ -276,6 +357,9 @@ namespace mse {
 			typedef mse::mstd::array<_Ty, _Size> base_class;
 			using base_class::base_class;
 
+			operator mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>() {
+				return base_class::begin();
+			}
 			operator mse::TNullableAnyRandomAccessIterator<_Ty>() {
 				return base_class::begin();
 			}
@@ -313,12 +397,28 @@ namespace mse {
 
 		};
 
-		template<class _Ty>
+
+		template<class _TPtr>
 		class CAllocF {
 		public:
-			static void free(_Ty& ptr);
-			static void allocate(_Ty& ptr, size_t num_bytes);
-			static void reallocate(_Ty& ptr, size_t num_bytes);
+			static void free(_TPtr& ptr) {
+				ptr = nullptr;
+			}
+			static void allocate(_TPtr& ptr, size_t num_bytes) {
+				typedef typename std::remove_reference<decltype(*ptr)>::type target_t;
+				if (0 == num_bytes) {
+					ptr = nullptr;
+				}
+				else if (sizeof(target_t) == num_bytes) {
+					ptr = mse::make_refcounting<target_t>();
+				}
+				else {
+					assert(false);
+					ptr = mse::make_refcounting<target_t>();
+					//MSE_THROW(std::bad_alloc("the given allocation size is not supported for this pointer type - CAllocF<_TPtr>::allocate()"));
+				}
+			}
+			//static void reallocate(_TPtr& ptr, size_t num_bytes);
 		};
 		template<class _Ty>
 		class CAllocF<_Ty*> {
@@ -360,6 +460,18 @@ namespace mse {
 			//static void reallocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
 		};
 		template<class _Ty>
+		class CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>> {
+		public:
+			static void free(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr) {
+				ptr = mse::lh::TStrongVectorIterator<_Ty>();
+			}
+			static void allocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
+				mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
+				ptr = tmp;
+			}
+			//static void reallocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
+		};
+		template<class _Ty>
 		class CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>> {
 		public:
 			static void free(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr) {
@@ -372,45 +484,6 @@ namespace mse {
 			static void reallocate(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
 				ptr.resize(num_bytes / sizeof(_Ty));
 			}
-		};
-		template<class _Ty>
-		class CAllocF<mse::TRefCountingPointer<_Ty>> {
-		public:
-			static void free(mse::TRefCountingPointer<_Ty>& ptr) {
-				ptr = nullptr;
-			}
-			static void allocate(mse::TRefCountingPointer<_Ty>& ptr, size_t num_bytes) {
-				ptr = mse::TRefCountingPointer<_Ty>();
-			}
-			static void reallocate(mse::TRefCountingPointer<_Ty>& ptr, size_t num_bytes) {
-				if (0 == num_bytes) {
-					ptr = nullptr;
-				}
-				else {
-					assert(false);
-				}
-			}
-		};
-		template<class _Ty>
-		class CAllocF<mse::TNullableAnyPointer<_Ty>> {
-		public:
-			static void free(mse::TNullableAnyPointer<_Ty>& ptr) {
-				ptr = nullptr;
-			}
-			static void allocate(mse::TNullableAnyPointer<_Ty>& ptr, size_t num_bytes) {
-				if (0 == num_bytes) {
-					ptr = nullptr;
-				}
-				else if (sizeof(_Ty) == num_bytes) {
-					ptr = mse::make_refcounting<_Ty>();
-				}
-				else {
-					assert(false);
-					ptr = mse::make_refcounting<_Ty>();
-					//MSE_THROW(std::bad_alloc("the given allocation size is not supported for this pointer type - CAllocF<mse::TNullableAnyPointer<_Ty>>::allocate()"));
-				}
-			}
-			//static void reallocate(mse::TNullableAnyPointer<_Ty>& ptr, size_t num_bytes);
 		};
 
 		template<class _TPointer>
@@ -525,8 +598,8 @@ namespace mse {
 		}
 
 		/* Memory safe approximation of memcpy(). */
-		template<class _TIter>
-		void memcpy(_TIter destination, _TIter source, size_t num_bytes) {
+		template<class _TIter, class _TIter2>
+		void memcpy(_TIter destination, _TIter2 source, size_t num_bytes) {
 			typedef typename std::remove_reference<decltype((destination)[0])>::type element_t;
 			auto num_items = num_bytes / sizeof(element_t);
 			//assert(num_items * sizeof(element_t) == num_bytes);

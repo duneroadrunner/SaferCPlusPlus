@@ -1341,16 +1341,7 @@ namespace mse {
 
 		MSE_USING(TXScopeAnyRandomAccessIterator, base_class);
 
-		TXScopeAnyRandomAccessIterator& operator ++() { base_class::operator +=(1); return (*this); }
-		TXScopeAnyRandomAccessIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
-		TXScopeAnyRandomAccessIterator& operator --() { base_class::operator -=(1); return (*this); }
-		TXScopeAnyRandomAccessIterator operator --(int) { auto _Tmp = (*this); base_class::operator -=(1); return _Tmp; }
-
-		TXScopeAnyRandomAccessIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		TXScopeAnyRandomAccessIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const base_class& _Right_cref) const {
-			return base_class::operator-(_Right_cref);
-		}
+		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeAnyRandomAccessIterator);
 
 		TXScopeAnyRandomAccessIterator& operator=(const base_class& _Right) {
 			base_class::operator=(_Right);
@@ -1386,16 +1377,7 @@ namespace mse {
 
 		MSE_USING(TXScopeAnyRandomAccessConstIterator, base_class);
 
-		TXScopeAnyRandomAccessConstIterator& operator ++() { base_class::operator +=(1); return (*this); }
-		TXScopeAnyRandomAccessConstIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
-		TXScopeAnyRandomAccessConstIterator& operator --() { base_class::operator -=(1); return (*this); }
-		TXScopeAnyRandomAccessConstIterator operator --(int) { auto _Tmp = (*this); base_class::operator -=(1); return _Tmp; }
-
-		TXScopeAnyRandomAccessConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-		TXScopeAnyRandomAccessConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
-		difference_type operator-(const base_class& _Right_cref) const {
-			return base_class::operator-(_Right_cref);
-		}
+		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeAnyRandomAccessConstIterator);
 
 		TXScopeAnyRandomAccessConstIterator& operator=(const base_class& _Right) {
 			base_class::operator=(_Right);
@@ -1439,14 +1421,7 @@ namespace mse {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
 		}
 
-		TAnyRandomAccessIterator& operator ++() { base_class::operator ++(); return (*this); }
-		TAnyRandomAccessIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
-		TAnyRandomAccessIterator& operator --() { base_class::operator --(); return (*this); }
-		TAnyRandomAccessIterator operator --(int) { auto _Tmp = (*this); base_class::operator -=(1); return _Tmp; }
-
-		TAnyRandomAccessIterator operator+(difference_type n) const { return base_class::operator+(n); }
-		TAnyRandomAccessIterator operator-(difference_type n) const { return base_class::operator-(n); }
-		difference_type operator-(const base_class& _Right_cref) const { return base_class::operator-(_Right_cref); }
+		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TAnyRandomAccessIterator);
 
 		TAnyRandomAccessIterator& operator=(TAnyRandomAccessIterator _Right) { base_class::operator=(_Right); return (*this); }
 
@@ -1488,14 +1463,7 @@ namespace mse {
 #endif // (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED))
 		}
 
-		TAnyRandomAccessConstIterator& operator ++() { base_class::operator ++(); return (*this); }
-		TAnyRandomAccessConstIterator operator ++(int) { auto _Tmp = (*this); base_class::operator +=(1); return _Tmp; }
-		TAnyRandomAccessConstIterator& operator --() { base_class::operator --(); return (*this); }
-		TAnyRandomAccessConstIterator operator --(int) { auto _Tmp = (*this); base_class::operator -=(1); return _Tmp; }
-
-		TAnyRandomAccessConstIterator operator+(difference_type n) const { return base_class::operator+(n); }
-		TAnyRandomAccessConstIterator operator-(difference_type n) const { return base_class::operator-(n); }
-		difference_type operator-(const base_class& _Right_cref) const { return base_class::operator-(_Right_cref); }
+		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TAnyRandomAccessConstIterator);
 
 		TAnyRandomAccessConstIterator& operator=(const TAnyRandomAccessConstIterator& _Right) { base_class::operator=(_Right); return (*this); }
 
@@ -2051,24 +2019,26 @@ namespace mse {
 	template <typename _Ty>
 	class TNullableAnyRandomAccessIterator : public TAnyRandomAccessIterator<_Ty> {
 	public:
-		TNullableAnyRandomAccessIterator() : TAnyRandomAccessIterator<_Ty>(typename mse::mstd::vector<typename std::remove_const<_Ty>::type>::iterator()), m_is_null(true) {}
+		typedef TAnyRandomAccessIterator<_Ty> base_class;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class)
+		TNullableAnyRandomAccessIterator() : base_class(typename mse::mstd::vector<typename std::remove_const<_Ty>::type>::iterator()), m_is_null(true) {}
 		TNullableAnyRandomAccessIterator(const std::nullptr_t& src) : TNullableAnyRandomAccessIterator() {}
-		TNullableAnyRandomAccessIterator(const TNullableAnyRandomAccessIterator& src) : TAnyRandomAccessIterator<_Ty>(src) {}
-		TNullableAnyRandomAccessIterator(const TAnyRandomAccessIterator<_Ty>& src) : TAnyRandomAccessIterator<_Ty>(src) {}
-		explicit TNullableAnyRandomAccessIterator(_Ty arr[]) : TAnyRandomAccessIterator<_Ty>(arr) {}
+		TNullableAnyRandomAccessIterator(const TNullableAnyRandomAccessIterator& src) : base_class(src) {}
+		TNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
+		explicit TNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
 
 		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
 			(!std::is_convertible<_TRandomAccessIterator1, TNullableAnyRandomAccessIterator>::value)
-			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessIterator1>::value)
+			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
 			, void>::type>
-		TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : TAnyRandomAccessIterator<_Ty>(random_access_iterator) {
+		TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
 		}
 
 		friend void swap(TNullableAnyRandomAccessIterator& first, TNullableAnyRandomAccessIterator& second) {
-			std::swap(static_cast<TAnyRandomAccessIterator<_Ty>&>(first), static_cast<TAnyRandomAccessIterator<_Ty>&>(second));
+			std::swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 			std::swap(first.m_is_null, second.m_is_null);
 		}
 
@@ -2084,6 +2054,8 @@ namespace mse {
 		explicit operator bool() const {
 			return (!m_is_null);
 		}
+
+		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TNullableAnyRandomAccessIterator);
 
 		void async_not_shareable_and_not_passable_tag() const {}
 

@@ -1879,6 +1879,8 @@ namespace mse {
 			template <typename _TRALoneParam>
 			TFParam(_TRALoneParam&& param) : base_class(param) {}
 
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
+
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
 		private:
@@ -1898,6 +1900,8 @@ namespace mse {
 			rsv::TFParam<> object). */
 			template <typename _TRALoneParam>
 			TFParam(_TRALoneParam&& param) : base_class(param) {}
+
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
@@ -1919,6 +1923,8 @@ namespace mse {
 			template <typename _TRALoneParam>
 			TFParam(_TRALoneParam&& param) : base_class(param) {}
 
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
+
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
 		private:
@@ -1938,6 +1944,8 @@ namespace mse {
 			rsv::TFParam<> object). */
 			template <typename _TRALoneParam>
 			TFParam(_TRALoneParam&& param) : base_class(param) {}
+
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
@@ -2064,6 +2072,8 @@ namespace mse {
 		auto& operator=(const TXScopeCSSSXSTERAIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
 		auto& operator=(TXScopeCSSSXSTERAIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+
+		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeCSSSXSTERAIterator);
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
@@ -2233,6 +2243,8 @@ namespace mse {
 		auto& operator=(TXScopeCSSSXSTERAConstIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
+		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeCSSSXSTERAConstIterator);
+
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
 		void xscope_tag() const {}
@@ -2387,6 +2399,8 @@ namespace mse {
 			template <typename _TRALoneParam>
 			TFParam(_TRALoneParam&& param) : base_class(param) {}
 
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
+
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
 		private:
@@ -2406,6 +2420,8 @@ namespace mse {
 			rsv::TFParam<> object). */
 			template <typename _TRALoneParam>
 			TFParam(_TRALoneParam&& param) : base_class(param) {}
+
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
@@ -2427,6 +2443,8 @@ namespace mse {
 			template <typename _TRALoneParam>
 			TFParam(_TRALoneParam&& param) : base_class(param) {}
 
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
+
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
 		private:
@@ -2446,6 +2464,8 @@ namespace mse {
 			rsv::TFParam<> object). */
 			template <typename _TRALoneParam>
 			TFParam(_TRALoneParam&& param) : base_class(param) {}
+
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
@@ -4643,6 +4663,7 @@ namespace mse {
 		auto& operator=(const TXScopeCSSSStrongRASectionIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
 		auto& operator=(TXScopeCSSSStrongRASectionIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeCSSSStrongRASectionIterator);
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
@@ -4681,6 +4702,7 @@ namespace mse {
 		auto& operator=(const TXScopeCSSSStrongRASectionConstIterator& _Right_cref) { base_class::operator=(_Right_cref); return (*this); }
 		auto& operator=(TXScopeCSSSStrongRASectionConstIterator&& _Right_cref) { base_class::operator=(std::forward<decltype(_Right_cref)>(_Right_cref)); return (*this); }
 		MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeCSSSStrongRASectionConstIterator);
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
@@ -5410,6 +5432,7 @@ namespace mse {
 					//MSE_USING(xscope_const_iterator, base_class);
 					template<class _TRASectionPointer, class = typename std::enable_if<!std::is_base_of<base_class, _TRASectionPointer>::value, void>::type>
 					xscope_const_iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+					MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, xscope_const_iterator);
 				private:
 					xscope_const_iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
 					friend class TRandomAccessConstSectionBase;
@@ -5564,6 +5587,7 @@ namespace mse {
 			//MSE_USING(const_iterator, base_class);
 			template<class _TRASectionPointer, class = typename std::enable_if<!std::is_base_of<base_class, _TRASectionPointer>::value, void>::type>
 			const_iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, const_iterator);
 		private:
 			const_iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
 			friend class TRandomAccessConstSection;
@@ -5988,6 +6012,7 @@ namespace mse {
 					//MSE_USING(xscope_iterator, base_class);
 					template<class _TRASectionPointer, class = typename std::enable_if<!std::is_base_of<base_class, _TRASectionPointer>::value, void>::type>
 					xscope_iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+					MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, xscope_iterator);
 				private:
 					xscope_iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
 					friend class TRandomAccessSectionBase;
@@ -6168,6 +6193,7 @@ namespace mse {
 			//MSE_USING(iterator, base_class);
 			template<class _TRASectionPointer, class = typename std::enable_if<!std::is_base_of<base_class, _TRASectionPointer>::value, void>::type>
 			iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, iterator);
 		private:
 			iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
 			friend class TRandomAccessSection;
@@ -6183,6 +6209,7 @@ namespace mse {
 			//MSE_USING(const_iterator, base_class);
 			template<class _TRASectionPointer, class = typename std::enable_if<!std::is_base_of<base_class, _TRASectionPointer>::value, void>::type>
 			const_iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, const_iterator);
 		private:
 			const_iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
 			friend class TRandomAccessSection;

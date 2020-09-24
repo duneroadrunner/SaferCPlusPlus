@@ -295,6 +295,7 @@ namespace mse {
 				TXScopeCSLSStrongRAIterator operator=(TXScopeCSLSStrongRAIterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::move(*this); }
 				TXScopeCSLSStrongRAIterator operator=(const TXScopeCSLSStrongRAIterator _X) && { base_class::operator=(_X); return std::move(*this); }
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeCSLSStrongRAIterator);
 
 				typedef typename std::remove_const<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>::type _TRAContainer;
 				TXScopeCSSSXSRAIterator<_TRAContainer> xscope_csssxsra_iterator() const & {
@@ -352,6 +353,7 @@ namespace mse {
 				TXScopeCSLSStrongRAConstIterator operator=(TXScopeCSLSStrongRAConstIterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::move(*this); }
 				TXScopeCSLSStrongRAConstIterator operator=(const TXScopeCSLSStrongRAConstIterator _X) && { base_class::operator=(_X); return std::move(*this); }
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+				MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeCSLSStrongRAConstIterator);
 
 				typedef typename std::remove_const<typename std::remove_reference<decltype(*std::declval<_TRAContainerPointer>())>::type>::type _TRAContainer;
 				TXScopeCSSSXSRAConstIterator<_TRAContainer> xscope_csssxsra_iterator() const & {
