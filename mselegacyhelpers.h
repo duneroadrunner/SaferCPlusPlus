@@ -58,6 +58,7 @@
 #define MSE_LH_NULL_POINTER NULL
 
 #define MSE_LH_CAST(type, value) ((type)value)
+#define MSE_LH_UNSAFE_MAKE_POINTER_TO(target) (&(target))
 
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE
@@ -97,6 +98,7 @@
 #define MSE_LH_NULL_POINTER nullptr
 
 #define MSE_LH_CAST(type, value) type(value)
+#define MSE_LH_UNSAFE_MAKE_POINTER_TO(target) MSE_LH_POINTER_TYPE(mse::us::unsafe_make_any_pointer_to(target))
 
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE MSE_SUPPRESS_CHECK_IN_DECLSCOPE
@@ -121,7 +123,7 @@ namespace mse {
 			}
 
 			friend void swap(TLHNullableAnyPointer& first, TLHNullableAnyPointer& second) {
-				base_class::swap(first, second);
+				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 			}
 
 			bool operator==(const std::nullptr_t& _Right_cref) const { return base_class::operator==(_Right_cref); }
@@ -159,7 +161,7 @@ namespace mse {
 			}
 
 			friend void swap(TLHNullableAnyRandomAccessIterator& first, TLHNullableAnyRandomAccessIterator& second) {
-				base_class::swap(first, second);
+				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 			}
 
 			bool operator==(const std::nullptr_t& _Right_cref) const { return base_class::operator==(_Right_cref); }

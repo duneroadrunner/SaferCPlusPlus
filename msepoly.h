@@ -468,6 +468,17 @@ namespace mse {
 		return TAnyConstPointer<_Tx2>(std::forward<decltype(x)>(x));
 	}
 
+	namespace us {
+		template<typename _Ty>
+		TAnyPointer<_Ty> unsafe_make_any_pointer_to(_Ty& ref) {
+			return make_any_pointer(mse::us::TSaferPtrForLegacy<_Ty>(std::addressof(ref)));
+		}
+		template<typename _Ty>
+		TAnyConstPointer<_Ty> unsafe_make_any_const_pointer_to(const _Ty& cref) {
+			return make_any_const_pointer(mse::us::TSaferPtrForLegacy<_Ty>(std::addressof(cref)));
+		}
+	}
+
 	namespace rsv {
 		template<typename _Ty>
 		class TFParam<mse::TXScopeAnyConstPointer<_Ty> > : public TXScopeAnyConstPointer<_Ty> {
