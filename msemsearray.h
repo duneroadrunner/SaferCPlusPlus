@@ -3871,7 +3871,13 @@ namespace mse {
 			}
 
 			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param2(std::false_type, const _TRALoneParam& ra_container) {
+			auto begin_iter_from_lone_param2(std::false_type, const _TRALoneParam&ra_container) {
+				/* The parameter doesn't seem to be a pointer. So we'll use std::begin() to obtain an iterator. If you get
+				a compile error here, then construction from the given parameter type isn't supported. */
+				return std::begin(ra_container);
+			}
+			template <typename _TRALoneParam>
+			auto begin_iter_from_lone_param2(std::false_type, _TRALoneParam&& ra_container) {
 				/* The parameter doesn't seem to be a pointer. So we'll use std::begin() to obtain an iterator. If you get
 				a compile error here, then construction from the given parameter type isn't supported. */
 				return std::begin(ra_container);
@@ -3881,17 +3887,20 @@ namespace mse {
 				return begin_iter_from_ptr_helper2(typename mse::impl::is_nonowning_scope_pointer<_TRAPointer>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param1(std::false_type, const _TRALoneParam& param) {
-				typedef typename std::remove_reference<_TRALoneParam>::type _TRALoneParamRR;
-				return begin_iter_from_lone_param2<_TRALoneParamRR>(typename mse::impl::IsDereferenceable_msemsearray<_TRALoneParamRR>::type(), param);
+			auto begin_iter_from_lone_param1(std::false_type, const _TRALoneParam&param) {
+				return begin_iter_from_lone_param2(typename mse::impl::IsDereferenceable_msemsearray<_TRALoneParam>::type(), param);
 			}
 			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_iterator) {
+			auto begin_iter_from_lone_param1(std::false_type, _TRALoneParam&& param) {
+				return begin_iter_from_lone_param2(typename mse::impl::IsDereferenceable_msemsearray<_TRALoneParam>::type(), std::forward<decltype(param)>(param));
+			}
+			template <typename _TRALoneParam>
+			auto begin_iter_from_lone_param1(std::true_type, const _TRALoneParam&ra_iterator) {
 				/* The parameter is another "random access iterator". */
 				return ra_iterator;
 			}
 			template<class _TRALoneParam>
-			auto begin_iter_from_lone_param(const _TRALoneParam& param) {
+			auto begin_iter_from_lone_param(const _TRALoneParam&param) {
 				typedef typename std::remove_reference<_TRALoneParam>::type _TRALoneParamRR;
 				return mse::impl::iterator::begin_iter_from_lone_param1(typename mse::impl::conjunction<
 					mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TRAIterator>
@@ -3899,6 +3908,16 @@ namespace mse {
 					, mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TRAConstIterator>
 					, mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TXScopeRAConstIterator>
 				>::type(), param);
+			}
+			template<class _TRALoneParam>
+			auto begin_iter_from_lone_param(_TRALoneParam&& param) {
+				typedef typename std::remove_reference<_TRALoneParam>::type _TRALoneParamRR;
+				return mse::impl::iterator::begin_iter_from_lone_param1(typename mse::impl::conjunction<
+					mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TRAIterator>
+					, mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TXScopeRAIterator>
+					, mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TRAConstIterator>
+					, mse::impl::is_instantiation_of<_TRALoneParamRR, mse::TXScopeRAConstIterator>
+				>::type(), std::forward<decltype(param)>(param));
 			}
 		}
 
@@ -4219,6 +4238,10 @@ namespace mse {
 		return mse::impl::iterator::begin_iter_from_lone_param(param);
 		//return impl::make_iterator_helper4(typename mse::impl::IsDereferenceable_msemsearray<_TRALoneParamRR>::type(), owner_ptr);
 	}
+	template<class _TRALoneParam>
+	auto make_iterator(_TRALoneParam&& param) {
+		return mse::impl::iterator::begin_iter_from_lone_param(std::forward<decltype(param)>(param));
+	}
 
 	template<class _TArrayPointer>
 	auto make_begin_const_iterator(const _TArrayPointer& owner_ptr) {
@@ -4229,6 +4252,10 @@ namespace mse {
 		return mse::make_iterator(owner_ptr);
 	}
 	template<class _TArrayPointer>
+	auto make_begin_iterator(_TArrayPointer&& owner_ptr) {
+		return mse::make_iterator(std::forward<decltype(owner_ptr)>(owner_ptr));
+	}
+	template<class _TArrayPointer>
 	auto make_end_const_iterator(const _TArrayPointer& owner_ptr) {
 		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_const_iterator(owner_ptr))>::type difference_type;
 		return mse::make_begin_const_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
@@ -4237,6 +4264,20 @@ namespace mse {
 	auto make_end_iterator(const _TArrayPointer& owner_ptr) {
 		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(owner_ptr))>::type difference_type;
 		auto retval = mse::make_begin_iterator(owner_ptr);
+		retval += difference_type(mse::container_size(owner_ptr) - 0);
+		return retval;
+	}
+	template<class _TArrayPointer>
+	auto make_end_iterator(_TArrayPointer& owner_ptr) {
+		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(owner_ptr))>::type difference_type;
+		auto retval = mse::make_begin_iterator(owner_ptr);
+		retval += difference_type(mse::container_size(owner_ptr) - 0);
+		return retval;
+	}
+	template<class _TArrayPointer>
+	auto make_end_iterator(_TArrayPointer&& owner_ptr) {
+		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(std::forward<decltype(owner_ptr)>(owner_ptr)))>::type difference_type;
+		auto retval = mse::make_begin_iterator(std::forward<decltype(owner_ptr)>(owner_ptr));
 		retval += difference_type(mse::container_size(owner_ptr) - 0);
 		return retval;
 	}
