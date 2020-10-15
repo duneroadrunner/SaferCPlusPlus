@@ -229,7 +229,7 @@ namespace mse {
 			namespace tuple {
 				template<class... _Types>
 				constexpr auto make_mstdtuple_from_stdtuple(std::tuple<_Types...>&& stdtuple) -> mse::mstd::tuple<_Types...> {
-					return stdtuple;
+					return std::forward<decltype(stdtuple)>(stdtuple);
 				}
 			}
 		}
@@ -320,7 +320,7 @@ namespace mse {
 		namespace tuple {
 			template<class... _Types>
 			constexpr auto make_xscopetuple_from_stdtuple(std::tuple<_Types...>&& stdtuple) -> mse::xscope_tuple<_Types...> {
-				return stdtuple;
+				return std::forward<decltype(stdtuple)>(stdtuple);
 			}
 		}
 	}
