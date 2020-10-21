@@ -667,6 +667,8 @@ namespace mse {
 					}
 				}
 
+				TGNoradObj& operator=(TGNoradObj&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				TGNoradObj& operator=(const TGNoradObj& _X) { _TROFLy::operator=(_X); return (*this); }
 				template<class _Ty2>
 				TGNoradObj& operator=(_Ty2&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 				template<class _Ty2>
@@ -1352,6 +1354,8 @@ namespace mse {
 			}
 		}
 
+		TNDNoradObj& operator=(TNDNoradObj&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TNDNoradObj& operator=(const TNDNoradObj& _X) { _TROFLy::operator=(_X); return (*this); }
 		template<class _Ty2>
 		TNDNoradObj& operator=(_Ty2&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		template<class _Ty2>

@@ -437,6 +437,8 @@ namespace mse {
 		TNDXScopeRegisteredProxyObj(const TNDXScopeRegisteredProxyObj& _X) : base_class(_X) {}
 		TNDXScopeRegisteredProxyObj(TNDXScopeRegisteredProxyObj&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 
+		TNDXScopeRegisteredProxyObj& operator=(TNDXScopeRegisteredProxyObj&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TNDXScopeRegisteredProxyObj& operator=(const TNDXScopeRegisteredProxyObj& _X) { base_class::operator=(_X); return (*this); }
 		template<class _Ty2>
 		TNDXScopeRegisteredProxyObj& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		template<class _Ty2>
@@ -473,6 +475,8 @@ namespace mse {
 		TNDXScopeRegisteredConstProxyObj(const TNDXScopeRegisteredConstProxyObj & _X) : base_class(_X) {}
 		TNDXScopeRegisteredConstProxyObj(TNDXScopeRegisteredConstProxyObj && _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 
+		TNDXScopeRegisteredConstProxyObj& operator=(TNDXScopeRegisteredConstProxyObj&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TNDXScopeRegisteredConstProxyObj& operator=(const TNDXScopeRegisteredConstProxyObj& _X) { base_class::operator=(_X); return (*this); }
 		template<class _Ty2>
 		TNDXScopeRegisteredConstProxyObj& operator=(_Ty2 && _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		template<class _Ty2>

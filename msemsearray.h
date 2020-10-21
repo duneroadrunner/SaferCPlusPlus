@@ -6725,6 +6725,8 @@ namespace mse {
 		public:
 			MSE_USING_WITH_ADDED_INIT(TAsyncShareableObj, _TROy, valid_if_TROy_is_not_marked_as_unshareable());
 
+			MSE_USING_ASSIGNMENT_OPERATOR(_TROy);
+
 			void async_shareable_tag() const {}
 
 			/* inherit the async passability of _TROy */
@@ -6752,6 +6754,8 @@ namespace mse {
 		public:
 			MSE_USING_WITH_ADDED_INIT(TAsyncPassableObj, _TROy, valid_if_TROy_is_not_marked_as_unpassable());
 
+			MSE_USING_ASSIGNMENT_OPERATOR(_TROy);
+
 			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 			/* inherit the async shareability of _TROy */
@@ -6775,6 +6779,8 @@ namespace mse {
 		class TAsyncShareableAndPassableObj : public _TROy {
 		public:
 			MSE_USING_WITH_ADDED_INIT(TAsyncShareableAndPassableObj, _TROy, valid_if_TROy_is_not_marked_as_unshareable_or_unpassable());
+
+			MSE_USING_ASSIGNMENT_OPERATOR(_TROy);
 
 			void async_shareable_and_passable_tag() const {}
 

@@ -580,6 +580,8 @@ namespace mse {
 			unregister_and_set_outstanding_pointers_to_null();
 		}
 
+		TNDRegisteredObj& operator=(TNDRegisteredObj&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TNDRegisteredObj& operator=(const TNDRegisteredObj& _X) { _TROFLy::operator=(_X); return (*this); }
 		template<class _Ty2>
 		TNDRegisteredObj& operator=(_Ty2&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 		template<class _Ty2>

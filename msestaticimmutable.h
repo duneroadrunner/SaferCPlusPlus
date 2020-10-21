@@ -223,6 +223,8 @@ namespace mse {
 						}
 					}
 
+					TCheckedThreadSafeObj& operator=(TCheckedThreadSafeObj&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+					TCheckedThreadSafeObj& operator=(const TCheckedThreadSafeObj& _X) { _TROFLy::operator=(_X); return (*this); }
 					template<class _Ty2>
 					TCheckedThreadSafeObj& operator=(_Ty2&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 					template<class _Ty2>
@@ -528,6 +530,11 @@ namespace mse {
 
 		private:
 
+			TStaticImmutableObj& operator=(TStaticImmutableObj&& _X) {
+				base_class::operator=(std::forward<decltype(_X)>(_X));
+				return (*this);
+			}
+			TStaticImmutableObj& operator=(const TStaticImmutableObj& _X) { base_class::operator=(_X); return (*this); }
 			template<class _Ty2>
 			TStaticImmutableObj& operator=(_Ty2&& _X) {
 				base_class::operator=(std::forward<decltype(_X)>(_X));
