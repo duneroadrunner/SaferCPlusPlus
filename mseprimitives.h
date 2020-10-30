@@ -214,6 +214,10 @@ namespace mse {
 
 		// Casts to primitive boolean types
 		operator bool() const { assert_initialized(); return m_val; }
+		/* provisional */
+		explicit operator bool& () & { (*this).assert_initialized(); return (*this).m_val; }
+		const bool& mse_base_type_ref() const { (*this).assert_initialized(); return (*this).m_val; }
+		bool& mse_base_type_ref() { (*this).assert_initialized(); return (*this).m_val; }
 
 		bool operator ==(const CNDBool &x) const { assert_initialized(); return (m_val == x.m_val); }
 		bool operator !=(const CNDBool &x) const { assert_initialized(); return (m_val != x.m_val); }
@@ -497,9 +501,13 @@ namespace mse {
 
 		TInt& operator=(const TInt &x) { (*this).note_value_assignment(); (*this).m_val = x.m_val; return (*this); }
 		template<typename _Ty>
-		TInt& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = static_cast<base_int_type>(x); return (*this); }
+		TInt& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = x/*static_cast<base_int_type>(x)*/; return (*this); }
 
 		operator base_int_type() const { (*this).assert_initialized(); return (*this).m_val; }
+		/* provisional */
+		explicit operator base_int_type&() & { (*this).assert_initialized(); return (*this).m_val; }
+		const base_int_type& mse_base_type_ref() const { (*this).assert_initialized(); return (*this).m_val; }
+		base_int_type& mse_base_type_ref() { (*this).assert_initialized(); return (*this).m_val; }
 
 		TInt operator ~() const { (*this).assert_initialized(); return TInt(~(*this).m_val); }
 		TInt& operator |=(const TInt &x) { (*this).assert_initialized(); (*this).m_val |= x.m_val; return (*this); }
@@ -733,6 +741,11 @@ namespace mse {
 		explicit operator CNDSignedSize_t() const { (*this).assert_initialized(); return CNDSignedSize_t(m_val); }
 		//explicit operator CNDInt() const { (*this).assert_initialized(); return CNDInt(m_val); }
 		explicit operator size_t() const { (*this).assert_initialized(); return (m_val); }
+		/* provisional */
+		explicit operator size_t& () & { (*this).assert_initialized(); return (*this).m_val; }
+		const size_t& mse_base_type_ref() const { (*this).assert_initialized(); return (*this).m_val; }
+		size_t& mse_base_type_ref() { (*this).assert_initialized(); return (*this).m_val; }
+
 		//explicit operator typename CNDInt::base_int_type() const { (*this).assert_initialized(); return CNDInt(m_val); }
 #endif /*MSVC2010_COMPATIBLE*/
 		//size_t as_a_size_t() const { (*this).assert_initialized(); return m_val; }
@@ -1026,6 +1039,58 @@ namespace mse {
 	typedef CNDSize_t CSize_t;
 
 #endif /*MSE_PRIMITIVES_DISABLED*/
+
+
+	namespace us {
+		namespace impl {
+			namespace rrt {
+
+				template<class T, class EqualTo>
+				struct HasOrInheritsMseBaseTypeRefMethod_impl
+				{
+					template<class U, class V>
+					static auto test(U*) -> decltype(std::declval<U>().mse_base_type_ref(), std::declval<V>().mse_base_type_ref(), bool(true));
+					template<typename, typename>
+					static auto test(...)->std::false_type;
+
+					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				};
+				template<class T, class EqualTo = T>
+				struct HasOrInheritsMseBaseTypeRefMethod : HasOrInheritsMseBaseTypeRefMethod_impl<
+					typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+				template<typename _Ty, typename _Tz>
+				_Ty& raw_reference_to_helper3(std::true_type, _Tz& x) {
+					return x.mse_base_type_ref();
+				}
+				template<typename _Ty, typename _Tz>
+				_Ty& raw_reference_to_helper3(std::false_type, _Tz& x) { return x; }
+
+				template<typename _Ty, typename _Tz>
+				_Ty& raw_reference_to_helper2(std::true_type, _Tz& x) {
+					return raw_reference_to_helper3<_Ty>(typename std::is_convertible<typename std::remove_reference<decltype(std::declval<_Tz>().mse_base_type_ref())>::type*, _Ty*>::type(), x);
+				}
+				template<typename _Ty, typename _Tz>
+				_Ty& raw_reference_to_helper2(std::false_type, _Tz& x) { return x; }
+
+				template<typename _Ty, typename _Tz>
+				_Ty& raw_reference_to_helper1(std::true_type, _Tz& x) { return x; }
+				template<typename _Ty, typename _Tz>
+				_Ty& raw_reference_to_helper1(std::false_type, _Tz& x) {
+					return raw_reference_to_helper2<_Ty>(typename HasOrInheritsMseBaseTypeRefMethod<_Tz>::type(), x);
+				}
+			}
+
+			/* This function returns a raw reference of the specified type to the given object (which may be of a different type).
+			In particular, it can be used to obtain a 'const int&' to an mse::TInt<int>. */
+			template<typename _Ty, typename _Tz>
+			_Ty& raw_reference_to(_Tz& x) {
+				return rrt::raw_reference_to_helper1<_Ty>(typename std::is_convertible<_Tz*, _Ty*>::type(), x);
+			}
+		}
+	}
+
 
 #if LLONG_MAX != LONG_MAX
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_LONG_LONG_INTEGER_TYPES(MACRO_FUNCTION) \

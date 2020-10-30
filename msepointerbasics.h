@@ -989,6 +989,12 @@ namespace mse {
 					return m_ptr;
 				}
 
+				/* provisional */
+				explicit operator _Ty*& () & { assert_initialized(); return m_ptr; }
+				explicit operator _Ty* const & () const & { assert_initialized(); return m_ptr; }
+				_Ty* const& mse_base_type_ref() const { (*this).assert_initialized(); return (*this).m_ptr; }
+				_Ty*& mse_base_type_ref() { (*this).assert_initialized(); return (*this).m_ptr; }
+
 				_Ty* m_ptr;
 
 #ifdef MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
@@ -1000,6 +1006,17 @@ namespace mse {
 				void assert_initialized() const {}
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 			};
+
+			template<typename _Ty, typename _Tz, class = typename std::enable_if<std::is_integral<_Ty>::value &&
+				(std::is_same<TPointerForLegacy<_Ty>, TPointerForLegacy<_Tz> >::value || std::is_same<TPointerForLegacy<typename std::remove_const<_Ty>::type>, TPointerForLegacy<_Tz> >::value), void>::type>
+			_Ty& raw_reference_to(TPointerForLegacy<_Tz>& x) {
+				typedef _Ty& _Ty_ref;
+				return _Ty_ref(x);
+			}
+
+			template<typename _Ty, typename _Tz, class = typename std::enable_if<std::is_integral<_Ty>::value &&
+				(std::is_same<TPointerForLegacy<_Ty>, TPointerForLegacy<_Tz> >::value || std::is_same<TPointerForLegacy<typename std::remove_const<_Ty>::type>, TPointerForLegacy<_Tz> >::value), void>::type>
+				_Ty* raw_pointer_to(TPointerForLegacy<_Tz>& x) { return std::addressof(raw_reference_to(x)); }
 		}
 	}
 

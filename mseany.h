@@ -567,11 +567,15 @@ namespace mse {
 				virtual ~TCommonizedPointer() {}
 
 				_Ty& operator*() const {
-					return (*m_pointer);
+					/* We explicitly cast to a reference here because some of the library's elements have explicit reference
+					conversion operators. For example mse::TInt<int> has an explicit conversion operator to 'int&'. This allows a
+					pointer to an mse::TInt<int> to be used as a pointer to an int. */
+					typedef _Ty& _Ty_ref;
+					return _Ty_ref(*m_pointer);
 				}
 				_Ty* operator->() const {
-					//return m_pointer.operator->();
-					return std::addressof(*m_pointer);
+					typedef _Ty& _Ty_ref;
+					return std::addressof(_Ty_ref(*m_pointer));
 				}
 				operator bool() const {
 					//return bool(m_pointer);
@@ -645,11 +649,12 @@ namespace mse {
 				virtual ~TCommonizedConstPointer() {}
 
 				const _Ty& operator*() const {
-					return (*m_const_pointer);
+					/* Using the mse::us::impl::raw_reference_to<>() function allows us to, for example, obtain a 'const int&' to
+					an mse::Tint<int>. This allows a pointer to an mse::TInt<int> to be used as a pointer to a const int. */
+					return mse::us::impl::raw_reference_to<const _Ty>(*m_const_pointer);
 				}
 				const _Ty* operator->() const {
-					//return m_const_pointer.operator->();
-					return std::addressof(*m_const_pointer);
+					return std::addressof(mse::us::impl::raw_reference_to<const _Ty>(*m_const_pointer));
 				}
 				operator bool() const {
 					//return bool(m_const_pointer);
