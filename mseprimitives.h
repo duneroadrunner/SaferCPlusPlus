@@ -216,8 +216,8 @@ namespace mse {
 		operator bool() const { assert_initialized(); return m_val; }
 		/* provisional */
 		explicit operator bool& () & { (*this).assert_initialized(); return (*this).m_val; }
-		const bool& mse_base_type_ref() const { (*this).assert_initialized(); return (*this).m_val; }
-		bool& mse_base_type_ref() { (*this).assert_initialized(); return (*this).m_val; }
+		const bool& mse_base_type_ref() const & { (*this).assert_initialized(); return (*this).m_val; }
+		bool& mse_base_type_ref() & { (*this).assert_initialized(); return (*this).m_val; }
 
 		bool operator ==(const CNDBool &x) const { assert_initialized(); return (m_val == x.m_val); }
 		bool operator !=(const CNDBool &x) const { assert_initialized(); return (m_val != x.m_val); }
@@ -506,8 +506,8 @@ namespace mse {
 		operator base_int_type() const { (*this).assert_initialized(); return (*this).m_val; }
 		/* provisional */
 		explicit operator base_int_type&() & { (*this).assert_initialized(); return (*this).m_val; }
-		const base_int_type& mse_base_type_ref() const { (*this).assert_initialized(); return (*this).m_val; }
-		base_int_type& mse_base_type_ref() { (*this).assert_initialized(); return (*this).m_val; }
+		const base_int_type& mse_base_type_ref() const & { (*this).assert_initialized(); return (*this).m_val; }
+		base_int_type& mse_base_type_ref() & { (*this).assert_initialized(); return (*this).m_val; }
 
 		TInt operator ~() const { (*this).assert_initialized(); return TInt(~(*this).m_val); }
 		TInt& operator |=(const TInt &x) { (*this).assert_initialized(); (*this).m_val |= x.m_val; return (*this); }
@@ -743,8 +743,8 @@ namespace mse {
 		explicit operator size_t() const { (*this).assert_initialized(); return (m_val); }
 		/* provisional */
 		explicit operator size_t& () & { (*this).assert_initialized(); return (*this).m_val; }
-		const size_t& mse_base_type_ref() const { (*this).assert_initialized(); return (*this).m_val; }
-		size_t& mse_base_type_ref() { (*this).assert_initialized(); return (*this).m_val; }
+		const size_t& mse_base_type_ref() const & { (*this).assert_initialized(); return (*this).m_val; }
+		size_t& mse_base_type_ref() & { (*this).assert_initialized(); return (*this).m_val; }
 
 		//explicit operator typename CNDInt::base_int_type() const { (*this).assert_initialized(); return CNDInt(m_val); }
 #endif /*MSVC2010_COMPATIBLE*/
@@ -1088,6 +1088,10 @@ namespace mse {
 			_Ty& raw_reference_to(_Tz& x) {
 				return rrt::raw_reference_to_helper1<_Ty>(typename std::is_convertible<_Tz*, _Ty*>::type(), x);
 			}
+
+			/* for now, we don't need this one */
+			template<typename _Ty, typename _Tz>
+			_Ty& raw_reference_to(_Tz&& x) = delete;
 		}
 	}
 
