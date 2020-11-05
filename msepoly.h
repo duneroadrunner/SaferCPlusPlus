@@ -2076,6 +2076,17 @@ namespace mse {
 		bool m_is_null = false;
 	};
 
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_nullable_any_random_access_iterator(const _Ty& x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TNullableAnyRandomAccessIterator<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_nullable_any_random_access_iterator(_Ty&& x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TNullableAnyRandomAccessIterator<_Tx2>(std::forward<decltype(x)>(x));
+	}
+
 	/* The intended semantics of TNullableAnyPointer<> is that it always contains either an std::nullptr_t or a
 	valid pointer (or iterator) to a valid object. TNullableAnyPointer<> is primarily designed for compatibility
 	with legacy code. For other use cases you might prefer optional<TAnyPointer<> > instead. */
@@ -2123,6 +2134,17 @@ namespace mse {
 
 		bool m_is_null = false;
 	};
+
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_nullable_any_pointer(const _Ty& x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TNullableAnyPointer<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_nullable_any_pointer(_Ty&& x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TNullableAnyPointer<_Tx2>(std::forward<decltype(x)>(x));
+	}
 }
 
 namespace std {
