@@ -3870,17 +3870,23 @@ namespace mse {
 				return begin_iter_from_ptr_helper3(typename mse::impl::HasOrInheritsStaticSSBeginMethod_msemsearray<container_t>::type(), ptr);
 			}
 
+#ifdef MSE_ENABLE_LEGACY_MAKE_ITER_FROM_NONPOINTER
+#else // MSE_ENABLE_LEGACY_MAKE_ITER_FROM_NONPOINTER
+#endif // MSE_ENABLE_LEGACY_MAKE_ITER_FROM_NONPOINTER
 			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param2(std::false_type, const _TRALoneParam&ra_container) {
-				/* The parameter doesn't seem to be a pointer. So we'll use std::begin() to obtain an iterator. If you get
-				a compile error here, then construction from the given parameter type isn't supported. */
+			auto begin_iter_from_lone_param2(std::false_type, const _TRALoneParam& ra_container) {
+				/* The parameter doesn't seem to be a pointer. */
+#ifdef MSE_ENABLE_LEGACY_MAKE_ITER_FROM_NONPOINTER
+				/* So we'll use std::begin() to obtain an iterator. If you get a compile error here, then construction from the
+				given parameter type isn't supported. */
 				return std::begin(ra_container);
-			}
-			template <typename _TRALoneParam>
-			auto begin_iter_from_lone_param2(std::false_type, _TRALoneParam&& ra_container) {
-				/* The parameter doesn't seem to be a pointer. So we'll use std::begin() to obtain an iterator. If you get
-				a compile error here, then construction from the given parameter type isn't supported. */
-				return std::begin(ra_container);
+#else // MSE_ENABLE_LEGACY_MAKE_ITER_FROM_NONPOINTER
+
+				/* The "make_iterator" functions expect for their argument a (safe) pointer to a container. To obtain an iterator
+				directly from a container (that supports it), rather than a pointer to the conatiner, use std::begin() instead. */
+				return std::begin(*ra_container); /* Intentional compile error. */
+
+#endif // MSE_ENABLE_LEGACY_MAKE_ITER_FROM_NONPOINTER
 			}
 			template <typename _TRAPointer>
 			auto begin_iter_from_lone_param2(std::true_type, const _TRAPointer& ptr) {
@@ -4199,10 +4205,12 @@ namespace mse {
 			bidirectional iterator or whatever rather than a random access iterator */
 			return mse::TRandomAccessIterator<_TArrayPointer>(owner_ptr);
 		}
+		/*
 		template<class _TArrayPointer>
 		auto make_iterator_helper(std::true_type, const _TArrayPointer& owner_ptr) {
 			return std::begin(*owner_ptr);
 		}
+		*/
 		template<class _TArrayPointer>
 		auto make_iterator_helper(std::false_type, const _TArrayPointer& owner_ptr) {
 			return make_iterator_helper3(typename mse::impl::HasOrInheritsStaticSSBeginMethod_msemsearray<

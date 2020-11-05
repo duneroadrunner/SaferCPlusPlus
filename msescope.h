@@ -85,7 +85,10 @@ namespace mse {
 		template<typename T>
 		struct is_nonowning_scope_pointer : std::integral_constant<bool, ((std::is_base_of<mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, T>::value
 			&& std::is_base_of<mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, T>::value)
-			|| (std::is_pointer<T>::value && (!mse::impl::is_potentially_not_xscope<T>::value)))> {};
+#ifdef MSE_SCOPEPOINTER_DISABLED
+			|| (std::is_pointer<T>::value && (!mse::impl::is_potentially_not_xscope<T>::value))
+#endif /*MSE_SCOPEPOINTER_DISABLED*/
+			)> {};
 
 		template <class _Ty, class _Ty2, class = typename std::enable_if<
 			(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
