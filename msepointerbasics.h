@@ -464,7 +464,13 @@ namespace mse {
 				, typename std::remove_reference<_Ty>::type> >
 			, mse::impl::negation<mse::impl::is_unique_ptr<typename std::remove_reference<_Ty>::type> >
 #if (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS))
+#ifdef MSE_CHAR_STAR_EXEMPTED
+			/* When MSE_CHAR_STAR_EXEMPTED is defined, 'char*' types will be exempt from the restrictions otherwise applied to native pointers. */
+			, mse::impl::disjunction<mse::impl::negation<std::is_pointer<typename std::remove_reference<_Ty>::type> >
+				, std::is_convertible<_Ty, const char *> >
+#else // MSE_CHAR_STAR_EXEMPTED
 			, mse::impl::negation<std::is_pointer<typename std::remove_reference<_Ty>::type> >
+#endif // MSE_CHAR_STAR_EXEMPTED
 #endif // (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS))
 		>::value> {};
 
