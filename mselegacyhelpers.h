@@ -404,100 +404,175 @@ namespace mse {
 		};
 
 
-		template<class _TPtr>
-		class CAllocF {
-		public:
-			static void free(_TPtr& ptr) {
-				ptr = nullptr;
-			}
-			static void allocate(_TPtr& ptr, size_t num_bytes) {
-				typedef typename std::remove_reference<decltype(*ptr)>::type target_t;
-				if (0 == num_bytes) {
+		namespace impl {
+			template<class _TPtr>
+			class CAllocF {
+			public:
+				static void free(_TPtr& ptr) {
 					ptr = nullptr;
 				}
-				else if (sizeof(target_t) == num_bytes) {
-					ptr = mse::make_refcounting<target_t>();
+				static void allocate(_TPtr& ptr, size_t num_bytes) {
+					typedef typename std::remove_reference<decltype(*ptr)>::type target_t;
+					if (0 == num_bytes) {
+						ptr = nullptr;
+					}
+					else if (sizeof(target_t) == num_bytes) {
+						ptr = mse::make_refcounting<target_t>();
+					}
+					else {
+						assert(false);
+						ptr = mse::make_refcounting<target_t>();
+						//MSE_THROW(std::bad_alloc("the given allocation size is not supported for this pointer type - CAllocF<_TPtr>::allocate()"));
+					}
 				}
-				else {
-					assert(false);
-					ptr = mse::make_refcounting<target_t>();
-					//MSE_THROW(std::bad_alloc("the given allocation size is not supported for this pointer type - CAllocF<_TPtr>::allocate()"));
+				//static void reallocate(_TPtr& ptr, size_t num_bytes);
+			};
+			template<class _Ty>
+			class CAllocF<_Ty*> {
+			public:
+				static void free(_Ty* ptr) {
+					::free(ptr);
 				}
+				static void allocate(_Ty*& ptr, size_t num_bytes) {
+					ptr = ::malloc(num_bytes);
+				}
+				static void reallocate(_Ty*& ptr, size_t num_bytes) {
+					ptr = ::realloc(ptr, num_bytes);
+				}
+			};
+			template<class _Ty>
+			void free(_Ty* ptr) { CAllocF<_Ty*>::free(ptr); }
+			template<class _Ty>
+			void allocate(_Ty*& ptr, size_t num_bytes) { CAllocF<_Ty*>::allocate(ptr, num_bytes); }
+			template<class _Ty>
+			void reallocate(_Ty*& ptr, size_t num_bytes) { CAllocF<_Ty*>::reallocate(ptr, num_bytes); }
+
+			template<class _Ty>
+			class CAllocF<mse::lh::TStrongVectorIterator<_Ty>> {
+			public:
+				static void free(mse::lh::TStrongVectorIterator<_Ty>& ptr) {
+					ptr = mse::lh::TStrongVectorIterator<_Ty>();
+				}
+				static void allocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
+					mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
+					ptr = tmp;
+				}
+				static void reallocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
+					ptr.resize(num_bytes / sizeof(_Ty));
+				}
+			};
+			template<class _Ty>
+			void free_overloaded(mse::lh::TStrongVectorIterator<_Ty>& ptr) { CAllocF<mse::lh::TStrongVectorIterator<_Ty>>::free(ptr); }
+			template<class _Ty>
+			void allocate_overloaded(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TStrongVectorIterator<_Ty>>::allocate(ptr, num_bytes); }
+			template<class _Ty>
+			void reallocate_overloaded(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TStrongVectorIterator<_Ty>>::reallocate(ptr, num_bytes); }
+
+			template<class _Ty>
+			class CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>> {
+			public:
+				static void free(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr) {
+					ptr = mse::lh::TStrongVectorIterator<_Ty>();
+				}
+				static void allocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
+					mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
+					ptr = tmp;
+				}
+				//static void reallocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
+			};
+			template<class _Ty>
+			void free_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::free(ptr); }
+			template<class _Ty>
+			void allocate_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::allocate(ptr, num_bytes); }
+			template<class _Ty>
+			void reallocate_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::reallocate(ptr, num_bytes); }
+
+			template<class _Ty>
+			class CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>> {
+			public:
+				static void free(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr) {
+					ptr = mse::lh::TStrongVectorIterator<_Ty>();
+				}
+				static void allocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
+					mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
+					ptr = tmp;
+				}
+				//static void reallocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
+			};
+			template<class _Ty>
+			void free_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::free(ptr); }
+			template<class _Ty>
+			void allocate_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::allocate(ptr, num_bytes); }
+			//template<class _Ty>
+			//void reallocate_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::reallocate(ptr, num_bytes); }
+
+			template<class _Ty>
+			class CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>> {
+			public:
+				static void free(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr) {
+					ptr = mse::lh::TXScopeStrongVectorIterator<_Ty>();
+				}
+				static void allocate(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
+					mse::lh::TXScopeStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
+					ptr = tmp;
+				}
+				static void reallocate(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
+					ptr.resize(num_bytes / sizeof(_Ty));
+				}
+			};
+			template<class _Ty>
+			void free_overloaded(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr) { CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>>::free(ptr); }
+			template<class _Ty>
+			void allocate_overloaded(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>>::allocate(ptr, num_bytes); }
+			template<class _Ty>
+			void reallocate_overloaded(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>>::reallocate(ptr, num_bytes); }
+
+			template<class T, class EqualTo>
+			struct IsSupportedByAllocateOverloaded_impl
+			{
+				template<class U, class V>
+				static auto test(U* u) -> decltype(allocate_overloaded(*u, 5), std::declval<V>(), bool(true));
+				template<typename, typename>
+				static auto test(...)->std::false_type;
+
+				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			};
+			template<class T, class EqualTo = T>
+			struct IsSupportedByAllocateOverloaded : IsSupportedByAllocateOverloaded_impl<
+				typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+			template<class _Ty>
+			auto free_helper1(std::true_type, _Ty& ptr) {
+				return free_overloaded(ptr);
 			}
-			//static void reallocate(_TPtr& ptr, size_t num_bytes);
-		};
-		template<class _Ty>
-		class CAllocF<_Ty*> {
-		public:
-			static void free(_Ty* ptr) {
-				::free(ptr);
+			template<class _Ty>
+			auto free_helper1(std::false_type, _Ty& ptr) {
+				return CAllocF<_Ty>::free(ptr);
 			}
-			static void allocate(_Ty*& ptr, size_t num_bytes) {
-				ptr = ::malloc(num_bytes);
+			template<class _Ty>
+			auto allocate_helper1(std::true_type, _Ty& ptr, size_t num_bytes) {
+				return allocate_overloaded(ptr, num_bytes);
 			}
-			static void reallocate(_Ty*& ptr, size_t num_bytes) {
-				ptr = ::realloc(ptr, num_bytes);
+			template<class _Ty>
+			auto allocate_helper1(std::false_type, _Ty& ptr, size_t num_bytes) {
+				return CAllocF<_Ty>::allocate(ptr, num_bytes);
 			}
-		};
-		template<class _Ty>
-		class CAllocF<mse::lh::TStrongVectorIterator<_Ty>> {
-		public:
-			static void free(mse::lh::TStrongVectorIterator<_Ty>& ptr) {
-				ptr = mse::lh::TStrongVectorIterator<_Ty>();
+			template<class _Ty>
+			auto reallocate_helper1(std::true_type, _Ty& ptr, size_t num_bytes) {
+				return reallocate_overloaded(ptr, num_bytes);
 			}
-			static void allocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
-				mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
-				ptr = tmp;
+			template<class _Ty>
+			auto reallocate_helper1(std::false_type, _Ty& ptr, size_t num_bytes) {
+				return CAllocF<_Ty>::reallocate(ptr, num_bytes);
 			}
-			static void reallocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
-				ptr.resize(num_bytes / sizeof(_Ty));
-			}
-		};
-		template<class _Ty>
-		class CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>> {
-		public:
-			static void free(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr) {
-				ptr = mse::lh::TStrongVectorIterator<_Ty>();
-			}
-			static void allocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
-				mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
-				ptr = tmp;
-			}
-			//static void reallocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
-		};
-		template<class _Ty>
-		class CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>> {
-		public:
-			static void free(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr) {
-				ptr = mse::lh::TStrongVectorIterator<_Ty>();
-			}
-			static void allocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
-				mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
-				ptr = tmp;
-			}
-			//static void reallocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
-		};
-		template<class _Ty>
-		class CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>> {
-		public:
-			static void free(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr) {
-				ptr = mse::lh::TXScopeStrongVectorIterator<_Ty>();
-			}
-			static void allocate(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
-				mse::lh::TXScopeStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
-				ptr = tmp;
-			}
-			static void reallocate(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
-				ptr.resize(num_bytes / sizeof(_Ty));
-			}
-		};
+		}
 
 		template<class _TPointer>
 		_TPointer allocate() {
 			_TPointer ptr;
 			auto num_bytes = sizeof(decltype(*ptr));
 			MSE_TRY{
-				CAllocF<_TPointer>::allocate(ptr, num_bytes);
+				impl::allocate_helper1(typename impl::IsSupportedByAllocateOverloaded<_TPointer>::type(), ptr, num_bytes);
 			}
 			MSE_CATCH_ANY{
 				return _TPointer();
@@ -508,7 +583,7 @@ namespace mse {
 		_TDynArrayIter allocate_dyn_array1(size_t num_bytes) {
 			_TDynArrayIter ptr;
 			MSE_TRY{
-				CAllocF<_TDynArrayIter>::allocate(ptr, num_bytes);
+				impl::allocate_helper1(typename impl::IsSupportedByAllocateOverloaded<_TDynArrayIter>::type(), ptr, num_bytes);
 			}
 			MSE_CATCH_ANY{
 				return _TDynArrayIter();
@@ -519,7 +594,7 @@ namespace mse {
 		_TDynArrayIter reallocate(const _TDynArrayIter& ptr2, size_t num_bytes) {
 			_TDynArrayIter ptr = ptr2;
 			MSE_TRY{
-				CAllocF<_TDynArrayIter>::reallocate(ptr, num_bytes);
+				impl::reallocate_helper1(typename impl::IsSupportedByAllocateOverloaded<_TDynArrayIter>::type(), ptr, num_bytes);
 			}
 			MSE_CATCH_ANY{
 				return _TDynArrayIter();
@@ -529,7 +604,7 @@ namespace mse {
 		template<class _TDynArrayIter>
 		_TDynArrayIter allocate(_TDynArrayIter& ptr, size_t num_bytes) {
 			MSE_TRY{
-				CAllocF<_TDynArrayIter>::allocate(ptr, num_bytes);
+				impl::allocate_helper1(typename impl::IsSupportedByAllocateOverloaded<_TDynArrayIter>::type(), ptr, num_bytes);
 			}
 			MSE_CATCH_ANY{
 				return _TDynArrayIter();
@@ -538,7 +613,7 @@ namespace mse {
 		}
 		template<class _TDynArrayIter>
 		void free(_TDynArrayIter& ptr) {
-			CAllocF<_TDynArrayIter>::free(ptr);
+			impl::free_helper1(typename impl::IsSupportedByAllocateOverloaded<_TDynArrayIter>::type(), ptr);
 		}
 
 		/* Memory safe approximation of fread(). */
