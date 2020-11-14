@@ -1065,17 +1065,23 @@ namespace mse {
 					return x.mse_base_type_ref();
 				}
 				template<typename _Ty, typename _Tz>
-				_Ty& raw_reference_to_helper3(std::false_type, _Tz& x) { return x; }
+				_Ty& raw_reference_to_helper3(std::false_type, _Tz& x) {
+					_Tz* ptr1 = std::addressof(x);
+					/* A compile error here can occur if, for example, if you try to assign a pointer to a 'const int' to a
+					'TXScopeAnyConstPointer<unsigned int>'. 'int' and 'unsigned int' are "incompatible" types in this situation. */
+					_Ty* ptr2 = ptr1;
+					return *ptr2;
+				}
 
 				template<typename _Ty, typename _Tz>
 				_Ty& raw_reference_to_helper2(std::true_type, _Tz& x) {
 					return raw_reference_to_helper3<_Ty>(typename std::is_convertible<typename std::remove_reference<decltype(std::declval<_Tz>().mse_base_type_ref())>::type*, _Ty*>::type(), x);
 				}
 				template<typename _Ty, typename _Tz>
-				_Ty& raw_reference_to_helper2(std::false_type, _Tz& x) { return x; }
+				_Ty& raw_reference_to_helper2(std::false_type, _Tz& x) { return raw_reference_to_helper3<_Ty>(std::false_type(), x); }
 
 				template<typename _Ty, typename _Tz>
-				_Ty& raw_reference_to_helper1(std::true_type, _Tz& x) { return x; }
+				_Ty& raw_reference_to_helper1(std::true_type, _Tz& x) { return raw_reference_to_helper3<_Ty>(std::false_type(), x); }
 				template<typename _Ty, typename _Tz>
 				_Ty& raw_reference_to_helper1(std::false_type, _Tz& x) {
 					return raw_reference_to_helper2<_Ty>(typename HasOrInheritsMseBaseTypeRefMethod<_Tz>::type(), x);

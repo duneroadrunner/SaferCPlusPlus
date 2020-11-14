@@ -1137,10 +1137,12 @@ namespace mse {
 				virtual ~TCommonizedRandomAccessIterator() {}
 
 				_Ty& operator*() const {
-					return (*m_random_access_iterator);
+					/* Using the mse::us::impl::raw_reference_to<>() function allows us to, for example, obtain an 'int&' to
+					an mse::Tint<int>. This allows an iterator to an mse::TInt<int> to be used as an iterator to an int. */
+					return mse::us::impl::raw_reference_to<_Ty>(*m_random_access_iterator);
 				}
 				_Ty* operator->() const {
-					return std::addressof(*m_random_access_iterator);
+					return std::addressof(mse::us::impl::raw_reference_to<_Ty>(*m_random_access_iterator));
 					//return m_random_access_iterator.operator->();
 				}
 				reference operator[](difference_type _Off) const {
@@ -1257,10 +1259,12 @@ namespace mse {
 				virtual ~TCommonizedRandomAccessConstIterator() {}
 
 				const _Ty& operator*() const {
-					return (*m_random_access_const_iterator);
+					/* Using the mse::us::impl::raw_reference_to<>() function allows us to, for example, obtain a 'const int&' to
+					an mse::Tint<int>. This allows an iterator to an mse::TInt<int> to be used as an iterator to a const int. */
+					return mse::us::impl::raw_reference_to<const _Ty>(*m_random_access_const_iterator);
 				}
 				const _Ty* operator->() const {
-					return std::addressof(*m_random_access_const_iterator);
+					return std::addressof(mse::us::impl::raw_reference_to<const _Ty>(*m_random_access_const_iterator));
 					//return m_random_access_const_iterator.operator->();
 				}
 				const_reference operator[](difference_type _Off) const {
