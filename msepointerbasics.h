@@ -996,10 +996,10 @@ namespace mse {
 				}
 
 				/* provisional */
-				explicit operator _Ty*& () & { assert_initialized(); return m_ptr; }
-				explicit operator _Ty* const & () const & { assert_initialized(); return m_ptr; }
 				_Ty* const& mse_base_type_ref() const & { (*this).assert_initialized(); return (*this).m_ptr; }
+				_Ty* const& mse_base_type_ref() const&& = delete;
 				_Ty*& mse_base_type_ref() & { (*this).assert_initialized(); return (*this).m_ptr; }
+				_Ty*& mse_base_type_ref() && = delete;
 
 				_Ty* m_ptr;
 
