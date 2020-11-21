@@ -2091,6 +2091,57 @@ namespace mse {
 		return TNullableAnyRandomAccessIterator<_Tx2>(std::forward<decltype(x)>(x));
 	}
 
+	template <typename _Ty>
+	class TXScopeNullableAnyRandomAccessIterator : public TXScopeAnyRandomAccessIterator<_Ty> {
+	public:
+		typedef TXScopeAnyRandomAccessIterator<_Ty> base_class;
+		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class)
+		TXScopeNullableAnyRandomAccessIterator() : base_class(typename mse::mstd::vector<typename std::remove_const<_Ty>::type>::iterator()), m_is_null(true) {}
+		TXScopeNullableAnyRandomAccessIterator(const std::nullptr_t& src) : TXScopeNullableAnyRandomAccessIterator() {}
+		TXScopeNullableAnyRandomAccessIterator(const TXScopeNullableAnyRandomAccessIterator& src) : base_class(src) {}
+		TXScopeNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
+		explicit TXScopeNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
+
+		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
+			(!std::is_convertible<_TRandomAccessIterator1, TXScopeNullableAnyRandomAccessIterator>::value)
+			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
+			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
+			//&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
+			, void>::type>
+		TXScopeNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {}
+
+		friend void swap(TXScopeNullableAnyRandomAccessIterator& first, TXScopeNullableAnyRandomAccessIterator& second) {
+			std::swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
+			std::swap(first.m_is_null, second.m_is_null);
+		}
+
+		bool operator==(const std::nullptr_t& _Right_cref) const { return m_is_null; }
+
+		explicit operator bool() const {
+			return (!m_is_null);
+		}
+
+		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeNullableAnyRandomAccessIterator);
+
+		void async_not_shareable_and_not_passable_tag() const {}
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		bool m_is_null = false;
+	};
+
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_nullable_any_random_access_iterator(const _Ty& x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeNullableAnyRandomAccessIterator<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_nullable_any_random_access_iterator(_Ty&& x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeNullableAnyRandomAccessIterator<_Tx2>(std::forward<decltype(x)>(x));
+	}
+
 	/* The intended semantics of TNullableAnyPointer<> is that it always contains either an std::nullptr_t or a
 	valid pointer (or iterator) to a valid object. TNullableAnyPointer<> is primarily designed for compatibility
 	with legacy code. For other use cases you might prefer optional<TAnyPointer<> > instead. */
@@ -2149,6 +2200,53 @@ namespace mse {
 		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
 		return TNullableAnyPointer<_Tx2>(std::forward<decltype(x)>(x));
 	}
+
+	template <typename _Ty>
+	class TXScopeNullableAnyPointer : public TXScopeAnyPointer<_Ty> {
+	public:
+		typedef TXScopeAnyPointer<_Ty> base_class;
+		TXScopeNullableAnyPointer() : base_class(mse::TRefCountingPointer<_Ty>()), m_is_null(true) {}
+		TXScopeNullableAnyPointer(const std::nullptr_t& src) : TXScopeNullableAnyPointer() {}
+		TXScopeNullableAnyPointer(const TXScopeNullableAnyPointer& src) : base_class(src) {}
+		TXScopeNullableAnyPointer(const base_class& src) : base_class(src) {}
+
+		template <typename _TPointer1, class = typename std::enable_if<
+			(!std::is_convertible<_TPointer1, TXScopeNullableAnyPointer>::value)
+			&& (!std::is_base_of<base_class, _TPointer1>::value)
+			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
+			//&& (!std::is_convertible<_TPointer1, int>::value)
+			, void>::type>
+		TXScopeNullableAnyPointer(const _TPointer1& random_access_iterator) : base_class(random_access_iterator) {}
+
+		friend void swap(TXScopeNullableAnyPointer& first, TXScopeNullableAnyPointer& second) {
+			std::swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
+			std::swap(first.m_is_null, second.m_is_null);
+		}
+
+		bool operator==(const std::nullptr_t& _Right_cref) const { return m_is_null; }
+
+		operator bool() const {
+			return (!m_is_null);
+		}
+
+		void async_not_shareable_and_not_passable_tag() const {}
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		bool m_is_null = false;
+	};
+
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_nullable_any_pointer(const _Ty& x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeNullableAnyPointer<_Tx2>(x);
+	}
+	template <typename _Tx = void, typename _Ty = void>
+	auto make_xscope_nullable_any_pointer(_Ty&& x) {
+		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		return TXScopeNullableAnyPointer<_Tx2>(std::forward<decltype(x)>(x));
+	}
 }
 
 namespace std {
@@ -2162,6 +2260,18 @@ namespace std {
 				ptr1 = std::addressof(*_Keyval);
 			}
 			return (hash<const _Ty *>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::TXScopeNullableAnyPointer<_Ty> > {	// hash functor
+		typedef mse::TXScopeNullableAnyPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TXScopeNullableAnyPointer<_Ty>& _Keyval) const {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty*>()(ptr1));
 		}
 	};
 }

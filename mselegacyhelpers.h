@@ -55,6 +55,7 @@
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) object_type
 #define MSE_LH_POINTER_TYPE(element_type) element_type *
 #define MSE_LH_ALLOC_POINTER_TYPE(element_type) element_type *
+#define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) element_type *
 #define MSE_LH_NULL_POINTER NULL
 
 #define MSE_LH_CAST(type, value) ((type)value)
@@ -97,6 +98,7 @@
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) mse::TRegisteredObj< object_type >
 #define MSE_LH_POINTER_TYPE(element_type) mse::lh::TLHNullableAnyPointer< element_type >
 #define MSE_LH_ALLOC_POINTER_TYPE(element_type) mse::TRefCountingPointer< element_type >
+#define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) mse::lh::TXScopeLHNullableAnyPointer< element_type >
 #define MSE_LH_NULL_POINTER nullptr
 
 #define MSE_LH_CAST(type, value) type(value)
@@ -151,6 +153,33 @@ namespace mse {
 		};
 
 		template <typename _Ty>
+		class TXScopeLHNullableAnyPointer : public mse::TXScopeNullableAnyPointer<_Ty> {
+		public:
+			typedef mse::TXScopeNullableAnyPointer<_Ty> base_class;
+			MSE_USING(TXScopeLHNullableAnyPointer, base_class);
+			TXScopeLHNullableAnyPointer(const TXScopeLHNullableAnyPointer& src) = default;
+			TXScopeLHNullableAnyPointer(const int val) : base_class(std::nullptr_t()) {
+				/* This constructor is just to support zero being used as a null pointer value. */
+				assert(0 == val);
+			}
+
+			friend void swap(TXScopeLHNullableAnyPointer& first, TXScopeLHNullableAnyPointer& second) {
+				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
+			}
+
+			bool operator==(const std::nullptr_t& _Right_cref) const { return base_class::operator==(_Right_cref); }
+
+			operator bool() const {
+				return base_class::operator bool();
+			}
+
+			void async_not_shareable_and_not_passable_tag() const {}
+
+		private:
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+		};
+
+		template <typename _Ty>
 		class TLHNullableAnyRandomAccessIterator : public mse::TNullableAnyRandomAccessIterator<_Ty> {
 		public:
 			typedef mse::TNullableAnyRandomAccessIterator<_Ty> base_class;
@@ -183,6 +212,38 @@ namespace mse {
 			}
 
 			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TLHNullableAnyRandomAccessIterator);
+
+			void async_not_shareable_and_not_passable_tag() const {}
+
+		private:
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+		};
+
+		template <typename _Ty>
+		class TXScopeLHNullableAnyRandomAccessIterator : public mse::TXScopeNullableAnyRandomAccessIterator<_Ty> {
+		public:
+			typedef mse::TXScopeNullableAnyRandomAccessIterator<_Ty> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			MSE_USING(TXScopeLHNullableAnyRandomAccessIterator, base_class);
+			TXScopeLHNullableAnyRandomAccessIterator(const TXScopeLHNullableAnyRandomAccessIterator& src) = default;
+
+			TXScopeLHNullableAnyRandomAccessIterator(const int val) : base_class(std::nullptr_t()) {
+				/* This constructor is just to support zero being used as a null pointer/iterator value. */
+				assert(0 == val);
+			}
+
+			friend void swap(TXScopeLHNullableAnyRandomAccessIterator& first, TXScopeLHNullableAnyRandomAccessIterator& second) {
+				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
+			}
+
+			bool operator==(const std::nullptr_t& _Right_cref) const { return base_class::operator==(_Right_cref); }
+
+			explicit operator bool() const {
+				return base_class::operator bool();
+			}
+
+			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeLHNullableAnyRandomAccessIterator);
 
 			void async_not_shareable_and_not_passable_tag() const {}
 
