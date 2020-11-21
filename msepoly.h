@@ -1146,7 +1146,7 @@ namespace mse {
 					//return m_random_access_iterator.operator->();
 				}
 				reference operator[](difference_type _Off) const {
-					return m_random_access_iterator[_Off];
+					return mse::us::impl::raw_reference_to<_Ty>(m_random_access_iterator[_Off]);
 				}
 				void operator +=(difference_type x) { m_random_access_iterator += x; }
 				difference_type operator-(const TCommonRandomAccessIteratorInterface<_Ty>& _Right_cref) const {
@@ -1268,7 +1268,7 @@ namespace mse {
 					//return m_random_access_const_iterator.operator->();
 				}
 				const_reference operator[](difference_type _Off) const {
-					return m_random_access_const_iterator[_Off];
+					return mse::us::impl::raw_reference_to<const _Ty>(m_random_access_const_iterator[_Off]);
 				}
 				void operator +=(difference_type x) { m_random_access_const_iterator += x; }
 				difference_type operator-(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const {
