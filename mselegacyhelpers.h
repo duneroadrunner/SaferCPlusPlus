@@ -100,10 +100,12 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::memcpy(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::memset(ptr, value, num_bytes)
 
+/* MSE_LH_ADDRESSABLE_TYPE() is a type annotation used to indicate that the '&' operator may/will be used to obtain the address of
+the associated declared object(s). */
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) mse::TRegisteredObj< object_type >
 #define MSE_LH_POINTER_TYPE(element_type) mse::lh::TLHNullableAnyPointer< element_type >
 #define MSE_LH_ALLOC_POINTER_TYPE(element_type) mse::TRefCountingPointer< element_type >
-/* MSE_LH_ALLOC_POINTER_TYPE is a significantly restricted version of MSE_LH_POINTER_TYPE. You might choose to use it, despite its
+/* MSE_LH_PARAM_ONLY_POINTER_TYPE is a significantly restricted version of MSE_LH_POINTER_TYPE. You might choose to use it, despite its
 restrictions, as a function parameter type because it accepts some (high performance) pointers that (the otherwise more flexible)
 MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) mse::lh::TXScopeLHNullableAnyPointer< element_type >
