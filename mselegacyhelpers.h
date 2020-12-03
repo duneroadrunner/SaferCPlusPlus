@@ -112,7 +112,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_NULL_POINTER nullptr
 
 #define MSE_LH_CAST(type, value) type(value)
-#define MSE_LH_UNSAFE_CAST(type, value) mse::us::lh::impl::unsafe_cast<type>(value)
+#define MSE_LH_UNSAFE_CAST(type, value) mse::us::lh::unsafe_cast<type>(value)
 #define MSE_LH_UNSAFE_MAKE_POINTER_TO(target) MSE_LH_POINTER_TYPE(mse::us::unsafe_make_any_pointer_to(target))
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_TO(target) std::addressof(target)
 
@@ -838,16 +838,16 @@ namespace mse {
 						return unsafe_cast_helper2<_Ty>(typename ns_unsafe_cast::are_compatible_pointer_objects<_Ty, _Ty2>::type(), const_cast<_Ty2&>(x));
 					}
 				}
-				/* Unlike "C-style" casts, this 'unsafe_cast()' function can (unsafely) convert a library pointer or iterator object
-				to a corresponding pointer or iterator object targeting an incompatible type. */
-				template<typename _Ty, typename _Ty2>
-				auto unsafe_cast(_Ty2&& x) -> decltype(ns_unsafe_cast::unsafe_cast_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), std::forward<decltype(x)>(x))) {
-					return ns_unsafe_cast::unsafe_cast_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), std::forward<decltype(x)>(x));
-				}
-				template<typename _Ty, typename _Ty2>
-				_Ty unsafe_cast(_Ty2& x) {
-					return ns_unsafe_cast::unsafe_cast_helper2<_Ty>(typename ns_unsafe_cast::are_compatible_pointer_objects<_Ty, _Ty2>::type(), x);
-				}
+			}
+			/* Unlike "C-style" casts, this 'unsafe_cast()' function can (unsafely) convert a library pointer or iterator object
+			to a corresponding pointer or iterator object targeting an incompatible type. */
+			template<typename _Ty, typename _Ty2>
+			auto unsafe_cast(_Ty2&& x) -> decltype(impl::ns_unsafe_cast::unsafe_cast_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), std::forward<decltype(x)>(x))) {
+				return impl::ns_unsafe_cast::unsafe_cast_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), std::forward<decltype(x)>(x));
+			}
+			template<typename _Ty, typename _Ty2>
+			_Ty unsafe_cast(_Ty2& x) {
+				return impl::ns_unsafe_cast::unsafe_cast_helper2<_Ty>(typename impl::ns_unsafe_cast::are_compatible_pointer_objects<_Ty, _Ty2>::type(), x);
 			}
 		}
 	}
