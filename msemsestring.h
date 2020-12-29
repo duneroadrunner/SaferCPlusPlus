@@ -68,9 +68,7 @@
 namespace mse {
 
 	/* This macro roughly simulates constructor inheritance.*/
-#define MSE_MSESTRING_USING(Derived, Base) \
-    template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
-    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
+#define MSE_MSESTRING_USING(Derived, Base)  MSE_USING(Derived, Base)
 
 	class gnii_basic_string_range_error : public std::range_error {
 	public:
@@ -3474,7 +3472,7 @@ namespace mse {
 			template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/, template<typename> class _TTXScopeConstIterator/* = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type*/>
 			class gnii_basic_string : private mse::impl::TOpaqueWrapper<std::basic_string<_Ty, _Traits, _A> >, public us::impl::ContiguousSequenceContainerTagBase, public us::impl::LockableStructureContainerTagBase {
 			private:
-		#ifdef MSE_HAS_CXX17
+#ifdef MSE_HAS_CXX17
 				/* Helper classes for converting from string_views. */
 				template<class _StringViewIsh>
 				using _is_string_view_ish = std::conjunction<
@@ -3483,7 +3481,66 @@ namespace mse {
 				>;
 				template<class _StringViewIsh>
 				using _Is_string_view_ish = std::enable_if_t<_is_string_view_ish<_StringViewIsh>::value>;
-		#endif /* MSE_HAS_CXX17 */
+
+				/* We support conversion from both stringviews and string sections. For now we're just using a rough approximation
+				for what should qualify as a "string section". */
+				template<class T, class EqualTo>
+				struct IsStringViewOrSectionish1_impl
+				{
+					static void foo1(const _Ty*) {}
+					template<class U, class V>
+					//static auto test(U*) -> decltype(_Ty(*mse::make_begin_const_iterator(std::declval<U>())), _Ty(*mse::make_begin_const_iterator(std::declval<V>())), bool(true));
+					static auto test(U*) -> decltype(foo1(std::addressof(*std::cbegin(std::declval<U>()))), foo1(std::addressof(*std::cbegin(std::declval<V>()))), bool(true));
+					template<typename, typename>
+					static auto test(...)->std::false_type;
+
+					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				};
+				template<class T, class EqualTo = T>
+				struct IsStringViewOrSectionish1 : IsStringViewOrSectionish1_impl<
+					typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+				template<class T, class EqualTo>
+				struct IsStringViewOrSectionish2_impl
+				{
+					static void foo1(const _Ty*) {}
+					template<class U, class V>
+					static auto test(U*) -> decltype(foo1(std::addressof(*std::cbegin(*std::declval<U>()))), foo1(std::addressof(*std::cbegin(*std::declval<V>()))), bool(true));
+					template<typename, typename>
+					static auto test(...)->std::false_type;
+
+					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				};
+				template<class T, class EqualTo = T>
+				struct IsStringViewOrSectionish2 : IsStringViewOrSectionish2_impl<
+					typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+				template<class T, class EqualTo>
+				struct IsStringViewOrSectionish3_impl
+				{
+					static void foo1(const _Ty*) {}
+					template<class U, class V>
+					static auto test(U*) -> decltype(foo1(std::addressof((*std::declval<U>())[0])), foo1(std::addressof((*std::declval<U>())[0])), bool(true));
+					template<typename, typename>
+					static auto test(...)->std::false_type;
+
+					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				};
+				template<class T, class EqualTo = T>
+				struct IsStringViewOrSectionish3 : IsStringViewOrSectionish3_impl<
+					typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+				template<class _StringViewIsh>
+				using _is_string_view_or_section_ish = std::conjunction<
+					std::disjunction<_is_string_view_ish<_StringViewIsh>, IsStringViewOrSectionish1<_StringViewIsh>, IsStringViewOrSectionish2<_StringViewIsh>, IsStringViewOrSectionish3<_StringViewIsh> >,
+					std::negation<std::is_convertible<const _StringViewIsh&, const _Ty*>>
+				>;
+				template<class _StringViewIsh>
+				using _Is_string_view_or_section_ish = std::enable_if_t<_is_string_view_or_section_ish<_StringViewIsh>::value>;
+#endif /* MSE_HAS_CXX17 */
 
 			public:
 				typedef _TStateMutex state_mutex_type;
@@ -3557,10 +3614,10 @@ namespace mse {
 				gnii_basic_string(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(xs_ptr->contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
 
 		#ifdef MSE_HAS_CXX17
-				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
+				template<class _TParam1, class = _Is_string_view_or_section_ish<_TParam1> >
 				gnii_basic_string(const _TParam1& _Right) { assign(_Right); }
 
-				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
+				template<class _TParam1, class = _Is_string_view_or_section_ish<_TParam1> >
 				gnii_basic_string(const _TParam1& _Right, const size_type _Roff, const size_type _Count, const _A& _Al = _A())
 				: base_class(_Al) {
 					assign(_Right, _Roff, _Count);
@@ -4588,7 +4645,7 @@ namespace mse {
 				}
 
 		#ifdef MSE_HAS_CXX17
-				template<class _TParam1/*, class = _Is_string_view_ish<_TParam1>*/>
+				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
 				gnii_basic_string & operator+=(const _TParam1& _Right) {
 					return (append(_Right));
 				}

@@ -874,7 +874,7 @@ namespace mse {
 			}
 
 #ifdef MSE_HAS_CXX17
-			template<class _TParam1/*, class = _Is_string_view_ish<_TParam1>*/>
+			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
 			basic_string & operator+=(const _TParam1& _Right) {
 				return (append(_Right));
 			}

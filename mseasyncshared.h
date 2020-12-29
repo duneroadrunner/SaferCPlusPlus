@@ -65,9 +65,7 @@ namespace mse {
 
 
 	/* This macro roughly simulates constructor inheritance. */
-#define MSE_ASYNC_USING(Derived, Base) \
-    template<typename ...Args, typename = typename std::enable_if<std::is_constructible<Base, Args...>::value>::type> \
-    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
+#define MSE_ASYNC_USING(Derived, Base) MSE_USING(Derived, Base)
 
 	namespace us {
 		namespace impl {

@@ -248,22 +248,41 @@ namespace mse {
 			typename std::enable_if<!std::is_base_of<A, typename std::remove_reference<B>::type>::value>::type;
 	}
 
-	/* This macro roughly simulates constructor inheritance. */
-#define MSE_USING(Derived, Base) \
+
+	/* These macros roughly simulate constructor inheritance. */
+
+#define MSE_USING_SANS_INITIALIZER_LISTS(Derived, Base) \
     template<typename ...Args, typename = typename std::enable_if< \
-	std::is_constructible<Base, Args...>::value \
-	&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
-	>::type> \
+			std::is_constructible<Base, Args...>::value \
+			&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
+		>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
-	/* This macro roughly simulates constructor inheritance, but adds an additional initialization statement
+#define MSE_USING(Derived, Base) \
+    MSE_USING_SANS_INITIALIZER_LISTS(Derived, Base) \
+	/* Template parameter type deduction doesn't work for initializer_lists so we add a constructor overload to handle them. */ \
+	/* But this constructor overload might sometimes match when you don't want. */ \
+    template<typename _Ty_using1, typename = typename std::enable_if< \
+			std::is_constructible<Base, std::initializer_list<_Ty_using1> >::value \
+		>::type> \
+    Derived(const std::initializer_list<_Ty_using1>& il) : Base(il) {}
+
+	/* These macros roughly simulate constructor inheritance, but add an additional initialization statement
 	to each constructor. */
-#define MSE_USING_WITH_ADDED_INIT(Derived, Base, InitializationStatement) \
+#define MSE_USING_SANS_INITIALIZER_LISTS_WITH_ADDED_INIT(Derived, Base, InitializationStatement) \
     template<typename ...Args, typename = typename std::enable_if< \
 	std::is_constructible<Base, Args...>::value \
 	&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
 	>::type> \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) { InitializationStatement; }
+
+#define MSE_USING_WITH_ADDED_INIT(Derived, Base, InitializationStatement) \
+	MSE_USING_SANS_INITIALIZER_LISTS_WITH_ADDED_INIT(Derived, Base, InitializationStatement) \
+    template<typename _Ty_using1, typename = typename std::enable_if< \
+			std::is_constructible<Base, std::initializer_list<_Ty_using1> >::value \
+		>::type> \
+    Derived(const std::initializer_list<_Ty_using1>& il) : Base(il) { InitializationStatement; }
+
 
 	namespace impl {
 		template<class T, class EqualTo>

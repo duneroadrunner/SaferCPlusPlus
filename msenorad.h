@@ -632,12 +632,7 @@ namespace mse {
 			};
 
 			/* This macro roughly simulates constructor inheritance. */
-#define MSE_NORAD_OBJ_USING(Derived, Base) \
-    template<typename ...Args, typename = typename std::enable_if< \
-	std::is_constructible<Base, Args...>::value \
-	&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
-	>::type> \
-    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
+#define MSE_NORAD_OBJ_USING(Derived, Base) MSE_USING(Derived, Base)
 
 		/* TGNoradObj is intended as a transparent wrapper for other classes/objects. The purpose is to track the number of
 		references targeting the object and verify that there are none outstanding when the object is destroyed. Note that
@@ -1319,12 +1314,7 @@ namespace mse {
 	};
 
 	/* This macro roughly simulates constructor inheritance. */
-#define MSE_NORAD_OBJ_USING(Derived, Base) \
-    template<typename ...Args, typename = typename std::enable_if< \
-	std::is_constructible<Base, Args...>::value \
-	&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Args...>::value \
-	>::type> \
-    Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
+#define MSE_NORAD_OBJ_USING(Derived, Base) MSE_USING(Derived, Base)
 
 	/* TNDNoradObj is intended as a transparent wrapper for other classes/objects. The purpose is to register the object's
 	destruction so that TNDNoradPointers will avoid referencing destroyed objects. Note that TNDNoradObj can be used with

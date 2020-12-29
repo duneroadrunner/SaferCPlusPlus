@@ -1675,6 +1675,9 @@ namespace mse {
 #endif // !MSE_HAS_CXX17
 
 
+	/* This macro roughly simulates constructor inheritance. */
+#define MSE_OPTIONAL_USING(Derived, Base) MSE_USING_SANS_INITIALIZER_LISTS(Derived, Base)
+
 	namespace us {
 		namespace impl {
 			template<class TDynamicContainer> class Txscope_const_optional_structure_lock_guard;
@@ -1720,7 +1723,7 @@ namespace mse {
 #ifdef MSE_HAS_CXX17
 #ifdef MSE_OPTIONAL_IMPLEMENTATION1
 
-					MSE_USING(optional_base2, base_class);
+					MSE_OPTIONAL_USING(optional_base2, base_class);
 
 					template<class... _Types, class = std::enable_if_t<std::is_constructible_v<T, _Types...> > >
 					constexpr explicit optional_base2(in_place_t, _Types&&... _Args) : base_class(in_place, std::forward<_Types>(_Args)...) {}
@@ -1750,7 +1753,7 @@ namespace mse {
 
 #else // MSE_HAS_CXX17
 					using base_class::base_class;
-					MSE_USING(optional_base2, base_class);
+					MSE_OPTIONAL_USING(optional_base2, base_class);
 					template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<optional_base2, T2> >
 					explicit optional_base2(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
@@ -2149,7 +2152,7 @@ namespace mse {
 #ifdef MSE_HAS_CXX17
 #ifdef MSE_OPTIONAL_IMPLEMENTATION1
 
-		MSE_USING(optional, base_class);
+		MSE_OPTIONAL_USING(optional, base_class);
 
 		template<class... _Types, class = std::enable_if_t<std::is_constructible_v<T, _Types...> > >
 		constexpr explicit optional(in_place_t, _Types&&... _Args) : base_class(in_place, std::forward<_Types>(_Args)...) {}
@@ -2179,7 +2182,7 @@ namespace mse {
 
 #else // MSE_HAS_CXX17
 		using base_class::base_class;
-		MSE_USING(optional, base_class);
+		MSE_OPTIONAL_USING(optional, base_class);
 		template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<optional, T2> >
 		explicit optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
@@ -2224,7 +2227,7 @@ namespace mse {
 #ifdef MSE_HAS_CXX17
 #ifdef MSE_OPTIONAL_IMPLEMENTATION1
 
-		MSE_USING(mt_optional, base_class);
+		MSE_OPTIONAL_USING(mt_optional, base_class);
 
 		template<class... _Types, class = std::enable_if_t<std::is_constructible_v<T, _Types...> > >
 		constexpr explicit mt_optional(in_place_t, _Types&&... _Args) : base_class(in_place, std::forward<_Types>(_Args)...) {}
@@ -2254,7 +2257,7 @@ namespace mse {
 
 #else // MSE_HAS_CXX17
 		using base_class::base_class;
-		MSE_USING(mt_optional, base_class);
+		MSE_OPTIONAL_USING(mt_optional, base_class);
 		template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<mt_optional, T2> >
 		explicit mt_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
@@ -2299,7 +2302,7 @@ namespace mse {
 #ifdef MSE_HAS_CXX17
 #ifdef MSE_OPTIONAL_IMPLEMENTATION1
 
-		MSE_USING(st_optional, base_class);
+		MSE_OPTIONAL_USING(st_optional, base_class);
 
 		template<class... _Types, class = std::enable_if_t<std::is_constructible_v<T, _Types...> > >
 		constexpr explicit st_optional(in_place_t, _Types&&... _Args) : base_class(in_place, std::forward<_Types>(_Args)...) {}
@@ -2329,7 +2332,7 @@ namespace mse {
 
 #else // MSE_HAS_CXX17
 		using base_class::base_class;
-		MSE_USING(st_optional, base_class);
+		MSE_OPTIONAL_USING(st_optional, base_class);
 		template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<st_optional, T2> >
 		explicit st_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
@@ -2386,7 +2389,7 @@ namespace mse {
 #ifdef MSE_HAS_CXX17
 #ifdef MSE_OPTIONAL_IMPLEMENTATION1
 
-			MSE_USING(optional, base_class);
+			MSE_OPTIONAL_USING(optional, base_class);
 
 			template<class... _Types, class = std::enable_if_t<std::is_constructible_v<T, _Types...> > >
 			constexpr explicit optional(mse::mstd::in_place_t, _Types&&... _Args) : base_class(mse::mstd::in_place, std::forward<_Types>(_Args)...) {}
@@ -2416,7 +2419,7 @@ namespace mse {
 
 #else // MSE_HAS_CXX17
 			using base_class::base_class;
-			MSE_USING(optional, base_class);
+			MSE_OPTIONAL_USING(optional, base_class);
 			template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<optional, T2> >
 			explicit optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
@@ -2464,7 +2467,7 @@ namespace mse {
 #ifdef MSE_HAS_CXX17
 #ifdef MSE_OPTIONAL_IMPLEMENTATION1
 
-		MSE_USING(xscope_optional, base_class);
+		MSE_OPTIONAL_USING(xscope_optional, base_class);
 
 		template<class... Tpes, class = std::enable_if_t<std::is_constructible_v<T, Tpes...> > >
 		constexpr explicit xscope_optional(mse::in_place_t, Tpes&&... _Args) : base_class(mse::in_place, std::forward<Tpes>(_Args)...) {}
@@ -2494,7 +2497,7 @@ namespace mse {
 
 #else // MSE_HAS_CXX17
 		using base_class::base_class;
-		MSE_USING(xscope_optional, base_class);
+		MSE_OPTIONAL_USING(xscope_optional, base_class);
 		template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_optional, T2> >
 		explicit xscope_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
@@ -2605,7 +2608,7 @@ namespace mse {
 #ifdef MSE_HAS_CXX17
 #ifdef MSE_OPTIONAL_IMPLEMENTATION1
 
-		MSE_USING(xscope_mt_optional, base_class);
+		MSE_OPTIONAL_USING(xscope_mt_optional, base_class);
 
 		template<class... Tpes, class = std::enable_if_t<std::is_constructible_v<T, Tpes...> > >
 		constexpr explicit xscope_mt_optional(mse::in_place_t, Tpes&&... _Args) : base_class(mse::in_place, std::forward<Tpes>(_Args)...) {}
@@ -2635,7 +2638,7 @@ namespace mse {
 
 #else // MSE_HAS_CXX17
 		using base_class::base_class;
-		MSE_USING(xscope_mt_optional, base_class);
+		MSE_OPTIONAL_USING(xscope_mt_optional, base_class);
 		template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_mt_optional, T2> >
 		explicit xscope_mt_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
@@ -2741,7 +2744,7 @@ namespace mse {
 #ifdef MSE_HAS_CXX17
 #ifdef MSE_OPTIONAL_IMPLEMENTATION1
 
-		MSE_USING(xscope_st_optional, base_class);
+		MSE_OPTIONAL_USING(xscope_st_optional, base_class);
 
 		template<class... Tpes, class = std::enable_if_t<std::is_constructible_v<T, Tpes...> > >
 		constexpr explicit xscope_st_optional(mse::in_place_t, Tpes&&... _Args) : base_class(mse::in_place, std::forward<Tpes>(_Args)...) {}
@@ -2771,7 +2774,7 @@ namespace mse {
 
 #else // MSE_HAS_CXX17
 		using base_class::base_class;
-		MSE_USING(xscope_st_optional, base_class);
+		MSE_OPTIONAL_USING(xscope_st_optional, base_class);
 		template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_st_optional, T2> >
 		explicit xscope_st_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
