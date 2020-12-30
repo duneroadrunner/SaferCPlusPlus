@@ -361,19 +361,19 @@ namespace mse {
 				{
 					return std::move(value);
 				}
-				template<std::size_t... Is, typename... Ts>
-				static std::array<std::common_type_t<Ts...>, sizeof...(Is)>
+				template<class _Ty, std::size_t... Is, typename... Ts>
+				static std::array<_Ty, sizeof...(Is)>
 					join_arrays_impl(std::index_sequence<Is...>, std::tuple<Ts...>&& parts)
 				{
 					return { std::get<Is>(std::move(parts))... };
 				}
-				template<typename... Ts>
+				template<class _Ty, typename... Ts>
 				auto join_arrays(Ts&&... parts)
 				{
 					auto wrapped_parts = std::tuple_cat((wrap_value)(std::forward<Ts>(parts))...);
 					constexpr auto size = std::tuple_size<decltype(wrapped_parts)>::value;
 					std::make_index_sequence<size> seq;
-					return (join_arrays_impl)(seq, std::move(wrapped_parts));
+					return (join_arrays_impl<_Ty>)(seq, std::move(wrapped_parts));
 				}
 
 				/* some classes used to help emulate array aggregate initialization */
@@ -383,7 +383,7 @@ namespace mse {
 					template<typename _TBeginIter, typename _TEndIter>
 					static auto std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
 					{
-						return join_arrays(_XSTD array<_Ty, 1>{ (begin_iter != end_iter) ? *begin_iter : _Ty() }
+						return join_arrays<_Ty>(_XSTD array<_Ty, 1>{ (begin_iter != end_iter) ? *begin_iter : _Ty() }
 						, default_constructible_array_helper_type<_Ty, _Size - 1>::std_array_initialized_with_range((begin_iter != end_iter) ? begin_iter + 1 : begin_iter, end_iter));
 					}
 				};
@@ -404,7 +404,7 @@ namespace mse {
 					static auto std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
 					{
 						if (begin_iter == end_iter) { MSE_THROW(msearray_range_error("not enough elements in the (non-default constructible) array initializer list")); }
-						return join_arrays(_XSTD array<_Ty, 1>{ *begin_iter }
+						return join_arrays<_Ty>(_XSTD array<_Ty, 1>{ *begin_iter }
 						, not_default_constructible_array_helper_type<_Ty, _Size - 1>::std_array_initialized_with_range(begin_iter + 1, end_iter));
 					}
 				};
@@ -1924,19 +1924,38 @@ namespace mse {
 
 		/* Template specializations of TFParam<>. */
 
+#define MSE_FPARAM_RVALUE_TO_LVALUE_LONE_PARAM_USING(Derived, Base) \
+    MSE_USING_SANS_INITIALIZER_LISTS(Derived, Base) \
+	/* Template parameter type deduction doesn't work for initializer_lists so we add a constructor overload to handle them. */ \
+	/* But this constructor overload might sometimes match when you don't want. */ \
+    template<typename _Ty_using1, typename = typename std::enable_if< \
+			std::is_constructible<Base, std::initializer_list<_Ty_using1> >::value \
+		>::type> \
+    Derived(const std::initializer_list<_Ty_using1>& il) : Base(il) {} \
+	template<typename Arg, typename = typename std::enable_if< \
+		std::is_constructible<Base, Arg>::value \
+		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Arg>::value \
+	>::type> \
+	/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are */ \
+	/* not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as */ \
+	/* (non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the */ \
+	/* rsv::TFParam<> object). */ \
+	Derived(Arg&& arg) : Base(arg) {} \
+	template<typename Arg1, typename Arg2, typename = typename std::enable_if< \
+		std::is_constructible<Base, Arg1, Arg2>::value \
+		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Arg1, Arg2>::value \
+	>::type> \
+	Derived(Arg1&& arg1, Arg2&& arg2) : Base(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2)) {}
+
+#define MSE_FPARAM_RVALUE_TO_LVALUE_LONE_PARAM_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Derived, Base) MSE_FPARAM_RVALUE_TO_LVALUE_LONE_PARAM_USING(Derived, Base) MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Derived)
+
+
 		template<typename _Ty>
 		class TFParam<mse::TXScopeCSSSXSRAConstIterator<_Ty> > : public TXScopeCSSSXSRAConstIterator<_Ty> {
 		public:
 			typedef TXScopeCSSSXSRAConstIterator<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
-
-			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
-			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
-			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
-			rsv::TFParam<> object). */
-			template <typename _TRALoneParam>
-			TFParam(_TRALoneParam&& param) : base_class(param) {}
+			MSE_FPARAM_RVALUE_TO_LVALUE_LONE_PARAM_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 
 			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 
@@ -1951,14 +1970,7 @@ namespace mse {
 		public:
 			typedef TXScopeCSSSXSRAConstIterator<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
-
-			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
-			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
-			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
-			rsv::TFParam<> object). */
-			template <typename _TRALoneParam>
-			TFParam(_TRALoneParam&& param) : base_class(param) {}
+			MSE_FPARAM_RVALUE_TO_LVALUE_LONE_PARAM_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 
 			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 
@@ -1973,14 +1985,7 @@ namespace mse {
 		public:
 			typedef TXScopeCSSSXSRAIterator<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
-
-			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
-			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
-			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
-			rsv::TFParam<> object). */
-			template <typename _TRALoneParam>
-			TFParam(_TRALoneParam&& param) : base_class(param) {}
+			MSE_FPARAM_RVALUE_TO_LVALUE_LONE_PARAM_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 
 			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 
@@ -1995,14 +2000,7 @@ namespace mse {
 		public:
 			typedef TXScopeCSSSXSRAIterator<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
-
-			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
-			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
-			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
-			rsv::TFParam<> object). */
-			template <typename _TRALoneParam>
-			TFParam(_TRALoneParam&& param) : base_class(param) {}
+			MSE_FPARAM_RVALUE_TO_LVALUE_LONE_PARAM_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 
 			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 
@@ -2449,14 +2447,7 @@ namespace mse {
 		public:
 			typedef TXScopeCSSSXSTERAConstIterator<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
-
-			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
-			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
-			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
-			rsv::TFParam<> object). */
-			template <typename _TRALoneParam>
-			TFParam(_TRALoneParam&& param) : base_class(param) {}
+			MSE_FPARAM_RVALUE_TO_LVALUE_LONE_PARAM_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 
 			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 
@@ -2471,14 +2462,7 @@ namespace mse {
 		public:
 			typedef TXScopeCSSSXSTERAConstIterator<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
-
-			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
-			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
-			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
-			rsv::TFParam<> object). */
-			template <typename _TRALoneParam>
-			TFParam(_TRALoneParam&& param) : base_class(param) {}
+			MSE_FPARAM_RVALUE_TO_LVALUE_LONE_PARAM_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 
 			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 
@@ -2493,14 +2477,7 @@ namespace mse {
 		public:
 			typedef TXScopeCSSSXSTERAIterator<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
-
-			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
-			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
-			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
-			rsv::TFParam<> object). */
-			template <typename _TRALoneParam>
-			TFParam(_TRALoneParam&& param) : base_class(param) {}
+			MSE_FPARAM_RVALUE_TO_LVALUE_LONE_PARAM_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 
 			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 
@@ -2515,14 +2492,7 @@ namespace mse {
 		public:
 			typedef TXScopeCSSSXSTERAIterator<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
-
-			/* Here we're "forwarding" (lone) rvalue arguments as lvalues. This enables certain conversions which are
-			not, in general, safe on temporaries, but are safe in this case because rsv::TFParam<> may only be used as
-			(non returnable) function parameters (so we know that the rvalue/temporary argument will outlive the
-			rsv::TFParam<> object). */
-			template <typename _TRALoneParam>
-			TFParam(_TRALoneParam&& param) : base_class(param) {}
+			MSE_FPARAM_RVALUE_TO_LVALUE_LONE_PARAM_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 
 			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TFParam);
 

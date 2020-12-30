@@ -265,7 +265,17 @@ namespace mse {
     template<typename _Ty_using1, typename = typename std::enable_if< \
 			std::is_constructible<Base, std::initializer_list<_Ty_using1> >::value \
 		>::type> \
-    Derived(const std::initializer_list<_Ty_using1>& il) : Base(il) {}
+    Derived(const std::initializer_list<_Ty_using1>& il) : Base(il) {} \
+	template<typename Arg, typename = typename std::enable_if< \
+		std::is_constructible<Base, Arg>::value \
+		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Arg>::value \
+	>::type> \
+	Derived(Arg&& arg) : Base(std::forward<Arg>(arg)) {} \
+	template<typename Arg1, typename Arg2, typename = typename std::enable_if< \
+		std::is_constructible<Base, Arg1, Arg2>::value \
+		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Arg1, Arg2>::value \
+	>::type> \
+	Derived(Arg1&& arg1, Arg2&& arg2) : Base(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2)) {}
 
 	/* These macros roughly simulate constructor inheritance, but add an additional initialization statement
 	to each constructor. */
@@ -281,7 +291,17 @@ namespace mse {
     template<typename _Ty_using1, typename = typename std::enable_if< \
 			std::is_constructible<Base, std::initializer_list<_Ty_using1> >::value \
 		>::type> \
-    Derived(const std::initializer_list<_Ty_using1>& il) : Base(il) { InitializationStatement; }
+    Derived(const std::initializer_list<_Ty_using1>& il) : Base(il) { InitializationStatement; } \
+	template<typename Arg, typename = typename std::enable_if< \
+		std::is_constructible<Base, Arg>::value \
+		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Arg>::value \
+	>::type> \
+	Derived(Arg&& arg) : Base(std::forward<Arg>(arg)) { InitializationStatement; } \
+	template<typename Arg1, typename Arg2, typename = typename std::enable_if< \
+		std::is_constructible<Base, Arg1, Arg2>::value \
+		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<Derived, Arg1, Arg2>::value \
+	>::type> \
+	Derived(Arg1&& arg1, Arg2&& arg2) : Base(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2)) { InitializationStatement; }
 
 
 	namespace impl {
