@@ -340,82 +340,100 @@ namespace mse {
 		namespace impl {
 			namespace array_helper {
 
-				/* some functions to used to concatenate arrays */
-				template<typename T>
-				auto wrap_value(T&& value)
-				{
-					return std::tuple<T&&>(std::forward<T>(value));
-				}
-				template<typename T, std::size_t N>
-				static std::array<T, N>& wrap_value(std::array<T, N>& value)
-				{
-					return value;
-				}
-				template<typename T, std::size_t N>
-				static std::array<T, N> const& wrap_value(std::array<T, N> const& value)
-				{
-					return value;
-				}
-				template<typename T, std::size_t N>
-				static std::array<T, N>&& wrap_value(std::array<T, N>&& value)
-				{
-					return std::move(value);
-				}
-				template<class _Ty, std::size_t... Is, typename... Ts>
-				static std::array<_Ty, sizeof...(Is)>
-					join_arrays_impl(std::index_sequence<Is...>, std::tuple<Ts...>&& parts)
-				{
-					return { std::get<Is>(std::move(parts))... };
-				}
-				template<class _Ty, typename... Ts>
-				auto join_arrays(Ts&&... parts)
-				{
-					auto wrapped_parts = std::tuple_cat((wrap_value)(std::forward<Ts>(parts))...);
-					constexpr auto size = std::tuple_size<decltype(wrapped_parts)>::value;
-					std::make_index_sequence<size> seq;
-					return (join_arrays_impl<_Ty>)(seq, std::move(wrapped_parts));
-				}
-
 				/* some classes used to help emulate array aggregate initialization */
 				template<class _Ty, size_t _Size>
 				class default_constructible_array_helper_type {
 				public:
-					template<typename _TBeginIter, typename _TEndIter>
-					static auto std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
+					template <typename TBeginIter, typename TEndIter>
+					static auto value(const TBeginIter& begin_iter, const TEndIter& end_iter, size_t index) {
+						if (end_iter > (begin_iter + index)) {
+							return *(begin_iter + index);
+						}
+						else {
+							typedef typename std::remove_reference<decltype(*begin_iter)>::type T;
+							return T();
+						}
+					}
+					template <typename TBeginIter, typename TEndIter, size_t... IDXs>
+					static auto _range_to_tuple(const TBeginIter& begin_iter, const TEndIter& end_iter, std::index_sequence<IDXs...>) {
+						//return std::tuple{ value(begin_iter, end_iter, IDXs)... };
+						return std::make_tuple(value(begin_iter, end_iter, IDXs)...);
+					}
+					template <size_t N, typename TBeginIter, typename TEndIter>
+					static auto range_to_tuple(const TBeginIter& begin_iter, const TEndIter& end_iter) {
+						return _range_to_tuple(begin_iter, end_iter, std::make_index_sequence<N>{});
+					}
+					template<class T, std::size_t... Is, typename... Ts>
+					static std::array<T, sizeof...(Is)>
+						range_to_array_impl(std::index_sequence<Is...>, std::tuple<Ts...>&& parts)
 					{
-						return join_arrays<_Ty>(_XSTD array<_Ty, 1>{ (begin_iter != end_iter) ? *begin_iter : _Ty() }
-						, default_constructible_array_helper_type<_Ty, _Size - 1>::std_array_initialized_with_range((begin_iter != end_iter) ? begin_iter + 1 : begin_iter, end_iter));
+						return { std::get<Is>(std::move(parts))... };
+					}
+					template <typename T, size_t N, typename TBeginIter, typename TEndIter>
+					static auto range_to_array(const TBeginIter& begin_iter, const TEndIter& end_iter)
+					{
+						auto aggregate_tuple = range_to_tuple<N>(begin_iter, end_iter);
+						constexpr auto size = std::tuple_size<decltype(aggregate_tuple)>::value;
+						std::make_index_sequence<size> seq;
+						return (range_to_array_impl<T>)(seq, std::move(aggregate_tuple));
+					}
+
+					template<typename _TBeginIter, typename _TEndIter>
+					static constexpr std::array<_Ty, _Size> std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
+					{
+						return range_to_array<_Ty, _Size>(begin_iter, end_iter);
 					}
 				};
+				/*
 				template<class _Ty>
 				class default_constructible_array_helper_type<_Ty, 0> {
 				public:
 					template<typename _TBeginIter, typename _TEndIter>
-					static auto std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
+					static constexpr auto std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
 					{
 						return _XSTD array<_Ty, 0>{};
 					}
 				};
+				*/
 
 				template<class _Ty, size_t _Size>
 				class not_default_constructible_array_helper_type {
 				public:
-					template<typename _TBeginIter, typename _TEndIter>
-					static auto std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
-					{
-						if (begin_iter == end_iter) { MSE_THROW(msearray_range_error("not enough elements in the (non-default constructible) array initializer list")); }
-						return join_arrays<_Ty>(_XSTD array<_Ty, 1>{ *begin_iter }
-						, not_default_constructible_array_helper_type<_Ty, _Size - 1>::std_array_initialized_with_range(begin_iter + 1, end_iter));
+					template <typename TBeginIter, typename TEndIter>
+					static auto value(const TBeginIter& begin_iter, const TEndIter& end_iter, size_t index) {
+						if (end_iter <= (begin_iter + index)) {
+							MSE_THROW(msearray_range_error("not enough elements in the (non-default constructible) array initializer list"));
+						}
+						return *(begin_iter + index);
 					}
-				};
-				template<class _Ty>
-				class not_default_constructible_array_helper_type<_Ty, 1> {
-				public:
-					template<typename _TBeginIter, typename _TEndIter>
-					static auto std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
+					template <typename TBeginIter, typename TEndIter, size_t... IDXs>
+					static auto _range_to_tuple(TBeginIter iter, const TEndIter& end_iter, std::index_sequence<IDXs...>) {
+						//return std::tuple{ value(iter, end_iter, IDXs)... };
+						return std::make_tuple(value(iter, end_iter, IDXs)...);
+					}
+					template <size_t N, typename TBeginIter, typename TEndIter>
+					static auto range_to_tuple(const TBeginIter& begin_iter, const TEndIter& end_iter) {
+						return _range_to_tuple(begin_iter, end_iter, std::make_index_sequence<N>{});
+					}
+					template<class T, std::size_t... Is, typename... Ts>
+					static std::array<T, sizeof...(Is)>
+						range_to_array_impl(std::index_sequence<Is...>, std::tuple<Ts...>&& parts)
 					{
-						if (begin_iter == end_iter) { MSE_THROW(msearray_range_error("not enough elements in the (non-default constructible) array initializer list")); }
-						return _XSTD array<_Ty, 1>{ *begin_iter };
+						return { std::get<Is>(std::move(parts))... };
+					}
+					template <typename T, size_t N, typename TBeginIter, typename TEndIter>
+					static auto range_to_array(const TBeginIter& begin_iter, const TEndIter& end_iter)
+					{
+						auto aggregate_tuple = range_to_tuple<N>(begin_iter, end_iter);
+						constexpr auto size = std::tuple_size<decltype(aggregate_tuple)>::value;
+						std::make_index_sequence<size> seq;
+						return (range_to_array_impl<T>)(seq, std::move(aggregate_tuple));
+					}
+
+					template<typename _TBeginIter, typename _TEndIter>
+					static constexpr std::array<_Ty, _Size> std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
+					{
+						return range_to_array<_Ty, _Size>(begin_iter, end_iter);
 					}
 				};
 				template<class _Ty>
@@ -2843,15 +2861,17 @@ namespace mse {
 		nii_array(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_array()) {}
 		nii_array(const _Myt& _X) : base_class(_X.contained_array()) {}
 		//nii_array(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : base_class(_Ilist) {}
-		static std::array<_Ty, _Size> std_array_initial_value(std::true_type, _XSTD initializer_list<_Ty> _Ilist) {
+		static constexpr std::array<_Ty, _Size> std_array_initial_value(std::true_type, _XSTD initializer_list<_Ty> _Ilist) {
 			/* _Ty is default constructible. */
+			assert(_Ilist.size() <= _Size);
 			return mse::us::impl::array_helper::default_constructible_array_helper_type<_Ty, _Size>::std_array_initialized_with_range(_Ilist.begin(), _Ilist.end());
 		}
-		static std::array<_Ty, _Size> std_array_initial_value(std::false_type, _XSTD initializer_list<_Ty> _Ilist) {
+		static constexpr std::array<_Ty, _Size> std_array_initial_value(std::false_type, _XSTD initializer_list<_Ty> _Ilist) {
 			/* _Ty is not default constructible. */
+			assert(_Ilist.size() == _Size);
 			return mse::us::impl::array_helper::not_default_constructible_array_helper_type<_Ty, _Size>::std_array_initialized_with_range(_Ilist.begin(), _Ilist.end());
 		}
-		nii_array(_XSTD initializer_list<_Ty> _Ilist) : base_class(std_array_initial_value(std::is_default_constructible<_Ty>(), _Ilist)) {
+		constexpr nii_array(_XSTD initializer_list<_Ty> _Ilist) : base_class(std_array_initial_value(std::is_default_constructible<_Ty>(), _Ilist)) {
 			/* std::array<> is an "aggregate type" (basically a POD struct with no base class, constructors or private
 			data members (details here: http://en.cppreference.com/w/cpp/language/aggregate_initialization)). As such,
 			support for construction from initializer list is automatically generated by the compiler. Specifically,
