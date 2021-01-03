@@ -68,7 +68,7 @@ namespace mse {
 			template<typename U, void(U::*)() const> struct SFINAE {};
 			template<typename U> static char Test(SFINAE<U, &U::xscope_returnable_tag>*);
 			template<typename U> static int Test(...);
-			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+			static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
 		};
 
 		/*
@@ -78,7 +78,7 @@ namespace mse {
 			template<typename U, void(U::*)() const> struct SFINAE {};
 			template<typename U> static char Test(SFINAE<U, &U::xscope_not_returnable_tag>*);
 			template<typename U> static int Test(...);
-			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+			static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
 		};
 		*/
 
@@ -512,7 +512,7 @@ namespace mse {
 		//void xscope_contains_accessible_scope_address_of_operator_tag() const {}
 		/* This type can be safely used as a function return value if _Ty is also safely returnable. */
 		template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -821,9 +821,9 @@ namespace mse {
 			MSE_SCOPE_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(TXScopeObj); \
 		};
 
-		/* To achieve compatibility with the us::unsafe_make_xscope_pointer() functions, these specializations make use of
-		reinterpret_cast<>s in certain situations. The safety of these reinterpret_cast<>s rely on the 'mapped_type'
-		being safely "reinterpretable" as a 'specified_type'. */
+	/* To achieve compatibility with the us::unsafe_make_xscope_pointer() functions, these specializations make use of
+	reinterpret_cast<>s in certain situations. The safety of these reinterpret_cast<>s rely on the 'mapped_type'
+	being safely "reinterpretable" as a 'specified_type'. */
 #define MSE_SCOPE_IMPL_PTR_SPECIALIZATION(specified_type, mapped_type) \
 		template<typename _Ty> \
 		class TXScopeFixedPointer<specified_type> : public mse::us::impl::TXScopeItemPointerBase<specified_type>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase { \
@@ -925,9 +925,9 @@ namespace mse {
 			MSE_USING(TXScopeObj, base_class); \
 		};
 
-		/* To achieve compatibility with the us::unsafe_make_xscope_pointer() functions, these specializations make use of
-		reinterpret_cast<>s in certain situations. The safety of these reinterpret_cast<>s rely on 'mse::TInt<integral_type>'
-		being safely "reinterpretable" as an 'integral_type'. */
+	/* To achieve compatibility with the us::unsafe_make_xscope_pointer() functions, these specializations make use of
+	reinterpret_cast<>s in certain situations. The safety of these reinterpret_cast<>s rely on 'mse::TInt<integral_type>'
+	being safely "reinterpretable" as an 'integral_type'. */
 #define MSE_SCOPE_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type) \
 		template<> \
 		class TXScopeFixedPointer<integral_type> : public mse::us::impl::TXScopeItemPointerBase<integral_type>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase { \
@@ -1015,15 +1015,15 @@ namespace mse {
 		MSE_SCOPE_IMPL_PTR_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type); \
 		MSE_SCOPE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
 
-			MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_SCOPE_IMPL_INTEGRAL_SPECIALIZATION)
+	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_SCOPE_IMPL_INTEGRAL_SPECIALIZATION)
 
 #endif /*MSEPRIMITIVES_H*/
 
-	/* end of template specializations */
+		/* end of template specializations */
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 
-	template<typename _Ty> using TXScopeItemFixedPointer = TXScopeFixedPointer<_Ty>;
+		template<typename _Ty> using TXScopeItemFixedPointer = TXScopeFixedPointer<_Ty>;
 	template<typename _Ty> using TXScopeItemFixedConstPointer = TXScopeFixedConstPointer<_Ty>;
 
 	namespace impl {
@@ -1091,7 +1091,7 @@ namespace mse {
 #endif // defined(MSE_SCOPEPOINTER_DISABLED) && defined(MSE_MSTDARRAY_DISABLED)
 
 #ifndef MSE_SCOPE_POINTERS_AND_ITERATORS_MAY_BOTH_BE_RAW_POINTERS
-	/* When mstd::arrays, etc. are disabled, a "universal" overload of xscope_pointer() is provided for their iterators. 
+	/* When mstd::arrays, etc. are disabled, a "universal" overload of xscope_pointer() is provided for their iterators.
 	That overload already handles raw pointers (which may be potentially ambiguous in that situation), so we shouldn't
 	provide another one. */
 	template <typename _Ty>
@@ -1153,14 +1153,14 @@ namespace mse {
 				return base_class::make(target, std::forward<decltype(lease)>(lease));
 			}
 
-			auto xscope_ptr() const & {
+			auto xscope_ptr() const& {
 				return mse::us::unsafe_make_xscope_pointer_to(*(*this));
 			}
-			auto xscope_ptr() const && = delete;
-			operator mse::TXScopeFixedPointer<_TTargetType>() const & {
+			auto xscope_ptr() const&& = delete;
+			operator mse::TXScopeFixedPointer<_TTargetType>() const& {
 				return xscope_ptr();
 			}
-			operator mse::TXScopeFixedPointer<_TTargetType>() const && = delete;
+			operator mse::TXScopeFixedPointer<_TTargetType>() const&& = delete;
 
 		protected:
 			TXScopeStrongFixedPointer(_TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
@@ -1170,7 +1170,7 @@ namespace mse {
 		private:
 			TXScopeStrongFixedPointer(const base_class& src_cref) : base_class(src_cref) {}
 
-			TXScopeStrongFixedPointer & operator=(const TXScopeStrongFixedPointer& _Right_cref) = delete;
+			TXScopeStrongFixedPointer& operator=(const TXScopeStrongFixedPointer& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 			friend class TXScopeStrongFixedConstPointer<_TTargetType, _TLeaseType>;
@@ -1206,14 +1206,14 @@ namespace mse {
 				return base_class::make(target, std::forward<decltype(lease)>(lease));
 			}
 
-			auto xscope_ptr() const & {
+			auto xscope_ptr() const& {
 				return mse::us::unsafe_make_xscope_const_pointer_to(*(*this));
 			}
-			auto xscope_ptr() const && = delete;
-			operator mse::TXScopeFixedConstPointer<_TTargetType>() const & {
+			auto xscope_ptr() const&& = delete;
+			operator mse::TXScopeFixedConstPointer<_TTargetType>() const& {
 				return xscope_ptr();
 			}
-			operator mse::TXScopeFixedConstPointer<_TTargetType>() const && = delete;
+			operator mse::TXScopeFixedConstPointer<_TTargetType>() const&& = delete;
 
 		protected:
 			TXScopeStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
@@ -1223,7 +1223,7 @@ namespace mse {
 		private:
 			TXScopeStrongFixedConstPointer(const base_class& src_cref) : base_class(src_cref) {}
 
-			TXScopeStrongFixedConstPointer & operator=(const TXScopeStrongFixedConstPointer& _Right_cref) = delete;
+			TXScopeStrongFixedConstPointer& operator=(const TXScopeStrongFixedConstPointer& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
 
@@ -1297,7 +1297,7 @@ namespace mse {
 			TXScopeFixedPointerFParam(const TXScopeFixedPointerFParam& src_cref) = default;
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
 			TXScopeFixedPointerFParam(TXScopeCagedItemFixedPointerToRValue<_Ty2>&& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 
 #ifndef MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
@@ -1366,7 +1366,7 @@ namespace mse {
 			template<class _Ty2>
 			void intentional_compile_error() const {
 				/*
-				You are attempting to use an lvalue "scope pointer to a temporary". (Currently) only rvalue 
+				You are attempting to use an lvalue "scope pointer to a temporary". (Currently) only rvalue
 				"scope pointer to a temporary"s are supported.
 				*/
 				mse::impl::T_valid_if_same_msepointerbasics<_Ty2, void>();
@@ -1617,7 +1617,7 @@ namespace mse {
 			return std::forward<_Ty>(_X);
 		}
 		template<typename _Ty>
-		auto returnable_fparam_as_base_type(const TReturnableFParam<_Ty>& _X) -> const typename TReturnableFParam<_Ty>::base_class & {
+		auto returnable_fparam_as_base_type(const TReturnableFParam<_Ty>& _X) -> const typename TReturnableFParam<_Ty>::base_class& {
 			return static_cast<const typename TReturnableFParam<_Ty>::base_class&>(_X);
 		}
 
@@ -1663,15 +1663,17 @@ namespace mse {
 			return as_a_returnable_fparam(std::forward<_Ty>(param));
 		}
 
+		/* This macro adds an overload of the given (template) function that bequeaths the (first) input parameter's "returnable
+		function parameter" status to the function's return value. */
 #define MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_function) \
-		template <typename _Ty, class... _Args> \
-		auto make_xscope_function(const rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax) \
+		template <typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value, void>::type> \
+		auto make_xscope_function(const mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax) \
 			-> decltype(mse::rsv::as_a_returnable_fparam(make_xscope_function(std::declval<const _Ty&>(), std::forward<_Args>(_Ax)...))) { \
 			const _Ty& param_base_ref = param; \
 			return mse::rsv::as_a_returnable_fparam(make_xscope_function(param_base_ref, std::forward<_Args>(_Ax)...)); \
 		} \
-		template <typename _Ty, class... _Args> \
-		auto make_xscope_function(rsv::TReturnableFParam<_Ty>&& param, _Args&&... _Ax) { \
+		template <typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value, void>::type> \
+		auto make_xscope_function(mse::rsv::TReturnableFParam<_Ty>&& param, _Args&&... _Ax) { \
 			return mse::rsv::as_a_returnable_fparam(make_xscope_function(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...)); \
 		}
 
@@ -1683,6 +1685,7 @@ namespace mse {
 		class TReturnableFParam<_Ty*> : public mse::us::impl::TPointerForLegacy<_Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
 #if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
@@ -1693,7 +1696,6 @@ namespace mse {
 			TReturnableFParam(std::nullptr_t) {}
 			TReturnableFParam() {}
 #endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -1701,6 +1703,7 @@ namespace mse {
 		class TReturnableFParam<const _Ty*> : public mse::us::impl::TPointerForLegacy<const _Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<const _Ty> base_class;
+			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 
 #if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
@@ -1711,7 +1714,6 @@ namespace mse {
 			TReturnableFParam(std::nullptr_t) {}
 			TReturnableFParam() {}
 #endif // !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam, base_class);
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -1761,6 +1763,13 @@ namespace mse {
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_const_pointer_to_member_v2)
 
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(xscope_pointer)
+}
+
+namespace std {
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(get)
+}
+
+namespace mse {
 
 	template<typename _TROy>
 	class TReturnValue : public _TROy {
@@ -1781,8 +1790,8 @@ namespace mse {
 		template<class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TROy>::value)
 			|| (mse::impl::potentially_does_not_contain_non_owning_scope_reference<_TROy>::value)
 			|| (true
-				&& (std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_TROy>::Has>())
-				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/
+				&& (std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_TROy>::value>())
+				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::value>())*/
 				), void>::type>
 		void valid_if_TROy_is_marked_as_returnable_or_not_xscope_type() const {}
 
@@ -2009,7 +2018,7 @@ namespace mse {
 		void xscope_tag() const {}
 		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
 		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -2141,7 +2150,7 @@ namespace mse {
 			/* If _TROy is "marked" as not safe to use as a function return value, then the following member function
 			will not instantiate, causing an (intended) compile error. */
 			template<class = typename std::enable_if<(mse::impl::potentially_does_not_contain_non_owning_scope_reference<_TROy>::value)
-				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::Has>())*/, void>::type>
+				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::value>())*/, void>::type>
 				void valid_if_TROy_is_not_marked_as_unreturn_value() const {}
 
 			template<class = typename std::enable_if<mse::impl::is_potentially_xscope<_TROy>::value, void>::type>
@@ -2417,7 +2426,7 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};
@@ -2468,7 +2477,7 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};
@@ -2517,7 +2526,7 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};
@@ -2560,7 +2569,7 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class _Ty2 = _TStrongPointerNR, class = typename std::enable_if<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
+			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			), void>::type>
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};

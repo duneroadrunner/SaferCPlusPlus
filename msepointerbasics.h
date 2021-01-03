@@ -682,7 +682,7 @@ namespace mse {
 			template<typename U, void(U::*)() const> struct SFINAE {};
 			template<typename U> static char Test(SFINAE<U, &U::async_not_shareable_and_not_passable_tag>*);
 			template<typename U> static int Test(...);
-			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+			static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
 		};
 
 		template<typename T>
@@ -691,7 +691,7 @@ namespace mse {
 			template<typename U, void(U::*)() const> struct SFINAE {};
 			template<typename U> static char Test(SFINAE<U, &U::async_shareable_and_passable_tag>*);
 			template<typename U> static int Test(...);
-			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+			static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
 		};
 
 		template<typename T>
@@ -700,7 +700,7 @@ namespace mse {
 			template<typename U, void(U::*)() const> struct SFINAE {};
 			template<typename U> static char Test(SFINAE<U, &U::async_shareable_tag>*);
 			template<typename U> static int Test(...);
-			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+			static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
 		};
 
 		template<typename T>
@@ -709,7 +709,7 @@ namespace mse {
 			template<typename U, void(U::*)() const> struct SFINAE {};
 			template<typename U> static char Test(SFINAE<U, &U::async_passable_tag>*);
 			template<typename U> static int Test(...);
-			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+			static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
 		};
 
 		template<typename T>
@@ -718,7 +718,7 @@ namespace mse {
 			template<typename U, void(U::*)() const> struct SFINAE {};
 			template<typename U> static char Test(SFINAE<U, &U::xscope_async_shareable_and_passable_tag>*);
 			template<typename U> static int Test(...);
-			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+			static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
 		};
 
 		template<typename T>
@@ -727,7 +727,7 @@ namespace mse {
 			template<typename U, void(U::*)() const> struct SFINAE {};
 			template<typename U> static char Test(SFINAE<U, &U::xscope_async_shareable_tag>*);
 			template<typename U> static int Test(...);
-			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+			static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
 		};
 
 		template<typename T>
@@ -736,11 +736,11 @@ namespace mse {
 			template<typename U, void(U::*)() const> struct SFINAE {};
 			template<typename U> static char Test(SFINAE<U, &U::xscope_async_passable_tag>*);
 			template<typename U> static int Test(...);
-			static const bool Has = (sizeof(Test<T>(0)) == sizeof(char));
+			static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
 		};
 
-		template <typename _Ty> struct is_marked_as_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncShareableTagMethod_msemsearray<_Ty>::Has)
-			|| (mse::impl::HasAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::Has) || (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
+		template <typename _Ty> struct is_marked_as_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncShareableTagMethod_msemsearray<_Ty>::value)
+			|| (mse::impl::HasAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::value) || (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
 			|| (mse::impl::lambda::is_convertible_to_function_pointer<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
 #ifdef MSE_SCOPEPOINTER_DISABLED
 			|| (std::is_pointer<_Ty>::value)
@@ -761,8 +761,8 @@ namespace mse {
 			return std::forward<decltype(_X)>(_X);
 		}
 
-		template <typename _Ty> struct is_marked_as_passable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncPassableTagMethod_msemsearray<_Ty>::Has)
-			|| (mse::impl::HasAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::Has) || (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
+		template <typename _Ty> struct is_marked_as_passable_msemsearray : std::integral_constant<bool, (mse::impl::HasAsyncPassableTagMethod_msemsearray<_Ty>::value)
+			|| (mse::impl::HasAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::value) || (std::is_arithmetic<_Ty>::value) /*|| (std::is_function<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)*/
 			|| (mse::impl::lambda::is_convertible_to_function_pointer<typename std::remove_pointer<typename std::remove_reference<_Ty>::type>::type>::value)
 #ifdef MSE_SCOPEPOINTER_DISABLED
 			|| (std::is_pointer<_Ty>::value)
@@ -788,8 +788,8 @@ namespace mse {
 		void T_valid_if_is_marked_as_shareable_and_passable_msemsearray() {}
 
 
-		template <typename _Ty> struct is_marked_as_xscope_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncShareableTagMethod_msemsearray<_Ty>::Has)
-			|| (mse::impl::HasXScopeAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::Has) || (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
+		template <typename _Ty> struct is_marked_as_xscope_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncShareableTagMethod_msemsearray<_Ty>::value)
+			|| (mse::impl::HasXScopeAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::value) || (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
 
 		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_shareable_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_marked_as_xscope_shareable_msemsearray() {}
@@ -804,8 +804,8 @@ namespace mse {
 			return std::forward<decltype(_X)>(_X);
 		}
 
-		template <typename _Ty> struct is_marked_as_xscope_passable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncPassableTagMethod_msescope<_Ty>::Has)
-			|| (mse::impl::HasXScopeAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::Has) || (is_marked_as_passable_msemsearray<_Ty>::value)> {};
+		template <typename _Ty> struct is_marked_as_xscope_passable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncPassableTagMethod_msescope<_Ty>::value)
+			|| (mse::impl::HasXScopeAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::value) || (is_marked_as_passable_msemsearray<_Ty>::value)> {};
 
 		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_passable_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_marked_as_xscope_passable_msemsearray() {}
