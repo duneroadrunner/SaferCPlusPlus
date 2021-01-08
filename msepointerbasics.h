@@ -337,6 +337,12 @@ namespace mse {
 #define MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(Derived, Base) \
 	MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Derived, Base) MSE_USING_ASSIGNMENT_OPERATOR(Base)
 
+#define MSE_USING_AMPERSAND_OPERATOR(Base) \
+	template<class _TBase2 = Base, typename = typename std::enable_if<std::is_same<_TBase2, Base>::value>::type> \
+	auto operator&() { return _TBase2::operator&(); } \
+	template<class _TBase2 = Base, typename = typename std::enable_if<std::is_same<_TBase2, Base>::value>::type> \
+	auto operator&() const { return _TBase2::operator&(); }
+
 #if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED) || defined(MSE_THREADLOCALPOINTER_DISABLED) || defined(MSE_STATICPOINTER_DISABLED)
 #define MSE_SOME_POINTER_TYPE_IS_DISABLED
 #endif /*defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED) || defined(MSE_THREADLOCALPOINTER_DISABLED) || defined(MSE_STATICPOINTER_DISABLED)*/

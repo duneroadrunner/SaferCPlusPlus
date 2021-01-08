@@ -542,7 +542,7 @@ namespace mse {
 
 			class StrongContainerReferenceHoldingIteratorTagBase {};
 			class StaticStructureIteratorTagBase {};
-			class StructureLockingIteratorTagBase {};
+			class StructureLockingIteratorTagBase : public StructureLockingObjectTagBase {};
 			class ContiguousSequenceIteratorTagBase {};
 			class ContiguousSequenceStaticStructureIteratorTagBase : public ContiguousSequenceIteratorTagBase, public StaticStructureIteratorTagBase {};
 		}
@@ -607,6 +607,10 @@ namespace mse {
 
 		template<class _Ty, class = typename std::enable_if<(is_lockable_structure_container<_Ty>::value), void>::type>
 		void T_valid_if_is_lockable_structure_container() {}
+
+		template <typename _Tx, typename _Ty> struct is_pointer_to_lockable_structure_container_helper1 : is_lockable_structure_container<typename std::remove_reference<decltype(*std::declval<_Ty>())>::type> {};
+		template <typename _Ty> struct is_pointer_to_lockable_structure_container_helper1<std::false_type, _Ty> : std::false_type {};
+		template <typename _Ty> struct is_pointer_to_lockable_structure_container : is_pointer_to_lockable_structure_container_helper1<typename mse::impl::IsDereferenceable_msemsearray<_Ty>::type, _Ty> {};
 
 		template <typename _Ty> struct is_contiguous_sequence_container : std::integral_constant<bool,
 			(std::is_base_of<mse::us::impl::ContiguousSequenceContainerTagBase, typename std::remove_reference<_Ty>::type>::value) || (is_std_array<_Ty>::value)
@@ -4136,8 +4140,42 @@ namespace mse {
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
-	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_const_iterator)
-	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_iterator)
+	//MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_const_iterator)
+	//MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_iterator)
+	template <typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value && (!mse::impl::is_pointer_to_lockable_structure_container<_Ty>::value), void>::type>
+	auto make_xscope_iterator(const mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
+		-> decltype(mse::rsv::as_a_returnable_fparam(make_xscope_iterator(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) {
+		const auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
+		return mse::rsv::as_a_returnable_fparam(make_xscope_iterator(param_base_ref, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value && (!mse::impl::is_pointer_to_lockable_structure_container<_Ty>::value), void>::type>
+	auto make_xscope_iterator(mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
+		-> decltype(mse::rsv::as_a_returnable_fparam(make_xscope_iterator(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) {
+		auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
+		return mse::rsv::as_a_returnable_fparam(make_xscope_iterator(param_base_ref, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value && (!mse::impl::is_pointer_to_lockable_structure_container<_Ty>::value), void>::type>
+	auto make_xscope_iterator(mse::rsv::TReturnableFParam<_Ty>&& param, _Args&&... _Ax) {
+		return mse::rsv::as_a_returnable_fparam(make_xscope_iterator(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...));
+	}
+
+	template <typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value && (!mse::impl::is_pointer_to_lockable_structure_container<_Ty>::value), void>::type>
+	auto make_xscope_const_iterator(const mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
+		-> decltype(mse::rsv::as_a_returnable_fparam(make_xscope_const_iterator(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) {
+		const auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
+		return mse::rsv::as_a_returnable_fparam(make_xscope_const_iterator(param_base_ref, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value && (!mse::impl::is_pointer_to_lockable_structure_container<_Ty>::value), void>::type>
+	auto make_xscope_const_iterator(mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
+		-> decltype(mse::rsv::as_a_returnable_fparam(make_xscope_const_iterator(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) {
+		auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
+		return mse::rsv::as_a_returnable_fparam(make_xscope_const_iterator(param_base_ref, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value && (!mse::impl::is_pointer_to_lockable_structure_container<_Ty>::value), void>::type>
+	auto make_xscope_const_iterator(mse::rsv::TReturnableFParam<_Ty>&& param, _Args&&... _Ax) {
+		return mse::rsv::as_a_returnable_fparam(make_xscope_const_iterator(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...));
+	}
+
 
 	/* We had iterators in mind with these overloads of operator+ and operator-. */
 	template <typename _Ty, typename _Tz>

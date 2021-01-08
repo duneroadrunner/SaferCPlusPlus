@@ -4556,7 +4556,7 @@ namespace mse {
 	template<typename TXScopeOptionalPointer>
 	class TXScopeOptionalElementFixedPointer : public mse::us::TXScopeStrongFixedPointer<
 		typename mse::impl::ns_optional::TypeInfoFromPointerToOptional1<TXScopeOptionalPointer>::value_t
-		, typename mse::impl::ns_optional::TypeInfoFromPointerToOptional1<TXScopeOptionalPointer>::structure_lock_guard_t> {
+		, typename mse::impl::ns_optional::TypeInfoFromPointerToOptional1<TXScopeOptionalPointer>::structure_lock_guard_t>, public mse::us::impl::StructureLockingObjectTagBase {
 	public:
 		typedef mse::us::TXScopeStrongFixedPointer<
 			typename mse::impl::ns_optional::TypeInfoFromPointerToOptional1<TXScopeOptionalPointer>::value_t
@@ -4584,7 +4584,7 @@ namespace mse {
 	template<typename TXScopeOptionalPointer>
 	class TXScopeOptionalElementFixedConstPointer : public mse::us::TXScopeStrongFixedConstPointer<
 		typename mse::impl::ns_optional::TypeInfoFromPointerToOptional1<TXScopeOptionalPointer>::value_t
-		, typename mse::impl::ns_optional::TypeInfoFromPointerToOptional1<TXScopeOptionalPointer>::structure_lock_guard_t> {
+		, typename mse::impl::ns_optional::TypeInfoFromPointerToOptional1<TXScopeOptionalPointer>::structure_lock_guard_t>, public mse::us::impl::StructureLockingObjectTagBase {
 	public:
 		typedef mse::us::TXScopeStrongFixedConstPointer<
 			typename mse::impl::ns_optional::TypeInfoFromPointerToOptional1<TXScopeOptionalPointer>::value_t

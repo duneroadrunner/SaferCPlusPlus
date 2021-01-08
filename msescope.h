@@ -56,11 +56,20 @@ namespace mse {
 	/* This macro roughly simulates constructor inheritance. */
 #define MSE_SCOPE_USING(Derived, Base) MSE_USING(Derived, Base)
 
-	namespace impl {
-		template<typename _Ty> class TScopeID {};
+	namespace us {
+		namespace impl {
+			class StructureLockingObjectTagBase {};
+		}
 	}
 
 	namespace impl {
+		template<typename _Ty> class TScopeID {};
+
+		template <typename _Ty> struct is_potentially_not_structure_locking_reference : std::integral_constant<bool,
+			(!std::is_base_of<mse::us::impl::StructureLockingObjectTagBase, typename std::remove_reference<_Ty>::type>::value)> {};
+
+		template <typename _Ty> struct is_potentially_structure_locking_reference : std::integral_constant<bool, 
+			(!is_potentially_not_structure_locking_reference<_Ty>::value)> {};
 
 		template<typename T>
 		struct HasXScopeReturnableTagMethod
@@ -1587,13 +1596,17 @@ namespace mse {
 			typedef _Ty returnable_fparam_contained_type;
 			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TReturnableFParam);
 
+			MSE_USING_AMPERSAND_OPERATOR(base_class);
+
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 
 		private:
 			MSE_USING(TReturnableFParam, base_class);
 
-			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+			//MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
+			MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+			MSE_DEFAULT_OPERATOR_NEW_DECLARATION;
 
 			template<typename _Ty2>
 			friend auto impl::returnable_fparam::as_a_returnable_fparam_helper1(std::true_type, const _Ty2& param)->TReturnableFParam<typename std::remove_reference<_Ty2>::type>;
@@ -1668,8 +1681,14 @@ namespace mse {
 #define MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_function) \
 		template <typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value, void>::type> \
 		auto make_xscope_function(const mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax) \
-			-> decltype(mse::rsv::as_a_returnable_fparam(make_xscope_function(std::declval<const _Ty&>(), std::forward<_Args>(_Ax)...))) { \
-			const _Ty& param_base_ref = param; \
+			-> decltype(mse::rsv::as_a_returnable_fparam(make_xscope_function(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) { \
+			const auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param); \
+			return mse::rsv::as_a_returnable_fparam(make_xscope_function(param_base_ref, std::forward<_Args>(_Ax)...)); \
+		} \
+		template <typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value, void>::type> \
+		auto make_xscope_function(mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax) \
+			-> decltype(mse::rsv::as_a_returnable_fparam(make_xscope_function(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) { \
+			auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param); \
 			return mse::rsv::as_a_returnable_fparam(make_xscope_function(param_base_ref, std::forward<_Args>(_Ax)...)); \
 		} \
 		template <typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value, void>::type> \
@@ -1763,10 +1782,44 @@ namespace mse {
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_const_pointer_to_member_v2)
 
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(xscope_pointer)
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(xscope_const_pointer)
 }
 
 namespace std {
-	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(get)
+	/* Overloads for rsv::TReturnableFParam<>. */
+	template <size_t _Index, typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value, void>::type>
+	auto get(const mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
+		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Index>(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) {
+		const auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
+		return mse::rsv::as_a_returnable_fparam(get<_Index>(param_base_ref, std::forward<_Args>(_Ax)...));
+	}
+	template <size_t _Index, typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value, void>::type>
+	auto get(mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
+		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Index>(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) {
+		auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
+		return mse::rsv::as_a_returnable_fparam(get<_Index>(param_base_ref, std::forward<_Args>(_Ax)...));
+	}
+	template <size_t _Index, typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value, void>::type>
+	auto get(mse::rsv::TReturnableFParam<_Ty>&& param, _Args&&... _Ax) {
+		return mse::rsv::as_a_returnable_fparam(get<_Index>(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...));
+	}
+
+	template <typename _Tx, typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value, void>::type>
+	auto get(const mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
+		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Tx>(std::declval<const _Ty&>(), std::forward<_Args>(_Ax)...))) {
+		const auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
+		return mse::rsv::as_a_returnable_fparam(get<_Tx>(param_base_ref, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Tx, typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value, void>::type>
+	auto get(mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
+		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Tx>(std::declval<_Ty&>(), std::forward<_Args>(_Ax)...))) {
+		auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
+		return mse::rsv::as_a_returnable_fparam(get<_Tx>(param_base_ref, std::forward<_Args>(_Ax)...));
+	}
+	template <typename _Tx, typename _Ty, class... _Args, class = typename std::enable_if<mse::impl::is_potentially_xscope<_Ty>::value, void>::type>
+	auto get(mse::rsv::TReturnableFParam<_Ty>&& param, _Args&&... _Ax) {
+		return mse::rsv::as_a_returnable_fparam(get<_Tx>(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...));
+	}
 }
 
 namespace mse {
