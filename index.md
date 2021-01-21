@@ -1,4 +1,4 @@
-Feb 2020
+Jan 2021
 
 ### Overview
 
@@ -24,7 +24,7 @@ And the library also addresses the data race issue, where the Core Guidelines do
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
-Tested with msvc2019(v16.4.3), g++7.4.0 and clang++6.0.0. Support for versions of g++ prior to version 5 was dropped on Mar 21, 2016. Note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
+Tested with msvc2019(v16.4.3), g++7.4.0 and clang++6.0.0. Versions of g++ prior to version 5 are not supported. Elements in this library are currently based on the C++17 version of their counterpart APIs. Note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly.
 
 
 ### Table of contents
@@ -106,7 +106,7 @@ Tested with msvc2019(v16.4.3), g++7.4.0 and clang++6.0.0. Support for versions o
 17. [Arrays](#arrays)
     1. [mstd::array](#array)
     2. [nii_array](#nii_array)
-    3. [msearray](#msearray)
+    3. [xscope_nii_array](#xscope_nii_array)
     4. [xscope_iterator](#xscope_iterator)
 18. [Vectors](#vectors)
     1. [mstd::vector](#vector)
@@ -140,8 +140,11 @@ Tested with msvc2019(v16.4.3), g++7.4.0 and clang++6.0.0. Support for versions o
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
 25. [thread_local](#thread_local)
-26. [Practical limitations](#practical-limitations)
-27. [Questions and comments](#questions-and-comments)
+26. [(Type-erased) function objects](#type-erased-function-objects)
+    1. [mstd::function](#function)
+    2. [xscope_function](#xscope_function)
+27. [Practical limitations](#practical-limitations)
+28. [Questions and comments](#questions-and-comments)
 
 ### Use cases
 
@@ -1086,9 +1089,9 @@ public:
     /* This function will be used to demonstrate using rsv::as_an_fparam() to enable template functions to accept scope 
     pointers to temporary objects. */
     template<class _TPointer1, class _TPointer2>
-    static bool second_is_longer(const _TPointer1& string1_xscpptr, const _TPointer2& string2_xscpptr) {
-        auto l_string1_xscpptr = mse::rsv::as_an_fparam(string1_xscpptr);
-        auto l_string2_xscpptr = mse::rsv::as_an_fparam(string2_xscpptr);
+    static bool second_is_longer(_TPointer1&& string1_xscpptr, _TPointer2&& string2_xscpptr) {
+        auto l_string1_xscpptr = mse::rsv::as_an_fparam(std::forward<decltype(string1_xscpptr)>(string1_xscpptr));
+        auto l_string2_xscpptr = mse::rsv::as_an_fparam(std::forward<decltype(string2_xscpptr)>(string2_xscpptr));
         return (l_string1_xscpptr->length() > l_string2_xscpptr->length()) ? false : true;
     }
 };
@@ -1485,9 +1488,10 @@ A conformance-enforcment helper tool like scpptool [restricts](https://github.co
 
 Alternatively, instead of native references you can use scope pointers directly as reference parameters. 
 
-Functions that return scope pointer/reference types are a special case that must be handled differently. The challenge is to ensure that any returned scope pointer/reference doesn't outlive its original source, and therefore its target. (Btw, a scope [section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) would be an example of a scope reference type.) The general way to implement this case is demonstrated in the [`as_a_returnable_fparam()`](#as_a_returnable_fparam) section. It involves a significant amount of "ceremony", but perhaps that's not necessarily inappropriate, as it's kind of an insidously dangerous case in traditional C++.
-
 In cases where the function takes (some degree of) "ownership" of the referenced parameter, and you want some flexibility in the (owning) pointer/reference parameter type, you probably want to make your function a function template. Another option would be to make your pointer parameters [poly pointers](#poly-pointers). 
+
+### Safely returning references
+While non-scope reference types can be safely returned just like value types, functions that return (or potentially return) scope pointer/reference types are a special case that must be handled differently. The challenge is to ensure that any returned scope pointer/reference doesn't outlive its original source, and therefore its target. (Btw, a "scope [section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" would be an example of a scope reference type.) The general way to implement this case is demonstrated in the [`as_a_returnable_fparam()`](#as_a_returnable_fparam) section. It involves a significant amount of "ceremony", but perhaps that's not necessarily inappropriate, as it's kind of an insidously dangerous case in traditional C++. (Conformance-enforcment helper tools like [scpptool](https://github.com/duneroadrunner/scpptool) will catch attempts to return scope references unsafely.)
 
 ### Multithreading
 
@@ -2624,9 +2628,7 @@ Integer types with more comprehensive range checking can be found here: https://
 
 ### Arrays
 
-The library provides a few array types - [`mstd::array<>`](#array), [`nii_array<>`](#nii_array) and [`us::msearray<>`](#msearray). `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. Due to their iterators, arrays are not, in general, safe to share among threads.  `nii_array<>` is designed to be safely shared between asynchronous threads. And `us::msearray<>` is not memory-safe in the way the other arrays are, and is provided for cases where more control over the safety-performance trade-off is desired.
-
-Note that these arrays currently do not support using [scope](#scope-pointers) types as the element type even when the array itself is declared as a scope object. It's expected that this will be supported in the future. The (few) cases where this would be an issue is when you want the element type to be a scope pointer or a type with scope pointer members. In those cases, you might use registered and/or refcounting pointers instead. 
+The library provides a few array types - [`mstd::array<>`](#array), [`nii_array<>`](#nii_array) and [`xscope_nii_array<>`](#xscope_nii_array). `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. Due to their iterators, arrays are not, in general, safe to share among threads.  `nii_array<>` is designed to be safely shared between asynchronous threads. Note that these two arrays do not support using [scope](#scope-pointers) types as the element type, while `xscope_nii_array<>` does. 
 
 And remember that you can use ["random access sections"](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
@@ -2687,6 +2689,10 @@ Also note that an `nii_array<>` will be (automatically) marked as [safely sharea
 You might choose to use `nii_array<>`s over `mstd::array<>`s even in cases where the array is not being shared among threads, as it actually has less overhead.
 
 usage example: (see the similar [`mtnii_vector<>`](#mtnii_vector))
+
+### xscope_nii_array<>
+
+`xscope_nii_array<>` is just the [scope](#scope-pointers) version of [`nii_array<>`](#nii_array). So unlike `nii_array<>`, `xscope_nii_array<>` supports elements that are scope types. But as a scope type itself, `xscope_nii_array<>` is subject to the restrictions of scope objects. Additionally, in cases where the element type is or contains a scope pointer or reference object, operations that modify array elements (such as `swap()`, or the assignment operator or the `fill()` member function) are disabled. (Though the subscript operator and `at()` member function can still yield a non-`const` reference to any specified element.)
 
 
 ### msearray
@@ -3116,6 +3122,17 @@ usage example:
         mse::ivector<int>::ipointer ivip = iv.begin();
     }
 ```
+
+### xscope_fixed_nii_vector<>
+
+Not yet available. An `xscope_fixed_nii_vector<>` is basically like an [`xscope_nii_array<>`](#xscope_nii_array) (i.e. not resizable) whose size is specified at construction (rather than at compile-time).
+
+### xscope_borrowing_fixed_nii_vector<>
+
+[*provisional*]
+
+Not yet available. `xscope_borrowing_fixed_nii_vector<>` is a kind of [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector) that, at construction, "borrows" (or temporarily "steals" via `swap()`) the contents of a specified existing (scope object) vector, then, upon destruction "returns" the (possibly modified) contents back to the original owner.
+
 
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
@@ -3846,6 +3863,59 @@ void main(int argc, char* argv[]) {
     }
 
 }
+```
+
+### (Type-erased) function objects
+
+### function
+
+`mstd::function<>` is essentially a drop-in replacement for `std::function<>`. 
+
+usage example:
+
+```cpp
+    #include "msefunction.h"
+    
+    void main(int argc, char* argv[]) {
+        /* mstd::function<> is essentially just an implementation of std::function<> that supports the library's scope and
+        data race safety mechanisms. */
+        mse::mstd::function<int()> function1 = []() { return 3; };
+        function1 = []() { return 5; };
+        int res1 = function1();
+    }
+```
+
+### xscope_function
+
+Some function objects, like functors and capture lambdas, can be scope types and would not be supported by [`mstd::function<>`](#function).
+
+usage example:
+
+```cpp
+    #include "msefunction.h"
+    
+    void main(int argc, char* argv[]) {
+        /* xscope_function<>s support scope function objects as well. */
+        mse::xscope_function<int()> xs_function1 = []() { return 5; };
+
+        auto xs_int1 = mse::make_xscope(int(5));
+        auto int1_xsptr = &xs_int1;
+
+        struct xscope_my_function_obj_t : public mse::rsv::XScopeTagBase, public mse::rsv::ContainsNonOwningScopeReferenceTagBase {
+            xscope_my_function_obj_t(decltype(int1_xsptr) int_xsptr) : m_int_xsptr(int_xsptr) {}
+            decltype(int1_xsptr) m_int_xsptr; /* this is a scope pointer */
+            int operator()() const { return *m_int_xsptr; }
+        };
+        /* xscope_my_function_obj_t is a scope type with a scope (pointer) member. */
+        xscope_my_function_obj_t xscope_my_function_obj1(int1_xsptr);
+        xs_function1 = xscope_my_function_obj1;
+        int res1 = xs_function1();
+
+        /* Just as structs with scope pointer/reference members need to be declared as such, lambdas that
+        capture scope pointer/references must be declared as such. */
+        auto xs_lambda1 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([int1_xsptr]() { return *int1_xsptr; });
+        xs_function1 = xs_lambda1;
+    }
 ```
 
 ### Practical limitations
