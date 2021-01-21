@@ -4054,4 +4054,4 @@ Also note that explicitly calling `std::move()` (the one in the `<utility>` libr
 And also, SaferCPlusPlus does not yet provide safer substitutes for all of the standard library containers, just the ones responsible for the most problems (vector and array). So be careful with your maps, sets, etc. In many cases lists can be replaced with [`ivector<>`](#ivector)s that support list-style iterators, often with a performance benefit.
 
 ### Questions and comments
-If you have questions or comments you can create a post in the [issues section](https://github.com/duneroadrunner/SaferCPlusPlus/issues).
+If you have questions or comments you can post in the [discussions section](https://github.com/duneroadrunner/SaferCPlusPlus/discussions).
