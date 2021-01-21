@@ -1,4 +1,4 @@
-Sep 2020
+Jan 2021
 
 ### Overview
 
@@ -106,7 +106,7 @@ Tested with msvc2019(v16.4.3), g++7.4.0 and clang++6.0.0. Versions of g++ prior 
 17. [Arrays](#arrays)
     1. [mstd::array](#array)
     2. [nii_array](#nii_array)
-    3. [msearray](#msearray)
+    3. [xscope_nii_array](#xscope_nii_array)
     4. [xscope_iterator](#xscope_iterator)
 18. [Vectors](#vectors)
     1. [mstd::vector](#vector)
@@ -2628,9 +2628,7 @@ Integer types with more comprehensive range checking can be found here: https://
 
 ### Arrays
 
-The library provides a few array types - [`mstd::array<>`](#array), [`nii_array<>`](#nii_array) and [`us::msearray<>`](#msearray). `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. Due to their iterators, arrays are not, in general, safe to share among threads.  `nii_array<>` is designed to be safely shared between asynchronous threads. And `us::msearray<>` is not memory-safe in the way the other arrays are, and is provided for cases where more control over the safety-performance trade-off is desired.
-
-Note that these arrays currently do not support using [scope](#scope-pointers) types as the element type even when the array itself is declared as a scope object. It's expected that this will be supported in the future. The (few) cases where this would be an issue is when you want the element type to be a scope pointer or a type with scope pointer members. In those cases, you might use registered and/or refcounting pointers instead. 
+The library provides a few array types - [`mstd::array<>`](#array), [`nii_array<>`](#nii_array) and [`xscope_nii_array<>`](#xscope_nii_array). `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. Due to their iterators, arrays are not, in general, safe to share among threads.  `nii_array<>` is designed to be safely shared between asynchronous threads. Note that these two arrays do not support using [scope](#scope-pointers) types as the element type, while `xscope_nii_array<>` does. 
 
 And remember that you can use ["random access sections"](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
@@ -2694,7 +2692,7 @@ usage example: (see the similar [`mtnii_vector<>`](#mtnii_vector))
 
 ### xscope_nii_array<>
 
-Not yet available. For now, as a work-around you might substitute any scope pointer/references that you want to store with [proxy](#tregisteredproxypointer) references, and just use a regular (non-xscope) [`nii_array<>`](#nii_array).
+`xscope_nii_array<>` is just the [scope](#scope-pointers) version of [`nii_array<>`](#nii_array). So unlike `nii_array<>`, `xscope_nii_array<>` supports elements that are scope types. But as a scope type itself, `xscope_nii_array<>` is subject to the restrictions of scope objects. Additionally, in cases where the element type is or contains a scope pointer or reference object, operations that modify array elements (such as `swap()`, or the assignment operator or the `fill()` member function) are disabled. (Though the subscript operator and `at()` member function can still yield a non-`const` reference to any specified element.)
 
 
 ### msearray
