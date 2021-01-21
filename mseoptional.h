@@ -2512,33 +2512,33 @@ namespace mse {
 			return *this;
 		}
 		xscope_optional& operator=(const xscope_optional& rhs) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::operator=(mse::us::impl::as_ref<base_class>(rhs));
 			return *this;
 		}
 		xscope_optional& operator=(xscope_optional&& rhs) noexcept(std::is_nothrow_move_assignable<T>::value && std::is_nothrow_move_constructible<T>::value) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::operator=(mse::us::impl::as_ref<base_class>(std::forward<decltype(rhs)>(rhs)));
 			return *this;
 		}
 		template <class U, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_optional, U> >
 		auto operator=(U&& v) -> typename std::enable_if<std::is_same<typename std::decay<U>::type, T>::value, xscope_optional&>::type {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::operator=(std::forward<U>(v));
 			return *this;
 		}
 		template <class... Args>
 		void emplace(Args&&... args) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::emplace(std::forward<Args>(args)...);
 		}
 		template <class U, class... Args>
 		void emplace(std::initializer_list<U> il, Args&&... args) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::emplace(il, std::forward<Args>(args)...);
 		}
@@ -2551,7 +2551,7 @@ namespace mse {
 			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)
 			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value), void>::type>
 		void swap(xscope_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::swap(rhs);
 		}
@@ -2560,16 +2560,16 @@ namespace mse {
 		template<class T2 = T, class = typename std::enable_if<(std::is_same<T2, T>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
 			), void>::type>
-		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+		void xscope_returnable_tag() const {} /* Indication that this type can be used as a function return value. */
 
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
 
 	private:
-		/* If T is "marked" as not safe to use as a function return value, then the following member function
+		/* If T is "marked" as containing a scope reference, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class T2, class = typename std::enable_if<(std::is_same<T2, T>::value)
 			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value), void>::type>
-		void valid_if_T_is_not_marked_as_unreturnable() const {}
+		void valid_if_T_is_not_marked_as_containing_a_scope_reference() const {}
 
 		/* If T is "marked" as containing an accessible "scope address of" operator, then the following member function
 		will not instantiate, causing an (intended) compile error. */
@@ -2652,33 +2652,33 @@ namespace mse {
 			return *this;
 		}
 		xscope_mt_optional& operator=(const xscope_mt_optional& rhs) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::operator=(rhs);
 			return *this;
 		}
 		xscope_mt_optional& operator=(xscope_mt_optional&& rhs) noexcept(std::is_nothrow_move_assignable<T>::value && std::is_nothrow_move_constructible<T>::value) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::operator=(mse::us::impl::as_ref<base_class>(std::forward<decltype(rhs)>(rhs)));
 			return *this;
 		}
 		template <class U, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_mt_optional, U> >
 		auto operator=(U&& v) -> typename std::enable_if<std::is_same<typename std::decay<U>::type, T>::value, xscope_mt_optional&>::type {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::operator=(std::forward<U>(v));
 			return *this;
 		}
 		template <class... Args>
 		void emplace(Args&&... args) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::emplace(std::forward<Args>(args)...);
 		}
 		template <class U, class... Args>
 		void emplace(std::initializer_list<U> il, Args&&... args) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::emplace(il, std::forward<Args>(args)...);
 		}
@@ -2687,7 +2687,7 @@ namespace mse {
 			base_class::reset();
 		}
 		void swap(xscope_mt_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::swap(rhs);
 		}
@@ -2701,11 +2701,11 @@ namespace mse {
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
 
 	private:
-		/* If T is "marked" as not safe to use as a function return value, then the following member function
+		/* If T is "marked" as containing a scope reference, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class T2, class = typename std::enable_if<(std::is_same<T2, T>::value)
 			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value), void>::type>
-			void valid_if_T_is_not_marked_as_unreturnable() const {}
+			void valid_if_T_is_not_marked_as_containing_a_scope_reference() const {}
 
 		/* If T is "marked" as containing an accessible "scope address of" operator, then the following member function
 		will not instantiate, causing an (intended) compile error. */
@@ -2788,33 +2788,33 @@ namespace mse {
 			return *this;
 		}
 		xscope_st_optional& operator=(const xscope_st_optional& rhs) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::operator=(rhs);
 			return *this;
 		}
 		xscope_st_optional& operator=(xscope_st_optional&& rhs) noexcept(std::is_nothrow_move_assignable<T>::value && std::is_nothrow_move_constructible<T>::value) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::operator=(mse::us::impl::as_ref<base_class>(std::forward<decltype(rhs)>(rhs)));
 			return *this;
 		}
 		template <class U, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_st_optional, U> >
 		auto operator=(U&& v) -> typename std::enable_if<std::is_same<typename std::decay<U>::type, T>::value, xscope_st_optional&>::type {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::operator=(std::forward<U>(v));
 			return *this;
 		}
 		template <class... Args>
 		void emplace(Args&&... args) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::emplace(std::forward<Args>(args)...);
 		}
 		template <class U, class... Args>
 		void emplace(std::initializer_list<U> il, Args&&... args) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::emplace(il, std::forward<Args>(args)...);
 		}
@@ -2823,7 +2823,7 @@ namespace mse {
 			base_class::reset();
 		}
 		void swap(xscope_st_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
-			valid_if_T_is_not_marked_as_unreturnable<T>();
+			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::swap(rhs);
 		}
@@ -2835,11 +2835,11 @@ namespace mse {
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
-		/* If T is "marked" as not safe to use as a function return value, then the following member function
+		/* If T is "marked" as containing a scope reference, then the following member function
 		will not instantiate, causing an (intended) compile error. */
 		template<class T2, class = typename std::enable_if<(std::is_same<T2, T>::value)
 			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value), void>::type>
-			void valid_if_T_is_not_marked_as_unreturnable() const {}
+			void valid_if_T_is_not_marked_as_containing_a_scope_reference() const {}
 
 		/* If T is "marked" as containing an accessible "scope address of" operator, then the following member function
 		will not instantiate, causing an (intended) compile error. */

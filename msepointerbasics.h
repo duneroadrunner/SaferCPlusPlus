@@ -856,26 +856,30 @@ namespace mse {
 	namespace impl {
 		template<typename... _Types>
 		class TPlaceHolder {};
+
+		template<typename TTagBase, typename T2, typename T3>
+		using first_or_placeholder_if_base_of_second = typename std::conditional<!std::is_base_of<TTagBase, T2>::value, TTagBase, mse::impl::TPlaceHolder<TTagBase, T3> >::type;
+
+		template<typename TTagBase, typename T2, typename T3>
+		using first_or_placeholder_if_not_base_of_second = typename std::conditional<std::is_base_of<TTagBase, T2>::value, TTagBase, mse::impl::TPlaceHolder<TTagBase, T3> >::type;
 	}
 
-//define MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(tag_base, class2, class3) std::conditional<!std::is_convertible<class2 const * const, tag_base const * const>::value, tag_base, mse::impl::TPlaceHolder<tag_base, class3> >::type
-//define MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(tag_base, class2, class3) std::conditional<std::is_convertible<class2 const * const, tag_base const * const>::value, tag_base, mse::impl::TPlaceHolder<tag_base, class3> >::type
-#define MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(tag_base, class2, class3) std::conditional<!std::is_base_of<tag_base, class2>::value, tag_base, mse::impl::TPlaceHolder<tag_base, class3> >::type
-#define MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(tag_base, class2, class3) std::conditional<std::is_base_of<tag_base, class2>::value, tag_base, mse::impl::TPlaceHolder<tag_base, class3> >::type
+#define MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(tag_base, class2, class3) mse::impl::first_or_placeholder_if_base_of_second<tag_base, class2, class3>
+#define MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(tag_base, class2, class3) mse::impl::first_or_placeholder_if_not_base_of_second<tag_base, class2, class3>
 
 #define MSE_INHERIT_ASYNC_TAG_BASE_SET_FROM(class2, class3) \
-	public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::AsyncNotShareableTagBase, class2, class3) \
-	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::AsyncNotPassableTagBase, class2, class3)
+	public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::AsyncNotShareableTagBase, class2, class3> \
+	, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::AsyncNotPassableTagBase, class2, class3>
 
 #define MSE_INHERIT_COMMON_POINTER_TAG_BASE_SET_FROM(class2, class3) \
 	MSE_INHERIT_ASYNC_TAG_BASE_SET_FROM(class2, class3) \
-	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::StrongPointerTagBase, class2, class3) \
-	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::NeverNullTagBase, class2, class3) \
-	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ExclusivePointerTagBase, class2, class3)
+	, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::StrongPointerTagBase, class2, class3> \
+	, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::NeverNullTagBase, class2, class3> \
+	, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ExclusivePointerTagBase, class2, class3>
 
 #define MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(class2, class3) \
-	public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ReferenceableByScopePointerTagBase, class2, class3) \
-	, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, class2, class3)
+	public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ReferenceableByScopePointerTagBase, class2, class3> \
+	, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, class2, class3>
 
 #define MSE_INHERIT_COMMON_XSCOPE_POINTER_TAG_BASE_SET_FROM(class2, class3) \
 	MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(class2, class3) \

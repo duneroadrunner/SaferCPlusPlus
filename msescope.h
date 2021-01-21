@@ -2031,7 +2031,7 @@ namespace mse {
 	template<typename _Ty>
 	class TXScopeOwnerPointer : public mse::us::impl::XScopeTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase
 		, mse::us::impl::ReferenceableByScopePointerTagBase
-		, MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, TXScopeOwnerPointer<_Ty>)
+		, mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, TXScopeOwnerPointer<_Ty> >
 	{
 	public:
 		TXScopeOwnerPointer(TXScopeOwnerPointer<_Ty>&& src_ref) = default;
@@ -2427,7 +2427,7 @@ namespace mse {
 	obtain a corresponding scope pointer. */
 	template<typename _TStrongPointer>
 	class TXScopeStrongPointerStore : public mse::us::impl::XScopeTagBase
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, typename std::remove_reference<_TStrongPointer>::type, TXScopeStrongPointerStore<typename std::remove_reference<_TStrongPointer>::type>)
+		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, typename std::remove_reference<_TStrongPointer>::type, TXScopeStrongPointerStore<typename std::remove_reference<_TStrongPointer>::type> >
 	{
 	private:
 		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
@@ -2486,7 +2486,7 @@ namespace mse {
 
 	template<typename _TStrongPointer>
 	class TXScopeStrongConstPointerStore : public mse::us::impl::XScopeTagBase
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, typename std::remove_reference<_TStrongPointer>::type, TXScopeStrongConstPointerStore<typename std::remove_reference<_TStrongPointer>::type>)
+		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, typename std::remove_reference<_TStrongPointer>::type, TXScopeStrongConstPointerStore<typename std::remove_reference<_TStrongPointer>::type> >
 	{
 	private:
 		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
@@ -2537,7 +2537,7 @@ namespace mse {
 
 	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_and_never_null_pointer<typename std::remove_reference<_TStrongPointer>::type> >
 	class TXScopeStrongNotNullPointerStore : public mse::us::impl::XScopeTagBase
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, typename std::remove_reference<_TStrongPointer>::type, TXScopeStrongNotNullPointerStore<typename std::remove_reference<_TStrongPointer>::type>)
+		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, typename std::remove_reference<_TStrongPointer>::type, TXScopeStrongNotNullPointerStore<typename std::remove_reference<_TStrongPointer>::type> >
 	{
 	private:
 		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;
@@ -2586,7 +2586,7 @@ namespace mse {
 
 	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_and_never_null_pointer<typename std::remove_reference<_TStrongPointer>::type> >
 	class TXScopeStrongNotNullConstPointerStore : public mse::us::impl::XScopeTagBase
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer, TXScopeStrongNotNullConstPointerStore<typename std::remove_reference<_TStrongPointer>::type>)
+		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _TStrongPointer, TXScopeStrongNotNullConstPointerStore<typename std::remove_reference<_TStrongPointer>::type> >
 	{
 	private:
 		typedef typename std::remove_reference<_TStrongPointer>::type _TStrongPointerNR;

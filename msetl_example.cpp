@@ -482,6 +482,8 @@ int main(int argc, char* argv[]) {
 
 			/* Here we're declaring an array as a scope object. */
 			mse::TXScopeObj<mse::mstd::array<int, 3>> array1_scpobj = mse::mstd::array<int, 3>{ 1, 2, 3 };
+			// or alternatively:
+			//auto array1_scpobj = mse::make_xscope(mse::mstd::array<int, 3>{ 1, 2, 3 });
 
 			/* Here we're obtaining a scope iterator to the array. */
 			auto scp_array_iter1 = mse::mstd::make_xscope_begin_iterator(&array1_scpobj);
