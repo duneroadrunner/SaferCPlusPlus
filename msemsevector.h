@@ -232,7 +232,8 @@ namespace mse {
 		}
 	}
 
-	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
+	/* nii_vector<> is a vector that is eligible to be shared among threads and does not support implicit iterators. */
+	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::array_adjusted_default_state_mutex<_Ty> >
 	using nii_vector = mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex>;
 
 	namespace us {
@@ -2359,8 +2360,7 @@ namespace std {
 
 namespace mse {
 
-	/* mtnii_vector<> is a vector that is eligible to be shared among threads and does not support implicit
-	iterators. */
+	/* mtnii_vector<> is a vector that is eligible to be shared among threads and does not support implicit iterators. */
 	template<class _Ty, class _A = std::allocator<_Ty> >
 	using mtnii_vector = mse::us::impl::gnii_vector<_Ty, _A, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type>;
 

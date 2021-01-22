@@ -8150,7 +8150,7 @@ namespace mse {
 			owning pointer (aka "lease") to the iterator to prevent the target container from being deallocated prematurely. */
 			template <class _TIterator, class _TLeaseType>
 			class TStrongFixedIterator : public _TIterator
-				, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::StrongContainerReferenceHoldingIteratorTagBase, _TIterator, _TIterator/*TStrongFixedIterator<_TIterator, _TLeaseType>*/)
+				, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::StrongContainerReferenceHoldingIteratorTagBase, _TIterator, _TIterator/*TStrongFixedIterator<_TIterator, _TLeaseType>*/>
 				, std::conditional<(!std::is_base_of<mse::us::impl::StrongPointerTagBase, _TIterator>::value)
 					&& ((mse::impl::is_static_structure_iterator<_TIterator>::value) || (mse::impl::is_structure_locking_iterator<_TIterator>::value))
 					, mse::us::impl::StrongPointerTagBase, mse::impl::TPlaceHolder<mse::us::impl::StrongPointerTagBase, TStrongFixedIterator<_TIterator, _TLeaseType> > >::type
@@ -8202,7 +8202,7 @@ namespace mse {
 	namespace impl {
 		template <typename _TRAIterator>
 		class TXScopeSplitterRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator>
-			, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotPassableTagBase, TXScopeRandomAccessSection<_TRAIterator>, TXScopeSplitterRandomAccessSection<_TRAIterator>)
+			, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotPassableTagBase, TXScopeRandomAccessSection<_TRAIterator>, TXScopeSplitterRandomAccessSection<_TRAIterator> >
 		{
 		public:
 			typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
@@ -8238,7 +8238,7 @@ namespace mse {
 
 		template <typename _TRAIterator>
 		class TSplitterRandomAccessSection : public TRandomAccessSection<_TRAIterator>
-			, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotPassableTagBase, TRandomAccessSection<_TRAIterator>, TSplitterRandomAccessSection<_TRAIterator>)
+			, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotPassableTagBase, TRandomAccessSection<_TRAIterator>, TSplitterRandomAccessSection<_TRAIterator> >
 		{
 		public:
 			typedef TRandomAccessSection<_TRAIterator> base_class;

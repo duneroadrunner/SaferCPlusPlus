@@ -469,8 +469,8 @@ namespace mse {
 	mse::us::TFLRegisteredObj to be used in non-debug modes as well. */
 	template<typename _TROy>
 	class TXScopeObj : public mse::us::impl::TXScopeObjBase<_TROy>
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::XScopeTagBase, mse::us::impl::TXScopeObjBase<_TROy>, TXScopeObj<_TROy>)
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::ReferenceableByScopePointerTagBase, mse::us::impl::TXScopeObjBase<_TROy>, TXScopeObj<_TROy>)
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::XScopeTagBase, mse::us::impl::TXScopeObjBase<_TROy>, TXScopeObj<_TROy> >
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ReferenceableByScopePointerTagBase, mse::us::impl::TXScopeObjBase<_TROy>, TXScopeObj<_TROy> >
 	{
 	public:
 		typedef mse::us::impl::TXScopeObjBase<_TROy> base_class;
@@ -1853,7 +1853,7 @@ namespace mse {
 
 	template<typename _TROy>
 	class TXScopeReturnValue : public TReturnValue<_TROy>
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::XScopeTagBase, TReturnValue<_TROy>, TXScopeReturnValue<_TROy>)
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::XScopeTagBase, TReturnValue<_TROy>, TXScopeReturnValue<_TROy> >
 	{
 	public:
 		typedef TReturnValue<_TROy> base_class;

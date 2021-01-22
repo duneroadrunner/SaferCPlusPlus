@@ -226,7 +226,7 @@ namespace mse {
 	/* Use TXScopeAtomicFixedPointer instead. */
 	template<typename _Ty>
 	class TXScopeAtomicPointer : public mse::us::impl::TXScopeAtomicPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::StrongPointerTagBase, mse::us::impl::TXScopeAtomicPointerBase<_Ty>, TXScopeAtomicPointer<_Ty>)
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::StrongPointerTagBase, mse::us::impl::TXScopeAtomicPointerBase<_Ty>, TXScopeAtomicPointer<_Ty> >
 		{
 	public:
 		~TXScopeAtomicPointer() {}
@@ -267,7 +267,7 @@ namespace mse {
 	/* Use TXScopeAtomicFixedConstPointer instead. */
 	template<typename _Ty>
 	class TXScopeAtomicConstPointer : public mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::StrongPointerTagBase, mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>, TXScopeAtomicConstPointer<_Ty>)
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::StrongPointerTagBase, mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>, TXScopeAtomicConstPointer<_Ty> >
 	{
 	public:
 		~TXScopeAtomicConstPointer() {}
@@ -422,8 +422,8 @@ namespace mse {
 	mse::us::TFLRegisteredObj to be used in non-debug modes as well. */
 	template<typename _TROy>
 	class TXScopeAtomicObj : public mse::us::impl::TXScopeAtomicObjBase<_TROy>
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::XScopeTagBase, mse::us::impl::TXScopeAtomicObjBase<_TROy>, TXScopeAtomicObj<_TROy>)
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::ReferenceableByScopePointerTagBase, mse::us::impl::TXScopeAtomicObjBase<_TROy>, TXScopeAtomicObj<_TROy>)
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::XScopeTagBase, mse::us::impl::TXScopeAtomicObjBase<_TROy>, TXScopeAtomicObj<_TROy> >
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ReferenceableByScopePointerTagBase, mse::us::impl::TXScopeAtomicObjBase<_TROy>, TXScopeAtomicObj<_TROy> >
 	{
 	public:
 		TXScopeAtomicObj(const TXScopeAtomicObj& _X) = default;

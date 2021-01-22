@@ -864,9 +864,6 @@ namespace mse {
 		using first_or_placeholder_if_not_base_of_second = typename std::conditional<std::is_base_of<TTagBase, T2>::value, TTagBase, mse::impl::TPlaceHolder<TTagBase, T3> >::type;
 	}
 
-#define MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(tag_base, class2, class3) mse::impl::first_or_placeholder_if_base_of_second<tag_base, class2, class3>
-#define MSE_FIRST_OR_PLACEHOLDER_IF_NOT_A_BASE_OF_SECOND(tag_base, class2, class3) mse::impl::first_or_placeholder_if_not_base_of_second<tag_base, class2, class3>
-
 #define MSE_INHERIT_ASYNC_TAG_BASE_SET_FROM(class2, class3) \
 	public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::AsyncNotShareableTagBase, class2, class3> \
 	, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::AsyncNotPassableTagBase, class2, class3>
@@ -1336,7 +1333,8 @@ namespace mse {
 
 		_TTargetType* m_target_pointer;
 		_TLeasePointerType m_lease_pointer;
-		friend class TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;
+		template <class _TTargetType2, class _TLeasePointerType2>
+		friend class TSyncWeakFixedConstPointer;
 	};
 
 	template <class _TTargetType, class _TLeasePointerType>
@@ -1351,6 +1349,8 @@ namespace mse {
 		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>&src) : m_target_pointer(src.m_target_pointer), m_lease_pointer(src.m_lease_pointer) {}
+		template<class _TLeasePointerType2, class = typename std::enable_if<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value, void>::type>
+		TSyncWeakFixedConstPointer(const TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType2>& src) : m_target_pointer(src.m_target_pointer), m_lease_pointer(src.m_lease_pointer) {}
 		const _TTargetType& operator*() const {
 			/*const auto &test_cref =*/ *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
 			return (*m_target_pointer);

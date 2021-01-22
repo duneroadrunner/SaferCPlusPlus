@@ -413,8 +413,8 @@ namespace mse {
 	/* TNDXScopeNoradProxyObj is intended as a transparent wrapper for scope pointers. The purpose is to check to ensure that
 	the scope pointer isn't destroyed while any TNDNoradProxyPointers is targeting it. */
 	template<typename _TROFLy>
-	class TNDXScopeNoradProxyObj : public TNDXScopeNoradProxyObjBase<_TROFLy>, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotShareableTagBase, TNDXScopeNoradProxyObjBase<_TROFLy>, TNDXScopeNoradProxyObj<_TROFLy>)
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::XScopeTagBase, TNDXScopeNoradProxyObjBase<_TROFLy>, TNDXScopeNoradProxyObj<_TROFLy>)
+	class TNDXScopeNoradProxyObj : public TNDXScopeNoradProxyObjBase<_TROFLy>, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotShareableTagBase, TNDXScopeNoradProxyObjBase<_TROFLy>, TNDXScopeNoradProxyObj<_TROFLy> >
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::XScopeTagBase, TNDXScopeNoradProxyObjBase<_TROFLy>, TNDXScopeNoradProxyObj<_TROFLy> >
 	{
 	public:
 		typedef TNDXScopeNoradProxyObjBase<_TROFLy> base_class;
@@ -433,6 +433,7 @@ namespace mse {
 		template<class _Ty2>
 		TNDXScopeNoradProxyObj& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
+		TNDNoradProxyNotNullPointer<_TROFLy> mse_norad_proxy_nnptr() const { return TNDNoradProxyFixedPointer<_TROFLy>(this); }
 		TNDNoradProxyFixedPointer<_TROFLy> mse_norad_proxy_fptr() const { return TNDNoradProxyFixedPointer<_TROFLy>(this); }
 
 	private:
@@ -451,8 +452,8 @@ namespace mse {
 	template<typename _TROFLy> using TNDXScopeNoradConstProxyObjBase = mse::TNDNoradObj<mse::TXScopeFixedConstPointer<_TROFLy> >;
 
 	template<typename _TROFLy>
-	class TNDXScopeNoradConstProxyObj : public TNDXScopeNoradConstProxyObjBase<_TROFLy>, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotShareableTagBase, TNDXScopeNoradConstProxyObjBase<_TROFLy>, TNDXScopeNoradConstProxyObj<_TROFLy>)
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::XScopeTagBase, TNDXScopeNoradConstProxyObjBase<_TROFLy>, TNDXScopeNoradConstProxyObj<_TROFLy>)
+	class TNDXScopeNoradConstProxyObj : public TNDXScopeNoradConstProxyObjBase<_TROFLy>, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotShareableTagBase, TNDXScopeNoradConstProxyObjBase<_TROFLy>, TNDXScopeNoradConstProxyObj<_TROFLy> >
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::XScopeTagBase, TNDXScopeNoradConstProxyObjBase<_TROFLy>, TNDXScopeNoradConstProxyObj<_TROFLy> >
 	{
 	public:
 		typedef TNDXScopeNoradConstProxyObjBase<_TROFLy> base_class;
@@ -471,6 +472,7 @@ namespace mse {
 		template<class _Ty2>
 		TNDXScopeNoradConstProxyObj& operator=(const _Ty2 & _X) { base_class::operator=(_X); return (*this); }
 
+		TNDNoradProxyNotNullConstPointer<_TROFLy> mse_norad_proxy_nnptr() const { return TNDNoradProxyFixedConstPointer<_TROFLy>(this); }
 		TNDNoradProxyFixedConstPointer<_TROFLy> mse_norad_proxy_fptr() const { return TNDNoradProxyFixedConstPointer<_TROFLy>(this); }
 
 	private:

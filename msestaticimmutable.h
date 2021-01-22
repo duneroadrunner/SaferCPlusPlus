@@ -383,7 +383,7 @@ namespace mse {
 		/* Use TStaticImmutableFixedConstPointer instead. */
 		template<typename _Ty>
 		class TStaticImmutableConstPointer : public mse::us::impl::static_immutable::TStaticImmutableConstPointerBase<_Ty>
-			, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::StrongPointerTagBase, mse::us::impl::static_immutable::TStaticImmutableConstPointerBase<_Ty>, TStaticImmutableConstPointer<_Ty>)
+			, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::StrongPointerTagBase, mse::us::impl::static_immutable::TStaticImmutableConstPointerBase<_Ty>, TStaticImmutableConstPointer<_Ty> >
 		{
 		public:
 			typedef mse::us::impl::static_immutable::TStaticImmutableConstPointerBase<_Ty> base_class;

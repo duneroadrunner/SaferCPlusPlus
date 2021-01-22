@@ -424,8 +424,8 @@ namespace mse {
 	/* TNDXScopeRegisteredProxyObj is intended as a transparent wrapper for scope pointers. The purpose is to register the scope pointer's
 	destruction so that TNDRegisteredProxyPointers will avoid referencing destroyed scope pointers. */
 	template<typename _TROFLy>
-	class TNDXScopeRegisteredProxyObj : public TNDXScopeRegisteredProxyObjBase<_TROFLy>, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotShareableTagBase, TNDXScopeRegisteredProxyObjBase<_TROFLy>, TNDXScopeRegisteredProxyObj<_TROFLy>)
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::XScopeTagBase, TNDXScopeRegisteredProxyObjBase<_TROFLy>, TNDXScopeRegisteredProxyObj<_TROFLy>)
+	class TNDXScopeRegisteredProxyObj : public TNDXScopeRegisteredProxyObjBase<_TROFLy>, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotShareableTagBase, TNDXScopeRegisteredProxyObjBase<_TROFLy>, TNDXScopeRegisteredProxyObj<_TROFLy> >
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::XScopeTagBase, TNDXScopeRegisteredProxyObjBase<_TROFLy>, TNDXScopeRegisteredProxyObj<_TROFLy> >
 	{
 	public:
 		typedef TNDXScopeRegisteredProxyObjBase<_TROFLy> base_class;
@@ -444,6 +444,7 @@ namespace mse {
 		template<class _Ty2>
 		TNDXScopeRegisteredProxyObj& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
+		TNDRegisteredProxyNotNullPointer<_TROFLy> mse_registered_proxy_nnptr() const { return TNDRegisteredProxyFixedPointer<_TROFLy>(this); }
 		TNDRegisteredProxyFixedPointer<_TROFLy> mse_registered_proxy_fptr() const { return TNDRegisteredProxyFixedPointer<_TROFLy>(this); }
 
 	private:
@@ -462,8 +463,8 @@ namespace mse {
 	template<typename _TROFLy> using TNDXScopeRegisteredConstProxyObjBase = mse::TNDRegisteredObj<mse::TXScopeFixedConstPointer<_TROFLy> >;
 
 	template<typename _TROFLy>
-	class TNDXScopeRegisteredConstProxyObj : public TNDXScopeRegisteredConstProxyObjBase<_TROFLy>, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotShareableTagBase, TNDXScopeRegisteredConstProxyObjBase<_TROFLy>, TNDXScopeRegisteredConstProxyObj<_TROFLy>)
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::XScopeTagBase, TNDXScopeRegisteredConstProxyObjBase<_TROFLy>, TNDXScopeRegisteredConstProxyObj<_TROFLy>)
+	class TNDXScopeRegisteredConstProxyObj : public TNDXScopeRegisteredConstProxyObjBase<_TROFLy>, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotShareableTagBase, TNDXScopeRegisteredConstProxyObjBase<_TROFLy>, TNDXScopeRegisteredConstProxyObj<_TROFLy> >
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::XScopeTagBase, TNDXScopeRegisteredConstProxyObjBase<_TROFLy>, TNDXScopeRegisteredConstProxyObj<_TROFLy> >
 	{
 	public:
 		typedef TNDXScopeRegisteredConstProxyObjBase<_TROFLy> base_class;
@@ -482,6 +483,7 @@ namespace mse {
 		template<class _Ty2>
 		TNDXScopeRegisteredConstProxyObj& operator=(const _Ty2 & _X) { base_class::operator=(_X); return (*this); }
 
+		TNDRegisteredProxyNotNullConstPointer<_TROFLy> mse_registered_proxy_nnptr() const { return TNDRegisteredProxyFixedConstPointer<_TROFLy>(this); }
 		TNDRegisteredProxyFixedConstPointer<_TROFLy> mse_registered_proxy_fptr() const { return TNDRegisteredProxyFixedConstPointer<_TROFLy>(this); }
 
 	private:

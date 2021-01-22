@@ -669,21 +669,27 @@ namespace mse {
 				template<class _Ty2>
 				TGNoradObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
 
-				TGNoradFixedPointer<_TROFLy, _TRefCounter> operator&() {
+				TGNoradNotNullPointer<_TROFLy, _TRefCounter> operator&() {
 					return TGNoradFixedPointer<_TROFLy, _TRefCounter>(this);
 				}
-				TGNoradFixedConstPointer<_TROFLy, _TRefCounter> operator&() const {
+				TGNoradNotNullConstPointer<_TROFLy, _TRefCounter> operator&() const {
 					return TGNoradFixedConstPointer<_TROFLy, _TRefCounter>(this);
 				}
+				TGNoradNotNullPointer<_TROFLy, _TRefCounter> mse_norad_nnptr() { return TGNoradFixedPointer<_TROFLy, _TRefCounter>(this); }
+				TGNoradNotNullConstPointer<_TROFLy, _TRefCounter> mse_norad_nnptr() const { return TGNoradFixedConstPointer<_TROFLy, _TRefCounter>(this); }
 				TGNoradFixedPointer<_TROFLy, _TRefCounter> mse_norad_fptr() { return TGNoradFixedPointer<_TROFLy, _TRefCounter>(this); }
 				TGNoradFixedConstPointer<_TROFLy, _TRefCounter> mse_norad_fptr() const { return TGNoradFixedConstPointer<_TROFLy, _TRefCounter>(this); }
 
-				/* todo: make these private */
+			private:
 				void increment_refcount() const { m_counter += 1; }
 				void decrement_refcount() const { m_counter -= 1; }
 
-			private:
 				mutable _TRefCounter m_counter = 0;
+
+				template<typename _Ty2, typename _TRefCounter2>
+				friend class TGNoradPointer;
+				template<typename _Ty2, typename _TRefCounter2>
+				friend class TGNoradConstPointer;
 			};
 		}
 	}

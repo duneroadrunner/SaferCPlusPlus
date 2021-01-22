@@ -2139,7 +2139,7 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	class TXScopeAsyncSplitterRandomAccessSection : public TXScopeRandomAccessSection<_TRAIterator>
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotPassableTagBase, TXScopeRandomAccessSection<_TRAIterator>, TXScopeAsyncSplitterRandomAccessSection<_TRAIterator>)
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotPassableTagBase, TXScopeRandomAccessSection<_TRAIterator>, TXScopeAsyncSplitterRandomAccessSection<_TRAIterator> >
 	{
 	public:
 		typedef TXScopeRandomAccessSection<_TRAIterator> base_class;
@@ -2177,7 +2177,7 @@ namespace mse {
 
 	template <typename _TRAIterator>
 	class TAsyncSplitterRandomAccessSection : public TRandomAccessSection<_TRAIterator>
-		, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotPassableTagBase, TRandomAccessSection<_TRAIterator>, TAsyncSplitterRandomAccessSection<_TRAIterator>)
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotPassableTagBase, TRandomAccessSection<_TRAIterator>, TAsyncSplitterRandomAccessSection<_TRAIterator> >
 	{
 	public:
 		typedef TRandomAccessSection<_TRAIterator> base_class;

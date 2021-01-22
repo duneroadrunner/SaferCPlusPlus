@@ -563,7 +563,7 @@ namespace mse {
 	destruction so that TNDRegisteredPointers will avoid referencing destroyed objects. Note that TNDRegisteredObj can be used with
 	objects allocated on the stack. */
 	template<typename _TROFLy>
-	class TNDRegisteredObj : public _TROFLy, public MSE_FIRST_OR_PLACEHOLDER_IF_A_BASE_OF_SECOND(mse::us::impl::AsyncNotShareableTagBase, _TROFLy, TNDRegisteredObj<_TROFLy>)
+	class TNDRegisteredObj : public _TROFLy, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotShareableTagBase, _TROFLy, TNDRegisteredObj<_TROFLy> >
 	{
 	public:
 		typedef _TROFLy base_class;
@@ -582,16 +582,18 @@ namespace mse {
 		template<class _Ty2>
 		TNDRegisteredObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
 
-		TNDRegisteredFixedPointer<_TROFLy> operator&() {
+		TNDRegisteredNotNullPointer<_TROFLy> operator&() {
 			return TNDRegisteredFixedPointer<_TROFLy>(this);
 		}
-		TNDRegisteredFixedConstPointer<_TROFLy> operator&() const {
+		TNDRegisteredNotNullConstPointer<_TROFLy> operator&() const {
 			return TNDRegisteredFixedConstPointer<_TROFLy>(this);
 		}
+		TNDRegisteredNotNullPointer<_TROFLy> mse_registered_nnptr() { return TNDRegisteredFixedPointer<_TROFLy>(this); }
+		TNDRegisteredNotNullConstPointer<_TROFLy> mse_registered_nnptr() const { return TNDRegisteredFixedConstPointer<_TROFLy>(this); }
 		TNDRegisteredFixedPointer<_TROFLy> mse_registered_fptr() { return TNDRegisteredFixedPointer<_TROFLy>(this); }
 		TNDRegisteredFixedConstPointer<_TROFLy> mse_registered_fptr() const { return TNDRegisteredFixedConstPointer<_TROFLy>(this); }
 
-		/* todo: make these private */
+	private:
 		void register_pointer(const mse::us::impl::CRegisteredNode& node_cref) const {
 			node_cref.set_next_ptr(m_head_ptr);
 			m_head_ptr = &node_cref;
@@ -619,7 +621,6 @@ namespace mse {
 			node_cref.set_next_ptr(nullptr);
 		}
 
-	private:
 		void unregister_and_set_outstanding_pointers_to_null() const {
 			auto current_node_ptr = m_head_ptr;
 			while (current_node_ptr) {
@@ -632,6 +633,11 @@ namespace mse {
 
 		/* first node in a (singly-linked) list of pointers targeting this object */
 		mutable const mse::us::impl::CRegisteredNode * m_head_ptr = nullptr;
+
+		template<typename _Ty2>
+		friend class TNDRegisteredPointer;
+		template<typename _Ty2>
+		friend class TNDRegisteredConstPointer;
 	};
 
 	template <class _Ty, class... Args>
