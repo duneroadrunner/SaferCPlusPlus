@@ -348,8 +348,6 @@ namespace mse {
 				msebasic_string().note_parent_destruction();
 			}
 
-			_Myt& operator=(_MBS&& _X) { msebasic_string() = (std::forward<decltype(_X)>(_X)); return (*this); }
-			_Myt& operator=(const _MBS& _X) { msebasic_string() = (_X); return (*this); }
 			_Myt& operator=(_Myt&& _X) {
 				static_assert(typename std::is_rvalue_reference<decltype(_X)>::type(), "");
 				/* It would be more efficient to just move _X.m_shptr into m_shptr, but that would leave _X in what we

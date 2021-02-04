@@ -72,8 +72,6 @@ namespace mse {
 		template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
 			ivector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MV>(_First, _Last, _Al)) {}
 
-		_Myt& operator=(_MV&& _X) { m_shptr->operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-		_Myt& operator=(const _MV& _X) { m_shptr->operator=(_X); return (*this); }
 		_Myt& operator=(_Myt&& _X) { m_shptr->operator=(std::forward<decltype(_X)>(_X).msevector()); return (*this); }
 		_Myt& operator=(const _Myt& _X) { m_shptr->operator=(_X.msevector()); return (*this); }
 		void reserve(size_type _Count) { m_shptr->reserve(_Count); }
@@ -693,8 +691,8 @@ namespace std {
 	{	// swap vectors
 		return (_Left.swap(_Right));
 	}
-	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
-	void swap(mse::ivector<_Ty, _A>& _Left, mse::nii_vector<_Ty, _A, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	template<class _Ty, class _A = std::allocator<_Ty>/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::ivector<_Ty, _A>& _Left, mse::nii_vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap vectors
 		return (_Left.swap(_Right));
 	}
@@ -709,8 +707,8 @@ namespace std {
 		return (_Left.swap(_Right));
 	}
 
-	template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
-	void swap(mse::nii_vector<_Ty, _A, _TStateMutex>& _Left, mse::ivector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	template<class _Ty, class _A = std::allocator<_Ty>/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::nii_vector<_Ty, _A>& _Left, mse::ivector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap vectors
 		return (_Right.swap(_Left));
 	}

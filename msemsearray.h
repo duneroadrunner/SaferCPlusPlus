@@ -512,13 +512,13 @@ namespace mse {
 	}
 
 	/* forward declaration of class nii_array */
-	template<class _Ty, size_t _Size, class _TStateMutex = array_adjusted_default_state_mutex<_Ty> >
+	template<class _Ty, size_t _Size>
 	class nii_array;
-	template<class _Ty, size_t _Size, class _TStateMutex = array_adjusted_default_state_mutex<_Ty> >
+	template<class _Ty, size_t _Size>
 	class xscope_nii_array;
 
 	namespace us {
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+		template<class _Ty, size_t _Size, class _TStateMutex = array_adjusted_default_state_mutex<_Ty> >
 		class msearray;
 	}
 }
@@ -539,12 +539,12 @@ namespace std {
 	template<size_t _Idx, class _Tz, size_t _Size2>
 	_CONST_FUN _Tz&& get(mse::xscope_nii_array<_Tz, _Size2>&& _Arr) _NOEXCEPT;
 
-	template<size_t _Idx, class _Tz, size_t _Size2>
-	_CONST_FUN _Tz& get(mse::us::msearray<_Tz, _Size2>& _Arr) _NOEXCEPT;
-	template<size_t _Idx, class _Tz, size_t _Size2>
-	_CONST_FUN const _Tz& get(const mse::us::msearray<_Tz, _Size2>& _Arr) _NOEXCEPT;
-	template<size_t _Idx, class _Tz, size_t _Size2>
-	_CONST_FUN _Tz&& get(mse::us::msearray<_Tz, _Size2>&& _Arr) _NOEXCEPT;
+	template<size_t _Idx, class _Tz, size_t _Size2, class _TStateMutex2>
+	_CONST_FUN _Tz& get(mse::us::msearray<_Tz, _Size2, _TStateMutex2>& _Arr) _NOEXCEPT;
+	template<size_t _Idx, class _Tz, size_t _Size2, class _TStateMutex2>
+	_CONST_FUN const _Tz& get(const mse::us::msearray<_Tz, _Size2, _TStateMutex2>& _Arr) _NOEXCEPT;
+	template<size_t _Idx, class _Tz, size_t _Size2, class _TStateMutex2>
+	_CONST_FUN _Tz&& get(mse::us::msearray<_Tz, _Size2, _TStateMutex2>&& _Arr) _NOEXCEPT;
 }
 
 namespace mse {
@@ -2658,50 +2658,50 @@ namespace mse {
 			bug in clang (3.8.0) such that if we don't specify the default parameter in the definition it seems to subsequently behave as if
 			one were never specified. g++ and msvc don't seem to have the same issue. */
 			template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex>
-			class Tnii_array_ss_iterator_type;
+			class Tarray_ss_iterator_type;
 
-			/* Tnii_array_ss_const_iterator_type is a bounds checked const_iterator. */
-			template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-			class Tnii_array_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TArrayConstPointer> > {
+			/* Tarray_ss_const_iterator_type is a bounds checked const_iterator. */
+			template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex>
+			class Tarray_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TArrayConstPointer> > {
 			public:
 				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TArrayConstPointer> > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				template<class _TArrayConstPointer2 = _TArrayConstPointer, class = typename std::enable_if<(std::is_same<_TArrayConstPointer2, _TArrayConstPointer>::value) && (std::is_default_constructible<_TArrayConstPointer>::value), void>::type>
-				Tnii_array_ss_const_iterator_type() {}
+				Tarray_ss_const_iterator_type() {}
 
-				Tnii_array_ss_const_iterator_type(const _TArrayConstPointer& owner_cptr) : base_class(owner_cptr) {}
-				Tnii_array_ss_const_iterator_type(_TArrayConstPointer&& owner_cptr) : base_class(std::forward<decltype(owner_cptr)>(owner_cptr)) {}
+				Tarray_ss_const_iterator_type(const _TArrayConstPointer& owner_cptr) : base_class(owner_cptr) {}
+				Tarray_ss_const_iterator_type(_TArrayConstPointer&& owner_cptr) : base_class(std::forward<decltype(owner_cptr)>(owner_cptr)) {}
 
-				Tnii_array_ss_const_iterator_type(Tnii_array_ss_const_iterator_type&& src) = default;
-				Tnii_array_ss_const_iterator_type(const Tnii_array_ss_const_iterator_type& src) = default;
+				Tarray_ss_const_iterator_type(Tarray_ss_const_iterator_type&& src) = default;
+				Tarray_ss_const_iterator_type(const Tarray_ss_const_iterator_type& src) = default;
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
-				Tnii_array_ss_const_iterator_type(const Tnii_array_ss_const_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+				Tarray_ss_const_iterator_type(const Tarray_ss_const_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayConstPointer>::value, void>::type>
-				Tnii_array_ss_const_iterator_type(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+				Tarray_ss_const_iterator_type(const Tarray_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
 
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-				auto& operator=(Tnii_array_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-				auto& operator=(const Tnii_array_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+				auto& operator=(Tarray_ss_const_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tarray_ss_const_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
-				Tnii_array_ss_const_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
-				Tnii_array_ss_const_iterator_type operator++(int) { Tnii_array_ss_const_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
-				Tnii_array_ss_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
-				Tnii_array_ss_const_iterator_type operator--(int) { Tnii_array_ss_const_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
+				Tarray_ss_const_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
+				Tarray_ss_const_iterator_type operator++(int) { Tarray_ss_const_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
+				Tarray_ss_const_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
+				Tarray_ss_const_iterator_type operator--(int) { Tarray_ss_const_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
 
-				Tnii_array_ss_const_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
-				Tnii_array_ss_const_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
-				Tnii_array_ss_const_iterator_type operator+(difference_type n) const {
-					Tnii_array_ss_const_iterator_type retval(*this);
+				Tarray_ss_const_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
+				Tarray_ss_const_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
+				Tarray_ss_const_iterator_type operator+(difference_type n) const {
+					Tarray_ss_const_iterator_type retval(*this);
 					retval.advance(n);
 					return retval;
 				}
-				Tnii_array_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				Tarray_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 				difference_type operator-(const base_class& _Right_cref) const {
 					return base_class::operator-(_Right_cref);
 				}
 
-				void set_to_const_item_pointer(const Tnii_array_ss_const_iterator_type& _Right_cref) {
+				void set_to_const_item_pointer(const Tarray_ss_const_iterator_type& _Right_cref) {
 					(*this) = _Right_cref;
 				}
 
@@ -2709,48 +2709,48 @@ namespace mse {
 
 			private:
 
-				//friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
+				//friend class /*_Myt*/nii_array<_Ty, _Size>;
 			};
-			/* Tnii_array_ss_iterator_type is a bounds checked iterator. */
-			template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-			class Tnii_array_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TArrayPointer> > {
+			/* Tarray_ss_iterator_type is a bounds checked iterator. */
+			template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex>
+			class Tarray_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TArrayPointer> > {
 			public:
 				typedef mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TArrayPointer> > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				template<class _TArrayPointer2 = _TArrayPointer, class = typename std::enable_if<(std::is_same<_TArrayPointer2, _TArrayPointer>::value) && (std::is_default_constructible<_TArrayPointer>::value), void>::type>
-				Tnii_array_ss_iterator_type() {}
+				Tarray_ss_iterator_type() {}
 
-				Tnii_array_ss_iterator_type(const _TArrayPointer& owner_ptr) : base_class(owner_ptr) {}
-				Tnii_array_ss_iterator_type(_TArrayPointer&& owner_ptr) : base_class(std::forward<decltype(owner_ptr)>(owner_ptr)) {}
+				Tarray_ss_iterator_type(const _TArrayPointer& owner_ptr) : base_class(owner_ptr) {}
+				Tarray_ss_iterator_type(_TArrayPointer&& owner_ptr) : base_class(std::forward<decltype(owner_ptr)>(owner_ptr)) {}
 
-				Tnii_array_ss_iterator_type(Tnii_array_ss_iterator_type&& src) = default;
-				Tnii_array_ss_iterator_type(const Tnii_array_ss_iterator_type& src) = default;
+				Tarray_ss_iterator_type(Tarray_ss_iterator_type&& src) = default;
+				Tarray_ss_iterator_type(const Tarray_ss_iterator_type& src) = default;
 				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2, _TArrayPointer>::value, void>::type>
-				Tnii_array_ss_iterator_type(const Tnii_array_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
+				Tarray_ss_iterator_type(const Tarray_ss_iterator_type<_Ty2, _Ty, _Size, _TStateMutex>& src) : base_class(src.target_container_ptr(), src.position()) {}
 
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-				auto& operator=(Tnii_array_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-				auto& operator=(const Tnii_array_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
+				auto& operator=(Tarray_ss_iterator_type&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				auto& operator=(const Tarray_ss_iterator_type& _X) { base_class::operator=(_X); return (*this); }
 
-				Tnii_array_ss_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
-				Tnii_array_ss_iterator_type operator++(int) { Tnii_array_ss_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
-				Tnii_array_ss_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
-				Tnii_array_ss_iterator_type operator--(int) { Tnii_array_ss_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
+				Tarray_ss_iterator_type& operator ++() { (*this).set_to_next(); return (*this); }
+				Tarray_ss_iterator_type operator++(int) { Tarray_ss_iterator_type _Tmp = *this; (*this).set_to_next(); return (_Tmp); }
+				Tarray_ss_iterator_type& operator --() { (*this).set_to_previous(); return (*this); }
+				Tarray_ss_iterator_type operator--(int) { Tarray_ss_iterator_type _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
 
-				Tnii_array_ss_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
-				Tnii_array_ss_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
-				Tnii_array_ss_iterator_type operator+(difference_type n) const {
-					Tnii_array_ss_iterator_type retval(*this);
+				Tarray_ss_iterator_type& operator +=(difference_type n) { (*this).advance(n); return (*this); }
+				Tarray_ss_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
+				Tarray_ss_iterator_type operator+(difference_type n) const {
+					Tarray_ss_iterator_type retval(*this);
 					retval.advance(n);
 					return retval;
 				}
-				Tnii_array_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
+				Tarray_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
 				difference_type operator-(const base_class& _Right_cref) const {
 					return base_class::operator-(_Right_cref);
 				}
 
-				void set_to_item_pointer(const Tnii_array_ss_iterator_type& _Right_cref) {
+				void set_to_item_pointer(const Tarray_ss_iterator_type& _Right_cref) {
 					(*this) = _Right_cref;
 				}
 
@@ -2758,33 +2758,24 @@ namespace mse {
 
 			private:
 
-				//friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
+				//friend class /*_Myt*/nii_array<_Ty, _Size>;
 				template<typename _TArrayConstPointer, class _Ty2, size_t _Size2, class _TStateMutex2>
-				friend class Tnii_array_ss_const_iterator_type;
+				friend class Tarray_ss_const_iterator_type;
 			};
 
-			template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value), void>::type*/>
-			using Tnii_array_ss_reverse_iterator_type = std::reverse_iterator<Tnii_array_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex> >;
-			template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex = default_state_mutex/*, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value), void>::type*/>
-			using Tnii_array_ss_const_reverse_iterator_type = std::reverse_iterator<Tnii_array_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex> >;
-
-			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-			using Tnii_array_rp_ss_iterator_type = Tnii_array_ss_iterator_type<msear_pointer<nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
-			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-			using Tnii_array_rp_ss_const_iterator_type = Tnii_array_ss_const_iterator_type<msear_pointer<const nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
-			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-			using Tnii_array_rp_ss_reverse_iterator_type = Tnii_array_ss_iterator_type<msear_pointer<nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
-			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-			using Tnii_array_rp_ss_const_reverse_iterator_type = Tnii_array_ss_const_reverse_iterator_type<msear_pointer<const nii_array<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
+			template<typename _TArrayPointer, class _Ty, size_t _Size, class _TStateMutex/*, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value), void>::type*/>
+			using Tarray_ss_reverse_iterator_type = std::reverse_iterator<Tarray_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex> >;
+			template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex/*, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value), void>::type*/>
+			using Tarray_ss_const_reverse_iterator_type = std::reverse_iterator<Tarray_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex> >;
 
 			template<class _Ty, size_t _Size, class _TStateMutex>
 			class Tnii_array_xscope_ss_iterator_type;
 
-			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-			class Tnii_array_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeFixedConstPointer<const mse::nii_array<_Ty, _Size, _TStateMutex> > > >
+			template<class _Ty, size_t _Size, class _TStateMutex>
+			class Tnii_array_xscope_ss_const_iterator_type : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeFixedConstPointer<const mse::nii_array<_Ty, _Size> > > >
 				/*, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeFixedConstPointer<const mse::nii_array<_Ty, _Size, _TStateMutex> > > > base_class;
+				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeFixedConstPointer<const mse::nii_array<_Ty, _Size> > > > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tnii_array_xscope_ss_const_iterator_type, base_class);
@@ -2812,15 +2803,15 @@ namespace mse {
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-				friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
+				friend class /*_Myt*/nii_array<_Ty, _Size>;
 				template<class _Ty2, size_t _Size2, class _TStateMutex2>
 				friend class Tnii_array_xscope_ss_iterator_type;
 			};
-			template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-			class Tnii_array_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > >
+			template<class _Ty, size_t _Size, class _TStateMutex>
+			class Tnii_array_xscope_ss_iterator_type : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeFixedPointer<mse::nii_array<_Ty, _Size> > > >
 				/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
 			public:
-				typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeFixedPointer<mse::nii_array<_Ty, _Size, _TStateMutex> > > > base_class;
+				typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeFixedPointer<mse::nii_array<_Ty, _Size> > > > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tnii_array_xscope_ss_iterator_type, base_class);
@@ -2848,7 +2839,7 @@ namespace mse {
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-				friend class /*_Myt*/nii_array<_Ty, _Size, _TStateMutex>;
+				friend class /*_Myt*/nii_array<_Ty, _Size>;
 			};
 		}
 	}
@@ -3016,14 +3007,14 @@ namespace mse {
 				typedef TXScopeCSSSXSRAIterator<_Myt> xscope_iterator;
 
 				template<typename _TArrayConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value), void>::type>
-				using Tss_const_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
+				using Tss_const_iterator_type = mse::impl::ns_nii_array::Tarray_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
 				template<typename _TArrayPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value), void>::type>
-				using Tss_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
+				using Tss_iterator_type = mse::impl::ns_nii_array::Tarray_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
 
 				template<typename _TArrayPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value), void>::type>
-				using Tss_reverse_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_reverse_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
+				using Tss_reverse_iterator_type = mse::impl::ns_nii_array::Tarray_ss_reverse_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
 				template<typename _TArrayConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value), void>::type>
-				using Tss_const_reverse_iterator_type = mse::impl::ns_nii_array::Tnii_array_ss_const_reverse_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
+				using Tss_const_reverse_iterator_type = mse::impl::ns_nii_array::Tarray_ss_const_reverse_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
 
 				template<typename _TArrayPointer>
 				static auto ss_begin(const _TArrayPointer& owner_ptr) {
@@ -3171,8 +3162,8 @@ namespace mse {
 				}
 
 			private:
-				friend class mse::nii_array<_Ty, _Size, _TStateMutex>;
-				friend class mse::xscope_nii_array<_Ty, _Size, _TStateMutex>;
+				friend class mse::nii_array<_Ty, _Size>;
+				friend class mse::xscope_nii_array<_Ty, _Size>;
 				friend class mse::us::msearray<_Ty, _Size, _TStateMutex>;
 			};
 		}
@@ -3183,10 +3174,11 @@ namespace mse {
 	like ss_begin<>(...) and ss_end<>(...) which take a pointer parameter and return a (bounds-checked) iterator that
 	inherits the safety of the given pointer. nii_array<> also supports "scope" iterators which are safe without any
 	run-time overhead. nii_array<> is a data type that is eligible to be shared between asynchronous threads. */
-	template<class _Ty, size_t _Size, class _TStateMutex/* = array_adjusted_default_state_mutex<_Ty>*/>
-	class nii_array : public mse::us::impl::nii_array_base<_Ty, _Size, _TStateMutex> {
+	template<class _Ty, size_t _Size>
+	class nii_array : public mse::us::impl::nii_array_base<_Ty, _Size, array_adjusted_default_state_mutex<_Ty> > {
 	public:
-		typedef mse::us::impl::nii_array_base<_Ty, _Size, _TStateMutex> base_class;
+		typedef mse::us::impl::nii_array_base<_Ty, _Size, array_adjusted_default_state_mutex<_Ty> > base_class;
+		typedef array_adjusted_default_state_mutex<_Ty> _TStateMutex;
 		typedef std::array<_Ty, _Size> std_array;
 		typedef std_array _MA;
 		typedef nii_array _Myt;
@@ -3332,60 +3324,60 @@ namespace mse {
 		->nii_array<typename impl::_mse_Enforce_same<_First, _Rest...>::type, 1 + sizeof...(_Rest)>;
 #endif /* MSE_HAS_CXX17 */
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator!=(const nii_array<_Ty, _Size, _TStateMutex>& _Left,
-		const nii_array<_Ty, _Size, _TStateMutex>& _Right) {	// test for array inequality
+	template<class _Ty, size_t _Size> inline bool operator!=(const nii_array<_Ty, _Size>& _Left,
+		const nii_array<_Ty, _Size>& _Right) {	// test for array inequality
 		return (!(_Left == _Right));
 	}
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator>(const nii_array<_Ty, _Size, _TStateMutex>& _Left,
-		const nii_array<_Ty, _Size, _TStateMutex>& _Right) {	// test if _Left > _Right for arrays
+	template<class _Ty, size_t _Size> inline bool operator>(const nii_array<_Ty, _Size>& _Left,
+		const nii_array<_Ty, _Size>& _Right) {	// test if _Left > _Right for arrays
 		return (_Right < _Left);
 	}
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator<=(const nii_array<_Ty, _Size, _TStateMutex>& _Left,
-		const nii_array<_Ty, _Size, _TStateMutex>& _Right) {	// test if _Left <= _Right for arrays
+	template<class _Ty, size_t _Size> inline bool operator<=(const nii_array<_Ty, _Size>& _Left,
+		const nii_array<_Ty, _Size>& _Right) {	// test if _Left <= _Right for arrays
 		return (!(_Right < _Left));
 	}
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator>=(const nii_array<_Ty, _Size, _TStateMutex>& _Left,
-		const nii_array<_Ty, _Size, _TStateMutex>& _Right) {	// test if _Left >= _Right for arrays
+	template<class _Ty, size_t _Size> inline bool operator>=(const nii_array<_Ty, _Size>& _Left,
+		const nii_array<_Ty, _Size>& _Right) {	// test if _Left >= _Right for arrays
 		return (!(_Left < _Right));
 	}
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const typename nii_array<_Ty, _Size, _TStateMutex>::xscope_ss_iterator_type& iter_cref) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const typename nii_array<_Ty, _Size>::xscope_ss_iterator_type& iter_cref) {
 		return mse::us::unsafe_make_xscope_pointer_to(*iter_cref);
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeFixedPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeFixedPointer<nii_array<_Ty, _Size> >& ptr, typename nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeObjFixedPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeObjFixedPointer<nii_array<_Ty, _Size> >& ptr, typename nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const typename nii_array<_Ty, _Size, _TStateMutex>::xscope_ss_const_iterator_type& iter_cref) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const typename nii_array<_Ty, _Size>::xscope_ss_const_iterator_type& iter_cref) {
 		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<nii_array<_Ty, _Size> >& ptr, typename nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<nii_array<_Ty, _Size> >& ptr, typename nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedConstPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedConstPointer<nii_array<_Ty, _Size> >& ptr, typename nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedPointer<nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedPointer<nii_array<_Ty, _Size> >& ptr, typename nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -3420,12 +3412,12 @@ namespace mse {
 			raw_pointer_iter_t m_end = nullptr;
 		};
 
-		template<class _Ty, size_t _Size, class _TStateMutex>
-		auto make_xscope_specialized_range_iter_provider_overloaded(mse::nii_array< _Ty, _Size, _TStateMutex>& array_ref) {
+		template<class _Ty, size_t _Size>
+		auto make_xscope_specialized_range_iter_provider_overloaded(mse::nii_array< _Ty, _Size>& array_ref) {
 			return TXScopeRangeRawPointerIterProvider<typename std::remove_reference<decltype(array_ref)>::type>(array_ref);
 		}
-		template<class _Ty, size_t _Size, class _TStateMutex>
-		auto make_xscope_specialized_range_iter_provider_overloaded(const mse::nii_array< _Ty, _Size, _TStateMutex>& array_ref) {
+		template<class _Ty, size_t _Size>
+		auto make_xscope_specialized_range_iter_provider_overloaded(const mse::nii_array< _Ty, _Size>& array_ref) {
 			return TXScopeRangeRawPointerIterProvider<typename std::remove_reference<decltype(array_ref)>::type>(array_ref);
 		}
 	}
@@ -3479,17 +3471,17 @@ namespace std {
 	}
 
 	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT
+	void swap(mse::nii_array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size>& _Right) _NOEXCEPT
 	{
 		_Left.swap(_Right);
 	}
 	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	void swap(array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap arrays
 		return (_Right.swap(_Left));
 	}
 	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, array<_Ty, _Size>& _Right) _NOEXCEPT
+	void swap(mse::nii_array<_Ty, _Size>& _Left, array<_Ty, _Size>& _Right) _NOEXCEPT
 	{
 		_Left.swap(_Right);
 	}
@@ -3498,13 +3490,14 @@ namespace std {
 namespace mse {
 
 	/* xscope_nii_array<> is the scope version of nii_array<> (which unlike nii_array<>, can hold scope objects). */
-	template<class _Ty, size_t _Size, class _TStateMutex/* = array_adjusted_default_state_mutex<_Ty> */>
-	class xscope_nii_array : public mse::us::impl::nii_array_base<_Ty, _Size, _TStateMutex>, public mse::us::impl::XScopeTagBase
-		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ReferenceableByScopePointerTagBase, _Ty, xscope_nii_array<_Ty, _Size, _TStateMutex> >
-		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, xscope_nii_array<_Ty, _Size, _TStateMutex> >
+	template<class _Ty, size_t _Size>
+	class xscope_nii_array : public mse::us::impl::nii_array_base<_Ty, _Size, array_adjusted_default_state_mutex<_Ty> >, public mse::us::impl::XScopeTagBase
+		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ReferenceableByScopePointerTagBase, _Ty, xscope_nii_array<_Ty, _Size> >
+		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, xscope_nii_array<_Ty, _Size> >
 	{
 	public:
-		typedef mse::us::impl::nii_array_base<_Ty, _Size, _TStateMutex> base_class;
+		typedef mse::us::impl::nii_array_base<_Ty, _Size, array_adjusted_default_state_mutex<_Ty> > base_class;
+		typedef array_adjusted_default_state_mutex<_Ty> _TStateMutex;
 		typedef std::array<_Ty, _Size> std_array;
 		typedef std_array _MA;
 		typedef xscope_nii_array _Myt;
@@ -3691,60 +3684,60 @@ namespace mse {
 		->xscope_nii_array<typename impl::_mse_Enforce_same<_First, _Rest...>::type, 1 + sizeof...(_Rest)>;
 #endif /* MSE_HAS_CXX17 */
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator!=(const xscope_nii_array<_Ty, _Size, _TStateMutex>& _Left,
-		const xscope_nii_array<_Ty, _Size, _TStateMutex>& _Right) {	// test for array inequality
+	template<class _Ty, size_t _Size> inline bool operator!=(const xscope_nii_array<_Ty, _Size>& _Left,
+		const xscope_nii_array<_Ty, _Size>& _Right) {	// test for array inequality
 		return (!(_Left == _Right));
 	}
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator>(const xscope_nii_array<_Ty, _Size, _TStateMutex>& _Left,
-		const xscope_nii_array<_Ty, _Size, _TStateMutex>& _Right) {	// test if _Left > _Right for arrays
+	template<class _Ty, size_t _Size> inline bool operator>(const xscope_nii_array<_Ty, _Size>& _Left,
+		const xscope_nii_array<_Ty, _Size>& _Right) {	// test if _Left > _Right for arrays
 		return (_Right < _Left);
 	}
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator<=(const xscope_nii_array<_Ty, _Size, _TStateMutex>& _Left,
-		const xscope_nii_array<_Ty, _Size, _TStateMutex>& _Right) {	// test if _Left <= _Right for arrays
+	template<class _Ty, size_t _Size> inline bool operator<=(const xscope_nii_array<_Ty, _Size>& _Left,
+		const xscope_nii_array<_Ty, _Size>& _Right) {	// test if _Left <= _Right for arrays
 		return (!(_Right < _Left));
 	}
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator>=(const xscope_nii_array<_Ty, _Size, _TStateMutex>& _Left,
-		const xscope_nii_array<_Ty, _Size, _TStateMutex>& _Right) {	// test if _Left >= _Right for arrays
+	template<class _Ty, size_t _Size> inline bool operator>=(const xscope_nii_array<_Ty, _Size>& _Left,
+		const xscope_nii_array<_Ty, _Size>& _Right) {	// test if _Left >= _Right for arrays
 		return (!(_Left < _Right));
 	}
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const typename xscope_nii_array<_Ty, _Size, _TStateMutex>::xscope_ss_iterator_type& iter_cref) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const typename xscope_nii_array<_Ty, _Size>::xscope_ss_iterator_type& iter_cref) {
 		return mse::us::unsafe_make_xscope_pointer_to(*iter_cref);
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeFixedPointer<xscope_nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename xscope_nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeFixedPointer<xscope_nii_array<_Ty, _Size> >& ptr, typename xscope_nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeObjFixedPointer<xscope_nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename xscope_nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeObjFixedPointer<xscope_nii_array<_Ty, _Size> >& ptr, typename xscope_nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const typename xscope_nii_array<_Ty, _Size, _TStateMutex>::xscope_ss_const_iterator_type& iter_cref) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const typename xscope_nii_array<_Ty, _Size>::xscope_ss_const_iterator_type& iter_cref) {
 		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<xscope_nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename xscope_nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<xscope_nii_array<_Ty, _Size> >& ptr, typename xscope_nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<xscope_nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename xscope_nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<xscope_nii_array<_Ty, _Size> >& ptr, typename xscope_nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedConstPointer<xscope_nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename xscope_nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedConstPointer<xscope_nii_array<_Ty, _Size> >& ptr, typename xscope_nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
-	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedPointer<xscope_nii_array<_Ty, _Size, _TStateMutex> >& ptr, typename xscope_nii_array<_Ty, _Size, _TStateMutex>::size_type _P) {
+	template<class _Ty, size_t _Size>
+	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedPointer<xscope_nii_array<_Ty, _Size> >& ptr, typename xscope_nii_array<_Ty, _Size>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -3753,12 +3746,12 @@ namespace mse {
 
 		/* Some algorithm implementation specializations for xscope_nii_array<>.  */
 
-		template<class _Ty, size_t _Size, class _TStateMutex>
-		auto make_xscope_specialized_range_iter_provider_overloaded(mse::xscope_nii_array< _Ty, _Size, _TStateMutex>& array_ref) {
+		template<class _Ty, size_t _Size>
+		auto make_xscope_specialized_range_iter_provider_overloaded(mse::xscope_nii_array< _Ty, _Size>& array_ref) {
 			return TXScopeRangeRawPointerIterProvider<typename std::remove_reference<decltype(array_ref)>::type>(array_ref);
 		}
-		template<class _Ty, size_t _Size, class _TStateMutex>
-		auto make_xscope_specialized_range_iter_provider_overloaded(const mse::xscope_nii_array< _Ty, _Size, _TStateMutex>& array_ref) {
+		template<class _Ty, size_t _Size>
+		auto make_xscope_specialized_range_iter_provider_overloaded(const mse::xscope_nii_array< _Ty, _Size>& array_ref) {
 			return TXScopeRangeRawPointerIterProvider<typename std::remove_reference<decltype(array_ref)>::type>(array_ref);
 		}
 	}
@@ -3812,17 +3805,17 @@ namespace std {
 	}
 
 	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::xscope_nii_array<_Ty, _Size, _TStateMutex>& _Left, mse::xscope_nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT
+	void swap(mse::xscope_nii_array<_Ty, _Size>& _Left, mse::xscope_nii_array<_Ty, _Size>& _Right) _NOEXCEPT
 	{
 		_Left.swap(_Right);
 	}
 	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(array<_Ty, _Size>& _Left, mse::xscope_nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	void swap(array<_Ty, _Size>& _Left, mse::xscope_nii_array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap arrays
 		return (_Right.swap(_Left));
 	}
 	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::xscope_nii_array<_Ty, _Size, _TStateMutex>& _Left, array<_Ty, _Size>& _Right) _NOEXCEPT
+	void swap(mse::xscope_nii_array<_Ty, _Size>& _Left, array<_Ty, _Size>& _Right) _NOEXCEPT
 	{
 		_Left.swap(_Right);
 	}
@@ -3831,13 +3824,26 @@ namespace std {
 namespace mse {
 
 	namespace us {
-		/* msearray<> is an unsafe extension of nii_array<> that provides the traditional begin() and end() (non-static)
+		namespace impl {
+			namespace ns_msearray {
+				template<class _Ty, size_t _Size, class _TStateMutex>
+				using Tmsearray_rp_ss_iterator_type = mse::impl::ns_nii_array::Tarray_ss_iterator_type<msear_pointer<mse::us::msearray<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
+				template<class _Ty, size_t _Size, class _TStateMutex>
+				using Tmsearray_rp_ss_const_iterator_type = mse::impl::ns_nii_array::Tarray_ss_const_iterator_type<msear_pointer<const mse::us::msearray<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
+				template<class _Ty, size_t _Size, class _TStateMutex>
+				using Tmsearray_rp_ss_reverse_iterator_type = mse::impl::ns_nii_array::Tarray_ss_iterator_type<msear_pointer<mse::us::msearray<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
+				template<class _Ty, size_t _Size, class _TStateMutex>
+				using Tmsearray_rp_ss_const_reverse_iterator_type = mse::impl::ns_nii_array::Tarray_ss_const_reverse_iterator_type<msear_pointer<const mse::us::msearray<_Ty, _Size, _TStateMutex> >, _Ty, _Size, _TStateMutex>;
+			}
+		}
+
+		/* msearray<> is an unsafe array that provides the traditional begin() and end() (non-static)
 		member functions that return unsafe iterators. It also provides ss_begin() and ss_end() (non-static) member
 		functions which return bounds-checked, but still technically unsafe iterators. */
-		template<class _Ty, size_t _Size, class _TStateMutex>
-		class msearray : public nii_array<_Ty, _Size, _TStateMutex>, public mse::us::impl::AsyncNotShareableTagBase {
+		template<class _Ty, size_t _Size, class _TStateMutex/* = array_adjusted_default_state_mutex<_Ty> */>
+		class msearray : public mse::us::impl::nii_array_base<_Ty, _Size, _TStateMutex>, public mse::us::impl::AsyncNotShareableTagBase {
 		public:
-			typedef nii_array<_Ty, _Size, _TStateMutex> base_class;
+			typedef mse::us::impl::nii_array_base<_Ty, _Size, _TStateMutex> base_class;
 			typedef std::array<_Ty, _Size> std_array;
 			typedef msearray _Myt;
 
@@ -3888,10 +3894,10 @@ namespace mse {
 				return base_class::contained_array().crend();
 			}
 
-			typedef mse::impl::ns_nii_array::Tnii_array_rp_ss_iterator_type<_Ty, _Size, _TStateMutex> ss_iterator_type;
-			typedef mse::impl::ns_nii_array::Tnii_array_rp_ss_const_iterator_type<_Ty, _Size, _TStateMutex> ss_const_iterator_type;
-			typedef mse::impl::ns_nii_array::Tnii_array_rp_ss_reverse_iterator_type<_Ty, _Size, _TStateMutex> ss_reverse_iterator_type;
-			typedef mse::impl::ns_nii_array::Tnii_array_rp_ss_const_reverse_iterator_type<_Ty, _Size, _TStateMutex> ss_const_reverse_iterator_type;
+			typedef impl::ns_msearray::Tmsearray_rp_ss_iterator_type<_Ty, _Size, _TStateMutex> ss_iterator_type;
+			typedef impl::ns_msearray::Tmsearray_rp_ss_const_iterator_type<_Ty, _Size, _TStateMutex> ss_const_iterator_type;
+			typedef impl::ns_msearray::Tmsearray_rp_ss_reverse_iterator_type<_Ty, _Size, _TStateMutex> ss_reverse_iterator_type;
+			typedef impl::ns_msearray::Tmsearray_rp_ss_const_reverse_iterator_type<_Ty, _Size, _TStateMutex> ss_const_reverse_iterator_type;
 
 			ss_iterator_type ss_begin() {	// return std_array::iterator for beginning of mutable sequence
 				ss_iterator_type retval(this);
@@ -3978,8 +3984,8 @@ namespace mse {
 				return (Tss_const_reverse_iterator_type<_TMseArrayPointer>(ss_end<_TMseArrayPointer>(owner_ptr)));
 			}
 
-			typedef typename base_class::xscope_ss_const_iterator_type xscope_ss_const_iterator_type;
-			typedef typename base_class::xscope_ss_iterator_type xscope_ss_iterator_type;
+			//typedef typename base_class::xscope_ss_const_iterator_type xscope_ss_const_iterator_type;
+			//typedef typename base_class::xscope_ss_iterator_type xscope_ss_iterator_type;
 
 			typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 			typedef typename base_class::xscope_iterator xscope_iterator;
@@ -3991,12 +3997,12 @@ namespace mse {
 			auto contained_array() const -> decltype(base_class::contained_array()) { return base_class::contained_array(); }
 			auto contained_array() -> decltype(base_class::contained_array()) { return base_class::contained_array(); }
 
-			template<size_t _Idx, class _Tz, size_t _Size2>
-			friend _CONST_FUN _Tz& std::get(mse::us::msearray<_Tz, _Size2>& _Arr) _NOEXCEPT;
-			template<size_t _Idx, class _Tz, size_t _Size2>
-			friend _CONST_FUN const _Tz& std::get(const mse::us::msearray<_Tz, _Size2>& _Arr) _NOEXCEPT;
-			template<size_t _Idx, class _Tz, size_t _Size2>
-			friend _CONST_FUN _Tz&& std::get(mse::us::msearray<_Tz, _Size2>&& _Arr) _NOEXCEPT;
+			template<size_t _Idx, class _Tz, size_t _Size2, class _TStateMutex2>
+			friend _CONST_FUN _Tz& std::get(mse::us::msearray<_Tz, _Size2, _TStateMutex2>& _Arr) _NOEXCEPT;
+			template<size_t _Idx, class _Tz, size_t _Size2, class _TStateMutex2>
+			friend _CONST_FUN const _Tz& std::get(const mse::us::msearray<_Tz, _Size2, _TStateMutex2>& _Arr) _NOEXCEPT;
+			template<size_t _Idx, class _Tz, size_t _Size2, class _TStateMutex2>
+			friend _CONST_FUN _Tz&& std::get(mse::us::msearray<_Tz, _Size2, _TStateMutex2>&& _Arr) _NOEXCEPT;
 		};
 
 #ifdef MSE_HAS_CXX17
@@ -4007,59 +4013,59 @@ namespace mse {
 			->msearray<typename mse::impl::_mse_Enforce_same<_First, _Rest...>::type, 1 + sizeof...(_Rest)>;
 #endif /* MSE_HAS_CXX17 */
 
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator!=(const msearray<_Ty, _Size, _TStateMutex>& _Left,
+		template<class _Ty, size_t _Size, class _TStateMutex> inline bool operator!=(const msearray<_Ty, _Size, _TStateMutex>& _Left,
 			const msearray<_Ty, _Size, _TStateMutex>& _Right) {	// test for array inequality
 			return (!(_Left == _Right));
 		}
 
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator>(const msearray<_Ty, _Size, _TStateMutex>& _Left,
+		template<class _Ty, size_t _Size, class _TStateMutex> inline bool operator>(const msearray<_Ty, _Size, _TStateMutex>& _Left,
 			const msearray<_Ty, _Size, _TStateMutex>& _Right) {	// test if _Left > _Right for arrays
 			return (_Right < _Left);
 		}
 
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator<=(const msearray<_Ty, _Size, _TStateMutex>& _Left,
+		template<class _Ty, size_t _Size, class _TStateMutex> inline bool operator<=(const msearray<_Ty, _Size, _TStateMutex>& _Left,
 			const msearray<_Ty, _Size, _TStateMutex>& _Right) {	// test if _Left <= _Right for arrays
 			return (!(_Right < _Left));
 		}
 
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex> inline bool operator>=(const msearray<_Ty, _Size, _TStateMutex>& _Left,
+		template<class _Ty, size_t _Size, class _TStateMutex> inline bool operator>=(const msearray<_Ty, _Size, _TStateMutex>& _Left,
 			const msearray<_Ty, _Size, _TStateMutex>& _Right) {	// test if _Left >= _Right for arrays
 			return (!(_Left < _Right));
 		}
 
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+		template<class _Ty, size_t _Size, class _TStateMutex>
 		TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const typename msearray<_Ty, _Size, _TStateMutex>::xscope_ss_iterator_type& iter_cref) {
 			return mse::us::unsafe_make_xscope_pointer_to(*iter_cref);
 		}
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+		template<class _Ty, size_t _Size, class _TStateMutex>
 		TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeFixedPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 			return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+		template<class _Ty, size_t _Size, class _TStateMutex>
 		TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeObjFixedPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 			return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+		template<class _Ty, size_t _Size, class _TStateMutex>
 		TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const typename msearray<_Ty, _Size, _TStateMutex>::xscope_ss_const_iterator_type& iter_cref) {
 			return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
 		}
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+		template<class _Ty, size_t _Size, class _TStateMutex>
 		TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+		template<class _Ty, size_t _Size, class _TStateMutex>
 		TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+		template<class _Ty, size_t _Size, class _TStateMutex>
 		TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedConstPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
-		template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+		template<class _Ty, size_t _Size, class _TStateMutex>
 		TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedPointer<msearray<_Ty, _Size, _TStateMutex> >& ptr, typename msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 			return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 		}
@@ -4067,47 +4073,47 @@ namespace mse {
 	}
 
 	/* Using the mse::msearray<> alias of mse::us::msearray<> is deprecated. */
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	template<class _Ty, size_t _Size, class _TStateMutex>
 	using msearray MSE_DEPRECATED = us::msearray< _Ty, _Size, _TStateMutex>;
 
 
 	/*
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	template<class _Ty, size_t _Size, class _TStateMutex>
 	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const typename us::msearray<_Ty, _Size, _TStateMutex>::xscope_ss_iterator_type& iter_cref) {
 		return mse::us::unsafe_make_xscope_pointer_to(*iter_cref);
 	}
 	*/
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	template<class _Ty, size_t _Size, class _TStateMutex>
 	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeFixedPointer<us::msearray<_Ty, _Size, _TStateMutex> >& ptr, typename us::msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 		return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	template<class _Ty, size_t _Size, class _TStateMutex>
 	TXScopeFixedPointer<_Ty> xscope_pointer_to_array_element(const mse::TXScopeObjFixedPointer<us::msearray<_Ty, _Size, _TStateMutex> >& ptr, typename us::msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 		return mse::us::unsafe_make_xscope_pointer_to((*ptr)[_P]);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	/*
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	template<class _Ty, size_t _Size, class _TStateMutex>
 	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const typename us::msearray<_Ty, _Size, _TStateMutex>::xscope_ss_const_iterator_type& iter_cref) {
 		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
 	}
 	*/
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	template<class _Ty, size_t _Size, class _TStateMutex>
 	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedConstPointer<us::msearray<_Ty, _Size, _TStateMutex> >& ptr, typename us::msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	template<class _Ty, size_t _Size, class _TStateMutex>
 	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeFixedPointer<us::msearray<_Ty, _Size, _TStateMutex> >& ptr, typename us::msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	template<class _Ty, size_t _Size, class _TStateMutex>
 	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedConstPointer<us::msearray<_Ty, _Size, _TStateMutex> >& ptr, typename us::msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex = default_state_mutex>
+	template<class _Ty, size_t _Size, class _TStateMutex>
 	TXScopeFixedConstPointer<_Ty> xscope_const_pointer_to_array_element(const mse::TXScopeObjFixedPointer<us::msearray<_Ty, _Size, _TStateMutex> >& ptr, typename us::msearray<_Ty, _Size, _TStateMutex>::size_type _P) {
 		return mse::us::unsafe_make_xscope_const_pointer_to((*ptr)[_P]);
 	}
@@ -4173,22 +4179,22 @@ namespace std {
 #endif /*__clang__*/
 
 	// TUPLE INTERFACE TO array
-	template<size_t _Idx, class _Ty, size_t _Size>
-	_CONST_FUN _Ty& get(mse::us::msearray<_Ty, _Size>& _Arr) _NOEXCEPT
+	template<size_t _Idx, class _Ty, size_t _Size, class _TStateMutex>
+	_CONST_FUN _Ty& get(mse::us::msearray<_Ty, _Size, _TStateMutex>& _Arr) _NOEXCEPT
 	{	// return element at _Idx in array _Arr
 		static_assert(_Idx < _Size, "array index out of bounds");
 		return (std::get<_Idx>(_Arr.contained_array()));
 	}
 
-	template<size_t _Idx, class _Ty, size_t _Size>
-	_CONST_FUN const _Ty& get(const mse::us::msearray<_Ty, _Size>& _Arr) _NOEXCEPT
+	template<size_t _Idx, class _Ty, size_t _Size, class _TStateMutex>
+	_CONST_FUN const _Ty& get(const mse::us::msearray<_Ty, _Size, _TStateMutex>& _Arr) _NOEXCEPT
 	{	// return element at _Idx in array _Arr
 		static_assert(_Idx < _Size, "array index out of bounds");
 		return (std::get<_Idx>(_Arr.contained_array()));
 	}
 
-	template<size_t _Idx, class _Ty, size_t _Size>
-	_CONST_FUN _Ty&& get(mse::us::msearray<_Ty, _Size>&& _Arr) _NOEXCEPT
+	template<size_t _Idx, class _Ty, size_t _Size, class _TStateMutex>
+	_CONST_FUN _Ty&& get(mse::us::msearray<_Ty, _Size, _TStateMutex>&& _Arr) _NOEXCEPT
 	{	// return element at _Idx in array _Arr
 		static_assert(_Idx < _Size, "array index out of bounds");
 		return (_STD move(std::get<_Idx>(_Arr.contained_array())));

@@ -153,8 +153,9 @@ namespace mse {
 		}
 	}
 
-	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-	using nii_basic_string = us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>;
+	/* nii_basic_string<> is a string that is eligible to be shared among threads and does not support implicit iterators. */
+	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
+	using nii_basic_string = us::impl::gnii_basic_string<_Ty, _Traits, _A, mse::non_thread_safe_shared_mutex>;
 
 	namespace us {
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
@@ -3471,7 +3472,7 @@ namespace mse {
 			/* Default template parameter values are specified in the forward declaration. */
 			template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/, template<typename> class _TTXScopeConstIterator/* = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type*/>
 			class gnii_basic_string : private mse::impl::TOpaqueWrapper<std::basic_string<_Ty, _Traits, _A> >, public us::impl::ContiguousSequenceContainerTagBase, public us::impl::LockableStructureContainerTagBase {
-			private:
+			public:
 #ifdef MSE_HAS_CXX17
 				/* Helper classes for converting from string_views. */
 				template<class _StringViewIsh>
@@ -3482,6 +3483,7 @@ namespace mse {
 				template<class _StringViewIsh>
 				using _Is_string_view_ish = std::enable_if_t<_is_string_view_ish<_StringViewIsh>::value>;
 
+			private:
 				/* We support conversion from both stringviews and string sections. For now we're just using a rough approximation
 				for what should qualify as a "string section". */
 				template<class T, class EqualTo>
@@ -3533,6 +3535,7 @@ namespace mse {
 				struct IsStringViewOrSectionish3 : IsStringViewOrSectionish3_impl<
 					typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
+			public:
 				template<class _StringViewIsh>
 				using _is_string_view_or_section_ish = std::conjunction<
 					std::disjunction<_is_string_view_ish<_StringViewIsh>, IsStringViewOrSectionish1<_StringViewIsh>, IsStringViewOrSectionish2<_StringViewIsh>, IsStringViewOrSectionish3<_StringViewIsh> >,
@@ -5814,7 +5817,7 @@ namespace mse {
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-	//MSE_STRING_INHERIT_FREE_OPERATORS(mtnii_basic_string, mse::us::impl::gnii_basic_string, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type)
+	MSE_STRING_INHERIT_FREE_OPERATORS(mtnii_basic_string, mse::us::impl::gnii_basic_string, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type)
 
 	using mtnii_string = mtnii_basic_string<char>;
 	using mtnii_wstring = mtnii_basic_string<wchar_t>;
@@ -5906,6 +5909,1459 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	MSE_STRING_INHERIT_FREE_OPERATORS(stnii_basic_string, mse::us::impl::gnii_basic_string, mse::non_thread_safe_shared_mutex, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type)
+
+	using stnii_string = stnii_basic_string<char>;
+	using stnii_wstring = stnii_basic_string<wchar_t>;
+	using stnii_u16string = stnii_basic_string<char16_t>;
+	using stnii_u32string = stnii_basic_string<char32_t>;
+
+
+
+	template<class _Ty, class _Traits, class _A>
+	class fixed_nii_basic_string;
+	template<class _Ty, class _Traits, class _A>
+	class xscope_fixed_nii_basic_string;
+
+	namespace us {
+		namespace impl {
+			template<class _Ty, class _Traits, class _A>
+			class fixed_nii_basic_string_base;
+
+			namespace impl {
+				namespace ns_fixed_nii_basic_string_base {
+					template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty>*/>
+					std::basic_ostream<_Ty, _Traits>& out_to_stream(std::basic_ostream<_Ty, _Traits>& _Ostr, const fixed_nii_basic_string_base<_Ty, _Traits, _A>& _Str);
+				}
+			}
+
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
+			class fixed_nii_basic_string_base : private mse::impl::TOpaqueWrapper<std::basic_string<_Ty, _Traits, _A> >, private array_adjusted_default_state_mutex<_Ty>, public us::impl::ContiguousSequenceStaticStructureContainerTagBase {
+			public:
+#ifdef MSE_HAS_CXX17
+				template<class _StringViewIsh>
+				using _is_string_view_ish = typename mse::nii_basic_string<_Ty>::template _is_string_view_ish<_StringViewIsh>;
+				template<class _StringViewIsh>
+				using _Is_string_view_ish = typename mse::nii_basic_string<_Ty>::template _Is_string_view_ish<_StringViewIsh>;
+
+				template<class _StringViewIsh>
+				using _is_string_view_or_section_ish = typename mse::nii_basic_string<_Ty>::template _is_string_view_or_section_ish<_StringViewIsh>;
+				template<class _StringViewIsh>
+				using _Is_string_view_or_section_ish = typename mse::nii_basic_string<_Ty>::template _Is_string_view_or_section_ish<_StringViewIsh>;
+#endif /* MSE_HAS_CXX17 */
+
+				typedef array_adjusted_default_state_mutex<_Ty> state_mutex_t;
+				typedef state_mutex_t _TStateMutex;
+
+				/* We (privately) inherit the underlying data type rather than make it a data member to ensure it's the "first" component in the structure.*/
+				typedef mse::impl::TOpaqueWrapper<std::basic_string<_Ty, _Traits, _A> > base_class;
+				typedef std::basic_string<_Ty, _Traits, _A> std_basic_string;
+				typedef std_basic_string _MBS;
+				typedef fixed_nii_basic_string_base _Myt;
+
+				typedef typename std_basic_string::allocator_type allocator_type;
+				typedef typename std_basic_string::value_type value_type;
+				//typedef typename std_basic_string::size_type size_type;
+				typedef msev_size_t size_type;
+				//typedef typename std_basic_string::difference_type difference_type;
+				typedef msev_int difference_type;
+				typedef typename std_basic_string::pointer pointer;
+				typedef typename std_basic_string::const_pointer const_pointer;
+				typedef typename std_basic_string::reference reference;
+				typedef typename std_basic_string::const_reference const_reference;
+				static const size_t npos = size_t(-1);
+
+				typedef typename std_basic_string::iterator iterator;
+				typedef typename std_basic_string::const_iterator const_iterator;
+
+				typedef typename std_basic_string::reverse_iterator reverse_iterator;
+				typedef typename std_basic_string::const_reverse_iterator const_reverse_iterator;
+
+			private:
+				const _MBS& contained_basic_string() const& { return (*this).value(); }
+				const _MBS& contained_basic_string() const&& { return (*this).value(); }
+				_MBS& contained_basic_string()& { return (*this).value(); }
+				auto&& contained_basic_string()&& { return std::move(*this).value(); }
+
+				state_mutex_t& state_mutex1()& { return (*this); }
+
+			public:
+				explicit fixed_nii_basic_string_base(const _A& _Al = _A()) : base_class(_Al) { /*m_debug_size = size();*/ }
+				//explicit fixed_nii_basic_string_base(size_type _N) : base_class(msev_as_a_size_t(_N)) { /*m_debug_size = size();*/ }
+#ifdef MSE_HAS_CXX17
+				template<class _Alloc2 = _A, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc2>::value, int> = 0>
+#endif /* MSE_HAS_CXX17 */
+				explicit fixed_nii_basic_string_base(size_type _N, const _Ty& _V, const _A& _Al = _A()) : base_class(msev_as_a_size_t(_N), _V, _Al) { /*m_debug_size = size();*/ }
+				fixed_nii_basic_string_base(std_basic_string&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
+				fixed_nii_basic_string_base(const std_basic_string& _X) : base_class(_X) { /*m_debug_size = size();*/ }
+				fixed_nii_basic_string_base(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_basic_string()) { /*m_debug_size = size();*/ }
+				fixed_nii_basic_string_base(const _Myt& _X) : base_class(_X.contained_basic_string()) { /*m_debug_size = size();*/ }
+				typedef typename std_basic_string::const_iterator _It;
+				/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
+				fixed_nii_basic_string_base(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
+				fixed_nii_basic_string_base(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
+				template<class _Iter
+					//, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type
+					, class = mse::impl::_mse_RequireInputIter<_Iter> >
+					fixed_nii_basic_string_base(const _Iter& _First, const _Iter& _Last) : base_class(_First, _Last) { /*m_debug_size = size();*/ }
+				template<class _Iter
+					//, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type
+					, class = mse::impl::_mse_RequireInputIter<_Iter> >
+					//fixed_nii_basic_string_base(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+					fixed_nii_basic_string_base(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+				fixed_nii_basic_string_base(const _Ty* const _Ptr) : base_class(_Ptr) { /*m_debug_size = size();*/ }
+				fixed_nii_basic_string_base(const _Ty* const _Ptr, const size_t _Count) : base_class(_Ptr, mse::msev_as_a_size_t(_Count)) { /*m_debug_size = size();*/ }
+				fixed_nii_basic_string_base(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : base_class(_X.contained_basic_string(), _Roff, npos, _Al) { /*m_debug_size = size();*/ }
+				fixed_nii_basic_string_base(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(_X.contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
+
+				fixed_nii_basic_string_base(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr) : base_class(xs_ptr->contained_basic_string()) { /*m_debug_size = size();*/ }
+				fixed_nii_basic_string_base(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const _A& _Al = _A()) : base_class(xs_ptr->contained_basic_string(), _Roff, npos, _Al) { /*m_debug_size = size();*/ }
+				fixed_nii_basic_string_base(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(xs_ptr->contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
+
+#ifdef MSE_HAS_CXX17
+				template<class _TParam1, class = _Is_string_view_or_section_ish<_TParam1> >
+				fixed_nii_basic_string_base(const _TParam1& _Right) { assign(_Right); }
+
+				template<class _TParam1, class = _Is_string_view_or_section_ish<_TParam1> >
+				fixed_nii_basic_string_base(const _TParam1& _Right, const size_type _Roff, const size_type _Count, const _A& _Al = _A())
+					: base_class(_Al) {
+					assign(_Right, _Roff, _Count);
+				}
+#else /* MSE_HAS_CXX17 */
+				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+				explicit fixed_nii_basic_string_base(const _TStringSection& _X) : base_class(_X.cbegin(), _X.cend()) { /*m_debug_size = size();*/ }
+#endif /* MSE_HAS_CXX17 */
+
+				operator _MBS() const { return this->contained_basic_string(); }
+
+				typename std_basic_string::const_reference operator[](msev_size_t _P) const {
+					return (*this).at(msev_as_a_size_t(_P));
+				}
+				typename std_basic_string::reference operator[](msev_size_t _P) {
+					return (*this).at(msev_as_a_size_t(_P));
+				}
+				typename std_basic_string::reference front() {	// return first element of mutable sequence
+					if (0 == (*this).size()) { MSE_THROW(gnii_basic_string_range_error("front() on empty - typename std_basic_string::reference front() - fixed_nii_basic_string_base")); }
+					return contained_basic_string().front();
+				}
+				typename std_basic_string::const_reference front() const {	// return first element of nonmutable sequence
+					if (0 == (*this).size()) { MSE_THROW(gnii_basic_string_range_error("front() on empty - typename std_basic_string::const_reference front() - fixed_nii_basic_string_base")); }
+					return contained_basic_string().front();
+				}
+				typename std_basic_string::reference back() {	// return last element of mutable sequence
+					if (0 == (*this).size()) { MSE_THROW(gnii_basic_string_range_error("back() on empty - typename std_basic_string::reference back() - fixed_nii_basic_string_base")); }
+					return contained_basic_string().back();
+				}
+				typename std_basic_string::const_reference back() const {	// return last element of nonmutable sequence
+					if (0 == (*this).size()) { MSE_THROW(gnii_basic_string_range_error("back() on empty - typename std_basic_string::const_reference back() - fixed_nii_basic_string_base")); }
+					return contained_basic_string().back();
+				}
+
+				size_type length() const _NOEXCEPT
+				{	// return length of sequence
+					return contained_basic_string().length();
+				}
+
+				size_type size() const _NOEXCEPT
+				{	// return length of sequence
+					return contained_basic_string().size();
+				}
+
+				bool empty() const _NOEXCEPT
+				{	// test if sequence is empty
+					return contained_basic_string().empty();
+				}
+				_A get_allocator() const _NOEXCEPT
+				{	// return allocator object for values
+					return contained_basic_string().get_allocator();
+				}
+
+				reference at(msev_size_t _Pos)
+				{	// subscript mutable sequence with checking
+					return contained_basic_string().at(msev_as_a_size_t(_Pos));
+				}
+
+				const_reference at(msev_size_t _Pos) const
+				{	// subscript nonmutable sequence with checking
+					return contained_basic_string().at(msev_as_a_size_t(_Pos));
+				}
+
+				fixed_nii_basic_string_base(_XSTD initializer_list<typename std_basic_string::value_type> _Ilist, const _A& _Al = _A())
+					: base_class(_Ilist, _Al) {	// construct from initializer_list
+					/*m_debug_size = size();*/
+				}
+
+				value_type* data() _NOEXCEPT
+				{	// return pointer to mutable data basic_string
+					return contained_basic_string().data();
+				}
+
+				const value_type* data() const _NOEXCEPT
+				{	// return pointer to nonmutable data basic_string
+					return contained_basic_string().data();
+				}
+
+				size_type max_size() const _NOEXCEPT
+				{	// return maximum possible length of sequence
+					return contained_basic_string().max_size();
+				}
+
+			private:
+				_Myt& operator=(const std_basic_string& _X) {
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().operator =(_X);
+					/*m_debug_size = size();*/
+					return (*this);
+				}
+				_Myt& operator=(_Myt&& _X) {
+					if (std::addressof(_X) == this) { return (*this); }
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().operator=(std::forward<decltype(_X)>(_X).contained_basic_string());
+					return (*this);
+				}
+				_Myt& operator=(const _Myt& _X) {
+					if (std::addressof(_X) == this) { return (*this); }
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().operator=(_X.contained_basic_string());
+					return (*this);
+				}
+
+				void reserve(size_type _Count)
+				{	// determine new minimum length of allocated storage
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().reserve(msev_as_a_size_t(_Count));
+				}
+				size_type capacity() const _NOEXCEPT
+				{	// return current length of allocated storage
+					return contained_basic_string().capacity();
+				}
+				void shrink_to_fit() {	// reduce capacity
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().shrink_to_fit();
+				}
+				void resize(size_type _N, const _Ty& _X = _Ty()) {
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().resize(msev_as_a_size_t(_N), _X);
+				}
+
+				void push_back(_Ty&& _X) {
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().push_back(std::forward<decltype(_X)>(_X));
+				}
+				void push_back(const _Ty& _X) {
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().push_back(_X);
+				}
+				void pop_back() {
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().pop_back();
+				}
+
+
+				_Myt& assign(mse::TXScopeFixedConstPointer<_Myt> xs_ptr) {
+					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					contained_basic_string().assign(xs_ptr->contained_basic_string());
+					/*m_debug_size = size();*/
+					return (*this);
+				}
+				_Myt& assign(const _Myt& _Right) {
+					auto xs_ptr = mse::us::unsafe_make_xscope_const_pointer_to(_Right);
+					return assign(xs_ptr);
+				}
+				_Myt& assign(mse::TXScopeFixedConstPointer<_Myt> xs_ptr, const size_type _Roff, size_type _Count = npos) {
+					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					contained_basic_string().assign(xs_ptr->contained_basic_string(), mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
+					/*m_debug_size = size();*/
+					return (*this);
+				}
+				_Myt& assign(const _Myt& _Right, const size_type _Roff, size_type _Count = npos) {
+					auto xs_ptr = mse::us::unsafe_make_xscope_const_pointer_to(_Right);
+					return assign(xs_ptr, _Roff, _Count);
+				}
+
+				_Myt& assign(const _Ty* const _Ptr, const size_type _Count) {
+					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					contained_basic_string().assign(_Ptr, mse::as_a_size_t(_Count));
+					//m_debug_size = size();
+					return (*this);
+				}
+				_Myt& assign(const _Ty* const _Ptr) {
+					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					contained_basic_string().assign(_Ptr);
+					//m_debug_size = size();
+					return (*this);
+				}
+				_Myt& assign(const size_type _Count, const _Ty& _Ch) {
+					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					contained_basic_string().assign(mse::as_a_size_t(_Count), _Ch);
+					//m_debug_size = size();
+					return (*this);
+				}
+				template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator_v<_Iter> >::type>
+				_Myt& assign(const _Iter _First, const _Iter _Last) {
+					smoke_check_source_iterators(_First, _Last);
+					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					contained_basic_string().assign(_First, _Last);
+					//m_debug_size = size();
+					return (*this);
+				}
+
+#ifdef MSE_HAS_CXX17
+			private:
+				template<class _StringViewIsh>
+				_Myt& assign_helper2(std::true_type, const _StringViewIsh& _Right) {
+					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					contained_basic_string().assign(_As_view);
+					/*m_debug_size = size();*/
+					return (*this);
+				}
+				template<class _TParam1>
+				_Myt& assign_helper2(std::false_type, const _TParam1& _Right) {
+					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					return assign(xs_iters.begin(), xs_iters.end());
+				}
+				_Myt& assign_helper1(std::true_type, const _Myt& _Right) {
+					assign(_Right);
+					return (*this);
+				}
+				template<class _TParam1>
+				_Myt& assign_helper1(std::false_type, const _TParam1& _Right) {
+					return assign_helper2(typename _is_string_view_ish<_TParam1>::type(), _Right);
+				}
+			//public:
+				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+				_Myt& assign(const _TParam1& _Right) {
+					return assign_helper1(typename std::is_base_of<_Myt, _TParam1>::type(), _Right);
+				}
+
+			private:
+				template<class _StringViewIsh>
+				_Myt& assign_helper2(std::true_type, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count) {
+					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					contained_basic_string().assign(_As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
+					/*m_debug_size = size();*/
+					return (*this);
+				}
+				template<class _TParam1>
+				_Myt& assign_helper2(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
+						: difference_type(_Count);
+					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" _Myt::assign() ")); }
+					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					return assign(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count));
+				}
+				_Myt& assign_helper1(std::true_type, const _Myt& _Right, const size_type _Roff, const size_type _Count) {
+					assign(_Right, _Roff, _Count);
+					return (*this);
+				}
+				template<class _TParam1>
+				_Myt& assign_helper1(std::false_type, const _TParam1& _Right, const size_type _Roff, const size_type _Count) {
+					return assign_helper2(typename _is_string_view_ish<_TParam1>::type(), _Right, _Roff, _Count);
+				}
+			//public:
+				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+				_Myt& assign(const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) {
+					return assign_helper1(typename std::is_base_of<_Myt, _TParam1>::type(), _Right, _Roff, _Count);
+				}
+#else /* MSE_HAS_CXX17 */
+				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+				_Myt& assign(const _TStringSection& _X) {
+					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					contained_basic_string().assign(_X.cbegin(), _X.cend());
+					/*m_debug_size = size();*/
+					return (*this);
+				}
+#endif /* MSE_HAS_CXX17 */
+
+
+				template<class _Iter>
+				static void smoke_check_source_iterators_helper(std::true_type, const _Iter& _First, const _Iter& _Last) {
+					if (_Last < _First)/*comparison operations should also verify that safe iterators point to the same container*/ {
+						MSE_THROW(gnii_basic_string_range_error("invalid arguments - void smoke_check_source_iterators() const - fixed_nii_basic_string_base"));
+					}
+				}
+				template<class _Iter>
+				static void smoke_check_source_iterators_helper(std::false_type, const _Iter&, const _Iter&) {}
+
+				template<class _Iter>
+				static void smoke_check_source_iterators(const fixed_nii_basic_string_base& target_cref, const _Iter& _First, const _Iter& _Last) {
+#ifndef MSE_NII_VECTOR_SUPRESS_SOURCE_ITER_ALIAS_CHECK
+					if (!(target_cref.empty())) {
+						/* check if the source sequence is part of target (target) container */
+						auto start_of_target_ptr = std::addressof(*(target_cref.cbegin()));
+						auto end_of_target_ptr = std::addressof(*(target_cref.cend() - 1)) + 1;
+						auto _First_ptr = std::addressof(*_First);
+						if ((end_of_target_ptr > _First_ptr) && (start_of_target_ptr <= _First_ptr)) {
+							MSE_THROW(gnii_basic_string_range_error("invalid arguments - void smoke_check_source_iterators() const - fixed_nii_basic_string_base"));
+						}
+					}
+#endif // !MSE_NII_VECTOR_SUPRESS_SOURCE_ITER_ALIAS_CHECK
+
+#ifdef MSE_NII_VECTOR_ENABLE_SOURCE_ITER_ORDER_CHECK
+					smoke_check_source_iterators_helper(typename mse::impl::HasOrInheritsLessThanOperator_msemsebasic_string<_Iter>::type(), _First, _Last);
+#endif // MSE_NII_VECTOR_ENABLE_SOURCE_ITER_ORDER_CHECK
+				}
+				template<class _Iter>
+				void smoke_check_source_iterators(const _Iter& _First, const _Iter& _Last) {
+					smoke_check_source_iterators(*this, _First, _Last);
+				}
+
+				template<class ..._Valty>
+				void emplace_back(_Valty&& ..._Val)
+				{	// insert by moving into element at end
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().emplace_back(std::forward<_Valty>(_Val)...);
+					/*m_debug_size = size();*/
+				}
+				void clear() {
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().clear();
+					/*m_debug_size = size();*/
+				}
+
+				void swap(_Myt& _Other) {	// swap contents with _Other
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().swap(_Other.contained_basic_string());
+				}
+				void swap(_MBS& _Other) {	// swap contents with _Other
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().swap(_Other);
+				}
+				/*
+				template<typename _TStateMutex2, template<typename> class _TTXScopeConstIterator2>
+				void swap(mse::us::impl::fixed_nii_basic_string_base<_Ty, _Traits, _A, _TStateMutex2, _TTXScopeConstIterator2>& _Other) {	// swap contents with _Other
+					//structure_change_guard<decltype(state_mutex1())> lock1(state_mutex1());
+					contained_basic_string().swap(_Other.contained_basic_string());
+				}
+				*/
+
+				_Myt& operator=(_XSTD initializer_list<typename std_basic_string::value_type> _Ilist) {	// assign initializer_list
+					contained_basic_string().operator=(static_cast<std_basic_string>(_Ilist));
+					return (*this);
+				}
+				void assign(_XSTD initializer_list<typename std_basic_string::value_type> _Ilist) {	// assign initializer_list
+					contained_basic_string().assign(_Ilist);
+					/*m_debug_size = size();*/
+				}
+			public:
+
+				//class nbs_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
+				//class nbs_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+
+				typedef mse::impl::random_access_const_iterator_base<_Ty> nbs_const_iterator_base;
+				typedef mse::impl::random_access_iterator_base<_Ty> nbs_iterator_base;
+
+				template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
+				using Tss_const_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_iterator_type<_TVectorConstPointer>;
+				template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
+				using Tss_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_iterator_type<_TVectorPointer>;
+
+				template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
+				using Tss_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_reverse_iterator_type<_TVectorPointer>;
+				template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
+				using Tss_const_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_reverse_iterator_type<_TVectorConstPointer>;
+
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_iterator_type<_Myt> ss_iterator_type;
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_const_iterator_type<_Myt> ss_const_iterator_type;
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_reverse_iterator_type<_Myt> ss_reverse_iterator_type;
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_const_reverse_iterator_type<_Myt> ss_const_reverse_iterator_type;
+
+				/* Here we provide static versions of the member functions that return iterators. As static member functions do
+				not have access to a "this" pointer, these functions require a pointer to the container to be passed as the first
+				argument. Any returned iterator will contain a copy of the supplied pointer and inherit its safety properties. */
+
+				template<typename _TVectorPointer>
+				static auto ss_begin(const _TVectorPointer& owner_ptr) {
+					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+					typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+						, Tss_const_iterator_type<_TVectorPointer>, Tss_iterator_type<_TVectorPointer> >::type return_type;
+					return_type retval(owner_ptr);
+					retval.set_to_beginning();
+					return retval;
+				}
+
+				template<typename _TVectorPointer>
+				static auto ss_end(const _TVectorPointer& owner_ptr) {
+					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+					typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+						, Tss_const_iterator_type<_TVectorPointer>, Tss_iterator_type<_TVectorPointer> >::type return_type;
+					return_type retval(owner_ptr);
+					retval.set_to_end_marker();
+					return retval;
+				}
+
+				template<typename _TVectorPointer>
+				static auto ss_cbegin(const _TVectorPointer& owner_ptr) {
+					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr);
+					retval.set_to_beginning();
+					return retval;
+				}
+
+				template<typename _TVectorPointer>
+				static auto ss_cend(const _TVectorPointer& owner_ptr) {
+					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr);
+					retval.set_to_end_marker();
+					return retval;
+				}
+
+				template<typename _TVectorPointer>
+				static auto ss_rbegin(const _TVectorPointer& owner_ptr) {
+					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+					typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+						, Tss_const_reverse_iterator_type<_TVectorPointer>, Tss_reverse_iterator_type<_TVectorPointer> >::type return_type;
+					return return_type(ss_end<_TVectorPointer>(owner_ptr));
+				}
+
+				template<typename _TVectorPointer>
+				static auto ss_rend(const _TVectorPointer& owner_ptr) {
+					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+					typedef typename std::conditional<std::is_const<typename std::remove_reference<decltype(*owner_ptr)>::type>::value
+						, Tss_const_reverse_iterator_type<_TVectorPointer>, Tss_reverse_iterator_type<_TVectorPointer> >::type return_type;
+					return return_type(ss_begin<_TVectorPointer>(owner_ptr));
+				}
+
+				template<typename _TVectorPointer>
+				static auto ss_crbegin(const _TVectorPointer& owner_ptr) {
+					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+					return (Tss_const_reverse_iterator_type<_TVectorPointer>(ss_cend<_TVectorPointer>(owner_ptr)));
+				}
+
+				template<typename _TVectorPointer>
+				static auto ss_crend(const _TVectorPointer& owner_ptr) {
+					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
+					return (Tss_const_reverse_iterator_type<_TVectorPointer>(ss_crbegin<_TVectorPointer>(owner_ptr)));
+				}
+
+				template<typename _TVectorPointer1>
+				static void s_assert_valid_index(const _TVectorPointer1& this_ptr, size_type index) {
+					if ((*this_ptr).size() < index) { MSE_THROW(gnii_basic_string_range_error("invalid index - void assert_valid_index() const - fixed_nii_basic_string_base")); }
+				}
+
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type<_Myt> xscope_ss_const_iterator_type;
+				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Myt> xscope_ss_iterator_type;
+
+				//typedef xscope_ss_const_iterator_type xscope_const_iterator;
+				//typedef _TTXScopeConstIterator<_Myt> xscope_const_iterator;
+				//typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type<_Myt> xscope_const_iterator;
+				//typedef xscope_ss_iterator_type xscope_iterator;
+				//typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_iterator_type<_Myt> xscope_iterator;
+				typedef TXScopeCSSSXSRAConstIterator<_Myt> xscope_const_iterator;
+				typedef TXScopeCSSSXSRAIterator<_Myt> xscope_iterator;
+
+				bool operator==(const _Myt& _Right) const {	// test for basic_string equality
+					return (_Right.contained_basic_string() == contained_basic_string());
+				}
+				bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for basic_strings
+					return (contained_basic_string() < _Right.contained_basic_string());
+				}
+
+
+				int compare(mse::TXScopeFixedConstPointer<fixed_nii_basic_string_base> xs_ptr) const _NOEXCEPT {
+					return contained_basic_string().compare((*xs_ptr).contained_basic_string());
+				}
+				int compare(const fixed_nii_basic_string_base& _Right) const _NOEXCEPT {
+					return contained_basic_string().compare(_Right.contained_basic_string());
+				}
+				int compare(size_type _Off, size_type _N0, mse::TXScopeFixedConstPointer<fixed_nii_basic_string_base> xs_ptr) const {
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string());
+				}
+				int compare(size_type _Off, size_type _N0, const fixed_nii_basic_string_base& _Right) const {
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string());
+				}
+				int compare(const size_type _Off, const size_type _N0, mse::TXScopeFixedConstPointer<fixed_nii_basic_string_base> xs_ptr,
+					const size_type _Roff, const size_type _Count = npos) const {
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), (*xs_ptr).contained_basic_string(), _Roff, _Count);
+				}
+				int compare(const size_type _Off, const size_type _N0, const fixed_nii_basic_string_base& _Right,
+					const size_type _Roff, const size_type _Count = npos) const {
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Right.contained_basic_string(), _Roff, _Count);
+				}
+
+				int compare(const _Ty* const _Ptr) const _NOEXCEPT {
+					return contained_basic_string().compare(_Ptr);
+				}
+
+				int compare(const size_type _Off, const size_type _N0, const _Ty* const _Ptr) const {
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr);
+				}
+
+				int compare(const size_type _Off, const size_type _N0, const _Ty* const _Ptr,
+					const size_type _Count) const {
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _Ptr, mse::msev_as_a_size_t(_Count));
+				}
+
+#ifdef MSE_HAS_CXX17
+			private:
+				template<class _StringViewIsh>
+				int compare_helper2(std::true_type, const _StringViewIsh& _Right) const {
+					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+					return contained_basic_string().compare(_As_view);
+				}
+				template<class _TParam1>
+				int compare_helper2(std::false_type, const _TParam1& _Right) const {
+					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					return std::lexicographical_compare(contained_basic_string().cbegin(), contained_basic_string().cend(), xs_iters.begin(), xs_iters.end());
+					//return compare(fixed_nii_basic_string_base(xs_iters.begin(), xs_iters.end()));
+				}
+				int compare_helper1(std::true_type, const fixed_nii_basic_string_base& _Right) const {
+					return compare(_Right);
+				}
+				template<class _TParam1>
+				int compare_helper1(std::false_type, const _TParam1& _Right) const {
+					return compare_helper2(typename _is_string_view_ish<_TParam1>::type(), _Right);
+				}
+			public:
+				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+				int compare(const _TParam1& _Right) const {
+					return compare_helper1(typename std::is_base_of<fixed_nii_basic_string_base, _TParam1>::type(), _Right);
+				}
+
+			private:
+				template<class _StringViewIsh>
+				int compare_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right) const {
+					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view);
+				}
+				template<class _TParam1>
+				int compare_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
+					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					return compare(_Off, _N0, fixed_nii_basic_string_base(xs_iters.begin(), xs_iters.end()));
+				}
+				int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const fixed_nii_basic_string_base& _Right) const {
+					return compare(_Off, _N0, _Right);
+				}
+				template<class _TParam1>
+				int compare_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
+					return compare_helper2(typename _is_string_view_ish<_TParam1>::type(), _Off, _N0, _Right);
+				}
+			public:
+				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+				int compare(const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
+					return compare_helper1(typename std::is_base_of<fixed_nii_basic_string_base, _TParam1>::type(), _Off, _N0, _Right);
+				}
+
+			private:
+				template<class _StringViewIsh>
+				int compare_helper2(std::true_type, const size_type _Off, const size_type _N0, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count) const {
+					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _As_view, mse::as_a_size_t(_Roff), mse::as_a_size_t(_Count));
+				}
+				template<class _TParam1>
+				int compare_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) const {
+					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
+						: difference_type(_Count);
+					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" fixed_nii_basic_string_base::compare() ")); }
+					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					return compare(_Off, _N0, fixed_nii_basic_string_base(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count)));
+				}
+				int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const fixed_nii_basic_string_base& _Right, const size_type _Roff, const size_type _Count) const {
+					return compare(_Off, _N0, _Right, _Roff, _Count);
+				}
+				template<class _TParam1>
+				int compare_helper1(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count) const {
+					return compare_helper2(typename _is_string_view_ish<_TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
+				}
+			public:
+				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+				int compare(const size_type _Off, const size_type _N0, const _TParam1& _Right, const size_type _Roff, const size_type _Count = npos) const {
+					return compare_helper1(typename std::is_base_of<fixed_nii_basic_string_base, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
+				}
+#else /* MSE_HAS_CXX17 */
+				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+				int compare(const size_type _Off, const size_type _N0, const _TStringSection& _X) const {
+					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), fixed_nii_basic_string_base(_X.cbegin(), _X.cend()));
+				}
+#endif /* MSE_HAS_CXX17 */
+
+#ifdef MSE_HAS_CXX17
+			private:
+				template<class _StringViewIsh>
+				size_type find_helper2(std::true_type, const _StringViewIsh& _Right, const size_type _Off = npos) const {
+					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+					return contained_basic_string().find(_As_view, mse::as_a_size_t(_Off));
+				}
+				template<class _TParam1>
+				size_type find_helper2(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					return find(fixed_nii_basic_string_base(xs_iters.begin(), xs_iters.end()), _Off);
+				}
+				size_type find_helper1(std::true_type, const fixed_nii_basic_string_base& _Right, const size_type _Off = npos) const {
+					return find(_Right, _Off);
+				}
+				template<class _TParam1>
+				size_type find_helper1(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+					return find_helper2(typename _is_string_view_ish<_TParam1>::type(), _Right, _Off);
+				}
+			public:
+				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+				size_type find(const _TParam1& _Right, const size_type _Off = npos) const {
+					return find_helper1(typename std::is_base_of<fixed_nii_basic_string_base, _TParam1>::type(), _Right, _Off);
+				}
+#else /* MSE_HAS_CXX17 */
+				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+				size_type find(const _TStringSection& _X, const size_type _Off = npos) const {
+					return contained_basic_string().find(fixed_nii_basic_string_base(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
+				}
+#endif /* MSE_HAS_CXX17 */
+
+				size_type find(const fixed_nii_basic_string_base& _Right, const size_type _Off = 0) const _NOEXCEPT {
+					return contained_basic_string().find(_Right.contained_basic_string(), _Off);
+				}
+
+				size_type find(const _Ty* const _Ptr, const size_type _Off, const size_type _Count) const _NOEXCEPT {
+					return contained_basic_string().find(_Ptr, _Off, _Count);
+				}
+
+				size_type find(const _Ty* const _Ptr, const size_type _Off = 0) const _NOEXCEPT {
+					return contained_basic_string().find(_Ptr, _Off);
+				}
+
+				size_type find(const _Ty _Ch, const size_type _Off = 0) const _NOEXCEPT {
+					return contained_basic_string().find(_Ch, _Off);
+				}
+
+#ifdef MSE_HAS_CXX17
+			private:
+				template<class _StringViewIsh>
+				size_type rfind_helper2(std::true_type, const _StringViewIsh& _Right, const size_type _Off = npos) const {
+					std::basic_string_view<_Ty, _Traits> _As_view = _Right;
+					return contained_basic_string().rfind(_As_view, mse::as_a_size_t(_Off));
+				}
+				template<class _TParam1>
+				size_type rfind_helper2(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					return rfind(fixed_nii_basic_string_base(xs_iters.begin(), xs_iters.end()), _Off);
+				}
+				size_type rfind_helper1(std::true_type, const fixed_nii_basic_string_base& _Right, const size_type _Off = npos) const {
+					return rfind(_Right, _Off);
+				}
+				template<class _TParam1>
+				size_type rfind_helper1(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
+					return rfind_helper2(typename _is_string_view_ish<_TParam1>::type(), _Right, _Off);
+				}
+			public:
+				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+				size_type rfind(const _TParam1& _Right, const size_type _Off = npos) const {
+					return rfind_helper1(typename std::is_base_of<fixed_nii_basic_string_base, _TParam1>::type(), _Right, _Off);
+				}
+#else /* MSE_HAS_CXX17 */
+				template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+				size_type rfind(const _TStringSection& _X, const size_type _Off = npos) const {
+					return contained_basic_string().rfind(fixed_nii_basic_string_base(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
+				}
+#endif /* MSE_HAS_CXX17 */
+
+				size_type rfind(const fixed_nii_basic_string_base& _Right, const size_type _Off = npos) const _NOEXCEPT {
+					return contained_basic_string().rfind(_Right.contained_basic_string(), _Off);
+				}
+
+				size_type rfind(const _Ty* const _Ptr, const size_type _Off, const size_type _Count) const _NOEXCEPT {
+					return contained_basic_string().rfind(_Ptr, _Off, _Count);
+				}
+
+				size_type rfind(const _Ty* const _Ptr, const size_type _Off = npos) const _NOEXCEPT {
+					return contained_basic_string().rfind(_Ptr, _Off);
+				}
+
+				size_type rfind(const _Ty _Ch, const size_type _Off = npos) const _NOEXCEPT {
+					return contained_basic_string().rfind(_Ch, _Off);
+				}
+
+#if 0//_HAS_CXX17
+				size_type find_first_of(const mstd::basic_string_view<_Ty, _Traits> _Right, const size_type _Off = 0) const _NOEXCEPT
+				{	// look for one of _Right at or after _Off
+					auto& _My_data = this->_Get_data();
+					return (static_cast<size_type>(_Traits_find_first_of<_Traits>(_My_data._Myptr(), _My_data._Mysize, _Off,
+						_Right.data(), _Right.size())));
+				}
+#endif /* _HAS_CXX17 */
+
+				size_type find_first_of(const fixed_nii_basic_string_base& _Right, const size_type _Off = 0) const _NOEXCEPT {
+					return contained_basic_string().find_first_of(_Right.contained_basic_string(), _Off);
+				}
+
+				size_type find_first_of(const _Ty* const _Ptr, const size_type _Off,
+					const size_type _Count) const _NOEXCEPT {
+					return contained_basic_string().find_first_of(_Ptr, _Off, _Count);
+				}
+
+				size_type find_first_of(const _Ty* const _Ptr, const size_type _Off = 0) const _NOEXCEPT {
+					return contained_basic_string().find_first_of(_Ptr, _Off);
+				}
+
+				size_type find_first_of(const _Ty _Ch, const size_type _Off = 0) const _NOEXCEPT {
+					return contained_basic_string().find_first_of(_Ch, _Off);
+				}
+
+#if 0//_HAS_CXX17
+				size_type find_last_of(const mstd::basic_string_view<_Ty, _Traits> _Right, const size_type _Off = npos) const _NOEXCEPT
+				{	// look for one of _Right before _Off
+					auto& _My_data = this->_Get_data();
+					return (static_cast<size_type>(_Traits_find_last_of<_Traits>(_My_data._Myptr(), _My_data._Mysize, _Off,
+						_Right.data(), _Right.size())));
+				}
+#endif /* _HAS_CXX17 */
+
+				size_type find_last_of(const fixed_nii_basic_string_base& _Right, size_type _Off = npos) const _NOEXCEPT {
+					return contained_basic_string().find_last_of(_Right.contained_basic_string(), _Off);
+				}
+
+				size_type find_last_of(const _Ty* const _Ptr, const size_type _Off,
+					const size_type _Count) const _NOEXCEPT {
+					return contained_basic_string().find_last_of(_Ptr, _Off, _Count);
+				}
+
+				size_type find_last_of(const _Ty* const _Ptr, const size_type _Off = npos) const _NOEXCEPT {
+					return contained_basic_string().find_last_of(_Ptr, _Off);
+				}
+
+				size_type find_last_of(const _Ty _Ch, const size_type _Off = npos) const _NOEXCEPT {
+					return contained_basic_string().find_last_of(_Ch, _Off);
+				}
+
+#if 0//_HAS_CXX17
+				size_type find_first_not_of(const mstd::basic_string_view<_Ty, _Traits> _Right, const size_type _Off = 0) const
+					_NOEXCEPT
+				{	// look for none of _Right at or after _Off
+					auto& _My_data = this->_Get_data();
+					return (static_cast<size_type>(_Traits_find_first_not_of<_Traits>(_My_data._Myptr(), _My_data._Mysize, _Off,
+						_Right.data(), _Right.size())));
+				}
+#endif /* _HAS_CXX17 */
+
+				size_type find_first_not_of(const fixed_nii_basic_string_base& _Right, const size_type _Off = 0) const _NOEXCEPT {
+					return contained_basic_string().find_first_not_of(_Right.contained_basic_string(), _Off);
+				}
+
+				size_type find_first_not_of(const _Ty* const _Ptr, const size_type _Off,
+					const size_type _Count) const _NOEXCEPT {
+					return contained_basic_string().find_first_not_of(_Ptr, _Off, _Count);
+				}
+
+				size_type find_first_not_of(const _Ty* const _Ptr, size_type _Off = 0) const _NOEXCEPT {
+					return contained_basic_string().find_first_not_of(_Ptr, _Off);
+				}
+
+				size_type find_first_not_of(const _Ty _Ch, const size_type _Off = 0) const _NOEXCEPT {
+					return contained_basic_string().find_first_not_of(_Ch, _Off);
+				}
+
+#if 0//_HAS_CXX17
+				size_type find_last_not_of(const mstd::basic_string_view<_Ty, _Traits> _Right, const size_type _Off = npos) const
+					_NOEXCEPT
+				{	// look for none of _Right before _Off
+					auto& _My_data = this->_Get_data();
+					return (static_cast<size_type>(_Traits_find_last_not_of<_Traits>(_My_data._Myptr(), _My_data._Mysize, _Off,
+						_Right.data(), _Right.size())));
+				}
+#endif /* _HAS_CXX17 */
+
+				size_type find_last_not_of(const fixed_nii_basic_string_base& _Right, const size_type _Off = npos) const _NOEXCEPT {
+					return contained_basic_string().find_last_not_of(_Right.contained_basic_string(), _Off);
+				}
+
+				size_type find_last_not_of(const _Ty* const _Ptr, const size_type _Off,
+					const size_type _Count) const _NOEXCEPT {
+					return contained_basic_string().find_last_not_of(_Ptr, _Off, _Count);
+				}
+
+				size_type find_last_not_of(const _Ty* const _Ptr, const size_type _Off = npos) const _NOEXCEPT {
+					return contained_basic_string().find_last_not_of(_Ptr, _Off);
+				}
+
+				size_type find_last_not_of(const _Ty _Ch, const size_type _Off = npos) const _NOEXCEPT {
+					return contained_basic_string().find_last_not_of(_Ch, _Off);
+				}
+
+				template <typename _TRAIterator2>
+				size_type copy(_TRAIterator2 target_iter, size_type n, size_type pos = 0) const {
+					if (pos + n > (*this).size()) {
+						if (pos >= (*this).size()) {
+							return 0;
+						}
+						else {
+							n = (*this).size() - pos;
+						}
+					}
+					for (size_type i = 0; i < n; i += 1) {
+						(*target_iter) = contained_basic_string()[mse::msev_as_a_size_t(i)];
+						++target_iter;
+					}
+					return n;
+				}
+
+				nii_basic_string<_Ty, _Traits, _A> substr(const size_type _Off = 0, const size_type _Count = npos) const {
+					//return (gnii_basic_string(*this, _Off, _Count, get_allocator()));
+					return (nii_basic_string<_Ty, _Traits, _A>(contained_basic_string().substr(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_Count))));
+				}
+
+				static std::basic_ostream<_Ty, _Traits>& out_to_stream(std::basic_ostream<_Ty, _Traits>& _Ostr, const _Myt& _Str) {
+					return _Ostr << _Str.contained_basic_string();
+				}
+
+				template<class _Ty2, class _Traits2>
+				std::basic_ostream<_Ty2, _Traits2>& write_bytes(std::basic_ostream<_Ty2, _Traits2>& _Ostr, size_type byte_count, const size_type byte_start_offset = 0) const {
+					const auto array_size_in_bytes = mse::msev_as_a_size_t(sizeof(_Ty) * (*this).size());
+					auto byte_ptr = reinterpret_cast<const char*>((*this).contained_basic_string().data());
+					if ((array_size_in_bytes <= byte_start_offset) || (0 >= byte_count)) {
+						return _Ostr;
+					}
+					else {
+						byte_ptr += mse::msev_as_a_size_t(byte_start_offset);
+						return _Ostr.write(byte_ptr, std::min(mse::msev_as_a_size_t(array_size_in_bytes - byte_start_offset), mse::msev_as_a_size_t(byte_count)));
+					}
+				}
+				template<class _Ty2, class _Traits2>
+				std::basic_ostream<_Ty2, _Traits2>& write_bytes(std::basic_ostream<_Ty2, _Traits2>& _Ostr) const {
+					return write_bytes(_Ostr, mse::msev_as_a_size_t(sizeof(_Ty) * (*this).size()));
+				}
+
+				MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
+
+			private:
+
+				/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
+				(intended) compile error. */
+				template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value), void>::type>
+				void valid_if_Ty_is_not_an_xscope_type() const {}
+
+				template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (!std::is_same<bool, _Ty2>::value), void>::type>
+				void valid_if_Ty_is_not_bool() const {}
+
+
+				friend class mse::fixed_nii_basic_string<_Ty, _Traits, _A>;
+				friend class mse::xscope_fixed_nii_basic_string<_Ty, _Traits, _A>;
+
+				friend /*class */xscope_ss_const_iterator_type;
+				friend /*class */xscope_ss_iterator_type;
+
+				template<class _Ty2, class _Traits2/* = std::char_traits<_Ty2>*/, class _A2/* = std::allocator<_Ty2>*/>
+				friend std::basic_ostream<_Ty2, _Traits2>& mse::us::impl::impl::ns_fixed_nii_basic_string_base::out_to_stream(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const fixed_nii_basic_string_base<_Ty2, _Traits2, _A2>& _Str);
+			};
+
+			namespace impl {
+				namespace ns_fixed_nii_basic_string_base {
+					template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty>*/>
+					std::basic_ostream<_Ty, _Traits>& out_to_stream(std::basic_ostream<_Ty, _Traits>& _Ostr, const fixed_nii_basic_string_base<_Ty, _Traits, _A>& _Str) {
+						return _Str.out_to_stream(_Ostr, _Str);
+					}
+				}
+			}
+
+			template<class _Ty, class _Traits, class _A>
+			std::basic_ostream<_Ty, _Traits>& operator<<(std::basic_ostream<_Ty, _Traits>& _Ostr, const fixed_nii_basic_string_base<_Ty, _Traits, _A>& _Str) {
+				return mse::us::impl::impl::ns_fixed_nii_basic_string_base::out_to_stream(_Ostr, _Str);
+			}
+
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>>
+			inline bool operator!=(const fixed_nii_basic_string_base<_Ty, _Traits, _A>& _Left,
+				const fixed_nii_basic_string_base<_Ty, _Traits, _A>& _Right) {	// test for basic_string inequality
+				return (!(_Left == _Right));
+			}
+
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>>
+			inline bool operator>(const fixed_nii_basic_string_base<_Ty, _Traits, _A>& _Left,
+				const fixed_nii_basic_string_base<_Ty, _Traits, _A>& _Right) {	// test if _Left > _Right for basic_strings
+				return (_Right < _Left);
+			}
+
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>>
+			inline bool operator<=(const fixed_nii_basic_string_base<_Ty, _Traits, _A>& _Left,
+				const fixed_nii_basic_string_base<_Ty, _Traits, _A>& _Right) {	// test if _Left <= _Right for basic_strings
+				return (!(_Right < _Left));
+			}
+
+			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>>
+			inline bool operator>=(const fixed_nii_basic_string_base<_Ty, _Traits, _A>& _Left,
+				const fixed_nii_basic_string_base<_Ty, _Traits, _A>& _Right) {	// test if _Left >= _Right for basic_strings
+				return (!(_Left < _Right));
+			}
+
+		}
+	}
+
+	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
+	class fixed_nii_basic_string : public mse::us::impl::fixed_nii_basic_string_base<_Ty, _Traits, _A> {
+	public:
+		typedef array_adjusted_default_state_mutex<_Ty> state_mutex_t;
+		typedef state_mutex_t _TStateMutex;
+
+		typedef mse::us::impl::fixed_nii_basic_string_base<_Ty, _Traits, _A> base_class;
+		typedef std::basic_string<_Ty, _Traits, _A> std_basic_string;
+		typedef std_basic_string _MBS;
+		typedef fixed_nii_basic_string _Myt;
+
+		typedef typename std_basic_string::allocator_type allocator_type;
+		typedef typename std_basic_string::value_type value_type;
+		//typedef typename std_basic_string::size_type size_type;
+		typedef msev_size_t size_type;
+		//typedef typename std_basic_string::difference_type difference_type;
+		typedef msev_int difference_type;
+		typedef typename std_basic_string::pointer pointer;
+		typedef typename std_basic_string::const_pointer const_pointer;
+		typedef typename std_basic_string::reference reference;
+		typedef typename std_basic_string::const_reference const_reference;
+
+		typedef typename std_basic_string::iterator iterator;
+		typedef typename std_basic_string::const_iterator const_iterator;
+
+		typedef typename std_basic_string::reverse_iterator reverse_iterator;
+		typedef typename std_basic_string::const_reverse_iterator const_reverse_iterator;
+
+	private:
+		const _MBS& contained_basic_string() const& { return base_class::contained_basic_string(); }
+		const _MBS& contained_basic_string() const&& { return base_class::contained_basic_string(); }
+		_MBS& contained_basic_string()& { return base_class::contained_basic_string(); }
+		auto&& contained_basic_string()&& { return base_class::contained_basic_string(); }
+
+	public:
+		explicit fixed_nii_basic_string(const _A& _Al = _A()) : base_class(_Al) {}
+		explicit fixed_nii_basic_string(size_type _N) : base_class(_N) {}
+		explicit fixed_nii_basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A()) : base_class(_N, _V, _Al) {}
+		fixed_nii_basic_string(std_basic_string&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
+		fixed_nii_basic_string(const std_basic_string& _X) : base_class(_X) { /*m_debug_size = size();*/ }
+		fixed_nii_basic_string(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_basic_string()) { /*m_debug_size = size();*/ }
+		fixed_nii_basic_string(const _Myt& _X) : base_class(_X.contained_basic_string()) { /*m_debug_size = size();*/ }
+		typedef typename std_basic_string::const_iterator _It;
+		/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
+		fixed_nii_basic_string(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
+		fixed_nii_basic_string(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
+		template<class _Iter
+			//, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type
+			, class = mse::impl::_mse_RequireInputIter<_Iter> >
+			fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last) : base_class(_First, _Last) { /*m_debug_size = size();*/ }
+		template<class _Iter
+			//, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type
+			, class = mse::impl::_mse_RequireInputIter<_Iter> >
+			//fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+			fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+
+		~fixed_nii_basic_string() {
+			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+			valid_if_Ty_is_not_an_xscope_type();
+		}
+
+		operator _MBS() const { return this->contained_basic_string(); }
+
+		fixed_nii_basic_string(_XSTD initializer_list<typename std_basic_string::value_type> _Ilist, const _A& _Al = _A())
+			: base_class(_Ilist, _Al) {	// construct from initializer_list
+			/*m_debug_size = size();*/
+		}
+
+		//class nv_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
+		//class nv_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+
+		typedef mse::impl::random_access_const_iterator_base<_Ty> nv_const_iterator_base;
+		typedef mse::impl::random_access_iterator_base<_Ty> nv_iterator_base;
+
+		template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
+		using Tss_const_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_iterator_type<_TVectorConstPointer>;
+		template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
+		using Tss_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_iterator_type<_TVectorPointer>;
+
+		template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
+		using Tss_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_reverse_iterator_type<_TVectorPointer>;
+		template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
+		using Tss_const_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_reverse_iterator_type<_TVectorConstPointer>;
+
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_iterator_type<_Myt> ss_iterator_type;
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_const_iterator_type<_Myt> ss_const_iterator_type;
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_reverse_iterator_type<_Myt> ss_reverse_iterator_type;
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_const_reverse_iterator_type<_Myt> ss_const_reverse_iterator_type;
+
+		/* Here we provide static versions of the member functions that return iterators. As static member functions do
+		not have access to a "this" pointer, these functions require a pointer to the container to be passed as the first
+		argument. Any returned iterator will contain a copy of the supplied pointer and inherit its safety properties. */
+
+
+		template<typename _TArrayPointer>
+		static auto ss_begin(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_begin(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_end(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_end(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_cbegin(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_cend(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_cend(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_rbegin(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_rend(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_rend(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_crbegin(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_crend(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_crend(owner_ptr);
+		}
+
+		template<typename _TVectorPointer1>
+		static void s_assert_valid_index(const _TVectorPointer1& this_ptr, size_type index) {
+			if ((*this_ptr).size() < index) { MSE_THROW(gnii_basic_string_range_error("invalid index - void assert_valid_index() const - fixed_nii_basic_string")); }
+		}
+
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type<_Myt> xscope_ss_const_iterator_type;
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Myt> xscope_ss_iterator_type;
+
+		//typedef xscope_ss_const_iterator_type xscope_const_iterator;
+		//typedef _TTXScopeConstIterator<_Myt> xscope_const_iterator;
+		//typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type<_Myt> xscope_const_iterator;
+		//typedef xscope_ss_iterator_type xscope_iterator;
+		//typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_iterator_type<_Myt> xscope_iterator;
+		typedef TXScopeCSSSXSRAConstIterator<_Myt> xscope_const_iterator;
+		typedef TXScopeCSSSXSRAIterator<_Myt> xscope_iterator;
+
+		bool operator==(const _Myt& _Right) const {	// test for basic_string equality
+			return base_class::operator==(_Right);
+		}
+		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for basic_strings
+			return base_class::operator<(_Right);
+		}
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
+
+	private:
+
+		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
+		(intended) compile error. */
+		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value), void>::type>
+		void valid_if_Ty_is_not_an_xscope_type() const {}
+
+		friend /*class */xscope_ss_const_iterator_type;
+		friend /*class */xscope_ss_iterator_type;
+	};
+
+#ifdef MSE_HAS_CXX17
+	/* deduction guides */
+	template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type>
+		, std::enable_if_t<std::conjunction_v< mse::impl::_mse_Is_iterator<_Iter>, mse::impl::_mse_Is_allocator<_Alloc> >, int> = 0>
+	fixed_nii_basic_string(_Iter, _Iter, _Alloc = _Alloc())
+		->fixed_nii_basic_string<typename std::iterator_traits<_Iter>::value_type, std::char_traits<typename std::iterator_traits<_Iter>::value_type>, _Alloc>;
+
+	template<class _Elem, class _Traits, class _Alloc = std::allocator<_Elem>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	explicit fixed_nii_basic_string(std::basic_string_view<_Elem, _Traits>, const _Alloc & = _Alloc())
+		->fixed_nii_basic_string<_Elem, _Traits, _Alloc>;
+
+	template<class _Elem, class _Traits, class _Alloc = std::allocator<_Elem>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	fixed_nii_basic_string(std::basic_string_view<_Elem, _Traits>, mse::impl::_mse_Guide_size_type_t<_Alloc>
+		, mse::impl::_mse_Guide_size_type_t<_Alloc>, const _Alloc & = _Alloc())
+		->fixed_nii_basic_string<_Elem, _Traits, _Alloc>;
+
+	template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	explicit fixed_nii_basic_string(mse::TStringConstSection<_TRAIterator, _Traits>, const _Alloc & = _Alloc())
+		->fixed_nii_basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+	template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	explicit fixed_nii_basic_string(mse::TStringSection<_TRAIterator, _Traits>, const _Alloc & = _Alloc())
+		->fixed_nii_basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+	template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	explicit fixed_nii_basic_string(mse::TXScopeStringConstSection<_TRAIterator, _Traits>, const _Alloc & = _Alloc())
+		->fixed_nii_basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+	template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	explicit fixed_nii_basic_string(mse::TXScopeStringSection<_TRAIterator, _Traits>, const _Alloc & = _Alloc())
+		->fixed_nii_basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+#endif /* MSE_HAS_CXX17 */
+
+	using fixed_nii_string = fixed_nii_basic_string<char>;
+	using fixed_nii_wstring = fixed_nii_basic_string<wchar_t>;
+	using fixed_nii_u16string = fixed_nii_basic_string<char16_t>;
+	using fixed_nii_u32string = fixed_nii_basic_string<char32_t>;
+
+
+	template<class _TLender, class _Ty, class _Traits, class _A>
+	class xscope_borrowing_fixed_nii_basic_string;
+
+	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
+	class xscope_fixed_nii_basic_string : public mse::us::impl::fixed_nii_basic_string_base<_Ty, _Traits, _A>, public mse::us::impl::XScopeTagBase
+		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ReferenceableByScopePointerTagBase, _Ty, xscope_fixed_nii_basic_string<_Ty, _Traits, _A> >
+		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, xscope_fixed_nii_basic_string<_Ty, _Traits, _A> >
+	{
+	public:
+		typedef array_adjusted_default_state_mutex<_Ty> state_mutex_t;
+		typedef state_mutex_t _TStateMutex;
+
+		typedef mse::us::impl::fixed_nii_basic_string_base<_Ty, _Traits, _A> base_class;
+		typedef std::basic_string<_Ty, _Traits, _A> std_basic_string;
+		typedef std_basic_string _MBS;
+		typedef xscope_fixed_nii_basic_string _Myt;
+
+		typedef typename std_basic_string::allocator_type allocator_type;
+		typedef typename std_basic_string::value_type value_type;
+		//typedef typename std_basic_string::size_type size_type;
+		typedef msev_size_t size_type;
+		//typedef typename std_basic_string::difference_type difference_type;
+		typedef msev_int difference_type;
+		typedef typename std_basic_string::pointer pointer;
+		typedef typename std_basic_string::const_pointer const_pointer;
+		typedef typename std_basic_string::reference reference;
+		typedef typename std_basic_string::const_reference const_reference;
+
+		typedef typename std_basic_string::iterator iterator;
+		typedef typename std_basic_string::const_iterator const_iterator;
+
+		typedef typename std_basic_string::reverse_iterator reverse_iterator;
+		typedef typename std_basic_string::const_reverse_iterator const_reverse_iterator;
+
+	private:
+		const _MBS& contained_basic_string() const& { return base_class::contained_basic_string(); }
+		const _MBS& contained_basic_string() const&& { return base_class::contained_basic_string(); }
+		_MBS& contained_basic_string()& { return base_class::contained_basic_string(); }
+		auto&& contained_basic_string()&& { return base_class::contained_basic_string(); }
+
+	public:
+		explicit xscope_fixed_nii_basic_string(const _A& _Al = _A()) : base_class(_Al) {}
+		explicit xscope_fixed_nii_basic_string(size_type _N) : base_class(_N) {}
+		explicit xscope_fixed_nii_basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A()) : base_class(_N, _V, _Al) {}
+		xscope_fixed_nii_basic_string(std_basic_string&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
+		xscope_fixed_nii_basic_string(const std_basic_string& _X) : base_class(_X) { /*m_debug_size = size();*/ }
+		xscope_fixed_nii_basic_string(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_basic_string()) { /*m_debug_size = size();*/ }
+		xscope_fixed_nii_basic_string(const _Myt& _X) : base_class(_X.contained_basic_string()) { /*m_debug_size = size();*/ }
+		typedef typename std_basic_string::const_iterator _It;
+		/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
+		xscope_fixed_nii_basic_string(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
+		xscope_fixed_nii_basic_string(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
+		template<class _Iter
+			//, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type
+			, class = mse::impl::_mse_RequireInputIter<_Iter> >
+			xscope_fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last) : base_class(_First, _Last) { /*m_debug_size = size();*/ }
+		template<class _Iter
+			//, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type
+			, class = mse::impl::_mse_RequireInputIter<_Iter> >
+			//xscope_fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+			xscope_fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+
+		operator _MBS() const { return this->contained_basic_string(); }
+
+		xscope_fixed_nii_basic_string(_XSTD initializer_list<typename std_basic_string::value_type> _Ilist, const _A& _Al = _A())
+			: base_class(_Ilist, _Al) {	// construct from initializer_list
+			/*m_debug_size = size();*/
+		}
+
+		//class nv_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
+		//class nv_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+
+		typedef mse::impl::random_access_const_iterator_base<_Ty> nv_const_iterator_base;
+		typedef mse::impl::random_access_iterator_base<_Ty> nv_iterator_base;
+
+		template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
+		using Tss_const_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_iterator_type<_TVectorConstPointer>;
+		template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
+		using Tss_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_iterator_type<_TVectorPointer>;
+
+		template<typename _TVectorPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value), void>::type>
+		using Tss_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_reverse_iterator_type<_TVectorPointer>;
+		template<typename _TVectorConstPointer, class = typename std::enable_if<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value), void>::type>
+		using Tss_const_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_reverse_iterator_type<_TVectorConstPointer>;
+
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_iterator_type<_Myt> ss_iterator_type;
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_const_iterator_type<_Myt> ss_const_iterator_type;
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_reverse_iterator_type<_Myt> ss_reverse_iterator_type;
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_const_reverse_iterator_type<_Myt> ss_const_reverse_iterator_type;
+
+		/* Here we provide static versions of the member functions that return iterators. As static member functions do
+		not have access to a "this" pointer, these functions require a pointer to the container to be passed as the first
+		argument. Any returned iterator will contain a copy of the supplied pointer and inherit its safety properties. */
+
+		template<typename _TArrayPointer>
+		static auto ss_begin(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_begin(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_end(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_end(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_cbegin(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_cend(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_cend(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_rbegin(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_rend(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_rend(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_crbegin(owner_ptr);
+		}
+		template<typename _TArrayPointer>
+		static auto ss_crend(const _TArrayPointer& owner_ptr) {
+			return base_class::template ss_crend(owner_ptr);
+		}
+
+		template<typename _TVectorPointer1>
+		static void s_assert_valid_index(const _TVectorPointer1& this_ptr, size_type index) {
+			if ((*this_ptr).size() < index) { MSE_THROW(gnii_basic_string_range_error("invalid index - void assert_valid_index() const - xscope_fixed_nii_basic_string")); }
+		}
+
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type<_Myt> xscope_ss_const_iterator_type;
+		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type<_Myt> xscope_ss_iterator_type;
+
+		//typedef xscope_ss_const_iterator_type xscope_const_iterator;
+		//typedef _TTXScopeConstIterator<_Myt> xscope_const_iterator;
+		//typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type<_Myt> xscope_const_iterator;
+		//typedef xscope_ss_iterator_type xscope_iterator;
+		//typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_iterator_type<_Myt> xscope_iterator;
+		typedef TXScopeCSSSXSRAConstIterator<_Myt> xscope_const_iterator;
+		typedef TXScopeCSSSXSRAIterator<_Myt> xscope_iterator;
+
+		bool operator==(const _Myt& _Right) const {	// test for basic_string equality
+			return base_class::operator==(_Right);
+		}
+		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for basic_strings
+			return base_class::operator<(_Right);
+		}
+
+		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
+
+	private:
+		/* If _Ty is "marked" as containing a scope reference, then the following member function
+		will not instantiate, causing an (intended) compile error. */
+		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<_Ty2>::value), void>::type>
+			void valid_if_Ty_is_not_marked_as_containing_a_scope_reference() const {}
+
+		/* If _Ty is "marked" as containing an accessible "scope address of" operator, then the following member function
+		will not instantiate, causing an (intended) compile error. */
+		template<class _Ty2, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<_Ty2>::value)
+			, void>::type>
+			void valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
+
+		friend /*class */xscope_ss_const_iterator_type;
+		friend /*class */xscope_ss_iterator_type;
+		template<class _TLender2, class _Ty2, class _Traits2, class _A2> friend class xscope_borrowing_fixed_nii_basic_string;
+	};
+
+#ifdef MSE_HAS_CXX17
+	/* deduction guides */
+	template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type>
+		, std::enable_if_t<std::conjunction_v< mse::impl::_mse_Is_iterator<_Iter>, mse::impl::_mse_Is_allocator<_Alloc> >, int> = 0>
+	xscope_fixed_nii_basic_string(_Iter, _Iter, _Alloc = _Alloc())
+		->xscope_fixed_nii_basic_string<typename std::iterator_traits<_Iter>::value_type, std::char_traits<typename std::iterator_traits<_Iter>::value_type>, _Alloc>;
+
+	template<class _Elem, class _Traits, class _Alloc = std::allocator<_Elem>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	explicit xscope_fixed_nii_basic_string(std::basic_string_view<_Elem, _Traits>, const _Alloc & = _Alloc())
+		->xscope_fixed_nii_basic_string<_Elem, _Traits, _Alloc>;
+
+	template<class _Elem, class _Traits, class _Alloc = std::allocator<_Elem>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	xscope_fixed_nii_basic_string(std::basic_string_view<_Elem, _Traits>, mse::impl::_mse_Guide_size_type_t<_Alloc>
+		, mse::impl::_mse_Guide_size_type_t<_Alloc>, const _Alloc & = _Alloc())
+		->xscope_fixed_nii_basic_string<_Elem, _Traits, _Alloc>;
+
+	template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	explicit xscope_fixed_nii_basic_string(mse::TStringConstSection<_TRAIterator, _Traits>, const _Alloc & = _Alloc())
+		->xscope_fixed_nii_basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+	template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	explicit xscope_fixed_nii_basic_string(mse::TStringSection<_TRAIterator, _Traits>, const _Alloc & = _Alloc())
+		->xscope_fixed_nii_basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+	template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	explicit xscope_fixed_nii_basic_string(mse::TXScopeStringConstSection<_TRAIterator, _Traits>, const _Alloc & = _Alloc())
+		->xscope_fixed_nii_basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+	template<class _TRAIterator, class _Traits, class _Alloc = std::allocator<typename std::iterator_traits<_TRAIterator>::value_type>
+		, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc>::value, int> = 0>
+	explicit xscope_fixed_nii_basic_string(mse::TXScopeStringSection<_TRAIterator, _Traits>, const _Alloc & = _Alloc())
+		->xscope_fixed_nii_basic_string<typename std::iterator_traits<_TRAIterator>::value_type, _Traits, _Alloc>;
+#endif /* MSE_HAS_CXX17 */
+
+	using xscope_fixed_nii_string = xscope_fixed_nii_basic_string<char>;
+	using xscope_fixed_nii_wstring = xscope_fixed_nii_basic_string<wchar_t>;
+	using xscope_fixed_nii_u16string = xscope_fixed_nii_basic_string<char16_t>;
+	using xscope_fixed_nii_u32string = xscope_fixed_nii_basic_string<char32_t>;
+
+
+	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
+	class xscope_borrowing_fixed_nii_basic_string : public xscope_fixed_nii_basic_string<_Ty, _Traits, _A>
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, xscope_fixed_nii_basic_string<_Ty, _Traits, _A>, xscope_borrowing_fixed_nii_basic_string<_TLender, _Ty, _Traits, _A> >
+	{
+	public:
+		typedef xscope_fixed_nii_basic_string<_Ty, _Traits, _A> base_class;
+
+		typedef typename base_class::std_basic_string std_basic_string;
+		typedef typename base_class::_MBS _MBS;
+		typedef xscope_borrowing_fixed_nii_basic_string _Myt;
+
+		typedef typename base_class::allocator_type allocator_type;
+		typedef typename base_class::value_type value_type;
+		typedef typename base_class::size_type size_type;
+		typedef typename base_class::difference_type difference_type;
+		typedef typename base_class::pointer pointer;
+		typedef typename base_class::const_pointer const_pointer;
+		typedef typename base_class::reference reference;
+		typedef typename base_class::const_reference const_reference;
+
+		typedef typename base_class::iterator iterator;
+		typedef typename base_class::const_iterator const_iterator;
+
+		typedef typename base_class::reverse_iterator reverse_iterator;
+		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
+
+		xscope_borrowing_fixed_nii_basic_string(xscope_borrowing_fixed_nii_basic_string&&) = default;
+
+		xscope_borrowing_fixed_nii_basic_string(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) : m_src_ref(*src_xs_ptr) {
+			(*this).contained_basic_string() = std::move(m_src_ref);
+		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		xscope_borrowing_fixed_nii_basic_string(_TLender* src_xs_ptr) : m_src_ref(*src_xs_ptr) {
+			(*this).contained_basic_string() = std::move(m_src_ref);
+		}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+		~xscope_borrowing_fixed_nii_basic_string() {
+			m_src_ref = std::move((*this).contained_basic_string());
+		}
+
+		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
+
+	private:
+#ifdef MSE_HAS_CXX17
+		xscope_borrowing_fixed_nii_basic_string(const xscope_borrowing_fixed_nii_basic_string&) = delete;
+#endif // MSE_HAS_CXX17
+
+		_TLender& m_src_ref;
+	};
+
+	template<class _TLender>
+	auto make_xscope_borrowing_fixed_nii_basic_string(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) -> xscope_borrowing_fixed_nii_basic_string<_TLender> {
+		return xscope_borrowing_fixed_nii_basic_string<_TLender>(src_xs_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _TLender>
+	auto make_xscope_borrowing_fixed_nii_basic_string(_TLender* src_xs_ptr) -> xscope_borrowing_fixed_nii_basic_string<_TLender> {
+		return xscope_borrowing_fixed_nii_basic_string<_TLender>(src_xs_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
 
 	using nii_string = nii_basic_string<char>;
 	using nii_wstring = nii_basic_string<wchar_t>;

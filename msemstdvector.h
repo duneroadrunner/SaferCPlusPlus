@@ -304,8 +304,8 @@ namespace mse {
 				msevector().note_parent_destruction();
 			}
 
-			_Myt& operator=(_MV&& _X) { msevector() = (std::forward<decltype(_X)>(_X)); return (*this); }
-			_Myt& operator=(const _MV& _X) { msevector() = (_X); return (*this); }
+			//_Myt& operator=(_MV&& _X) { msevector() = (std::forward<decltype(_X)>(_X)); return (*this); }
+			//_Myt& operator=(const _MV& _X) { msevector() = (_X); return (*this); }
 			_Myt& operator=(_Myt&& _X) {
 				static_assert(typename std::is_rvalue_reference<decltype(_X)>::type(), "");
 				/* It would be more efficient to just move _X.m_shptr into m_shptr, but that would leave _X in what we

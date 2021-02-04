@@ -831,27 +831,32 @@ namespace mse {
 		template<class _Ty, class = typename std::enable_if<(is_marked_as_xscope_shareable_and_passable_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_marked_as_xscope_shareable_and_passable_msemsearray() {}
 	}
-#define MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(Tmse_isap) \
+
+#define MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(Tmse_isap) \
+		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<Tmse_isap2>::value), void>::type> \
+		void xscope_async_shareable_tag() const {}
+#define MSE_INHERIT_XSCOPE_ASYNC_PASSABILITY_OF(Tmse_isap) \
+		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
+			&& (mse::impl::is_marked_as_xscope_passable_msemsearray<Tmse_isap2>::value), void>::type> \
+		void xscope_async_passable_tag() const {}
+#define MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(Tmse_isap) \
+		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(Tmse_isap) \
+		MSE_INHERIT_XSCOPE_ASYNC_PASSABILITY_OF(Tmse_isap)
+
+#define MSE_INHERIT_ASYNC_SHAREABILITY_OF(Tmse_isap) \
 		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
 			&& (mse::impl::is_marked_as_shareable_msemsearray<Tmse_isap2>::value), void>::type> \
-		void async_shareable_tag() const {} \
+		void async_shareable_tag() const {}
+#define MSE_INHERIT_ASYNC_PASSABILITY_OF(Tmse_isap) \
 		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
 			&& (mse::impl::is_marked_as_passable_msemsearray<Tmse_isap2>::value), void>::type> \
-		void async_passable_tag() const {} \
-		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
-			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<Tmse_isap2>::value), void>::type> \
-		void xscope_async_shareable_tag() const {} \
-		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
-			&& (mse::impl::is_marked_as_xscope_passable_msemsearray<Tmse_isap2>::value), void>::type> \
-		void xscope_async_passable_tag() const {}
+		void async_passable_tag() const {}
 
-#define MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(Tmse_isap) \
-		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
-			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<Tmse_isap2>::value), void>::type> \
-		void xscope_async_shareable_tag() const {} \
-		template<class Tmse_isap2 = Tmse_isap, class = typename std::enable_if<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
-			&& (mse::impl::is_marked_as_xscope_passable_msemsearray<Tmse_isap2>::value), void>::type> \
-		void xscope_async_passable_tag() const {}
+#define MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(Tmse_isap) \
+		MSE_INHERIT_ASYNC_SHAREABILITY_OF(Tmse_isap) \
+		MSE_INHERIT_ASYNC_PASSABILITY_OF(Tmse_isap) \
+		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(Tmse_isap)
 
 	namespace impl {
 		template<typename... _Types>

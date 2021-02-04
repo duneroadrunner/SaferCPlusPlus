@@ -194,8 +194,10 @@ namespace mse {
 			class TXScopeObjBase : public _TROz {
 			public:
 				MSE_SCOPE_USING(TXScopeObjBase, _TROz);
-				TXScopeObjBase(const TXScopeObjBase& _X) : _TROz(_X) {}
-				TXScopeObjBase(TXScopeObjBase&& _X) : _TROz(std::forward<decltype(_X)>(_X)) {}
+				TXScopeObjBase(const TXScopeObjBase& _X) = default;
+				TXScopeObjBase(TXScopeObjBase&& _X) = default;
+				//TXScopeObjBase(const TXScopeObjBase& _X) : _TROz(_X) {}
+				//TXScopeObjBase(TXScopeObjBase&& _X) : _TROz(std::forward<decltype(_X)>(_X)) {}
 
 				TXScopeObjBase& operator=(TXScopeObjBase&& _X) { _TROz::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
 				TXScopeObjBase& operator=(const TXScopeObjBase& _X) { _TROz::operator=(_X); return (*this); }
@@ -475,11 +477,8 @@ namespace mse {
 	public:
 		typedef mse::us::impl::TXScopeObjBase<_TROy> base_class;
 
-		TXScopeObj(const TXScopeObj& _X) : base_class(_X) {}
-
-#ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		explicit TXScopeObj(TXScopeObj&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
-#endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
+		TXScopeObj(const TXScopeObj& _X) = default;
+		TXScopeObj(TXScopeObj&& _X) = default;
 
 		MSE_SCOPE_USING(TXScopeObj, base_class);
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObj() {}

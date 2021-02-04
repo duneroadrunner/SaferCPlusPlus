@@ -278,8 +278,8 @@ namespace mse {
 				to emulate it. */
 			}
 
-			_Myt& operator=(_MA&& _X) { contained_array().operator=(std::forward<decltype(_X)>(_X)); return (*this); }
-			_Myt& operator=(const _MA& _X) { contained_array().operator=(_X); return (*this); }
+			//_Myt& operator=(_MA&& _X) { contained_array().operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			//_Myt& operator=(const _MA& _X) { contained_array().operator=(_X); return (*this); }
 			_Myt& operator=(_Myt&& _X) { contained_array().operator=(std::forward<decltype(_X)>(_X).as_nii_array()); return (*this); }
 			_Myt& operator=(const _Myt& _X) { contained_array().operator=(_X.as_nii_array()); return (*this); }
 			typename _MA::const_reference operator[](size_type _P) const { return contained_array().operator[](_P); }
@@ -685,8 +685,8 @@ namespace std {
 	{	// swap arrays
 		return (_Left.swap(_Right));
 	}
-	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	template<class _Ty, size_t _Size/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap arrays
 		return (_Left.swap(_Right));
 	}
@@ -696,8 +696,8 @@ namespace std {
 		return (_Left.swap(_Right));
 	}
 
-	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::nii_array<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	template<class _Ty, size_t _Size/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::nii_array<_Ty, _Size>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap arrays
 		return (_Right.swap(_Left));
 	}

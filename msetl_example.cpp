@@ -101,7 +101,7 @@ public:
 		auto l_string2_ptr = mse::rsv::as_a_returnable_fparam(string2_ptr);
 
 		if (l_string1_ptr->length() > l_string2_ptr->length()) {
-			/* If string1_ptr were a regular TXScopeFixedPointer<mse::mtnii_string> and we tried to return it
+			/* If string1_ptr were a regular TXScopeFixedPointer<mse::nii_string> and we tried to return it
 			directly instead of l_string1_ptr, it would have induced a compile error. */
 
 			return mse::return_value(l_string1_ptr);
@@ -136,7 +136,7 @@ public:
 	}
 
 	struct CE {
-		mse::mtnii_string m_string1 = "abcde";
+		mse::nii_string m_string1 = "abcde";
 	};
 
 	/* This function demonstrates scope reference objects inheriting the "returnability" trait from the reference objects
@@ -170,7 +170,7 @@ public:
 		return (l_string1_xscpptr->length() > l_string2_xscpptr->length()) ? false : true;
 	}
 
-	mse::mtnii_string m_string1 = "initial text";
+	mse::nii_string m_string1 = "initial text";
 };
 /* User-defined classes need to be declared as (safely) shareable in order to be accepted by the access requesters. */
 typedef mse::rsv::TAsyncShareableAndPassableObj<H> ShareableH;
@@ -1291,8 +1291,8 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 			Note that using this function on anything other than function parameters is unsafe, and currently there is no
 			compile-time enforcement of this restriction. */
 
-			mse::TXScopeObj<mse::mtnii_string> xscope_string1 = "abc";
-			mse::TXScopeObj<mse::mtnii_string> xscope_string2 = "abcd";
+			mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
+			mse::TXScopeObj<mse::nii_string> xscope_string2 = "abcd";
 
 			auto longer_string_xscpptr = H::longest(&xscope_string1, &xscope_string2);
 			auto length1 = (*longer_string_xscpptr).length();
@@ -1335,31 +1335,31 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 
 			class CD {
 			public:
-				static bool second_is_longer(mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::mtnii_string> > string1_xscpptr
-					, mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::mtnii_string> > string2_xscpptr) {
+				static bool second_is_longer(mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::nii_string> > string1_xscpptr
+					, mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::nii_string> > string2_xscpptr) {
 
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 
-				static bool second_is_longer_any(mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::mtnii_string> > string1_xscpptr
-					, mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::mtnii_string> > string2_xscpptr) {
+				static bool second_is_longer_any(mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string1_xscpptr
+					, mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string2_xscpptr) {
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 
-				static bool second_is_longer_poly(mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::mtnii_string> > string1_xscpptr
-					, mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::mtnii_string> > string2_xscpptr) {
+				static bool second_is_longer_poly(mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string1_xscpptr
+					, mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string2_xscpptr) {
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 			};
 
-			mse::TXScopeObj<mse::mtnii_string> xscope_string1 = "abc";
+			mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
 			/* Here we're using the pointer_to() function to obtain a ("caged") pointer to the temporary scope object. The '&'
 			(ampersand) operator would also work, but would not correspond to valid native C++, as C++ does not support taking
 			the address of an r-value. */
-			auto res1 = CD::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::mtnii_string>(xscope_string1 + "de")));
-			auto res2 = H::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::mtnii_string>(xscope_string1 + "de")));
-			auto res3 = CD::second_is_longer_any(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::mtnii_string>(xscope_string1 + "de")));
-			auto res4 = CD::second_is_longer_poly(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::mtnii_string>(xscope_string1 + "de")));
+			auto res1 = CD::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+			auto res2 = H::second_is_longer(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+			auto res3 = CD::second_is_longer_any(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
+			auto res4 = CD::second_is_longer_poly(&xscope_string1, mse::pointer_to(mse::TXScopeObj<mse::nii_string>(xscope_string1 + "de")));
 		}
 
 		{
@@ -1383,22 +1383,22 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 
 			class CB {
 			public:
-				static void foo1(mse::TXScopeFixedPointer<mse::mtnii_string> xscope_ptr1) {
+				static void foo1(mse::TXScopeFixedPointer<mse::nii_string> xscope_ptr1) {
 					std::cout << *xscope_ptr1;
 				}
 			};
-			auto xscp_nstring1 = mse::make_xscope(mse::mtnii_string("some text"));
+			auto xscp_nstring1 = mse::make_xscope(mse::nii_string("some text"));
 
 			CB::foo1(&xscp_nstring1);
 
 			{
 				auto xscp_proxy_obj1 = mse::make_xscope_registered_proxy(&xscp_nstring1);
-				mse::TRegisteredProxyPointer<mse::mtnii_string> registered_proxy_ptr1 = mse::registered_proxy_fptr(xscp_proxy_obj1);
+				mse::TRegisteredProxyPointer<mse::nii_string> registered_proxy_ptr1 = mse::registered_proxy_fptr(xscp_proxy_obj1);
 
 				/* Registered proxy pointers implicitly convert to scope pointers. */
 				CB::foo1(registered_proxy_ptr1);
 
-				auto xscp_nstring2 = mse::make_xscope(mse::mtnii_string("some other text"));
+				auto xscp_nstring2 = mse::make_xscope(mse::nii_string("some other text"));
 				auto xscp_proxy_obj2 = mse::make_xscope_registered_proxy(&xscp_nstring2);
 
 				/* Registered proxy pointers are retargetable. */
@@ -1407,7 +1407,7 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 				CB::foo1(registered_proxy_ptr1);
 
 				{
-					auto xscp_nstring3 = mse::make_xscope(mse::mtnii_string("other text"));
+					auto xscp_nstring3 = mse::make_xscope(mse::nii_string("other text"));
 
 					{
 						auto xscp_proxy_obj3 = mse::make_xscope_registered_proxy(&xscp_nstring3);
@@ -1431,7 +1431,7 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 				auto xscp_proxy_obj1 = mse::make_xscope_registered_proxy(&xscp_nstring1);
 
 				auto xscope_ptr1 = &xscp_nstring1;
-				mse::TXScopeFixedConstPointer<mse::mtnii_string> xscope_cptr1 = &xscp_nstring1;
+				mse::TXScopeFixedConstPointer<mse::nii_string> xscope_cptr1 = &xscp_nstring1;
 				auto proxy_ptr1 = mse::registered_proxy_fptr(xscp_proxy_obj1);
 
 				auto xscope_string_section1 = mse::make_xscope_string_section(xscope_ptr1);
@@ -1471,22 +1471,22 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 
 			class CB {
 			public:
-				static void foo1(mse::TXScopeFixedPointer<mse::mtnii_string> xscope_ptr1) {
+				static void foo1(mse::TXScopeFixedPointer<mse::nii_string> xscope_ptr1) {
 					std::cout << *xscope_ptr1;
 				}
 			};
-			auto xscp_nstring1 = mse::make_xscope(mse::mtnii_string("some text"));
+			auto xscp_nstring1 = mse::make_xscope(mse::nii_string("some text"));
 
 			CB::foo1(&xscp_nstring1);
 
 			{
 				auto xscp_proxy_obj1 = mse::make_xscope_norad_proxy(&xscp_nstring1);
-				mse::TNoradProxyPointer<mse::mtnii_string> norad_proxy_ptr1 = mse::norad_proxy_fptr(xscp_proxy_obj1);
+				mse::TNoradProxyPointer<mse::nii_string> norad_proxy_ptr1 = mse::norad_proxy_fptr(xscp_proxy_obj1);
 
 				/* Norad proxy pointers implicitly convert to scope pointers. */
 				CB::foo1(norad_proxy_ptr1);
 
-				auto xscp_nstring2 = mse::make_xscope(mse::mtnii_string("some other text"));
+				auto xscp_nstring2 = mse::make_xscope(mse::nii_string("some other text"));
 				auto xscp_proxy_obj2 = mse::make_xscope_norad_proxy(&xscp_nstring2);
 
 				/* Norad proxy pointers are retargetable. */
@@ -1495,7 +1495,7 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 				CB::foo1(norad_proxy_ptr1);
 
 				{
-					auto xscp_nstring3 = mse::make_xscope(mse::mtnii_string("other text"));
+					auto xscp_nstring3 = mse::make_xscope(mse::nii_string("other text"));
 
 					{
 						auto xscp_proxy_obj3 = mse::make_xscope_norad_proxy(&xscp_nstring3);
@@ -1521,7 +1521,7 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 				auto xscp_proxy_obj1 = mse::make_xscope_norad_proxy(&xscp_nstring1);
 
 				auto xscope_ptr1 = &xscp_nstring1;
-				mse::TXScopeFixedConstPointer<mse::mtnii_string> xscope_cptr1 = &xscp_nstring1;
+				mse::TXScopeFixedConstPointer<mse::nii_string> xscope_cptr1 = &xscp_nstring1;
 				auto proxy_ptr1 = mse::norad_proxy_fptr(xscp_proxy_obj1);
 
 				auto xscope_string_section1 = mse::make_xscope_string_section(xscope_ptr1);
