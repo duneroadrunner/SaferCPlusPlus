@@ -275,8 +275,10 @@ namespace mse {
 
 			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(_MV);
 
-			operator mse::nii_vector<_Ty, _A>() const { return msevector(); }
-			operator std::vector<_Ty, _A>() const { return msevector(); }
+			operator mse::nii_vector<_Ty, _A>() const & { return msevector(); }
+			operator mse::nii_vector<_Ty, _A>() && { return std::forward<_MV>(msevector()); }
+			operator std::vector<_Ty, _A>() const & { return msevector(); }
+			operator std::vector<_Ty, _A>() && { return std::forward<std::vector<_Ty, _A> >(msevector()); }
 
 			explicit vector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
 			explicit vector(size_type _N) : m_shptr(std::make_shared<_MV>(_N)) {}
@@ -660,10 +662,10 @@ namespace mse {
 			void async_passable_tag() const {}
 
 		private:
-			const _MV& msevector() const { return (*m_shptr); }
-			auto&& msevector() { return (*m_shptr); }
-			template<class _TThisPointer>
-			static auto& s_msevector(const _TThisPointer& this_pointer) { return this_pointer->msevector(); }
+			const _MV& msevector() const& { return (*m_shptr); }
+			//const _MV& msevector() const&& { return (*m_shptr); }
+			_MV& msevector()& { return (*m_shptr); }
+			_MV&& msevector()&& { return std::move(*m_shptr); }
 
 			std::shared_ptr<_MV> m_shptr;
 

@@ -2641,9 +2641,9 @@ namespace mse {
 			TOpaqueWrapper(Args&&...args) : m_value(std::forward<Args>(args)...) {}
 
 			_Ty& value() & { return m_value; }
-			auto&& value() && { return std::forward<decltype(m_value)>(m_value); }
+			_Ty&& value() && { return std::forward<decltype(m_value)>(m_value); }
 			const _Ty& value() const & { return m_value; }
-			const _Ty& value() const && { return m_value; }
+			//const _Ty& value() const && { return m_value; }
 
 		private:
 			_Ty m_value;
@@ -2874,9 +2874,9 @@ namespace mse {
 
 			private:
 				const _MA& contained_array() const& { return (*this).value(); }
-				const _MA& contained_array() const&& { return (*this).value(); }
+				//const _MA& contained_array() const&& { return (*this).value(); }
 				_MA& contained_array()& { return (*this).value(); }
-				auto&& contained_array()&& { return std::move(*this).value(); }
+				_MA&& contained_array()&& { return std::move(*this).value(); }
 
 				state_mutex_t& state_mutex1()& { return (*this); }
 
@@ -2913,7 +2913,8 @@ namespace mse {
 					mse::impl::destructor_lock_guard1<state_mutex_t> lock1(state_mutex1());
 				}
 
-				operator _MA() const { return contained_array(); }
+				operator _MA() const & { return contained_array(); }
+				operator _MA() && { return std::forward<_MA>(contained_array()); }
 
 				typename std_array::const_reference operator[](msear_size_t _P) const {
 					return (*this).at(msear_as_a_size_t(_P));
@@ -3194,9 +3195,9 @@ namespace mse {
 
 	private:
 		const _MA& contained_array() const& { return base_class::contained_array(); }
-		const _MA& contained_array() const&& { return base_class::contained_array(); }
+		//const _MA& contained_array() const&& { return base_class::contained_array(); }
 		_MA& contained_array()& { return base_class::contained_array(); }
-		auto&& contained_array()&& { return base_class::contained_array(); }
+		_MA&& contained_array()&& { return std::forward<_MA>(base_class::contained_array()); }
 
 	public:
 		nii_array() {}
@@ -3210,8 +3211,9 @@ namespace mse {
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			valid_if_Ty_is_not_an_xscope_type();
 		}
+		operator _MA() const & { return contained_array(); }
+		operator _MA() && { return std::forward<_MA>(contained_array()); }
 
-		operator _MA() const { return contained_array(); }
 
 		nii_array& operator=(const nii_array& _Right_cref) {
 			base_class::operator=(_Right_cref);
@@ -3513,9 +3515,9 @@ namespace mse {
 
 	private:
 		const _MA& contained_array() const& { return base_class::contained_array(); }
-		const _MA& contained_array() const&& { return base_class::contained_array(); }
+		//const _MA& contained_array() const&& { return base_class::contained_array(); }
 		_MA& contained_array()& { return base_class::contained_array(); }
-		auto&& contained_array()&& { return base_class::contained_array(); }
+		_MA&& contained_array()&& { return std::forward<_MA>(base_class::contained_array()); }
 
 	public:
 		xscope_nii_array() {}
@@ -3525,7 +3527,8 @@ namespace mse {
 		xscope_nii_array(const _Myt& _X) : base_class(_X.contained_array()) {}
 		constexpr xscope_nii_array(_XSTD initializer_list<_Ty> _Ilist) : base_class(_Ilist) {}
 
-		operator _MA() const { return contained_array(); }
+		operator _MA() const& { return contained_array(); }
+		operator _MA() && { return std::forward<_MA>(contained_array()); }
 
 		void assign(const _Ty& _Value)
 		{	// assign value to all elements

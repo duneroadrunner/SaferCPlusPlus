@@ -3576,7 +3576,7 @@ namespace mse {
 				const _MBS& contained_basic_string() const& { return (*this).value(); }
 				const _MBS& contained_basic_string() const&& { return (*this).value(); }
 				_MBS& contained_basic_string() & { return (*this).value(); }
-				auto&& contained_basic_string() && {
+				_MBS&& contained_basic_string() && {
 					/* We're making sure that the basic_string is not "structure locked", because in that case it might not be
 					safe to to allow the contained basic_string to be moved from (when made movable with std::move()). */
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
@@ -3658,7 +3658,8 @@ namespace mse {
 					valid_if_Ty_is_not_an_xscope_type();
 				}
 
-				operator _MBS() const { return contained_basic_string(); }
+				operator _MBS() const & { return contained_basic_string(); }
+				operator _MBS() && { return std::forward<_MBS>(contained_basic_string()); }
 
 				void reserve(size_type _Count)
 				{	// determine new minimum length of allocated storage
@@ -5980,7 +5981,7 @@ namespace mse {
 				const _MBS& contained_basic_string() const& { return (*this).value(); }
 				const _MBS& contained_basic_string() const&& { return (*this).value(); }
 				_MBS& contained_basic_string()& { return (*this).value(); }
-				auto&& contained_basic_string()&& { return std::move(*this).value(); }
+				_MBS&& contained_basic_string()&& { return std::move(*this).value(); }
 
 				state_mutex_t& state_mutex1()& { return (*this); }
 
@@ -5993,7 +5994,8 @@ namespace mse {
 				explicit fixed_nii_basic_string_base(size_type _N, const _Ty& _V, const _A& _Al = _A()) : base_class(msev_as_a_size_t(_N), _V, _Al) { /*m_debug_size = size();*/ }
 				fixed_nii_basic_string_base(std_basic_string&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
 				fixed_nii_basic_string_base(const std_basic_string& _X) : base_class(_X) { /*m_debug_size = size();*/ }
-				fixed_nii_basic_string_base(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_basic_string()) { /*m_debug_size = size();*/ }
+				/* This move constructor has to copy since the source is not allowed to be resized. */
+				fixed_nii_basic_string_base(_Myt&& _X) : base_class(_X.contained_basic_string()) { /*m_debug_size = size();*/ }
 				fixed_nii_basic_string_base(const _Myt& _X) : base_class(_X.contained_basic_string()) { /*m_debug_size = size();*/ }
 				typedef typename std_basic_string::const_iterator _It;
 				/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
@@ -6031,7 +6033,8 @@ namespace mse {
 				explicit fixed_nii_basic_string_base(const _TStringSection& _X) : base_class(_X.cbegin(), _X.cend()) { /*m_debug_size = size();*/ }
 #endif /* MSE_HAS_CXX17 */
 
-				operator _MBS() const { return this->contained_basic_string(); }
+				/* The returned basic_string should be a copy (rather than a move) even when this is an rvalue, as this basic_string is not allowed to be resized. */
+				operator _MBS() const { return contained_basic_string(); }
 
 				typename std_basic_string::const_reference operator[](msev_size_t _P) const {
 					return (*this).at(msev_as_a_size_t(_P));
@@ -6915,7 +6918,7 @@ namespace mse {
 		const _MBS& contained_basic_string() const& { return base_class::contained_basic_string(); }
 		const _MBS& contained_basic_string() const&& { return base_class::contained_basic_string(); }
 		_MBS& contained_basic_string()& { return base_class::contained_basic_string(); }
-		auto&& contained_basic_string()&& { return base_class::contained_basic_string(); }
+		_MBS&& contained_basic_string()&& { return std::forward<_MBS>(base_class::contained_basic_string()); }
 
 	public:
 		explicit fixed_nii_basic_string(const _A& _Al = _A()) : base_class(_Al) {}
@@ -6923,8 +6926,8 @@ namespace mse {
 		explicit fixed_nii_basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A()) : base_class(_N, _V, _Al) {}
 		fixed_nii_basic_string(std_basic_string&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
 		fixed_nii_basic_string(const std_basic_string& _X) : base_class(_X) { /*m_debug_size = size();*/ }
-		fixed_nii_basic_string(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_basic_string()) { /*m_debug_size = size();*/ }
-		fixed_nii_basic_string(const _Myt& _X) : base_class(_X.contained_basic_string()) { /*m_debug_size = size();*/ }
+		fixed_nii_basic_string(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
+		fixed_nii_basic_string(const _Myt& _X) : base_class(_X) { /*m_debug_size = size();*/ }
 		typedef typename std_basic_string::const_iterator _It;
 		/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
 		fixed_nii_basic_string(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
@@ -6943,8 +6946,6 @@ namespace mse {
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			valid_if_Ty_is_not_an_xscope_type();
 		}
-
-		operator _MBS() const { return this->contained_basic_string(); }
 
 		fixed_nii_basic_string(_XSTD initializer_list<typename std_basic_string::value_type> _Ilist, const _A& _Al = _A())
 			: base_class(_Ilist, _Al) {	// construct from initializer_list
@@ -7126,7 +7127,7 @@ namespace mse {
 		const _MBS& contained_basic_string() const& { return base_class::contained_basic_string(); }
 		const _MBS& contained_basic_string() const&& { return base_class::contained_basic_string(); }
 		_MBS& contained_basic_string()& { return base_class::contained_basic_string(); }
-		auto&& contained_basic_string()&& { return base_class::contained_basic_string(); }
+		_MBS&& contained_basic_string()&& { return std::forward<_MBS>(base_class::contained_basic_string()); }
 
 	public:
 		explicit xscope_fixed_nii_basic_string(const _A& _Al = _A()) : base_class(_Al) {}
@@ -7134,8 +7135,8 @@ namespace mse {
 		explicit xscope_fixed_nii_basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A()) : base_class(_N, _V, _Al) {}
 		xscope_fixed_nii_basic_string(std_basic_string&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
 		xscope_fixed_nii_basic_string(const std_basic_string& _X) : base_class(_X) { /*m_debug_size = size();*/ }
-		xscope_fixed_nii_basic_string(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_basic_string()) { /*m_debug_size = size();*/ }
-		xscope_fixed_nii_basic_string(const _Myt& _X) : base_class(_X.contained_basic_string()) { /*m_debug_size = size();*/ }
+		xscope_fixed_nii_basic_string(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
+		xscope_fixed_nii_basic_string(const _Myt& _X) : base_class(_X) { /*m_debug_size = size();*/ }
 		typedef typename std_basic_string::const_iterator _It;
 		/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
 		xscope_fixed_nii_basic_string(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
@@ -7149,8 +7150,6 @@ namespace mse {
 			, class = mse::impl::_mse_RequireInputIter<_Iter> >
 			//xscope_fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
 			xscope_fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
-
-		operator _MBS() const { return this->contained_basic_string(); }
 
 		xscope_fixed_nii_basic_string(_XSTD initializer_list<typename std_basic_string::value_type> _Ilist, const _A& _Al = _A())
 			: base_class(_Ilist, _Al) {	// construct from initializer_list
@@ -7359,6 +7358,17 @@ namespace mse {
 	template<class _TLender>
 	auto make_xscope_borrowing_fixed_nii_basic_string(_TLender* src_xs_ptr) -> xscope_borrowing_fixed_nii_basic_string<_TLender> {
 		return xscope_borrowing_fixed_nii_basic_string<_TLender>(src_xs_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	template<class _TLender>
+	auto make_xscope_borrowing_fixed_nii_string(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) {
+		return make_xscope_borrowing_fixed_nii_basic_string(src_xs_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _TLender>
+	auto make_xscope_borrowing_fixed_nii_string(_TLender* src_xs_ptr) {
+		return make_xscope_borrowing_fixed_nii_basic_string(src_xs_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 

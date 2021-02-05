@@ -349,7 +349,7 @@ void msetl_example2() {
 
 		typedef mse::fixed_nii_vector<mse::nii_string> fixed_nii_vector1_t;
 
-		mse::TRegisteredObj<fixed_nii_vector1_t> rg_vo1 = fixed_nii_vector1_t{ "abc", "def" };
+		mse::TRegisteredObj<fixed_nii_vector1_t> rg_vo1{ mse::nii_string{"abc"}, mse::nii_string{"def"} };
 		mse::TRegisteredPointer<fixed_nii_vector1_t> vo1_regptr1 = &rg_vo1;
 
 		/* fixed_nii_vector<> does not have a begin() member function that returns an "implicit" iterator. You can obtain an
@@ -360,9 +360,9 @@ void msetl_example2() {
 
 		/* fixed_nii_vector<>s can be constructed from other (resizeable) vector types */
 		auto nvec1 = mse::nii_vector<int>{ 1, 2, 3 };
-		auto fixed_nvec1 = mse::fixed_nii_vector<int>(nvec1);
+		mse::fixed_nii_vector<int> fixed_nvec1(nvec1);
 		assert(fixed_nvec1.size() == nvec1.size());
-		auto fixed_nvec2 = mse::fixed_nii_vector<int>(mse::mstd::vector<int>{ 1, 2 });
+		mse::fixed_nii_vector<int> fixed_nvec2(mse::mstd::vector<int>{ 1, 2 });
 
 		class A {
 		public:
@@ -392,7 +392,7 @@ void msetl_example2() {
 			deallocated. */
 
 			/* Here we're declaring a fixed vector as a scope object. */
-			mse::TXScopeObj<mse::fixed_nii_vector<int> > vector1_xscpobj = mse::fixed_nii_vector<int>{ 1, 2, 3 };
+			mse::TXScopeObj<mse::fixed_nii_vector<int> > vector1_xscpobj{ 1, 2, 3 };
 
 			{
 				/* Here we're obtaining a scope iterator to the vector. */
@@ -1239,7 +1239,7 @@ void msetl_example2() {
 		/* An fixed_nii_string is basically like an nii_array<> (i.e. not resizable) whose size is specified at
 		construction (rather than at compile-time). */
 
-		mse::TRegisteredObj<mse::fixed_nii_string> rg_so1 = mse::fixed_nii_string{ "abc" };
+		mse::TRegisteredObj<mse::fixed_nii_string> rg_so1{ "abc" };
 		mse::TRegisteredPointer<mse::fixed_nii_string> so1_regptr1 = &rg_so1;
 
 		/* fixed_nii_string does not have a begin() member function that returns an "implicit" iterator. You can obtain an
@@ -1250,9 +1250,9 @@ void msetl_example2() {
 
 		/* fixed_nii_strings can be constructed from other (resizeable) string types */
 		auto nstr1 = mse::nii_string{ "def" };
-		auto fixed_nstr1 = mse::fixed_nii_string(nstr1);
+		mse::fixed_nii_string fixed_nstr1(nstr1);
 		assert(fixed_nstr1.size() == nstr1.size());
-		auto fixed_nstr2 = mse::fixed_nii_string(mse::mstd::string{ "de" });
+		mse::fixed_nii_string fixed_nstr2(mse::mstd::string{ "de" });
 
 		std::cout << fixed_nstr1 << "\n";
 
@@ -1268,7 +1268,7 @@ void msetl_example2() {
 			deallocated. */
 
 			/* Here we're declaring a fixed string as a scope object. */
-			mse::TXScopeObj<mse::fixed_nii_string > string1_xscpobj = mse::fixed_nii_string{ "abc" };
+			mse::TXScopeObj<mse::fixed_nii_string > string1_xscpobj{ "abc" };
 
 			{
 				/* Here we're obtaining a scope iterator to the string. */

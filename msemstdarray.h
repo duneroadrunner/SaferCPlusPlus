@@ -242,13 +242,17 @@ namespace mse {
 
 			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(_MA);
 
+		private:
 			const _RMA& contained_array() const& { return (*this).value(); }
-			const _RMA& contained_array() const&& { return (*this).value(); }
+			//const _RMA& contained_array() const&& { return (*this).value(); }
 			_RMA& contained_array()& { return (*this).value(); }
-			auto&& contained_array()&& { return std::move(*this).value(); }
+			_RMA&& contained_array()&& { return std::move(*this).value(); }
 
-			operator _MA() const { return as_nii_array(); }
-			operator std::array<_Ty, _Size>() const { return as_nii_array(); }
+		public:
+			operator _MA() const& { return as_nii_array(); }
+			operator _MA()&& { return std::forward<_MA>(as_nii_array()); }
+			operator std::array<_Ty, _Size>() const& { return as_nii_array(); }
+			operator std::array<_Ty, _Size>()&& { return std::forward<std::array<_Ty, _Size> >(as_nii_array()); }
 
 			array() {}
 			array(_MA&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
@@ -548,8 +552,10 @@ namespace mse {
 			void async_passable_tag() const {}
 
 		private:
-			const _MA& as_nii_array() const { return contained_array(); }
-			auto&& as_nii_array() { return contained_array(); }
+			const _MA& as_nii_array() const & { return contained_array(); }
+			//const _MA& as_nii_array() const&& { return contained_array(); }
+			_MA& as_nii_array()& { return contained_array(); }
+			_MA&& as_nii_array()&& { return std::forward<_RMA>(contained_array()); }
 
 			//mse::TRegisteredObj<_MA> m_nii_array;
 

@@ -52,10 +52,8 @@ namespace mse {
 		typedef typename _MV::reference reference;
 		typedef typename _MV::const_reference const_reference;
 
-		const _MV& msevector() const { return (*m_shptr); }
-		_MV& msevector() { return (*m_shptr); }
-		operator const _MV() const { return msevector(); }
-		operator _MV() { return msevector(); }
+		operator _MV() const& { return msevector(); }
+		operator _MV()&& { return std::forward<_MV>(msevector()); }
 
 		explicit ivector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
 		explicit ivector(size_type _N) : m_shptr(std::make_shared<_MV>(_N)) {}
@@ -593,6 +591,11 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 
 	private:
+		const _MV& msevector() const& { return (*m_shptr); }
+		//const _MV& msevector() const&& { return (*m_shptr); }
+		_MV& msevector()& { return (*m_shptr); }
+		_MV&& msevector()&& { return std::move(*m_shptr); }
+
 		std::shared_ptr<_MV> m_shptr;
 	};
 

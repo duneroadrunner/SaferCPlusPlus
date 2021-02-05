@@ -293,8 +293,10 @@ namespace mse {
 			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(_MBS);
 			static const size_t npos = size_t(-1);
 
-			operator mse::nii_basic_string<_Ty, _Traits, _A>() const { return msebasic_string(); }
-			operator std::basic_string<_Ty, _Traits, _A>() const { return msebasic_string(); }
+			operator mse::nii_basic_string<_Ty, _Traits, _A>() const& { return msebasic_string(); }
+			operator mse::nii_basic_string<_Ty, _Traits, _A>()&& { return std::forward<_MBS>(msebasic_string()); }
+			operator std::basic_string<_Ty, _Traits, _A>() const& { return msebasic_string(); }
+			operator std::basic_string<_Ty, _Traits, _A>()&& { return std::forward<std::basic_string<_Ty, _Traits, _A> >(msebasic_string()); }
 
 			explicit basic_string(const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_Al)) {}
 			explicit basic_string(size_type _N) : m_shptr(std::make_shared<_MBS>(_N)) {}
@@ -1318,10 +1320,10 @@ namespace mse {
 				return _Ostr << _Str.msebasic_string();
 			}
 
-			const _MBS& msebasic_string() const { return (*m_shptr); }
-			auto&& msebasic_string() { return (*m_shptr); }
-			template<class _TThisPointer>
-			static auto& s_msebasic_string(const _TThisPointer& this_pointer) { return this_pointer->msebasic_string(); }
+			const _MBS& msebasic_string() const& { return (*m_shptr); }
+			//const _MBS& msebasic_string() const&& { return (*m_shptr); }
+			_MBS& msebasic_string()& { return (*m_shptr); }
+			_MBS&& msebasic_string()&& { return std::move(*m_shptr); }
 
 			std::shared_ptr<_MBS> m_shptr;
 

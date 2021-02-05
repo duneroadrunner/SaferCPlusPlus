@@ -1271,9 +1271,9 @@ namespace mse {
 
 			private:
 				const _MV& contained_vector() const& { return (*this).value(); }
-				const _MV& contained_vector() const&& { return (*this).value(); }
+				//const _MV& contained_vector() const&& { return (*this).value(); }
 				_MV& contained_vector() & { return (*this).value(); }
-				auto&& contained_vector() && {
+				_MV&& contained_vector() && {
 					/* We're making sure that the vector is not "structure locked", because in that case it might not be
 					safe to to allow the contained vector to be moved from (when made movable with std::move()). */
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
@@ -1337,7 +1337,8 @@ namespace mse {
 					valid_if_Ty_is_not_bool();
 				}
 
-				operator _MV() const { return this->contained_vector(); }
+				operator _MV() const & { return contained_vector(); }
+				operator _MV() && { return std::forward<_MV>(contained_vector()); }
 
 				void reserve(size_type _Count)
 				{	// determine new minimum length of allocated storage
@@ -2528,9 +2529,9 @@ namespace mse {
 
 			private:
 				const _MV& contained_vector() const& { return (*this).value(); }
-				const _MV& contained_vector() const&& { return (*this).value(); }
+				//const _MV& contained_vector() const&& { return (*this).value(); }
 				_MV& contained_vector()& { return (*this).value(); }
-				auto&& contained_vector()&& { return std::move(*this).value(); }
+				_MV&& contained_vector()&& { return std::move(*this).value(); }
 
 				state_mutex_t& state_mutex1()& { return (*this); }
 
@@ -2549,7 +2550,8 @@ namespace mse {
 				}
 				fixed_nii_vector_base(std_vector&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
 				fixed_nii_vector_base(const std_vector& _X) : base_class(_X) { /*m_debug_size = size();*/ }
-				fixed_nii_vector_base(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_vector()) { /*m_debug_size = size();*/ }
+				/* This move constructor has to copy since the source is not allowed to be resized. */
+				fixed_nii_vector_base(_Myt&& _X) : base_class(_X.contained_vector()) { /*m_debug_size = size();*/ }
 				fixed_nii_vector_base(const _Myt& _X) : base_class(_X.contained_vector()) { /*m_debug_size = size();*/ }
 				typedef typename std_vector::const_iterator _It;
 				/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
@@ -2573,7 +2575,8 @@ namespace mse {
 					valid_if_Ty_is_not_bool();
 				}
 
-				operator _MV() const { return this->contained_vector(); }
+				/* The returned vector should be a copy (rather than a move) even when this is an rvalue, as this vector is not allowed to be resized. */
+				operator _MV() const { return contained_vector(); }
 
 				typename std_vector::const_reference operator[](msev_size_t _P) const {
 					return (*this).at(msev_as_a_size_t(_P));
@@ -2984,9 +2987,9 @@ namespace mse {
 
 	private:
 		const _MV& contained_vector() const& { return base_class::contained_vector(); }
-		const _MV& contained_vector() const&& { return base_class::contained_vector(); }
+		//const _MV& contained_vector() const&& { return base_class::contained_vector(); }
 		_MV& contained_vector()& { return base_class::contained_vector(); }
-		auto&& contained_vector()&& { return base_class::contained_vector(); }
+		_MV&& contained_vector()&& { return std::forward<_MV>(base_class::contained_vector()); }
 
 	public:
 		explicit fixed_nii_vector(const _A& _Al = _A()) : base_class(_Al) {}
@@ -2994,8 +2997,8 @@ namespace mse {
 		explicit fixed_nii_vector(size_type _N, const _Ty& _V, const _A& _Al = _A()) : base_class(_N, _V, _Al) {}
 		fixed_nii_vector(std_vector&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
 		fixed_nii_vector(const std_vector& _X) : base_class(_X) { /*m_debug_size = size();*/ }
-		fixed_nii_vector(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_vector()) { /*m_debug_size = size();*/ }
-		fixed_nii_vector(const _Myt& _X) : base_class(_X.contained_vector()) { /*m_debug_size = size();*/ }
+		fixed_nii_vector(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
+		fixed_nii_vector(const _Myt& _X) : base_class(_X) { /*m_debug_size = size();*/ }
 		typedef typename std_vector::const_iterator _It;
 		/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
 		fixed_nii_vector(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
@@ -3014,8 +3017,6 @@ namespace mse {
 			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
 			valid_if_Ty_is_not_an_xscope_type();
 		}
-
-		operator _MV() const { return this->contained_vector(); }
 
 		fixed_nii_vector(_XSTD initializer_list<typename std_vector::value_type> _Ilist, const _A& _Al = _A())
 			: base_class(_Ilist, _Al) {	// construct from initializer_list
@@ -3160,9 +3161,9 @@ namespace mse {
 
 	private:
 		const _MV& contained_vector() const& { return base_class::contained_vector(); }
-		const _MV& contained_vector() const&& { return base_class::contained_vector(); }
+		//const _MV& contained_vector() const&& { return base_class::contained_vector(); }
 		_MV& contained_vector()& { return base_class::contained_vector(); }
-		auto&& contained_vector()&& { return base_class::contained_vector(); }
+		_MV&& contained_vector()&& { return std::forward<_MV>(base_class::contained_vector()); }
 
 	public:
 		explicit xscope_fixed_nii_vector(const _A& _Al = _A()) : base_class(_Al) {}
@@ -3170,8 +3171,8 @@ namespace mse {
 		explicit xscope_fixed_nii_vector(size_type _N, const _Ty& _V, const _A& _Al = _A()) : base_class(_N, _V, _Al) {}
 		xscope_fixed_nii_vector(std_vector&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
 		xscope_fixed_nii_vector(const std_vector& _X) : base_class(_X) { /*m_debug_size = size();*/ }
-		xscope_fixed_nii_vector(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).contained_vector()) { /*m_debug_size = size();*/ }
-		xscope_fixed_nii_vector(const _Myt& _X) : base_class(_X.contained_vector()) { /*m_debug_size = size();*/ }
+		xscope_fixed_nii_vector(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X)) { /*m_debug_size = size();*/ }
+		xscope_fixed_nii_vector(const _Myt& _X) : base_class(_X) { /*m_debug_size = size();*/ }
 		typedef typename std_vector::const_iterator _It;
 		/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
 		xscope_fixed_nii_vector(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
@@ -3185,8 +3186,6 @@ namespace mse {
 			, class = mse::impl::_mse_RequireInputIter<_Iter> >
 		//xscope_fixed_nii_vector(const _Iter& _First, const _Iter& _Last, const typename std_vector::_Alloc& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
 		xscope_fixed_nii_vector(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
-
-		operator _MV() const { return this->contained_vector(); }
 
 		xscope_fixed_nii_vector(_XSTD initializer_list<typename std_vector::value_type> _Ilist, const _A& _Al = _A())
 			: base_class(_Ilist, _Al) {	// construct from initializer_list
