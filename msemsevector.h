@@ -2361,6 +2361,74 @@ namespace std {
 
 namespace mse {
 
+	template<typename _TVectorPointer>
+	auto ss_begin(const _TVectorPointer& owner_ptr) {
+		return owner_ptr->ss_begin(owner_ptr);
+	}
+	template<typename _TVectorPointer>
+	static auto ss_end(const _TVectorPointer& owner_ptr) {
+		return owner_ptr->ss_end(owner_ptr);
+	}
+	template<typename _TVectorPointer>
+	static auto ss_cbegin(const _TVectorPointer& owner_ptr) {
+		return owner_ptr->ss_cbegin(owner_ptr);
+	}
+	template<typename _TVectorPointer>
+	static auto ss_cend(const _TVectorPointer& owner_ptr) {
+		return owner_ptr->ss_cend(owner_ptr);
+	}
+	template<typename _TVectorPointer>
+	static auto ss_rbegin(const _TVectorPointer& owner_ptr) {
+		return owner_ptr->ss_rbegin(owner_ptr);
+	}
+	template<typename _TVectorPointer>
+	static auto ss_rend(const _TVectorPointer& owner_ptr) {
+		return owner_ptr->ss_rend(owner_ptr);
+	}
+	template<typename _TVectorPointer>
+	static auto ss_crbegin(const _TVectorPointer& owner_ptr) {
+		return owner_ptr->ss_crbegin(owner_ptr);
+	}
+	template<typename _TVectorPointer>
+	static auto ss_crend(const _TVectorPointer& owner_ptr) {
+		return owner_ptr->ss_crend(owner_ptr);
+	}
+
+	template<typename _TVectorPointer1, typename pos_type, typename _Ty>
+	static auto insert(const _TVectorPointer1& this_ptr, const pos_type& pos, _Ty&& _X) {
+		return this_ptr->insert(this_ptr, pos, _X);
+	}
+	template<typename _TVectorPointer1, typename pos_type, typename _Ty>
+	static auto insert(const _TVectorPointer1& this_ptr, const pos_type& pos, const _Ty& _X = _Ty()) {
+		return this_ptr->insert(this_ptr, pos, _X);
+	}
+	template<typename _TVectorPointer1, typename pos_type, typename size_type, typename _Ty>
+	static auto insert(const _TVectorPointer1& this_ptr, const pos_type& pos, const size_type& _M, const _Ty& _X) {
+		return this_ptr->insert(this_ptr, pos, _M, _X);
+	}
+	template<typename _TVectorPointer1, typename pos_type, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
+	static auto insert(const _TVectorPointer1& this_ptr, const pos_type& pos, const _Iter& _First, const _Iter& _Last) {
+		return this_ptr->insert(this_ptr, pos, _First, _Last);
+	}
+	template<typename _TVectorPointer1, typename pos_type, typename _Ty>
+	static auto insert(const _TVectorPointer1& this_ptr, const pos_type& pos, _XSTD initializer_list<_Ty> _Ilist) {
+		return this_ptr->insert(this_ptr, pos, _Ilist);
+	}
+	template<typename _TVectorPointer1, typename pos_type, class ..._Valty>
+	static auto emplace(const _TVectorPointer1& this_ptr, const pos_type& pos, _Valty&& ..._Val)
+	{	// insert by moving _Val at _Where
+		return this_ptr->insert(this_ptr, pos, std::forward<_Valty>(_Val)...);
+	}
+	template<typename _TVectorPointer1, typename pos_type>
+	static auto erase(const _TVectorPointer1& this_ptr, const pos_type& pos) {
+		return this_ptr->erase(this_ptr, pos);
+	}
+	template<typename _TVectorPointer1, typename pos_type>
+	static auto erase(const _TVectorPointer1& this_ptr, const pos_type& start, const pos_type& end) {
+		return this_ptr->erase(this_ptr, start, end);
+	}
+
+
 	/* mtnii_vector<> is a vector that is eligible to be shared among threads and does not support implicit iterators. */
 	template<class _Ty, class _A = std::allocator<_Ty> >
 	using mtnii_vector = mse::us::impl::gnii_vector<_Ty, _A, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type>;

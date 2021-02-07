@@ -42,6 +42,7 @@ namespace mse {
 	public:
 		typedef mse::ivector<_Ty, _A> _Myt;
 		typedef mse::us::msevector<_Ty, _A> _MV;
+		typedef std::vector<_Ty, _A> std_vector;
 
 		typedef typename _MV::allocator_type allocator_type;
 		typedef typename _MV::value_type value_type;
@@ -54,10 +55,14 @@ namespace mse {
 
 		operator _MV() const& { return msevector(); }
 		operator _MV()&& { return std::forward<_MV>(msevector()); }
+		operator std_vector() const& { return msevector(); }
+		operator std_vector()&& { return std::forward<std_vector>(msevector()); }
 
 		explicit ivector(const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Al)) {}
 		explicit ivector(size_type _N) : m_shptr(std::make_shared<_MV>(_N)) {}
 		explicit ivector(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_N, _V, _Al)) {}
+		ivector(std_vector&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X)>(_X))) {}
+		ivector(const std_vector& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
 		ivector(_MV&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X)>(_X))) {}
 		ivector(const _MV& _X) : m_shptr(std::make_shared<_MV>(_X)) {}
 		ivector(_Myt&& _X) : m_shptr(std::make_shared<_MV>(std::forward<decltype(_X)>(_X).msevector())) {}
@@ -246,6 +251,8 @@ namespace mse {
 			typename _MV::ipointer m_ipointer;
 			friend class /*_Myt*/ivector<_Ty, _A>;
 		};
+		typedef cipointer const_iterator;
+		typedef ipointer iterator;
 
 		/* begin() and end() are provided so that ivector can be used with stl algorithms. When using ipointers directly,
 		set_to_beginning() and set_to_end_marker() member functions are preferred. */
@@ -289,40 +296,65 @@ namespace mse {
 			m_shptr->assign_inclusive(first.msevector_cipointer(), last.msevector_cipointer());
 		}
 		ipointer insert_before(const cipointer &pos, size_type _M, const _Ty& _X) {
-			auto res = m_shptr->insert_before(pos.msevector_cipointer(), _M, _X);
-			ipointer retval(*this); retval.msevector_ipointer() = res;
-			return retval;
+			return insert(pos, _M, _X);
 		}
 		ipointer insert_before(const cipointer &pos, _Ty&& _X) {
-			auto res = m_shptr->insert_before(pos.msevector_cipointer(), std::forward<decltype(_X)>(_X));
-			ipointer retval(*this); retval.msevector_ipointer() = res;
-			return retval;
+			return insert(pos, std::forward<decltype(_X)>(_X));
 		}
 		ipointer insert_before(const cipointer &pos, const _Ty& _X = _Ty()) { return insert_before(pos, 1, _X); }
 		ipointer insert_before(const cipointer &pos, const cipointer &start, const cipointer &end) {
-			auto res = m_shptr->insert_before(pos.msevector_cipointer(), start.msevector_cipointer(), end.msevector_cipointer());
-			ipointer retval(*this); retval.msevector_ipointer() = res;
-			return retval;
+			return insert(pos, start, start);
 		}
 		ipointer insert_before_inclusive(const cipointer &pos, const cipointer &first, const cipointer &last) {
 			auto end = last; end.set_to_next();
 			return insert_before(pos, first, end);
 		}
 		ipointer insert_before(const cipointer &pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
+			return insert(pos, _Ilist);
+		}
+		void insert_before(msev_size_t pos, _Ty&& _X) {
+			insert(pos, std::forward<decltype(_X)>(_X));
+		}
+		void insert_before(msev_size_t pos, const _Ty& _X = _Ty()) {
+			insert(pos, _X);
+		}
+		void insert_before(msev_size_t pos, size_type _M, const _Ty& _X) {
+			insert(pos, _M, _X);
+		}
+		void insert_before(msev_size_t pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
+			insert(pos, _Ilist);
+		}
+		ipointer insert(const cipointer& pos, size_type _M, const _Ty& _X) {
+			auto res = m_shptr->insert_before(pos.msevector_cipointer(), _M, _X);
+			ipointer retval(*this); retval.msevector_ipointer() = res;
+			return retval;
+		}
+		ipointer insert(const cipointer& pos, _Ty&& _X) {
+			auto res = m_shptr->insert_before(pos.msevector_cipointer(), std::forward<decltype(_X)>(_X));
+			ipointer retval(*this); retval.msevector_ipointer() = res;
+			return retval;
+		}
+		ipointer insert(const cipointer& pos, const _Ty& _X = _Ty()) { return insert(pos, 1, _X); }
+		ipointer insert(const cipointer& pos, const cipointer& start, const cipointer& end) {
+			auto res = m_shptr->insert_before(pos.msevector_cipointer(), start.msevector_cipointer(), end.msevector_cipointer());
+			ipointer retval(*this); retval.msevector_ipointer() = res;
+			return retval;
+		}
+		ipointer insert(const cipointer& pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
 			auto res = m_shptr->insert_before(pos.msevector_cipointer(), _Ilist);
 			ipointer retval(*this); retval.msevector_ipointer() = res;
 			return retval;
 		}
-		void insert_before(msev_size_t pos, _Ty&& _X) {
+		void insert(msev_size_t pos, _Ty&& _X) {
 			m_shptr->insert_before(pos, std::forward<decltype(_X)>(_X));
 		}
-		void insert_before(msev_size_t pos, const _Ty& _X = _Ty()) {
+		void insert(msev_size_t pos, const _Ty& _X = _Ty()) {
 			m_shptr->insert_before(pos, _X);
 		}
-		void insert_before(msev_size_t pos, size_type _M, const _Ty& _X) {
+		void insert(msev_size_t pos, size_type _M, const _Ty& _X) {
 			m_shptr->insert_before(pos, _M, _X);
 		}
-		void insert_before(msev_size_t pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
+		void insert(msev_size_t pos, _XSTD initializer_list<typename _MV::value_type> _Ilist) {	// insert initializer_list
 			m_shptr->insert_before(pos, _Ilist);
 		}
 		template<class ..._Valty>

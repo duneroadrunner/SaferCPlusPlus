@@ -205,6 +205,8 @@ void msetl_example2() {
 		/*   stnii_vector<>   */
 		/**********************/
 
+		/* Deprecated? Prefer nii_vector<> and xscope_borrowing_fixed_nii_vector<> instead. */
+
 		/* stnii_vector<> is just a version of mtnii_vector<> that is not eligible to be shared between threads (and has
 		a little less overhead as a result). */
 
@@ -344,7 +346,7 @@ void msetl_example2() {
 		/*   fixed_nii_vector<>   */
 		/**************************/
 
-		/* An fixed_nii_vector<> is basically like an nii_array<> (i.e. not resizable) whose size is specified at
+		/* A fixed_nii_vector<> is basically like an nii_array<> (i.e. not resizable) whose size is specified at
 		construction (rather than at compile-time). */
 
 		typedef mse::fixed_nii_vector<mse::nii_string> fixed_nii_vector1_t;
@@ -426,6 +428,15 @@ void msetl_example2() {
 		modified) contents back to the original owner. */
 
 		auto xs_nii_vector1_xscpobj = mse::make_xscope(mse::nii_vector<int>{ 1, 2, 3 });
+		/* first we demonstrate some resizing operations on the nii_vector<> */
+		xs_nii_vector1_xscpobj.push_back(4);
+		mse::erase(&xs_nii_vector1_xscpobj, 2/*position index*/);
+		mse::insert(&xs_nii_vector1_xscpobj, 1/*position index*/, 5/*value*/);
+		mse::insert(&xs_nii_vector1_xscpobj, 0/*position index*/, { 6, 7, 8}/*value*/);
+		mse::emplace(&xs_nii_vector1_xscpobj, 2/*position index*/, 9/*value*/);
+
+		const auto nii_vector1_expected = mse::nii_vector<int>{ 6, 7, 9, 8, 1, 5, 2, 4 };
+		assert(nii_vector1_expected == xs_nii_vector1_xscpobj);
 
 		/* Constructing a xscope_borrowing_fixed_nii_vector<> requires a (non-const) scope pointer to an eligible vector. */
 		auto xs_bf_nii_vector1_xscpobj = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_vector(&xs_nii_vector1_xscpobj));
@@ -1305,6 +1316,8 @@ void msetl_example2() {
 
 		/* Constructing a xscope_borrowing_fixed_nii_string requires a (non-const) scope pointer to an eligible string. */
 		auto xs_bf_nii_string1_xscpobj = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_basic_string(&xs_nii_string1_xscpobj));
+		/* or alternatively: */
+		//mse::TXScopeObj<mse::xscope_borrowing_fixed_nii_basic_string<mse::nii_string> > xs_bf_nii_string1_xscpobj{ &xs_nii_string1_xscpobj };
 
 		std::cout << xs_bf_nii_string1_xscpobj << "\n";
 

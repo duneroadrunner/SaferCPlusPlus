@@ -313,6 +313,40 @@ int main(int argc, char* argv[]) {
 	}
 
 	{
+		/*****************/
+		/*   ivector<>   */
+		/*****************/
+
+		/* mse::ivector<> is a safe vector like mse::mstd::vector<>, but its iterators behave more like list iterators
+		than standard vector iterators. That is, upon insert or delete, the iterators continue to point to the same
+		item, not (necessarily) the same position. And they don't become "invalid" upon insert or delete, unless the
+		item they point to is deleted. */
+
+#ifdef MSVC2010_COMPATIBLE
+		int a1[4] = { 1, 2, 3, 4 };
+		mse::ivector<int> v(a1, a1 + 4);
+#else /*MSVC2010_COMPATIBLE*/
+		mse::ivector<int> v = { 1, 2, 3, 4 };
+#endif /*MSVC2010_COMPATIBLE*/
+
+		mse::ivector<int>::ipointer ip1 = v.begin();
+		ip1 += 2;
+		assert(3 == (*ip1));
+		auto ip2 = v.begin();
+		v.erase(ip2); /* remove the first item */
+		assert(3 == (*ip1)); /* ip1 continues to point to the same item, not the same position */
+		ip1--;
+		assert(2 == (*ip1));
+		for (mse::ivector<int>::cipointer cip = v.cbegin(); v.cend() != cip; cip++) {
+			/* You might imagine what would happen if cip were a regular vector iterator. */
+			v.insert(v.begin(), (*cip));
+		}
+
+		/* Btw, the iterators are compatible with stl algorithms, like any other stl iterators. */
+		std::sort(v.begin(), v.end());
+	}
+
+	{
 		/*********************************/
 		/*   us::msevector<>::ipointer   */
 		/*********************************/
@@ -372,13 +406,6 @@ int main(int argc, char* argv[]) {
 
 		/* mse::us::msevector<> also provides "safe" (bounds checked) versions of the original stl::vector iterators. */
 		std::sort(v.ss_begin(), v.ss_end());
-
-		/* mse::ivector<> is another vector for when safety and "correctness" are more of a priority than performance
-		or compatibility. It is completely safe like mse::mstd::vector<> but only supports the "ipointer" iterators.
-		It does not support the (problematic) standard vector iterator behavior. */
-		mse::ivector<int> iv = { 1, 2, 3, 4 };
-		std::sort(iv.begin(), iv.end());
-		mse::ivector<int>::ipointer ivip = iv.begin();
 
 		{
 			/* A "scope" version of the safe iterators can be used when the vector is declared as a scope
