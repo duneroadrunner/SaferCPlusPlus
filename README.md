@@ -117,11 +117,12 @@ Tested with msvc2019(v16.5.4), g++9.3.0 and clang++10.0.0. Versions of g++ prior
 19. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
 20. [Strings](#strings)
     1. [mstd::string](#string)
-    2. [mtnii_string](#mtnii_string)
-    3. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
-    4. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
-    5. [mstd::string_view](#string_view)
-    6. [nrp_string_view](#nrp_string_view)
+    2. [nii_string](#nii_string)
+    3. [xscope_borrowing_fixed_nii_basic_string](#xscope_borrowing_fixed_nii_basic_string)
+    4. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
+    5. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
+    6. [mstd::string_view](#string_view)
+    7. [nrp_string_view](#nrp_string_view)
 21. Poly Iterators and Sections
     1. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
     2. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
@@ -3084,15 +3085,27 @@ See also [TXScopeCSSSXSTERandomAccessSection](https://github.com/duneroadrunner/
 
 ### Strings
 
-From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A couple of string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#string) is simply a memory-safe drop-in replacement for std::string. Due to their iterators, strings are not, in general, safe to share among threads. [`mtnii_string`](#mtnii_string) is designed for safe sharing among asynchronous threads. 
+From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A few string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#string) is a memory-safe drop-in replacement for `std::string` and [`nii_string`](#nii_string) is a string that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads. [`xscope_borrowing_fixed_nii_basic_string<>`](#xscope_borrowing_fixed_nii_basic_string) is a non-resizable string that facilitates more efficient and less restricted direct access to characters in the string.
 
 ### string
 
 `mstd::string` is a memory-safe drop-in replacement for `std::string`. As with the standard library, `mstd::string` is defined as an alias for `mstd::basic_string<char>`. The `mstd::wstring`, `mstd::u16string` and `mstd::u32string` aliases are also present.
 
-### mtnii_string
+### nii_string
 
-`mtnii_string` is a string type designed to be safely shareable between asynchronous threads. See the corresponding [`mtnii_vector<>`](#mtnii_vector) for more information. Like `mstd::string`, `mtnii_string` is defined as an alias of `mtnii_basic_string<char>`. The `mtnii_wstring`, `mtnii_u16string` and `mtnii_u32string` aliases are also present.
+Like its vector counterpart, [`nii_vector<>`](#nii_vector), `nii_string` is a string that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. But directly accessing the characters of an `nii_string` is discouraged. Prefer instead to access (or hold references to) characters of the string by using an [`xscope_borrowing_fixed_nii_basic_string<>`](#xscope_borrowing_fixed_nii_basic_string). The `nii_wstring`, `nii_u16string` and `nii_u32string` aliases are also present.
+
+### fixed_nii_basic_string
+
+See the [`fixed_nii_vector<>`](#fixed_nii_vector) counterpart.
+
+### xscope_fixed_nii_basic_string
+
+See the [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector) counterpart.
+
+### xscope_borrowing_fixed_nii_basic_string
+
+See the [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector) counterpart.
 
 ### TXScopeStringSection, TXScopeStringConstSection, TStringSection, TStringConstSection
 
