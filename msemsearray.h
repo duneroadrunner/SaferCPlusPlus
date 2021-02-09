@@ -631,9 +631,28 @@ namespace mse {
 		template <typename _Ty> struct is_pointer_to_lockable_structure_container_helper1<std::false_type, _Ty> : std::false_type {};
 		template <typename _Ty> struct is_pointer_to_lockable_structure_container : is_pointer_to_lockable_structure_container_helper1<typename mse::impl::IsDereferenceable_msemsearray<_Ty>::type, _Ty> {};
 
+		template<class T, class EqualTo>
+		struct IsSupportedByStdBegin_impl
+		{
+			template<class U, class V>
+			static auto test(U* u) -> decltype(std::begin(*u), std::declval<V>(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct IsSupportedByStdBegin : IsSupportedByStdBegin_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+		template <typename _Tx, typename _Ty> struct is_contiguous_sequence_container_helper2 : std::false_type{};
+		template <typename _Ty> struct is_contiguous_sequence_container_helper2<std::true_type, _Ty> : std::integral_constant<bool,
+			(std::is_same<std::random_access_iterator_tag, typename std::iterator_traits<decltype(std::begin(std::declval<_Ty>()))>::iterator_category>::value)> {};
+		template <typename _Ty> struct is_contiguous_sequence_container_helper1 : is_contiguous_sequence_container_helper2<typename IsSupportedByStdBegin<_Ty>::type, _Ty> {};
+
 		template <typename _Ty> struct is_contiguous_sequence_container : std::integral_constant<bool,
 			(std::is_base_of<mse::us::impl::ContiguousSequenceContainerTagBase, typename std::remove_reference<_Ty>::type>::value) || (is_std_array<_Ty>::value)
-			|| (IsNativeArray_msemsearray<_Ty>::value)> {};
+			|| (IsNativeArray_msemsearray<_Ty>::value) || (is_contiguous_sequence_container_helper1<_Ty>::value)> {};
 
 		template <typename _Ty> struct is_contiguous_sequence_static_structure_container_msemsearray : std::integral_constant<bool,
 			(std::is_base_of<mse::us::impl::ContiguousSequenceContainerTagBase, typename std::remove_reference<_Ty>::type>::value && std::is_base_of<mse::us::impl::StaticStructureContainerTagBase, typename std::remove_reference<_Ty>::type>::value)
@@ -4306,15 +4325,26 @@ namespace mse {
 			auto begin_iter_from_xsptr_helper(std::false_type, const _TXSRAPointer& xsptr) {
 				return mse::TXScopeRAIterator<_TXSRAPointer>(xsptr, 0);
 			}
+
+			template <typename _TRAPointer>
+			auto begin_iter_from_ptr_helper4(std::true_type, const _TRAPointer& ptr) {
+				return mse::TRAIterator<_TRAPointer>(ptr, 0);
+				//return mse::make_random_access_iterator(ptr, 0);
+			}
+			template <typename _TRAPointer>
+			auto begin_iter_from_ptr_helper4(std::false_type, const _TRAPointer& ptr) {
+				return std::begin(*ptr);
+			}
 			template <typename _TRAPointer>
 			auto begin_iter_from_ptr_helper3(std::true_type, const _TRAPointer& ptr) {
 				typedef typename std::remove_reference<decltype(*ptr)>::type container_t;
 				return container_t::ss_begin(ptr);
-				//return (*ptr).ss_begin(ptr);
 			}
 			template <typename _TRAPointer>
 			auto begin_iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
-				return mse::TRAIterator<_TRAPointer>(ptr, 0);
+				typedef typename std::remove_reference<decltype(*ptr)>::type container_t;
+				return begin_iter_from_ptr_helper4(typename mse::impl::is_contiguous_sequence_container<container_t>::type(), ptr);
+				//return mse::TRAIterator<_TRAPointer>(ptr, 0);
 				//return mse::make_random_access_iterator(ptr, 0);
 			}
 			template <typename _TXSRAPointer>
@@ -4329,9 +4359,6 @@ namespace mse {
 				return begin_iter_from_ptr_helper3(typename mse::impl::HasOrInheritsStaticSSBeginMethod_msemsearray<container_t>::type(), ptr);
 			}
 
-#ifdef MSE_ENABLE_LEGACY_MAKE_ITER_FROM_NONPOINTER
-#else // MSE_ENABLE_LEGACY_MAKE_ITER_FROM_NONPOINTER
-#endif // MSE_ENABLE_LEGACY_MAKE_ITER_FROM_NONPOINTER
 			template <typename _TRALoneParam>
 			auto begin_iter_from_lone_param2(std::false_type, const _TRALoneParam& ra_container) {
 				/* The parameter doesn't seem to be a pointer. */
@@ -4450,6 +4477,16 @@ namespace mse {
 			auto begin_const_iter_from_xsptr_helper(std::false_type, const _TXSRAPointer& xsptr) {
 				return mse::TXScopeRAConstIterator<_TXSRAPointer>(xsptr, 0);
 			}
+
+			template <typename _TRAPointer>
+			auto begin_const_iter_from_ptr_helper4(std::true_type, const _TRAPointer& ptr) {
+				return mse::TRAConstIterator<_TRAPointer>(ptr, 0);
+				//return mse::make_random_access_const_iterator(ptr, 0);
+			}
+			template <typename _TRAPointer>
+			auto begin_const_iter_from_ptr_helper4(std::false_type, const _TRAPointer& ptr) {
+				return std::cbegin(*ptr);
+			}
 			template <typename _TRAPointer>
 			auto begin_const_iter_from_ptr_helper3(std::true_type, const _TRAPointer& ptr) {
 				typedef typename std::remove_reference<decltype(*ptr)>::type container_t;
@@ -4458,7 +4495,9 @@ namespace mse {
 			}
 			template <typename _TRAPointer>
 			auto begin_const_iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
-				return mse::TRAConstIterator<_TRAPointer>(ptr, 0);
+				typedef typename std::remove_reference<decltype(*ptr)>::type container_t;
+				return begin_const_iter_from_ptr_helper4(typename mse::impl::is_contiguous_sequence_container<container_t>::type(), ptr);
+				//return mse::TRAConstIterator<_TRAPointer>(ptr, 0);
 				//return mse::make_random_access_const_iterator(ptr, 0);
 			}
 			template <typename _TXSRAPointer>
@@ -4685,8 +4724,9 @@ namespace mse {
 		}
 	}
 	template<class _TArrayPointer>
-	auto make_const_iterator(const _TArrayPointer& owner_ptr) {
-		return impl::make_const_iterator_helper4(typename mse::impl::IsDereferenceable_msemsearray<_TArrayPointer>::type(), owner_ptr);
+	auto make_const_iterator(const _TArrayPointer& param) {
+		return mse::impl::iterator::begin_const_iter_from_lone_param(param);
+		//return impl::make_const_iterator_helper4(typename mse::impl::IsDereferenceable_msemsearray<_TArrayPointer>::type(), param);
 	}
 
 	namespace impl {
@@ -4739,7 +4779,7 @@ namespace mse {
 	template<class _TRALoneParam>
 	auto make_iterator(const _TRALoneParam& param) {
 		return mse::impl::iterator::begin_iter_from_lone_param(param);
-		//return impl::make_iterator_helper4(typename mse::impl::IsDereferenceable_msemsearray<_TRALoneParamRR>::type(), owner_ptr);
+		//return impl::make_iterator_helper4(typename mse::impl::IsDereferenceable_msemsearray<_TRALoneParamRR>::type(), param);
 	}
 	template<class _TRALoneParam>
 	auto make_iterator(_TRALoneParam&& param) {
@@ -4758,31 +4798,53 @@ namespace mse {
 	auto make_begin_iterator(_TArrayPointer&& owner_ptr) {
 		return mse::make_iterator(std::forward<decltype(owner_ptr)>(owner_ptr));
 	}
-	template<class _TArrayPointer>
-	auto make_end_const_iterator(const _TArrayPointer& owner_ptr) {
-		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_const_iterator(owner_ptr))>::type difference_type;
-		return mse::make_begin_const_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
+	namespace impl {
+		template<class _TArrayPointer>
+		auto make_end_const_iterator_helper1(std::true_type, const _TArrayPointer& owner_ptr) {
+			typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_const_iterator(owner_ptr))>::type difference_type;
+			return mse::make_begin_const_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
+		}
+		template<class _TArrayPointer>
+		auto make_end_const_iterator_helper1(std::false_type, const _TArrayPointer& owner_ptr) {
+			return std::cend(*owner_ptr);
+		}
+
+		template<class _TArrayPointer>
+		auto make_end_iterator_helper1(std::true_type, _TArrayPointer& owner_ptr) {
+			typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(owner_ptr))>::type difference_type;
+			return mse::make_begin_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
+		}
+		template<class _TArrayPointer>
+		auto make_end_iterator_helper1(std::false_type, _TArrayPointer& owner_ptr) {
+			return std::end(*owner_ptr);
+		}
+
+		template<class _TArrayPointer>
+		auto make_end_iterator_helper1(std::true_type, _TArrayPointer&& owner_ptr) {
+			typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(std::forward<decltype(owner_ptr)>(owner_ptr)))>::type difference_type;
+			auto retval = mse::make_begin_iterator(std::forward<decltype(owner_ptr)>(owner_ptr));
+			retval += difference_type(mse::container_size(owner_ptr) - 0);
+			return retval;
+		}
+		template<class _TArrayPointer>
+		auto make_end_iterator_helper1(std::false_type, _TArrayPointer&& owner_ptr) {
+			return std::end(*owner_ptr);
+		}
 	}
 	template<class _TArrayPointer>
-	auto make_end_iterator(const _TArrayPointer& owner_ptr) {
-		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(owner_ptr))>::type difference_type;
-		auto retval = mse::make_begin_iterator(owner_ptr);
-		retval += difference_type(mse::container_size(owner_ptr) - 0);
-		return retval;
+	auto make_end_const_iterator(const _TArrayPointer& owner_ptr) {
+		typedef typename std::remove_reference<decltype(*owner_ptr)>::type container_t;
+		return mse::impl::make_end_const_iterator_helper1(typename mse::impl::is_contiguous_sequence_container<container_t>::type(), owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_end_iterator(_TArrayPointer& owner_ptr) {
-		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(owner_ptr))>::type difference_type;
-		auto retval = mse::make_begin_iterator(owner_ptr);
-		retval += difference_type(mse::container_size(owner_ptr) - 0);
-		return retval;
+		typedef typename std::remove_reference<decltype(*owner_ptr)>::type container_t;
+		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_contiguous_sequence_container<container_t>::type(), owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_end_iterator(_TArrayPointer&& owner_ptr) {
-		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(std::forward<decltype(owner_ptr)>(owner_ptr)))>::type difference_type;
-		auto retval = mse::make_begin_iterator(std::forward<decltype(owner_ptr)>(owner_ptr));
-		retval += difference_type(mse::container_size(owner_ptr) - 0);
-		return retval;
+		typedef typename std::remove_reference<decltype(*owner_ptr)>::type container_t;
+		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_contiguous_sequence_container<container_t>::type(), std::forward<decltype(owner_ptr)>(owner_ptr));
 	}
 
 
