@@ -167,6 +167,8 @@ namespace mse {
 	}
 
 	namespace impl {
+		template <typename _Ty, class _Traits, typename _A> struct is_contiguous_sequence_container<std::basic_string<_Ty, _Traits, _A> > : std::true_type {};
+
 		namespace ns_gnii_basic_string {
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex>
 			std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>&& _Istr, mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>& _Str);

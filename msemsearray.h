@@ -645,14 +645,28 @@ namespace mse {
 		struct IsSupportedByStdBegin : IsSupportedByStdBegin_impl<
 			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
-		template <typename _Tx, typename _Ty> struct is_contiguous_sequence_container_helper2 : std::false_type{};
-		template <typename _Ty> struct is_contiguous_sequence_container_helper2<std::true_type, _Ty> : std::integral_constant<bool,
+		template <typename _Tx, typename _Ty> struct has_random_access_implicit_iterators_helper2 : std::false_type {};
+		template <typename _Ty> struct has_random_access_implicit_iterators_helper2<std::true_type, _Ty> : std::integral_constant<bool,
 			(std::is_same<std::random_access_iterator_tag, typename std::iterator_traits<decltype(std::begin(std::declval<_Ty>()))>::iterator_category>::value)> {};
-		template <typename _Ty> struct is_contiguous_sequence_container_helper1 : is_contiguous_sequence_container_helper2<typename IsSupportedByStdBegin<_Ty>::type, _Ty> {};
+		template <typename _Ty> struct has_random_access_implicit_iterators : has_random_access_implicit_iterators_helper2<typename IsSupportedByStdBegin<_Ty>::type, _Ty> {};
+
+		template<class T, class EqualTo>
+		struct HasOrInheritsDataMemberFunction_impl
+		{
+			template<class U, class V>
+			static auto test(U* u) -> decltype((*u).data(), std::declval<V>(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsDataMemberFunction : HasOrInheritsDataMemberFunction_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
 		template <typename _Ty> struct is_contiguous_sequence_container : std::integral_constant<bool,
 			(std::is_base_of<mse::us::impl::ContiguousSequenceContainerTagBase, typename std::remove_reference<_Ty>::type>::value) || (is_std_array<_Ty>::value)
-			|| (IsNativeArray_msemsearray<_Ty>::value) || (is_contiguous_sequence_container_helper1<_Ty>::value)> {};
+			|| (IsNativeArray_msemsearray<_Ty>::value) || (has_random_access_implicit_iterators<_Ty>::value && HasOrInheritsDataMemberFunction<_Ty>::value)> {};
 
 		template <typename _Ty> struct is_contiguous_sequence_static_structure_container_msemsearray : std::integral_constant<bool,
 			(std::is_base_of<mse::us::impl::ContiguousSequenceContainerTagBase, typename std::remove_reference<_Ty>::type>::value && std::is_base_of<mse::us::impl::StaticStructureContainerTagBase, typename std::remove_reference<_Ty>::type>::value)
@@ -660,6 +674,9 @@ namespace mse {
 
 		template<class _Ty, class = typename std::enable_if<(is_contiguous_sequence_static_structure_container_msemsearray<_Ty>::value), void>::type>
 		void T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray() {}
+
+		template <typename _Ty> struct is_random_access_container : std::integral_constant<bool,
+			(is_contiguous_sequence_container<_Ty>::value) || (has_random_access_implicit_iterators<_Ty>::value)> {};
 
 
 #if defined(MSE_MSTDARRAY_DISABLED) || defined(MSE_MSTDVECTOR_DISABLED)
@@ -4343,7 +4360,7 @@ namespace mse {
 			template <typename _TRAPointer>
 			auto begin_iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
 				typedef typename std::remove_reference<decltype(*ptr)>::type container_t;
-				return begin_iter_from_ptr_helper4(typename mse::impl::is_contiguous_sequence_container<container_t>::type(), ptr);
+				return begin_iter_from_ptr_helper4(typename mse::impl::is_random_access_container<container_t>::type(), ptr);
 				//return mse::TRAIterator<_TRAPointer>(ptr, 0);
 				//return mse::make_random_access_iterator(ptr, 0);
 			}
@@ -4496,7 +4513,7 @@ namespace mse {
 			template <typename _TRAPointer>
 			auto begin_const_iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
 				typedef typename std::remove_reference<decltype(*ptr)>::type container_t;
-				return begin_const_iter_from_ptr_helper4(typename mse::impl::is_contiguous_sequence_container<container_t>::type(), ptr);
+				return begin_const_iter_from_ptr_helper4(typename mse::impl::is_random_access_container<container_t>::type(), ptr);
 				//return mse::TRAConstIterator<_TRAPointer>(ptr, 0);
 				//return mse::make_random_access_const_iterator(ptr, 0);
 			}
@@ -4834,17 +4851,17 @@ namespace mse {
 	template<class _TArrayPointer>
 	auto make_end_const_iterator(const _TArrayPointer& owner_ptr) {
 		typedef typename std::remove_reference<decltype(*owner_ptr)>::type container_t;
-		return mse::impl::make_end_const_iterator_helper1(typename mse::impl::is_contiguous_sequence_container<container_t>::type(), owner_ptr);
+		return mse::impl::make_end_const_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_end_iterator(_TArrayPointer& owner_ptr) {
 		typedef typename std::remove_reference<decltype(*owner_ptr)>::type container_t;
-		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_contiguous_sequence_container<container_t>::type(), owner_ptr);
+		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), owner_ptr);
 	}
 	template<class _TArrayPointer>
 	auto make_end_iterator(_TArrayPointer&& owner_ptr) {
 		typedef typename std::remove_reference<decltype(*owner_ptr)>::type container_t;
-		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_contiguous_sequence_container<container_t>::type(), std::forward<decltype(owner_ptr)>(owner_ptr));
+		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), std::forward<decltype(owner_ptr)>(owner_ptr));
 	}
 
 

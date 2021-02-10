@@ -199,7 +199,7 @@ namespace mse {
 		using _mse_Guide_size_type_t = typename std::allocator_traits<std::conditional_t<_mse_Is_allocator<_Alloc>::value, _Alloc, std::allocator<int>>>::size_type;
 #endif /* MSE_HAS_CXX17 */
 
-		template <typename _Ty> struct is_contiguous_sequence_container<std::vector<_Ty> > : std::true_type {};
+		//template <typename _Ty> struct is_contiguous_sequence_container<std::vector<_Ty> > : std::true_type {};
 		template <typename _Ty, typename _A> struct is_contiguous_sequence_container<std::vector<_Ty, _A> > : std::true_type {};
 
 		template<class T, class EqualTo>
