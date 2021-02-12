@@ -2897,11 +2897,11 @@ usage example:
 ```
 
 ### xscope_fixed_nii_vector
-`xscope_fixed_nii_vector<>` is just the [scope](#scope-pointers) version of [`fixed_nii_vector<>`](#fixed_nii_vector). So unlike `fixed_nii_vector<>`, `xscope_fixed_nii_vector<>` supports elements that are scope types. But as a scope type itself, `xscope_fixed_nii_vector<>` is subject to the restrictions of scope objects.
+`xscope_fixed_nii_vector<>` is just the [scope](#scope-pointers) version of [`fixed_nii_vector<>`](#fixed_nii_vector). So unlike `fixed_nii_vector<>`, `xscope_fixed_nii_vector<>` supports elements of scope type. But as a scope type itself, `xscope_fixed_nii_vector<>` is subject to the restrictions of scope objects.
 
 ### xscope_borrowing_fixed_nii_vector
 
-`xscope_borrowing_fixed_nii_vector<>` is a kind of [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector) that, at construction, "borrows" (or "takes" by moving) the contents of a specified existing ([scope object](#scope-pointers)) vector, then, upon destruction "returns" the (possibly modified) contents back to the original owner.
+`xscope_borrowing_fixed_nii_vector<>` is a kind of [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector) that, at construction, "borrows" (or "takes" by moving) the contents of a specified (via [scope pointer](#scope-pointers)) existing vector, then, upon destruction "returns" the (possibly modified) contents back to the original owner.
 
 usage example:
 ```cpp
