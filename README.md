@@ -2778,25 +2778,17 @@ usage example:
         /* These two vectors should be completely interchangeable. The difference being that mv should throw
         an exception on any attempt to access invalid memory. */
         
-        
-        /* mse::us::msevector is not quite as safe as mse::mstd::vector in the following way: */
-        
         std::vector<int>::iterator sv1_it;
-        mse::us::msevector<int>::ss_iterator_type msev1_it; // bounds checked iterator just like mse::mstd::vector<int>::iterator
         mse::mstd::vector<int>::iterator mv1_it;
         {
             std::vector<int> sv1 = { 1, 2, 3 };
             sv1_it = sv1.begin();
-            
-            mse::us::msevector<int> msev1 = { 1, 2, 3 };
-            msev1_it = msev1.ss_begin();
             
             mse::mstd::vector<int> mv1 = { 1, 2, 3 };
             mv1_it = mv1.begin();
         }
         
         // (*sv1_it) = 4; // not good
-        // (*msev1_it) = 4; // not good
         
         try {
             /* At this point, mv1's data has not actually been deallocated/destructed yet because it "knows" that there
