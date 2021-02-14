@@ -3002,6 +3002,150 @@ usage example:
     }
 ```
 
+#### structure locking
+
+While the preferred method for accessing elements of a resizable vector is via [`xscope_borrowing_fixed_nii_vector`](#xscope_borrowing_fixed_nii_vector), note that constructing an `xscope_borrowing_fixed_nii_vector` requires a non-const [scope pointer](#scope-pointers) to the resizable vector. For situations where such a non-const scope pointer is not available, the elements can be accessed directly from the resizable vector, potentially with a little more overhead, and some restrictions. 
+
+Like the arrays and fixed-size vectors, the provided resizable vectors also support [scope iterators](#xscope_iterator). But note that the scope iterators of resizable vectors have some somewhat subtle usage constraints that scope iterators of fixed-size vectors don't have. For safety/performance reasons, scope iterators of "dynamic" containers, like resizable vectors, have the side effect, while they exist, of "structure locking" the associated container. That is, they put the container in a state such that it cannot be resized or relocated, while still allowing the existing contents of the container to be modified or replaced. The "structure lock" is released upon destruction of the scope iterator.
+
+So when you obtain a [scope pointer](#scope-pointers) to a vector element from a scope iterator, the assurance that the scope pointer's target element remains valid relies on the fact that the resizable vector is structure locked for the duration of the scope pointer's existence. Since the structure lock is maintained by the scope iterator, the scope iterator must be assured to outlive the obtained scope pointer. This means that obtaining a scope pointer from a temporary/rvalue vector scope iterator is not supported. (Attempting to do so results in a compile error.) Again, this is not the case for array or fixed-size vector scope iterators. 
+
+### mtnii_vector
+
+[`nii_vector<>`](#nii_vector) has a subtle restriction. Unlike the other vectors, its [scope const iterator](#xscope_iterator) doesn't "[structure lock](#structure-locking)" the vector and therefore, you cannot obtain a [scope pointer](#txscopefixedpointer) from it. The reason it doesn't do structure locking is because const iterators to the same vector can be created in multiple different threads simultaneously and `nii_vector<>` does not have a thread-safe structure locking mechanism.
+
+So the library provides `mtnii_vector<>`, essentially a version of `nii_vector<>` that does have a thread-safe (atomic) structure locking mechanism, and so doesn't suffer the same restriction. The thread-safe locking mechanism does incur some extra cost, so you'd generally only want to use it when you need to share a resizable vector among asynchronous threads. (So presumably rarely.)
+
+usage example:
+
+```cpp
+    #include "msemsevector.h"
+    #include "mseasyncshared.h"
+    #include "mseregistered.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        /* mtnii_vector<> is a safe vector that is eligible to be (safely) shared between asynchronous threads. */
+
+        typedef mse::mtnii_vector<mse::mtnii_string> mtnii_vector1_t;
+
+        mse::TRegisteredObj<mtnii_vector1_t> rg_vo1;
+        for (size_t i = 0; i < 5; i += 1) {
+            rg_vo1.push_back("some text");
+        }
+        mse::TRegisteredPointer<mtnii_vector1_t> vo1_regptr1 = &rg_vo1;
+
+        /* mtnii_vector<> does not have a begin() member function that returns an "implicit" iterator. You can obtain an
+        iterator using the make_begin_iterator() et al. functions, which take a (safe) pointer to the container. */
+        auto iter1 = mse::make_begin_iterator(vo1_regptr1);
+        auto citer1 = mse::make_end_const_iterator(vo1_regptr1);
+        citer1 = iter1;
+        rg_vo1.emplace(vo1_regptr1, citer1, "some other text");
+        rg_vo1.insert(vo1_regptr1, citer1, "some other text");
+        mse::mtnii_string str1 = "some other text";
+        rg_vo1.insert(vo1_regptr1, citer1, str1);
+
+        class A {
+        public:
+            A() {}
+            int m_i = 0;
+        };
+        /* Here we're declaring that A can be safely shared between asynchronous threads. */
+        typedef mse::rsv::TAsyncShareableAndPassableObj<A> shareable_A_t;
+
+        /* When the element type of an mtnii_vector<> is marked as "async shareable", the mtnii_vector<> itself is
+        (automatically) marked as async shareable as well and can be safely shared between asynchronous threads
+        using "access requesters". */
+        auto access_requester1 = mse::make_asyncsharedv2readwrite<mse::mtnii_vector<shareable_A_t>>();
+        auto access_requester2 = mse::make_asyncsharedv2readwrite<mtnii_vector1_t>();
+
+        /* If the element type of an mtnii_vector<> is not marked as "async shareable", then neither is the
+        mtnii_vector<> itself. So attempting to create an "access requester" using it would result in a compile
+        error. */
+        //auto access_requester3 = mse::make_asyncsharedv2readwrite<mse::mtnii_vector<A>>();
+        //auto access_requester4 = mse::make_asyncsharedv2readwrite<mse::mtnii_vector<mse::mstd::string>>();
+
+        typedef mse::mstd::vector<mse::mtnii_string> vector1_t;
+        vector1_t vo2 = { "a", "b", "c" };
+        /* mstd::vector<>s, for example, are not safely shareable between threads. But if its element type is
+        safely shareable, then the contents of the mse::mstd::vector<>, can be swapped with a corresponding
+        shareable mtnii_vector<>. Note that vector swaps are intrinsically fast operations. */
+        std::swap(vo2, *(access_requester2.writelock_ptr()));
+
+        {
+            /* If the vector is declared as a "scope" object (which basically indicates that it is declared
+            on the stack), then you can use "scope" iterators. While there are limitations on when they can
+            be used, scope iterators would be the preferred iterator type where performance is a priority
+            as they don't require extra run-time overhead to ensure that the vector has not been prematurely
+            deallocated. */
+
+            /* Here we're declaring a vector as a scope object. */
+            mse::TXScopeObj<mse::mtnii_vector<int> > vector1_xscpobj = mse::mtnii_vector<int>{ 1, 2, 3 };
+
+            {
+                /* Here we're obtaining a scope iterator to the vector. */
+                auto xscp_iter1 = mse::make_xscope_begin_iterator(&vector1_xscpobj);
+                auto xscp_iter2 = mse::make_xscope_end_iterator(&vector1_xscpobj);
+
+                std::sort(xscp_iter1, xscp_iter2);
+
+                /* Note that scope iterators to vectors (and other dynamic containers), "lock the structure" of the container
+                so that, for example, it cannot be resized. This allows us to obtain a scope pointer to the iterator's
+                target element. */
+                auto xscp_ptr1 = mse::xscope_pointer(xscp_iter1);
+                auto res3 = *xscp_ptr1;
+
+                auto xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+                xscp_citer3 = xscp_iter1;
+                xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+                xscp_citer3 += 2;
+                auto res1 = *xscp_citer3;
+                auto res2 = xscp_citer3[0];
+            }
+            /* After all the scope pointers have gone out of scope, you may again perform operations that affect the container's
+            "structure" (i.e. size or capacity). */
+            vector1_xscpobj.push_back(4);
+        }
+    }
+```
+
+### stnii_vector
+
+`stnii_vector<>` is a "performance" version of [`mtnii_vector<>`](#mtnii_vector) that is not eligible to be shared among threads. Because scope iterators ["structure lock"](#structure-locking) the container when they are created, and because it's possible to simultaneously/concurrently create multiple (const) scope iterators in different threads, `mtnii_vector<>` employs a thread-safe (atomic) locking mechanism. This means that every operation that affects the size of an `mtnii_vector<>` makes a thread-safe (atomic) access operation. Since `stnii_vector<>` is not eligible to be shared among threads, it does not need to perform any costly thread-safe access operations. 
+
+While you might prefer `stnii_vector<>` to [`nii_vector<>`](#nii_vector) in cases where the vector won't be shared between asynchronous threads, using [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector) would still be the preferred method of accessing (or holding references to) the elements.
+
+usage example:
+```cpp
+    #include "msescope.h"
+    #include "msemsevector.h"
+    #include "msemstdvector.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        /* stnii_vector<> is just a version of mtnii_vector<> that is not eligible to be shared between threads (and has
+        a little less overhead as a result). */
+
+        mse::TXScopeObj<mse::stnii_vector<int> > vector1_xscpobj = mse::stnii_vector<int>{ 1, 2, 3 };
+
+        {
+            mse::TXScopeFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
+            auto xscp_citer1 = mse::make_xscope_begin_const_iterator(xscptr);
+            xscp_citer1 += 2;
+            auto xscp_cptr1 = mse::xscope_const_pointer(xscp_citer1);
+            auto res1 = *xscp_cptr1;
+        }
+        vector1_xscpobj.push_back(4);
+
+        /* stnii_vector<>s can be (efficiently) swapped with mtnii_vector<>s. */
+        auto mtniiv1 = mse::mtnii_vector<int>();
+        std::swap(vector1_xscpobj, mtniiv1);
+        /* Or mstd::vector<>s. */
+        auto mstdv1 = mse::mstd::vector<int>();
+        std::swap(vector1_xscpobj, mstdv1);
+    }
+```
+
 
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
