@@ -2428,6 +2428,54 @@ namespace mse {
 		return this_ptr->erase(this_ptr, start, end);
 	}
 
+	template<typename _TVectorPointer1, typename size_type, typename _Ty>
+	void resize(const _TVectorPointer1& this_ptr, size_type _N, const _Ty& _X = _Ty()) {
+		this_ptr->resize(_N, _X);
+	}
+	template<typename _TVectorPointer1>
+	auto& front(const _TVectorPointer1& this_ptr) {	// return first element of mutable sequence
+		return this_ptr->front();
+	}
+	template<typename _TVectorPointer1>
+	auto& back(const _TVectorPointer1& this_ptr) {	// return last element of mutable sequence
+		return this_ptr->back();
+	}
+	template<typename _TVectorPointer1, typename _Ty>
+	void push_back(const _TVectorPointer1& this_ptr, _Ty&& _X) {
+		this_ptr->push_back(std::forward<decltype(_X)>(_X));
+	}
+	template<typename _TVectorPointer1>
+	void pop_back(const _TVectorPointer1& this_ptr) {
+		this_ptr->pop_back();
+	}
+	template<typename _TVectorPointer1, class _Iter>
+	void assign(const _TVectorPointer1& this_ptr, const _Iter& _First, const _Iter& _Last) {	// assign [_First, _Last)
+		this_ptr->assign(_First, _Last);
+	}
+	template<typename _TVectorPointer1, typename size_type, typename _Ty>
+	void assign(const _TVectorPointer1& this_ptr, size_type _N, const _Ty& _X = _Ty()) {
+		this_ptr->assign(_N, _X);
+	}
+
+	template<typename _TVectorPointer1, class ..._Valty>
+	void emplace_back(const _TVectorPointer1& this_ptr, _Valty&& ..._Val)
+	{	// insert by moving into element at end
+		this_ptr->emplace_back(std::forward<_Valty>(_Val)...);
+	}
+	template<typename _TVectorPointer1>
+	void clear(const _TVectorPointer1& this_ptr) {
+		this_ptr->clear();
+	}
+	template<typename _TVectorPointer1, typename _Ty>
+	void assign(const _TVectorPointer1& this_ptr, _XSTD initializer_list<_Ty> _Ilist) {	// assign initializer_list
+		this_ptr->assign(_Ilist);
+	}
+	template<typename _TVectorPointer1, typename size_type>
+	auto& at(const _TVectorPointer1& this_ptr, size_type _Pos)
+	{	// subscript mutable sequence with checking
+		return this_ptr->at(_Pos);
+	}
+
 
 	/* mtnii_vector<> is a vector that is eligible to be shared among threads and does not support implicit iterators. */
 	template<class _Ty, class _A = std::allocator<_Ty> >
