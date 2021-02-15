@@ -379,6 +379,11 @@ namespace mse {
 #define MSE_FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
 
 	namespace impl {
+		template<typename _TPointer>
+		using target_type = typename std::remove_reference<decltype(*std::declval<_TPointer>())>::type;
+	}
+
+	namespace impl {
 		namespace ns_is_instantiation_of {
 			template <template <typename...> class Template, typename Type>
 			struct is_instance_of : std::false_type {};

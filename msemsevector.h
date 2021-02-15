@@ -1236,11 +1236,12 @@ namespace mse {
 	namespace us {
 		namespace impl {
 
-			/* mse::us::impl::gnii_vector<> is essentially a memory-safe vector that does not expose (unprotected) non-static member functions
-			like begin() or end() which return (memory) unsafe iterators. It does provide static member function templates
-			like ss_begin<>(...) and ss_end<>(...) which take a pointer parameter and return a (bounds-checked) iterator that
-			inherits the safety of the given pointer. mse::us::impl::gnii_vector<> also supports "scope" iterators which are safe without any
-			run-time overhead. mse::us::impl::gnii_vector<> is a data type that is eligible to be shared between asynchronous threads. */
+			/* mse::us::impl::gnii_vector<> is essentially a memory-safe vector that does not expose (unprotected) non-static member
+			functions like begin() or end() which return (memory) unsafe iterators. It does provide static member function templates
+			like ss_begin<>(...) and ss_end<>(...) (and emplace<>(...), insert<>(...) and erase<>(...)) which take a pointer parameter
+			and return a (bounds-checked) iterator that inherits the safety of the given pointer. mse::us::impl::gnii_vector<> also
+			supports "scope" iterators which are safe without any run-time overhead. mse::us::impl::gnii_vector<> is a data type that
+			is eligible to be shared between asynchronous threads. */
 			template<class _Ty, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/, template<typename> class _TTXScopeConstIterator/* = mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type*/>
 			class gnii_vector : private mse::impl::TOpaqueWrapper<std::vector<_Ty, _A> >, public us::impl::ContiguousSequenceContainerTagBase, public us::impl::LockableStructureContainerTagBase {
 			public:
@@ -2361,119 +2362,90 @@ namespace std {
 
 namespace mse {
 
-	template<typename _TVectorPointer>
-	auto ss_begin(const _TVectorPointer& owner_ptr) {
-		return owner_ptr->ss_begin(owner_ptr);
-	}
-	template<typename _TVectorPointer>
-	static auto ss_end(const _TVectorPointer& owner_ptr) {
-		return owner_ptr->ss_end(owner_ptr);
-	}
-	template<typename _TVectorPointer>
-	static auto ss_cbegin(const _TVectorPointer& owner_ptr) {
-		return owner_ptr->ss_cbegin(owner_ptr);
-	}
-	template<typename _TVectorPointer>
-	static auto ss_cend(const _TVectorPointer& owner_ptr) {
-		return owner_ptr->ss_cend(owner_ptr);
-	}
-	template<typename _TVectorPointer>
-	static auto ss_rbegin(const _TVectorPointer& owner_ptr) {
-		return owner_ptr->ss_rbegin(owner_ptr);
-	}
-	template<typename _TVectorPointer>
-	static auto ss_rend(const _TVectorPointer& owner_ptr) {
-		return owner_ptr->ss_rend(owner_ptr);
-	}
-	template<typename _TVectorPointer>
-	static auto ss_crbegin(const _TVectorPointer& owner_ptr) {
-		return owner_ptr->ss_crbegin(owner_ptr);
-	}
-	template<typename _TVectorPointer>
-	static auto ss_crend(const _TVectorPointer& owner_ptr) {
-		return owner_ptr->ss_crend(owner_ptr);
-	}
-
-	template<typename _TVectorPointer1, typename pos_type, typename _Ty>
-	static auto insert(const _TVectorPointer1& this_ptr, const pos_type& pos, _Ty&& _X) {
-		return this_ptr->insert(this_ptr, pos, _X);
-	}
-	template<typename _TVectorPointer1, typename pos_type, typename _Ty>
-	static auto insert(const _TVectorPointer1& this_ptr, const pos_type& pos, const _Ty& _X = _Ty()) {
-		return this_ptr->insert(this_ptr, pos, _X);
-	}
-	template<typename _TVectorPointer1, typename pos_type, typename size_type, typename _Ty>
-	static auto insert(const _TVectorPointer1& this_ptr, const pos_type& pos, const size_type& _M, const _Ty& _X) {
-		return this_ptr->insert(this_ptr, pos, _M, _X);
-	}
-	template<typename _TVectorPointer1, typename pos_type, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
-	static auto insert(const _TVectorPointer1& this_ptr, const pos_type& pos, const _Iter& _First, const _Iter& _Last) {
-		return this_ptr->insert(this_ptr, pos, _First, _Last);
-	}
-	template<typename _TVectorPointer1, typename pos_type, typename _Ty>
-	static auto insert(const _TVectorPointer1& this_ptr, const pos_type& pos, _XSTD initializer_list<_Ty> _Ilist) {
-		return this_ptr->insert(this_ptr, pos, _Ilist);
-	}
-	template<typename _TVectorPointer1, typename pos_type, class ..._Valty>
-	static auto emplace(const _TVectorPointer1& this_ptr, const pos_type& pos, _Valty&& ..._Val)
-	{	// insert by moving _Val at _Where
-		return this_ptr->insert(this_ptr, pos, std::forward<_Valty>(_Val)...);
-	}
-	template<typename _TVectorPointer1, typename pos_type>
-	static auto erase(const _TVectorPointer1& this_ptr, const pos_type& pos) {
-		return this_ptr->erase(this_ptr, pos);
-	}
-	template<typename _TVectorPointer1, typename pos_type>
-	static auto erase(const _TVectorPointer1& this_ptr, const pos_type& start, const pos_type& end) {
-		return this_ptr->erase(this_ptr, start, end);
+	/* This macro provides an implementation of a free function that just calls the corresponding member function. The implementation
+	favors static member functions (over non-static ones) when available. */
+#define MSE_IMPL_FREE_FUNCTION_INVOKING_POSSIBLY_STATIC_MEMBER_FUNCTION(function_name) \
+	namespace impl { \
+		template<class T, class EqualTo, class ..._Valty> \
+		struct HasOrInheritsStatic##function_name##Method_impl \
+		{ \
+			template<class U, class V> \
+			static auto test(U* u) -> decltype(U::function_name(std::declval<_Valty>()...), std::declval<V*>(), bool(true)); \
+			template<typename, typename> \
+			static auto test(...)->std::false_type; \
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type; \
+		}; \
+		template<class T, class ..._Valty> \
+		struct HasOrInheritsStatic##function_name##Method : HasOrInheritsStatic##function_name##Method_impl< \
+			typename std::remove_reference<T>::type, typename std::remove_reference<T>::type, _Valty...>::type {}; \
+ \
+		template<typename _TContainerPointer1, class ..._Valty> \
+		static auto function_name##_helper1(std::true_type, const _TContainerPointer1& this_ptr, _Valty&& ..._Val) \
+		{ \
+			return this_ptr->function_name(this_ptr, std::forward<_Valty>(_Val)...); \
+		} \
+		template<typename _TContainerPointer1, class ..._Valty> \
+		static auto function_name##_helper1(std::false_type, const _TContainerPointer1& this_ptr, _Valty&& ..._Val) \
+		{ \
+			return this_ptr->function_name(std::forward<_Valty>(_Val)...); \
+		} \
+	} \
+	template<typename _TContainerPointer1, class ..._Valty> \
+	static auto function_name(const _TContainerPointer1& this_ptr, _Valty&& ..._Val) \
+	{ \
+		return impl::function_name##_helper1(typename impl::HasOrInheritsStatic##function_name##Method<impl::target_type<_TContainerPointer1>, _TContainerPointer1, _Valty...>::type(), this_ptr, std::forward<_Valty>(_Val)...); \
+	} \
+	template<typename _TContainerPointer1, class _Ty> \
+	static auto function_name(const _TContainerPointer1& this_ptr, const std::initializer_list<_Ty>& il) \
+	{ \
+		return impl::function_name##_helper1(typename impl::HasOrInheritsStatic##function_name##Method<impl::target_type<_TContainerPointer1>, _TContainerPointer1, const std::initializer_list<_Ty> >::type(), this_ptr, il); \
+	} \
+	template<typename _TContainerPointer1, class _TPos, class _Ty> \
+	static auto function_name(const _TContainerPointer1& this_ptr, const _TPos& pos, const std::initializer_list<_Ty>& il) \
+	{ \
+		return impl::function_name##_helper1(typename impl::HasOrInheritsStatic##function_name##Method<impl::target_type<_TContainerPointer1>, _TContainerPointer1, _TPos, const std::initializer_list<_Ty> >::type(), this_ptr, pos, il); \
 	}
 
-	template<typename _TVectorPointer1, typename size_type, typename _Ty>
-	void resize(const _TVectorPointer1& this_ptr, size_type _N, const _Ty& _X = _Ty()) {
+	/* The emplace(), insert() and erase() member functions (often) return an iterator. Some of the safe vectors don't support "implicit"
+	iterators (i.e. iterators generated from the implicit "this" pointer) and so make them static member functions that take an explicit
+	(safe) "this" pointer parameter in order to generate and return an "explicit" iterator. */
+	MSE_IMPL_FREE_FUNCTION_INVOKING_POSSIBLY_STATIC_MEMBER_FUNCTION(emplace);
+	MSE_IMPL_FREE_FUNCTION_INVOKING_POSSIBLY_STATIC_MEMBER_FUNCTION(insert);
+	MSE_IMPL_FREE_FUNCTION_INVOKING_POSSIBLY_STATIC_MEMBER_FUNCTION(erase);
+
+	template<typename _TContainerPointer1, typename size_type, typename _Ty>
+	void resize(const _TContainerPointer1& this_ptr, size_type _N, const _Ty& _X = _Ty()) {
 		this_ptr->resize(_N, _X);
 	}
-	template<typename _TVectorPointer1>
-	auto& front(const _TVectorPointer1& this_ptr) {	// return first element of mutable sequence
-		return this_ptr->front();
-	}
-	template<typename _TVectorPointer1>
-	auto& back(const _TVectorPointer1& this_ptr) {	// return last element of mutable sequence
-		return this_ptr->back();
-	}
-	template<typename _TVectorPointer1, typename _Ty>
-	void push_back(const _TVectorPointer1& this_ptr, _Ty&& _X) {
+	template<typename _TContainerPointer1, typename _Ty>
+	void push_back(const _TContainerPointer1& this_ptr, _Ty&& _X) {
 		this_ptr->push_back(std::forward<decltype(_X)>(_X));
 	}
-	template<typename _TVectorPointer1>
-	void pop_back(const _TVectorPointer1& this_ptr) {
+	template<typename _TContainerPointer1>
+	void pop_back(const _TContainerPointer1& this_ptr) {
 		this_ptr->pop_back();
 	}
-	template<typename _TVectorPointer1, class _Iter>
-	void assign(const _TVectorPointer1& this_ptr, const _Iter& _First, const _Iter& _Last) {	// assign [_First, _Last)
+	template<typename _TContainerPointer1, class _Iter>
+	void assign(const _TContainerPointer1& this_ptr, const _Iter& _First, const _Iter& _Last) {	// assign [_First, _Last)
 		this_ptr->assign(_First, _Last);
 	}
-	template<typename _TVectorPointer1, typename size_type, typename _Ty>
-	void assign(const _TVectorPointer1& this_ptr, size_type _N, const _Ty& _X = _Ty()) {
+	template<typename _TContainerPointer1, typename size_type, typename _Ty>
+	void assign(const _TContainerPointer1& this_ptr, size_type _N, const _Ty& _X = _Ty()) {
 		this_ptr->assign(_N, _X);
 	}
 
-	template<typename _TVectorPointer1, class ..._Valty>
-	void emplace_back(const _TVectorPointer1& this_ptr, _Valty&& ..._Val)
+	template<typename _TContainerPointer1, class ..._Valty>
+	void emplace_back(const _TContainerPointer1& this_ptr, _Valty&& ..._Val)
 	{	// insert by moving into element at end
 		this_ptr->emplace_back(std::forward<_Valty>(_Val)...);
 	}
-	template<typename _TVectorPointer1>
-	void clear(const _TVectorPointer1& this_ptr) {
+	template<typename _TContainerPointer1>
+	void clear(const _TContainerPointer1& this_ptr) {
 		this_ptr->clear();
 	}
-	template<typename _TVectorPointer1, typename _Ty>
-	void assign(const _TVectorPointer1& this_ptr, _XSTD initializer_list<_Ty> _Ilist) {	// assign initializer_list
+	template<typename _TContainerPointer1, typename _Ty>
+	void assign(const _TContainerPointer1& this_ptr, _XSTD initializer_list<_Ty> _Ilist) {	// assign initializer_list
 		this_ptr->assign(_Ilist);
-	}
-	template<typename _TVectorPointer1, typename size_type>
-	auto& at(const _TVectorPointer1& this_ptr, size_type _Pos)
-	{	// subscript mutable sequence with checking
-		return this_ptr->at(_Pos);
 	}
 
 

@@ -428,11 +428,15 @@ void msetl_example2() {
 		modified) contents back to the original owner. */
 
 		auto xs_nii_vector1_xscpobj = mse::make_xscope(mse::nii_vector<int>{ 1, 2, 3 });
-		/* first we demonstrate some resizing operations on the nii_vector<> */
+
+		/* First we demonstrate some resizing operations on the nii_vector<>. */
+		/* Note that the standard emplace(), insert() and erase() member functions return an iterator. Since nii_vector<> doesn't
+		support "implicit" iterators (i.e. iterators generated from the native "this" pointer) those operations are provided by
+		free functions that take an explicit (safe) "this" pointer used to generate and return an explicit iterator. */
 		mse::push_back(&xs_nii_vector1_xscpobj, 4/*value*/);
 		mse::erase(&xs_nii_vector1_xscpobj, 2/*position index*/);
 		mse::insert(&xs_nii_vector1_xscpobj, 1/*position index*/, 5/*value*/);
-		mse::insert(&xs_nii_vector1_xscpobj, 0/*position index*/, { 6, 7, 8}/*value*/);
+		mse::insert(&xs_nii_vector1_xscpobj, 0/*position index*/, { 6, 7, 8 }/*value*/);
 		mse::emplace(&xs_nii_vector1_xscpobj, 2/*position index*/, 9/*value*/);
 
 		const auto nii_vector1_expected = mse::nii_vector<int>{ 6, 7, 9, 8, 1, 5, 2, 4 };

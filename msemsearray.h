@@ -2975,12 +2975,6 @@ namespace mse {
 					return contained_array().back();
 				}
 
-				void assign(const _Ty& _Value)
-				{	// assign value to all elements
-					std::lock_guard<state_mutex_t> lock1(state_mutex1());
-					contained_array().assign(_Value);
-				}
-
 				void fill(const _Ty& _Value)
 				{	// assign value to all elements
 					std::lock_guard<state_mutex_t> lock1(state_mutex1());
@@ -3526,6 +3520,74 @@ namespace std {
 }
 
 namespace mse {
+
+	template<typename _TContainerPointer>
+	auto ss_begin(const _TContainerPointer& owner_ptr) {
+		return owner_ptr->ss_begin(owner_ptr);
+	}
+	template<typename _TContainerPointer>
+	static auto ss_end(const _TContainerPointer& owner_ptr) {
+		return owner_ptr->ss_end(owner_ptr);
+	}
+	template<typename _TContainerPointer>
+	static auto ss_cbegin(const _TContainerPointer& owner_ptr) {
+		return owner_ptr->ss_cbegin(owner_ptr);
+	}
+	template<typename _TContainerPointer>
+	static auto ss_cend(const _TContainerPointer& owner_ptr) {
+		return owner_ptr->ss_cend(owner_ptr);
+	}
+	template<typename _TContainerPointer>
+	static auto ss_rbegin(const _TContainerPointer& owner_ptr) {
+		return owner_ptr->ss_rbegin(owner_ptr);
+	}
+	template<typename _TContainerPointer>
+	static auto ss_rend(const _TContainerPointer& owner_ptr) {
+		return owner_ptr->ss_rend(owner_ptr);
+	}
+	template<typename _TContainerPointer>
+	static auto ss_crbegin(const _TContainerPointer& owner_ptr) {
+		return owner_ptr->ss_crbegin(owner_ptr);
+	}
+	template<typename _TContainerPointer>
+	static auto ss_crend(const _TContainerPointer& owner_ptr) {
+		return owner_ptr->ss_crend(owner_ptr);
+	}
+
+	template<typename _TContainerPointer1>
+	auto& front(const _TContainerPointer1& this_ptr) {	// return first element of mutable sequence
+		return this_ptr->front();
+	}
+	template<typename _TContainerPointer1>
+	auto& back(const _TContainerPointer1& this_ptr) {	// return last element of mutable sequence
+		return this_ptr->back();
+	}
+	template<typename _TContainerPointer1, typename size_type>
+	auto& at(const _TContainerPointer1& this_ptr, size_type _Pos)
+	{	// subscript mutable sequence with checking
+		return this_ptr->at(_Pos);
+	}
+	template<typename _TContainerPointer1, typename _Ty>
+	void fill(const _TContainerPointer1& this_ptr, const _Ty& _Value)
+	{	// assign value to all elements
+		this_ptr->fill(_Value);
+	}
+	template<typename _TContainerPointer1>
+	auto size(const _TContainerPointer1& this_ptr) _NOEXCEPT
+	{	// return length of sequence
+		return this_ptr->size();
+	}
+	template<typename _TContainerPointer1>
+	auto max_size(const _TContainerPointer1& this_ptr) _NOEXCEPT
+	{	// return maximum possible length of sequence
+		return this_ptr->max_size();
+	}
+	template<typename _TContainerPointer1>
+	auto empty(const _TContainerPointer1& this_ptr) _NOEXCEPT
+	{	// test if sequence is empty
+		return this_ptr->empty();
+	}
+
 
 	/* xscope_nii_array<> is the scope version of nii_array<> (which unlike nii_array<>, can hold scope objects). */
 	template<class _Ty, size_t _Size>
