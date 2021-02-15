@@ -2912,7 +2912,7 @@ usage example:
     
         auto xs_nii_vector1_xscpobj = mse::make_xscope(mse::nii_vector<int>{ 1, 2, 3 });
         /* first we demonstrate some resizing operations on the nii_vector<> */
-        xs_nii_vector1_xscpobj.push_back(4);
+        mse::push_back(&xs_nii_vector1_xscpobj, 4/*value*/);
         mse::erase(&xs_nii_vector1_xscpobj, 2/*position index*/);
         mse::insert(&xs_nii_vector1_xscpobj, 1/*position index*/, 5/*value*/);
         mse::insert(&xs_nii_vector1_xscpobj, 0/*position index*/, { 6, 7, 8}/*value*/);
