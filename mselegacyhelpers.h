@@ -14,6 +14,7 @@
 
 #ifndef MSE_LEGACYHELPERS_DISABLED
 #include "msepoly.h"
+#include "msefunctional.h"
 #include <cstring>
 #else // !MSE_LEGACYHELPERS_DISABLED
 #include <stdlib.h>
