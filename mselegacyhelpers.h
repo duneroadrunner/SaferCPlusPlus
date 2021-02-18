@@ -123,8 +123,6 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_IF_ENABLED(x) x
 #define MSE_LH_IF_DISABLED(x)
 
-#endif /*MSE_LEGACYHELPERS_DISABLED*/
-
 namespace mse {
 	namespace lh {
 
@@ -853,6 +851,8 @@ namespace mse {
 		}
 	}
 }
+
+#endif /*MSE_LEGACYHELPERS_DISABLED*/
 
 #ifdef _MSC_VER
 #pragma warning( pop )  
