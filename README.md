@@ -2,7 +2,7 @@ Feb 2021
 
 ### Overview
 
-"SaferCPlusPlus" is essentially a collection of safe data types intended to facilitate memory and data race safe C++ programming. This library is intended to work with and be complimentary to the Core Guidelines lifetime checker over its various stages of development and availability. (Including situations where the lifetime checker is not available at all.)
+"SaferCPlusPlus" is essentially a collection of safe data types intended to facilitate memory and data race safe C++ programming. This library is intended to work with and be complimentary to the Core Guidelines lifetime checker or other safety assuring static analyzers, like [scpptool](https://github.com/duneroadrunner/scpptool), over their various stages of development and availability. (Including situations where they are not available at all.)
 
 The library's elements are designed, as much as possible, to seamlessly integrate with all manner of existing and future C++ code. It includes things like:
 
@@ -16,7 +16,7 @@ The library's elements are designed, as much as possible, to seamlessly integrat
 
 - Replacements for native pointers/references with various flexibility and performance trade-offs. 
 
-Historically, C++ has been (famously) not a memory-safe language. The key vexing issue being "use-after-free" (or "dangling reference") bugs. The lifetime checker aims to eliminate these bugs by restricting the ways C++ reference types can be used to those that can, in general, be verified to be safe at compile-time. At the time of this writing (Aug 2018) the lifetime checker still has a [ways to go](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/lifetime%20checker%20observations%20-%20Jun%202018.md) before achieving its goal of memory safety without unnecessary false positives. In the meantime you can replace your potentially unsafe C++ elements with corresponding substitutes in this library to achieve memory safety in a manner designed to be future-compatible with an eventually completed lifetime checker. 
+While a "static safety analyzer/enforcer" like the Core Guidelines lifetime checker or scpptool (neither of which, at the time of writing (Feb 2021), is entirely complete) would be required to ensure complete safety, the SaferCPlusPlus library elements have a lot of safety enforcement already built in. The library is extensive enough that most existing uses of unsafe C++ elements can be replaced. 
 
 Besides zero-overhead pointers that enforce some of the necessary restrictions not yet (at the time of writing) implemented in the lifetime checker, the library provides a reference counting pointer that's smaller and faster than `std::shared_ptr<>`, and an unrestricted pointer that ensures memory safety via run-time checks. The latter two being not (yet) provided by the Guidelines Support Library, but valuable in the context of having to work around the somewhat [draconian restrictions](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md) imposed by the (eventual completed) lifetime checker.
 
