@@ -2,7 +2,7 @@ Feb 2021
 
 ### Overview
 
-"SaferCPlusPlus" is essentially a collection of safe data types intended to facilitate memory and data race safe C++ programming. This library is intended to work with and be complimentary to the Core Guidelines lifetime checker over its various stages of development and availability. (Including situations where the lifetime checker is not available at all.)
+"SaferCPlusPlus" is essentially a collection of safe data types intended to facilitate memory and data race safe C++ programming. This library is intended to work with and be complimentary to the Core Guidelines lifetime checker or other safety assuring static analyzers, like [scpptool](https://github.com/duneroadrunner/scpptool), over their various stages of development and availability. (Including situations where they are not available at all.)
 
 The library's elements are designed, as much as possible, to seamlessly integrate with all manner of existing and future C++ code. It includes things like:
 
@@ -16,7 +16,7 @@ The library's elements are designed, as much as possible, to seamlessly integrat
 
 - Replacements for native pointers/references with various flexibility and performance trade-offs. 
 
-Historically, C++ has been (famously) not a memory-safe language. The key vexing issue being "use-after-free" (or "dangling reference") bugs. The lifetime checker aims to eliminate these bugs by restricting the ways C++ reference types can be used to those that can, in general, be verified to be safe at compile-time. At the time of this writing (Aug 2018) the lifetime checker still has a [ways to go](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/lifetime%20checker%20observations%20-%20Jun%202018.md) before achieving its goal of memory safety without unnecessary false positives. In the meantime you can replace your potentially unsafe C++ elements with corresponding substitutes in this library to achieve memory safety in a manner designed to be future-compatible with an eventually completed lifetime checker. 
+While a "static safety analyzer/enforcer" like the Core Guidelines lifetime checker or scpptool (neither of which, at the time of writing (Feb 2021), is entirely complete) would be required to ensure complete safety, the SaferCPlusPlus library elements have a lot of safety enforcement already built in. The library is extensive enough that most existing uses of unsafe C++ elements can be replaced. 
 
 Besides zero-overhead pointers that enforce some of the necessary restrictions not yet (at the time of writing) implemented in the lifetime checker, the library provides a reference counting pointer that's smaller and faster than `std::shared_ptr<>`, and an unrestricted pointer that ensures memory safety via run-time checks. The latter two being not (yet) provided by the Guidelines Support Library, but valuable in the context of having to work around the somewhat [draconian restrictions](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md) imposed by the (eventual completed) lifetime checker.
 
@@ -151,7 +151,7 @@ Tested with msvc2019(v16.5.4), g++9.3.0 and clang++10.0.0. Versions of g++ prior
 
 The library was designed to help reduce or eliminate the potential for invalid memory accesses and data races in general C++ code. The general strategy is simply to substitute potentially unsafe C++ elements with compatible safe replacements from the library. The library does not impose any particular paradigm or code structure. (Though more modern coding styles that de-emphasize explicit use of iterators may result in better performance.)
 
-When a completed lifetime checker is/becomes available, some of the most used elements of the library (namely the "scope" pointer elements) will be rendered redundant. At the time of this writing (Aug 2018), it seems that it may still be some time before we arrive at that point. But when the time comes, code using the pointer/reference types in this library should, unlike "regular" C++ code, already be compliant with the restrictions that will be imposed by a completed lifetime checker. So you can think of the use of this library as a method of "future-proofing" your code for a time when it may become standard practice to automatically reject C++ code that isn't approved by the lifetime checker.
+When a completed static safety enforcer (like the lifetime checker or [scpptool](https://github.com/duneroadrunner/scpptool)) is/becomes available, some of the most used elements of the library (namely the "scope" pointer elements) may be rendered largely redundant. At such time, code using the pointer/reference types in this library should, unlike "regular" C++ code, already be compliant with the restrictions that will be imposed by such a completed static safety enforcer. So you can think of the use of this library as a method of "future-proofing" your code for a time when it may become standard practice to automatically reject C++ code that isn't approved by a static safety enforcer.
 
 While using the library can incur a modest performance penalty, because the library elements are largely compatible with their native counterparts, they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them, for example, to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.
 
@@ -2681,7 +2681,7 @@ usage example:
 
 ### nii_array
 
-Due to their iterators, `std::array<>`s (and `mstd::array<>`s) are not, in general, safe to share among threads. `nii_array<>` is a "stripped down" array that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. "Explicit" iterators are supported. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the `nii_array<>`. So for example, instead of a `begin()` member function (that takes no parameters), you can obtain an iterator using the (generic) `make_begin_iterator(...)` function that takes as an argument a (safe) pointer to the array.  
+Due to their iterators, `std::array<>`s (and `mstd::array<>`s) are not, in general, safe to share among threads. `nii_array<>` is a "stripped down" array that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. "Explicit" iterators are supported. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the `nii_array<>`. So for example, instead of a `begin()` member function (that takes no parameters), you can obtain an iterator using the (generic) `make_begin_iterator(...)` free function that takes as an argument a (safe) pointer to the array.  
 
 `nii_array<>`s are swappable with `mstd::array<>`s (and `std::array<>`s).
 
@@ -2753,11 +2753,11 @@ usage example:
 
 The library provides a number of vector types. Like their [array](#arrays) counterparts, [`mstd::vector<>`](#vector) is a memory-safe drop-in replacement for `std::vector<>` and [`nii_vector<>`](#nii_vector) is a vector that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads.
 
-But unlike (fixed-size) arrays, dynamic containers like (resizable) vectors present an extra memory safety challenge in that the container may be modified/resized so that an element in the container might be eliminated, or moved to a different location, while there are still references (iterators) targeting the element. This results in dynamic containers having additional overhead (for safety mechanisms) and/or usage restrictions. For this reason, directly referencing elements in these (resizable) vectors is discouraged. You may instead move the vector contents to a (more efficient) "non-resizable" vector and access the elements from that container. A [`fixed_nii_vector<>`](#fixed_nii_vector) is provided, but generally you'll want to use [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector). Upon construction it "borrows" the contents of a specified vector and returns the (possibly modified) contents upon destruction. The premise here is that the moving of a vector's contents is an inexpensive operation that might be expected to be completely optimized out in cases where the contents are returned to their original location. Like arrays, fixed-size vectors support (efficient) [scope iterators](#xscope_iterator).
+But unlike (fixed-size) arrays, dynamic containers like (resizable) vectors present an extra memory safety challenge in that the container may be modified/resized so that an element in the container might be eliminated, or moved to a different location, while there are still references (iterators) targeting the element. This results in dynamic containers having additional overhead (for safety mechanisms) and/or usage restrictions. For this reason, directly referencing elements in these (resizable) vectors is discouraged. You may instead move the vector contents to a (more efficient) "non-resizable" vector and access the elements from that container. A [`fixed_nii_vector<>`](#fixed_nii_vector) is provided, but generally you'll want to use [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector). Upon construction it "borrows" the contents of a specified vector and returns the (possibly modified) contents upon destruction. The premise here is that the moving of a vector's contents is an inexpensive operation that might be expected to be completely optimized away in cases where the contents are returned to their original location. Like arrays, fixed-size vectors support (efficient) [scope iterators](#xscope_iterator).
 
 So to restate, the idea is to avoid referencing elements in dynamic containers like resizable vectors. To access (or hold references to) the elements, move the contents (if only temporarily) to a non-dynamic container, like a fixed-size vector.
 
-But if there are occasions when you want to perform a dynamic/resizing operation (like inserting or removing elements) while holding references to individual elements, traditional vectors aren't ideal for this as such operations can invalidate any outstanding iterators. Traditionally a list container might be considered more appropriate for these situations as its iterators aren't as prone to being invalidated. But lists are generally not as "cache friendly" as vectors, which can be an issue when performance is a priority. So the library also includes [`ivector<>`](#ivector), a vector whose iterators behave like list iterators. That is, they don't get invalidated by insert/delete/resize vector operations unless the element they were pointing to is deleted, and after any such operation, they will continue to point to the same item, which may then be in a different position in the vector.
+But if there are occasions when you want to perform a dynamic/resizing operation (like inserting or removing elements) while holding references to individual elements, traditional vectors aren't ideal for this as such operations can invalidate any outstanding iterators. Traditionally a list container might be considered more appropriate for these situations as its iterators tend to remain intact after insertion/removal operations. But lists are generally not as "cache friendly" as vectors, which can be an issue when performance is a priority. So the library also includes [`ivector<>`](#ivector), a vector whose iterators behave like list iterators. That is, they don't get invalidated by insert/delete/resize vector operations unless the element they were pointing to is deleted, and after any such operation, they will continue to point to the same item, which may then be in a different position in the vector.
 
 And remember that you can use ["random access sections"](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
@@ -2778,25 +2778,17 @@ usage example:
         /* These two vectors should be completely interchangeable. The difference being that mv should throw
         an exception on any attempt to access invalid memory. */
         
-        
-        /* mse::us::msevector is not quite as safe as mse::mstd::vector in the following way: */
-        
         std::vector<int>::iterator sv1_it;
-        mse::us::msevector<int>::ss_iterator_type msev1_it; // bounds checked iterator just like mse::mstd::vector<int>::iterator
         mse::mstd::vector<int>::iterator mv1_it;
         {
             std::vector<int> sv1 = { 1, 2, 3 };
             sv1_it = sv1.begin();
-            
-            mse::us::msevector<int> msev1 = { 1, 2, 3 };
-            msev1_it = msev1.ss_begin();
             
             mse::mstd::vector<int> mv1 = { 1, 2, 3 };
             mv1_it = mv1.begin();
         }
         
         // (*sv1_it) = 4; // not good
-        // (*msev1_it) = 4; // not good
         
         try {
             /* At this point, mv1's data has not actually been deallocated/destructed yet because it "knows" that there
@@ -2812,7 +2804,9 @@ usage example:
 
 ### nii_vector
 
-Like its array counterpart, [`nii_array<>`](#nii_array), `nii_vector<>` is a vector that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. You can obtain "explicit" iterators using the (generic) `make_begin_iterator(...)` function that takes as an argument a (safe) pointer to the vector, but directly accessing the elements of an `nii_vector<>` is discouraged. Prefer instead to access (or hold references to) vector elements by using an [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector).
+Like its array counterpart, [`nii_array<>`](#nii_array), `nii_vector<>` is a vector that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. You can obtain "explicit" iterators using the (generic) `make_begin_iterator(...)` free function that takes as an argument a (safe) pointer to the vector, but directly accessing the elements of an `nii_vector<>` is discouraged. Prefer instead to access (or hold references to) vector elements by using an [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector).
+
+Note that the standard vector `insert()`, `erase()` and `emplace()` member functions return "implicit" iterators which, again, `nii_vector<>` does not support. Instead there are free function counterparts that take a (safe) pointer to the container as their first argument which is used to generate and return an "explicit" iterator (as demonstrated in the usage example).
 
 `nii_vector<>`s are swappable with `mstd::vector<>`s (and `std::vector<>`s).
 
@@ -2905,11 +2899,11 @@ usage example:
 ```
 
 ### xscope_fixed_nii_vector
-`xscope_fixed_nii_vector<>` is just the [scope](#scope-pointers) version of [`fixed_nii_vector<>`](#fixed_nii_vector). So unlike `fixed_nii_vector<>`, `xscope_fixed_nii_vector<>` supports elements that are scope types. But as a scope type itself, `xscope_fixed_nii_vector<>` is subject to the restrictions of scope objects.
+`xscope_fixed_nii_vector<>` is just the [scope](#scope-pointers) version of [`fixed_nii_vector<>`](#fixed_nii_vector). So unlike `fixed_nii_vector<>`, `xscope_fixed_nii_vector<>` supports elements of scope type. But as a scope type itself, `xscope_fixed_nii_vector<>` is subject to the restrictions of scope objects.
 
 ### xscope_borrowing_fixed_nii_vector
 
-`xscope_borrowing_fixed_nii_vector<>` is a kind of [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector) that, at construction, "borrows" (or "takes" by moving) the contents of a specified existing ([scope object](#scope-pointers)) vector, then, upon destruction "returns" the (possibly modified) contents back to the original owner.
+`xscope_borrowing_fixed_nii_vector<>` is a kind of [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector) that, at construction, "borrows" (or "takes" by moving) the contents of a specified (via [scope pointer](#scope-pointers)) existing vector, then, upon destruction "returns" the (possibly modified) contents back to the original owner.
 
 usage example:
 ```cpp
@@ -2920,7 +2914,10 @@ usage example:
     
         auto xs_nii_vector1_xscpobj = mse::make_xscope(mse::nii_vector<int>{ 1, 2, 3 });
         /* first we demonstrate some resizing operations on the nii_vector<> */
-        xs_nii_vector1_xscpobj.push_back(4);
+        /* Note that the standard emplace(), insert() and erase() member functions return an iterator. Since nii_vector<> doesn't
+        support "implicit" iterators (i.e. iterators generated from the native "this" pointer) those operations are provided by
+        free functions that take an explicit (safe) "this" pointer used to generate and return an explicit iterator. */
+        mse::push_back(&xs_nii_vector1_xscpobj, 4/*value*/);
         mse::erase(&xs_nii_vector1_xscpobj, 2/*position index*/);
         mse::insert(&xs_nii_vector1_xscpobj, 1/*position index*/, 5/*value*/);
         mse::insert(&xs_nii_vector1_xscpobj, 0/*position index*/, { 6, 7, 8}/*value*/);
@@ -3007,6 +3004,150 @@ usage example:
 
         /* Btw, the iterators are compatible with stl algorithms, like any other stl iterators. */
         std::sort(v.begin(), v.end());
+    }
+```
+
+#### structure locking
+
+While the preferred method for accessing elements of a resizable vector is via [`xscope_borrowing_fixed_nii_vector`](#xscope_borrowing_fixed_nii_vector), note that constructing an `xscope_borrowing_fixed_nii_vector` requires a non-const [scope pointer](#scope-pointers) to the resizable vector. For situations where such a non-const scope pointer is not available, the elements can be accessed directly from the resizable vector, potentially with a little more overhead, and some restrictions. 
+
+Like the arrays and fixed-size vectors, the provided resizable vectors also support [scope iterators](#xscope_iterator). But note that the scope iterators of resizable vectors have some somewhat subtle usage constraints that scope iterators of fixed-size vectors don't have. For safety/performance reasons, scope iterators of "dynamic" containers, like resizable vectors, have the side effect, while they exist, of "structure locking" the associated container. That is, they put the container in a state such that it cannot be resized or relocated, while still allowing the existing contents of the container to be modified or replaced. The "structure lock" is released upon destruction of the scope iterator.
+
+So when you obtain a [scope pointer](#scope-pointers) to a vector element from a scope iterator, the assurance that the scope pointer's target element remains valid relies on the fact that the resizable vector is structure locked for the duration of the scope pointer's existence. Since the structure lock is maintained by the scope iterator, the scope iterator must be assured to outlive the obtained scope pointer. This means that obtaining a scope pointer from a temporary/rvalue vector scope iterator is not supported. (Attempting to do so results in a compile error.) Again, this is not the case for array or fixed-size vector scope iterators. 
+
+### mtnii_vector
+
+[`nii_vector<>`](#nii_vector) has a subtle restriction. Unlike the other vectors, its [scope const iterator](#xscope_iterator) doesn't "[structure lock](#structure-locking)" the vector and therefore, you cannot obtain a [scope pointer](#txscopefixedpointer) from it. The reason it doesn't do structure locking is because const iterators to the same vector can be created in multiple different threads simultaneously and `nii_vector<>` does not have a thread-safe structure locking mechanism.
+
+So the library provides `mtnii_vector<>`, essentially a version of `nii_vector<>` that does have a thread-safe (atomic) structure locking mechanism, and so doesn't suffer the same restriction. The thread-safe locking mechanism does incur some extra cost, so you'd generally only want to use it when you need to share a resizable vector among asynchronous threads. (So presumably rarely.)
+
+usage example:
+
+```cpp
+    #include "msemsevector.h"
+    #include "mseasyncshared.h"
+    #include "mseregistered.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        /* mtnii_vector<> is a safe vector that is eligible to be (safely) shared between asynchronous threads. */
+
+        typedef mse::mtnii_vector<mse::mtnii_string> mtnii_vector1_t;
+
+        mse::TRegisteredObj<mtnii_vector1_t> rg_vo1;
+        for (size_t i = 0; i < 5; i += 1) {
+            rg_vo1.push_back("some text");
+        }
+        mse::TRegisteredPointer<mtnii_vector1_t> vo1_regptr1 = &rg_vo1;
+
+        /* mtnii_vector<> does not have a begin() member function that returns an "implicit" iterator. You can obtain an
+        iterator using the make_begin_iterator() et al. functions, which take a (safe) pointer to the container. */
+        auto iter1 = mse::make_begin_iterator(vo1_regptr1);
+        auto citer1 = mse::make_end_const_iterator(vo1_regptr1);
+        citer1 = iter1;
+        rg_vo1.emplace(vo1_regptr1, citer1, "some other text");
+        rg_vo1.insert(vo1_regptr1, citer1, "some other text");
+        mse::mtnii_string str1 = "some other text";
+        rg_vo1.insert(vo1_regptr1, citer1, str1);
+
+        class A {
+        public:
+            A() {}
+            int m_i = 0;
+        };
+        /* Here we're declaring that A can be safely shared between asynchronous threads. */
+        typedef mse::rsv::TAsyncShareableAndPassableObj<A> shareable_A_t;
+
+        /* When the element type of an mtnii_vector<> is marked as "async shareable", the mtnii_vector<> itself is
+        (automatically) marked as async shareable as well and can be safely shared between asynchronous threads
+        using "access requesters". */
+        auto access_requester1 = mse::make_asyncsharedv2readwrite<mse::mtnii_vector<shareable_A_t>>();
+        auto access_requester2 = mse::make_asyncsharedv2readwrite<mtnii_vector1_t>();
+
+        /* If the element type of an mtnii_vector<> is not marked as "async shareable", then neither is the
+        mtnii_vector<> itself. So attempting to create an "access requester" using it would result in a compile
+        error. */
+        //auto access_requester3 = mse::make_asyncsharedv2readwrite<mse::mtnii_vector<A>>();
+        //auto access_requester4 = mse::make_asyncsharedv2readwrite<mse::mtnii_vector<mse::mstd::string>>();
+
+        typedef mse::mstd::vector<mse::mtnii_string> vector1_t;
+        vector1_t vo2 = { "a", "b", "c" };
+        /* mstd::vector<>s, for example, are not safely shareable between threads. But if its element type is
+        safely shareable, then the contents of the mse::mstd::vector<>, can be swapped with a corresponding
+        shareable mtnii_vector<>. Note that vector swaps are intrinsically fast operations. */
+        std::swap(vo2, *(access_requester2.writelock_ptr()));
+
+        {
+            /* If the vector is declared as a "scope" object (which basically indicates that it is declared
+            on the stack), then you can use "scope" iterators. While there are limitations on when they can
+            be used, scope iterators would be the preferred iterator type where performance is a priority
+            as they don't require extra run-time overhead to ensure that the vector has not been prematurely
+            deallocated. */
+
+            /* Here we're declaring a vector as a scope object. */
+            mse::TXScopeObj<mse::mtnii_vector<int> > vector1_xscpobj = mse::mtnii_vector<int>{ 1, 2, 3 };
+
+            {
+                /* Here we're obtaining a scope iterator to the vector. */
+                auto xscp_iter1 = mse::make_xscope_begin_iterator(&vector1_xscpobj);
+                auto xscp_iter2 = mse::make_xscope_end_iterator(&vector1_xscpobj);
+
+                std::sort(xscp_iter1, xscp_iter2);
+
+                /* Note that scope iterators to vectors (and other dynamic containers), "lock the structure" of the container
+                so that, for example, it cannot be resized. This allows us to obtain a scope pointer to the iterator's
+                target element. */
+                auto xscp_ptr1 = mse::xscope_pointer(xscp_iter1);
+                auto res3 = *xscp_ptr1;
+
+                auto xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+                xscp_citer3 = xscp_iter1;
+                xscp_citer3 = mse::make_xscope_begin_const_iterator(&vector1_xscpobj);
+                xscp_citer3 += 2;
+                auto res1 = *xscp_citer3;
+                auto res2 = xscp_citer3[0];
+            }
+            /* After all the scope pointers have gone out of scope, you may again perform operations that affect the container's
+            "structure" (i.e. size or capacity). */
+            vector1_xscpobj.push_back(4);
+        }
+    }
+```
+
+### stnii_vector
+
+`stnii_vector<>` is a "performance" version of [`mtnii_vector<>`](#mtnii_vector) that is not eligible to be shared among threads. Because scope iterators ["structure lock"](#structure-locking) the container when they are created, and because it's possible to simultaneously/concurrently create multiple (const) scope iterators in different threads, `mtnii_vector<>` employs a thread-safe (atomic) locking mechanism. This means that every operation that affects the size of an `mtnii_vector<>` makes a thread-safe (atomic) access operation. Since `stnii_vector<>` is not eligible to be shared among threads, it does not need to perform any costly thread-safe access operations. 
+
+While you might prefer `stnii_vector<>` to [`nii_vector<>`](#nii_vector) in cases where the vector won't be shared between asynchronous threads, using [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector) would still be the preferred method of accessing (or holding references to) the elements.
+
+usage example:
+```cpp
+    #include "msescope.h"
+    #include "msemsevector.h"
+    #include "msemstdvector.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        /* stnii_vector<> is just a version of mtnii_vector<> that is not eligible to be shared between threads (and has
+        a little less overhead as a result). */
+
+        mse::TXScopeObj<mse::stnii_vector<int> > vector1_xscpobj = mse::stnii_vector<int>{ 1, 2, 3 };
+
+        {
+            mse::TXScopeFixedConstPointer<mse::stnii_vector<int> > xscptr = &vector1_xscpobj;
+            auto xscp_citer1 = mse::make_xscope_begin_const_iterator(xscptr);
+            xscp_citer1 += 2;
+            auto xscp_cptr1 = mse::xscope_const_pointer(xscp_citer1);
+            auto res1 = *xscp_cptr1;
+        }
+        vector1_xscpobj.push_back(4);
+
+        /* stnii_vector<>s can be (efficiently) swapped with mtnii_vector<>s. */
+        auto mtniiv1 = mse::mtnii_vector<int>();
+        std::swap(vector1_xscpobj, mtniiv1);
+        /* Or mstd::vector<>s. */
+        auto mstdv1 = mse::mstd::vector<int>();
+        std::swap(vector1_xscpobj, mstdv1);
     }
 ```
 
@@ -3517,7 +3658,7 @@ usage example:
 
 ### mt_optional
 
-The reason is subtle, but the implementation [`mstd::optional<>`](#optional) uses to support the ability to obtain a scope (const) pointer to its contained element from a const reference to the `mstd::optional<>` makes it ineligible to be shared among threads. Analogous to [`nii_vector<>`](#nii_vector), `mt_optional<>` is a version that is [eligible to be shared](#asynchronously-shared-objects) among threads (when its contained element is eligible to be shared), at cost of slightly higher run-time overhead.
+The reason is subtle, but the implementation [`mstd::optional<>`](#optional) uses to support the ability to obtain a scope (const) pointer to its contained element from a const reference to the `mstd::optional<>` makes it ineligible to be shared among threads. Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` is a version that is [eligible to be shared](#asynchronously-shared-objects) among threads (when its contained element is eligible to be shared), at cost of slightly higher run-time overhead.
 
 usage example:
 
