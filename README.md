@@ -3785,28 +3785,44 @@ void main(int argc, char* argv[]) {
 
     mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
 
-    mse::TXScopeObj<mse::nii_vector<int> > xscope_nv1 = mse::nii_vector<int>{ 1, 2, 3 };
-    auto xscope_nv1_begin_iter = mse::make_xscope_begin_iterator(&xscope_nv1);
-    auto xscope_nv1_end_iter = mse::make_xscope_end_iterator(&xscope_nv1);
+    auto xscope_nv1 = mse::make_xscope(mse::nii_vector<int>{ 1, 2, 3 });
+
+    /* Here we declare a vector protected by an "excluse writer" access control wrapper. */
+    auto xscope_ewnv1 = mse::make_xscope(mse::make_xscope_exclusive_writer(mse::nii_vector<int>{ 1, 2, 3 }));
 
     {
-        /*  mse::for_each_ptr() is like std:::for_each() but instead of passing, to the given function, a reference
+        /*  mse::for_each_ptr() is like std::for_each() but instead of passing, to the given function, a reference
         to each item it passes a (safe) pointer to each item. The actual type of the pointer varies depending on the
         type of the given iterators. */
         typedef mse::for_each_ptr_type<decltype(ma1.begin())> item_ptr_t;
         mse::for_each_ptr(ma1.begin(), ma1.end(), [](item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
 
-        mse::for_each_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
+        mse::for_each_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
 
         /* A "scope range" version is also available that bypasses the use of iterators. As well as often being more
         convenient, it can theoretically be little more performance optimal. */
         typedef mse::xscope_range_for_each_ptr_type<decltype(&xscope_na1)> range_item_ptr_t;
         mse::xscope_range_for_each_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
 
-        /* Note that for performance (and safety) reasons, vectors may be "structure locked" for the duration of the loop.
-        That is, any attempt to modify the size of the vector during the loop may result in an exception. */
-        mse::for_each_ptr(xscope_nv1_begin_iter, xscope_nv1_end_iter, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
-        mse::xscope_range_for_each_ptr(&xscope_nv1, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
+        {
+            auto xscope_bfnv1 = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_vector(&xscope_nv1));
+            mse::xscope_range_for_each_ptr(&xscope_bfnv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+        }
+        {
+            /* Note that for performance (and safety) reasons, vectors may be "structure locked" for the duration of the loop.
+            That is, any attempt to modify the size of the vector during the loop may result in an exception. */
+            auto xscope_nv1_begin_iter = mse::make_xscope_begin_iterator(&xscope_nv1);
+            auto xscope_nv1_end_iter = mse::make_xscope_end_iterator(&xscope_nv1);
+            mse::for_each_ptr(xscope_nv1_begin_iter, xscope_nv1_end_iter, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+            mse::xscope_range_for_each_ptr(&xscope_nv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+        }
+        {
+            /* A vector protected by an "excluse writer" access control wrapper is ensured to remain unmodified while a
+            corresponding "access controlled const pointer" exists. */
+            auto xscope_ewnv1_cptr = mse::make_xscope_access_controlled_const_pointer(&xscope_ewnv1);
+            /* So looping over its elements is safe and efficient. */
+            mse::xscope_range_for_each_ptr(xscope_ewnv1_cptr, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+        }
     }
 }
 ```
