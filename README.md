@@ -3007,7 +3007,7 @@ usage example:
     }
 ```
 
-#### structure locking
+### structure locking
 
 While the preferred method for accessing elements of a resizable vector is via [`xscope_borrowing_fixed_nii_vector`](#xscope_borrowing_fixed_nii_vector), note that constructing an `xscope_borrowing_fixed_nii_vector` requires a non-const [scope pointer](#scope-pointers) to the resizable vector. For situations where such a non-const scope pointer is not available, the elements can be accessed directly from the resizable vector, potentially with a little more overhead, and some restrictions. 
 
@@ -3151,6 +3151,38 @@ usage example:
     }
 ```
 
+### exclusive writer protected dynamic containers
+
+As [noted previously](#mtnii_vector), unlike the other vectors, (for thread safety reasons) [`nii_vector<>`](#nii_vector)'s [scope const iterator](#xscope_iterator) doesn't "[structure lock](#structure-locking)" the vector and therefore, you cannot obtain a [scope pointer](#txscopefixedpointer) from it. However, an object protected by an "[excluse writer](#exclusive-writer-objects)" access control wrapper is ensured to remain unmodified while a corresponding "access controlled const pointer" exists. So it is safe to obtain a (const) scope pointer from a scope const iterator constructed from an "access controlled const pointer" of an `nii_vector<>` protected by an "excluse writer" access control wrapper.
+
+usage example:
+
+```cpp
+    #include "msemsevector.h"
+    
+    void main(int argc, char* argv[]) {
+        /* Unfortunately, you cannot obtain a direct scope const pointer to an nii_vector<> element from a scope const
+        pointer to the nii_vector<>. (nii_vector<> is the only one of the library's vectors that has this shortcoming.)
+        However, for vectors that are access controlled with an "exclusive writer" access policy, you can use an
+        "exclusive writer" const pointer to obtain a direct scope const pointer to a vector element. */
+        auto xs_ew_niivec1 = mse::make_xscope(mse::make_exclusive_writer(mse::nii_vector<int>{ 1, 2, 3 }));
+        // which can also be written as:
+        // mse::TXScopeObj<mse::TExclusiveWriterObj<mse::nii_vector<int> > > xs_ew_niivec1 = mse::nii_vector<int>{ 1, 2, 3 };
+        {
+            auto xs_ew_cptr1 = mse::make_xscope_access_controlled_const_pointer(xs_ew_niivec1);
+            /* The following scope iterator is of a type that reflects that it was constructed from an "exclusive writer"
+            const pointer. */
+            auto xs_citer1 = mse::make_xscope_begin_const_iterator(xs_ew_cptr1);
+            xs_citer1 += 2;
+            /* We can obtain a (zero-overhead) scope pointer from the (lvalue) iterator. */
+            auto xs_cptr1 = mse::xscope_const_pointer(xs_citer1);
+            auto val1 = *xs_cptr1;
+        }
+        /* Once the "access controlled const pointer" no longer exists, we can obtain an "access controlled 
+        (non-const) pointer" and modify the vector again. */
+        mse::push_back(mse::make_xscope_access_controlled_pointer(xs_ew_niivec1), 4);
+    }
+```
 
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
