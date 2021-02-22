@@ -1109,8 +1109,8 @@ void msetl_example2() {
 			functions expecting scope random access section arguments. */
 			class CD {
 			public:
-				typedef decltype(mse::make_xscope_random_access_const_section(mse::pointer_to(mse::TXScopeObj<mse::mtnii_vector<int> >
-					(mse::mtnii_vector<int>{ 1, 2, 3})))) xscope_ra_csection_t;
+				typedef decltype(mse::make_xscope_random_access_const_section(mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >
+					(mse::nii_vector<int>{ 1, 2, 3})))) xscope_ra_csection_t;
 				static bool second_is_longer(mse::rsv::TXScopeFParam<xscope_ra_csection_t> xscope_ra_csection1
 					, mse::rsv::TXScopeFParam<xscope_ra_csection_t> xscope_ra_csection2) {
 
@@ -1123,14 +1123,14 @@ void msetl_example2() {
 				}
 			};
 
-			mse::TXScopeObj<mse::mtnii_vector<int> > vector1(mse::mtnii_vector<int>{ 1, 2, 3});
+			mse::TXScopeObj<mse::nii_vector<int> > vector1(mse::nii_vector<int>{ 1, 2, 3});
 			auto xscope_ra_csection1 = mse::make_xscope_random_access_const_section(&vector1);
 			auto res1 = CD::second_is_longer(xscope_ra_csection1, mse::make_xscope_random_access_const_section(
-				mse::pointer_to(mse::TXScopeObj<mse::mtnii_vector<int> >(mse::mtnii_vector<int>{ 1, 2, 3, 4}))));
+				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
 			auto res2 = J::second_is_longer(xscope_ra_csection1, mse::make_xscope_random_access_const_section(
-				mse::pointer_to(mse::TXScopeObj<mse::mtnii_vector<int> >(mse::mtnii_vector<int>{ 1, 2, 3, 4}))));
+				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
 			auto res3 = CD::second_is_longer_any(xscope_ra_csection1, mse::make_xscope_random_access_const_section(
-				mse::pointer_to(mse::TXScopeObj<mse::mtnii_vector<int> >(mse::mtnii_vector<int>{ 1, 2, 3, 4}))));
+				mse::pointer_to(mse::TXScopeObj<mse::nii_vector<int> >(mse::nii_vector<int>{ 1, 2, 3, 4}))));
 		}
 #endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
@@ -1647,9 +1647,10 @@ void msetl_example2() {
 
 		mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
 
-		mse::TXScopeObj<mse::mtnii_vector<int> > xscope_nv1 = mse::mtnii_vector<int>{ 1, 2, 3 };
-		auto xscope_nv1_begin_iter = mse::make_xscope_begin_iterator(&xscope_nv1);
-		auto xscope_nv1_end_iter = mse::make_xscope_end_iterator(&xscope_nv1);
+		mse::TXScopeObj<mse::nii_vector<int> > xscope_nv1 = mse::nii_vector<int>{ 1, 2, 3 };
+
+		/* Here we declare a vector protected by an "excluse writer" access control wrapper. */
+		auto xscope_ewnv1 = mse::make_xscope(mse::make_xscope_exclusive_writer(mse::nii_vector<int>{ 1, 2, 3 }));
 
 		{
 			/* for_each_ptr() */
@@ -1667,10 +1668,25 @@ void msetl_example2() {
 			typedef mse::xscope_range_for_each_ptr_type<decltype(&xscope_na1)> range_item_ptr_t;
 			mse::xscope_range_for_each_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
 
-			/* Note that for performance (and safety) reasons, vectors may be "structure locked" for the duration of the loop.
-			That is, any attempt to modify the size of the vector during the loop may result in an exception. */
-			mse::for_each_ptr(xscope_nv1_begin_iter, xscope_nv1_end_iter, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
-			mse::xscope_range_for_each_ptr(&xscope_nv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+			{
+				auto xscope_fbnv1 = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_vector(&xscope_nv1));
+				mse::xscope_range_for_each_ptr(&xscope_fbnv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+			}
+			{
+				/* Note that for performance (and safety) reasons, vectors may be "structure locked" for the duration of the loop.
+				That is, any attempt to modify the size of the vector during the loop may result in an exception. */
+				auto xscope_nv1_begin_iter = mse::make_xscope_begin_iterator(&xscope_nv1);
+				auto xscope_nv1_end_iter = mse::make_xscope_end_iterator(&xscope_nv1);
+				mse::for_each_ptr(xscope_nv1_begin_iter, xscope_nv1_end_iter, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+				mse::xscope_range_for_each_ptr(&xscope_nv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+			}
+			{
+				/* The vector protected by an "excluse writer" access control wrapper is ensured to remain unmodified while a
+				corresponding "access controlled const pointer" exists. */
+				auto xscope_ewnv1_cptr = mse::make_xscope_access_controlled_const_pointer(&xscope_ewnv1);
+				/* So looping over its elements is safe and efficient. */
+				mse::xscope_range_for_each_ptr(xscope_ewnv1_cptr, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+			}
 		}
 		{
 			/* find_if_ptr() */

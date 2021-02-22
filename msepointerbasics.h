@@ -378,6 +378,12 @@ namespace mse {
 
 #define MSE_FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
 
+#define MSE_IMPL_FUNCTION_ALIAS_DECLARATION(new_alias_function, existing_function) \
+	template<typename ...Args> \
+	auto new_alias_function(Args&&...args) { \
+		return existing_function(std::forward<Args>(args)...); \
+	}
+
 	namespace impl {
 		template<typename _TPointer>
 		using target_type = typename std::remove_reference<decltype(*std::declval<_TPointer>())>::type;
