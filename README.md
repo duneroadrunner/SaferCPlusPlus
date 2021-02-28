@@ -2818,7 +2818,7 @@ usage example: (see the example for [`xscope_borrowing_fixed_nii_vector<>`](#xsc
 
 ### fixed_nii_vector
 
-A `fixed_nii_vector<>` is basically like an [`nii_array<>`](#nii_array) (i.e. not resizable) whose size is determined at construction rather than at compile-time. Note that while a `fixed_nii_vector<>` can (cheaply) "take" the contents of a dynamic/resizable vector during move construction, like a (fixed-size) array, attempts to move the contents out of a `fixed_nii_vector<>` would result in the contents being (less cheaply) copied.
+A `fixed_nii_vector<>` is basically like an [`nii_array<>`](#nii_array) (i.e. not resizable) whose size is determined at construction rather than at compile-time. (Except that unlike an array, a `fixed_nii_vector<>` can (cheaply) "take" the contents of a dynamic/resizable vector during move construction, leaving the source vector empty.)
 
 usage example:
 ```cpp
